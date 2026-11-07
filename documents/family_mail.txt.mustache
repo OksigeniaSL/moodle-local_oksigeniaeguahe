@@ -1,0 +1,77 @@
+{{!
+    Eguahe, the plain-text version of the e-mail to the family (multipart/alternative, next to correo.html.mustache).
+    Same texts, same order; links written out in full. Wrap nothing by hand: the mailer does it.
+}}{{#muestra}}[{{{muestra}}}]
+
+{{/muestra}}{{{titular}}} {{{nombres}}}.
+
+{{{entradilla_texto}}}
+{{#aviso}}
+
+{{{aviso.titulo}}} {{{aviso.texto}}}
+{{/aviso}}
+{{#boton_principal}}
+
+{{{texto}}}:
+{{{url_texto}}}
+{{/boton_principal}}
+{{#banda}}
+
+{{{rotulo_texto}}}
+{{{dia_semana}}} {{{dia_mes}}}
+{{{acto}}}
+{{{hora}}}
+{{{lugar}}}
+{{#personas}}
+{{{personas}}}
+{{/personas}}
+{{#boton}}
+
+{{{texto}}}:
+{{{url_texto}}}
+{{/boton}}
+{{#enlace}}
+
+{{{texto}}}:
+{{{url_texto}}}
+{{/enlace}}
+{{/banda}}
+{{#anfitriones}}
+
+{{{titulo_texto}}}
+{{#filas}}{{#personas}}
+{{{nombre}}} · {{{papel}}}
+{{#dice}}{{{dice}}}
+{{/dice}}{{/personas}}{{/filas}}
+{{/anfitriones}}
+{{#anfitriones_breve}}
+
+{{{titulo_texto}}}
+{{#personas}}
+{{{nombre}}} · {{{papel}}}
+{{/personas}}
+{{/anfitriones_breve}}
+{{#secciones}}
+
+{{{titulo_texto}}}
+{{{texto_plano}}}
+{{#enlace}}
+{{{texto}}}: {{{url_texto}}}
+{{/enlace}}
+{{/secciones}}
+{{#nota}}
+
+{{{nota}}}
+{{/nota}}
+
+--
+{{{centro.nombre}}}
+{{{centro.direccion}}}
+{{{centro.telefono}}} · {{{centro.correo}}}
+
+{{{pie.porque}}}
+{{{pie.datos_texto}}}: {{{pie.datos_url}}}
+{{#muestra_pie}}
+
+{{{muestra_pie}}}
+{{/muestra_pie}}

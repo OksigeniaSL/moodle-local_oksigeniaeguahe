@@ -1,0 +1,205 @@
+{{!
+    Eguahe, the e-mail to the family (confirmation, invitation and reminder share this template).
+    HTML e-mail: tables, inline styles, 600 px wide, tested in Chrome at 600 and 375 px, light, dark and inverted.
+    Everything with the centre's brand (plate, name and colour) and never Eguahe's. The child's sticker (a PNG made by
+    etiqueta.php) goes under the headline, one per child, with the name as alt text.
+    The colours under c.* come from the centre's one colour, computed on the server as on the family page.
+    Texts: to the family, «ustedes»; the buttons speak for the family («Abrir nuestra página»).
+
+    Example context (json): see ../trabajo/ejemplo-*.json
+}}<!doctype html>
+<html lang="{{lang}}" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{asunto}}</title>
+<!--[if mso]>
+<noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+<style>table, td, p, a, h1, h2, span { font-family: 'Segoe UI', Arial, sans-serif !important; }</style>
+<![endif]-->
+<style>
+{{#fuente_url}}
+@media screen { @font-face { font-family: 'Schibsted Grotesk'; src: url('{{fuente_url}}') format('woff2'); font-weight: 400 800; font-style: normal; } }
+{{/fuente_url}}
+:root { color-scheme: light dark; supported-color-schemes: light dark; }
+body { margin: 0 !important; padding: 0 !important; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+u + #body a { color: inherit; text-decoration: none; }
+@media (max-width: 620px) {
+  .eg-pad { padding-left: 20px !important; padding-right: 20px !important; }
+  .eg-pad-etq { padding-left: 4px !important; padding-right: 4px !important; }
+  .eg-h1 { font-size: 36px !important; letter-spacing: -0.8px !important; }
+  .eg-fecha { font-size: 30px !important; }
+  .eg-entradilla { font-size: 18px !important; }
+  .eg-h2 { font-size: 26px !important; }
+  .eg-boton-a { display: block !important; }
+  .eg-col { padding-left: 6px !important; padding-right: 6px !important; }
+}
+@media (prefers-color-scheme: dark) {
+  .eg-papel { background-color: #171413 !important; }
+  .eg-pared { background-color: {{c.oscuro.pared}} !important; }
+  .eg-sup { background-color: #211D1B !important; border-color: #36302D !important; }
+  .eg-tinta { color: #F3ECE6 !important; }
+  .eg-tinta-2 { color: #BBB0AA !important; }
+  .eg-enlace { color: {{c.oscuro.acento_texto}} !important; }
+  .eg-linea { border-color: #36302D !important; }
+  .eg-boton-td { background-color: {{c.oscuro.vivo}} !important; }
+  .eg-boton-a { color: {{c.oscuro.sobre_vivo}} !important; }
+  .eg-marca { background-color: {{c.oscuro.vivo}} !important; color: {{c.oscuro.sobre_vivo}} !important; }
+}
+/* Outlook.com and the Outlook apps, which add these attributes when they darken a message */
+[data-ogsb] .eg-papel { background-color: #171413 !important; }
+[data-ogsb] .eg-pared { background-color: {{c.oscuro.pared}} !important; }
+[data-ogsb] .eg-sup { background-color: #211D1B !important; }
+[data-ogsc] .eg-tinta { color: #F3ECE6 !important; }
+[data-ogsc] .eg-tinta-2 { color: #BBB0AA !important; }
+[data-ogsc] .eg-enlace { color: {{c.oscuro.acento_texto}} !important; }
+[data-ogsb] .eg-boton-td { background-color: {{c.oscuro.vivo}} !important; }
+[data-ogsc] .eg-boton-a { color: {{c.oscuro.sobre_vivo}} !important; }
+</style>
+</head>
+<body id="body" class="eg-papel" style="margin:0; padding:0; background-color:#FBF7F1; word-spacing:normal;">
+<div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">{{preencabezado}}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="eg-papel" bgcolor="#FBF7F1" style="width:100%; background-color:#FBF7F1;">
+<tr><td align="center" style="padding:0;">
+<!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px; margin:0 auto; font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+
+{{#muestra}}
+<tr><td class="eg-pared eg-tinta-2" bgcolor="{{c.pared}}" align="center" style="background-color:{{c.pared}}; padding:10px 20px 0; font-size:11px; line-height:16px; letter-spacing:1.5px; text-transform:uppercase; color:#5F5459;">{{muestra}}</td></tr>
+{{/muestra}}
+
+<!-- The centre: its logo on its own plate (readable when a client darkens the message) and its name -->
+<tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:22px 40px 0;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td style="vertical-align:middle;"><img src="{{centro.placa}}" width="{{centro.placa_ancho}}" height="{{centro.placa_alto}}" alt="{{^centro.nombre_visible}}{{centro.nombre}}{{/centro.nombre_visible}}" style="display:block; width:{{centro.placa_ancho}}px; height:{{centro.placa_alto}}px; border:0; font-size:16px; font-weight:700; color:#2B2226;"></td>
+    {{#centro.nombre_visible}}<td class="eg-tinta" style="vertical-align:middle; padding-left:12px; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</td>{{/centro.nombre_visible}}
+  </tr></table>
+</td></tr>
+
+<!-- The headline and the child's sticker: «Los esperamos,» and the name, handwritten on the sticker -->
+<tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:36px 40px 0;">
+  <h1 class="eg-tinta eg-h1" style="margin:0; font-size:46px; line-height:48px; font-weight:800; letter-spacing:-1.2px; color:#2B2226;">{{titular}}</h1>
+</td></tr>
+<tr><td class="eg-pared eg-pad-etq" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:4px 24px 0;">
+  {{#etiquetas_filas}}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:{{ancho_fila}}px;"><tr>
+    {{#etiquetas}}<td width="{{ancho}}" style="width:{{porcentaje}}%; vertical-align:top;"><img src="{{src}}" width="{{ancho}}" height="{{alto}}" alt="{{alt}}" style="display:block; width:100%; max-width:{{ancho}}px; height:auto; border:0; font-family:'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; font-size:40px; line-height:48px; color:#2B2226;"></td>{{/etiquetas}}
+  </tr></table>
+  {{/etiquetas_filas}}
+</td></tr>
+<tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:8px 40px 36px;">
+  <p class="eg-tinta eg-entradilla" style="margin:0; font-size:19px; line-height:29px; color:#2B2226;">{{{entradilla}}}</p>
+  {{#aviso}}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;"><tr>
+    <td class="eg-sup" bgcolor="#FFFFFF" style="background-color:#FFFFFF; border:1px solid #E7DED3; border-radius:14px; padding:16px 18px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="vertical-align:top; padding-right:12px;"><div class="eg-marca" style="width:26px; height:26px; border-radius:13px; background-color:{{c.vivo}}; color:{{c.sobre_vivo}}; font-size:16px; line-height:26px; font-weight:800; text-align:center;">&#10003;</div></td>
+        <td class="eg-tinta" style="vertical-align:top; font-size:16px; line-height:24px; color:#2B2226;"><strong>{{aviso.titulo}}</strong> {{aviso.texto}}</td>
+      </tr></table>
+    </td>
+  </tr></table>
+  {{/aviso}}
+  {{#boton_principal}}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
+    <td class="eg-boton-td" align="center" bgcolor="{{c.vivo}}" style="background-color:{{c.vivo}}; border-radius:14px; mso-padding-alt:17px 30px;">
+      <a class="eg-boton-a" href="{{url}}" style="display:inline-block; padding:17px 30px; font-size:17px; line-height:20px; font-weight:700; color:{{c.sobre_vivo}}; text-decoration:none; border-radius:14px;">{{texto}}</a>
+    </td>
+  </tr></table>
+  {{/boton_principal}}
+</td></tr>
+
+<!-- The visit, in a band of the centre's colour, from edge to edge -->
+{{#banda}}
+<tr><td class="eg-pad" bgcolor="{{c.acento}}" style="background-color:{{c.acento}}; padding:36px 40px 40px; color:{{c.sobre_acento}};">
+  <p style="margin:0 0 12px; font-size:13px; line-height:18px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:{{c.sobre_acento}};">{{rotulo}}</p>
+  <p class="eg-fecha" style="margin:0; font-size:36px; line-height:38px; font-weight:800; letter-spacing:-0.8px; color:{{c.sobre_acento}};">{{dia_semana}}<br>{{dia_mes}}</p>
+  <p style="margin:18px 0 6px; font-size:19px; line-height:26px; font-weight:700; color:{{c.sobre_acento}};">{{acto}}</p>
+  <p style="margin:0; font-size:16px; line-height:25px; color:{{c.sobre_acento}};">{{hora}}<br>{{lugar}}{{#personas}}<br>{{personas}}{{/personas}}</p>
+  {{#boton}}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
+    <td align="center" bgcolor="{{c.sobre_acento}}" style="background-color:{{c.sobre_acento}}; border-radius:14px; mso-padding-alt:16px 28px;">
+      <a href="{{url}}" style="display:inline-block; padding:16px 28px; font-size:17px; line-height:20px; font-weight:700; color:{{c.acento}}; text-decoration:none; border-radius:14px;">{{texto}}</a>
+    </td>
+  </tr></table>
+  {{/boton}}
+  {{#enlace}}
+  <p style="margin:18px 0 0; font-size:16px; line-height:24px; font-weight:700;"><a href="{{url}}" style="color:{{c.sobre_acento}}; text-decoration:underline;">{{texto}}</a></p>
+  {{/enlace}}
+</td></tr>
+{{/banda}}
+
+<!-- Who receives them, with their faces (the invitation) -->
+{{#anfitriones}}
+<tr><td class="eg-pad" style="padding:44px 40px 0;">
+  <h2 class="eg-tinta eg-h2" style="margin:0; font-size:30px; line-height:34px; font-weight:800; letter-spacing:-0.6px; color:#2B2226;">{{titulo}}</h2>
+  <p class="eg-tinta-2" style="margin:8px 0 0; font-size:16px; line-height:24px; color:#5F5459;">{{sub}}</p>
+</td></tr>
+{{#filas}}
+<tr><td class="eg-pad" style="padding:22px 28px 0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+    {{#personas}}
+    <td class="eg-col" width="50%" style="width:50%; vertical-align:top; padding:0 12px;">
+      <img src="{{foto}}" width="248" height="310" alt="" style="display:block; width:100%; max-width:248px; height:auto; border:0; border-radius:18px;">
+      <p class="eg-tinta" style="margin:12px 0 0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p>
+      <p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p>
+      {{#dice}}<p class="eg-tinta" style="margin:8px 0 0; font-size:16px; line-height:23px; color:#2B2226;">{{dice}}</p>{{/dice}}
+    </td>
+    {{/personas}}
+    {{#hueco}}<td class="eg-col" width="50%" style="width:50%; padding:0 12px;">&nbsp;</td>{{/hueco}}
+  </tr></table>
+</td></tr>
+{{/filas}}
+{{/anfitriones}}
+
+<!-- Who receives them, short (the confirmation and the reminder) -->
+{{#anfitriones_breve}}
+<tr><td class="eg-pad" style="padding:40px 40px 0;">
+  <h2 class="eg-tinta" style="margin:0 0 6px; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:#2B2226;">{{titulo}}</h2>
+  {{#personas}}
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
+    <td style="vertical-align:middle; padding-right:14px;"><img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;"></td>
+    <td style="vertical-align:middle;"><p class="eg-tinta" style="margin:0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p><p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p></td>
+  </tr></table>
+  {{/personas}}
+</td></tr>
+{{/anfitriones_breve}}
+
+<!-- Free sections: how to get there, can't come, the note about places -->
+{{#secciones}}
+<tr><td class="eg-pad" style="padding:40px 40px 0;">
+  <h2 class="eg-tinta" style="margin:0; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:#2B2226;">{{titulo}}</h2>
+  <p class="eg-tinta" style="margin:8px 0 0; font-size:17px; line-height:26px; color:#2B2226;">{{{texto}}}</p>
+  {{#enlace}}<p style="margin:10px 0 0; font-size:17px; line-height:26px; font-weight:700;"><a class="eg-enlace" href="{{url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{texto}}</a></p>{{/enlace}}
+</td></tr>
+{{/secciones}}
+
+{{#nota}}
+<tr><td class="eg-pad" style="padding:32px 40px 0;">
+  <p class="eg-tinta-2" style="margin:0; font-size:15px; line-height:23px; color:#5F5459;">{{nota}}</p>
+</td></tr>
+{{/nota}}
+
+<!-- The foot: the centre, why they get this, how their data is treated -->
+<tr><td class="eg-pad" style="padding:44px 40px 40px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="eg-linea" style="border-top:1px solid #E7DED3; padding-top:22px;">
+    <p class="eg-tinta" style="margin:0; font-size:15px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</p>
+    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.telefono}}</a> · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a></p>
+    <p class="eg-tinta-2" style="margin:14px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{pie.porque}} <a class="eg-enlace" href="{{pie.datos_url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{pie.datos_texto}}</a></p>
+    {{#muestra_pie}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{muestra_pie}}</p>{{/muestra_pie}}
+  </td></tr></table>
+</td></tr>
+
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</body>
+</html>

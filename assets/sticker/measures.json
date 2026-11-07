@@ -1,0 +1,55 @@
+{
+  "_": "The first-day name label of Eguahe as a PNG. Units are the label's own (46 x 32, centred on 0,0); 1x = px_per_unit pixels. Same geometry as the label on the pages of the families.",
+  "px_per_unit": 4,
+  "canvas_units": [
+    60,
+    49
+  ],
+  "canvas_px": {
+    "1x": [
+      240,
+      196
+    ],
+    "2x": [
+      480,
+      392
+    ]
+  },
+  "sticker_centre_units": [
+    30.0,
+    23.85
+  ],
+  "angle_deg_svg": -8,
+  "angle_deg_gd": 8,
+  "rim_units": 1.0,
+  "shadow": {
+    "dx": 0.5,
+    "dy": 1.3,
+    "blur": 1.1,
+    "colour": "#462D1E",
+    "opacity": 0.22
+  },
+  "colours": {
+    "paper": "#FFFFFF",
+    "line": "#8C8178",
+    "corner": "#DCCDBB",
+    "rim": "#FFFFFF",
+    "ink": "#2B2226"
+  },
+  "name": {
+    "centre_x": -3,
+    "baseline_y": 4.4,
+    "size": 13,
+    "room": 35,
+    "room_up": 10.0,
+    "min_size": 5.5,
+    "ink": "#2B2226",
+    "font": "font/Caveat-SemiBold.ttf",
+    "weight": 600
+  },
+  "layers": {
+    "under": "layers/fondo-{s}x.png",
+    "band_mask": "layers/banda-{s}x.png",
+    "over": "layers/papel-{s}x.png"
+  }
+}

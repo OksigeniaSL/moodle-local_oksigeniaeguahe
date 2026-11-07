@@ -32,4 +32,12 @@ $definitions = [
         // A challenge expires after 20 minutes (antispam::LIFETIME): after that it is refused anyway.
         'ttl' => 1500,
     ],
+    // The first-day labels as PNG, by name, colour and scale: the same always give the same bytes.
+    'stickers' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'staticacceleration' => true,
+        'staticaccelerationsize' => 20,
+    ],
 ];
