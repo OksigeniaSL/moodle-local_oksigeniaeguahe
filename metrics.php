@@ -101,6 +101,7 @@ if ($campaign) {
             ['name' => get_string('metrics_enrolled', $c), 'value' => $t['enrolled']],
         ]),
         'contacts' => $t['contacts'],
+        'incentre' => $t['incentre'],
         'households' => $t['households'],
         'rate' => format_float($t['inquirytoenrolled'], 1, true, true),
         'visitrate' => format_float($t['visitedtoenrolled'], 1, true, true),
@@ -126,6 +127,11 @@ if ($year !== '') {
         'hasreasons' => (bool) $m['reasons'],
         'hasmonths' => (bool) $m['bymonth'],
         'places' => array_map(fn($p) => $p + ['sharetext' => format_float($p['share'], 1, true, true)], $m['places']),
+        'hasplaces' => (bool) $m['places'],
+        'hasfrom' => (bool) $m['from'],
+        'hasto' => (bool) $m['to'],
+        'from' => array_slice($m['from'], 0, 12),
+        'to' => array_slice($m['to'], 0, 12),
     ]);
     foreach ($context['year']['bymonth'] as $i => $row) {
         $context['year']['bymonth'][$i]['name'] = userdate((int) strtotime($row['month'] . '-15'), '%B %Y');

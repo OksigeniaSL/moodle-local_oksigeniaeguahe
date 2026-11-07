@@ -245,6 +245,7 @@
         <FIELD NAME="kind" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="contacts, students or totals"/>
         <FIELD NAME="label" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="What it is: the campaign or the school year, as the centre names it"/>
         <FIELD NAME="filename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sheet" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The sheet of the file it came from"/>
         <FIELD NAME="rowcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who imported it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -277,6 +278,9 @@
         <FIELD NAME="enrolled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="enrolledgrade" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timeenrolled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="student" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Token of the child named in the contact, to find it later among the students"/>
+        <FIELD NAME="incentre" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the family was already at the centre"/>
+        <FIELD NAME="birthyear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Year of birth of the child, never the day"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -301,6 +305,9 @@
         <FIELD NAME="outreason" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="As the centre wrote it"/>
         <FIELD NAME="municipality" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="locality" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="movement" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="roll" SEQUENCE="false" COMMENT="roll (on the list of the year), join (new) or leave"/>
+        <FIELD NAME="otherschool" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The school a new student came from, or the one a student left for"/>
+        <FIELD NAME="birthyear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Year of birth, never the day"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -382,6 +389,24 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="centrekind" UNIQUE="false" FIELDS="centreid, kind, year"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_importkey" COMMENT="Keys that join the same family or student across imported files: a keyed hash of an email, a phone, a code or a name, never the value">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="household or student"/>
+        <FIELD NAME="keyhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="HMAC-SHA256 with a secret of the centre"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrekey" UNIQUE="true" FIELDS="centreid, kind, keyhash"/>
+        <INDEX NAME="centretoken" UNIQUE="false" FIELDS="centreid, token"/>
       </INDEXES>
     </TABLE>
   </TABLES>

@@ -199,5 +199,54 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110730, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110800) {
+        // Files imported as they come: the keys that join the same family or student, and what each row says.
+        $fields = [
+            'local_oksigeniaeguahe_import' => [new xmldb_field(
+                'sheet',
+                XMLDB_TYPE_CHAR,
+                '100',
+                null,
+                null,
+                null,
+                null,
+                'filename'
+            )],
+            'local_oksigeniaeguahe_pastcontact' => [
+                new xmldb_field('student', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'timeenrolled'),
+                new xmldb_field('incentre', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'student'),
+                new xmldb_field('birthyear', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'incentre'),
+            ],
+            'local_oksigeniaeguahe_student' => [
+                new xmldb_field('movement', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'roll', 'locality'),
+                new xmldb_field('otherschool', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'movement'),
+                new xmldb_field('birthyear', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'otherschool'),
+            ],
+        ];
+        foreach ($fields as $tablename => $list) {
+            $table = new xmldb_table($tablename);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_importkey');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('kind', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('keyhash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('token', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('centrekey', XMLDB_INDEX_UNIQUE, ['centreid', 'kind', 'keyhash']);
+        $table->add_index('centretoken', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'token']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026110800, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

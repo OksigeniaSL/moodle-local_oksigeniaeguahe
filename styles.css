@@ -303,3 +303,54 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
 .eguahe-scroll {
     overflow-x: auto;
 }
+
+/* The preview of a file before importing it: one box per sheet, with what stays and what goes. */
+.eguahe-import .eguahe-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.eguahe-import .eguahe-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-weight: 600;
+}
+
+.eguahe-import .eguahe-fields input[name^="label"] {
+    min-width: min(22rem, 80vw);
+}
+
+.eguahe-import .eguahe-sheet-out {
+    opacity: 0.7;
+}
+
+.eguahe-fates {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 1rem;
+    margin: 0;
+}
+
+.eguahe-fates dt {
+    font-weight: 600;
+}
+
+.eguahe-fates dd {
+    margin: 0;
+}
+
+.eguahe-import .eguahe-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0 2rem;
+}
+
+@media (max-width: 576px) {
+    .eguahe-fates {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0 (2026-11-07)
+
+- **Files as they come**: xlsx, xls, ods and csv, every sheet. The header is found wherever it is (below a title,
+  repeated to the side as adverts exports do), each column is recognised by its name in Spanish, English or Portuguese
+  and by what it holds, and each sheet by what it is: contacts of a campaign (adverts, forms), new students, leaves,
+  the list of a school year, totals or population. Before importing, the centre sees what stays, what becomes a key
+  and what is removed, and can change the kind of each sheet. Nothing is refused: what is not understood stays out.
+- **Pseudonymised on the way in**: names, notes, health data, passwords, addresses and documents are removed without
+  being kept; of a date of birth, the year; emails, phones, student codes and children's names become a keyed hash
+  (HMAC-SHA256 with a secret of the centre) that joins the same family or student across files, and several keys of
+  one family become one. The uploaded file is deleted after the import.
+- **Enrolled, found**: a family of a campaign counts as enrolled when a student of its family, or the child it named,
+  appears for the first time in the lists of the centre within two years of its first contact. Families already at
+  the centre (siblings, «son del cole») are counted apart, out of the way to the enrolment.
+- **New students, joins and leaves without the whole list**: a year with only the new ones and the leaves shows them
+  and their balance, without making up the start or the end. A student on two lists counts once. Where the new ones
+  come from and where those who leave go.
+- **One name per course**: «INF 1º A», «Infantil 3 años», «1º de Primaria», «Primaria 1º» or «infantil_3_años» are
+  brought, by the age they start at, to the name of the offer of the centre, also in the data imported before.
+
 ## 0.4.0 (2026-11-07)
 
 - **The forecast** («Forecast» tab): for each course the centre forecasts, its share of the children born in its area

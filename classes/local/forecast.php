@@ -42,17 +42,7 @@ class forecast {
      * @return int|null The age turned in the calendar year the school year starts.
      */
     public static function suggest_age(string $grade): ?int {
-        $g = \core_text::strtolower(trim($grade));
-        if (preg_match('/(\d+)\s*(años|año|anos|ano|years?)\b/u', $g, $m)) {
-            return (int) $m[1];
-        }
-        $stages = ['primaria' => 5, 'primary' => 5, 'eso' => 11, 'secundaria' => 11, 'bachiller' => 15];
-        foreach ($stages as $word => $base) {
-            if (preg_match('/^(\d+)\s*[ºo°ª.]*\s*(de\s+|do\s+)?' . $word . '/u', $g, $m)) {
-                return $base + (int) $m[1];
-            }
-        }
-        return null;
+        return grades::age($grade);
     }
 
     /**
@@ -221,17 +211,19 @@ class forecast {
      */
     public static function reach(\stdClass $centre): array {
         global $DB;
-        $years = metrics::school_years((int) $centre->id);
-        if (!$years) {
+        // The last school year the centre has the whole list of.
+        $year = $DB->get_field_sql("SELECT MAX(schoolyear) FROM {" . metrics::STUDENTS . "}
+                                     WHERE centreid = :centreid AND movement = 'roll'", ['centreid' => $centre->id]);
+        if (!$year) {
             return [];
         }
         $ages = array_filter(array_column(self::grades((int) $centre->id), 'age'), fn($a) => $a !== null);
         [$minage, $maxage] = $ages ? [min($ages), max($ages)] : [0, opendata::MAXAGE - 1];
-        $students = $DB->get_records_sql('SELECT municipality, COUNT(1) AS n
-                                            FROM {' . metrics::STUDENTS . '}
+        $students = $DB->get_records_sql("SELECT municipality, COUNT(DISTINCT student) AS n
+                                            FROM {" . metrics::STUDENTS . "}
                                            WHERE centreid = :centreid AND schoolyear = :year AND timeout = 0
-                                                 AND municipality IS NOT NULL
-                                        GROUP BY municipality', ['centreid' => $centre->id, 'year' => reset($years)]);
+                                                 AND movement <> 'leave' AND municipality IS NOT NULL
+                                        GROUP BY municipality", ['centreid' => $centre->id, 'year' => $year]);
         $children = $DB->get_records_sql("SELECT municipality, SUM(people) AS n FROM {" . opendata::T . "}
                                            WHERE centreid = :centreid AND kind = 'age' AND age BETWEEN :minage AND :maxage
                                                  AND year = (SELECT MAX(year) FROM {" . opendata::T . "}

@@ -21,7 +21,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * A file of what already happened: its kind, what it is (the campaign or the school year) and the file.
+ * A file of what already happened, as it comes: what each sheet is is seen and chosen after.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -29,7 +29,7 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class import_form extends \moodleform {
     /**
-     * The fields.
+     * The file, as it comes.
      */
     protected function definition() {
         $mform = $this->_form;
@@ -37,18 +37,14 @@ class import_form extends \moodleform {
         $mform->addElement('hidden', 'c');
         $mform->setType('c', PARAM_INT);
         $mform->addElement('static', 'importhelp', '', get_string('import_help', $c));
-        $mform->addElement('select', 'kind', get_string('import_kind', $c), [
-            'contacts' => get_string('import_kind_contacts', $c),
-            'students' => get_string('import_kind_students', $c),
-            'totals' => get_string('import_kind_totals', $c),
-            'population' => get_string('import_kind_population', $c),
-        ]);
-        $mform->addElement('text', 'label', get_string('import_label', $c), ['size' => 20]);
-        $mform->setType('label', PARAM_TEXT);
-        $mform->addRule('label', null, 'required', null, 'client');
-        $mform->addHelpButton('label', 'import_label', $c);
-        $mform->addElement('filepicker', 'file', get_string('import_file', $c), null, ['accepted_types' => ['.csv']]);
+        $mform->addElement(
+            'filepicker',
+            'file',
+            get_string('import_file', $c),
+            null,
+            ['accepted_types' => ['.xlsx', '.xls', '.ods', '.csv', '.tsv', '.txt']]
+        );
         $mform->addRule('file', null, 'required', null, 'client');
-        $this->add_action_buttons(false, get_string('import_go', $c));
+        $this->add_action_buttons(false, get_string('import_look', $c));
     }
 }

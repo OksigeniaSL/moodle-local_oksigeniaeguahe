@@ -33,6 +33,11 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
 - **Oferta y plazas**: por curso, los interesados, los que han visitado, los matriculados y las plazas libres, con la
   definición de cada cifra en pantalla.
 - **Quien supervisa** ve todo lo de su centro sin contestar ni cambiar nada.
+- **Ficheros tal como vienen**: una hoja de cálculo con todas sus pestañas, la exportación de los anuncios, las
+  respuestas de un formulario o un CSV. Eguahe ve qué es cada hoja (contactos de una campaña, alumnos nuevos, bajas, la
+  lista de un curso, totales, población) y qué lleva cada columna, lo enseña antes de importar, borra al entrar lo
+  personal y convierte correos, teléfonos y códigos en claves que unen a la misma familia o alumno entre ficheros. No se
+  rechaza nada.
 - **Cifras que no engañan**: una campaña anterior importada seudonimizada, por hogares desde el primer contacto hasta
   la matrícula, por canal desde los dos extremos y con lo que costó cada uno por alumno nuevo; quién entró y quién se
   fue en cada curso, con el saldo y los motivos; la matrícula año a año. Cada cifra con su definición.

@@ -61,23 +61,26 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
     }
 
     /**
-     * Only pseudonymised files go in, whole or not at all.
+     * Nothing is refused: an email, a phone or a name where a token or a text was expected is removed on the way in.
      */
-    public function test_refused(): void {
+    public function test_nothing_refused(): void {
         global $DB;
         $centreid = $this->centre();
-        $email = str_replace('Formulario de contacto,inquiry', 'ana@example.com,inquiry', self::CONTACTS);
-        [$id, , $errors] = imports::import($centreid, 'contacts', '2025-26', 'c.csv', $email, 2);
-        $this->assertSame(0, $id);
-        $this->assertArrayHasKey(2, $errors);
-        $name = str_replace('HOG_aaaaaa1111', 'Ana Gil', self::CONTACTS);
-        $this->assertArrayHasKey(2, imports::import($centreid, 'contacts', '2025-26', 'c.csv', $name, 2)[2]);
-        $phone = str_replace('Captación,inquiry,,fb', 'Llamar al 600 111 222,inquiry,,fb', self::CONTACTS);
-        $this->assertArrayHasKey(5, imports::import($centreid, 'contacts', '2025-26', 'c.csv', $phone, 2)[2]);
-        $nocolumn = str_replace('household,date', 'familia,date', self::CONTACTS);
-        $this->assertArrayHasKey(1, imports::import($centreid, 'contacts', '2025-26', 'c.csv', $nocolumn, 2)[2]);
-        $this->assertSame(0, $DB->count_records('local_oksigeniaeguahe_pastcontact'));
-        $this->assertSame(0, $DB->count_records(imports::T));
+        $variants = [
+            str_replace('Formulario de contacto,inquiry', 'ana@example.com,inquiry', self::CONTACTS),
+            str_replace('HOG_aaaaaa1111', 'Ana Gil', self::CONTACTS),
+            str_replace('Captación,inquiry,,fb', 'Llamar al 600 111 222,inquiry,,fb', self::CONTACTS),
+            str_replace('household,date', 'familia,date', self::CONTACTS),
+        ];
+        foreach ($variants as $content) {
+            [$id, $rows, $errors] = imports::import($centreid, 'contacts', '2025-26', 'c.csv', $content, 2);
+            $this->assertNotSame(0, $id);
+            $this->assertSame([5, []], [$rows, $errors]);
+        }
+        $dump = json_encode(array_values($DB->get_records('local_oksigeniaeguahe_pastcontact')), JSON_UNESCAPED_UNICODE);
+        foreach (['ana@example.com', 'Ana Gil', '600 111 222'] as $value) {
+            $this->assertStringNotContainsString($value, $dump);
+        }
     }
 
     /**
@@ -126,7 +129,7 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
         $centreid = $this->centre();
         imports::import($centreid, 'students', '2026-27', 's.csv', self::STUDENTS, 2);
         $m = metrics::movements($centreid, '2026-27');
-        $this->assertSame(['start' => 4, 'joins' => 1, 'leaves' => 2, 'now' => 3, 'net' => -1], $m['totals']);
+        $this->assertSame(['start' => 4, 'new' => 0, 'joins' => 1, 'leaves' => 2, 'now' => 3, 'net' => -1], $m['totals']);
         $reasons = array_column($m['reasons'], 'count', 'reason');
         $this->assertSame(1, $reasons['Traslado de domicilio']);
         $this->assertSame(2, array_column($m['places'], 'students', 'code')['28065']);
@@ -141,8 +144,8 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
         );
         [$years, , $matrix, $totals] = metrics::history($centreid);
         $this->assertSame(['2025-26', '2026-27'], $years);
-        $this->assertSame(30, $matrix['1º de ESO']['2025-26']);
-        $this->assertSame(3, $matrix['1º de ESO']['2026-27']);
+        $this->assertSame(30, $matrix['1.º de ESO']['2025-26']);
+        $this->assertSame(3, $matrix['1.º de ESO']['2026-27']);
         $this->assertSame(55, $totals['2025-26']);
     }
 }

@@ -33,8 +33,10 @@
                 "lastenrolled": 48, "rate": "11,1", "spendvalue": "3.000,00", "cost": "60,00"}],
             "sources": [], "platforms": [], "hasplatforms": false, "months": [], "grades": []},
         "year": {"schoolyear": "2026-27", "options": [{"value": "2026-27", "selected": true}], "startday": "1/09/2026",
-            "totals": {"start": 1800, "joins": 20, "leaves": 25, "net": -5, "now": 1795},
-            "bygrade": [{"grade": "1º de ESO", "start": 120, "joins": 3, "leaves": 2, "net": 1, "now": 121}],
+            "hasroll": true, "totals": {"start": 1800, "new": 160, "joins": 20, "leaves": 25, "net": 155, "now": 1795},
+            "bygrade": [{"grade": "1.º de ESO", "start": 120, "new": 10, "joins": 3, "leaves": 2, "net": 11, "now": 121}],
+            "from": [{"school": "CEIP Las Palmeras", "count": 4}], "hasfrom": true, "to": [], "hasto": false,
+            "hasplaces": true,
             "bymonth": [{"month": "2026-10", "name": "octubre 2026", "joins": 4, "leaves": 3}], "hasmonths": true,
             "reasons": [{"reason": "Traslado de domicilio", "count": 7}], "hasreasons": true,
             "places": [{"code": "28065", "locality": "Getafe", "students": 900, "sharetext": "50,1"}]},
@@ -73,6 +75,7 @@
         <ol class="eguahe-funnel">
             {{#steps}}<li><span class="eguahe-funnel-name">{{name}}</span><span class="eguahe-funnel-bar" style="width: {{width}}%"></span><span class="eguahe-num">{{value}}</span></li>{{/steps}}
         </ol>
+        {{#incentre}}<p class="eguahe-quiet">{{#str}}metrics_incentre, local_oksigeniaeguahe, {{incentre}}{{/str}}</p>{{/incentre}}
         <p>{{#str}}metrics_rates, local_oksigeniaeguahe, { "rate": "{{rate}}", "visitrate": "{{visitrate}}", "contacts": {{contacts}}, "households": {{households}} }{{/str}}{{#hascost}} · {{#str}}metrics_cost_total, local_oksigeniaeguahe, { "spend": "{{spend}}", "cost": "{{cost}}" }{{/str}}{{/hascost}}</p>
         <p class="eguahe-quiet">{{#str}}metrics_funnel_def, local_oksigeniaeguahe{{/str}}</p>
 
@@ -153,18 +156,25 @@
             <select class="form-select custom-select" id="eguahe-year" name="year">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{value}}</option>{{/options}}</select>
             <button type="submit" class="btn btn-secondary">{{#str}}metrics_show, local_oksigeniaeguahe{{/str}}</button>
         </form>
-        <p class="eguahe-balance">{{#str}}metrics_balance, local_oksigeniaeguahe, { "start": {{totals.start}}, "joins": {{totals.joins}}, "leaves": {{totals.leaves}}, "net": {{totals.net}}, "now": {{totals.now}} }{{/str}}</p>
+        {{#hasroll}}
+        <p class="eguahe-balance">{{#str}}metrics_balance, local_oksigeniaeguahe, { "start": {{totals.start}}, "new": {{totals.new}}, "joins": {{totals.joins}}, "leaves": {{totals.leaves}}, "net": {{totals.net}}, "now": {{totals.now}} }{{/str}}</p>
         <p class="eguahe-quiet">{{#str}}metrics_balance_def, local_oksigeniaeguahe, {{startday}}{{/str}}</p>
+        {{/hasroll}}
+        {{^hasroll}}
+        <p class="eguahe-balance">{{#str}}metrics_balance_noroll, local_oksigeniaeguahe, { "new": {{totals.new}}, "joins": {{totals.joins}}, "leaves": {{totals.leaves}}, "net": {{totals.net}} }{{/str}}</p>
+        <p class="eguahe-quiet">{{#str}}metrics_noroll_def, local_oksigeniaeguahe{{/str}}</p>
+        {{/hasroll}}
         <table class="table eguahe-table">
             <thead><tr>
                 <th scope="col">{{#str}}offer, local_oksigeniaeguahe{{/str}}</th>
-                <th scope="col" class="eguahe-num">{{#str}}metrics_start, local_oksigeniaeguahe{{/str}}</th>
+                {{#hasroll}}<th scope="col" class="eguahe-num">{{#str}}metrics_start, local_oksigeniaeguahe{{/str}}</th>{{/hasroll}}
+                <th scope="col" class="eguahe-num">{{#str}}metrics_new, local_oksigeniaeguahe{{/str}}</th>
                 <th scope="col" class="eguahe-num">{{#str}}metrics_joins, local_oksigeniaeguahe{{/str}}</th>
                 <th scope="col" class="eguahe-num">{{#str}}metrics_leaves, local_oksigeniaeguahe{{/str}}</th>
                 <th scope="col" class="eguahe-num">{{#str}}metrics_net, local_oksigeniaeguahe{{/str}}</th>
-                <th scope="col" class="eguahe-num">{{#str}}metrics_nowcol, local_oksigeniaeguahe{{/str}}</th>
+                {{#hasroll}}<th scope="col" class="eguahe-num">{{#str}}metrics_nowcol, local_oksigeniaeguahe{{/str}}</th>{{/hasroll}}
             </tr></thead>
-            <tbody>{{#bygrade}}<tr><th scope="row">{{grade}}</th><td class="eguahe-num">{{start}}</td><td class="eguahe-num">{{joins}}</td><td class="eguahe-num">{{leaves}}</td><td class="eguahe-num">{{net}}</td><td class="eguahe-num">{{now}}</td></tr>{{/bygrade}}</tbody>
+            <tbody>{{#bygrade}}<tr><th scope="row">{{grade}}</th>{{#hasroll}}<td class="eguahe-num">{{start}}</td>{{/hasroll}}<td class="eguahe-num">{{new}}</td><td class="eguahe-num">{{joins}}</td><td class="eguahe-num">{{leaves}}</td><td class="eguahe-num">{{net}}</td>{{#hasroll}}<td class="eguahe-num">{{now}}</td>{{/hasroll}}</tr>{{/bygrade}}</tbody>
         </table>
         <div class="eguahe-columns">
             <div>
@@ -181,8 +191,18 @@
                 {{/hasmonths}}
             </div>
             <div>
+                {{#hasfrom}}
+                <h4>{{#str}}metrics_from, local_oksigeniaeguahe{{/str}}</h4>
+                <table class="table eguahe-table"><tbody>{{#from}}<tr><th scope="row">{{school}}</th><td class="eguahe-num">{{count}}</td></tr>{{/from}}</tbody></table>
+                {{/hasfrom}}
+                {{#hasto}}
+                <h4>{{#str}}metrics_to, local_oksigeniaeguahe{{/str}}</h4>
+                <table class="table eguahe-table"><tbody>{{#to}}<tr><th scope="row">{{school}}</th><td class="eguahe-num">{{count}}</td></tr>{{/to}}</tbody></table>
+                {{/hasto}}
+                {{#hasplaces}}
                 <h4>{{#str}}metrics_places, local_oksigeniaeguahe{{/str}}</h4>
                 <table class="table eguahe-table"><tbody>{{#places}}<tr><th scope="row">{{locality}} <span class="eguahe-quiet">{{code}}</span></th><td class="eguahe-num">{{students}}</td><td class="eguahe-num">{{sharetext}} %</td></tr>{{/places}}</tbody></table>
+                {{/hasplaces}}
             </div>
         </div>
     </section>

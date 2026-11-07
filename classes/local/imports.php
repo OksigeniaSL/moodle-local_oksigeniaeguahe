@@ -17,10 +17,12 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What already happened, imported to look at it: the contacts of a past campaign, the students of a school year and the
- * totals of past years (docs/05-importacion.md of hq). Pseudonymised only: tokens instead of households and students,
- * and a file that carries an email, a phone or anything like a name is refused whole. Nobody is created as a household:
- * it is for the numbers.
+ * What already happened, imported to look at it: the contacts of past campaigns, the new students, the leaves and the
+ * lists of each school year, the totals of past years and the population of the area. Files go in as they come (a
+ * spreadsheet with several sheets, an export of the adverts, the answers of a form, a CSV): Eguahe reads what each
+ * column holds, keeps what makes the numbers and removes the rest on the way in. Emails, phones, codes and children's
+ * names only become a key to join the same family or student across files; the file itself is not kept. Nobody is
+ * created as a household: it is for the numbers.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -30,24 +32,13 @@ class imports {
     /** @var string */
     const T = 'local_oksigeniaeguahe_import';
 
-    /** @var array Kinds of file, with the table they go to and their columns: required first, then optional. */
-    const KINDS = [
-        'contacts' => ['table' => 'local_oksigeniaeguahe_pastcontact',
-            'required' => ['household', 'date', 'channel', 'kind'],
-            'optional' => ['source_detail', 'grade_requested', 'children', 'municipality', 'declared_source', 'utm_source',
-                'utm_medium', 'utm_campaign', 'enrolled', 'enrolled_grade', 'enrolled_date']],
-        'students' => ['table' => 'local_oksigeniaeguahe_student',
-            'required' => ['student', 'school_year', 'grade', 'date_in'],
-            'optional' => ['household', 'group', 'date_out', 'out_reason', 'municipality', 'locality']],
-        'totals' => ['table' => 'local_oksigeniaeguahe_enrolcount',
-            'required' => ['school_year', 'grade', 'count'],
-            'optional' => ['reference_date']],
-        'population' => ['table' => 'local_oksigeniaeguahe_population',
-            'required' => ['municipality', 'year', 'kind', 'people'],
-            'optional' => ['age']],
-    ];
+    /** @var array The table of each kind; «students» is how 0.3 and 0.4 named a list of a school year. */
+    const TABLES = ['contacts' => 'local_oksigeniaeguahe_pastcontact', 'joins' => 'local_oksigeniaeguahe_student',
+        'leaves' => 'local_oksigeniaeguahe_student', 'roll' => 'local_oksigeniaeguahe_student',
+        'students' => 'local_oksigeniaeguahe_student', 'totals' => 'local_oksigeniaeguahe_enrolcount',
+        'population' => 'local_oksigeniaeguahe_population'];
 
-    /** @var array The channels of the import format, as Eguahe names them. */
+    /** @var array The channels of the format of Eguahe, as Eguahe names them. */
     const CHANNELS = ['web_form' => 'webform', 'visit_booking' => 'visit', 'open_day' => 'openday',
         'meta_lead_ads' => 'meta', 'google_forms' => 'googleforms', 'whatsapp' => 'whatsapp', 'telegram' => 'telegram',
         'email' => 'email', 'phone' => 'phone', 'walk_in' => 'walkin', 'other' => 'other'];
@@ -55,12 +46,8 @@ class imports {
     /** @var string[] What a contact was. */
     const CONTACT_KINDS = ['inquiry', 'application', 'visit_booked', 'visit_attended', 'open_day_attended'];
 
-    /** @var string[] Columns of free text, where a phone number would be a person's. */
-    const TEXTS = ['source_detail', 'grade_requested', 'declared_source', 'enrolled_grade', 'grade', 'group', 'out_reason',
-        'locality'];
-
-    /** @var int Errors shown at most. */
-    const MAXERRORS = 20;
+    /** @var string A token of the format of Eguahe. */
+    const TOKEN = '/^[A-Z]{2,6}_[0-9A-Za-z]{6,32}$/';
 
     /**
      * The imports of a centre, the newest first.
@@ -79,192 +66,108 @@ class imports {
     }
 
     /**
-     * Reads a CSV file: UTF-8, commas or semicolons, with a header.
+     * What Eguahe makes of each sheet of a file, before importing anything.
      *
-     * @param string $content
-     * @return array [header, rows], rows as arrays keyed by the header.
+     * @param string $path
+     * @param string $filename
+     * @param array $kinds Sheet index => kind chosen by the centre, to see it again with that kind.
+     * @return array A list of sheets: index, name, kind, rows, schoolyear, label, and the columns kept, made keys and
+     *               removed.
      */
-    public static function parse(string $content): array {
-        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
-        $firstline = strtok($content, "\n");
-        $delimiter = substr_count((string) $firstline, ';') > substr_count((string) $firstline, ',') ? ';' : ',';
-        $handle = fopen('php://temp', 'r+');
-        fwrite($handle, $content);
-        rewind($handle);
-        $header = null;
-        $rows = [];
-        while (($line = fgetcsv($handle, 0, $delimiter, '"', '')) !== false) {
-            if ($line === [null] || $line === ['']) {
-                continue;
-            }
-            if ($header === null) {
-                $header = array_map(fn($h) => strtolower(trim((string) $h)), $line);
-                continue;
-            }
-            $rows[] = array_combine($header, array_pad(array_slice($line, 0, count($header)), count($header), ''));
-        }
-        fclose($handle);
-        return [$header ?? [], $rows];
-    }
-
-    /**
-     * Whether a value carries what must not be there: an email, a phone number or a name instead of a token.
-     *
-     * @param string $value
-     * @return bool
-     */
-    public static function personal(string $value): bool {
-        return strpos($value, '@') !== false || preg_match('/\d[\d\s().-]{7,}\d/', $value) === 1;
-    }
-
-    /**
-     * A date of the format, at noon of the server, or 0 when empty; null when it is not a date.
-     *
-     * @param string $value
-     * @return int|null
-     */
-    protected static function date(string $value): ?int {
-        $value = trim($value);
-        if ($value === '') {
-            return 0;
-        }
-        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
-            return null;
-        }
-        return make_timestamp((int) $m[1], (int) $m[2], (int) $m[3], 12);
-    }
-
-    /**
-     * Checks a file and turns it into rows of its table, or the errors that stop it.
-     *
-     * @param string $kind
-     * @param array $header
-     * @param array $rows
-     * @return array [rows for the table, errors (line => message)]
-     */
-    public static function check(string $kind, array $header, array $rows): array {
-        $c = 'local_oksigeniaeguahe';
-        $spec = self::KINDS[$kind];
-        $errors = [];
-        $missing = array_diff($spec['required'], $header);
-        if ($missing) {
-            return [[], [1 => get_string('import_err_columns', $c, implode(', ', $missing))]];
-        }
+    public static function preview(string $path, string $filename, array $kinds = []): array {
         $out = [];
-        $token = '/^[A-Z]{2,6}_[0-9A-Za-z]{6,32}$/';
-        foreach ($rows as $i => $row) {
-            $line = $i + 2;
-            $error = null;
-            foreach ($row as $column => $value) {
-                // Tokens, dates and codes are fine; an email anywhere, or a phone in a text, is not.
-                $text = in_array($column, self::TEXTS, true);
-                if (
-                    !in_array($column, ['household', 'student'], true) && (strpos((string) $value, '@') !== false ||
-                        ($text && self::personal((string) $value)))
-                ) {
-                    $error = get_string('import_err_personal', $c, $column);
-                    break;
+        foreach (sheets::read($path, $filename) as $i => $sheet) {
+            $kind = $kinds[$i] ?? null;
+            $plan = recognise::sheet($sheet, $filename, $kind === null || $kind === 'none' ? null : $kind);
+            if ($kind === 'none') {
+                $plan['kind'] = null;
+            }
+            $fates = ['kept' => [], 'key' => [], 'removed' => []];
+            $untitled = ['kept' => 0, 'key' => 0, 'removed' => 0];
+            $health = false;
+            foreach ($plan['columns'] as $col) {
+                if (!$col['values'] && $col['title'] === '') {
+                    continue;
+                }
+                $fate = $plan['kind'] ? $col['fate'] : 'removed';
+                $fate = $fate === 'unused' ? 'removed' : $fate;
+                $health = $health || $col['role'] === 'health';
+                if ($col['title'] === '') {
+                    $untitled[$fate]++;
+                    continue;
+                }
+                $title = \core_text::substr(str_replace("\n", ' ', $col['title']), 0, 60);
+                $fates[$fate][] = $col['role'] === 'birthdate' && $fate === 'kept' ?
+                    get_string('import_yearonly', 'local_oksigeniaeguahe', $title) : $title;
+            }
+            // The columns without a title, counted: an export can bring dozens.
+            foreach ($untitled as $fate => $n) {
+                if ($n) {
+                    $fates[$fate][] = get_string('import_untitled', 'local_oksigeniaeguahe', $n);
                 }
             }
-            $get = fn(string $col) => trim((string) ($row[$col] ?? ''));
-            $short = fn(string $col, int $len) => $get($col) === '' ? null : \core_text::substr($get($col), 0, $len);
-            if (!$error && $kind === 'contacts') {
-                $date = self::date($get('date'));
-                $enrolleddate = self::date($get('enrolled_date'));
-                if (!preg_match($token, $get('household'))) {
-                    $error = get_string('import_err_token', $c, 'household');
-                } else if (!$date) {
-                    $error = get_string('import_err_date', $c, 'date');
-                } else if (!isset(self::CHANNELS[$get('channel')])) {
-                    $error = get_string('import_err_value', $c, 'channel');
-                } else if (!in_array($get('kind'), self::CONTACT_KINDS, true)) {
-                    $error = get_string('import_err_value', $c, 'kind');
-                } else if ($enrolleddate === null) {
-                    $error = get_string('import_err_date', $c, 'enrolled_date');
-                } else {
-                    $out[] = (object) ['household' => $get('household'), 'timecontact' => $date,
-                        'channel' => self::CHANNELS[$get('channel')], 'sourcedetail' => $short('source_detail', 255),
-                        'kind' => $get('kind'), 'graderequested' => $short('grade_requested', 100),
-                        'children' => max(0, (int) $get('children')), 'municipality' => $short('municipality', 20),
-                        'declaredsource' => $short('declared_source', 100), 'utmsource' => $short('utm_source', 100),
-                        'utmmedium' => $short('utm_medium', 30), 'utmcampaign' => $short('utm_campaign', 255),
-                        'enrolled' => $get('enrolled') === '1' ? 1 : 0, 'enrolledgrade' => $short('enrolled_grade', 100),
-                        'timeenrolled' => (int) $enrolleddate];
-                }
-            } else if (!$error && $kind === 'students') {
-                $in = self::date($get('date_in'));
-                $outdate = self::date($get('date_out'));
-                if (!preg_match($token, $get('student'))) {
-                    $error = get_string('import_err_token', $c, 'student');
-                } else if ($get('household') !== '' && !preg_match($token, $get('household'))) {
-                    $error = get_string('import_err_token', $c, 'household');
-                } else if (!preg_match('/^\d{4}(-\d{2})?$/', $get('school_year'))) {
-                    $error = get_string('import_err_value', $c, 'school_year');
-                } else if ($get('grade') === '') {
-                    $error = get_string('import_err_value', $c, 'grade');
-                } else if (!$in) {
-                    $error = get_string('import_err_date', $c, 'date_in');
-                } else if ($outdate === null) {
-                    $error = get_string('import_err_date', $c, 'date_out');
-                } else {
-                    $out[] = (object) ['student' => $get('student'), 'household' => $short('household', 40),
-                        'schoolyear' => $get('school_year'), 'grade' => \core_text::substr($get('grade'), 0, 100),
-                        'groupname' => $short('group', 100), 'timein' => $in, 'timeout' => (int) $outdate,
-                        'outreason' => $short('out_reason', 255), 'municipality' => $short('municipality', 20),
-                        'locality' => $short('locality', 255)];
-                }
-            } else if (!$error && $kind === 'population') {
-                if ($get('municipality') === '' || !preg_match('/^\d{4}$/', $get('year'))) {
-                    $error = get_string('import_err_value', $c, $get('municipality') === '' ? 'municipality' : 'year');
-                } else if (!in_array($get('kind'), ['births', 'age'], true)) {
-                    $error = get_string('import_err_value', $c, 'kind');
-                } else if (
-                    !preg_match('/^\d+$/', $get('people')) || ($get('kind') === 'age' &&
-                        !preg_match('/^\d{1,2}$/', $get('age')))
-                ) {
-                    $error = get_string('import_err_value', $c, $get('kind') === 'age' ? 'age' : 'people');
-                } else {
-                    $out[] = (object) ['source' => 'csv', 'kind' => $get('kind'),
-                        'municipality' => \core_text::substr($get('municipality'), 0, 20), 'year' => (int) $get('year'),
-                        'age' => $get('kind') === 'age' ? (int) $get('age') : -1, 'people' => (int) $get('people'),
-                        'timefetched' => time()];
-                }
-            } else if (!$error) {
-                $reference = self::date($get('reference_date'));
-                if (!preg_match('/^\d{4}(-\d{2})?$/', $get('school_year'))) {
-                    $error = get_string('import_err_value', $c, 'school_year');
-                } else if ($get('grade') === '' || !preg_match('/^\d+$/', $get('count'))) {
-                    $error = get_string('import_err_value', $c, $get('grade') === '' ? 'grade' : 'count');
-                } else if ($reference === null) {
-                    $error = get_string('import_err_date', $c, 'reference_date');
-                } else {
-                    $out[] = (object) ['schoolyear' => $get('school_year'), 'grade' => \core_text::substr($get('grade'), 0, 100),
-                        'students' => (int) $get('count'), 'referencedate' => (int) $reference];
-                }
-            }
-            if ($error) {
-                $errors[$line] = $error;
-                if (count($errors) >= self::MAXERRORS) {
-                    break;
-                }
-            }
+            $out[] = ['index' => $i, 'name' => $plan['name'], 'kind' => $plan['kind'], 'rows' => count($plan['rows']),
+                'schoolyear' => $plan['schoolyear'], 'label' => $plan['label'], 'kept' => $fates['kept'],
+                'keys' => $fates['key'], 'removed' => $fates['removed'], 'health' => $health];
         }
-        if (!$rows) {
-            $errors[1] = get_string('import_err_empty', $c);
-        }
-        return [$errors ? [] : $out, $errors];
+        return $out;
     }
 
     /**
-     * Imports a file whole, or nothing of it.
+     * Imports the sheets of a file the centre chose, each as the kind it chose.
      *
      * @param int $centreid
-     * @param string $kind contacts, students or totals.
+     * @param string $path
+     * @param string $filename
+     * @param array $choices Sheet index => [kind, label, schoolyear]; a sheet left out, or with kind «none», is not read.
+     * @param int $userid
+     * @return array [imports made, rows imported, rows left out]
+     */
+    public static function import_file(int $centreid, string $path, string $filename, array $choices, int $userid): array {
+        global $DB;
+        $keys = new pseudonym($centreid);
+        $made = 0;
+        $total = 0;
+        $skipped = 0;
+        $transaction = $DB->start_delegated_transaction();
+        foreach (sheets::read($path, $filename) as $i => $sheet) {
+            $choice = $choices[$i] ?? null;
+            if (!$choice || !isset(self::TABLES[$choice['kind'] ?? '']) || $choice['kind'] === 'students') {
+                continue;
+            }
+            $plan = recognise::sheet($sheet, $filename, $choice['kind']);
+            $choice += ['label' => $plan['label'], 'schoolyear' => $plan['schoolyear']];
+            [$records, $left] = self::records($centreid, $plan, $choice, $keys);
+            $skipped += $left;
+            if (!$records) {
+                continue;
+            }
+            $importid = (int) $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'kind' => $choice['kind'],
+                'label' => \core_text::substr(trim((string) $choice['label']) ?: $plan['label'], 0, 100),
+                'filename' => \core_text::substr($filename, 0, 255), 'sheet' => \core_text::substr($plan['name'], 0, 100),
+                'rowcount' => count($records), 'userid' => $userid, 'timecreated' => time()]);
+            foreach ($records as $record) {
+                $record->centreid = $centreid;
+                $record->importid = $importid;
+            }
+            $DB->insert_records(self::TABLES[$choice['kind']], $records);
+            $made++;
+            $total += count($records);
+        }
+        $transaction->allow_commit();
+        return [$made, $total, $skipped];
+    }
+
+    /**
+     * Imports a CSV with one kind of list, as 0.3 did: the format of Eguahe (docs/05-importacion.md of hq) or any other.
+     *
+     * @param int $centreid
+     * @param string $kind contacts, joins, leaves, roll (or students), totals or population.
      * @param string $label The campaign or the school year.
      * @param string $filename
      * @param string $content
      * @param int $userid
-     * @return array [import id or 0, rows, errors]
+     * @return array [import id or 0, rows, errors (line => message)]
      */
     public static function import(
         int $centreid,
@@ -275,29 +178,264 @@ class imports {
         int $userid
     ): array {
         global $DB;
-        if (!isset(self::KINDS[$kind])) {
+        $kind = $kind === 'students' ? 'roll' : $kind;
+        if (!isset(self::TABLES[$kind])) {
             throw new \coding_exception('Unknown kind of import ' . $kind);
         }
-        [$header, $rows] = self::parse($content);
-        [$records, $errors] = self::check($kind, $header, $rows);
-        if ($errors) {
-            return [0, 0, $errors];
+        $path = make_request_directory() . '/' . clean_filename($filename ?: 'import.csv');
+        file_put_contents($path, $content);
+        $schoolyear = recognise::schoolyear($label) ?? (preg_match('/^\d{4}$/', trim($label)) ? trim($label) : null);
+        [$made, $rows] = self::import_file(
+            $centreid,
+            $path,
+            basename($path),
+            [0 => ['kind' => $kind, 'label' => $label, 'schoolyear' => $schoolyear]],
+            $userid
+        );
+        if (!$made) {
+            return [0, 0, [1 => get_string('import_err_empty', 'local_oksigeniaeguahe')]];
         }
-        $transaction = $DB->start_delegated_transaction();
-        $importid = (int) $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'kind' => $kind,
-            'label' => \core_text::substr(trim($label), 0, 100), 'filename' => \core_text::substr($filename, 0, 255),
-            'rowcount' => count($records), 'userid' => $userid, 'timecreated' => time()]);
-        foreach ($records as $record) {
-            $record->centreid = $centreid;
-            $record->importid = $importid;
-        }
-        $DB->insert_records(self::KINDS[$kind]['table'], $records);
-        $transaction->allow_commit();
-        return [$importid, count($records), []];
+        $id = (int) $DB->get_field_sql(
+            'SELECT MAX(id) FROM {' . self::T . '} WHERE centreid = :centreid',
+            ['centreid' => $centreid]
+        );
+        return [$id, $rows, []];
     }
 
     /**
-     * Removes an import and everything it brought.
+     * The values of a row in the columns of a role.
+     *
+     * @param array $row
+     * @param array $columns
+     * @param string $role
+     * @return string[]
+     */
+    protected static function values(array $row, array $columns, string $role): array {
+        $out = [];
+        foreach ($columns as $j => $col) {
+            $value = trim((string) ($row[$j] ?? ''));
+            if ($col['role'] === $role && $value !== '') {
+                $out[$j] = $value;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * A text without the emails and phone numbers someone wrote in it.
+     *
+     * @param string $value
+     * @return string
+     */
+    public static function scrub(string $value): string {
+        $value = preg_replace('/[^\s@]+@[^\s@]+\.[^\s@]+/u', '', $value);
+        $value = preg_replace('/(p:)?\+?\d[\d\s().\/-]{7,}\d/u', '', (string) $value);
+        return trim((string) preg_replace('/\s+/u', ' ', (string) $value));
+    }
+
+    /**
+     * Whether a cell says yes.
+     *
+     * @param string $value
+     * @return bool
+     */
+    protected static function yes(string $value): bool {
+        return in_array(grades::plain($value), ['true', 'verdadero', '1', 'si', 'yes', 'sim', 'x'], true);
+    }
+
+    /**
+     * The first day of a school year: «2024-25» starts in September, «2025» in March.
+     *
+     * @param string $schoolyear
+     * @return int
+     */
+    public static function year_start(string $schoolyear): int {
+        $year = (int) substr($schoolyear, 0, 4);
+        return strlen($schoolyear) > 4 ? make_timestamp($year, 9, 1, 12) : make_timestamp($year, 3, 1, 12);
+    }
+
+    /**
+     * A municipality of the list of the centre, by its code or its name.
+     *
+     * @param array $places Code => name.
+     * @param string $value
+     * @return array [code or null, the text when it is not on the list]
+     */
+    protected static function place(array $places, string $value): array {
+        $value = trim($value);
+        if ($value === '') {
+            return [null, null];
+        }
+        if (isset($places[$value]) || preg_match('/^\d{3,10}$/', $value)) {
+            // On the list, or an official code anyway.
+            return [\core_text::substr($value, 0, 20), null];
+        }
+        foreach ($places as $code => $name) {
+            if (grades::plain($name) === grades::plain($value) && strpos((string) $code, 'name:') !== 0) {
+                return [(string) $code, null];
+            }
+        }
+        return [null, \core_text::substr($value, 0, 255)];
+    }
+
+    /**
+     * The rows of a sheet as rows of its table, with keys instead of people.
+     *
+     * @param int $centreid
+     * @param array $plan From recognise::sheet().
+     * @param array $choice kind, label, schoolyear.
+     * @param pseudonym $keys
+     * @return array [records, rows left out]
+     */
+    protected static function records(int $centreid, array $plan, array $choice, pseudonym $keys): array {
+        $columns = $plan['columns'];
+        $kind = $choice['kind'];
+        $places = centres::municipalities(centres::get($centreid));
+        $title = $plan['title'];
+        $out = [];
+        $skipped = 0;
+        $channel = 'other';
+        $roles = array_column($columns, 'role');
+        if (array_intersect(['platform', 'campaign', 'ad', 'adset', 'organic'], $roles)) {
+            $channel = 'meta';
+        } else {
+            foreach ($columns as $col) {
+                if ($col['role'] === 'date' && preg_match('/marca temporal|timestamp|carimbo/', recognise::plain($col['title']))) {
+                    $channel = 'googleforms';
+                }
+            }
+        }
+        foreach ($plan['rows'] as $row) {
+            $v = fn(string $role) => (string) (array_values(self::values($row, $columns, $role))[0] ?? '');
+            // A text kept for the numbers never keeps an email or a phone someone wrote in it.
+            $short = fn(string $value, int $len) => ($value = self::scrub($value)) === '' ? null :
+                \core_text::substr($value, 0, $len);
+            $birth = recognise::date($v('birthdate'));
+            $birthyear = $birth ? (int) date('Y', $birth) : 0;
+            $hkeys = array_merge(
+                array_map([pseudonym::class, 'email'], self::values($row, $columns, 'email')),
+                array_map([pseudonym::class, 'phone'], self::values($row, $columns, 'phone'))
+            );
+            if ($kind === 'contacts') {
+                $date = recognise::date($v('date'));
+                if (!$date) {
+                    $skipped++;
+                    continue;
+                }
+                $household = preg_match(self::TOKEN, $v('householdtoken')) ? $v('householdtoken') :
+                    $keys->token('household', $hkeys);
+                $skeys = array_map([pseudonym::class, 'name'], self::values($row, $columns, 'childname'));
+                $platform = \core_text::strtolower($v('platform'));
+                $contactkind = in_array($v('kindcol'), self::CONTACT_KINDS, true) ? $v('kindcol') :
+                    ($v('visit') !== '' ? 'visit_booked' :
+                    (preg_match('/\b(solicitud|plaza|application|inscripci\w*|matricula|admision|vaga)\b/', $title) ?
+                    'application' : 'inquiry'));
+                $medium = $v('medium') !== '' ? $v('medium') :
+                    (in_array('organic', $roles, true) ? (self::yes($v('organic')) ? 'organic' : 'paid') : '');
+                $grade = trim(explode('|', $v('grade'))[0]);
+                $enrolled = recognise::date($v('enrolleddate'));
+                $out[] = (object) [
+                    'household' => $household,
+                    'student' => array_filter($skeys) ? $keys->token('student', $skeys) : null,
+                    'timecontact' => $date,
+                    'channel' => self::CHANNELS[$v('channel')] ?? $channel,
+                    'sourcedetail' => $short($v('form') ?: $plan['label'], 255),
+                    'kind' => $contactkind,
+                    'graderequested' => $grade === '' ? null : $short(grades::label($centreid, $grade), 100),
+                    'children' => max(0, (int) $v('children')),
+                    'municipality' => self::place($places, $v('municipality'))[0],
+                    'declaredsource' => \core_text::strlen($v('declared')) <= 60 ? $short($v('declared'), 100) : null,
+                    'utmsource' => $short($platform, 100),
+                    'utmmedium' => $short($medium, 30),
+                    'utmcampaign' => $short($v('campaign'), 255),
+                    'enrolled' => self::yes($v('enrolledflag')) ? 1 : 0,
+                    'enrolledgrade' => $short($v('enrolledgrade'), 100),
+                    'timeenrolled' => (int) $enrolled,
+                    'incentre' => self::yes($v('incentre')) || preg_match('/\b(hermanos?|siblings?|irmaos?)\b/', $title) ? 1 : 0,
+                    'birthyear' => $birthyear,
+                ];
+            } else if (in_array($kind, ['joins', 'leaves', 'roll'], true)) {
+                $schoolyear = recognise::schoolyear($v('schoolyear')) ?? (preg_match('/^\d{4}(-\d{2})?$/', $v('schoolyear')) ?
+                    $v('schoolyear') : (string) ($choice['schoolyear'] ?? ''));
+                if (!preg_match('/^\d{4}(-\d{2})?$/', $schoolyear)) {
+                    $skipped++;
+                    continue;
+                }
+                $names = array_merge(self::values($row, $columns, 'fullname'), self::values($row, $columns, 'childname'));
+                $first = implode(' ', self::values($row, $columns, 'firstname'));
+                $last = implode(' ', self::values($row, $columns, 'surname'));
+                if ($first !== '' && $last !== '') {
+                    $names[] = $first . ' ' . $last;
+                }
+                $skeys = array_merge(
+                    array_map([pseudonym::class, 'code'], self::values($row, $columns, 'studentid')),
+                    array_map([pseudonym::class, 'name'], $names)
+                );
+                $student = preg_match(self::TOKEN, $v('studenttoken')) ? $v('studenttoken') : $keys->token('student', $skeys);
+                $household = preg_match(self::TOKEN, $v('householdtoken')) ? $v('householdtoken') :
+                    (array_filter($hkeys) ? $keys->token('household', $hkeys) : null);
+                [$grade, $group] = grades::split_group($v('grade'));
+                $start = self::year_start($schoolyear);
+                $in = recognise::date($v('datein'));
+                $outdate = recognise::date($v('dateout'));
+                $reasons = [];
+                foreach (self::values($row, $columns, 'leavebool') as $j => $value) {
+                    if (self::yes($value)) {
+                        $reasons[] = trim(str_replace("\n", ' ', $columns[$j]['title']));
+                    } else if (!in_array(grades::plain($value), ['false', 'falso', '0', 'no'], true)) {
+                        $reasons[] = $value;
+                    }
+                }
+                $other = $v('otherschool');
+                $other = in_array(grades::plain($other), ['true', 'false', 'verdadero', 'falso', 'centro', 'n a'], true) ?
+                    '' : $other;
+                $reason = $v('reason') ?: implode(', ', $reasons);
+                if ($reason === '' && $kind === 'leaves' && $other !== '') {
+                    $reason = get_string('import_reason_otherschool', 'local_oksigeniaeguahe');
+                }
+                [$code, $locality] = self::place($places, $v('municipality'));
+                $out[] = (object) [
+                    'student' => $student,
+                    'household' => $household,
+                    'schoolyear' => $schoolyear,
+                    'grade' => $grade === '' ? '' : (string) $short(grades::label($centreid, $grade), 100),
+                    'groupname' => $short($v('group') ?: (string) $group, 100),
+                    'timein' => $in ?: $start,
+                    'timeout' => $outdate ?: ($kind === 'leaves' ? -1 : 0),
+                    'outreason' => $short($reason, 255),
+                    'municipality' => $code,
+                    'locality' => $short($v('locality') ?: (string) $locality, 255),
+                    'movement' => ['joins' => 'join', 'leaves' => 'leave'][$kind] ?? 'roll',
+                    'otherschool' => $short($other, 255),
+                    'birthyear' => $birthyear,
+                ];
+            } else if ($kind === 'totals') {
+                $schoolyear = recognise::schoolyear($v('schoolyear')) ??
+                    ($v('schoolyear') ?: (string) ($choice['schoolyear'] ?? ''));
+                if (!preg_match('/^\d{4}(-\d{2})?$/', $schoolyear) || !is_numeric($v('count'))) {
+                    $skipped++;
+                    continue;
+                }
+                $out[] = (object) ['schoolyear' => $schoolyear, 'grade' => grades::label($centreid, $v('grade')),
+                    'students' => (int) $v('count'), 'referencedate' => (int) recognise::date($v('refdate'))];
+            } else if ($kind === 'population') {
+                $popkind = in_array($v('kindcol'), ['births', 'age'], true) ? $v('kindcol') :
+                    ($v('agecol') !== '' ? 'age' : 'births');
+                if (!preg_match('/^\d{4}$/', $v('year')) || !is_numeric($v('people'))) {
+                    $skipped++;
+                    continue;
+                }
+                $out[] = (object) ['source' => 'csv', 'kind' => $popkind,
+                    'municipality' => \core_text::substr($v('municipality'), 0, 20), 'year' => (int) $v('year'),
+                    'age' => $popkind === 'age' ? (int) $v('agecol') : -1, 'people' => (int) $v('people'),
+                    'timefetched' => time()];
+            }
+        }
+        return [$out, $skipped];
+    }
+
+    /**
+     * Removes an import and everything it brought, and the keys nothing uses any more.
      *
      * @param int $centreid
      * @param int $importid
@@ -306,8 +444,9 @@ class imports {
         global $DB;
         $import = $DB->get_record(self::T, ['id' => $importid, 'centreid' => $centreid], '*', MUST_EXIST);
         $transaction = $DB->start_delegated_transaction();
-        $DB->delete_records(self::KINDS[$import->kind]['table'], ['importid' => $import->id]);
+        $DB->delete_records(self::TABLES[$import->kind], ['importid' => $import->id]);
         $DB->delete_records(self::T, ['id' => $import->id]);
+        pseudonym::clean($centreid);
         $transaction->allow_commit();
     }
 }

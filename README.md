@@ -33,6 +33,10 @@ households are waiting for an answer, how many places each course still has, and
 - **Offer and places**: for each course, those interested, those who visited, those enrolled and the places left, with
   the definition of each number on screen.
 - **Who supervises** can see everything of their centre without answering nor changing anything.
+- **Files as they come**: a spreadsheet with all its sheets, the export of the adverts, the answers of a form or a CSV.
+  Eguahe sees what each sheet is (contacts of a campaign, new students, leaves, the list of a school year, totals,
+  population) and what each column holds, shows it before importing, removes what is personal on the way in and turns
+  emails, phones and codes into keys that join the same family or student across files. Nothing is refused.
 - **The numbers that do not deceive**: a past campaign imported pseudonymised, by households from the first contact
   to the enrolment, by channel from both ends and with what each cost per new student; who came and went in each
   school year, with the balance and the reasons; the enrolment year by year. Each number with its definition.

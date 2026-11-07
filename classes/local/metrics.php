@@ -43,28 +43,65 @@ class metrics {
     /** @var int Days after the start of a school year that still count as starting it. */
     const STARTDAYS = 15;
 
+    /** @var int A family that enrols a child within this time of its first contact came from that campaign. */
+    const ENROLWINDOW = 2 * YEARSECS;
+
     /**
-     * The households of an imported campaign, each with what it did.
+     * The households of an imported campaign, each with what it did. A household is enrolled when the file said so, or
+     * when a student of its family (by its email or phone) or the child it named appears for the first time in the lists
+     * of the centre after its first contact.
      *
-     * @param int $importid
-     * @return array Token => [first, last (contacts), contacts, grade, visited, applied, enrolled]
+     * @param \stdClass $import
+     * @return array Token => [first, last (contacts), contacts, grade, visited, applied, enrolled, incentre]
      */
-    protected static function households(int $importid): array {
+    protected static function households(\stdClass $import): array {
         global $DB;
         $households = [];
-        $rows = $DB->get_recordset(self::CONTACTS, ['importid' => $importid], 'timecontact ASC, id ASC');
+        $rows = $DB->get_recordset(self::CONTACTS, ['importid' => $import->id], 'timecontact ASC, id ASC');
         foreach ($rows as $row) {
             $h = $households[$row->household] ?? ['first' => $row, 'last' => $row, 'contacts' => 0, 'grade' => null,
-                'visited' => false, 'applied' => false, 'enrolled' => false];
+                'visited' => false, 'applied' => false, 'enrolled' => false, 'incentre' => false, 'children' => []];
             $h['last'] = $row;
             $h['contacts']++;
             $h['grade'] = $h['grade'] ?? $row->graderequested;
             $h['visited'] = $h['visited'] || in_array($row->kind, ['visit_attended', 'open_day_attended'], true);
             $h['applied'] = $h['applied'] || $row->kind === 'application';
             $h['enrolled'] = $h['enrolled'] || (bool) $row->enrolled;
+            $h['incentre'] = $h['incentre'] || !empty($row->incentre);
+            if (!empty($row->student)) {
+                $h['children'][$row->student] = true;
+            }
             $households[$row->household] = $h;
         }
         $rows->close();
+        // When each student first appears at the centre, and the students of each family.
+        $first = $DB->get_records_sql_menu("SELECT student, MIN(timein) FROM {" . self::STUDENTS . "}
+                                             WHERE centreid = :centreid AND movement <> 'leave' AND timein > 0
+                                          GROUP BY student", ['centreid' => $import->centreid]);
+        if (!$first) {
+            return $households;
+        }
+        $family = [];
+        $links = $DB->get_recordset_select(
+            self::STUDENTS,
+            'centreid = :centreid AND household IS NOT NULL',
+            ['centreid' => $import->centreid],
+            '',
+            'id, household, student'
+        );
+        foreach ($links as $link) {
+            $family[$link->household][$link->student] = true;
+        }
+        $links->close();
+        foreach ($households as $token => $h) {
+            $since = (int) $h['first']->timecontact;
+            foreach (array_keys(($family[$token] ?? []) + $h['children']) as $student) {
+                $when = (int) ($first[$student] ?? 0);
+                if ($when >= $since && $when <= $since + self::ENROLWINDOW) {
+                    $households[$token]['enrolled'] = true;
+                }
+            }
+        }
         return $households;
     }
 
@@ -75,9 +112,12 @@ class metrics {
      * @return array
      */
     public static function campaign(\stdClass $import): array {
-        $households = self::households((int) $import->id);
+        $households = self::households($import);
+        // The families already at the centre are not prospects: counted apart, out of the way to the enrolment.
+        $incentre = count(array_filter($households, fn($h) => $h['incentre']));
+        $households = array_filter($households, fn($h) => !$h['incentre']);
         $totals = ['households' => count($households), 'contacts' => 0, 'inquiries' => 0, 'visited' => 0, 'applied' => 0,
-            'enrolled' => 0];
+            'enrolled' => 0, 'incentre' => $incentre];
         // The rates follow the same households: of those who asked, or came, how many were enrolled.
         $inquiredenrolled = 0;
         $visitedenrolled = 0;
@@ -223,8 +263,10 @@ class metrics {
     }
 
     /**
-     * Who came and who went in a school year: the start, the joins and leaves during the year with their balance, by
-     * course and by month, the reasons of the leaves, and where the students live.
+     * Who came and who went in a school year: the start, the new students, the joins and leaves during the year with
+     * their balance, by course and by month, the reasons of the leaves, the schools they came from and went to, and
+     * where the students live. One student counts once, though the list of the year and the list of the new ones both
+     * name it. Without the whole list of the year, the start and the end are not known and are not made up.
      *
      * @param int $centreid
      * @param string $schoolyear
@@ -232,51 +274,93 @@ class metrics {
      */
     public static function movements(int $centreid, string $schoolyear): array {
         global $DB;
-        $students = $DB->get_records(self::STUDENTS, ['centreid' => $centreid, 'schoolyear' => $schoolyear], 'id ASC');
+        $students = [];
+        foreach ($DB->get_records(self::STUDENTS, ['centreid' => $centreid, 'schoolyear' => $schoolyear], 'id ASC') as $r) {
+            $s = $students[$r->student] ?? ['roll' => false, 'new' => false, 'left' => false, 'timein' => 0,
+                'timeout' => 0, 'grade' => '', 'municipality' => null, 'locality' => '', 'reason' => '', 'from' => '',
+                'to' => ''];
+            $movement = (string) ($r->movement ?? 'roll');
+            $s['roll'] = $s['roll'] || $movement === 'roll';
+            $s['new'] = $s['new'] || $movement === 'join';
+            if ($movement === 'leave' || (int) $r->timeout !== 0) {
+                $s['left'] = true;
+                $s['timeout'] = max($s['timeout'], (int) $r->timeout);
+                $s['reason'] = $s['reason'] ?: trim((string) $r->outreason);
+                $s['to'] = $movement === 'leave' ? ($s['to'] ?: trim((string) $r->otherschool)) : $s['to'];
+            }
+            if ($movement !== 'leave' && (int) $r->timein > 0) {
+                $s['timein'] = $s['timein'] ? min($s['timein'], (int) $r->timein) : (int) $r->timein;
+                $s['from'] = $movement === 'join' ? ($s['from'] ?: trim((string) $r->otherschool)) : $s['from'];
+            }
+            if ($s['grade'] === '' || $movement === 'roll') {
+                $s['grade'] = $r->grade !== '' ? grades::label($centreid, (string) $r->grade) : $s['grade'];
+            }
+            if ($s['municipality'] === null || $movement === 'roll') {
+                $s['municipality'] = $r->municipality ?? $s['municipality'];
+                $s['locality'] = (string) ($r->locality ?: $s['locality']);
+            }
+            $students[$r->student] = $s;
+        }
+        $hasroll = (bool) array_filter($students, fn($s) => $s['roll']);
         // The start of the year is the day most students joined.
-        $days = array_count_values(array_map(fn($s) => userdate((int) $s->timein, '%Y-%m-%d'), $students));
+        $days = array_count_values(array_map(
+            fn($s) => userdate($s['timein'], '%Y-%m-%d'),
+            array_filter($students, fn($s) => $s['timein'] > 0)
+        ));
         arsort($days);
         $startday = (string) array_key_first($days);
         $start = $startday !== '' ? (int) strtotime($startday . ' 12:00') : 0;
         $limit = $start + self::STARTDAYS * DAYSECS;
-        $totals = ['start' => 0, 'joins' => 0, 'leaves' => 0, 'now' => 0];
+        $totals = ['start' => 0, 'new' => 0, 'joins' => 0, 'leaves' => 0, 'now' => 0];
         $bygrade = [];
         $bymonth = [];
         $reasons = [];
         $places = [];
+        $schools = ['from' => [], 'to' => []];
+        $nograde = get_string('metrics_nograde', 'local_oksigeniaeguahe');
         foreach ($students as $s) {
-            $joined = (int) $s->timein > $limit;
-            $left = (int) $s->timeout > 0;
-            $g = $bygrade[$s->grade] ?? ['grade' => $s->grade, 'start' => 0, 'joins' => 0, 'leaves' => 0, 'now' => 0];
-            $g['start'] += $joined ? 0 : 1;
-            $g['joins'] += $joined ? 1 : 0;
-            $g['leaves'] += $left ? 1 : 0;
-            $g['now'] += $left ? 0 : 1;
-            $bygrade[$s->grade] = $g;
-            $totals['start'] += $joined ? 0 : 1;
-            $totals['joins'] += $joined ? 1 : 0;
-            $totals['leaves'] += $left ? 1 : 0;
-            $totals['now'] += $left ? 0 : 1;
+            $joined = $s['timein'] > $limit;
+            $new = $s['new'] && !$joined;
+            $left = $s['left'];
+            $grade = $s['grade'] !== '' ? $s['grade'] : $nograde;
+            $g = $bygrade[$grade] ?? ['grade' => $grade, 'start' => 0, 'new' => 0, 'joins' => 0, 'leaves' => 0, 'now' => 0];
+            foreach (['start' => !$joined, 'new' => $new, 'joins' => $joined, 'leaves' => $left, 'now' => !$left] as $k => $yes) {
+                $g[$k] += $yes ? 1 : 0;
+                $totals[$k] += $yes ? 1 : 0;
+            }
+            $bygrade[$grade] = $g;
             if ($joined) {
-                $m = userdate((int) $s->timein, '%Y-%m');
+                $m = userdate($s['timein'], '%Y-%m');
                 $bymonth[$m] = ($bymonth[$m] ?? ['month' => $m, 'joins' => 0, 'leaves' => 0]);
                 $bymonth[$m]['joins']++;
             }
             if ($left) {
-                $m = userdate((int) $s->timeout, '%Y-%m');
-                $bymonth[$m] = ($bymonth[$m] ?? ['month' => $m, 'joins' => 0, 'leaves' => 0]);
-                $bymonth[$m]['leaves']++;
-                $reason = trim((string) $s->outreason);
-                $reasons[$reason] = ($reasons[$reason] ?? 0) + 1;
+                if ($s['timeout'] > 0) {
+                    $m = userdate($s['timeout'], '%Y-%m');
+                    $bymonth[$m] = ($bymonth[$m] ?? ['month' => $m, 'joins' => 0, 'leaves' => 0]);
+                    $bymonth[$m]['leaves']++;
+                }
+                $reasons[$s['reason']] = ($reasons[$s['reason']] ?? 0) + 1;
+                if ($s['to'] !== '') {
+                    $schools['to'][$s['to']] = ($schools['to'][$s['to']] ?? 0) + 1;
+                }
             } else {
-                $key = (string) ($s->municipality ?? '');
-                $places[$key] = ($places[$key] ?? ['code' => $key, 'locality' => (string) $s->locality, 'students' => 0]);
+                $key = (string) ($s['municipality'] ?? '');
+                $places[$key] = ($places[$key] ?? ['code' => $key, 'locality' => $s['locality'], 'students' => 0]);
                 $places[$key]['students']++;
             }
+            if (($s['new'] || $joined) && $s['from'] !== '') {
+                $schools['from'][$s['from']] = ($schools['from'][$s['from']] ?? 0) + 1;
+            }
         }
-        $totals['net'] = $totals['joins'] - $totals['leaves'];
+        // The balance of the year: who came (new at the start and during the year) less who left.
+        $totals['net'] = $totals['new'] + $totals['joins'] - $totals['leaves'];
+        if (!$hasroll) {
+            $totals['start'] = null;
+            $totals['now'] = null;
+        }
         foreach ($bygrade as $k => $g) {
-            $bygrade[$k]['net'] = $g['joins'] - $g['leaves'];
+            $bygrade[$k]['net'] = $g['new'] + $g['joins'] - $g['leaves'];
         }
         ksort($bymonth);
         arsort($reasons);
@@ -286,11 +370,21 @@ class metrics {
                 'count' => $count];
         }
         uasort($places, fn($a, $b) => $b['students'] <=> $a['students']);
+        $present = array_sum(array_column($places, 'students'));
         foreach ($places as $k => $p) {
-            $places[$k]['share'] = $totals['now'] ? round(100 * $p['students'] / $totals['now'], 1) : 0;
+            $places[$k]['share'] = $present ? round(100 * $p['students'] / $present, 1) : 0;
         }
-        return ['schoolyear' => $schoolyear, 'start' => $start, 'totals' => $totals, 'bygrade' => array_values($bygrade),
-            'bymonth' => array_values($bymonth), 'reasons' => $reasonlist, 'places' => array_values($places)];
+        foreach ($schools as $end => $list) {
+            arsort($list);
+            $schools[$end] = array_map(
+                fn($name, $count) => ['school' => $name, 'count' => $count],
+                array_keys($list),
+                array_values($list)
+            );
+        }
+        return ['schoolyear' => $schoolyear, 'start' => $start, 'hasroll' => $hasroll, 'totals' => $totals,
+            'bygrade' => array_values($bygrade), 'bymonth' => array_values($bymonth), 'reasons' => $reasonlist,
+            'places' => array_values($places), 'from' => $schools['from'], 'to' => $schools['to']];
     }
 
     /**
@@ -304,11 +398,17 @@ class metrics {
         $matrix = [];
         $grades = [];
         foreach ($DB->get_records(self::TOTALS, ['centreid' => $centreid], 'schoolyear ASC, id ASC') as $row) {
-            $matrix[$row->grade][$row->schoolyear] = (int) $row->students;
-            $grades[$row->grade] = true;
+            $grade = grades::label($centreid, (string) $row->grade);
+            $matrix[$grade][$row->schoolyear] = ($matrix[$grade][$row->schoolyear] ?? 0) + (int) $row->students;
+            $grades[$grade] = true;
         }
         foreach (self::school_years($centreid) as $year) {
-            foreach (self::movements($centreid, $year)['bygrade'] as $g) {
+            $m = self::movements($centreid, $year);
+            if (!$m['hasroll']) {
+                // Only the new ones and the leaves: the students of each course that year are not known.
+                continue;
+            }
+            foreach ($m['bygrade'] as $g) {
                 // The year imported by student counts as it started, like the totals of the other years.
                 $matrix[$g['grade']][$year] = $g['start'];
                 $grades[$g['grade']] = true;

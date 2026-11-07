@@ -10,7 +10,7 @@ mensajería, que se añadirán a esta entrada cuando el centro los encienda.
 | Responsable | [Nombre legal del centro], [dirección], [correo para ejercer los derechos] |
 | Delegado de protección de datos | [Nombre o servicio y su correo, si el centro lo tiene] |
 | Encargado del tratamiento | [Quien aloja y mantiene el Moodle del centro], con contrato de encargo |
-| Finalidades | Contestar a las familias; organizar visitas y jornadas, con su aforo y su asistencia; seguir cada solicitud hasta la matrícula o su cierre; y conocer, solo con cifras agregadas, cómo va la campaña. Si el centro importa campañas anteriores o su matrícula para analizarlas, entran seudonimizadas (un código en lugar de cada familia y alumno, sin nombres, teléfonos ni correos) y solo para las cifras |
+| Finalidades | Contestar a las familias; organizar visitas y jornadas, con su aforo y su asistencia; seguir cada solicitud hasta la matrícula o su cierre; y conocer, solo con cifras agregadas, cómo va la campaña. Si el centro importa campañas anteriores, sus altas y bajas o su matrícula para analizarlas, entran seudonimizadas y solo para las cifras: el fichero se lee tal cual, al entrar se borran los nombres, las notas, los datos de salud, las contraseñas, las direcciones y los documentos; de la fecha de nacimiento queda solo el año; los correos, los teléfonos, los códigos de alumno y el nombre del niño se convierten en una clave cifrada con un secreto del centro (HMAC-SHA256), que solo sirve para reconocer a la misma familia o al mismo alumno en otro fichero; y el fichero no se guarda |
 | Base jurídica | La solicitud de la propia familia (medidas precontractuales) para contestarla y organizar la visita; el consentimiento, para escribirle por cada canal que marque (correo, WhatsApp, teléfono), que puede retirar |
 | Interesados | Los adultos de las familias que se dirigen al centro; los menores que estudiarían en él |
 | Datos | De los adultos: nombre, apellidos, teléfono, correo, idioma, municipio (si lo dicen), cómo conocieron el centro (si lo dicen), lo que escriben al centro y los permisos por canal, con su fecha. De los menores: nombre de pila, el nombre que usan en casa (si lo dan) y curso que piden. No se piden datos de categorías especiales |
@@ -33,3 +33,5 @@ familias (la primera capa del formulario y la página «Cómo tratamos sus datos
   internacionales y el permiso por canal, que la familia da al apuntarse o al escribir.
 - **Los formularios de anuncios de Meta, de Google o de la web del centro**: añadir cada origen y lo que pide cada
   formulario.
+- **Importar lo que ya pasó** (campañas, altas y bajas, listas de alumnos): añadir las fuentes que el centro importe
+  (sus formularios, sus anuncios, su secretaría) y el plazo en que guarda las importaciones, que se quitan a mano.
