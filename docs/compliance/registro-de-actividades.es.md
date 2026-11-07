@@ -35,6 +35,9 @@ familias (la primera capa del formulario y la página «Cómo tratamos sus datos
   Meta y cualquier otra herramienta conectada. Añadir cada origen y lo que pide cada formulario. Quien llega por un
   formulario ajeno (Google, Meta) no ha visto la primera capa: el correo de «recibido» y su página se la enseñan, y el
   permiso por canal solo se apunta si ese formulario lo preguntaba; sin él, solo se le contesta a lo que pidió.
+  **El buzón de admisiones reenviado** pasa por el servicio de correo de entrada que lo lleva hasta Eguahe (con el
+  Worker de `email-worker/`, Cloudflare): añadirlo como encargado del tránsito, que no guarda nada, y sus transferencias
+  internacionales. Los adjuntos no entran.
 - **Las personas del equipo que reciben a las familias** (desde la 0.6.0): su nombre, su foto, lo que hacen y una
   frase suya salen en las páginas de las familias apuntadas. Es un tratamiento de datos del personal, aparte de este:
   con el permiso de cada persona para usar su imagen, que puede retirar quitándose de «Quién recibe a las familias».

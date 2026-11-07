@@ -35,6 +35,9 @@ families (the first layer of the form and the page «How we treat your data»):
   other tool connected. Add each source and what each form asks for. Whoever comes through a form of others (Google,
   Meta) has not seen the first layer: the email of receipt and their page show it, and the permission by channel is
   only noted if that form asked for it; without it, they are only answered about what they asked.
+  **The forwarded mailbox of admissions** goes through the inbound email service that takes it to Eguahe (with the
+  Worker of `email-worker/`, Cloudflare): add it as processor of the transit, which keeps nothing, and its international
+  transfers. Attachments do not come in.
 - **The people of the team who welcome the families** (from 0.6.0): their name, photo, what they do and a line of
   theirs appear on the pages of the families signed up. It is a processing of staff data, apart from this one: with the
   permission of each person to use their image, which they withdraw by leaving «Who welcomes the families».
