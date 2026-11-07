@@ -13,12 +13,12 @@ without messaging channels, which are added to this entry when the centre turns 
 | Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each request until enrolment or its closing; and knowing, only in aggregate numbers, how the campaign is going. If the centre imports past campaigns, its joins and leaves or its enrolment to analyse them, they go in pseudonymised and only for the numbers: the file is read as it comes; on the way in, names, notes, health data, passwords, addresses and documents are removed; of the date of birth only the year stays; emails, phones, student codes and the child's name become a key encrypted with a secret of the centre (HMAC-SHA256), which only serves to recognise the same family or student in another file; and the file is not kept |
 | Legal basis | The family's own request (pre-contractual steps), to answer it and organise the visit; consent, to write to them on each channel they tick (email, WhatsApp, phone), which they can withdraw |
 | Data subjects | The adults of the families who contact the centre; the minors who would study there |
-| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), the days and part of the day that suit them for a visit (if they ask for a tailored one), what they write to the centre and their permissions by channel, with their date. Of minors: first name, the name used at home (if given) and the course asked for. No special categories are asked for |
+| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), the days and part of the day that suit them for a visit (if they ask for a tailored one), what they write to the centre, their answers to the centre's own questions in its forms, where they came from (the form, the place it was shared from and, if they come from an ad, its campaign) and their permissions by channel, with their date. Of minors: first name, the name used at home (if given) and the course asked for. No special categories are asked for |
 | Automated decisions | None. No family is scored or ranked |
 | Recipients | Nobody outside the centre, unless the law requires it. The processor, on behalf of the centre |
 | International transfers | None [if hosting is in the EU] |
 | Erasure | After [24] months without activity (set per centre), automatically every night. Families erase their data whenever they want from their page. If there is an enrolment, the data passes to the record of families of the centre |
-| Security measures | Access only for the admissions team of the centre, by Moodle user and capability; each centre sees only its families; the private link of each family kept only as a hash (SHA-256) and renewable; public pages without trackers, third parties or indexing; anti-spam without third parties (ALTCHA); [encrypted backups of the site, as its hosting provides] |
+| Security measures | Access only for the admissions team of the centre, by Moodle user and capability; each centre sees only its families; the private link of each family kept only as a hash (SHA-256) and renewable; what comes from a tool of the centre (Google, a sheet, another tool) only when signed with the key of that entry, and of what was erased only a hash without the family stays, so that sending it again does not bring it back; forms do not accept questions about health, documents or passwords; public pages without trackers, third parties or indexing; anti-spam without third parties (ALTCHA); [encrypted backups of the site, as its hosting provides] |
 | Rights | From the family's page: download and erase their data. In writing to [email]: access, rectification, restriction and objection. A complaint to the data protection authority |
 
 ## When this entry has to change
@@ -31,7 +31,10 @@ families (the first layer of the form and the page «How we treat your data»):
   Area; and the impact assessment. What is sent to it goes without names, phones or emails.
 - **WhatsApp or Telegram**: add Meta or Telegram as recipients of the messages, their international transfers and the
   permission by channel, which the family gives when signing up or writing.
-- **The forms of Meta or Google ads, or of the website of the centre**: add each source and what each form asks for.
+- **The entries** (from 0.9.0): the forms made in Eguahe, Google forms and sheets, the contacts of Meta ads and any
+  other tool connected. Add each source and what each form asks for. Whoever comes through a form of others (Google,
+  Meta) has not seen the first layer: the email of receipt and their page show it, and the permission by channel is
+  only noted if that form asked for it; without it, they are only answered about what they asked.
 - **The people of the team who welcome the families** (from 0.6.0): their name, photo, what they do and a line of
   theirs appear on the pages of the families signed up. It is a processing of staff data, apart from this one: with the
   permission of each person to use their image, which they withdraw by leaving «Who welcomes the families».

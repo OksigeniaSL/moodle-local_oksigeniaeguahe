@@ -45,6 +45,9 @@
         "adults": [{"index": 0, "hidden": false, "fields": [{"name": "a0first", "label": "Nombre", "value": "",
             "type": "text", "autocomplete": "given-name", "inputmode": "", "error": "", "invalid": false}]}],
         "canaddadult": true, "pub_another_adult": "Añadir a otro adulto",
+        "isform": false, "kicker": "Jornada de puertas abiertas", "headline": "Vengan a conocernos", "formlead": "",
+        "formside": "", "fields": [], "hasfields": false, "askplace": true, "askheard": true, "askmessage": true,
+        "askincentre": false, "askpeople": true, "hasmore": true, "preview": false, "previewnote": "",
         "tailored": false, "days": [], "periods": [], "pub_when_suits": "¿Cuándo les viene bien?", "pub_when_suits_hint": "",
         "pub_tailored_title": "Cuando les venga bien", "pub_tailored_lead": "",
         "hasslots": true, "pub_slot": "Elijan su turno", "sloterror": "",
@@ -70,8 +73,8 @@
 }}
 <section class="pared" aria-labelledby="titulo">
     <div class="saludo-arriba">
-        <p class="antetitulo">{{event}}</p>
-        <h1 class="titular" id="titulo">{{pub_come_meet}}</h1>
+        {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
+        <h1 class="titular" id="titulo">{{headline}}</h1>
     </div>
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
@@ -98,6 +101,11 @@
 
 <div class="inscripcion">
     <aside class="resumen-acto">
+        {{#isform}}
+        <p class="cuando"><span>{{formside}}</span></p>
+        <p class="entradilla">{{formlead}}</p>
+        {{/isform}}
+        {{^isform}}
         {{#tailored}}
         <p class="cuando"><span>{{pub_tailored_title}}</span></p>
         <p class="entradilla">{{pub_tailored_lead}}</p>
@@ -106,6 +114,7 @@
         <p class="cuando"><span>{{weekday}}</span>{{daymonth}}</p>
         <p class="entradilla">{{hours}}{{#place}} · {{place}}{{/place}}{{#address}}, {{address}}{{/address}}.</p>
         {{/tailored}}
+        {{/isform}}
         {{#welcome}}<p class="muted">{{welcome}}</p>{{/welcome}}
         {{#hashosts}}
         <div class="caras-mini">
@@ -159,6 +168,58 @@
             {{#canaddadult}}<button type="button" class="anadir" data-add="adulto">{{{i.plus}}}{{pub_another_adult}}</button>{{/canaddadult}}
         </fieldset>
 
+        {{#hasfields}}
+        <fieldset class="preguntas">
+            {{#fields}}
+            {{#issection}}
+            <div class="seccion-form"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
+                <h2>{{label}}</h2>
+                {{#help}}<p class="ayuda">{{help}}</p>{{/help}}
+            </div>
+            {{/issection}}
+            {{^issection}}
+            <div class="campo pregunta{{#invalid}} mal{{/invalid}}" id="{{name}}"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
+                {{#ischips}}
+                <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                <div class="fichas" role="radiogroup" aria-labelledby="{{name}}-label">
+                    {{#options}}<label class="ficha"><input type="radio" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+                </div>
+                {{/ischips}}
+                {{#ismulti}}
+                <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                <div class="fichas" role="group" aria-labelledby="{{name}}-label">
+                    {{#options}}<label class="ficha"><input type="checkbox" name="{{name}}[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+                </div>
+                {{/ismulti}}
+                {{#istext}}
+                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+                <input id="{{name}}-in" name="{{name}}" type="text" value="{{value}}" maxlength="500"{{#invalid}} aria-invalid="true"{{/invalid}}>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                {{/istext}}
+                {{#islong}}
+                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+                <textarea id="{{name}}-in" name="{{name}}"{{#invalid}} aria-invalid="true"{{/invalid}}>{{value}}</textarea>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                {{/islong}}
+                {{#isdate}}
+                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+                <input id="{{name}}-in" name="{{name}}" type="date" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                {{/isdate}}
+                {{#isnumber}}
+                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+                <input id="{{name}}-in" name="{{name}}" type="text" inputmode="decimal" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
+                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+                {{/isnumber}}
+                {{#error}}<p class="error">{{{i.alert}}}{{error}}</p>{{/error}}
+            </div>
+            {{/issection}}
+            {{/fields}}
+        </fieldset>
+        {{/hasfields}}
+
         {{#tailored}}
         <fieldset id="when">
             <legend>{{pub_when_suits}}</legend>
@@ -199,8 +260,10 @@
         </fieldset>
         {{/isother}}
 
+        {{#hasmore}}
         <fieldset>
             <legend>{{pub_more}} <span class="opc">{{pub_if_you_wish}}</span></legend>
+            {{#askpeople}}
             <div class="campo{{#peopleerror}} mal{{/peopleerror}}">
                 <label for="people">{{pub_people}}</label>
                 <div class="paso">
@@ -210,7 +273,9 @@
                 </div>
                 {{#peopleerror}}<p class="error" id="people-error">{{{i.alert}}}{{peopleerror}}</p>{{/peopleerror}}
             </div>
+            {{/askpeople}}
             <div class="dos">
+                {{#askplace}}
                 <div class="campo">
                     <label for="municipality">{{pub_where}}</label>
                     <select id="municipality" name="municipality">
@@ -220,6 +285,8 @@
                         <option value="moving"{{#movingselected}} selected{{/movingselected}}>{{pub_where_moving}}</option>
                     </select>
                 </div>
+                {{/askplace}}
+                {{#askheard}}
                 <div class="campo">
                     <label for="heardfrom">{{pub_heardfrom}}</label>
                     <select id="heardfrom" name="heardfrom">
@@ -227,17 +294,23 @@
                         {{#heard}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/heard}}
                     </select>
                 </div>
+                {{/askheard}}
             </div>
+            {{#askplace}}
             <div class="campo lejos"{{#lejoshidden}} hidden{{/lejoshidden}}>
                 <label for="municipalityother" data-other="{{lejosother}}" data-moving="{{lejosmoving}}">{{lejoslabel}}</label>
                 <input id="municipalityother" name="municipalityother" type="text" autocomplete="address-level2" value="{{municipalityother}}">
             </div>
+            {{/askplace}}
+            {{#askmessage}}
             <div class="campo">
                 <label for="message">{{pub_message}}</label>
                 <textarea id="message" name="message" aria-describedby="message-hint">{{message}}</textarea>
                 <p class="ayuda-campo" id="message-hint">{{pub_message_hint}}</p>
             </div>
+            {{/askmessage}}
         </fieldset>
+        {{/hasmore}}
 
         <fieldset id="channels"{{#channelerror}} class="mal" aria-describedby="channels-error"{{/channelerror}}>
             <legend>{{pub_channels}}</legend>
@@ -260,7 +333,8 @@
             </div>
             {{#altchaerror}}<p class="error">{{{i.alert}}}{{altchaerror}}</p>{{/altchaerror}}
             {{#formerror}}<p class="error" role="alert">{{{i.alert}}}{{formerror}}</p>{{/formerror}}
-            <button class="boton principal ancho" type="submit" data-sending="{{pub_sending}}">{{pub_submit}}</button>
+            {{#preview}}<p class="error" role="note">{{previewnote}}</p>{{/preview}}
+            <button class="boton principal ancho" type="submit" data-sending="{{pub_sending}}"{{#preview}} disabled{{/preview}}>{{pub_submit}}</button>
             <p class="nota-plaza">{{pub_no_place}}</p>
         </div>
     </form>

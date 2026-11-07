@@ -22,7 +22,8 @@
 
     Example context (json):
     {"i": {"mail": "", "phone": ""}, "title": "Este enlace ya no funciona", "text": "Pídannos uno nuevo.", "hook": true,
-     "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos"}
+     "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos",
+     "button": null}
 }}
 <section class="pared corta">
     {{#hook}}
@@ -35,8 +36,11 @@
         <h1>{{title}}</h1>
         <p class="entradilla">{{text}}</p>
         <div class="acciones">
+            {{#button}}<a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{label}}</a>{{/button}}
+            {{^button}}
             {{#email}}<a class="boton principal" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
             {{#phone}}<a class="enlace" href="tel:{{tel}}">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{/button}}
         </div>
     </div>
 </section>

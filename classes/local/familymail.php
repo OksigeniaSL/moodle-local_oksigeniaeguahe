@@ -30,7 +30,7 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -84,6 +84,7 @@ class familymail {
      * @param \stdClass|null $signup A sign-up as households::full() gives them, with its event; null for a request.
      * @param string $lang
      * @param string|null $token The private link of the family, when it is known (only at the moment it is made).
+     * @param string $text What a person of the team writes, for a reply.
      * @return array [subject, html, text, images]
      */
     public static function build(
@@ -92,7 +93,8 @@ class familymail {
         \stdClass $centre,
         ?\stdClass $signup,
         string $lang,
-        ?string $token = null
+        ?string $token = null,
+        string $text = ''
     ): array {
         global $CFG;
         $images = [];
@@ -226,6 +228,32 @@ class familymail {
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'nota' => $str('mail_note_confirm'),
             ];
+        } else if ($kind === 'received') {
+            // A family that wrote through a form or an entry: it was received, and a person will answer.
+            $context['titular'] = $str('mail_received_titular');
+            $context += [
+                'asunto' => $str('mail_received_subject'),
+                'preencabezado' => $str('mail_received_lead'),
+                'entradilla' => s($str('mail_received_lead')),
+                'entradilla_texto' => $str('mail_received_lead'),
+                'aviso' => ['titulo' => $str('mail_saved_title_received'), 'texto' => $str('mail_saved_text')],
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                    'url_texto' => $pageurl] : null,
+                'nota' => $str('mail_note_confirm'),
+            ];
+        } else if ($kind === 'reply') {
+            // What a person of the team writes, as it was written, with its page below.
+            $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
+            $context['titular'] = $str('mail_reply_titular');
+            $context += [
+                'asunto' => $str('mail_reply_subject', format_string($centre->name)),
+                'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', $text), 0, 120),
+                'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
+                'entradilla_texto' => trim($text),
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                    'url_texto' => $pageurl] : null,
+                'nota' => $str('mail_note_reply'),
+            ];
         } else if ($kind === 'request') {
             $pending = visits::pending((int) $household->id);
             $when = $pending ? visits::suits($pending, $lang) : $str('visit_anyday');
@@ -309,6 +337,7 @@ class familymail {
      * @param string $lang
      * @param string|null $token
      * @param string|null $to Another address of the family, instead of the first one.
+     * @param string $text What a person of the team writes, for a reply.
      * @return bool Whether it was sent.
      */
     public static function send(
@@ -318,7 +347,8 @@ class familymail {
         ?\stdClass $signup,
         string $lang,
         ?string $token = null,
-        ?string $to = null
+        ?string $to = null,
+        string $text = ''
     ): bool {
         $email = (string) $to;
         foreach ($to === null ? households::full($household)->adults : [] as $adult) {
@@ -327,8 +357,8 @@ class familymail {
         if ($email === '') {
             return false;
         }
-        [$subject, $html, $text, $images] = self::build($kind, $household, $centre, $signup, $lang, $token);
-        return mail::send_rich($centre, $email, $subject, $html, $text, $images);
+        [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text);
+        return mail::send_rich($centre, $email, $subject, $html, $plain, $images);
     }
 
     /**

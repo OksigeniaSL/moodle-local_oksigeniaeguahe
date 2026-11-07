@@ -28,6 +28,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
+use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\signup;
@@ -61,6 +62,7 @@ if (!$event->open || $event->timeend < time()) {
 }
 
 $data = signup::read();
+$data['answers'] = forms::read((int) $event->formid);
 $errors = [];
 if (data_submitted()) {
     if (!confirm_sesskey()) {

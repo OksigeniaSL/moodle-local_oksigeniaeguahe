@@ -96,6 +96,7 @@ class householdpage {
                 'channel' => get_string('channel_' . $contact->channel, $c),
                 'when' => userdate((int) $contact->timecreated, get_string('strftimedatetimeshort', 'langconfig')),
                 'body' => $contact->body,
+                'detail' => (string) ($contact->detail ?? ''),
             ];
         }
         $events = [];
@@ -129,6 +130,8 @@ class householdpage {
             'adults' => $adults,
             'children' => $children,
             'history' => $history,
+            // The first email of the family: where an answer written here goes.
+            'replyto' => (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? ''),
             'hashistory' => (bool) $history,
             'events' => $events,
             'hasevents' => (bool) $events,

@@ -108,6 +108,7 @@ class events {
             'open' => empty($data->open) ? 0 : 1,
             // A visit of its own: families say when it suits them, and the team proposes the day.
             'tailored' => !empty($data->tailored) && ($data->kind ?? '') === 'visit' ? 1 : 0,
+            'formid' => (int) ($data->formid ?? 0),
             'timemodified' => time(),
         ];
         if (isset($data->hosts)) {
@@ -444,7 +445,17 @@ class events {
      */
     public static function qr_svg(\stdClass $event): string {
         // The short link, when there is one: fewer modules, read from further and through a photocopy.
-        $qr = new \core_qrcode(self::short_url($event) ?? self::url($event)->out(false));
+        return self::qr_of(self::short_url($event) ?? self::url($event)->out(false));
+    }
+
+    /**
+     * The QR of any link, to put inside a page.
+     *
+     * @param string $url
+     * @return string SVG.
+     */
+    public static function qr_of(string $url): string {
+        $qr = new \core_qrcode($url);
         $svg = $qr->getBarcodeSVGcode(6, 6, 'black');
         // Inside a page: without the XML prologue, and scaling to its box.
         $svg = substr($svg, strpos($svg, '<svg'));

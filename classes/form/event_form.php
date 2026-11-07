@@ -58,6 +58,14 @@ class event_form extends \moodleform {
         $mform->addHelpButton('capacity', 'event_capacity', $c);
         $mform->addElement('advcheckbox', 'open', get_string('event_open', $c));
         $mform->setDefault('open', 1);
+        $forms = [0 => get_string('event_form_none', $c)];
+        foreach (\local_oksigeniaeguahe\local\entries::for_centre((int) ($this->_customdata['centreid'] ?? 0)) as $entry) {
+            if ($entry->kind === 'form') {
+                $forms[(int) $entry->id] = format_string($entry->name);
+            }
+        }
+        $mform->addElement('select', 'formid', get_string('event_form', $c), $forms);
+        $mform->addHelpButton('formid', 'event_form', $c);
         $mform->addElement('advcheckbox', 'tailored', get_string('event_tailored', $c));
         $mform->addHelpButton('tailored', 'event_tailored', $c);
         $mform->hideIf('tailored', 'kind', 'neq', 'visit');

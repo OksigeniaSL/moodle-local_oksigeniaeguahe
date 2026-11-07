@@ -1803,3 +1803,70 @@ fieldset.mal .fichas .ficha {
 .lo-contado .escribimos {
     margin-top: 12px;
 }
+
+/* The questions of a form of the centre: one under the other, each shown only when its answer calls for it. */
+.preguntas {
+    display: grid;
+    gap: 22px;
+}
+
+.campo[hidden],
+.seccion-form[hidden] {
+    display: none;
+}
+
+.seccion-form {
+    display: grid;
+    gap: 6px;
+}
+
+.seccion-form h2 {
+    margin: 8px 0 0;
+    font-size: var(--eg-fluido-17);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.seccion-form .ayuda {
+    margin-top: 0;
+}
+
+.pregunta .etiqueta-campo {
+    margin: 0;
+    font-weight: 650;
+    font-size: 1rem;
+}
+
+.pregunta .opc,
+.campo label .opc {
+    font-weight: 500;
+    color: var(--eg-tinta-2);
+}
+
+.pregunta.aparece {
+    animation: aparecer 0.25s ease-out;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pregunta.aparece {
+        animation: none;
+    }
+}
+
+/* Inside the web of the centre: the web already says whose it is. */
+.incrustado .cabecera .placa {
+    visibility: hidden;
+}

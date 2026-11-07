@@ -48,7 +48,8 @@ $hosts = [];
 foreach (centres::hosts((int) $centre->id) as $host) {
     $hosts[$host->memberid] = $host->name . ($host->role !== '' ? ' · ' . $host->role : '');
 }
-$form = new event_form($url, ['slots' => $event ? count(events::slots((int) $event->id)) : 0, 'hosts' => $hosts]);
+$form = new event_form($url, ['slots' => $event ? count(events::slots((int) $event->id)) : 0, 'hosts' => $hosts,
+    'centreid' => (int) $centre->id]);
 if ($event) {
     $defaults = (array) $event + ['c' => $centre->id];
     $defaults['hosts'] = array_filter(array_map('intval', explode(',', (string) $event->hosts)));

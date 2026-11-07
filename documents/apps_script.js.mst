@@ -1,0 +1,126 @@
+// Oksigenia Eguahe · {{{name}}}
+{{#form}}
+// Sends each answer of this form, as it comes, to the inbox of the centre.
+//   1. In the form, menu ⋮ › Apps Script. Replace what is there with all of this, and save.
+//   2. Choose «eguaheInstall» and press Run, once. Google asks for permission the first time.
+//   3. To send also the answers the form already has, choose «eguaheSendAll» and press Run.
+{{/form}}
+{{#sheet}}
+// Sends each new row of this sheet to the inbox of the centre, every ten minutes.
+//   1. In the sheet, menu Extensions › Apps Script. Replace what is there with all of this, and save.
+//   2. If the rows are not in the first tab, write its name below, between the quotes.
+//   3. Choose «eguaheInstall» and press Run, once. Google asks for permission the first time.
+//   4. To send also the rows the sheet already has, choose «eguaheSendAll» and press Run.
+const EGUAHE_TAB = '';
+{{/sheet}}
+// The key below signs what is sent: whoever has it can send families to the centre. Do not share it.
+const EGUAHE_URL = {{{url}}};
+const EGUAHE_KEY = {{{secret}}};
+{{#form}}
+
+function eguaheInstall() {
+  const form = FormApp.getActiveForm();
+  ScriptApp.getProjectTriggers().forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === 'eguaheOnSubmit') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  ScriptApp.newTrigger('eguaheOnSubmit').forForm(form).onFormSubmit().create();
+}
+
+function eguaheOnSubmit(e) {
+  eguahePost_([eguaheItem_(e.response, false)]);
+}
+
+function eguaheSendAll() {
+  const items = FormApp.getActiveForm().getResponses().map(function (response) {
+    return eguaheItem_(response, true);
+  });
+  for (let i = 0; i < items.length; i += 100) {
+    eguahePost_(items.slice(i, i + 100));
+  }
+}
+
+function eguaheItem_(response, past) {
+  const answers = {};
+  const email = response.getRespondentEmail();
+  if (email) {
+    answers['Email'] = email;
+  }
+  response.getItemResponses().forEach(function (item) {
+    const value = item.getResponse();
+    answers[item.getItem().getTitle()] = Array.isArray(value) ? value.join(', ') : String(value);
+  });
+  return { id: response.getId(), time: response.getTimestamp().toISOString(), past: past, answers: answers };
+}
+{{/form}}
+{{#sheet}}
+
+function eguaheInstall() {
+  ScriptApp.getProjectTriggers().forEach(function (trigger) {
+    if (trigger.getHandlerFunction() === 'eguaheCheck') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
+  ScriptApp.newTrigger('eguaheCheck').timeBased().everyMinutes(10).create();
+  // From now on, only the rows that arrive.
+  PropertiesService.getScriptProperties().setProperty('eguaheRows', String(eguaheTab_().getLastRow()));
+}
+
+function eguaheCheck() {
+  const done = Number(PropertiesService.getScriptProperties().getProperty('eguaheRows') || '1');
+  if (eguaheTab_().getLastRow() > done) {
+    eguaheRows_(done + 1, false);
+  }
+}
+
+function eguaheSendAll() {
+  eguaheRows_(2, true);
+}
+
+function eguaheRows_(from, past) {
+  const values = eguaheTab_().getDataRange().getDisplayValues();
+  const head = values[0];
+  let items = [];
+  for (let r = Math.max(from, 2) - 1; r < values.length; r++) {
+    const answers = {};
+    head.forEach(function (question, c) {
+      if (question !== '' && values[r][c] !== '') {
+        answers[question] = values[r][c];
+      }
+    });
+    if (Object.keys(answers).length) {
+      items.push({ past: past, answers: answers });
+    }
+    if (items.length === 100) {
+      eguahePost_(items);
+      items = [];
+    }
+  }
+  if (items.length) {
+    eguahePost_(items);
+  }
+  PropertiesService.getScriptProperties().setProperty('eguaheRows', String(values.length));
+}
+
+function eguaheTab_() {
+  const book = SpreadsheetApp.getActiveSpreadsheet();
+  return EGUAHE_TAB ? book.getSheetByName(EGUAHE_TAB) : book.getSheets()[0];
+}
+{{/sheet}}
+
+function eguahePost_(items) {
+  const body = JSON.stringify({ items: items });
+  const signature = Utilities.computeHmacSha256Signature(body, EGUAHE_KEY, Utilities.Charset.UTF_8)
+    .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
+  const reply = UrlFetchApp.fetch(EGUAHE_URL, {
+    method: 'post',
+    contentType: 'application/json; charset=utf-8',
+    payload: body,
+    headers: { 'X-Eguahe-Signature': 'sha256=' + signature },
+    muteHttpExceptions: true
+  });
+  if (reply.getResponseCode() !== 200) {
+    throw new Error('Eguahe: ' + reply.getResponseCode() + ' ' + reply.getContentText());
+  }
+}

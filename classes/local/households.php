@@ -234,17 +234,21 @@ class households {
      * @param string $body What it said, or what happened.
      * @param bool $awaits Whether it asked something a person has to answer.
      * @param int|null $time
+     * @param int $entryid The entry of the centre it came through, if any.
+     * @param string $detail What the source said of itself: platform, campaign, ad.
      */
     public static function received(
         \stdClass $household,
         string $channel,
         string $body,
         bool $awaits,
-        ?int $time = null
+        ?int $time = null,
+        int $entryid = 0,
+        string $detail = ''
     ): void {
         global $DB;
         $time = $time ?? time();
-        self::contact($household, 'in', $channel, $body, 0, $time);
+        self::contact($household, 'in', $channel, $body, 0, $time, $entryid, $detail);
         $changes = (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time];
         if ($awaits && !$household->waitingsince) {
             $changes->waitingsince = $time;
@@ -290,6 +294,8 @@ class households {
      * @param string $body
      * @param int $userid
      * @param int $time
+     * @param int $entryid
+     * @param string $detail
      */
     protected static function contact(
         \stdClass $household,
@@ -297,7 +303,9 @@ class households {
         string $channel,
         string $body,
         int $userid,
-        int $time
+        int $time,
+        int $entryid = 0,
+        string $detail = ''
     ): void {
         global $DB;
         $DB->insert_record(self::CONTACTS, (object) [
@@ -306,6 +314,8 @@ class households {
             'direction' => $direction,
             'channel' => in_array($channel, lists::CHANNELS, true) ? $channel : 'other',
             'body' => trim($body),
+            'entryid' => $entryid,
+            'detail' => $detail === '' ? null : \core_text::substr($detail, 0, 255),
             'userid' => $userid,
             'timecreated' => $time,
         ]);
@@ -526,6 +536,11 @@ class households {
             $data['permissions'][] = ['adult' => $names[$consent->adultid] ?? null, 'channel' => $consent->channel,
                 'granted' => (bool) $consent->granted, 'when' => $date((int) $consent->timecreated)];
         }
+        // What they answered in the forms of the centre.
+        foreach (forms::answers_of((int) $household->id) as $answer) {
+            $data['form_answers'][] = ['question' => $answer->label, 'answer' => $answer->value,
+                'when' => $date((int) $answer->timecreated)];
+        }
         // A visit of its own: when they said it suits them.
         foreach ($DB->get_records(visits::REQUESTS, ['householdid' => $household->id], 'timecreated ASC') as $request) {
             $data['visit_requests'][] = ['days' => $request->days ? array_map('intval', explode(',', $request->days)) : [],
@@ -553,12 +568,15 @@ class households {
         }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS,
-                visits::REQUESTS] as $table
+                visits::REQUESTS, forms::ANSWERS] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }
         // The visits of its own go with the family.
         $DB->delete_records(events::T, ['householdid' => $household->id]);
+        // What came through an entry stays only as a key without the family, so that sending the old answers again does
+        // not bring it back.
+        $DB->set_field(entries::ARRIVALS, 'householdid', 0, ['householdid' => $household->id]);
         $DB->delete_records(self::T, ['id' => $household->id]);
         $transaction->allow_commit();
     }

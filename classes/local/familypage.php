@@ -151,6 +151,13 @@ class familypage {
         foreach ($children as $child) {
             $year = $year ?: (string) ($offers[$child->offerid]->schoolyear ?? '');
         }
+        // What they answered in the forms of the centre, the last answer to each question.
+        $answers = [];
+        foreach (forms::answers_of((int) $household->id) as $answer) {
+            $answers[$answer->fieldid . ':' . $answer->label] = $answers[$answer->fieldid . ':' . $answer->label] ??
+                ['label' => format_string($answer->label), 'value' => (string) $answer->value];
+        }
+        $answers = array_values($answers);
         $childrows = [];
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
@@ -209,6 +216,9 @@ class familypage {
             'receivespending' => $pending ? publiclang::str('pub_receives_pending', $lang) : '',
             'hashosts' => (bool) $hosts,
             'hosts' => self::hosts($hosts),
+            'answers' => $answers,
+            'hasanswers' => (bool) $answers,
+            'answerstitle' => publiclang::str('pub_answers', $lang),
             'haschildren' => (bool) $childrows,
             'children' => $childrows,
             'adults' => $adults,

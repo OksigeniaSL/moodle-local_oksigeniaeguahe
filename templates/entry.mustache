@@ -1,0 +1,201 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/entry
+
+    An entry of a centre: a form with its questions, where it is shared from and how it looks; or a bridge with Google,
+    Meta or another tool.
+
+    Example context (json):
+    {"tabs": [], "name": "Pidan información", "kind": "Formulario", "counts": "12 familias · la última, 21/11/26",
+     "active": true, "isform": true, "isgoogle": false, "ismeta": false, "ishook": false, "canact": true, "action": "#",
+     "sesskey": "abc", "entriesurl": "#", "addurl": "#", "previewurl": "#", "previewframe": "#", "hasfields": true,
+     "fields": [{"id": 1, "label": "¿Tiene hermanos en el centro?", "type": "Sí o no", "required": true, "options": "",
+        "condition": "", "issection": false, "editurl": "#", "first": true, "last": true}],
+     "shared": [{"name": "Enlace general", "url": "https://example.com/w", "qr": "", "key": ""}],
+     "embed": "<iframe></iframe>", "scriptform": "", "scriptsheet": "", "hookurl": "https://example.com/h", "secret": "",
+     "seen": [], "hasseen": false, "preview": null, "uploadform": "", "settings": ""}
+}}
+<div class="eguahe eguahe-entry">
+    {{> local_oksigeniaeguahe/tabs }}
+    <header class="eguahe-head">
+        <div>
+            <p class="eguahe-quiet"><a href="{{entriesurl}}">{{#str}}tab_entries, local_oksigeniaeguahe{{/str}}</a> · {{kind}}</p>
+            <h2>{{name}}{{^active}} <span class="badge bg-secondary">{{#str}}entry_closed, local_oksigeniaeguahe{{/str}}</span>{{/active}}</h2>
+            <p class="eguahe-quiet">{{counts}}</p>
+        </div>
+    </header>
+
+    {{#isform}}
+    <div class="eguahe-columns eguahe-builder">
+        <div>
+            <section class="eguahe-box" id="preguntas">
+                <h3>{{#str}}entry_questions, local_oksigeniaeguahe{{/str}}</h3>
+                <p class="eguahe-quiet">{{#str}}entry_questions_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#hasfields}}
+                <ol class="eguahe-fields">
+                    {{#fields}}
+                    <li class="{{#issection}}is-section{{/issection}}">
+                        <div>
+                            <a href="{{editurl}}"><strong>{{label}}</strong></a>{{#required}} <span class="badge bg-light text-dark">{{#str}}field_required_tag, local_oksigeniaeguahe{{/str}}</span>{{/required}}
+                            <div class="eguahe-quiet">{{type}}{{#options}} · {{options}}{{/options}}</div>
+                            {{#condition}}<div class="eguahe-quiet">{{condition}}</div>{{/condition}}
+                        </div>
+                        {{#canact}}
+                        <form method="post" action="{{action}}" class="eguahe-row-actions">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="field" value="{{id}}">
+                            {{^first}}<button class="btn btn-link" name="action" value="moveup" type="submit" title="{{#str}}moveup{{/str}}"><span aria-hidden="true">↑</span><span class="visually-hidden">{{#str}}moveup{{/str}}</span></button>{{/first}}
+                            {{^last}}<button class="btn btn-link" name="action" value="movedown" type="submit" title="{{#str}}movedown{{/str}}"><span aria-hidden="true">↓</span><span class="visually-hidden">{{#str}}movedown{{/str}}</span></button>{{/last}}
+                            <button class="btn btn-link text-danger" name="action" value="deletefield" type="submit">{{#str}}delete{{/str}}</button>
+                        </form>
+                        {{/canact}}
+                    </li>
+                    {{/fields}}
+                </ol>
+                {{/hasfields}}
+                {{^hasfields}}<p>{{#str}}entry_noquestions, local_oksigeniaeguahe{{/str}}</p>{{/hasfields}}
+                {{#canact}}<p><a class="btn btn-primary" href="{{addurl}}">{{#str}}field_add, local_oksigeniaeguahe{{/str}}</a></p>{{/canact}}
+            </section>
+
+            <section class="eguahe-box" id="compartir">
+                <h3>{{#str}}entry_share, local_oksigeniaeguahe{{/str}}</h3>
+                <p class="eguahe-quiet">{{#str}}entry_share_help, local_oksigeniaeguahe{{/str}}</p>
+                <ul class="eguahe-shared">
+                    {{#shared}}
+                    <li>
+                        <div class="eguahe-qr eguahe-qr-small">{{{qr}}}</div>
+                        <div>
+                            <strong>{{name}}</strong>
+                            <input class="form-control" type="text" readonly value="{{url}}" aria-label="{{name}}">
+                            {{#key}}{{#canact}}
+                            <form method="post" action="{{action}}">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                                <input type="hidden" name="key" value="{{key}}">
+                                <button class="btn btn-link text-danger" name="action" value="removeorigin" type="submit">{{#str}}delete{{/str}}</button>
+                            </form>
+                            {{/canact}}{{/key}}
+                        </div>
+                    </li>
+                    {{/shared}}
+                </ul>
+                {{#canact}}
+                <form method="post" action="{{action}}" class="eguahe-inline">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    <label class="visually-hidden" for="eguahe-origin">{{#str}}entry_origin_name, local_oksigeniaeguahe{{/str}}</label>
+                    <input class="form-control" type="text" id="eguahe-origin" name="name" maxlength="60" placeholder="{{#str}}entry_origin_placeholder, local_oksigeniaeguahe{{/str}}">
+                    <button class="btn btn-secondary" name="action" value="addorigin" type="submit">{{#str}}entry_origin_add, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+                {{/canact}}
+                <h4 class="h6">{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}</h4>
+                <p class="eguahe-quiet">{{#str}}entry_embed_help, local_oksigeniaeguahe{{/str}}</p>
+                <textarea class="form-control eguahe-code" rows="4" readonly aria-label="{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}">{{embed}}</textarea>
+            </section>
+        </div>
+        <section class="eguahe-box eguahe-preview">
+            <h3>{{#str}}entry_preview, local_oksigeniaeguahe{{/str}}</h3>
+            <p><a href="{{previewurl}}" target="_blank">{{#str}}entry_preview_open, local_oksigeniaeguahe{{/str}} <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a></p>
+            <iframe src="{{previewframe}}" title="{{#str}}entry_preview, local_oksigeniaeguahe{{/str}}" class="eguahe-phone" loading="lazy"></iframe>
+        </section>
+    </div>
+    {{/isform}}
+
+    {{#isgoogle}}
+    <section class="eguahe-box">
+        <h3>{{#str}}entry_google_form, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entry_google_form_help, local_oksigeniaeguahe{{/str}}</p>
+        <textarea class="form-control eguahe-code" rows="12" readonly aria-label="{{#str}}entry_google_form, local_oksigeniaeguahe{{/str}}">{{scriptform}}</textarea>
+    </section>
+    <section class="eguahe-box">
+        <h3>{{#str}}entry_google_sheet, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entry_google_sheet_help, local_oksigeniaeguahe{{/str}}</p>
+        <textarea class="form-control eguahe-code" rows="12" readonly aria-label="{{#str}}entry_google_sheet, local_oksigeniaeguahe{{/str}}">{{scriptsheet}}</textarea>
+    </section>
+    {{/isgoogle}}
+
+    {{#ismeta}}
+    <section class="eguahe-box">
+        <h3>{{#str}}entry_meta, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entry_meta_help, local_oksigeniaeguahe{{/str}}</p>
+        {{#preview}}
+        <p><strong>{{filename}}</strong> · {{#str}}entry_meta_rows, local_oksigeniaeguahe, {{rows}}{{/str}}</p>
+        <table class="table eguahe-table">
+            <thead><tr><th scope="col">{{#str}}entry_column, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}entry_role, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+            <tbody>{{#columns}}<tr><td>{{header}}</td><td>{{role}}</td></tr>{{/columns}}</tbody>
+        </table>
+        <form method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="draft" value="{{draft}}">
+            {{#hasrows}}<button class="btn btn-primary" name="action" value="bring" type="submit">{{#str}}entry_meta_bring, local_oksigeniaeguahe{{/str}}</button>{{/hasrows}}
+            <button class="btn btn-secondary" name="action" value="cancel" type="submit">{{#str}}cancel{{/str}}</button>
+        </form>
+        {{/preview}}
+        {{{uploadform}}}
+    </section>
+    {{/ismeta}}
+
+    {{#ishook}}
+    <section class="eguahe-box">
+        <h3>{{#str}}entry_hook, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entry_hook_help, local_oksigeniaeguahe{{/str}}</p>
+        <p><input class="form-control" type="text" readonly value="{{hookurl}}" aria-label="{{#str}}entry_hook, local_oksigeniaeguahe{{/str}}"></p>
+        {{#secret}}<p>{{#str}}entry_key, local_oksigeniaeguahe{{/str}} <input class="form-control" type="text" readonly value="{{secret}}" aria-label="{{#str}}entry_key, local_oksigeniaeguahe{{/str}}"></p>{{/secret}}
+        <pre class="eguahe-code">{"id": "123", "time": "2026-11-21T10:00:00Z", "answers": {"Nombre": "Marta", "Correo": "marta@example.com"}}</pre>
+    </section>
+    {{/ishook}}
+
+    {{^isform}}
+    <section class="eguahe-box" id="preguntas">
+        <h3>{{#str}}entry_seen, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entry_seen_help, local_oksigeniaeguahe{{/str}}</p>
+        {{#hasseen}}
+        <form method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <table class="table eguahe-table">
+                <thead><tr><th scope="col">{{#str}}entry_question, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}entry_role, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>
+                    {{#seen}}
+                    <tr>
+                        <td>{{question}} <span class="eguahe-quiet">({{now}})</span></td>
+                        <td>
+                            <select class="form-select custom-select" name="role[{{i}}]" aria-label="{{question}}"{{^canact}} disabled{{/canact}}>
+                                {{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options}}
+                            </select>
+                        </td>
+                    </tr>
+                    {{/seen}}
+                </tbody>
+            </table>
+            {{#canact}}<button class="btn btn-primary" name="action" value="roles" type="submit">{{#str}}savechanges{{/str}}</button>{{/canact}}
+        </form>
+        {{/hasseen}}
+        {{^hasseen}}<p>{{#str}}entry_noseen, local_oksigeniaeguahe{{/str}}</p>{{/hasseen}}
+    </section>
+    {{/isform}}
+
+    {{#canact}}
+    <section class="eguahe-box">
+        <h3>{{#str}}settings{{/str}}</h3>
+        {{{settings}}}
+        <form method="post" action="{{action}}" class="eguahe-inline">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            {{^isform}}<button class="btn btn-secondary" name="action" value="renew" type="submit">{{#str}}entry_renew, local_oksigeniaeguahe{{/str}}</button>{{/isform}}
+            <button class="btn btn-link text-danger" name="action" value="delete" type="submit">{{#str}}entry_delete, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+    </section>
+    {{/canact}}
+</div>

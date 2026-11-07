@@ -27,6 +27,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class publicpage {
+    /** @var bool Whether the page goes inside the web of a centre. */
+    public static $embedded = false;
+
     /** @var array The small drawings of the pages: stroke icons, the colour of the text. */
     const ICONS = [
         'cal' => '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
@@ -165,7 +168,7 @@ class publicpage {
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 <script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
 </head>
-<body>
+<body' . (self::$embedded ? ' class="incrustado"' : '') . '>
 ' . $top . $body . $bottom . '
 </body>
 </html>';
@@ -330,13 +333,18 @@ class publicpage {
      * The headers of every public page.
      */
     public static function headers(): void {
+        if (self::$embedded) {
+            // A form inside the web of the centre: any web may show it.
+            header_remove('X-Frame-Options');
+        }
         @header('Content-Type: text/html; charset=utf-8');
         @header('Referrer-Policy: no-referrer');
         @header('X-Robots-Tag: noindex, nofollow');
         @header('X-Content-Type-Options: nosniff');
         // The widget against spam works in a worker of its own and puts its styles inline.
         @header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " .
-            "script-src 'self'; worker-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; " .
+            "script-src 'self'; worker-src 'self' blob:; connect-src 'self'; frame-ancestors " .
+            (self::$embedded ? '*' : "'none'") . "; form-action 'self'; " .
             "base-uri 'none'; object-src 'none'");
         @header('Cache-Control: no-store');
     }
@@ -351,6 +359,7 @@ class publicpage {
      * @param string $text
      * @param \moodle_url $url
      * @param bool $hook Whether the empty hook is shown (not after erasing).
+     * @param array|null $button A button that opens apart: url and label.
      */
     public static function message(
         ?\stdClass $centre,
@@ -358,11 +367,12 @@ class publicpage {
         string $title,
         string $text,
         \moodle_url $url,
-        bool $hook = true
+        bool $hook = true,
+        ?array $button = null
     ): void {
         $centre = $centre ?? (object) ['id' => 0, 'name' => format_string(get_site()->fullname), 'colour' => null];
-        self::output($centre, $lang, $title, 'public_message', ['title' => $title, 'text' => $text, 'hook' => $hook] +
-            self::reach($centre, $lang), $url);
+        self::output($centre, $lang, $title, 'public_message', ['title' => $title, 'text' => $text, 'hook' => $hook,
+            'button' => $button] + self::reach($centre, $lang), $url);
     }
 
     /**

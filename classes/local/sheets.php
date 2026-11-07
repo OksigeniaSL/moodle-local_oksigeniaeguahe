@@ -137,6 +137,12 @@ class sheets {
      * @return array
      */
     public static function csv(string $content): array {
+        // The export of the forms of Meta ads comes in UTF-16 with tabs.
+        if (strncmp($content, "\xFF\xFE", 2) === 0 || strncmp($content, "\xFE\xFF", 2) === 0) {
+            $content = mb_convert_encoding(substr($content, 2), 'UTF-8', $content[0] === "\xFF" ? 'UTF-16LE' : 'UTF-16BE');
+        } else if (substr_count(substr($content, 0, 400), "\x00") > 100) {
+            $content = mb_convert_encoding($content, 'UTF-8', 'UTF-16LE');
+        }
         $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
         if (!mb_check_encoding($content, 'UTF-8')) {
             $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');

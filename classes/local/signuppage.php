@@ -167,7 +167,34 @@ class signuppage {
         if (!empty($event->tailored)) {
             $str['pub_submit'] = publiclang::str('pub_submit_request', $lang);
         }
+        // A form of the centre: its own questions, and the common ones it asks.
+        $isform = $event->kind === 'form';
+        $form = !empty($event->formid) ? entries::get((int) $event->formid, (int) $centre->id) : null;
+        $blocks = $isform && $form ? forms::blocks($form) : forms::BLOCKS;
+        $fields = $form ? forms::context($form, $lang, $centre->lang ?: 'es', $data['answers'] ?? [], $errors) : [];
+        if ($isform) {
+            $str['pub_submit'] = publiclang::str('pub_submit_form', $lang);
+            $str['pub_sending'] = publiclang::str('pub_sending_form', $lang);
+            $str['pub_no_place'] = publiclang::str('pub_no_place_form', $lang);
+            $str['pub_channels_hint'] = publiclang::str('pub_channels_hint_form', $lang);
+        }
+        $askincentre = $event->kind === 'other' || ($isform && in_array('incentre', $blocks, true));
         return $str + [
+            'isform' => $isform,
+            'kicker' => $isform ? '' : format_string($event->name),
+            'headline' => $isform ? (trim((string) ($form->title ?? '')) !== '' ? format_string($form->title) :
+                publiclang::str('pub_form_title', $lang)) : $str['pub_come_meet'],
+            'formlead' => $isform && trim((string) ($form->lead ?? '')) !== '' ? format_string($form->lead) :
+                publiclang::str('pub_form_lead', $lang),
+            'formside' => publiclang::str('pub_form_side', $lang),
+            'fields' => $fields,
+            'hasfields' => (bool) $fields,
+            'askplace' => in_array('place', $blocks, true),
+            'askheard' => in_array('heard', $blocks, true),
+            'askmessage' => in_array('message', $blocks, true),
+            'askincentre' => $askincentre,
+            'askpeople' => !$isform,
+            'hasmore' => !$isform || (bool) array_intersect(['place', 'heard', 'message'], $blocks),
             'tailored' => !empty($event->tailored),
             'days' => $days,
             'periods' => $periods,
@@ -183,7 +210,7 @@ class signuppage {
             'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'place' => $event->place ? format_string($event->place) : '',
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
-            'welcome' => !empty($centre->welcome) ? format_string($centre->welcome) : '',
+            'welcome' => !$isform && !empty($centre->welcome) ? format_string($centre->welcome) : '',
             'hashosts' => (bool) $hosts,
             'hosts' => familypage::hosts($hosts),
             'willreceive' => $hosts ? publiclang::str(
@@ -200,7 +227,7 @@ class signuppage {
             'hasslots' => (bool) $slots,
             'slots' => $slots,
             'sloterror' => $errors['slot'] ?? '',
-            'isother' => $event->kind === 'other',
+            'isother' => $askincentre,
             'incentreyes' => ($data['incentre'] ?? '') === 'yes',
             'incentreno' => ($data['incentre'] ?? '') === 'no',
             'peopleerror' => $errors['people'] ?? '',

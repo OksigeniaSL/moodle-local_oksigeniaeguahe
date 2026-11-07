@@ -116,6 +116,14 @@ class signup {
         if (!$any && $event->kind !== 'other') {
             $errors['c0name'] = publiclang::str('pub_err_child', $lang);
         }
+        // The questions of the form of the centre, if it has one.
+        if (!empty($event->formid)) {
+            $errors += forms::check((int) $event->formid, $data['answers'] ?? [], $lang, $centre->lang ?: 'es');
+        }
+        if ($event->kind === 'form') {
+            // A form has no day, turns or room.
+            return $errors;
+        }
         $slots = empty($event->tailored) ? events::slots((int) $event->id) : [];
         if ($slots && !isset($slots[$data['slot'] ?? 0])) {
             $errors['slot'] = publiclang::str('pub_err_slot', $lang);
@@ -149,12 +157,21 @@ class signup {
      * the link only goes to the emails the family had.
      *
      * @param array $data From read(), already checked.
-     * @param \stdClass $event
+     * @param \stdClass $event An event, or a form as forms::as_event() gives it.
      * @param \stdClass $centre
      * @param string $lang
+     * @param \stdClass|null $entry The form, when it is one.
+     * @param string $origin Where the form was shared from, by its name.
      * @return array [household, token, the emails it had before (empty for a new household), whether it was there]
      */
-    public static function save(array $data, \stdClass $event, \stdClass $centre, string $lang): array {
+    public static function save(
+        array $data,
+        \stdClass $event,
+        \stdClass $centre,
+        string $lang,
+        ?\stdClass $entry = null,
+        string $origin = ''
+    ): array {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
         $adults = [];
@@ -171,7 +188,7 @@ class signup {
         foreach ($adults as $adult) {
             $householdid = $householdid ?? households::find($centre->id, $adult['email'], $adult['phone']);
         }
-        $channel = events::CHANNEL[$event->kind] ?? 'openday';
+        $channel = $entry ? entries::channel($entry) : (events::CHANNEL[$event->kind] ?? 'openday');
         $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],
             'incentre' => ($data['incentre'] ?? '') === 'yes'] + $place);
         $existed = $householdid !== null;
@@ -199,16 +216,23 @@ class signup {
                 households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
             }
         }
+        $isform = $event->kind === 'form';
         if (!empty($event->tailored)) {
             // A visit of its own: what suits them waits for the team to propose the day.
             visits::request($household, $event, $data['days'] ?? [], $data['periods'] ?? [], $data['people']);
-        } else {
+        } else if (!$isform) {
             events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));
         }
+        $form = !empty($event->formid) ? ($entry ?? entries::get((int) $event->formid, (int) $centre->id)) : null;
+        $answered = $form ? forms::save_answers($household, $form, $data['answers'] ?? [], $centre->lang ?: 'es') : [];
         $body = get_string('signedup_note', 'local_oksigeniaeguahe', (object) ['event' => $event->name,
             'people' => $data['people']]);
         if ($data['message'] !== '') {
             $body .= "\n\n" . $data['message'];
+        }
+        if ($isform) {
+            $body = get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($event->name)) .
+                ($data['message'] !== '' ? "\n\n" . $data['message'] : '');
         }
         $tailored = !empty($event->tailored);
         if ($tailored) {
@@ -216,8 +240,19 @@ class signup {
                 'when' => visits::suits(visits::pending((int) $household->id), $lang)]) .
                 ($data['message'] !== '' ? "\n\n" . $data['message'] : '');
         }
-        // Whoever writes a question, or asks for a visit of its own, waits for a person to answer.
-        households::received($household, $channel, $body, $data['message'] !== '' || $tailored);
+        if ($answered) {
+            $body .= "\n\n" . implode("\n", $answered);
+        }
+        // Whoever writes a question, sends a form or asks for a visit of its own waits for a person to answer.
+        households::received(
+            $household,
+            $channel,
+            $body,
+            $data['message'] !== '' || $tailored || $isform,
+            null,
+            $isform && $entry ? (int) $entry->id : 0,
+            $origin
+        );
         $token = households::new_link($household);
         $transaction->allow_commit();
         return [$household, $token, $before, $existed];

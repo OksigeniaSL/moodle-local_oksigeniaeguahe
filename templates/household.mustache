@@ -34,7 +34,7 @@
             "when": "21/11/26, 10:12", "body": "¿Hay comedor?"}],
         "hasevents": true, "events": [{"name": "Jornada", "when": "21/11/26, 10:00", "people": 3, "came": true}],
         "channels": [{"value": "phone", "name": "Teléfono"}], "action": "#", "editurl": "#", "sesskey": "abc",
-        "newlink": "", "eraseurl": "#", "canact": true, "incentre": false, "asked": "", "guides": [],
+        "newlink": "", "replyto": "marta@example.com", "eraseurl": "#", "canact": true, "incentre": false, "asked": "", "guides": [],
         "hasguides": false, "proposedate": "2026-11-21", "proposeplace": "", "proposepeople": 2
     }
 }}
@@ -165,7 +165,8 @@
                         </select>
                     </div>
                     <div class="eguahe-inline">
-                        <button type="submit" name="action" value="answer" class="btn btn-primary">{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
+                        {{#replyto}}<button type="submit" name="action" value="reply" class="btn btn-primary">{{#str}}reply_send, local_oksigeniaeguahe, {{replyto}}{{/str}}</button>{{/replyto}}
+                        <button type="submit" name="action" value="answer" class="btn {{#replyto}}btn-secondary{{/replyto}}{{^replyto}}btn-primary{{/replyto}}">{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
                         <button type="submit" name="action" value="received" class="btn btn-secondary">{{#str}}received_save, local_oksigeniaeguahe{{/str}}</button>
                         <button type="submit" name="action" value="note" class="btn btn-secondary">{{#str}}note_save, local_oksigeniaeguahe{{/str}}</button>
                     </div>
@@ -179,7 +180,7 @@
                 <ol class="eguahe-history">
                     {{#history}}
                     <li class="{{#in}}is-in{{/in}}{{#out}}is-out{{/out}}{{#note}}is-note{{/note}}">
-                        <span class="eguahe-quiet">{{#in}}{{#str}}history_in, local_oksigeniaeguahe{{/str}}{{/in}}{{#out}}{{#str}}history_out, local_oksigeniaeguahe{{/str}}{{/out}}{{#note}}{{#str}}history_note, local_oksigeniaeguahe{{/str}}{{/note}} · {{who}} · {{channel}} · {{when}}</span>
+                        <span class="eguahe-quiet">{{#in}}{{#str}}history_in, local_oksigeniaeguahe{{/str}}{{/in}}{{#out}}{{#str}}history_out, local_oksigeniaeguahe{{/str}}{{/out}}{{#note}}{{#str}}history_note, local_oksigeniaeguahe{{/str}}{{/note}} · {{who}} · {{channel}}{{#detail}} · {{detail}}{{/detail}} · {{when}}</span>
                         <p>{{body}}</p>
                     </li>
                     {{/history}}

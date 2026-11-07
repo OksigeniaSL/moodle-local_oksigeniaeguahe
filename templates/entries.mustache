@@ -1,0 +1,89 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/entries
+
+    The entries of a centre: its forms, and the bridges with Google, Meta and other tools.
+
+    Example context (json):
+    {"tabs": [], "canact": true, "action": "#", "sesskey": "abc",
+     "hasforms": true, "forms": [{"name": "Pidan información", "kind": "Formulario", "received": 12,
+        "last": "21/11/26, 10:12", "active": true, "url": "#"}],
+     "hasbridges": false, "bridges": [],
+     "kinds": [{"value": "google", "name": "Google Forms o una hoja de Google", "help": "Un guion que se pega."}]}
+}}
+<div class="eguahe eguahe-entries">
+    {{> local_oksigeniaeguahe/tabs }}
+    <p class="eguahe-quiet">{{#str}}entries_intro, local_oksigeniaeguahe{{/str}}</p>
+
+    <section class="eguahe-box">
+        <div class="eguahe-head">
+            <h3>{{#str}}entries_forms, local_oksigeniaeguahe{{/str}}</h3>
+            {{#canact}}
+            <form method="post" action="{{action}}" class="eguahe-inline">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <input type="hidden" name="kind" value="form">
+                <label class="visually-hidden" for="eguahe-newform">{{#str}}entry_name, local_oksigeniaeguahe{{/str}}</label>
+                <input class="form-control" type="text" id="eguahe-newform" name="name" maxlength="255" placeholder="{{#str}}entry_form_placeholder, local_oksigeniaeguahe{{/str}}">
+                <button type="submit" class="btn btn-primary">{{#str}}entry_new_form, local_oksigeniaeguahe{{/str}}</button>
+            </form>
+            {{/canact}}
+        </div>
+        {{#hasforms}}
+        <ul class="eguahe-door">
+            {{#forms}}
+            <li>
+                <span><a href="{{url}}"><strong>{{name}}</strong></a>{{^active}} <span class="badge bg-secondary">{{#str}}entry_closed, local_oksigeniaeguahe{{/str}}</span>{{/active}}</span>
+                <span class="eguahe-quiet">{{#str}}entry_counts, local_oksigeniaeguahe, { "received": {{received}}, "last": {{#quote}}{{last}}{{/quote}} }{{/str}}</span>
+            </li>
+            {{/forms}}
+        </ul>
+        {{/hasforms}}
+        {{^hasforms}}<p>{{#str}}entries_noforms, local_oksigeniaeguahe{{/str}}</p>{{/hasforms}}
+    </section>
+
+    <section class="eguahe-box">
+        <h3>{{#str}}entries_bridges, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}entries_bridges_help, local_oksigeniaeguahe{{/str}}</p>
+        {{#hasbridges}}
+        <ul class="eguahe-door">
+            {{#bridges}}
+            <li>
+                <span><a href="{{url}}"><strong>{{name}}</strong></a> <span class="eguahe-quiet">{{kind}}</span>{{^active}} <span class="badge bg-secondary">{{#str}}entry_closed, local_oksigeniaeguahe{{/str}}</span>{{/active}}</span>
+                <span class="eguahe-quiet">{{#str}}entry_counts, local_oksigeniaeguahe, { "received": {{received}}, "last": {{#quote}}{{last}}{{/quote}} }{{/str}}</span>
+            </li>
+            {{/bridges}}
+        </ul>
+        {{/hasbridges}}
+        {{#canact}}
+        <form method="post" action="{{action}}" class="eguahe-propose">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <fieldset>
+                <legend class="h6">{{#str}}entry_new_bridge, local_oksigeniaeguahe{{/str}}</legend>
+                {{#kinds}}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="kind" id="eguahe-kind-{{value}}" value="{{value}}" required>
+                    <label class="form-check-label" for="eguahe-kind-{{value}}"><strong>{{name}}</strong> <span class="eguahe-quiet">{{help}}</span></label>
+                </div>
+                {{/kinds}}
+            </fieldset>
+            <label>{{#str}}entry_name, local_oksigeniaeguahe{{/str}} <input class="form-control" type="text" name="name" maxlength="255"></label>
+            <button type="submit" class="btn btn-secondary">{{#str}}entry_create, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{/canact}}
+    </section>
+</div>

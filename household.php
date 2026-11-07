@@ -74,6 +74,35 @@ if ($action && data_submitted() && confirm_sesskey()) {
     $channel = optional_param('channel', 'other', PARAM_ALPHA);
     $channel = in_array($channel, lists::HAND_CHANNELS, true) ? $channel : 'other';
     switch ($action) {
+        case 'reply':
+            // The answer goes by email as it was written, with the page of the family below.
+            if ($body === '') {
+                redirect($url, get_string('reply_empty', $c), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            $sent = false;
+            ob_start();
+            try {
+                $sent = familymail::send(
+                    'reply',
+                    $household,
+                    $centre,
+                    null,
+                    $household->lang ?: $centre->lang,
+                    households::new_link($household, 'reply'),
+                    null,
+                    $body
+                );
+            } catch (\Throwable $e) {
+                $sent = false;
+            } finally {
+                ob_end_clean();
+            }
+            if (!$sent) {
+                redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            households::answered($household, (int) $USER->id, 'email', $body);
+            redirect($url, get_string('reply_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
+            break;
         case 'answer':
             households::answered($household, (int) $USER->id, $channel, $body);
             redirect($url, get_string('answered_saved', $c), null, \core\output\notification::NOTIFY_SUCCESS);

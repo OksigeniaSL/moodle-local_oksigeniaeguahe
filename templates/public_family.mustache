@@ -40,7 +40,8 @@
         "writeus": "Escribirnos", "pub_receives": "Quién los recibe", "pub_receives_sub": "Son las personas…",
         "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
             "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.", "receivespending": "",
-        "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría",
+        "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [],
+        "answerstitle": "",
         "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
@@ -148,6 +149,12 @@
             </dl>
             {{#writeby}}<p class="muted escribimos">{{writeby}}</p>{{/writeby}}
         </div>
+        {{#hasanswers}}
+        <div>
+            <h3>{{answerstitle}}</h3>
+            <dl>{{#answers}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/answers}}</dl>
+        </div>
+        {{/hasanswers}}
         <div>
             <h3>{{pub_data}}</h3>
             <p class="muted">{{pub_data_hint}}</p>

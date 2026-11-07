@@ -410,3 +410,72 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     display: grid;
     gap: 0.25rem;
 }
+
+/* An entry: the questions of a form, beside how it looks on a phone. */
+.eguahe-builder {
+    align-items: start;
+}
+
+.eguahe-fields {
+    display: grid;
+    gap: 0.5rem;
+    padding-left: 1.25rem;
+}
+
+.eguahe-fields li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.eguahe-fields li.is-section {
+    font-size: 1.05rem;
+}
+
+.eguahe-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+}
+
+.eguahe-shared {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+}
+
+.eguahe-shared li {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.eguahe-qr-small svg {
+    width: 96px;
+    height: 96px;
+}
+
+.eguahe-code {
+    font-family: var(--bs-font-monospace, monospace);
+    font-size: 0.8125rem;
+    white-space: pre;
+}
+
+.eguahe-preview {
+    position: sticky;
+    top: 4rem;
+}
+
+.eguahe-phone {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    height: 760px;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 1.5rem;
+    background: var(--bs-body-bg, #fff);
+}

@@ -31,7 +31,9 @@ require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\visits;
 
@@ -119,6 +121,29 @@ foreach ($families as [$adult, $children, $channel, $heard, $message, $hoursago]
         visits::request($household, $asking, [2, 4], ['afternoon'], 2);
     }
 }
+// A form of its own for the web, with questions that wait for an answer, shared from two places.
+$form = entries::get(entries::create($centreid, 'form', 'Pidan información'), $centreid);
+$DB->set_field(entries::T, 'title', 'Hablemos de su familia', ['id' => $form->id]);
+$siblings = forms::save_field($form, (object) ['type' => 'yesno', 'required' => 1,
+    'label_es' => '¿Tienen hermanos en el centro?', 'label_en' => 'Any siblings at the school?',
+    'label_pt_br' => 'Têm irmãos na escola?']);
+forms::save_field($form, (object) ['type' => 'text', 'required' => 1, 'showif' => $siblings, 'showvalue' => 'Sí',
+    'label_es' => '¿En qué curso están?', 'help_es' => 'Así los conocemos antes.']);
+forms::save_field($form, (object) ['type' => 'multichoice', 'label_es' => '¿Qué servicios les interesan?',
+    'options_es' => "Comedor\nAula matinal\nExtraescolares\nTransporte"]);
+forms::save_field($form, (object) ['type' => 'choice', 'label_es' => '¿Cuándo empezaría?',
+    'options_es' => "El curso que viene\nEste mismo curso\nTodavía no lo sabemos"]);
+forms::add_origin($form, 'Instagram');
+forms::add_origin($form, 'Cartel de la puerta');
+// A bridge with a Google form, with an answer already in.
+$google = entries::get(entries::create($centreid, 'google', 'Formulario de Google de la jornada'), $centreid);
+entries::receive($google, ['Marca temporal' => date('Y-m-d H:i', $now - 5 * HOURSECS),
+    'Nombre y apellidos' => 'Raquel Suárez Vega', 'Correo electrónico' => 'raquel.suarez@example.com',
+    'Nombre del alumno' => 'Iván', 'Curso que solicita' => '1.º de Primaria', '¿Cómo nos conociste?' => 'Me lo dijo una amiga',
+    '¿Alguna pregunta?' => '¿Tienen horario ampliado por la tarde?'], 'sample-1');
+entries::create($centreid, 'meta', 'Anuncios de Instagram y Facebook');
+
 echo "Centre {$centreid}: " . (new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false) . "\n";
 echo "Open day: " . events::url($event)->out(false) . "\n";
 echo "Ask for a visit: " . events::url($asking)->out(false) . "\n";
+echo "Form: " . entries::form_url($form)->out(false) . "\n";

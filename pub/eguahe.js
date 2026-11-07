@@ -221,6 +221,53 @@
         if (summary) {
             summary.focus();
         }
+
+        // Questions that wait for an answer: shown when the question they depend on has it, hidden with it.
+        var plain = function(text) {
+            return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+        };
+        var conditions = function() {
+            all('[data-si]').forEach(function(item) {
+                var name = item.getAttribute('data-si');
+                var parent = document.getElementById(name);
+                var given = all('[name="' + name + '"], [name="' + name + '[]"]').filter(function(input) {
+                    return input.type === 'radio' || input.type === 'checkbox' ? input.checked : true;
+                }).map(function(input) {
+                    return plain(input.value);
+                });
+                var show = !(parent && parent.hidden) && given.indexOf(plain(item.getAttribute('data-si-valor'))) !== -1;
+                if (item.hidden === show) {
+                    item.hidden = !show;
+                    item.classList.toggle('aparece', show);
+                }
+            });
+        };
+        if (form && document.querySelector('[data-si]')) {
+            var again = function() {
+                // Twice: a question may wait for another that waits for a third.
+                conditions();
+                conditions();
+            };
+            again();
+            form.addEventListener('change', again);
+            form.addEventListener('input', again);
+        }
+
+        // Inside the web of the centre: it says how tall it is, and to go to its top after sending.
+        if (window.parent !== window) {
+            var tell = function() {
+                window.parent.postMessage({eguahe: 'height', height: document.documentElement.scrollHeight}, '*');
+            };
+            tell();
+            window.addEventListener('load', tell);
+            window.addEventListener('resize', tell);
+            if (window.ResizeObserver) {
+                new window.ResizeObserver(tell).observe(document.body);
+            }
+            if (!form || summary) {
+                window.parent.postMessage({eguahe: 'top'}, '*');
+            }
+        }
     };
 
     if (document.readyState === 'loading') {
