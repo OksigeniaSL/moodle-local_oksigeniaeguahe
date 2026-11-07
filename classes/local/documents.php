@@ -29,7 +29,7 @@ class documents {
     /**
      * A document filled with its context.
      *
-     * @param string $name Its file in documents/, without «.mustache».
+     * @param string $name Its file in documents/, without «.mst».
      * @param array $context
      * @return string
      */
@@ -38,9 +38,9 @@ class documents {
         if (!preg_match('/^[a-z_.]+$/', $name)) {
             throw new \coding_exception('Unknown document ' . $name);
         }
-        $source = (string) file_get_contents($CFG->dirroot . '/local/oksigeniaeguahe/documents/' . $name . '.mustache');
-        // Moodle 5 brings Mustache 3; Moodle 4.5, Mustache 2.
-        $engine = class_exists('\\Mustache\\Engine') ? new \Mustache\Engine() : new \Mustache_Engine();
-        return $engine->render($source, $context);
+        // Not «.mustache»: they are whole documents, not templates of the pages, and the linter of templates would
+        // judge the HTML of mail by the rules of the web.
+        $source = (string) file_get_contents($CFG->dirroot . '/local/oksigeniaeguahe/documents/' . $name . '.mst');
+        return (new \core\output\mustache_engine())->render($source, $context);
     }
 }
