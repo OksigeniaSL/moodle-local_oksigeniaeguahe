@@ -24,7 +24,7 @@
 
     Example context (json):
     {"count": 1, "live": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true, "delay": "0.15",
-        "hidden": false}]}
+        "tilt": "-3.5", "hidden": false}]}
 }}
 <div class="perchas n{{count}}"{{#live}} data-live="1"{{/live}}>
     {{#pegs}}
@@ -32,7 +32,7 @@
         <svg class="colgante" viewBox="6 13 52 64" aria-hidden="true" focusable="false"{{#style}} style="{{style}}"{{/style}}>
             <path class="gancho" d="M31 13 L33.6 13 L33.6 23.4 L31 23.4 Z"/>
             <g transform="translate(0.3 16)">
-                <g class="mochila{{#arrive}} llega{{/arrive}}" style="animation-delay:{{delay}}s">
+                <g class="mochila{{#arrive}} llega{{/arrive}}" style="animation-delay:{{delay}}s;--inclina:{{tilt}}deg">
                     <path class="sombra" transform="translate(2 2.4)" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
                     <path class="cuerpo" d="M28 15.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 15.5 L34.4 15.5 L34.4 11 C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 15.5 Z"/>
                     <path class="correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>

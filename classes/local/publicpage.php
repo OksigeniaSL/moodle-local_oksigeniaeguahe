@@ -289,7 +289,9 @@ class publicpage {
                 $style = '--mochila:' . $tone . ';--mochila-sombra:' . self::mix($tone, '#000000', 0.24) .
                     ';--mochila-luz:' . self::mix($tone, '#FFFFFF', 0.6);
             }
-            $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'arrive' => $arrive,
+            // Hung by a child: a little crooked, each its own way, never straight.
+            $tilt = ['-3.5', '3', '-2', '4'][$i % 4];
+            $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'arrive' => $arrive, 'tilt' => $tilt,
                 'delay' => sprintf('%.2f', 0.15 + $i * 0.14), 'hidden' => $shown !== null && $i >= $shown];
         }
         return ['pegs' => $pegs, 'count' => $shown ?? count($pegs)];

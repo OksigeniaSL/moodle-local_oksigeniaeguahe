@@ -506,6 +506,8 @@ textarea {
 .colgante .mochila {
     transform-box: fill-box;
     transform-origin: 44% 0%;
+    /* Hung by a child: each one a little crooked, its own way. */
+    transform: rotate(var(--inclina, 0deg));
 }
 
 .mano-titular {
@@ -524,23 +526,23 @@ textarea {
 
 @keyframes colgar {
     0% {
-        transform: rotate(8deg);
+        transform: rotate(calc(var(--inclina, 0deg) + 8deg));
     }
 
     28% {
-        transform: rotate(-4.5deg);
+        transform: rotate(calc(var(--inclina, 0deg) - 4.5deg));
     }
 
     52% {
-        transform: rotate(2.2deg);
+        transform: rotate(calc(var(--inclina, 0deg) + 2.2deg));
     }
 
     76% {
-        transform: rotate(-0.8deg);
+        transform: rotate(calc(var(--inclina, 0deg) - 0.8deg));
     }
 
     100% {
-        transform: rotate(0);
+        transform: rotate(var(--inclina, 0deg));
     }
 }
 

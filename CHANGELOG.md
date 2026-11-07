@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2026-11-07)
+
+- The backpacks hang a little crooked again, each its own way, as children hang them.
+
 ## 0.6.1 (2026-11-07)
 
 - The backpacks hang from a wooden knob seen from the front, drawn in front of the handle, instead of a hook behind it.
