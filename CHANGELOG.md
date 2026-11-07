@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0 (2026-11-07)
+
+- **The pages of the families, redrawn** (DESIGN.md of the art director): their own pages, nothing of Moodle. The
+  heading is the name the family uses at home, written by hand, with the child's backpack on its hook and the
+  first-day label on its pocket (one per child; it writes itself while the name is typed). The visit in a band of the
+  colour of the centre, with the calendar and how to get there; who will welcome them, with their face; what they told
+  us and their data. The sign-up, the question before erasing, the messages and the page about the data in the same
+  language. Schibsted Grotesk and Caveat served by the plugin (OFL), no third parties.
+- **Any colour of a centre stays readable**: the server turns it into the variables of the page, for light and dark,
+  with text at 4.5:1 on the wall and fills at 3:1 in dark (no color-mix(), it works in Firefox 98).
+- **Who welcomes the families**: the centre chooses which people of its team families see, with their photo, what
+  they do and a line of theirs, and who welcomes them at each open day or visit.
+- **What families see of the centre**: its address, phone, email and a line about what a visit is like.
+- **Families moving to the area**: «We are moving to the area» with where they come from, noted on the household.
+- At least one way to write to the family is asked for, and only the ways they gave the means for are shown.
+- Works without JavaScript: the rows waiting to be added show, and the turns, the chips and the number of people are
+  real inputs.
+
 ## 0.5.0 (2026-11-07)
 
 - **Files as they come**: xlsx, xls, ods and csv, every sheet. The header is found wherever it is (below a title,

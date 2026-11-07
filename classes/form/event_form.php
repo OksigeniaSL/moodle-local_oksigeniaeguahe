@@ -58,6 +58,14 @@ class event_form extends \moodleform {
         $mform->addHelpButton('capacity', 'event_capacity', $c);
         $mform->addElement('advcheckbox', 'open', get_string('event_open', $c));
         $mform->setDefault('open', 1);
+        // Who receives the families: they see these people, with their photo, on their page.
+        $hosts = $this->_customdata['hosts'] ?? [];
+        if ($hosts) {
+            $mform->addElement('autocomplete', 'hosts', get_string('event_hosts', $c), $hosts, ['multiple' => true]);
+        } else {
+            $mform->addElement('static', 'nohosts', get_string('event_hosts', $c), get_string('event_hosts_none', $c));
+        }
+        $mform->addHelpButton($hosts ? 'hosts' : 'nohosts', 'event_hosts', $c);
 
         // Turns, when families come by appointment: each with its start, how long it lasts and its capacity.
         $mform->addElement('header', 'slotsheader', get_string('event_slots', $c));

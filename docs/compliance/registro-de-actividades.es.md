@@ -33,5 +33,8 @@ familias (la primera capa del formulario y la página «Cómo tratamos sus datos
   internacionales y el permiso por canal, que la familia da al apuntarse o al escribir.
 - **Los formularios de anuncios de Meta, de Google o de la web del centro**: añadir cada origen y lo que pide cada
   formulario.
+- **Las personas del equipo que reciben a las familias** (desde la 0.6.0): su nombre, su foto, lo que hacen y una
+  frase suya salen en las páginas de las familias apuntadas. Es un tratamiento de datos del personal, aparte de este:
+  con el permiso de cada persona para usar su imagen, que puede retirar quitándose de «Quién recibe a las familias».
 - **Importar lo que ya pasó** (campañas, altas y bajas, listas de alumnos): añadir las fuentes que el centro importe
   (sus formularios, sus anuncios, su secretaría) y el plazo en que guarda las importaciones, que se quitan a mano.

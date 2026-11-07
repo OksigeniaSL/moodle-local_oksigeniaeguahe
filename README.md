@@ -33,6 +33,10 @@ households are waiting for an answer, how many places each course still has, and
 - **Offer and places**: for each course, those interested, those who visited, those enrolled and the places left, with
   the definition of each number on screen.
 - **Who supervises** can see everything of their centre without answering nor changing anything.
+- **The pages of the families**: their own, nothing of Moodle, with the language of the art direction: the name
+  used at home written by hand as the heading, the backpack on its hook, the visit in the colour of the centre and the
+  people who will welcome them, with their face. In Spanish, English and Portuguese, light and dark, without third
+  parties and working without JavaScript.
 - **Files as they come**: a spreadsheet with all its sheets, the export of the adverts, the answers of a form or a CSV.
   Eguahe sees what each sheet is (contacts of a campaign, new students, leaves, the list of a school year, totals,
   population) and what each column holds, shows it before importing, removes what is personal on the way in and turns

@@ -17,6 +17,11 @@
         <FIELD NAME="retention" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="24" SEQUENCE="false" COMMENT="Months the data of a family without activity is kept"/>
         <FIELD NAME="municipalities" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The area of the centre, one per line: official code;name"/>
         <FIELD NAME="aiprovider" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The AI provider instance of the centre; 0 for none"/>
+        <FIELD NAME="address" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the centre is, for the families"/>
+        <FIELD NAME="phone" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="The phone families call"/>
+        <FIELD NAME="email" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The address families write to"/>
+        <FIELD NAME="welcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What a visit is like, in a line, for the page of signing up"/>
+        <FIELD NAME="logoplate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the logo needs a light plate in dark mode"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -29,6 +34,10 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="public" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when families see this person, with photo, role and a line"/>
+        <FIELD NAME="rolename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What this person does, as families read it"/>
+        <FIELD NAME="says" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A line of this person to the families"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -64,6 +73,7 @@
         <FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="en" SEQUENCE="false" COMMENT="The language the household writes in"/>
         <FIELD NAME="municipality" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Official code of the municipality, when known"/>
         <FIELD NAME="municipalityname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="moving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the family lives outside the area and is moving to it"/>
         <FIELD NAME="heardfrom" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="How the household heard of the centre, as they said it (a closed list)"/>
         <FIELD NAME="firstchannel" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="other" SEQUENCE="false" COMMENT="Where the first contact came from"/>
         <FIELD NAME="incentre" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Already a family of the centre: out of the numbers of the campaign"/>
@@ -137,6 +147,7 @@
         <FIELD NAME="capacity" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="People at most; 0 without a limit"/>
         <FIELD NAME="token" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Of the public sign-up link and its QR"/>
         <FIELD NAME="open" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Families can still sign up"/>
+        <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

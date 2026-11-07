@@ -17,16 +17,19 @@
 {{!
     @template local_oksigeniaeguahe/public_privacy
 
-    How a centre treats the data of the families who come to it, part by part.
+    How a centre treats the data of the families who come to it, part by part, in plain words.
 
     Example context (json):
-    {"title": "Cómo tratamos sus datos", "centre": "Colegio de ejemplo",
+    {"title": "Cómo tratamos sus datos", "lead": "Colegio de ejemplo es responsable de los datos.",
      "sections": [{"title": "Quién los trata", "text": "Colegio de ejemplo."}]}
 }}
-<article class="eg-card">
-    <header class="eg-event"><h1>{{title}}</h1><p class="eg-quiet">{{centre}}</p></header>
+<article class="texto-largo">
+    <header>
+        <h1>{{title}}</h1>
+        <p class="entradilla">{{lead}}</p>
+    </header>
     {{#sections}}
-    <section class="eg-section">
+    <section>
         <h2>{{title}}</h2>
         <p>{{text}}</p>
     </section>

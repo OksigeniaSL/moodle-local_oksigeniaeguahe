@@ -32,3 +32,8 @@ families (the first layer of the form and the page «How we treat your data»):
 - **WhatsApp or Telegram**: add Meta or Telegram as recipients of the messages, their international transfers and the
   permission by channel, which the family gives when signing up or writing.
 - **The forms of Meta or Google ads, or of the website of the centre**: add each source and what each form asks for.
+- **The people of the team who welcome the families** (from 0.6.0): their name, photo, what they do and a line of
+  theirs appear on the pages of the families signed up. It is a processing of staff data, apart from this one: with the
+  permission of each person to use their image, which they withdraw by leaving «Who welcomes the families».
+- **Importing what already happened** (campaigns, joins and leaves, lists of students): add the sources the centre
+  imports (its forms, its adverts, its office) and how long it keeps the imports, which are removed by hand.

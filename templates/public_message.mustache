@@ -17,12 +17,26 @@
 {{!
     @template local_oksigeniaeguahe/public_message
 
-    A page that only says something to a family: a link that no longer works, an event that has closed.
+    A page that only says something kind: a link that no longer works, an event that is full, the data erased. The rail
+    waits with its empty hook, and the family can write or call the centre.
 
     Example context (json):
-    {"title": "Este enlace ya no funciona", "text": "Pidan uno nuevo al centro."}
+    {"i": {"mail": "", "phone": ""}, "title": "Este enlace ya no funciona", "text": "Pídannos uno nuevo.", "hook": true,
+     "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos"}
 }}
-<article class="eg-card eg-message">
-    <h1>{{title}}</h1>
-    <p>{{text}}</p>
-</article>
+<section class="pared corta">
+    {{#hook}}
+    <div class="espera">
+        <div class="riel" aria-hidden="true"></div>
+        <div class="perchas n1"><div class="percha"><svg class="colgante vacio" viewBox="22 13 20 16" aria-hidden="true" focusable="false"><path class="gancho" d="M27.6 13 L27.6 21.6 C27.6 25 29.6 27.2 32.3 27.2 C35 27.2 37 25 37 22.2 L37 21.4 C37 20.6 36.4 20 35.6 20 C34.8 20 34.2 20.6 34.2 21.4 L34.2 22.2 C34.2 23.6 33.4 24.5 32.3 24.5 C31.2 24.5 30.4 23.6 30.4 21.6 L30.4 13 Z"/></svg></div></div>
+    </div>
+    {{/hook}}
+    <div class="mensaje">
+        <h1>{{title}}</h1>
+        <p class="entradilla">{{text}}</p>
+        <div class="acciones">
+            {{#email}}<a class="boton principal" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+    </div>
+</section>

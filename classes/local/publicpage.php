@@ -27,6 +27,37 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class publicpage {
+    /** @var array The small drawings of the pages: stroke icons, the colour of the text. */
+    const ICONS = [
+        'cal' => '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
+        'map' => '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+        'check' => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+        'plus' => '<path d="M12 5v14M5 12h14"/>',
+        'globe' => '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.7 2.6 14.3 0 17M12 3.5c-2.6 2.7-2.6 ' .
+            '14.3 0 17"/>',
+        'chev' => '<path d="M7 10l5 5 5-5"/>',
+        'alert' => '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>',
+        'mail' => '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
+        'phone' => '<path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 ' .
+            '1 2-2z"/>',
+        'down' => '<path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/>',
+        'back' => '<path d="M15 6l-6 6 6 6"/>',
+    ];
+
+    /**
+     * The icons, as the templates take them.
+     *
+     * @return array Name => SVG.
+     */
+    public static function icons(): array {
+        $out = [];
+        foreach (self::ICONS as $name => $paths) {
+            $out[$name] = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' .
+                'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $paths . '</svg>';
+        }
+        return $out;
+    }
+
     /**
      * Prepares Moodle for a page without an account.
      *
@@ -57,7 +88,8 @@ class publicpage {
     }
 
     /**
-     * Prints the whole page and stops.
+     * Prints the whole page and stops: the centre at the top with its language menu, the page, and at the foot the
+     * centre and how it treats the data. The colours of the centre become variables here, for light and dark.
      *
      * @param \stdClass $centre
      * @param string $lang
@@ -78,25 +110,45 @@ class publicpage {
         $version = (int) get_config('local_oksigeniaeguahe', 'version');
         $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
         $colour = $centre->colour ?: '#2f5d62';
-        $logo = centres::logo((int) $centre->id);
+        $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
+        $name = format_string($centre->name);
+        // The initials of the name without the words every school has: «Los Almendros» gives «LA», never «(».
+        $clean = preg_replace('/\(.*?\)|[^\p{L}\s]/u', ' ', $name);
+        $words = preg_split('/\s+/', trim(preg_replace('/\b(colegio|escuela|academia|instituto|centro|school|college|' .
+            'escola|de|del|la|las|el|of|the|da|do|dos|das)\b/iu', '', $clean))) ?: [$name];
+        $initials = \core_text::strtoupper(implode('', array_map(
+            fn($w) => \core_text::substr($w, 0, 1),
+            array_slice(array_filter($words), 0, 2)
+        ))) ?: \core_text::strtoupper(\core_text::substr($name, 0, 1));
+        $langs = publiclang::switcher($lang, $url);
+        $current = '';
+        foreach ($langs as $item) {
+            $current = $item['current'] ? $item['name'] : $current;
+        }
         $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + [
             'base' => $base,
             'version' => $version,
+            'i' => self::icons(),
         ]);
         $header = $OUTPUT->render_from_template('local_oksigeniaeguahe/public_frame', [
-            'centre' => format_string($centre->name),
+            'i' => self::icons(),
+            'centre' => $name,
+            'initials' => $initials,
             'logo' => $logo ? $logo->out(false) : '',
-            'langs' => publiclang::switcher($lang, $url),
+            'logoplate' => !empty($centre->logoplate),
+            'langs' => $langs,
+            'langname' => $current,
             'langlabel' => publiclang::str('pub_language', $lang),
-            'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
+            'address' => !empty($centre->address) ? format_string($centre->address) : '',
+            'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id ?? 0,
                 'lang' => $lang]))->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
-            'year' => date('Y'),
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
+        $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
         self::headers();
         echo '<!DOCTYPE html>
-<html lang="' . s(str_replace('_', '-', $lang)) . '">
+<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -104,15 +156,109 @@ class publicpage {
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="' . s($colour) . '">
-<title>' . s($title) . ' · ' . s(format_string($centre->name)) . '</title>
+<title>' . s($title) . ' · ' . s($name) . '</title>
+<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
-<style>:root { --centre: ' . s($colour) . '; --on-centre: ' . self::on($colour) . '; }</style>
+<style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
+@media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>
+<noscript><style>.nino[hidden], .adulto[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] { display: grid; }
+.anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
+<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
 </head>
-<body class="eguahe-public">
+<body>
 ' . $top . $body . $bottom . '
 </body>
 </html>';
         die();
+    }
+
+    /**
+     * The colour of the centre turned into every variable the pages use, for light or dark, as the DESIGN.md of the
+     * page of the family says: text and links always at 4.5:1 on the wall, fills at 3:1 in dark, and white or near
+     * black on top, whichever reads better. Nothing is mixed in CSS (Firefox 98 has no color-mix()).
+     *
+     * @param string $accent #rrggbb
+     * @param bool $dark
+     * @return array Variable => value.
+     */
+    public static function centre_vars(string $accent, bool $dark): array {
+        $accent = strtoupper($accent);
+        $paper = $dark ? '#211D1B' : '#FFFFFF';
+        $vivid = $dark ? self::towards($accent, '#FFFFFF', $paper, 3) : $accent;
+        $wall = $dark ? self::mix('#25201D', $vivid, 0.05) : self::mix('#F4EADC', $accent, 0.06);
+        $text = self::towards($accent, $dark ? '#FFFFFF' : '#000000', $wall, 4.5);
+        $on = fn(string $c) => self::contrast($c, '#FFFFFF') >= self::contrast($c, '#1A1614') ? '#FFFFFF' : '#1A1614';
+        return [
+            '--c-acento' => $accent,
+            '--c-sobre-acento' => $on($accent),
+            '--c-acento-texto' => $text,
+            '--c-acento-vivo' => $vivid,
+            '--c-sobre-vivo' => $on($vivid),
+            '--c-pared' => $wall,
+            '--c-acento-suave' => $dark ? self::mix($paper, $vivid, 0.13) : self::mix($paper, $accent, 0.08),
+            '--c-banda-linea' => self::mix($accent, $on($accent), 0.35),
+            '--mochila' => $dark ? '#E0846F' : '#CF6450',
+            '--mochila-sombra' => $dark ? '#A85C4C' : '#9E4A3B',
+            '--mochila-luz' => $dark ? '#F2C2B6' : '#F1C9C0',
+        ];
+    }
+
+    /**
+     * Two colours mixed.
+     *
+     * @param string $a #rrggbb
+     * @param string $b #rrggbb
+     * @param float $t 0 is $a, 1 is $b.
+     * @return string
+     */
+    public static function mix(string $a, string $b, float $t): string {
+        $x = sscanf(ltrim($a, '#'), '%2x%2x%2x');
+        $y = sscanf(ltrim($b, '#'), '%2x%2x%2x');
+        $out = '#';
+        foreach ([0, 1, 2] as $i) {
+            $out .= sprintf('%02X', (int) round(max(0, min(255, $x[$i] + ($y[$i] - $x[$i]) * $t))));
+        }
+        return $out;
+    }
+
+    /**
+     * The contrast between two colours (WCAG).
+     *
+     * @param string $a
+     * @param string $b
+     * @return float
+     */
+    public static function contrast(string $a, string $b): float {
+        $lum = function (string $hex): float {
+            $l = 0;
+            $weights = [0.2126, 0.7152, 0.0722];
+            foreach (sscanf(ltrim($hex, '#'), '%2x%2x%2x') as $i => $v) {
+                $v /= 255;
+                $l += $weights[$i] * ($v <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4);
+            }
+            return $l;
+        };
+        [$x, $y] = [$lum($a), $lum($b)];
+        return (max($x, $y) + 0.05) / (min($x, $y) + 0.05);
+    }
+
+    /**
+     * A colour moved towards black or white until it reaches a contrast against another.
+     *
+     * @param string $colour
+     * @param string $target
+     * @param string $against
+     * @param float $min
+     * @return string
+     */
+    public static function towards(string $colour, string $target, string $against, float $min): string {
+        for ($t = 0; $t <= 1.001; $t += 0.025) {
+            $c = self::mix($colour, $target, $t);
+            if (self::contrast($c, $against) >= $min) {
+                return $c;
+            }
+        }
+        return $target;
     }
 
     /**
@@ -122,15 +268,60 @@ class publicpage {
      * @return string
      */
     public static function on(string $colour): string {
-        $channel = function (string $hex): float {
-            $c = hexdec($hex) / 255;
-            return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
-        };
-        $hex = ltrim($colour, '#');
-        $l = 0.2126 * $channel(substr($hex, 0, 2)) + 0.7152 * $channel(substr($hex, 2, 2)) +
-            0.0722 * $channel(substr($hex, 4, 2));
-        // Contrast with white is 1.05 / (l + 0.05); with #1d2421 (luminance about 0.016), (l + 0.05) / 0.066.
-        return 1.05 / ($l + 0.05) >= ($l + 0.05) / 0.066 ? '#ffffff' : '#1d2421';
+        return self::contrast($colour, '#FFFFFF') >= self::contrast($colour, '#1A1614') ? '#ffffff' : '#1a1614';
+    }
+
+    /**
+     * The backpacks on the rail: one hook per child, with the first-day label on its pocket and the name written by
+     * hand. The first is coral; brothers and sisters, mauve, sage and wood: neighbours, none of them meaning anything.
+     *
+     * @param string[] $names The names on the labels, in order; an empty one waits blank.
+     * @param bool $arrive Whether they arrive swinging.
+     * @param int $shown How many are shown (the others wait hidden, for the form).
+     * @return array
+     */
+    public static function pegs(array $names, bool $arrive = false, ?int $shown = null): array {
+        $pegs = [];
+        foreach (array_values($names) as $i => $name) {
+            $style = '';
+            if ($i) {
+                $tone = ['#6F5E6E', '#5E7F6A', '#B98256'][($i - 1) % 3];
+                $style = '--mochila:' . $tone . ';--mochila-sombra:' . self::mix($tone, '#000000', 0.24) .
+                    ';--mochila-luz:' . self::mix($tone, '#FFFFFF', 0.6);
+            }
+            $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'arrive' => $arrive,
+                'delay' => sprintf('%.2f', 0.15 + $i * 0.14), 'hidden' => $shown !== null && $i >= $shown];
+        }
+        return ['pegs' => $pegs, 'count' => $shown ?? count($pegs)];
+    }
+
+    /**
+     * The parts of a date for the pages, in the language of the family: the day of the week, the day and month, and
+     * both together («sábado», «21 de noviembre», «sábado 21 de noviembre»), and the hour.
+     *
+     * @param int $time
+     * @param string $lang
+     * @return array weekday, daymonth, long, hour
+     */
+    public static function date_parts(int $time, string $lang): array {
+        $locale = $lang === 'pt_br' ? 'pt_BR' : ($lang === 'pt' ? 'pt_PT' : $lang);
+        $zone = \core_date::get_server_timezone_object();
+        if (class_exists('\IntlDateFormatter') && class_exists('\IntlDatePatternGenerator')) {
+            $generator = new \IntlDatePatternGenerator($locale);
+            $format = fn(string $skeleton) => (new \IntlDateFormatter(
+                $locale,
+                \IntlDateFormatter::NONE,
+                \IntlDateFormatter::NONE,
+                $zone,
+                null,
+                $generator->getBestPattern($skeleton)
+            ))->format($time);
+            $hour = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::SHORT, $zone);
+            return ['weekday' => $format('EEEE'), 'daymonth' => $format('dMMMM'),
+                'long' => str_replace(',', '', $format('EEEEdMMMM')), 'hour' => $hour->format($time)];
+        }
+        return ['weekday' => userdate($time, '%A'), 'daymonth' => userdate($time, '%d %B'),
+            'long' => userdate($time, '%A %d %B'), 'hour' => userdate($time, '%H:%M')];
     }
 
     /**
@@ -149,16 +340,43 @@ class publicpage {
     }
 
     /**
-     * A page that only says something: a link that no longer works, an event that is full.
+     * A page that only says something: a link that no longer works, an event that is full, data erased. The rail
+     * waits with its empty hook, and the family can write or call.
      *
      * @param \stdClass|null $centre Null when not even the centre is known.
      * @param string $lang
      * @param string $title
      * @param string $text
      * @param \moodle_url $url
+     * @param bool $hook Whether the empty hook is shown (not after erasing).
      */
-    public static function message(?\stdClass $centre, string $lang, string $title, string $text, \moodle_url $url): void {
+    public static function message(
+        ?\stdClass $centre,
+        string $lang,
+        string $title,
+        string $text,
+        \moodle_url $url,
+        bool $hook = true
+    ): void {
         $centre = $centre ?? (object) ['id' => 0, 'name' => format_string(get_site()->fullname), 'colour' => null];
-        self::output($centre, $lang, $title, 'public_message', ['title' => $title, 'text' => $text], $url);
+        self::output($centre, $lang, $title, 'public_message', ['title' => $title, 'text' => $text, 'hook' => $hook] +
+            self::reach($centre, $lang), $url);
+    }
+
+    /**
+     * How a family reaches the centre: its email and its phone, with the words of the buttons.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array
+     */
+    public static function reach(\stdClass $centre, string $lang): array {
+        $phone = trim((string) ($centre->phone ?? ''));
+        return [
+            'email' => (string) ($centre->email ?? ''),
+            'phone' => $phone,
+            'tel' => preg_replace('/[^\d+]/', '', $phone),
+            'writeus' => publiclang::str('pub_write_us', $lang),
+        ];
     }
 }

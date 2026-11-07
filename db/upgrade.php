@@ -248,5 +248,44 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110800, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110900) {
+        // The page of the family: how to reach the centre, who receives the families, and families moving to the area.
+        $fields = [
+            'local_oksigeniaeguahe_centre' => [
+                new xmldb_field('address', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'aiprovider'),
+                new xmldb_field('phone', XMLDB_TYPE_CHAR, '50', null, null, null, null, 'address'),
+                new xmldb_field('email', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'phone'),
+                new xmldb_field('welcome', XMLDB_TYPE_TEXT, null, null, null, null, null, 'email'),
+                new xmldb_field('logoplate', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'welcome'),
+            ],
+            'local_oksigeniaeguahe_member' => [
+                new xmldb_field('public', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'userid'),
+                new xmldb_field('rolename', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'public'),
+                new xmldb_field('says', XMLDB_TYPE_TEXT, null, null, null, null, null, 'rolename'),
+                new xmldb_field('sortorder', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'says'),
+            ],
+            'local_oksigeniaeguahe_event' => [new xmldb_field('hosts', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'open')],
+            'local_oksigeniaeguahe_household' => [new xmldb_field(
+                'moving',
+                XMLDB_TYPE_INTEGER,
+                '1',
+                null,
+                XMLDB_NOTNULL,
+                null,
+                '0',
+                'municipalityname'
+            )],
+        ];
+        foreach ($fields as $tablename => $list) {
+            $table = new xmldb_table($tablename);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026110900, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -109,6 +109,7 @@ class households {
             'heardfrom' => in_array($data->heardfrom ?? '', lists::HEARD_FROM, true) ? $data->heardfrom : null,
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
             'incentre' => empty($data->incentre) ? 0 : 1,
+            'moving' => empty($data->moving) ? 0 : 1,
             'waitingsince' => 0,
             'lastcontact' => $now,
             'timecreated' => $now,
@@ -134,6 +135,9 @@ class households {
             $changes['heardfrom'] = $data->heardfrom;
         }
         // A family that says it is already of the centre is, from then on.
+        if (empty($household->moving) && !empty($data->moving)) {
+            $changes['moving'] = 1;
+        }
         if (empty($household->incentre) && !empty($data->incentre)) {
             $changes['incentre'] = 1;
         }
@@ -438,7 +442,8 @@ class households {
         $full->contacts = $DB->get_records(self::CONTACTS, $id, 'timecreated ASC, id ASC');
         $full->consents = $DB->get_records(self::CONSENTS, $id, 'timecreated ASC, id ASC');
         $full->signups = $DB->get_records_sql('SELECT s.*, e.name AS eventname, COALESCE(t.timestart, e.timestart) AS timestart,
-                                                      COALESCE(t.timeend, e.timeend) AS timeend, e.place, e.kind
+                                                      COALESCE(t.timeend, e.timeend) AS timeend, e.place, e.kind,
+                                                      e.hosts
                                                  FROM {' . self::SIGNUPS . '} s JOIN {local_oksigeniaeguahe_event} e
                                                       ON e.id = s.eventid
                                             LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid

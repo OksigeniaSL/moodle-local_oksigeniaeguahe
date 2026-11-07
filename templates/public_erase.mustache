@@ -20,18 +20,20 @@
     The question before erasing the data of a family, with what each button does.
 
     Example context (json):
-    {"pub_erase_title": "¿Borrar todos sus datos?", "pub_erase_text": "El centro dejará de tenerlos.",
-     "pub_erase_yes": "Borrar los datos", "pub_erase_no": "Dejarlos", "action": "#", "back": "#", "sesskey": "abc",
-     "centre": "Colegio de ejemplo"}
+    {"pub_erase_title": "¿Borramos todos sus datos?", "pub_erase_text": "El centro dejará de tenerlos.",
+     "pub_erase_yes": "Sí, borrar nuestros datos", "pub_erase_no": "No, dejarlos", "action": "#", "back": "#",
+     "sesskey": "abc"}
 }}
-<article class="eg-card eg-message">
-    <h1>{{pub_erase_title}}</h1>
-    <p>{{pub_erase_text}}</p>
-    <form method="post" action="{{action}}" class="eg-actions">
-        <input type="hidden" name="sesskey" value="{{sesskey}}">
-        <input type="hidden" name="action" value="erase">
-        <input type="hidden" name="confirm" value="1">
-        <button type="submit" class="eg-button eg-button-danger">{{pub_erase_yes}}</button>
-        <a class="eg-button eg-button-quiet" href="{{back}}">{{pub_erase_no}}</a>
-    </form>
-</article>
+<section class="pared corta">
+    <div class="mensaje">
+        <h1>{{pub_erase_title}}</h1>
+        <p class="entradilla">{{pub_erase_text}}</p>
+        <form method="post" action="{{action}}" class="acciones">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="erase">
+            <input type="hidden" name="confirm" value="1">
+            <button type="submit" class="boton peligro">{{pub_erase_yes}}</button>
+            <a class="boton secundario" href="{{back}}">{{pub_erase_no}}</a>
+        </form>
+    </div>
+</section>

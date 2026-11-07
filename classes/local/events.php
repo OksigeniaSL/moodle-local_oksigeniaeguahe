@@ -108,6 +108,12 @@ class events {
             'open' => empty($data->open) ? 0 : 1,
             'timemodified' => time(),
         ];
+        if (isset($data->hosts)) {
+            // Only members of the team the centre shows to the families, in the order chosen.
+            $public = array_column(centres::hosts($centreid), 'memberid');
+            $hosts = array_values(array_intersect(array_map('intval', (array) $data->hosts), $public));
+            $row->hosts = $hosts ? implode(',', array_slice($hosts, 0, 8)) : null;
+        }
         if (!empty($data->id)) {
             self::get((int) $data->id, $centreid) ?? throw new \moodle_exception('invalidrecord', 'error');
             $row->id = (int) $data->id;

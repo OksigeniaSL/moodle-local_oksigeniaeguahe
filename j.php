@@ -52,7 +52,13 @@ if (!$event || !$centre) {
 }
 $lang = publiclang::choose($centre);
 if (!$event->open || $event->timeend < time()) {
-    publicpage::message($centre, $lang, format_string($event->name), publiclang::str('pub_closed', $lang), $url);
+    publicpage::message(
+        $centre,
+        $lang,
+        publiclang::str('pub_closed_title', $lang),
+        publiclang::str('pub_closed', $lang),
+        $url
+    );
 }
 
 $data = signup::read();

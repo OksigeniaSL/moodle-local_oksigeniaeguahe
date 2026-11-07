@@ -17,70 +17,144 @@
 {{!
     @template local_oksigeniaeguahe/public_family
 
-    The page of a family: after signing up, that it is done and that this page is theirs; then their next visit with
-    the file for the calendar, who they are and who would study, and their data, to take or to erase.
+    The page of a family, theirs, from the link they got. The heading is the name the family uses at home, written by
+    hand, as on the label of the backpack on its hook. Then their visit, in a band of the colour of the centre, with
+    the calendar; the people who will receive them, with their face; and what they told us, with their data to take or
+    to erase. After the visit, what comes next.
 
     Example context (json):
     {
-        "new": true, "pub_done_title": "Ya están apuntados", "pub_done_keep": "Guarden esta página.",
-        "emailed": "También se la hemos enviado por correo.", "pub_family_title": "Su página",
-        "pub_family_intro": "Lo que el centro tiene de ustedes.", "centre": "Colegio de ejemplo",
-        "pub_next": "Su próxima visita", "hasnext": true,
-        "next": [{"name": "Jornada de puertas abiertas", "when": "sábado, 21 de noviembre, 10:00–13:00",
-            "place": "Entrada principal", "people": "Personas: 3", "ics": "#"}],
-        "pub_none_next": "No tienen ninguna visita apuntada.", "pub_add_calendar": "Añadir al calendario",
-        "pub_us": "Ustedes", "adults": [{"name": "Lucas Pérez", "reach": "+34600000000"}],
-        "pub_students": "Quién estudiaría", "children": [{"name": "Daniel", "offer": "Infantil 3 años (2027-28)"}],
-        "pub_data": "Sus datos", "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar mis datos",
-        "pub_data_erase": "Borrar mis datos", "downloadurl": "#", "eraseurl": "#"
+        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": ""},
+        "greeting": "Los esperamos,", "names": "Leo",
+        "pegs": {"count": 1, "live": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
+            "delay": "0.15", "hidden": false}]},
+        "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
+        "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
+        "hasnext": true, "bandlabel": "Su visita",
+        "first": {"weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
+            "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
+            "ics": "#"},
+        "pub_your_turn": "su turno", "pub_add_calendar": "Añadir a mi calendario", "mapurl": "#",
+        "pub_how_get": "Cómo llegar", "others": [], "pub_band_next": "Lo siguiente", "nextline": "",
+        "novisit": "", "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000",
+        "writeus": "Escribirnos", "pub_receives": "Quién los recibe", "pub_receives_sub": "Son las personas…",
+        "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
+            "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.",
+        "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría",
+        "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo"}],
+        "haschildren": true, "pub_contact": "Sus datos de contacto",
+        "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
+        "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
+        "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar nuestros datos",
+        "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#"
     }
 }}
-<article class="eg-card">
-    {{#new}}
-    <div class="eg-done" role="status">
-        <h1>{{pub_done_title}}</h1>
-        <p>{{pub_done_keep}}</p>
-        {{#emailed}}<p>{{emailed}}</p>{{/emailed}}
+<section class="pared" aria-labelledby="titulo">
+    <div class="saludo-arriba">
+        <h1 class="titular" id="titulo">{{greeting}}{{#names}} <span class="mano-titular">{{names}}</span>{{/names}}</h1>
     </div>
-    {{/new}}
-    {{^new}}
-    <header class="eg-event">
-        <h1>{{pub_family_title}}</h1>
-        <p>{{pub_family_intro}}</p>
-    </header>
-    {{/new}}
-
-    <section class="eg-section">
-        <h2>{{pub_next}}</h2>
-        {{#hasnext}}
-        <ul class="eg-list">
-            {{#next}}
-            <li class="eg-visit">
-                <strong>{{name}}</strong>
-                <span>{{when}}</span>
-                {{#place}}<span>{{place}}</span>{{/place}}
-                <span>{{people}}</span>
-                <a class="eg-button eg-button-quiet" href="{{ics}}">{{pub_add_calendar}}</a>
-            </li>
-            {{/next}}
-        </ul>
-        {{/hasnext}}
-        {{^hasnext}}<p>{{pub_none_next}}</p>{{/hasnext}}
-    </section>
-
-    <section class="eg-section">
-        <h2>{{pub_us}}</h2>
-        <ul class="eg-list">{{#adults}}<li><strong>{{name}}</strong>{{#reach}} <span class="eg-quiet">{{reach}}</span>{{/reach}}</li>{{/adults}}</ul>
-        <h2>{{pub_students}}</h2>
-        <ul class="eg-list">{{#children}}<li><strong>{{name}}</strong> <span class="eg-quiet">{{offer}}</span></li>{{/children}}</ul>
-    </section>
-
-    <section class="eg-section">
-        <h2>{{pub_data}}</h2>
-        <p>{{pub_data_hint}}</p>
-        <div class="eg-actions">
-            <a class="eg-button eg-button-quiet" href="{{downloadurl}}">{{pub_data_download}}</a>
-            <a class="eg-button eg-button-quiet" href="{{eraseurl}}">{{pub_data_erase}}</a>
+    <div class="riel" aria-hidden="true"></div>
+    <div class="heroe-ancho">
+        {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
+        <div class="bajo-riel">
+            <p class="entradilla">{{{lead}}}</p>
+            {{#new}}
+            <div class="aviso en-heroe" role="status">
+                <span class="icono">{{{i.check}}}</span>
+                <p><b>{{saved}}.</b> {{savedline}} {{emailed}}</p>
+            </div>
+            {{/new}}
         </div>
-    </section>
-</article>
+    </div>
+</section>
+
+{{#hasnext}}
+<section class="banda" aria-label="{{bandlabel}}">
+    <p class="etiqueta">{{bandlabel}}</p>
+    {{#first}}
+    <p class="cuando"><span>{{weekday}}</span><span>{{daymonth}}</span></p>
+    <div class="detalles">
+        <b>{{name}}</b>
+        <span>{{hours}}{{#turn}} · {{pub_your_turn}}{{/turn}}</span>
+        {{#place}}<span>{{place}}</span>{{/place}}
+        <span>{{people}}</span>
+        <div class="acciones">
+            <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
+            {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
+        </div>
+    </div>
+    {{/first}}
+    {{#others}}
+    <div class="otra">
+        <div><b>{{name}}</b><span>{{long}} · {{hours}}</span></div>
+        <a class="enlace" href="{{ics}}" aria-label="{{addlabel}}">{{{i.cal}}}</a>
+    </div>
+    {{/others}}
+</section>
+{{/hasnext}}
+{{^hasnext}}
+<section class="banda" aria-label="{{pub_band_next}}">
+    <p class="etiqueta">{{pub_band_next}}</p>
+    <p class="siguiente">{{nextline}}</p>
+    <div class="detalles">
+        <p>{{novisit}}</p>
+        <div class="acciones">
+            {{#email}}<a class="boton inverso" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+    </div>
+</section>
+{{/hasnext}}
+
+{{#hashosts}}
+<section class="seccion dos-col">
+    <div class="cabeza">
+        <h2>{{pub_receives}}</h2>
+        <p class="sub">{{pub_receives_sub}}</p>
+    </div>
+    <div class="personas">
+        {{#hosts}}
+        <article class="persona">
+            {{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}
+            {{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}
+            <b>{{name}}</b>
+            {{#role}}<span class="papel">{{role}}</span>{{/role}}
+            {{#says}}<p class="dice">{{says}}</p>{{/says}}
+        </article>
+        {{/hosts}}
+    </div>
+</section>
+{{/hashosts}}
+{{^hashosts}}
+<section class="seccion">
+    <h2>{{pub_receives}}</h2>
+    <p class="equipo">{{pub_receives_team}}</p>
+</section>
+{{/hashosts}}
+
+<section class="seccion">
+    <h2>{{pub_told}}</h2>
+    <div class="lo-contado">
+        {{#haschildren}}
+        <div>
+            <h3>{{pub_who_comes}}</h3>
+            <dl>{{#children}}<div><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}</dd></div>{{/children}}</dl>
+        </div>
+        {{/haschildren}}
+        <div>
+            <h3>{{pub_contact}}</h3>
+            <dl>
+                {{#adults}}<div><dt>{{name}}</dt><dd>{{#reach}}{{.}}<br>{{/reach}}</dd></div>{{/adults}}
+                {{#writeby}}<div><dd>{{writeby}}</dd></div>{{/writeby}}
+            </dl>
+        </div>
+        <div>
+            <h3>{{pub_data}}</h3>
+            <p class="muted">{{pub_data_hint}}</p>
+            <div class="acciones datos">
+                <a class="boton secundario" href="{{downloadurl}}">{{{i.down}}}{{pub_data_download}}</a>
+                <a class="boton rojo" href="{{eraseurl}}">{{pub_data_erase}}</a>
+            </div>
+        </div>
+    </div>
+</section>

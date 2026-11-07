@@ -43,7 +43,8 @@ $url = new moodle_url('/local/oksigeniaeguahe/centre.php', $id ? ['id' => $id] :
 staff::setup($url, get_string($centre ? 'centre_settings' : 'centre_new', $c), $centre);
 
 $offers = $centre ? array_values(centres::offers((int) $centre->id)) : [];
-$form = new centre_form($url, ['offers' => count($offers), 'providers' => ai::providers()]);
+$form = new centre_form($url, ['offers' => count($offers), 'providers' => ai::providers(),
+    'hostsurl' => $centre ? (new moodle_url('/local/oksigeniaeguahe/hosts.php', ['c' => $centre->id]))->out(false) : '']);
 $draft = file_get_submitted_draft_itemid('logo');
 file_prepare_draft_area($draft, $context->id, $c, 'logo', $id, ['subdirs' => 0, 'maxfiles' => 1]);
 if ($centre) {

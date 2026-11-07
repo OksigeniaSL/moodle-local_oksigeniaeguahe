@@ -26,12 +26,11 @@ namespace local_oksigeniaeguahe\local;
  */
 class signuppage {
     /** @var string[] Strings the template uses. */
-    const STRINGS = ['pub_intro', 'pub_who', 'pub_firstname', 'pub_lastname', 'pub_phone', 'pub_email', 'pub_reach_hint',
-        'pub_another_adult', 'pub_students', 'pub_student_name', 'pub_student_offer', 'pub_offer_unknown',
-        'pub_another_student', 'pub_people', 'pub_where', 'pub_where_other', 'pub_where_choose', 'pub_heardfrom',
-        'pub_heardfrom_choose', 'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_submit',
-        'pub_errors', 'pub_required', 'pub_optional', 'pub_info_more', 'pub_slot', 'pub_incentre', 'pub_incentre_yes',
-        'pub_incentre_no', 'pub_tagname', 'pub_tagname_hint'];
+    const STRINGS = ['pub_come_meet', 'pub_tagname', 'pub_tagname_hint', 'pub_if_you_wish', 'pub_add_child', 'pub_offer_unknown',
+        'pub_you', 'pub_you_hint', 'pub_another_adult', 'pub_slot', 'pub_incentre', 'pub_incentre_yes', 'pub_incentre_no',
+        'pub_more', 'pub_people', 'pub_where', 'pub_where_choose', 'pub_where_other', 'pub_where_moving', 'pub_heardfrom',
+        'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_privacy_link', 'pub_info_more',
+        'pub_submit', 'pub_sending', 'pub_no_place'];
 
     /**
      * The context of the template public_signup.
@@ -54,58 +53,61 @@ class signuppage {
     ): array {
         global $CFG;
         $str = publicpage::strings($lang, self::STRINGS);
+        $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
         $field = function (
             string $name,
             string $label,
             string $value,
             string $type = 'text',
             string $autocomplete = '',
-            bool $required = false
+            string $inputmode = ''
         ) use ($errors): array {
-            return ['name' => $name, 'label' => $label, 'value' => $value, 'type' => $type,
-                'autocomplete' => $autocomplete, 'required' => $required, 'error' => $errors[$name] ?? '',
-                'invalid' => isset($errors[$name])];
+            return ['name' => $name, 'label' => $label, 'value' => $value, 'type' => $type, 'autocomplete' => $autocomplete,
+                'inputmode' => $inputmode, 'error' => $errors[$name] ?? '', 'invalid' => isset($errors[$name])];
         };
+        // The adults: the first always; the second when something was written in it.
         $adults = [];
         foreach ($data['adults'] as $i => $adult) {
-            $adults[] = [
-                'first' => $i === 0,
-                'fields' => [
-                    $field("a{$i}first", $str['pub_firstname'], $adult['firstname'], 'text', 'given-name', $i === 0),
-                    $field("a{$i}last", $str['pub_lastname'], $adult['lastname'], 'text', 'family-name'),
-                    $field("a{$i}phone", $str['pub_phone'], $adult['phone'], 'tel', 'tel'),
-                    $field("a{$i}email", $str['pub_email'], $adult['email'], 'email', 'email'),
-                ],
-            ];
+            $shown = $i === 0 || implode('', $adult) !== '' || isset($errors["a{$i}email"]) || isset($errors["a{$i}phone"]);
+            $adults[] = ['index' => $i, 'hidden' => !$shown, 'fields' => [
+                $field("a{$i}first", publiclang::str('pub_firstname', $lang), $adult['firstname'], 'text', 'given-name'),
+                $field("a{$i}last", publiclang::str('pub_lastname', $lang), $adult['lastname'], 'text', 'family-name'),
+                $field("a{$i}phone", publiclang::str('pub_phone', $lang), $adult['phone'], 'tel', 'tel', 'tel'),
+                $field("a{$i}email", publiclang::str('pub_email', $lang), $adult['email'], 'email', 'email'),
+            ]];
         }
         $offers = [];
         foreach (centres::offers((int) $centre->id, true) as $offer) {
-            $offers[] = ['id' => $offer->id, 'name' => format_string($offer->name) . ' (' . s($offer->schoolyear) . ')'];
+            $offers[] = ['id' => $offer->id, 'name' => format_string($offer->name) . ' · ' . s($offer->schoolyear)];
         }
+        // The children: the first always; the others when something was written in them.
         $children = [];
+        $labels = [];
         foreach ($data['children'] as $i => $child) {
+            $shown = $i === 0 || $child['firstname'] !== '' || ($child['tagname'] ?? '') !== '' || $child['offerid'];
+            $label = familypage::label_name((object) ['firstname' => $child['firstname'],
+                'tagname' => $child['tagname'] ?? '']);
+            $labels[] = $label;
             $children[] = [
-                'first' => $i === 0,
-                'name' => $field("c{$i}name", $str['pub_student_name'], $child['firstname'], 'text', 'off', $i === 0),
-                'tag' => $field("c{$i}tag", $str['pub_tagname'], $child['tagname'] ?? '', 'text', 'off'),
-                'offer' => "c{$i}offer",
+                'index' => $i,
+                'hidden' => !$shown,
+                'namelabel' => publiclang::str($i ? 'pub_child_name' : 'pub_ask_name', $lang),
+                'name' => $child['firstname'],
+                'nameerror' => $errors["c{$i}name"] ?? '',
+                'tag' => $child['tagname'] ?? '',
+                'tagplaceholder' => preg_split('/\s+/', $child['firstname'])[0] ?? '',
+                'courselabel' => $label !== '' ? publiclang::str('pub_course_for', $lang, $label) :
+                    publiclang::str('pub_course_for_none', $lang),
+                'coursewith' => publiclang::str('pub_course_for', $lang, '{name}'),
+                'coursewithout' => publiclang::str('pub_course_for_none', $lang),
                 'offererror' => $errors["c{$i}offer"] ?? '',
                 'offers' => array_map(fn($o) => $o + ['selected' => (int) $o['id'] === (int) $child['offerid']], $offers),
             ];
         }
-        // The rows that are not the first stay folded, unless something was written in them.
-        $moreadults = false;
-        foreach (array_slice($data['adults'], 1, null, true) as $i => $adult) {
-            $moreadults = $moreadults || implode('', $adult) !== '' || isset($errors["a{$i}email"]) ||
-                isset($errors["a{$i}phone"]);
-        }
-        $morechildren = false;
-        foreach (array_slice($data['children'], 1) as $child) {
-            $morechildren = $morechildren || $child['firstname'] !== '' || $child['offerid'];
-        }
+        $shownchildren = count(array_filter($children, fn($c) => !$c['hidden']));
         $places = [];
         foreach (centres::municipalities($centre) as $code => $name) {
-            $places[] = ['value' => $code, 'name' => $name, 'selected' => $code === $data['municipality']];
+            $places[] = ['value' => $code, 'name' => $name, 'selected' => (string) $code === $data['municipality']];
         }
         $heard = [];
         foreach (lists::HEARD_FROM as $value) {
@@ -119,23 +121,31 @@ class signuppage {
         }
         $slots = [];
         $all = events::slots((int) $event->id);
-        // Turns of one day show their hours; turns of several days, their dates too.
+        // Turns of one day show their hours; turns of several days, their dates too. Past turns are not shown.
         $days = array_unique(array_map(fn($t) => userdate((int) $t->timestart, '%Y%m%d'), $all));
         foreach ($all as $slot) {
+            if ($slot->timeend < time()) {
+                continue;
+            }
             $left = $slot->capacity ? max(0, (int) $slot->capacity - (int) $slot->people) : null;
-            $past = $slot->timeend < time();
             $slots[] = [
                 'id' => $slot->id,
                 'when' => count($days) > 1 ? mail::when($slot, $lang) : mail::hours($slot, $lang),
-                'left' => $left === null ? '' : publiclang::str($left ? 'pub_slot_left' : 'pub_slot_full', $lang, $left),
-                'disabled' => $past || $left === 0,
+                'left' => $left === null ? '' : ($left === 0 ? publiclang::str('pub_slot_full', $lang) :
+                    publiclang::str($left === 1 ? 'pub_slot_left_one' : 'pub_slot_left', $lang, $left)),
+                'disabled' => $left === 0,
                 'checked' => (int) $slot->id === (int) ($data['slot'] ?? 0),
             ];
         }
         $errorlist = [];
         foreach ($errors as $name => $message) {
-            $errorlist[] = ['field' => $name, 'message' => $message];
+            $errorlist[] = ['field' => $name === 'channels' ? 'channels' : ($name === 'altcha' ? 'altcha' : $name),
+                'message' => $message];
         }
+        $hosts = centres::hosts((int) $centre->id, array_filter(array_map('intval', explode(',', (string) $event->hosts))));
+        $firsts = array_map(fn($h) => $h->first, $hosts);
+        $parts = publicpage::date_parts((int) $event->timestart, $lang);
+        $municipality = (string) $data['municipality'];
         $altchalang = ['es' => 'es-es', 'en' => 'en', 'pt' => 'pt-pt', 'pt_br' => 'pt-br'][$lang] ?? 'en';
         $altcha = json_encode([
             'auto' => 'onfocus',
@@ -146,16 +156,31 @@ class signuppage {
         ]);
         return $str + [
             'event' => format_string($event->name),
-            'when' => mail::when($event, $lang),
+            'pegs' => publicpage::pegs($labels, false, $shownchildren) + ['live' => true],
+            'children' => $children,
+            'canaddchild' => $shownchildren < count($children),
+            'singlechild' => $shownchildren === 1,
+            'courselegend' => $children[0]['courselabel'],
+            'courselegendmany' => publiclang::str('pub_who_comes', $lang),
+            'weekday' => $ucfirst($parts['weekday']),
+            'daymonth' => $parts['daymonth'],
+            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'place' => $event->place ? format_string($event->place) : '',
+            'address' => !empty($centre->address) ? format_string($centre->address) : '',
+            'welcome' => !empty($centre->welcome) ? format_string($centre->welcome) : '',
+            'hashosts' => (bool) $hosts,
+            'hosts' => familypage::hosts($hosts),
+            'willreceive' => $hosts ? publiclang::str(
+                count($hosts) > 1 ? 'pub_will_receive_many' : 'pub_will_receive_one',
+                $lang,
+                familypage::join($firsts, $lang)
+            ) : '',
             'action' => (new \moodle_url($url, ['lang' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'adults' => $adults,
-            'moreadultsopen' => $moreadults,
-            'children' => $children,
-            'morechildrenopen' => $morechildren,
+            'canaddadult' => (bool) array_filter($adults, fn($a) => $a['hidden']),
             'hasoffers' => (bool) $offers,
-            'people' => (int) $data['people'] ?: 1,
+            'people' => (int) $data['people'] ?: 2,
             'hasslots' => (bool) $slots,
             'slots' => $slots,
             'sloterror' => $errors['slot'] ?? '',
@@ -163,16 +188,27 @@ class signuppage {
             'incentreyes' => ($data['incentre'] ?? '') === 'yes',
             'incentreno' => ($data['incentre'] ?? '') === 'no',
             'peopleerror' => $errors['people'] ?? '',
-            'hasplaces' => (bool) $places,
             'places' => $places,
+            'otherselected' => $municipality === 'other',
+            'movingselected' => $municipality === 'moving',
+            'lejoshidden' => !in_array($municipality, ['other', 'moving'], true) && $data['municipalityother'] === '',
+            'lejoslabel' => publiclang::str(
+                $municipality === 'moving' ? 'pub_where_moving_label' : 'pub_where_other_label',
+                $lang
+            ),
+            'lejosother' => publiclang::str('pub_where_other_label', $lang),
+            'lejosmoving' => publiclang::str('pub_where_moving_label', $lang),
             'municipalityother' => $data['municipalityother'],
             'heard' => $heard,
             'message' => $data['message'],
             'channels' => $channels,
+            'channelerror' => $errors['channels'] ?? '',
             'info' => self::first_layer($centre, $lang),
             'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
                 'lang' => $lang]))->out(false),
             'haserrors' => (bool) $errors,
+            'errortitle' => count($errors) === 1 ? publiclang::str('pub_errors_one', $lang) :
+                publiclang::str('pub_errors_many', $lang, count($errors)),
             'errorlist' => $errorlist,
             'formerror' => $errors['form'] ?? '',
             'altchaerror' => $errors['altcha'] ?? '',

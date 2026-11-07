@@ -64,7 +64,7 @@ class signup {
         return [
             'adults' => $adults,
             'children' => $children,
-            'people' => optional_param('people', 1, PARAM_INT),
+            'people' => optional_param('people', 2, PARAM_INT),
             'slot' => optional_param('slot', 0, PARAM_INT),
             'incentre' => optional_param('incentre', '', PARAM_ALPHA),
             'municipality' => optional_param('municipality', '', PARAM_RAW_TRIMMED),
@@ -122,6 +122,14 @@ class signup {
             $errors['people'] = publiclang::str('pub_err_people', $lang);
         } else if (!isset($errors['slot']) && !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))) {
             $errors[$slots ? 'slot' : 'people'] = publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang);
+        }
+        // How to write to them: at least one way, and one they gave the means for.
+        $chosen = array_keys(array_filter($data['consents']));
+        $reach = ['email' => $first['email'] !== '', 'whatsapp' => $first['phone'] !== '', 'phone' => $first['phone'] !== ''];
+        if (!$chosen || !array_filter(array_intersect_key($reach, array_flip($chosen)))) {
+            if (!isset($errors['a0phone'])) {
+                $errors['channels'] = publiclang::str('pub_err_channel', $lang);
+            }
         }
         if (!$errors && !antispam::verify($data['altcha'])) {
             $errors['altcha'] = publiclang::str('pub_err_robot', $lang);
@@ -202,9 +210,11 @@ class signup {
         $list = centres::municipalities($centre);
         if (isset($list[$data['municipality']])) {
             $code = strpos($data['municipality'], 'name:') === 0 ? null : $data['municipality'];
-            return ['municipality' => $code, 'municipalityname' => $list[$data['municipality']]];
+            return ['municipality' => $code, 'municipalityname' => $list[$data['municipality']], 'moving' => 0];
         }
+        // From another place, or moving to the area from far: where they come from, as they wrote it.
         $other = \core_text::substr($data['municipalityother'], 0, 255);
-        return ['municipality' => null, 'municipalityname' => $other === '' ? null : $other];
+        return ['municipality' => null, 'municipalityname' => $other === '' ? null : $other,
+            'moving' => $data['municipality'] === 'moving' ? 1 : 0];
     }
 }

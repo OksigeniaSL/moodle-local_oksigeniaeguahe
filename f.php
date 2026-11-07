@@ -69,7 +69,8 @@ if ($action === 'erase') {
             $lang,
             publiclang::str('pub_erased_title', $lang),
             publiclang::str('pub_erased', $lang),
-            $url
+            $url,
+            false
         );
     }
     publicpage::output(

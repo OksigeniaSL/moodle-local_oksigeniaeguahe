@@ -44,9 +44,14 @@ $event = $id ? events::get($id, (int) $centre->id) : null;
 if ($id && !$canact) {
     centres::require_act((int) $centre->id);
 }
-$form = new event_form($url, ['slots' => $event ? count(events::slots((int) $event->id)) : 0]);
+$hosts = [];
+foreach (centres::hosts((int) $centre->id) as $host) {
+    $hosts[$host->memberid] = $host->name . ($host->role !== '' ? ' · ' . $host->role : '');
+}
+$form = new event_form($url, ['slots' => $event ? count(events::slots((int) $event->id)) : 0, 'hosts' => $hosts]);
 if ($event) {
     $defaults = (array) $event + ['c' => $centre->id];
+    $defaults['hosts'] = array_filter(array_map('intval', explode(',', (string) $event->hosts)));
     foreach (array_values(events::slots((int) $event->id)) as $i => $slot) {
         $defaults["slotid[$i]"] = $slot->id;
         $defaults["slotstart[$i]"] = $slot->timestart;
@@ -64,6 +69,7 @@ if ($form->is_cancelled()) {
 }
 if ($canact && $data = $form->get_data()) {
     $data->slots = event_form::slots($data);
+    $data->hosts = $data->hosts ?? [];
     $saved = events::save((int) $centre->id, $data);
     redirect(new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved]));
 }

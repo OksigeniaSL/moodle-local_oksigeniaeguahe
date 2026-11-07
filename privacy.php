@@ -60,6 +60,6 @@ foreach (['who', 'why', 'what', 'basis', 'whom', 'keep', 'rights', 'ai'] as $par
 }
 publicpage::output($centre, $lang, publiclang::str('pub_privacy_link', $lang), 'public_privacy', [
     'title' => publiclang::str('pub_privacy_link', $lang),
-    'centre' => format_string($centre->name),
+    'lead' => publiclang::str('pub_privacy_lead', $lang, $a->centre),
     'sections' => $sections,
 ], $url);

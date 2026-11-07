@@ -17,26 +17,35 @@
 {{!
     @template local_oksigeniaeguahe/public_frame
 
-    What goes around every page of a family: the centre (its logo or its name), the languages, and at the foot the
-    centre and its privacy page. The page itself goes where the comment «main» is.
+    What goes around every page of a family: the centre (its logo and name, or its initials) on its wall with the menu of
+    languages, and at the foot the centre, its address and how it treats the data. The page goes where «main» is.
 
     Example context (json):
     {
-        "centre": "Colegio de ejemplo", "logo": "", "langlabel": "Idioma",
-        "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#", "current": false, "code": "en"}],
-        "privacyurl": "#", "privacy": "Cómo tratamos sus datos", "year": "2026"
+        "i": {"globe": "", "chev": "", "check": ""}, "centre": "Colegio de ejemplo", "initials": "CE", "logo": "",
+        "logoplate": false, "langlabel": "Idioma", "langname": "Español",
+        "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#",
+            "current": false, "code": "en"}],
+        "address": "Calle de ejemplo 1", "privacyurl": "#", "privacy": "Cómo tratamos sus datos"
     }
 }}
-<header class="eg-top">
-    <div class="eg-brand">{{#logo}}<img src="{{logo}}" alt="{{centre}}" height="40">{{/logo}}{{^logo}}<span class="eg-centre">{{centre}}</span>{{/logo}}</div>
-    <nav class="eg-langs" aria-label="{{langlabel}}">
-        {{#langs}}<a href="{{url}}" hreflang="{{code}}" lang="{{code}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/langs}}
-    </nav>
+<header class="cabecera">
+    <span class="placa">
+        {{#logo}}<span class="logo{{#logoplate}} plato-oscuro{{/logoplate}}"><img src="{{logo}}" alt="" height="40"></span>{{/logo}}
+        {{^logo}}<span class="monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
+        <span class="nombre">{{centre}}</span>
+    </span>
+    <details class="idioma">
+        <summary aria-label="{{langlabel}}: {{langname}}">{{{i.globe}}}<span>{{langname}}</span>{{{i.chev}}}</summary>
+        <ul>
+            {{#langs}}<li><a href="{{url}}" hreflang="{{code}}" lang="{{code}}"{{#current}} aria-current="true"{{/current}}>{{name}}{{#current}}{{{i.check}}}{{/current}}</a></li>{{/langs}}
+        </ul>
+    </details>
 </header>
-<main class="eg-main" id="main">
+<main id="main">
 <!-- main -->
 </main>
-<footer class="eg-foot">
-    <span>{{centre}}</span>
+<footer class="pie">
+    <span>{{centre}}{{#address}} · {{address}}{{/address}}</span>
     <a href="{{privacyurl}}">{{privacy}}</a>
 </footer>

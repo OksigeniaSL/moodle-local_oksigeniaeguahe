@@ -33,6 +33,9 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
 - **Oferta y plazas**: por curso, los interesados, los que han visitado, los matriculados y las plazas libres, con la
   definición de cada cifra en pantalla.
 - **Quien supervisa** ve todo lo de su centro sin contestar ni cambiar nada.
+- **Las páginas de las familias**: propias, sin nada de Moodle, con el lenguaje de la dirección de arte: el nombre
+  de casa escrito a mano como titular, la mochila en su gancho, la visita en el color del centro y las personas que los
+  recibirán, con su cara. En español, inglés y portugués, en claro y oscuro, sin terceros y funcionando sin JavaScript.
 - **Ficheros tal como vienen**: una hoja de cálculo con todas sus pestañas, la exportación de los anuncios, las
   respuestas de un formulario o un CSV. Eguahe ve qué es cada hoja (contactos de una campaña, alumnos nuevos, bajas, la
   lista de un curso, totales, población) y qué lleva cada columna, lo enseña antes de importar, borra al entrar lo

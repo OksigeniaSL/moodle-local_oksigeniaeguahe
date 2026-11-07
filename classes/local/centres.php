@@ -97,6 +97,14 @@ class centres {
         $row->retention = max(1, min(120, (int) ($data->retention ?? 24)));
         $row->municipalities = trim((string) ($data->municipalities ?? '')) ?: null;
         $row->aiprovider = (int) ($data->aiprovider ?? 0);
+        // How families reach the centre, and a line about what a visit is like.
+        foreach (['address' => 255, 'phone' => 50, 'email' => 255] as $field => $length) {
+            $value = trim((string) ($data->$field ?? ''));
+            $row->$field = $value === '' ? null : \core_text::substr($value, 0, $length);
+        }
+        $row->email = $row->email !== null && validate_email($row->email) ? $row->email : null;
+        $row->welcome = trim((string) ($data->welcome ?? '')) ?: null;
+        $row->logoplate = empty($data->logoplate) ? 0 : 1;
         return $row;
     }
 
@@ -244,6 +252,62 @@ class centres {
             $DB->insert_record(self::MEMBERS, (object) ['centreid' => $centreid, 'userid' => $userid,
                 'timecreated' => time()]);
         }
+    }
+
+    /**
+     * Who receives the families: the members of the team the centre shows them, with their role, a line of theirs and
+     * their photo; all of them, or those of a list in its order.
+     *
+     * @param int $centreid
+     * @param int[]|null $memberids
+     * @return array A list of objects: memberid, name, first, initials, role, says, photo (URL or null).
+     */
+    public static function hosts(int $centreid, ?array $memberids = null): array {
+        global $DB;
+        $fields = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+        $rows = $DB->get_records_sql("SELECT m.id AS memberid, m.rolename, m.says, m.sortorder, u.id AS userid, $fields
+                                        FROM {" . self::MEMBERS . "} m JOIN {user} u ON u.id = m.userid
+                                       WHERE m.centreid = :centreid AND m.public = 1 AND u.deleted = 0
+                                    ORDER BY m.sortorder, u.firstname, u.lastname", ['centreid' => $centreid]);
+        if ($memberids !== null) {
+            $rows = array_filter(array_map(fn($id) => $rows[$id] ?? null, $memberids));
+        }
+        $out = [];
+        foreach ($rows as $row) {
+            $first = trim((string) $row->firstname);
+            $initials = \core_text::strtoupper(\core_text::substr($first, 0, 1) .
+                \core_text::substr(trim((string) $row->lastname), 0, 1));
+            $out[] = (object) ['memberid' => (int) $row->memberid, 'name' => fullname($row), 'first' => $first,
+                'initials' => $initials, 'role' => (string) $row->rolename, 'says' => (string) $row->says,
+                'photo' => self::host_photo((int) $row->memberid)];
+        }
+        return array_values($out);
+    }
+
+    /**
+     * The photo of someone who receives the families, if the centre gave one.
+     *
+     * @param int $memberid
+     * @return \moodle_url|null
+     */
+    public static function host_photo(int $memberid): ?\moodle_url {
+        $files = get_file_storage()->get_area_files(
+            \context_system::instance()->id,
+            'local_oksigeniaeguahe',
+            'hostphoto',
+            $memberid,
+            'filename',
+            false
+        );
+        $file = reset($files);
+        return $file ? \moodle_url::make_pluginfile_url(
+            $file->get_contextid(),
+            'local_oksigeniaeguahe',
+            'hostphoto',
+            $memberid,
+            $file->get_filepath(),
+            $file->get_filename()
+        ) : null;
     }
 
     /**
