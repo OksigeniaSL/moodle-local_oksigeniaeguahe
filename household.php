@@ -44,6 +44,11 @@ $centre = centres::require_work((int) $household->centreid);
 $url = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]);
 staff::setup($url, get_string('household', $c), $centre);
 
+$canact = centres::can_act((int) $USER->id);
+if ($action && !$canact) {
+    centres::require_act((int) $centre->id);
+}
+
 if ($action === 'eraseask') {
     // What it does, in the question and in its button.
     echo $OUTPUT->header();
@@ -115,6 +120,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_oksigeniaeguahe/household', householdpage::context(
     $household,
     $centre,
-    $newlink
+    $newlink,
+    $canact
 ));
 echo $OUTPUT->footer();

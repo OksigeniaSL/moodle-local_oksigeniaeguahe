@@ -46,7 +46,12 @@
         "channels": [{"name": "consentemail", "label": "Por correo", "checked": false}],
         "info": [{"label": "Quién", "text": "Colegio de ejemplo"}], "pub_info_more": "Más información",
         "privacyurl": "#", "altchaurl": "#", "altchaconfig": "{}", "altchalang": "es-es", "altchai18n": "es-es", "altchaerror": "",
-        "pub_submit": "Apuntarnos", "pub_optional": "opcional", "pub_required": "obligatorio"
+        "pub_submit": "Apuntarnos", "pub_optional": "opcional", "pub_required": "obligatorio",
+        "hasslots": true, "pub_slot": "Elijan el turno", "sloterror": "",
+        "slots": [{"id": 3, "when": "sábado, 21 de noviembre, 10:00–11:00", "left": "quedan 8", "disabled": false,
+            "checked": false}],
+        "isother": false, "pub_incentre": "¿Ya son familia del centro?", "pub_incentre_yes": "Sí",
+        "pub_incentre_no": "No", "incentreyes": false, "incentreno": false
     }
 }}
 <article class="eg-card">
@@ -81,8 +86,33 @@
             </details>
         </fieldset>
 
+        {{#hasslots}}
+        <fieldset id="slot"{{#sloterror}} aria-describedby="slot-error"{{/sloterror}}>
+            <legend>{{pub_slot}}</legend>
+            <div class="eg-slots">
+                {{#slots}}
+                <label class="eg-slot{{#disabled}} is-full{{/disabled}}">
+                    <input type="radio" name="slot" value="{{id}}"{{#checked}} checked{{/checked}}{{#disabled}} disabled{{/disabled}}>
+                    <span><strong>{{when}}</strong>{{#left}} <span class="eg-quiet">{{left}}</span>{{/left}}</span>
+                </label>
+                {{/slots}}
+            </div>
+            {{#sloterror}}<p class="eg-error" id="slot-error">{{sloterror}}</p>{{/sloterror}}
+        </fieldset>
+        {{/hasslots}}
+
+        {{#isother}}
         <fieldset>
-            <legend>{{pub_students}}</legend>
+            <legend>{{pub_incentre}}</legend>
+            <div class="eg-checks">
+                <label class="eg-check"><input type="radio" name="incentre" value="yes"{{#incentreyes}} checked{{/incentreyes}}> <span>{{pub_incentre_yes}}</span></label>
+                <label class="eg-check"><input type="radio" name="incentre" value="no"{{#incentreno}} checked{{/incentreno}}> <span>{{pub_incentre_no}}</span></label>
+            </div>
+        </fieldset>
+        {{/isother}}
+
+        <fieldset>
+            <legend>{{pub_students}}{{#isother}} <span class="eg-optional">({{pub_optional}})</span>{{/isother}}</legend>
             {{#children}}{{#first}}
             <div class="eg-grid">
                 {{#name}}{{> local_oksigeniaeguahe/public_field }}{{/name}}

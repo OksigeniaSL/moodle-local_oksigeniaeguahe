@@ -34,6 +34,7 @@ class mail {
      * @param string $firstname
      * @param string $token
      * @param string $lang
+     * @param \stdClass|null $when The turn of the family (timestart, timeend), when the event has turns.
      * @return bool Whether Moodle sent it.
      */
     public static function signed_up(
@@ -42,13 +43,14 @@ class mail {
         string $email,
         string $firstname,
         string $token,
-        string $lang
+        string $lang,
+        ?\stdClass $when = null
     ): bool {
         $a = (object) [
             'name' => $firstname,
             'centre' => format_string($centre->name),
             'event' => format_string($event->name),
-            'when' => self::when($event, $lang),
+            'when' => self::when($when ?? $event, $lang),
             'place' => $event->place ? format_string($event->place) : format_string($centre->name),
             'link' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token]))->out(false),
         ];
@@ -77,6 +79,23 @@ class mail {
             return $text;
         }
         return userdate((int) $event->timestart, get_string('strftimedaydatetime', 'langconfig'));
+    }
+
+    /**
+     * Only the hours of a turn, «10:00–11:00», for a list of turns of the same day.
+     *
+     * @param \stdClass $slot timestart and timeend.
+     * @param string $lang
+     * @return string
+     */
+    public static function hours(\stdClass $slot, string $lang): string {
+        $locale = str_replace('_', '-', $lang === 'pt_br' ? 'pt_BR' : $lang);
+        $zone = \core_date::get_server_timezone_object();
+        if (class_exists('\IntlDateFormatter')) {
+            $hour = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::SHORT, $zone);
+            return $hour->format((int) $slot->timestart) . '–' . $hour->format((int) $slot->timeend);
+        }
+        return userdate((int) $slot->timestart, '%H:%M') . '–' . userdate((int) $slot->timeend, '%H:%M');
     }
 
     /**

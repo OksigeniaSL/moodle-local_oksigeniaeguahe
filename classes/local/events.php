@@ -27,8 +27,17 @@ class events {
     /** @var string */
     const T = 'local_oksigeniaeguahe_event';
 
-    /** @var string[] */
-    const KINDS = ['openday', 'visit'];
+    /** @var string */
+    const SLOTS = 'local_oksigeniaeguahe_slot';
+
+    /** @var string */
+    const SIGNUPS = 'local_oksigeniaeguahe_signup';
+
+    /** @var string[] Open days, visits, and the rest (a party, a talk), which are counted apart. */
+    const KINDS = ['openday', 'visit', 'other'];
+
+    /** @var array The channel each kind of event brings a household from. */
+    const CHANNEL = ['openday' => 'openday', 'visit' => 'visit', 'other' => 'event'];
 
     /**
      * An event of a centre.
@@ -103,11 +112,71 @@ class events {
             self::get((int) $data->id, $centreid) ?? throw new \moodle_exception('invalidrecord', 'error');
             $row->id = (int) $data->id;
             $DB->update_record(self::T, $row);
-            return $row->id;
+        } else {
+            $row->token = self::new_token();
+            $row->timecreated = $row->timemodified;
+            $row->id = (int) $DB->insert_record(self::T, $row);
         }
-        $row->token = self::new_token();
-        $row->timecreated = $row->timemodified;
-        return (int) $DB->insert_record(self::T, $row);
+        if (isset($data->slots) && is_array($data->slots)) {
+            self::save_slots(self::get($row->id, $centreid), $data->slots);
+        }
+        return $row->id;
+    }
+
+    /**
+     * The turns of an event, in their order.
+     *
+     * @param int $eventid
+     * @return \stdClass[] With the people signed up in each.
+     */
+    public static function slots(int $eventid): array {
+        global $DB;
+        return $DB->get_records_sql('SELECT t.*, COALESCE(SUM(s.people), 0) AS people
+                                       FROM {' . self::SLOTS . '} t
+                                  LEFT JOIN {' . self::SIGNUPS . '} s ON s.slotid = t.id
+                                      WHERE t.eventid = :eventid
+                                   GROUP BY t.id, t.centreid, t.eventid, t.timestart, t.timeend, t.capacity
+                                   ORDER BY t.timestart ASC, t.id ASC', ['eventid' => $eventid]);
+    }
+
+    /**
+     * Saves the turns of an event: those given are kept or changed, those without an hour go if nobody signed up in
+     * them. With turns, the event goes from the first to the end of the last.
+     *
+     * @param \stdClass $event
+     * @param array $slots Each [id, timestart, timeend, capacity]; id 0 for a new one, timestart 0 to remove it.
+     */
+    public static function save_slots(\stdClass $event, array $slots): void {
+        global $DB;
+        $existing = $DB->get_records(self::SLOTS, ['eventid' => $event->id]);
+        foreach ($slots as $slot) {
+            $slot = (object) $slot;
+            $id = (int) ($slot->id ?? 0);
+            if ($id && !isset($existing[$id])) {
+                continue;
+            }
+            if (empty($slot->timestart)) {
+                if ($id && !$DB->record_exists(self::SIGNUPS, ['slotid' => $id])) {
+                    $DB->delete_records(self::SLOTS, ['id' => $id]);
+                }
+                continue;
+            }
+            $row = (object) ['centreid' => $event->centreid, 'eventid' => $event->id, 'timestart' => (int) $slot->timestart,
+                'timeend' => max((int) $slot->timestart, (int) ($slot->timeend ?? 0)),
+                'capacity' => max(0, (int) ($slot->capacity ?? 0))];
+            if ($id) {
+                $row->id = $id;
+                $DB->update_record(self::SLOTS, $row);
+            } else {
+                $DB->insert_record(self::SLOTS, $row);
+            }
+        }
+        $span = $DB->get_record_sql('SELECT MIN(timestart) AS first, MAX(timeend) AS last FROM {' . self::SLOTS . '}
+                                      WHERE eventid = :eventid', ['eventid' => $event->id]);
+        if ($span && $span->first) {
+            $DB->update_record(self::T, (object) ['id' => $event->id, 'timestart' => (int) $span->first,
+                'timeend' => (int) $span->last]);
+        }
     }
 
     /**
@@ -155,11 +224,19 @@ class events {
      * @param \stdClass $event
      * @param int $people
      * @param int $already People the household had signed up already, who do not count twice.
+     * @param int $slotid The turn chosen, when the event has turns.
      * @return bool
      */
-    public static function has_room(\stdClass $event, int $people, int $already = 0): bool {
+    public static function has_room(\stdClass $event, int $people, int $already = 0, int $slotid = 0): bool {
         if (!$event->open || $event->timeend < time()) {
             return false;
+        }
+        $slots = self::slots((int) $event->id);
+        if ($slots) {
+            // By turns: the turn chosen, not finished, with room.
+            $slot = $slots[$slotid] ?? null;
+            return $slot && $slot->timeend >= time() && (!$slot->capacity ||
+                $slot->people - $already + $people <= $slot->capacity);
         }
         return !$event->capacity || self::people($event->id) - $already + $people <= $event->capacity;
     }
@@ -170,19 +247,35 @@ class events {
      * @param \stdClass $event
      * @param int $householdid
      * @param int $people
+     * @param int $slotid The turn, when the event has turns.
      * @return int The sign-up.
      */
-    public static function sign_up(\stdClass $event, int $householdid, int $people): int {
+    public static function sign_up(\stdClass $event, int $householdid, int $people, int $slotid = 0): int {
         global $DB;
         $people = max(1, min(20, $people));
-        $current = $DB->get_record('local_oksigeniaeguahe_signup', ['eventid' => $event->id, 'householdid' => $householdid]);
+        $current = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid]);
         if ($current) {
-            $DB->set_field('local_oksigeniaeguahe_signup', 'people', $people, ['id' => $current->id]);
+            $DB->update_record(self::SIGNUPS, (object) ['id' => $current->id, 'people' => $people,
+                'slotid' => $slotid ?: (int) $current->slotid]);
             return (int) $current->id;
         }
-        return (int) $DB->insert_record('local_oksigeniaeguahe_signup', (object) ['centreid' => $event->centreid,
-            'eventid' => $event->id, 'householdid' => $householdid, 'people' => $people, 'attended' => 0,
-            'timecreated' => time()]);
+        return (int) $DB->insert_record(self::SIGNUPS, (object) ['centreid' => $event->centreid,
+            'eventid' => $event->id, 'householdid' => $householdid, 'slotid' => $slotid, 'people' => $people,
+            'attended' => 0, 'timecreated' => time()]);
+    }
+
+    /**
+     * When a household is expected: its turn, or the event.
+     *
+     * @param \stdClass $event
+     * @param int $slotid
+     * @return \stdClass timestart and timeend.
+     */
+    public static function when(\stdClass $event, int $slotid): \stdClass {
+        global $DB;
+        $slot = $slotid ? $DB->get_record(self::SLOTS, ['id' => $slotid, 'eventid' => $event->id]) : null;
+        return (object) ['timestart' => (int) ($slot->timestart ?? $event->timestart),
+            'timeend' => (int) ($slot->timeend ?? $event->timeend)];
     }
 
     /**
@@ -205,7 +298,8 @@ class events {
     }
 
     /**
-     * The household came (or, by mistake, it did not): its children's way moves to the visit.
+     * The household came (or, by mistake, it did not): its children's way moves to the visit, unless the event is
+     * neither an open day nor a visit (a party, a talk), which is counted apart.
      *
      * @param \stdClass $event
      * @param int $signupid
@@ -220,7 +314,7 @@ class events {
             MUST_EXIST
         );
         $DB->set_field('local_oksigeniaeguahe_signup', 'attended', $came ? time() : 0, ['id' => $signup->id]);
-        if ($came) {
+        if ($came && $event->kind !== 'other') {
             households::advance((int) $signup->householdid, 'visit');
         }
     }
@@ -231,13 +325,15 @@ class events {
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param string $description In the language of the family.
+     * @param \stdClass|null $when The turn of the family (timestart, timeend), when it has one.
      * @return string
      */
-    public static function ics(\stdClass $event, \stdClass $centre, string $description): string {
+    public static function ics(\stdClass $event, \stdClass $centre, string $description, ?\stdClass $when = null): string {
         global $CFG;
         $escape = fn(string $text) => str_replace(["\\", ';', ',', "\r\n", "\n"], ["\\\\", '\;', '\,', '\n', '\n'], $text);
         $utc = fn(int $time) => gmdate('Ymd\THis\Z', $time);
         $host = parse_url($CFG->wwwroot, PHP_URL_HOST) ?: 'localhost';
+        $when = $when ?? $event;
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
@@ -247,8 +343,8 @@ class events {
             'BEGIN:VEVENT',
             'UID:eguahe-event-' . $event->id . '@' . $host,
             'DTSTAMP:' . $utc(time()),
-            'DTSTART:' . $utc((int) $event->timestart),
-            'DTEND:' . $utc((int) max($event->timeend, $event->timestart)),
+            'DTSTART:' . $utc((int) $when->timestart),
+            'DTEND:' . $utc((int) max($when->timeend, $when->timestart)),
             'SUMMARY:' . $escape($event->name . ' · ' . $centre->name),
             'DESCRIPTION:' . $escape($description),
         ];

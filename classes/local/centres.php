@@ -122,7 +122,7 @@ class centres {
         if (has_capability('local/oksigeniaeguahe:manage', $context, $userid)) {
             return self::all();
         }
-        if (!has_capability('local/oksigeniaeguahe:work', $context, $userid)) {
+        if (!has_any_capability(['local/oksigeniaeguahe:work', 'local/oksigeniaeguahe:view'], $context, $userid)) {
             return [];
         }
         return $DB->get_records_sql('SELECT c.* FROM {' . self::T . '} c JOIN {' . self::MEMBERS . '} m ON m.centreid = c.id
@@ -141,7 +141,41 @@ class centres {
     }
 
     /**
-     * Stops the page unless the person logged in may work for the centre; returns it.
+     * Whether a person may act for the families (answer, note, change), not only see them.
+     *
+     * @param int $userid
+     * @return bool
+     */
+    public static function can_act(int $userid): bool {
+        return has_any_capability(
+            ['local/oksigeniaeguahe:work', 'local/oksigeniaeguahe:manage'],
+            \context_system::instance(),
+            $userid
+        );
+    }
+
+    /**
+     * Stops the page unless the person logged in may act for the families of the centre; returns it.
+     *
+     * @param int $centreid
+     * @return \stdClass
+     */
+    public static function require_act(int $centreid): \stdClass {
+        global $USER;
+        $centre = self::require_work($centreid);
+        if (!self::can_act((int) $USER->id)) {
+            throw new \required_capability_exception(
+                \context_system::instance(),
+                'local/oksigeniaeguahe:work',
+                'nopermissions',
+                ''
+            );
+        }
+        return $centre;
+    }
+
+    /**
+     * Stops the page unless the person logged in may work for the centre, or see it; returns it.
      *
      * @param int $centreid
      * @return \stdClass
@@ -177,7 +211,7 @@ class centres {
         if (count($mine) === 1) {
             return reset($mine);
         }
-        if (!$mine) {
+        if (!$mine && !has_capability('local/oksigeniaeguahe:view', \context_system::instance())) {
             require_capability('local/oksigeniaeguahe:work', \context_system::instance());
         }
         return null;

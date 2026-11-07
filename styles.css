@@ -216,6 +216,11 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     padding: 0.75rem;
 }
 
+.eguahe-slot-title {
+    font-size: 1rem;
+    margin: 1rem 0 0.25rem;
+}
+
 .eguahe-door li {
     display: flex;
     flex-wrap: wrap;

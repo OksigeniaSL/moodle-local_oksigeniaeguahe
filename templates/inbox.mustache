@@ -23,8 +23,8 @@
     Example context (json):
     {
         "tabs": [], "waiting": 2, "waitingtext": "2 familias esperan respuesta", "all": false, "waitingurl": "#",
-        "allurl": "#", "newurl": "#", "settingsurl": "#", "hasrows": true,
-        "rows": [{"url": "#", "names": "Lucas Pérez y Ana Gil", "channel": "Jornada", "waiting": true, "waited": "3 horas",
+        "allurl": "#", "newurl": "#", "canact": true, "settingsurl": "#", "hasrows": true,
+        "rows": [{"url": "#", "names": "Lucas Pérez y Ana Gil", "channel": "Jornada", "incentre": false, "waiting": true, "waited": "3 horas",
             "last": "21/11/26, 10:12", "children": [{"name": "Daniel", "offer": "Infantil 3 años", "stage": "Consulta"}]}],
         "hasoffers": true,
         "offers": [{"name": "Infantil 3 años", "year": "2027-28", "open": 14, "visited": 6, "enrolled": 3, "places": 25,
@@ -36,7 +36,7 @@
 
     <div class="eguahe-head">
         <p class="eguahe-waiting{{#waiting}} is-waiting{{/waiting}}" role="status">{{waitingtext}}</p>
-        <a class="btn btn-primary" href="{{newurl}}">{{#str}}household_new, local_oksigeniaeguahe{{/str}}</a>
+        {{#canact}}<a class="btn btn-primary" href="{{newurl}}">{{#str}}household_new, local_oksigeniaeguahe{{/str}}</a>{{/canact}}
     </div>
 
     <nav class="eguahe-filter" aria-label="{{#str}}inbox, local_oksigeniaeguahe{{/str}}">
@@ -50,7 +50,7 @@
         <li class="eguahe-row{{#waiting}} is-waiting{{/waiting}}">
             <a href="{{url}}">
                 <span class="eguahe-row-main">
-                    <strong>{{names}}</strong>
+                    <strong>{{names}}</strong>{{#incentre}} <span class="badge bg-secondary">{{#str}}incentre_tag, local_oksigeniaeguahe{{/str}}</span>{{/incentre}}
                     <span class="eguahe-children">{{#children}}<span>{{name}} · {{offer}} · {{stage}}</span>{{/children}}</span>
                 </span>
                 <span class="eguahe-row-side">

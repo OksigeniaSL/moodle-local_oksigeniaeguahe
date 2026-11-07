@@ -39,7 +39,7 @@ $id = optional_param('id', 0, PARAM_INT);
 $eventid = optional_param('eventid', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
-$centre = centres::require_work($centreid);
+$centre = centres::require_act($centreid);
 $household = $id ? households::get($id, (int) $centre->id) : null;
 if ($id && !$household) {
     throw new moodle_exception('invalidrecord', 'error');
@@ -52,7 +52,8 @@ $back = $household ? new moodle_url('/local/oksigeniaeguahe/household.php', ['id
 $form = new household_form($url, ['centre' => $centre, 'householdid' => $id, 'eventid' => $eventid]);
 if ($household) {
     $full = households::full($household);
-    $defaults = ['c' => $centre->id, 'id' => $household->id, 'lang' => $household->lang, 'heardfrom' => $household->heardfrom];
+    $defaults = ['c' => $centre->id, 'id' => $household->id, 'lang' => $household->lang, 'heardfrom' => $household->heardfrom,
+        'incentre' => $household->incentre];
     $places = centres::municipalities($centre);
     if ($household->municipality && isset($places[$household->municipality])) {
         $defaults['municipality'] = $household->municipality;
@@ -81,7 +82,7 @@ if ($form->is_cancelled()) {
 if ($data = $form->get_data()) {
     $places = centres::municipalities($centre);
     $about = (object) ['lang' => $data->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
-        'municipalityname' => null, 'firstchannel' => $data->channel ?? 'other'];
+        'municipalityname' => null, 'firstchannel' => $data->channel ?? 'other', 'incentre' => !empty($data->incentre)];
     if (isset($places[$data->municipality])) {
         $about->municipality = strpos($data->municipality, 'name:') === 0 ? null : $data->municipality;
         $about->municipalityname = $places[$data->municipality];
@@ -103,7 +104,7 @@ if ($data = $form->get_data()) {
         $now = time();
         $DB->update_record(households::T, (object) ['id' => $household->id, 'lang' => $about->lang,
             'heardfrom' => $about->heardfrom ?: null, 'municipality' => $about->municipality,
-            'municipalityname' => $about->municipalityname, 'timemodified' => $now]);
+            'municipalityname' => $about->municipalityname, 'incentre' => $about->incentre ? 1 : 0, 'timemodified' => $now]);
         foreach ($adults as $adult) {
             if ($adult->id && $DB->record_exists(households::ADULTS, ['id' => $adult->id, 'householdid' => $household->id])) {
                 $adult->timemodified = $now;

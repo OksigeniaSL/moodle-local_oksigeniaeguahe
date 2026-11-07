@@ -34,7 +34,7 @@
             "when": "21/11/26, 10:12", "body": "¿Hay comedor?"}],
         "hasevents": true, "events": [{"name": "Jornada", "when": "21/11/26, 10:00", "people": 3, "came": true}],
         "channels": [{"value": "phone", "name": "Teléfono"}], "action": "#", "editurl": "#", "sesskey": "abc",
-        "newlink": "", "eraseurl": "#"
+        "newlink": "", "eraseurl": "#", "canact": true, "incentre": false
     }
 }}
 <div class="eguahe eguahe-household">
@@ -42,10 +42,10 @@
 
     <header class="eguahe-head">
         <div>
-            <h2>{{names}}</h2>
+            <h2>{{names}}{{#incentre}} <span class="badge bg-secondary">{{#str}}incentre_tag, local_oksigeniaeguahe{{/str}}</span>{{/incentre}}</h2>
             <p class="eguahe-quiet">{{channel}} · {{since}}{{#place}} · {{place}}{{/place}}{{#heardfrom}} · {{heardfrom}}{{/heardfrom}} · {{lang}}</p>
         </div>
-        <a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>
+        {{#canact}}<a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>{{/canact}}
     </header>
 
     {{#waiting}}<p class="eguahe-waiting is-waiting" role="status">{{#str}}inbox_waits_for, local_oksigeniaeguahe, {{waited}}{{/str}}</p>{{/waiting}}
@@ -69,6 +69,8 @@
             <section class="eguahe-box">
                 <h3>{{#str}}children, local_oksigeniaeguahe{{/str}}</h3>
                 {{#children}}
+                {{^canact}}<p class="eguahe-child"><strong>{{name}}</strong> · {{offer}}<br><span class="eguahe-quiet">{{stage}}{{#reason}} ({{reason}}){{/reason}} · {{since}}</span></p>{{/canact}}
+                {{#canact}}
                 <form class="eguahe-child" method="post" action="{{action}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}">
                     <input type="hidden" name="action" value="stage">
@@ -87,6 +89,7 @@
                         <button type="submit" class="btn btn-secondary">{{#str}}stage_save, local_oksigeniaeguahe{{/str}}</button>
                     </div>
                 </form>
+                {{/canact}}
                 {{/children}}
                 <p class="eguahe-quiet">{{#str}}stage_help, local_oksigeniaeguahe{{/str}}</p>
             </section>
@@ -100,6 +103,7 @@
             </section>
             {{/hasevents}}
 
+            {{#canact}}
             <section class="eguahe-box">
                 <h3>{{#str}}familylink, local_oksigeniaeguahe{{/str}}</h3>
                 {{#newlink}}
@@ -116,9 +120,11 @@
                 {{/newlink}}
                 <p><a class="eguahe-danger-link" href="{{eraseurl}}">{{#str}}erase_link, local_oksigeniaeguahe{{/str}}</a></p>
             </section>
+            {{/canact}}
         </div>
 
         <div>
+            {{#canact}}
             <section class="eguahe-box">
                 <h3>{{#str}}next_step, local_oksigeniaeguahe{{/str}}</h3>
                 <form method="post" action="{{action}}" class="eguahe-answer">
@@ -138,6 +144,7 @@
                     </div>
                 </form>
             </section>
+            {{/canact}}
 
             <section class="eguahe-box">
                 <h3>{{#str}}history, local_oksigeniaeguahe{{/str}}</h3>

@@ -37,10 +37,9 @@ publicpage::setup(new moodle_url('/local/oksigeniaeguahe/ics.php'));
 
 $household = households::by_link($token);
 $event = $household ? events::get($eventid, (int) $household->centreid) : null;
-if (
-    !$event || !$DB->record_exists('local_oksigeniaeguahe_signup', ['eventid' => $event->id,
-        'householdid' => $household->id])
-) {
+$signup = $event ? $DB->get_record('local_oksigeniaeguahe_signup', ['eventid' => $event->id,
+    'householdid' => $household->id]) : null;
+if (!$signup) {
     send_header_404();
     die();
 }
@@ -51,4 +50,4 @@ $description = publiclang::str('ics_description', $lang, (object) ['centre' => f
 publicpage::headers();
 @header('Content-Type: text/calendar; charset=utf-8');
 @header('Content-Disposition: attachment; filename="' . clean_filename(format_string($event->name)) . '.ics"');
-echo events::ics($event, $centre, $description);
+echo events::ics($event, $centre, $description, events::when($event, (int) $signup->slotid));

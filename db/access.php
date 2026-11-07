@@ -17,8 +17,8 @@
 /**
  * Capabilities: who sets up the centres, and who of their teams receives the families.
  *
- * Working for a centre takes the capability and being one of its team (centre.php, «Team»): one site can hold several
- * centres, and nobody of one sees the families of another.
+ * Working for a centre, or only seeing it, takes the capability and being one of its team (centre.php, «Team»): one
+ * site can hold several centres, and nobody of one sees the families of another.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -32,6 +32,16 @@ $capabilities = [
     'local/oksigeniaeguahe:manage' => [
         'riskbitmask' => RISK_PERSONAL | RISK_CONFIG,
         'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+    // See the inbox, the households, the events and the numbers of the centres one is in the team of, without
+    // answering nor changing anything: for whoever supervises.
+    'local/oksigeniaeguahe:view' => [
+        'riskbitmask' => RISK_PERSONAL,
+        'captype' => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
             'manager' => CAP_ALLOW,

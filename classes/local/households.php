@@ -108,6 +108,7 @@ class households {
             'municipalityname' => self::short($data->municipalityname ?? null, 255),
             'heardfrom' => in_array($data->heardfrom ?? '', lists::HEARD_FROM, true) ? $data->heardfrom : null,
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
+            'incentre' => empty($data->incentre) ? 0 : 1,
             'waitingsince' => 0,
             'lastcontact' => $now,
             'timecreated' => $now,
@@ -131,6 +132,10 @@ class households {
         }
         if (empty($household->heardfrom) && in_array($data->heardfrom ?? '', lists::HEARD_FROM, true)) {
             $changes['heardfrom'] = $data->heardfrom;
+        }
+        // A family that says it is already of the centre is, from then on.
+        if (empty($household->incentre) && !empty($data->incentre)) {
+            $changes['incentre'] = 1;
         }
         if ($changes) {
             $changes['id'] = $household->id;
@@ -426,10 +431,12 @@ class households {
         $full->children = $DB->get_records(self::CHILDREN, $id, 'id ASC');
         $full->contacts = $DB->get_records(self::CONTACTS, $id, 'timecreated ASC, id ASC');
         $full->consents = $DB->get_records(self::CONSENTS, $id, 'timecreated ASC, id ASC');
-        $full->signups = $DB->get_records_sql('SELECT s.*, e.name AS eventname, e.timestart, e.timeend, e.place, e.kind
+        $full->signups = $DB->get_records_sql('SELECT s.*, e.name AS eventname, COALESCE(t.timestart, e.timestart) AS timestart,
+                                                      COALESCE(t.timeend, e.timeend) AS timeend, e.place, e.kind
                                                  FROM {' . self::SIGNUPS . '} s JOIN {local_oksigeniaeguahe_event} e
                                                       ON e.id = s.eventid
-                                                WHERE s.householdid = :householdid ORDER BY e.timestart ASC', $id);
+                                            LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
+                                                WHERE s.householdid = :householdid ORDER BY timestart ASC', $id);
         return $full;
     }
 
@@ -451,6 +458,7 @@ class households {
                 'municipality' => $full->municipalityname,
                 'heard_from' => $full->heardfrom,
                 'first_channel' => $full->firstchannel,
+                'already_of_the_centre' => (bool) $full->incentre,
                 'created' => $date((int) $full->timecreated),
             ],
             'adults' => [],
@@ -577,7 +585,7 @@ class households {
     }
 
     /**
-     * How each offer of a centre is going: places, and children at each stage (erased households included).
+     * How each offer of a centre is going: children at each stage, without the families already of the centre.
      *
      * @param int $centreid
      * @return array Offer id => [stage => count].
@@ -585,8 +593,11 @@ class households {
     public static function offer_counts(int $centreid): array {
         global $DB;
         $counts = [];
-        $rows = $DB->get_recordset_sql('SELECT offerid, stage, COUNT(1) AS n FROM {' . self::CHILDREN . '}
-                                         WHERE centreid = :centreid GROUP BY offerid, stage', ['centreid' => $centreid]);
+        // Families already of the centre do not count in the campaign.
+        $rows = $DB->get_recordset_sql('SELECT c.offerid, c.stage, COUNT(1) AS n
+                                          FROM {' . self::CHILDREN . '} c JOIN {' . self::T . '} h ON h.id = c.householdid
+                                         WHERE c.centreid = :centreid AND h.incentre = 0
+                                      GROUP BY c.offerid, c.stage', ['centreid' => $centreid]);
         foreach ($rows as $row) {
             $counts[$row->offerid][$row->stage] = (int) $row->n;
         }

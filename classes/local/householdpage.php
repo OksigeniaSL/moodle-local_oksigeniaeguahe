@@ -33,9 +33,10 @@ class householdpage {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $newlink A link just made for the family, to show once.
+     * @param bool $canact Whether the person may answer and change, or only see.
      * @return array
      */
-    public static function context(\stdClass $household, \stdClass $centre, string $newlink): array {
+    public static function context(\stdClass $household, \stdClass $centre, string $newlink, bool $canact = true): array {
         global $DB;
         $c = self::C;
         $full = households::full($household);
@@ -128,6 +129,8 @@ class householdpage {
                 'id' => $household->id]))->out(false),
             'sesskey' => sesskey(),
             'newlink' => $newlink,
+            'canact' => $canact,
+            'incentre' => !empty($household->incentre),
             'eraseurl' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id,
                 'action' => 'eraseask']))->out(false),
         ];

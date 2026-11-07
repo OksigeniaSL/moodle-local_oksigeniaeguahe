@@ -91,6 +91,8 @@ final class signup_test extends \advanced_testcase {
                 ['firstname' => '', 'offerid' => 0],
             ],
             'people' => 3,
+            'slot' => 0,
+            'incentre' => '',
             'municipality' => '28065',
             'municipalityother' => '',
             'heardfrom' => 'family',
@@ -228,6 +230,67 @@ final class signup_test extends \advanced_testcase {
         $this->assertNull(households::get($old->id, $this->centre->id));
         $this->assertNotNull(households::get($enrolled->id, $this->centre->id));
         $this->assertSame(1, $DB->count_records(households::ERASED));
+    }
+
+    /**
+     * An event by turns: each turn with its room, the family chooses one, and the calendar has its hours.
+     */
+    public function test_turns(): void {
+        global $DB;
+        $start = time() + 2 * DAYSECS;
+        $id = events::save($this->centre->id, (object) ['kind' => 'visit', 'name' => 'Conócenos', 'timestart' => $start,
+            'timeend' => $start, 'capacity' => 0, 'open' => 1, 'slots' => [
+                ['timestart' => $start, 'timeend' => $start + HOURSECS, 'capacity' => 4],
+                ['timestart' => $start + HOURSECS, 'timeend' => $start + 2 * HOURSECS, 'capacity' => 4],
+            ]]);
+        $event = events::get($id, $this->centre->id);
+        $this->assertEquals($start + 2 * HOURSECS, $event->timeend, 'The event spans its turns.');
+        $slots = array_values(events::slots($id));
+        $this->assertCount(2, $slots);
+
+        $this->assertArrayHasKey('slot', signup::check($this->data(), $event, $this->centre, 'es'));
+        $data = $this->data(['slot' => $slots[0]->id, 'people' => 3]);
+        $this->assertSame([], signup::check($data, $event, $this->centre, 'es'));
+        [$household, $token] = signup::save($data, $event, $this->centre, 'es');
+        $this->assertEquals($slots[0]->id, $DB->get_field(events::SIGNUPS, 'slotid', ['householdid' => $household->id]));
+        $this->assertSame(3, (int) array_values(events::slots($id))[0]->people);
+
+        $more = $this->data(['slot' => $slots[0]->id, 'people' => 2]);
+        $more['adults'][0] = ['firstname' => 'Ana', 'lastname' => '', 'email' => 'ana@example.com', 'phone' => ''];
+        $this->assertArrayHasKey('slot', signup::check($more, $event, $this->centre, 'es'), 'The first turn is full.');
+        $more['slot'] = $slots[1]->id;
+        $this->assertSame([], signup::check($more, $event, $this->centre, 'es'));
+
+        $when = events::when($event, (int) $slots[1]->id);
+        $this->assertEquals($start + HOURSECS, $when->timestart);
+        $ics = events::ics($event, $this->centre, '', $when);
+        $this->assertStringContainsString('DTSTART:' . gmdate('Ymd\THis\Z', $start + HOURSECS), $ics);
+
+        // A turn nobody signed up for goes; one with families stays.
+        events::save_slots($event, [['id' => $slots[0]->id, 'timestart' => 0], ['id' => $slots[1]->id, 'timestart' => 0]]);
+        $this->assertCount(1, events::slots($id));
+    }
+
+    /**
+     * Another event (a party, a talk): who would study is not asked for, coming does not make a visit, and families
+     * already of the centre stay out of the numbers.
+     */
+    public function test_other_event(): void {
+        global $DB;
+        $id = events::save($this->centre->id, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => time() + DAYSECS,
+            'timeend' => time() + DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]);
+        $event = events::get($id, $this->centre->id);
+        $nochild = $this->data(['incentre' => 'yes']);
+        $nochild['children'][0]['firstname'] = '';
+        $this->assertSame([], signup::check($nochild, $event, $this->centre, 'es'));
+        [$ours] = signup::save($this->data(['incentre' => 'yes']), $event, $this->centre, 'es');
+        $this->assertEquals(1, households::get($ours->id, $this->centre->id)->incentre);
+        $this->assertSame('event', households::get($ours->id, $this->centre->id)->firstchannel);
+
+        $signup = $DB->get_record(events::SIGNUPS, ['householdid' => $ours->id]);
+        events::attend($event, $signup->id, true);
+        $this->assertSame('inquiry', $DB->get_field(households::CHILDREN, 'stage', ['householdid' => $ours->id]));
+        $this->assertSame([], households::offer_counts($this->centre->id), 'Families of the centre are not counted.');
     }
 
     /**

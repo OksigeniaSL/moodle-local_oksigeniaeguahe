@@ -24,9 +24,10 @@
     {"tabs": [], "name": "Jornada de puertas abiertas", "kind": "Jornada", "when": "sábado, 21 de noviembre, 10:00",
      "place": "Entrada principal", "open": true, "capacity": 80, "households": 1, "people": 3, "came": 0,
      "qr": "<svg viewBox=\"0 0 10 10\"></svg>", "link": "https://example.com/j", "posterurl": "#", "editurl": "#",
-     "addurl": "#", "hassignups": true, "action": "#", "sesskey": "abc",
-     "signups": [{"id": 1, "names": "Lucas Pérez", "children": "Daniel · Infantil 3 años", "people": 3, "came": false,
-        "url": "#"}]}
+     "addurl": "#", "hassignups": true, "action": "#", "sesskey": "abc", "canact": true,
+     "groups": [{"title": "21/11/26, 10:00–11:00", "load": "Personas: 3 de 20", "hassignups": true,
+        "signups": [{"id": 1, "names": "Lucas Pérez", "incentre": false, "children": "Daniel · Infantil 3 años",
+            "people": 3, "came": false, "url": "#"}]}]}
 }}
 <div class="eguahe eguahe-event">
     {{> local_oksigeniaeguahe/tabs }}
@@ -35,7 +36,7 @@
             <h2>{{name}}</h2>
             <p class="eguahe-quiet">{{kind}} · {{when}}{{#place}} · {{place}}{{/place}}{{^open}} · {{#str}}event_closed, local_oksigeniaeguahe{{/str}}{{/open}}</p>
         </div>
-        <a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>
+        {{#canact}}<a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>{{/canact}}
     </header>
 
     <div class="eguahe-columns">
@@ -48,21 +49,29 @@
         <section class="eguahe-box">
             <h3>{{#str}}event_door, local_oksigeniaeguahe{{/str}}</h3>
             <p class="eguahe-quiet">{{#str}}event_counts, local_oksigeniaeguahe, { "households": {{households}}, "people": {{people}}, "came": {{came}} }{{/str}}</p>
-            <p><a class="btn btn-primary" href="{{addurl}}">{{#str}}event_add_walkin, local_oksigeniaeguahe{{/str}}</a></p>
+            {{#canact}}<p><a class="btn btn-primary" href="{{addurl}}">{{#str}}event_add_walkin, local_oksigeniaeguahe{{/str}}</a></p>{{/canact}}
+            {{#hassignups}}
+            {{#groups}}
+            {{#title}}<h4 class="eguahe-slot-title">{{title}} {{#load}}<span class="eguahe-quiet">{{load}}</span>{{/load}}</h4>{{/title}}
             {{#hassignups}}
             <ul class="eguahe-door">
                 {{#signups}}
                 <li id="s{{id}}" class="{{#came}}has-come{{/came}}">
-                    <span><a href="{{url}}"><strong>{{names}}</strong></a> <span class="eguahe-quiet">{{children}} · {{#str}}people_n, local_oksigeniaeguahe, {{people}}{{/str}}</span></span>
+                    <span><a href="{{url}}"><strong>{{names}}</strong></a>{{#incentre}} <span class="badge bg-secondary">{{#str}}incentre_tag, local_oksigeniaeguahe{{/str}}</span>{{/incentre}} <span class="eguahe-quiet">{{children}} · {{#str}}people_n, local_oksigeniaeguahe, {{people}}{{/str}}</span></span>
+                    {{#canact}}
                     <form method="post" action="{{action}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         <input type="hidden" name="signup" value="{{id}}">
                         {{^came}}<input type="hidden" name="came" value="1"><button type="submit" class="btn btn-primary">{{#str}}event_mark_came, local_oksigeniaeguahe{{/str}}</button>{{/came}}
                         {{#came}}<input type="hidden" name="came" value="0"><span class="eguahe-came">{{#str}}came, local_oksigeniaeguahe{{/str}}</span> <button type="submit" class="btn btn-link">{{#str}}event_unmark, local_oksigeniaeguahe{{/str}}</button>{{/came}}
                     </form>
+                    {{/canact}}
+                    {{^canact}}{{#came}}<span class="eguahe-came">{{#str}}came, local_oksigeniaeguahe{{/str}}</span>{{/came}}{{/canact}}
                 </li>
                 {{/signups}}
             </ul>
+            {{/hassignups}}
+            {{/groups}}
             {{/hassignups}}
             {{^hassignups}}<p>{{#str}}event_nobody, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
         </section>

@@ -22,15 +22,17 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
   su camino (consulta, visita, solicitud, plaza ofrecida, lista de espera, matriculado o cerrado, con su motivo). Cada
   etapa significa lo mismo todos los años, así que las cifras de una campaña se comparan con las de la siguiente. Una
   familia que vuelve, con cualquiera de sus teléfonos o correos, nunca se crea dos veces.
-- **Jornadas de puertas abiertas y visitas**, con su aforo, un QR para el cartel y una página para apuntarse que la
-  familia rellena en su móvil, en español, inglés o portugués, sin cuenta. En la puerta, el equipo marca quién ha
-  llegado y añade a quien llega sin haberse apuntado.
+- **Jornadas de puertas abiertas, visitas y otros actos** (una fiesta, una charla), con su aforo o por turnos, cada uno
+  con el suyo; un QR para el cartel y una página para apuntarse que la familia rellena en su móvil, en español, inglés
+  o portugués, sin cuenta. En la puerta, el equipo marca quién ha llegado y añade a quien llega sin haberse apuntado.
+  Las familias que ya son del centro quedan marcadas y fuera de las cifras de la campaña.
 - **La página de cada familia**, con un enlace privado: su próxima visita, con el archivo para su calendario, lo que
   el centro guarda de ella y dos botones para descargar sus datos o borrarlos cuando quiera.
 - **La bandeja del equipo**: quién espera respuesta y desde cuándo, la espera más larga arriba; el historial de cada
   hogar; las respuestas, las notas y los permisos que ha dado cada adulto para cada canal.
 - **Oferta y plazas**: por curso, los interesados, los que han visitado, los matriculados y las plazas libres, con la
   definición de cada cifra en pantalla.
+- **Quien supervisa** ve todo lo de su centro sin contestar ni cambiar nada.
 - **Varios centros en un mismo sitio**: cada fila lleva su centro, y cada centro tiene su equipo, su color, su logotipo,
   su zona y sus textos sobre los datos de sus familias.
 - **Contra el spam**, sin terceros ni cookies: [ALTCHA](https://altcha.org) (MIT), una pequeña prueba de trabajo.

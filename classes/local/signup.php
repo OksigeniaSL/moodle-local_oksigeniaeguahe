@@ -64,6 +64,8 @@ class signup {
             'adults' => $adults,
             'children' => $children,
             'people' => optional_param('people', 1, PARAM_INT),
+            'slot' => optional_param('slot', 0, PARAM_INT),
+            'incentre' => optional_param('incentre', '', PARAM_ALPHA),
             'municipality' => optional_param('municipality', '', PARAM_RAW_TRIMMED),
             'municipalityother' => trim(optional_param('municipalityother', '', PARAM_TEXT)),
             'heardfrom' => optional_param('heardfrom', '', PARAM_ALPHA),
@@ -107,13 +109,18 @@ class signup {
             }
             $any = $any || $child['firstname'] !== '';
         }
-        if (!$any) {
+        // At an event that is not about admissions (a party, a talk), who would study is not asked for.
+        if (!$any && $event->kind !== 'other') {
             $errors['c0name'] = publiclang::str('pub_err_child', $lang);
+        }
+        $slots = events::slots((int) $event->id);
+        if ($slots && !isset($slots[$data['slot'] ?? 0])) {
+            $errors['slot'] = publiclang::str('pub_err_slot', $lang);
         }
         if ($data['people'] < 1 || $data['people'] > 20) {
             $errors['people'] = publiclang::str('pub_err_people', $lang);
-        } else if (!events::has_room($event, $data['people'])) {
-            $errors['people'] = publiclang::str('pub_err_full', $lang);
+        } else if (!isset($errors['slot']) && !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))) {
+            $errors[$slots ? 'slot' : 'people'] = publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang);
         }
         if (!$errors && !antispam::verify($data['altcha'])) {
             $errors['altcha'] = publiclang::str('pub_err_robot', $lang);
@@ -148,8 +155,9 @@ class signup {
         foreach ($adults as $adult) {
             $householdid = $householdid ?? households::find($centre->id, $adult['email'], $adult['phone']);
         }
-        $channel = $event->kind === 'visit' ? 'visit' : 'openday';
-        $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom']] + $place);
+        $channel = events::CHANNEL[$event->kind] ?? 'openday';
+        $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],
+            'incentre' => ($data['incentre'] ?? '') === 'yes'] + $place);
         if ($householdid === null) {
             $householdid = households::create($centre->id, $about);
         }
@@ -169,7 +177,7 @@ class signup {
                 households::add_child($household, $child['firstname'], (int) $child['offerid']);
             }
         }
-        events::sign_up($event, $household->id, $data['people']);
+        events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));
         $body = get_string('signedup_note', 'local_oksigeniaeguahe', (object) ['event' => $event->name,
             'people' => $data['people']]);
         if ($data['message'] !== '') {

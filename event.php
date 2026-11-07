@@ -40,7 +40,9 @@ $url = new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]);
 $PAGE->set_context(context_system::instance());
 staff::setup($url, format_string($event->name), $centre);
 
+$canact = centres::can_act((int) $USER->id);
 if (data_submitted() && confirm_sesskey()) {
+    centres::require_act((int) $centre->id);
     $signupid = required_param('signup', PARAM_INT);
     events::attend($event, $signupid, (bool) required_param('came', PARAM_BOOL));
     redirect(new moodle_url($url, [], 's' . $signupid));
@@ -62,9 +64,16 @@ if ($poster) {
     die();
 }
 
-$signups = [];
+$slots = events::slots((int) $event->id);
+$groups = [];
+foreach ($slots as $slot) {
+    $groups[$slot->id] = ['title' => userdate((int) $slot->timestart, get_string('strftimedatetimeshort', 'langconfig')) . '–' .
+        userdate((int) $slot->timeend, get_string('strftimetime24', 'langconfig')), 'capacity' => (int) $slot->capacity,
+        'people' => 0, 'signups' => []];
+}
 $people = 0;
 $came = 0;
+$households = 0;
 foreach (events::signups($event) as $signup) {
     $children = [];
     foreach ($signup->household->children as $child) {
@@ -72,14 +81,28 @@ foreach (events::signups($event) as $signup) {
     }
     $people += (int) $signup->people;
     $came += $signup->attended ? 1 : 0;
-    $signups[] = [
+    $households++;
+    $key = isset($groups[$signup->slotid]) ? (int) $signup->slotid : 0;
+    if (!isset($groups[$key])) {
+        // Without turns, or a family added at the door without one.
+        $groups[$key] = ['title' => $slots ? get_string('event_noslot', $c) : '', 'capacity' => 0, 'people' => 0,
+            'signups' => []];
+    }
+    $groups[$key]['people'] += (int) $signup->people;
+    $groups[$key]['signups'][] = [
         'id' => $signup->id,
         'names' => staff::adult_names($signup->household->adults),
+        'incentre' => !empty($signup->household->incentre),
         'children' => implode(', ', $children),
         'people' => (int) $signup->people,
         'came' => (bool) $signup->attended,
         'url' => (new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $signup->householdid]))->out(false),
     ];
+}
+foreach ($groups as $key => $group) {
+    $groups[$key]['hassignups'] = (bool) $group['signups'];
+    $groups[$key]['load'] = $group['capacity'] ? get_string('event_slot_load', $c, (object) ['people' => $group['people'],
+        'capacity' => $group['capacity']]) : '';
 }
 
 echo $OUTPUT->header();
@@ -91,7 +114,7 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/event', [
     'place' => $event->place ? format_string($event->place) : '',
     'open' => $event->open && $event->timeend >= time(),
     'capacity' => (int) $event->capacity,
-    'households' => count($signups),
+    'households' => $households,
     'people' => $people,
     'came' => $came,
     'qr' => events::qr_svg($event),
@@ -99,8 +122,9 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/event', [
     'posterurl' => (new moodle_url($url, ['poster' => 1]))->out(false),
     'editurl' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'id' => $event->id]))->out(false),
     'addurl' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id, 'eventid' => $event->id]))->out(false),
-    'signups' => $signups,
-    'hassignups' => (bool) $signups,
+    'groups' => array_values($groups),
+    'hassignups' => (bool) $households,
+    'canact' => $canact,
     'action' => $url->out(false),
     'sesskey' => sesskey(),
 ]);

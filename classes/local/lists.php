@@ -36,7 +36,7 @@ class lists {
     const CLOSED_REASONS = ['othercentre', 'moved', 'noplace', 'cost', 'noanswer', 'other'];
 
     /** @var string[] Where a household can come from. */
-    const CHANNELS = ['openday', 'visit', 'webform', 'phone', 'walkin', 'email', 'whatsapp', 'telegram', 'meta',
+    const CHANNELS = ['openday', 'visit', 'event', 'webform', 'phone', 'walkin', 'email', 'whatsapp', 'telegram', 'meta',
         'googleforms', 'other'];
 
     /** @var string[] Channels a person of the team notes by hand. */

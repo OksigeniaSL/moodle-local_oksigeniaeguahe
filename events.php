@@ -39,10 +39,21 @@ $centre = centres::require_work($centreid);
 $url = new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []));
 staff::setup($url, get_string('tab_events', $c), $centre);
 
+$canact = centres::can_act((int) $USER->id);
 $event = $id ? events::get($id, (int) $centre->id) : null;
-$form = new event_form($url);
+if ($id && !$canact) {
+    centres::require_act((int) $centre->id);
+}
+$form = new event_form($url, ['slots' => $event ? count(events::slots((int) $event->id)) : 0]);
 if ($event) {
-    $form->set_data((object) ((array) $event + ['c' => $centre->id]));
+    $defaults = (array) $event + ['c' => $centre->id];
+    foreach (array_values(events::slots((int) $event->id)) as $i => $slot) {
+        $defaults["slotid[$i]"] = $slot->id;
+        $defaults["slotstart[$i]"] = $slot->timestart;
+        $defaults["slotminutes[$i]"] = (int) round(($slot->timeend - $slot->timestart) / MINSECS);
+        $defaults["slotcapacity[$i]"] = $slot->capacity;
+    }
+    $form->set_data((object) $defaults);
 } else {
     $start = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j') + 14, 10, 0);
     $form->set_data(['c' => $centre->id, 'id' => 0, 'timestart' => $start, 'timeend' => $start + 3 * HOURSECS,
@@ -51,7 +62,8 @@ if ($event) {
 if ($form->is_cancelled()) {
     redirect(new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]));
 }
-if ($data = $form->get_data()) {
+if ($canact && $data = $form->get_data()) {
+    $data->slots = event_form::slots($data);
     $saved = events::save((int) $centre->id, $data);
     redirect(new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved]));
 }
@@ -75,6 +87,8 @@ foreach (events::for_centre((int) $centre->id) as $each) {
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_oksigeniaeguahe/events', ['tabs' => staff::tabs($centre, 'events'),
     'events' => $list, 'hasevents' => (bool) $list, 'editing' => (bool) $event]);
-echo $OUTPUT->heading(get_string($event ? 'event_edit' : 'event_new', $c), 3);
-$form->display();
+if ($canact) {
+    echo $OUTPUT->heading(get_string($event ? 'event_edit' : 'event_new', $c), 3);
+    $form->display();
+}
 echo $OUTPUT->footer();

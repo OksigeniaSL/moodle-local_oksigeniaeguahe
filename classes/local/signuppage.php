@@ -30,7 +30,8 @@ class signuppage {
         'pub_another_adult', 'pub_students', 'pub_student_name', 'pub_student_offer', 'pub_offer_unknown',
         'pub_another_student', 'pub_people', 'pub_where', 'pub_where_other', 'pub_where_choose', 'pub_heardfrom',
         'pub_heardfrom_choose', 'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_submit',
-        'pub_errors', 'pub_required', 'pub_optional', 'pub_info_more'];
+        'pub_errors', 'pub_required', 'pub_optional', 'pub_info_more', 'pub_slot', 'pub_incentre', 'pub_incentre_yes',
+        'pub_incentre_no'];
 
     /**
      * The context of the template public_signup.
@@ -115,6 +116,21 @@ class signuppage {
             $channels[] = ['name' => 'consent' . $channel, 'label' => publiclang::str('pub_consent_' . $channel, $lang),
                 'checked' => !empty($data['consents'][$channel])];
         }
+        $slots = [];
+        $all = events::slots((int) $event->id);
+        // Turns of one day show their hours; turns of several days, their dates too.
+        $days = array_unique(array_map(fn($t) => userdate((int) $t->timestart, '%Y%m%d'), $all));
+        foreach ($all as $slot) {
+            $left = $slot->capacity ? max(0, (int) $slot->capacity - (int) $slot->people) : null;
+            $past = $slot->timeend < time();
+            $slots[] = [
+                'id' => $slot->id,
+                'when' => count($days) > 1 ? mail::when($slot, $lang) : mail::hours($slot, $lang),
+                'left' => $left === null ? '' : publiclang::str($left ? 'pub_slot_left' : 'pub_slot_full', $lang, $left),
+                'disabled' => $past || $left === 0,
+                'checked' => (int) $slot->id === (int) ($data['slot'] ?? 0),
+            ];
+        }
         $errorlist = [];
         foreach ($errors as $name => $message) {
             $errorlist[] = ['field' => $name, 'message' => $message];
@@ -139,6 +155,12 @@ class signuppage {
             'morechildrenopen' => $morechildren,
             'hasoffers' => (bool) $offers,
             'people' => (int) $data['people'] ?: 1,
+            'hasslots' => (bool) $slots,
+            'slots' => $slots,
+            'sloterror' => $errors['slot'] ?? '',
+            'isother' => $event->kind === 'other',
+            'incentreyes' => ($data['incentre'] ?? '') === 'yes',
+            'incentreno' => ($data['incentre'] ?? '') === 'no',
             'peopleerror' => $errors['people'] ?? '',
             'hasplaces' => (bool) $places,
             'places' => $places,

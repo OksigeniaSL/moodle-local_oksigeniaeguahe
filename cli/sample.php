@@ -66,6 +66,18 @@ $eventid = events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jor
     'capacity' => 120, 'open' => 1]);
 $event = events::get($eventid, $centreid);
 
+// A visit by turns, three on a Saturday morning, and a talk open to everyone.
+$saturday = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j') + 21, 10, 0);
+events::save($centreid, (object) ['kind' => 'visit', 'name' => 'Conócenos', 'place' => 'Recepción',
+    'timestart' => $saturday, 'timeend' => $saturday + 3 * HOURSECS, 'capacity' => 0, 'open' => 1, 'slots' => [
+        ['timestart' => $saturday, 'timeend' => $saturday + HOURSECS, 'capacity' => 12],
+        ['timestart' => $saturday + HOURSECS, 'timeend' => $saturday + 2 * HOURSECS, 'capacity' => 12],
+        ['timestart' => $saturday + 2 * HOURSECS, 'timeend' => $saturday + 3 * HOURSECS, 'capacity' => 12],
+    ]]);
+events::save($centreid, (object) ['kind' => 'other', 'name' => 'Charla para familias', 'place' => 'Salón de actos',
+    'timestart' => $start + 7 * DAYSECS + 8 * HOURSECS, 'timeend' => $start + 7 * DAYSECS + 10 * HOURSECS,
+    'capacity' => 200, 'open' => 1]);
+
 $families = [
     [['Lucas', 'Pérez Gil', '+34600111222', 'lucas.perez@example.com'], [['Daniel', 0]], 'openday', 'family',
         '¿Hay comedor y horario ampliado?', 2],

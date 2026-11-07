@@ -73,7 +73,15 @@ if (data_submitted()) {
             // its page.
             ob_start();
             try {
-                mail::signed_up($centre, $event, $email, $first['firstname'], $link, $lang);
+                mail::signed_up(
+                    $centre,
+                    $event,
+                    $email,
+                    $first['firstname'],
+                    $link,
+                    $lang,
+                    events::when($event, (int) ($data['slot'] ?? 0))
+                );
             } catch (\Throwable $e) {
                 $email = null;
             } finally {

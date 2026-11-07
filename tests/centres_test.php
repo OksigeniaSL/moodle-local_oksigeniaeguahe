@@ -57,6 +57,30 @@ final class centres_test extends \advanced_testcase {
     }
 
     /**
+     * Whoever only sees, in the team of a centre, sees it but may not act; whoever works may.
+     */
+    public function test_view_only(): void {
+        $this->resetAfterTest();
+        $centreid = centres::create((object) ['name' => 'Uno']);
+        $system = \context_system::instance();
+        $roles = [];
+        foreach (['view', 'work'] as $cap) {
+            $user = $this->getDataGenerator()->create_user();
+            $role = $this->getDataGenerator()->create_role();
+            assign_capability('local/oksigeniaeguahe:' . $cap, CAP_ALLOW, $role, $system);
+            role_assign($role, $user->id, $system);
+            centres::add_member($centreid, $user->id);
+            $roles[$cap] = $user;
+        }
+        $this->assertTrue(centres::can_work($centreid, $roles['view']->id));
+        $this->assertFalse(centres::can_act($roles['view']->id));
+        $this->assertTrue(centres::can_act($roles['work']->id));
+        $this->setUser($roles['view']);
+        $this->expectException(\required_capability_exception::class);
+        centres::require_act($centreid);
+    }
+
+    /**
      * A family is found again only in its own centre.
      */
     public function test_find_by_centre(): void {

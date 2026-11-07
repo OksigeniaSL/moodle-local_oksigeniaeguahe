@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 (2026-11-07)
+
+- **Events by turns**: an event can have several turns, each with its start, how long it lasts and its capacity. The
+  family chooses its turn on the same page (only the hours when all are on one day, with the places left), the QR and
+  the poster are one, and its page, mail and calendar file carry its turn. At the door, the list goes by turn.
+- **Another event**, beside open days and visits: a party, a talk, a fair. Who would study is optional, coming does not
+  move anyone's way to «Visit», and families say whether they already have someone at the centre.
+- **Families already of the centre** are marked, shown with a label and kept out of the numbers of the offer.
+- **Only seeing**: a new capability, `local/oksigeniaeguahe:view`, for whoever supervises: the inbox, the households,
+  the events and the numbers of their centres, without answering nor changing anything.
+- Upgrade from 0.1: a table for the turns and two new fields, nothing lost.
+
 ## 0.1.2 (2026-11-07)
 
 - Counts read well with one and with many: «Personas: 1», «Han venido: 1».

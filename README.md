@@ -22,15 +22,17 @@ households are waiting for an answer, how many places each course still has, and
   how far their way has gone (inquiry, visit, application, place offered, waiting list, enrolled or closed, with the
   reason). Each stage has one meaning, the same every year, so the numbers of one campaign compare with the next. A
   family found again by any of its phones or emails is never created twice.
-- **Open days and visits** with their capacity, a QR for the poster and a sign-up page the family fills in on its
-  phone, in Spanish, English or Portuguese, with no account. At the door, the team ticks who came, and adds whoever
-  arrives without signing up.
+- **Open days, visits and other events** (a party, a talk) with their capacity, or by turns, each with its own; a QR
+  for the poster and a sign-up page the family fills in on its phone, in Spanish, English or Portuguese, with no
+  account. At the door, the team ticks who came, and adds whoever arrives without signing up. Families already of the
+  centre are marked and stay out of the numbers of the campaign.
 - **The page of each family**, opened with a private link: their next visit, with the file for their calendar, what
   the centre keeps about them, and two buttons to download their data or erase it, whenever they want.
 - **The inbox of the team**: who is waiting for an answer and since when, the longest wait first; the history of each
   household; answers, notes and the permissions each adult gave for each channel.
 - **Offer and places**: for each course, those interested, those who visited, those enrolled and the places left, with
   the definition of each number on screen.
+- **Who supervises** can see everything of their centre without answering nor changing anything.
 - **Several centres in one site**: every row carries its centre, and each centre has its own team, colour, logo, area
   and texts about the data of its families.
 - **Against spam**, without third parties nor cookies: [ALTCHA](https://altcha.org) (MIT), a small proof of work.
