@@ -1,0 +1,22 @@
+# Record of processing activities: admissions
+
+An entry for the record of processing activities of the centre, for its data protection officer to review and
+complete. The centre fills in the brackets. It describes Oksigenia Eguahe 0.1: without artificial intelligence and
+without messaging channels, which are added to this entry when the centre turns them on.
+
+| Field | Content |
+|---|---|
+| Activity | Answering the families who ask for information or a place, visits and open days, and following the admission |
+| Controller | [Legal name of the centre], [address], [email for exercising rights] |
+| Data protection officer | [Name or service and email, if the centre has one] |
+| Processor | [Whoever hosts and maintains the Moodle site of the centre], under a processing agreement |
+| Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each request until enrolment or its closing; and knowing, only in aggregate numbers, how the campaign is going |
+| Legal basis | The family's own request (pre-contractual steps), to answer it and organise the visit; consent, to write to them on each channel they tick (email, WhatsApp, phone), which they can withdraw |
+| Data subjects | The adults of the families who contact the centre; the minors who would study there |
+| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), what they write to the centre and their permissions by channel, with their date. Of minors: first name and the course asked for. No special categories are asked for |
+| Automated decisions | None. No family is scored or ranked |
+| Recipients | Nobody outside the centre, unless the law requires it. The processor, on behalf of the centre |
+| International transfers | None [if hosting is in the EU] |
+| Erasure | After [24] months without activity (set per centre), automatically every night. Families erase their data whenever they want from their page. If there is an enrolment, the data passes to the record of families of the centre |
+| Security measures | Access only for the admissions team of the centre, by Moodle user and capability; each centre sees only its families; the private link of each family kept only as a hash (SHA-256) and renewable; public pages without trackers, third parties or indexing; anti-spam without third parties (ALTCHA); [encrypted backups of the site, as its hosting provides] |
+| Rights | From the family's page: download and erase their data. In writing to [email]: access, rectification, restriction and objection. A complaint to the data protection authority |
