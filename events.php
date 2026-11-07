@@ -78,7 +78,8 @@ $list = [];
 foreach (events::for_centre((int) $centre->id) as $each) {
     $list[] = [
         'name' => format_string($each->name),
-        'kind' => get_string('event_kind_' . $each->kind, $c),
+        'kind' => get_string($each->householdid ? 'visit_own' : ($each->tailored ? 'visit_asking' :
+            'event_kind_' . $each->kind), $c),
         'when' => userdate((int) $each->timestart, get_string('strftimedatetimeshort', 'langconfig')),
         'past' => $each->timeend < time(),
         'open' => (bool) $each->open,

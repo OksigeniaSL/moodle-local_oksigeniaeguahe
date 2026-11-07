@@ -58,6 +58,9 @@ class event_form extends \moodleform {
         $mform->addHelpButton('capacity', 'event_capacity', $c);
         $mform->addElement('advcheckbox', 'open', get_string('event_open', $c));
         $mform->setDefault('open', 1);
+        $mform->addElement('advcheckbox', 'tailored', get_string('event_tailored', $c));
+        $mform->addHelpButton('tailored', 'event_tailored', $c);
+        $mform->hideIf('tailored', 'kind', 'neq', 'visit');
         // Who receives the families: they see these people, with their photo, on their page.
         $hosts = $this->_customdata['hosts'] ?? [];
         if ($hosts) {

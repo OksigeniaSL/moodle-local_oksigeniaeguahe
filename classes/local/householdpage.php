@@ -104,6 +104,14 @@ class householdpage {
                 'when' => userdate((int) $signup->timestart, get_string('strftimedatetimeshort', 'langconfig')),
                 'people' => (int) $signup->people, 'came' => (bool) $signup->attended];
         }
+        // A visit of its own: what they asked for, and the form to propose the day, the hour and who guides them.
+        $pending = visits::pending((int) $household->id);
+        $askedat = $pending && $pending->eventid ? (string) $DB->get_field(events::T, 'place', ['id' => $pending->eventid]) : '';
+        $guides = [];
+        foreach (centres::hosts((int) $centre->id) as $i => $host) {
+            $guides[] = ['id' => $host->memberid, 'name' => $host->name . ($host->role !== '' ? ' · ' . $host->role : ''),
+                'selected' => $i === 0];
+        }
         $channels = [];
         foreach (lists::HAND_CHANNELS as $channel) {
             $channels[] = ['value' => $channel, 'name' => get_string('channel_' . $channel, $c)];
@@ -124,6 +132,13 @@ class householdpage {
             'hashistory' => (bool) $history,
             'events' => $events,
             'hasevents' => (bool) $events,
+            'asked' => $pending ? get_string('visit_asked', $c, (object) ['when' => visits::suits($pending, current_language()),
+                'people' => (int) $pending->people]) : '',
+            'guides' => $guides,
+            'hasguides' => (bool) $guides,
+            'proposedate' => date('Y-m-d', time() + DAYSECS),
+            'proposeplace' => $askedat,
+            'proposepeople' => $pending ? (int) $pending->people : 2,
             'channels' => $channels,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
             'editurl' => (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id,

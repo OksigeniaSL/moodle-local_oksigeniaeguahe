@@ -108,6 +108,7 @@ class familypage {
         $tags = array_values(array_filter(array_map([self::class, 'label_name'], $children), fn($n) => $n !== ''));
         $names = self::join($tags, $lang);
         $upcoming = array_values(array_filter($full->signups, fn($s) => (int) $s->timeend >= $now));
+        $pending = $upcoming ? null : visits::pending((int) $household->id);
         $attended = array_values(array_filter($full->signups, fn($s) => !empty($s->attended)));
         // Who receives them: those of the next visit, or after it, those of the last one they came to.
         $visit = $upcoming[0] ?? end($attended) ?: null;
@@ -120,6 +121,8 @@ class familypage {
                 'host' => s($host), 'names' => s($names)];
             $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' : (count($tags) > 1 ? '_many' : ''));
             $lead = publiclang::str($key, $lang, $a);
+        } else if ($pending) {
+            $lead = s(publiclang::str('pub_lead_pending', $lang));
         } else if ($attended) {
             $lead = $host !== '' ? publiclang::str('pub_lead_after_host', $lang, s($host)) :
                 publiclang::str('pub_lead_after_team', $lang);
@@ -136,8 +139,8 @@ class familypage {
                 'name' => $name,
                 'hours' => self::hours((int) $s->timestart, (int) $s->timeend, $lang),
                 'turn' => !empty($s->slotid),
-                'place' => trim(implode(' · ', array_filter([$s->place ? format_string($s->place) : '',
-                    (string) ($centre->address ?? '')]))),
+                'place' => trim(implode(' · ', array_unique(array_filter([$s->place ? format_string($s->place) : '',
+                    (string) ($centre->address ?? '')])))),
                 'people' => (int) $s->people === 1 ? publiclang::str('pub_people_one', $lang) :
                     publiclang::str('pub_people_count', $lang, (int) $s->people),
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
@@ -189,7 +192,7 @@ class familypage {
             'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming),
             'lead' => $lead,
             'new' => $new,
-            'saved' => publiclang::str('pub_saved', $lang),
+            'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
             'savedline' => publiclang::str('pub_done_keep', $lang),
             'emailed' => $new && $emailed ? publiclang::str('pub_done_emailed', $lang) : '',
             'hasnext' => (bool) $upcoming,
@@ -198,9 +201,12 @@ class familypage {
             'others' => array_map($visitrow, array_slice($upcoming, 1)),
             'mapurl' => $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
                 rawurlencode(format_string($centre->name) . ', ' . $address) : '',
-            'nextline' => $year !== '' ? publiclang::str('pub_next_year', $lang, s($year)) :
-                publiclang::str('pub_next_noyear', $lang),
-            'novisit' => publiclang::str($attended ? 'pub_novisit_after' : 'pub_novisit', $lang),
+            'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?
+                publiclang::str('pub_next_year', $lang, s($year)) : publiclang::str('pub_next_noyear', $lang)),
+            'novisit' => $pending ? publiclang::str('pub_pending_line', $lang, visits::suits($pending, $lang)) :
+                publiclang::str($attended ? 'pub_novisit_after' : 'pub_novisit', $lang),
+            'bandnext' => publiclang::str($pending ? 'pub_band_visit' : 'pub_band_next', $lang),
+            'receivespending' => $pending ? publiclang::str('pub_receives_pending', $lang) : '',
             'hashosts' => (bool) $hosts,
             'hosts' => self::hosts($hosts),
             'haschildren' => (bool) $childrows,

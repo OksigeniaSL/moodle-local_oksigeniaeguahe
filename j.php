@@ -70,20 +70,33 @@ if (data_submitted()) {
         $errors = signup::check($data, $event, $centre, $lang);
     }
     if (!$errors) {
-        [$household, $link] = signup::save($data, $event, $centre, $lang);
+        [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang);
+        // A family already known: whoever filled the form may not be that family, so its page is not shown here and
+        // the link goes only to the email it had.
+        $to = $existed ? (string) ($before[0] ?? '') : null;
         // The sign-up is kept already: if the mail of the site fails or says something, the family still gets its
         // page.
         ob_start();
         try {
-            $signup = familymail::signup($household, (int) $event->id);
-            if ($signup) {
-                familymail::send('confirmation', $household, $centre, $signup, $lang, $link);
+            if ($to !== '' && !empty($event->tailored)) {
+                familymail::send('request', $household, $centre, null, $lang, $link, $to);
+            } else if ($to !== '' && ($signup = familymail::signup($household, (int) $event->id))) {
+                familymail::send('confirmation', $household, $centre, $signup, $lang, $link, $to);
             }
         } catch (\Throwable $e) {
             // The page of the family is what matters now; the mail of the site says itself what went wrong.
             $sent = false;
         } finally {
             ob_end_clean();
+        }
+        if ($existed) {
+            publicpage::message(
+                $centre,
+                $lang,
+                publiclang::str('pub_known_title', $lang),
+                publiclang::str($to !== '' ? 'pub_known_sent' : 'pub_known_nomail', $lang),
+                $url
+            );
         }
         redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'lang' => $lang]));
     }

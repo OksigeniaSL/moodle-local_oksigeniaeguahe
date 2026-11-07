@@ -46,6 +46,9 @@ class households {
     const SIGNUPS = 'local_oksigeniaeguahe_signup';
 
     /** @var string */
+    const LINKS = 'local_oksigeniaeguahe_link';
+
+    /** @var string */
     const ERASED = 'local_oksigeniaeguahe_erased';
 
     /**
@@ -405,12 +408,28 @@ class households {
      * @param \stdClass $household
      * @return string The token, to send it once.
      */
-    public static function new_link(\stdClass $household): string {
+    public static function new_link(\stdClass $household, string $reason = 'signup'): string {
         global $DB;
         $token = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
-        $DB->set_field(self::T, 'linkhash', hash('sha256', $token), ['id' => $household->id]);
-        $household->linkhash = hash('sha256', $token);
+        $hash = hash('sha256', $token);
+        // Each message may carry its own link: the ones sent before keep working.
+        $DB->insert_record(self::LINKS, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+            'linkhash' => $hash, 'reason' => \core_text::substr($reason, 0, 20), 'timecreated' => time()]);
+        $DB->set_field(self::T, 'linkhash', $hash, ['id' => $household->id]);
+        $household->linkhash = $hash;
         return $token;
+    }
+
+    /**
+     * Makes every link of a family stop working (a link that went where it should not), and gives a new one.
+     *
+     * @param \stdClass $household
+     * @return string The new link.
+     */
+    public static function renew_links(\stdClass $household): string {
+        global $DB;
+        $DB->delete_records(self::LINKS, ['householdid' => $household->id]);
+        return self::new_link($household, 'team');
     }
 
     /**
@@ -424,7 +443,8 @@ class households {
         if (!preg_match('/^[A-Za-z0-9_-]{32}$/', $token)) {
             return null;
         }
-        return $DB->get_record(self::T, ['linkhash' => hash('sha256', $token)]) ?: null;
+        $householdid = $DB->get_field(self::LINKS, 'householdid', ['linkhash' => hash('sha256', $token)]);
+        return $householdid ? ($DB->get_record(self::T, ['id' => $householdid]) ?: null) : null;
     }
 
     /**
@@ -505,6 +525,12 @@ class households {
             $data['permissions'][] = ['adult' => $names[$consent->adultid] ?? null, 'channel' => $consent->channel,
                 'granted' => (bool) $consent->granted, 'when' => $date((int) $consent->timecreated)];
         }
+        // A visit of its own: when they said it suits them.
+        foreach ($DB->get_records(visits::REQUESTS, ['householdid' => $household->id], 'timecreated ASC') as $request) {
+            $data['visit_requests'][] = ['days' => $request->days ? array_map('intval', explode(',', $request->days)) : [],
+                'parts_of_the_day' => $request->periods ? explode(',', $request->periods) : [],
+                'people' => (int) $request->people, 'status' => $request->status, 'asked' => $date((int) $request->timecreated)];
+        }
         return $data;
     }
 
@@ -524,9 +550,14 @@ class households {
                 'stage' => $child->stage, 'firstchannel' => $household->firstchannel, 'month' => $month,
                 'timecreated' => time()]);
         }
-        foreach ([self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS] as $table) {
+        foreach (
+            [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS,
+                visits::REQUESTS] as $table
+        ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }
+        // The visits of its own go with the family.
+        $DB->delete_records(events::T, ['householdid' => $household->id]);
         $DB->delete_records(self::T, ['id' => $household->id]);
         $transaction->allow_commit();
     }

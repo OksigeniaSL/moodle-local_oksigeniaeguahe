@@ -26,6 +26,7 @@
         "allurl": "#", "newurl": "#", "canact": true, "settingsurl": "#", "hasrows": true,
         "rows": [{"url": "#", "names": "Lucas Pérez y Ana Gil", "channel": "Jornada", "incentre": false, "waiting": true, "waited": "3 horas",
             "last": "21/11/26, 10:12", "children": [{"name": "Daniel", "offer": "Infantil 3 años", "stage": "Consulta"}]}],
+        "hasmine": true, "mine": [{"when": "sábado, 21 de noviembre, 10:00", "name": "Visita con Lucía", "family": "Marta Ruiz", "url": "#"}],
         "hasoffers": true,
         "offers": [{"name": "Infantil 3 años", "year": "2027-28", "open": 14, "visited": 6, "enrolled": 3, "places": 25,
             "hasplaces": true, "left": 22}]
@@ -38,6 +39,15 @@
         <p class="eguahe-waiting{{#waiting}} is-waiting{{/waiting}}" role="status">{{waitingtext}}</p>
         {{#canact}}<a class="btn btn-primary" href="{{newurl}}">{{#str}}household_new, local_oksigeniaeguahe{{/str}}</a>{{/canact}}
     </div>
+
+    {{#hasmine}}
+    <section class="eguahe-box eguahe-mine">
+        <h3>{{#str}}inbox_mine, local_oksigeniaeguahe{{/str}}</h3>
+        <ul class="eguahe-plain">
+            {{#mine}}<li><a href="{{url}}"><strong>{{when}}</strong></a><span>{{name}}{{#family}} · {{family}}{{/family}}</span></li>{{/mine}}
+        </ul>
+    </section>
+    {{/hasmine}}
 
     <nav class="eguahe-filter" aria-label="{{#str}}inbox, local_oksigeniaeguahe{{/str}}">
         <a href="{{waitingurl}}"{{^all}} aria-current="page"{{/all}}>{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}}</a>

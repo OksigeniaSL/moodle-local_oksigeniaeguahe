@@ -24,7 +24,8 @@
     {"tabs": [], "name": "Jornada de puertas abiertas", "kind": "Jornada", "when": "sábado, 21 de noviembre, 10:00",
      "place": "Entrada principal", "open": true, "capacity": 80, "households": 1, "people": 3, "came": 0,
      "qr": "<svg viewBox=\"0 0 10 10\"></svg>", "link": "https://example.com/j", "posterurl": "#", "posterurla3": "#", "editurl": "#",
-     "addurl": "#", "hassignups": true, "action": "#", "sesskey": "abc", "canact": true,
+     "addurl": "#", "hassignups": true, "tailored": false, "requests": [], "hasrequests": false, "own": false,
+     "family": "", "familyurl": "#", "action": "#", "sesskey": "abc", "canact": true,
      "groups": [{"title": "21/11/26, 10:00–11:00", "load": "Personas: 3 de 20", "hassignups": true,
         "signups": [{"id": 1, "names": "Lucas Pérez", "incentre": false, "children": "Daniel · Infantil 3 años",
             "people": 3, "came": false, "url": "#"}]}]}
@@ -39,7 +40,11 @@
         {{#canact}}<a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>{{/canact}}
     </header>
 
+    {{#own}}
+    <p class="eguahe-quiet">{{#str}}visit_of_family, local_oksigeniaeguahe{{/str}} <a href="{{familyurl}}"><strong>{{family}}</strong></a></p>
+    {{/own}}
     <div class="eguahe-columns">
+        {{^own}}
         <section class="eguahe-box eguahe-qrbox">
             <h3>{{#str}}event_qr, local_oksigeniaeguahe{{/str}}</h3>
             <div class="eguahe-qr">{{{qr}}}</div>
@@ -49,6 +54,25 @@
                 <a class="btn btn-secondary" href="{{posterurla3}}" target="_blank">A3 <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a>
             </p>
         </section>
+        {{/own}}
+        {{#tailored}}
+        <section class="eguahe-box">
+            <h3>{{#str}}visit_requests, local_oksigeniaeguahe{{/str}}</h3>
+            {{#hasrequests}}
+            <ul class="eguahe-door">
+                {{#requests}}
+                <li>
+                    <span><a href="{{url}}"><strong>{{names}}</strong></a> <span class="eguahe-quiet">{{suits}} · {{#str}}people_n, local_oksigeniaeguahe, {{people}}{{/str}}</span></span>
+                    {{#pending}}<span class="eguahe-waiting is-waiting">{{#str}}visit_waiting, local_oksigeniaeguahe, {{waited}}{{/str}}</span>{{/pending}}
+                    {{^pending}}<a href="{{visiturl}}">{{visit}}</a>{{/pending}}
+                </li>
+                {{/requests}}
+            </ul>
+            {{/hasrequests}}
+            {{^hasrequests}}<p>{{#str}}visit_norequests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
+        </section>
+        {{/tailored}}
+        {{^tailored}}
         <section class="eguahe-box">
             <h3>{{#str}}event_door, local_oksigeniaeguahe{{/str}}</h3>
             <p class="eguahe-quiet">{{#str}}event_counts, local_oksigeniaeguahe, { "households": {{households}}, "people": {{people}}, "came": {{came}} }{{/str}}</p>
@@ -78,5 +102,6 @@
             {{/hassignups}}
             {{^hassignups}}<p>{{#str}}event_nobody, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
         </section>
+        {{/tailored}}
     </div>
 </div>

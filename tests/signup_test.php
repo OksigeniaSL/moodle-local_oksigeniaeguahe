@@ -145,7 +145,9 @@ final class signup_test extends \advanced_testcase {
         $again['adults'][0]['email'] = '';
         $again['adults'][0]['phone'] = '+34 600 11 12 22';
         $again['children'][1] = ['firstname' => 'Sara', 'offerid' => 0];
-        [$second, $newtoken] = signup::save($again, $this->event, $this->centre, 'es');
+        [$second, $newtoken, $before, $existed] = signup::save($again, $this->event, $this->centre, 'es');
+        $this->assertTrue($existed);
+        $this->assertSame(['lucas@example.com'], $before, 'The link of a family known goes only to its email.');
 
         $this->assertEquals($first->id, $second->id);
         $this->assertSame(1, $DB->count_records(households::T));
@@ -153,7 +155,7 @@ final class signup_test extends \advanced_testcase {
         $this->assertSame(2, $DB->count_records(households::CHILDREN));
         $this->assertSame(4, events::people($this->event->id), 'The people of a household count once.');
         $this->assertGreaterThan(0, households::get($first->id, $this->centre->id)->waitingsince);
-        $this->assertNull(households::by_link($oldtoken));
+        $this->assertNotNull(households::by_link($oldtoken), 'The links sent before keep working.');
         $this->assertNotNull(households::by_link($newtoken));
     }
 

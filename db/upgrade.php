@@ -308,5 +308,65 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110910, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110920) {
+        // Visits of their own: the event of asking, the visit of a family, its request, and several links per family.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $fields = [
+            new xmldb_field('tailored', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'shorturl'),
+            new xmldb_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'tailored'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_link');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('linkhash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('reason', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'signup');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('householdid', XMLDB_KEY_FOREIGN, ['householdid'], 'local_oksigeniaeguahe_household', ['id']);
+        $table->add_index('linkhash', XMLDB_INDEX_UNIQUE, ['linkhash']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+            // The link each family had keeps working.
+            $rows = $DB->get_recordset_select(
+                'local_oksigeniaeguahe_household',
+                'linkhash IS NOT NULL',
+                null,
+                '',
+                'id, centreid, linkhash, timemodified'
+            );
+            foreach ($rows as $row) {
+                $DB->insert_record('local_oksigeniaeguahe_link', (object) ['centreid' => $row->centreid,
+                    'householdid' => $row->id, 'linkhash' => $row->linkhash, 'reason' => 'signup',
+                    'timecreated' => (int) $row->timemodified]);
+            }
+            $rows->close();
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_request');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('eventid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('days', XMLDB_TYPE_CHAR, '30', null, null, null, null);
+        $table->add_field('periods', XMLDB_TYPE_CHAR, '30', null, null, null, null);
+        $table->add_field('people', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '2');
+        $table->add_field('status', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'pending');
+        $table->add_field('visitid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('householdid', XMLDB_KEY_FOREIGN, ['householdid'], 'local_oksigeniaeguahe_household', ['id']);
+        $table->add_index('centrestatus', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'status']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026110920, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

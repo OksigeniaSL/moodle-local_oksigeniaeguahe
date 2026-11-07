@@ -106,6 +106,8 @@ class events {
             'timeend' => max((int) $data->timestart, (int) $data->timeend),
             'capacity' => max(0, (int) ($data->capacity ?? 0)),
             'open' => empty($data->open) ? 0 : 1,
+            // A visit of its own: families say when it suits them, and the team proposes the day.
+            'tailored' => !empty($data->tailored) && ($data->kind ?? '') === 'visit' ? 1 : 0,
             'timemodified' => time(),
         ];
         if (isset($data->hosts)) {

@@ -30,7 +30,8 @@ class signuppage {
         'pub_you', 'pub_you_hint', 'pub_another_adult', 'pub_slot', 'pub_incentre', 'pub_incentre_yes', 'pub_incentre_no',
         'pub_more', 'pub_people', 'pub_where', 'pub_where_choose', 'pub_where_other', 'pub_where_moving', 'pub_heardfrom',
         'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_privacy_link', 'pub_info_more',
-        'pub_submit', 'pub_sending', 'pub_no_place'];
+        'pub_submit', 'pub_sending', 'pub_no_place', 'pub_when_suits', 'pub_when_suits_hint', 'pub_tailored_title',
+        'pub_tailored_lead'];
 
     /**
      * The context of the template public_signup.
@@ -120,7 +121,7 @@ class signuppage {
                 'checked' => !empty($data['consents'][$channel])];
         }
         $slots = [];
-        $all = events::slots((int) $event->id);
+        $all = empty($event->tailored) ? events::slots((int) $event->id) : [];
         // Turns of one day show their hours; turns of several days, their dates too. Past turns are not shown.
         $days = array_unique(array_map(fn($t) => userdate((int) $t->timestart, '%Y%m%d'), $all));
         foreach ($all as $slot) {
@@ -154,7 +155,22 @@ class signuppage {
             'language' => $altchalang,
             'type' => 'checkbox',
         ]);
+        $days = [];
+        foreach (visits::day_names($lang) as $day => $name) {
+            $days[] = ['value' => $day, 'name' => $name, 'checked' => in_array($day, $data['days'] ?? [], false)];
+        }
+        $periods = [];
+        foreach (visits::PERIODS as $period) {
+            $periods[] = ['value' => $period, 'name' => publiclang::str('pub_period_' . $period, $lang),
+                'checked' => in_array($period, $data['periods'] ?? [], true)];
+        }
+        if (!empty($event->tailored)) {
+            $str['pub_submit'] = publiclang::str('pub_submit_request', $lang);
+        }
         return $str + [
+            'tailored' => !empty($event->tailored),
+            'days' => $days,
+            'periods' => $periods,
             'event' => format_string($event->name),
             'pegs' => publicpage::pegs($labels, false, $shownchildren) + ['live' => true],
             'children' => $children,

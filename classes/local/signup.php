@@ -73,6 +73,8 @@ class signup {
             'message' => trim(optional_param('message', '', PARAM_TEXT)),
             'consents' => $consents,
             'altcha' => optional_param('altcha', '', PARAM_RAW_TRIMMED),
+            'days' => array_keys(array_filter(optional_param_array('day', [], PARAM_BOOL))),
+            'periods' => array_keys(array_filter(optional_param_array('period', [], PARAM_BOOL))),
         ];
     }
 
@@ -114,13 +116,16 @@ class signup {
         if (!$any && $event->kind !== 'other') {
             $errors['c0name'] = publiclang::str('pub_err_child', $lang);
         }
-        $slots = events::slots((int) $event->id);
+        $slots = empty($event->tailored) ? events::slots((int) $event->id) : [];
         if ($slots && !isset($slots[$data['slot'] ?? 0])) {
             $errors['slot'] = publiclang::str('pub_err_slot', $lang);
         }
         if ($data['people'] < 1 || $data['people'] > 20) {
             $errors['people'] = publiclang::str('pub_err_people', $lang);
-        } else if (!isset($errors['slot']) && !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))) {
+        } else if (
+            empty($event->tailored) && !isset($errors['slot']) &&
+            !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))
+        ) {
             $errors[$slots ? 'slot' : 'people'] = publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang);
         }
         // How to write to them: at least one way, and one they gave the means for.
@@ -139,13 +144,15 @@ class signup {
 
     /**
      * Keeps the sign-up: the household (found again or new), its adults and children, the permissions, what it said
-     * and its place in the event. The private link of the household is renewed and returned, to show it once.
+     * and its place in the event. A new private link of the household is returned. When the household was there
+     * before (the same email or phone), whoever filled the form may not be that family: its page is not shown, and
+     * the link only goes to the emails the family had.
      *
      * @param array $data From read(), already checked.
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param string $lang
-     * @return array [household, token]
+     * @return array [household, token, the emails it had before (empty for a new household), whether it was there]
      */
     public static function save(array $data, \stdClass $event, \stdClass $centre, string $lang): array {
         global $DB;
@@ -167,6 +174,12 @@ class signup {
         $channel = events::CHANNEL[$event->kind] ?? 'openday';
         $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],
             'incentre' => ($data['incentre'] ?? '') === 'yes'] + $place);
+        $existed = $householdid !== null;
+        $before = [];
+        if ($existed) {
+            $known = households::full(households::get($householdid, $centre->id));
+            $before = array_values(array_filter(array_map(fn($a) => (string) $a->email, $known->adults)));
+        }
         if ($householdid === null) {
             $householdid = households::create($centre->id, $about);
         }
@@ -186,17 +199,28 @@ class signup {
                 households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
             }
         }
-        events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));
+        if (!empty($event->tailored)) {
+            // A visit of its own: what suits them waits for the team to propose the day.
+            visits::request($household, $event, $data['days'] ?? [], $data['periods'] ?? [], $data['people']);
+        } else {
+            events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));
+        }
         $body = get_string('signedup_note', 'local_oksigeniaeguahe', (object) ['event' => $event->name,
             'people' => $data['people']]);
         if ($data['message'] !== '') {
             $body .= "\n\n" . $data['message'];
         }
-        // Whoever writes a question waits for a person to answer it.
-        households::received($household, $channel, $body, $data['message'] !== '');
+        $tailored = !empty($event->tailored);
+        if ($tailored) {
+            $body = get_string('visit_asked_note', 'local_oksigeniaeguahe', (object) ['people' => $data['people'],
+                'when' => visits::suits(visits::pending((int) $household->id), $lang)]) .
+                ($data['message'] !== '' ? "\n\n" . $data['message'] : '');
+        }
+        // Whoever writes a question, or asks for a visit of its own, waits for a person to answer.
+        households::received($household, $channel, $body, $data['message'] !== '' || $tailored);
         $token = households::new_link($household);
         $transaction->allow_commit();
-        return [$household, $token];
+        return [$household, $token, $before, $existed];
     }
 
     /**

@@ -30,7 +30,7 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -81,7 +81,7 @@ class familymail {
      * @param string $kind One of KINDS.
      * @param \stdClass $household
      * @param \stdClass $centre
-     * @param \stdClass $signup A sign-up as households::full() gives them, with its event.
+     * @param \stdClass|null $signup A sign-up as households::full() gives them, with its event; null for a request.
      * @param string $lang
      * @param string|null $token The private link of the family, when it is known (only at the moment it is made).
      * @return array [subject, html, text, images]
@@ -90,7 +90,7 @@ class familymail {
         string $kind,
         \stdClass $household,
         \stdClass $centre,
-        \stdClass $signup,
+        ?\stdClass $signup,
         string $lang,
         ?string $token = null
     ): array {
@@ -110,6 +110,9 @@ class familymail {
             fn($n) => $n !== ''
         ));
         $names = familypage::join($tags, $lang);
+        // A request has no day yet: what suits them stands for it.
+        $signup = $signup ?? (object) ['timestart' => time(), 'timeend' => time(), 'place' => '', 'hosts' => '',
+            'eventid' => 0, 'eventname' => '', 'people' => 0];
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
         $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
         $place = trim(implode(' · ', array_filter([$signup->place ? format_string($signup->place) : '',
@@ -119,7 +122,7 @@ class familymail {
         $host = $hosts[0]->first ?? '';
         $pageurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false) :
             '';
-        $icsurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
+        $icsurl = $token && $signup->eventid ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
             'e' => $signup->eventid]))->out(false) : '';
         $address = trim((string) ($centre->address ?? ''));
         $mapurl = $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
@@ -223,6 +226,19 @@ class familymail {
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'nota' => $str('mail_note_confirm'),
             ];
+        } else if ($kind === 'request') {
+            $pending = visits::pending((int) $household->id);
+            $when = $pending ? visits::suits($pending, $lang) : $str('visit_anyday');
+            $context += [
+                'asunto' => $str('mail_request_subject'),
+                'preencabezado' => $str('mail_request_lead', $when),
+                'entradilla' => s($str('mail_request_lead', $when)),
+                'entradilla_texto' => $str('mail_request_lead', $when),
+                'aviso' => ['titulo' => $str('mail_saved_title_request'), 'texto' => $str('mail_saved_text')],
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                    'url_texto' => $pageurl] : null,
+                'nota' => $str('mail_note_confirm'),
+            ];
         } else if ($kind === 'reminder') {
             $context['titular'] = $str($tags ? 'mail_tomorrow' : 'mail_tomorrow_nochild');
             $a = (object) ['date' => $plain, 'hour' => $parts['hour'], 'host' => s($host)];
@@ -289,21 +305,23 @@ class familymail {
      * @param string $kind
      * @param \stdClass $household
      * @param \stdClass $centre
-     * @param \stdClass $signup
+     * @param \stdClass|null $signup Null for a request.
      * @param string $lang
      * @param string|null $token
+     * @param string|null $to Another address of the family, instead of the first one.
      * @return bool Whether it was sent.
      */
     public static function send(
         string $kind,
         \stdClass $household,
         \stdClass $centre,
-        \stdClass $signup,
+        ?\stdClass $signup,
         string $lang,
-        ?string $token = null
+        ?string $token = null,
+        ?string $to = null
     ): bool {
-        $email = '';
-        foreach (households::full($household)->adults as $adult) {
+        $email = (string) $to;
+        foreach ($to === null ? households::full($household)->adults : [] as $adult) {
             $email = $email ?: (string) $adult->email;
         }
         if ($email === '') {

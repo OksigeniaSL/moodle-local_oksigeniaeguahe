@@ -35,11 +35,11 @@
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
         "pub_your_turn": "su turno", "pub_add_calendar": "Añadir a mi calendario", "mapurl": "#",
-        "pub_how_get": "Cómo llegar", "others": [], "pub_band_next": "Lo siguiente", "nextline": "",
+        "pub_how_get": "Cómo llegar", "others": [], "pub_band_next": "Lo siguiente", "bandnext": "Lo siguiente", "nextline": "",
         "novisit": "", "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000",
         "writeus": "Escribirnos", "pub_receives": "Quién los recibe", "pub_receives_sub": "Son las personas…",
         "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
-            "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.",
+            "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.", "receivespending": "",
         "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría",
         "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
@@ -93,8 +93,8 @@
 </section>
 {{/hasnext}}
 {{^hasnext}}
-<section class="banda" aria-label="{{pub_band_next}}">
-    <p class="etiqueta">{{pub_band_next}}</p>
+<section class="banda" aria-label="{{bandnext}}">
+    <p class="etiqueta">{{bandnext}}</p>
     <p class="siguiente">{{nextline}}</p>
     <div class="detalles">
         <p>{{novisit}}</p>
@@ -128,7 +128,7 @@
 {{^hashosts}}
 <section class="seccion">
     <h2>{{pub_receives}}</h2>
-    <p class="equipo">{{pub_receives_team}}</p>
+    <p class="equipo">{{#receivespending}}{{receivespending}}{{/receivespending}}{{^receivespending}}{{pub_receives_team}}{{/receivespending}}</p>
 </section>
 {{/hashosts}}
 

@@ -61,7 +61,7 @@ class household_form extends \moodleform {
             ));
             $eventoptions = [0 => get_string('form_noevent', $c)];
             foreach (events::for_centre((int) $centre->id) as $event) {
-                if ($event->timeend >= time() - DAYSECS) {
+                if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
                     $eventoptions[$event->id] = format_string($event->name) . ' · ' .
                         userdate((int) $event->timestart, get_string('strftimedatetimeshort', 'langconfig'));
                 }

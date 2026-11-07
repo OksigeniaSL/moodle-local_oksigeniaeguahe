@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\visits;
 
 require_login(null, false);
 
@@ -95,6 +96,19 @@ foreach (centres::offers((int) $centre->id, true) as $offer) {
     ];
 }
 
+// The visits this person of the team guides or receives in the days to come.
+$mine = [];
+foreach (array_slice(visits::mine((int) $centre->id, (int) $USER->id), 0, 8) as $event) {
+    $family = $event->householdid ? households::get((int) $event->householdid, (int) $centre->id) : null;
+    $mine[] = [
+        'when' => userdate((int) $event->timestart, get_string('strftimedaydatetime', 'langconfig')),
+        'name' => format_string($event->name),
+        'family' => $family ? staff::adult_names(households::full($family)->adults) : '',
+        'url' => $family ? (new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
+            (new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
+    ];
+}
+
 $waiting = households::waiting_count((int) $centre->id);
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_oksigeniaeguahe/inbox', [
@@ -108,6 +122,8 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/inbox', [
     'canact' => centres::can_act((int) $USER->id),
     'rows' => $rows,
     'hasrows' => (bool) $rows,
+    'mine' => $mine,
+    'hasmine' => (bool) $mine,
     'offers' => $offers,
     'hasoffers' => (bool) $offers,
     'settingsurl' => has_capability('local/oksigeniaeguahe:manage', context_system::instance()) ?

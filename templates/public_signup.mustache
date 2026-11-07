@@ -45,6 +45,8 @@
         "adults": [{"index": 0, "hidden": false, "fields": [{"name": "a0first", "label": "Nombre", "value": "",
             "type": "text", "autocomplete": "given-name", "inputmode": "", "error": "", "invalid": false}]}],
         "canaddadult": true, "pub_another_adult": "Añadir a otro adulto",
+        "tailored": false, "days": [], "periods": [], "pub_when_suits": "¿Cuándo les viene bien?", "pub_when_suits_hint": "",
+        "pub_tailored_title": "Cuando les venga bien", "pub_tailored_lead": "",
         "hasslots": true, "pub_slot": "Elijan su turno", "sloterror": "",
         "slots": [{"id": 3, "when": "10:00–11:00", "left": "quedan 8 sitios", "disabled": false, "checked": false}],
         "isother": false, "pub_incentre": "¿Ya tienen a alguien en el centro?", "pub_incentre_yes": "Sí",
@@ -96,8 +98,14 @@
 
 <div class="inscripcion">
     <aside class="resumen-acto">
+        {{#tailored}}
+        <p class="cuando"><span>{{pub_tailored_title}}</span></p>
+        <p class="entradilla">{{pub_tailored_lead}}</p>
+        {{/tailored}}
+        {{^tailored}}
         <p class="cuando"><span>{{weekday}}</span>{{daymonth}}</p>
         <p class="entradilla">{{hours}}{{#place}} · {{place}}{{/place}}{{#address}}, {{address}}{{/address}}.</p>
+        {{/tailored}}
         {{#welcome}}<p class="muted">{{welcome}}</p>{{/welcome}}
         {{#hashosts}}
         <div class="caras-mini">
@@ -150,6 +158,19 @@
             {{/adults}}
             {{#canaddadult}}<button type="button" class="anadir" data-add="adulto">{{{i.plus}}}{{pub_another_adult}}</button>{{/canaddadult}}
         </fieldset>
+
+        {{#tailored}}
+        <fieldset id="when">
+            <legend>{{pub_when_suits}}</legend>
+            <p class="ayuda">{{pub_when_suits_hint}}</p>
+            <div class="fichas">
+                {{#days}}<label class="ficha"><input type="checkbox" name="day[{{value}}]" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{name}}</label>{{/days}}
+            </div>
+            <div class="fichas">
+                {{#periods}}<label class="ficha"><input type="checkbox" name="period[{{value}}]" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{name}}</label>{{/periods}}
+            </div>
+        </fieldset>
+        {{/tailored}}
 
         {{#hasslots}}
         <fieldset id="slot"{{#sloterror}} class="mal" aria-describedby="slot-error"{{/sloterror}}>

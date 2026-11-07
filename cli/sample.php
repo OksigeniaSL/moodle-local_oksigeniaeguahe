@@ -33,6 +33,7 @@ require_once($CFG->libdir . '/clilib.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\visits;
 
 [$options] = cli_get_params(['member' => 'admin', 'help' => false], ['h' => 'help']);
 if ($options['help']) {
@@ -63,6 +64,9 @@ foreach ([['Infantil 3 años', 25], ['1.º de Primaria', 4], ['1.º de ESO', 6],
 $user = $DB->get_record('user', ['username' => $options['member'], 'deleted' => 0]);
 if ($user) {
     centres::add_member($centreid, (int) $user->id);
+    // Who receives the families: they see this person on their page and in their visit.
+    $DB->set_field(centres::MEMBERS, 'public', 1, ['centreid' => $centreid, 'userid' => $user->id]);
+    $DB->set_field(centres::MEMBERS, 'rolename', 'Admisiones', ['centreid' => $centreid, 'userid' => $user->id]);
 }
 $start = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j') + 14, 10, 0);
 $eventid = events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jornada de puertas abiertas',
@@ -81,6 +85,10 @@ events::save($centreid, (object) ['kind' => 'visit', 'name' => 'Conócenos', 'pl
 events::save($centreid, (object) ['kind' => 'other', 'name' => 'Charla para familias', 'place' => 'Salón de actos',
     'timestart' => $start + 7 * DAYSECS + 8 * HOURSECS, 'timeend' => $start + 7 * DAYSECS + 10 * HOURSECS,
     'capacity' => 200, 'open' => 1]);
+// Visits of their own: families ask for one any day of the next three months.
+$askingid = events::save($centreid, (object) ['kind' => 'visit', 'name' => 'Pidan su visita', 'place' => 'Recepción',
+    'timestart' => $now, 'timeend' => $now + 90 * DAYSECS, 'capacity' => 0, 'open' => 1, 'tailored' => 1]);
+$asking = events::get($askingid, $centreid);
 
 $families = [
     [['Lucas', 'Pérez Gil', '+34600111222', 'lucas.perez@example.com'], [['Daniel', 0]], 'openday', 'family',
@@ -106,6 +114,11 @@ foreach ($families as [$adult, $children, $channel, $heard, $message, $hoursago]
     if ($channel === 'openday') {
         events::sign_up($event, (int) $household->id, 3);
     }
+    if ($channel === 'webform') {
+        // Asked for a visit of its own: on Tuesdays or Thursdays, in the afternoon.
+        visits::request($household, $asking, [2, 4], ['afternoon'], 2);
+    }
 }
 echo "Centre {$centreid}: " . (new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false) . "\n";
 echo "Open day: " . events::url($event)->out(false) . "\n";
+echo "Ask for a visit: " . events::url($asking)->out(false) . "\n";

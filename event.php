@@ -27,8 +27,10 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\poster;
 use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\visits;
 
 $id = required_param('id', PARAM_INT);
 $poster = optional_param('poster', 0, PARAM_BOOL);
@@ -99,12 +101,47 @@ foreach ($groups as $key => $group) {
         'capacity' => $group['capacity']]) : '';
 }
 
+// An event of asking: what each family asked for, and the visit the team gave it.
+$requests = [];
+$datetime = get_string('strftimedaydatetime', 'langconfig');
+foreach (!empty($event->tailored) ? visits::requests($event) : [] as $request) {
+    $visit = $request->visit;
+    $guide = $visit && $visit->hosts ? (centres::hosts((int) $centre->id, [(int) $visit->hosts])[0] ?? null) : null;
+    $householdurl = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $request->householdid]);
+    $visiturl = $visit ? new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $visit->id]) : null;
+    $requests[] = [
+        'names' => staff::adult_names($request->household->adults),
+        'url' => $householdurl->out(false),
+        'suits' => visits::suits($request, current_language()),
+        'people' => (int) $request->people,
+        'pending' => $request->status === 'pending',
+        'waited' => staff::waited((int) $request->timecreated),
+        'visit' => $visit ? userdate((int) $visit->timestart, $datetime) . ($guide ? ' · ' . $guide->name : '') : '',
+        'visiturl' => $visiturl ? $visiturl->out(false) : '',
+    ];
+}
+$family = $event->householdid ? households::get((int) $event->householdid, (int) $centre->id) : null;
+$familyurl = $family ? new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]) : null;
+if (!empty($event->tailored)) {
+    $kind = get_string('visit_asking', $c);
+    $when = get_string('visit_until', $c, userdate((int) $event->timeend, get_string('strftimedate', 'langconfig')));
+} else {
+    $kind = get_string($family ? 'visit_own' : 'event_kind_' . $event->kind, $c);
+    $when = userdate((int) $event->timestart, $datetime);
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_oksigeniaeguahe/event', [
+    'tailored' => !empty($event->tailored),
+    'requests' => $requests,
+    'hasrequests' => (bool) $requests,
+    'own' => (bool) $family,
+    'family' => $family ? staff::adult_names(households::full($family)->adults) : '',
+    'familyurl' => $familyurl ? $familyurl->out(false) : '',
     'tabs' => staff::tabs($centre, 'events'),
     'name' => format_string($event->name),
-    'kind' => get_string('event_kind_' . $event->kind, $c),
-    'when' => userdate((int) $event->timestart, get_string('strftimedaydatetime', 'langconfig')),
+    'kind' => $kind,
+    'when' => $when,
     'place' => $event->place ? format_string($event->place) : '',
     'open' => $event->open && $event->timeend >= time(),
     'capacity' => (int) $event->capacity,

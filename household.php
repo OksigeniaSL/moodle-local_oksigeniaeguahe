@@ -27,9 +27,11 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\householdpage;
+use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\visits;
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -101,8 +103,52 @@ if ($action && data_submitted() && confirm_sesskey()) {
             redirect($url);
             break;
         case 'link':
-            // The new link is shown once, to send it to the family; the one before stops working.
-            $newlink = (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household)]))->out(false);
+            // The new link is shown once, to send it to the family; all the ones before stop working.
+            $newlink = (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::renew_links($household)]))->out(false);
+            break;
+        case 'propose':
+            // A visit of its own: the day, the hour and who guides them; the invitation goes by email if they have one.
+            $date = optional_param('date', '', PARAM_TEXT);
+            $time = optional_param('time', '', PARAM_TEXT);
+            $start = 0;
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $d) && preg_match('/^(\d{1,2}):(\d{2})$/', $time, $t)) {
+                $start = make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], (int) $t[1], (int) $t[2]);
+            }
+            if ($start <= time()) {
+                redirect($url, get_string('visit_err_when', $c), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            $event = visits::propose(
+                $household,
+                $start,
+                optional_param('minutes', 45, PARAM_INT),
+                optional_param('guide', 0, PARAM_INT),
+                optional_param('place', '', PARAM_TEXT),
+                optional_param('people', 2, PARAM_INT)
+            );
+            $token = households::new_link($household, 'invitation');
+            $lang = $household->lang ?: $centre->lang;
+            $signup = familymail::signup($household, (int) $event->id);
+            $sent = false;
+            ob_start();
+            try {
+                $sent = $signup && familymail::send('invitation', $household, $centre, $signup, $lang, $token);
+            } catch (\Throwable $e) {
+                $sent = false;
+            } finally {
+                ob_end_clean();
+            }
+            $host = centres::hosts((int) $centre->id, array_filter([(int) $event->hosts]))[0] ?? null;
+            $note = get_string('visit_proposed_note', $c, (object) [
+                'when' => userdate($start, get_string('strftimedaydatetime', 'langconfig')),
+                'guide' => $host ? $host->name : get_string('visit_guide_none', $c),
+            ]);
+            households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', $note);
+            if ($sent) {
+                redirect($url, get_string('visit_proposed_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
+            }
+            // Without an email, the team tells them, with the link of their page shown once.
+            \core\notification::warning(get_string('visit_proposed_nomail', $c));
+            $newlink = (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token]))->out(false);
             break;
         case 'erase':
             households::erase($household);

@@ -34,7 +34,8 @@
             "when": "21/11/26, 10:12", "body": "¿Hay comedor?"}],
         "hasevents": true, "events": [{"name": "Jornada", "when": "21/11/26, 10:00", "people": 3, "came": true}],
         "channels": [{"value": "phone", "name": "Teléfono"}], "action": "#", "editurl": "#", "sesskey": "abc",
-        "newlink": "", "eraseurl": "#", "canact": true, "incentre": false
+        "newlink": "", "eraseurl": "#", "canact": true, "incentre": false, "asked": "", "guides": [],
+        "hasguides": false, "proposedate": "2026-11-21", "proposeplace": "", "proposepeople": 2
     }
 }}
 <div class="eguahe eguahe-household">
@@ -104,6 +105,32 @@
             {{/hasevents}}
 
             {{#canact}}
+            <section class="eguahe-box eguahe-visit">
+                <h3>{{#str}}visit_section, local_oksigeniaeguahe{{/str}}</h3>
+                {{#asked}}<p><strong>{{asked}}</strong></p>{{/asked}}
+                <form method="post" action="{{action}}" class="eguahe-propose">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    <input type="hidden" name="action" value="propose">
+                    <div class="eguahe-inline">
+                        <label>{{#str}}visit_date, local_oksigeniaeguahe{{/str}} <input class="form-control" type="date" name="date" value="{{proposedate}}" required></label>
+                        <label>{{#str}}visit_time, local_oksigeniaeguahe{{/str}} <input class="form-control" type="time" name="time" value="10:00" step="300" required></label>
+                        <label>{{#str}}visit_minutes, local_oksigeniaeguahe{{/str}}
+                            <select class="form-select custom-select" name="minutes"><option value="30">30</option><option value="45" selected>45</option><option value="60">60</option><option value="90">90</option></select>
+                        </label>
+                        <label>{{#str}}visit_people, local_oksigeniaeguahe{{/str}} <input class="form-control eguahe-money" type="number" name="people" min="1" max="20" value="{{proposepeople}}"></label>
+                    </div>
+                    <label>{{#str}}visit_guide, local_oksigeniaeguahe{{/str}}
+                        <select class="form-select custom-select" name="guide">
+                            {{#guides}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/guides}}
+                            <option value="0">{{#str}}visit_guide_none, local_oksigeniaeguahe{{/str}}</option>
+                        </select>
+                    </label>
+                    {{^hasguides}}<p class="eguahe-quiet">{{#str}}visit_guides_help, local_oksigeniaeguahe{{/str}}</p>{{/hasguides}}
+                    <label>{{#str}}visit_place, local_oksigeniaeguahe{{/str}} <input class="form-control" type="text" name="place" value="{{proposeplace}}" maxlength="255"></label>
+                    <button type="submit" class="btn btn-primary">{{#str}}visit_propose_go, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+            </section>
+
             <section class="eguahe-box">
                 <h3>{{#str}}familylink, local_oksigeniaeguahe{{/str}}</h3>
                 {{#newlink}}
