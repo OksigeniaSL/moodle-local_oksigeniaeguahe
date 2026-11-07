@@ -320,7 +320,7 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
 }
 
 .eguahe-import .eguahe-fields input[name^="label"] {
-    min-width: min(22rem, 80vw);
+    min-width: 22rem;
 }
 
 .eguahe-import .eguahe-sheet-out {
@@ -352,5 +352,11 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
 @media (max-width: 576px) {
     .eguahe-fates {
         grid-template-columns: 1fr;
+    }
+
+    .eguahe-import .eguahe-fields label,
+    .eguahe-import .eguahe-fields input[name^="label"] {
+        min-width: 0;
+        width: 100%;
     }
 }
