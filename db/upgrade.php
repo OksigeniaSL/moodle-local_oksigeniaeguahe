@@ -459,5 +459,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110930, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110940) {
+        // Telegram and WhatsApp with Marandu: what each centre does with them.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('messaging', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'notices', 'logoplate');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110940, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

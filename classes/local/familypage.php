@@ -158,6 +158,8 @@ class familypage {
                 ['label' => format_string($answer->label), 'value' => (string) $answer->value];
         }
         $answers = array_values($answers);
+        // The notices on the phone too, when the site has Marandu and the centre wants them.
+        [$joinlinks, $joined] = messaging::join($household, $centre);
         $childrows = [];
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
@@ -216,6 +218,12 @@ class familypage {
             'receivespending' => $pending ? publiclang::str('pub_receives_pending', $lang) : '',
             'hashosts' => (bool) $hosts,
             'hosts' => self::hosts($hosts),
+            'hasjoin' => (bool) $joinlinks,
+            'joinlinks' => $joinlinks,
+            'joined' => $joined,
+            'jointitle' => publiclang::str('pub_join_title', $lang),
+            'joinlead' => publiclang::str('pub_join_lead', $lang),
+            'joinedline' => $joined ? publiclang::str('pub_joined', $lang, messaging::optout_word()) : '',
             'answers' => $answers,
             'hasanswers' => (bool) $answers,
             'answerstitle' => publiclang::str('pub_answers', $lang),

@@ -131,6 +131,7 @@ class householdpage {
             'children' => $children,
             'history' => $history,
             // The first email of the family: where an answer written here goes.
+            'replyphone' => messaging::joined($household, $centre),
             'replyto' => (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? ''),
             'hashistory' => (bool) $history,
             'events' => $events,

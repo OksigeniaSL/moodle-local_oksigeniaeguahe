@@ -40,7 +40,8 @@
         "writeus": "Escribirnos", "pub_receives": "Quién los recibe", "pub_receives_sub": "Son las personas…",
         "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
             "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.", "receivespending": "",
-        "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [],
+        "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [], "hasjoin": false, "joinlinks": [], "joined": false,
+        "jointitle": "", "joinlead": "", "joinedline": "",
         "answerstitle": "",
         "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
@@ -149,6 +150,21 @@
             </dl>
             {{#writeby}}<p class="muted escribimos">{{writeby}}</p>{{/writeby}}
         </div>
+        {{#hasjoin}}
+        <div>
+            <h3>{{jointitle}}</h3>
+            <p class="muted">{{joinlead}}</p>
+            <div class="acciones">
+                {{#joinlinks}}<a class="boton secundario" href="{{url}}" rel="noopener noreferrer">{{name}}</a>{{/joinlinks}}
+            </div>
+        </div>
+        {{/hasjoin}}
+        {{#joined}}
+        <div>
+            <h3>{{jointitle}}</h3>
+            <p class="muted">{{joinedline}}</p>
+        </div>
+        {{/joined}}
         {{#hasanswers}}
         <div>
             <h3>{{answerstitle}}</h3>

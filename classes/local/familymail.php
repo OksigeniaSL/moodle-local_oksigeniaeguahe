@@ -350,6 +350,10 @@ class familymail {
         ?string $to = null,
         string $text = ''
     ): bool {
+        if ($kind !== 'reply') {
+            // The same notice on the phones the family joined with, when the site has Marandu.
+            messaging::notify($kind, $household, $centre, $signup, $lang);
+        }
         $email = (string) $to;
         foreach ($to === null ? households::full($household)->adults : [] as $adult) {
             $email = $email ?: (string) $adult->email;

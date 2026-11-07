@@ -29,4 +29,9 @@ $callbacks = [
         'hook' => \core\hook\navigation\primary_extend::class,
         'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'primary_extend'],
     ],
+    [
+        // What a family writes on Telegram or WhatsApp, when the site has Oksigenia Marandu.
+        'hook' => '\local_oksigeniamarandu\hook\message_received',
+        'callback' => '\local_oksigeniaeguahe\local\messaging::message_received',
+    ],
 ];

@@ -67,6 +67,16 @@ class centre_form extends \moodleform {
         $mform->addElement('textarea', 'welcome', get_string('centre_welcome', $c), ['rows' => 2, 'cols' => 60]);
         $mform->setType('welcome', PARAM_TEXT);
         $mform->addHelpButton('welcome', 'centre_welcome', $c);
+        if (\local_oksigeniaeguahe\local\messaging::available()) {
+            // Only when the site has Marandu: without it, there is nothing to choose.
+            $modes = [];
+            foreach (\local_oksigeniaeguahe\local\messaging::MODES as $mode) {
+                $modes[$mode] = get_string('centre_messaging_' . $mode, $c);
+            }
+            $mform->addElement('select', 'messaging', get_string('centre_messaging', $c), $modes);
+            $mform->setDefault('messaging', 'notices');
+            $mform->addHelpButton('messaging', 'centre_messaging', $c);
+        }
         if (!empty($this->_customdata['hostsurl'])) {
             $mform->addElement(
                 'static',

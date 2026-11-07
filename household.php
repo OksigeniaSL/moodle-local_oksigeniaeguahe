@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\householdpage;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
+use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\staff;
 use local_oksigeniaeguahe\local\visits;
 
@@ -102,6 +103,18 @@ if ($action && data_submitted() && confirm_sesskey()) {
             }
             households::answered($household, (int) $USER->id, 'email', $body);
             redirect($url, get_string('reply_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
+            break;
+        case 'replyphone':
+            // The answer on the phones the family joined with, Telegram or WhatsApp.
+            if ($body === '') {
+                redirect($url, get_string('reply_empty', $c), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            $sentby = messaging::reply($household, $centre, $body);
+            if ($sentby === null) {
+                redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            households::answered($household, (int) $USER->id, $sentby, $body);
+            redirect($url, get_string('reply_phone_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'answer':
             households::answered($household, (int) $USER->id, $channel, $body);

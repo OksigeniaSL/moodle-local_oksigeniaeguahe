@@ -34,7 +34,7 @@
             "when": "21/11/26, 10:12", "body": "¿Hay comedor?"}],
         "hasevents": true, "events": [{"name": "Jornada", "when": "21/11/26, 10:00", "people": 3, "came": true}],
         "channels": [{"value": "phone", "name": "Teléfono"}], "action": "#", "editurl": "#", "sesskey": "abc",
-        "newlink": "", "replyto": "marta@example.com", "eraseurl": "#", "canact": true, "incentre": false, "asked": "", "guides": [],
+        "newlink": "", "replyto": "marta@example.com", "replyphone": false, "eraseurl": "#", "canact": true, "incentre": false, "asked": "", "guides": [],
         "hasguides": false, "proposedate": "2026-11-21", "proposeplace": "", "proposepeople": 2
     }
 }}
@@ -166,6 +166,7 @@
                     </div>
                     <div class="eguahe-inline">
                         {{#replyto}}<button type="submit" name="action" value="reply" class="btn btn-primary">{{#str}}reply_send, local_oksigeniaeguahe, {{replyto}}{{/str}}</button>{{/replyto}}
+                        {{#replyphone}}<button type="submit" name="action" value="replyphone" class="btn btn-primary">{{#str}}reply_phone, local_oksigeniaeguahe{{/str}}</button>{{/replyphone}}
                         <button type="submit" name="action" value="answer" class="btn {{#replyto}}btn-secondary{{/replyto}}{{^replyto}}btn-primary{{/replyto}}">{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
                         <button type="submit" name="action" value="received" class="btn btn-secondary">{{#str}}received_save, local_oksigeniaeguahe{{/str}}</button>
                         <button type="submit" name="action" value="note" class="btn btn-secondary">{{#str}}note_save, local_oksigeniaeguahe{{/str}}</button>

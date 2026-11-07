@@ -52,3 +52,21 @@ function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $ar
     }
     send_stored_file($file, DAYSECS, 0, false, $options);
 }
+
+/**
+ * What admissions can tell a family on the phone, with Oksigenia Marandu: their texts are in the language packs.
+ *
+ * @return array By notice: values for its examples and how many a week, to estimate the cost.
+ */
+function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
+    return [
+        'visit_confirmed' => ['examples' => ['Los Almendros School', 'Saturday 21 November, 10:00'], 'perweek' => 0.2],
+        'visit_reminder' => ['examples' => ['Los Almendros School', 'Saturday 21 November, 10:00'], 'perweek' => 0.2],
+        'visit_invitation' => ['examples' => ['Los Almendros School', 'Tuesday 10 November, 10:30', 'Lucía Medina'],
+            'perweek' => 0.1],
+        'request_received' => ['examples' => ['Los Almendros School'], 'perweek' => 0.1],
+        'message_received' => ['examples' => ['Los Almendros School'], 'perweek' => 0.1],
+        'answer_waiting' => ['examples' => ['Los Almendros School', 'Yes, there is a canteen with its own kitchen.'],
+            'perweek' => 0.2],
+    ];
+}
