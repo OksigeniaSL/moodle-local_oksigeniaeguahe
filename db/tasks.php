@@ -26,6 +26,15 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
+        'classname' => '\local_oksigeniaeguahe\task\fetch_opendata',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '4',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '1',
+    ],
+    [
         'classname' => '\local_oksigeniaeguahe\task\erase_inactive',
         'blocking' => 0,
         'minute' => 'R',

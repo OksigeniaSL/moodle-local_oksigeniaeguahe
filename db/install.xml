@@ -347,5 +347,42 @@
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_gradeage" COMMENT="The age at which each course of a centre starts, and whether it is forecast: what turns births into the students of a course">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="grade" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="As the centre names it"/>
+        <FIELD NAME="age" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Age turned in the calendar year the school year starts"/>
+        <FIELD NAME="forecast" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the forecast is made for it"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centregrade" UNIQUE="true" FIELDS="centreid, grade"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_population" COMMENT="Open data of the area of a centre: births by municipality and year, and children by age; always aggregate">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="istac or csv"/>
+        <FIELD NAME="importid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The import of a CSV of the centre; 0 for an open source"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="births (by year of birth) or age (people of an age at the start of a year)"/>
+        <FIELD NAME="municipality" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Official code"/>
+        <FIELD NAME="year" TYPE="int" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="Year of birth, or the year on whose 1 January the ages are counted"/>
+        <FIELD NAME="age" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="-1" SEQUENCE="false" COMMENT="-1 for births"/>
+        <FIELD NAME="people" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timefetched" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrekind" UNIQUE="false" FIELDS="centreid, kind, year"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

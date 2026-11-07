@@ -41,6 +41,7 @@ class import_form extends \moodleform {
             'contacts' => get_string('import_kind_contacts', $c),
             'students' => get_string('import_kind_students', $c),
             'totals' => get_string('import_kind_totals', $c),
+            'population' => get_string('import_kind_population', $c),
         ]);
         $mform->addElement('text', 'label', get_string('import_label', $c), ['size' => 20]);
         $mform->setType('label', PARAM_TEXT);

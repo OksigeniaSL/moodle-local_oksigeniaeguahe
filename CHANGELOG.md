@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 (2026-11-07)
+
+- **The forecast** («Forecast» tab): for each course the centre forecasts, its share of the children born in its area
+  in the years it has, and the students it can expect in the next three school years as a range (lowest and highest
+  share, and the median), with its places as the ceiling. Aggregate always, never of a family. Where births are not
+  published yet, the children of that age from the population by age; where neither is, it says so.
+- **The reach by municipality**: the students of the centre against the children of the ages of its courses who live
+  in each municipality, to see where it can grow and where to aim adverts by area.
+- **Open data of the area**: from the Canary Islands Statistics Institute (ISTAC), births by municipality and children
+  by age, fetched only when the centre asks for it and then once a week, with its source cited; anywhere else, the
+  centre uploads the same numbers as a CSV.
+- The age at which each course starts, suggested from its name and set by the centre.
+
 ## 0.3.0 (2026-11-07)
 
 - **What already happened, imported**: the contacts of a past campaign, the students of a school year and the totals

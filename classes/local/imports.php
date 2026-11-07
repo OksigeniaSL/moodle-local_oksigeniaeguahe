@@ -42,6 +42,9 @@ class imports {
         'totals' => ['table' => 'local_oksigeniaeguahe_enrolcount',
             'required' => ['school_year', 'grade', 'count'],
             'optional' => ['reference_date']],
+        'population' => ['table' => 'local_oksigeniaeguahe_population',
+            'required' => ['municipality', 'year', 'kind', 'people'],
+            'optional' => ['age']],
     ];
 
     /** @var array The channels of the import format, as Eguahe names them. */
@@ -209,6 +212,22 @@ class imports {
                         'groupname' => $short('group', 100), 'timein' => $in, 'timeout' => (int) $outdate,
                         'outreason' => $short('out_reason', 255), 'municipality' => $short('municipality', 20),
                         'locality' => $short('locality', 255)];
+                }
+            } else if (!$error && $kind === 'population') {
+                if ($get('municipality') === '' || !preg_match('/^\d{4}$/', $get('year'))) {
+                    $error = get_string('import_err_value', $c, $get('municipality') === '' ? 'municipality' : 'year');
+                } else if (!in_array($get('kind'), ['births', 'age'], true)) {
+                    $error = get_string('import_err_value', $c, 'kind');
+                } else if (
+                    !preg_match('/^\d+$/', $get('people')) || ($get('kind') === 'age' &&
+                        !preg_match('/^\d{1,2}$/', $get('age')))
+                ) {
+                    $error = get_string('import_err_value', $c, $get('kind') === 'age' ? 'age' : 'people');
+                } else {
+                    $out[] = (object) ['source' => 'csv', 'kind' => $get('kind'),
+                        'municipality' => \core_text::substr($get('municipality'), 0, 20), 'year' => (int) $get('year'),
+                        'age' => $get('kind') === 'age' ? (int) $get('age') : -1, 'people' => (int) $get('people'),
+                        'timefetched' => time()];
                 }
             } else if (!$error) {
                 $reference = self::date($get('reference_date'));

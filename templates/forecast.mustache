@@ -1,0 +1,121 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/forecast
+
+    The forecast of a centre: the open data of its area and their source; its courses with the age they start at; each
+    course forecast with the years it has (students, cohort, share) and the years ahead in ranges with the places; and
+    its reach in each municipality.
+
+    Example context (json):
+    {
+        "tabs": [], "canact": true, "action": "#", "sesskey": "abc", "zone": 14, "covered": 14, "istac": true,
+        "hassources": true, "sources": [{"name": "ISTAC", "numbers": 420, "places": 14, "when": "07/11/26, 18:00"}],
+        "hasgrades": true, "grades": [{"i": 0, "grade": "Infantil 3 años", "age": 3, "forecast": true, "suggested": false}],
+        "hascourses": true,
+        "courses": [{"grade": "Infantil 3 años", "age": 3,
+            "past": [{"year": "2025-26", "students": 93, "cohort": "4.120", "share": "2,3"}],
+            "ahead": [{"year": "2027-28", "cohort": "3.900", "fromage": false, "hasrange": true, "low": 84, "mid": 89,
+                "high": 95, "places": 0, "over": false}]}],
+        "hasreach": true, "reach": [{"code": "38023", "name": "La Laguna", "students": 913, "children": 25000,
+            "sharetext": "3,7"}], "importurl": "#"
+    }
+}}
+<div class="eguahe eguahe-forecast">
+    {{> local_oksigeniaeguahe/tabs }}
+
+    <section class="eguahe-box">
+        <h3>{{#str}}forecast_data, local_oksigeniaeguahe{{/str}}</h3>
+        <p>{{#str}}forecast_zone, local_oksigeniaeguahe, { "zone": {{zone}}, "covered": {{covered}} }{{/str}}</p>
+        {{#hassources}}
+        <ul class="eguahe-plain">{{#sources}}<li>{{name}} · {{#str}}forecast_source_line, local_oksigeniaeguahe, { "numbers": {{numbers}}, "places": {{places}}, "when": "{{when}}" }{{/str}}</li>{{/sources}}</ul>
+        {{/hassources}}
+        {{#canact}}
+        <form method="post" action="{{action}}" class="eguahe-inline">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="fetch">
+            <button type="submit" class="btn btn-primary">{{#str}}forecast_fetch, local_oksigeniaeguahe{{/str}}</button>
+            <a href="{{importurl}}">{{#str}}forecast_csv, local_oksigeniaeguahe{{/str}}</a>
+        </form>
+        {{/canact}}
+        {{#istac}}<p class="eguahe-quiet">{{#str}}forecast_istac_credit, local_oksigeniaeguahe{{/str}}</p>{{/istac}}
+    </section>
+
+    {{#hasgrades}}
+    <section class="eguahe-box">
+        <h3>{{#str}}forecast_grades, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}forecast_grades_help, local_oksigeniaeguahe{{/str}}</p>
+        <form method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="ages">
+            <table class="table eguahe-table">
+                <thead><tr>
+                    <th scope="col">{{#str}}offer, local_oksigeniaeguahe{{/str}}</th>
+                    <th scope="col" class="eguahe-num">{{#str}}forecast_age, local_oksigeniaeguahe{{/str}}</th>
+                    <th scope="col">{{#str}}forecast_forecast, local_oksigeniaeguahe{{/str}}</th>
+                </tr></thead>
+                <tbody>
+                {{#grades}}
+                    <tr>
+                        <th scope="row">{{grade}}<input type="hidden" name="grade[{{i}}]" value="{{grade}}">{{#suggested}} <span class="eguahe-quiet">{{#str}}forecast_suggested, local_oksigeniaeguahe{{/str}}</span>{{/suggested}}</th>
+                        <td class="eguahe-num"><label class="visually-hidden" for="age-{{i}}">{{#str}}forecast_age, local_oksigeniaeguahe{{/str}} · {{grade}}</label><input class="form-control eguahe-money" id="age-{{i}}" type="number" min="0" max="30" name="age[{{i}}]" value="{{age}}"{{^canact}} disabled{{/canact}}></td>
+                        <td><label><input type="checkbox" name="forecast[{{i}}]" value="1"{{#forecast}} checked{{/forecast}}{{^canact}} disabled{{/canact}}> <span class="visually-hidden">{{#str}}forecast_forecast, local_oksigeniaeguahe{{/str}} · {{grade}}</span></label></td>
+                    </tr>
+                {{/grades}}
+                </tbody>
+            </table>
+            {{#canact}}<button type="submit" class="btn btn-secondary">{{#str}}savechanges{{/str}}</button>{{/canact}}
+        </form>
+    </section>
+    {{/hasgrades}}
+
+    {{#hascourses}}
+    <section class="eguahe-box">
+        <h3>{{#str}}forecast_title, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}forecast_def, local_oksigeniaeguahe{{/str}}</p>
+        {{#courses}}
+        <h4>{{grade}} <span class="eguahe-quiet">{{#str}}forecast_agen, local_oksigeniaeguahe, {{age}}{{/str}}</span></h4>
+        <div class="eguahe-columns">
+            <table class="table eguahe-table">
+                <thead><tr><th scope="col">{{#str}}forecast_year, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}metrics_enrolled, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_cohort, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_share, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>{{#past}}<tr><th scope="row">{{year}}</th><td class="eguahe-num">{{students}}</td><td class="eguahe-num">{{cohort}}</td><td class="eguahe-num">{{share}} %</td></tr>{{/past}}</tbody>
+            </table>
+            <table class="table eguahe-table">
+                <thead><tr><th scope="col">{{#str}}forecast_year, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_cohort, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_expected, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>{{#ahead}}<tr>
+                    <th scope="row">{{year}}</th>
+                    <td class="eguahe-num">{{cohort}}{{#fromage}}*{{/fromage}}</td>
+                    <td class="eguahe-num">{{#hasrange}}<strong>{{low}}–{{high}}</strong> <span class="eguahe-quiet">({{mid}})</span>{{#over}} · {{#str}}forecast_places, local_oksigeniaeguahe, {{places}}{{/str}}{{/over}}{{/hasrange}}{{^hasrange}}<span class="eguahe-quiet">{{#str}}forecast_nodata, local_oksigeniaeguahe{{/str}}</span>{{/hasrange}}</td>
+                </tr>{{/ahead}}</tbody>
+            </table>
+        </div>
+        {{/courses}}
+        <p class="eguahe-quiet">{{#str}}forecast_fromage, local_oksigeniaeguahe{{/str}}</p>
+    </section>
+    {{/hascourses}}
+
+    {{#hasreach}}
+    <section class="eguahe-box">
+        <h3>{{#str}}forecast_reach, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="eguahe-quiet">{{#str}}forecast_reach_def, local_oksigeniaeguahe{{/str}}</p>
+        <table class="table eguahe-table">
+            <thead><tr><th scope="col">{{#str}}municipality, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_students, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_children, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_reachcol, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+            <tbody>{{#reach}}<tr><th scope="row">{{name}} <span class="eguahe-quiet">{{code}}</span></th><td class="eguahe-num">{{students}}</td><td class="eguahe-num">{{children}}</td><td class="eguahe-num">{{sharetext}} %</td></tr>{{/reach}}</tbody>
+        </table>
+    </section>
+    {{/hasreach}}
+</div>

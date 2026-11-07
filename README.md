@@ -42,6 +42,11 @@ households are waiting for an answer, how many places each course still has, and
 - **Privacy**: families are not Moodle users; they take and erase their data from their page. What the plugin keeps
   about the team goes through the Privacy API of Moodle.
 
+- **The forecast**: for each entry course, the students to expect in the next years as a range, from the share of
+  the children of its area the centre took before, with its places as the ceiling; and its reach in each municipality.
+  The open data comes from the Canary Islands Statistics Institute (ISTAC) when the centre asks for it (the only call
+  outside the site, with its source cited), or from a CSV of the centre anywhere else.
+
 Example data for a demo: `php local/oksigeniaeguahe/cli/sample.php`.
 
 ## Requirements

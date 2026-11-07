@@ -42,6 +42,11 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
 - **Privacidad**: las familias no son usuarios de Moodle; descargan y borran sus datos desde su página. Lo que el
   plugin guarda del equipo va por la API de privacidad de Moodle.
 
+- **La previsión**: por cada curso de entrada, los alumnos que cabe esperar en los próximos años, en rangos, a partir
+  de la cuota de los niños de su zona que el centro tuvo antes y con sus plazas como tope; y su alcance en cada
+  municipio. Los datos abiertos salen del Instituto Canario de Estadística (ISTAC) cuando el centro los pide (la única
+  llamada fuera del sitio, con su fuente citada) o, en cualquier otro sitio, de un CSV del centro.
+
 Datos de ejemplo para una demostración: `php local/oksigeniaeguahe/cli/sample.php`.
 
 ## Requisitos

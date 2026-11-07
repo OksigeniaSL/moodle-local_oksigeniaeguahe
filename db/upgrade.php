@@ -165,5 +165,39 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110721, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110730) {
+        // The forecast: the age at which each course starts, and the open data of the area.
+        $table = new xmldb_table('local_oksigeniaeguahe_gradeage');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('grade', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('age', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('forecast', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('centregrade', XMLDB_INDEX_UNIQUE, ['centreid', 'grade']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_population');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('source', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('importid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('kind', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('municipality', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('year', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('age', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '-1');
+        $table->add_field('people', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timefetched', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('centrekind', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'kind', 'year']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026110730, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
