@@ -117,7 +117,7 @@ class field_form extends \moodleform {
     }
 
     /**
-     * What a question cannot be: without words, asking for health or documents, or with fewer than two options.
+     * What a question cannot be: without words, or with fewer than two options to choose.
      *
      * @param array $data
      * @param array $files
@@ -127,12 +127,6 @@ class field_form extends \moodleform {
         $errors = parent::validation($data, $files);
         $c = 'local_oksigeniaeguahe';
         $lang = $this->_customdata['lang'];
-        foreach (lists::LANGS as $each) {
-            $label = trim((string) ($data['label_' . $each] ?? ''));
-            if ($label !== '' && ($why = forms::forbidden($label))) {
-                $errors['label_' . $each] = get_string('field_forbidden_' . $why, $c);
-            }
-        }
         if (in_array($data['type'] ?? '', forms::WITHOPTIONS, true)) {
             $options = array_filter(array_map('trim', preg_split('/\R/', (string) ($data['options_' . $lang] ?? ''))));
             if (count($options) < 2) {

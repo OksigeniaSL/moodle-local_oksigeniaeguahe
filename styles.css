@@ -479,3 +479,10 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     border-radius: 1.5rem;
     background: var(--bs-body-bg, #fff);
 }
+
+/* The families that move to the area: in the numbers, but apart. */
+.eguahe-table tr.eguahe-apart th,
+.eguahe-table tr.eguahe-apart td {
+    border-top: 2px solid var(--bs-border-color, #dee2e6);
+    font-style: italic;
+}

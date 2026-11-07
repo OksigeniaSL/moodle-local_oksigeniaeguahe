@@ -22,7 +22,7 @@
     cost; who came and went in a school year; the students of the years before.
 
     Example context (json):
-    {
+    {"live": {"hasrows": false, "rows": [], "total": null, "moving": null, "incentre": 0}, 
         "tabs": [], "canact": true, "importurl": "#", "empty": false,
         "response": {"median": 3.5, "hasmedian": true, "answered": 12, "waiting": 2},
         "campaign": {"label": "2025-26", "options": [{"id": 1, "label": "2025-26", "selected": true}],
@@ -58,6 +58,28 @@
             {{#str}}metrics_answered, local_oksigeniaeguahe, {{response.answered}}{{/str}} · {{#str}}metrics_waiting, local_oksigeniaeguahe, {{response.waiting}}{{/str}}
         </p>
         <p class="eguahe-quiet">{{#str}}metrics_now_def, local_oksigeniaeguahe{{/str}}</p>
+        {{#live.hasrows}}
+        <table class="table eguahe-table">
+            <caption>{{#str}}metrics_live, local_oksigeniaeguahe{{/str}}</caption>
+            <thead><tr>
+                <th scope="col">{{#str}}metrics_live_from, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_households, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_visited, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_applied, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_admitted, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_enrolled, local_oksigeniaeguahe{{/str}}</th>
+                <th scope="col" class="eguahe-num">{{#str}}metrics_live_closed, local_oksigeniaeguahe{{/str}}</th>
+            </tr></thead>
+            <tbody>
+                {{#live.rows}}<tr><th scope="row">{{name}}</th><td class="eguahe-num">{{households}}</td><td class="eguahe-num">{{visited}}</td><td class="eguahe-num">{{applied}}</td><td class="eguahe-num">{{admitted}}</td><td class="eguahe-num">{{enrolled}}</td><td class="eguahe-num">{{closed}}</td></tr>{{/live.rows}}
+            </tbody>
+            <tfoot>
+                {{#live.total}}<tr><th scope="row">{{name}}</th><td class="eguahe-num">{{households}}</td><td class="eguahe-num">{{visited}}</td><td class="eguahe-num">{{applied}}</td><td class="eguahe-num">{{admitted}}</td><td class="eguahe-num">{{enrolled}}</td><td class="eguahe-num">{{closed}}</td></tr>{{/live.total}}
+                {{#live.moving}}<tr class="eguahe-apart"><th scope="row">{{name}}</th><td class="eguahe-num">{{households}}</td><td class="eguahe-num">{{visited}}</td><td class="eguahe-num">{{applied}}</td><td class="eguahe-num">{{admitted}}</td><td class="eguahe-num">{{enrolled}}</td><td class="eguahe-num">{{closed}}</td></tr>{{/live.moving}}
+            </tfoot>
+        </table>
+        <p class="eguahe-quiet">{{#str}}metrics_live_def, local_oksigeniaeguahe, {{live.incentre}}{{/str}}</p>
+        {{/live.hasrows}}
     </section>
 
     {{#empty}}<div class="eguahe-empty"><p>{{#str}}metrics_empty, local_oksigeniaeguahe{{/str}}</p></div>{{/empty}}

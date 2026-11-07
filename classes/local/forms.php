@@ -22,8 +22,6 @@ namespace local_oksigeniaeguahe\local;
  * A form is an entry of kind «form»: its page, inside the web of the centre or by its link, from each place it is
  * shared with a name of its own, so the numbers say where each family came from.
  *
- * Questions about health, documents or keys are not allowed: they are not for asking for information or a place.
- *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -44,9 +42,6 @@ class forms {
     /** @var string[] The common questions a form may ask besides who and how: where they live, how they heard of the
      * centre, whether they are already of the centre, and what they want to tell. */
     const BLOCKS = ['place', 'heard', 'incentre', 'message'];
-
-    /** @var string[] What a question cannot ask for. */
-    const FORBIDDEN = ['health', 'secret', 'document'];
 
     /**
      * The questions of a form, in order.
@@ -79,17 +74,6 @@ class forms {
      */
     public static function blocks(\stdClass $entry): array {
         return array_values(array_intersect(self::BLOCKS, explode(',', (string) $entry->blocks)));
-    }
-
-    /**
-     * Why a question cannot be asked, if it cannot: what its words say it asks for.
-     *
-     * @param string $label
-     * @return string|null health, secret or document.
-     */
-    public static function forbidden(string $label): ?string {
-        $role = recognise::header_role($label);
-        return in_array($role, self::FORBIDDEN, true) ? $role : null;
     }
 
     /**

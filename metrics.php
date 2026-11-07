@@ -75,7 +75,8 @@ $bars = function (array $steps): array {
 };
 $context = ['tabs' => staff::tabs($centre, 'metrics'), 'canact' => $canact,
     'importurl' => (new moodle_url('/local/oksigeniaeguahe/import.php', ['c' => $centre->id]))->out(false),
-    'response' => metrics::response((int) $centre->id)];
+    'response' => metrics::response((int) $centre->id), 'live' => metrics::live((int) $centre->id)];
+$context['live']['hasrows'] = (bool) $context['live']['rows'];
 $context['response']['hasmedian'] = $context['response']['median'] !== null;
 
 if ($campaign) {

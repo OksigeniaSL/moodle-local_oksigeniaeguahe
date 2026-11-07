@@ -428,6 +428,101 @@ class metrics {
     }
 
     /**
+     * The families that came through Eguahe, how far they went, by where they first came from: the entry and the place
+     * it was shared from, or the channel. Families that move to the area, apart; families already of the centre, only
+     * counted.
+     *
+     * @param int $centreid
+     * @return array rows, moving, total (each: name, households, visited, applied, admitted, enrolled, closed), incentre
+     */
+    public static function live(int $centreid): array {
+        global $DB;
+        $households = $DB->get_records_sql("SELECT h.id, h.incentre, h.moving, h.firstchannel
+                                              FROM {" . households::T . "} h
+                                             WHERE h.centreid = :centreid", ['centreid' => $centreid]);
+        if (!$households) {
+            return ['rows' => [], 'moving' => null, 'total' => null, 'incentre' => 0];
+        }
+        // How far each family went: the furthest of its children, and whether all of them closed.
+        $far = [];
+        $closed = [];
+        foreach (
+            $DB->get_records_select(
+                households::CHILDREN,
+                'centreid = :centreid',
+                ['centreid' => $centreid],
+                '',
+                'id, householdid, stage'
+            ) as $child
+        ) {
+            $id = (int) $child->householdid;
+            $closed[$id] = ($closed[$id] ?? true) && $child->stage === 'closed';
+            if ($child->stage !== 'closed') {
+                $far[$id] = max($far[$id] ?? 1, lists::STAGE_STEP[$child->stage] ?? 1);
+            }
+        }
+        // Where each family first came from: the entry and the place it was shared from, or the channel.
+        $first = [];
+        $entries = $DB->get_records_menu(entries::T, ['centreid' => $centreid], '', 'id, name');
+        foreach (
+            $DB->get_records_select(
+                households::CONTACTS,
+                "centreid = :centreid AND direction = 'in'",
+                ['centreid' => $centreid],
+                'timecreated ASC, id ASC',
+                'id, householdid, channel, entryid, detail'
+            ) as $contact
+        ) {
+            $id = (int) $contact->householdid;
+            if (isset($first[$id])) {
+                continue;
+            }
+            $name = $contact->entryid && isset($entries[$contact->entryid]) ? format_string($entries[$contact->entryid]) :
+                get_string(
+                    'channel_' . (in_array($contact->channel, lists::CHANNELS, true) ? $contact->channel : 'other'),
+                    'local_oksigeniaeguahe'
+                );
+            $first[$id] = $name . ($contact->detail ? ' · ' . $contact->detail : '');
+        }
+        $blank = fn(string $name) => ['name' => $name, 'households' => 0, 'visited' => 0, 'applied' => 0, 'admitted' => 0,
+            'enrolled' => 0, 'closed' => 0];
+        $add = function (array &$row, int $id) use ($far, $closed) {
+            $row['households']++;
+            $step = $far[$id] ?? 1;
+            $row['visited'] += $step >= 2 ? 1 : 0;
+            $row['applied'] += $step >= 3 ? 1 : 0;
+            $row['admitted'] += $step >= 4 ? 1 : 0;
+            $row['enrolled'] += $step >= 5 ? 1 : 0;
+            $row['closed'] += !empty($closed[$id]) ? 1 : 0;
+        };
+        $rows = [];
+        $moving = $blank(get_string('metrics_live_moving', 'local_oksigeniaeguahe'));
+        $total = $blank(get_string('metrics_live_total', 'local_oksigeniaeguahe'));
+        $incentre = 0;
+        foreach ($households as $household) {
+            $id = (int) $household->id;
+            if ($household->incentre) {
+                // Families already of the centre: counted apart, never in the numbers of who comes.
+                $incentre++;
+                continue;
+            }
+            if ($household->moving) {
+                // Families that move to the area: a group of their own, not lost for coming later.
+                $add($moving, $id);
+                continue;
+            }
+            $key = $first[$id] ?? get_string('channel_' . (in_array($household->firstchannel, lists::CHANNELS, true) ?
+                $household->firstchannel : 'other'), 'local_oksigeniaeguahe');
+            $rows[$key] = $rows[$key] ?? $blank($key);
+            $add($rows[$key], $id);
+            $add($total, $id);
+        }
+        uasort($rows, fn($a, $b) => [$b['enrolled'], $b['households']] <=> [$a['enrolled'], $a['households']]);
+        return ['rows' => array_values($rows), 'moving' => $moving['households'] ? $moving : null,
+            'total' => $total['households'] ? $total : null, 'incentre' => $incentre];
+    }
+
+    /**
      * The campaign in Eguahe itself: how long the families wait for a first answer from a person, and who has none yet.
      *
      * @param int $centreid

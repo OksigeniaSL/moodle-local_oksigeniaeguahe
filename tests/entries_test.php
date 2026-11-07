@@ -83,8 +83,6 @@ final class entries_test extends \advanced_testcase {
             'options_es' => "Comedor\nAula matinal\nExtraescolares"]);
         $origin = forms::add_origin($entry, 'Cartel de la puerta');
         $this->assertSame('carteldelapuerta', $origin);
-        $this->assertSame('health', forms::forbidden('¿Tiene alguna alergia?'));
-        $this->assertNull(forms::forbidden('¿Qué servicios les interesan?'));
 
         // In English, the question written in English; the others, in the language of the centre.
         $context = forms::context($entry, 'en', 'es', [], []);
@@ -159,7 +157,7 @@ final class entries_test extends \advanced_testcase {
         $this->assertSame(['whatsapp' => true], array_map('boolval', households::permissions((int) $household->id)[$adult->id]));
         $body = $DB->get_field(households::CONTACTS, 'body', ['householdid' => $household->id]);
         $this->assertStringContainsString('¿Qué es lo que más os importa?: Que sea cerca de casa', $body);
-        $this->assertStringNotContainsString('alergia', $body, 'Health is not kept.');
+        $this->assertStringContainsString('¿Alguna alergia?: Ninguna', $body, 'What the form of the centre asks is kept.');
         $this->assertSame('googleforms', $full->firstchannel);
 
         // The same answer again: nothing new. The same family through another answer: the same household.

@@ -45,9 +45,8 @@ class entries {
     const ROLES = ['firstname', 'surname', 'fullname', 'email', 'phone', 'childname', 'grade', 'notes', 'municipality',
         'declared', 'consent', 'incentre', 'date', 'platform', 'campaign', 'adset', 'ad', 'form', 'ids', 'ignore'];
 
-    /** @var string[] Roles never kept for a family: health, keys, documents, addresses. */
-    const DROPPED = ['health', 'secret', 'document', 'address', 'birthplace', 'studentid', 'birthdate', 'status',
-        'organic', 'institutional', 'ignore'];
+    /** @var string[] What is not kept: the state of a lead in the tool it came from, and what the team said to leave. */
+    const DROPPED = ['status', 'organic', 'ignore'];
 
     /**
      * A new entry of a centre, with its public name and its key.
