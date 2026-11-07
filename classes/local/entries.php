@@ -36,7 +36,7 @@ class entries {
     const ARRIVALS = 'local_oksigeniaeguahe_arrival';
 
     /** @var array Kinds of entry and the channel they count as. */
-    const KINDS = ['form' => 'webform', 'google' => 'googleforms', 'meta' => 'meta', 'hook' => 'other'];
+    const KINDS = ['form' => 'webform', 'google' => 'googleforms', 'meta' => 'meta', 'email' => 'email', 'hook' => 'other'];
 
     /** @var int Something that comes in later than this after it happened does not wait for an answer. */
     const PASTDAYS = 7;
@@ -69,7 +69,8 @@ class entries {
         return (int) $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'kind' => $kind,
             'name' => \core_text::substr(trim($name), 0, 255), 'token' => $token, 'secret' => bin2hex(random_bytes(24)),
             'title' => null, 'blocks' => $kind === 'form' ? implode(',', forms::BLOCKS) : null,
-            'acknowledge' => $kind === 'meta' ? 0 : 1, 'received' => 0, 'lastreceived' => 0, 'active' => 1,
+            // The contacts of ads and the emails to the centre are not answered by a machine.
+            'acknowledge' => in_array($kind, ['meta', 'email'], true) ? 0 : 1, 'received' => 0, 'lastreceived' => 0, 'active' => 1,
             'timecreated' => $now, 'timemodified' => $now]);
     }
 
@@ -636,6 +637,19 @@ class entries {
             }
         }
         return [[], []];
+    }
+
+    /**
+     * An email that reaches the entry, as it came: who wrote it, the fields of a web form and the rest as text.
+     *
+     * @param \stdClass $entry
+     * @param string $raw The whole message.
+     * @param bool $past Whether it was written before the entry was connected.
+     * @return array As receive() gives it.
+     */
+    public static function from_email(\stdClass $entry, string $raw, bool $past = false): array {
+        $mail = inbound::parse($raw);
+        return self::receive($entry, inbound::answers($mail), $mail['messageid'], $mail['time'] ?: null, $past);
     }
 
     /**

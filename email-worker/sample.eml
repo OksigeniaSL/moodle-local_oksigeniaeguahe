@@ -1,0 +1,28 @@
+From: Lucia Ortega <lucia.ortega@example.com>
+To: admisiones@colegio.example
+Subject: =?UTF-8?Q?Informaci=C3=B3n_para_Infantil_3_a=C3=B1os?=
+Date: Sat, 07 Nov 2026 18:30:00 +0000
+Message-ID: <prueba-eguahe-0001@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="frontera"
+
+--frontera
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hola, buenas tardes:
+
+Nos gustar=C3=ADa saber si quedan plazas para Infantil 3 a=C3=B1os el curso q=
+ue viene y cu=C3=A1ndo es la pr=C3=B3xima jornada de puertas abiertas.
+
+Nombre del alumno: Mateo
+Tel=C3=A9fono: 611 444 555
+
+Gracias, Luc=C3=ADa (datos de ejemplo)
+--frontera
+Content-Type: application/pdf; name="horario.pdf"
+Content-Disposition: attachment; filename="horario.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJcfsj6IKNSAwIG9iago8PC9MZW5ndGggNiAwIFI+PgpzdHJlYW0KeJwr
+--frontera--

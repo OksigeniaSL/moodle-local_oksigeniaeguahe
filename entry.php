@@ -50,7 +50,7 @@ $isform = $entry->kind === 'form';
 $lang = $centre->lang ?: 'es';
 
 // The settings, with their own form.
-$settings = new entry_form($url, ['isform' => $isform]);
+$settings = new entry_form($url, ['isform' => $isform, 'isemail' => $entry->kind === 'email']);
 $defaults = ['id' => $entry->id, 'name' => $entry->name, 'title' => $entry->title, 'lead' => $entry->lead,
     'acknowledge' => $entry->acknowledge, 'active' => $entry->active];
 foreach (forms::BLOCKS as $block) {
@@ -60,6 +60,9 @@ $settings->set_data($defaults);
 if ($canact && ($data = $settings->get_data())) {
     centres::require_act((int) $centre->id);
     entries::update($entry, $data);
+    if ($entry->kind === 'email') {
+        $DB->set_field(entries::T, 'title', \core_text::substr(trim((string) $data->title), 0, 255) ?: null, ['id' => $entry->id]);
+    }
     if ($isform) {
         $blocks = array_values(array_filter(forms::BLOCKS, fn($b) => !empty($data->{'block_' . $b})));
         $DB->update_record(entries::T, (object) ['id' => $entry->id,
@@ -238,6 +241,8 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/entry', [
     'isgoogle' => $entry->kind === 'google',
     'ismeta' => $entry->kind === 'meta',
     'ishook' => $entry->kind === 'hook',
+    'isemail' => $entry->kind === 'email',
+    'emailaddress' => $entry->kind === 'email' ? (string) $entry->title : '',
     'fields' => $fields,
     'hasfields' => (bool) $fields,
     'addurl' => (new moodle_url('/local/oksigeniaeguahe/field.php', ['e' => $entry->id]))->out(false),
@@ -248,7 +253,7 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/entry', [
     'scriptform' => $entry->kind === 'google' ? entries::apps_script($entry, 'form') : '',
     'scriptsheet' => $entry->kind === 'google' ? entries::apps_script($entry, 'sheet') : '',
     'hookurl' => entries::hook_url($entry)->out(false),
-    'secret' => $canact && in_array($entry->kind, ['hook', 'google'], true) ? $entry->secret : '',
+    'secret' => $canact && in_array($entry->kind, ['hook', 'google', 'email'], true) ? $entry->secret : '',
     'seen' => $seen,
     'hasseen' => (bool) $seen,
     'preview' => $preview,

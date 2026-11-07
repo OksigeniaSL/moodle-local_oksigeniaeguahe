@@ -23,7 +23,8 @@
  *      "answers": {"Nombre": "Marta", "Teléfono": "+34 600 000 000", "Curso": "1.º de Primaria"}}
  *
  * Answers may also be a list of {"question": …, "answer": …}, and a body may carry up to 200 of them as
- * {"items": [{…}, {…}]}. The same id never comes in twice.
+ * {"items": [{…}, {…}]}. The same id never comes in twice. To an entry of kind email, an item may be an email as it came:
+ * {"raw": "the whole message in base64"}.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -60,7 +61,7 @@ $entry = entries::by_token(optional_param('e', '', PARAM_ALPHANUM));
 if (!$entry) {
     local_oksigeniaeguahe_hook_reply(404, ['ok' => false, 'error' => 'entry']);
 }
-$body = (string) file_get_contents('php://input', false, null, 0, 256 * 1024);
+$body = (string) file_get_contents('php://input', false, null, 0, 1024 * 1024);
 if (!entries::signed($entry, $body, (string) ($_SERVER['HTTP_X_EGUAHE_SIGNATURE'] ?? ''))) {
     local_oksigeniaeguahe_hook_reply(401, ['ok' => false, 'error' => 'signature']);
 }
@@ -72,6 +73,12 @@ if (!$items || count($items) > 200) {
 $centre = centres::get((int) $entry->centreid);
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'invalid' => 0];
 foreach ($items as $item) {
+    if (is_array($item) && isset($item['raw']) && is_string($item['raw']) && $entry->kind === 'email') {
+        // An email as it came, from the address of the centre.
+        [$household, $new] = entries::from_email($entry, (string) base64_decode($item['raw']), !empty($item['past']));
+        $counts[$household ? ($new ? 'new' : 'already') : 'nobody']++;
+        continue;
+    }
     if (!is_array($item) || !isset($item['answers']) || !is_array($item['answers'])) {
         $counts['invalid']++;
         continue;

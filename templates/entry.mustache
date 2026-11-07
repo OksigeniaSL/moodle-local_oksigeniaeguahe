@@ -22,7 +22,7 @@
 
     Example context (json):
     {"tabs": [], "name": "Pidan información", "kind": "Formulario", "counts": "12 familias · la última, 21/11/26",
-     "active": true, "isform": true, "isgoogle": false, "ismeta": false, "ishook": false, "canact": true, "action": "#",
+     "active": true, "isform": true, "isgoogle": false, "ismeta": false, "ishook": false, "isemail": false, "emailaddress": "", "canact": true, "action": "#",
      "sesskey": "abc", "entriesurl": "#", "addurl": "#", "previewurl": "#", "previewframe": "#", "hasfields": true,
      "fields": [{"id": 1, "label": "¿Tiene hermanos en el centro?", "type": "Sí o no", "required": true, "options": "",
         "condition": "", "issection": false, "editurl": "#", "first": true, "last": true}],
@@ -147,6 +147,16 @@
         {{{uploadform}}}
     </section>
     {{/ismeta}}
+
+    {{#isemail}}
+    <section class="eguahe-box">
+        <h3>{{#str}}entry_email, local_oksigeniaeguahe{{/str}}</h3>
+        {{#emailaddress}}<p>{{#str}}entry_email_forward, local_oksigeniaeguahe{{/str}} <strong>{{emailaddress}}</strong></p>{{/emailaddress}}
+        <p class="eguahe-quiet">{{#str}}entry_email_help, local_oksigeniaeguahe{{/str}}</p>
+        <p><input class="form-control" type="text" readonly value="{{hookurl}}" aria-label="{{#str}}entry_hook, local_oksigeniaeguahe{{/str}}"></p>
+        {{#secret}}<p>{{#str}}entry_key, local_oksigeniaeguahe{{/str}} <input class="form-control" type="text" readonly value="{{secret}}" aria-label="{{#str}}entry_key, local_oksigeniaeguahe{{/str}}"></p>{{/secret}}
+    </section>
+    {{/isemail}}
 
     {{#ishook}}
     <section class="eguahe-box">

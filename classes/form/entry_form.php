@@ -46,6 +46,12 @@ class entry_form extends \moodleform {
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addHelpButton('name', 'entry_name', $c);
+        if (!empty($this->_customdata['isemail'])) {
+            // The address the centre forwards its mailbox of admissions to, as Oksigenia gives it.
+            $mform->addElement('text', 'title', get_string('entry_email_address', $c), ['size' => 40, 'maxlength' => 255]);
+            $mform->setType('title', PARAM_EMAIL);
+            $mform->addHelpButton('title', 'entry_email_address', $c);
+        }
         if ($isform) {
             $mform->addElement('text', 'title', get_string('entry_title', $c), ['size' => 40, 'maxlength' => 255]);
             $mform->setType('title', PARAM_TEXT);
