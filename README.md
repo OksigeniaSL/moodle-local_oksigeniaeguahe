@@ -33,6 +33,9 @@ households are waiting for an answer, how many places each course still has, and
 - **Offer and places**: for each course, those interested, those who visited, those enrolled and the places left, with
   the definition of each number on screen.
 - **Who supervises** can see everything of their centre without answering nor changing anything.
+- **The numbers that do not deceive**: a past campaign imported pseudonymised, by households from the first contact
+  to the enrolment, by channel from both ends and with what each cost per new student; who came and went in each
+  school year, with the balance and the reasons; the enrolment year by year. Each number with its definition.
 - **Several centres in one site**: every row carries its centre, and each centre has its own team, colour, logo, area
   and texts about the data of its families.
 - **Against spam**, without third parties nor cookies: [ALTCHA](https://altcha.org) (MIT), a small proof of work.

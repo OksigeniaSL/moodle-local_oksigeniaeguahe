@@ -53,6 +53,7 @@ class signup {
         for ($i = 0; $i < self::CHILDREN; $i++) {
             $children[] = [
                 'firstname' => trim(optional_param("c{$i}name", '', PARAM_TEXT)),
+                'tagname' => trim(optional_param("c{$i}tag", '', PARAM_TEXT)),
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
         }
@@ -174,7 +175,7 @@ class signup {
         }
         foreach ($data['children'] as $child) {
             if ($child['firstname'] !== '') {
-                households::add_child($household, $child['firstname'], (int) $child['offerid']);
+                households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
             }
         }
         events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));

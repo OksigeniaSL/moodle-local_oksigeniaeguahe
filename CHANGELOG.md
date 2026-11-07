@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 (2026-11-07)
+
+- **What already happened, imported**: the contacts of a past campaign, the students of a school year and the totals
+  of past years, in the import format, pseudonymised. A file with an email, a phone in a text or a name instead of a
+  code is refused whole, with its lines. Imports can be removed.
+- **The numbers** («Numbers» tab), each with its definition: how fast families get a first answer in Eguahe; a past
+  campaign by households from the first contact to the enrolment, by channel from both ends (first and last contact),
+  by campaign or form, by network for Meta, by month and by course; what each channel cost per new student, noted on
+  the page; who started, joined and left in a school year, with the balance, the reasons and where the students live;
+  and the students of each course year by year.
+- **The name on the label**: the family can say the name used at home, which goes on the label of what it gets.
+
 ## 0.2.0 (2026-11-07)
 
 - **Events by turns**: an event can have several turns, each with its start, how long it lasts and its capacity. The

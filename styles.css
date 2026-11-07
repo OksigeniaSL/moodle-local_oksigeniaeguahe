@@ -267,3 +267,39 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     font-size: 1.1rem;
     overflow-wrap: anywhere;
 }
+
+.eguahe-funnel {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+.eguahe-funnel li {
+    display: grid;
+    grid-template-columns: 10rem 1fr 4rem;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+}
+
+.eguahe-funnel-bar {
+    height: 1.4rem;
+    min-width: 2px;
+    border-radius: 0.25rem;
+    background: var(--bs-primary, #0f6cbf);
+}
+
+.eguahe-money {
+    width: 7rem;
+    margin-left: auto;
+    text-align: right;
+}
+
+.eguahe-balance {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.eguahe-scroll {
+    overflow-x: auto;
+}

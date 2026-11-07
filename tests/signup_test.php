@@ -87,7 +87,7 @@ final class signup_test extends \advanced_testcase {
                 ['firstname' => '', 'lastname' => '', 'email' => '', 'phone' => ''],
             ],
             'children' => [
-                ['firstname' => 'Daniel', 'offerid' => $this->offerid],
+                ['firstname' => 'Daniel', 'tagname' => 'Dani', 'offerid' => $this->offerid],
                 ['firstname' => '', 'offerid' => 0],
             ],
             'people' => 3,
@@ -117,6 +117,7 @@ final class signup_test extends \advanced_testcase {
         $this->assertSame('+34600111222', $adult->phone);
         $child = $DB->get_record(households::CHILDREN, ['householdid' => $household->id]);
         $this->assertSame('Daniel', $child->firstname);
+        $this->assertSame('Dani', $child->tagname);
         $this->assertSame('inquiry', $child->stage);
         $this->assertEquals($this->offerid, $child->offerid);
         $household = households::get($household->id, $this->centre->id);

@@ -38,6 +38,10 @@ class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\request\plugin\provider {
+    /** @var string[] Tables with the people of the teams. */
+    const TABLES = ['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent',
+        'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend'];
+
     /**
      * What is kept about users.
      *
@@ -59,6 +63,14 @@ class provider implements
             'userid' => 'privacy:metadata:consent:userid',
             'timecreated' => 'privacy:metadata:consent:timecreated',
         ], 'privacy:metadata:consent');
+        $collection->add_database_table('local_oksigeniaeguahe_import', [
+            'userid' => 'privacy:metadata:import:userid',
+            'timecreated' => 'privacy:metadata:import:timecreated',
+        ], 'privacy:metadata:import');
+        $collection->add_database_table('local_oksigeniaeguahe_spend', [
+            'userid' => 'privacy:metadata:spend:userid',
+            'timemodified' => 'privacy:metadata:spend:timemodified',
+        ], 'privacy:metadata:spend');
         return $collection;
     }
 
@@ -70,7 +82,7 @@ class provider implements
      */
     protected static function has_data(int $userid): bool {
         global $DB;
-        foreach (['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent'] as $t) {
+        foreach (self::TABLES as $t) {
             if ($DB->record_exists($t, ['userid' => $userid])) {
                 return true;
             }
@@ -101,7 +113,7 @@ class provider implements
         if ($userlist->get_context()->contextlevel != CONTEXT_SYSTEM) {
             return;
         }
-        foreach (['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent'] as $t) {
+        foreach (self::TABLES as $t) {
             $userlist->add_from_sql('userid', "SELECT userid FROM {{$t}} WHERE userid > 0", []);
         }
     }
@@ -129,9 +141,12 @@ class provider implements
                     'when' => \core_privacy\local\request\transform::datetime($row->timecreated)];
             }
             $noted = $DB->count_records('local_oksigeniaeguahe_consent', ['userid' => $userid]);
+            $imported = $DB->count_records('local_oksigeniaeguahe_import', ['userid' => $userid]);
+            $spends = $DB->count_records('local_oksigeniaeguahe_spend', ['userid' => $userid]);
             writer::with_context($context)->export_data(
                 [get_string('pluginname', 'local_oksigeniaeguahe')],
-                (object) ['teams' => $teams, 'written' => $written, 'permissionsnoted' => $noted]
+                (object) ['teams' => $teams, 'written' => $written, 'permissionsnoted' => $noted,
+                    'filesimported' => $imported, 'spendsnoted' => $spends]
             );
         }
     }
@@ -150,6 +165,8 @@ class provider implements
         $DB->delete_records('local_oksigeniaeguahe_member');
         $DB->set_field_select('local_oksigeniaeguahe_contact', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, 'userid > 0');
+        $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, 'userid > 0');
+        $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, 'userid > 0');
     }
 
     /**
@@ -190,5 +207,7 @@ class provider implements
         $DB->delete_records_select('local_oksigeniaeguahe_member', "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_contact', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, "userid $in", $params);
+        $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, "userid $in", $params);
+        $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, "userid $in", $params);
     }
 }

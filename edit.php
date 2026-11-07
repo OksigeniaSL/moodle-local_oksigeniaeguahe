@@ -70,7 +70,8 @@ if ($household) {
     }
     foreach (array_values($full->children) as $i => $child) {
         if ($i < household_form::CHILDREN) {
-            $defaults += ["childid{$i}" => $child->id, "childname{$i}" => $child->firstname, "offerid{$i}" => $child->offerid];
+            $defaults += ["childid{$i}" => $child->id, "childname{$i}" => $child->firstname, "offerid{$i}" => $child->offerid,
+                "childtag{$i}" => $child->tagname];
         }
     }
     $form->set_data($defaults);
@@ -148,13 +149,15 @@ if ($data = $form->get_data()) {
         $name = trim((string) $data->{"childname{$i}"});
         $childid = (int) $data->{"childid{$i}"};
         $offerid = (int) $data->{"offerid{$i}"};
+        $tag = trim((string) ($data->{"childtag{$i}"} ?? ''));
         if ($childid && $DB->record_exists(households::CHILDREN, ['id' => $childid, 'householdid' => $household->id])) {
             if ($name !== '') {
                 $DB->update_record(households::CHILDREN, (object) ['id' => $childid, 'firstname' => $name,
-                    'offerid' => $offerid, 'timemodified' => time()]);
+                    'tagname' => $tag === '' ? null : core_text::substr($tag, 0, 100), 'offerid' => $offerid,
+                    'timemodified' => time()]);
             }
         } else if ($name !== '') {
-            households::add_child($household, $name, $offerid);
+            households::add_child($household, $name, $offerid, $tag);
         }
     }
     if (!empty($data->eventid) && ($event = events::get((int) $data->eventid, (int) $centre->id))) {

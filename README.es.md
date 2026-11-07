@@ -33,6 +33,9 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
 - **Oferta y plazas**: por curso, los interesados, los que han visitado, los matriculados y las plazas libres, con la
   definición de cada cifra en pantalla.
 - **Quien supervisa** ve todo lo de su centro sin contestar ni cambiar nada.
+- **Cifras que no engañan**: una campaña anterior importada seudonimizada, por hogares desde el primer contacto hasta
+  la matrícula, por canal desde los dos extremos y con lo que costó cada uno por alumno nuevo; quién entró y quién se
+  fue en cada curso, con el saldo y los motivos; la matrícula año a año. Cada cifra con su definición.
 - **Varios centros en un mismo sitio**: cada fila lleva su centro, y cada centro tiene su equipo, su color, su logotipo,
   su zona y sus textos sobre los datos de sus familias.
 - **Contra el spam**, sin terceros ni cookies: [ALTCHA](https://altcha.org) (MIT), una pequeña prueba de trabajo.

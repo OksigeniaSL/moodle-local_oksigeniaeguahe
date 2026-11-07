@@ -31,7 +31,7 @@ class signuppage {
         'pub_another_student', 'pub_people', 'pub_where', 'pub_where_other', 'pub_where_choose', 'pub_heardfrom',
         'pub_heardfrom_choose', 'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_submit',
         'pub_errors', 'pub_required', 'pub_optional', 'pub_info_more', 'pub_slot', 'pub_incentre', 'pub_incentre_yes',
-        'pub_incentre_no'];
+        'pub_incentre_no', 'pub_tagname', 'pub_tagname_hint'];
 
     /**
      * The context of the template public_signup.
@@ -87,6 +87,7 @@ class signuppage {
             $children[] = [
                 'first' => $i === 0,
                 'name' => $field("c{$i}name", $str['pub_student_name'], $child['firstname'], 'text', 'off', $i === 0),
+                'tag' => $field("c{$i}tag", $str['pub_tagname'], $child['tagname'] ?? '', 'text', 'off'),
                 'offer' => "c{$i}offer",
                 'offererror' => $errors["c{$i}offer"] ?? '',
                 'offers' => array_map(fn($o) => $o + ['selected' => (int) $o['id'] === (int) $child['offerid']], $offers),

@@ -72,7 +72,8 @@ class householdpage {
             }
             $children[] = [
                 'id' => $child->id,
-                'name' => $child->firstname,
+                'name' => $child->firstname . ($child->tagname && $child->tagname !== $child->firstname ?
+                    ' (' . $child->tagname . ')' : ''),
                 'offer' => $offer ? centres::offer_label($offer) : get_string('offer_unknown', $c),
                 'stage' => get_string('stage_' . $child->stage, $c),
                 'reason' => $child->stage === 'closed' && $child->closedreason ?

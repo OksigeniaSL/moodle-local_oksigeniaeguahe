@@ -32,7 +32,9 @@
             "autocomplete": "given-name", "required": true, "error": "", "invalid": false}]}],
         "moreadultsopen": false, "pub_another_adult": "Otra persona adulta", "pub_students": "Quién estudiaría",
         "children": [{"first": true, "name": {"name": "c0name", "label": "Nombre", "value": "", "type": "text",
-            "autocomplete": "off", "required": true, "error": "", "invalid": false}, "offer": "c0offer", "offererror": "",
+            "autocomplete": "off", "required": true, "error": "", "invalid": false}, "tag": {"name": "c0tag", "label": "¿Qué nombre ponemos en su etiqueta?", "value": "", "type": "text",
+            "autocomplete": "off", "required": false, "error": "", "invalid": false},
+            "offer": "c0offer", "offererror": "",
             "offers": [{"id": 1, "name": "Infantil 3 años (2027-28)", "selected": false}]}],
         "hasoffers": true, "pub_student_offer": "Curso", "pub_offer_unknown": "Aún no lo sabemos",
         "morechildrenopen": false, "pub_another_student": "Otra persona más", "pub_people": "¿Cuántas personas vendrán?",
@@ -51,7 +53,8 @@
         "slots": [{"id": 3, "when": "sábado, 21 de noviembre, 10:00–11:00", "left": "quedan 8", "disabled": false,
             "checked": false}],
         "isother": false, "pub_incentre": "¿Ya son familia del centro?", "pub_incentre_yes": "Sí",
-        "pub_incentre_no": "No", "incentreyes": false, "incentreno": false
+        "pub_incentre_no": "No", "incentreyes": false, "incentreno": false,
+        "pub_tagname_hint": "El nombre de la etiqueta, el que usan en casa."
     }
 }}
 <article class="eg-card">
@@ -111,11 +114,13 @@
         </fieldset>
         {{/isother}}
 
-        <fieldset>
+        <fieldset aria-describedby="eg-tag-hint">
             <legend>{{pub_students}}{{#isother}} <span class="eg-optional">({{pub_optional}})</span>{{/isother}}</legend>
+            <p class="eg-hint" id="eg-tag-hint">{{pub_tagname_hint}}</p>
             {{#children}}{{#first}}
             <div class="eg-grid">
                 {{#name}}{{> local_oksigeniaeguahe/public_field }}{{/name}}
+                {{#tag}}{{> local_oksigeniaeguahe/public_field }}{{/tag}}
                 <div class="eg-field">
                     <label for="{{offer}}">{{pub_student_offer}}</label>
                     <select id="{{offer}}" name="{{offer}}"{{#offererror}} aria-invalid="true" aria-describedby="{{offer}}-error"{{/offererror}}>
@@ -131,6 +136,7 @@
                 {{#children}}{{^first}}
                 <div class="eg-grid">
                     {{#name}}{{> local_oksigeniaeguahe/public_field }}{{/name}}
+                {{#tag}}{{> local_oksigeniaeguahe/public_field }}{{/tag}}
                     <div class="eg-field">
                         <label for="{{offer}}">{{pub_student_offer}}</label>
                         <select id="{{offer}}" name="{{offer}}"{{#offererror}} aria-invalid="true" aria-describedby="{{offer}}-error"{{/offererror}}>

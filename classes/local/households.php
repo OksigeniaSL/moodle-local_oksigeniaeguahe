@@ -187,15 +187,20 @@ class households {
      * @param \stdClass $household
      * @param string $firstname
      * @param int $offerid 0 while not known.
+     * @param string $tagname The name used at home, for the label; empty for the first name.
      * @return int
      */
-    public static function add_child(\stdClass $household, string $firstname, int $offerid): int {
+    public static function add_child(\stdClass $household, string $firstname, int $offerid, string $tagname = ''): int {
         global $DB;
         $firstname = self::short($firstname, 100) ?? '';
+        $tagname = self::short($tagname, 100);
         foreach ($DB->get_records(self::CHILDREN, ['householdid' => $household->id]) as $child) {
             if (\core_text::strtolower($child->firstname) === \core_text::strtolower($firstname)) {
                 if (!$child->offerid && $offerid) {
                     $DB->set_field(self::CHILDREN, 'offerid', $offerid, ['id' => $child->id]);
+                }
+                if ($tagname !== null) {
+                    $DB->set_field(self::CHILDREN, 'tagname', $tagname, ['id' => $child->id]);
                 }
                 return (int) $child->id;
             }
@@ -205,6 +210,7 @@ class households {
             'centreid' => $household->centreid,
             'householdid' => $household->id,
             'firstname' => $firstname,
+            'tagname' => $tagname,
             'offerid' => $offerid,
             'stage' => 'inquiry',
             'stagetime' => $now,
@@ -472,7 +478,8 @@ class households {
                 'email' => $adult->email, 'phone' => $adult->phone];
         }
         foreach ($full->children as $child) {
-            $data['children'][] = ['first_name' => $child->firstname, 'asks_for' => $offers[$child->offerid] ?? null,
+            $data['children'][] = ['first_name' => $child->firstname, 'name_on_the_label' => $child->tagname,
+                'asks_for' => $offers[$child->offerid] ?? null,
                 'stage' => $child->stage, 'since' => $date((int) $child->stagetime)];
         }
         foreach ($full->signups as $signup) {

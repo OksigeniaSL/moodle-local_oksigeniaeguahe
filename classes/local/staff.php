@@ -66,13 +66,14 @@ class staff {
      * The tabs of the pages of a centre.
      *
      * @param \stdClass $centre
-     * @param string $current inbox, events or settings.
+     * @param string $current inbox, events, metrics or settings.
      * @return array For the template.
      */
     public static function tabs(\stdClass $centre, string $current): array {
         $tabs = [
             'inbox' => new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]),
             'events' => new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]),
+            'metrics' => new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id]),
         ];
         if (has_capability('local/oksigeniaeguahe:manage', \context_system::instance())) {
             $tabs['settings'] = new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]);

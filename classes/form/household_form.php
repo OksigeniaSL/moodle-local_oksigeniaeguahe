@@ -104,10 +104,17 @@ class household_form extends \moodleform {
             $mform->setType("childid{$i}", PARAM_INT);
             $row = [
                 $mform->createElement('text', "childname{$i}", get_string('form_childname', $c), ['size' => 20]),
+                $mform->createElement(
+                    'text',
+                    "childtag{$i}",
+                    get_string('form_tagname', $c),
+                    ['size' => 12, 'placeholder' => get_string('form_tagname', $c)]
+                ),
                 $mform->createElement('select', "offerid{$i}", get_string('offer', $c), $offers),
             ];
             $mform->addGroup($row, "child{$i}", get_string('form_child', $c, $i + 1), ' ', false);
             $mform->setType("childname{$i}", PARAM_TEXT);
+            $mform->setType("childtag{$i}", PARAM_TEXT);
         }
 
         $mform->addElement('header', 'aboutheader', get_string('form_about', $c));
