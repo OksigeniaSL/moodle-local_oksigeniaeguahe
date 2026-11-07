@@ -17,7 +17,8 @@
 {{!
     @template local_oksigeniaeguahe/public_pegs
 
-    The backpacks on the rail, one hook per child: the small backpack of the mark of Eguahe, with the first-day label on
+    The backpacks on the rail, one peg per child (a wooden knob seen from the front, drawn in front of the handle so
+    the backpack hangs from it): the small backpack of the mark of Eguahe, with the first-day label on
     its pocket (the band in the colour of the centre, the name written by hand on its line, one corner peeling up). With
     no name yet, the label waits blank. Drawings only: the name is in the heading of the page.
 
@@ -29,7 +30,7 @@
     {{#pegs}}
     <div class="percha" data-i="{{index}}"{{#hidden}} hidden{{/hidden}}>
         <svg class="colgante" viewBox="6 13 52 64" aria-hidden="true" focusable="false"{{#style}} style="{{style}}"{{/style}}>
-            <path class="gancho" d="M27.6 13 L27.6 21.6 C27.6 25 29.6 27.2 32.3 27.2 C35 27.2 37 25 37 22.2 L37 21.4 C37 20.6 36.4 20 35.6 20 C34.8 20 34.2 20.6 34.2 21.4 L34.2 22.2 C34.2 23.6 33.4 24.5 32.3 24.5 C31.2 24.5 30.4 23.6 30.4 21.6 L30.4 13 Z"/>
+            <path class="gancho" d="M31 13 L33.6 13 L33.6 23.4 L31 23.4 Z"/>
             <g transform="translate(0.3 16)">
                 <g class="mochila{{#arrive}} llega{{/arrive}}" style="animation-delay:{{delay}}s">
                     <path class="sombra" transform="translate(2 2.4)" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
@@ -47,6 +48,7 @@
                     </g>
                 </g>
             </g>
+            <path class="gancho" d="M32.3 21.2 A3 3 0 1 1 32.29 21.2 Z"/><path class="pomo-luz" d="M31.1 22.6 A1.2 1.2 0 1 1 31.09 22.6 Z"/>
         </svg>
     </div>
     {{/pegs}}

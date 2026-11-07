@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (2026-11-07)
+
+- The backpacks hang from a wooden knob seen from the front, drawn in front of the handle, instead of a hook behind it.
+- Example data: the open day at one place, with the address of the centre. The first layer about the data, shorter:
+  how long the data is kept goes to the second.
+
 ## 0.6.0 (2026-11-07)
 
 - **The pages of the families, redrawn** (DESIGN.md of the art director): their own pages, nothing of Moodle. The

@@ -454,6 +454,11 @@ textarea {
     fill: var(--eg-gancho);
 }
 
+.colgante .pomo-luz {
+    fill: #fff;
+    opacity: 0.28;
+}
+
 .colgante .cuerpo {
     fill: var(--mochila);
 }
