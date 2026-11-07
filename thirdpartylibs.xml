@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>thirdparty/altcha-lib-php</location>
+        <name>ALTCHA library for PHP</name>
+        <description>Creates and verifies the anti-spam challenges of the public forms (proof of work, without third parties).</description>
+        <license>MIT</license>
+        <version>2.3.0</version>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/altcha-org/altcha-lib-php</repository>
+        <copyrights>
+            <copyright>2023 Daniel Regeci</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>pub/altcha</location>
+        <name>ALTCHA widget</name>
+        <description>The anti-spam widget of the public forms, with its Spanish and Portuguese translations.</description>
+        <license>MIT</license>
+        <version>3.5.0</version>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/altcha-org/altcha</repository>
+        <copyrights>
+            <copyright>2023-2026 Daniel Regeci, BAU Software s.r.o.</copyright>
+        </copyrights>
+    </library>
+</libraries>

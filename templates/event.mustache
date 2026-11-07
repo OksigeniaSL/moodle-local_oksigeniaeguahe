@@ -1,0 +1,70 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/event
+
+    An open day or a visit for the team: its QR and link for the poster; at the door, who signed up with a button to
+    tick who came, and a family that turns up without signing up.
+
+    Example context (json):
+    {"tabs": [], "name": "Jornada de puertas abiertas", "kind": "Jornada", "when": "sábado, 21 de noviembre, 10:00",
+     "place": "Entrada principal", "open": true, "capacity": 80, "households": 1, "people": 3, "came": 0,
+     "qr": "<svg viewBox=\"0 0 10 10\"></svg>", "link": "https://example.com/j", "posterurl": "#", "editurl": "#",
+     "addurl": "#", "hassignups": true, "action": "#", "sesskey": "abc",
+     "signups": [{"id": 1, "names": "Lucas Pérez", "children": "Daniel · Infantil 3 años", "people": 3, "came": false,
+        "url": "#"}]}
+}}
+<div class="eguahe eguahe-event">
+    {{> local_oksigeniaeguahe/tabs }}
+    <header class="eguahe-head">
+        <div>
+            <h2>{{name}}</h2>
+            <p class="eguahe-quiet">{{kind}} · {{when}}{{#place}} · {{place}}{{/place}}{{^open}} · {{#str}}event_closed, local_oksigeniaeguahe{{/str}}{{/open}}</p>
+        </div>
+        <a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>
+    </header>
+
+    <div class="eguahe-columns">
+        <section class="eguahe-box eguahe-qrbox">
+            <h3>{{#str}}event_qr, local_oksigeniaeguahe{{/str}}</h3>
+            <div class="eguahe-qr">{{{qr}}}</div>
+            <p><input class="form-control" type="text" readonly value="{{link}}" aria-label="{{#str}}event_link, local_oksigeniaeguahe{{/str}}"></p>
+            <p><a class="btn btn-secondary" href="{{posterurl}}" target="_blank">{{#str}}event_poster, local_oksigeniaeguahe{{/str}} <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a></p>
+        </section>
+        <section class="eguahe-box">
+            <h3>{{#str}}event_door, local_oksigeniaeguahe{{/str}}</h3>
+            <p class="eguahe-quiet">{{#str}}event_counts, local_oksigeniaeguahe, { "households": {{households}}, "people": {{people}}, "came": {{came}} }{{/str}}</p>
+            <p><a class="btn btn-primary" href="{{addurl}}">{{#str}}event_add_walkin, local_oksigeniaeguahe{{/str}}</a></p>
+            {{#hassignups}}
+            <ul class="eguahe-door">
+                {{#signups}}
+                <li id="s{{id}}" class="{{#came}}has-come{{/came}}">
+                    <span><a href="{{url}}"><strong>{{names}}</strong></a> <span class="eguahe-quiet">{{children}} · {{#str}}people_n, local_oksigeniaeguahe, {{people}}{{/str}}</span></span>
+                    <form method="post" action="{{action}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="signup" value="{{id}}">
+                        {{^came}}<input type="hidden" name="came" value="1"><button type="submit" class="btn btn-primary">{{#str}}event_mark_came, local_oksigeniaeguahe{{/str}}</button>{{/came}}
+                        {{#came}}<input type="hidden" name="came" value="0"><span class="eguahe-came">{{#str}}came, local_oksigeniaeguahe{{/str}}</span> <button type="submit" class="btn btn-link">{{#str}}event_unmark, local_oksigeniaeguahe{{/str}}</button>{{/came}}
+                    </form>
+                </li>
+                {{/signups}}
+            </ul>
+            {{/hassignups}}
+            {{^hassignups}}<p>{{#str}}event_nobody, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
+        </section>
+    </div>
+</div>

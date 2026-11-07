@@ -1,0 +1,86 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_family
+
+    The page of a family: after signing up, that it is done and that this page is theirs; then their next visit with
+    the file for the calendar, who they are and who would study, and their data, to take or to erase.
+
+    Example context (json):
+    {
+        "new": true, "pub_done_title": "Ya están apuntados", "pub_done_keep": "Guarden esta página.",
+        "emailed": "También se la hemos enviado por correo.", "pub_family_title": "Su página",
+        "pub_family_intro": "Lo que el centro tiene de ustedes.", "centre": "Colegio de ejemplo",
+        "pub_next": "Su próxima visita", "hasnext": true,
+        "next": [{"name": "Jornada de puertas abiertas", "when": "sábado, 21 de noviembre, 10:00–13:00",
+            "place": "Entrada principal", "people": "Personas: 3", "ics": "#"}],
+        "pub_none_next": "No tienen ninguna visita apuntada.", "pub_add_calendar": "Añadir al calendario",
+        "pub_us": "Ustedes", "adults": [{"name": "Lucas Pérez", "reach": "+34600000000"}],
+        "pub_students": "Quién estudiaría", "children": [{"name": "Daniel", "offer": "Infantil 3 años (2027-28)"}],
+        "pub_data": "Sus datos", "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar mis datos",
+        "pub_data_erase": "Borrar mis datos", "downloadurl": "#", "eraseurl": "#"
+    }
+}}
+<article class="eg-card">
+    {{#new}}
+    <header class="eg-done" role="status">
+        <h1>{{pub_done_title}}</h1>
+        <p>{{pub_done_keep}}</p>
+        {{#emailed}}<p>{{emailed}}</p>{{/emailed}}
+    </header>
+    {{/new}}
+    {{^new}}
+    <header class="eg-event">
+        <h1>{{pub_family_title}}</h1>
+        <p>{{pub_family_intro}}</p>
+    </header>
+    {{/new}}
+
+    <section class="eg-section">
+        <h2>{{pub_next}}</h2>
+        {{#hasnext}}
+        <ul class="eg-list">
+            {{#next}}
+            <li class="eg-visit">
+                <strong>{{name}}</strong>
+                <span>{{when}}</span>
+                {{#place}}<span>{{place}}</span>{{/place}}
+                <span>{{people}}</span>
+                <a class="eg-button eg-button-quiet" href="{{ics}}">{{pub_add_calendar}}</a>
+            </li>
+            {{/next}}
+        </ul>
+        {{/hasnext}}
+        {{^hasnext}}<p>{{pub_none_next}}</p>{{/hasnext}}
+    </section>
+
+    <section class="eg-section">
+        <h2>{{pub_us}}</h2>
+        <ul class="eg-list">{{#adults}}<li><strong>{{name}}</strong>{{#reach}} <span class="eg-quiet">{{reach}}</span>{{/reach}}</li>{{/adults}}</ul>
+        <h2>{{pub_students}}</h2>
+        <ul class="eg-list">{{#children}}<li><strong>{{name}}</strong> <span class="eg-quiet">{{offer}}</span></li>{{/children}}</ul>
+    </section>
+
+    <section class="eg-section">
+        <h2>{{pub_data}}</h2>
+        <p>{{pub_data_hint}}</p>
+        <div class="eg-actions">
+            <a class="eg-button eg-button-quiet" href="{{downloadurl}}">{{pub_data_download}}</a>
+            <a class="eg-button eg-button-quiet" href="{{eraseurl}}">{{pub_data_erase}}</a>
+        </div>
+    </section>
+</article>

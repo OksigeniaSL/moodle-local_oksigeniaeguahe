@@ -1,0 +1,42 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_frame
+
+    What goes around every page of a family: the centre (its logo or its name), the languages, and at the foot the
+    centre and its privacy page. The page itself goes where the comment «main» is.
+
+    Example context (json):
+    {
+        "centre": "Colegio de ejemplo", "logo": "", "langlabel": "Idioma",
+        "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#", "current": false, "code": "en"}],
+        "privacyurl": "#", "privacy": "Cómo tratamos sus datos", "year": "2026"
+    }
+}}
+<header class="eg-top">
+    <div class="eg-brand">{{#logo}}<img src="{{logo}}" alt="{{centre}}" height="40">{{/logo}}{{^logo}}<span class="eg-centre">{{centre}}</span>{{/logo}}</div>
+    <nav class="eg-langs" aria-label="{{langlabel}}">
+        {{#langs}}<a href="{{url}}" hreflang="{{code}}" lang="{{code}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/langs}}
+    </nav>
+</header>
+<main class="eg-main" id="main">
+<!-- main -->
+</main>
+<footer class="eg-foot">
+    <span>{{centre}}</span>
+    <a href="{{privacyurl}}">{{privacy}}</a>
+</footer>

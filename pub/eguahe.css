@@ -1,0 +1,473 @@
+/*
+ * The pages families open without an account (local_oksigeniaeguahe): light, in the colour of the centre, in light and
+ * dark, readable on a small phone in the sun. --centre and --on-centre come from the page.
+ *
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+:root {
+    --bg: #f6f5f2;
+    --card: #fff;
+    --fg: #1d2421;
+    --muted: #55605b;
+    --line: #d9dcd8;
+    --field: #fff;
+    --danger: #b3261e;
+    --danger-bg: #fdecea;
+    --ok-bg: #eaf4ee;
+    --radius: 14px;
+    --centre: #2f5d62;
+    --on-centre: #fff;
+    --centre-text: var(--centre);
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121514;
+        --card: #1b201e;
+        --fg: #eef1ef;
+        --muted: #a9b3ae;
+        --line: #343c39;
+        --field: #121514;
+        --danger: #ffb4ab;
+        --danger-bg: #3b1714;
+        --ok-bg: #16281d;
+        --centre-text: #eef1ef;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body.eguahe-public {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 1.0625rem/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    color: var(--centre-text);
+    text-underline-offset: 0.18em;
+}
+
+:focus-visible {
+    outline: 3px solid var(--centre);
+    outline-offset: 2px;
+}
+
+.eg-top,
+.eg-foot,
+.eg-main {
+    width: 100%;
+    /* stylelint-disable-next-line csstree/validator */
+    padding-inline: max(1rem, env(safe-area-inset-left));
+}
+
+.eg-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-top: 6px solid var(--centre);
+}
+
+.eg-brand img {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.eg-centre {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.eg-langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.95rem;
+}
+
+.eg-langs a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.35rem 0.1rem;
+}
+
+.eg-langs a[aria-current="true"] {
+    color: var(--fg);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--centre);
+    text-decoration-thickness: 2px;
+}
+
+.eg-main {
+    flex: 1;
+    padding-block: 0.5rem 2rem;
+}
+
+.eg-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-inline: auto;
+    width: 100%;
+}
+
+@media (min-width: 48rem) {
+    .eg-card {
+        width: 46rem;
+        padding: 2rem 2.25rem;
+    }
+}
+
+.eg-card h1 {
+    font-size: 1.6rem;
+    line-height: 1.2;
+    margin: 0 0 0.5rem;
+    /* stylelint-disable-next-line csstree/validator */
+    text-wrap: balance;
+}
+
+.eg-card h2 {
+    font-size: 1.15rem;
+    margin: 0 0 0.5rem;
+}
+
+.eg-card p {
+    margin: 0 0 0.75rem;
+}
+
+.eg-event,
+.eg-done {
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.eg-done {
+    background: var(--ok-bg);
+    border: 0;
+    border-radius: calc(var(--radius) - 4px);
+    padding: 1rem 1.25rem;
+}
+
+.eg-when {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.eg-place,
+.eg-quiet,
+.eg-hint {
+    color: var(--muted);
+}
+
+.eg-hint {
+    font-size: 0.95rem;
+}
+
+.eg-form fieldset {
+    border: 0;
+    margin: 0 0 1.5rem;
+    padding: 0;
+}
+
+.eg-form legend {
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
+}
+
+.eg-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.eg-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+@media (min-width: 36rem) {
+    .eg-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.eg-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.eg-field label {
+    font-weight: 600;
+}
+
+.eg-field .eg-sub {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.eg-optional {
+    font-weight: 400;
+    color: var(--muted);
+}
+
+.eg-field input,
+.eg-field select,
+.eg-field textarea {
+    width: 100%;
+    font: inherit;
+    color: var(--fg);
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    min-height: 48px;
+    touch-action: manipulation;
+}
+
+.eg-field textarea {
+    resize: vertical;
+}
+
+.eg-field [aria-invalid="true"] {
+    border-color: var(--danger);
+    border-width: 2px;
+}
+
+.eg-error {
+    color: var(--danger);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.eg-alert {
+    background: var(--danger-bg);
+    border-left: 5px solid var(--danger);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.eg-alert ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.eg-alert a {
+    color: var(--fg);
+}
+
+.eg-more {
+    margin: 0.25rem 0 0.75rem;
+}
+
+.eg-more summary {
+    cursor: pointer;
+    color: var(--centre-text);
+    font-weight: 600;
+    padding: 0.5rem 0;
+    min-height: 44px;
+}
+
+.eg-more[open] summary {
+    margin-bottom: 0.5rem;
+}
+
+.eg-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.eg-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+}
+
+.eg-check input {
+    width: 1.35rem;
+    height: 1.35rem;
+    accent-color: var(--centre);
+}
+
+.eg-info {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+    border-top: 1px solid var(--line);
+    padding-top: 0.75rem;
+}
+
+.eg-info div {
+    margin-bottom: 0.35rem;
+}
+
+.eg-info dt {
+    display: inline;
+    font-weight: 600;
+    color: var(--fg);
+}
+
+.eg-info dt::after {
+    content: ": ";
+}
+
+.eg-info dd {
+    display: inline;
+    margin: 0;
+}
+
+.eg-robot {
+    margin: 0.5rem 0 1.25rem;
+}
+
+.eg-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 52px;
+    padding: 0.75rem 1.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--centre);
+    color: var(--on-centre);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.eg-form .eg-button[type="submit"] {
+    width: 100%;
+}
+
+@media (min-width: 36rem) {
+    .eg-form .eg-button[type="submit"] {
+        width: auto;
+        min-width: 16rem;
+    }
+}
+
+.eg-button:active {
+    transform: scale(0.98);
+}
+
+@media (hover: hover) {
+    .eg-button:hover {
+        opacity: 0.92;
+    }
+}
+
+.eg-button-quiet {
+    background: transparent;
+    color: var(--centre-text);
+    border: 2px solid var(--centre);
+    min-height: 44px;
+    padding: 0.5rem 1.1rem;
+}
+
+.eg-button-danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    .eg-button-danger {
+        color: #3b1714;
+    }
+}
+
+.eg-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.eg-section {
+    margin-bottom: 1.5rem;
+}
+
+.eg-list {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.eg-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.eg-visit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.eg-visit .eg-button {
+    align-self: flex-start;
+    margin-top: 0.4rem;
+}
+
+.eg-message {
+    text-align: left;
+}
+
+.eg-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding-block: 1rem calc(1rem + env(safe-area-inset-bottom));
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .eg-button {
+        transition: none;
+    }
+
+    .eg-button:active {
+        transform: none;
+    }
+}

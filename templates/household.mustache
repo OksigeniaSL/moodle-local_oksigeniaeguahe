@@ -1,0 +1,157 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/household
+
+    A household for the team: who they are and how to reach them, the way of each child with its stage, the next step
+    (note the answer given, a note, a new link for the family), the history with the newest first, and their events.
+
+    Example context (json):
+    {
+        "tabs": [], "names": "Lucas Pérez y Ana Gil", "waiting": true, "waited": "3 horas", "place": "Getafe",
+        "heardfrom": "Familia o amigos", "channel": "Jornada", "lang": "Español", "since": "21/11/26",
+        "adults": [{"name": "Lucas Pérez", "phone": "+34600000000", "email": "lucas@example.com",
+            "permissions": "Correo, WhatsApp"}],
+        "children": [{"id": 1, "name": "Daniel", "offer": "Infantil 3 años · 2027-28", "stage": "Consulta", "reason": "",
+            "since": "21/11/26", "stages": [{"value": "inquiry", "name": "Consulta", "selected": true}],
+            "reasons": [{"value": "moved", "name": "Se mudó", "selected": false}]}],
+        "hashistory": true,
+        "history": [{"in": true, "out": false, "note": false, "who": "Lucas Pérez", "channel": "Jornada",
+            "when": "21/11/26, 10:12", "body": "¿Hay comedor?"}],
+        "hasevents": true, "events": [{"name": "Jornada", "when": "21/11/26, 10:00", "people": 3, "came": true}],
+        "channels": [{"value": "phone", "name": "Teléfono"}], "action": "#", "editurl": "#", "sesskey": "abc",
+        "newlink": "", "eraseurl": "#"
+    }
+}}
+<div class="eguahe eguahe-household">
+    {{> local_oksigeniaeguahe/tabs }}
+
+    <header class="eguahe-head">
+        <div>
+            <h2>{{names}}</h2>
+            <p class="eguahe-quiet">{{channel}} · {{since}}{{#place}} · {{place}}{{/place}}{{#heardfrom}} · {{heardfrom}}{{/heardfrom}} · {{lang}}</p>
+        </div>
+        <a class="btn btn-secondary" href="{{editurl}}">{{#str}}edit{{/str}}</a>
+    </header>
+
+    {{#waiting}}<p class="eguahe-waiting is-waiting" role="status">{{#str}}inbox_waits_for, local_oksigeniaeguahe, {{waited}}{{/str}}</p>{{/waiting}}
+
+    <div class="eguahe-columns">
+        <div>
+            <section class="eguahe-box">
+                <h3>{{#str}}adults, local_oksigeniaeguahe{{/str}}</h3>
+                <ul class="eguahe-plain">
+                    {{#adults}}
+                    <li>
+                        <strong>{{name}}</strong>
+                        {{#phone}}<a href="tel:{{phone}}">{{phone}}</a>{{/phone}}
+                        {{#email}}<a href="mailto:{{email}}">{{email}}</a>{{/email}}
+                        <span class="eguahe-quiet">{{#str}}permissions, local_oksigeniaeguahe{{/str}}: {{permissions}}</span>
+                    </li>
+                    {{/adults}}
+                </ul>
+            </section>
+
+            <section class="eguahe-box">
+                <h3>{{#str}}children, local_oksigeniaeguahe{{/str}}</h3>
+                {{#children}}
+                <form class="eguahe-child" method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    <input type="hidden" name="action" value="stage">
+                    <input type="hidden" name="child" value="{{id}}">
+                    <p><strong>{{name}}</strong> · {{offer}}<br><span class="eguahe-quiet">{{stage}}{{#reason}} ({{reason}}){{/reason}} · {{since}}</span></p>
+                    <div class="eguahe-inline">
+                        <label class="visually-hidden" for="stage-{{id}}">{{#str}}stage, local_oksigeniaeguahe{{/str}}</label>
+                        <select class="form-select custom-select" id="stage-{{id}}" name="stage">
+                            {{#stages}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/stages}}
+                        </select>
+                        <label class="visually-hidden" for="reason-{{id}}">{{#str}}closed_reason, local_oksigeniaeguahe{{/str}}</label>
+                        <select class="form-select custom-select" id="reason-{{id}}" name="reason">
+                            <option value="">{{#str}}closed_reason, local_oksigeniaeguahe{{/str}}</option>
+                            {{#reasons}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/reasons}}
+                        </select>
+                        <button type="submit" class="btn btn-secondary">{{#str}}stage_save, local_oksigeniaeguahe{{/str}}</button>
+                    </div>
+                </form>
+                {{/children}}
+                <p class="eguahe-quiet">{{#str}}stage_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+
+            {{#hasevents}}
+            <section class="eguahe-box">
+                <h3>{{#str}}tab_events, local_oksigeniaeguahe{{/str}}</h3>
+                <ul class="eguahe-plain">
+                    {{#events}}<li>{{name}} · {{when}} · {{#str}}people_n, local_oksigeniaeguahe, {{people}}{{/str}}{{#came}} · <strong>{{#str}}came, local_oksigeniaeguahe{{/str}}</strong>{{/came}}</li>{{/events}}
+                </ul>
+            </section>
+            {{/hasevents}}
+
+            <section class="eguahe-box">
+                <h3>{{#str}}familylink, local_oksigeniaeguahe{{/str}}</h3>
+                {{#newlink}}
+                <p>{{#str}}familylink_new, local_oksigeniaeguahe{{/str}}</p>
+                <p><input class="form-control" type="text" readonly value="{{newlink}}" aria-label="{{#str}}familylink, local_oksigeniaeguahe{{/str}}"></p>
+                {{/newlink}}
+                {{^newlink}}
+                <p class="eguahe-quiet">{{#str}}familylink_help, local_oksigeniaeguahe{{/str}}</p>
+                <form method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    <input type="hidden" name="action" value="link">
+                    <button type="submit" class="btn btn-secondary">{{#str}}familylink_make, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+                {{/newlink}}
+                <p><a class="eguahe-danger-link" href="{{eraseurl}}">{{#str}}erase_link, local_oksigeniaeguahe{{/str}}</a></p>
+            </section>
+        </div>
+
+        <div>
+            <section class="eguahe-box">
+                <h3>{{#str}}next_step, local_oksigeniaeguahe{{/str}}</h3>
+                <form method="post" action="{{action}}" class="eguahe-answer">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    <label for="eguahe-body">{{#str}}answer_body, local_oksigeniaeguahe{{/str}}</label>
+                    <textarea class="form-control" id="eguahe-body" name="body" rows="3"></textarea>
+                    <div class="eguahe-inline">
+                        <label for="eguahe-channel">{{#str}}channel, local_oksigeniaeguahe{{/str}}</label>
+                        <select class="form-select custom-select" id="eguahe-channel" name="channel">
+                            {{#channels}}<option value="{{value}}">{{name}}</option>{{/channels}}
+                        </select>
+                    </div>
+                    <div class="eguahe-inline">
+                        <button type="submit" name="action" value="answer" class="btn btn-primary">{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
+                        <button type="submit" name="action" value="received" class="btn btn-secondary">{{#str}}received_save, local_oksigeniaeguahe{{/str}}</button>
+                        <button type="submit" name="action" value="note" class="btn btn-secondary">{{#str}}note_save, local_oksigeniaeguahe{{/str}}</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="eguahe-box">
+                <h3>{{#str}}history, local_oksigeniaeguahe{{/str}}</h3>
+                {{#hashistory}}
+                <ol class="eguahe-history">
+                    {{#history}}
+                    <li class="{{#in}}is-in{{/in}}{{#out}}is-out{{/out}}{{#note}}is-note{{/note}}">
+                        <span class="eguahe-quiet">{{#in}}{{#str}}history_in, local_oksigeniaeguahe{{/str}}{{/in}}{{#out}}{{#str}}history_out, local_oksigeniaeguahe{{/str}}{{/out}}{{#note}}{{#str}}history_note, local_oksigeniaeguahe{{/str}}{{/note}} · {{who}} · {{channel}} · {{when}}</span>
+                        <p>{{body}}</p>
+                    </li>
+                    {{/history}}
+                </ol>
+                {{/hashistory}}
+            </section>
+        </div>
+    </div>
+</div>

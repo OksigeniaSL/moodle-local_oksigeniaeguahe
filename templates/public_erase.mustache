@@ -1,0 +1,37 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_erase
+
+    The question before erasing the data of a family, with what each button does.
+
+    Example context (json):
+    {"pub_erase_title": "¿Borrar todos sus datos?", "pub_erase_text": "El centro dejará de tenerlos.",
+     "pub_erase_yes": "Borrar los datos", "pub_erase_no": "Dejarlos", "action": "#", "back": "#", "sesskey": "abc",
+     "centre": "Colegio de ejemplo"}
+}}
+<article class="eg-card eg-message">
+    <h1>{{pub_erase_title}}</h1>
+    <p>{{pub_erase_text}}</p>
+    <form method="post" action="{{action}}" class="eg-actions">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="erase">
+        <input type="hidden" name="confirm" value="1">
+        <button type="submit" class="eg-button eg-button-danger">{{pub_erase_yes}}</button>
+        <a class="eg-button eg-button-quiet" href="{{back}}">{{pub_erase_no}}</a>
+    </form>
+</article>

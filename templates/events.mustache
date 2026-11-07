@@ -1,0 +1,54 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/events
+
+    The open days and visits of a centre: the next ones first, with who signed up and who came.
+
+    Example context (json):
+    {"tabs": [], "hasevents": true, "editing": false,
+     "events": [{"name": "Jornada de puertas abiertas", "kind": "Jornada", "when": "21/11/26, 10:00", "past": false,
+        "open": true, "signedup": 12, "people": 31, "came": 0, "capacity": 80, "url": "#"}]}
+}}
+<div class="eguahe">
+    {{> local_oksigeniaeguahe/tabs }}
+    {{#hasevents}}
+    <table class="table eguahe-table">
+        <thead><tr>
+            <th scope="col">{{#str}}event_name, local_oksigeniaeguahe{{/str}}</th>
+            <th scope="col">{{#str}}event_start, local_oksigeniaeguahe{{/str}}</th>
+            <th scope="col" class="eguahe-num">{{#str}}event_households, local_oksigeniaeguahe{{/str}}</th>
+            <th scope="col" class="eguahe-num">{{#str}}event_people, local_oksigeniaeguahe{{/str}}</th>
+            <th scope="col" class="eguahe-num">{{#str}}event_came, local_oksigeniaeguahe{{/str}}</th>
+        </tr></thead>
+        <tbody>
+        {{#events}}
+            <tr{{#past}} class="eguahe-past"{{/past}}>
+                <th scope="row"><a href="{{url}}">{{name}}</a> <span class="eguahe-quiet">{{kind}}{{^open}} · {{#str}}event_closed, local_oksigeniaeguahe{{/str}}{{/open}}</span></th>
+                <td>{{when}}</td>
+                <td class="eguahe-num">{{signedup}}</td>
+                <td class="eguahe-num">{{people}}{{#capacity}} / {{capacity}}{{/capacity}}</td>
+                <td class="eguahe-num">{{came}}</td>
+            </tr>
+        {{/events}}
+        </tbody>
+    </table>
+    {{/hasevents}}
+    {{^hasevents}}
+    <div class="eguahe-empty"><p>{{#str}}events_none, local_oksigeniaeguahe{{/str}}</p></div>
+    {{/hasevents}}
+</div>

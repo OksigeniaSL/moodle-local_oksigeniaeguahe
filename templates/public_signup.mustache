@@ -1,0 +1,174 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_signup
+
+    Signing up for an open day or a visit from the phone of the family: the event, who they are, who would study and in
+    which course, how many come, where they live, how they heard of the centre, a question if they have one, the
+    channels the centre may use, the first layer about their data, and the check against spam. Without the JavaScript
+    of Moodle: only the widget against spam has its own.
+
+    Example context (json):
+    {
+        "base": "/local/oksigeniaeguahe/pub/", "version": 1, "event": "Jornada de puertas abiertas",
+        "when": "sábado, 21 de noviembre de 2026, 10:00–13:00", "place": "Entrada principal",
+        "pub_intro": "Apúntense y les esperamos.", "action": "#", "sesskey": "abc", "haserrors": false, "errorlist": [],
+        "formerror": "", "pub_errors": "Revisen esto:", "pub_who": "Quiénes son", "pub_reach_hint": "Basta con uno.",
+        "adults": [{"first": true, "fields": [{"name": "a0first", "label": "Nombre", "value": "", "type": "text",
+            "autocomplete": "given-name", "required": true, "error": "", "invalid": false}]}],
+        "moreadultsopen": false, "pub_another_adult": "Otra persona adulta", "pub_students": "Quién estudiaría",
+        "children": [{"first": true, "name": {"name": "c0name", "label": "Nombre", "value": "", "type": "text",
+            "autocomplete": "off", "required": true, "error": "", "invalid": false}, "offer": "c0offer", "offererror": "",
+            "offers": [{"id": 1, "name": "Infantil 3 años (2027-28)", "selected": false}]}],
+        "hasoffers": true, "pub_student_offer": "Curso", "pub_offer_unknown": "Aún no lo sabemos",
+        "morechildrenopen": false, "pub_another_student": "Otra persona más", "pub_people": "¿Cuántas personas vendrán?",
+        "people": 2, "peopleerror": "", "pub_where": "¿Dónde viven?", "hasplaces": true,
+        "places": [{"value": "28065", "name": "Getafe", "selected": false}],
+        "pub_where_choose": "Elijan", "pub_where_other": "Otro sitio", "municipalityother": "",
+        "pub_heardfrom": "¿Cómo conocieron el centro?", "pub_heardfrom_choose": "Elijan",
+        "heard": [{"value": "family", "name": "Por familia o amigos", "selected": false}],
+        "pub_message": "¿Quieren preguntarnos algo?", "pub_message_hint": "Les contesta una persona.", "message": "",
+        "pub_channels": "¿Cómo podemos escribirles?", "pub_channels_hint": "Solo por lo que marquen.",
+        "channels": [{"name": "consentemail", "label": "Por correo", "checked": false}],
+        "info": [{"label": "Quién", "text": "Colegio de ejemplo"}], "pub_info_more": "Más información",
+        "privacyurl": "#", "altchaurl": "#", "altchaconfig": "{}", "altchalang": "es-es", "altchai18n": "es-es", "altchaerror": "",
+        "pub_submit": "Apuntarnos", "pub_optional": "opcional", "pub_required": "obligatorio"
+    }
+}}
+<article class="eg-card">
+    <header class="eg-event">
+        <h1>{{event}}</h1>
+        <p class="eg-when">{{when}}</p>
+        {{#place}}<p class="eg-place">{{place}}</p>{{/place}}
+        <p>{{pub_intro}}</p>
+    </header>
+
+    {{#haserrors}}
+    <div class="eg-alert" role="alert" tabindex="-1" id="eg-errors">
+        <p><strong>{{pub_errors}}</strong></p>
+        <ul>{{#errorlist}}<li><a href="#{{field}}">{{message}}</a></li>{{/errorlist}}</ul>
+    </div>
+    {{/haserrors}}
+
+    <form class="eg-form" method="post" action="{{action}}" novalidate>
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+        <fieldset>
+            <legend>{{pub_who}}</legend>
+            <p class="eg-hint" id="eg-reach-hint">{{pub_reach_hint}}</p>
+            {{#adults}}{{#first}}
+            <div class="eg-grid">{{#fields}}{{> local_oksigeniaeguahe/public_field }}{{/fields}}</div>
+            {{/first}}{{/adults}}
+            <details class="eg-more"{{#moreadultsopen}} open{{/moreadultsopen}}>
+                <summary>{{pub_another_adult}}</summary>
+                {{#adults}}{{^first}}
+                <div class="eg-grid">{{#fields}}{{> local_oksigeniaeguahe/public_field }}{{/fields}}</div>
+                {{/first}}{{/adults}}
+            </details>
+        </fieldset>
+
+        <fieldset>
+            <legend>{{pub_students}}</legend>
+            {{#children}}{{#first}}
+            <div class="eg-grid">
+                {{#name}}{{> local_oksigeniaeguahe/public_field }}{{/name}}
+                <div class="eg-field">
+                    <label for="{{offer}}">{{pub_student_offer}}</label>
+                    <select id="{{offer}}" name="{{offer}}"{{#offererror}} aria-invalid="true" aria-describedby="{{offer}}-error"{{/offererror}}>
+                        <option value="0">{{pub_offer_unknown}}</option>
+                        {{#offers}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/offers}}
+                    </select>
+                    {{#offererror}}<p class="eg-error" id="{{offer}}-error">{{offererror}}</p>{{/offererror}}
+                </div>
+            </div>
+            {{/first}}{{/children}}
+            <details class="eg-more"{{#morechildrenopen}} open{{/morechildrenopen}}>
+                <summary>{{pub_another_student}}</summary>
+                {{#children}}{{^first}}
+                <div class="eg-grid">
+                    {{#name}}{{> local_oksigeniaeguahe/public_field }}{{/name}}
+                    <div class="eg-field">
+                        <label for="{{offer}}">{{pub_student_offer}}</label>
+                        <select id="{{offer}}" name="{{offer}}"{{#offererror}} aria-invalid="true" aria-describedby="{{offer}}-error"{{/offererror}}>
+                            <option value="0">{{pub_offer_unknown}}</option>
+                            {{#offers}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/offers}}
+                        </select>
+                        {{#offererror}}<p class="eg-error" id="{{offer}}-error">{{offererror}}</p>{{/offererror}}
+                    </div>
+                </div>
+                {{/first}}{{/children}}
+            </details>
+        </fieldset>
+
+        <fieldset>
+            <legend class="eg-hidden">{{pub_people}}</legend>
+            <div class="eg-grid">
+                <div class="eg-field">
+                    <label for="people">{{pub_people}}</label>
+                    <input id="people" name="people" type="number" inputmode="numeric" min="1" max="20" value="{{people}}"{{#peopleerror}} aria-invalid="true" aria-describedby="people-error"{{/peopleerror}}>
+                    {{#peopleerror}}<p class="eg-error" id="people-error">{{peopleerror}}</p>{{/peopleerror}}
+                </div>
+                <div class="eg-field">
+                    <label for="municipality">{{pub_where}} <span class="eg-optional">({{pub_optional}})</span></label>
+                    {{#hasplaces}}
+                    <select id="municipality" name="municipality">
+                        <option value="">{{pub_where_choose}}</option>
+                        {{#places}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/places}}
+                        <option value="other">{{pub_where_other}}</option>
+                    </select>
+                    <label class="eg-sub" for="municipalityother">{{pub_where_other}}</label>
+                    {{/hasplaces}}
+                    <input id="municipalityother" name="municipalityother" type="text" autocomplete="address-level2" value="{{municipalityother}}">
+                </div>
+                <div class="eg-field">
+                    <label for="heardfrom">{{pub_heardfrom}} <span class="eg-optional">({{pub_optional}})</span></label>
+                    <select id="heardfrom" name="heardfrom">
+                        <option value="">{{pub_heardfrom_choose}}</option>
+                        {{#heard}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/heard}}
+                    </select>
+                </div>
+            </div>
+            <div class="eg-field">
+                <label for="message">{{pub_message}} <span class="eg-optional">({{pub_optional}})</span></label>
+                <textarea id="message" name="message" rows="3" aria-describedby="message-hint">{{message}}</textarea>
+                <p class="eg-hint" id="message-hint">{{pub_message_hint}}</p>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>{{pub_channels}}</legend>
+            <p class="eg-hint">{{pub_channels_hint}}</p>
+            <div class="eg-checks">
+                {{#channels}}<label class="eg-check"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}> <span>{{label}}</span></label>{{/channels}}
+            </div>
+            <dl class="eg-info">
+                {{#info}}<div><dt>{{label}}</dt><dd>{{text}}</dd></div>{{/info}}
+            </dl>
+            <p class="eg-hint"><a href="{{privacyurl}}">{{pub_info_more}}</a></p>
+        </fieldset>
+
+        <div class="eg-robot{{#altchaerror}} is-invalid{{/altchaerror}}" id="altcha">
+            <altcha-widget challenge="{{altchaurl}}" language="{{altchalang}}" configuration="{{altchaconfig}}"></altcha-widget>
+            {{#altchaerror}}<p class="eg-error">{{altchaerror}}</p>{{/altchaerror}}
+        </div>
+        {{#formerror}}<p class="eg-error" role="alert">{{formerror}}</p>{{/formerror}}
+
+        <button type="submit" class="eg-button">{{pub_submit}}</button>
+    </form>
+</article>
+<script type="module" src="{{base}}altcha/altcha.min.js?v={{version}}"></script>
+{{#altchai18n}}<script type="module" src="{{base}}altcha/i18n-{{altchai18n}}.js?v={{version}}"></script>{{/altchai18n}}

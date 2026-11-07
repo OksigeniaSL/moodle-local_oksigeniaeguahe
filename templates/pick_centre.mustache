@@ -1,0 +1,34 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/pick_centre
+
+    For someone who works for several centres: which one.
+
+    Example context (json):
+    {"hascentres": true, "centres": [{"name": "Colegio de ejemplo", "url": "#", "waiting": 3}], "manageurl": "#"}
+}}
+<div class="eguahe">
+    <h2>{{#str}}pick_centre, local_oksigeniaeguahe{{/str}}</h2>
+    {{#hascentres}}
+    <ul class="eguahe-centres">
+        {{#centres}}<li><a href="{{url}}">{{name}}</a> <span class="eguahe-quiet">{{#str}}inbox_waiting, local_oksigeniaeguahe, {{waiting}}{{/str}}</span></li>{{/centres}}
+    </ul>
+    {{/hascentres}}
+    {{^hascentres}}<p>{{#str}}no_centres, local_oksigeniaeguahe{{/str}}</p>{{/hascentres}}
+    {{#manageurl}}<p><a class="btn btn-primary" href="{{manageurl}}">{{#str}}centres, local_oksigeniaeguahe{{/str}}</a></p>{{/manageurl}}
+</div>
