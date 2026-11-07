@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2026-11-07)
+
+- Counts read well with one and with many: «Personas: 1», «Han venido: 1».
+
 ## 0.1.1 (2026-11-07)
 
 - A daily task erases the households with no activity for the months their centre keeps data, as families read in
