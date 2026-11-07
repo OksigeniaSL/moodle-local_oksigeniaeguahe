@@ -20,7 +20,7 @@
  * HMAC-SHA256 of the body in hexadecimal):
  *
  *     {"id": "the identifier of the answer", "time": "2026-11-21T10:00:00Z", "past": false,
- *      "answers": {"Nombre": "Marta", "Correo": "marta@example.com", "Curso": "1.º de Primaria"}}
+ *      "answers": {"Nombre": "Marta", "Teléfono": "+34 600 000 000", "Curso": "1.º de Primaria"}}
  *
  * Answers may also be a list of {"question": …, "answer": …}, and a body may carry up to 200 of them as
  * {"items": [{…}, {…}]}. The same id never comes in twice.
