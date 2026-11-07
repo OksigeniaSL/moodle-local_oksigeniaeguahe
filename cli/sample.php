@@ -50,6 +50,10 @@ $centreid = centres::create((object) [
     'rightscontact' => 'secretaria@example.com',
     'retention' => 24,
     'municipalities' => "28065;Getafe\n28074;Leganés\n28058;Fuenlabrada\n28106;Parla",
+    'address' => 'Calle de los Almendros 14, Getafe',
+    'phone' => '+34 900 000 014',
+    'email' => 'admisiones@example.com',
+    'welcome' => 'Les enseñamos el centro y conocen a quienes estarían con su hijo cada día.',
 ]);
 $offers = [];
 foreach ([['Infantil 3 años', 25], ['1.º de Primaria', 4], ['1.º de ESO', 6], ['1.º de Bachillerato', 10]] as $i => $row) {
@@ -62,7 +66,7 @@ if ($user) {
 }
 $start = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j') + 14, 10, 0);
 $eventid = events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jornada de puertas abiertas',
-    'place' => 'Entrada principal, calle de los Almendros 1', 'timestart' => $start, 'timeend' => $start + 3 * HOURSECS,
+    'place' => 'Entrada principal', 'timestart' => $start, 'timeend' => $start + 3 * HOURSECS,
     'capacity' => 120, 'open' => 1]);
 $event = events::get($eventid, $centreid);
 

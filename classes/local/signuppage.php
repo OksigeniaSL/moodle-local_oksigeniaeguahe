@@ -233,7 +233,8 @@ class signuppage {
             'months' => (int) $centre->retention,
         ];
         $lines = [];
-        foreach (['who', 'why', 'basis', 'whom', 'keep', 'rights'] as $part) {
+        // How long they are kept goes in the second layer, with the rest: the first stays short on a phone.
+        foreach (['who', 'why', 'basis', 'whom', 'rights'] as $part) {
             $text = publiclang::str('info_' . $part, $lang, $a);
             if ($part === 'rights' && $a->contact !== '') {
                 $text .= ' ' . publiclang::str('info_rights_contact', $lang, $a);
