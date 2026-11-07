@@ -277,7 +277,7 @@ class publicpage {
      *
      * @param string[] $names The names on the labels, in order; an empty one waits blank.
      * @param bool $arrive Whether they arrive swinging.
-     * @param int $shown How many are shown (the others wait hidden, for the form).
+     * @param int|null $shown How many are shown (the others wait hidden, for the form).
      * @return array
      */
     public static function pegs(array $names, bool $arrive = false, ?int $shown = null): array {

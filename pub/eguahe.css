@@ -1792,3 +1792,7 @@ fieldset.mal .fichas .ficha {
 .dos {
     align-items: start;
 }
+
+.lo-contado .escribimos {
+    margin-top: 12px;
+}
