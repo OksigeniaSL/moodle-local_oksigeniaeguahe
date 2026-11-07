@@ -403,9 +403,10 @@ class households {
     }
 
     /**
-     * Gives the household a new private link; the one before stops working. Only its hash is kept.
+     * Gives the household one more private link; the ones before keep working. Only its hash is kept.
      *
      * @param \stdClass $household
+     * @param string $reason signup, invitation or team.
      * @return string The token, to send it once.
      */
     public static function new_link(\stdClass $household, string $reason = 'signup'): string {
