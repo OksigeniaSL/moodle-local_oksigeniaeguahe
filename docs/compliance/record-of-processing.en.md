@@ -20,3 +20,15 @@ without messaging channels, which are added to this entry when the centre turns 
 | Erasure | After [24] months without activity (set per centre), automatically every night. Families erase their data whenever they want from their page. If there is an enrolment, the data passes to the record of families of the centre |
 | Security measures | Access only for the admissions team of the centre, by Moodle user and capability; each centre sees only its families; the private link of each family kept only as a hash (SHA-256) and renewable; public pages without trackers, third parties or indexing; anti-spam without third parties (ALTCHA); [encrypted backups of the site, as its hosting provides] |
 | Rights | From the family's page: download and erase their data. In writing to [email]: access, rectification, restriction and objection. A complaint to the data protection authority |
+
+## When this entry has to change
+
+Before the centre turns on any of these, the data protection officer updates this entry and the information to
+families (the first layer of the form and the page «How we treat your data»):
+
+- **The artificial intelligence of the team** (drafts and summaries): add as processor the AI provider the centre sets
+  up with its own key; the international transfers, if the provider processes the data outside the European Economic
+  Area; and the impact assessment. What is sent to it goes without names, phones or emails.
+- **WhatsApp or Telegram**: add Meta or Telegram as recipients of the messages, their international transfers and the
+  permission by channel, which the family gives when signing up or writing.
+- **The forms of Meta or Google ads, or of the website of the centre**: add each source and what each form asks for.
