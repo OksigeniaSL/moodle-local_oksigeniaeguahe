@@ -339,3 +339,4 @@ $string['stage_waitlist'] = 'Lista de espera';
 $string['tab_events'] = 'Dias abertos e visitas';
 $string['tab_inbox'] = 'Caixa de entrada';
 $string['tab_settings'] = 'Definições';
+$string['task_erase_inactive'] = 'Apagar as famílias cujo prazo terminou';

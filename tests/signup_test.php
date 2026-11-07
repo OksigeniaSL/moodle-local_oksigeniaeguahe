@@ -32,10 +32,12 @@ use local_oksigeniaeguahe\local\signup;
  * @covers     \local_oksigeniaeguahe\local\signup
  * @covers     \local_oksigeniaeguahe\local\households
  * @covers     \local_oksigeniaeguahe\local\events
+ * @covers     \local_oksigeniaeguahe\task\erase_inactive
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(signup::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(households::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(events::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(task\erase_inactive::class)]
 final class signup_test extends \advanced_testcase {
     /** @var \stdClass */
     protected $centre;
@@ -207,6 +209,25 @@ final class signup_test extends \advanced_testcase {
         $left = $DB->get_records(households::ERASED);
         $this->assertCount(1, $left);
         $this->assertSame('inquiry', reset($left)->stage);
+    }
+
+    /**
+     * A household with no activity for longer than its centre keeps data is erased; an enrolled one stays.
+     */
+    public function test_erase_inactive(): void {
+        global $DB;
+        [$old] = signup::save($this->data(), $this->event, $this->centre, 'es');
+        $other = $this->data();
+        $other['adults'][0] = ['firstname' => 'Ana', 'lastname' => 'Gil', 'email' => 'ana@example.com', 'phone' => ''];
+        [$enrolled] = signup::save($other, $this->event, $this->centre, 'es');
+        $DB->set_field(households::T, 'lastcontact', time() - 25 * 31 * DAYSECS);
+        $child = $DB->get_record(households::CHILDREN, ['householdid' => $enrolled->id]);
+        households::set_stage($child, 'enrolled');
+
+        (new task\erase_inactive())->execute();
+        $this->assertNull(households::get($old->id, $this->centre->id));
+        $this->assertNotNull(households::get($enrolled->id, $this->centre->id));
+        $this->assertSame(1, $DB->count_records(households::ERASED));
     }
 
     /**

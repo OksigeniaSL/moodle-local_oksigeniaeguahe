@@ -339,3 +339,4 @@ $string['stage_waitlist'] = 'Lista de espera';
 $string['tab_events'] = 'Jornadas y visitas';
 $string['tab_inbox'] = 'Bandeja';
 $string['tab_settings'] = 'Ajustes';
+$string['task_erase_inactive'] = 'Borrar los hogares cuyo plazo ha terminado';

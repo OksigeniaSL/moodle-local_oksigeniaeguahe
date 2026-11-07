@@ -339,3 +339,4 @@ $string['stage_waitlist'] = 'Waiting list';
 $string['tab_events'] = 'Open days and visits';
 $string['tab_inbox'] = 'Inbox';
 $string['tab_settings'] = 'Settings';
+$string['task_erase_inactive'] = 'Erase the households whose time is over';

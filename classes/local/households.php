@@ -512,6 +512,27 @@ class households {
     }
 
     /**
+     * The households whose time is over: no contact for the months their centre keeps data, and no child enrolled.
+     *
+     * @param int $now
+     * @return \stdClass[]
+     */
+    public static function expired(int $now): array {
+        global $DB;
+        $expired = [];
+        foreach ($DB->get_records('local_oksigeniaeguahe_centre', null, '', 'id, retention') as $centre) {
+            $limit = (new \DateTimeImmutable('@' . $now))->modify('-' . max(1, (int) $centre->retention) . ' months')
+                ->getTimestamp();
+            $sql = 'SELECT h.* FROM {' . self::T . '} h
+                     WHERE h.centreid = :centreid AND h.lastcontact < :limit
+                       AND NOT EXISTS (SELECT 1 FROM {' . self::CHILDREN . '} c
+                                        WHERE c.householdid = h.id AND c.stage = :enrolled)';
+            $expired += $DB->get_records_sql($sql, ['centreid' => $centre->id, 'limit' => $limit, 'enrolled' => 'enrolled']);
+        }
+        return $expired;
+    }
+
+    /**
      * The households of a centre for the inbox: those waiting first, the longest wait at the top; then the rest by their
      * last contact.
      *

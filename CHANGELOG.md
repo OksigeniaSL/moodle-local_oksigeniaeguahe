@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 (2026-11-07)
+
+- A daily task erases the households with no activity for the months their centre keeps data, as families read in
+  the information about their data; households with a child enrolled stay.
+
 ## 0.1.0 (2026-11-07)
 
 First alpha.
