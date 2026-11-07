@@ -285,6 +285,42 @@ class centres {
     }
 
     /**
+     * The file of the logo of the centre, for the mail and the poster.
+     *
+     * @param int $centreid
+     * @return \stored_file|null
+     */
+    public static function logo_file(int $centreid): ?\stored_file {
+        $files = get_file_storage()->get_area_files(
+            \context_system::instance()->id,
+            'local_oksigeniaeguahe',
+            'logo',
+            $centreid,
+            'filename',
+            false
+        );
+        return reset($files) ?: null;
+    }
+
+    /**
+     * The file of the photo of someone who receives the families.
+     *
+     * @param int $memberid
+     * @return \stored_file|null
+     */
+    public static function host_photo_file(int $memberid): ?\stored_file {
+        $files = get_file_storage()->get_area_files(
+            \context_system::instance()->id,
+            'local_oksigeniaeguahe',
+            'hostphoto',
+            $memberid,
+            'filename',
+            false
+        );
+        return reset($files) ?: null;
+    }
+
+    /**
      * The photo of someone who receives the families, if the centre gave one.
      *
      * @param int $memberid

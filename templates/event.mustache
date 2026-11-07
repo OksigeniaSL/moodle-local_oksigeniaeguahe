@@ -23,7 +23,7 @@
     Example context (json):
     {"tabs": [], "name": "Jornada de puertas abiertas", "kind": "Jornada", "when": "sábado, 21 de noviembre, 10:00",
      "place": "Entrada principal", "open": true, "capacity": 80, "households": 1, "people": 3, "came": 0,
-     "qr": "<svg viewBox=\"0 0 10 10\"></svg>", "link": "https://example.com/j", "posterurl": "#", "editurl": "#",
+     "qr": "<svg viewBox=\"0 0 10 10\"></svg>", "link": "https://example.com/j", "posterurl": "#", "posterurla3": "#", "editurl": "#",
      "addurl": "#", "hassignups": true, "action": "#", "sesskey": "abc", "canact": true,
      "groups": [{"title": "21/11/26, 10:00–11:00", "load": "Personas: 3 de 20", "hassignups": true,
         "signups": [{"id": 1, "names": "Lucas Pérez", "incentre": false, "children": "Daniel · Infantil 3 años",
@@ -44,7 +44,10 @@
             <h3>{{#str}}event_qr, local_oksigeniaeguahe{{/str}}</h3>
             <div class="eguahe-qr">{{{qr}}}</div>
             <p><input class="form-control" type="text" readonly value="{{link}}" aria-label="{{#str}}event_link, local_oksigeniaeguahe{{/str}}"></p>
-            <p><a class="btn btn-secondary" href="{{posterurl}}" target="_blank">{{#str}}event_poster, local_oksigeniaeguahe{{/str}} <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a></p>
+            <p>
+                <a class="btn btn-secondary" href="{{posterurl}}" target="_blank">{{#str}}event_poster, local_oksigeniaeguahe{{/str}} · A4 <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a>
+                <a class="btn btn-secondary" href="{{posterurla3}}" target="_blank">A3 <span class="visually-hidden">({{#str}}opensinnewwindow{{/str}})</span></a>
+            </p>
         </section>
         <section class="eguahe-box">
             <h3>{{#str}}event_door, local_oksigeniaeguahe{{/str}}</h3>

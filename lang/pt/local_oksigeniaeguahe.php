@@ -29,6 +29,7 @@ $string['andlist'] = '{$a->list} e {$a->last}';
 $string['answer_body'] = 'O que foi conversado';
 $string['answer_save'] = 'Já respondemos';
 $string['answered_saved'] = 'Anotado: a família já não está à espera de resposta.';
+$string['cachedef_stickers'] = 'Etiquetas com o nome, em PNG, para os emails';
 $string['cachedef_usedchallenges'] = 'Verificações antispam já usadas';
 $string['came'] = 'Veio';
 $string['centre_address'] = 'Morada';
@@ -232,7 +233,12 @@ $string['household_new'] = 'Anotar uma família';
 $string['household_noname'] = 'Família sem nome';
 $string['household_save_new'] = 'Guardar a família';
 $string['household_saved'] = 'Guardado.';
-$string['ics_description'] = 'A vossa página em {$a->centre}: {$a->link}';
+$string['ics_alarm'] = 'Hoje, às {$a->hour}, em {$a->centre}';
+$string['ics_cantcome'] = 'Se no fim não puderem vir, liguem para {$a}.';
+$string['ics_host'] = '{$a} recebe-vos.';
+$string['ics_host_also'] = 'Também estará {$a}.';
+$string['ics_host_also_many'] = 'Também estarão {$a}.';
+$string['ics_page'] = 'A vossa página, com a visita e os vossos dados: {$a}';
 $string['import'] = 'Importar o que já aconteceu';
 $string['import_cancel'] = 'Descartar o ficheiro';
 $string['import_cancelled'] = 'Ficheiro descartado: nada foi importado e foi apagado.';
@@ -296,19 +302,31 @@ $string['info_whom'] = 'Ninguém, salvo obrigação legal. O fornecedor da plata
 $string['info_whom_label'] = 'Quem mais';
 $string['info_why'] = 'Responder-vos, organizar a vossa visita e, se quiserem, a vossa admissão.';
 $string['info_why_label'] = 'Para quê';
-$string['mail_signedup_body'] = 'Olá, {$a->name}.
-
-Estão inscritos em {$a->event}, em {$a->centre}.
-
-Quando: {$a->when}
-Onde: {$a->place}
-
-A vossa página, com a visita e os dados, está aqui:
-{$a->link}
-
-Esperamos por vocês.
-{$a->centre}';
-$string['mail_signedup_subject'] = 'Inscrição feita: {$a->event}';
+$string['mail_band_tomorrow'] = 'Amanhã';
+$string['mail_cant_come'] = 'No fim não podem vir?';
+$string['mail_cant_come_text'] = 'Avisem e damos o lugar a outra família: liguem para {$a} ou escrevam.';
+$string['mail_cant_come_text_nophone'] = 'Avisem e damos o lugar a outra família: escrevam.';
+$string['mail_confirm_preheader'] = 'Estamos à vossa espera, {$a}. Guardem este email: com ele voltam à vossa página, com a visita e os vossos dados.';
+$string['mail_confirm_preheader_nochild'] = 'Estamos à vossa espera. Guardem este email: com ele voltam à vossa página, com a visita e os vossos dados.';
+$string['mail_confirm_subject'] = 'Pronto: esperamos-vos no {$a}';
+$string['mail_invite_note'] = 'Esse dia não é bom? Liguem para {$a} e marcamos outro.';
+$string['mail_invite_note_nophone'] = 'Esse dia não é bom? Escrevam e marcamos outro.';
+$string['mail_invite_preheader'] = 'Estamos à vossa espera, {$a->names}. {$a->host} recebe-vos às {$a->hour}.';
+$string['mail_invite_subject'] = 'Sua visita a {$a->centre}: {$a->date}';
+$string['mail_note_confirm'] = 'Marcar uma visita não é pedir vaga: isso vem depois, com a admissão. Na vossa página podem mudar ou apagar os vossos dados quando quiserem.';
+$string['mail_open_page'] = 'Abrir a nossa página';
+$string['mail_reminder_lead'] = 'Amanhã, {$a->date}, às {$a->hour}, {$a->host} recebe-vos. Não é preciso trazer nada.';
+$string['mail_reminder_lead_team'] = 'Amanhã, {$a->date}, às {$a->hour}, a equipa da escola recebe-vos. Não é preciso trazer nada.';
+$string['mail_reminder_preheader_host'] = '{$a} recebe-vos.';
+$string['mail_reminder_subject'] = 'Amanhã esperamos-vos, {$a}';
+$string['mail_reminder_subject_nochild'] = 'Amanhã esperamos-vos';
+$string['mail_saved_text'] = 'Guardem este email: com o botão voltam à vossa página, com a visita e os vossos dados.';
+$string['mail_saved_title'] = 'Estão inscritos.';
+$string['mail_tomorrow'] = 'Amanhã esperamos-vos,';
+$string['mail_tomorrow_nochild'] = 'Amanhã esperamos-vos';
+$string['mail_why'] = 'Escrevemos-vos porque se inscreveram numa visita em {$a}.';
+$string['mail_your_page'] = 'A vossa página';
+$string['mail_your_page_text'] = 'Com a visita, o que nos contaram e os vossos dados, para descarregar ou apagar quando quiserem.';
 $string['metrics_answered'] = 'Famílias respondidas: {$a}';
 $string['metrics_applied'] = 'Solicitações';
 $string['metrics_balance'] = 'Começaram {$a->start} ({$a->new} novos) · entradas no ano {$a->joins} · saídas {$a->leaves} · saldo {$a->net} · agora {$a->now}';
@@ -391,6 +409,13 @@ $string['permissions'] = 'Permissões';
 $string['phone'] = 'Telefone';
 $string['pick_centre'] = 'Que centro?';
 $string['pluginname'] = 'Admissões (Oksigenia Eguahe)';
+$string['poster_call'] = 'Inscrevam-se pelo telemóvel';
+$string['poster_how'] = 'Abram a câmara e apontem para o código. Guardamos o vosso lugar e dizemos-vos quem vos recebe.';
+$string['poster_phone'] = 'Ou liguem para {$a}';
+$string['poster_qr'] = 'Código QR para a página de inscrição: {$a}';
+$string['poster_question'] = 'Como se chama|quem virá?';
+$string['poster_question_sub'] = 'Inscrevam-se e a etiqueta levará o nome.';
+$string['poster_title'] = 'Venham nos|conhecer';
 $string['privacy:metadata:consent'] = 'As permissões das famílias anotadas pela equipa.';
 $string['privacy:metadata:consent:timecreated'] = 'Quando.';
 $string['privacy:metadata:consent:userid'] = 'Quem anotou.';
@@ -552,6 +577,7 @@ $string['pub_you'] = 'E vocês?';
 $string['pub_you_hint'] = 'Basta o telemóvel ou o email.';
 $string['pub_your_turn'] = 'o vosso horário';
 $string['received_save'] = 'Voltou a escrever';
+$string['short_title'] = 'Admissões · {$a->centre} · {$a->event}';
 $string['signedup_note'] = 'Inscreveu-se em {$a->event} (pessoas: {$a->people}).';
 $string['stage'] = 'Etapa';
 $string['stage_admitted'] = 'Vaga oferecida';
@@ -570,3 +596,4 @@ $string['tab_metrics'] = 'Números';
 $string['tab_settings'] = 'Definições';
 $string['task_erase_inactive'] = 'Apagar as famílias cujo prazo terminou';
 $string['task_fetch_opendata'] = 'Trazer de novo os dados abertos da zona de cada centro';
+$string['task_send_reminders'] = 'Enviar o lembrete da véspera de cada visita';

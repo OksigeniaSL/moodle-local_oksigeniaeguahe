@@ -30,14 +30,23 @@
         return Array.prototype.slice.call((scope || document).querySelectorAll(selector));
     };
 
-    // Long names: the handwriting gets smaller until it fits on the line of the label.
+    // Long names: the handwriting gets smaller until it fits on the line of the label; a capital with an accent
+    // (Í, Á, Ñ) too, so it does not climb into the band. The same rule as the label of the mail.
+    var UP = 10;
+    var BASELINE = 4.4;
     var fit = function(scope) {
         all('svg.colgante text.mano', scope).forEach(function(text) {
             text.setAttribute('font-size', SIZE);
-            var length = text.textContent ? text.getComputedTextLength() : 0;
-            if (length > ROOM) {
-                text.setAttribute('font-size', (SIZE * ROOM / length).toFixed(2));
+            if (!text.textContent) {
+                return;
             }
+            var k = Math.min(1, ROOM / text.getComputedTextLength());
+            var box = text.getBBox();
+            var up = BASELINE - box.y;
+            if (up > UP) {
+                k = Math.min(k, UP / up);
+            }
+            text.setAttribute('font-size', (SIZE * k).toFixed(2));
         });
     };
 

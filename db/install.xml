@@ -148,6 +148,7 @@
         <FIELD NAME="token" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Of the public sign-up link and its QR"/>
         <FIELD NAME="open" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Families can still sign up"/>
         <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
+        <FIELD NAME="shorturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the public sign-up, for the poster, its QR and the texts"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -181,6 +182,7 @@
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="slotid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The turn chosen, when the event has turns"/>
         <FIELD NAME="people" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
+        <FIELD NAME="reminded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the reminder of the day before was looked at; 0 not yet"/>
         <FIELD NAME="attended" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came; 0 if it has not"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

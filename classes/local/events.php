@@ -326,36 +326,63 @@ class events {
     }
 
     /**
-     * The calendar file of an event, for a family to keep it in their phone.
+     * The calendar file of a visit (DESIGN.md of the sendings): in the name of the centre, never of Eguahe; published,
+     * not an invitation to accept; one fixed identifier per family and visit and a sequence that grows with each change,
+     * so sending it again updates the event; an alarm two hours before. Times in UTC: the calendar shows them in the
+     * time of whoever opens it.
      *
      * @param \stdClass $event
      * @param \stdClass $centre
-     * @param string $description In the language of the family.
-     * @param \stdClass|null $when The turn of the family (timestart, timeend), when it has one.
+     * @param string $description
+     * @param \stdClass|null $when The turn of the family, if the event has turns.
+     * @param array $extra uid, url and alarm (its text), when known.
      * @return string
      */
-    public static function ics(\stdClass $event, \stdClass $centre, string $description, ?\stdClass $when = null): string {
+    public static function ics(
+        \stdClass $event,
+        \stdClass $centre,
+        string $description,
+        ?\stdClass $when = null,
+        array $extra = []
+    ): string {
         global $CFG;
         $escape = fn(string $text) => str_replace(["\\", ';', ',', "\r\n", "\n"], ["\\\\", '\;', '\,', '\n', '\n'], $text);
         $utc = fn(int $time) => gmdate('Ymd\THis\Z', $time);
         $host = parse_url($CFG->wwwroot, PHP_URL_HOST) ?: 'localhost';
         $when = $when ?? $event;
+        $name = format_string($centre->name);
+        $location = implode(', ', array_filter([$name, $event->place ? format_string($event->place) : '',
+            (string) ($centre->address ?? '')]));
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//Oksigenia//Eguahe//EN',
+            'PRODID:-//' . $escape(str_replace('/', ' ', $name)) . '//Visitas//' . strtoupper(substr((string) $centre->lang, 0, 2)),
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'BEGIN:VEVENT',
-            'UID:eguahe-event-' . $event->id . '@' . $host,
+            'UID:' . ($extra['uid'] ?? 'visita-' . $event->id) . '@' . $host,
             'DTSTAMP:' . $utc(time()),
+            'SEQUENCE:' . max(0, (int) ($event->timemodified ?? 0) - (int) ($event->timecreated ?? 0)),
             'DTSTART:' . $utc((int) $when->timestart),
             'DTEND:' . $utc((int) max($when->timeend, $when->timestart)),
-            'SUMMARY:' . $escape($event->name . ' · ' . $centre->name),
+            'SUMMARY:' . $escape(format_string($event->name) . ' · ' . $name),
+            'LOCATION:' . $escape($location),
             'DESCRIPTION:' . $escape($description),
         ];
-        if (!empty($event->place)) {
-            $lines[] = 'LOCATION:' . $escape($event->place);
+        if (!empty($extra['url'])) {
+            $lines[] = 'URL:' . $extra['url'];
+        }
+        $lines[] = 'STATUS:CONFIRMED';
+        $lines[] = 'TRANSP:OPAQUE';
+        if (!empty($extra['alarm'])) {
+            array_push(
+                $lines,
+                'BEGIN:VALARM',
+                'ACTION:DISPLAY',
+                'TRIGGER:-PT2H',
+                'DESCRIPTION:' . $escape($extra['alarm']),
+                'END:VALARM'
+            );
         }
         $lines[] = 'END:VEVENT';
         $lines[] = 'END:VCALENDAR';
@@ -376,13 +403,46 @@ class events {
     }
 
     /**
+     * The short link of the public sign-up of an event, for the poster, its QR and the texts: asked once to the
+     * shortener of the site, with a word that reads («visita-2111»), and kept. Null without a shortener.
+     *
+     * @param \stdClass $event
+     * @return string|null
+     */
+    public static function short_url(\stdClass $event): ?string {
+        global $DB;
+        if (!empty($event->shorturl)) {
+            return $event->shorturl;
+        }
+        $shortener = shortener::of_site();
+        if (!$shortener) {
+            return null;
+        }
+        $centre = centres::get((int) $event->centreid);
+        $title = get_string('short_title', 'local_oksigeniaeguahe', (object) ['centre' => $centre ? format_string($centre->name) :
+            '', 'event' => format_string($event->name)]);
+        $short = $shortener->shorten(
+            self::url($event)->out(false),
+            $title,
+            true,
+            'visita-' . userdate((int) $event->timestart, '%d%m')
+        );
+        if ($short) {
+            $DB->set_field(self::T, 'shorturl', \core_text::substr($short, 0, 255), ['id' => $event->id]);
+            $event->shorturl = $short;
+        }
+        return $short;
+    }
+
+    /**
      * The QR of the public link of an event, as SVG.
      *
      * @param \stdClass $event
      * @return string
      */
     public static function qr_svg(\stdClass $event): string {
-        $qr = new \core_qrcode(self::url($event)->out(false));
+        // The short link, when there is one: fewer modules, read from further and through a photocopy.
+        $qr = new \core_qrcode(self::short_url($event) ?? self::url($event)->out(false));
         $svg = $qr->getBarcodeSVGcode(6, 6, 'black');
         // Inside a page: without the XML prologue, and scaling to its box.
         $svg = substr($svg, strpos($svg, '<svg'));

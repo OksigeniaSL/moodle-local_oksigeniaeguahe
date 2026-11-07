@@ -287,5 +287,26 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110900, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110910) {
+        // What is sent to the families: the reminder of the day before, and the short link of each sign-up.
+        $table = new xmldb_table('local_oksigeniaeguahe_signup');
+        $field = new xmldb_field('reminded', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'people');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // The sign-ups already past or under a day and a half away are not reminded: they came before reminders.
+        $DB->execute(
+            'UPDATE {local_oksigeniaeguahe_signup} SET reminded = :now
+                       WHERE eventid IN (SELECT id FROM {local_oksigeniaeguahe_event} WHERE timestart < :soon)',
+            ['now' => time(), 'soon' => time() + 36 * HOURSECS]
+        );
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('shorturl', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'hosts');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110910, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

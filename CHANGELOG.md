@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.0 (2026-11-07)
+
+- **What is sent to the families** (DESIGN.md of the sendings, by the art director), in the name of the centre and
+  never of Eguahe: the confirmation when they sign up, the reminder the day before (once, only to families who allowed
+  the email) and the invitation, ready for the visits the team gives. Under the heading, the label of each child with
+  the name used at home written by hand; the visit in a band of the colour of the centre; who receives them, with their
+  face. HTML for mail programs, light, dark and inverted, with its plain text.
+- **The label as a PNG made by the server** (GD and FreeType, Caveat): the same as on the pages, the band tinted with
+  the colour of the centre, the writing smaller for long names and capitals with accents; kept in the cache. The logo
+  of the centre goes on a light plate, readable when a program darkens the message. The images travel inside the
+  message, so they show without asking to show images.
+- **The calendar file**, in the name of the centre: fixed per family and visit, with a sequence that grows with each
+  change, who receives them, their page and an alarm two hours before.
+- **The poster**, for A4 or A3: the wall with the logo, «Vengan a conocernos», the backpack on its peg with the label
+  blank, the day, and the QR in a band of the colour of the centre.
+- **The short link of each sign-up**, with the common shortener of the site (any compatible with YOURLS): on the poster
+  and its QR, and on the page of the event. Never the private link of a family.
+- On the pages, the writing of the label gets smaller too for capitals with accents, as on the mail.
+
 ## 0.6.2 (2026-11-07)
 
 - The backpacks hang a little crooked again, each its own way, as children hang them.

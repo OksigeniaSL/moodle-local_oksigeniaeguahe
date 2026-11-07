@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\poster;
 use local_oksigeniaeguahe\local\staff;
 
 $id = required_param('id', PARAM_INT);
@@ -48,19 +49,12 @@ if (data_submitted() && confirm_sesskey()) {
     redirect(new moodle_url($url, [], 's' . $signupid));
 }
 
-$public = events::url($event)->out(false);
+// The short link when the site has a shortener: the one to copy and to read aloud.
+$public = events::short_url($event) ?? events::url($event)->out(false);
 if ($poster) {
-    // The poster to print: the centre, the event, the QR and the link, nothing else.
-    $PAGE->set_pagelayout('print');
-    echo $OUTPUT->header();
-    echo $OUTPUT->render_from_template('local_oksigeniaeguahe/poster', [
-        'centre' => format_string($centre->name),
-        'event' => format_string($event->name),
-        'when' => userdate((int) $event->timestart, get_string('strftimedaydatetime', 'langconfig')),
-        'qr' => events::qr_svg($event),
-        'link' => $public,
-    ]);
-    echo $OUTPUT->footer();
+    // The poster to print, as a whole page of its own: A4, or A3 with the same sheet scaled.
+    @header('Content-Type: text/html; charset=utf-8');
+    echo poster::html($event, $centre, optional_param('paper', 'A4', PARAM_ALPHANUM));
     die();
 }
 
@@ -120,6 +114,7 @@ echo $OUTPUT->render_from_template('local_oksigeniaeguahe/event', [
     'qr' => events::qr_svg($event),
     'link' => $public,
     'posterurl' => (new moodle_url($url, ['poster' => 1]))->out(false),
+    'posterurla3' => (new moodle_url($url, ['poster' => 1, 'paper' => 'A3']))->out(false),
     'editurl' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'id' => $event->id]))->out(false),
     'addurl' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id, 'eventid' => $event->id]))->out(false),
     'groups' => array_values($groups),

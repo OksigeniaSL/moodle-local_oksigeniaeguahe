@@ -29,6 +29,7 @@ $string['andlist'] = '{$a->list} and {$a->last}';
 $string['answer_body'] = 'What was said';
 $string['answer_save'] = 'We answered';
 $string['answered_saved'] = 'Noted: the family is no longer waiting for an answer.';
+$string['cachedef_stickers'] = 'Name labels, as PNG, for the mail';
 $string['cachedef_usedchallenges'] = 'Anti-spam challenges already used';
 $string['came'] = 'Came';
 $string['centre_address'] = 'Address';
@@ -232,7 +233,12 @@ $string['household_new'] = 'Note a family';
 $string['household_noname'] = 'Family without a name';
 $string['household_save_new'] = 'Save the family';
 $string['household_saved'] = 'Saved.';
-$string['ics_description'] = 'Your page at {$a->centre}: {$a->link}';
+$string['ics_alarm'] = 'Today, at {$a->hour}, at {$a->centre}';
+$string['ics_cantcome'] = 'If you cannot come after all, call us on {$a}.';
+$string['ics_host'] = '{$a} will welcome you.';
+$string['ics_host_also'] = '{$a} will be there too.';
+$string['ics_host_also_many'] = '{$a} will be there too.';
+$string['ics_page'] = 'Your page, with your visit and your details: {$a}';
 $string['import'] = 'Import what already happened';
 $string['import_cancel'] = 'Discard the file';
 $string['import_cancelled'] = 'File discarded: nothing was imported and it has been deleted.';
@@ -296,19 +302,31 @@ $string['info_whom'] = 'Nobody, unless the law requires it. The provider of the 
 $string['info_whom_label'] = 'Who else';
 $string['info_why'] = 'To answer you, organise your visit and, if you wish, your admission.';
 $string['info_why_label'] = 'What for';
-$string['mail_signedup_body'] = 'Hello {$a->name},
-
-You are signed up for {$a->event}, at {$a->centre}.
-
-When: {$a->when}
-Where: {$a->place}
-
-Your page, with your visit and your data, is here:
-{$a->link}
-
-We look forward to seeing you.
-{$a->centre}';
-$string['mail_signedup_subject'] = 'You are signed up: {$a->event}';
+$string['mail_band_tomorrow'] = 'Tomorrow';
+$string['mail_cant_come'] = 'Cannot come after all?';
+$string['mail_cant_come_text'] = 'Let us know and we will give your place to another family: call us on {$a} or write to us.';
+$string['mail_cant_come_text_nophone'] = 'Let us know and we will give your place to another family: write to us.';
+$string['mail_confirm_preheader'] = 'See you soon, {$a}. Keep this email: it takes you back to your page, with your visit and your details.';
+$string['mail_confirm_preheader_nochild'] = 'See you soon. Keep this email: it takes you back to your page, with your visit and your details.';
+$string['mail_confirm_subject'] = 'All set: see you on {$a}';
+$string['mail_invite_note'] = 'Does that day not suit you? Call us on {$a} and we will find another.';
+$string['mail_invite_note_nophone'] = 'Does that day not suit you? Write to us and we will find another.';
+$string['mail_invite_preheader'] = 'See you soon, {$a->names}. {$a->host} will welcome you at {$a->hour}.';
+$string['mail_invite_subject'] = 'Your visit to {$a->centre}: {$a->date}';
+$string['mail_note_confirm'] = 'Booking a visit is not applying for a place: that comes later, with admissions. From your page you can change or delete your details whenever you like.';
+$string['mail_open_page'] = 'Open our page';
+$string['mail_reminder_lead'] = 'Tomorrow, {$a->date}, at {$a->hour}, {$a->host} will welcome you. There is no need to bring anything.';
+$string['mail_reminder_lead_team'] = 'Tomorrow, {$a->date}, at {$a->hour}, the school team will welcome you. There is no need to bring anything.';
+$string['mail_reminder_preheader_host'] = '{$a} will welcome you.';
+$string['mail_reminder_subject'] = 'See you tomorrow, {$a}';
+$string['mail_reminder_subject_nochild'] = 'See you tomorrow';
+$string['mail_saved_text'] = 'Keep this email: the button takes you back to your page, with your visit and your details.';
+$string['mail_saved_title'] = 'You are signed up.';
+$string['mail_tomorrow'] = 'See you tomorrow,';
+$string['mail_tomorrow_nochild'] = 'See you tomorrow';
+$string['mail_why'] = 'We write to you because you signed up for a visit at {$a}.';
+$string['mail_your_page'] = 'Your page';
+$string['mail_your_page_text'] = 'With your visit, what you told us and your details, to download or delete them whenever you like.';
 $string['metrics_answered'] = 'Families answered: {$a}';
 $string['metrics_applied'] = 'Applications';
 $string['metrics_balance'] = 'Started {$a->start} ({$a->new} new) · joined during the year {$a->joins} · left {$a->leaves} · balance {$a->net} · now {$a->now}';
@@ -391,6 +409,13 @@ $string['permissions'] = 'Permissions';
 $string['phone'] = 'Phone';
 $string['pick_centre'] = 'Which centre?';
 $string['pluginname'] = 'Admissions (Oksigenia Eguahe)';
+$string['poster_call'] = 'Sign up with your phone';
+$string['poster_how'] = 'Open the camera and point it at the code. We keep your place and tell you who will welcome you.';
+$string['poster_phone'] = 'Or call us on {$a}';
+$string['poster_qr'] = 'QR code to the page to sign up: {$a}';
+$string['poster_question'] = 'What is the name of|who will come?';
+$string['poster_question_sub'] = 'Sign up and their label will carry their name.';
+$string['poster_title'] = 'Come and|meet us';
 $string['privacy:metadata:consent'] = 'The permissions of families noted by the team.';
 $string['privacy:metadata:consent:timecreated'] = 'When.';
 $string['privacy:metadata:consent:userid'] = 'Who noted it.';
@@ -552,6 +577,7 @@ $string['pub_you'] = 'And you?';
 $string['pub_you_hint'] = 'A mobile number or an email is enough.';
 $string['pub_your_turn'] = 'your slot';
 $string['received_save'] = 'They wrote again';
+$string['short_title'] = 'Admissions · {$a->centre} · {$a->event}';
 $string['signedup_note'] = 'Signed up for {$a->event} (people: {$a->people}).';
 $string['stage'] = 'Stage';
 $string['stage_admitted'] = 'Place offered';
@@ -570,3 +596,4 @@ $string['tab_metrics'] = 'Numbers';
 $string['tab_settings'] = 'Settings';
 $string['task_erase_inactive'] = 'Erase the households whose time is over';
 $string['task_fetch_opendata'] = 'Fetch again the open data of the area of each centre';
+$string['task_send_reminders'] = 'Send the reminder of the day before each visit';

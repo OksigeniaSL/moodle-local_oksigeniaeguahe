@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-
 namespace local_oksigeniaeguahe\local;
 
 /**
@@ -202,7 +201,8 @@ class sticker {
         $rr = $radius * $ss;
         imagefilledrectangle($big, $rr, 0, $w * $ss - $rr - 1, $h * $ss - 1, $white);
         imagefilledrectangle($big, 0, $rr, $w * $ss - 1, $h * $ss - $rr - 1, $white);
-        foreach ([[$rr, $rr], [$w * $ss - $rr - 1, $rr], [$rr, $h * $ss - $rr - 1], [$w * $ss - $rr - 1, $h * $ss - $rr - 1]] as [$ex, $ey]) {
+        [$right, $bottom] = [$w * $ss - $rr - 1, $h * $ss - $rr - 1];
+        foreach ([[$rr, $rr], [$right, $rr], [$rr, $bottom], [$right, $bottom]] as [$ex, $ey]) {
             imagefilledellipse($big, $ex, $ey, 2 * $rr, 2 * $rr, $white);
         }
         $im = imagecreatetruecolor($w, $h);
@@ -239,8 +239,18 @@ class sticker {
         // The middle across; from the top down, where the face is.
         [$cw, $ch] = $sw / $sh > $ratio ? [(int) round($sh * $ratio), $sh] : [$sw, (int) round($sw / $ratio)];
         $im = imagecreatetruecolor($width * $scale, $height * $scale);
-        imagecopyresampled($im, $src, 0, 0, (int) (($sw - $cw) / 2), (int) (($sh - $ch) / 6), $width * $scale,
-            $height * $scale, $cw, $ch);
+        imagecopyresampled(
+            $im,
+            $src,
+            0,
+            0,
+            (int) (($sw - $cw) / 2),
+            (int) (($sh - $ch) / 6),
+            $width * $scale,
+            $height * $scale,
+            $cw,
+            $ch
+        );
         ob_start();
         imagejpeg($im, null, 82);
         imagedestroy($im);

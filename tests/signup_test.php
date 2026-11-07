@@ -300,7 +300,8 @@ final class signup_test extends \advanced_testcase {
     public function test_ics(): void {
         $ics = events::ics($this->event, $this->centre, 'Su página: https://example.com/f');
         $this->assertStringContainsString("BEGIN:VEVENT\r\n", $ics);
-        $this->assertStringContainsString('LOCATION:Entrada principal', $ics);
+        $this->assertStringContainsString('LOCATION:Colegio de ejemplo\\, Entrada principal', $ics);
+        $this->assertStringNotContainsString('Eguahe', $ics);
         $this->assertStringContainsString('DTSTART:' . gmdate('Ymd\THis\Z', (int) $this->event->timestart), $ics);
     }
 }

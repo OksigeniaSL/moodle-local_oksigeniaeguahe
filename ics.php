@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
@@ -45,9 +46,8 @@ if (!$signup) {
 }
 $centre = centres::get((int) $event->centreid);
 $lang = publiclang::choose($centre);
-$description = publiclang::str('ics_description', $lang, (object) ['centre' => format_string($centre->name),
-    'link' => (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token]))->out(false)]);
+$full = familymail::signup($household, (int) $event->id);
 publicpage::headers();
 @header('Content-Type: text/calendar; charset=utf-8');
 @header('Content-Disposition: attachment; filename="' . clean_filename(format_string($event->name)) . '.ics"');
-echo events::ics($event, $centre, $description, events::when($event, (int) $signup->slotid));
+echo familymail::ics($household, $centre, $event, $full, $lang, $token);

@@ -1,12 +1,8 @@
 {{!
-    Eguahe, the e-mail to the family (confirmation, invitation and reminder share this template).
-    HTML e-mail: tables, inline styles, 600 px wide, tested in Chrome at 600 and 375 px, light, dark and inverted.
-    Everything with the centre's brand (plate, name and colour) and never Eguahe's. The child's sticker (a PNG made by
-    etiqueta.php) goes under the headline, one per child, with the name as alt text.
-    The colours under c.* come from the centre's one colour, computed on the server as on the family page.
-    Texts: to the family, «ustedes»; the buttons speak for the family («Abrir nuestra página»).
-
-    Example context (json): see ../trabajo/ejemplo-*.json
+    The mail to a family (confirmation, reminder and invitation), after the DESIGN.md of the sendings of the art
+    director: tables, styles in line, 600 px wide, light, dark and inverted. The brand of the centre (plate, name and
+    colour), never Eguahe's. Under the heading, the label of each child (a PNG made by the server) with the name as its
+    text. The colours under c.* come from the one colour of the centre, as on the page of the family.
 }}<!doctype html>
 <html lang="{{lang}}" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -79,14 +75,14 @@ u + #body a { color: inherit; text-decoration: none; }
 <!-- The centre: its logo on its own plate (readable when a client darkens the message) and its name -->
 <tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:22px 40px 0;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-    <td style="vertical-align:middle;"><img src="{{centro.placa}}" width="{{centro.placa_ancho}}" height="{{centro.placa_alto}}" alt="{{^centro.nombre_visible}}{{centro.nombre}}{{/centro.nombre_visible}}" style="display:block; width:{{centro.placa_ancho}}px; height:{{centro.placa_alto}}px; border:0; font-size:16px; font-weight:700; color:#2B2226;"></td>
-    {{#centro.nombre_visible}}<td class="eg-tinta" style="vertical-align:middle; padding-left:12px; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</td>{{/centro.nombre_visible}}
+    {{#centro.placa}}<td style="vertical-align:middle; padding-right:12px;"><img src="{{centro.placa}}" width="{{centro.placa_ancho}}" height="{{centro.placa_alto}}" alt="" style="display:block; width:{{centro.placa_ancho}}px; height:{{centro.placa_alto}}px; border:0;"></td>{{/centro.placa}}
+    {{#centro.nombre_visible}}<td class="eg-tinta" style="vertical-align:middle; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</td>{{/centro.nombre_visible}}
   </tr></table>
 </td></tr>
 
 <!-- The headline and the child's sticker: «Los esperamos,» and the name, handwritten on the sticker -->
 <tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:36px 40px 0;">
-  <h1 class="eg-tinta eg-h1" style="margin:0; font-size:46px; line-height:48px; font-weight:800; letter-spacing:-1.2px; color:#2B2226;">{{titular}}</h1>
+  <h1 class="eg-tinta eg-h1" style="margin:0; font-size:46px; line-height:48px; font-weight:800; letter-spacing:-1.2px; color:#2B2226;">{{titular}}{{^etiquetas_filas}} {{nombres}}{{/etiquetas_filas}}</h1>
 </td></tr>
 <tr><td class="eg-pared eg-pad-etq" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:4px 24px 0;">
   {{#etiquetas_filas}}
@@ -147,7 +143,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
     {{#personas}}
     <td class="eg-col" width="50%" style="width:50%; vertical-align:top; padding:0 12px;">
-      <img src="{{foto}}" width="248" height="310" alt="" style="display:block; width:100%; max-width:248px; height:auto; border:0; border-radius:18px;">
+      {{#foto}}<img src="{{foto}}" width="248" height="310" alt="" style="display:block; width:100%; max-width:248px; height:auto; border:0; border-radius:18px;">{{/foto}}{{^foto}}<div class="eg-sup" style="width:100%; max-width:248px; height:200px; border-radius:18px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:40px; line-height:200px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/foto}}
       <p class="eg-tinta" style="margin:12px 0 0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p>
       <p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p>
       {{#dice}}<p class="eg-tinta" style="margin:8px 0 0; font-size:16px; line-height:23px; color:#2B2226;">{{dice}}</p>{{/dice}}
@@ -165,7 +161,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <h2 class="eg-tinta" style="margin:0 0 6px; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:#2B2226;">{{titulo}}</h2>
   {{#personas}}
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
-    <td style="vertical-align:middle; padding-right:14px;"><img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;"></td>
+    <td style="vertical-align:middle; padding-right:14px;">{{#cara}}<img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;">{{/cara}}{{^cara}}<div class="eg-sup" style="width:56px; height:56px; border-radius:28px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:18px; line-height:56px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/cara}}</td>
     <td style="vertical-align:middle;"><p class="eg-tinta" style="margin:0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p><p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p></td>
   </tr></table>
   {{/personas}}
@@ -191,7 +187,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <tr><td class="eg-pad" style="padding:44px 40px 40px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="eg-linea" style="border-top:1px solid #E7DED3; padding-top:22px;">
     <p class="eg-tinta" style="margin:0; font-size:15px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</p>
-    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.telefono}}</a> · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a></p>
+    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}{{#centro.telefono}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.telefono}}</a>{{/centro.telefono}}{{#centro.correo}} · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a>{{/centro.correo}}</p>
     <p class="eg-tinta-2" style="margin:14px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{pie.porque}} <a class="eg-enlace" href="{{pie.datos_url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{pie.datos_texto}}</a></p>
     {{#muestra_pie}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{muestra_pie}}</p>{{/muestra_pie}}
   </td></tr></table>

@@ -29,6 +29,7 @@ $string['andlist'] = '{$a->list} y {$a->last}';
 $string['answer_body'] = 'Lo que se ha hablado';
 $string['answer_save'] = 'Ya les hemos contestado';
 $string['answered_saved'] = 'Anotado: la familia ya no espera respuesta.';
+$string['cachedef_stickers'] = 'Etiquetas con el nombre, en PNG, para los correos';
 $string['cachedef_usedchallenges'] = 'Comprobaciones antispam ya usadas';
 $string['came'] = 'Ha venido';
 $string['centre_address'] = 'Dirección';
@@ -232,7 +233,12 @@ $string['household_new'] = 'Apuntar a una familia';
 $string['household_noname'] = 'Familia sin nombre';
 $string['household_save_new'] = 'Guardar la familia';
 $string['household_saved'] = 'Guardado.';
-$string['ics_description'] = 'Su página en {$a->centre}: {$a->link}';
+$string['ics_alarm'] = 'Hoy, a las {$a->hour}, en {$a->centre}';
+$string['ics_cantcome'] = 'Si al final no pueden venir, llámennos al {$a}.';
+$string['ics_host'] = 'Los recibe {$a}.';
+$string['ics_host_also'] = 'También estará {$a}.';
+$string['ics_host_also_many'] = 'También estarán {$a}.';
+$string['ics_page'] = 'Su página, con su visita y sus datos: {$a}';
 $string['import'] = 'Importar lo que ya pasó';
 $string['import_cancel'] = 'Descartar el fichero';
 $string['import_cancelled'] = 'Fichero descartado: no se ha importado nada y se ha borrado.';
@@ -296,19 +302,31 @@ $string['info_whom'] = 'Nadie, salvo obligación legal. El proveedor de la plata
 $string['info_whom_label'] = 'Quién más';
 $string['info_why'] = 'Contestarles, organizar su visita y, si quieren, su admisión.';
 $string['info_why_label'] = 'Para qué';
-$string['mail_signedup_body'] = 'Hola, {$a->name}:
-
-Ya están apuntados a {$a->event}, en {$a->centre}.
-
-Cuándo: {$a->when}
-Dónde: {$a->place}
-
-Su página, con su visita y sus datos, está aquí:
-{$a->link}
-
-Les esperamos.
-{$a->centre}';
-$string['mail_signedup_subject'] = 'Ya están apuntados: {$a->event}';
+$string['mail_band_tomorrow'] = 'Mañana';
+$string['mail_cant_come'] = '¿Al final no pueden venir?';
+$string['mail_cant_come_text'] = 'Avísennos y dejamos su sitio a otra familia: llámennos al {$a} o escríbannos.';
+$string['mail_cant_come_text_nophone'] = 'Avísennos y dejamos su sitio a otra familia: escríbannos.';
+$string['mail_confirm_preheader'] = 'Los esperamos, {$a}. Guarden este correo: con él vuelven a su página, con su visita y sus datos.';
+$string['mail_confirm_preheader_nochild'] = 'Los esperamos. Guarden este correo: con él vuelven a su página, con su visita y sus datos.';
+$string['mail_confirm_subject'] = 'Ya está: los esperamos el {$a}';
+$string['mail_invite_note'] = '¿Ese día no les viene bien? Llámennos al {$a} y buscamos otro.';
+$string['mail_invite_note_nophone'] = '¿Ese día no les viene bien? Escríbannos y buscamos otro.';
+$string['mail_invite_preheader'] = 'Los esperamos, {$a->names}. Los recibe {$a->host}, a las {$a->hour}.';
+$string['mail_invite_subject'] = 'Su visita a {$a->centre}: {$a->date}';
+$string['mail_note_confirm'] = 'Apuntarse a una visita no es pedir plaza: eso llega después, con la admisión. Desde su página pueden cambiar sus datos o borrarlos cuando quieran.';
+$string['mail_open_page'] = 'Abrir nuestra página';
+$string['mail_reminder_lead'] = 'Mañana, {$a->date}, a las {$a->hour}, los recibe {$a->host}. No hace falta traer nada.';
+$string['mail_reminder_lead_team'] = 'Mañana, {$a->date}, a las {$a->hour}, los recibe el equipo del centro. No hace falta traer nada.';
+$string['mail_reminder_preheader_host'] = 'Los recibe {$a}.';
+$string['mail_reminder_subject'] = 'Mañana los esperamos, {$a}';
+$string['mail_reminder_subject_nochild'] = 'Mañana los esperamos';
+$string['mail_saved_text'] = 'Guarden este correo: con el botón vuelven a su página, con su visita y sus datos.';
+$string['mail_saved_title'] = 'Ya están apuntados.';
+$string['mail_tomorrow'] = 'Mañana los esperamos,';
+$string['mail_tomorrow_nochild'] = 'Mañana los esperamos';
+$string['mail_why'] = 'Les escribimos porque se apuntaron a una visita en {$a}.';
+$string['mail_your_page'] = 'Su página';
+$string['mail_your_page_text'] = 'Con su visita, lo que nos contaron y sus datos, para descargarlos o borrarlos cuando quieran.';
 $string['metrics_answered'] = 'Familias contestadas: {$a}';
 $string['metrics_applied'] = 'Solicitudes';
 $string['metrics_balance'] = 'Empezaron {$a->start} ({$a->new} nuevos) · altas en el curso {$a->joins} · bajas {$a->leaves} · saldo {$a->net} · ahora {$a->now}';
@@ -391,6 +409,13 @@ $string['permissions'] = 'Permisos';
 $string['phone'] = 'Teléfono';
 $string['pick_centre'] = '¿Qué centro?';
 $string['pluginname'] = 'Admisiones (Oksigenia Eguahe)';
+$string['poster_call'] = 'Apúntense con el móvil';
+$string['poster_how'] = 'Abran la cámara y apunten al código. Les guardamos su sitio y les decimos quién los recibe.';
+$string['poster_phone'] = 'O llámennos al {$a}';
+$string['poster_qr'] = 'Código QR a la página para apuntarse: {$a}';
+$string['poster_question'] = '¿Cómo se llama|quien vendrá?';
+$string['poster_question_sub'] = 'Apúntense y su etiqueta llevará su nombre.';
+$string['poster_title'] = 'Vengan a|conocernos';
 $string['privacy:metadata:consent'] = 'Los permisos de las familias que anota el equipo.';
 $string['privacy:metadata:consent:timecreated'] = 'Cuándo.';
 $string['privacy:metadata:consent:userid'] = 'Quién lo anotó.';
@@ -552,6 +577,7 @@ $string['pub_you'] = '¿Y ustedes?';
 $string['pub_you_hint'] = 'Basta con un móvil o un correo.';
 $string['pub_your_turn'] = 'su turno';
 $string['received_save'] = 'Ha vuelto a escribir';
+$string['short_title'] = 'Admisiones · {$a->centre} · {$a->event}';
 $string['signedup_note'] = 'Se ha apuntado a {$a->event} (personas: {$a->people}).';
 $string['stage'] = 'Etapa';
 $string['stage_admitted'] = 'Plaza ofrecida';
@@ -570,3 +596,4 @@ $string['tab_metrics'] = 'Cifras';
 $string['tab_settings'] = 'Ajustes';
 $string['task_erase_inactive'] = 'Borrar los hogares cuyo plazo ha terminado';
 $string['task_fetch_opendata'] = 'Traer de nuevo los datos abiertos de la zona de cada centro';
+$string['task_send_reminders'] = 'Mandar el recordatorio del día antes de cada visita';

@@ -27,8 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
-use local_oksigeniaeguahe\local\households;
-use local_oksigeniaeguahe\local\mail;
+use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\signup;
@@ -72,27 +71,19 @@ if (data_submitted()) {
     }
     if (!$errors) {
         [$household, $link] = signup::save($data, $event, $centre, $lang);
-        $first = $data['adults'][0];
-        $email = households::email($first['email']);
-        if ($email) {
-            // The sign-up is kept already: if the mail of the site fails or says something, the family still gets
-            // its page.
-            ob_start();
-            try {
-                mail::signed_up(
-                    $centre,
-                    $event,
-                    $email,
-                    $first['firstname'],
-                    $link,
-                    $lang,
-                    events::when($event, (int) ($data['slot'] ?? 0))
-                );
-            } catch (\Throwable $e) {
-                $email = null;
-            } finally {
-                ob_end_clean();
+        // The sign-up is kept already: if the mail of the site fails or says something, the family still gets its
+        // page.
+        ob_start();
+        try {
+            $signup = familymail::signup($household, (int) $event->id);
+            if ($signup) {
+                familymail::send('confirmation', $household, $centre, $signup, $lang, $link);
             }
+        } catch (\Throwable $e) {
+            // The page of the family is what matters now; the mail of the site says itself what went wrong.
+            $sent = false;
+        } finally {
+            ob_end_clean();
         }
         redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'lang' => $lang]));
     }
