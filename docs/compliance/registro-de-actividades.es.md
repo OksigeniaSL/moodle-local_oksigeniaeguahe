@@ -10,10 +10,10 @@ mensajería, que se añadirán a esta entrada cuando el centro los encienda.
 | Responsable | [Nombre legal del centro], [dirección], [correo para ejercer los derechos] |
 | Delegado de protección de datos | [Nombre o servicio y su correo, si el centro lo tiene] |
 | Encargado del tratamiento | [Quien aloja y mantiene el Moodle del centro], con contrato de encargo |
-| Finalidades | Contestar a las familias; organizar visitas y jornadas, con su aforo y su asistencia; seguir cada solicitud hasta la matrícula o su cierre; y conocer, solo con cifras agregadas, cómo va la campaña |
+| Finalidades | Contestar a las familias; organizar visitas y jornadas, con su aforo y su asistencia; seguir cada solicitud hasta la matrícula o su cierre; y conocer, solo con cifras agregadas, cómo va la campaña. Si el centro importa campañas anteriores o su matrícula para analizarlas, entran seudonimizadas (un código en lugar de cada familia y alumno, sin nombres, teléfonos ni correos) y solo para las cifras |
 | Base jurídica | La solicitud de la propia familia (medidas precontractuales) para contestarla y organizar la visita; el consentimiento, para escribirle por cada canal que marque (correo, WhatsApp, teléfono), que puede retirar |
 | Interesados | Los adultos de las familias que se dirigen al centro; los menores que estudiarían en él |
-| Datos | De los adultos: nombre, apellidos, teléfono, correo, idioma, municipio (si lo dicen), cómo conocieron el centro (si lo dicen), lo que escriben al centro y los permisos por canal, con su fecha. De los menores: nombre de pila y curso que piden. No se piden datos de categorías especiales |
+| Datos | De los adultos: nombre, apellidos, teléfono, correo, idioma, municipio (si lo dicen), cómo conocieron el centro (si lo dicen), lo que escriben al centro y los permisos por canal, con su fecha. De los menores: nombre de pila, el nombre que usan en casa (si lo dan) y curso que piden. No se piden datos de categorías especiales |
 | Decisiones automatizadas | Ninguna. No se puntúa ni se clasifica a ninguna familia |
 | Destinatarios | Ninguno fuera del centro, salvo obligación legal. El encargado, por cuenta del centro |
 | Transferencias internacionales | Ninguna [si el alojamiento está en la UE] |

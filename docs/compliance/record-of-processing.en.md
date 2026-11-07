@@ -10,10 +10,10 @@ without messaging channels, which are added to this entry when the centre turns 
 | Controller | [Legal name of the centre], [address], [email for exercising rights] |
 | Data protection officer | [Name or service and email, if the centre has one] |
 | Processor | [Whoever hosts and maintains the Moodle site of the centre], under a processing agreement |
-| Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each request until enrolment or its closing; and knowing, only in aggregate numbers, how the campaign is going |
+| Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each request until enrolment or its closing; and knowing, only in aggregate numbers, how the campaign is going. If the centre imports past campaigns or its enrolment to analyse them, they go in pseudonymised (a code instead of each family and student, without names, phones or emails) and only for the numbers |
 | Legal basis | The family's own request (pre-contractual steps), to answer it and organise the visit; consent, to write to them on each channel they tick (email, WhatsApp, phone), which they can withdraw |
 | Data subjects | The adults of the families who contact the centre; the minors who would study there |
-| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), what they write to the centre and their permissions by channel, with their date. Of minors: first name and the course asked for. No special categories are asked for |
+| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), what they write to the centre and their permissions by channel, with their date. Of minors: first name, the name used at home (if given) and the course asked for. No special categories are asked for |
 | Automated decisions | None. No family is scored or ranked |
 | Recipients | Nobody outside the centre, unless the law requires it. The processor, on behalf of the centre |
 | International transfers | None [if hosting is in the EU] |
