@@ -278,33 +278,3 @@ html:not(.sala-lista) .piel-vestibulo .vestibulo-tarjeta {
 .piel-vestibulo .con-ropero ~ .banco .banco-mochilas {
     display: none;
 }
-
-/* ---------- The board of the numbers ---------- */
-/* Cifras in the hall: the same hall, closer, with the linen board standing towards whoever looks; the charts, the
-   sheets of the desk pinned on it. Fixed behind the page, however long; by the light of day, or of the night. */
-.piel-vestibulo .pagina-cifras::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: #e9dcc7 url(escena/cifras-dia-1600.webp) center 30% / cover no-repeat;
-}
-
-@media (min-width: 1580px) {
-    .piel-vestibulo .pagina-cifras::before {
-        background-image: url(escena/cifras-dia-2400.webp);
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    :root:not([data-bs-theme]) .piel-vestibulo .pagina-cifras::before {
-        background-color: #2a211b;
-        background-image: url(escena/cifras-noche-1600.webp);
-    }
-}
-
-:root[data-bs-theme="dark"] .piel-vestibulo .pagina-cifras::before {
-    background-color: #2a211b;
-    background-image: url(escena/cifras-noche-1600.webp);
-}

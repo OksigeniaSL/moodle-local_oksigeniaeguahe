@@ -46,7 +46,8 @@ final class channel_test extends \advanced_testcase {
         $content = channel::content($event);
         $this->assertSame('Jornada de puertas abiertas', $content['title']);
         $this->assertStringContainsString('23 de noviembre', $content['lines'][0]);
-        $this->assertSame('Entrada principal · Calle de ejemplo 1', $content['lines'][2]);
+        $this->assertSame('Entrada principal, Calle de ejemplo 1', $content['lines'][2]);
+        $this->assertSame('Ven a conocernos', $content['card']['zones']['title'], 'Not the kicker twice.');
         $this->assertSame('Reservar visita', $content['label']);
         $this->assertSame(events::url($event)->out(false), $content['url']);
         $this->assertSame('open_day', $content['card']['type']);

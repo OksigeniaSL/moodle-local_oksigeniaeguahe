@@ -55,7 +55,7 @@
             "cols": [{"left": 0, "width": 9, "cx": 0, "line": "Semana 1.", "future": false, "added": 8, "av": 1}],
             "rest": "Van 19 familias.", "def": "", "wholelink": false, "ancha": false, "label": "Llegadas, semana a semana", "what": "familias",
             "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
-        "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": false, "ropero": false}],
+        "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": false}],
         "hasplaces": true, "placesdef": "",
         "hasyear": false, "year": false, "hashistory": false, "history": false, "spendaction": "#", "sesskey": "abc",
         "starts": {"rows": [{"key": "live", "name": "Esta campaña", "value": "2026-09-15"}]}
@@ -200,7 +200,7 @@
                 {{#places}}
                 <div class="curso-rango" id="pla-{{key}}">
                     <div class="cab"><b>{{name}}</b><span class="libres">{{free}}</span></div>
-                    <div class="riel-caja"{{#ropero}} data-ropero="{{.}}"{{/ropero}}>{{{rail}}}</div>
+                    <div class="riel-caja">{{{rail}}}</div>
                     <p class="linea-dato rango-frase">{{sentence}}</p>
                     {{#bench}}<p class="banco"><span class="banco-mochilas" aria-hidden="true">{{#bags}}<span class="banco-mochila"></span>{{/bags}}</span>{{text}}</p>{{/bench}}
                 </div>

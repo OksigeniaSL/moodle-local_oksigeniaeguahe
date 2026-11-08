@@ -914,7 +914,8 @@ main {
     align-content: start;
 }
 
-.campo > label {
+.campo > label,
+.campo > .etiqueta {
     font-weight: 650;
     font-size: 0.9375rem;
 }
@@ -7784,4 +7785,24 @@ html.modo-lamina {
     body.imprime-seccion .a-imprimir [data-imprimir-seccion] {
         display: none;
     }
+}
+
+/* Eguahe, a file chosen with a button like the others, its name beside; the field of the browser hidden but there. */
+.elegir-archivo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.elegir-archivo:focus-within .boton {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.archivo-nombre {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
 }

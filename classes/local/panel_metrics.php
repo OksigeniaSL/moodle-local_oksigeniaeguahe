@@ -898,11 +898,10 @@ class panel_metrics {
                 ) : '',
                 'bench' => $waiting ? ['n' => $waiting, 'bags' => array_fill(0, min(self::BENCH, $waiting), 1),
                     'text' => get_string($waiting === 1 ? 'panel_bench_one' : 'panel_bench', $c, $waiting)] : false,
-                // The numbers of the rail, for a skin that draws it its own way: the cloakroom of the living hall, where
-                // there is no range of what may come.
+                // The numbers of the rail, to point at it peg by peg. The flat rail of the desk in every skin: it reads
+                // as bars and keeps the range (Gaudí, 8 November 2026); the cloakroom of the hall stays for the inbox.
                 'taken' => $taken, 'places' => $places, 'low' => $rows ? $rows[0]['low'] : false,
-                'mid' => $rows ? $rows[0]['mid'] : false, 'high' => $rows ? $rows[0]['high'] : false,
-                'ropero' => $places && !$rows ? vestibulo::ropero($places, $taken, $waiting, (string) $offer->name) : false];
+                'mid' => $rows ? $rows[0]['mid'] : false, 'high' => $rows ? $rows[0]['high'] : false];
         }
         return $out;
     }

@@ -51,7 +51,9 @@
     'use strict';
     document.querySelectorAll('input[type="file"][data-archivo-nombre]').forEach(function(input) {
         input.addEventListener('change', function() {
-            var label = document.querySelector('label[for="' + input.id + '"] span');
+            // Beside the button when the page has a place for it; else in place of the words of the button.
+            var where = input.getAttribute('data-nombre-en');
+            var label = where ? document.getElementById(where) : document.querySelector('label[for="' + input.id + '"] span');
             if (label && input.files && input.files.length) {
                 label.textContent = input.files[0].name;
             }

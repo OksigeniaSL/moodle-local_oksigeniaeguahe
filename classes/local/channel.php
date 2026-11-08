@@ -93,17 +93,21 @@ class channel {
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
         $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
         $hours = familypage::hours((int) $event->timestart, (int) $event->timeend, $lang);
-        $place = trim(implode(' · ', array_filter([$event->place ? format_string($event->place) : '',
+        // A comma: a «·» would begin the second line when the line breaks.
+        $place = trim(implode(', ', array_filter([$event->place ? format_string($event->place) : '',
             (string) ($centre->address ?? '')])));
         $name = format_string($event->name);
+        $kicker = publiclang::str('channel_open_day_kicker', $lang);
+        // A day named just «Open day» would say it twice on its card: a sentence of its own instead.
+        $title = recognise::plain($name) === recognise::plain($kicker) ? publiclang::str('channel_open_day_invite', $lang) : $name;
         return [
             'title' => $name,
             'lines' => array_values(array_filter([$ucfirst($parts['long']), $hours, $place])),
             'url' => events::url($event)->out(false),
             'label' => publiclang::str('channel_open_day_button', $lang),
             'card' => ['type' => 'open_day', 'zones' => [
-                'kicker' => publiclang::str('channel_open_day_kicker', $lang),
-                'title' => $name,
+                'kicker' => $kicker,
+                'title' => $title,
                 'date' => $ucfirst($parts['weekday']) . ' ' . $parts['daymonth'],
                 'detail' => $hours . ($place !== '' ? '. ' . $place : ''),
             ]],
