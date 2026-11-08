@@ -24,6 +24,7 @@
 
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel;
@@ -55,6 +56,13 @@ if (!$centre) {
     die();
 }
 
+if (optional_param('away', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
+    // The relay: until when this person is away, or that they are back.
+    $until = optional_param('until', '', PARAM_TEXT);
+    $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $until, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
+    attend::set_away((int) $centre->id, (int) $USER->id, optional_param('back', 0, PARAM_BOOL) ? 0 : $when);
+    redirect(new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]));
+}
 if (optional_param('check', 0, PARAM_BOOL)) {
     // What the page asks every minute: how many wait, and the family that arrived last.
     @header('Content-Type: application/json; charset=utf-8');

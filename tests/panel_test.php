@@ -16,6 +16,7 @@
 
 namespace local_oksigeniaeguahe;
 
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
@@ -36,6 +37,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(panel::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(attend::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_inbox::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_household::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_events::class)]
@@ -148,7 +150,8 @@ final class panel_test extends \advanced_testcase {
         $this->assertTrue($file['history'][0]['family']);
         $this->assertStringContainsString('Web a medida', $file['history'][0]['how']);
         $this->assertSame(get_string('panel_greeting', 'local_oksigeniaeguahe', 'Marta') . ' ', $file['composer']['greeting']);
-        $this->assertFalse($file['relay']);
+        $this->assertTrue($file['relay']);
+        $this->assertNull($file['owner']);
         $this->assertTrue($file['hasuntold']);
         // By email, chosen first, or by a call; the phone app only with Oksigenia Marandu, and not joined yet.
         $ways = array_column($file['composer']['ways'], 'checked', 'value');
@@ -237,5 +240,72 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('cinematico', panel::skin((object) ['id' => $academy, 'skin' => 'otra']));
         $this->assertNull(centres::get(centres::create((object) ['name' => 'X', 'skin' => 'otra']))->skin);
         $this->assertSame('mostrador', centres::get(centres::create((object) ['name' => 'Y', 'skin' => 'mostrador']))->skin);
+    }
+
+    /**
+     * Who attends a family, what was promised to it, the relay of whoever is away, the answers of always and who is
+     * writing now.
+     */
+    public function test_attend(): void {
+        global $DB;
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $lucia = $this->getDataGenerator()->create_user(['firstname' => 'Lucía', 'lastname' => 'Medina']);
+        $andres = $this->getDataGenerator()->create_user(['firstname' => 'Andrés', 'lastname' => 'Rivas']);
+        centres::add_member($centreid, (int) $lucia->id);
+        centres::add_member($centreid, (int) $andres->id);
+        $entry = entries::get(entries::create($centreid, 'hook', 'Web a medida'), $centreid);
+        [$household] = entries::receive($entry, ['Nombre y apellidos del padre, madre o tutor' => 'Marta Ruiz Cabrera',
+            'Correo electrónico' => 'marta@example.com', 'Mensaje' => '¿Tienen comedor en Infantil?'], 'x1');
+
+        // Nobody attends it until someone answers; then the one who answered; «I will» takes it.
+        $this->assertNull(attend::owner($household, (int) $lucia->id));
+        households::answered($household, (int) $lucia->id, 'email', 'Sí, hay comedor.');
+        $household = households::get((int) $household->id, $centreid);
+        $this->assertTrue(attend::owner($household, (int) $lucia->id)['mine']);
+        attend::take($household, (int) $andres->id);
+        $this->assertSame('Andrés', attend::owner(households::get((int) $household->id, $centreid), (int) $lucia->id)['first']);
+
+        // A promise for yesterday goes up in the inbox, for anyone, until someone says it is done.
+        $yesterday = time() - DAYSECS;
+        $promiseid = attend::promise($household, (int) $andres->id, 'Llamarles para la visita', $yesterday);
+        $this->assertSame([(int) $household->id], array_keys(attend::due($centreid, time())));
+        $this->setUser($lucia);
+        $inbox = panel_inbox::context($centre, true, (int) $lucia->id, true);
+        $this->assertSame('prometido', $inbox['days'][0]['kind']);
+        $this->assertStringContainsString('llamarles para la visita', $inbox['days'][0]['rows'][0]['promise']['text']);
+        attend::done($household, $promiseid, (int) $lucia->id);
+        $this->assertSame([], attend::due($centreid, time()));
+        $this->assertTrue($DB->record_exists_select(
+            households::CONTACTS,
+            'householdid = ? AND direction = ?',
+            [$household->id, 'note']
+        ));
+
+        // Without a day, it goes up only while whoever promised it is away.
+        attend::promise($household, (int) $andres->id, 'Mandarles el menú');
+        $this->assertSame([], attend::due($centreid, time()));
+        attend::set_away($centreid, (int) $andres->id, time() + 3 * DAYSECS);
+        $this->assertSame([(int) $household->id], array_keys(attend::due($centreid, time())));
+        attend::set_away($centreid, (int) $andres->id, 0);
+
+        // An answer kept as one of always, suggested to another family that asks the same, with its names.
+        attend::keep_reply($household, (int) $lucia->id, panel_household::greeting(households::full($household)) .
+            "\n\nSí, Marta, hay comedor con cocina propia en Infantil.");
+        [$other] = entries::receive($entry, ['Nombre y apellidos del padre, madre o tutor' => 'Luis Pardo',
+            'Correo electrónico' => 'luis@example.com', 'Mensaje' => 'Hola, ¿hay comedor para Infantil?'], 'x2');
+        $suggested = attend::suggest(households::full($other));
+        $this->assertCount(1, $suggested);
+        $this->assertStringContainsString('Sí, Luis, hay comedor', $suggested[0]['text']);
+        $this->assertNotNull(attend::use_reply(households::full($other), (int) $suggested[0]['id']));
+
+        // Who is writing now: the others see it, not the one writing.
+        attend::beat((int) $household->id, (int) $andres->id);
+        $this->assertSame('Andrés', attend::typing((int) $household->id, (int) $lucia->id)['first']);
+        $this->assertNull(attend::typing((int) $household->id, (int) $andres->id));
+
+        // Erasing the family erases what was promised to it.
+        households::erase(households::get((int) $household->id, $centreid));
+        $this->assertSame(0, $DB->count_records(attend::PROMISES, ['householdid' => $household->id]));
     }
 }

@@ -25,6 +25,7 @@
 
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
@@ -52,7 +53,22 @@ if ($action && !$canact) {
     centres::require_act((int) $centre->id);
 }
 
+if (optional_param('typing', 0, PARAM_BOOL)) {
+    // The beat of the composer: someone is writing to this family now.
+    require_sesskey();
+    attend::beat((int) $household->id, (int) $USER->id);
+    @header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => true]);
+    die();
+}
+
 $newlink = '';
+$prefill = '';
+$use = optional_param('use', 0, PARAM_INT);
+if ($use && $canact && data_submitted() && confirm_sesskey()) {
+    // An answer of always chosen without the script: the file comes back with it in the answer.
+    $prefill = (string) attend::use_reply(households::full($household), $use);
+}
 if ($action && data_submitted() && confirm_sesskey()) {
     $body = trim(optional_param('body', '', PARAM_TEXT));
     // The greeting the answer starts with is not something said.
@@ -67,7 +83,25 @@ if ($action && data_submitted() && confirm_sesskey()) {
     // What the team writes down by hand: the phone app counts as WhatsApp.
     $channel = ['mobile' => 'whatsapp'][$channel] ?? $channel;
     $channel = in_array($channel, lists::HAND_CHANNELS, true) ? $channel : 'other';
+    // After answering: what comes next, promised with its day, and the answer kept as one of always if asked.
+    $aftersend = function () use ($household, $body) {
+        global $USER;
+        $day = optional_param('nextday', '', PARAM_TEXT);
+        $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
+        attend::promise($household, (int) $USER->id, optional_param('next', '', PARAM_TEXT), $when);
+        if ($body !== '' && optional_param('savereply', 0, PARAM_BOOL)) {
+            attend::keep_reply($household, (int) $USER->id, $body);
+        }
+    };
     switch ($action) {
+        case 'take':
+            attend::take($household, (int) $USER->id);
+            redirect($url);
+            break;
+        case 'promisedone':
+            attend::done($household, required_param('promise', PARAM_INT), (int) $USER->id);
+            redirect($url);
+            break;
         case 'reply':
             // The answer goes by email as it was written, with the page of the family below.
             if ($body === '') {
@@ -95,6 +129,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
             }
             households::answered($household, (int) $USER->id, 'email', $body);
+            $aftersend();
             redirect($url, get_string('reply_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'replyphone':
@@ -107,10 +142,12 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
             }
             households::answered($household, (int) $USER->id, $sentby, $body);
+            $aftersend();
             redirect($url, get_string('reply_phone_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'answer':
             households::answered($household, (int) $USER->id, $channel, $body);
+            $aftersend();
             redirect($url, get_string('answered_saved', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'received':
@@ -202,5 +239,5 @@ panel::output(
     'inbox',
     panel::adults_line(households::full($household)->adults),
     'panel_household',
-    panel_household::context($household, $centre, $canact, $newlink)
+    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill)
 );

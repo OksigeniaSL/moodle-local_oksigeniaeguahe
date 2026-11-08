@@ -3858,3 +3858,19 @@ input:focus-visible + .ficha-canal {
         background: #fff;
     }
 }
+
+/* The relay: until when the person who looks is away, in their menu. */
+.menu-barra .menu .fuera {
+    display: grid;
+    gap: 6px;
+    padding: 8px 12px;
+    border-block-start: 1px solid var(--eg-linea);
+}
+
+.menu-barra .menu .fuera input {
+    min-height: 40px;
+    padding: 6px 10px;
+    border-radius: var(--radio-campo);
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+}

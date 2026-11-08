@@ -36,7 +36,7 @@
         "morecurrent": false, "door": false,
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
         "moodleurl": "#", "logouturl": "#", "hasnotices": false, "notices": [],
-        "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
+        "awayurl": "", "away": "", "sesskey": "abc", "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
     }
 }}
 <a class="saltar" href="#main">{{#str}}panel_skip, local_oksigeniaeguahe{{/str}}</a>
@@ -70,6 +70,13 @@
         <div class="menu">
             <a href="{{moodleurl}}">{{{i.fuera}}}{{#str}}panel_to_moodle, local_oksigeniaeguahe{{/str}}</a>
             <a href="{{logouturl}}">{{{i.salir}}}{{#str}}logout{{/str}}</a>
+            {{#awayurl}}
+            <form class="fuera" method="post" action="{{awayurl}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                {{#away}}<p class="secundario">{{away}}</p><button class="boton terciario pequeno" type="submit" name="back" value="1">{{#str}}panel_back_here, local_oksigeniaeguahe{{/str}}</button>{{/away}}
+                {{^away}}<label for="fuera-hasta">{{#str}}panel_away_label, local_oksigeniaeguahe{{/str}}</label><input id="fuera-hasta" type="date" name="until" required><button class="boton terciario pequeno" type="submit">{{#str}}panel_away_save, local_oksigeniaeguahe{{/str}}</button>{{/away}}
+            </form>
+            {{/awayurl}}
         </div>
     </details>
 </header>

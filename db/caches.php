@@ -32,6 +32,13 @@ $definitions = [
         // A challenge expires after 20 minutes (antispam::LIFETIME): after that it is refused anyway.
         'ttl' => 1500,
     ],
+    // Who is writing to a family now: a beat of the composer every 20 seconds, gone after 45.
+    'typing' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 45,
+    ],
     // The first-day labels as PNG, by name, colour and scale: the same always give the same bytes.
     'stickers' => [
         'mode' => cache_store::MODE_APPLICATION,

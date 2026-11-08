@@ -40,6 +40,7 @@
         <FIELD NAME="rolename" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What this person does, as families read it"/>
         <FIELD NAME="says" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A line of this person to the families"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="awayuntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Until when this person is away: their families and promises are for everyone; 0, here"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -76,6 +77,7 @@
         <FIELD NAME="municipality" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Official code of the municipality, when known"/>
         <FIELD NAME="municipalityname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="moving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the family lives outside the area and is moving to it"/>
+        <FIELD NAME="ownerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who attends the family; 0, nobody yet"/>
         <FIELD NAME="heardfrom" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="How the household heard of the centre, as they said it (a closed list)"/>
         <FIELD NAME="firstchannel" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="other" SEQUENCE="false" COMMENT="Where the first contact came from"/>
         <FIELD NAME="incentre" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Already a family of the centre: out of the numbers of the campaign"/>
@@ -553,6 +555,43 @@
       <INDEXES>
         <INDEX NAME="entryexternal" UNIQUE="true" FIELDS="entryid, externalid"/>
       </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_promise" COMMENT="What the team promised a family when answering it, with its day: due, it goes up in the inbox for anyone">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Who promised it"/>
+        <FIELD NAME="body" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="What was promised, as written"/>
+        <FIELD NAME="dueday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The start of the day it was promised for; 0, no day"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timedone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was done; 0, not yet"/>
+        <FIELD NAME="doneby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who said it was done"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centredone" UNIQUE="false" FIELDS="centreid, timedone"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_reply" COMMENT="The answers of always of a centre: what the team already said, kept to start an answer from it">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Who kept it"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="What it answers, in a few words"/>
+        <FIELD NAME="body" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="The answer, with {names} where the names of the family go"/>
+        <FIELD NAME="words" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The words of the question it answered, plain, to suggest it"/>
+        <FIELD NAME="uses" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
     </TABLE>
   </TABLES>
 </XMLDB>

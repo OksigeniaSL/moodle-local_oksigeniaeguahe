@@ -268,6 +268,7 @@ class households {
     public static function answered(\stdClass $household, int $userid, string $channel, string $body): void {
         global $DB;
         $time = time();
+        attend::answered_by($household, $userid);
         self::contact($household, 'out', $channel, $body, $userid, $time);
         $DB->update_record(self::T, (object) ['id' => $household->id, 'waitingsince' => 0, 'lastcontact' => $time,
             'timemodified' => $time]);
@@ -568,7 +569,7 @@ class households {
         }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS,
-                visits::REQUESTS, forms::ANSWERS] as $table
+                visits::REQUESTS, forms::ANSWERS, attend::PROMISES] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

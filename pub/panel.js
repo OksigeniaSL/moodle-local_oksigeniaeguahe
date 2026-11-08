@@ -1079,3 +1079,32 @@
         }
     });
 })();
+
+/**
+ * The beat of the composer (Eguahe): while someone writes to a family, the others see it. Every 20 seconds at most,
+ * only while writing; the beat lasts 45 seconds on the server.
+ */
+(function() {
+    'use strict';
+    var form = document.querySelector('form[data-latido]');
+    if (!form || !window.fetch || !window.FormData) {
+        return;
+    }
+    var field = form.querySelector('textarea');
+    var last = 0;
+    if (!field) {
+        return;
+    }
+    field.addEventListener('input', function() {
+        var now = Date.now();
+        if (now - last < 20000) {
+            return;
+        }
+        last = now;
+        var data = new FormData();
+        data.append('sesskey', form.querySelector('input[name="sesskey"]').value);
+        fetch(form.getAttribute('data-latido'), {method: 'POST', body: data, credentials: 'same-origin'}).catch(function() {
+            last = 0;
+        });
+    });
+})();

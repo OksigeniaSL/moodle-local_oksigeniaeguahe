@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0 (2026-11-08)
+
+- **Who attends each family** (decision of Enrique): by default the last person who answered it, «I will attend them»
+  to take it, with their small face in the inbox and in the file; who is writing to a family now, with their face.
+- **What was promised**: written when answering, in «What comes next», with its day; due, the family goes up in the
+  inbox under «What was promised» («Prometisteis llamarles para el lunes 9; hoy es miércoles 11») and anyone can say
+  it is done, which stays in its conversation.
+- **The relay**: a person of the team says until when they are away, from their menu; their families and their
+  promises are for everyone until they are back.
+- **The answers of always**: an answer can be kept when sending it, with the names of the family as a gap; when another
+  family asks the same, up to three come back in the composer, with the names of that family.
+
 ## 0.16.0 (2026-11-08)
 
 - **The panel in its base system and the skin of the paper desk** (the art director, round 1): the inbox, the file of a

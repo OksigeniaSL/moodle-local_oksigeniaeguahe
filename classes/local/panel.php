@@ -337,6 +337,13 @@ class panel {
             'notices' => $notices,
             'hasnotices' => (bool) $notices,
             'footnote' => '',
+            'sesskey' => sesskey(),
+            'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
+            'away' => ($until = attend::away_until((int) $centre->id, (int) $USER->id)) ? get_string(
+                'panel_you_away',
+                self::C,
+                userdate($until, get_string('strftimedateshort', 'langconfig'))
+            ) : '',
             'jsstrings' => json_encode(self::js_strings(), JSON_UNESCAPED_UNICODE),
             'credit' => $credit ? get_string('panel_credit', self::C, \html_writer::link(
                 $credit['url'],

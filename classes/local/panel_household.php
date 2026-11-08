@@ -43,6 +43,7 @@ class panel_household {
      * @param bool $canact Whether the person may answer and change, or only see.
      * @param string $newlink A link just made for the family, to show once.
      * @param int $now
+     * @param string $prefill What the answer starts with, when an answer of always was chosen without the script.
      * @return array
      */
     public static function context(
@@ -50,7 +51,8 @@ class panel_household {
         \stdClass $centre,
         bool $canact,
         string $newlink = '',
-        int $now = 0
+        int $now = 0,
+        string $prefill = ''
     ): array {
         global $DB, $USER;
         $now = $now ?: time();
@@ -111,8 +113,12 @@ class panel_household {
         // The conversation: the two last things at sight, the ones before folded in a line.
         $history = self::history($full, $contacts, $people, $now);
         $old = array_slice($history, 0, max(0, count($history) - 2));
-        $composer = self::composer($mode, $joined, $email, $phone) + ['greeting' => self::greeting($full),
-            'draft' => null, 'hassuggestions' => false, 'suggestions' => [], 'next' => null];
+        $suggestions = attend::suggest($full);
+        $composer = self::composer($mode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
+            self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
+            'next' => ['value' => '', 'day' => ''], 'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
+        $owner = attend::owner($household, (int) $USER->id);
+        $open = attend::open_promise((int) $household->id);
         $untold = self::untold($full, $offers);
         $pending = visits::pending((int) $household->id);
         return [
@@ -131,13 +137,12 @@ class panel_household {
             'sesskey' => sesskey(),
             'canact' => $canact,
             'answered' => $answered,
-            // Who looks after the family, its promise and who is writing wait for the decision of Enrique.
-            'relay' => false,
-            'owner' => null,
-            'takeurl' => '',
-            'ownedbyme' => false,
-            'promise' => null,
-            'typing' => null,
+            'relay' => true,
+            'owner' => $owner,
+            'takeurl' => $url->out(false),
+            'ownedbyme' => $owner && $owner['mine'],
+            'promise' => $open ? attend::promise_context($open, $now, (int) $USER->id) : null,
+            'typing' => attend::typing((int) $household->id, (int) $USER->id),
             'children' => self::children($full, $offers, $canact),
             'historyold' => $old,
             'history' => array_slice($history, count($old)),

@@ -76,7 +76,7 @@ class panel_inbox {
             }
             return false;
         });
-        $days = self::days($list, $centreid, $now);
+        $days = self::days($list, $centreid, $now, $userid);
         $fresh = $total === 0;
 
         // The sentence of the page, and the line under it.
@@ -170,22 +170,29 @@ class panel_inbox {
     }
 
     /**
-     * The list by the rule of time: on top the families that come today; then those that wait, each day written once
-     * and its families under it, the one waiting longest first; and, in «All», the ones answered after a line.
+     * The list by the rule of time: on top the families that come today and what was promised and is due (or was
+     * promised by whoever is away); then those that wait, each day written once and its families under it, the one
+     * waiting longest first; and, in «All», the ones answered after a line.
      *
      * @param array $list Households, as households::inbox() gives them.
      * @param int $centreid
      * @param int $now
+     * @param int $userid Who looks.
      * @return array
      */
-    public static function days(array $list, int $centreid, int $now): array {
+    public static function days(array $list, int $centreid, int $now, int $userid = 0): array {
         $c = self::C;
         $today = self::coming_today($centreid, $now);
+        $due = attend::due($centreid, $now);
         $groups = [];
-        $rows = self::rows($list, $now, $today);
+        $rows = self::rows($list, $now, $today, $userid, $due);
         foreach ($list as $id => $household) {
             $row = $rows[$id];
-            if (isset($today[$id])) {
+            if (isset($due[$id])) {
+                $key = 'prometido';
+                $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'prometido',
+                    'day' => get_string('panel_group_promised', $c), 'sub' => '', 'answered' => false, 'rows' => []];
+            } else if (isset($today[$id])) {
                 $key = 'hoy';
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'hoy', 'day' => get_string('panel_day_today', $c),
                     'sub' => get_string('panel_coming_today', $c), 'answered' => false, 'rows' => []];
@@ -203,7 +210,8 @@ class panel_inbox {
             $groups[$key]['rows'][] = $row;
         }
         // Today first, then the waiting days from the oldest, then the answered ones.
-        $order = fn($key) => $key === 'hoy' ? -1000000 : ($key === 'contestadas' ? 1000000 : -(int) substr($key, 6));
+        $order = fn($key) => $key === 'prometido' ? -2000000 : ($key === 'hoy' ? -1000000 : ($key === 'contestadas' ? 1000000 :
+            -(int) substr($key, 6)));
         uksort($groups, fn($a, $b) => $order($a) <=> $order($b));
         return array_values(array_map(fn($g) => $g + ['count' => count($g['rows'])], $groups));
     }
@@ -264,9 +272,11 @@ class panel_inbox {
      * @param array $list Households, as households::inbox() gives them.
      * @param int $now
      * @param array $today Household id => the visit of today, in words.
+     * @param int $userid Who looks.
+     * @param array $due Household id => the promise that is due.
      * @return array Household id => row.
      */
-    public static function rows(array $list, int $now, array $today = []): array {
+    public static function rows(array $list, int $now, array $today = [], int $userid = 0, array $due = []): array {
         global $DB;
         $c = self::C;
         $latest = households::latest(array_keys($list));
@@ -314,10 +324,9 @@ class panel_inbox {
                 'children' => $children,
                 'via' => $via,
                 'viaicon' => panel::channel_icon($channel),
-                // Who looks after the family and what was promised wait for the decision of Enrique.
-                'owner' => null,
-                'typing' => null,
-                'promise' => null,
+                'owner' => self::owner_face($household, $userid),
+                'typing' => attend::typing((int) $household->id, $userid),
+                'promise' => isset($due[$household->id]) ? attend::promise_context($due[$household->id], $now, $userid) : null,
                 'visit' => isset($today[$household->id]) ? ['text' => $today[$household->id]] : null,
                 'courses' => implode(' ', array_unique($courses)),
                 'stages' => implode(' ', array_unique($stages)),
@@ -325,6 +334,21 @@ class panel_inbox {
             ];
         }
         return $rows;
+    }
+
+    /**
+     * The small face of who attends a family, with whether they are away in its title.
+     *
+     * @param \stdClass $household
+     * @param int $userid
+     * @return array|null
+     */
+    protected static function owner_face(\stdClass $household, int $userid): ?array {
+        $owner = attend::owner($household, $userid);
+        if ($owner && $owner['away'] !== '') {
+            $owner['first'] .= ' (' . $owner['away'] . ')';
+        }
+        return $owner;
     }
 
     /**

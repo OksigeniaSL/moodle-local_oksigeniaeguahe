@@ -51,7 +51,7 @@
         "composer": {"button": "Mandarlo por WhatsApp", "notes": [], "greeting": "Hola, Marta y Daniel: ",
             "draft": {"who": "Lucía", "when": "hoy a las 10:31", "text": "Hola, Marta y Daniel: sí, hay comedor."},
             "hassuggestions": true, "suggestions": [{"id": "s1", "title": "Comedor en Infantil", "uses": "14 veces", "text": "Hola, Marta y Daniel: sí."}],
-            "next": {"value": "", "day": ""},
+            "next": {"value": "", "day": ""}, "typingurl": "#",
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
@@ -81,7 +81,7 @@
         {{/ownedbyme}}{{/canact}}
         {{#promise}}
         <form class="promesa" method="post" action="{{action}}">
-            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="promisedone">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="promisedone"><input type="hidden" name="promise" value="{{id}}">
             {{#who}}{{> local_oksigeniaeguahe/panel_face }}{{/who}}<span class="promesa-texto">{{text}}</span>
             <button class="boton secundario pequeno" type="submit">{{#str}}panel_promise_done, local_oksigeniaeguahe{{/str}}</button>
         </form>
@@ -146,7 +146,7 @@
                             <span class="quien"><b data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</b></span>
                             {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
                             {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
-                            <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor>
+                            <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
                                 <input type="hidden" name="sesskey" value="{{sesskey}}">
                                 {{#composer}}
                                 {{#hassuggestions}}
@@ -168,6 +168,7 @@
                                 </div>
                                 {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
                                 <div class="campo"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label><textarea id="borrador" name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
+                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
                                 {{#next}}
                                 <div class="campo siguiente">
                                     <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
