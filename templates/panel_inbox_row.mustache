@@ -17,7 +17,8 @@
 {{!
     @template local_oksigeniaeguahe/panel_inbox_row
 
-    One family in the inbox, read as one sentence: the hour it came (the day is the one of its group), the adults by
+    What is inside the item of one family in the inbox (its li, with its classes and data, is drawn by the list of
+    panel_inbox), read as one sentence: the hour it came (the day is the one of its group), the adults by
     name (the only link, stretched over the row), each child by the name of its label with its course and stage, how
     and when they wrote last, who looks after them (a small face), who is writing to them now, and the promise that is
     due, with «Done» at hand for anyone. The stamp repeats the date for the eye of the skin and is hidden from readers.
@@ -32,7 +33,6 @@
         "promise": {"text": "Prometisteis llamarles el lunes; hoy es miércoles.", "action": "#", "sesskey": "abc", "id": "1",
             "who": {"first": "Andrés", "picture": "", "initials": "AR", "mine": true} } }
 }}
-<li class="fila{{^waiting}} contestada{{/waiting}}{{#promise}} con-promesa{{/promise}}{{#visit}} con-visita{{/visit}}" data-fila="{{id}}" data-buscar="{{search}}" data-cursos="{{courses}}" data-etapas="{{stages}}">
     <span class="hora">{{hour}}</span>
     <div class="quien">
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}</a>
@@ -51,4 +51,3 @@
         <button class="boton secundario pequeno" type="submit">{{#str}}panel_promise_done, local_oksigeniaeguahe{{/str}}</button>
     </form>
     {{/promise}}
-</li>

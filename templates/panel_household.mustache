@@ -134,11 +134,11 @@
                 {{#hasold}}
                 <details class="anteriores">
                     <summary>{{oldlabel}}</summary>
-                    <ol class="historial">{{#historyold}}{{> local_oksigeniaeguahe/panel_history_item }}{{/historyold}}</ol>
+                    <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
                 </details>
                 {{/hasold}}
                 <ol class="historial">
-                    {{#history}}{{> local_oksigeniaeguahe/panel_history_item }}{{/history}}
+                    {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
                     {{#canact}}
                     <li class="turno-tuyo{{^waiting}} ya{{/waiting}}" data-turno>
                         {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}

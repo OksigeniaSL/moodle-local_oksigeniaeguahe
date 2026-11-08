@@ -89,7 +89,7 @@
                 <section class="dia-g dia-{{kind}}" aria-labelledby="dia-{{key}}">
                     <h2 class="dia" id="dia-{{key}}"><b>{{day}}</b> <span>{{sub}}</span></h2>
                     <ol class="filas">
-                        {{#rows}}{{> local_oksigeniaeguahe/panel_inbox_row }}{{/rows}}
+                        {{#rows}}<li class="fila{{^waiting}} contestada{{/waiting}}{{#promise}} con-promesa{{/promise}}{{#visit}} con-visita{{/visit}}" data-fila="{{id}}" data-buscar="{{search}}" data-cursos="{{courses}}" data-etapas="{{stages}}">{{> local_oksigeniaeguahe/panel_inbox_row }}</li>{{/rows}}
                     </ol>
                 </section>
                 {{/days}}
