@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.13.0 (2026-11-08)
+
+- **Who makes Eguahe, small, at the foot**: «Eguahe, by Oksigenia», with a link to oksigenia.com, under what is the
+  centre's on the pages of the families and the sign-up, at the end of the emails («Sent with Eguahe, by Oksigenia»),
+  on the edge of the poster and at the foot of the screens of the team. One setting of the site turns it off.
+- **The course an answer speaks of, by its age** too: «1º Primaria» from a Google form or a Meta export is «1.º de
+  Primaria» of the offer, in its latest school year.
+- **The forecast of children not born yet**, or whose births are not published: the last births known, carried
+  forward with the changes from one year to the next of the five years before, in a wider range and marked.
+
+## 0.12.0 (2026-11-07)
+
+- **Numbers of the entries**: the families that came through Eguahe by where they came from (the entry and the place
+  it was shared, or the channel) and how far they got (visited, applied, place, enrolled, closed), with the families
+  moving to the area apart.
+- Forms take any question the centre wants to ask, and the bridges keep everything the form of the centre asks.
+
+## 0.11.0 (2026-11-07)
+
+- **The mailbox of admissions as an entry**: an address for each centre, and the Email Worker (`email-worker/`) that
+  takes what its mailbox forwards, drops the attachments and posts it signed. Forms of contact of a web read field by
+  field; the email of the family and its name from the sender, unless a machine sent it.
+- The record of processing tells of the forwarded mailbox and the service it goes through.
+
+## 0.10.0 (2026-11-07)
+
+- **Telegram and WhatsApp with Oksigenia Marandu**, when the site has it: a switch for each centre (off, notices only,
+  notices and conversation). The family joins from its page and gets the same notices as by email; with notices only,
+  whoever writes to the bot is told how to reach the centre and nobody has to answer. With conversation, what the
+  family writes goes to its record and the inbox, and the team answers from the record on the same channel.
+
+## 0.9.0 (2026-11-07)
+
+- **Forms of the centre made in Eguahe**: questions in each language (one or several answers, yes or no, text, date,
+  number, titles) that show depending on what was answered before; a link and a QR for each place where it is shared,
+  the code to put it in the web of the centre (without session, at its own height) and the preview beside it. An
+  event can use the questions of a form.
+- **Bridges**: a script for a Google form or sheet, the leads of the adverts of Meta (CSV in UTF-16 or Excel) and a
+  signed door for any other tool (`hook.php`). Nothing comes in twice and what was erased does not come back.
+- The email of «received» and answering by email from the record of the family.
+- Several links for each family: each email carries its own and the earlier ones still work.
+
+## 0.8.0 (2026-11-07)
+
+- **Tailored visits**: an event «tailored» asks the days and the part of the day that suit the family; it waits in the
+  inbox with its request, and the team proposes from the record the day, the hour, how long, the place and the guide:
+  a visit of its own, with reminder, calendar file and invitation with the face of the guide. «Your next visits» in
+  the inbox of each person.
+- The documents (emails, poster, script) are rendered with the mustache engine of Moodle, the same on 4.5 and 5.
+
 ## 0.7.0 (2026-11-07)
 
 - **What is sent to the families** (DESIGN.md of the sendings, by the art director), in the name of the centre and

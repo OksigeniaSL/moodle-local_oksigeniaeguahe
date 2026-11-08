@@ -125,10 +125,19 @@ final class forecast_test extends \advanced_testcase {
         $last = $year - 1;
         imports::import($centreid, 'totals', 'Años anteriores', 't.csv', "school_year,grade,count\n" .
             ($last - 1) . '-' . substr((string) $last, 2) . ",Infantil 3 años,30\n" .
-            $last . '-' . substr((string) ($last + 1), 2) . ",Infantil 3 años,45\n", 2);
-        forecast::save_ages($centreid, ['Infantil 3 años' => ['age' => 3, 'forecast' => true]]);
-        $courses = forecast::by_grade($centre);
-        $this->assertCount(1, $courses);
+            $last . '-' . substr((string) ($last + 1), 2) . ",Infantil 3 años,45\n" .
+            $last . '-' . substr((string) ($last + 1), 2) . ",Bebés,6\n", 2);
+        forecast::save_ages($centreid, ['Infantil 3 años' => ['age' => 3, 'forecast' => true],
+            'Bebés' => ['age' => 0, 'forecast' => true]]);
+        $courses = array_column(forecast::by_grade($centre), null, 'grade');
+        $this->assertCount(2, $courses);
+        // The babies of the years after this one are not born yet: the trend of the births before, flat here.
+        $babies = $courses['Bebés']['ahead'];
+        $this->assertSame([300, 'births'], [$babies[0]['cohort'], $babies[0]['kind']]);
+        $this->assertSame([300, 'estimate', 6, 6], [$babies[1]['cohort'], $babies[1]['kind'], $babies[1]['low'],
+            $babies[1]['high']]);
+        $courses = array_values(array_filter($courses, fn($c) => $c['grade'] === 'Infantil 3 años'));
+        $DB->delete_records(forecast::AGES, ['centreid' => $centreid, 'grade' => 'Bebés']);
         $this->assertEqualsWithDelta(0.1, $courses[0]['past'][0]['share'], 0.0001);
         $this->assertEqualsWithDelta(0.15, $courses[0]['past'][1]['share'], 0.0001);
         $ahead = $courses[0]['ahead'][0];
@@ -150,6 +159,23 @@ final class forecast_test extends \advanced_testcase {
         $this->assertSame(50, $reach['35002']['children']);
         $this->assertEquals(2.0, $reach['35002']['share']);
         $this->assertSame(0, $reach['35001']['students']);
+    }
+
+    /**
+     * A cohort not known yet: the last one known, carried by the yearly changes before it, in a range.
+     */
+    public function test_estimate(): void {
+        $known = [2020 => 1000, 2021 => 950, 2022 => 900, 2023 => 880, 2024 => 860];
+        $cohort = fn(int $year) => isset($known[$year]) ? [$known[$year], 'births', 'istac'] : null;
+        // Changes of 0.947, 0.95, 0.977 and 0.978: two years on, 860 × 0.95² in the middle, from 860 × 0.947² to
+        // 860 × 0.978².
+        $this->assertSame([776, 'estimate', 'istac', 772, 822], forecast::estimate($cohort, 2026));
+        // One year known: it stays.
+        $this->assertSame([500, 'estimate', 'istac', 500, 500], forecast::estimate(
+            fn(int $year) => $year === 2024 ? [500, 'births', 'istac'] : null,
+            2025
+        ));
+        $this->assertNull(forecast::estimate(fn(int $year) => null, 2025));
     }
 
     /**

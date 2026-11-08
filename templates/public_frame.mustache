@@ -18,7 +18,8 @@
     @template local_oksigeniaeguahe/public_frame
 
     What goes around every page of a family: the centre (its logo and name, or its initials) on its wall with the menu of
-    languages, and at the foot the centre, its address and how it treats the data. The page goes where «main» is.
+    languages, and at the foot the centre, its address, how it treats the data and, small, who makes Eguahe. The page goes
+    where «main» is.
 
     Example context (json):
     {
@@ -26,7 +27,8 @@
         "logoplate": false, "langlabel": "Idioma", "langname": "Español",
         "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#",
             "current": false, "code": "en"}],
-        "address": "Calle de ejemplo 1", "privacyurl": "#", "privacy": "Cómo tratamos sus datos"
+        "address": "Calle de ejemplo 1", "privacyurl": "#", "privacy": "Cómo tratamos sus datos",
+        "credit": {"text": "Eguahe, de Oksigenia", "url": "https://oksigenia.com/"}
     }
 }}
 <header class="cabecera">
@@ -48,4 +50,5 @@
 <footer class="pie">
     <span>{{centre}}{{#address}} · {{address}}{{/address}}</span>
     <a href="{{privacyurl}}">{{privacy}}</a>
+    {{#credit}}<p class="firma"><a href="{{url}}" target="_blank" rel="noopener">{{text}}</a></p>{{/credit}}
 </footer>

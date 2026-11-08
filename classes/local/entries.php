@@ -459,7 +459,8 @@ class entries {
     }
 
     /**
-     * The course of the offer an answer speaks of: the same name, or the one whose name it contains.
+     * The course of the offer an answer speaks of: the same name, else the one of the same age in the latest school
+     * year («1º Primaria» is «1.º de Primaria»), else the one whose name it contains.
      *
      * @param int $centreid
      * @param string $value
@@ -467,15 +468,25 @@ class entries {
      */
     public static function offer(int $centreid, string $value): int {
         $want = grades::plain($value);
+        $age = grades::age($value);
         $found = [];
+        $sameage = [];
+        // Latest school year first.
         foreach (centres::offers($centreid, true) as $offer) {
             $name = grades::plain((string) $offer->name);
             if ($name === $want) {
                 return (int) $offer->id;
             }
+            if ($age !== null && grades::age((string) $offer->name) === $age) {
+                $sameage[(string) $offer->schoolyear][] = (int) $offer->id;
+            }
             if ($name !== '' && (strpos($want, $name) !== false || strpos($name, $want) !== false)) {
                 $found[] = (int) $offer->id;
             }
+        }
+        $latest = reset($sameage);
+        if ($latest && count($latest) === 1) {
+            return $latest[0];
         }
         return count($found) === 1 ? $found[0] : 0;
     }

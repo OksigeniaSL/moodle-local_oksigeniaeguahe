@@ -30,6 +30,11 @@ $callbacks = [
         'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'primary_extend'],
     ],
     [
+        // Who makes Eguahe, at the foot of the screens of the team.
+        'hook' => \core\hook\output\before_footer_html_generation::class,
+        'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'before_footer'],
+    ],
+    [
         // What a family writes on Telegram or WhatsApp, when the site has Oksigenia Marandu.
         'hook' => '\local_oksigeniamarandu\hook\message_received',
         'callback' => '\local_oksigeniaeguahe\local\messaging::message_received',

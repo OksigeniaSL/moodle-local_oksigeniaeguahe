@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\sheets;
 use local_oksigeniaeguahe\local\signup;
 
@@ -272,6 +273,31 @@ final class entries_test extends \advanced_testcase {
         $this->assertSame('Respuesta de Colegio de ejemplo', $subject);
         $this->assertStringContainsString('Sí hay comedor.<br>', $html);
         $this->assertStringContainsString('Y aula matinal desde las 7:30.', $text);
+        // Who makes Eguahe, at the end, unless the site turns it off.
+        $this->assertStringContainsString('href="https://oksigenia.com/">Eguahe, de Oksigenia</a>', $html);
+        $this->assertStringContainsString('Enviado con Eguahe, de Oksigenia: https://oksigenia.com/', $text);
+        set_config('credit', 0, 'local_oksigeniaeguahe');
+        [, $html, $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
+        $this->assertStringNotContainsString('Oksigenia', $html . $text);
+        $this->assertNull(publicpage::credit('es'));
+    }
+
+    /**
+     * The course an answer speaks of, as each form writes it: by its name, or by its age.
+     */
+    public function test_offer_by_age(): void {
+        global $DB;
+        $id = (int) $this->centre->id;
+        $primary = (int) $DB->get_field(centres::OFFERS, 'id', ['centreid' => $id, 'name' => '1.º de Primaria']);
+        $this->assertSame($primary, entries::offer($id, '1º de Primaria'));
+        $this->assertSame($primary, entries::offer($id, 'Primaria 1º'));
+        $this->assertSame($this->infantil, entries::offer($id, '3 años'));
+        $this->assertSame($this->infantil, entries::offer($id, 'Infantil 3 años'));
+        $this->assertSame(0, entries::offer($id, '2.º de ESO'));
+        // The same course in two school years: the latest.
+        $next = centres::save_offer($id, (object) ['schoolyear' => '2028-29', 'name' => '1.º de Primaria', 'places' => 4,
+            'active' => 1, 'sortorder' => 1]);
+        $this->assertSame($next, entries::offer($id, '1º Primaria'));
     }
 
     /**

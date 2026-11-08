@@ -52,7 +52,8 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
 .lugar { margin: 6px 0 0; font-size: 22px; color: var(--tinta-2); }
 
 /* The band with the QR */
-.banda { display: flex; align-items: center; gap: 34px; padding: 32px 53px 53px; background: var(--c-acento); color: var(--c-sobre-acento); }
+.banda { position: relative; display: flex; align-items: center; gap: 34px; padding: 32px 53px 53px; background: var(--c-acento); color: var(--c-sobre-acento); }
+.banda .firma { position: absolute; right: 53px; bottom: 18px; font-size: 11px; letter-spacing: .02em; }
 .qr { flex: none; width: 184px; height: 184px; padding: 14px; border-radius: 18px; background: #FFFFFF; }
 .qr svg { display: block; width: 100%; height: 100%; }
 .banda p { margin: 0; }
@@ -111,6 +112,7 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
       {{#url_corta}}<p class="url">{{url_corta}}</p>{{/url_corta}}
       {{#telefono_texto}}<p class="tel">{{telefono_texto}}</p>{{/telefono_texto}}
     </div>
+    {{#firma}}<p class="firma">{{firma}}</p>{{/firma}}
   </section>
 </div></div>
 </body>

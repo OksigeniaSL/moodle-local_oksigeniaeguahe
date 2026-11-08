@@ -139,7 +139,9 @@ final class familymail_test extends \advanced_testcase {
         $this->assertStringContainsString('Lucía', $html);
         $this->assertStringContainsString('Leo y Íñigo', $text);
         $this->assertStringNotContainsStringIgnoringCase('eguahe.', $html);
-        $this->assertStringNotContainsString('Eguahe', $text);
+        // Who makes Eguahe, at the end, small (Enrique, 8 November 2026).
+        $this->assertStringContainsString('Enviado con <a class="eg-enlace"', $html);
+        $this->assertStringContainsString('Enviado con Eguahe, de Oksigenia: https://oksigenia.com/', $text);
         if (sticker::available()) {
             $this->assertCount(2, array_filter($images, fn($i) => $i['mime'] === 'image/png'));
             $this->assertStringContainsString('alt="e Íñigo"', $html);
@@ -208,6 +210,6 @@ final class familymail_test extends \advanced_testcase {
         $this->assertStringContainsString('Vengan a<br>conocernos', $html);
         $this->assertStringContainsString('size: A3 portrait', $html);
         $this->assertStringContainsString('O llámennos al +34 900 000 014', $html);
-        $this->assertStringNotContainsString('Eguahe', $html);
+        $this->assertStringContainsString('<p class="firma">Eguahe, de Oksigenia</p>', $html);
     }
 }

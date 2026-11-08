@@ -22,7 +22,8 @@ namespace local_oksigeniaeguahe\local;
  * reaches in each municipality: its students against the children of school age who live there.
  *
  * A cohort is the children born in one year in the area: the births by municipality when published, else the children
- * of that age on the 1 January of the open data. Each number says which.
+ * of that age on the 1 January of the open data, else (not born yet) the trend of the years before. Each number says
+ * which.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -34,6 +35,9 @@ class forecast {
 
     /** @var int School years forecast after the last one known. */
     const AHEAD = 3;
+
+    /** @var int Years of births whose yearly changes carry a cohort not yet known. */
+    const TREND = 5;
 
     /**
      * An age for a course from its usual names (es, pt, en), to start from; the centre corrects it.
@@ -152,6 +156,44 @@ class forecast {
     }
 
     /**
+     * The children of a year not born yet, or whose births are not published: the last cohort known, carried forward
+     * by the yearly changes of the years before it. A range (with the lowest and the highest change) and its middle
+     * (with the median change).
+     *
+     * @param callable $known A birth year => its cohort as cohort() gives it, or null.
+     * @param int $birthyear
+     * @return array|null [middle, 'estimate', source, low, high]; null when no year before is known.
+     */
+    public static function estimate(callable $known, int $birthyear): ?array {
+        $last = null;
+        for ($year = $birthyear - 1; $year >= $birthyear - 2 * self::TREND; $year--) {
+            if (($known($year)[0] ?? 0) > 0) {
+                $last = $year;
+                break;
+            }
+        }
+        if ($last === null) {
+            return null;
+        }
+        $changes = [];
+        for ($year = $last; $year > $last - self::TREND; $year--) {
+            $now = $known($year)[0] ?? 0;
+            $before = $known($year - 1)[0] ?? 0;
+            if (!$now || !$before) {
+                break;
+            }
+            $changes[] = $now / $before;
+        }
+        $changes = $changes ?: [1.0];
+        sort($changes);
+        $gap = $birthyear - $last;
+        $base = (int) $known($last)[0];
+        $median = $changes[(int) floor((count($changes) - 1) / 2)];
+        return [(int) round($base * $median ** $gap), 'estimate', (string) $known($last)[2],
+            (int) round($base * reset($changes) ** $gap), (int) round($base * end($changes) ** $gap)];
+    }
+
+    /**
      * The forecast of each course the centre forecasts: the years it has, with their share of the area, and the years
      * ahead in ranges, with the places as the ceiling.
      *
@@ -167,6 +209,13 @@ class forecast {
         foreach (centres::offers((int) $centre->id) as $offer) {
             $places[$offer->name][(int) substr((string) $offer->schoolyear, 0, 4)] = (int) $offer->places;
         }
+        $known = [];
+        $cohortof = function (int $birthyear) use (&$known, $centre, $zone): ?array {
+            if (!array_key_exists($birthyear, $known)) {
+                $known[$birthyear] = self::cohort((int) $centre->id, $zone, $birthyear);
+            }
+            return $known[$birthyear];
+        };
         $out = [];
         foreach (self::grades((int) $centre->id) as $grade => $info) {
             if (!$info['forecast'] || $info['age'] === null) {
@@ -176,7 +225,7 @@ class forecast {
             $shares = [];
             foreach ($matrix[$grade] ?? [] as $year => $students) {
                 $start = (int) substr((string) $year, 0, 4);
-                $cohort = self::cohort((int) $centre->id, $zone, $start - $info['age']);
+                $cohort = $cohortof($start - $info['age']);
                 $share = $cohort && $cohort[0] ? $students / $cohort[0] : null;
                 if ($share !== null) {
                     $shares[] = $share;
@@ -186,13 +235,14 @@ class forecast {
             sort($shares);
             $ahead = [];
             for ($start = $lastyear + 1; $start <= $lastyear + self::AHEAD; $start++) {
-                $cohort = self::cohort((int) $centre->id, $zone, $start - $info['age']);
+                $cohort = $cohortof($start - $info['age']) ?? self::estimate($cohortof, $start - $info['age']);
                 $row = ['year' => $start . '-' . substr((string) ($start + 1), 2), 'cohort' => $cohort[0] ?? null,
                     'kind' => $cohort[1] ?? null, 'low' => null, 'mid' => null, 'high' => null,
                     'places' => $places[$grade][$start] ?? 0];
                 if ($cohort && $shares) {
-                    $row['low'] = (int) round(reset($shares) * $cohort[0]);
-                    $row['high'] = (int) round(end($shares) * $cohort[0]);
+                    // An estimated cohort widens the range with its own.
+                    $row['low'] = (int) round(reset($shares) * ($cohort[3] ?? $cohort[0]));
+                    $row['high'] = (int) round(end($shares) * ($cohort[4] ?? $cohort[0]));
                     $row['mid'] = (int) round($shares[(int) floor((count($shares) - 1) / 2)] * $cohort[0]);
                 }
                 $ahead[] = $row;

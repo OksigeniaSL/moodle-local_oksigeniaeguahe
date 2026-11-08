@@ -29,8 +29,8 @@
         "hascourses": true,
         "courses": [{"grade": "Infantil 3 años", "age": 3,
             "past": [{"year": "2025-26", "students": 93, "cohort": "4.120", "share": "2,3"}],
-            "ahead": [{"year": "2027-28", "cohort": "3.900", "fromage": false, "hasrange": true, "low": 84, "mid": 89,
-                "high": 95, "places": 0, "over": false}]}],
+            "ahead": [{"year": "2027-28", "cohort": "3.900", "fromage": false, "estimated": false, "hasrange": true,
+                "low": 84, "mid": 89, "high": 95, "places": 0, "over": false}]}],
         "hasreach": true, "reach": [{"code": "38023", "name": "La Laguna", "students": 913, "children": 25000,
             "sharetext": "3,7"}], "importurl": "#"
     }
@@ -98,13 +98,14 @@
                 <thead><tr><th scope="col">{{#str}}forecast_year, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_cohort, local_oksigeniaeguahe{{/str}}</th><th scope="col" class="eguahe-num">{{#str}}forecast_expected, local_oksigeniaeguahe{{/str}}</th></tr></thead>
                 <tbody>{{#ahead}}<tr>
                     <th scope="row">{{year}}</th>
-                    <td class="eguahe-num">{{cohort}}{{#fromage}}*{{/fromage}}</td>
+                    <td class="eguahe-num">{{#estimated}}≈ {{/estimated}}{{cohort}}{{#fromage}}*{{/fromage}}{{#estimated}}**{{/estimated}}</td>
                     <td class="eguahe-num">{{#hasrange}}<strong>{{low}}–{{high}}</strong> <span class="eguahe-quiet">({{mid}})</span>{{#over}} · {{#str}}forecast_places, local_oksigeniaeguahe, {{places}}{{/str}}{{/over}}{{/hasrange}}{{^hasrange}}<span class="eguahe-quiet">{{#str}}forecast_nodata, local_oksigeniaeguahe{{/str}}</span>{{/hasrange}}</td>
                 </tr>{{/ahead}}</tbody>
             </table>
         </div>
         {{/courses}}
         <p class="eguahe-quiet">{{#str}}forecast_fromage, local_oksigeniaeguahe{{/str}}</p>
+        <p class="eguahe-quiet">{{#str}}forecast_estimated, local_oksigeniaeguahe{{/str}}</p>
     </section>
     {{/hascourses}}
 

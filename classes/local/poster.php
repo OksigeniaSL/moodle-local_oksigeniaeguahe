@@ -74,6 +74,7 @@ class poster {
             'telefono_texto' => $phone !== '' ? $str('poster_phone', $phone) : '',
             'qr_svg' => events::qr_svg($event),
             'qr_alt' => $str('poster_qr', $shown ?: format_string($event->name)),
+            'firma' => publicpage::credit($lang)['text'] ?? '',
         ]);
     }
 }

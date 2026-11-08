@@ -105,6 +105,9 @@ class familymail {
         };
         $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $credit = publicpage::credit($lang);
+        $creditlink = $credit ? \html_writer::link($credit['url'], s($credit['text']), ['class' => 'eg-enlace',
+            'style' => 'color:#5F5459; text-decoration:underline;']) : '';
         $colour = $centre->colour ?: '#2f5d62';
         $full = households::full($household);
         $tags = array_values(array_filter(
@@ -212,6 +215,8 @@ class familymail {
                 'datos_texto' => $str('pub_privacy_link'),
                 'datos_url' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
                     'lang' => $lang]))->out(false),
+                'firma' => $credit ? $str('mail_credit', $creditlink) : '',
+                'firma_texto' => $credit ? $str('mail_credit', $credit['text']) . ': ' . $credit['url'] : '',
             ],
             'titular' => $str($tags ? 'pub_wait' : 'pub_wait_nochild'),
         ];

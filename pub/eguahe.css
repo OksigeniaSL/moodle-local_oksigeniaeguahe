@@ -1643,6 +1643,12 @@ legend .opc {
 .pie a {
     color: var(--eg-tinta-2);
 }
+/* Who makes Eguahe: small, under what is the centre's. */
+.pie .firma {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.8125rem;
+}
 /* ---------- Real inputs under the chips, the turns and the step: they work without JavaScript ---------- */
 .ficha input,
 .turno input {

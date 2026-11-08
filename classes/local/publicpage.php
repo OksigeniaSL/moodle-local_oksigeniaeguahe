@@ -30,6 +30,22 @@ class publicpage {
     /** @var bool Whether the page goes inside the web of a centre. */
     public static $embedded = false;
 
+    /** @var string Where the line of who makes Eguahe leads. */
+    const CREDITURL = 'https://oksigenia.com/';
+
+    /**
+     * The line of who makes Eguahe at the foot, unless the site turns it off.
+     *
+     * @param string $lang
+     * @return array|null text and url.
+     */
+    public static function credit(string $lang): ?array {
+        if ((string) get_config('local_oksigeniaeguahe', 'credit') === '0') {
+            return null;
+        }
+        return ['text' => publiclang::str('credit_name', $lang), 'url' => self::CREDITURL];
+    }
+
     /** @var array The small drawings of the pages: stroke icons, the colour of the text. */
     const ICONS = [
         'cal' => '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
@@ -146,6 +162,7 @@ class publicpage {
             'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id ?? 0,
                 'lang' => $lang]))->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
+            'credit' => self::credit($lang),
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));

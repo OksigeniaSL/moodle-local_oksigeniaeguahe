@@ -88,7 +88,7 @@ foreach (forecast::by_grade($centre) as $g) {
             'share' => $percent($p['share'])], $g['past']),
         'ahead' => array_map(
             fn($a) => ['year' => $a['year'], 'cohort' => $number($a['cohort']),
-            'fromage' => $a['kind'] === 'age', 'hasrange' => $a['low'] !== null,
+            'fromage' => $a['kind'] === 'age', 'estimated' => $a['kind'] === 'estimate', 'hasrange' => $a['low'] !== null,
             'low' => $a['low'], 'mid' => $a['mid'], 'high' => $a['high'],
             'places' => $a['places'], 'over' => $a['places'] && $a['high'] !== null && $a['high'] > $a['places']],
             $g['ahead']

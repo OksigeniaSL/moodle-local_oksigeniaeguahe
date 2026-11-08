@@ -486,3 +486,13 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     border-top: 2px solid var(--bs-border-color, #dee2e6);
     font-style: italic;
 }
+/* Who makes Eguahe, at the foot of the screens of the team. */
+.eguahe-credit {
+    margin: 2rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+.eguahe-credit a {
+    color: inherit;
+    text-decoration: underline;
+}

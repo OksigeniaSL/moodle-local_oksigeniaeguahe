@@ -70,6 +70,10 @@
 
 {{{pie.porque}}}
 {{{pie.datos_texto}}}: {{{pie.datos_url}}}
+{{#pie.firma_texto}}
+
+{{{pie.firma_texto}}}
+{{/pie.firma_texto}}
 {{#muestra_pie}}
 
 {{{muestra_pie}}}

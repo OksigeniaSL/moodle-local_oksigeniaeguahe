@@ -17,9 +17,11 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\publicpage;
 
 /**
- * The way in for the team of a centre, who are not administrators: «Admissions» in the main bar.
+ * The way in for the team of a centre, who are not administrators: «Admissions» in the main bar. And who makes Eguahe,
+ * at the foot of its screens.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -46,5 +48,25 @@ class hook_callbacks {
             null,
             'local_oksigeniaeguahe'
         );
+    }
+
+    /**
+     * «Eguahe, by Oksigenia» at the foot of the screens of the team, unless the site turns it off.
+     *
+     * @param \core\hook\output\before_footer_html_generation $hook
+     */
+    public static function before_footer(\core\hook\output\before_footer_html_generation $hook): void {
+        global $PAGE;
+        if (during_initial_install() || !$PAGE->has_set_url()) {
+            return;
+        }
+        if (strpos($PAGE->url->out_omit_querystring(), '/local/oksigeniaeguahe/') === false) {
+            return;
+        }
+        $credit = publicpage::credit(current_language());
+        if ($credit) {
+            $link = \html_writer::link($credit['url'], s($credit['text']), ['target' => '_blank', 'rel' => 'noopener']);
+            $hook->add_html(\html_writer::tag('p', $link, ['class' => 'eguahe-credit']));
+        }
     }
 }

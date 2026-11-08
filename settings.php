@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Where the centres are set up, in the administration of the site.
+ * Where the centres are set up, in the administration of the site, and the settings of the site.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -31,4 +31,14 @@ if ($hassiteconfig) {
         new moodle_url('/local/oksigeniaeguahe/centres.php'),
         'local/oksigeniaeguahe:manage'
     ));
+    $settings = new admin_settingpage('local_oksigeniaeguahe', get_string('pluginname', 'local_oksigeniaeguahe'));
+    if ($ADMIN->fulltree) {
+        $settings->add(new admin_setting_configcheckbox(
+            'local_oksigeniaeguahe/credit',
+            get_string('credit', 'local_oksigeniaeguahe'),
+            get_string('credit_desc', 'local_oksigeniaeguahe'),
+            1
+        ));
+    }
+    $ADMIN->add('localplugins', $settings);
 }
