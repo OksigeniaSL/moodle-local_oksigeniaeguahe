@@ -486,7 +486,7 @@
         };
         document.addEventListener('click', function(e) {
             var link = e.target.closest ? e.target.closest('[data-ampliar]') : null;
-            var onTable = e.target.matches && e.target.matches('.sala img.dibujo') ? e.target : null;
+            var onTable = e.target.matches && e.target.matches('.sala .dibujo') ? e.target : null;
             if (!link && !onTable) {
                 return;
             }
@@ -494,7 +494,10 @@
             var any = document.querySelector('[data-ampliar]');
             var close = (link || any) ? (link || any).getAttribute('data-ampliar') : '×';
             var img = link ? link.querySelector('img') : onTable;
-            show(link ? link.getAttribute('href') : onTable.src, img ? img.alt : '', close || '×', link || null);
+            // A drawing that drew itself is a canvas: big, it is the photo as it is.
+            var src = link ? link.getAttribute('href') : (onTable.getAttribute('data-foto') || onTable.src);
+            var alt = img ? (img.alt || img.getAttribute('aria-label') || '') : '';
+            show(src, alt, close || '×', link || null);
         });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {

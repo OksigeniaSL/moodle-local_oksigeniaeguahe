@@ -542,7 +542,8 @@ class familypage {
             'sesskey' => sesskey(),
             'str' => ['take' => $s('pub_drawing_take'), 'takehelp' => $s('pub_drawing_take_help'),
                 'corners' => $s('pub_drawing_corners'), 'save' => $s($file ? 'pub_drawing_replace' : 'pub_drawing_save'),
-                'saving' => $s('pub_drawing_saving'), 'nottaken' => $s('pub_drawing_not_taken'),
+                'saving' => $s('pub_drawing_saving'), 'preparing' => $s('pub_drawing_preparing'),
+                'nottaken' => $s('pub_drawing_not_taken'),
                 'delete' => $s('pub_drawing_delete'), 'shape' => $s('pub_drawing_shape'),
                 'portrait' => $s('pub_drawing_portrait'), 'landscape' => $s('pub_drawing_landscape'),
                 'turn' => $s('pub_drawing_turn'), 'back' => $s('pub_drawing_back')],
@@ -557,14 +558,21 @@ class familypage {
      * @param \stdClass $centre
      * @param \stdClass $child
      * @param string|null $bytes The photo they sent, or null to take the drawing away.
+     * @param string $strokes Its strokes, found in their browser; '' without them.
      * @return bool Whether it was kept (or taken away).
      */
-    public static function drawing_sent(\stdClass $household, \stdClass $centre, \stdClass $child, ?string $bytes): bool {
+    public static function drawing_sent(
+        \stdClass $household,
+        \stdClass $centre,
+        \stdClass $child,
+        ?string $bytes,
+        string $strokes = ''
+    ): bool {
         if ($bytes === null) {
             drawings::delete((int) $child->id);
             return true;
         }
-        if ($bytes === '' || !drawings::save($child, $bytes)) {
+        if ($bytes === '' || !drawings::save($child, $bytes, $strokes !== '' ? $strokes : null)) {
             return false;
         }
         $lang = in_array($centre->lang, lists::LANGS, true) ? $centre->lang : 'es';

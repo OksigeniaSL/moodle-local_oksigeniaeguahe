@@ -476,7 +476,41 @@
       pic.setAttribute('data-nino', String(i));
       pic.alt = c.tag ? 'Dibujo de ' + c.tag : 'Dibujo';
       host.appendChild(pic);
+      if (d.strokes) { alive(pic, d, W, H); }
     });
+  }
+
+  // the drawing that draws itself (dibujo-vivo.js, Gaudí): a canvas in the place of the photo, with the same
+  // transformation and blend, that starts when it comes into view, once, and then stays still. Without its strokes,
+  // without the script, with «less motion» or if anything fails, the photo stays as it is.
+  function alive(pic, d, W, H) {
+    var DV = root.DibujoVivo;
+    if (!DV || DV.lessMotion() || !root.fetch || !root.Promise) { return; }
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    canvas.className = 'dibujo';
+    canvas.style.cssText = pic.style.cssText;
+    canvas.setAttribute('data-nino', pic.getAttribute('data-nino'));
+    canvas.setAttribute('data-foto', d.url);
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', pic.alt);
+    var photo = new Image();
+    Promise.all([
+      new Promise(function (ok, ko) { photo.onload = ok; photo.onerror = ko; photo.src = d.url; }),
+      root.fetch(d.strokes, { credentials: 'same-origin' }).then(function (r) {
+        if (!r.ok) { throw new Error(String(r.status)); }
+        return r.json();
+      })
+    ]).then(function (got) {
+      var player = new DV.Player(canvas, photo, DV.fromJSON(got[1]), { after: 'still' });
+      if (!pic.parentNode) { return; }
+      pic.parentNode.replaceChild(canvas, pic);
+      if (!root.IntersectionObserver) { player.play(); return; }
+      var seen = new root.IntersectionObserver(function (entries) {
+        if (entries.some(function (en) { return en.isIntersecting; })) { seen.disconnect(); player.play(); }
+      }, { threshold: 0.4 });
+      seen.observe(canvas);
+    }).catch(function () {});
   }
 
   // ---- the door, animated: open (1 s) and close (0.85 s) through the frames of the strip; the doorway fades in with

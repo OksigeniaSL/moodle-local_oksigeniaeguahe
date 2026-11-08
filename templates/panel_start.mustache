@@ -26,7 +26,7 @@
         "i": {"check": "", "buscar": "", "chev": "", "atras": ""},
         "head": {"title": "El primer día", "ante": "Curso 2027-28", "sub": "Marquen a cada niño que empieza.",
             "back": {"url": "#", "name": "Bandeja"}, "action": false},
-        "hasgroups": true, "canact": true, "action": "#", "sesskey": "abc",
+        "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/start.php?c=1", "sesskey": "abc",
         "groups": [{"title": "Infantil 3 años", "count": "0 de 1",
             "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
                 "text": "Ha empezado", "search": "leo"}]}]
@@ -35,7 +35,7 @@
 <div class="pagina pagina-primer-dia">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
     {{#hasgroups}}
-    <section class="llegadas primer-dia" aria-labelledby="titulo-pagina">
+    <section class="llegadas primer-dia" aria-label="{{#str}}panel_firstday, local_oksigeniaeguahe{{/str}}">
         <div class="buscar-puerta">
             <label class="buscar"><span class="oculto">{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".empieza" placeholder="{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
         </div>

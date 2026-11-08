@@ -23,6 +23,9 @@
  */
 (function() {
     'use strict';
+    // Where the worker that finds the strokes lives: beside this file, with its version.
+    var me = document.currentScript ? document.currentScript.src : '';
+    var thread = me ? me.replace(/dibujo\.js(\?|$)/, 'dibujo-vivo-hilo.js$1') : '';
     // The drawing of a child: the four corners of the sheet onto those of the photo, then cut and straightened here, so
     // only the sheet goes, flat, and the page goes back by itself. Without JavaScript the form sends the photo as it is.
     var form = document.querySelector('form[data-dibujo]');
@@ -220,15 +223,99 @@
         ctx.putImageData(to, 0, 0);
         return out;
     };
+    // The drawing that draws itself on the page of its family (Gaudí): its strokes, found out of the page so it never
+    // hangs. Ten seconds at most, or without a worker, and the photo goes alone: the table shows it still.
+    var strokes = function(sheet, done) {
+        if (!thread || !window.Worker || !window.createImageBitmap || typeof window.OffscreenCanvas === 'undefined') {
+            done('');
+            return;
+        }
+        var finished = false;
+        var worker = null;
+        var timer = 0;
+        var end = function(json) {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            window.clearTimeout(timer);
+            if (worker) {
+                worker.terminate();
+            }
+            done(json || '');
+        };
+        timer = window.setTimeout(function() {
+            end('');
+        }, 10000);
+        try {
+            worker = new window.Worker(thread);
+            worker.onmessage = function(e) {
+                end(e.data && e.data.json);
+            };
+            worker.onerror = function() {
+                end('');
+            };
+            window.createImageBitmap(sheet).then(function(bitmap) {
+                worker.postMessage({bitmap: bitmap}, [bitmap]);
+            }).catch(function() {
+                end('');
+            });
+        } catch (err) {
+            end('');
+        }
+    };
+    // The cut sheet in place of the photo, while it is prepared: so it does not look stuck.
+    var show = function(sheet) {
+        while (svg.firstChild) {
+            svg.removeChild(svg.firstChild);
+        }
+        var width = Math.min(box.parentNode.clientWidth, 720, sheet.width);
+        canvas.width = Math.round(width);
+        canvas.height = Math.round(sheet.height * width / sheet.width);
+        canvas.getContext('2d').drawImage(sheet, 0, 0, canvas.width, canvas.height);
+        svg.setAttribute('width', canvas.width);
+        svg.setAttribute('height', canvas.height);
+        turn.hidden = true;
+        shape.hidden = true;
+    };
+    // What the button says while it works.
+    var say = function(text) {
+        var nodes = Array.prototype.filter.call(save.childNodes, function(n) {
+            return n.nodeType === 3 && n.nodeValue.trim() !== '';
+        });
+        if (nodes.length && text) {
+            nodes[nodes.length - 1].nodeValue = text;
+        }
+    };
+    var sending = false;
     form.addEventListener('submit', function(e) {
         if (!image) {
             return;
         }
         e.preventDefault();
-        state.textContent = form.getAttribute('data-guardando') || '';
-        cut().toBlob(function(blob) {
+        if (sending) {
+            return;
+        }
+        sending = true;
+        save.setAttribute('aria-disabled', 'true');
+        var sheet = cut();
+        show(sheet);
+        var preparing = form.getAttribute('data-preparando') || '';
+        say(preparing);
+        state.textContent = preparing;
+        image = null;
+        strokes(sheet, function(json) {
+            state.textContent = form.getAttribute('data-guardando') || '';
+            post(sheet, json);
+        });
+    });
+    var post = function(sheet, json) {
+        sheet.toBlob(function(blob) {
             var data = new FormData(form);
             data.set('photo', blob, 'dibujo.jpg');
+            if (json) {
+                data.set('strokes', json);
+            }
             data.set('fetch', '1');
             fetch(form.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
                 return r.json();
@@ -236,13 +323,16 @@
                 if (answer && answer.saved) {
                     window.location.href = answer.back || form.getAttribute('data-dibujo-vuelta');
                 } else {
+                    // It did not go in: another photo can be taken.
                     state.textContent = form.getAttribute('data-no-entra') || '';
+                    sending = false;
+                    save.removeAttribute('aria-disabled');
                 }
             }).catch(function() {
                 form.submit();
             });
         }, 'image/jpeg', 0.86);
-    });
+    };
     window.addEventListener('resize', function() {
         if (image) {
             place();

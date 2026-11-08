@@ -129,9 +129,14 @@ class publicpage {
         $version = (int) get_config('local_oksigeniaeguahe', 'version');
         $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
         // The living hall on the pages of the families, when it is the skin of the centre.
-        $skin = !empty($centre->id) && vestibulo::on($centre) ? '<link rel="stylesheet" href="' . $base .
-            'pieles/vestibulo/familia.css?v=' . $version . '">' . "\n" . '<script src="' . $base . 'pieles/vestibulo/escena.js?v=' .
-            $version . '" defer></script>' . "\n" : '';
+        $skin = '';
+        if (!empty($centre->id) && vestibulo::on($centre)) {
+            $skin = '<link rel="stylesheet" href="' . $base . 'pieles/vestibulo/familia.css?v=' . $version . '">' . "\n";
+            // The drawing that draws itself on the table, before the scene that puts it there.
+            foreach (['dibujo-vivo.js', 'pieles/vestibulo/escena.js'] as $script) {
+                $skin .= '<script src="' . $base . $script . '?v=' . $version . '" defer></script>' . "\n";
+            }
+        }
         $colour = $centre->colour ?: '#2f5d62';
         $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
         $name = format_string($centre->name);

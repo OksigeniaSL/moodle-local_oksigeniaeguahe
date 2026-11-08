@@ -51,7 +51,7 @@ if (data_submitted()) {
     if ($action === 'save') {
         $sent = $_FILES['photo'] ?? null;
         $saved = $sent && (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK && is_uploaded_file($sent['tmp_name']) &&
-            drawings::save($child, (string) file_get_contents($sent['tmp_name']));
+            drawings::save($child, (string) file_get_contents($sent['tmp_name']), optional_param('strokes', '', PARAM_RAW));
     } else if ($action === 'delete') {
         drawings::delete((int) $child->id);
         $saved = true;

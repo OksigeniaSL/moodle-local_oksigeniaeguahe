@@ -67,6 +67,18 @@ if ($drawing) {
     send_stored_file($file, DAYSECS, 0, false, ['cacheability' => 'private']);
 }
 
+$strokes = optional_param('trazos', 0, PARAM_INT);
+if ($strokes) {
+    // The strokes of that drawing, for it to draw itself on the table of their page.
+    $children = households::full($household)->children;
+    $file = isset($children[$strokes]) ? local_oksigeniaeguahe\local\drawings::strokes_file($strokes) : null;
+    if (!$file) {
+        send_header_404();
+        die();
+    }
+    send_stored_file($file, DAYSECS, 0, false, ['cacheability' => 'private']);
+}
+
 if ($action === 'drawing') {
     // The drawing of one of their children, sent by the family: the photo, cut and straightened in the browser.
     $children = households::full($household)->children;
@@ -81,7 +93,13 @@ if ($action === 'drawing') {
         if ($sent && (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK && is_uploaded_file($sent['tmp_name'])) {
             $bytes = (string) file_get_contents($sent['tmp_name']);
         }
-        $saved = familypage::drawing_sent($household, $centre, $child, optional_param('quitar', 0, PARAM_BOOL) ? null : $bytes);
+        $saved = familypage::drawing_sent(
+            $household,
+            $centre,
+            $child,
+            optional_param('quitar', 0, PARAM_BOOL) ? null : $bytes,
+            optional_param('strokes', '', PARAM_RAW)
+        );
         if (optional_param('fetch', 0, PARAM_BOOL)) {
             publicpage::headers();
             @header('Content-Type: application/json; charset=utf-8');

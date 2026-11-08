@@ -28,7 +28,7 @@
         "alt": "El dibujo de Leo", "currentline": "Ya lo tenemos.", "failed": "", "action": "/local/oksigeniaeguahe/f.php",
         "back": "/local/oksigeniaeguahe/f.php", "sesskey": "abc",
         "str": {"take": "Hacer la foto del dibujo", "takehelp": "Desde arriba", "corners": "Lleven los cuatro puntos.",
-            "save": "Mandar el dibujo", "saving": "Mandando…", "nottaken": "Esa foto no ha entrado.", "delete": "Quitar",
+            "save": "Mandar el dibujo", "saving": "Mandando…", "preparing": "Preparando el dibujo…", "nottaken": "Esa foto no ha entrado.", "delete": "Quitar",
             "shape": "Cómo está la hoja", "portrait": "Vertical", "landscape": "Horizontal", "turn": "Girar",
             "back": "Volver a su página"}
     }
@@ -49,7 +49,7 @@
         <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="quitar" value="1"><button class="boton rojo" type="submit">{{str.delete}}</button></form>
     </figure>
     {{/current}}
-    <form class="hoja-pregunta dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{back}}" data-guardando="{{str.saving}}" data-no-entra="{{str.nottaken}}">
+    <form class="hoja-pregunta dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{back}}" data-guardando="{{str.saving}}" data-preparando="{{str.preparing}}" data-no-entra="{{str.nottaken}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="drawing">
         <label class="foto-dibujo"><span class="boton principal">{{str.take}}</span><span class="ayuda-campo">{{str.takehelp}}</span><input type="file" name="photo" accept="image/*" capture="environment" required data-dibujo-foto></label>
         <div class="dibujo-recorte" data-dibujo-recorte hidden>

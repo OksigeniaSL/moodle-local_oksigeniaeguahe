@@ -37,7 +37,8 @@
  */
 function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $DB, $USER;
-    if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, ['logo', 'hostphoto', 'drawing'], true)) {
+    $areas = ['logo', 'hostphoto', 'drawing', 'drawingstrokes'];
+    if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, $areas, true)) {
         return false;
     }
     $itemid = (int) array_shift($args);
@@ -53,8 +54,8 @@ function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $ar
             return false;
         }
     }
-    // The drawing of a child: only for the team of its centre.
-    if ($filearea === 'drawing') {
+    // The drawing of a child and its strokes: only for the team of its centre.
+    if ($filearea === 'drawing' || $filearea === 'drawingstrokes') {
         $centreid = (int) $DB->get_field('local_oksigeniaeguahe_child', 'centreid', ['id' => $itemid]);
         if (!$centreid || !isloggedin() || !\local_oksigeniaeguahe\local\centres::can_work($centreid, (int) $USER->id)) {
             return false;

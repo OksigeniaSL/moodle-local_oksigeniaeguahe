@@ -39,7 +39,7 @@
         </figure>
         {{/current}}
         {{#canact}}
-        <form class="apartado dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{backurl}}" data-guardando="{{#str}}panel_drawing_saving, local_oksigeniaeguahe{{/str}}" data-no-entra="{{#str}}panel_drawing_not_taken, local_oksigeniaeguahe{{/str}}">
+        <form class="apartado dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{backurl}}" data-guardando="{{#str}}panel_drawing_saving, local_oksigeniaeguahe{{/str}}" data-preparando="{{#str}}panel_drawing_preparing, local_oksigeniaeguahe{{/str}}" data-no-entra="{{#str}}panel_drawing_not_taken, local_oksigeniaeguahe{{/str}}">
             <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="save">
             <label class="bandeja-fichero">{{{i.subir}}}<span><b>{{#str}}panel_drawing_take, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_drawing_take_help, local_oksigeniaeguahe{{/str}}</span></span><input type="file" name="photo" accept="image/*" capture="environment" required data-dibujo-foto></label>
             <div class="dibujo-recorte" data-dibujo-recorte hidden>

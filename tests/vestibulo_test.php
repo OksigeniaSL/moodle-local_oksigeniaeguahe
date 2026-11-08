@@ -182,4 +182,40 @@ final class vestibulo_test extends \advanced_testcase {
         $this->assertTrue(familypage::drawing_sent($first, $centre, $children[0], null));
         $this->assertNull(drawings::file((int) $children[0]->id));
     }
+
+    /**
+     * The strokes of a drawing, found in the browser, kept beside its photo for it to draw itself on the table: only
+     * as dibujo-vivo.js gives them, gone with a new photo without them, and gone with the drawing.
+     */
+    public function test_strokes(): void {
+        [$centre, $first] = $this->hall();
+        $child = array_values(households::full($first)->children)[0];
+        $image = imagecreatetruecolor(40, 30);
+        ob_start();
+        imagejpeg($image);
+        $photo = (string) ob_get_clean();
+        $strokes = json_encode(['v' => 1, 'w' => 640, 'h' => 452, 'lo' => 0.1, 'hi' => 0.2, 'seconds' => 3.5,
+            'paper' => ['B' => 16, 'gw' => 40, 'gh' => 29, 'W' => 640, 'H' => 452, 'col' => 'AAAA'],
+            'strokes' => [['k' => 'line', 'c' => 0, 't0' => 0, 't1' => 0.4, 'p' => [10, 12.5, 2, 30, 40, 2.5]]]]);
+        $this->assertTrue(drawings::valid_strokes($strokes));
+        $this->assertFalse(drawings::valid_strokes('{"v":2}'));
+        $this->assertFalse(drawings::valid_strokes('no'));
+        $this->assertFalse(drawings::valid_strokes(str_replace('12.5', '"x"', $strokes)), 'Only numbers in the strokes.');
+
+        $this->assertTrue(drawings::save($child, $photo, $strokes));
+        $this->assertSame('trazos.json', drawings::strokes_file((int) $child->id)->get_filename());
+        $data = vestibulo::family($centre, households::full($first), true, time(), 'clave', 'es');
+        $this->assertStringContainsString('f.php?k=clave&trazos=' . $child->id, $data['children'][0]['drawing']['strokes']);
+
+        // A new photo without its strokes: the ones before would draw another drawing.
+        $this->assertTrue(drawings::save($child, $photo, 'roto'));
+        $this->assertNull(drawings::strokes_file((int) $child->id));
+        $data = vestibulo::family($centre, households::full($first), true, time(), 'clave', 'es');
+        $this->assertFalse($data['children'][0]['drawing']['strokes']);
+
+        $this->assertTrue(drawings::save($child, $photo, $strokes));
+        drawings::delete((int) $child->id);
+        $this->assertNull(drawings::file((int) $child->id));
+        $this->assertNull(drawings::strokes_file((int) $child->id));
+    }
 }

@@ -34,6 +34,12 @@ class drawings {
     /** @var int The largest picture taken, in bytes. */
     const MOST = 12 * 1024 * 1024;
 
+    /** @var string The strokes of the drawing, found in the browser, for it to draw itself on the page of its family. */
+    const STROKES = 'drawingstrokes';
+
+    /** @var int The largest strokes kept, in bytes: a drawing gives from 9 to 44 KB. */
+    const STROKESMOST = 200 * 1024;
+
     /**
      * The file of the drawing of a child.
      *
@@ -81,9 +87,10 @@ class drawings {
      *
      * @param \stdClass $child
      * @param string $bytes A picture: JPEG, PNG or WebP.
+     * @param string|null $strokes Its strokes, as dibujo-vivo.js gives them; without them, the photo stays still.
      * @return bool False when it is not a picture of those, or too big.
      */
-    public static function save(\stdClass $child, string $bytes): bool {
+    public static function save(\stdClass $child, string $bytes, ?string $strokes = null): bool {
         $info = $bytes !== '' && strlen($bytes) <= self::MOST ? @getimagesizefromstring($bytes) : false;
         if (!$info || !isset(self::TYPES[$info['mime']])) {
             return false;
@@ -94,7 +101,62 @@ class drawings {
         $fs->create_file_from_string(['contextid' => $context->id, 'component' => 'local_oksigeniaeguahe',
             'filearea' => self::AREA, 'itemid' => (int) $child->id, 'filepath' => '/',
             'filename' => 'dibujo.' . self::TYPES[$info['mime']]], $bytes);
+        // The strokes of the new photo, or none: those of the one before would draw another drawing.
+        $fs->delete_area_files($context->id, 'local_oksigeniaeguahe', self::STROKES, (int) $child->id);
+        if ($strokes !== null && self::valid_strokes($strokes)) {
+            $fs->create_file_from_string(['contextid' => $context->id, 'component' => 'local_oksigeniaeguahe',
+                'filearea' => self::STROKES, 'itemid' => (int) $child->id, 'filepath' => '/',
+                'filename' => 'trazos.json'], $strokes);
+        }
         return true;
+    }
+
+    /**
+     * Whether some strokes are as dibujo-vivo.js gives them (version 1): a size of its own, the paper and the strokes,
+     * each with numbers only.
+     *
+     * @param string $strokes
+     * @return bool
+     */
+    public static function valid_strokes(string $strokes): bool {
+        if ($strokes === '' || strlen($strokes) > self::STROKESMOST) {
+            return false;
+        }
+        $data = json_decode($strokes, true);
+        $shaped = is_array($data) && ($data['v'] ?? null) === 1 && is_numeric($data['w'] ?? null) &&
+            is_numeric($data['h'] ?? null) && is_string($data['paper']['col'] ?? null) && is_array($data['strokes'] ?? null);
+        if (!$shaped) {
+            return false;
+        }
+        foreach ($data['strokes'] as $stroke) {
+            if (!is_array($stroke) || !is_array($stroke['p'] ?? null)) {
+                return false;
+            }
+            foreach ($stroke['p'] as $n) {
+                if (!is_int($n) && !is_float($n)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The strokes of the drawing of a child, when it was kept with them.
+     *
+     * @param int $childid
+     * @return \stored_file|null
+     */
+    public static function strokes_file(int $childid): ?\stored_file {
+        $files = get_file_storage()->get_area_files(
+            \context_system::instance()->id,
+            'local_oksigeniaeguahe',
+            self::STROKES,
+            $childid,
+            'timemodified DESC',
+            false
+        );
+        return reset($files) ?: null;
     }
 
     /**
@@ -103,6 +165,8 @@ class drawings {
      * @param int $childid
      */
     public static function delete(int $childid): void {
-        get_file_storage()->delete_area_files(\context_system::instance()->id, 'local_oksigeniaeguahe', self::AREA, $childid);
+        $contextid = \context_system::instance()->id;
+        get_file_storage()->delete_area_files($contextid, 'local_oksigeniaeguahe', self::AREA, $childid);
+        get_file_storage()->delete_area_files($contextid, 'local_oksigeniaeguahe', self::STROKES, $childid);
     }
 }
