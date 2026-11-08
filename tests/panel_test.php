@@ -519,6 +519,20 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
+     * What hangs for each child by the age of its course.
+     */
+    public function test_hanging_object(): void {
+        $this->assertSame('mochila', panel::hanging_object(''));
+        $this->assertSame('mochila', panel::hanging_object('Infantil 3 años'));
+        $this->assertSame('mochila', panel::hanging_object('4.º de Primaria'));
+        $this->assertSame('llavero', panel::hanging_object('5.º de Primaria'));
+        $this->assertSame('llavero', panel::hanging_object('6.º de Primaria'));
+        $this->assertSame('equipaje', panel::hanging_object('1.º de ESO'));
+        $this->assertSame('equipaje', panel::hanging_object('Inglés B2'));
+        $this->assertSame('llavero', panel::hanging(1, 'Leo', '5.º de Primaria')['object']);
+    }
+
+    /**
      * The skin of the panel: the one the offer suggests by the ages of its courses, unless the centre chose one.
      */
     public function test_skin(): void {

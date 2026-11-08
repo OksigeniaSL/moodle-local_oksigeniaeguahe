@@ -255,7 +255,7 @@ class panel_household {
             $tag = panel::tag($child);
             $out[] = [
                 'id' => $child->id,
-                'hanging' => panel::hanging($i, $tag),
+                'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : ''),
                 'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',

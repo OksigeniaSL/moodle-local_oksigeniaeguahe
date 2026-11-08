@@ -701,21 +701,42 @@ class panel {
     }
 
     /**
+     * What hangs for a child by the age its course starts at: the backpack up to the fourth year of primary, a plainer
+     * backpack with a key ring and the name on a tag in the fifth and sixth, and a luggage tag from secondary on, and
+     * for courses that are not school years (languages, degrees, trades). A child without a course yet, the backpack.
+     *
+     * @param string $course The name of the course, as the centre writes it.
+     * @return string mochila, llavero or equipaje.
+     */
+    public static function hanging_object(string $course): string {
+        if (trim($course) === '') {
+            return 'mochila';
+        }
+        $age = grades::age($course);
+        if ($age === null || $age >= 12) {
+            return 'equipaje';
+        }
+        return $age >= 10 ? 'llavero' : 'mochila';
+    }
+
+    /**
      * A backpack hanging from its knob, for the partial panel_hanging: a little crooked, each its own way, with the
-     * name used at home on its label; brothers and sisters in other tones.
+     * name used at home on its label; brothers and sisters in other tones. With the course, what hangs by its age.
      *
      * @param int $i
      * @param string $name
+     * @param string $course
      * @return array
      */
-    public static function hanging(int $i, string $name): array {
+    public static function hanging(int $i, string $name, string $course = ''): array {
         $style = '';
         if ($i) {
             $tone = ['#6F5E6E', '#5E7F6A', '#B98256'][($i - 1) % 3];
             $style = '--mochila:' . $tone . ';--mochila-sombra:' . publicpage::mix($tone, '#000000', 0.24) .
                 ';--mochila-luz:' . publicpage::mix($tone, '#FFFFFF', 0.6) . ';';
         }
-        return ['name' => $name, 'style' => $style . '--reposo:' . ['-3.5', '3', '-2', '4'][$i % 4] . 'deg'];
+        return ['name' => $name, 'style' => $style . '--reposo:' . ['-3.5', '3', '-2', '4'][$i % 4] . 'deg',
+            'object' => self::hanging_object($course)];
     }
 
     /**
