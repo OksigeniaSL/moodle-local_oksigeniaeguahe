@@ -24,6 +24,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_event;
+use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
@@ -42,6 +43,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_household::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_events::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_event::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_eventform::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -211,6 +213,76 @@ final class panel_test extends \advanced_testcase {
         events::attend($event, $signupid, false);
         $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
         $this->assertSame(0, $door['came']);
+    }
+
+    /**
+     * Creating and changing an event: the values as the form writes them, the turns that go and those that stay, and a
+     * change that reaches the families signed up, shown before it is saved and then told by mail.
+     */
+    public function test_eventform(): void {
+        global $DB;
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $new = panel_eventform::values(null, make_timestamp(2026, 11, 1, 12));
+        $this->assertSame(['2026-11-15', '10:00', '13:00', 'openday'], [$new['day'], $new['start'], $new['end'], $new['kind']]);
+        $this->assertSame(['name'], array_keys(panel_eventform::errors(['name' => ''] + $new)));
+        $this->assertSame(['when'], array_keys(panel_eventform::errors(['end' => '09:00'] + $new)));
+
+        // A visit by turns: two turns, a family in the first one.
+        $values = ['name' => 'Visita por turnos', 'kind' => 'visit', 'place' => 'La entrada de Infantil',
+            'slots' => [['id' => 0, 'start' => '10:00', 'minutes' => 45, 'capacity' => '8'],
+                ['id' => 0, 'start' => '10:45', 'minutes' => 45, 'capacity' => '']]] + $new;
+        $eventid = events::save($centreid, panel_eventform::data($values, $new));
+        $event = events::get($eventid, $centreid);
+        $old = panel_eventform::values($event);
+        $this->assertSame(['10:00', '11:30'], [$old['start'], $old['end']]);
+        $this->assertSame(['10:00', '10:45'], array_column($old['slots'], 'start'));
+        $household = households::get(
+            households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'visit']),
+            $centreid
+        );
+        households::add_adult($household, (object) ['firstname' => 'Marta', 'lastname' => 'Ruiz Cabrera',
+            'email' => 'marta@example.com', 'phone' => '']);
+        events::sign_up($event, (int) $household->id, 2, $old['slots'][0]['id']);
+
+        $context = panel_eventform::context($centre, $old);
+        $this->assertFalse($context['slots'][0]['canremove']);
+        $this->assertTrue($context['slots'][1]['canremove']);
+        $this->assertSame([0.0, 50.0], array_column($context['slots'], 'left'));
+        $this->assertSame(['10:00', '11:00', '11:30'], array_column($context['strip']['ticks'], 'text'));
+
+        // The second turn goes when it is left out; a turn that nobody signed up in reaches nobody.
+        $changed = $old;
+        $changed['slots'] = [$old['slots'][0]];
+        [$changes, $reached] = panel_eventform::changes($centre, $old, $changed);
+        $this->assertSame([[], []], [$changes, $reached]);
+        events::save($centreid, panel_eventform::data($changed, $old));
+        $this->assertSame(1, $DB->count_records(events::SLOTS, ['eventid' => $eventid]));
+
+        // The place and the hour of the first turn change: the family sees it before anything is saved.
+        $old = panel_eventform::values(events::get($eventid, $centreid));
+        $changed = $old;
+        $changed['place'] = 'El salón de actos';
+        $changed['slots'][0]['start'] = '10:30';
+        [$changes, $reached] = panel_eventform::changes($centre, $old, $changed);
+        $this->assertSame([(int) $household->id], $reached);
+        $this->assertSame(['Turn 1', 'The place'], array_column($changes, 'what'));
+        $notice = panel_eventform::notice($centre, $changes, $reached, $changed);
+        $this->assertSame('This change reaches one family who signed up', $notice['title']);
+        $this->assertSame('It reaches them by email to 1.', $notice['who']);
+        $this->assertSame('Hola, Marta:', $notice['greeting']);
+        $this->assertStringContainsString('de 10:30 a 11:15, en El salón de actos', $notice['message']);
+
+        // Saved and told: by mail, and in the history of the household, which keeps waiting as it was.
+        events::save($centreid, panel_eventform::data($changed, $old));
+        $sink = $this->redirectEmails();
+        $this->assertSame(1, panel_eventform::tell($centre, events::get($eventid, $centreid), $reached, 2));
+        $mails = $sink->get_messages();
+        $sink->close();
+        $this->assertCount(1, $mails);
+        $this->assertStringContainsString('Visita por turnos', $mails[0]->subject);
+        $this->assertSame(1, $DB->count_records(households::CONTACTS, ['householdid' => $household->id,
+            'direction' => 'out']));
     }
 
     /**

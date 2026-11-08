@@ -47,4 +47,8 @@ if ($canact && data_submitted() && confirm_sesskey()) {
     }
 }
 
-panel::output($centre, 'entries', get_string('tab_entries', $c), 'panel_entries', panel_entries::context($centre, $canact));
+panel::output($centre, 'entries', get_string('tab_entries', $c), 'panel_entries', panel_entries::context(
+    $centre,
+    $canact,
+    optional_param('kind', '', PARAM_ALPHA)
+));

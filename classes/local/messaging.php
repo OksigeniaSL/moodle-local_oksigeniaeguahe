@@ -36,7 +36,8 @@ class messaging {
 
     /** @var array The notice of Marandu for each mail to a family. */
     const NOTICES = ['confirmation' => 'visit_confirmed', 'reminder' => 'visit_reminder', 'invitation' => 'visit_invitation',
-        'request' => 'request_received', 'received' => 'message_received', 'reply' => 'answer_waiting'];
+        'request' => 'request_received', 'received' => 'message_received', 'reply' => 'answer_waiting',
+        'change' => 'visit_changed'];
 
     /**
      * Whether the site has Marandu.
@@ -166,6 +167,7 @@ class messaging {
             'request' => [$name],
             'received' => [$name],
             'reply' => [$name, \core_text::substr(trim(preg_replace('/\s+/u', ' ', $text)), 0, 900)],
+            'change' => [$name, $signup ? panel_eventform::message($household, $centre, $signup, $lang)['when'] : ''],
         ][$kind];
         try {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'notice'),

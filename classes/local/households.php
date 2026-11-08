@@ -276,6 +276,22 @@ class households {
     }
 
     /**
+     * The team told the household something it did not ask (a change in its visit): it goes to its history, and the
+     * household keeps waiting if it was.
+     *
+     * @param \stdClass $household
+     * @param int $userid
+     * @param string $channel
+     * @param string $body
+     */
+    public static function told(\stdClass $household, int $userid, string $channel, string $body): void {
+        global $DB;
+        $time = time();
+        self::contact($household, 'out', $channel, $body, $userid, $time);
+        $DB->update_record(self::T, (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time]);
+    }
+
+    /**
      * A note of the team about the household, which the household never sees.
      *
      * @param \stdClass $household

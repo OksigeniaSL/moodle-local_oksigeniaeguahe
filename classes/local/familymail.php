@@ -30,7 +30,7 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -259,6 +259,21 @@ class familymail {
                     'url_texto' => $pageurl] : null,
                 'nota' => $str('mail_note_reply'),
             ];
+        } else if ($kind === 'change') {
+            // The team changed the hour, the place or who receives them: what it is now, with its band and calendar.
+            $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
+            $context['titular'] = $str('mail_change_titular');
+            $context += [
+                'asunto' => $str('mail_change_subject', format_string($signup->eventname)),
+                'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', end($paragraphs) ?: $text), 0, 120),
+                'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
+                'entradilla_texto' => trim($text),
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                    'url_texto' => $pageurl] : null,
+                'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
+                'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
+                'nota' => $str('mail_note_reply'),
+            ];
         } else if ($kind === 'request') {
             $pending = visits::pending((int) $household->id);
             $when = $pending ? visits::suits($pending, $lang) : $str('visit_anyday');
@@ -357,7 +372,7 @@ class familymail {
     ): bool {
         if ($kind !== 'reply') {
             // The same notice on the phones the family joined with, when the site has Marandu.
-            messaging::notify($kind, $household, $centre, $signup, $lang);
+            messaging::notify($kind, $household, $centre, $signup, $lang, $text);
         }
         $email = (string) $to;
         foreach ($to === null ? households::full($household)->adults : [] as $adult) {

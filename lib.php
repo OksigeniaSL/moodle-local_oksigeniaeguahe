@@ -68,5 +68,7 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
         'message_received' => ['examples' => ['Los Almendros School'], 'perweek' => 0.1],
         'answer_waiting' => ['examples' => ['Los Almendros School', 'Yes, there is a canteen with its own kitchen.'],
             'perweek' => 0.2],
+        'visit_changed' => ['examples' => ['Los Almendros School', 'Saturday 21 November, from 11:00 to 13:00, in the hall'],
+            'perweek' => 0.05],
     ];
 }

@@ -17,15 +17,28 @@
 {{!
     @template local_oksigeniaeguahe/panel_entry_row
 
-    An entry in a list: its name and kind, open or closed in words, how many families it brought and when the last one
-    came, the places it is shared from, or what is missing to start.
+    An entry in a list: what kind it is (its icon and its name in words), its name for the team, open or closed, how
+    many families it brought as a bar on the scale of the list and the number written, when the last one came, the
+    places it is shared from, or what is missing to start. The name is the link, stretched to the row.
+
+    New in this round: kindname, icon, open, statetext, n, broughttext, hasn, v, hassites. Kept: name, last, missing,
+    sites, url.
 
     Example context (json):
-    {"i": {"der": ""}, "name": "Pidan información", "kind": "Formulario", "state": "Abierta", "brought": "23 familias",
-        "last": "la última, ayer a las 21:14", "missing": "", "sites": ["Instagram"], "url": "#"}
+    {"i": {"der": ""}, "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
+        "n": 23, "broughttext": "23 familias", "hasn": true, "v": 0.6, "last": "la última, ayer a las 21:14", "missing": "",
+        "sites": ["Instagram"], "hassites": true, "url": "#"}
 }}
-<a class="entrada-fila" href="{{url}}">
-    <span class="que"><b>{{name}}</b><span class="secundario">{{kind}} · {{state}}</span>{{#sites.0}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/sites.0}}</span>
-    <span class="cuantas"><b>{{brought}}</b><span class="secundario">{{last}}{{missing}}</span></span>
-    {{{i.der}}}
-</a>
+<div class="entrada-fila{{^open}} cerrada{{/open}}">
+    <span class="tipo-entrada" aria-hidden="true">{{{icon}}}</span>
+    <span class="que">
+        <a class="nombres" href="{{url}}">{{name}}</a>
+        <span class="secundario">{{kindname}} · <span class="estado-entrada">{{statetext}}</span></span>
+        {{#hassites}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/hassites}}
+        {{#missing}}<span class="falta">{{missing}}</span>{{/missing}}
+    </span>
+    <span class="cuantas">
+        <span class="barra-entrada" aria-hidden="true">{{#hasn}}<i style="--v: {{v}}"></i>{{/hasn}}</span>
+        <b>{{broughttext}}</b><span class="secundario">{{last}}</span>
+    </span>
+</div>

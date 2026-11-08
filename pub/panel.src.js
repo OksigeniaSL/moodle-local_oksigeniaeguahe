@@ -1262,7 +1262,8 @@
                 text = text.charAt(0).toUpperCase() + text.slice(1);
             }
             if (start) {
-                text += (text ? ' · ' : '') + aHora(aMinutos(start)) + (end ? ' a ' + aHora(aMinutos(end)) : '');
+                text += (text ? ' · ' : '') + (end ? say('panel_js_from_to', {from: aHora(aMinutos(start)), to: aHora(aMinutos(end))}) :
+                    aHora(aMinutos(start)));
             }
             return text;
         };

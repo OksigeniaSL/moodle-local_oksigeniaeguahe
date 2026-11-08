@@ -405,12 +405,14 @@ class panel {
      * @return array Key => text.
      */
     public static function js_strings(): array {
-        $keys = ['panel_js_arrived', 'panel_js_arrived_more', 'panel_js_show', 'panel_js_to_save', 'panel_js_to_save_one',
-            'panel_js_saved', 'panel_js_press_enter', 'panel_js_loading', 'panel_js_sent', 'panel_js_key_next',
-            'panel_js_key_prev', 'panel_js_key_open', 'panel_js_key_close', 'panel_js_key_help', 'panel_came_at',
-            'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one'];
         $out = [];
-        foreach ($keys as $key) {
+        $all = get_string_manager()->load_component_strings(self::C, current_language());
+        foreach (array_keys($all) as $key) {
+            if (strpos($key, 'panel_js_') === 0) {
+                $out[$key] = get_string($key, self::C);
+            }
+        }
+        foreach (['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one'] as $key) {
             $out[$key] = get_string($key, self::C);
         }
         return $out;
