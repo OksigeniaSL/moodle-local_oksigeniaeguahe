@@ -100,7 +100,7 @@ class panel_entry {
                     $entry,
                     $lang,
                     (int) $field->id
-                )) : null,
+                )) : false,
             ];
         }
         $blocks = [];

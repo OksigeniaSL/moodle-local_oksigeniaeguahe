@@ -52,21 +52,23 @@ class metrics {
      * of the centre after its first contact.
      *
      * @param \stdClass $import
-     * @return array Token => [first, last (contacts), contacts, grade, visited, applied, enrolled, incentre]
+     * @return array Token => [first, last (contacts), contacts, grade, visited, applied, enrolled, incentre, enrolledat]
      */
-    protected static function households(\stdClass $import): array {
+    public static function households(\stdClass $import): array {
         global $DB;
         $households = [];
         $rows = $DB->get_recordset(self::CONTACTS, ['importid' => $import->id], 'timecontact ASC, id ASC');
         foreach ($rows as $row) {
             $h = $households[$row->household] ?? ['first' => $row, 'last' => $row, 'contacts' => 0, 'grade' => null,
-                'visited' => false, 'applied' => false, 'enrolled' => false, 'incentre' => false, 'children' => []];
+                'visited' => false, 'applied' => false, 'enrolled' => false, 'incentre' => false, 'children' => [],
+                'enrolledat' => 0];
             $h['last'] = $row;
             $h['contacts']++;
             $h['grade'] = $h['grade'] ?? $row->graderequested;
             $h['visited'] = $h['visited'] || in_array($row->kind, ['visit_attended', 'open_day_attended'], true);
             $h['applied'] = $h['applied'] || $row->kind === 'application';
             $h['enrolled'] = $h['enrolled'] || (bool) $row->enrolled;
+            $h['enrolledat'] = $row->enrolled ? max($h['enrolledat'], (int) $row->timeenrolled) : $h['enrolledat'];
             $h['incentre'] = $h['incentre'] || !empty($row->incentre);
             if (!empty($row->student)) {
                 $h['children'][$row->student] = true;
@@ -99,6 +101,7 @@ class metrics {
                 $when = (int) ($first[$student] ?? 0);
                 if ($when >= $since && $when <= $since + self::ENROLWINDOW) {
                     $households[$token]['enrolled'] = true;
+                    $households[$token]['enrolledat'] = $households[$token]['enrolledat'] ?: $when;
                 }
             }
         }
@@ -219,13 +222,14 @@ class metrics {
     }
 
     /**
-     * Notes what a centre spent on a channel, or on one campaign of it, in a campaign. 0 removes it.
+     * Notes what a centre spent on a channel, or on one campaign of it, in a campaign: 0 says it cost nothing, and
+     * nothing removes what was noted.
      *
      * @param int $centreid
      * @param string $label
      * @param string $channel
      * @param string $source Empty for the whole channel.
-     * @param float $amount
+     * @param float|null $amount
      * @param int $userid
      */
     public static function set_spend(
@@ -233,7 +237,7 @@ class metrics {
         string $label,
         string $channel,
         string $source,
-        float $amount,
+        ?float $amount,
         int $userid
     ): void {
         global $DB;
@@ -244,7 +248,7 @@ class metrics {
                 $DB->delete_records(self::SPEND, ['id' => $row->id]);
             }
         }
-        if ($amount > 0) {
+        if ($amount !== null && $amount >= 0) {
             $DB->insert_record(self::SPEND, (object) ($where + ['sourcedetail' => $source === '' ? null : $source,
                 'amount' => round($amount, 2), 'userid' => $userid, 'timemodified' => time()]));
         }

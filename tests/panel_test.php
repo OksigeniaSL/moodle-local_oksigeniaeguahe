@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\panel_entry;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\panel_forecast;
 use local_oksigeniaeguahe\local\panel_import;
+use local_oksigeniaeguahe\local\panel_metrics;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
@@ -55,6 +56,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_bridge::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_import::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_forecast::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_metrics::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -452,6 +454,47 @@ final class panel_test extends \advanced_testcase {
         $this->assertStringContainsString('aria-label="Infantil 3 años"', $ranged);
         // Past the last place the band blurs.
         $this->assertStringContainsString('opacity="0.18"', $ranged);
+    }
+
+    /**
+     * The numbers: a part in words, the range of a share, and a campaign under way counted from its families, with how
+     * far they got and where they came from; without a start date there is nothing to compare.
+     */
+    public function test_metrics(): void {
+        $this->assertSame(get_string('panel_frac_1_4', 'local_oksigeniaeguahe'), panel_metrics::fraction(5, 21));
+        $this->assertSame(get_string('panel_frac_all', 'local_oksigeniaeguahe'), panel_metrics::fraction(7, 7));
+        $this->assertSame(get_string('panel_frac_none', 'local_oksigeniaeguahe'), panel_metrics::fraction(0, 7));
+        [$low, $high] = panel_metrics::wilson(10, 40);
+        $this->assertTrue($low < 0.25 && $high > 0.25 && $low > 0.1 && $high < 0.4);
+
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $offer = centres::save_offer($centreid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        foreach (['enrolled', 'visit', 'inquiry', 'closed'] as $i => $stage) {
+            $household = households::get(
+                households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'webform']),
+                $centreid
+            );
+            households::add_child($household, 'Leo', (int) $offer);
+            $child = array_values(households::full($household)->children)[0];
+            households::set_stage($child, $stage, $stage === 'closed' ? 'moved' : null);
+        }
+        $context = panel_metrics::context($centre, ['campaign' => 'live'], true);
+        $this->assertSame([3, 2, 1, 1, 1], array_column($context['reach']['steps'], 'n'));
+        $this->assertFalse($context['reach']['compare']);
+        $this->assertNotSame('', $context['reach']['closed']);
+        $this->assertSame(3, array_sum(array_column($context['channels']['rows'], 'n')));
+        $this->assertSame(
+            get_string('panel_places_free_of', 'local_oksigeniaeguahe', (object) ['free' => 24, 'places' => 25]),
+            $context['places'][0]['free']
+        );
+        $this->assertFalse($context['hasyear']);
+        $this->assertCount(1, $context['starts']['rows']);
+
+        // The date it started, written: the weeks count from it.
+        panel_metrics::save_starts($centre, ['live' => '2026-09-15']);
+        $this->assertNotEmpty(centres::get($centreid)->campaignstart);
     }
 
     /**

@@ -1,0 +1,243 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_metrics
+
+    The numbers of a centre (metrics.php), in sentences first: the h1 says the campaign, every chart has its line of the
+    datum (a resting sentence that becomes the datum under the pointer, the focus or the finger; never a floating
+    tooltip), its definition and its twin in a table. One row of filters above everything (campaign, course, compare or
+    not). How fast families get an answer; how far they got, in bars with the campaign before at the same week as a
+    ghost and each channel's part inside; where they came from in three voices; the campaign week by week; the places of
+    each course with what may still come under the rail; the school year as a ledger and the roll year by year. Two
+    colours: aubergine what comes in, ochre only what leaves; the ghost in ink at 25 %. «Show» puts each chart on a
+    sheet of its own, full screen, for a meeting; printing gives the same sheets.
+
+    New in this round (the whole template; it replaces metrics.mustache in the panel).
+
+    Example context (json):
+    {
+        "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
+        "head": {"title": "96 familias esta campaña", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "action": false},
+        "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "",
+        "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
+            "compare": [{"name": "Con la anterior", "url": "#", "current": true}]},
+        "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": ""},
+        "reach": {"compare": true, "legend": true, "rest": "96 familias han escrito.", "closed": "", "def": "",
+            "steps": [{"key": "inquiry", "name": "Escribieron", "n": 96, "v": 1, "g": 0.9, "hasghost": true, "line": "96 familias.",
+                "parts": [{"canal": "web", "v": 0.3, "n": 34, "line": "34 por la web."}]}]},
+        "channels": {"voices": [{"key": "first", "name": "Primer contacto", "def": "", "url": "#", "current": true}], "def": "", "rest": "", "foot": "", "declared": false,
+            "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": ""}],
+            "spend": [{"key": "cartel", "name": "Cartel", "value": "85,00"}], "canspend": true},
+        "weeks": {"views": [{"name": "Llegadas", "url": "#", "current": true}], "compare": true, "grid": [{"p": 100, "label": 0}],
+            "xticks": [{"p": 0, "label": "Semana 1", "start": true, "end": false}], "events": [{"p": 27, "label": "Jornada", "ahead": false}],
+            "now": "M0 90 L9 80", "before": "M0 95 L9 85", "end": {"left": 9, "top": 80, "label": "19 esta campaña", "flip": false},
+            "beforeend": {"left": 100, "top": 10, "label": "la anterior"}, "cols": [{"left": 0, "width": 9, "cx": 0, "line": "Semana 1.", "future": false}],
+            "rest": "Van 19 familias.", "def": "", "label": "Llegadas, semana a semana", "what": "familias",
+            "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
+        "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": null}],
+        "placesdef": "",
+        "hasyear": false, "year": false, "hashistory": false, "history": false, "spendaction": "#", "sesskey": "abc",
+        "starts": {"rows": [{"key": "live", "name": "Esta campaña", "value": "2026-09-15"}]}
+    }
+}}
+<div class="pagina pagina-cifras{{#ensenar}} en-lamina{{/ensenar}}" data-cifras>
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="cifras-barra">
+        <nav class="filtros-cifras" aria-label="{{#str}}panel_which_numbers, local_oksigeniaeguahe{{/str}}">
+            {{#filters}}
+            <div class="filtro-grupo"><span class="rotulo-p" id="fc-campana">{{#str}}panel_campaign, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-campana">{{#campaigns}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/campaigns}}</span></div>
+            <div class="filtro-grupo"><span class="rotulo-p" id="fc-curso">{{#str}}panel_course, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-curso">{{#courses}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/courses}}</span></div>
+            <div class="filtro-grupo"><span class="rotulo-p" id="fc-comparar">{{#str}}panel_compare, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-comparar">{{#compare}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/compare}}</span></div>
+            {{/filters}}
+        </nav>
+        <div class="cifras-mandos">
+            <a class="boton secundario" href="{{ensenarurl}}" data-ensenar data-tecla="e" data-tecla-que="{{#str}}panel_show_meeting, local_oksigeniaeguahe{{/str}}">{{{i.ensenar}}}{{#str}}panel_show, local_oksigeniaeguahe{{/str}}</a>
+            <a class="enlace" href="{{importurl}}">{{{i.subir}}}{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a>
+        </div>
+    </div>
+    <div class="cifras" data-cifras-cuerpo>
+        {{#response}}
+        <section class="lamina grafico grafico-respuesta" aria-labelledby="c-resp" id="primera-respuesta">
+            <h2 id="c-resp">{{#str}}panel_first_answer, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <p class="cifra-heroe"><b>{{hero}}</b><span>{{#str}}panel_median, local_oksigeniaeguahe{{/str}}</span></p>
+            <p class="linea-dato">{{sentence}}</p>
+            <ul class="hechos">{{#facts}}<li><b>{{n}}</b> {{text}}</li>{{/facts}}</ul>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/response}}
+        {{#reach}}
+        <section class="lamina grafico grafico-alcance{{^compare}} sin-comparar{{/compare}}" aria-labelledby="c-alc" id="hasta-donde" data-grafico>
+            <h2 id="c-alc">{{#str}}panel_how_far, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            {{#legend}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-antes"></span>{{#str}}panel_before_same_week, local_oksigeniaeguahe{{/str}}</span></p>{{/legend}}
+            <ol class="barras" data-barras>
+                {{#steps}}
+                <li class="barra-fila" data-dato="{{line}}" id="alc-{{key}}">
+                    <span class="barra-nombre">{{name}}</span>
+                    <span class="barra-pista" aria-hidden="true">
+                        {{#hasghost}}<i class="fantasma" style="--v: {{g}}" data-m="alc-g-{{key}}" id="alc-g-{{key}}"></i>{{/hasghost}}
+                        <i class="barra-dato" style="--v: {{v}}" data-m="alc-b-{{key}}" id="alc-b-{{key}}"></i>
+                        {{#parts}}<i class="parte" style="--v: {{v}}" data-parte="{{canal}}" data-dato-parte="{{line}}" id="alc-p-{{key}}-{{canal}}" data-m="1"></i>{{/parts}}
+                    </span>
+                    <b class="barra-n" id="alc-n-{{key}}" data-m="t">{{n}}</b>
+                </li>
+                {{/steps}}
+            </ol>
+            {{#closed}}<p class="cerradas">{{.}}</p>{{/closed}}
+            <p class="def">{{def}}</p>
+            <details class="tabla-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+                <table class="tabla-panel"><thead><tr><th scope="col">{{#str}}panel_stop, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}panel_before_same_week, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
+                <tbody>{{#steps}}<tr><th scope="row">{{name}}</th><td>{{n}}</td>{{#hasghost}}<td>{{gn}}</td>{{/hasghost}}</tr>{{/steps}}</tbody></table>
+            </details>
+        </section>
+        {{/reach}}
+        {{#channels}}
+        <section class="lamina grafico grafico-canales" aria-labelledby="c-can" id="por-donde" data-grafico>
+            <h2 id="c-can">{{#str}}panel_where_from, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <nav class="segmentos voces" aria-label="{{#str}}panel_three_voices, local_oksigeniaeguahe{{/str}}">{{#voices}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/voices}}</nav>
+            <p class="def">{{def}}</p>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            <ul class="canales{{#declared}} dichos{{/declared}}">
+                {{#rows}}
+                <li class="canal-fila{{#declared}} declarado{{/declared}}" data-dato="{{line}}"{{#hasparts}} data-canal-elige="{{key}}"{{/hasparts}} id="can-{{key}}">
+                    <span class="canal-nombre">{{name}}</span>
+                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="can-b-{{key}}" data-m="1"></i></span>
+                    <b class="barra-n" id="can-n-{{key}}" data-m="t">{{n}}</b>
+                    {{^declared}}<span class="canal-mas"><span>{{enrolled}}</span><span class="coste">{{cost}}</span></span>{{/declared}}
+                </li>
+                {{/rows}}
+            </ul>
+            {{#foot}}<p class="def">{{.}}</p>{{/foot}}
+            {{#canspend}}
+            <details class="tabla-gemela gasto"><summary>{{#str}}panel_what_it_cost, local_oksigeniaeguahe{{/str}}</summary>
+                <form method="post" action="{{spendaction}}" class="gasto-form">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="spend">
+                    {{#spend}}<div class="campo"><label for="gasto-{{key}}">{{name}} <span class="opcional">€</span></label><input id="gasto-{{key}}" name="amount[{{key}}]" value="{{value}}" inputmode="decimal"></div>{{/spend}}
+                    <button class="boton secundario pequeno" type="submit">{{#str}}savechanges{{/str}}</button>
+                </form>
+            </details>
+            {{/canspend}}
+        </section>
+        {{/channels}}
+        {{#weeks}}
+        <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}" aria-labelledby="c-sem" id="semanas" data-grafico>
+            <h2 id="c-sem">{{#str}}panel_week_by_week, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <nav class="segmentos vistas-sem" aria-label="{{#str}}panel_what_to_count, local_oksigeniaeguahe{{/str}}">{{#views}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/views}}</nav>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            {{#compare}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-linea ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-linea antes"></span>{{#str}}panel_before, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
+            <div class="semanas-caja" id="sem-caja" data-m="bloque">
+                <div class="semanas-plot" role="img" aria-label="{{label}}. {{rest}}">
+                    {{#grid}}<span class="rejilla-y" style="top: {{p}}%"><span>{{label}}</span></span>{{/grid}}
+                    <svg class="semanas-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                        {{#compare}}<path class="linea-antes" d="{{before}}"/>{{/compare}}
+                        <path class="linea-ahora" d="{{now}}"/>
+                    </svg>
+                    {{#compare}}{{#beforeend}}<span class="rotulo-linea antes" style="inset-inline-end: 0; top: {{top}}%" aria-hidden="true">{{label}}</span>{{/beforeend}}{{/compare}}
+                    {{#end}}<span class="punto-ahora" style="inset-inline-start: {{left}}%; top: {{top}}%" aria-hidden="true"></span><span class="rotulo-linea ahora{{#flip}} al-final{{/flip}}" style="inset-inline-start: {{left}}%; top: {{top}}%" aria-hidden="true">{{label}}</span>{{/end}}
+                    {{#events}}<span class="marca-acto{{#ahead}} por-venir{{/ahead}}" style="inset-inline-start: {{p}}%" aria-hidden="true"></span>{{/events}}
+                    {{#cols}}<span class="col-semana{{#future}} futura{{/future}}" style="inset-inline-start: {{left}}%; width: {{width}}%" data-dato="{{line}}"><i></i></span>{{/cols}}
+                </div>
+                <div class="semanas-eje" aria-hidden="true">
+                    {{#xticks}}<span class="{{#start}}inicio{{/start}}{{#end}}final{{/end}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/xticks}}
+                </div>
+                <div class="semanas-actos" aria-hidden="true">
+                    {{#events}}<span class="{{#ahead}}por-venir{{/ahead}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/events}}
+                </div>
+            </div>
+            <p class="def">{{def}}</p>
+            <details class="tabla-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+                <table class="tabla-panel"><thead><tr><th scope="col">{{#str}}panel_week, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}panel_before, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
+                <tbody>{{#table}}<tr><th scope="row">{{week}}</th><td>{{now}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/table}}</tbody></table>
+            </details>
+        </section>
+        {{/weeks}}
+        <section class="lamina grafico grafico-plazas" aria-labelledby="c-pla" id="plazas">
+            <h2 id="c-pla">{{#str}}panel_places_coming, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <div class="plazas-cursos">
+                {{#places}}
+                <div class="curso-rango">
+                    <div class="cab"><b>{{name}}</b><span class="libres">{{free}}</span></div>
+                    <div class="riel-caja">{{{rail}}}</div>
+                    <p class="linea-dato rango-frase">{{sentence}}</p>
+                    {{#bench}}<p class="banco"><span class="banco-mochilas" aria-hidden="true">{{#bags}}<span class="banco-mochila"></span>{{/bags}}</span>{{text}}</p>{{/bench}}
+                </div>
+                {{/places}}
+            </div>
+            <p class="def">{{placesdef}}</p>
+        </section>
+        {{#hasyear}}{{#year}}
+        <section class="lamina grafico grafico-saldo" aria-labelledby="c-sal" id="saldo" data-grafico>
+            <h2 id="c-sal">{{title}}</h2>
+            <p class="corte">{{cut}}</p>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            <div class="libro">
+                <p class="libro-extremo"><span>{{#str}}panel_started_with, local_oksigeniaeguahe{{/str}}</span><b>{{start}}</b></p>
+                <ul class="libro-filas">
+                    {{#rows}}
+                    <li class="libro-fila{{#out}} sale{{/out}}" data-dato="{{line}}">
+                        <b class="libro-n">{{sign}}</b>
+                        <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i></span>
+                        <span class="libro-que">{{name}}</span>
+                    </li>
+                    {{/rows}}
+                </ul>
+                <p class="libro-extremo"><span>{{#str}}panel_ended_with, local_oksigeniaeguahe{{/str}}</span><b>{{end}}</b><span class="libro-neto">{{net}}</span></p>
+            </div>
+            <details class="motivos"><summary>{{#str}}panel_why_they_left, local_oksigeniaeguahe{{/str}}</summary>
+                <ul class="lista-simple">{{#reasons}}<li class="fila-s"><span>{{name}}</span><b>{{n}}</b></li>{{/reasons}}</ul>
+            </details>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/year}}{{/hasyear}}
+        {{#hashistory}}{{#history}}
+        <section class="lamina grafico grafico-anos" aria-labelledby="c-anos" id="anos" data-grafico>
+            <h2 id="c-anos">{{#str}}panel_roll_by_year, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            <div class="columnas-caja">
+                <ol class="columnas">
+                    {{#rows}}<li class="columna{{#last}} ultima{{/last}}" data-dato="{{line}}"><b>{{n}}</b><span class="col-pista" aria-hidden="true"><i style="--v: {{v}}"></i></span><span class="col-ano">{{year}}</span></li>{{/rows}}
+                </ol>
+            </div>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/history}}{{/hashistory}}
+        {{#starts}}
+        <details class="apartado plegado inicios" id="inicios">
+            <summary><h2>{{#str}}panel_starts_title, local_oksigeniaeguahe{{/str}}</h2></summary>
+            <p class="def">{{#str}}panel_starts_help, local_oksigeniaeguahe{{/str}}</p>
+            <form method="post" action="{{spendaction}}" class="formulario-panel">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="starts">
+                <div class="rejilla-3">{{#rows}}<div class="campo"><label for="inicio-{{key}}">{{name}}</label><input id="inicio-{{key}}" type="date" name="start[{{key}}]" value="{{value}}"></div>{{/rows}}</div>
+                <div class="acciones"><button class="boton secundario pequeno" type="submit">{{#str}}savechanges{{/str}}</button></div>
+            </form>
+        </details>
+        {{/starts}}
+        <p class="nota-importado def">{{importnote}} <a href="{{importurl}}">{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>
+    </div>
+    <div class="lamina-mandos" data-lamina-mandos hidden>
+        <button class="boton secundario pequeno" type="button" data-lamina="-1">{{{i.atras}}}<span class="oculto">{{#str}}panel_previous, local_oksigeniaeguahe{{/str}}</span></button>
+        <span class="lamina-cuenta" data-lamina-cuenta aria-live="polite"></span>
+        <button class="boton secundario pequeno" type="button" data-lamina="1">{{{i.der}}}<span class="oculto">{{#str}}panel_next_sheet, local_oksigeniaeguahe{{/str}}</span></button>
+        <button class="boton principal pequeno" type="button" data-salir-lamina>{{{i.cerrar}}}{{#str}}panel_close_show, local_oksigeniaeguahe{{/str}}</button>
+    </div>
+</div>

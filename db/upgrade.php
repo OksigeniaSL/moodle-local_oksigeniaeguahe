@@ -555,5 +555,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110997, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110998) {
+        // When each campaign started, as the centre writes it: the one under way, and each imported one.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('campaignstart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'arrive');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_import');
+        $field = new xmldb_field('campaignstart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'userid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110998, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

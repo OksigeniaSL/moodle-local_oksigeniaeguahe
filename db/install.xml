@@ -25,6 +25,7 @@
         <FIELD NAME="messaging" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="notices" SEQUENCE="false" COMMENT="Telegram and WhatsApp with Marandu: off, notices or conversation"/>
         <FIELD NAME="skin" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The skin of the panel of the team: vestibulo, mostrador or cinematico; null, the one its offer suggests"/>
         <FIELD NAME="arrive" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How families get in on the day: the door, whom they give their name to"/>
+        <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the campaign of admissions under way started, as the centre wrote it; 0 if it did not"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -272,6 +273,7 @@
         <FIELD NAME="sheet" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The sheet of the file it came from"/>
         <FIELD NAME="rowcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who imported it"/>
+        <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="For a campaign: when it started, as the centre wrote it; 0 if it did not"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

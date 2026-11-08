@@ -6735,3 +6735,21 @@ html.modo-lamina {
         grid-column: 2;
     }
 }
+
+/* Eguahe, the numbers: the label at the end of the line turns back near the right edge, and the dates of the
+   campaigns and the note of what was imported go across the whole page. */
+.rotulo-linea.al-final {
+    padding-inline-start: 0;
+    padding-inline-end: 10px;
+    transform: translate(-100%, -140%);
+}
+
+[dir="rtl"] .rotulo-linea.al-final {
+    transform: translate(100%, -140%);
+}
+
+.cifras > .inicios,
+.cifras > .nota-importado {
+    grid-column: 1 / -1;
+}
+
