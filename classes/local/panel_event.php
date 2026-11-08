@@ -203,6 +203,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
+            'invite' => self::invite($event, $canact, $now),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -376,5 +377,30 @@ class panel_event {
             $top = $row['n'] > $top['n'] ? $row : $top;
         }
         return get_string('panel_howitwent_choice', $c, (object) ['word' => $top['label'], 'n' => $top['n'], 'of' => $answered]);
+    }
+
+    /**
+     * An open act still to come: the invitation to the families that are not of the centre yet, how many can get it and
+     * how many got it.
+     *
+     * @param \stdClass $event
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function invite(\stdClass $event, bool $canact, int $now) {
+        if (!invites::fits($event, $now)) {
+            return false;
+        }
+        $c = self::C;
+        $can = count(invites::eligible($event));
+        $done = invites::count((int) $event->id);
+        return [
+            'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
+            'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
+            'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
     }
 }

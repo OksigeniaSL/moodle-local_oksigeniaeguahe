@@ -56,7 +56,7 @@
             "rest": "Van 19 familias.", "def": "", "wholelink": false, "ancha": false, "label": "Llegadas, semana a semana", "what": "familias",
             "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
         "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": false}],
-        "hasplaces": true, "placesdef": "", "started": false,
+        "hasplaces": true, "placesdef": "", "started": false, "referred": false,
         "hasyear": false, "year": false, "hashistory": false, "history": false, "spendaction": "#", "sesskey": "abc",
         "starts": {"rows": [{"key": "live", "name": "Esta campaña", "value": "2026-09-15"}]}
     }
@@ -207,6 +207,7 @@
                 {{/places}}
             </div>
             {{#started}}<p class="linea-dato empezaron"><a href="{{url}}">{{text}}</a></p><p class="def">{{def}}</p>{{/started}}
+            {{#referred}}<p class="linea-dato recomendadas">{{text}}</p>{{/referred}}
             <p class="def">{{placesdef}}</p>
         </section>
         {{/hasplaces}}

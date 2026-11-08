@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_event;
 use local_oksigeniaeguahe\local\poster;
@@ -64,6 +65,17 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     $outcome = trim(optional_param('outcome', '', PARAM_TEXT));
     $DB->set_field(events::T, 'outcome', $outcome === '' ? null : core_text::substr($outcome, 0, 600), ['id' => $event->id]);
     redirect(new moodle_url($url, [], 'como-fue'));
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invite') {
+    // An open act: the invitation to the families that are not of the centre yet, once.
+    centres::require_act((int) $centre->id);
+    $sent = invites::send($event, $centre, (int) $USER->id, time());
+    redirect(
+        new moodle_url($url, [], 'invitar'),
+        get_string($sent === 1 ? 'panel_invite_sent_one' : 'panel_invite_sent', $c, $sent),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+    );
 }
 if (data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);

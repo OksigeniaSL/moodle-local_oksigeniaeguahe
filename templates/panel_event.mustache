@@ -29,6 +29,7 @@
 
     Example context (json):
     {
+        "invite": false,
         "i": {"atras": "", "buscar": "", "mas1": "", "check": "", "copiar": "", "imprimir": "", "lapiz": "", "chev": "", "etiqueta": "", "altavoz": ""},
         "back": {"url": "#", "name": "Jornadas y visitas"}, "band": "En la puerta · sábado 21 · 10:52", "name": "Jornada",
         "detail": "10:00 a 13:00 · Entrada", "counts": true, "came": 12, "households": 31, "past": false,
@@ -121,6 +122,15 @@
                 {{/tailored}}
             </section>
             {{/own}}
+            {{#invite}}
+            <section class="bloque invitar" id="invitar">
+                <h2>{{#str}}panel_invite_title, local_oksigeniaeguahe{{/str}}</h2>
+                <p>{{text}}</p>
+                {{#done}}<p class="secundario">{{done}}</p>{{/done}}
+                {{#button}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invite"><button class="boton secundario" type="submit">{{{i.enviado}}}{{button}}</button></form>{{/button}}
+                <p class="def">{{#str}}panel_invite_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/invite}}
             <section class="bloque">
                 <h2>{{#str}}panel_the_event, local_oksigeniaeguahe{{/str}}</h2>
                 <div class="lista-simple">

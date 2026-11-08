@@ -191,6 +191,11 @@ class signuppage {
             'hasfields' => (bool) $fields,
             'askplace' => in_array('place', $blocks, true),
             'askheard' => in_array('heard', $blocks, true),
+            // Which family of the centre told them, if they want to say, to thank them.
+            'heardwho' => (string) ($data['heardwho'] ?? ''),
+            'heardwhoshown' => ($data['heardfrom'] ?? '') === 'centrefamilies',
+            'heardwholabel' => publiclang::str('pub_heardwho', $lang),
+            'heardwhohelp' => publiclang::str('pub_heardwho_help', $lang),
             // Brothers and sisters who would come later, where children enter by age and the event is about admissions.
             'asksiblings' => siblings::on($centre) && $event->kind !== 'other',
             'siblingstitle' => publiclang::str('pub_siblings_title', $lang),

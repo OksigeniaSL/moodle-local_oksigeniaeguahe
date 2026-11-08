@@ -71,9 +71,14 @@ class panel_inbox {
         // The households with a brother or sister whose turn it is, and only them when asked.
         $due = siblings::due($centre, $now);
         $onlysiblings = !empty($view['siblings']) && $due;
-        $list = households::inbox($centreid, !$all && !$onlysiblings);
+        $onlyvolunteers = !empty($view['volunteers']);
+        $list = households::inbox($centreid, !$all && !$onlysiblings && !$onlyvolunteers);
         if ($onlysiblings) {
             $list = array_intersect_key($list, $due);
+        }
+        if ($onlyvolunteers) {
+            // The families that offered to tell another family how it went.
+            $list = array_filter($list, fn($household) => (int) ($household->volunteer ?? 0) > 0);
         }
         $list = array_filter($list, function ($household) use ($course, $stage) {
             foreach ($course || $stage ? $household->children : [null] as $child) {

@@ -108,6 +108,11 @@ if ($action && data_submitted() && confirm_sesskey()) {
         }
     };
     switch ($action) {
+        case 'thanked':
+            // The family that told them about the centre was thanked, or the person decided not to.
+            $DB->set_field(households::T, 'thanked', time(), ['id' => $household->id]);
+            redirect($url);
+            break;
         case 'siblingadd':
             siblings::add(
                 $household,

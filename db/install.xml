@@ -95,6 +95,8 @@
         <FIELD NAME="waitingsince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when the household waits for a person to answer; 0 when nobody is owed an answer"/>
         <FIELD NAME="lastcontact" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
+        <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
+        <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -613,6 +615,21 @@
       <INDEXES>
         <INDEX NAME="centreyear" UNIQUE="false" FIELDS="centreid, birthyear"/>
       </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_invite" COMMENT="A family not yet of the centre invited to an open act (a festival, a talk): once per act">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who sent the invitations"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="eventid" TYPE="foreign" FIELDS="eventid" REFTABLE="local_oksigeniaeguahe_event" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_reply" COMMENT="The answers of always of a centre: what the team already said, kept to start an answer from it">
       <FIELDS>

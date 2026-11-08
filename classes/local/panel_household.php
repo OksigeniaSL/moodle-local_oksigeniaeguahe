@@ -154,6 +154,7 @@ class panel_household {
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
             'proposal' => $canact ? self::sibling_proposal($household, $full, $centre, $now) : false,
             'siblings' => self::siblings($household, $centre, $canact, $now),
+            'thanks' => $canact ? self::thanks($household, $full) : false,
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
                 'household' => $household->id]))->out(false) : '',
             'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',
@@ -217,6 +218,31 @@ class panel_household {
             'hasrows' => (bool) $rows,
             'canact' => $canact,
             'years' => array_map(fn($y) => ['value' => $y], range($year, $year - 12)),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * The thanks to the family of the centre that told them about it, once a child of theirs is enrolled: a sentence
+     * and a text written, for the person to decide; the two households are never linked.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @return array|false
+     */
+    protected static function thanks(\stdClass $household, \stdClass $full) {
+        $who = trim((string) ($household->heardwho ?? ''));
+        $told = $who !== '' && ($household->heardfrom ?? '') === 'centrefamilies' && !(int) ($household->thanked ?? 0);
+        if (!$told || !settled::in_centre(array_values($full->children))) {
+            return false;
+        }
+        $c = self::C;
+        $them = panel::adults_line($full->adults);
+        return [
+            'sentence' => get_string('panel_thanks_sentence', $c, s($who)),
+            'why' => get_string(count($full->adults) === 1 ? 'panel_thanks_why_one' : 'panel_thanks_why', $c, s($them)),
+            'text' => get_string('panel_thanks_text', $c, $them),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
             'sesskey' => sesskey(),
         ];

@@ -193,7 +193,8 @@ class publicpage {
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
 @media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>
-<noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] {
+<noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden],
+.quien-cuenta[hidden] {
 display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 ' . $vivo . '<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>

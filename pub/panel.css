@@ -8285,3 +8285,18 @@ a.quien-cita:focus-visible {
 .bloque-hermanos p {
     margin: 0 0 4px;
 }
+
+/* The thanks to the family that told them about the centre: a text written, for the person to decide. */
+.texto-propuesto {
+    margin: 4px 0 10px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--eg-linea);
+    border-radius: 0 8px 8px 0;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    line-height: 1.5;
+}
+
+.gracias-recomendar form {
+    margin: 0;
+}

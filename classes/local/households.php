@@ -110,6 +110,7 @@ class households {
             'municipality' => self::short($data->municipality ?? null, 20),
             'municipalityname' => self::short($data->municipalityname ?? null, 255),
             'heardfrom' => in_array($data->heardfrom ?? '', lists::HEARD_FROM, true) ? $data->heardfrom : null,
+            'heardwho' => ($data->heardfrom ?? '') === 'centrefamilies' ? self::short($data->heardwho ?? null, 255) : null,
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
             'incentre' => empty($data->incentre) ? 0 : 1,
             'moving' => empty($data->moving) ? 0 : 1,
@@ -136,6 +137,10 @@ class households {
         }
         if (empty($household->heardfrom) && in_array($data->heardfrom ?? '', lists::HEARD_FROM, true)) {
             $changes['heardfrom'] = $data->heardfrom;
+        }
+        // Which family of the centre told them, if they say so: only a name to thank them, never a link.
+        if (empty($household->heardwho) && ($data->heardfrom ?? '') === 'centrefamilies' && !empty($data->heardwho)) {
+            $changes['heardwho'] = self::short($data->heardwho, 255);
         }
         // A family that says it is already of the centre is, from then on.
         if (empty($household->moving) && !empty($data->moving)) {
@@ -516,6 +521,7 @@ class households {
                 'language' => $full->lang,
                 'municipality' => $full->municipalityname,
                 'heard_from' => $full->heardfrom,
+                'family_that_told_them' => $full->heardwho ?? null,
                 'first_channel' => $full->firstchannel,
                 'already_of_the_centre' => (bool) $full->incentre,
                 'offered_to_tell_another_family' => $date((int) ($full->volunteer ?? 0)),

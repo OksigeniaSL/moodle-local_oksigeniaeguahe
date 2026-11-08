@@ -58,7 +58,7 @@
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "labelsurl": "", "siblings": false,
+        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false,
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
@@ -182,6 +182,15 @@
                 <p class="def">{{#str}}panel_proposal_help, local_oksigeniaeguahe{{/str}}</p>
             </section>
             {{/proposal}}
+            {{#thanks}}
+            <section class="apartado propuesta gracias-recomendar" aria-labelledby="gracias-t">
+                <header><h2 id="gracias-t">{{#str}}panel_thanks_title, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="frase"><b>{{sentence}}</b>: {{why}}.</p>
+                <blockquote class="texto-propuesto">{{text}}</blockquote>
+                <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="thanked"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}panel_thanks_done, local_oksigeniaeguahe{{/str}}</button></form>
+                <p class="def">{{#str}}panel_thanks_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/thanks}}
             {{^proposal}}{{#noproposal}}
             <section class="apartado propuesta sin">
                 <header><h2>{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>

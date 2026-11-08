@@ -82,6 +82,7 @@ class signup {
             'municipality' => optional_param('municipality', '', PARAM_RAW_TRIMMED),
             'municipalityother' => trim(optional_param('municipalityother', '', PARAM_TEXT)),
             'heardfrom' => optional_param('heardfrom', '', PARAM_ALPHA),
+            'heardwho' => trim(optional_param('heardwho', '', PARAM_TEXT)),
             'message' => trim(optional_param('message', '', PARAM_TEXT)),
             'consents' => $consents,
             'altcha' => optional_param('altcha', '', PARAM_RAW_TRIMMED),
@@ -202,6 +203,7 @@ class signup {
         }
         $channel = $entry ? entries::channel($entry) : (events::CHANNEL[$event->kind] ?? 'openday');
         $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],
+            'heardwho' => $data['heardwho'] ?? '',
             'incentre' => ($data['incentre'] ?? '') === 'yes'] + $place);
         $existed = $householdid !== null;
         $before = [];

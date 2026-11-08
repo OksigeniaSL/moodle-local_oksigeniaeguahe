@@ -110,6 +110,17 @@
             place();
         }
 
+        // Another family of the centre told them: which one, if they want to say, to thank them.
+        var told = document.querySelector('[data-quien-cuenta]');
+        var who = document.querySelector('.quien-cuenta');
+        if (told && who) {
+            var tell = function() {
+                who.hidden = told.value !== told.getAttribute('data-quien-cuenta') && !who.querySelector('input').value;
+            };
+            told.addEventListener('change', tell);
+            tell();
+        }
+
         // The label writes itself: with the first letter of a name, the backpack arrives at its hook.
         var rail = document.querySelector('.perchas[data-live]');
         var visible = function(selector) {

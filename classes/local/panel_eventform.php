@@ -595,6 +595,7 @@ class panel_eventform {
             'strip' => ['from' => $span ? sprintf('%02d:%02d', intdiv($from, 60), $from % 60) : '',
                 'to' => $span ? sprintf('%02d:%02d', intdiv($to, 60), $to % 60) : '', 'ticks' => array_values($ticks)],
             'hashosts' => (bool) $hosts,
+            'volunteers' => self::volunteers($centre),
             'hosts' => $hosts,
             'nohosts' => $hosts ? '' : get_string('event_hosts_none', $c),
             'forms' => $forms,
@@ -712,5 +713,21 @@ class panel_eventform {
         $day = publicpage::date_parts($start, current_language())['long'];
         return \core_text::strtoupper(\core_text::substr($day, 0, 1)) . \core_text::substr($day, 1) . ' · ' .
             get_string('panel_from_to', self::C, (object) ['from' => $from, 'to' => $to]);
+    }
+
+    /**
+     * The families of the centre that offered to tell another family how it went, to invite them to receive.
+     *
+     * @param \stdClass $centre
+     * @return array|false text, url.
+     */
+    protected static function volunteers(\stdClass $centre) {
+        $n = settled::volunteers((int) $centre->id);
+        if (!$n) {
+            return false;
+        }
+        $url = new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'voluntarias' => 1]);
+        return ['text' => get_string($n === 1 ? 'panel_volunteers_one' : 'panel_volunteers', self::C, $n),
+            'url' => $url->out(false)];
     }
 }

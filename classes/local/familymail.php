@@ -30,7 +30,7 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks', 'openinvite'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -220,7 +220,29 @@ class familymail {
             ],
             'titular' => $str($tags ? 'pub_wait' : 'pub_wait_nochild'),
         ];
-        if ($kind === 'confirmation') {
+        if ($kind === 'openinvite') {
+            // An open act of the centre for a family that is not of it yet: what, when and where, and how to sign up.
+            $joinurl = !empty($signup->token) ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token,
+                'lang' => $lang]))->out(false) : '';
+            $event = format_string($signup->eventname);
+            $context['titular'] = $str($tags ? 'mail_open_titular' : 'mail_open_titular_nochild');
+            // Why they get it: they let the centre write to them, not that they signed up to a visit.
+            $context['pie']['porque'] = $str('mail_open_why', format_string($centre->name));
+            $context += [
+                'asunto' => $str('mail_open_subject', (object) ['centre' => format_string($centre->name), 'event' => $event]),
+                'preencabezado' => $ucfirst($plain) . ', ' . $hours . '.',
+                'entradilla' => $str('mail_open_lead', (object) ['event' => '<strong>' . s($event) . '</strong>',
+                    'date' => $strong]),
+                'entradilla_texto' => $str('mail_open_lead', (object) ['event' => $event, 'date' => $plain]),
+                'banda' => ['rotulo' => $str('mail_open_band'), 'personas' => ''] + $band + ['personas' => '',
+                    'boton' => $joinurl ? ['texto' => $str('mail_open_join'), 'url' => $joinurl, 'url_texto' => $joinurl] : null,
+                    'enlace' => $map],
+                'secciones' => $pageurl ? [['titulo' => $str('mail_your_page'), 'texto' => s($str('mail_your_page_text')),
+                    'texto_plano' => $str('mail_your_page_text'), 'enlace' => ['texto' => $str('mail_open_page'),
+                    'url' => $pageurl, 'url_texto' => $pageurl]]] : null,
+                'nota' => $str('mail_open_note'),
+            ];
+        } else if ($kind === 'confirmation') {
             $context += [
                 'asunto' => $str('mail_confirm_subject', $plain),
                 'preencabezado' => $str($tags ? 'mail_confirm_preheader' : 'mail_confirm_preheader_nochild', $names),

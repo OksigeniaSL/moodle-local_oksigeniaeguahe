@@ -307,6 +307,7 @@ class panel_metrics {
             'hasplaces' => !$campaign['import'],
             'placesdef' => get_string('panel_coming_def', $c),
             'started' => $campaign['import'] || $course !== '' ? false : self::started((int) $centre->id),
+            'referred' => $campaign['import'] || $course !== '' ? false : self::referred((int) $centre->id),
             'starts' => self::starts($campaigns, $canact),
         ];
         $context['spendaction'] = $url([])->out(false);
@@ -943,6 +944,35 @@ class panel_metrics {
             'def' => get_string('panel_started_def', self::C),
             'url' => (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false),
         ];
+    }
+
+    /**
+     * Of the families with a place for the school year, how many came because another family of the centre told them,
+     * as they said when signing up; no names and no link between households.
+     *
+     * @param int $centreid
+     * @return array|false text.
+     */
+    protected static function referred(int $centreid) {
+        global $DB;
+        $year = settled::year($centreid);
+        if ($year === '') {
+            return false;
+        }
+        $rows = $DB->get_records_sql(
+            'SELECT DISTINCT h.id, h.heardfrom
+               FROM {' . households::T . '} h
+               JOIN {' . households::CHILDREN . '} c ON c.householdid = h.id
+               JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid AND o.centreid = c.centreid
+              WHERE h.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year',
+            ['centreid' => $centreid, 'stage' => 'enrolled', 'year' => $year]
+        );
+        $told = count(array_filter($rows, fn($r) => $r->heardfrom === 'centrefamilies'));
+        if (!$told) {
+            return false;
+        }
+        $key = $told === 1 ? 'panel_referred_sentence_one' : 'panel_referred_sentence';
+        return ['text' => get_string($key, self::C, (object) ['n' => count($rows), 'told' => $told, 'year' => $year])];
     }
 
     /**

@@ -28,6 +28,7 @@
 
     Example context (json):
     {
+        "volunteers": false,
         "i": {"atras": "", "mas1": "", "check": "", "borrar": "", "actos": "", "lapiz": "", "enviado": "", "info": ""},
         "head": {"title": "Un acto nuevo", "sub": "Las familias lo verán en su página.", "back": {"url": "#", "name": "Jornadas y visitas"}, "action": false, "ante": ""},
         "action": "#", "sesskey": "abc", "id": 0, "isnew": true,
@@ -135,6 +136,7 @@
                     <legend><h2>{{#str}}event_hosts, local_oksigeniaeguahe{{/str}}</h2></legend>
                     <p class="def">{{#str}}panel_hosts_help, local_oksigeniaeguahe{{/str}}</p>
                     {{^hashosts}}<p class="secundario">{{nohosts}}</p>{{/hashosts}}
+                    {{#volunteers}}<p class="voluntarias">{{text}} <a class="enlace" href="{{url}}">{{#str}}panel_volunteers_see, local_oksigeniaeguahe{{/str}}</a></p>{{/volunteers}}
                     <div class="anfitriones">
                         {{#hosts}}<label class="anfitrion"><input type="checkbox" name="hosts[]" value="{{id}}"{{#checked}} checked{{/checked}} data-vivo-anfitrion="{{first}}"><span class="anfitrion-cara">{{> local_oksigeniaeguahe/panel_face }}</span><span><b>{{name}}</b><span class="secundario">{{role}}</span></span></label>{{/hosts}}
                     </div>
