@@ -18,6 +18,16 @@
     font-display: swap;
 }
 
+/* Names in other alphabets (Cyrillic) and with more accents (the ẽ of eguahẽ): the new Caveat of the art director, only
+   for what the first one does not have, so nothing already drawn changes. */
+@font-face {
+    font-family: 'Eg Mano';
+    src: url(fonts/caveat-extra.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+    unicode-range: U+0100-024F, U+0300-036F, U+0400-045F, U+1E00-1EFF;
+}
+
 /* The hand has no minus sign (U+2212): its minus comes from the letter of ink, so «−139» keeps one sign. */
 @font-face {
     font-family: 'Eg Mano';
@@ -1268,6 +1278,38 @@ details[open].plegado > summary h2::after {
     font-weight: 600;
     fill: #2b2226;
 }
+/* What hangs by the age of the course (panel::hanging_object): the backpack, the plainer one with a key ring, the
+  luggage tag. The partial draws the three and the class of the svg shows one; without it, the backpack. Each swings
+  from the point where it rests on the knob. */
+.colgante .de-llavero,
+.colgante .de-equipaje,
+.colgante-llavero .de-mochila,
+.colgante-equipaje .de-mochila {
+    display: none;
+}
+
+.colgante-llavero .de-llavero,
+.colgante-equipaje .de-equipaje {
+    display: inline;
+}
+
+.colgante .de-llavero {
+    transform-origin: 44.1% 0%;
+}
+
+.colgante .de-equipaje {
+    transform-origin: 45.8% 0%;
+}
+/* The plate of the key ring hangs plumb from its ring, whatever the tilt of the backpack. */
+.colgante .chapa {
+    transform-box: fill-box;
+    transform-origin: 48.5% 17.2%;
+    transform: rotate(calc(var(--reposo, 0deg) * -1));
+}
+/* The cream card of the luggage tag, light by day and by night like the paper of a label. */
+.colgante .carton {
+    fill: #ecdfc6;
+}
 /* The rail of places of a course (panel::rail): plank, pegs and the backpacks of the enrolled */
 .perchero {
     display: block;
@@ -1358,6 +1400,10 @@ details[open].plegado > summary h2::after {
 
 .perchero .r-m-banda {
     fill: var(--c-acento-vivo, var(--eg-coral));
+}
+
+.perchero .r-m-carton {
+    fill: #ecdfc6;
 }
 
 .perchero .r-franja {

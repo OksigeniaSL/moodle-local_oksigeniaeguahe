@@ -17,6 +17,16 @@
     font-display: swap;
 }
 
+/* Names in other alphabets (Cyrillic) and with more accents (the ẽ of eguahẽ): the new Caveat of the art director, only
+   for what the first one does not have, so nothing already drawn changes. */
+@font-face {
+    font-family: 'Eg Mano';
+    src: url(fonts/caveat-extra.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+    unicode-range: U+0100-024F, U+0300-036F, U+0400-045F, U+1E00-1EFF;
+}
+
 :root {
     /* Sizes that follow the width of the screen */
     --eg-fluido-1: clamp(2.6rem, 11.5vw, 6.2rem);

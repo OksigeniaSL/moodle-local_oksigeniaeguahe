@@ -162,7 +162,7 @@ class panel_familyform {
                 'free' => $total ? get_string('panel_free_of', $c, (object) ['free' => max(0, $total - $enrolled),
                     'total' => $total]) : '',
                 'next' => $next ? get_string('panel_next_openday', $c, userdate((int) $next->timestart, '%A %d')) : '',
-                'rail' => $total ? panel::rail($total, $enrolled) : '',
+                'rail' => $total ? panel::rail($total, $enrolled, object: panel::hanging_object((string) $offer->name)) : '',
             ];
         }
         return $out;

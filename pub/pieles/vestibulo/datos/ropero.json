@@ -1,0 +1,144 @@
+{
+ "px_por_metro": 231.931,
+ "paso_m": 0.5,
+ "hueco_diez_m": 0.073171,
+ "margen_m": 0.25,
+ "paso_px": [
+  82.0,
+  41.0
+ ],
+ "hueco_diez_px": [
+  12.0,
+  6.0
+ ],
+ "piezas": {
+  "percha": {
+   "inicio": {
+    "w": 10,
+    "h": 572,
+    "ancla": [
+     0.16,
+     19.08
+    ]
+   },
+   "tramo": {
+    "w": 82,
+    "h": 572,
+    "ancla": [
+     0.0,
+     65.0
+    ]
+   },
+   "diez": {
+    "w": 12,
+    "h": 572,
+    "ancla": [
+     -0.0,
+     434.0
+    ]
+   },
+   "fin": {
+    "w": 10,
+    "h": 572,
+    "ancla": [
+     -0.0,
+     522.0
+    ]
+   }
+  },
+  "pomo-fondo": {
+   "w": 40,
+   "h": 45,
+   "ancla": [
+    24.0,
+    20.5
+   ]
+  },
+  "pomo-cabeza": {
+   "w": 40,
+   "h": 45,
+   "ancla": [
+    24.0,
+    20.5
+   ]
+  },
+  "banco": {
+   "w": 423,
+   "h": 282,
+   "ancla": [
+    79.92,
+    14.31
+   ]
+  },
+  "espera": {
+   "w": 165,
+   "h": 213,
+   "ancla": [
+    91.64,
+    150.65
+   ]
+  }
+ },
+ "archivos": {
+  "percha": "pub/pieles/vestibulo/ropero/percha-{pieza}-{luz}.webp",
+  "pomo_fondo": "pub/pieles/vestibulo/ropero/pomo-fondo-{luz}.webp",
+  "pomo_cabeza": "pub/pieles/vestibulo/ropero/pomo-cabeza-{luz}.webp",
+  "banco": "pub/pieles/vestibulo/ropero/banco-{luz}.webp",
+  "espera": "pub/pieles/vestibulo/ropero/espera-{luz}.webp",
+  "cosas": "pub/pieles/vestibulo/escena/{objeto}-{color}-{luz}-2400.webp"
+ },
+ "cosas": {
+  "ancla": {
+   "mochila": [
+    112.87,
+    57.12
+   ],
+   "mayor": [
+    112.87,
+    57.12
+   ],
+   "equipaje": [
+    112.87,
+    57.12
+   ]
+  },
+  "tamano": {
+   "mochila": [
+    204,
+    282
+   ],
+   "mayor": [
+    204,
+    282
+   ],
+   "equipaje": [
+    204,
+    282
+   ]
+  },
+  "nota": "Las mismas piezas del vestíbulo, a 2400: el objeto de cada plaza según la edad del curso."
+ },
+ "regla": {
+  "pomo": "El pomo k de una percha está a x(k) = margen + paso·k + hueco_diez·floor(k/10) de su principio; en pantalla, (paso_px[0]·k + hueco_diez_px[0]·floor(k/10), paso_px[1]·k + hueco_diez_px[1]·floor(k/10)) desde el pomo 0, en píxeles enteros a 2400.",
+  "percha": "Se monta con «inicio», un «tramo» por plaza (el del pomo k empieza medio paso antes), «diez» entre la plaza 9 y la 10 (y 19-20…) y «fin». Cada pieza se pone con su ancla en el punto de su principio: las piezas encajan sin costura.",
+  "filas": "Una percha por curso, de arriba abajo, alineadas por el principio: 1,05 m más abajo cada una (fila_px); con lista de espera, 1,6 m. Diagonales paralelas: se comparan como barras.",
+  "capas": "Por fila: la percha, los pomos (fondo), las cosas de las plazas ocupadas (plaza 0 en adelante), los pomos (cabeza); el banco y las cosas que esperan, al final.",
+  "espera": "El banco va bajo el extremo de la percha (banco_desde_fin_m); en él, hasta 6 cosas iguales en crudo, a 0,3 m; más, «×12» en texto.",
+  "escala": "Se compone a 2400 (px enteros) y se escala el conjunto (transform: scale) para que quepa.",
+  "mas_de_26": "Con más de 26 plazas, el curso sigue en una segunda percha debajo («Infantil 3 años, 2.ª percha»), para que la diagonal no se salga."
+ },
+ "fila_px": [
+  0.0,
+  210.901
+ ],
+ "fila_espera_px": [
+  0.0,
+  321.373
+ ],
+ "banco_desde_fin_m": 0.6,
+ "banco_paso_px": [
+  49.2,
+  24.6
+ ],
+ "luces": "dia, tarde y noche como el vestíbulo; sobre el papel del panel, dia con el tema claro y noche con el oscuro"
+}

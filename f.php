@@ -54,6 +54,18 @@ if (!$household || !$centre) {
 }
 $lang = publiclang::choose($centre);
 
+$drawing = optional_param('dibujo', 0, PARAM_INT);
+if ($drawing) {
+    // The drawing of one of their children, for the hall of their page.
+    $children = households::full($household)->children;
+    $file = isset($children[$drawing]) ? local_oksigeniaeguahe\local\drawings::file($drawing) : null;
+    if (!$file) {
+        send_header_404();
+        die();
+    }
+    send_stored_file($file, DAYSECS, 0, false, ['cacheability' => 'private']);
+}
+
 if ($action === 'download') {
     publicpage::headers();
     @header('Content-Type: application/json; charset=utf-8');

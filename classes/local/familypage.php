@@ -209,6 +209,12 @@ class familypage {
             'pub_by_whatsapp' : (isset($channels['phone']) ? 'pub_by_phone' : '')));
         $ask = $last ? self::ask_context($centre, $last, $lang, $token, $told, $by, $flags) : false;
         $outcome = $last && $told ? trim((string) ($last->outcome ?? '')) : '';
+        $hall = false;
+        if (vestibulo::on($centre)) {
+            $scene = vestibulo::family($centre, $full, (bool) $attended, $now, $token, $lang);
+            $hall = ['json' => json_encode($scene, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false)];
+        }
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'greeting' => publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
             'names' => $names,
@@ -219,6 +225,8 @@ class familypage {
             'savedline' => publiclang::str('pub_done_keep', $lang),
             'emailed' => $new && $emailed ? publiclang::str('pub_done_emailed', $lang) : '',
             'hasnext' => (bool) $upcoming,
+            // The living hall: their hooks wait with their names, and once they came their backpacks hang.
+            'hall' => $hall,
             'wallask' => $surveyform ? false : $ask,
             'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $lang, $token, $told, $ask, $flags) : false,
             'outcome' => $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang), 'text' => $outcome] : false,

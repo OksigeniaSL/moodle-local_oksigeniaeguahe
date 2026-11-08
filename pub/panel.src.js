@@ -561,6 +561,32 @@
         }, 160);
     };
 
+    // ---- Long names on what hangs (panel_hanging): the handwriting gets smaller until it fits on its line, and a
+    // capital with an accent (Í, Á, Ñ) too, so it does not climb out of it. The same rule and numbers as the label of the
+    // family page (eguahe.js): every name is drawn at 13 with 35 of room and its line at 4.4, whatever carries it.
+    var fitNames = function(scope) {
+        all('svg.colgante text.mano', scope).forEach(function(text) {
+            text.setAttribute('font-size', 13);
+            // The two drawings not shown have no length: nothing to fit.
+            var length = text.textContent ? text.getComputedTextLength() : 0;
+            if (!length) {
+                return;
+            }
+            var k = Math.min(1, 35 / length);
+            var up = 4.4 - text.getBBox().y;
+            if (up > 10) {
+                k = Math.min(k, 10 / up);
+            }
+            text.setAttribute('font-size', (13 * k).toFixed(2));
+        });
+    };
+    fitNames();
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function() {
+            fitNames();
+        });
+    }
+
     // ---- What comes from outside does not move the list: the sentence says it, and the list changes on «Show».
     var inbox = one('[data-bandeja]');
     var news = one('[data-novedad]');

@@ -1,0 +1,2113 @@
+{
+ "version": "2026-11-08",
+ "nota": "Datos de ejemplo en todas las pruebas. Coordenadas de imagen en píxeles desde la esquina superior izquierda de la imagen de ese tamaño; coordenadas 3D en metros.",
+ "camara": {
+  "tipo": "ortográfica, isométrica",
+  "elevacion_grados": 30.0,
+  "azimut_grados": 45.0,
+  "explicacion": "Mira desde delante a la derecha: x (a lo largo de la pared del fondo) baja hacia la derecha con pendiente 1:2; y (hacia la pared del fondo) sube hacia la derecha con la misma pendiente; z sale vertical por cos 30°. Un plano paralelo a la pared del fondo se ve con un sesgo de 26,6°; un plano vuelto 45° (lo que cuelga de un cordel y mira a quien mira) se ve sin sesgo."
+ },
+ "unidades": "metros; x a lo largo de la pared del fondo, y hacia ella (su cara en y = D), z arriba; la pared izquierda en x = 0",
+ "proyeccion": {
+  "2400": {
+   "imagen": [
+    2400,
+    1500
+   ],
+   "px_por_metro": 231.931,
+   "P": [
+    [
+     163.99998,
+     163.99998,
+     0.0,
+     69.5793
+    ],
+    [
+     81.99999,
+     -81.99999,
+     -200.85815,
+     1071.52122
+    ]
+   ],
+   "formula": "px = P[0]·(x, y, z, 1); py = P[1]·(x, y, z, 1)"
+  },
+  "1600": {
+   "imagen": [
+    1600,
+    1000
+   ],
+   "px_por_metro": 154.6207,
+   "P": [
+    [
+     109.33332,
+     109.33332,
+     0.0,
+     46.3862
+    ],
+    [
+     54.66666,
+     -54.66666,
+     -133.90543,
+     714.34748
+    ]
+   ],
+   "formula": "px = P[0]·(x, y, z, 1); py = P[1]·(x, y, z, 1)"
+  }
+ },
+ "planos": {
+  "pared": {
+   "u": [
+    1,
+    0,
+    0
+   ],
+   "v": [
+    0,
+    0,
+    1
+   ],
+   "nota": "paralelo a la pared del fondo (tarjetas, etiquetas pegadas, cajas, reloj)"
+  },
+  "frente": {
+   "u": [
+    0.7071,
+    0.7071,
+    0
+   ],
+   "v": [
+    0,
+    0,
+    1
+   ],
+   "nota": "vuelto hacia quien mira (chapa, botella, pizarra)"
+  }
+ },
+ "luces": {
+  "dia": {
+   "nombre": "mañana",
+   "papel": "#CBC9C6",
+   "tinta": "#221B1F",
+   "coral": "#A75141",
+   "coral_oscuro": "#893C30",
+   "crema": "#C3BAAC",
+   "laton": "#A28449",
+   "tiza": "#F2EEE6"
+  },
+  "tarde": {
+   "nombre": "tarde",
+   "papel": "#C3AC98",
+   "tinta": "#211717",
+   "coral": "#A14532",
+   "coral_oscuro": "#833425",
+   "crema": "#BB9F84",
+   "laton": "#9C7138",
+   "tiza": "#F2EEE6"
+  },
+  "noche": {
+   "nombre": "noche",
+   "papel": "#C9AB8F",
+   "tinta": "#221716",
+   "coral": "#A5452F",
+   "coral_oscuro": "#873323",
+   "crema": "#C19E7C",
+   "laton": "#A17035",
+   "tiza": "#E4DCD0"
+  }
+ },
+ "luces_horas": {
+  "dia": [
+   7.0,
+   15.0
+  ],
+  "tarde": [
+   15.0,
+   19.5
+  ],
+  "noche": [
+   19.5,
+   7.0
+  ],
+  "nota": "La hora del centro elige la luz; entre dos, un fundido de 3 s."
+ },
+ "objetos": {
+  "regla": [
+   {
+    "edad_hasta": 9,
+    "objeto": "mochila",
+    "nota": "Infantil a 4.º: la mochila de la marca con la etiqueta a mano"
+   },
+   {
+    "edad_desde": 10,
+    "edad_hasta": 11,
+    "objeto": "mayor",
+    "nota": "5.º y 6.º: mochila sobria con llavero y el nombre en una chapa"
+   },
+   {
+    "edad_desde": 12,
+    "objeto": "equipaje",
+    "nota": "Desde Secundaria: la etiqueta de equipaje"
+   }
+  ],
+  "edad": "age: la edad mínima del curso (Infantil 3 años = 3; 1.º de Primaria = 6; 1.º de ESO = 12). Si falta, se toma de la etapa.",
+  "colores": [
+   "malva",
+   "coral",
+   "pizarra",
+   "mostaza",
+   "berenjena",
+   "salvia",
+   "petroleo",
+   "cielo"
+  ],
+  "color": "colour del niño, o uno de los ocho por el nombre de casa (siempre el mismo para el mismo niño)",
+  "mochila": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/mochila-{color}-{luz}-{tamano}.webp",
+   "etiqueta": {
+    "centro_m": [
+     0.0,
+     -0.113,
+     -0.369
+    ],
+    "ancho_m": 0.336,
+    "alto_m": 0.245,
+    "plano": "pared",
+    "giro_grados": 8.0,
+    "uso": "La etiqueta de la marca (coral, con el campo blanco y la esquina doblada), en el plano del frente de la mochila, girada 8° (sube hacia la derecha). La pinta la página con el nombre de casa (tag) en Caveat; la escena deja el bolsillo donde va."
+   }
+  },
+  "mayor": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/mayor-{color}-{luz}-{tamano}.webp",
+   "chapa": {
+    "cuelga_m": [
+     0.088,
+     -0.14,
+     -0.4315
+    ],
+    "ancho_m": 0.2,
+    "alto_m": 0.085,
+    "plano": "frente",
+    "uso": "La chapa con el nombre cuelga del mosquetón del llavero (cuelga_m es el punto del mosquetón). Mira a quien mira: sin sesgo, solo el escorzo vertical (cos 30°). Esmalte blanco con borde de latón; el nombre, en Caveat."
+   }
+  },
+  "equipaje": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/equipaje-{color}-{luz}-{tamano}.webp",
+   "campo": {
+    "centro_m": [
+     0.0378,
+     -0.0151,
+     -0.164
+    ],
+    "u": [
+     0.7002,
+     0.7002,
+     0.1392
+    ],
+    "v": [
+     -0.0984,
+     -0.0984,
+     0.9903
+    ],
+    "ancho_m": 0.254,
+    "alto_m": 0.099,
+    "uso": "La etiqueta de equipaje ya está en la pieza (cartón crema, la banda y el ojal del color del niño), vuelta hacia quien mira e inclinada como la de la marca. El nombre se escribe en el campo (u: dirección de lectura; v: hacia arriba), en Caveat y en tinta con mix-blend-mode: multiply."
+   }
+  },
+  "botella": {
+   "tamano": {
+    "2400": [
+     81,
+     102
+    ],
+    "1600": [
+     54,
+     68
+    ]
+   },
+   "ancla": {
+    "2400": [
+     34.38,
+     76.93
+    ],
+    "1600": [
+     22.92,
+     51.29
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/botella-{color}-{luz}-{tamano}.webp",
+   "cinta": {
+    "centro_m": [
+     0.0297,
+     -0.0297,
+     0.0931
+    ],
+    "ancho_m": 0.076,
+    "alto_m": 0.049,
+    "plano": "frente",
+    "uso": "La cinta blanca de la botella: el nombre, en Caveat. Si a la escala de pantalla la letra queda por debajo de 8 px, una raya de tinta corta en vez del nombre."
+   }
+  }
+ },
+ "bandeja": {
+  "fondo": {
+   "dia": {
+    "2400": "pub/pieles/vestibulo/escena/fondo-dia-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/fondo-dia-1600.webp"
+   },
+   "tarde": {
+    "2400": "pub/pieles/vestibulo/escena/fondo-tarde-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/fondo-tarde-1600.webp"
+   },
+   "noche": {
+    "2400": "pub/pieles/vestibulo/escena/fondo-noche-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/fondo-noche-1600.webp"
+   }
+  },
+  "hueco": {
+   "archivos": {
+    "dia": {
+     "2400": "pub/pieles/vestibulo/escena/hueco-dia-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/hueco-dia-1600.webp"
+    },
+    "tarde": {
+     "2400": "pub/pieles/vestibulo/escena/hueco-tarde-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/hueco-tarde-1600.webp"
+    },
+    "noche": {
+     "2400": "pub/pieles/vestibulo/escena/hueco-noche-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/hueco-noche-1600.webp"
+    }
+   },
+   "recorte": {
+    "2400": [
+     759.0,
+     279.0,
+     648.0,
+     828.0
+    ],
+    "1600": [
+     506.0,
+     186.0,
+     432.0,
+     552.0
+    ]
+   },
+   "uso": "Encima del fondo mientras la puerta está abierta: el vano, el jardín y la luz que entra. Opacidad = sen(ángulo) / sen(80°)."
+  },
+  "puerta": {
+   "archivos": {
+    "dia": {
+     "2400": "pub/pieles/vestibulo/escena/puerta-dia-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/puerta-dia-1600.webp"
+    },
+    "tarde": {
+     "2400": "pub/pieles/vestibulo/escena/puerta-tarde-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/puerta-tarde-1600.webp"
+    },
+    "noche": {
+     "2400": "pub/pieles/vestibulo/escena/puerta-noche-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/puerta-noche-1600.webp"
+    }
+   },
+   "recorte": {
+    "2400": [
+     1005.0,
+     285.0,
+     402.0,
+     657.0
+    ],
+    "1600": [
+     670.0,
+     190.0,
+     268.0,
+     438.0
+    ]
+   },
+   "fotogramas": 21,
+   "angulos": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80
+   ],
+   "tamano_fotograma": {
+    "2400": [
+     402,
+     657
+    ],
+    "1600": [
+     268,
+     438
+    ]
+   },
+   "bisagra_m": [
+    1.554,
+    5.4,
+    0.0
+   ],
+   "bisagra": {
+    "2400": [
+     1210.04,
+     756.15
+    ],
+    "1600": [
+     806.69,
+     504.1
+    ]
+   },
+   "uso": "Tira de fotogramas (0°, 4°, … 80°) de la hoja con su propia sombra, sobre el hueco. Abrir en 1 s, cerrar en 0,85 s; con «menos movimiento», el último. El fotograma 0 coincide con la puerta cerrada del fondo."
+  },
+  "delante": {
+   "archivos": {
+    "dia": {
+     "2400": "pub/pieles/vestibulo/escena/delante-dia-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/delante-dia-1600.webp"
+    },
+    "tarde": {
+     "2400": "pub/pieles/vestibulo/escena/delante-tarde-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/delante-tarde-1600.webp"
+    },
+    "noche": {
+     "2400": "pub/pieles/vestibulo/escena/delante-noche-2400.webp",
+     "1600": "pub/pieles/vestibulo/escena/delante-noche-1600.webp"
+    }
+   },
+   "recorte": {
+    "2400": [
+     1998.0,
+     789.0,
+     171.0,
+     327.0
+    ],
+    "1600": [
+     1332.0,
+     526.0,
+     114.0,
+     218.0
+    ]
+   },
+   "uso": "La lámpara del mostrador cuelga por delante del final del riel: esta capa va encima de las piezas (mochilas y botellas) y debajo de las tarjetas y de la pizarra."
+  },
+  "riel": {
+   "huecos": [
+    {
+     "i": 0,
+     "punto": [
+      6.65,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       2029.87,
+       981.12
+      ],
+      "1600": [
+       1353.25,
+       654.08
+      ]
+     },
+     "luz": {
+      "dia": 0.955,
+      "tarde": 1.064,
+      "noche": 1.246
+     },
+     "tarjeta": {
+      "centro_m": [
+       6.65,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       6.65,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       6.65,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 1,
+     "punto": [
+      6.15,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1947.87,
+       940.12
+      ],
+      "1600": [
+       1298.58,
+       626.75
+      ]
+     },
+     "luz": {
+      "dia": 0.985,
+      "tarde": 1.053,
+      "noche": 1.172
+     },
+     "tarjeta": {
+      "centro_m": [
+       6.15,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       6.15,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       6.15,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 2,
+     "punto": [
+      5.65,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1865.87,
+       899.12
+      ],
+      "1600": [
+       1243.91,
+       599.41
+      ]
+     },
+     "luz": {
+      "dia": 1.038,
+      "tarde": 1.071,
+      "noche": 1.115
+     },
+     "tarjeta": {
+      "centro_m": [
+       5.65,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       5.65,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       5.65,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 3,
+     "punto": [
+      5.15,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1783.87,
+       858.12
+      ],
+      "1600": [
+       1189.25,
+       572.08
+      ]
+     },
+     "luz": {
+      "dia": 1.0,
+      "tarde": 1.0,
+      "noche": 1.0
+     },
+     "tarjeta": {
+      "centro_m": [
+       5.15,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       5.15,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       5.15,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 4,
+     "punto": [
+      4.65,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1701.87,
+       817.12
+      ],
+      "1600": [
+       1134.58,
+       544.75
+      ]
+     },
+     "luz": {
+      "dia": 0.922,
+      "tarde": 0.908,
+      "noche": 0.891
+     },
+     "tarjeta": {
+      "centro_m": [
+       4.65,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       4.65,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       4.65,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 5,
+     "punto": [
+      4.15,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1619.87,
+       776.12
+      ],
+      "1600": [
+       1079.91,
+       517.41
+      ]
+     },
+     "luz": {
+      "dia": 0.933,
+      "tarde": 0.891,
+      "noche": 0.849
+     },
+     "tarjeta": {
+      "centro_m": [
+       4.15,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       4.15,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       4.15,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 6,
+     "punto": [
+      3.65,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1537.87,
+       735.12
+      ],
+      "1600": [
+       1025.25,
+       490.08
+      ]
+     },
+     "luz": {
+      "dia": 1.012,
+      "tarde": 0.937,
+      "noche": 0.839
+     },
+     "tarjeta": {
+      "centro_m": [
+       3.65,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       3.65,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       3.65,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    },
+    {
+     "i": 7,
+     "punto": [
+      3.15,
+      5.303,
+      1.0
+     ],
+     "px": {
+      "2400": [
+       1455.87,
+       694.12
+      ],
+      "1600": [
+       970.58,
+       462.75
+      ]
+     },
+     "luz": {
+      "dia": 0.948,
+      "tarde": 0.869,
+      "noche": 0.758
+     },
+     "tarjeta": {
+      "centro_m": [
+       3.15,
+       5.375,
+       1.212
+      ],
+      "ancho_m": 0.36,
+      "alto_m": 0.13
+     },
+     "botellas_m": {
+      "base": [
+       3.15,
+       5.300000000000001,
+       1.5
+      ],
+      "separacion": 0.1
+     },
+     "caja_muda": {
+      "centro_m": [
+       3.15,
+       5.116,
+       2.09
+      ],
+      "ancho_m": 0.19,
+      "alto_m": 0.075
+     }
+    }
+   ],
+   "pomo_vacio": "Cada pomo está en el fondo: el que queda sin nada es el sitio que espera.",
+   "orden": "El hueco 0 está junto al mostrador y es la familia que más espera; las nuevas entran por la puerta y cuelgan en el primer hueco libre empezando por el 0, y al contestar a una, las demás avanzan. Con pocas familias, el tramo de la puerta se queda con los pomos vacíos y la cola se amontona contra el mostrador: el orden se ve sin texto. La alfombra del suelo lleva espigas que apuntan al mostrador.",
+   "modo_uno": {
+    "hasta": 8,
+    "regla": "Una familia por hueco. En su pomo cuelgan las cosas de cada hijo (su objeto por edad), juntas; encima, una tarjeta con el nombre de casa de cada uno; en la balda, su botella."
+   },
+   "modo_dias": {
+    "desde": 9,
+    "regla": "Un pomo por día con familias (el más antiguo, en el hueco 0; con más de 8 días, el hueco 0 junta los anteriores). En cada pomo, una cosa por familia (la de su hijo menor), hasta 6 a la vista en racimo; en la tarjeta, el día y cuántas («jue 5 · 4»). Sin botellas.",
+    "racimo_m": [
+     [
+      0.0,
+      0.0,
+      0.0
+     ],
+     [
+      -0.08,
+      -0.04,
+      -0.02
+     ],
+     [
+      0.08,
+      -0.07,
+      -0.03
+     ],
+     [
+      -0.12,
+      -0.1,
+      -0.05
+     ],
+     [
+      0.12,
+      -0.12,
+      -0.06
+     ],
+     [
+      0.0,
+      -0.15,
+      -0.08
+     ]
+    ],
+    "racimo_nota": "De atrás (pegada a la pared) adelante; la última, la que más se ve."
+   },
+   "abanico_m": {
+    "1": [
+     [
+      0,
+      0,
+      0
+     ]
+    ],
+    "2": [
+     [
+      -0.1,
+      0,
+      0
+     ],
+     [
+      0.11,
+      -0.07,
+      -0.015
+     ]
+    ],
+    "3": [
+     [
+      -0.13,
+      0,
+      0
+     ],
+     [
+      0.13,
+      -0.035,
+      -0.01
+     ],
+     [
+      0.0,
+      -0.08,
+      -0.03
+     ]
+    ],
+    "4": [
+     [
+      -0.15,
+      0,
+      0
+     ],
+     [
+      0.15,
+      -0.025,
+      -0.005
+     ],
+     [
+      -0.05,
+      -0.06,
+      -0.025
+     ],
+     [
+      0.07,
+      -0.1,
+      -0.04
+     ]
+    ]
+   },
+   "abanico_nota": "Dos a cuatro cosas en un pomo, de atrás adelante (metros: dx a lo largo de la pared, dy hacia la sala, dz arriba). Mellizos o del mismo curso: una al lado de la otra.",
+   "capas": "Por hueco y en este orden: las cosas del pomo (de atrás adelante), las etiquetas y la tarjeta. El pomo ya está en el fondo: cada pieza lleva un hueco con su forma para que el pomo quede delante del lazo.",
+   "luz_por_hueco": "brillo relativo al hueco de referencia; filter: brightness(k) fijo a las piezas de ese hueco"
+  },
+  "mayores": {
+   "pomos": [
+    {
+     "i": 0,
+     "punto": [
+      0.55,
+      5.325,
+      1.45
+     ],
+     "px": {
+      "2400": [
+       1033.08,
+       388.73
+      ],
+      "1600": [
+       688.72,
+       259.15
+      ]
+     },
+     "luz": {
+      "dia": 0.814,
+      "tarde": 0.766,
+      "noche": 0.736
+     },
+     "tarjeta": {
+      "centro_m": [
+       0.55,
+       5.397,
+       1.615
+      ],
+      "ancho_m": 0.34,
+      "alto_m": 0.12
+     },
+     "botellas_m": {
+      "base": [
+       0.55,
+       5.32,
+       1.805
+      ],
+      "separacion": 0.1
+     }
+    },
+    {
+     "i": 1,
+     "punto": [
+      1.05,
+      5.325,
+      1.45
+     ],
+     "px": {
+      "2400": [
+       1115.08,
+       429.73
+      ],
+      "1600": [
+       743.39,
+       286.49
+      ]
+     },
+     "luz": {
+      "dia": 0.857,
+      "tarde": 0.785,
+      "noche": 0.712
+     },
+     "tarjeta": {
+      "centro_m": [
+       1.05,
+       5.397,
+       1.615
+      ],
+      "ancho_m": 0.34,
+      "alto_m": 0.12
+     },
+     "botellas_m": {
+      "base": [
+       1.05,
+       5.32,
+       1.805
+      ],
+      "separacion": 0.1
+     }
+    }
+   ],
+   "uso": "Los dos pomos altos de los mayores, a la izquierda de la puerta: en la página de la familia, cada hermano de 10 años o más cuelga aquí («cada uno en su sitio»); en la bandeja, esperan vacíos."
+  },
+  "tarjeta": {
+   "uso": "La tarjeta de cada percha, clavada en las lamas: papel crema, el nombre de casa en Caveat y un dibujito (uno de ocho, el mismo para el mismo niño). Plano: pared. Con dos hermanos, dos tarjetas lado a lado; con tres o cuatro, en dos filas."
+  },
+  "pizarra": {
+   "saludo": {
+    "2400": [
+     [
+      1104.5,
+      774.49
+     ],
+     [
+      1215.86,
+      774.49
+     ],
+     [
+      1104.52,
+      891.4
+     ]
+    ],
+    "1600": [
+     [
+      736.33,
+      516.33
+     ],
+     [
+      810.57,
+      516.33
+     ],
+     [
+      736.35,
+      594.27
+     ]
+    ]
+   },
+   "cabecera": {
+    "2400": [
+     [
+      1099.89,
+      747.66
+     ],
+     [
+      1220.47,
+      747.66
+     ],
+     [
+      1099.88,
+      758.69
+     ]
+    ],
+    "1600": [
+     [
+      733.26,
+      498.44
+     ],
+     [
+      813.65,
+      498.44
+     ],
+     [
+      733.25,
+      505.79
+     ]
+    ]
+   },
+   "saludo_m": [
+    [
+     2.3049,
+     4.0056,
+     0.7845
+    ],
+    [
+     2.6444,
+     4.3451,
+     0.7845
+    ],
+    [
+     2.3829,
+     3.9277,
+     0.2661
+    ]
+   ],
+   "cabecera_m": [
+    [
+     2.2736,
+     4.0088,
+     0.904
+    ],
+    [
+     2.6412,
+     4.3764,
+     0.904
+    ],
+    [
+     2.2809,
+     4.0014,
+     0.8551
+    ]
+   ],
+   "uso": "La pizarra de tiza de la entrada mira a quien mira. saludo: esquinas arriba-izquierda, arriba-derecha y abajo-izquierda del campo de tiza («¡Hola, Leo!», con todos los hermanos; sin nombres, «Hoy es martes»). cabecera: el listón de madera de arriba, para el nombre del centro."
+  },
+  "reloj": {
+   "centro_m": [
+    7.55,
+    5.3420000000000005,
+    2.38
+   ],
+   "radio_m": 0.17,
+   "centro": {
+    "2400": [
+     2183.87,
+     774.53
+    ],
+    "1600": [
+     1455.91,
+     516.35
+    ]
+   },
+   "plano": "pared",
+   "uso": "El reloj de aula no tiene agujas: las pinta la página con la hora del centro (puntos del plano de la pared, proyectados). Se ve como una elipse inclinada."
+  },
+  "mesa": {
+   "hojas": [
+    {
+     "i": 0,
+     "drawing_slot": {
+      "landscape": {
+       "2400": [
+        [
+         967.53,
+         1091.79
+        ],
+        [
+         1023.86,
+         1111.61
+        ],
+        [
+         995.83,
+         1131.53
+        ],
+        [
+         939.5,
+         1111.71
+        ]
+       ],
+       "1600": [
+        [
+         645.02,
+         727.86
+        ],
+        [
+         682.57,
+         741.07
+        ],
+        [
+         663.89,
+         754.35
+        ],
+        [
+         626.33,
+         741.14
+        ]
+       ]
+      },
+      "portrait": {
+       "2400": [
+        [
+         981.58,
+         1090.57
+        ],
+        [
+         1021.42,
+         1104.58
+        ],
+        [
+         981.78,
+         1132.75
+        ],
+        [
+         941.94,
+         1118.73
+        ]
+       ],
+       "1600": [
+        [
+         654.39,
+         727.05
+        ],
+        [
+         680.95,
+         736.39
+        ],
+        [
+         654.52,
+         755.17
+        ],
+        [
+         627.96,
+         745.82
+        ]
+       ]
+      }
+     },
+     "drawing_slot_m": {
+      "landscape": [
+       [
+        3.5079,
+        1.9674,
+        0.528
+       ],
+       [
+        3.8005,
+        2.0183,
+        0.528
+       ],
+       [
+        3.8365,
+        1.8114,
+        0.528
+       ],
+       [
+        3.5439,
+        1.7605,
+        0.528
+       ]
+      ],
+      "portrait": [
+       [
+        3.5433,
+        2.0177,
+        0.528
+       ],
+       [
+        3.7502,
+        2.0537,
+        0.528
+       ],
+       [
+        3.8011,
+        1.7611,
+        0.528
+       ],
+       [
+        3.5942,
+        1.7251,
+        0.528
+       ]
+      ]
+     },
+     "hoja": {
+      "landscape": {
+       "archivo": "pub/pieles/vestibulo/escena/hoja0-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         927.0,
+         1080.0,
+         108.0,
+         63.0
+        ],
+        "1600": [
+         618.0,
+         720.0,
+         72.0,
+         42.0
+        ]
+       }
+      },
+      "portrait": {
+       "archivo": "pub/pieles/vestibulo/escena/hojav0-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         930.0,
+         1080.0,
+         102.0,
+         63.0
+        ],
+        "1600": [
+         620.0,
+         720.0,
+         68.0,
+         42.0
+        ]
+       }
+      }
+     }
+    },
+    {
+     "i": 1,
+     "drawing_slot": {
+      "landscape": {
+       "2400": [
+        [
+         1019.14,
+         1119.2
+        ],
+        [
+         1088.02,
+         1119.2
+        ],
+        [
+         1088.02,
+         1143.56
+        ],
+        [
+         1019.14,
+         1143.56
+        ]
+       ],
+       "1600": [
+        [
+         679.43,
+         746.13
+        ],
+        [
+         725.35,
+         746.13
+        ],
+        [
+         725.35,
+         762.37
+        ],
+        [
+         679.43,
+         762.37
+        ]
+       ]
+      },
+      "portrait": {
+       "2400": [
+        [
+         1029.23,
+         1114.16
+        ],
+        [
+         1077.93,
+         1114.16
+        ],
+        [
+         1077.93,
+         1148.6
+        ],
+        [
+         1029.23,
+         1148.6
+        ]
+       ],
+       "1600": [
+        [
+         686.15,
+         742.77
+        ],
+        [
+         718.62,
+         742.77
+        ],
+        [
+         718.62,
+         765.73
+        ],
+        [
+         686.15,
+         765.73
+        ]
+       ]
+      }
+     },
+     "drawing_slot_m": {
+      "landscape": [
+       [
+        3.8324,
+        1.9576,
+        0.528
+       ],
+       [
+        4.0424,
+        2.1676,
+        0.528
+       ],
+       [
+        4.1909,
+        2.0191,
+        0.528
+       ],
+       [
+        3.9809,
+        1.8091,
+        0.528
+       ]
+      ],
+      "portrait": [
+       [
+        3.8324,
+        2.0191,
+        0.528
+       ],
+       [
+        3.9809,
+        2.1676,
+        0.528
+       ],
+       [
+        4.1909,
+        1.9576,
+        0.528
+       ],
+       [
+        4.0424,
+        1.8091,
+        0.528
+       ]
+      ]
+     },
+     "hoja": {
+      "landscape": {
+       "archivo": "pub/pieles/vestibulo/escena/hoja1-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1008.0,
+         1107.0,
+         90.0,
+         48.0
+        ],
+        "1600": [
+         672.0,
+         738.0,
+         60.0,
+         32.0
+        ]
+       }
+      },
+      "portrait": {
+       "archivo": "pub/pieles/vestibulo/escena/hojav1-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1017.0,
+         1104.0,
+         72.0,
+         54.0
+        ],
+        "1600": [
+         678.0,
+         736.0,
+         48.0,
+         36.0
+        ]
+       }
+      }
+     }
+    },
+    {
+     "i": 2,
+     "drawing_slot": {
+      "landscape": {
+       "2400": [
+        [
+         1083.3,
+         1111.61
+        ],
+        [
+         1139.63,
+         1091.79
+        ],
+        [
+         1167.66,
+         1111.71
+        ],
+        [
+         1111.32,
+         1131.53
+        ]
+       ],
+       "1600": [
+        [
+         722.2,
+         741.07
+        ],
+        [
+         759.75,
+         727.86
+        ],
+        [
+         778.44,
+         741.14
+        ],
+        [
+         740.88,
+         754.35
+        ]
+       ]
+      },
+      "portrait": {
+       "2400": [
+        [
+         1085.74,
+         1104.58
+        ],
+        [
+         1125.58,
+         1090.57
+        ],
+        [
+         1165.21,
+         1118.73
+        ],
+        [
+         1125.38,
+         1132.75
+        ]
+       ],
+       "1600": [
+        [
+         723.83,
+         736.39
+        ],
+        [
+         750.39,
+         727.05
+        ],
+        [
+         776.81,
+         745.82
+        ],
+        [
+         750.25,
+         755.17
+        ]
+       ]
+      }
+     },
+     "drawing_slot_m": {
+      "landscape": [
+       [
+        3.9817,
+        2.1995,
+        0.528
+       ],
+       [
+        4.0326,
+        2.4921,
+        0.528
+       ],
+       [
+        4.2395,
+        2.4561,
+        0.528
+       ],
+       [
+        4.1886,
+        2.1635,
+        0.528
+       ]
+      ],
+      "portrait": [
+       [
+        3.9463,
+        2.2498,
+        0.528
+       ],
+       [
+        3.9823,
+        2.4567,
+        0.528
+       ],
+       [
+        4.2749,
+        2.4058,
+        0.528
+       ],
+       [
+        4.2389,
+        2.1989,
+        0.528
+       ]
+      ]
+     },
+     "hoja": {
+      "landscape": {
+       "archivo": "pub/pieles/vestibulo/escena/hoja2-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1071.0,
+         1080.0,
+         108.0,
+         63.0
+        ],
+        "1600": [
+         714.0,
+         720.0,
+         72.0,
+         42.0
+        ]
+       }
+      },
+      "portrait": {
+       "archivo": "pub/pieles/vestibulo/escena/hojav2-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1074.0,
+         1080.0,
+         102.0,
+         63.0
+        ],
+        "1600": [
+         716.0,
+         720.0,
+         68.0,
+         42.0
+        ]
+       }
+      }
+     }
+    },
+    {
+     "i": 3,
+     "drawing_slot": {
+      "landscape": {
+       "2400": [
+        [
+         1128.95,
+         1102.21
+        ],
+        [
+         1128.95,
+         1067.77
+        ],
+        [
+         1177.66,
+         1067.77
+        ],
+        [
+         1177.66,
+         1102.21
+        ]
+       ],
+       "1600": [
+        [
+         752.63,
+         734.81
+        ],
+        [
+         752.63,
+         711.85
+        ],
+        [
+         785.11,
+         711.85
+        ],
+        [
+         785.11,
+         734.81
+        ]
+       ]
+      },
+      "portrait": {
+       "2400": [
+        [
+         1118.87,
+         1097.17
+        ],
+        [
+         1118.87,
+         1072.81
+        ],
+        [
+         1187.75,
+         1072.81
+        ],
+        [
+         1187.75,
+         1097.17
+        ]
+       ],
+       "1600": [
+        [
+         745.91,
+         731.45
+        ],
+        [
+         745.91,
+         715.21
+        ],
+        [
+         791.83,
+         715.21
+        ],
+        [
+         791.83,
+         731.45
+        ]
+       ]
+      }
+     },
+     "drawing_slot_m": {
+      "landscape": [
+       [
+        4.0636,
+        2.396,
+        0.528
+       ],
+       [
+        3.8536,
+        2.606,
+        0.528
+       ],
+       [
+        4.0021,
+        2.7545,
+        0.528
+       ],
+       [
+        4.2121,
+        2.5445,
+        0.528
+       ]
+      ],
+      "portrait": [
+       [
+        4.0021,
+        2.396,
+        0.528
+       ],
+       [
+        3.8536,
+        2.5445,
+        0.528
+       ],
+       [
+        4.0636,
+        2.7545,
+        0.528
+       ],
+       [
+        4.2121,
+        2.606,
+        0.528
+       ]
+      ]
+     },
+     "hoja": {
+      "landscape": {
+       "archivo": "pub/pieles/vestibulo/escena/hoja3-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1116.0,
+         1056.0,
+         72.0,
+         57.0
+        ],
+        "1600": [
+         744.0,
+         704.0,
+         48.0,
+         38.0
+        ]
+       }
+      },
+      "portrait": {
+       "archivo": "pub/pieles/vestibulo/escena/hojav3-{luz}-{tamano}.webp",
+       "recorte": {
+        "2400": [
+         1107.0,
+         1062.0,
+         90.0,
+         45.0
+        ],
+        "1600": [
+         738.0,
+         708.0,
+         60.0,
+         30.0
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "orden_esquinas": "arriba-izquierda, arriba-derecha, abajo-derecha, abajo-izquierda del dibujo, tal como lo mira el niño sentado en su sitio",
+   "uso": "La mesa de riñón: hasta cuatro hojas, una por niño (el niño i, la hoja i), cada una delante de su sitio. drawing_slot.portrait y drawing_slot.landscape son las cuatro esquinas de la hoja en cada orientación (por tamaño de imagen); hoja.<orientación> es la pieza del papel con su sombra. El dibujo (drawing.url, ya enderezado por Eguahe) se pone encima con la transformación de tres esquinas y mix-blend-mode: multiply. Sin dibujo (drawing: false), nada: las ceras ya están en la mesa."
+  },
+  "entrada_m": [
+   2.05,
+   5.15,
+   1.0
+  ],
+  "entrada": {
+   "2400": [
+    1250.38,
+    616.46
+   ],
+   "1600": [
+    833.59,
+    410.97
+   ]
+  },
+  "mostrador": {
+   "caja": {
+    "x0": 7.15,
+    "x1": 8.5,
+    "y0": 3.75,
+    "y1": 4.42,
+    "h": 0.95,
+    "kid_x1": 7.6,
+    "kid_h": 0.62
+   },
+   "timbre_m": [
+    7.38,
+    4.05,
+    0.71
+   ]
+  },
+  "zonas": {
+   "lista": {
+    "2400": [
+     36.8,
+     193.8,
+     623.2,
+     894.1
+    ],
+    "1600": [
+     24.53,
+     129.2,
+     415.47,
+     596.07
+    ]
+   },
+   "riel": {
+    "2400": [
+     1119.2,
+     201.2,
+     984.0,
+     974.1
+    ],
+    "1600": [
+     746.13,
+     134.13,
+     656.0,
+     649.4
+    ]
+   },
+   "puerta": {
+    "2400": [
+     1012.6,
+     285.6,
+     377.2,
+     650.6
+    ],
+    "1600": [
+     675.07,
+     190.4,
+     251.47,
+     433.73
+    ]
+   },
+   "mostrador": {
+    "2400": [
+     1857.2,
+     1104.6,
+     331.3,
+     356.5
+    ],
+    "1600": [
+     1238.13,
+     736.4,
+     220.87,
+     237.67
+    ]
+   },
+   "mesa": {
+    "2400": [
+     774.8,
+     934.6,
+     557.6,
+     399.3
+    ],
+    "1600": [
+     516.53,
+     623.07,
+     371.73,
+     266.2
+    ]
+   },
+   "suelo": {
+    "2400": [
+     561.6,
+     1219.1,
+     1115.2,
+     557.6
+    ],
+    "1600": [
+     374.4,
+     812.73,
+     743.47,
+     371.73
+    ]
+   },
+   "explicacion": "Rectángulos de imagen (x, y, ancho, alto). lista: la pared de la ventana, sitio de la tarjeta de la cola; riel, puerta y mostrador: lo que no debe taparse; mesa: donde la familia ve los dibujos; suelo: el suelo de delante, para tarjetas abajo."
+  },
+  "encuadres": {
+   "1366x768": {
+    "imagen": "2400",
+    "escala": 0.7588,
+    "x": -431.2,
+    "y": -168.8,
+    "px_por_metro": 176.0,
+    "nota": "176 px/m. La tarjeta de la cola (368 px) tapa la pared de la ventana; se ven la puerta, la pizarra, el riel entero y el mostrador."
+   },
+   "1600x900": {
+    "imagen": "2400",
+    "escala": 0.802,
+    "x": -306.9,
+    "y": -148.3,
+    "px_por_metro": 186.0,
+    "nota": "186 px/m."
+   },
+   "1920x1080": {
+    "imagen": "2400",
+    "escala": 0.8451,
+    "x": -107.8,
+    "y": -90.9,
+    "px_por_metro": 196.0,
+    "nota": "196 px/m: la sala casi entera."
+   },
+   "390x844": {
+    "imagen": "1600",
+    "escala": 0.4527,
+    "x": -301.0,
+    "y": -120.4,
+    "px_por_metro": 70.0,
+    "nota": "Una banda del riel de unos 300 px de alto; los nombres van en la lista."
+   },
+   "familia": {
+    "imagen": "2400",
+    "escala": 0.8623,
+    "x": -660.0,
+    "y": -234.0,
+    "px_por_metro": 200.0,
+    "nota": "La página de la familia (1366 × 768 sin barra): sus perchas (las bajas de Infantil y las altas de los mayores), sus botellas, la pizarra que saluda y la mesa con los dibujos."
+   },
+   "nota": "x e y: dónde cae la esquina superior izquierda de la imagen en la ventana (px CSS); escala: la que se aplica a la imagen de ese tamaño."
+  }
+ },
+ "cifras": {
+  "fondo": {
+   "dia": {
+    "2400": "pub/pieles/vestibulo/escena/cifras-dia-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/cifras-dia-1600.webp"
+   },
+   "tarde": {
+    "2400": "pub/pieles/vestibulo/escena/cifras-tarde-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/cifras-tarde-1600.webp"
+   },
+   "noche": {
+    "2400": "pub/pieles/vestibulo/escena/cifras-noche-2400.webp",
+    "1600": "pub/pieles/vestibulo/escena/cifras-noche-1600.webp"
+   }
+  },
+  "proyeccion": {
+   "2400": {
+    "imagen": [
+     2400,
+     1500
+    ],
+    "px_por_metro": 558.1395,
+    "P": [
+     [
+      394.66424,
+      394.66424,
+      0.0,
+      -1286.3847
+     ],
+     [
+      197.33212,
+      -197.33212,
+      -483.36304,
+      1194.29705
+     ]
+    ]
+   },
+   "1600": {
+    "imagen": [
+     1600,
+     1000
+    ],
+    "px_por_metro": 372.093,
+    "P": [
+     [
+      263.1095,
+      263.1095,
+      0.0,
+      -857.5898
+     ],
+     [
+      131.55475,
+      -131.55475,
+      -322.24203,
+      796.19803
+     ]
+    ]
+   }
+  },
+  "tablon": {
+   "rect": {
+    "2400": [
+     558.1,
+     459.9,
+     1283.8,
+     676.7
+    ],
+    "1600": [
+     372.1,
+     306.6,
+     855.8,
+     451.1
+    ]
+   },
+   "esquinas": {
+    "2400": [
+     [
+      558.1,
+      459.9
+     ],
+     [
+      1841.9,
+      459.9
+     ],
+     [
+      1841.9,
+      1136.6
+     ],
+     [
+      558.1,
+      1136.6
+     ]
+    ],
+    "1600": [
+     [
+      372.1,
+      306.6
+     ],
+     [
+      1227.9,
+      306.6
+     ],
+     [
+      1227.9,
+      757.8
+     ],
+     [
+      372.1,
+      757.8
+     ]
+    ]
+   },
+   "metros": [
+    2.3,
+    1.4
+   ],
+   "uso": "El tablón de lino de pie, vuelto hacia quien mira: en pantalla es un rectángulo sin sesgo (solo el escorzo vertical de cos 30°). Los gráficos, en hojas de papel prendidas, no pintados sobre el lino."
+  }
+ }
+}

@@ -202,7 +202,8 @@ class panel_centre {
                 'year' => (string) $offer->schoolyear, 'places' => (int) $offer->places, 'active' => !empty($offer->active),
                 'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
                     (int) $offer->places,
-                    $enrolled
+                    $enrolled,
+                    object: panel::hanging_object((string) $offer->name)
                 ) : ''];
         }
         $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',

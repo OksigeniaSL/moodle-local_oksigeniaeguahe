@@ -888,10 +888,21 @@ class panel_metrics {
             $out[] = ['key' => 'o' . $offer->id, 'name' => format_string($offer->name),
                 'free' => $places ? get_string('panel_places_free_of', $c, (object) ['free' => $free, 'places' => $places]) : '',
                 'sentence' => $sentence,
-                'rail' => $places ? panel::rail($places, $taken, $rows, get_string('panel_places_rail', $c, (object) [
-                    'name' => format_string($offer->name), 'taken' => $taken, 'places' => $places, 'sentence' => $sentence])) : '',
+                'rail' => $places ? panel::rail(
+                    $places,
+                    $taken,
+                    $rows,
+                    get_string('panel_places_rail', $c, (object) ['name' => format_string($offer->name), 'taken' => $taken,
+                        'places' => $places, 'sentence' => $sentence]),
+                    panel::hanging_object((string) $offer->name)
+                ) : '',
                 'bench' => $waiting ? ['n' => $waiting, 'bags' => array_fill(0, min(self::BENCH, $waiting), 1),
-                    'text' => get_string($waiting === 1 ? 'panel_bench_one' : 'panel_bench', $c, $waiting)] : false];
+                    'text' => get_string($waiting === 1 ? 'panel_bench_one' : 'panel_bench', $c, $waiting)] : false,
+                // The numbers of the rail, for a skin that draws it its own way: the cloakroom of the living hall, where
+                // there is no range of what may come.
+                'taken' => $taken, 'places' => $places, 'low' => $rows ? $rows[0]['low'] : false,
+                'mid' => $rows ? $rows[0]['mid'] : false, 'high' => $rows ? $rows[0]['high'] : false,
+                'ropero' => $places && !$rows ? vestibulo::ropero($places, $taken, $waiting, (string) $offer->name) : false];
         }
         return $out;
     }

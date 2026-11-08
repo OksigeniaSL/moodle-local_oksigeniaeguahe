@@ -101,7 +101,16 @@ class panel_inbox {
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         $places = self::places($centre);
         $next = self::next_events($centre, $now);
+        // The living hall: the families that wait hanging from the rail, the card of the queue on its wall.
+        $hall = false;
+        if (vestibulo::on($centre)) {
+            $queue = households::inbox($centreid, true, 60);
+            $card = vestibulo::card($queue, $now);
+            $hall = ['json' => json_encode(vestibulo::hall($centre, $queue, $now), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false), 'card' => $card, 'hascard' => (bool) $card];
+        }
         return [
+            'hall' => $hall,
             'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,
@@ -165,7 +174,9 @@ class panel_inbox {
         return [
             'waiting' => households::waiting_count($centreid),
             'latest' => $household ? ['id' => (int) $household->id, 'adults' => panel::adults_line($household->adults),
-                'listurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false)] : null,
+                'listurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false),
+                // For the living hall: what of theirs comes in through the door.
+                'children' => vestibulo::children(array_values($household->children), centres::offers($centreid))] : null,
         ];
     }
 
@@ -536,7 +547,14 @@ class panel_inbox {
                 'name' => format_string($offer->name),
                 'free' => max(0, $total - $enrolled),
                 'total' => $total,
-                'rail' => $total > 0 ? panel::rail($total, $enrolled) : '',
+                'rail' => $total > 0 ? panel::rail($total, $enrolled, object: panel::hanging_object((string) $offer->name)) :
+                    '',
+                'ropero' => $total > 0 ? vestibulo::ropero(
+                    $total,
+                    $enrolled,
+                    (int) ($bystage['waitlist'] ?? 0),
+                    (string) $offer->name
+                ) : false,
                 'interested' => array_sum($bystage) - ($bystage['closed'] ?? 0) - $enrolled,
                 'visited' => ($bystage['visit'] ?? 0) + ($bystage['application'] ?? 0) + ($bystage['admitted'] ?? 0) +
                     ($bystage['waitlist'] ?? 0),

@@ -128,6 +128,10 @@ class publicpage {
         global $CFG, $OUTPUT;
         $version = (int) get_config('local_oksigeniaeguahe', 'version');
         $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
+        // The living hall on the pages of the families, when it is the skin of the centre.
+        $skin = !empty($centre->id) && vestibulo::on($centre) ? '<link rel="stylesheet" href="' . $base .
+            'pieles/vestibulo/familia.css?v=' . $version . '">' . "\n" . '<script src="' . $base . 'pieles/vestibulo/escena.js?v=' .
+            $version . '" defer></script>' . "\n" : '';
         $colour = $centre->colour ?: '#2f5d62';
         $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
         $name = format_string($centre->name);
@@ -184,7 +188,7 @@ class publicpage {
 <noscript><style>.nino[hidden], .adulto[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] { display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 <script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
-</head>
+' . $skin . '</head>
 <body' . (self::$embedded ? ' class="incrustado"' : '') . '>
 ' . $top . $body . $bottom . '
 </body>

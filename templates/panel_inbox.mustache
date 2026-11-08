@@ -35,7 +35,7 @@
         "i": {"atras": "", "buscar": "", "der": "", "actos": "", "formulario": "", "mas1": "", "fichero": "", "filas": ""},
         "head": {"title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
             "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} },
-        "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
+        "hall": false, "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
         "density": "fichas", "fichas": true, "lista": false, "densityurls": {"fichas": "#", "lista": "#"},
         "checkurl": "#", "checkevery": 60,
         "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
@@ -52,7 +52,7 @@
         "emptybag": {"name": "", "style": ""}, "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.",
         "newevent": "#", "newform": "#",
         "year": "2027-28", "hasplaces": true,
-        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11, "enrolled": 6}],
+        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11, "enrolled": 6, "ropero": false}],
         "path": {"total": 96, "sentence": "96 familias en esta campaña.", "def": "Cada familia cuenta donde va su hijo más adelantado.",
             "steps": [{"key": "inquiry", "name": "Consulta", "n": 38, "line": "38 familias han preguntado."}]},
         "hasnextevents": true, "nextevents": [{"url": "#", "weekday": "sáb", "day": "21", "month": "nov",
@@ -61,7 +61,16 @@
     }
 }}
 <div class="pagina pagina-bandeja" data-bandeja{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
-    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#hall}}
+    <section class="vestibulo-sala" aria-labelledby="titular">
+        <div class="vestibulo-escena" data-vestibulo data-escena="{{json}}" data-base="{{base}}"><div class="sala" aria-hidden="true"></div></div>
+        <div class="vestibulo-tarjeta">
+            {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+            {{#hascard}}<ul class="cola-sala">{{#card}}<li><a href="{{url}}"><b>{{adults}}</b><span>{{since}}</span></a><span class="ninos" translate="no">{{tags}}</span></li>{{/card}}</ul>{{/hascard}}
+        </div>
+    </section>
+    {{/hall}}
+    {{^hall}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/hall}}
     <p class="novedad" data-novedad role="status" hidden></p>
     <div class="mostrador" data-mostrador>
         <section class="bandeja" aria-labelledby="titular">
@@ -122,7 +131,7 @@
                         {{#places}}
                         <div class="curso-plazas">
                             <div class="cab"><b>{{name}}</b><span class="libres">{{#str}}panel_free_of, local_oksigeniaeguahe, {"free": {{free}}, "total": {{total}} }{{/str}}</span></div>
-                            <div class="riel-caja">{{{rail}}}</div>
+                            <div class="riel-caja"{{#ropero}} data-ropero="{{.}}"{{/ropero}}>{{{rail}}}</div>
                             <span class="tres"><span><b>{{interested}}</b> {{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b> {{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b> {{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
                         </div>
                         {{/places}}

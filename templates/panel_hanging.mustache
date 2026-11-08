@@ -17,16 +17,19 @@
 {{!
     @template local_oksigeniaeguahe/panel_hanging
 
-    A backpack hanging from its knob, the same drawing the family sees, with the name used at home on its label; a
-    little crooked, each its own way. A drawing only: the name is written beside it.
+    What hangs from the knob of a child, by the age of its course (panel::hanging_object): the backpack with the name on
+    its label (mochila), the plainer backpack with a key ring and the name on its plate (llavero), or the luggage tag of
+    cream card on its cord, with the name on the tag (equipaje). The three hang from the same knob and swing the same; a
+    little crooked, each its own way. The three are drawn and the class of the svg shows one (pub/panel.css); without
+    object, the backpack. A drawing only: the name is written beside it.
 
     Example context (json):
-    {"name": "Leo", "style": "--reposo:-3.5deg", "object": "mochila"}
+    {"name": "Leo", "style": "--reposo:-3.5deg", "object": "llavero"}
 }}
-<svg class="colgante" viewBox="6 13 52 64" aria-hidden="true" focusable="false" style="{{style}}">
+<svg class="colgante colgante-{{object}}" viewBox="6 13 52 64" aria-hidden="true" focusable="false" style="{{style}}">
     <path class="gancho" d="M31 13 L33.6 13 L33.6 23.4 L31 23.4 Z"/>
     <g transform="translate(0.3 16)">
-        <g class="mochila">
+        <g class="mochila de-mochila">
             <path class="sombra" transform="translate(2 2.4)" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
             <path class="cuerpo" d="M28 15.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 15.5 L34.4 15.5 L34.4 11 C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 15.5 Z"/>
             <path class="correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>
@@ -39,6 +42,38 @@
                 <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
                 <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
                 <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+            </g>
+        </g>
+        <g class="mochila de-llavero">
+            <path class="sombra" transform="translate(2 2.4)" d="M14 21.5 A7.5 7.5 0 0 1 21.5 14 L42.5 14 A7.5 7.5 0 0 1 50 21.5 L50 57 A4 4 0 0 1 46 61 L18 61 A4 4 0 0 1 14 57 Z"/>
+            <path class="cuerpo" d="M28.3 16 L28.3 10 A3 3 0 0 1 31.3 7 L32.7 7 A3 3 0 0 1 35.7 10 L35.7 16 L34.1 16 L34.1 10.2 A1.6 1.6 0 0 0 32.5 8.6 L31.5 8.6 A1.6 1.6 0 0 0 29.9 10.2 L29.9 16 Z"/>
+            <path class="correa" d="M47 18.4 C53.6 22.4 55 39.4 53.4 62.4 L51.2 62.2 C52.6 41.4 51.4 25.2 45.8 21 Z"/>
+            <path class="cuerpo" d="M14 21.5 A7.5 7.5 0 0 1 21.5 14 L42.5 14 A7.5 7.5 0 0 1 50 21.5 L50 57 A4 4 0 0 1 46 61 L18 61 A4 4 0 0 1 14 57 Z"/>
+            <path class="linea" d="M16.1 32 L16.1 21.5 A5.4 5.4 0 0 1 21.5 16.1 L42.5 16.1 A5.4 5.4 0 0 1 47.9 21.5 L47.9 32 L46.5 32 L46.5 21.5 A4 4 0 0 0 42.5 17.5 L21.5 17.5 A4 4 0 0 0 17.5 21.5 L17.5 32 Z"/>
+            <path class="correa" d="M17 38 A3.5 3.5 0 0 1 20.5 34.5 L43.5 34.5 A3.5 3.5 0 0 1 47 38 L47 53.5 A3.5 3.5 0 0 1 43.5 57 L20.5 57 A3.5 3.5 0 0 1 17 53.5 Z"/>
+            <path class="linea" d="M20.6 37 L43.4 37 A0.6 0.6 0 0 1 43.4 38.2 L20.6 38.2 A0.6 0.6 0 0 1 20.6 37 Z"/>
+            <path class="gancho" d="M31.1 37.4 L32.9 37.4 L33.2 40.6 A1.2 1.2 0 0 1 30.8 40.6 Z"/>
+            <g transform="translate(32 50.2) scale(0.62)">
+                <g class="chapa">
+                    <path class="sombra" transform="translate(1.4 2)" d="M-23 -4 A5 5 0 0 1 -18 -9 L-5.5 -9 L-5.5 -10 A5.5 5.5 0 0 1 5.5 -10 L5.5 -9 L18 -9 A5 5 0 0 1 23 -4 L23 6 A5 5 0 0 1 18 11 L-18 11 A5 5 0 0 1 -23 6 Z"/>
+                    <path class="borde" fill-rule="evenodd" d="M-23 -4 A5 5 0 0 1 -18 -9 L-5.5 -9 L-5.5 -10 A5.5 5.5 0 0 1 5.5 -10 L5.5 -9 L18 -9 A5 5 0 0 1 23 -4 L23 6 A5 5 0 0 1 18 11 L-18 11 A5 5 0 0 1 -23 6 Z M-1.8 -10.6 A1.8 1.8 0 1 0 1.8 -10.6 A1.8 1.8 0 1 0 -1.8 -10.6 Z"/>
+                    <path class="papel" d="M-20.6 -3.6 A3 3 0 0 1 -17.6 -6.6 L17.6 -6.6 A3 3 0 0 1 20.6 -3.6 L20.6 5.6 A3 3 0 0 1 17.6 8.6 L-17.6 8.6 A3 3 0 0 1 -20.6 5.6 Z"/>
+                    <path class="renglon" d="M-15 6 L15 6 L15 7.2 L-15 7.2 Z"/>
+                    <text class="mano" x="0" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+                </g>
+            </g>
+            <path class="gancho" fill-rule="evenodd" d="M30 42.2 A2 2 0 1 1 34 42.2 A2 2 0 1 1 30 42.2 Z M30.8 42.2 A1.2 1.2 0 1 0 33.2 42.2 A1.2 1.2 0 1 0 30.8 42.2 Z"/>
+        </g>
+        <g class="mochila de-equipaje">
+            <path class="sombra" transform="translate(2 2.4)" d="M22 15 L42 15 L47.5 20.5 L47.5 53 A2 2 0 0 1 45.5 55 L18.5 55 A2 2 0 0 1 16.5 53 L16.5 20.5 Z"/>
+            <path class="pico" transform="translate(0.6 0.8)" d="M22 15 L42 15 L47.5 20.5 L47.5 53 A2 2 0 0 1 45.5 55 L18.5 55 A2 2 0 0 1 16.5 53 L16.5 20.5 Z"/>
+            <path class="carton" fill-rule="evenodd" d="M22 15 L42 15 L47.5 20.5 L47.5 53 A2 2 0 0 1 45.5 55 L18.5 55 A2 2 0 0 1 16.5 53 L16.5 20.5 Z M30.3 21 A1.7 1.7 0 1 0 33.7 21 A1.7 1.7 0 1 0 30.3 21 Z"/>
+            <path class="borde" fill-rule="evenodd" d="M28.2 21 A3.8 3.8 0 1 1 35.8 21 A3.8 3.8 0 1 1 28.2 21 Z M30.3 21 A1.7 1.7 0 1 0 33.7 21 A1.7 1.7 0 1 0 30.3 21 Z"/>
+            <path class="renglon" opacity="0.5" d="M21 44.6 L43 44.6 L43 45.4 L21 45.4 Z M21 49.8 L43 49.8 L43 50.6 L21 50.6 Z"/>
+            <path class="cuerpo" d="M30.9 21 L29.5 9.6 A2.5 2.5 0 0 1 34.5 9.6 L33.1 21 L32.1 21 L33.3 9.6 A1.3 1.3 0 0 0 30.7 9.6 L31.9 21 Z"/>
+            <g transform="translate(32 33.6) scale(0.74)">
+                <path class="renglon" d="M-15 6 L15 6 L15 7.2 L-15 7.2 Z"/>
+                <text class="mano" x="0" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
             </g>
         </g>
     </g>

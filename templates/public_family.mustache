@@ -32,7 +32,7 @@
             "delay": "0.15", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "howitwent": false, "outcome": false,
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "howitwent": false, "outcome": false, "hall": false,
         "first": {"weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
@@ -54,7 +54,10 @@
         "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#"
     }
 }}
-<section class="pared" aria-labelledby="titulo">
+{{#hall}}
+<div class="sala-familia" data-vestibulo data-escena="{{json}}" data-base="{{base}}" aria-hidden="true"><div class="sala"></div></div>
+{{/hall}}
+<section class="pared{{#hall}} con-sala{{/hall}}" aria-labelledby="titulo">
     <div class="saludo-arriba">
         <h1 class="titular" id="titulo">{{greeting}}{{#names}} <span class="mano-titular">{{names}}</span>{{/names}}</h1>
     </div>

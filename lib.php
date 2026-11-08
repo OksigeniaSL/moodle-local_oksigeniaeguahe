@@ -91,6 +91,16 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
 }
 
 /**
+ * What admissions posts in the channel of Telegram of the organisation, with Oksigenia Marandu: the open days, after
+ * whoever reviews them unless the site says otherwise. Their names are in the language packs.
+ *
+ * @return array By kind of post: its settings ([] for those of the site).
+ */
+function local_oksigeniaeguahe_oksigeniamarandu_posts(): array {
+    return ['open_day' => []];
+}
+
+/**
  * What admissions has for whoever works in it, for the block «Your work» of Oksigenia (Tembiapo): a door per centre,
  * with the families that wait for an answer and the visits of today, and on top what was promised to a family and is
  * due. Nothing for whoever does not work for a centre.

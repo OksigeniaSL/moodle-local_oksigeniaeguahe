@@ -1,0 +1,50 @@
+/* Eguahe, the skin «vestíbulo» on the page of a family: their hall opens the page, with their hooks (low for the little
+  ones, high by the door for the older), their bottles and boxes with their names, the drawings on the table and the
+  board that says hello; the backpacks hang once they came. Drawn by escena.js, which then puts sala-lista on the html;
+  until then, and without JavaScript, the page as it is, with its rail and its backpack. */
+.sala-familia {
+    position: relative;
+    display: none;
+    /* stylelint-disable-next-line csstree/validator */
+    height: min(768px, 78vh);
+    overflow: hidden;
+    background: #f4eee3;
+}
+
+.sala-lista .sala-familia {
+    display: block;
+}
+
+.sala-familia[data-luz="tarde"] {
+    background: #efe2cf;
+}
+
+.sala-familia[data-luz="noche"] {
+    background: #2a211b;
+}
+
+.sala-familia .sala {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+}
+
+.sala-lista .pared.con-sala .riel,
+.sala-lista .pared.con-sala .perchas {
+    display: none;
+}
+
+.sala-lista .pared.con-sala .saludo-arriba {
+    padding-top: 28px;
+}
+
+.sala-lista .pared.con-sala .heroe-ancho {
+    display: block;
+}
+
+@media (max-width: 719px) {
+    .sala-familia {
+        height: 320px;
+    }
+}

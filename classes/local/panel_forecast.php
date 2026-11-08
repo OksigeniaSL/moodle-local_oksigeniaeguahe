@@ -150,7 +150,7 @@ class panel_forecast {
                 'panel_forecast_rail',
                 $c,
                 (object) ['name' => $name, 'places' => $places, 'sentence' => $sentence]
-            )) : '',
+            ), panel::hanging_object((string) $grade['grade'])) : '',
             'table' => $table,
             'open' => $open,
             'hasrange' => (bool) $rows,

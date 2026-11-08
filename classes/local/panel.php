@@ -117,6 +117,9 @@ class panel {
     /** @var string[] The skins of the panel (decision of Enrique, 8 November 2026): the same panel, another scene. */
     const SKINS = ['vestibulo', 'mostrador', 'cinematico'];
 
+    /** @var array A skin drawn over another one (Gaudí, 8 November 2026): the living hall is the paper desk in the hall. */
+    const UNDER = ['vestibulo' => 'mostrador'];
+
     /** @var array The sections of the bar, in order: key => [string, icon, page]. */
     const SECTIONS = [
         'inbox' => ['tab_inbox', 'bandeja', '/local/oksigeniaeguahe/index.php'],
@@ -326,17 +329,28 @@ class panel {
         foreach (\core\notification::fetch() as $notice) {
             $notices[] = ['text' => $notice->get_message(), 'error' => $notice->get_message_type() === 'error'];
         }
-        // The skin: a template of its own for the page if it has one, and its styles and scene if they exist.
+        // The skin: a template of its own for the page if it has one, and its styles and scene if they exist; a skin
+        // drawn over another one carries the one under it first.
         $skin = self::skin($centre);
-        $own = $template . '_' . $skin;
-        $template = file_exists(dirname(__DIR__, 2) . '/templates/' . $own . '.mustache') ? $own : $template;
-        $skindir = dirname(__DIR__, 2) . '/pub/pieles/' . $skin . '/';
-        $skincss = file_exists($skindir . 'piel.css') ? '<link rel="stylesheet" href="' . $base . 'pieles/' . $skin .
-            '/piel.css?v=' . $version . '">' . "\n" : '';
-        $skinjs = file_exists($skindir . 'escena.js') ? '<script src="' . $base . 'pieles/' . $skin . '/escena.js?v=' .
-            $version . '" defer></script>' . "\n" : '';
+        $layers = isset(self::UNDER[$skin]) ? [self::UNDER[$skin], $skin] : [$skin];
+        foreach (array_reverse($layers) as $layer) {
+            $own = $template . '_' . $layer;
+            if (file_exists(dirname(__DIR__, 2) . '/templates/' . $own . '.mustache')) {
+                $template = $own;
+                break;
+            }
+        }
+        $skincss = '';
+        $skinjs = '';
+        foreach ($layers as $layer) {
+            $skindir = dirname(__DIR__, 2) . '/pub/pieles/' . $layer . '/';
+            $skincss .= file_exists($skindir . 'piel.css') ? '<link rel="stylesheet" href="' . $base . 'pieles/' . $layer .
+                '/piel.css?v=' . $version . '">' . "\n" : '';
+            $skinjs .= file_exists($skindir . 'escena.js') ? '<script src="' . $base . 'pieles/' . $layer . '/escena.js?v=' .
+                $version . '" defer></script>' . "\n" : '';
+        }
         $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons(),
-            'piel' => [$skin => true], 'pielnombre' => $skin]);
+            'piel' => array_fill_keys($layers, true), 'pielnombre' => $skin]);
         $frame = $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_frame', [
             'i' => self::icons(),
             'homeurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -392,7 +406,7 @@ class panel {
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
-<body class="panel piel-' . $skin . ($door ? '' : ' con-abajo') . '">
+<body class="panel ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') . '">
 ' . $top . $body . $bottom . '
 </body>
 </html>';
@@ -553,27 +567,63 @@ class panel {
      * plank, the backpacks pressed together as a band. Every colour is a class (.perchero .r-* in pub/panel.css), so light,
      * dark and each skin paint it. The mock-up draws it with the same numbers (maqueta/perchero.cjs). With rows, what may
      * come under it on the same scale, peg by peg: a band from the lowest to the highest, the most likely as a mark, the
-     * last place as a dotted line, and past it the band blurs.
+     * last place as a dotted line, and past it the band blurs. With the object of the course, what hangs is what the
+     * partial panel_hanging draws for its age: the backpack, the plainer one with a key ring, or the luggage tag.
      *
      * @param int $total
      * @param int $taken
      * @param array $rows [['low' => int, 'mid' => int, 'high' => int, 'text' => string], ...]
      * @param string $label The accessible sentence, when the rows need one of their own.
+     * @param string $object What hangs: mochila, llavero or equipaje (self::hanging_object()).
      * @return string SVG.
      */
-    public static function rail(int $total, int $taken, array $rows = [], string $label = ''): string {
+    public static function rail(int $total, int $taken, array $rows = [], string $label = '', string $object = 'mochila'): string {
         $taken = max(0, min($taken, $total));
         $label = $label !== '' ? $label : get_string('panel_places_label', self::C, (object) ['taken' => $taken,
             'total' => $total]);
         $f = fn(float $n) => rtrim(rtrim(sprintf('%.1f', $n), '0'), '.');
         $tilt = [-3.5, 3, -2, 4];
         $py = 13;
-        $backpack = function (float $x, float $y, float $t) use ($f): string {
-            return '<g class="r-mochila" transform="translate(' . $f($x) . ' ' . $f($y) . ') rotate(' . $t . ')' .
-                ' scale(0.36) translate(-32 -7)">' .
-                '<path class="r-m-sombra" d="M15 32 C15 23 21.5 16 30.5 16 L37.5 16 C46.5 16 53 23 53 32 L53 57.5 C53' .
-                ' 60 51 62 48.5 62 ' .
-                'L19.5 62 C17 62 15 60 15 57.5 Z"/>' .
+        $object = in_array($object, ['llavero', 'equipaje'], true) ? $object : 'mochila';
+        // What hangs, drawn small with the numbers of the partial panel_hanging: from (x, y), the top of the peg.
+        $backpack = function (float $x, float $y, float $t) use ($f, $object): string {
+            $svg = '<g class="r-mochila" transform="translate(' . $f($x) . ' ' . $f($y) . ') rotate(' . $t . ')' .
+                ' scale(0.36) translate(-32 -7)">';
+            if ($object === 'llavero') {
+                // The plainer backpack of the fifth and sixth years; its plate hangs plumb from the ring of the zip.
+                return $svg . '<path class="r-m-sombra" d="M16 23.5 A7.5 7.5 0 0 1 23.5 16 L44.5 16 A7.5 7.5 0 0 1 52 23.5' .
+                    ' L52 59 A4 4 0 0 1 48 63 L20 63 A4 4 0 0 1 16 59 Z"/>' .
+                    '<path class="r-m-asa" d="M28.3 16 L28.3 10 A3 3 0 0 1 31.3 7 L32.7 7 A3 3 0 0 1 35.7 10 L35.7 16 L34.1 16' .
+                    ' L34.1 10.2 A1.6 1.6 0 0 0 32.5 8.6 L31.5 8.6 A1.6 1.6 0 0 0 29.9 10.2 L29.9 16 Z"/>' .
+                    '<path class="r-m-correa" d="M47 18.4 C53.6 22.4 55 39.4 53.4 62.4 L51.2 62.2 C52.6 41.4 51.4 25.2' .
+                    ' 45.8 21 Z"/>' .
+                    '<path class="r-m-cuerpo" d="M14 21.5 A7.5 7.5 0 0 1 21.5 14 L42.5 14 A7.5 7.5 0 0 1 50 21.5 L50 57' .
+                    ' A4 4 0 0 1 46 61 L18 61 A4 4 0 0 1 14 57 Z"/>' .
+                    '<path class="r-m-luz" d="M16.2 27 C16.3 20.2 18.6 16.6 23.5 16.2 L25.5 16.2 C20.6 17.2 18.6 20.6' .
+                    ' 18.4 28 Z"/>' .
+                    '<path class="r-m-tapa" d="M16.1 32 L16.1 21.5 A5.4 5.4 0 0 1 21.5 16.1 L42.5 16.1 A5.4 5.4 0 0 1 47.9 21.5' .
+                    ' L47.9 32 L46.5 32 L46.5 21.5 A4 4 0 0 0 42.5 17.5 L21.5 17.5 A4 4 0 0 0 17.5 21.5 L17.5 32 Z"/>' .
+                    '<path class="r-m-correa" d="M17 38 A3.5 3.5 0 0 1 20.5 34.5 L43.5 34.5 A3.5 3.5 0 0 1 47 38 L47 53.5' .
+                    ' A3.5 3.5 0 0 1 43.5 57 L20.5 57 A3.5 3.5 0 0 1 17 53.5 Z"/>' .
+                    '<g transform="translate(32 43.6) rotate(' . $f(-$t) . ') scale(0.62) translate(0 10.6)">' .
+                    '<path class="r-m-banda" d="M-23 -4 A5 5 0 0 1 -18 -9 L-5.5 -9 L-5.5 -10 A5.5 5.5 0 0 1 5.5 -10 L5.5 -9' .
+                    ' L18 -9 A5 5 0 0 1 23 -4 L23 6 A5 5 0 0 1 18 11 L-18 11 A5 5 0 0 1 -23 6 Z"/>' .
+                    '<path class="r-m-etq" d="M-20.6 -3.6 A3 3 0 0 1 -17.6 -6.6 L17.6 -6.6 A3 3 0 0 1 20.6 -3.6 L20.6 5.6' .
+                    ' A3 3 0 0 1 17.6 8.6 L-17.6 8.6 A3 3 0 0 1 -20.6 5.6 Z"/></g></g>';
+            }
+            if ($object === 'equipaje') {
+                // The luggage tag of secondary on: cream card, its eyelet in the colour of the centre, on its cord. Lower
+                // and on a thicker cord than in the partial, so that both show under the big head of the peg.
+                return $svg . '<path class="r-m-sombra" d="M24 26 L44 26 L49.5 31.5 L49.5 64 A2 2 0 0 1 47.5 66 L20.5 66' .
+                    ' A2 2 0 0 1 18.5 64 L18.5 31.5 Z"/>' .
+                    '<path class="r-m-carton" d="M22 24 L42 24 L47.5 29.5 L47.5 62 A2 2 0 0 1 45.5 64 L18.5 64' .
+                    ' A2 2 0 0 1 16.5 62 L16.5 29.5 Z"/>' .
+                    '<circle class="r-m-banda" cx="32" cy="30" r="3.4"/>' .
+                    '<path class="r-m-asa" d="M29.8 30 L28.4 9.6 A3.6 3.6 0 0 1 35.6 9.6 L34.2 30 L32.2 30 L33.4 9.6' .
+                    ' A1.4 1.4 0 0 0 30.6 9.6 L31.8 30 Z"/></g>';
+            }
+            return $svg . '<path class="r-m-sombra" d="M15 32 C15 23 21.5 16 30.5 16 L37.5 16 C46.5 16 53 23 53 32 L53 57.5' .
+                ' C53 60 51 62 48.5 62 L19.5 62 C17 62 15 60 15 57.5 Z"/>' .
                 '<path class="r-m-asa" d="M28 15.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 15.5 L34.4 15.5 L34.4 11 ' .
                 'C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 15.5 Z"/>' .
                 '<path class="r-m-correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>' .
