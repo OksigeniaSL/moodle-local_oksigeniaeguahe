@@ -63,12 +63,12 @@
                 <span class="nombre">{{name}}</span>
                 <span class="secundario">{{#tagline}}{{tagline}} · {{/tagline}}{{course}}</span>
                 {{^closed}}
-                <form class="camino" method="post" action="{{action}}" role="group" aria-label="{{label}}">
+                <form class="camino" method="post" action="{{action}}" aria-label="{{label}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}">
                     {{#steps}}<button type="submit" name="stage" value="{{value}}" class="{{#done}}hecho{{/done}}{{#here}}aqui{{/here}}"{{#here}} aria-current="step"{{/here}}{{^canact}} disabled{{/canact}}>{{name}}</button>{{^last}}<span class="flecha" aria-hidden="true"></span>{{/last}}{{/steps}}
                 </form>
                 {{#canact}}
-                <span class="otros">
+                <div class="otros">
                     <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>
                     ·
                     <details class="cerrar-con-motivo">
@@ -80,7 +80,7 @@
                             <button class="boton secundario pequeno" type="submit">{{#str}}panel_close, local_oksigeniaeguahe{{/str}}</button>
                         </form>
                     </details>
-                </span>
+                </div>
                 {{/canact}}
                 {{/closed}}
                 {{#closed}}

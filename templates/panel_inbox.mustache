@@ -53,9 +53,9 @@
             </div>
             {{/showtools}}
             {{#hasrows}}
-            <div class="lista" role="list">
+            <div class="lista">
                 {{#rows}}
-                <a class="fila" role="listitem" href="{{url}}" data-buscar="{{search}}">
+                <a class="fila" href="{{url}}" data-buscar="{{search}}">
                     <div class="espera{{^waiting}} al-dia{{/waiting}}"><b>{{main}}</b><span>{{sub}}</span></div>
                     <div class="quien"><b>{{adults}}</b>{{#said}}<p class="dice">{{said}}</p>{{/said}}<span class="meta">{{{viaicon}}}<span>{{via}}</span></span></div>
                     <div class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso"><b>{{course}}</b>{{#stage}}<br>{{stage}}{{/stage}}</span></span>{{/children}}</div>

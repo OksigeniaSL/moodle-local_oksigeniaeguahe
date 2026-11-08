@@ -4500,3 +4500,8 @@ main {
     padding-top: 16px;
     border-top: 1px solid var(--eg-linea);
 }
+
+.hijo .otros form,
+.hijo .otros details {
+    display: inline-block;
+}
