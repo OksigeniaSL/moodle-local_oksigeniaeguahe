@@ -30,6 +30,29 @@ class panel_event {
     const C = 'local_oksigeniaeguahe';
 
     /**
+     * What the door asks every half minute: the families that came, with the hour.
+     *
+     * @param \stdClass $event
+     * @return array came: sign-up id => hour.
+     */
+    public static function check(\stdClass $event): array {
+        global $DB;
+        $came = [];
+        foreach (
+            $DB->get_records_select(
+                'local_oksigeniaeguahe_signup',
+                'eventid = ? AND attended > 0',
+                [$event->id],
+                '',
+                'id, attended'
+            ) as $signup
+        ) {
+            $came[(string) $signup->id] = panel::hour((int) $signup->attended);
+        }
+        return ['came' => (object) $came];
+    }
+
+    /**
      * The context of the page.
      *
      * @param \stdClass $event
@@ -148,6 +171,19 @@ class panel_event {
             ];
         }
         $form = $event->formid ? entries::get((int) $event->formid, (int) $centre->id) : null;
+        // The wall of the turn of now, on the day: a knob per family and the backpack of those that came.
+        $nowturn = null;
+        if ($today && !$tailored && !$family) {
+            $group = array_values(array_filter($list, fn($g) => $g['now']))[0] ?? ($slots ? null : ($list[0] ?? null));
+            if ($group) {
+                $wall = [];
+                foreach ($group['signups'] as $i => $signup) {
+                    $wall[] = ['came' => $signup['came'], 'name' => $signup['children'][0]['tag'] ?? ''] +
+                        ['style' => panel::hanging($i, '')['style']];
+                }
+                $nowturn = $wall ? ['wall' => $wall] : null;
+            }
+        }
         return [
             'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]))->out(false),
                 'name' => get_string('tab_events', $c)],
@@ -176,6 +212,11 @@ class panel_event {
             ))->out(false) : '',
             'action' => $url->out(false),
             'sesskey' => sesskey(),
+            'nowturn' => $nowturn,
+            'checkurl' => !$tailored && !$family ? (new \moodle_url($url, ['check' => 1]))->out(false) : '',
+            'checkevery' => 30,
+            'labelsurl' => '',
+            'labelsname' => '',
             'qr' => events::qr_svg($event),
             'link' => events::short_url($event) ?? events::url($event)->out(false),
             'posterurl' => (new \moodle_url($url, ['poster' => 1]))->out(false),

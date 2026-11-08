@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.16.0 (2026-11-08)
+
+- **The panel in its base system and the skin of the paper desk** (the art director, round 1): the inbox, the file of a
+  household, writing down a family, the open days and visits, and one event with its door, with the look of the desk
+  of wood seen from above: index cards, folders, the yellow pad, the clipboard, the spiral notebook, the rubber stamp
+  of «Answered» and the machine of the way of the campaign.
+- **The inbox by the rule of time**: on top the families that come today, then each day written once with the families
+  that wait under it, and in «All» the answered ones after a line; as cards or as a ledger (from twenty families on,
+  kept for each person); filters by entry course and stage that work without a script; the epilogue with the places,
+  the way of the campaign (each family where its child furthest along is) and the next open days. Every minute the page
+  asks whether a family arrived and says so in its sentence, without moving the list.
+- **The file**: the old messages folded in a line and the last two at sight; the answer starting with the greeting and
+  the names; what they have not told us yet; a family opens beside the list on a wide screen.
+- **Writing down a family** in the order of a call, with a warning while typing the phone when the family is there
+  already, and the places of each course.
+- **The week** of visits and events of the centre, and at the door the wall of the turn of now; with two people
+  receiving, what the other one marks arrives every half minute; a mark made without signal keeps its hour.
+- Keys of the panel (/, j, k, Enter, Esc, ?), none of which sends or erases anything.
+- Who looks after a family, what was promised, what comes next and the answers of always wait for a decision: their
+  places are ready and not drawn yet.
+
 ## 0.15.1 (2026-11-08)
 
 - **The skin of the panel** (decision of Enrique): the living hall, the paper desk or the cinematic one, chosen in the

@@ -37,7 +37,8 @@ use core_privacy\local\request\writer;
 class provider implements
     \core_privacy\local\metadata\provider,
     \core_privacy\local\request\core_userlist_provider,
-    \core_privacy\local\request\plugin\provider {
+    \core_privacy\local\request\plugin\provider,
+    \core_privacy\local\request\user_preference_provider {
     /** @var string[] Tables with the people of the teams. */
     const TABLES = ['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent',
         'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend'];
@@ -71,7 +72,28 @@ class provider implements
             'userid' => 'privacy:metadata:spend:userid',
             'timemodified' => 'privacy:metadata:spend:timemodified',
         ], 'privacy:metadata:spend');
+        $collection->add_user_preference(
+            \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
+            'privacy:metadata:preference:density'
+        );
         return $collection;
+    }
+
+    /**
+     * The preferences of a person of the team: how the inbox shows its list.
+     *
+     * @param int $userid
+     */
+    public static function export_user_preferences(int $userid) {
+        $density = get_user_preferences(\local_oksigeniaeguahe\local\panel_inbox::DENSITY, null, $userid);
+        if ($density !== null) {
+            writer::export_user_preference(
+                'local_oksigeniaeguahe',
+                \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
+                $density,
+                get_string('privacy:metadata:preference:density', 'local_oksigeniaeguahe')
+            );
+        }
     }
 
     /**

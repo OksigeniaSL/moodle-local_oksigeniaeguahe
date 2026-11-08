@@ -55,11 +55,26 @@ if (!$centre) {
     die();
 }
 
+if (optional_param('check', 0, PARAM_BOOL)) {
+    // What the page asks every minute: how many wait, and the family that arrived last.
+    @header('Content-Type: application/json; charset=utf-8');
+    @header('Cache-Control: no-store');
+    echo json_encode(panel_inbox::check($centre));
+    die();
+}
+// The list as cards or as a ledger, kept for the person.
+$density = optional_param('vista', '', PARAM_ALPHA);
+if (in_array($density, ['fichas', 'lista'], true)) {
+    set_user_preference(panel_inbox::DENSITY, $density);
+}
+$view = ['course' => optional_param('curso', 0, PARAM_INT), 'stage' => optional_param('etapa', '', PARAM_ALPHA),
+    'density' => $density];
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));
 panel::setup($url, get_string('inbox', $c));
 panel::output($centre, 'inbox', get_string('inbox', $c), 'panel_inbox', panel_inbox::context(
     $centre,
     $all,
     (int) $USER->id,
-    centres::can_act((int) $USER->id)
+    centres::can_act((int) $USER->id),
+    $view
 ));

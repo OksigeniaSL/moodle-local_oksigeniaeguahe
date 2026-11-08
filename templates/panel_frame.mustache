@@ -17,24 +17,29 @@
 {{!
     @template local_oksigeniaeguahe/panel_frame
 
-    What goes around every page of the panel of the team: the bar with the mark of Eguahe, the centre (and the others
-    the person works for), the sections with how many families wait, and the person; the notices; the page, where
-    «main» is; at the foot, who makes Eguahe; and on a phone, the bar at the bottom, except at the door of an event.
+    What goes around every page of the panel: a jump to the page, the bar with the mark of Eguahe, the centre, the
+    sections (how many families wait) and the person; the notices; the page, where «main» is; at the foot, who makes
+    Eguahe and, on a demo site, that the data is an example; on a phone, the bar at the bottom, except at the door of an
+    event; and the sheet of keys, filled by the script from the data-tecla of the page.
+
+    New in this round: footnote (optional line at the foot, for demo sites) and jsstrings (the strings of the
+    script, as JSON: every panel_js_* string, and panel_came_at, panel_came_button, panel_came_count, inbox_waiting,
+    inbox_waiting_one).
 
     Example context (json):
     {
-        "i": {"chev": "", "fuera": "", "mas": "", "salir": ""}, "homeurl": "#", "centre": "Colegio de ejemplo",
-        "initials": "C", "logo": "", "hascentres": true, "centres": [{"name": "Academia de ejemplo", "url": "#"}],
-        "sections": [{"key": "inbox", "name": "Bandeja", "url": "#", "icon": "", "current": true, "count": 5},
-            {"key": "events", "name": "Jornadas y visitas", "url": "#", "icon": "", "current": false, "count": 0}],
-        "phone": [{"key": "inbox", "name": "Bandeja", "url": "#", "icon": "", "current": true, "count": 5}],
-        "more": [{"key": "entries", "name": "Entradas", "url": "#", "icon": "", "current": false, "count": 0}],
+        "i": {"chev": "", "fuera": "", "mas": "", "salir": "", "teclado": "", "cerrar": ""}, "homeurl": "#",
+        "centre": "Colegio de ejemplo", "initials": "C", "logo": "", "hascentres": false, "centres": [],
+        "sections": [{"key": "inbox", "name": "Bandeja", "url": "#", "short": "Bandeja", "icon": "", "current": true, "count": 5}],
+        "phone": [{"key": "inbox", "name": "Bandeja", "url": "#", "short": "Bandeja", "icon": "", "current": true, "count": 5}],
+        "more": [{"key": "entries", "name": "Entradas", "url": "#", "short": "Entradas", "icon": "", "current": false, "count": 0}],
         "morecurrent": false, "door": false,
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
-        "moodleurl": "#", "logouturl": "#", "hasnotices": true,
-        "notices": [{"text": "Guardado.", "error": false}], "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>"
+        "moodleurl": "#", "logouturl": "#", "hasnotices": false, "notices": [],
+        "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
     }
 }}
+<a class="saltar" href="#main">{{#str}}panel_skip, local_oksigeniaeguahe{{/str}}</a>
 <header class="barra">
     <a class="marca" href="{{homeurl}}" aria-label="{{#str}}panel_home, local_oksigeniaeguahe{{/str}}">{{> local_oksigeniaeguahe/panel_mark }}{{> local_oksigeniaeguahe/panel_word }}</a>
     <span class="separa" aria-hidden="true"></span>
@@ -54,8 +59,9 @@
     </a>
     {{/hascentres}}
     <nav class="secciones" aria-label="{{#str}}panel_sections, local_oksigeniaeguahe{{/str}}">
-        {{#sections}}<a href="{{url}}"{{#current}} aria-current="page"{{/current}}>{{name}}{{#count}} <span class="cuenta">{{count}}</span>{{/count}}</a>{{/sections}}
+        {{#sections}}<a href="{{url}}"{{#current}} aria-current="page"{{/current}}>{{name}}{{#count}} <span class="cuenta" data-cuenta-bandeja>{{count}}</span>{{/count}}</a>{{/sections}}
     </nav>
+    <button class="mando-teclas" type="button" data-abrir-teclas hidden aria-label="{{#str}}panel_keys, local_oksigeniaeguahe{{/str}}">{{{i.teclado}}}</button>
     <details class="menu-barra derecha yo">
         <summary aria-label="{{me.name}}">
             {{#me.picture}}<img class="avatar" src="{{me.picture}}" alt="" width="36" height="36">{{/me.picture}}{{^me.picture}}<span class="avatar" aria-hidden="true">{{me.initials}}</span>{{/me.picture}}
@@ -72,14 +78,13 @@
     {{#notices}}<p class="aviso-suave{{#error}} error{{/error}}">{{{text}}}</p>{{/notices}}
 </div>
 {{/hasnotices}}
-<main id="main">
+<main id="main" tabindex="-1">
 <!-- main -->
 </main>
-{{#credit}}
 <footer class="pie-producto">
-    <span class="firma">{{> local_oksigeniaeguahe/panel_mark }}<span>{{{credit}}}</span></span>
+    {{#credit}}<span class="firma">{{> local_oksigeniaeguahe/panel_mark }}<span>{{{credit}}}</span></span>{{/credit}}
+    {{#footnote}}<span class="nota-pie">{{footnote}}</span>{{/footnote}}
 </footer>
-{{/credit}}
 {{^door}}
 <nav class="abajo" aria-label="{{#str}}panel_sections, local_oksigeniaeguahe{{/str}}">
     {{#phone}}<a href="{{url}}"{{#current}} aria-current="page"{{/current}}>{{{icon}}}<span>{{short}}</span>{{#count}}<span class="cuenta">{{count}}</span>{{/count}}</a>{{/phone}}
@@ -92,3 +97,12 @@
     </details>
 </nav>
 {{/door}}
+{{#jsstrings}}<div hidden id="eg-textos" data-textos="{{jsstrings}}"></div>{{/jsstrings}}
+<div class="teclas" id="teclas" role="dialog" aria-labelledby="teclas-t" hidden>
+    <div class="teclas-hoja">
+        <h2 id="teclas-t">{{#str}}panel_keys, local_oksigeniaeguahe{{/str}}</h2>
+        <dl data-teclas-lista></dl>
+        <p class="secundario">{{#str}}panel_keys_help, local_oksigeniaeguahe{{/str}}</p>
+        <button class="boton secundario pequeno" type="button" data-cerrar-teclas>{{{i.cerrar}}}{{#str}}panel_close_sheet, local_oksigeniaeguahe{{/str}}</button>
+    </div>
+</div>

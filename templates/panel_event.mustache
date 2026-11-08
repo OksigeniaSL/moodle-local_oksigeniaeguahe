@@ -17,46 +17,62 @@
 {{!
     @template local_oksigeniaeguahe/panel_event
 
-    One event in the panel, and its door: the band in the colour of the centre with how many came; the families by
-    their turn, the turn of now open, each with «came» at hand (pressed again, it undoes); someone who arrives without
-    signing up; for the event of asking, what each family asked for; for a visit of a family, whose it is; at the side,
-    what is shared (the QR, the link and the posters) and the event itself.
+    One event and its door, the flagship page. The band in the colour of the centre with how many came, in words; on a
+    phone the band, the search and «Someone arrives without signing up» stay on top. Small, the wall of the turn of
+    now: one knob per family, and the backpack of those that came. The families by their turn, the turn of now open;
+    each child with the label of its name, its corner lifted; «Came» (52 px) sticks the label down and the row says
+    «Came 10:41» (pressed again, it undoes). Without coverage the arrivals wait on the phone («3 to save») until the
+    server takes them. At the side, what is shared: the QR, the link, the posters and the sheet of labels.
+
+    New in this round: nowturn (with wall[came, name, style]), checkurl, checkevery, labelsurl, labelsname.
+    Kept: everything of 0.15.
 
     Example context (json):
     {
-        "i": {"atras": "", "buscar": "", "mas1": "", "check": "", "copiar": "", "imprimir": "", "lapiz": "", "chev": ""},
+        "i": {"atras": "", "buscar": "", "mas1": "", "check": "", "copiar": "", "imprimir": "", "lapiz": "", "chev": "", "etiqueta": "", "altavoz": ""},
         "back": {"url": "#", "name": "Jornadas y visitas"}, "band": "En la puerta · sábado 21 · 10:52", "name": "Jornada",
         "detail": "10:00 a 13:00 · Entrada", "counts": true, "came": 12, "households": 31,
         "camesentence": "de 31 familias han venido", "peoplesentence": "30 de 87 personas", "percent": 34,
         "tailored": false, "hasrequests": false, "requests": [], "own": false, "family": "", "familyurl": "",
+        "nowturn": {"wall": [{"came": true, "name": "Leo", "style": "--reposo:-3.5deg"}]},
+        "checkurl": "#", "checkevery": 30,
         "hassignups": true, "groups": [{"title": "10:00 a 10:45", "now": true, "open": true, "count": "1 de 2 han venido",
             "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"tag": "Leo",
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
-        "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://nur.click/visita-2111",
-        "posterurl": "#", "posterurla3": "#", "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
+        "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
+        "posterurl": "#", "posterurla3": "#", "labelsurl": "#", "labelsname": "Las etiquetas del sábado",
+        "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
         "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
     }
 }}
-<div class="pagina puerta">
+<div class="pagina puerta" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
-    <section class="banda">
+    <section class="banda" aria-labelledby="acto-t">
         <span class="etiqueta-b">{{band}}</span>
-        <div><h1 class="acto-n">{{name}}</h1>{{#detail}}<p class="detalle">{{detail}}</p>{{/detail}}</div>
+        <div class="banda-texto"><h1 class="acto-n" id="acto-t" tabindex="-1">{{name}}</h1>{{#detail}}<p class="detalle">{{detail}}</p>{{/detail}}</div>
         {{#counts}}
         <div class="cuentas-banda">
-            <div class="cuenta-grande"><span><b>{{came}}</b> {{camesentence}}</span><span>{{peoplesentence}}</span></div>
-            <span class="barra-b" role="img" aria-label="{{peoplesentence}}"><i style="width:{{percent}}%"></i></span>
+            <p class="cuenta-grande" aria-live="polite"><b data-vinieron>{{came}}</b> <span>{{camesentence}}</span></p>
+            <span class="personas" data-personas>{{peoplesentence}}</span>
+            <span class="barra-b" aria-hidden="true"><i style="width:{{percent}}%" data-barra-personas></i></span>
+            <p class="por-guardar" data-por-guardar role="status" hidden></p>
         </div>
         {{/counts}}
     </section>
+    {{#nowturn}}
+    <div class="pared-turno" aria-hidden="true" data-pared-turno>
+        <div class="riel"></div>
+        <div class="pomos">{{#wall}}<span class="pomo-t{{#came}} con-mochila{{/came}}" data-pomo-de="{{name}}">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/wall}}</div>
+    </div>
+    {{/nowturn}}
     <div class="puerta-cuerpo">
-        <section aria-label="{{#str}}panel_at_door_list, local_oksigeniaeguahe{{/str}}">
+        <section class="llegadas" aria-label="{{#str}}panel_at_door_list, local_oksigeniaeguahe{{/str}}">
             {{#own}}<p class="aviso-suave">{{#str}}panel_visit_of, local_oksigeniaeguahe{{/str}} <a href="{{familyurl}}">{{family}}</a></p>{{/own}}
             {{#tailored}}
             {{#requests}}
             <a class="medida" href="{{url}}">
-                <span class="quien"><b>{{adults}}</b>{{#tag}}<span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
                 <span class="estado">{{state}}</span>
             </a>
             {{/requests}}
@@ -64,19 +80,19 @@
             {{/tailored}}
             {{^tailored}}
             <div class="buscar-puerta">
-                <label class="buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".llegada" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
-                {{#addurl}}<a class="boton principal en-ancho" href="{{addurl}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/addurl}}
+                <label class="buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".llegada" data-tecla="/" data-tecla-que="{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+                {{#addurl}}<a class="boton principal en-ancho" href="{{addurl}}" data-tecla="a" data-tecla-que="{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/addurl}}
             </div>
             {{#groups}}
-            <details class="turno-p"{{#open}} open{{/open}}>
-                <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+            <details class="turno-p{{#now}} ahora-t{{/now}}"{{#open}} open{{/open}}>
+                <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span data-cuenta-turno>{{count}}</span>{{{i.chev}}}</span></summary>
                 {{#signups}}
-                <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}">
-                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso">{{course}}</span></span>{{/children}}</span><span class="personas">{{people}}</span></div>
+                <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}" data-llegada="{{id}}">
+                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no">{{tag}}</span><span class="curso">{{course}}</span></span>{{/children}}</span><span class="personas">{{people}}</span></div>
                     {{#canact}}
                     <form method="post" action="{{action}}#s{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">
-                        <button class="vino" type="submit" aria-pressed="{{#came}}true{{/came}}{{^came}}false{{/came}}" aria-label="{{adults}}: {{cametext}}">{{#came}}{{{i.check}}}{{/came}}<span>{{cametext}}</span></button>
+                        <button class="vino" type="submit" aria-pressed="{{#came}}true{{/came}}{{^came}}false{{/came}}" aria-label="{{adults}}: {{cametext}}">{{{i.check}}}<span>{{cametext}}</span></button>
                     </form>
                     {{/canact}}
                 </div>
@@ -85,14 +101,22 @@
             </details>
             {{/groups}}
             {{^hassignups}}<p class="secundario">{{#str}}panel_nobody_yet, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
+            <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+            <button class="sonido" type="button" data-sonido aria-pressed="false" hidden>{{{i.altavoz}}}<span>{{#str}}panel_door_sound, local_oksigeniaeguahe{{/str}}</span></button>
             {{/tailored}}
         </section>
         <aside class="compartir-acto">
             {{^own}}
             <section class="bloque">
                 <h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>
-                <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}">{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
-                {{^tailored}}<div class="cabeza-acciones"><a class="boton secundario pequeno" href="{{posterurl}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a4, local_oksigeniaeguahe{{/str}}</a><a class="boton secundario pequeno" href="{{posterurla3}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a3, local_oksigeniaeguahe{{/str}}</a></div>{{/tailored}}
+                <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto" dir="ltr">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
+                {{^tailored}}
+                <div class="cabeza-acciones">
+                    <a class="boton secundario pequeno" href="{{posterurl}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a4, local_oksigeniaeguahe{{/str}}</a>
+                    <a class="boton secundario pequeno" href="{{posterurla3}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a3, local_oksigeniaeguahe{{/str}}</a>
+                    {{#labelsurl}}<a class="boton secundario pequeno" href="{{labelsurl}}" target="_blank" rel="noopener">{{{i.etiqueta}}}{{labelsname}}</a>{{/labelsurl}}
+                </div>
+                {{/tailored}}
             </section>
             {{/own}}
             <section class="bloque">

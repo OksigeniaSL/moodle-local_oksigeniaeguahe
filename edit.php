@@ -41,6 +41,17 @@ $eventid = optional_param('eventid', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_act($centreid);
+if (optional_param('dup', 0, PARAM_BOOL)) {
+    // While writing one down: whether the family is there already, by its phone or its email.
+    @header('Content-Type: application/json; charset=utf-8');
+    @header('Cache-Control: no-store');
+    echo json_encode(panel_familyform::duplicates(
+        $centre,
+        optional_param('phone', '', PARAM_RAW_TRIMMED),
+        optional_param('email', '', PARAM_RAW_TRIMMED)
+    ));
+    die();
+}
 $household = $id ? households::get($id, (int) $centre->id) : null;
 if ($id && !$household) {
     throw new moodle_exception('invalidrecord', 'error');

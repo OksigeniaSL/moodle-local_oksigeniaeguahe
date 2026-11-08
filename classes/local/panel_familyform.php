@@ -73,6 +73,7 @@ class panel_familyform {
                 'tag' => $field("childtag{$i}"),
                 'offers' => $options($offers, $value("offerid{$i}")),
                 'offername' => "offerid{$i}",
+                'emptybag' => panel::hanging($i, ''),
                 'open' => $i === 0 || $name['value'] !== '',
             ];
         }
@@ -127,6 +128,73 @@ class panel_familyform {
             'langs' => $options(lists::LANG_NAMES, $value('lang') ?: (string) $centre->lang),
             'consents' => $consents,
             'backurl' => $back->out(false),
+            'dupurl' => $isnew ? (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id,
+                'dup' => 1]))->out(false) :
+                '',
+            'offersinfo' => self::offers_info($centre),
         ];
+    }
+
+    /**
+     * For each course of the offer, how many places are free, the next open day and the rail, small.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    public static function offers_info(\stdClass $centre): array {
+        $c = self::C;
+        $next = null;
+        foreach (events::for_centre((int) $centre->id) as $event) {
+            if (
+                empty($event->tailored) && empty($event->householdid) && $event->timestart > time() &&
+                    (!$next || $event->timestart < $next->timestart)
+            ) {
+                $next = $event;
+            }
+        }
+        $counts = households::offer_counts((int) $centre->id);
+        $out = [];
+        foreach (centres::offers((int) $centre->id, true) as $offer) {
+            $enrolled = (int) ($counts[$offer->id]['enrolled'] ?? 0);
+            $total = (int) $offer->places;
+            $out[] = [
+                'value' => (int) $offer->id,
+                'free' => $total ? get_string('panel_free_of', $c, (object) ['free' => max(0, $total - $enrolled),
+                    'total' => $total]) : '',
+                'next' => $next ? get_string('panel_next_openday', $c, userdate((int) $next->timestart, '%A %d')) : '',
+                'rail' => $total ? panel::rail($total, $enrolled) : '',
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * The families already written down with a phone or an email, for the warning while writing one down.
+     *
+     * @param \stdClass $centre
+     * @param string $phone
+     * @param string $email
+     * @return array households: sentence, url, open.
+     */
+    public static function duplicates(\stdClass $centre, string $phone, string $email): array {
+        $c = self::C;
+        $phone = phone::normalise($phone, $centre->country) ?? '';
+        $email = households::email($email) ?? '';
+        $id = ($phone !== '' || $email !== '') ? households::find((int) $centre->id, $email ?: null, $phone ?: null) : null;
+        $household = $id ? households::get((int) $id, (int) $centre->id) : null;
+        if (!$household) {
+            return ['households' => []];
+        }
+        $full = households::full($household);
+        $tags = array_map(fn($child) => panel::tag($child), array_values($full->children));
+        $last = array_pop($tags);
+        $children = $tags ? get_string('andlist', $c, (object) ['list' => implode(', ', $tags), 'last' => $last]) : (string) $last;
+        return ['households' => [[
+            'sentence' => get_string($children !== '' ? 'panel_dup_with' : 'panel_dup', $c, (object) [
+                'adults' => panel::adults_line($full->adults), 'children' => $children,
+                'since' => userdate((int) $household->timecreated, get_string('strftimedateshort', 'langconfig'))]),
+            'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'open' => get_string('panel_dup_open', $c),
+        ]]];
     }
 }

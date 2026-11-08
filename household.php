@@ -55,6 +55,10 @@ if ($action && !$canact) {
 $newlink = '';
 if ($action && data_submitted() && confirm_sesskey()) {
     $body = trim(optional_param('body', '', PARAM_TEXT));
+    // The greeting the answer starts with is not something said.
+    if ($body === trim(panel_household::greeting(households::full($household)))) {
+        $body = '';
+    }
     $channel = optional_param('channel', 'other', PARAM_ALPHA);
     if ($action === 'send') {
         // The answer of the file, by the way chosen: the phone app, email, or a call written down.

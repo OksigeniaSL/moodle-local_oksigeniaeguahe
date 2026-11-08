@@ -17,51 +17,82 @@
 {{!
     @template local_oksigeniaeguahe/panel_inbox
 
-    The inbox of a centre: who waits for an answer and since when, in words, the one waiting longest first; each family
-    with its adults, what they said last, how and when, and each child with the label of its name; beside it, the visits
-    of the person and the places of each course on their rail. No colour says anything of a family.
+    The inbox, three things and an epilogue. The sentence (the h1), the tab «Waiting | All» with the search and the
+    filters, and the list: by the rule of time, each day written once, big, and its families hanging from it with their
+    hour; on top, only on days with visits, «Today» with the families that come, and the promises that are due. The
+    epilogue, at the end and folded on a phone: the places of each course on their rail, the way of the campaign and the
+    next open days. With twenty families or more the list turns into a ledger, one line each. On a wide screen a family
+    opens in a sheet beside the list (the script fetches its page); without the script, its link opens the whole page.
+    No colour says anything of a family.
+
+    New in this round: days (replaces rows), density, densityurls, filters, checkurl, checkevery, path, nextevents,
+    hasnextevents, keyhint. Kept: head, fresh, showtools, all, waiting, total, waitingurl, allurl, hasrows, emptybag,
+    emptytitle, emptytext, newevent, newform, year, places, hasplaces. No longer drawn: rows (now inside days),
+    visits (now «Today» and «Open days and visits»), chev.
 
     Example context (json):
     {
-        "i": {"atras": "", "buscar": "", "der": "", "actos": "", "formulario": "", "mas1": ""},
+        "i": {"atras": "", "buscar": "", "der": "", "actos": "", "formulario": "", "mas1": "", "fichero": "", "filas": ""},
         "head": {"title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
             "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} },
         "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
+        "density": "fichas", "fichas": true, "lista": false, "densityurls": {"fichas": "#", "lista": "#"},
+        "checkurl": "#", "checkevery": 60,
+        "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
+            "stages": [{"name": "Todas las etapas", "key": "", "url": "#", "current": true}]},
         "hasrows": true,
-        "rows": [{"url": "#", "waiting": true, "main": "Desde el jueves", "sub": "hace 5 días", "adults": "Marta Ruiz",
-            "said": "«¿Tienen comedor?»", "via": "Por WhatsApp, el viernes a las 9:02", "viaicon": "", "search": "marta",
-            "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}]}],
-        "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.", "newevent": "#", "newform": "#",
-        "hasvisits": true, "visits": [{"url": "#", "weekday": "jue", "day": "12", "month": "nov", "title": "17:30 · familia Ruiz",
-            "tag": "Leo", "detail": "Comedor · 45 min", "place": ""}],
+        "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
+            "rows": [{"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
+                "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
+                "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}],
+                "via": "Por WhatsApp, el viernes a las 9:02", "viaicon": "",
+                "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
+                "typing": {"first": "Lucía", "picture": "", "initials": "LM"}, "promise": null, "visit": null,
+                "courses": "i3", "stages": "inquiry", "search": "marta leo"}]}],
+        "emptybag": {"name": "", "style": ""}, "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.",
+        "newevent": "#", "newform": "#",
         "year": "2027-28", "hasplaces": true,
-        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11,
-            "enrolled": 6}]
+        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11, "enrolled": 6}],
+        "path": {"total": 96, "sentence": "96 familias en esta campaña.", "def": "Cada familia cuenta donde va su hijo más adelantado.",
+            "steps": [{"key": "inquiry", "name": "Consulta", "n": 38, "line": "38 familias han preguntado."}]},
+        "hasnextevents": true, "nextevents": [{"url": "#", "weekday": "sáb", "day": "21", "month": "nov",
+            "name": "Jornada de puertas abiertas", "load": "87 de 120 personas", "percent": 72, "hasbar": true}],
+        "keyhint": "Teclas: / buscar · j y k para pasar de familia"
     }
 }}
-<div class="pagina">
+<div class="pagina pagina-bandeja" data-bandeja{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <div class="bandeja">
-        <section aria-label="{{#str}}panel_families, local_oksigeniaeguahe{{/str}}">
+    <p class="novedad" data-novedad role="status" hidden></p>
+    <div class="mostrador" data-mostrador>
+        <section class="bandeja" aria-labelledby="titular">
             {{#showtools}}
             <div class="herramientas">
                 <div class="segmentos" role="group" aria-label="{{#str}}panel_which, local_oksigeniaeguahe{{/str}}">
-                    <a href="{{waitingurl}}"{{^all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}} <span class="num">{{waiting}}</span></a>
+                    <a href="{{waitingurl}}"{{^all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}} <span class="num" data-cuenta-espera>{{waiting}}</span></a>
                     <a href="{{allurl}}"{{#all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_all, local_oksigeniaeguahe{{/str}} <span class="num">{{total}}</span></a>
                 </div>
-                <label class="buscar"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".fila" placeholder="{{#str}}panel_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+                <label class="buscar"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".fila" data-tecla="/" data-tecla-que="{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+                <div class="vista" role="group" aria-label="{{#str}}panel_view, local_oksigeniaeguahe{{/str}}">
+                    <a href="{{densityurls.fichas}}"{{#fichas}} aria-current="true"{{/fichas}} title="{{#str}}panel_view_cards, local_oksigeniaeguahe{{/str}}">{{{i.fichero}}}<span class="oculto">{{#str}}panel_view_cards, local_oksigeniaeguahe{{/str}}</span></a>
+                    <a href="{{densityurls.lista}}"{{#lista}} aria-current="true"{{/lista}} title="{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}">{{{i.filas}}}<span class="oculto">{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}</span></a>
+                </div>
             </div>
+            <details class="filtros" open data-plegar-movil>
+                <summary class="filtros-titulo">{{#str}}panel_filters, local_oksigeniaeguahe{{/str}}</summary>
+                <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_course, local_oksigeniaeguahe{{/str}}">{{#filters.courses}}<a class="pastilla" href="{{url}}" data-filtro="curso" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.courses}}</div>
+                <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_stage, local_oksigeniaeguahe{{/str}}">{{#filters.stages}}<a class="pastilla" href="{{url}}" data-filtro="etapa" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.stages}}</div>
+            </details>
             {{/showtools}}
             {{#hasrows}}
-            <div class="lista">
-                {{#rows}}
-                <a class="fila" href="{{url}}" data-buscar="{{search}}">
-                    <div class="espera{{^waiting}} al-dia{{/waiting}}"><b>{{main}}</b><span>{{sub}}</span></div>
-                    <div class="quien"><b>{{adults}}</b>{{#said}}<p class="dice">{{said}}</p>{{/said}}<span class="meta">{{{viaicon}}}<span>{{via}}</span></span></div>
-                    <div class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso"><b>{{course}}</b>{{#stage}}<br>{{stage}}{{/stage}}</span></span>{{/children}}</div>
-                    {{{chev}}}
-                </a>
-                {{/rows}}
+            <div class="lista" id="lista" data-lista data-densidad="{{density}}">
+                {{#days}}
+                <section class="dia-g dia-{{kind}}" aria-labelledby="dia-{{key}}">
+                    <h2 class="dia" id="dia-{{key}}"><b>{{day}}</b> <span>{{sub}}</span></h2>
+                    <ol class="filas">
+                        {{#rows}}{{> local_oksigeniaeguahe/panel_inbox_row }}{{/rows}}
+                    </ol>
+                </section>
+                {{/days}}
             </div>
             <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
             {{/hasrows}}
@@ -79,35 +110,50 @@
                 {{^fresh}}<a class="enlace" href="{{allurl}}">{{#str}}panel_see_all, local_oksigeniaeguahe{{/str}} {{{i.der}}}</a>{{/fresh}}
             </div>
             {{/hasrows}}
+            {{#keyhint}}<p class="pista-teclas" data-pista-teclas>{{keyhint}}</p>{{/keyhint}}
         </section>
-        <aside class="aparte">
-            <section class="bloque">
-                <h2>{{#str}}inbox_mine, local_oksigeniaeguahe{{/str}}</h2>
-                <div>
-                    {{#visits}}
-                    <a class="visita" href="{{url}}">
-                        <span class="hoja"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
-                        <span class="que"><b>{{title}}</b>{{#tag}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso">{{detail}}</span></span>{{/tag}}{{#place}}<span class="secundario">{{place}}</span>{{/place}}</span>
-                    </a>
-                    {{/visits}}
-                    {{^hasvisits}}<p class="secundario">{{#str}}panel_no_visits, local_oksigeniaeguahe{{/str}}</p>{{/hasvisits}}
-                </div>
-            </section>
-            {{#hasplaces}}
-            <section class="bloque">
-                <h2>{{#str}}panel_places_for, local_oksigeniaeguahe, {{year}}{{/str}}</h2>
-                <div class="plazas">
-                    {{#places}}
-                    <div class="curso-plazas">
-                        <div class="cab"><b>{{name}}</b><span class="libres">{{#str}}panel_free_of, local_oksigeniaeguahe, {"free": {{free}}, "total": {{total}} }{{/str}}</span></div>
-                        {{{rail}}}
-                        <span class="tres"><span><b>{{interested}}</b>{{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b>{{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b>{{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
+        <aside class="epilogo" aria-labelledby="epilogo-t" data-epilogo>
+            <details class="plegable" open data-plegar-movil>
+                <summary><h2 id="epilogo-t">{{#str}}panel_epilogue, local_oksigeniaeguahe, {{year}}{{/str}}</h2>{{{i.chev}}}</summary>
+                {{#hasplaces}}
+                <section class="bloque bloque-plazas">
+                    <h3>{{#str}}panel_places_for, local_oksigeniaeguahe, {{year}}{{/str}}</h3>
+                    <div class="plazas">
+                        {{#places}}
+                        <div class="curso-plazas">
+                            <div class="cab"><b>{{name}}</b><span class="libres">{{#str}}panel_free_of, local_oksigeniaeguahe, {"free": {{free}}, "total": {{total}} }{{/str}}</span></div>
+                            <div class="riel-caja">{{{rail}}}</div>
+                            <span class="tres"><span><b>{{interested}}</b> {{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b> {{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b> {{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
+                        </div>
+                        {{/places}}
                     </div>
-                    {{/places}}
-                </div>
-                <p class="def">{{#str}}panel_places_def, local_oksigeniaeguahe{{/str}}</p>
-            </section>
-            {{/hasplaces}}
+                    <p class="def">{{#str}}panel_places_def, local_oksigeniaeguahe{{/str}}</p>
+                </section>
+                {{/hasplaces}}
+                {{#path}}
+                <section class="bloque bloque-camino" data-camino>
+                    <h3>{{#str}}panel_path_title, local_oksigeniaeguahe{{/str}}</h3>
+                    <div class="camino-figura" data-figura="camino" aria-hidden="true"></div>
+                    <p class="linea-dato" data-linea-dato data-reposo="{{sentence}}">{{sentence}}</p>
+                    <ol class="paradas">
+                        {{#steps}}<li data-parada="{{key}}" data-linea="{{line}}"><b>{{n}}</b><span>{{name}}</span></li>{{/steps}}
+                    </ol>
+                    <p class="def">{{def}}</p>
+                </section>
+                {{/path}}
+                {{#hasnextevents}}
+                <section class="bloque bloque-jornadas">
+                    <h3>{{#str}}panel_next_events, local_oksigeniaeguahe{{/str}}</h3>
+                    {{#nextevents}}
+                    <a class="acto-corto" href="{{url}}">
+                        <span class="hoja-cal"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
+                        <span class="que"><b>{{name}}</b><span class="secundario">{{load}}</span>{{#hasbar}}<span class="barra-aforo" aria-hidden="true"><i style="width:{{percent}}%"></i></span>{{/hasbar}}</span>
+                    </a>
+                    {{/nextevents}}
+                </section>
+                {{/hasnextevents}}
+            </details>
         </aside>
+        <section class="hoja-lateral" id="hoja" aria-label="{{#str}}panel_sheet, local_oksigeniaeguahe{{/str}}" data-hoja-caja hidden></section>
     </div>
 </div>

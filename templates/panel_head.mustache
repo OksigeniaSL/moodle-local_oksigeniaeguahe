@@ -29,8 +29,8 @@
 <div class="cabeza">
     <div class="cabeza-texto">
         {{#ante}}<p class="ante">{{ante}}</p>{{/ante}}
-        <h1 class="titular">{{title}}</h1>
-        {{#sub}}<p class="sub">{{sub}}</p>{{/sub}}
+        <h1 class="titular" id="titular" tabindex="-1">{{title}}</h1>
+        {{#sub}}<p class="sub" data-sub>{{sub}}</p>{{/sub}}
     </div>
-    {{#action}}<div class="cabeza-acciones"><a class="boton principal" href="{{url}}"{{#anchor}} data-ancla="1"{{/anchor}}>{{{icon}}}{{name}}</a></div>{{/action}}
+    {{#action}}<div class="cabeza-acciones"><a class="boton principal" href="{{url}}"{{#anchor}} data-ancla="1"{{/anchor}} data-tecla="{{#anchor}}r{{/anchor}}{{^anchor}}a{{/anchor}}" data-tecla-que="{{name}}">{{{icon}}}{{name}}</a></div>{{/action}}
 </div>

@@ -43,10 +43,17 @@ $PAGE->set_context(context_system::instance());
 panel::setup($url, format_string($event->name));
 
 $canact = centres::can_act((int) $USER->id);
+if (optional_param('check', 0, PARAM_BOOL)) {
+    // With two people receiving, what the other one marked: the families that came, with their hour.
+    @header('Content-Type: application/json; charset=utf-8');
+    @header('Cache-Control: no-store');
+    echo json_encode(panel_event::check($event));
+    die();
+}
 if (data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);
     $signupid = required_param('signup', PARAM_INT);
-    events::attend($event, $signupid, (bool) required_param('came', PARAM_BOOL));
+    events::attend($event, $signupid, (bool) required_param('came', PARAM_BOOL), optional_param('at', 0, PARAM_INT));
     redirect(new moodle_url($url, [], 's' . $signupid));
 }
 

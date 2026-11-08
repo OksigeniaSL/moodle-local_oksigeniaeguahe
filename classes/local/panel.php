@@ -81,6 +81,16 @@ class panel {
         'movil' => ['<rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18h3"/>', 2],
         'sistema' => ['<path d="M12 3.5l2 2.8 3.4-.5.5 3.4 2.8 2-2.8 2-.5 3.4-3.4-.5-2 2.8-2-2.8-3.4.5-.5-3.4-2.8-2 2.8-2 ' .
             '.5-3.4 3.4.5z"/>', 1.6],
+        'fichero' => ['<rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M7 7V4.5h10V7M3.5 12h17"/>', 2],
+        'filas' => ['<path d="M4 6h16M4 12h16M4 18h16"/>', 2],
+        'altavoz' => ['<path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>', 2],
+        'teclado' => ['<rect x="2.5" y="6" width="19" height="12" rx="2.5"/>' .
+            '<path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>', 2],
+        'cerrar' => ['<path d="M6 6l12 12M18 6L6 18"/>', 2.2],
+        'etiqueta' => ['<path d="M3.5 6.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2V14l-6 6h-9a2 2 0 0 1-2-2z"/><path d="M14.5 20v-6h6"/>', 2],
+        'mano' => ['<path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13' .
+            'c0 4-2.5 7-6.5 7-2.6 0-4.4-1.4-5.6-3.6L3.5 13.2a1.5 1.5 0 0 1 2.6-1.5L8 14"/>', 1.8],
+        'fundir' => ['<path d="M6 4v5a5 5 0 0 0 5 5h1M18 4v5a5 5 0 0 1-5 5"/><path d="M12 14v6M9 17.5l3 3 3-3"/>', 2],
         'salir' => ['<path d="M10 4.5H6A1.5 1.5 0 0 0 4.5 6v12A1.5 1.5 0 0 0 6 19.5h4"/><path d="M15 8l4 4-4 4M19 12H9.5"/>', 2],
         'ia' => ['<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="3"/>', 2],
     ];
@@ -326,6 +336,8 @@ class panel {
             'logouturl' => (new \moodle_url('/login/logout.php', ['sesskey' => sesskey()]))->out(false),
             'notices' => $notices,
             'hasnotices' => (bool) $notices,
+            'footnote' => '',
+            'jsstrings' => json_encode(self::js_strings(), JSON_UNESCAPED_UNICODE),
             'credit' => $credit ? get_string('panel_credit', self::C, \html_writer::link(
                 $credit['url'],
                 'Oksigenia',
@@ -358,6 +370,23 @@ class panel {
 </body>
 </html>';
         die();
+    }
+
+    /**
+     * The strings the script of the panel says, with their placeholders as they are.
+     *
+     * @return array Key => text.
+     */
+    public static function js_strings(): array {
+        $keys = ['panel_js_arrived', 'panel_js_arrived_more', 'panel_js_show', 'panel_js_to_save', 'panel_js_to_save_one',
+            'panel_js_saved', 'panel_js_press_enter', 'panel_js_loading', 'panel_js_sent', 'panel_js_key_next',
+            'panel_js_key_prev', 'panel_js_key_open', 'panel_js_key_close', 'panel_js_key_help', 'panel_came_at',
+            'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one'];
+        $out = [];
+        foreach ($keys as $key) {
+            $out[$key] = get_string($key, self::C);
+        }
+        return $out;
     }
 
     /**
@@ -487,56 +516,107 @@ class panel {
     }
 
     /**
-     * The places of a course as a wooden rail: one knob per place, in fives, and a small backpack on each one taken.
-     * With more than 40 places, a knob every ten and a band with the part taken.
+     * The places of a course as a real coat rail, front view: a
+     * wooden plank screwed to the wall, one turned peg per place in fives, and the backpack of each enrolled child hanging
+     * from its peg, each a little crooked its own way. Over 40 places, a peg every ten with its number and, under the
+     * plank, the backpacks pressed together as a band. Every colour is a class (.perchero .r-* in pub/panel.css), so light,
+     * dark and each skin paint it. The mock-up draws it with the same numbers (maqueta/perchero.cjs).
      *
      * @param int $total
      * @param int $taken
      * @return string SVG.
      */
     public static function rail(int $total, int $taken): string {
-        $width = 400;
         $taken = max(0, min($taken, $total));
         $label = get_string('panel_places_label', self::C, (object) ['taken' => $taken, 'total' => $total]);
         $f = fn(float $n) => rtrim(rtrim(sprintf('%.1f', $n), '0'), '.');
-        $svg = '<svg class="perchero" viewBox="0 0 ' . $width . ' 34" preserveAspectRatio="xMinYMin meet" role="img" ' .
-            'aria-label="' . s($label) . '"><rect class="riel-r" x="0" y="0" width="' . $width . '" height="7" rx="2"/>' .
-            '<rect class="riel-l" x="0" y="0" width="' . $width . '" height="1.4" rx=".7"/>' .
-            '<rect class="riel-s" x="0" y="5.6" width="' . $width . '" height="1.4"/>';
+        $tilt = [-3.5, 3, -2, 4];
+        $py = 13;
+        $backpack = function (float $x, float $y, float $t) use ($f): string {
+            return '<g class="r-mochila" transform="translate(' . $f($x) . ' ' . $f($y) . ') rotate(' . $t . ')' .
+                ' scale(0.36) translate(-32 -7)">' .
+                '<path class="r-m-sombra" d="M15 32 C15 23 21.5 16 30.5 16 L37.5 16 C46.5 16 53 23 53 32 L53 57.5 C53' .
+                ' 60 51 62 48.5 62 ' .
+                'L19.5 62 C17 62 15 60 15 57.5 Z"/>' .
+                '<path class="r-m-asa" d="M28 15.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 15.5 L34.4 15.5 L34.4 11 ' .
+                'C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 15.5 Z"/>' .
+                '<path class="r-m-correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>' .
+                '<path class="r-m-cuerpo" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51' .
+                ' 58 49 60 46.5 60 ' .
+                'L17.5 60 C15 60 13 58 13 55.5 Z"/>' .
+                '<path class="r-m-luz" d="M17 24 C18.5 19 22.5 16.4 28 16.2 L30 16.2 C24.5 17.4 20.6 20.6 19.2 26 Z"/>' .
+                '<path class="r-m-tapa" d="M16 22 L16 28.5 C16 31.5 18.4 33.6 21.4 33.6 L42.6 33.6 C45.6 33.6 48 31.5' .
+                ' 48 28.5 L48 22 ' .
+                'L46.2 22 L46.2 28.5 C46.2 30.5 44.6 31.8 42.6 31.8 L21.4 31.8 C19.4 31.8 17.8 30.5 17.8 28.5 L17.8 22 Z"/>' .
+                '<g transform="translate(32 47) rotate(-8) scale(0.68)"><path class="r-m-etq" d="M-23 -12 Q-23 -16' .
+                ' -19 -16 L19 -16 ' .
+                'Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/><path class="r-m-banda" d="M-23 -12 Q-23 -16' .
+                ' -19 -16 L19 -16 ' .
+                'Q23 -16 23 -12 L23 -6.2 L-23 -6.2 Z"/></g></g>';
+        };
+        $peg = fn(float $x, float $y): string => '<g class="r-pomo"><ellipse class="r-p-sombra" cx="' . $f($x + 1.3) . '" cy="' .
+            $f($y + 2.2) . '" rx="4.4" ry="3.6"/><circle class="r-p-cuello" cx="' . $f($x) . '" cy="' . $f($y) . '" r="3.1"/>' .
+            '<circle class="r-p-cabeza" cx="' . $f($x - 0.3) . '" cy="' . $f($y - 0.4) . '" r="4.1"/><circle' .
+            ' class="r-p-brillo" cx="' .
+            $f($x - 1.6) . '" cy="' . $f($y - 1.9) . '" r="1.2"/></g>';
+        $screws = fn(float $x, float $y): string => implode('', array_map(fn($sy) => '<g class="r-tornillo"><circle cx="' . $f($x) .
+            '" cy="' . $f($sy) . '" r="1.5"/><path d="M' . $f($x - 1) . ' ' . $f($sy - 0.5) . ' L' . $f($x + 1) . '' .
+            ' ' . $f($sy + 0.5) .
+            '"/></g>', [$y - 3.2, $y + 3.2]));
+        $body = '';
         if ($total <= 40) {
-            $gap = 6;
+            $step = 15;
+            $gap = 7;
             $gaps = $total > 0 ? intdiv($total - 1, 5) : 0;
-            $step = $total > 0 ? min(18, ($width - 8 - $gaps * $gap) / $total) : 18;
+            $width = 22 + $total * $step + $gaps * $gap + 10;
             for ($i = 0; $i < $total; $i++) {
-                $x = 4 + $i * $step + intdiv($i, 5) * $gap + $step / 2;
+                $x = 18 + $i * $step + intdiv($i, 5) * $gap + $step / 2;
+                // The loop of the backpack goes round the neck of the peg, behind its head.
                 if ($i < $taken) {
-                    $w = min($step * 0.76, 12);
-                    $h = 15;
-                    $x0 = $x - $w / 2;
-                    $y0 = 12.4;
-                    $rt = min(4.6, $w / 2 - 0.4);
-                    $rb = 2;
-                    $svg .= '<path class="ocupada" d="M' . $f($x - 2) . ' 13 v-2.4 a2 2 0 0 1 4 0 v2.4 h-1.1 v-2.4 a.9 .9 0 0 0 ' .
-                        '-1.8 0 v2.4 z"/>';
-                    $svg .= '<path class="ocupada" d="M' . $f($x0) . ' ' . $f($y0 + $rt) . ' a' . $f($rt) . ' ' . $f($rt) .
-                        ' 0 0 1 ' . $f($rt) . ' -' . $f($rt) . ' h' . $f($w - 2 * $rt) . ' a' . $f($rt) . ' ' . $f($rt) .
-                        ' 0 0 1 ' . $f($rt) . ' ' . $f($rt) . ' v' . $f($h - $rt - $rb) . ' a' . $rb . ' ' . $rb . ' 0 0 1 -' .
-                        $rb . ' ' . $rb . ' h-' . $f($w - 2 * $rb) . ' a' . $rb . ' ' . $rb . ' 0 0 1 -' . $rb . ' -' . $rb .
-                        ' z"/>';
-                    $svg .= '<rect class="tapa" x="' . $f($x0 + 1.5) . '" y="' . $f($y0 + 4.4) . '" width="' . $f($w - 3) .
-                        '" height="1.3" rx=".65"/><rect class="tapa" x="' . $f($x0 + 2.3) . '" y="' . $f($y0 + $h - 6) .
-                        '" width="' . $f($w - 4.6) . '" height="3.6" rx="1.2" opacity=".6"/>';
+                    $body .= $backpack($x, $py - 1.6, $tilt[$i % 4]);
                 }
-                $svg .= '<circle class="pomo" cx="' . $f($x) . '" cy="10" r="2.6"/>';
+                $body .= $peg($x, $py);
             }
         } else {
-            $svg .= '<rect class="franja" x="4" y="12.5" width="' . $f(($width - 8) * $taken / $total) .
-                '" height="15" rx="3"/>';
+            $width = 400;
+            [$x0, $x1] = [18, $width - 18];
+            $w = ($x1 - $x0) * $taken / $total;
+            $body .= '<rect class="r-franja-sombra" x="' . $f($x0 + 1.5) . '" y="' . $f($py + 6) . '" width="' . $f($w) .
+                '" height="17" rx="3.5"/><rect class="r-franja" x="' . $f($x0) . '" y="' . $f($py + 4) . '" width="' . $f($w) .
+                '" height="17" rx="3.5"/>';
+            for ($i = 1; $i < $taken; $i++) {
+                $sx = $x0 + ($x1 - $x0) * $i / $total;
+                $body .= '<path class="r-costura" d="M' . $f($sx) . ' ' . $f($py + 6) . ' V' . $f($py + 19) . '"/>';
+            }
+            $body .= '<rect class="r-franja-luz" x="' . $f($x0 + 2) . '" y="' . $f($py + 5.5) . '" width="' . $f(max(0, $w - 4)) .
+                '" height="2" rx="1"/>';
             for ($i = 0; $i <= $total; $i += 10) {
-                $svg .= '<circle class="pomo" cx="' . $f(4 + ($width - 8) * $i / $total) . '" cy="10" r="2.6"/>';
+                $x = $x0 + ($x1 - $x0) * $i / $total;
+                $body .= $peg($x, $py);
+                if ($i > 0) {
+                    $body .= '<text class="r-num" x="' . $f($x) . '" y="' . $f($py + 36) . '"' .
+                        ' text-anchor="middle">' . $i . '</text>';
+                }
             }
         }
-        return $svg . '</svg>';
+        $height = $total > 40 ? 54 : 44;
+        $plank = '<rect class="r-pared-sombra" x="3" y="9" width="' . ($width - 4) . '" height="12" rx="3"/>' .
+            '<rect class="r-tabla" x="2" y="6" width="' . ($width - 4) . '" height="14" rx="3"/>' .
+            '<rect class="r-canto" x="2.6" y="6.6" width="' . $f($width - 5.2) . '" height="2" rx="1"/>' .
+            '<rect class="r-bajo" x="2.6" y="17.4" width="' . $f($width - 5.2) . '" height="2" rx="1"/>';
+        for ($k = 0; $k < 3; $k++) {
+            $y = 10.4 + $k * 2.6;
+            $d = 'M8 ' . $f($y);
+            for ($x = 8; $x < $width - 8; $x += 36) {
+                $d .= ' Q' . $f($x + 9) . ' ' . $f($y + ($k % 2 ? 0.9 : -0.9)) . ' ' . $f($x + 18) . ' ' . $f($y) . ' T' .
+                    $f(min($x + 36, $width - 8)) . ' ' . $f($y);
+            }
+            $plank .= '<path class="r-veta" d="' . $d . '"/>';
+        }
+        $plank .= $screws(8, 13) . $screws($width - 8, 13);
+        // Drawn a third larger than its units, and never wider than its box (the CSS lets it shrink).
+        return '<svg class="perchero" viewBox="0 0 ' . $width . ' ' . $height . '" width="' . round($width * 1.3) . '" height="' .
+            round($height * 1.3) . '" role="img" aria-label="' . s($label) . '">' . $plank . $body . '</svg>';
     }
 
     /**

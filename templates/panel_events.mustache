@@ -17,15 +17,22 @@
 {{!
     @template local_oksigeniaeguahe/panel_events
 
-    The open days and visits of a centre in the panel: what comes next, the events ahead with who receives and how
-    full they are (one colour, never full or empty in red), the visits families asked for and how each is going, and
-    the events past with how many came.
+    Open days and visits: what comes next (the h1), the week in seven days with each visit as a family (its hour, its
+    adults, the label of the child and who guides, a proposal still waiting said in words), the events ahead with who
+    receives and how full they are (one bar, one colour, never red), the visits families asked for and how each one is
+    going, and, folded, the events past with how many came.
+
+    New in this round: week (title, sub, days[weekday, day, today, past, empty, items[hour, title, tag, what, who, url,
+    proposed]]). Kept: head, ahead, hasahead, asking, hasasking, requests, hasrequests, past, haspast.
 
     Example context (json):
     {
         "i": {"atras": "", "mas1": "", "enlace": ""},
         "head": {"title": "Lo próximo: jornada de puertas abiertas, el sábado 21", "sub": "31 familias apuntadas.",
             "action": {"url": "#", "name": "Nuevo acto", "icon": ""} },
+        "week": {"title": "Esta semana", "sub": "del lunes 9 al domingo 15", "days": [{"weekday": "mié", "day": "11", "today": true,
+            "past": false, "empty": false, "items": [{"hour": "17:30", "title": "Lucas Pérez", "tag": "Bruno", "what": "Aula de Infantil · 45 min",
+            "who": {"first": "Andrés", "picture": "", "initials": "AR"}, "url": "#", "proposed": false}]}]},
         "hasahead": true, "ahead": [{"url": "#", "weekday": "sáb", "day": "21", "month": "nov", "name": "Jornada",
             "kind": "Jornada de puertas abiertas", "hours": "10:00 a 13:00", "place": "Entrada", "slots": "4 turnos",
             "receive": [{"name": "Lucía", "photo": "", "initials": "LM"}], "load": "31 familias · 87 de 120 personas",
@@ -36,32 +43,54 @@
         "haspast": false, "past": []
     }
 }}
-<div class="pagina">
+<div class="pagina pagina-actos">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#week}}
+    <section class="semana" aria-labelledby="semana-t">
+        <header><h2 id="semana-t">{{title}}</h2><span class="secundario">{{sub}}</span></header>
+        <ol class="dias-semana">
+            {{#days}}
+            <li class="dia-s{{#today}} hoy{{/today}}{{#past}} pasado{{/past}}{{#empty}} vacio{{/empty}}">
+                <span class="dia-s-nombre"><small>{{weekday}}</small><b>{{day}}</b>{{#today}}<span class="oculto">, {{#str}}panel_today_word, local_oksigeniaeguahe{{/str}}</span>{{/today}}</span>
+                <div class="dia-s-cosas">
+                    {{#items}}
+                    <a class="cita{{#proposed}} propuesta-c{{/proposed}}" href="{{url}}">
+                        <span class="hora">{{hour}}</span>
+                        <span class="que"><b>{{title}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span>{{#proposed}}<span class="propuesta-p">{{#str}}panel_proposed_waiting, local_oksigeniaeguahe{{/str}}</span>{{/proposed}}</span>
+                        {{#who}}<span class="lleva">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/who}}
+                    </a>
+                    {{/items}}
+                    {{#empty}}<span class="nada">{{#str}}panel_nothing_day, local_oksigeniaeguahe{{/str}}</span>{{/empty}}
+                </div>
+            </li>
+            {{/days}}
+        </ol>
+    </section>
+    {{/week}}
     <div class="actos">
-        <section class="grupo-actos">
-            <h2>{{#str}}panel_events_ahead, local_oksigeniaeguahe{{/str}}</h2>
+        <section class="grupo-actos" aria-labelledby="actos-t">
+            <h2 id="actos-t">{{#str}}panel_events_ahead, local_oksigeniaeguahe{{/str}}</h2>
             {{#ahead}}{{> local_oksigeniaeguahe/panel_event_row }}{{/ahead}}
             {{^hasahead}}<p class="secundario">{{#str}}panel_events_none_ahead, local_oksigeniaeguahe{{/str}}</p>{{/hasahead}}
         </section>
         {{#hasasking}}
-        <section class="grupo-actos">
-            <h2>{{#str}}panel_events_asked, local_oksigeniaeguahe{{/str}}</h2>
-            {{#asking}}<p><a class="enlace" href="{{url}}">{{{i.enlace}}}{{name}}</a> · <span class="secundario">{{link}}</span></p>{{/asking}}
+        <section class="grupo-actos" aria-labelledby="piden-t">
+            <h2 id="piden-t">{{#str}}panel_events_asked, local_oksigeniaeguahe{{/str}}</h2>
+            {{#asking}}<p class="piden-enlace"><a class="enlace" href="{{url}}">{{{i.enlace}}}{{name}}</a> · <span class="secundario" dir="ltr">{{link}}</span></p>{{/asking}}
             {{#requests}}
-            <a class="medida" href="{{url}}">
-                <span class="quien"><b>{{adults}}</b>{{#tag}}<span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+            <a class="medida{{#pending}} pendiente{{/pending}}" href="{{url}}">
+                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
                 <span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>
             </a>
             {{/requests}}
             {{^hasrequests}}<p class="secundario">{{#str}}panel_events_no_requests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
         </section>
         {{/hasasking}}
-        {{#haspast}}
-        <section class="grupo-actos">
-            <h2>{{#str}}panel_events_past, local_oksigeniaeguahe{{/str}}</h2>
-            {{#past}}{{> local_oksigeniaeguahe/panel_event_row }}{{/past}}
-        </section>
-        {{/haspast}}
     </div>
+    {{#haspast}}
+    <details class="grupo-actos plegado pasados">
+        <summary><h2>{{#str}}panel_events_past, local_oksigeniaeguahe{{/str}}</h2></summary>
+        {{#past}}{{> local_oksigeniaeguahe/panel_event_row }}{{/past}}
+    </details>
+    {{/haspast}}
 </div>

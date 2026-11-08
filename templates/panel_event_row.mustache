@@ -22,12 +22,12 @@
 
     Example context (json):
     {"url": "#", "weekday": "sáb", "day": "21", "month": "nov", "name": "Jornada", "kind": "Jornada de puertas abiertas",
-        "hours": "10:00 a 13:00", "place": "Entrada", "slots": "", "receive": [], "load": "31 familias",
-        "percent": 0, "hasbar": false, "closed": false}
+        "hours": "10:00 a 13:00", "place": "Entrada", "slots": "", "receive": [{"name": "Lucía Medina", "photo": "", "initials": "LM"}],
+        "load": "31 familias", "percent": 0, "hasbar": false, "closed": false}
 }}
 <a class="acto" href="{{url}}">
-    <span class="hoja"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
+    <span class="hoja-cal"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
     <span class="que"><b>{{name}}</b><span class="secundario">{{kind}} · {{hours}}{{#place}} · {{place}}{{/place}}{{#slots}} · {{slots}}{{/slots}}{{#closed}} · {{#str}}panel_closed_signup, local_oksigeniaeguahe{{/str}}{{/closed}}</span></span>
-    <span class="reciben"><span class="pila">{{#receive}}{{#photo}}<img class="avatar" src="{{photo}}" alt="" width="36" height="36">{{/photo}}{{^photo}}<span class="avatar" aria-hidden="true">{{initials}}</span>{{/photo}}{{/receive}}</span></span>
-    <span class="aforo"><span class="cifra">{{load}}</span>{{#hasbar}}<span class="barra-aforo" role="img" aria-label="{{load}}"><i style="width:{{percent}}%"></i></span>{{/hasbar}}</span>
+    <span class="reciben"><span class="pila">{{#receive}}{{#photo}}<img class="cara" src="{{photo}}" alt="" width="32" height="32">{{/photo}}{{^photo}}<span class="cara" aria-hidden="true">{{initials}}</span>{{/photo}}{{/receive}}</span></span>
+    <span class="aforo"><span class="cifra">{{load}}</span>{{#hasbar}}<span class="barra-aforo" aria-hidden="true"><i style="width:{{percent}}%"></i></span>{{/hasbar}}</span>
 </a>

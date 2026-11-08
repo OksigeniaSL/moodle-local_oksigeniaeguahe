@@ -324,8 +324,9 @@ class events {
      * @param \stdClass $event
      * @param int $signupid
      * @param bool $came
+     * @param int $when When it was marked (at the door without signal, the hour it was marked); 0, now.
      */
-    public static function attend(\stdClass $event, int $signupid, bool $came): void {
+    public static function attend(\stdClass $event, int $signupid, bool $came, int $when = 0): void {
         global $DB;
         $signup = $DB->get_record(
             'local_oksigeniaeguahe_signup',
@@ -333,7 +334,9 @@ class events {
             '*',
             MUST_EXIST
         );
-        $DB->set_field('local_oksigeniaeguahe_signup', 'attended', $came ? time() : 0, ['id' => $signup->id]);
+        // A mark from the phone keeps its hour if it is of the last day; otherwise, now.
+        $when = $when > time() - DAYSECS && $when <= time() + MINSECS ? $when : time();
+        $DB->set_field('local_oksigeniaeguahe_signup', 'attended', $came ? $when : 0, ['id' => $signup->id]);
         if ($came && $event->kind !== 'other') {
             households::advance((int) $signup->householdid, 'visit');
         }

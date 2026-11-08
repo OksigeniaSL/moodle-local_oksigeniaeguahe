@@ -86,13 +86,13 @@ final class panel_test extends \advanced_testcase {
      */
     public function test_rail(): void {
         $svg = panel::rail(25, 6);
-        $this->assertSame(25, substr_count($svg, 'class="pomo"'));
-        $this->assertSame(12, substr_count($svg, 'class="ocupada"'));
+        $this->assertSame(25, substr_count($svg, 'class="r-pomo"'));
+        $this->assertSame(6, substr_count($svg, 'class="r-mochila"'));
         $this->assertStringContainsString('aria-label="6 of 25 places taken"', $svg);
         $many = panel::rail(120, 30);
-        $this->assertStringContainsString('class="franja"', $many);
-        $this->assertSame(13, substr_count($many, 'class="pomo"'));
-        $this->assertSame(8, substr_count(panel::rail(4, 9), 'class="ocupada"'));
+        $this->assertStringContainsString('class="r-franja"', $many);
+        $this->assertSame(13, substr_count($many, 'class="r-pomo"'));
+        $this->assertSame(4, substr_count(panel::rail(4, 9), 'class="r-mochila"'));
     }
 
     /**
@@ -123,9 +123,19 @@ final class panel_test extends \advanced_testcase {
 
         $inbox = panel_inbox::context($centre, false, (int) get_admin()->id, true);
         $this->assertSame(get_string('inbox_waiting_one', 'local_oksigeniaeguahe'), $inbox['head']['title']);
-        $this->assertCount(1, $inbox['rows']);
-        $row = $inbox['rows'][0];
+        // By the rule of time: one day, today, and the family under it.
+        $this->assertCount(1, $inbox['days']);
+        $this->assertSame(get_string('panel_day_today', 'local_oksigeniaeguahe'), $inbox['days'][0]['day']);
+        $row = $inbox['days'][0]['rows'][0];
         $this->assertTrue($row['waiting']);
+        $this->assertNull($row['owner']);
+        $this->assertSame('fichas', $inbox['density']);
+        $this->assertSame(1, $inbox['path']['total']);
+        $this->assertSame(1, $inbox['path']['steps'][0]['n']);
+        $this->assertSame(['waiting' => 1, 'adults' => 'Marta Ruiz'], ['waiting' => panel_inbox::check($centre)['waiting'],
+            'adults' => panel_inbox::check($centre)['latest']['adults']]);
+        // A filter by a course nobody asked for leaves the list empty.
+        $this->assertFalse(panel_inbox::context($centre, false, (int) get_admin()->id, true, ['stage' => 'enrolled'])['hasrows']);
         $this->assertSame('Marta Ruiz', $row['adults']);
         $this->assertStringContainsString('marta@example.com', $row['search']);
         $this->assertSame('Infantil 3 años', $row['children'][0]['course']);
@@ -137,6 +147,9 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('Marta Ruiz', $file['head']['title']);
         $this->assertTrue($file['history'][0]['family']);
         $this->assertStringContainsString('Web a medida', $file['history'][0]['how']);
+        $this->assertSame(get_string('panel_greeting', 'local_oksigeniaeguahe', 'Marta') . ' ', $file['composer']['greeting']);
+        $this->assertFalse($file['relay']);
+        $this->assertTrue($file['hasuntold']);
         // By email, chosen first, or by a call; the phone app only with Oksigenia Marandu, and not joined yet.
         $ways = array_column($file['composer']['ways'], 'checked', 'value');
         $this->assertSame((messaging::available() ? ['mobile' => false] : []) + ['email' => true, 'phone' => false], $ways);
@@ -150,8 +163,11 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame(get_string('inbox_empty_waiting', 'local_oksigeniaeguahe'), $inbox['head']['title']);
         $this->assertStringContainsString('Admin', $inbox['head']['sub']);
         $all = panel_inbox::context($centre, true, (int) get_admin()->id, true);
-        $this->assertFalse($all['rows'][0]['waiting']);
-        $this->assertSame(get_string('panel_answered', 'local_oksigeniaeguahe'), $all['rows'][0]['main']);
+        $this->assertSame('contestadas', $all['days'][0]['kind']);
+        $this->assertFalse($all['days'][0]['rows'][0]['waiting']);
+        $this->assertSame(get_string('panel_answered', 'local_oksigeniaeguahe'), $all['days'][0]['rows'][0]['stamp']['top']);
+        $file = panel_household::context(households::get((int) $household->id, $centreid), $centre, true);
+        $this->assertSame('Admin User', $file['answered']['who']);
     }
 
     /**

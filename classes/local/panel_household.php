@@ -64,6 +64,7 @@ class panel_household {
 
         // The head: since when they wait, or who answered; who they are; where they came from and since when.
         $ante = '';
+        $answered = null;
         if ($household->waitingsince > 0) {
             $words = panel::wait_words((int) $household->waitingsince, $now);
             $ante = get_string('panel_waits', $c, $words['since']) .
@@ -71,10 +72,12 @@ class panel_household {
         } else {
             foreach (array_reverse($contacts) as $contact) {
                 if ($contact->direction === 'out') {
-                    $ante = get_string('panel_answered_by', $c, (object) [
-                        'when' => panel::when_words((int) $contact->timecreated, $now),
-                        'who' => isset($people[$contact->userid]) ? fullname($people[$contact->userid]) : 'Eguahe',
-                    ]);
+                    $who = isset($people[$contact->userid]) ? fullname($people[$contact->userid]) : 'Eguahe';
+                    $when = panel::when_words((int) $contact->timecreated, $now);
+                    $ante = get_string('panel_answered_by', $c, (object) ['when' => $when, 'who' => $who]);
+                    $answered = ['who' => $who, 'when' => $when, 'stamp' => ['top' => get_string('panel_answered', $c),
+                        'day' => rtrim(userdate((int) $contact->timecreated, '%a %d'), '.'),
+                        'hour' => panel::hour((int) $contact->timecreated)]];
                     break;
                 }
             }
@@ -105,6 +108,13 @@ class panel_household {
         $answers = self::answers((int) $household->id);
         $email = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? '');
         $phone = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->phone, $full->adults)))[0] ?? '');
+        // The conversation: the two last things at sight, the ones before folded in a line.
+        $history = self::history($full, $contacts, $people, $now);
+        $old = array_slice($history, 0, max(0, count($history) - 2));
+        $composer = self::composer($mode, $joined, $email, $phone) + ['greeting' => self::greeting($full),
+            'draft' => null, 'hassuggestions' => false, 'suggestions' => [], 'next' => null];
+        $untold = self::untold($full, $offers);
+        $pending = visits::pending((int) $household->id);
         return [
             'head' => panel::head([
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -115,14 +125,35 @@ class panel_household {
                 'action' => $canact ? ['url' => '#contestar', 'anchor' => true, 'name' => get_string('panel_answer', $c),
                     'icon' => panel::icon('enviado')] : null,
             ]),
+            'url' => $url->out(false),
+            'inboxurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
             'action' => $url->out(false),
             'sesskey' => sesskey(),
             'canact' => $canact,
+            'answered' => $answered,
+            // Who looks after the family, its promise and who is writing wait for the decision of Enrique.
+            'relay' => false,
+            'owner' => null,
+            'takeurl' => '',
+            'ownedbyme' => false,
+            'promise' => null,
+            'typing' => null,
             'children' => self::children($full, $offers, $canact),
-            'history' => self::history($full, $contacts, $people, $now),
+            'historyold' => $old,
+            'history' => array_slice($history, count($old)),
+            'hasold' => (bool) $old,
+            'oldlabel' => get_string(count($old) === 1 ? 'panel_older_one' : 'panel_older', $c, count($old)),
             'waiting' => $household->waitingsince > 0,
             'me' => panel::person($USER),
-            'composer' => self::composer($mode, $joined, $email, $phone),
+            'composer' => $composer,
+            // Only with what they asked for and the diary of those who guide; Eguahe does not know the diary yet.
+            'proposal' => null,
+            'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',
+            'untold' => $untold,
+            'hasuntold' => (bool) $untold,
+            'untoldtext' => self::list_words($untold),
+            'hasabout' => (bool) $answers || (bool) $untold,
+            'mergeurl' => '',
             'adults' => self::adults($full, $joined),
             'lang' => get_string('panel_speak', $c, lists::LANG_NAMES[$household->lang] ?? $household->lang),
             'editurl' => (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id,
@@ -135,6 +166,55 @@ class panel_household {
             'newlink' => $newlink,
             'erasequestion' => get_string('panel_erase_question', $c, panel::adults_line($full->adults)),
         ];
+    }
+
+    /**
+     * How an answer starts: «Hola, Marta y Daniel:», with the first names of the adults.
+     *
+     * @param \stdClass $full
+     * @return string
+     */
+    public static function greeting(\stdClass $full): string {
+        $names = array_values(array_filter(array_map(fn($a) => trim((string) $a->firstname), $full->adults)));
+        return $names ? get_string('panel_greeting', self::C, self::list_words($names)) . ' ' : '';
+    }
+
+    /**
+     * Some words in a list: «a, b y c».
+     *
+     * @param string[] $words
+     * @return string
+     */
+    protected static function list_words(array $words): string {
+        $words = array_values($words);
+        $last = array_pop($words);
+        return $words ? get_string('andlist', self::C, (object) ['list' => implode(', ', $words), 'last' => $last]) :
+            (string) $last;
+    }
+
+    /**
+     * What they have not told us yet, to ask when answering: where they live, how they heard of the centre, and the
+     * course of a child.
+     *
+     * @param \stdClass $full
+     * @param array $offers
+     * @return string[]
+     */
+    protected static function untold(\stdClass $full, array $offers): array {
+        $c = self::C;
+        $out = [];
+        if (trim((string) $full->municipalityname) === '' && trim((string) $full->municipality) === '') {
+            $out[] = get_string('panel_untold_where', $c);
+        }
+        if (empty($full->heardfrom)) {
+            $out[] = get_string('panel_untold_heard', $c);
+        }
+        foreach ($full->children as $child) {
+            if (empty($offers[$child->offerid])) {
+                $out[] = get_string('panel_untold_course', $c, panel::tag($child));
+            }
+        }
+        return $out;
     }
 
     /**

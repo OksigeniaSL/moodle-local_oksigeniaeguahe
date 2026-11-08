@@ -82,6 +82,7 @@ class panel_events {
             $sub[] = get_string($waiting === 1 ? 'panel_events_waiting_one' : 'panel_events_waiting', $c, $waiting);
         }
         return [
+            'week' => self::week($centre, $all, $hosts, $now),
             'head' => panel::head([
                 'title' => $next ? get_string('panel_events_next', $c, (object) ['name' => format_string($next->name),
                     'day' => userdate((int) $next->timestart, '%A %d')]) : get_string('panel_events_none', $c),
@@ -102,6 +103,71 @@ class panel_events {
             'past' => array_map(fn($e) => self::row($e, $hosts, $now), array_slice($past, 0, self::PAST)),
             'haspast' => (bool) $past,
         ];
+    }
+
+    /**
+     * This week, from Monday to Sunday: every visit and event of each day, with its hour, the family and the child or
+     * the event, the place and who guides or receives.
+     *
+     * @param \stdClass $centre
+     * @param array $all The events of the centre.
+     * @param array $hosts Who receives, by member id.
+     * @param int $now
+     * @return array title, sub, days
+     */
+    public static function week(\stdClass $centre, array $all, array $hosts, int $now): array {
+        $c = self::C;
+        $zone = \core_date::get_user_timezone_object();
+        $today = (new \DateTime('@' . $now))->setTimezone($zone)->setTime(0, 0);
+        $monday = (clone $today)->modify('-' . ((int) $today->format('N') - 1) . ' days');
+        $days = [];
+        for ($i = 0; $i < 7; $i++) {
+            $day = (clone $monday)->modify('+' . $i . ' days');
+            $start = $day->getTimestamp();
+            $items = [];
+            foreach ($all as $event) {
+                if (!empty($event->tailored) || $event->timestart < $start || $event->timestart >= $start + DAYSECS) {
+                    continue;
+                }
+                $guide = null;
+                foreach (array_filter(array_map('intval', explode(',', (string) $event->hosts))) as $id) {
+                    if (isset($hosts[$id])) {
+                        $guide = ['first' => $hosts[$id]->first, 'picture' => $hosts[$id]->photo ?
+                            $hosts[$id]->photo->out(false) : '', 'initials' => $hosts[$id]->initials];
+                        break;
+                    }
+                }
+                $family = $event->householdid ? households::get((int) $event->householdid, (int) $centre->id) : null;
+                $full = $family ? households::full($family) : null;
+                $child = $full ? reset($full->children) : null;
+                $minutes = (int) round(($event->timeend - $event->timestart) / MINSECS);
+                $items[] = [
+                    'hour' => panel::hour((int) $event->timestart),
+                    'title' => $full ? panel::adults_line($full->adults) : format_string($event->name),
+                    'tag' => $child ? panel::tag($child) : '',
+                    'what' => implode(' · ', array_filter([trim((string) $event->place) !== '' ? format_string($event->place) : '',
+                        $full ? get_string('panel_minutes', $c, $minutes) : ''])),
+                    'who' => $guide,
+                    'url' => (new \moodle_url(
+                        $full ? '/local/oksigeniaeguahe/household.php' : '/local/oksigeniaeguahe/event.php',
+                        ['id' => $full ? $family->id : $event->id]
+                    ))->out(false),
+                    'proposed' => false,
+                    'start' => (int) $event->timestart,
+                ];
+            }
+            usort($items, fn($a, $b) => $a['start'] <=> $b['start']);
+            $days[] = panel::leaf($start) + [
+                'today' => $start === $today->getTimestamp(),
+                'past' => $start < $today->getTimestamp(),
+                'empty' => !$items,
+                'items' => $items,
+            ];
+        }
+        $sunday = (clone $monday)->modify('+6 days');
+        return ['title' => get_string('panel_this_week', $c), 'sub' => get_string('panel_week_span', $c, (object) [
+            'from' => userdate($monday->getTimestamp(), '%A %d'), 'to' => userdate($sunday->getTimestamp(), '%A %d')]),
+            'days' => $days];
     }
 
     /**

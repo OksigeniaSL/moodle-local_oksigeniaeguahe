@@ -1,0 +1,985 @@
+/* Eguahe, the skin «mostrador» (the paper desk): a wooden desk seen from above, where every page is paper. The inbox is
+  a card file, each family an index card with the stamp of the day it came, the days on the dividers written by hand;
+  with twenty families or more, a ledger. A family opens as a folder beside the file. Your turn is a yellow pad, the
+  proposal an index card stamped «Propuesta», writing down a family a clipboard, the week a notebook, the door a printed
+  list with boxes. At night the desk goes dark and a lamp lights the paper. Only what carries a datum is an object:
+  no clips, pencils or tape for decoration. Everything sits on the variables of panel.css; nothing here changes what
+  the page says or does. Loaded after pub/panel.css, only when the centre's skin is «mostrador». */
+body.piel-mostrador {
+    --papel-b: #fffdf7;
+    --papel-b-2: #f6f0e4;
+    --kraft: #d9b98a;
+    --kraft-2: #c9a472;
+    --kraft-tinta: #4a3628;
+    --pauta: rgba(110, 150, 200, 0.24);
+    --margen: rgba(214, 120, 120, 0.5);
+    --nota: #fff8d8;
+    --ruido: url(ruido.svg);
+    --ruido-sello: url(ruido-sello.svg);
+    --sombra-papel:
+        0 1px 1px rgba(60, 35, 20, 0.16),
+        0 5px 9px -4px rgba(60, 35, 20, 0.28),
+        0 18px 26px -16px rgba(60, 35, 20, 0.4);
+    --sombra-alta:
+        0 2px 2px rgba(60, 35, 20, 0.14),
+        0 14px 20px -8px rgba(60, 35, 20, 0.3),
+        0 40px 46px -24px rgba(60, 35, 20, 0.45);
+    --eg-papel: var(--papel-b);
+    --eg-superficie: #fff;
+    --piel-fondo: #8a5a30;
+    --piel-hoja: var(--papel-b);
+    --piel-hoja-borde: transparent;
+    --piel-hoja-sombra: var(--sombra-papel);
+    --piel-radio: 4px;
+    --piel-fila: var(--papel-b);
+    --piel-fila-sombra: var(--sombra-papel);
+    position: relative;
+    z-index: 0;
+    background: #8a5a30;
+}
+/* The desk under everything, fixed (it does not repaint when the page scrolls), and the light of the window */
+body.piel-mostrador::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: url(mesa.webp) center / cover #b98450;
+    filter: saturate(0.78);
+}
+
+body.piel-mostrador::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 30% 15%, rgba(255, 246, 230, 0.2), transparent 60%),
+        radial-gradient(140% 120% at 50% 50%, transparent 55%, rgba(60, 30, 10, 0.3));
+}
+/* At night: the desk in the dark, a lamp on the paper, the paper a little dimmer (and still paper) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) body.piel-mostrador {
+        --c-pared: #ddd0bb;
+        --papel-b: #ebe2d2;
+        --papel-b-2: #ddd2c0;
+        --kraft: #b9996c;
+        --kraft-2: #a88a5f;
+        --nota: #ece0b4;
+        --pauta: rgba(90, 120, 165, 0.26);
+        --eg-superficie: #f4ecdf;
+        --eg-hundido: #e0d5c3;
+        --eg-pared: #ded1bc;
+        --eg-tinta: #2b2226;
+        --eg-tinta-rgb: 43, 34, 38;
+        --eg-tinta-2: #564b50;
+        --eg-linea: #d2c4b0;
+        --eg-borde: #7d7176;
+        --eg-madera: #bc8759;
+        --eg-madera-luz: #d2a57c;
+        --eg-madera-sombra: #8e5e3a;
+        --eg-gancho: #7a5236;
+        --eg-gancho-luz: #c99a6e;
+        --eg-chapita: #fff;
+        --eg-error: #a8241c;
+        --eg-error-suave: #f3ddd6;
+        --eg-sombra: rgba(40, 25, 15, 0.3);
+        --eg-accion: #36233a;
+        --eg-sobre-accion: #fbf7f1;
+        --eg-acento: #643f5e;
+        --eg-acento-suave: #e6d8df;
+        --eg-serie-1: #7b3f72;
+        --eg-mochila: #6f5e6e;
+        --eg-mochila-sombra: #54465a;
+        --eg-mochila-luz: #fbf5ec;
+        --eg-coral: #cf6450;
+        --eg-sello: #5e3769;
+        --bs-focus-ring-color: rgba(106, 70, 100, 0.35);
+        --piel-fondo: #2a1d14;
+        background: #2a1d14;
+        color-scheme: light;
+        --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.4), 0 6px 10px -4px rgba(0, 0, 0, 0.5), 0 20px 30px -16px rgba(0, 0, 0, 0.6);
+    }
+
+    :root:not([data-bs-theme]) body.piel-mostrador::before {
+        filter: saturate(0.55) brightness(0.32);
+    }
+
+    :root:not([data-bs-theme]) body.piel-mostrador::after {
+        background:
+            radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.3), transparent 70%),
+            radial-gradient(140% 120% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55));
+    }
+}
+
+:root[data-bs-theme="dark"] body.piel-mostrador {
+    --c-pared: #ddd0bb;
+    --papel-b: #ebe2d2;
+    --papel-b-2: #ddd2c0;
+    --kraft: #b9996c;
+    --kraft-2: #a88a5f;
+    --nota: #ece0b4;
+    --pauta: rgba(90, 120, 165, 0.26);
+    --eg-superficie: #f4ecdf;
+    --eg-hundido: #e0d5c3;
+    --eg-pared: #ded1bc;
+    --eg-tinta: #2b2226;
+    --eg-tinta-rgb: 43, 34, 38;
+    --eg-tinta-2: #564b50;
+    --eg-linea: #d2c4b0;
+    --eg-borde: #7d7176;
+    --eg-madera: #bc8759;
+    --eg-madera-luz: #d2a57c;
+    --eg-madera-sombra: #8e5e3a;
+    --eg-gancho: #7a5236;
+    --eg-gancho-luz: #c99a6e;
+    --eg-chapita: #fff;
+    --eg-error: #a8241c;
+    --eg-error-suave: #f3ddd6;
+    --eg-sombra: rgba(40, 25, 15, 0.3);
+    --eg-accion: #36233a;
+    --eg-sobre-accion: #fbf7f1;
+    --eg-acento: #643f5e;
+    --eg-acento-suave: #e6d8df;
+    --eg-serie-1: #7b3f72;
+    --eg-mochila: #6f5e6e;
+    --eg-mochila-sombra: #54465a;
+    --eg-mochila-luz: #fbf5ec;
+    --eg-coral: #cf6450;
+    --eg-sello: #5e3769;
+    --bs-focus-ring-color: rgba(106, 70, 100, 0.35);
+    --piel-fondo: #2a1d14;
+    background: #2a1d14;
+    color-scheme: light;
+    --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.4), 0 6px 10px -4px rgba(0, 0, 0, 0.5), 0 20px 30px -16px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-bs-theme="dark"] body.piel-mostrador::before {
+    filter: saturate(0.55) brightness(0.32);
+}
+
+:root[data-bs-theme="dark"] body.piel-mostrador::after {
+    background:
+        radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.3), transparent 70%),
+        radial-gradient(140% 120% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55));
+}
+/* ---------- Paper ---------- */
+.piel-mostrador .apartado,
+.piel-mostrador .bloque,
+.piel-mostrador .semana,
+.piel-mostrador .turno-p,
+.piel-mostrador .acto,
+.piel-mostrador .medida,
+.piel-mostrador .cabeza,
+.piel-mostrador .teclas-hoja,
+.piel-mostrador .menu-barra .menu,
+.piel-mostrador .entrada-fila {
+    background-color: var(--papel-b);
+    background-image: var(--ruido);
+    border-color: transparent;
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .pagina {
+    padding-top: 26px;
+}
+/* ---------- The bar: folder tabs on the edge of the desk ---------- */
+.piel-mostrador .barra {
+    align-items: flex-end;
+    min-height: 66px;
+    padding-top: 10px;
+    background: none;
+    border: 0;
+}
+
+.piel-mostrador .marca,
+.piel-mostrador .centro-sel {
+    align-self: center;
+    padding: 6px 12px 6px 8px;
+    border-radius: 6px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .marca {
+    transform: rotate(-1deg);
+}
+
+.piel-mostrador .separa {
+    display: none;
+}
+
+.piel-mostrador .secciones {
+    align-self: flex-end;
+    gap: 4px;
+    margin-inline-start: 14px;
+}
+
+.piel-mostrador .secciones a {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 10px 10px 0 0;
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+    box-shadow: inset 0 -6px 8px -6px rgba(80, 50, 20, 0.35), 0 -1px 3px rgba(60, 35, 20, 0.2);
+    transform: translateY(6px);
+}
+
+.piel-mostrador .secciones a[aria-current] {
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta);
+    transform: none;
+    box-shadow: 0 -2px 6px rgba(60, 35, 20, 0.25);
+}
+
+.piel-mostrador .secciones a[aria-current]::after {
+    display: none;
+}
+
+.piel-mostrador .yo > summary,
+.piel-mostrador .mando-teclas {
+    align-self: center;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .yo > summary {
+    padding: 3px 12px 3px 3px;
+    border-radius: 999px;
+}
+
+.piel-mostrador .yo,
+.piel-mostrador .mando-teclas {
+    align-self: center;
+}
+
+.piel-mostrador .avisos .aviso-suave {
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+/* ---------- The head of a page: the sentence written on a sheet ---------- */
+.piel-mostrador .cabeza {
+    padding: 18px 22px 16px;
+    transform: rotate(-0.35deg);
+}
+
+.piel-mostrador .migas a {
+    padding: 4px 12px 4px 6px;
+    border-radius: 6px;
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .novedad {
+    background: var(--nota) var(--ruido);
+    box-shadow: var(--sombra-papel);
+    border-radius: 3px;
+}
+
+.piel-mostrador .pista-teclas {
+    justify-self: start;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--papel-b-2);
+    color: var(--eg-tinta-2);
+}
+/* ---------- The tools of the inbox, on a strip of paper ---------- */
+.piel-mostrador .herramientas,
+.piel-mostrador .filtros {
+    padding: 10px 12px;
+    border-radius: 4px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .filtros {
+    margin-top: -10px;
+    padding-top: 4px;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 10px 14px -10px rgba(60, 35, 20, 0.35);
+}
+
+.piel-mostrador .herramientas + .filtros {
+    position: relative;
+}
+/* ---------- The card file: a divider per day, written by hand; an index card per family ---------- */
+.piel-mostrador .lista[data-densidad="fichas"] {
+    gap: 22px;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .dia-g {
+    gap: 0;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .dia {
+    position: relative;
+    z-index: 1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-inline-start: 14px;
+    padding: 6px 18px 8px 16px;
+    border-radius: 10px 10px 0 0;
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+    box-shadow: 0 -2px 4px rgba(60, 35, 20, 0.18);
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .dia b {
+    font-family: var(--piel-mano);
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: 0;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .dia span {
+    color: var(--kraft-tinta);
+    opacity: 0.85;
+    font-weight: 600;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .filas {
+    gap: 0;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila {
+    padding: 12px 118px 14px 16px;
+    border-radius: 4px;
+    background:
+        linear-gradient(to bottom, transparent 39px, var(--margen) 39px, var(--margen) 41px, transparent 41px),
+        repeating-linear-gradient(to bottom, transparent 0 25px, var(--pauta) 25px 26px) 0 41px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--papel-b);
+}
+
+[dir="rtl"] .piel-mostrador .lista[data-densidad="fichas"] .fila {
+    padding: 12px 16px 14px 118px;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila + .fila {
+    margin-top: -3px;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila:nth-child(2n) {
+    transform: rotate(0.25deg);
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila:nth-child(3n) {
+    transform: rotate(-0.2deg);
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila .hora {
+    padding-top: 4px;
+}
+
+.piel-mostrador .lista[data-densidad="fichas"] .fila .lleva {
+    position: absolute;
+    inset-inline-end: 38px;
+    top: 72px;
+}
+
+@media (hover: hover) {
+    .piel-mostrador .lista .fila {
+        transition: transform var(--dur-1) var(--curva-papel), box-shadow var(--dur-1) ease;
+    }
+
+    .piel-mostrador .lista[data-densidad="fichas"] .fila:hover {
+        z-index: 3;
+        transform: translate(calc(var(--mov-x) * -3px), calc(var(--mov-x) * -6px)) rotate(-0.4deg);
+        box-shadow: var(--sombra-alta);
+    }
+}
+
+.piel-mostrador .mostrador.con-hoja .fila .lleva {
+    position: static;
+}
+
+.piel-mostrador .mostrador.con-hoja .lista[data-densidad="fichas"] .fila {
+    padding-inline-end: 100px;
+}
+
+.piel-mostrador .fila.abierta {
+    z-index: 3;
+    box-shadow: var(--sombra-alta), 0 0 0 3px var(--eg-acento);
+}
+
+.piel-mostrador .fila.contestada {
+    background-color: var(--papel-b-2);
+}
+/* The date stamp of the day it came: ink with the grain of a rubber stamp */
+.piel-mostrador .sello-fecha {
+    position: absolute;
+    inset-inline-end: 16px;
+    top: 10px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 76px;
+    padding: 3px 9px 4px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 7px;
+    color: var(--eg-sello);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    transform: rotate(-5deg);
+    opacity: 0.88;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+}
+
+.piel-mostrador .sello-fecha b {
+    font-size: 0.9375rem;
+    letter-spacing: 0.02em;
+}
+
+.piel-mostrador .fila.contestada .sello-fecha {
+    opacity: 0.7;
+    transform: rotate(4deg);
+}
+
+.piel-mostrador .promesa-texto {
+    font-family: var(--piel-mano);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #2c3e6b;
+}
+
+.piel-mostrador .fila .promesa {
+    border-top: 0;
+    padding-top: 4px;
+}
+
+.piel-mostrador .escribiendo {
+    font-family: var(--piel-mano);
+    font-size: 1.1875rem;
+    font-style: normal;
+    color: #2c3e6b;
+}
+/* The ledger: twenty families or more, one line each, the days in the margin */
+.piel-mostrador .lista[data-densidad="lista"] {
+    padding: 6px 0 10px;
+    border-radius: 4px;
+    background:
+        linear-gradient(90deg, transparent 158px, var(--margen) 158px, var(--margen) 160px, transparent 160px),
+        var(--ruido),
+        var(--papel-b);
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .dia-g {
+    border-top-color: var(--pauta);
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .dia {
+    padding-inline-start: 16px;
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .dia b {
+    font-family: var(--piel-mano);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--eg-sello);
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .fila {
+    background: none;
+    box-shadow: none;
+    border-bottom-color: var(--pauta);
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .fila:hover {
+    background: rgba(255, 240, 180, 0.35);
+}
+
+.piel-mostrador .lista[data-densidad="lista"] .sello-fecha {
+    display: none;
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .lista[data-densidad="lista"] {
+        background: var(--ruido), var(--papel-b);
+    }
+
+    .piel-mostrador .lista[data-densidad="fichas"] .fila {
+        padding: 10px 14px 12px;
+    }
+
+    .piel-mostrador .lista[data-densidad="fichas"] .fila .lleva {
+        position: static;
+    }
+
+    .piel-mostrador .sello-fecha {
+        position: static;
+        justify-self: end;
+        grid-area: lleva;
+        display: none;
+    }
+}
+/* ---------- The epilogue: a sheet of squared paper ---------- */
+.piel-mostrador .epilogo .plegable {
+    padding: 14px 16px 18px;
+    border-radius: 4px;
+    background:
+        linear-gradient(rgba(90, 130, 170, 0.1) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(90deg, rgba(90, 130, 170, 0.1) 1px, transparent 1px) 0 0 / 18px 18px,
+        var(--papel-b);
+    box-shadow: var(--sombra-papel);
+    transform: rotate(0.4deg);
+}
+
+.piel-mostrador .epilogo .bloque {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.piel-mostrador .epilogo .bloque + .bloque {
+    padding-top: 16px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.piel-mostrador .riel-caja {
+    padding: 6px 8px 2px;
+    border-radius: 3px;
+    background: var(--c-pared, var(--eg-pared));
+    box-shadow: inset 0 1px 3px rgba(60, 35, 20, 0.18);
+}
+
+.piel-mostrador .linea-dato {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+    font-size: 0.875rem;
+    min-height: 0;
+}
+/* ---------- The sheet beside the file: a kraft folder ---------- */
+@media (min-width: 1180px) {
+    .piel-mostrador .hoja-lateral {
+        padding: 16px 16px 24px;
+        border-radius: 4px 12px 12px 12px;
+        background: linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)), var(--ruido), var(--kraft);
+        box-shadow: var(--sombra-alta);
+    }
+
+    .piel-mostrador .hoja-lateral .cabeza {
+        box-shadow: var(--sombra-papel);
+    }
+}
+
+.piel-mostrador .hoja-lateral .hoja-mandos .enlace,
+.piel-mostrador .hoja-lateral .hoja-mandos .boton {
+    color: var(--kraft-tinta);
+}
+/* ---------- The file of a household ---------- */
+.piel-mostrador .relevo {
+    padding: 8px 14px;
+    border-radius: 4px;
+    background: var(--papel-b-2) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .relevo .promesa {
+    background: var(--nota) var(--ruido);
+}
+
+.piel-mostrador .pared-hijos {
+    box-shadow: inset 0 2px 6px rgba(60, 35, 20, 0.18), var(--sombra-papel);
+    border-radius: 4px;
+}
+
+.piel-mostrador .pared-hijos .riel {
+    height: 12px;
+    top: 21px;
+    border-radius: 3px;
+    background: linear-gradient(var(--eg-madera-luz), var(--eg-madera) 40%, var(--eg-madera-sombra));
+    box-shadow: 0 4px 5px -2px rgba(40, 20, 5, 0.35);
+}
+
+.piel-mostrador .anteriores > summary {
+    background: var(--papel-b-2);
+    box-shadow: var(--sombra-papel);
+}
+/* Your turn: a yellow pad with its lines, the text typed on them */
+.piel-mostrador .turno-tuyo .que {
+    padding: 16px 18px 18px;
+    border-radius: 3px;
+    background:
+        repeating-linear-gradient(to bottom, transparent 0 27px, var(--pauta) 27px 28px) 0 54px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--nota);
+    box-shadow: var(--sombra-alta);
+    transform: rotate(0.4deg);
+}
+
+.piel-mostrador .turno-tuyo.ya .que {
+    background: var(--ruido), var(--papel-b-2);
+    transform: none;
+}
+
+.piel-mostrador .turno-tuyo textarea {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.piel-mostrador .sugerencia {
+    background: var(--papel-b) var(--ruido);
+    border-color: transparent;
+    box-shadow: var(--sombra-papel);
+    border-radius: 3px;
+}
+
+.piel-mostrador .sugerencia b {
+    font-family: var(--piel-mano);
+    font-size: 1.3125rem;
+    font-weight: 700;
+    line-height: 1;
+}
+/* The stamp «Contestada» on the pad */
+.piel-mostrador .sello-grande {
+    position: absolute;
+    z-index: 3;
+    inset-inline-end: 18px;
+    top: 6px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 14px;
+    border: 3px solid var(--eg-sello);
+    border-radius: 10px;
+    color: var(--eg-sello);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.05;
+    text-transform: uppercase;
+    transform: rotate(-8deg);
+    opacity: 0.9;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 160px 80px;
+    mask-size: 160px 80px;
+    pointer-events: none;
+}
+
+.piel-mostrador .turno-tuyo.ya .quien {
+    padding-inline-end: 150px;
+    min-height: 52px;
+}
+
+.piel-mostrador .sello-grande small {
+    font-size: 1.125rem;
+    letter-spacing: 0.14em;
+}
+
+.piel-mostrador .sello-grande b {
+    font-size: 0.8125rem;
+}
+
+.piel-mostrador .sello-grande span {
+    font-size: 0.8125rem;
+}
+/* The proposal: an index card stamped «Propuesta» */
+.piel-mostrador .propuesta {
+    background:
+        linear-gradient(to bottom, transparent 52px, var(--margen) 52px, var(--margen) 54px, transparent 54px),
+        var(--ruido),
+        var(--papel-b);
+    box-shadow: var(--sombra-alta);
+    transform: rotate(-0.5deg);
+}
+
+.piel-mostrador .propuesta h2 {
+    display: inline-block;
+    padding: 1px 10px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 6px;
+    color: var(--eg-sello);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: rotate(-3deg);
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+}
+
+.piel-mostrador .propuesta .frase b {
+    font-weight: 760;
+}
+/* ---------- Writing down a family: a clipboard ---------- */
+.piel-mostrador .tablilla {
+    position: relative;
+    padding: 34px 18px 8px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.06)), #a5784c;
+    box-shadow: var(--sombra-alta), inset 0 0 0 1px rgba(60, 35, 20, 0.3);
+}
+
+.piel-mostrador .tablilla::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    inset-inline-start: 50%;
+    width: 150px;
+    height: 34px;
+    margin-inline-start: -75px;
+    border-radius: 8px 8px 12px 12px;
+    background: linear-gradient(#e9ecef, #a7adb4 55%, #c9ced3);
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 #fff;
+}
+
+.piel-mostrador .tablilla > .apartado {
+    border-radius: 2px;
+}
+
+.piel-mostrador .tablilla .guardar-pie .boton.terciario {
+    color: #fff6e6;
+}
+
+.piel-mostrador .tablilla .guardar-pie {
+    margin: 0 -18px;
+    padding-inline: 18px;
+    border-radius: 0 0 14px 14px;
+    background: #a5784c;
+}
+
+.piel-mostrador .num-paso {
+    font-family: var(--piel-mano);
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: none;
+    color: var(--eg-sello);
+    border: 2px solid var(--eg-sello);
+}
+
+.piel-mostrador .plazas-mini {
+    background: var(--c-pared, var(--eg-pared));
+}
+/* ---------- Open days and visits: the week is a notebook ---------- */
+.piel-mostrador .semana {
+    position: relative;
+    padding-top: 30px;
+    border-radius: 4px 4px 10px 10px;
+    background:
+        repeating-linear-gradient(to bottom, transparent 0 27px, var(--pauta) 27px 28px) 0 64px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--papel-b);
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .semana::before {
+    content: '';
+    position: absolute;
+    inset-inline: 18px;
+    top: -10px;
+    height: 22px;
+    background:
+        radial-gradient(
+            circle at 11px 11px,
+            transparent 5px,
+            #8f959b 5.5px,
+            #c9ced3 7px,
+            transparent 8px
+        ) 0 0 / 26px 22px repeat-x;
+}
+
+.piel-mostrador .dia-s-nombre b {
+    font-family: var(--piel-mano);
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--eg-sello);
+}
+
+.piel-mostrador .dia-s.hoy .dia-s-nombre b {
+    background: none;
+    color: var(--eg-sello);
+    box-shadow: 0 0 0 2px var(--eg-sello);
+}
+
+.piel-mostrador .cita {
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 1px 2px rgba(60, 35, 20, 0.2);
+    border-radius: 3px;
+}
+
+.piel-mostrador .cita.propuesta-c {
+    background: var(--nota);
+}
+
+.piel-mostrador .propuesta-p {
+    border-color: var(--eg-sello);
+    color: var(--eg-sello);
+}
+
+.piel-mostrador .dia-s {
+    border-color: transparent;
+}
+
+.piel-mostrador .dia-s.hoy {
+    border-color: transparent;
+    background: rgba(255, 240, 170, 0.35);
+}
+/* A tear-off calendar leaf, with its binding */
+.piel-mostrador .hoja-cal {
+    border-radius: 2px 2px 6px 6px;
+    background: linear-gradient(var(--eg-sello) 0 9px, transparent 9px), #fff;
+    box-shadow: 0 1px 2px rgba(60, 35, 20, 0.3);
+    padding-top: 11px;
+}
+
+.piel-mostrador .hoja-cal small {
+    color: var(--eg-tinta-2);
+}
+
+.piel-mostrador .grupo-actos > h2,
+.piel-mostrador .grupo-actos > summary h2,
+.piel-mostrador .plegable > summary h2 {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+    transform: rotate(-0.6deg);
+}
+
+.piel-mostrador .medida {
+    background:
+        linear-gradient(to bottom, transparent 38px, var(--margen) 38px, var(--margen) 40px, transparent 40px),
+        var(--ruido),
+        var(--papel-b);
+}
+/* ---------- The door: the list printed on paper, a box to tick each family ---------- */
+.piel-mostrador .banda {
+    border-radius: 4px;
+    background-image: var(--ruido);
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .pared-turno {
+    border-radius: 0 0 4px 4px;
+    box-shadow: inset 0 3px 6px rgba(60, 35, 20, 0.2);
+}
+
+.piel-mostrador .pared-turno .riel {
+    height: 10px;
+    background: linear-gradient(var(--eg-madera-luz), var(--eg-madera) 40%, var(--eg-madera-sombra));
+}
+
+.piel-mostrador .turno-p {
+    border-radius: 3px;
+}
+
+.piel-mostrador .turno-p > summary {
+    border-bottom: 2px solid var(--eg-tinta);
+}
+
+.piel-mostrador .turno-p:not([open]) > summary {
+    border-bottom: 0;
+}
+
+.piel-mostrador .llegada {
+    border-top-color: var(--pauta);
+}
+
+.piel-mostrador .vino {
+    border-radius: 4px;
+    border-width: 2px;
+    background: #fff;
+}
+
+.piel-mostrador .vino[aria-pressed="true"] {
+    background: var(--eg-accion);
+}
+
+.piel-mostrador .buscar-puerta .buscar input {
+    background: #fff;
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .buscar-puerta {
+        background: var(--papel-b-2) var(--ruido);
+        box-shadow: 0 6px 10px -8px rgba(0, 0, 0, 0.5);
+    }
+}
+/* ---------- The foot: who makes Eguahe, on a label ---------- */
+.piel-mostrador .pie-producto {
+    color: #f6ead8;
+}
+
+.piel-mostrador .pie-producto .firma,
+.piel-mostrador .pie-producto .nota-pie {
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta-2);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .pie-producto a {
+    color: var(--eg-tinta);
+}
+
+.piel-mostrador .guardar-pie {
+    background: none;
+}
+/* ---------- The phone: the desk stays, the paper takes the whole width ---------- */
+@media (max-width: 719px) {
+    .piel-mostrador .barra {
+        align-items: center;
+        padding-top: 6px;
+    }
+
+    .piel-mostrador .cabeza {
+        transform: none;
+    }
+
+    .piel-mostrador .abajo {
+        background: var(--papel-b) var(--ruido);
+        box-shadow: 0 -6px 16px -8px rgba(0, 0, 0, 0.45);
+        border: 0;
+    }
+
+    .piel-mostrador .epilogo .plegable {
+        transform: none;
+    }
+
+    .piel-mostrador .tablilla {
+        padding: 26px 8px 6px;
+        margin-inline: -6px;
+    }
+
+    .piel-mostrador .tablilla::before {
+        width: 110px;
+        margin-inline-start: -55px;
+    }
+}
+/* ---------- The gestures of the skin (escena.js asks for them; the state is already written) ---------- */
+.sello-golpe {
+    position: absolute;
+    z-index: 20;
+    width: 96px;
+    height: auto;
+    pointer-events: none;
+    filter: drop-shadow(6px 10px 8px rgba(40, 20, 5, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .piel-mostrador .lista .fila {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .piel-mostrador .sello-fecha,
+    .piel-mostrador .sello-grande {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}

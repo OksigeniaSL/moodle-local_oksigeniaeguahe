@@ -1,0 +1,54 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_inbox_row
+
+    One family in the inbox, read as one sentence: the hour it came (the day is the one of its group), the adults by
+    name (the only link, stretched over the row), each child by the name of its label with its course and stage, how
+    and when they wrote last, who looks after them (a small face), who is writing to them now, and the promise that is
+    due, with «Done» at hand for anyone. The stamp repeats the date for the eye of the skin and is hidden from readers.
+    A visit of today says who receives them.
+
+    Example context (json):
+    {"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
+        "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
+        "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}], "via": "Por WhatsApp, el viernes a las 9:02",
+        "viaicon": "", "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
+        "typing": null, "visit": null, "courses": "i3", "stages": "inquiry", "search": "marta leo",
+        "promise": {"text": "Prometisteis llamarles el lunes; hoy es miércoles.", "action": "#", "sesskey": "abc", "id": "1",
+            "who": {"first": "Andrés", "picture": "", "initials": "AR", "mine": true} } }
+}}
+<li class="fila{{^waiting}} contestada{{/waiting}}{{#promise}} con-promesa{{/promise}}{{#visit}} con-visita{{/visit}}" data-fila="{{id}}" data-buscar="{{search}}" data-cursos="{{courses}}" data-etapas="{{stages}}">
+    <span class="hora">{{hour}}</span>
+    <div class="quien">
+        <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}</a>
+        <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
+        <span class="meta">{{{viaicon}}}<span>{{via}}</span></span>
+        {{#visit}}<span class="visita-hoy">{{text}}</span>{{/visit}}
+        {{#typing}}<span class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/typing}}
+    </div>
+    {{#owner}}<span class="lleva" title="{{#str}}panel_owner, local_oksigeniaeguahe, {{first}}{{/str}}">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_owner, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/owner}}
+    {{#stamp}}<span class="sello-fecha" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}
+    {{#promise}}
+    <form class="promesa" method="post" action="{{action}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="promisedone">
+        {{#who}}{{> local_oksigeniaeguahe/panel_face }}{{/who}}
+        <span class="promesa-texto">{{text}}</span>
+        <button class="boton secundario pequeno" type="submit">{{#str}}panel_promise_done, local_oksigeniaeguahe{{/str}}</button>
+    </form>
+    {{/promise}}
+</li>
