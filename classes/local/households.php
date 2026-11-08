@@ -636,6 +636,44 @@ class households {
     }
 
     /**
+     * The latest of each household of a list, for the rows of the inbox: its last contact with the family (a note of the
+     * team does not count), the last thing the family said, and the last answer of the team.
+     *
+     * @param int[] $ids
+     * @return array Household id => ['last' => contact or null, 'said' => contact or null, 'answer' => contact or null].
+     */
+    public static function latest(array $ids): array {
+        global $DB;
+        if (!$ids) {
+            return [];
+        }
+        $out = array_fill_keys($ids, ['last' => null, 'said' => null, 'answer' => null]);
+        [$in, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+        $contacts = $DB->get_recordset_select(
+            self::CONTACTS,
+            "householdid $in",
+            $params,
+            'timecreated DESC, id DESC',
+            'id, householdid, direction, channel, body, entryid, detail, userid, timecreated'
+        );
+        foreach ($contacts as $contact) {
+            $row = $out[$contact->householdid];
+            if ($row['last'] === null && $contact->direction !== 'note') {
+                $row['last'] = $contact;
+            }
+            if ($row['said'] === null && $contact->direction === 'in' && trim((string) $contact->body) !== '') {
+                $row['said'] = $contact;
+            }
+            if ($row['answer'] === null && $contact->direction === 'out') {
+                $row['answer'] = $contact;
+            }
+            $out[$contact->householdid] = $row;
+        }
+        $contacts->close();
+        return $out;
+    }
+
+    /**
      * How many households of a centre wait for an answer.
      *
      * @param int $centreid

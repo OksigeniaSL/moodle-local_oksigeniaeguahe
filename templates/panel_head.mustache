@@ -1,0 +1,36 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_head
+
+    The head of a page of the panel: the way back if it is inside another, a line before, the sentence that answers the
+    question of the page (its only h1) and the line that completes it; at the side, its one main action.
+
+    Example context (json):
+    {"i": {"atras": ""}, "back": {"url": "#", "name": "Bandeja"}, "ante": "Espera respuesta desde el jueves",
+        "title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
+        "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} }
+}}
+{{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
+<div class="cabeza">
+    <div class="cabeza-texto">
+        {{#ante}}<p class="ante">{{ante}}</p>{{/ante}}
+        <h1 class="titular">{{title}}</h1>
+        {{#sub}}<p class="sub">{{sub}}</p>{{/sub}}
+    </div>
+    {{#action}}<div class="cabeza-acciones"><a class="boton principal" href="{{url}}"{{#anchor}} data-ancla="1"{{/anchor}}>{{{icon}}}{{name}}</a></div>{{/action}}
+</div>

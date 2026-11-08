@@ -26,12 +26,12 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
-use local_oksigeniaeguahe\local\householdpage;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
-use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\visits;
 
 $id = required_param('id', PARAM_INT);
@@ -45,34 +45,23 @@ if (!$household) {
 }
 $centre = centres::require_work((int) $household->centreid);
 $url = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]);
-staff::setup($url, get_string('household', $c), $centre);
+panel::setup($url, get_string('household', $c));
 
 $canact = centres::can_act((int) $USER->id);
 if ($action && !$canact) {
     centres::require_act((int) $centre->id);
 }
 
-if ($action === 'eraseask') {
-    // What it does, in the question and in its button.
-    echo $OUTPUT->header();
-    echo $OUTPUT->confirm(
-        get_string('erase_confirm', $c),
-        new single_button(
-            new moodle_url($url, ['action' => 'erase', 'sesskey' => sesskey()]),
-            get_string('erase_yes', $c),
-            'post',
-            single_button::BUTTON_DANGER
-        ),
-        new single_button($url, get_string('erase_no', $c), 'get')
-    );
-    echo $OUTPUT->footer();
-    die();
-}
-
 $newlink = '';
 if ($action && data_submitted() && confirm_sesskey()) {
     $body = trim(optional_param('body', '', PARAM_TEXT));
     $channel = optional_param('channel', 'other', PARAM_ALPHA);
+    if ($action === 'send') {
+        // The answer of the file, by the way chosen: the phone app, email, or a call written down.
+        $action = ['mobile' => 'replyphone', 'email' => 'reply'][$channel] ?? 'answer';
+    }
+    // What the team writes down by hand: the phone app counts as WhatsApp.
+    $channel = ['mobile' => 'whatsapp'][$channel] ?? $channel;
     $channel = in_array($channel, lists::HAND_CHANNELS, true) ? $channel : 'other';
     switch ($action) {
         case 'reply':
@@ -204,11 +193,10 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_oksigeniaeguahe/household', householdpage::context(
-    $household,
+panel::output(
     $centre,
-    $newlink,
-    $canact
-));
-echo $OUTPUT->footer();
+    'inbox',
+    panel::adults_line(households::full($household)->adults),
+    'panel_household',
+    panel_household::context($household, $centre, $canact, $newlink)
+);

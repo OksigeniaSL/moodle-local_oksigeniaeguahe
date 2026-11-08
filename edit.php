@@ -29,8 +29,9 @@ use local_oksigeniaeguahe\form\household_form;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_familyform;
 use local_oksigeniaeguahe\local\phone;
-use local_oksigeniaeguahe\local\staff;
 
 require_login(null, false);
 
@@ -45,7 +46,7 @@ if ($id && !$household) {
     throw new moodle_exception('invalidrecord', 'error');
 }
 $url = new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []));
-staff::setup($url, get_string($household ? 'household_edit' : 'household_new', $c), $centre);
+panel::setup($url, get_string($household ? 'household_edit' : 'household_new', $c));
 $back = $household ? new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]) :
     new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]);
 
@@ -167,15 +168,20 @@ if ($data = $form->get_data()) {
         }
     }
     $transaction->allow_commit();
+    // With «and answer now», straight to the answer of the file.
+    $anchor = optional_param('answernow', 0, PARAM_BOOL) ? 'contestar' : null;
     redirect(
-        new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]),
+        new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id], $anchor),
         $notice,
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string($household ? 'household_edit' : 'household_new', $c));
-$form->display();
-echo $OUTPUT->footer();
+panel::output(
+    $centre,
+    'inbox',
+    get_string($household ? 'household_edit' : 'household_new', $c),
+    'panel_familyform',
+    panel_familyform::context($form, $centre, $household, $url, $back)
+);

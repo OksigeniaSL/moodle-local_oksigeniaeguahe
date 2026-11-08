@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.14.0 (2026-11-08)
+
+- **The panel of the team, first part**: pages of its own, with none of the look of Moodle (Moodle gives the session,
+  the permissions and the colour mode the person chose). The bar with the mark of Eguahe, the centre and the others the
+  person works for, the sections and how many families wait; on a phone, a bar at the bottom. At the foot, who makes
+  Eguahe.
+- **The inbox**: how many families wait and since when, in words («Desde el jueves · hace 5 días»), the one waiting
+  longest first; each family with its adults, what they said last, how and when, and each child by the name of its label;
+  a search; the visits of the person; the places of each course as a rail with a knob per place.
+- **The file of a household**: its children on the wall, each with its way in five steps (the waiting list in the step
+  of the place, closing with its reason, opening again); the conversation from the first thing to the last, with the
+  answer at the end by the way chosen (the phone app, email or a call written down); who writes and how; what they
+  answered; the visit of their own; a new link for their page; erasing their data, asked on the page.
+- **Writing down a family**: children first, then who writes, how they came and what they said; «and answer now» opens
+  the answer of its file.
+- The look is provisional: the art director is drawing it again.
+
 ## 0.13.1 (2026-11-08)
 
 - **The QR of the poster and of the page of an event, the one the shortener draws** when it draws them (nur.click):

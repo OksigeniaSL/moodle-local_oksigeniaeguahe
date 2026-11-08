@@ -26,8 +26,9 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_inbox;
 use local_oksigeniaeguahe\local\staff;
-use local_oksigeniaeguahe\local\visits;
 
 require_login(null, false);
 
@@ -55,78 +56,10 @@ if (!$centre) {
 }
 
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));
-staff::setup($url, get_string('inbox', $c), $centre);
-
-$rows = [];
-foreach (households::inbox((int) $centre->id, !$all) as $household) {
-    $children = [];
-    foreach ($household->children as $child) {
-        $children[] = ['name' => $child->firstname,
-            'offer' => $child->offer ? format_string($child->offer->name) : get_string('offer_unknown', $c),
-            'stage' => get_string('stage_' . $child->stage, $c)];
-    }
-    $rows[] = [
-        'url' => (new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
-        'names' => staff::adult_names($household->adults),
-        'children' => $children,
-        'channel' => get_string('channel_' . $household->firstchannel, $c),
-        'incentre' => !empty($household->incentre),
-        'waiting' => $household->waitingsince > 0,
-        'waited' => $household->waitingsince ? staff::waited((int) $household->waitingsince) : '',
-        'last' => userdate((int) $household->lastcontact, get_string('strftimedatetimeshort', 'langconfig')),
-    ];
-}
-
-$counts = households::offer_counts((int) $centre->id);
-$offers = [];
-foreach (centres::offers((int) $centre->id, true) as $offer) {
-    $bystage = $counts[$offer->id] ?? [];
-    $open = array_sum($bystage) - ($bystage['closed'] ?? 0) - ($bystage['enrolled'] ?? 0);
-    $enrolled = $bystage['enrolled'] ?? 0;
-    $offers[] = [
-        'name' => format_string($offer->name),
-        'year' => s($offer->schoolyear),
-        'open' => $open,
-        'visited' => ($bystage['visit'] ?? 0) + ($bystage['application'] ?? 0) + ($bystage['admitted'] ?? 0) +
-            ($bystage['waitlist'] ?? 0),
-        'enrolled' => $enrolled,
-        'places' => (int) $offer->places,
-        'hasplaces' => $offer->places > 0,
-        'left' => max(0, (int) $offer->places - $enrolled),
-    ];
-}
-
-// The visits this person of the team guides or receives in the days to come.
-$mine = [];
-foreach (array_slice(visits::mine((int) $centre->id, (int) $USER->id), 0, 8) as $event) {
-    $family = $event->householdid ? households::get((int) $event->householdid, (int) $centre->id) : null;
-    $mine[] = [
-        'when' => userdate((int) $event->timestart, get_string('strftimedaydatetime', 'langconfig')),
-        'name' => format_string($event->name),
-        'family' => $family ? staff::adult_names(households::full($family)->adults) : '',
-        'url' => $family ? (new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
-            (new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
-    ];
-}
-
-$waiting = households::waiting_count((int) $centre->id);
-echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_oksigeniaeguahe/inbox', [
-    'tabs' => staff::tabs($centre, 'inbox'),
-    'waiting' => $waiting,
-    'waitingtext' => get_string($waiting === 1 ? 'inbox_waiting_one' : 'inbox_waiting', $c, $waiting),
-    'all' => $all,
-    'waitingurl' => (new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
-    'allurl' => (new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'all' => 1]))->out(false),
-    'newurl' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id]))->out(false),
-    'canact' => centres::can_act((int) $USER->id),
-    'rows' => $rows,
-    'hasrows' => (bool) $rows,
-    'mine' => $mine,
-    'hasmine' => (bool) $mine,
-    'offers' => $offers,
-    'hasoffers' => (bool) $offers,
-    'settingsurl' => has_capability('local/oksigeniaeguahe:manage', context_system::instance()) ?
-        (new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]))->out(false) : '',
-]);
-echo $OUTPUT->footer();
+panel::setup($url, get_string('inbox', $c));
+panel::output($centre, 'inbox', get_string('inbox', $c), 'panel_inbox', panel_inbox::context(
+    $centre,
+    $all,
+    (int) $USER->id,
+    centres::can_act((int) $USER->id)
+));

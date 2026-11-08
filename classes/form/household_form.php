@@ -59,14 +59,7 @@ class household_form extends \moodleform {
                 lists::HAND_CHANNELS,
                 'channel_'
             ));
-            $eventoptions = [0 => get_string('form_noevent', $c)];
-            foreach (events::for_centre((int) $centre->id) as $event) {
-                if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
-                    $eventoptions[$event->id] = format_string($event->name) . ' · ' .
-                        userdate((int) $event->timestart, get_string('strftimedatetimeshort', 'langconfig'));
-                }
-            }
-            $mform->addElement('select', 'eventid', get_string('form_event', $c), $eventoptions);
+            $mform->addElement('select', 'eventid', get_string('form_event', $c), self::event_options($centre));
             $mform->setDefault('eventid', (int) ($this->_customdata['eventid'] ?? 0));
             $mform->addElement('advcheckbox', 'came', get_string('form_came', $c));
             $mform->hideIf('came', 'eventid', 'eq', 0);
@@ -95,10 +88,7 @@ class household_form extends \moodleform {
         $mform->addRule('firstname0', null, 'required', null, 'client');
 
         $mform->addElement('header', 'childrenheader', get_string('children', $c));
-        $offers = [0 => get_string('offer_unknown', $c)];
-        foreach (centres::offers((int) $centre->id) as $offer) {
-            $offers[$offer->id] = centres::offer_label($offer);
-        }
+        $offers = self::offer_options($centre);
         for ($i = 0; $i < self::CHILDREN; $i++) {
             $mform->addElement('hidden', "childid{$i}", 0);
             $mform->setType("childid{$i}", PARAM_INT);
@@ -118,9 +108,7 @@ class household_form extends \moodleform {
         }
 
         $mform->addElement('header', 'aboutheader', get_string('form_about', $c));
-        $places = ['' => get_string('form_place_unknown', $c)] + centres::municipalities($centre) +
-            ['other' => get_string('form_place_other', $c)];
-        $mform->addElement('select', 'municipality', get_string('municipality', $c), $places);
+        $mform->addElement('select', 'municipality', get_string('municipality', $c), self::place_options($centre));
         $mform->addElement('text', 'municipalityother', get_string('form_place_other', $c), ['size' => 30]);
         $mform->setType('municipalityother', PARAM_TEXT);
         $mform->hideIf('municipalityother', 'municipality', 'neq', 'other');
@@ -147,6 +135,76 @@ class household_form extends \moodleform {
             }
         }
         $this->add_action_buttons(true, get_string($isnew ? 'household_save_new' : 'savechanges', $isnew ? $c : 'moodle'));
+    }
+
+    /**
+     * The events a family noted by the team can come to: those not over, open to all.
+     *
+     * @param \stdClass $centre
+     * @return array id => name and day; 0, none.
+     */
+    public static function event_options(\stdClass $centre): array {
+        $options = [0 => get_string('form_noevent', 'local_oksigeniaeguahe')];
+        foreach (events::for_centre((int) $centre->id) as $event) {
+            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
+                $options[$event->id] = format_string($event->name) . ' · ' .
+                    userdate((int) $event->timestart, get_string('strftimedatetimeshort', 'langconfig'));
+            }
+        }
+        return $options;
+    }
+
+    /**
+     * The courses of the offer a child can ask for.
+     *
+     * @param \stdClass $centre
+     * @return array id => course and school year; 0, not known yet.
+     */
+    public static function offer_options(\stdClass $centre): array {
+        $options = [0 => get_string('offer_unknown', 'local_oksigeniaeguahe')];
+        foreach (centres::offers((int) $centre->id) as $offer) {
+            $options[$offer->id] = centres::offer_label($offer);
+        }
+        return $options;
+    }
+
+    /**
+     * Where a family can live: the municipalities of the centre, or another one written.
+     *
+     * @param \stdClass $centre
+     * @return array code => name
+     */
+    public static function place_options(\stdClass $centre): array {
+        $c = 'local_oksigeniaeguahe';
+        return ['' => get_string('form_place_unknown', $c)] + centres::municipalities($centre) +
+            ['other' => get_string('form_place_other', $c)];
+    }
+
+    /**
+     * What was sent, or what the form was given to start with, for a page that draws the form itself.
+     *
+     * @return array
+     */
+    public function values(): array {
+        return (array) $this->_form->exportValues();
+    }
+
+    /**
+     * What is wrong in what was sent, by field.
+     *
+     * @return array
+     */
+    public function errors(): array {
+        return (array) $this->_form->_errors;
+    }
+
+    /**
+     * The name Moodle gives the form, which a page that draws it itself sends back.
+     *
+     * @return string
+     */
+    public function identifier(): string {
+        return $this->get_form_identifier();
     }
 
     /**

@@ -1,0 +1,535 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_oksigeniaeguahe\local;
+
+/**
+ * The panel of the team: pages of their own, with none of the look of Moodle. Moodle gives the session, the
+ * permissions and the colour mode; the panel gives the bar with the sections, the page, and at the foot who makes
+ * Eguahe. Its pieces: the time told in words, the rail of the places of a course, the leaf of a calendar and the
+ * backpack of each child, hanging from its knob.
+ *
+ * @package    local_oksigeniaeguahe
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class panel {
+    /** @var string */
+    const C = 'local_oksigeniaeguahe';
+
+    /** @var array Line icons of 24, drawn with the colour of the text: name => [paths, stroke width]. */
+    const ICONS = [
+        'bandeja' => ['<path d="M3.5 13.5h4.5l1.5 2.5h5l1.5-2.5h4.5"/><path d="M5.5 5h13l2 8.5V19H3.5v-5.5z"/>', 2],
+        'actos' => ['<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/><path d="M8 14h3"/>', 2],
+        'cifras' => ['<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>', 2],
+        'mas' => ['<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>', 2.4],
+        'entradas' => ['<path d="M4 6.5h16M4 12h10M4 17.5h7"/><path d="M17 15l3 2.5-3 2.5"/>', 2],
+        'prevision' => ['<path d="M3.5 18l5-6 4 3 7.5-9"/><path d="M15.5 6h4.5v4.5"/>', 2],
+        'ajustes' => ['<circle cx="12" cy="12" r="3"/>' .
+            '<path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7' .
+            'M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/>', 2],
+        'chev' => ['<path d="M7 10l5 5 5-5"/>', 2],
+        'der' => ['<path d="M9 6l6 6-6 6"/>', 2],
+        'atras' => ['<path d="M15 6l-6 6 6 6"/>', 2],
+        'buscar' => ['<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>', 2],
+        'mas1' => ['<path d="M12 5v14M5 12h14"/>', 2.2],
+        'check' => ['<path d="M5 12.5l4.5 4.5L19 7.5"/>', 2.6],
+        'correo' => ['<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>', 2],
+        'whatsapp' => ['<path d="M4.5 19.5l1.2-3.6A8 8 0 1 1 8.4 18.6z"/>' .
+            '<path d="M9.2 9.3c.3 1.9 1.6 3.6 3.6 4.5l1.2-1 1.7.8v1.4c-3.6.4-7.3-3.1-7-6.6h1.4z"/>', 1.7],
+        'telefono' => ['' .
+            '<path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2z"/>', 2],
+        'formulario' => ['<rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/>', 2],
+        'persona' => ['<circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>', 2],
+        'nota' => ['<path d="M5 4.5h14v10l-5 5H5z"/><path d="M14 19.5v-5h5"/>', 2],
+        'enviado' => ['<path d="M20.5 3.5L10 14M20.5 3.5l-6.5 17-4-6.5-6.5-4z"/>', 2],
+        'enlace' => ['<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/>' .
+            '<path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/>', 2],
+        'fuera' => ['<path d="M14 4h6v6M20 4l-9 9"/>' .
+            '<path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/>', 2],
+        'copiar' => ['<rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/>' .
+            '<path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>', 2],
+        'imprimir' => ['<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>', 2],
+        'arriba' => ['<path d="M12 19V5M6 11l6-6 6 6"/>', 2],
+        'abajo' => ['<path d="M12 5v14M6 13l6 6 6-6"/>', 2],
+        'borrar' => ['<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>', 2],
+        'lapiz' => ['<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 2],
+        'agarre' => ['<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/>' .
+            '<circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>', 2],
+        'rama' => ['<path d="M6 4v8a4 4 0 0 0 4 4h8"/><path d="M15 13l3 3-3 3"/>', 2],
+        'info' => ['<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.01"/>', 2.2],
+        'qr' => ['<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/>' .
+            '<rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2M18 14h2M14 18h2v2h4v-2"/>', 2],
+        'candado' => ['<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>', 2],
+        'ojo' => ['<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/>' .
+            '<circle cx="12" cy="12" r="3"/>', 2],
+        'plano' => ['<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/>' .
+            '<circle cx="12" cy="10" r="2.3"/>', 2],
+        'movil' => ['<rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6"/><path d="M10.5 18h3"/>', 2],
+        'sistema' => ['<path d="M12 3.5l2 2.8 3.4-.5.5 3.4 2.8 2-2.8 2-.5 3.4-3.4-.5-2 2.8-2-2.8-3.4.5-.5-3.4-2.8-2 2.8-2 ' .
+            '.5-3.4 3.4.5z"/>', 1.6],
+        'salir' => ['<path d="M10 4.5H6A1.5 1.5 0 0 0 4.5 6v12A1.5 1.5 0 0 0 6 19.5h4"/><path d="M15 8l4 4-4 4M19 12H9.5"/>', 2],
+        'ia' => ['<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="3"/>', 2],
+    ];
+
+    /** @var array The sections of the bar, in order: key => [string, icon, page]. */
+    const SECTIONS = [
+        'inbox' => ['tab_inbox', 'bandeja', '/local/oksigeniaeguahe/index.php'],
+        'events' => ['tab_events', 'actos', '/local/oksigeniaeguahe/events.php'],
+        'entries' => ['tab_entries', 'entradas', '/local/oksigeniaeguahe/entries.php'],
+        'metrics' => ['tab_metrics', 'cifras', '/local/oksigeniaeguahe/metrics.php'],
+        'forecast' => ['tab_forecast', 'prevision', '/local/oksigeniaeguahe/forecast.php'],
+        'settings' => ['tab_settings', 'ajustes', '/local/oksigeniaeguahe/centre.php'],
+    ];
+
+    /**
+     * The icons, as the templates take them.
+     *
+     * @return array Name => SVG.
+     */
+    public static function icons(): array {
+        $out = [];
+        foreach (array_keys(self::ICONS) as $name) {
+            $out[$name] = self::icon($name);
+        }
+        return $out;
+    }
+
+    /**
+     * One icon.
+     *
+     * @param string $name
+     * @param string $class Another class for it.
+     * @return string SVG.
+     */
+    public static function icon(string $name, string $class = ''): string {
+        [$paths, $width] = self::ICONS[$name] ?? self::ICONS['formulario'];
+        return '<svg class="ic' . ($class !== '' ? ' ' . $class : '') . '" viewBox="0 0 24 24" fill="none" ' .
+            'stroke="currentColor" stroke-width="' . $width .
+            '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $paths . '</svg>';
+    }
+
+    /**
+     * The icon of a channel.
+     *
+     * @param string $channel
+     * @return string SVG.
+     */
+    public static function channel_icon(string $channel): string {
+        $icons = ['whatsapp' => 'whatsapp', 'email' => 'correo', 'phone' => 'telefono', 'telegram' => 'enviado',
+            'openday' => 'actos', 'visit' => 'actos', 'event' => 'actos', 'walkin' => 'persona', 'meta' => 'persona'];
+        return self::icon($icons[$channel] ?? 'formulario');
+    }
+
+    /**
+     * Sets up a page of the panel: Moodle knows where it is, and nothing of its look is printed.
+     *
+     * @param \moodle_url $url
+     * @param string $title
+     */
+    public static function setup(\moodle_url $url, string $title): void {
+        global $PAGE;
+        $PAGE->set_context(\context_system::instance());
+        $PAGE->set_url($url);
+        $PAGE->set_pagelayout('embedded');
+        $PAGE->set_title($title);
+        $PAGE->set_cacheable(false);
+    }
+
+    /**
+     * The colour mode the person chose in Moodle (Boost, from Moodle 5.3), for the html of the page: «light» or «dark»;
+     * empty for «automatic», or before 5.3, when the page follows the device.
+     *
+     * @return string
+     */
+    public static function mode(): string {
+        $class = '\\theme_boost\\colour_mode';
+        if (!class_exists($class) || !$class::is_boost_theme() || !$class::is_enabled()) {
+            return '';
+        }
+        $mode = (string) $class::get_current_mode();
+        return in_array($mode, ['light', 'dark'], true) ? $mode : '';
+    }
+
+    /**
+     * The sections of the bar for a centre, with the one of now and how many families wait.
+     *
+     * @param \stdClass $centre
+     * @param string $current
+     * @return array
+     */
+    public static function sections(\stdClass $centre, string $current): array {
+        $waiting = households::waiting_count((int) $centre->id);
+        $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
+        $out = [];
+        foreach (self::SECTIONS as $key => [$string, $icon, $page]) {
+            if ($key === 'settings' && !$manage) {
+                continue;
+            }
+            $out[] = [
+                'key' => $key,
+                'name' => get_string($string, self::C),
+                'url' => (new \moodle_url($page, $key === 'settings' ? ['id' => $centre->id] : ['c' => $centre->id]))->out(false),
+                'short' => get_string($key === 'events' ? 'panel_events_short' : $string, self::C),
+                'icon' => self::icon($icon),
+                'current' => $key === $current,
+                'count' => $key === 'inbox' && $waiting ? $waiting : 0,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * A person of the team as the panel shows them: the first name, and the picture of Moodle or the initials.
+     *
+     * @param \stdClass $user
+     * @return array name, first, picture (URL or ''), initials
+     */
+    public static function person(\stdClass $user): array {
+        global $PAGE;
+        $first = trim((string) ($user->firstname ?? ''));
+        $picture = '';
+        if (!empty($user->picture)) {
+            $pic = new \user_picture($user);
+            $pic->size = 72;
+            $picture = $pic->get_url($PAGE)->out(false);
+        }
+        return [
+            'name' => fullname($user),
+            'first' => $first,
+            'picture' => $picture,
+            'initials' => \core_text::strtoupper(\core_text::substr($first, 0, 1) .
+                \core_text::substr(trim((string) ($user->lastname ?? '')), 0, 1)),
+        ];
+    }
+
+    /**
+     * Prints the whole page and stops: the bar of the panel, the page, the bar of the phone and the foot. The colours
+     * of the centre become variables here, for light and dark, as on the pages of the families.
+     *
+     * @param \stdClass $centre
+     * @param string $section The section the page belongs to.
+     * @param string $title
+     * @param string $template Of the plugin, without its component.
+     * @param array $context
+     * @param bool $door Whether it is the door of an event: a way of working, without the bar of the phone.
+     */
+    public static function output(
+        \stdClass $centre,
+        string $section,
+        string $title,
+        string $template,
+        array $context,
+        bool $door = false
+    ): void {
+        global $CFG, $OUTPUT, $USER;
+        $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
+        $version = (int) get_config('local_oksigeniaeguahe', 'version');
+        $colour = $centre->colour ?: '#2f5d62';
+        $name = format_string($centre->name);
+        $lang = current_language();
+        $sections = self::sections($centre, $section);
+        $more = array_values(array_filter($sections, fn($s) => in_array($s['key'], ['entries', 'forecast', 'settings'], true)));
+        $phone = array_values(array_filter($sections, fn($s) => in_array($s['key'], ['inbox', 'events', 'metrics'], true)));
+        $centres = [];
+        foreach (centres::for_user((int) $USER->id) as $each) {
+            if ((int) $each->id !== (int) $centre->id) {
+                $centres[] = ['name' => format_string($each->name), 'url' => (new \moodle_url(
+                    '/local/oksigeniaeguahe/index.php',
+                    ['c' => $each->id]
+                ))->out(false)];
+            }
+        }
+        $logo = centres::logo((int) $centre->id);
+        $credit = publicpage::credit($lang);
+        $notices = [];
+        foreach (\core\notification::fetch() as $notice) {
+            $notices[] = ['text' => $notice->get_message(), 'error' => $notice->get_message_type() === 'error'];
+        }
+        $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons()]);
+        $frame = $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_frame', [
+            'i' => self::icons(),
+            'homeurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
+            'centre' => $name,
+            'initials' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
+            'logo' => $logo ? $logo->out(false) : '',
+            'centres' => $centres,
+            'hascentres' => (bool) $centres,
+            'sections' => $sections,
+            'phone' => $phone,
+            'more' => $more,
+            'morecurrent' => in_array($section, ['entries', 'forecast', 'settings'], true),
+            'door' => $door,
+            'me' => self::person($USER),
+            'moodleurl' => $CFG->wwwroot . '/',
+            'logouturl' => (new \moodle_url('/login/logout.php', ['sesskey' => sesskey()]))->out(false),
+            'notices' => $notices,
+            'hasnotices' => (bool) $notices,
+            'credit' => $credit ? get_string('panel_credit', self::C, \html_writer::link(
+                $credit['url'],
+                'Oksigenia',
+                ['target' => '_blank', 'rel' => 'noopener']
+            )) : '',
+        ]);
+        [$top, $bottom] = explode('<!-- main -->', $frame, 2) + [1 => ''];
+        $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
+        $mode = self::mode();
+        self::headers();
+        echo '<!DOCTYPE html>
+<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '"' .
+            ($mode !== '' ? ' data-bs-theme="' . $mode . '"' : '') . '>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="same-origin">
+<meta name="color-scheme" content="light dark">
+<title>' . s($title) . ' · ' . s($name) . '</title>
+<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="' . $base . 'panel.css?v=' . $version . '">
+<style>:root { ' . $vars(publicpage::centre_vars($colour, false)) . ' }
+@media (prefers-color-scheme: dark) { :root:not([data-bs-theme]) { ' . $vars(publicpage::centre_vars($colour, true)) . ' } }
+:root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
+<script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
+</head>
+<body class="panel' . ($door ? '' : ' con-abajo') . '">
+' . $top . $body . $bottom . '
+</body>
+</html>';
+        die();
+    }
+
+    /**
+     * The headers of every page of the panel: nothing from elsewhere, never inside another page.
+     */
+    public static function headers(): void {
+        @header('Content-Type: text/html; charset=utf-8');
+        @header('X-Content-Type-Options: nosniff');
+        @header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " .
+            "script-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; form-action 'self'; " .
+            "base-uri 'none'; object-src 'none'");
+        @header('Cache-Control: no-store');
+    }
+
+    /**
+     * How long someone has waited, in words: what goes first (bold), what goes below, and how the head of the inbox
+     * says it («La que más lleva espera desde el jueves a las 18:40»).
+     *
+     * @param int $since
+     * @param int $now
+     * @return array main, sub, since
+     */
+    public static function wait_words(int $since, int $now = 0): array {
+        $now = $now ?: time();
+        $time = self::hour($since);
+        $days = self::days_between($since, $now);
+        if ($days === 0) {
+            $minutes = max(1, intdiv($now - $since, MINSECS));
+            if ($minutes < 60) {
+                return [
+                    'main' => get_string($minutes === 1 ? 'panel_wait_minute' : 'panel_wait_minutes', self::C, $minutes),
+                    'sub' => get_string('panel_today', self::C, $time),
+                    'since' => get_string($minutes === 1 ? 'panel_since_minute' : 'panel_since_minutes', self::C, $minutes),
+                ];
+            }
+            $hours = intdiv($minutes, 60);
+            return [
+                'main' => get_string($hours === 1 ? 'panel_wait_hour' : 'panel_wait_hours', self::C, $hours),
+                'sub' => get_string('panel_today', self::C, $time),
+                'since' => get_string('panel_since_today', self::C, $time),
+            ];
+        }
+        if ($days === 1) {
+            return [
+                'main' => get_string('panel_wait_yesterday', self::C),
+                'sub' => get_string('panel_yesterday', self::C, $time),
+                'since' => get_string('panel_since_yesterday', self::C, $time),
+            ];
+        }
+        $day = $days < 7 ? userdate($since, '%A') : userdate($since, get_string('strftimedateshort', 'langconfig'));
+        return [
+            'main' => get_string('panel_wait_day', self::C, $day),
+            'sub' => get_string('panel_ago_days', self::C, $days),
+            'since' => get_string('panel_since_day', self::C, (object) ['day' => $day, 'time' => $time]),
+        ];
+    }
+
+    /**
+     * When something happened, in words: «hoy a las 8:15», «ayer a las 19:05», «el viernes a las 9:02», «el 28 de
+     * octubre a las 9:02».
+     *
+     * @param int $time
+     * @param int $now
+     * @return string
+     */
+    public static function when_words(int $time, int $now = 0): string {
+        $now = $now ?: time();
+        $hour = self::hour($time);
+        $days = self::days_between($time, $now);
+        if ($days === 0) {
+            return get_string('panel_when_today', self::C, $hour);
+        }
+        if ($days === 1) {
+            return get_string('panel_when_yesterday', self::C, $hour);
+        }
+        $day = $days > 0 && $days < 7 ? userdate($time, '%A') : userdate($time, get_string('strftimedateshort', 'langconfig'));
+        return get_string('panel_when_day', self::C, (object) ['day' => $day, 'time' => $hour]);
+    }
+
+    /**
+     * The hour of a moment, as the language of the person writes it, without a leading zero.
+     *
+     * @param int $time
+     * @return string
+     */
+    public static function hour(int $time): string {
+        return ltrim(userdate($time, get_string('strftimetime', 'langconfig')), '0 ');
+    }
+
+    /**
+     * How many days apart two moments are, by the calendar of the person: 0 the same day, 1 the day before.
+     *
+     * @param int $then
+     * @param int $now
+     * @return int
+     */
+    public static function days_between(int $then, int $now): int {
+        $zone = \core_date::get_user_timezone_object();
+        $a = (new \DateTime('@' . $then))->setTimezone($zone)->setTime(0, 0);
+        $b = (new \DateTime('@' . $now))->setTimezone($zone)->setTime(0, 0);
+        return (int) round(($b->getTimestamp() - $a->getTimestamp()) / DAYSECS);
+    }
+
+    /**
+     * The leaf of a calendar: the day of the week, the day and the month.
+     *
+     * @param int $time
+     * @return array weekday, day, month
+     */
+    public static function leaf(int $time): array {
+        return [
+            'weekday' => rtrim(userdate($time, '%a'), '.'),
+            'day' => userdate($time, '%d'),
+            'month' => rtrim(userdate($time, '%b'), '.'),
+        ];
+    }
+
+    /**
+     * The places of a course as a wooden rail: one knob per place, in fives, and a small backpack on each one taken.
+     * With more than 40 places, a knob every ten and a band with the part taken.
+     *
+     * @param int $total
+     * @param int $taken
+     * @return string SVG.
+     */
+    public static function rail(int $total, int $taken): string {
+        $width = 400;
+        $taken = max(0, min($taken, $total));
+        $label = get_string('panel_places_label', self::C, (object) ['taken' => $taken, 'total' => $total]);
+        $f = fn(float $n) => rtrim(rtrim(sprintf('%.1f', $n), '0'), '.');
+        $svg = '<svg class="perchero" viewBox="0 0 ' . $width . ' 34" preserveAspectRatio="xMinYMin meet" role="img" ' .
+            'aria-label="' . s($label) . '"><rect class="riel-r" x="0" y="0" width="' . $width . '" height="7" rx="2"/>' .
+            '<rect class="riel-l" x="0" y="0" width="' . $width . '" height="1.4" rx=".7"/>' .
+            '<rect class="riel-s" x="0" y="5.6" width="' . $width . '" height="1.4"/>';
+        if ($total <= 40) {
+            $gap = 6;
+            $gaps = $total > 0 ? intdiv($total - 1, 5) : 0;
+            $step = $total > 0 ? min(18, ($width - 8 - $gaps * $gap) / $total) : 18;
+            for ($i = 0; $i < $total; $i++) {
+                $x = 4 + $i * $step + intdiv($i, 5) * $gap + $step / 2;
+                if ($i < $taken) {
+                    $w = min($step * 0.76, 12);
+                    $h = 15;
+                    $x0 = $x - $w / 2;
+                    $y0 = 12.4;
+                    $rt = min(4.6, $w / 2 - 0.4);
+                    $rb = 2;
+                    $svg .= '<path class="ocupada" d="M' . $f($x - 2) . ' 13 v-2.4 a2 2 0 0 1 4 0 v2.4 h-1.1 v-2.4 a.9 .9 0 0 0 ' .
+                        '-1.8 0 v2.4 z"/>';
+                    $svg .= '<path class="ocupada" d="M' . $f($x0) . ' ' . $f($y0 + $rt) . ' a' . $f($rt) . ' ' . $f($rt) .
+                        ' 0 0 1 ' . $f($rt) . ' -' . $f($rt) . ' h' . $f($w - 2 * $rt) . ' a' . $f($rt) . ' ' . $f($rt) .
+                        ' 0 0 1 ' . $f($rt) . ' ' . $f($rt) . ' v' . $f($h - $rt - $rb) . ' a' . $rb . ' ' . $rb . ' 0 0 1 -' .
+                        $rb . ' ' . $rb . ' h-' . $f($w - 2 * $rb) . ' a' . $rb . ' ' . $rb . ' 0 0 1 -' . $rb . ' -' . $rb .
+                        ' z"/>';
+                    $svg .= '<rect class="tapa" x="' . $f($x0 + 1.5) . '" y="' . $f($y0 + 4.4) . '" width="' . $f($w - 3) .
+                        '" height="1.3" rx=".65"/><rect class="tapa" x="' . $f($x0 + 2.3) . '" y="' . $f($y0 + $h - 6) .
+                        '" width="' . $f($w - 4.6) . '" height="3.6" rx="1.2" opacity=".6"/>';
+                }
+                $svg .= '<circle class="pomo" cx="' . $f($x) . '" cy="10" r="2.6"/>';
+            }
+        } else {
+            $svg .= '<rect class="franja" x="4" y="12.5" width="' . $f(($width - 8) * $taken / $total) .
+                '" height="15" rx="3"/>';
+            for ($i = 0; $i <= $total; $i += 10) {
+                $svg .= '<circle class="pomo" cx="' . $f(4 + ($width - 8) * $i / $total) . '" cy="10" r="2.6"/>';
+            }
+        }
+        return $svg . '</svg>';
+    }
+
+    /**
+     * A backpack hanging from its knob, for the partial panel_hanging: a little crooked, each its own way, with the
+     * name used at home on its label; brothers and sisters in other tones.
+     *
+     * @param int $i
+     * @param string $name
+     * @return array
+     */
+    public static function hanging(int $i, string $name): array {
+        $style = '';
+        if ($i) {
+            $tone = ['#6F5E6E', '#5E7F6A', '#B98256'][($i - 1) % 3];
+            $style = '--mochila:' . $tone . ';--mochila-sombra:' . publicpage::mix($tone, '#000000', 0.24) .
+                ';--mochila-luz:' . publicpage::mix($tone, '#FFFFFF', 0.6) . ';';
+        }
+        return ['name' => $name, 'style' => $style . '--reposo:' . ['-3.5', '3', '-2', '4'][$i % 4] . 'deg'];
+    }
+
+    /**
+     * The name a child goes by on its label: the one used at home, else the first name.
+     *
+     * @param \stdClass $child
+     * @return string
+     */
+    public static function tag(\stdClass $child): string {
+        $tag = trim((string) ($child->tagname ?? ''));
+        return $tag !== '' ? $tag : trim((string) $child->firstname);
+    }
+
+    /**
+     * The adults of a household in a line, with their first surname: «Marta Ruiz y Daniel Ortega».
+     *
+     * @param array $adults
+     * @return string
+     */
+    public static function adults_line(array $adults): string {
+        $names = [];
+        foreach ($adults as $adult) {
+            $surname = trim((string) $adult->lastname);
+            // Particles stay with the surname: «Mohamed El Amrani», «Ana de la Torre».
+            if (preg_match('/^((?:(?:de|del|la|las|los|da|do|dos|das|van|von|el|al|di|le)\s+)*\S+)/iu', $surname, $m)) {
+                $surname = $m[1];
+            }
+            $names[] = trim(trim((string) $adult->firstname) . ' ' . $surname);
+        }
+        $names = array_values(array_filter($names));
+        if (!$names) {
+            return get_string('household_noname', self::C);
+        }
+        $last = array_pop($names);
+        return $names ? get_string('andlist', self::C, (object) ['list' => implode(', ', $names), 'last' => $last]) : $last;
+    }
+}

@@ -1,0 +1,125 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_familyform
+
+    Writing down a family from the panel (a call, the desk, the door of an open day), or changing it: who would study,
+    who writes, how they came and what they said, where they live and the permissions they gave. The form of Moodle
+    behind it checks and saves; this page only draws it.
+
+    Example context (json):
+    {
+        "head": {"title": "Apuntar a una familia", "sub": "", "back": {"url": "#", "name": "Bandeja"} },
+        "i": {"atras": ""}, "action": "#", "sesskey": "abc", "marker": "_qf__form", "centreid": 1, "id": 0, "isnew": true,
+        "haserrors": false, "backurl": "#",
+        "children": [{"i": 0, "number": 1, "id": 0, "open": true, "offername": "offerid0",
+            "name": {"name": "childname0", "value": "", "error": ""}, "tag": {"name": "childtag0", "value": "", "error": ""},
+            "offers": [{"value": 0, "name": "Sin decir", "selected": true}]}],
+        "adults": [{"i": 0, "id": 0, "open": true, "required": true,
+            "firstname": {"name": "firstname0", "value": "", "error": ""}, "lastname": {"name": "lastname0", "value": "", "error": ""},
+            "phone": {"name": "phone0", "value": "", "error": ""}, "email": {"name": "email0", "value": "", "error": ""} }],
+        "channels": [{"value": "phone", "name": "Teléfono", "selected": true}], "hasevents": false, "events": [],
+        "came": false, "people": "1", "body": "", "awaits": true, "places": [], "placeother": {"name": "municipalityother",
+        "value": "", "error": ""}, "heard": [], "incentre": false, "langs": [], "consents": [{"name": "consentemail",
+        "label": "Correo", "checked": false}]
+    }
+}}
+<div class="pagina">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <form class="formulario-panel" method="post" action="{{action}}" novalidate>
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="{{marker}}" value="1">
+        <input type="hidden" name="c" value="{{centreid}}">
+        <input type="hidden" name="id" value="{{id}}">
+        {{#haserrors}}<p class="aviso-suave error" role="alert">{{#str}}panel_ff_errors, local_oksigeniaeguahe{{/str}}</p>{{/haserrors}}
+
+        <section class="apartado">
+            <header><h2>{{#str}}panel_children, local_oksigeniaeguahe{{/str}}</h2></header>
+            {{#children}}
+            <details class="bloque-form"{{#open}} open{{/open}}>
+                <summary>{{#str}}form_child, local_oksigeniaeguahe, {{number}}{{/str}}</summary>
+                <input type="hidden" name="childid{{i}}" value="{{id}}">
+                <div class="rejilla-2">
+                    {{#name}}<div class="campo"><label for="{{name}}">{{#str}}form_childname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"></div>{{/name}}
+                    {{#tag}}<div class="campo"><label for="{{name}}">{{#str}}form_tagname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"></div>{{/tag}}
+                    <div class="campo ancho"><label for="{{offername}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><select id="{{offername}}" name="{{offername}}">{{#offers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/offers}}</select></div>
+                </div>
+            </details>
+            {{/children}}
+        </section>
+
+        <section class="apartado">
+            <header><h2>{{#str}}panel_who_writes, local_oksigeniaeguahe{{/str}}</h2></header>
+            {{#adults}}
+            <details class="bloque-form"{{#open}} open{{/open}}>
+                <summary>{{#required}}{{#str}}form_adult1, local_oksigeniaeguahe{{/str}}{{/required}}{{^required}}{{#str}}form_adult2, local_oksigeniaeguahe{{/str}}{{/required}}</summary>
+                <input type="hidden" name="adultid{{i}}" value="{{id}}">
+                <div class="rejilla-2">
+                    {{#firstname}}<div class="campo"><label for="{{name}}">{{#str}}firstname{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"{{#required}} required{{/required}}{{#error}} aria-invalid="true" aria-describedby="{{name}}-e"{{/error}}>{{#error}}<span class="error" id="{{name}}-e">{{error}}</span>{{/error}}</div>{{/firstname}}
+                    {{#lastname}}<div class="campo"><label for="{{name}}">{{#str}}lastname{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"></div>{{/lastname}}
+                    {{#phone}}<div class="campo"><label for="{{name}}">{{#str}}phone, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" type="tel" inputmode="tel" autocomplete="off"{{#error}} aria-invalid="true" aria-describedby="{{name}}-e"{{/error}}>{{#error}}<span class="error" id="{{name}}-e">{{error}}</span>{{/error}}</div>{{/phone}}
+                    {{#email}}<div class="campo"><label for="{{name}}">{{#str}}email{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" type="email" spellcheck="false" autocomplete="off"{{#error}} aria-invalid="true" aria-describedby="{{name}}-e"{{/error}}>{{#error}}<span class="error" id="{{name}}-e">{{error}}</span>{{/error}}</div>{{/email}}
+                </div>
+            </details>
+            {{/adults}}
+        </section>
+
+        {{#isnew}}
+        <section class="apartado">
+            <header><h2>{{#str}}form_how, local_oksigeniaeguahe{{/str}}</h2></header>
+            <div class="rejilla-2">
+                <div class="campo"><label for="channel">{{#str}}channel, local_oksigeniaeguahe{{/str}}</label><select id="channel" name="channel">{{#channels}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/channels}}</select></div>
+                {{#hasevents}}
+                <div class="campo"><label for="eventid">{{#str}}form_event, local_oksigeniaeguahe{{/str}}</label><select id="eventid" name="eventid">{{#events}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/events}}</select></div>
+                <div class="campo"><label for="people">{{#str}}form_people, local_oksigeniaeguahe{{/str}}</label><input id="people" name="people" value="{{people}}" type="number" min="1" inputmode="numeric"></div>
+                <label class="casilla"><input type="hidden" name="came" value="0"><input type="checkbox" name="came" value="1"{{#came}} checked{{/came}}> {{#str}}form_came, local_oksigeniaeguahe{{/str}}</label>
+                {{/hasevents}}
+                <div class="campo ancho"><label for="body">{{#str}}form_said, local_oksigeniaeguahe{{/str}}</label><textarea id="body" name="body" rows="4">{{body}}</textarea></div>
+                <label class="casilla ancho"><input type="hidden" name="awaits" value="0"><input type="checkbox" name="awaits" value="1"{{#awaits}} checked{{/awaits}}> {{#str}}form_awaits, local_oksigeniaeguahe{{/str}}</label>
+            </div>
+        </section>
+        {{/isnew}}
+
+        <section class="apartado">
+            <header><h2>{{#str}}form_about, local_oksigeniaeguahe{{/str}}</h2></header>
+            <div class="rejilla-2">
+                <div class="campo"><label for="municipality">{{#str}}municipality, local_oksigeniaeguahe{{/str}}</label><select id="municipality" name="municipality">{{#places}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/places}}</select></div>
+                {{#placeother}}<div class="campo"><label for="{{name}}">{{#str}}form_place_other, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}"></div>{{/placeother}}
+                <div class="campo"><label for="heardfrom">{{#str}}heardfrom, local_oksigeniaeguahe{{/str}}</label><select id="heardfrom" name="heardfrom">{{#heard}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/heard}}</select></div>
+                <div class="campo"><label for="lang">{{#str}}form_lang, local_oksigeniaeguahe{{/str}}</label><select id="lang" name="lang">{{#langs}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/langs}}</select></div>
+                <label class="casilla ancho"><input type="hidden" name="incentre" value="0"><input type="checkbox" name="incentre" value="1"{{#incentre}} checked{{/incentre}}> {{#str}}incentre, local_oksigeniaeguahe{{/str}}</label>
+            </div>
+        </section>
+
+        {{#isnew}}
+        <section class="apartado">
+            <header><h2>{{#str}}permissions, local_oksigeniaeguahe{{/str}}</h2></header>
+            <p class="secundario">{{#str}}form_consent_help, local_oksigeniaeguahe{{/str}}</p>
+            {{#consents}}<label class="casilla"><input type="hidden" name="{{name}}" value="0"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}> {{label}}</label>{{/consents}}
+        </section>
+        {{/isnew}}
+
+        <div class="acciones guardar-pie">
+            {{#isnew}}
+            <button class="boton principal" type="submit" name="submitbutton" value="1">{{#str}}panel_ff_save, local_oksigeniaeguahe{{/str}}</button>
+            <button class="boton secundario" type="submit" name="answernow" value="1">{{#str}}panel_ff_save_answer, local_oksigeniaeguahe{{/str}}</button>
+            {{/isnew}}
+            {{^isnew}}<button class="boton principal" type="submit" name="submitbutton" value="1">{{#str}}savechanges{{/str}}</button>{{/isnew}}
+            <a class="boton terciario" href="{{backurl}}">{{#str}}cancel{{/str}}</a>
+        </div>
+    </form>
+</div>

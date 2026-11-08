@@ -1,0 +1,113 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_inbox
+
+    The inbox of a centre: who waits for an answer and since when, in words, the one waiting longest first; each family
+    with its adults, what they said last, how and when, and each child with the label of its name; beside it, the visits
+    of the person and the places of each course on their rail. No colour says anything of a family.
+
+    Example context (json):
+    {
+        "i": {"atras": "", "buscar": "", "der": "", "actos": "", "formulario": "", "mas1": ""},
+        "head": {"title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
+            "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} },
+        "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
+        "hasrows": true,
+        "rows": [{"url": "#", "waiting": true, "main": "Desde el jueves", "sub": "hace 5 días", "adults": "Marta Ruiz",
+            "said": "«¿Tienen comedor?»", "via": "Por WhatsApp, el viernes a las 9:02", "viaicon": "", "search": "marta",
+            "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}]}],
+        "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.", "newevent": "#", "newform": "#",
+        "hasvisits": true, "visits": [{"url": "#", "weekday": "jue", "day": "12", "month": "nov", "title": "17:30 · familia Ruiz",
+            "tag": "Leo", "detail": "Comedor · 45 min", "place": ""}],
+        "year": "2027-28", "hasplaces": true,
+        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11,
+            "enrolled": 6}]
+    }
+}}
+<div class="pagina">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="bandeja">
+        <section aria-label="{{#str}}panel_families, local_oksigeniaeguahe{{/str}}">
+            {{#showtools}}
+            <div class="herramientas">
+                <div class="segmentos" role="group" aria-label="{{#str}}panel_which, local_oksigeniaeguahe{{/str}}">
+                    <a href="{{waitingurl}}"{{^all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}} <span class="num">{{waiting}}</span></a>
+                    <a href="{{allurl}}"{{#all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_all, local_oksigeniaeguahe{{/str}} <span class="num">{{total}}</span></a>
+                </div>
+                <label class="buscar"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".fila" placeholder="{{#str}}panel_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+            </div>
+            {{/showtools}}
+            {{#hasrows}}
+            <div class="lista" role="list">
+                {{#rows}}
+                <a class="fila" role="listitem" href="{{url}}" data-buscar="{{search}}">
+                    <div class="espera{{^waiting}} al-dia{{/waiting}}"><b>{{main}}</b><span>{{sub}}</span></div>
+                    <div class="quien"><b>{{adults}}</b>{{#said}}<p class="dice">{{said}}</p>{{/said}}<span class="meta">{{{viaicon}}}<span>{{via}}</span></span></div>
+                    <div class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso"><b>{{course}}</b>{{#stage}}<br>{{stage}}{{/stage}}</span></span>{{/children}}</div>
+                    {{{chev}}}
+                </a>
+                {{/rows}}
+            </div>
+            <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+            {{/hasrows}}
+            {{^hasrows}}
+            <div class="vacio">
+                <div class="vacio-percha" aria-hidden="true"><div class="riel-corto"></div>{{#emptybag}}{{> local_oksigeniaeguahe/panel_hanging }}{{/emptybag}}</div>
+                <h2>{{emptytitle}}</h2>
+                <p>{{emptytext}}</p>
+                {{#fresh}}
+                <div class="cabeza-acciones">
+                    <a class="boton principal" href="{{newevent}}">{{{i.actos}}}{{#str}}panel_new_event, local_oksigeniaeguahe{{/str}}</a>
+                    <a class="boton secundario" href="{{newform}}">{{{i.formulario}}}{{#str}}panel_new_form, local_oksigeniaeguahe{{/str}}</a>
+                </div>
+                {{/fresh}}
+                {{^fresh}}<a class="enlace" href="{{allurl}}">{{#str}}panel_see_all, local_oksigeniaeguahe{{/str}} {{{i.der}}}</a>{{/fresh}}
+            </div>
+            {{/hasrows}}
+        </section>
+        <aside class="aparte">
+            <section class="bloque">
+                <h2>{{#str}}inbox_mine, local_oksigeniaeguahe{{/str}}</h2>
+                <div>
+                    {{#visits}}
+                    <a class="visita" href="{{url}}">
+                        <span class="hoja"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
+                        <span class="que"><b>{{title}}</b>{{#tag}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso">{{detail}}</span></span>{{/tag}}{{#place}}<span class="secundario">{{place}}</span>{{/place}}</span>
+                    </a>
+                    {{/visits}}
+                    {{^hasvisits}}<p class="secundario">{{#str}}panel_no_visits, local_oksigeniaeguahe{{/str}}</p>{{/hasvisits}}
+                </div>
+            </section>
+            {{#hasplaces}}
+            <section class="bloque">
+                <h2>{{#str}}panel_places_for, local_oksigeniaeguahe, {{year}}{{/str}}</h2>
+                <div class="plazas">
+                    {{#places}}
+                    <div class="curso-plazas">
+                        <div class="cab"><b>{{name}}</b><span class="libres">{{#str}}panel_free_of, local_oksigeniaeguahe, {"free": {{free}}, "total": {{total}} }{{/str}}</span></div>
+                        {{{rail}}}
+                        <span class="tres"><span><b>{{interested}}</b>{{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b>{{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b>{{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
+                    </div>
+                    {{/places}}
+                </div>
+                <p class="def">{{#str}}panel_places_def, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/hasplaces}}
+        </aside>
+    </div>
+</div>
