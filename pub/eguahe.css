@@ -2655,6 +2655,11 @@ textarea.renglones:focus-visible {
     text-underline-offset: 3px;
 }
 
+.aficiones-adulto .cambiar {
+    margin-inline-start: auto;
+    padding-inline-end: 4px;
+}
+
 .aficiones-adulto .cambiar[hidden] {
     display: none;
 }

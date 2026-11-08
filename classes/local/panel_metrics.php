@@ -95,12 +95,14 @@ class panel_metrics {
         $id = ['centreid' => $centre->id];
         $offers = $DB->get_records_menu(centres::OFFERS, $id, '', 'id, name');
         $out = [];
+        $firsts = [];
         foreach ($DB->get_records_select(households::T, 'centreid = :centreid AND incentre = 0', $id) as $h) {
             $said = $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
                 'other'), $c) : '';
             // On a network, which one: each one is its own row, the little used too.
             $said .= $said !== '' && $h->heardfrom === 'social' && trim((string) ($h->heardnet ?? '')) !== '' ?
                 ' · ' . trim($h->heardnet) : '';
+            $firsts[$h->id] = (string) $h->firstchannel;
             $out[$h->id] = ['id' => (int) $h->id, 'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
                 'enrolledat' => 0, 'course' => '', 'coursename' => '', 'moving' => !empty($h->moving),
                 'voices' => ['first' => '', 'last' => '', 'said' => $said]];
@@ -153,6 +155,13 @@ class panel_metrics {
             unset($f);
         }
         $contacts->close();
+        // Without a message of theirs, where they came in by, as it was noted when the family was written down.
+        foreach ($out as $key => $f) {
+            $first = (string) ($firsts[$key] ?? 'other');
+            if ($f['voices']['first'] === '' && $first !== 'other' && in_array($first, lists::CHANNELS, true)) {
+                $out[$key]['voices']['first'] = $out[$key]['voices']['last'] = get_string('channel_' . $first, $c);
+            }
+        }
         foreach ($out as $key => $f) {
             if ($f['moving']) {
                 $out[$key]['voices']['first'] = $out[$key]['voices']['last'] = get_string('metrics_live_moving', $c);
@@ -316,6 +325,8 @@ class panel_metrics {
             'starts' => self::starts($campaigns, $canact),
             // What they like most: what the families do with what Eguahe gives them, and who they are.
             'likes' => panel_likes::context($centre, $campaign, $mine, $now),
+            // The channels compared in time, the whole year round: for the campaign under way and every course.
+            'channelstime' => $campaign['import'] || $course !== '' ? false : panel_channels::context($centre, $now),
         ];
         $context['spendaction'] = $url([])->out(false);
         $year = $course === '' ? self::year($centre) : null;

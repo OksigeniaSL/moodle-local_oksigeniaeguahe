@@ -1,0 +1,126 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_channels_time
+
+    «Por dónde, mes a mes», inside «Cifras»: each channel over the last twelve months, in ink, with the twelve before in
+    pencil behind; whether it goes up or down, as a stamp; the notices to the phone and the centre's channel underneath.
+    Nothing is hidden in an «Others»: a small channel keeps its own row. No channel is written in the code: the names
+    come from the centre's settings. Rows speak in the line of the datum when pointed at (data-dato); everything reads
+    without JavaScript (the three voices one after another, with links to each).
+
+    panel_channels computes it (Jujol, 8 November 2026).
+
+    Example context (json):
+    {"title": "Por dónde, mes a mes", "cut": "De diciembre de 2025 a noviembre de 2026.", "voices": [], "notices": false,
+     "channel": false, "nowlabel": "Estos doce meses", "beforelabel": "Los doce anteriores", "uplabel": "Sube",
+     "downlabel": "Baja", "tablelabel": "Verlo en una tabla"}
+}}
+<section class="lamina grafico canales-tiempo ancha" aria-labelledby="ct-titulo" id="por-donde-mes-a-mes">
+    <div class="ct-cabeza">
+        <h2 id="ct-titulo">{{title}}</h2>
+        <p class="ct-corte">{{cut}}</p>
+        <nav class="pastillas ct-voces" aria-label="{{#str}}panel_ct_voices_nav, local_oksigeniaeguahe{{/str}}">
+            {{#voices}}<a class="pastilla" href="#ct-{{key}}">{{name}}</a>{{/voices}}
+            {{#notices}}<a class="pastilla" href="#ct-avisos">{{title}}</a>{{/notices}}
+            {{#channel}}<a class="pastilla" href="#ct-canal">{{title}}</a>{{/channel}}
+        </nav>
+        <p class="leyenda" aria-hidden="true">
+            <span class="clave"><span class="clave-ahora"></span>{{nowlabel}}</span>
+            <span class="clave clave-lapiz"><span class="clave-antes"></span>{{beforelabel}}</span>
+            <span class="clave"><span class="ct-sello t-sube">↑</span>{{uplabel}}</span>
+            <span class="clave"><span class="ct-sello t-baja">↓</span>{{downlabel}}</span>
+        </p>
+    </div>
+
+    {{#voices}}
+    <section class="ct-voz" id="ct-{{key}}" aria-labelledby="ct-{{key}}-t" data-grafico>
+        <h3 id="ct-{{key}}-t">{{name}}</h3>
+        <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+        <div class="ct-filas">
+            <div class="ct-fila ct-eje" aria-hidden="true">
+                <span class="ct-nombre"></span>
+                <span class="ct-meses">{{#months}}<span>{{label}}</span>{{/months}}</span>
+                <span class="ct-cifras"></span>
+            </div>
+            {{#rows}}
+            <div class="ct-fila t-{{trend}}" data-dato="{{line}}" id="ct-{{key}}-{{slug}}">
+                <span class="ct-nombre" dir="auto">{{name}}{{#hasgroup}} <span class="ct-grupo">{{group}}</span>{{/hasgroup}}</span>
+                <span class="ct-meses" aria-hidden="true">{{#months}}<span class="ct-mes{{#zero}} cero{{/zero}}" style="--v: {{v}}; --bv: {{bv}}" data-dato="{{line}}"><i class="ct-antes"></i><i class="ct-ahora"></i></span>{{/months}}</span>
+                <span class="ct-cifras"><b class="barra-n">{{total}}</b><span class="ct-mas"><span class="barra-antes">{{beforetext}}</span><span class="ct-sello t-{{trend}}">{{trendmark}}<span class="ct-sello-texto">{{trendtext}}</span></span></span></span>
+            </div>
+            {{/rows}}
+        </div>
+        <p class="def">{{def}}</p>
+        <details class="tabla-gemela"><summary>{{tablelabel}}</summary>
+            <table class="tabla-panel">
+                <thead><tr><th scope="col">{{name}}</th>{{#months}}<th scope="col" title="{{name}}">{{label}}</th>{{/months}}<th scope="col">{{nowlabel}}</th><th scope="col">{{beforelabel}}</th></tr></thead>
+                <tbody>{{#rows}}<tr><th scope="row">{{name}}</th>{{#months}}<td>{{n}}</td>{{/months}}<td>{{total}}</td><td>{{before}}</td></tr>{{/rows}}</tbody>
+            </table>
+        </details>
+    </section>
+    {{/voices}}
+
+    <div class="ct-abajo">
+        {{#notices}}
+        <section class="ct-avisos" id="ct-avisos" aria-labelledby="ct-avisos-t" data-grafico>
+            <h3 id="ct-avisos-t">{{title}}</h3>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            <ol class="ct-embudos">
+                {{#rows}}
+                <li class="ct-embudo" data-dato="{{line}}">
+                    <span class="ct-embudo-nombre">{{name}}</span>
+                    <ol class="ct-pasos">
+                        {{#stages}}<li class="ct-paso{{#missing}} sin-dato{{/missing}}" style="--v: {{v}}"><span class="ct-paso-pista" aria-hidden="true"><i></i></span><b>{{#missing}}—{{/missing}}{{^missing}}{{n}}{{/missing}}</b><span>{{name}}{{#missing}} · {{missingtext}}{{/missing}}</span></li>{{/stages}}
+                    </ol>
+                    {{#failed}}<p class="ct-fallidos">{{failedtext}}</p>{{/failed}}
+                </li>
+                {{/rows}}
+            </ol>
+            <h4>{{bykindtitle}}</h4>
+            <table class="tabla-panel ct-por-aviso">
+                <thead><tr><th scope="col">{{bykindcol}}</th>{{#channels}}<th scope="col">{{name}}</th>{{/channels}}</tr></thead>
+                <tbody>{{#bykind}}<tr><th scope="row">{{name}}</th>{{#cells}}<td class="{{#best}}mejor{{/best}}" style="--v: {{v}}" data-canal="{{name}}"><span class="ct-tasa">{{rate}}</span><span class="ct-tasa-de">{{oftext}}</span><span class="ct-tasa-pista" aria-hidden="true"><i></i></span></td>{{/cells}}</tr>{{/bykind}}</tbody>
+            </table>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/notices}}
+
+        {{#channel}}
+        <section class="ct-canal" id="ct-canal" aria-labelledby="ct-canal-t" data-grafico>
+            <h3 id="ct-canal-t">{{title}}</h3>
+            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            <div class="ct-gente">
+                <p class="cifra-heroe"><b>{{now}}</b><span>{{nowtext}}</span></p>
+                <ol class="ct-gente-meses" aria-label="{{memberstext}}">{{#members}}<li style="--v: {{v}}" data-dato="{{line}}"><span class="ct-gente-pista" aria-hidden="true"><i></i></span><span>{{month}}</span></li>{{/members}}</ol>
+            </div>
+            <ol class="ct-publicaciones">
+                {{#posts}}
+                <li class="ct-pub{{#top}} la-mas{{/top}}" data-dato="{{line}}">
+                    <p class="ct-pub-fecha"><time datetime="{{date}}">{{datetext}}</time>{{#members}} · {{memberstext}}{{/members}}</p>
+                    <p class="ct-pub-nombre">{{name}}</p>
+                    <p class="ct-pub-toques"><b>{{clicks}}</b> {{#str}}panel_ct_taps, local_oksigeniaeguahe{{/str}}{{#rate}} <span class="ct-pub-tasa">{{rate}}</span>{{/rate}}</p>
+                    <span class="ct-pub-pista" aria-hidden="true" style="--v: {{rv}}"><i></i></span>
+                    {{#hasreactions}}<ul class="ct-reacciones" aria-label="{{reactionstext}}">{{#reactions}}<li><span class="ct-emoji" aria-hidden="true">{{emoji}}</span><b>{{n}}</b></li>{{/reactions}}</ul>{{/hasreactions}}
+                </li>
+                {{/posts}}
+            </ol>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/channel}}
+    </div>
+</section>
