@@ -432,13 +432,15 @@ class panel {
 
     /**
      * The head of a page with all its parts, the ones it does not have empty: a template must not take them from the
-     * page around it.
+     * page around it. Empty is false, never null: an older Mustache (Moodle 4.5) looks a null up in the page around it,
+     * and would draw its «action» as a button.
      *
      * @param array $head title and, if any, back, ante, sub and action.
      * @return array
      */
     public static function head(array $head): array {
-        return $head + ['back' => null, 'ante' => '', 'title' => '', 'sub' => '', 'action' => null];
+        $head = array_map(fn($v) => $v ?? false, $head);
+        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'action' => false];
     }
 
     /**
