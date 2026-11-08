@@ -1,0 +1,48 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_field
+
+    One question of a form on its own page (field.php): the same editor the form opens in its list, and beside it the
+    phone with this question marked. Without JavaScript this is where «Change» leads.
+
+    New in this round (the whole template; it replaces field_form in the panel).
+
+    Example context (json):
+    {
+        "i": {"atras": "", "check": "", "senalar": "", "duplicar": "", "borrar": "", "globo": "", "lapiz": "", "probar": ""},
+        "head": {"title": "¿Qué días?", "ante": "Pregunta 2 de 4", "sub": "", "back": {"url": "#", "name": "Pidan información"}, "action": null},
+        "editor": {"id": 22, "prefix": "p22", "action": "#", "sesskey": "abc", "saved": "", "types": [], "label": "¿Qué días?", "help": "",
+            "options": "", "hasoptions": false, "required": false, "showif": null, "canpoint": false, "missing": "", "otherlangs": []},
+        "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [], "fixed": "", "questions": [], "blocks": [],
+            "button": "Apuntarnos", "faces": [], "foot": "", "base": 4, "perquestion": 10}
+    }
+}}
+<div class="pagina pagina-pregunta">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="editor-rejilla">
+        <div class="editor-col">
+            <section class="apartado pregunta-sola" aria-labelledby="titular">
+                {{#editor}}{{> local_oksigeniaeguahe/panel_field_editor }}{{/editor}}
+            </section>
+        </div>
+        <aside class="movil-col" aria-labelledby="movil-t">
+            <h2 id="movil-t" class="rotulo-muestra">{{#str}}panel_families_see, local_oksigeniaeguahe{{/str}}</h2>
+            {{#phone}}{{> local_oksigeniaeguahe/panel_movil }}{{/phone}}
+        </aside>
+    </div>
+</div>

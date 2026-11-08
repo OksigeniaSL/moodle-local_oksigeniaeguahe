@@ -166,6 +166,30 @@ class forms {
     }
 
     /**
+     * A copy of a question, just after it, with its texts in every language and its condition.
+     *
+     * @param \stdClass $entry
+     * @param int $fieldid
+     * @return int The new one, or 0 if there was none to copy.
+     */
+    public static function duplicate(\stdClass $entry, int $fieldid): int {
+        global $DB;
+        $field = self::field($fieldid, (int) $entry->id);
+        if (!$field) {
+            return 0;
+        }
+        $DB->execute(
+            'UPDATE {' . self::FIELDS . '} SET sortorder = sortorder + 1 WHERE entryid = ? AND sortorder > ?',
+            [$entry->id, $field->sortorder]
+        );
+        $copy = clone($field);
+        unset($copy->id);
+        $copy->sortorder = (int) $field->sortorder + 1;
+        $copy->timecreated = $copy->timemodified = time();
+        return (int) $DB->insert_record(self::FIELDS, $copy);
+    }
+
+    /**
      * Removes a question; what families answered to it stays with them.
      *
      * @param \stdClass $entry

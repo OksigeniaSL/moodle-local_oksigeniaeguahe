@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_field_editor
+
+    The editor of one question, inside the list of a form or alone (panel_field): its type as pills, its words, its
+    help, its answers one per line, whether it must be answered, when it appears («Sale solo si…», written as a sentence;
+    with JavaScript it can be set by touching the answer in the phone) and its words in the other languages, with the
+    original in grey under each empty field. «Saved · 3 s ago» when it saves by itself; without JavaScript, «Save».
+
+    New in this round (the whole template; it replaces field_form in the panel).
+
+    Example context (json):
+    {
+        "i": {"check": "", "senalar": "", "duplicar": "", "borrar": "", "globo": ""},
+        "id": 22, "prefix": "q22", "action": "#", "sesskey": "abc", "saved": "",
+        "types": [{"value": "yesno", "name": "Sí o no", "checked": true, "id": "q22-t-yesno"}],
+        "label": "¿Qué días?", "help": "", "options": "Lunes\nMartes", "hasoptions": true, "required": false,
+        "showif": {"has": true, "sentence": "Sale solo si a «¿Necesitan comedor?» contestan «Sí».",
+            "questions": [{"value": 0, "name": "Sale siempre", "selected": false}, {"value": 21, "name": "¿Necesitan comedor?", "selected": true}],
+            "answers": [{"value": "Sí", "name": "Sí", "selected": true}], "hasanswers": true},
+        "canpoint": true, "missing": "Falta en inglés",
+        "otherlangs": [{"code": "en", "name": "English", "label": "", "help": "", "original": "¿Qué días?", "originalhelp": "", "missing": true}],
+        "duplicateurl": "#", "deleteurl": "#"
+    }
+}}
+<form class="editor-pregunta" method="post" action="{{action}}" data-editor-pregunta="{{id}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="field" value="{{id}}">
+    <fieldset class="tipos"><legend>{{#str}}field_type, local_oksigeniaeguahe{{/str}}</legend>
+        <span class="pastillas">{{#types}}<input class="oculto" type="radio" id="{{id}}" name="type" value="{{value}}"{{#checked}} checked{{/checked}}><label class="pastilla-r" for="{{id}}">{{name}}</label>{{/types}}</span>
+    </fieldset>
+    <div class="campo campo-pregunta"><label for="{{prefix}}-texto">{{#str}}field_label, local_oksigeniaeguahe{{/str}}</label><input id="{{prefix}}-texto" name="label" value="{{label}}" required data-vivo-pregunta="{{id}}"></div>
+    <div class="campo"><label for="{{prefix}}-ayuda">{{#str}}field_help, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label><input id="{{prefix}}-ayuda" name="help" value="{{help}}" data-vivo-ayuda="{{id}}"></div>
+    {{#hasoptions}}<div class="campo"><label for="{{prefix}}-ops">{{#str}}field_options, local_oksigeniaeguahe{{/str}}</label><textarea id="{{prefix}}-ops" name="options" rows="5" data-vivo-opciones="{{id}}" aria-describedby="{{prefix}}-ops-a">{{options}}</textarea><span class="ayuda" id="{{prefix}}-ops-a">{{#str}}field_options_help, local_oksigeniaeguahe{{/str}}</span></div>{{/hasoptions}}
+    <label class="casilla"><input type="checkbox" name="required" value="1"{{#required}} checked{{/required}}><span>{{#str}}field_required, local_oksigeniaeguahe{{/str}}</span></label>
+    {{#showif}}
+    <div class="condicion" data-condicion>
+        <p class="frase-condicion">{{{i.lapiz}}}<span data-frase-condicion>{{sentence}}</span></p>
+        {{#canpoint}}<button class="boton terciario pequeno" type="button" data-senalar hidden>{{{i.senalar}}}{{#str}}panel_point_phone, local_oksigeniaeguahe{{/str}}</button>{{/canpoint}}
+        <p class="senalando-aviso" data-senalando-aviso hidden role="status">{{#str}}panel_point_phone_help, local_oksigeniaeguahe{{/str}}</p>
+        <div class="rejilla-2">
+            <div class="campo"><label for="{{prefix}}-si">{{#str}}field_showif, local_oksigeniaeguahe{{/str}}</label><select id="{{prefix}}-si" name="showif" data-condicion-pregunta>{{#questions}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/questions}}</select></div>
+            <div class="campo"><label for="{{prefix}}-valor">{{#str}}field_showvalue, local_oksigeniaeguahe{{/str}}</label><select id="{{prefix}}-valor" name="showvalue" data-condicion-valor{{^hasanswers}} disabled{{/hasanswers}}>{{#answers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/answers}}</select></div>
+        </div>
+    </div>
+    {{/showif}}
+    <details class="otros-idiomas"{{#missing}} open{{/missing}}>
+        <summary>{{{i.globo}}}{{#str}}field_otherlangs, local_oksigeniaeguahe{{/str}}{{#missing}} <span class="falta">· {{missing}}</span>{{/missing}}</summary>
+        {{#otherlangs}}
+        <div class="idioma-campos" lang="{{code}}">
+            <span class="rotulo-p">{{name}}</span>
+            <div class="campo"><label for="{{prefix}}-{{code}}">{{#str}}field_label, local_oksigeniaeguahe{{/str}}</label><input id="{{prefix}}-{{code}}" name="label_{{code}}" value="{{label}}"{{#missing}} aria-describedby="{{prefix}}-{{code}}-o"{{/missing}}>{{#missing}}<span class="original" id="{{prefix}}-{{code}}-o" lang="es">{{original}}</span>{{/missing}}</div>
+        </div>
+        {{/otherlangs}}
+    </details>
+    <div class="acciones">
+        <button class="boton principal" type="submit" name="action" value="savefield" data-guardar-pregunta>{{{i.check}}}{{#str}}panel_save_question, local_oksigeniaeguahe{{/str}}</button>
+        <button class="boton terciario pequeno" type="submit" name="action" value="duplicate">{{{i.duplicar}}}{{#str}}panel_duplicate, local_oksigeniaeguahe{{/str}}</button>
+        <span class="separa-h"></span>
+        <button class="boton terciario pequeno" type="submit" name="action" value="deletefield">{{{i.borrar}}}{{#str}}panel_remove_question, local_oksigeniaeguahe{{/str}}</button>
+    </div>
+</form>

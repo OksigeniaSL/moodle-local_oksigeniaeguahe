@@ -1,0 +1,149 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_entry
+
+    A form of the centre (entry.php for a form): the editor edits what the families see. On the left, the language it is
+    written in; the questions it always asks; its own questions in the lettering of the families, one open with its
+    editor and the rest closed in one line, each with its rail (number, handle, up and down); a new question; where it is
+    shared (a link and a QR per place, and the code for the web of the centre) and its settings. On the right, the phone
+    with the form as a family sees it: what is written appears there, «Point at the phone» sets a condition by touching
+    the answer that makes a question appear, and «Try the way» walks the form with some answers. Without JavaScript every
+    button posts and the page comes back.
+
+    New in this round (the whole template; it replaces entry.mustache for a form).
+
+    Example context (json):
+    {
+        "i": {"atras": "", "arriba": "", "abajo": "", "agarre": "", "lapiz": "", "mas1": "", "copiar": "", "borrar": "", "enlace": "",
+            "check": "", "senalar": "", "probar": "", "duplicar": "", "globo": "", "codigo": ""},
+        "head": {"title": "Pidan información", "ante": "Formulario · abierto", "sub": "Lo que ven las familias.", "back": {"url": "#", "name": "Entradas"},
+            "action": {"url": "#compartir", "anchor": false, "name": "Compartir", "icon": ""} },
+        "url": "#", "action": "#", "sesskey": "abc", "saved": "",
+        "langs": [{"code": "es", "name": "Español", "missing": "", "url": "#", "current": true}], "langnote": "Escribes en español.",
+        "blocks": [{"i": 0, "name": "¿Dónde viven?", "checked": true, "fixed": false}],
+        "fields": [{"id": 21, "n": 1, "label": "¿Necesitan comedor?", "typename": "Sí o no", "required": false, "condition": "", "missing": "",
+            "first": true, "last": true, "open": false, "editurl": "#", "editor": null}],
+        "newfield": {"types": [{"value": "yesno", "name": "Sí o no", "selected": true}]},
+        "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "fixed": "",
+            "questions": [], "blocks": [], "button": "Apuntarnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
+        "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "n": "", "qr": "", "general": true}],
+            "embed": "<iframe></iframe>"},
+        "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
+        "erasequestion": "¿Borramos este formulario?"
+    }
+}}
+<div class="pagina pagina-formulario">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="editor-rejilla">
+        <div class="editor-col">
+            <nav class="idiomas" aria-label="{{#str}}panel_writing_in, local_oksigeniaeguahe{{/str}}">
+                <span class="rotulo-p">{{{i.globo}}}{{#str}}panel_writing_in, local_oksigeniaeguahe{{/str}}</span>
+                <span class="segmentos">{{#langs}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}} lang="{{code}}">{{name}}{{#missing}} <span class="falta-idioma">· {{missing}}</span>{{/missing}}</a>{{/langs}}</span>
+                <span class="def">{{langnote}}</span>
+            </nav>
+            <form class="apartado de-siempre" method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="blocks">
+                <header><h2>{{#str}}entry_blocks, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_blocks_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <div class="casillas casillas-2">
+                    {{#blocks}}<label class="casilla"><input type="checkbox" name="blocks[]" value="{{i}}"{{#checked}} checked{{/checked}}{{#fixed}} disabled{{/fixed}}><span>{{name}}{{#fixed}} <span class="secundario">· {{#str}}panel_always, local_oksigeniaeguahe{{/str}}</span>{{/fixed}}</span></label>{{/blocks}}
+                </div>
+                <div class="acciones sin-js"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+            </form>
+            <section class="apartado preguntas" aria-labelledby="preguntas-t" id="preguntas">
+                <header><h2 id="preguntas-t">{{#str}}panel_own_questions, local_oksigeniaeguahe{{/str}}</h2><span class="guardado" data-guardado aria-live="polite">{{saved}}</span></header>
+                <ol class="lista-preguntas">
+                    {{#fields}}
+                    <li class="pregunta-fila{{#open}} abierta{{/open}}" id="p-{{id}}" data-pregunta="{{id}}">
+                        <div class="carril">
+                            <span class="num-pregunta">{{n}}</span>
+                            <span class="asa" aria-hidden="true">{{{i.agarre}}}</span>
+                            <form class="mover" method="post" action="{{action}}">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="field" value="{{id}}">
+                                <button class="mini" type="submit" name="action" value="moveup"{{#first}} disabled{{/first}} aria-label="{{#str}}panel_move_up, local_oksigeniaeguahe, {{label}}{{/str}}">{{{i.arriba}}}</button>
+                                <button class="mini" type="submit" name="action" value="movedown"{{#last}} disabled{{/last}} aria-label="{{#str}}panel_move_down, local_oksigeniaeguahe, {{label}}{{/str}}">{{{i.abajo}}}</button>
+                            </form>
+                        </div>
+                        <div class="pregunta-cuerpo">
+                            {{^open}}
+                            <a class="pregunta-linea" href="{{editurl}}"><span class="letra-familia">{{label}}</span>{{{i.lapiz}}}</a>
+                            <span class="pregunta-datos"><span class="dato contorno">{{typename}}</span>{{#required}}<span class="dato contorno">{{#str}}field_required_tag, local_oksigeniaeguahe{{/str}}</span>{{/required}}{{#condition}}<span class="condicion-linea">{{condition}}</span>{{/condition}}{{#missing}}<span class="falta">{{missing}}</span>{{/missing}}</span>
+                            {{/open}}
+                            {{#open}}{{#editor}}{{> local_oksigeniaeguahe/panel_field_editor }}{{/editor}}{{/open}}
+                        </div>
+                    </li>
+                    {{/fields}}
+                </ol>
+                <form class="nueva-pregunta" method="post" action="{{action}}" data-nueva-pregunta>
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="addfield">
+                    <div class="campo"><label for="nueva-q">{{#str}}field_add, local_oksigeniaeguahe{{/str}}</label><input id="nueva-q" name="label" autocomplete="off" placeholder="{{#str}}panel_new_question_example, local_oksigeniaeguahe{{/str}}" data-sugerir-tipo></div>
+                    <div class="campo campo-tipo"><label for="nueva-tipo">{{#str}}field_type, local_oksigeniaeguahe{{/str}}</label><select id="nueva-tipo" name="type">{{#newfield.types}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/newfield.types}}</select></div>
+                    <button class="boton secundario" type="submit">{{{i.mas1}}}{{#str}}panel_add, local_oksigeniaeguahe{{/str}}</button>
+                    <p class="def tipo-sugerido" data-tipo-sugerido hidden></p>
+                </form>
+            </section>
+            {{#share}}
+            <section class="apartado compartir" id="compartir" aria-labelledby="compartir-t">
+                <header><h2 id="compartir-t">{{#str}}entry_share, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="sitios">
+                    {{#sites}}
+                    <li class="sitio">
+                        <span class="qr">{{{qr}}}</span>
+                        <span class="sitio-que"><b>{{name}}</b><a class="corto" href="{{url}}" dir="ltr">{{short}}</a>{{#n}}<span class="secundario">{{.}}</span>{{/n}}</span>
+                        <span class="sitio-mandos"><button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy, local_oksigeniaeguahe{{/str}}</button>{{^general}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="key" value="{{key}}"><button class="boton terciario pequeno" type="submit" name="action" value="removeorigin">{{{i.borrar}}}<span class="oculto">{{name}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</button></form>{{/general}}</span>
+                    </li>
+                    {{/sites}}
+                </ul>
+                <form class="otro-sitio" method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="addorigin">
+                    <div class="campo"><label for="sitio-nuevo">{{#str}}entry_origin_add, local_oksigeniaeguahe{{/str}}</label><input id="sitio-nuevo" name="name" placeholder="{{#str}}entry_origin_placeholder, local_oksigeniaeguahe{{/str}}"></div>
+                    <button class="boton secundario" type="submit">{{{i.mas1}}}{{#str}}panel_add, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+                <div class="campo codigo-web"><label for="codigo-web">{{{i.codigo}}}{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-web" readonly rows="4" spellcheck="false" dir="ltr">{{embed}}</textarea><span class="ayuda">{{#str}}panel_embed_help, local_oksigeniaeguahe{{/str}}</span>
+                    <button class="boton terciario pequeno" type="button" data-copiar="{{embed}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+            </section>
+            {{/share}}
+            {{#settings}}
+            <details class="apartado plegado ajustes-form">
+                <summary><h2>{{#str}}panel_form_settings, local_oksigeniaeguahe{{/str}}</h2></summary>
+                <form method="post" action="{{action}}" class="formulario-panel">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="settings">
+                    <div class="campo"><label for="f-nombre">{{#str}}entry_name, local_oksigeniaeguahe{{/str}}</label><input id="f-nombre" name="name" value="{{name}}"><span class="ayuda">{{#str}}entry_name_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    <div class="campo"><label for="f-titulo">{{#str}}entry_title, local_oksigeniaeguahe{{/str}}</label><input id="f-titulo" name="title" value="{{title}}" data-vivo-movil="titulo"></div>
+                    <div class="campo"><label for="f-entradilla">{{#str}}entry_lead, local_oksigeniaeguahe{{/str}}</label><textarea id="f-entradilla" name="lead" rows="2" data-vivo-movil="entradilla">{{lead}}</textarea></div>
+                    <label class="casilla"><input type="checkbox" name="acknowledge" value="1"{{#acknowledge}} checked{{/acknowledge}}><span>{{#str}}entry_acknowledge, local_oksigeniaeguahe{{/str}}</span></label>
+                    <label class="casilla"><input type="checkbox" name="active" value="1"{{#open}} checked{{/open}}><span>{{#str}}entry_active, local_oksigeniaeguahe{{/str}}</span></label>
+                    <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+                </form>
+                <details class="confirmar">
+                    <summary class="boton rojo pequeno">{{{i.borrar}}}{{#str}}entry_delete, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <p><b>{{erasequestion}}</b></p>
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <button class="boton peligro pequeno" type="submit" name="action" value="delete">{{#str}}erase_yes, local_oksigeniaeguahe{{/str}}</button>
+                        <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}erase_no, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+            </details>
+            {{/settings}}
+        </div>
+        <aside class="movil-col" aria-labelledby="movil-t">
+            <h2 id="movil-t" class="rotulo-muestra">{{#str}}panel_families_see, local_oksigeniaeguahe{{/str}}</h2>
+            {{#phone}}{{> local_oksigeniaeguahe/panel_movil }}{{/phone}}
+        </aside>
+    </div>
+</div>

@@ -150,8 +150,12 @@ class panel_centre {
      */
     protected static function hosts(\stdClass $centre): array {
         global $DB;
-        $rows = $DB->get_records(centres::MEMBERS, ['centreid' => $centre->id], '',
-            'id, userid, public, rolename, says, sortorder');
+        $rows = $DB->get_records(
+            centres::MEMBERS,
+            ['centreid' => $centre->id],
+            '',
+            'id, userid, public, rolename, says, sortorder'
+        );
         $users = centres::members((int) $centre->id);
         $out = [];
         foreach ($users as $user) {

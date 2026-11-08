@@ -1,0 +1,71 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_movil
+
+    The phone beside the editor of a form: the form as a family sees it, in its colours and its lettering. The sentence
+    with holes (the family fills it as it answers), the questions it always asks in one line, the centre's own questions,
+    the button with the names and faces of who reads it. The question being edited is marked; a question that only
+    appears after an answer says so. It is a picture for the eye (hidden from screen readers); the editor beside it
+    has every word. With JavaScript, «Try the way» lets the team answer on it, shows and hides what depends on each
+    answer, and counts the questions and the time.
+
+    New in this round.
+
+    Example context (json):
+    {
+        "i": {"probar": ""}, "centre": "Colegio de ejemplo", "initial": "C", "title": "Hablemos", "lead": "Les contestamos en un día.",
+        "sentence": [{"text": "", "hole": true, "k": "quien"}, {"text": " vendría.", "hole": false, "k": ""}],
+        "fixed": "Primero, las de siempre.",
+        "questions": [{"id": 21, "label": "¿Necesitan comedor?", "help": "", "required": false, "isyesno": true, "ischoice": false,
+            "ismulti": false, "islong": false, "istext": false, "options": [{"value": "Sí", "name": "Sí"}], "showif": 0, "showvalue": "",
+            "conditional": false, "conditionnote": "", "open": false}],
+        "blocks": [{"q": "¿Dónde viven?"}], "button": "Mandárselo a Lucía", "faces": [], "foot": "Lo lee Lucía.", "base": 4, "perquestion": 10
+    }
+}}
+<div class="movil" data-movil data-base="{{base}}" data-por-pregunta="{{perquestion}}">
+    <div class="movil-marco" aria-hidden="true" data-movil-marco>
+        <div class="movil-pantalla">
+            <div class="movil-cab"><span class="emblema monograma">{{initial}}</span><span>{{centre}}</span></div>
+            <div class="movil-pagina">
+                <p class="movil-titulo" data-movil-titulo>{{title}}</p>
+                <p class="movil-entradilla" data-movil-entradilla>{{lead}}</p>
+                <p class="movil-frase">{{#sentence}}{{#hole}}<span class="hueco" data-hueco="{{k}}"></span>{{/hole}}{{^hole}}{{text}}{{/hole}}{{/sentence}}</p>
+                <p class="movil-fijas">{{fixed}}</p>
+                {{#questions}}
+                <div class="movil-q{{#open}} editando{{/open}}{{#conditional}} condicional{{/conditional}}" data-movil-q="{{id}}" data-si="{{showif}}" data-si-valor="{{showvalue}}">
+                    {{#conditional}}<span class="movil-si">{{conditionnote}}</span>{{/conditional}}
+                    <p class="movil-label"><span data-movil-label>{{label}}</span>{{#required}}<span class="movil-obligatoria"> *</span>{{/required}}</p>
+                    <p class="movil-ayuda" data-movil-ayuda>{{help}}</p>
+                    {{#isyesno}}<span class="movil-ops" data-movil-ops>{{#options}}<button class="movil-op" type="button" tabindex="-1" data-valor="{{value}}">{{name}}</button>{{/options}}</span>{{/isyesno}}
+                    {{#ischoice}}<span class="movil-ops" data-movil-ops>{{#options}}<button class="movil-op" type="button" tabindex="-1" data-valor="{{value}}">{{name}}</button>{{/options}}</span>{{/ischoice}}
+                    {{#ismulti}}<span class="movil-ops varias" data-movil-ops>{{#options}}<button class="movil-op" type="button" tabindex="-1" data-valor="{{value}}">{{name}}</button>{{/options}}</span>{{/ismulti}}
+                    {{#istext}}<span class="movil-campo"></span>{{/istext}}
+                    {{#islong}}<span class="movil-campo largo"></span>{{/islong}}
+                </div>
+                {{/questions}}
+                {{#blocks}}<p class="movil-label tenue">{{q}}</p>{{/blocks}}
+                <span class="movil-boton"><span class="pila">{{#faces}}{{> local_oksigeniaeguahe/panel_face }}{{/faces}}</span>{{button}}</span>
+                <p class="movil-pie">{{foot}}</p>
+            </div>
+        </div>
+    </div>
+    <div class="movil-mandos">
+        <button class="boton secundario pequeno" type="button" data-probar-camino hidden aria-pressed="false">{{{i.probar}}}{{#str}}panel_try_way, local_oksigeniaeguahe{{/str}}</button>
+        <p class="movil-cuenta" data-camino-cuenta aria-live="polite">{{#str}}panel_phone_rest, local_oksigeniaeguahe{{/str}}</p>
+    </div>
+</div>

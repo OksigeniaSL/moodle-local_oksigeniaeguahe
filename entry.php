@@ -32,6 +32,8 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\forms;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_entry;
 use local_oksigeniaeguahe\local\sheets;
 use local_oksigeniaeguahe\local\staff;
 
@@ -44,9 +46,36 @@ $entry = $DB->get_record(entries::T, ['id' => $id], '*', MUST_EXIST);
 $centre = centres::require_work((int) $entry->centreid);
 $url = new moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $entry->id]);
 $PAGE->set_context(context_system::instance());
-staff::setup($url, format_string($entry->name), $centre);
 $canact = centres::can_act((int) $USER->id);
 $isform = $entry->kind === 'form';
+
+if ($isform) {
+    // A form of the centre, in the panel: every button posts here and comes back; a question saves by itself.
+    $lang = panel_entry::lang($centre);
+    $open = optional_param('q', 0, PARAM_INT);
+    $here = panel_entry::url($entry, $lang, $open);
+    panel::setup($here, format_string($entry->name));
+    if ($canact && data_submitted()) {
+        require_sesskey();
+        centres::require_act((int) $centre->id);
+        [$to, $message] = panel_entry::act($entry, $centre, $lang, $here);
+        if ($to === null) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['saved' => true]);
+            die();
+        }
+        redirect($to, $message ?: null, null, $message ? \core\output\notification::NOTIFY_SUCCESS : null);
+    }
+    panel::output(
+        $centre,
+        'entries',
+        format_string($entry->name),
+        'panel_entry',
+        panel_entry::context($entry, $centre, $lang, $open)
+    );
+}
+
+staff::setup($url, format_string($entry->name), $centre);
 $lang = $centre->lang ?: 'es';
 
 // The settings, with their own form.

@@ -20,11 +20,13 @@ use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_centre;
 use local_oksigeniaeguahe\local\panel_event;
+use local_oksigeniaeguahe\local\panel_entry;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
@@ -46,6 +48,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_event::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_eventform::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_centre::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_entry::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -339,6 +342,57 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('#c0392b', centres::get($centreid)->colour);
         $this->assertNull(centres::get($centreid)->skin);
         $_POST = [];
+    }
+
+    /**
+     * A form in the panel: its questions in the language it is written in, what is missing in the others, a question
+     * that waits for an answer, the phone, a copy, and a save that keeps what the other languages had.
+     */
+    public function test_form_editor(): void {
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $entry = entries::get(entries::create($centreid, 'form', 'Pidan información'), $centreid);
+        $lunch = forms::save_field($entry, (object) ['type' => 'yesno', 'label_es' => '¿Necesitan comedor?',
+            'label_en' => 'Do you need lunch?']);
+        $days = forms::save_field($entry, (object) ['type' => 'multichoice', 'label_es' => '¿Qué días?',
+            'options_es' => "Lunes\nMartes", 'options_en' => "Monday\nTuesday", 'help_en' => 'You can change it.',
+            'showif' => $lunch, 'showvalue' => 'yes']);
+
+        $context = panel_entry::context($entry, $centre, 'es', $days);
+        $this->assertSame([false, true], array_column($context['fields'], 'open'));
+        $this->assertStringNotContainsString('English', $context['fields'][0]['missing']);
+        $this->assertStringContainsString('Portuguese', $context['fields'][0]['missing']);
+        $this->assertStringContainsString('«¿Necesitan comedor?»', $context['fields'][1]['condition']);
+        $editor = $context['fields'][1]['editor'];
+        $this->assertSame("Lunes\nMartes", $editor['options']);
+        $this->assertSame(['yes', 'no'], array_column($editor['showif']['answers'], 'value'));
+        $this->assertTrue($editor['showif']['answers'][0]['selected']);
+        $phone = $context['phone'];
+        $this->assertSame([0, $lunch], array_column($phone['questions'], 'showif'));
+        $this->assertSame('yes', $phone['questions'][1]['showvalue']);
+        $this->assertTrue($phone['questions'][1]['open']);
+        $this->assertSame(['quien', 'curso', 'canal'], array_values(array_filter(array_column($phone['sentence'], 'k'))));
+
+        // Saved in Spanish: the English label changes, its help and options stay.
+        $_POST = ['type' => 'multichoice', 'label' => '¿Qué días de la semana?', 'help' => '',
+            'options' => "Lunes\nMartes\nMiércoles",
+            'required' => 1, 'showif' => $lunch, 'showvalue' => 'yes', 'label_en' => 'Which days?'];
+        panel_entry::save_field($entry, forms::field($days, (int) $entry->id), 'es');
+        $texts = json_decode(forms::field($days, (int) $entry->id)->texts, true);
+        $this->assertSame('¿Qué días de la semana?', $texts['es']['label']);
+        $this->assertSame(['Lunes', 'Martes', 'Miércoles'], $texts['es']['options']);
+        $this->assertSame(['Which days?', 'You can change it.', ['Monday', 'Tuesday']], [$texts['en']['label'],
+            $texts['en']['help'], $texts['en']['options']]);
+        $this->assertSame(1, (int) forms::field($days, (int) $entry->id)->required);
+        $_POST = [];
+
+        // A copy goes just after the one copied.
+        $copy = forms::duplicate($entry, $lunch);
+        $this->assertSame([$lunch, $copy, $days], array_map('intval', array_keys(forms::fields((int) $entry->id))));
+        $this->assertCount(1, panel_entry::share($entry)['sites']);
+        forms::add_origin($entry, 'Instagram');
+        $sites = panel_entry::share(entries::get((int) $entry->id, $centreid))['sites'];
+        $this->assertSame(['', 'Instagram'], [$sites[0]['key'] === '' ? '' : 'x', $sites[1]['name']]);
     }
 
     /**
