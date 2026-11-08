@@ -349,6 +349,50 @@ class familypage {
             'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'lang' => $lang]),
+            // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.
+            'hobbies' => $isgone ? false : self::hobbies_context($household, $full, $lang, $token, $flags),
+            // The page counts what is done on it, once it is in sight; not when someone of the team looks at it.
+            'measure' => seen::from_team($centre) ? false : ['url' => $link(['action' => 'seen']), 'sesskey' => sesskey(),
+                'de' => seen::via((string) ($flags['de'] ?? ''))],
+        ];
+    }
+
+    /**
+     * What the adults like doing in their free time: the list as chips and something of their own, each adult apart,
+     * kept as soon as it is touched, or with «Save» without the script.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param string $lang
+     * @param string $token
+     * @param array $flags hobbies: it was just kept.
+     * @return array|false
+     */
+    public static function hobbies_context(\stdClass $household, \stdClass $full, string $lang, string $token, array $flags) {
+        if (!$full->adults) {
+            return false;
+        }
+        $told = hobbies::of((int) $household->id);
+        $adults = [];
+        foreach (array_values($full->adults) as $adult) {
+            $mine = $told[$adult->id] ?? ['keys' => [], 'other' => ''];
+            $adults[] = ['adultid' => (int) $adult->id, 'name' => trim((string) $adult->firstname),
+                'other' => $mine['other'], 'options' => array_map(fn($key) => ['key' => $key,
+                'label' => hobbies::name($key, $lang), 'checked' => in_array($key, $mine['keys'], true)], hobbies::LIST)];
+        }
+        return [
+            'title' => publiclang::str('pub_hobbies_title', $lang),
+            'lead' => publiclang::str('pub_hobbies_lead', $lang),
+            'othertext' => publiclang::str('pub_hobbies_other', $lang),
+            'otherexample' => publiclang::str('pub_hobbies_other_example', $lang),
+            'savetext' => publiclang::str('pub_hobbies_save', $lang),
+            'savedtext' => publiclang::str('pub_hobbies_saved', $lang),
+            'saved' => !empty($flags['hobbies']),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'hobbies',
+                'lang' => $lang]))->out(false),
+            'sesskey' => sesskey(),
+            'adults' => $adults,
+            'many' => count($adults) > 1,
         ];
     }
 

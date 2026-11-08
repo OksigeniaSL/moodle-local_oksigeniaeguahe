@@ -59,7 +59,8 @@
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
         "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "leave": false,
-        "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
+        "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}], "likes": "Le gusta: cocina y juegos de mesa."}],
+        "seen": {"facts": ["Han abierto su página 4 veces; la última, el martes."]},
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
         "hasuntold": true, "untold": ["dónde viven"], "untoldtext": "dónde viven",
@@ -295,6 +296,7 @@
                     <div class="adulto"><b>{{name}}</b>
                         {{#ways}}<span class="linea-c">{{{icon}}}<span>{{text}} · <a href="{{href}}" dir="ltr">{{value}}</a></span></span>{{/ways}}
                         {{^hasways}}<span class="secundario">{{#str}}panel_no_contact, local_oksigeniaeguahe{{/str}}</span>{{/hasways}}
+                        {{#likes}}<span class="le-gusta">{{.}}</span>{{/likes}}
                     </div>
                     {{/adults}}
                     <p class="secundario">{{lang}}</p>
@@ -313,6 +315,13 @@
                 <dl class="respuestas">{{#answers}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/answers}}</dl>
             </section>
             {{/aftervisits}}
+            {{#seen}}
+            <section class="apartado su-pagina">
+                <header><h2>{{#str}}panel_facts_title, local_oksigeniaeguahe{{/str}}</h2></header>
+                <ul class="hechos-pagina">{{#facts}}<li>{{.}}</li>{{/facts}}</ul>
+                <p class="secundario">{{#str}}panel_facts_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/seen}}
             {{#hasevents}}
             <section class="apartado">
                 <header><h2>{{#str}}panel_their_events, local_oksigeniaeguahe{{/str}}</h2></header>

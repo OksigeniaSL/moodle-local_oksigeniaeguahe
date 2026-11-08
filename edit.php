@@ -65,7 +65,7 @@ $form = new household_form($url, ['centre' => $centre, 'householdid' => $id, 'ev
 if ($household) {
     $full = households::full($household);
     $defaults = ['c' => $centre->id, 'id' => $household->id, 'lang' => $household->lang, 'heardfrom' => $household->heardfrom,
-        'incentre' => $household->incentre];
+        'heardnet' => $household->heardnet, 'incentre' => $household->incentre];
     $places = centres::municipalities($centre);
     if ($household->municipality && isset($places[$household->municipality])) {
         $defaults['municipality'] = $household->municipality;
@@ -95,6 +95,7 @@ if ($form->is_cancelled()) {
 if ($data = $form->get_data()) {
     $places = centres::municipalities($centre);
     $about = (object) ['lang' => $data->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
+        'heardnet' => $data->heardfrom === 'social' ? centres::network($centre, (string) ($data->heardnet ?? '')) : '',
         'municipalityname' => null, 'firstchannel' => $data->channel ?? 'other', 'incentre' => !empty($data->incentre)];
     if (isset($places[$data->municipality])) {
         $about->municipality = strpos($data->municipality, 'name:') === 0 ? null : $data->municipality;
@@ -116,7 +117,8 @@ if ($data = $form->get_data()) {
     if ($household) {
         $now = time();
         $DB->update_record(households::T, (object) ['id' => $household->id, 'lang' => $about->lang,
-            'heardfrom' => $about->heardfrom ?: null, 'municipality' => $about->municipality,
+            'heardfrom' => $about->heardfrom ?: null, 'heardnet' => $about->heardnet !== '' ? $about->heardnet : null,
+            'municipality' => $about->municipality,
             'municipalityname' => $about->municipalityname, 'incentre' => $about->incentre ? 1 : 0, 'timemodified' => $now]);
         foreach ($adults as $adult) {
             if ($adult->id && $DB->record_exists(households::ADULTS, ['id' => $adult->id, 'householdid' => $household->id])) {

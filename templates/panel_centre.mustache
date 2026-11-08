@@ -37,7 +37,7 @@
         "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
-        "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "",
+        "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "", "networks": "Instagram",
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
         "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "", "siblingages": [{"value": 0, "name": "No", "selected": true}], "invitegone": false,
@@ -137,6 +137,10 @@
             <section class="apartado" id="aj-zona" aria-labelledby="aj-zona-t">
                 <header><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2></header>
                 <div class="campo"><label for="c-zona">{{#str}}panel_places_of_area, local_oksigeniaeguahe{{/str}}</label><textarea id="c-zona" name="municipalities" rows="5">{{municipalities}}</textarea><span class="ayuda">{{#str}}panel_places_of_area_help, local_oksigeniaeguahe{{/str}}</span></div>
+            </section>
+            <section class="apartado" id="aj-redes" aria-labelledby="aj-redes-t">
+                <header><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="campo"><label for="c-redes">{{#str}}panel_networks_list, local_oksigeniaeguahe{{/str}}</label><textarea id="c-redes" name="networks" rows="6" aria-describedby="c-redes-a">{{networks}}</textarea><span class="ayuda" id="c-redes-a">{{#str}}panel_networks_help, local_oksigeniaeguahe{{/str}}</span></div>
             </section>
             <section class="apartado" id="aj-oferta" aria-labelledby="aj-oferta-t">
                 <header><h2 id="aj-oferta-t">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_offer_help, local_oksigeniaeguahe{{/str}}</span></header>

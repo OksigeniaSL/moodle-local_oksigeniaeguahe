@@ -111,6 +111,7 @@ class households {
             'municipalityname' => self::short($data->municipalityname ?? null, 255),
             'heardfrom' => in_array($data->heardfrom ?? '', lists::HEARD_FROM, true) ? $data->heardfrom : null,
             'heardwho' => ($data->heardfrom ?? '') === 'centrefamilies' ? self::short($data->heardwho ?? null, 255) : null,
+            'heardnet' => ($data->heardfrom ?? '') === 'social' ? self::short($data->heardnet ?? null, 60) : null,
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
             'incentre' => empty($data->incentre) ? 0 : 1,
             'moving' => empty($data->moving) ? 0 : 1,
@@ -141,6 +142,10 @@ class households {
         // Which family of the centre told them, if they say so: only a name to thank them, never a link.
         if (empty($household->heardwho) && ($data->heardfrom ?? '') === 'centrefamilies' && !empty($data->heardwho)) {
             $changes['heardwho'] = self::short($data->heardwho, 255);
+        }
+        // Which network, when it was one: what the family named, as the centre writes it.
+        if (empty($household->heardnet) && ($data->heardfrom ?? $household->heardfrom) === 'social' && !empty($data->heardnet)) {
+            $changes['heardnet'] = self::short($data->heardnet, 60);
         }
         // A family that says it is already of the centre is, from then on.
         if (empty($household->moving) && !empty($data->moving)) {
@@ -522,6 +527,7 @@ class households {
                 'municipality' => $full->municipalityname,
                 'heard_from' => $full->heardfrom,
                 'family_that_told_them' => $full->heardwho ?? null,
+                'network' => $full->heardnet ?? null,
                 'first_channel' => $full->firstchannel,
                 'already_of_the_centre' => (bool) $full->incentre,
                 'offered_to_tell_another_family' => $date((int) ($full->volunteer ?? 0)),
@@ -572,6 +578,16 @@ class households {
             $data['after_visits'][] = ['event' => $told['name'], 'when' => $date($told['timestart']),
                 'answers' => array_map(fn($a) => ['question' => $a['label'], 'answer' => $a['value']], $told['answers'])];
         }
+        // The brothers and sisters who would come later.
+        foreach (siblings::of((int) $household->id) as $sibling) {
+            $data['brothers_and_sisters_for_later'][] = ['first_name' => $sibling->firstname,
+                'year_of_birth' => (int) $sibling->birthyear, 'told_by' => $sibling->source,
+                'asked_to_be_told' => $date((int) $sibling->notify), 'said_yes' => $date((int) $sibling->confirmed)];
+        }
+        // What each adult likes doing, if they told it.
+        $data['likes'] = hobbies::export((int) $household->id);
+        // What was counted of what they did on their page and with the mails.
+        $data['what_was_counted'] = seen::export((int) $household->id);
         // A visit of its own: when they said it suits them.
         foreach ($DB->get_records(visits::REQUESTS, ['householdid' => $household->id], 'timecreated ASC') as $request) {
             $data['visit_requests'][] = ['days' => $request->days ? array_map('intval', explode(',', $request->days)) : [],
@@ -602,8 +618,8 @@ class households {
                 'timecreated' => time()]);
         }
         foreach (
-            [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS,
-                visits::REQUESTS, forms::ANSWERS, attend::PROMISES, surveys::T] as $table
+            [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
+                forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

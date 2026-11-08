@@ -125,10 +125,11 @@ class familymail {
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
         $host = $hosts[0]->first ?? '';
-        $pageurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false) :
-            '';
+        // Each link says which mail it is in, so what is pressed inside is counted (never whether it is opened).
+        $pageurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang,
+            'de' => $kind]))->out(false) : '';
         $icsurl = $token && $signup->eventid ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
-            'e' => $signup->eventid]))->out(false) : '';
+            'e' => $signup->eventid, 'de' => $kind]))->out(false) : '';
         $address = trim((string) ($centre->address ?? ''));
         $mapurl = $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
             rawurlencode(format_string($centre->name) . ', ' . $address) : '';
@@ -226,7 +227,7 @@ class familymail {
         if ($kind === 'openinvite') {
             // An open act of the centre for a family that is not of it yet: what, when and where, and how to sign up.
             $joinurl = !empty($signup->token) ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token,
-                'lang' => $lang]))->out(false) : '';
+                'lang' => $lang] + ($token ? ['k' => $token, 'de' => $kind] : [])))->out(false) : '';
             $event = format_string($signup->eventname);
             $context['titular'] = $str($tags ? 'mail_open_titular' : 'mail_open_titular_nochild');
             // Why they get it: they let the centre write to them, not that they signed up to a visit.
@@ -460,7 +461,11 @@ class familymail {
             return false;
         }
         [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text);
-        return mail::send_rich($centre, $email, $subject, $html, $plain, $images);
+        if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images)) {
+            return false;
+        }
+        seen::mail_sent($household, $kind);
+        return true;
     }
 
     /**

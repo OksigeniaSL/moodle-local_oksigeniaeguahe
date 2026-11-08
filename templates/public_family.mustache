@@ -63,13 +63,20 @@
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
         "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar nuestros datos",
-        "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#"
+        "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#",
+        "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
+        "hobbies": {"title": "Lo que les gusta hacer", "lead": "Si quieren contárnoslo.", "othertext": "Otra cosa",
+            "otherexample": "Por ejemplo, el parchís", "savetext": "Guardar", "savedtext": "Guardado", "saved": false,
+            "action": "https://example.com/f.php?action=hobbies", "sesskey": "abc", "many": false,
+            "adults": [{"adultid": 12, "name": "Marta", "other": "", "options": [{"key": "cooking", "label": "Cocina",
+            "checked": true}, {"key": "boardgames", "label": "Juegos de mesa", "checked": false}]}]}
     }
 }}
+{{#measure}}<span class="mide" data-mide="{{url}}" data-sesskey="{{sesskey}}" data-de="{{de}}" hidden></span>{{/measure}}
 {{#hall}}
 <div class="sala-familia" data-vestibulo data-escena="{{json}}" data-base="{{base}}" aria-hidden="true"><div class="sala"></div></div>
 {{/hall}}
-<section class="pared{{#hall}} con-sala{{/hall}}" aria-labelledby="titulo">
+<section class="pared{{#hall}} con-sala{{/hall}}" aria-labelledby="titulo" data-parte="wall">
     <div class="saludo-arriba">
         <h1 class="titular" id="titulo">{{greeting}}{{#names}} <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</h1>
     </div>
@@ -140,7 +147,7 @@
 </section>
 
 {{#hasnext}}
-<section class="banda" aria-label="{{bandlabel}}">
+<section class="banda" aria-label="{{bandlabel}}" data-parte="visit">
     <p class="etiqueta">{{bandlabel}}</p>
     {{#first}}
     <p class="cuando"><span>{{weekday}}</span><span>{{daymonth}}</span></p>
@@ -152,7 +159,7 @@
         <span>{{people}}</span>
         <div class="acciones">
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
-            {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
+            {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
         </div>
     </div>
     {{/first}}
@@ -165,7 +172,7 @@
 </section>
 {{/hasnext}}
 {{#howitwent}}
-<section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t">
+<section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t" data-parte="visit">
     <div class="cabeza-encuesta">
         <h2 class="titulo-encuesta" id="como-fue-t">{{label}}</h2>
         <p class="siguiente">{{lead}}</p>
@@ -196,14 +203,14 @@
 {{^howitwent}}
 {{^hasnext}}
 {{^quiet}}
-<section class="banda" aria-label="{{bandnext}}">
+<section class="banda" aria-label="{{bandnext}}" data-parte="visit">
     <p class="etiqueta">{{bandnext}}</p>
     <p class="siguiente">{{nextline}}</p>
     <div class="detalles">
         <p>{{novisit}}</p>
         <div class="acciones">
-            {{#email}}<a class="boton inverso" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
         </div>
     </div>
 </section>
@@ -213,7 +220,7 @@
 
 {{^quiet}}
 {{#hashosts}}
-<section class="seccion dos-col">
+<section class="seccion dos-col" data-parte="hosts">
     <div class="cabeza">
         <h2>{{pub_receives}}</h2>
         <p class="sub">{{pub_receives_sub}}</p>
@@ -232,20 +239,49 @@
 </section>
 {{/hashosts}}
 {{^hashosts}}
-<section class="seccion">
+<section class="seccion" data-parte="hosts">
     <h2>{{pub_receives}}</h2>
     <p class="equipo">{{#receivespending}}{{receivespending}}{{/receivespending}}{{^receivespending}}{{pub_receives_team}}{{/receivespending}}</p>
 </section>
 {{/hashosts}}
 {{/quiet}}
 
-<section class="seccion">
+{{#hobbies}}
+<section class="seccion aficiones" id="aficiones" aria-labelledby="aficiones-t">
+    <div class="cabeza">
+        <h2 id="aficiones-t">{{title}}</h2>
+        <p class="sub">{{lead}}</p>
+    </div>
+    <form class="hoja-aficiones" method="post" action="{{action}}" data-aficiones data-guardado-texto="{{savedtext}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{#adults}}
+        <fieldset class="aficiones-adulto" data-adulto="{{adultid}}">
+            <legend dir="auto">{{name}}</legend>
+            <div class="fichas">
+                {{#options}}<label class="ficha"><input type="checkbox" name="h{{adultid}}[]" value="{{key}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span><span class="palabra">{{label}}</span></label>{{/options}}
+            </div>
+            <div class="campo otra-aficion">
+                <label for="o{{adultid}}">{{othertext}}</label>
+                <input id="o{{adultid}}" name="o{{adultid}}" type="text" value="{{other}}" maxlength="100" placeholder="{{otherexample}}" dir="auto">
+            </div>
+            <p class="guardado" data-guardado aria-live="polite"></p>
+        </fieldset>
+        {{/adults}}
+        <div class="acciones guardar-aficiones">
+            <button class="boton secundario" type="submit">{{savetext}}</button>
+            {{#saved}}<p class="guardado" role="status">{{savedtext}}</p>{{/saved}}
+        </div>
+    </form>
+</section>
+{{/hobbies}}
+
+<section class="seccion" data-parte="told">
     <h2>{{pub_told}}</h2>
     <div class="lo-contado">
         {{#haschildren}}
         <div>
             <h3 id="quien-vendria">{{pub_who_comes}}</h3>
-            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a></dd></div>{{/children}}</dl>
+            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a></dd></div>{{/children}}</dl>
             {{#hassiblings}}<h3>{{siblingstitle}}</h3><dl>{{#siblings}}<div><dt>{{name}}</dt><dd>{{line}}</dd></div>{{/siblings}}</dl>{{/hassiblings}}
         </div>
         {{/haschildren}}
@@ -261,7 +297,7 @@
             <h3>{{jointitle}}</h3>
             <p class="muted">{{joinlead}}</p>
             <div class="acciones">
-                {{#joinlinks}}<a class="boton secundario" href="{{url}}" rel="noopener noreferrer">{{name}}</a>{{/joinlinks}}
+                {{#joinlinks}}<a class="boton secundario" href="{{url}}" rel="noopener noreferrer" data-toca="phone_join">{{name}}</a>{{/joinlinks}}
             </div>
         </div>
         {{/hasjoin}}
@@ -277,7 +313,7 @@
             <dl>{{#answers}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/answers}}</dl>
         </div>
         {{/hasanswers}}
-        <div>
+        <div data-parte="data">
             <h3>{{pub_data}}</h3>
             <p class="muted">{{pub_data_hint}}</p>
             <div class="acciones datos">

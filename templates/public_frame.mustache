@@ -40,7 +40,7 @@
     <details class="idioma">
         <summary aria-label="{{langlabel}}: {{langname}}">{{{i.globe}}}<span>{{langname}}</span>{{{i.chev}}}</summary>
         <ul>
-            {{#langs}}<li><a href="{{url}}" hreflang="{{code}}" lang="{{code}}"{{#current}} aria-current="true"{{/current}}>{{name}}{{#current}}{{{i.check}}}{{/current}}</a></li>{{/langs}}
+            {{#langs}}<li><a href="{{url}}" hreflang="{{code}}" lang="{{code}}" data-toca="language"{{#current}} aria-current="true"{{/current}}>{{name}}{{#current}}{{{i.check}}}{{/current}}</a></li>{{/langs}}
         </ul>
     </details>
 </header>

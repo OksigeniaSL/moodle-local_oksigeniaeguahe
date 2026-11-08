@@ -137,7 +137,44 @@ class centres {
             // The age children enter at, for the brothers and sisters; 0, children do not enter by age here.
             $row->siblingage = max(0, min(18, (int) $data->siblingage));
         }
+        if (isset($data->networks)) {
+            // The networks a family may name, one per line, as the centre writes them; empty, the usual ones.
+            $names = array_slice(array_unique(array_filter(array_map(
+                fn($n) => \core_text::substr(trim($n), 0, 60),
+                preg_split('/[\r\n,]+/', (string) $data->networks)
+            ), fn($n) => $n !== '')), 0, 30);
+            $row->networks = $names ? implode("\n", $names) : null;
+        }
         return $row;
+    }
+
+    /**
+     * The networks a family may name when it heard of the centre on one: those the centre wrote or, without them, the
+     * usual ones. None is written in Eguahe for good: whichever the families use, the centre adds it.
+     *
+     * @param \stdClass $centre
+     * @return string[]
+     */
+    public static function networks(\stdClass $centre): array {
+        $names = array_values(array_filter(array_map('trim', explode("\n", (string) ($centre->networks ?? '')))));
+        return $names ?: lists::NETWORKS;
+    }
+
+    /**
+     * A network as a family named it, written as the centre writes it when it is one of its own.
+     *
+     * @param \stdClass $centre
+     * @param string $named
+     * @return string
+     */
+    public static function network(\stdClass $centre, string $named): string {
+        $named = \core_text::substr(trim(preg_replace('/\s+/u', ' ', $named)), 0, 60);
+        foreach (self::networks($centre) as $name) {
+            if (\core_text::strtolower($name) === \core_text::strtolower($named)) {
+                return $name;
+            }
+        }
+        return $named;
     }
 
     /**

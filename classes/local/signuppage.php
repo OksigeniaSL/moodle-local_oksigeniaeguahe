@@ -198,6 +198,12 @@ class signuppage {
             'heardwhoshown' => ($data['heardfrom'] ?? '') === 'centrefamilies',
             'heardwholabel' => publiclang::str('pub_heardwho', $lang),
             'heardwhohelp' => publiclang::str('pub_heardwho_help', $lang),
+            // Which network, when it was one: those of the centre to pick from, or the one they write.
+            'heardnet' => (string) ($data['heardnet'] ?? ''),
+            'heardnetshown' => ($data['heardfrom'] ?? '') === 'social',
+            'heardnetlabel' => publiclang::str('pub_heardnet', $lang),
+            'heardnethelp' => publiclang::str('pub_heardnet_help', $lang),
+            'networks' => array_map(fn($n) => ['name' => $n], centres::networks($centre)),
             // Brothers and sisters who would come later, where children enter by age and the event is about admissions.
             'asksiblings' => siblings::on($centre) && $event->kind !== 'other',
             'siblingstitle' => publiclang::str('pub_siblings_title', $lang),

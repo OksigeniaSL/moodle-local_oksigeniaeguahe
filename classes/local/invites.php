@@ -114,9 +114,10 @@ class invites {
      * @param \stdClass $centre
      * @param int $userid Who sends it.
      * @param int $now
+     * @param string $hobby Only those where an adult said they like it, when it goes with the act; '' for all.
      * @return int How many were invited.
      */
-    public static function send(\stdClass $event, \stdClass $centre, int $userid, int $now): int {
+    public static function send(\stdClass $event, \stdClass $centre, int $userid, int $now, string $hobby = ''): int {
         global $DB;
         if (!self::fits($event, $now)) {
             return 0;
@@ -126,7 +127,11 @@ class invites {
             'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
             'token' => $event->token];
         $note = get_string('invite_note', self::C, format_string($event->name));
-        foreach (self::eligible($event) as $household) {
+        $eligible = self::eligible($event);
+        if ($hobby !== '') {
+            $eligible = array_intersect_key($eligible, array_flip(hobbies::households_with(array_keys($eligible), [$hobby])));
+        }
+        foreach ($eligible as $household) {
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $token = households::new_link($household, 'invitation');
             if (!familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token)) {

@@ -61,7 +61,7 @@ class panel_event {
      * @param int $now
      * @return array
      */
-    public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0): array {
+    public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0, string $hobby = ''): array {
         $now = $now ?: time();
         $c = self::C;
         $url = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]);
@@ -203,7 +203,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
-            'invite' => self::invite($event, $canact, $now),
+            'invite' => self::invite($event, $canact, $now, $hobby),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -388,19 +388,41 @@ class panel_event {
      * @param int $now
      * @return array|false
      */
-    protected static function invite(\stdClass $event, bool $canact, int $now) {
+    protected static function invite(\stdClass $event, bool $canact, int $now, string $hobby = '') {
         if (!invites::fits($event, $now)) {
             return false;
         }
         $c = self::C;
-        $can = count(invites::eligible($event));
+        $eligible = array_keys(invites::eligible($event));
+        $can = count($eligible);
         $done = invites::count((int) $event->id);
+        // What goes with the act: the families where an adult said they like it, to invite only them if it fits.
+        $by = hobbies::families_by($eligible);
+        $hobby = isset($by[$hobby]) ? $hobby : '';
+        $url = fn(string $key) => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id] +
+            ($key !== '' ? ['gusto' => $key] : []), 'invitar'))->out(false);
+        $chips = [];
+        foreach ($by as $key => $n) {
+            $chips[] = ['name' => hobbies::name($key), 'n' => $n, 'url' => $url($hobby === $key ? '' : $key),
+                'current' => $hobby === $key];
+        }
+        $some = $hobby !== '' ? $by[$hobby] : 0;
+        $a = (object) ['n' => $some, 'of' => $can, 'what' => \core_text::strtolower($hobby !== '' ? hobbies::name($hobby) : '')];
         return [
             'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
             'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
+            'haslikes' => (bool) $chips,
+            'likes' => $chips,
+            'hobby' => $hobby,
+            'some' => $hobby !== '' ? get_string($some === 1 ? 'panel_invite_some_one' : 'panel_invite_some', $c, $a) : '',
+            'somebutton' => $hobby !== '' && $canact ? get_string(
+                $some === 1 ? 'panel_invite_send_some_one' : 'panel_invite_send_some',
+                $c,
+                $a
+            ) : '',
         ];
     }
 }

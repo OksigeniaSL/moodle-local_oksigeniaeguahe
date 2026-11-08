@@ -1134,6 +1134,25 @@ main {
     color: var(--eg-sobre-accion);
 }
 
+/* What goes with an open act: the things the families like, to invite only those who marked one */
+.gustos-acto {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gustos-acto .pastilla {
+    gap: 8px;
+}
+
+.gustos-acto .pastilla b {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.75;
+}
+
 .vista {
     display: inline-flex;
     gap: 2px;
@@ -2560,6 +2579,27 @@ input:focus-visible + .ficha-canal {
 .respuestas dd {
     margin: 0;
     font-weight: 650;
+}
+
+/* What an adult likes doing, as they told it on their page */
+.le-gusta {
+    margin-top: 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+/* What they do on their page: facts in a list, never a score */
+.hechos-pagina {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+}
+
+.hechos-pagina li {
+    padding-inline-start: 14px;
+    border-inline-start: 2px solid var(--eg-linea);
 }
 
 .sin-contar {
@@ -6367,6 +6407,446 @@ html.modo-lamina {
         opacity: 1;
     }
 }
+/* ==================== 11.5.1 What they like most ==================== */
+/* «What they like most», inside «Cifras» (Jujol, 8 November 2026). Sheets on the same desk, in the language of the
+   rest: ink for now, pencil for the reference, stamps for what is done again. Only the variables of «Cifras» (--cf-*)
+   and of the skin, so light and dark follow them. */
+
+.gusta-cabeza {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    margin-top: 18px;
+    padding: 14px 22px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.gusta-cabeza h2 {
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.gusta-cabeza p {
+    margin: 0;
+    color: var(--cf-lapiz-texto);
+}
+
+.cifras > .lamina[class*="gusta-"] h3 {
+    margin: 10px 0 0;
+    font-size: 1rem;
+}
+
+/* What is looked at again: the bar is how many times in all; the stamps, how many times each family comes back. */
+.gusta-fila {
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: minmax(110px, min(28%, 15em)) minmax(0, 1fr) 10.5rem;
+}
+
+.gusta-sellos {
+    grid-column: 3;
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cf-lapiz-fuerte);
+}
+
+.gusta-fila.vuelve .gusta-sellos {
+    color: var(--cf-serie);
+}
+
+.sellos {
+    display: inline-flex;
+    gap: 3px;
+}
+
+/* A round rubber stamp, inked up to its fraction (the last return of the average family is a part of one). */
+.sellos i {
+    width: 15px;
+    height: 15px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background: linear-gradient(to right, currentColor calc(var(--f) * 100%), transparent 0);
+    opacity: 0.9;
+    transform: rotate(-8deg);
+}
+
+.sellos i:nth-child(even) {
+    transform: rotate(6deg);
+}
+
+.gusta-again {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.gusta-fila.vuelve .gusta-again {
+    color: var(--eg-tinta);
+    font-weight: 650;
+}
+
+.gusta-familias {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.85rem;
+}
+
+.leyenda .clave-sello {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--cf-serie);
+    border-radius: 50%;
+    background: var(--cf-serie);
+    vertical-align: -1px;
+}
+
+/* How many times each family opens its page: five columns on graph paper. */
+.gusta-tramos {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 10px 8px 6px;
+    list-style: none;
+    background-image:
+        linear-gradient(var(--cf-lapiz) 1px, transparent 1px),
+        linear-gradient(90deg, var(--cf-lapiz) 1px, transparent 1px);
+    background-size: 12px 12px;
+    background-position: -1px -1px;
+    border-radius: 4px;
+}
+
+.gusta-tramos li {
+    display: grid;
+    grid-template-rows: auto 70px auto;
+    justify-items: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.gusta-tramos b {
+    font-variant-numeric: tabular-nums;
+}
+
+.tramo-pista {
+    position: relative;
+    /* stylelint-disable-next-line csstree/validator */
+    width: min(100%, 36px);
+    height: 100%;
+}
+
+.tramo-pista i {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: calc(var(--v) * 100%);
+    min-height: 2px;
+    border-radius: 3px 3px 0 0;
+    background: var(--cf-serie);
+}
+
+.tramo-nombre {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.8rem;
+}
+
+.gusta-vuelta {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* How far down the page they go: the page as a strip, inked as far as the families get. */
+.gusta-hoja {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--cf-lapiz);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gusta-hoja li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    background: linear-gradient(to right, var(--cf-serie-suave) calc(var(--v) * 100%), transparent 0);
+    border-inline-start: 4px solid var(--cf-serie);
+}
+
+.gusta-hoja li + li {
+    border-top: 1px dashed var(--cf-lapiz);
+}
+
+.gusta-hoja b {
+    font-variant-numeric: tabular-nums;
+}
+
+/* The drawing: four figures, as in a ledger. */
+.gusta-cuenta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+    margin: 0;
+}
+
+.gusta-cuenta div {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cf-lapiz);
+}
+
+.gusta-cuenta dt {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.85rem;
+}
+
+.gusta-cuenta dd {
+    margin: 0;
+}
+
+.gusta-cuenta dd b {
+    font-variant-numeric: tabular-nums;
+}
+
+.gusta-cuenta dd b {
+    font-size: 1.7rem;
+    font-weight: 780;
+}
+
+/* «Tu primer día»: the book as a strip of pages, the dedication first; a ribbon marks where families stop, taller
+   where more stop, and the last page («Entera», heard to the end) is in ink. */
+.gusta-cuento {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gusta-cuento li {
+    display: grid;
+    grid-template-rows: auto 48px auto;
+    justify-items: center;
+    gap: 2px;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.gusta-cuento b {
+    grid-row: 1;
+    height: 1.3em;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+.cuento-pagina {
+    grid-row: 2;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--cf-lapiz-fuerte);
+    border-inline-start-width: 0;
+    background: var(--piel-hoja);
+}
+
+.gusta-cuento li:first-child .cuento-pagina {
+    border-inline-start-width: 1px;
+    border-radius: 4px 0 0 4px;
+}
+
+.gusta-cuento li:last-child .cuento-pagina {
+    border-radius: 0 4px 4px 0;
+}
+
+/* The ribbon: from the top edge of the page down, as long as the share of families who stop there. */
+.cuento-cinta {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 10px;
+    height: calc(10px + var(--v) * 34px);
+    transform: translateX(-50%);
+    background: var(--cf-lapiz-fuerte);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+.gusta-cuento .final .cuento-pagina {
+    background: var(--cf-serie-suave);
+}
+
+.gusta-cuento .final .cuento-cinta {
+    background: var(--cf-serie);
+}
+
+.cuento-n {
+    grid-row: 3;
+    color: var(--cf-lapiz-texto);
+}
+
+.gusta-cuento .final .cuento-n {
+    color: var(--eg-tinta);
+    font-weight: 700;
+}
+
+/* The mails: sent, in pencil; with some click, in ink. */
+.gusta-enviados {
+    border: 1.5px dashed var(--cf-lapiz-fuerte);
+    border-radius: 3px;
+    background: transparent;
+}
+
+/* A ruled index card: each line of text sits on its rule (the rule falls at the baseline of every 1.6em line). */
+.gusta-ficha {
+    margin: 4px 0 0;
+    padding: 0.5em 14px 0.6em;
+    border-radius: 4px;
+    background-color: var(--piel-hoja);
+    background-image:
+        linear-gradient(
+            transparent calc(1.24em - 1px),
+            var(--cf-lapiz) calc(1.24em - 1px),
+            var(--cf-lapiz) 1.24em,
+            transparent 1.24em
+        );
+    background-size: 100% 1.6em;
+    background-origin: content-box;
+    background-clip: content-box;
+    border-top: 2px solid var(--cf-sale);
+    line-height: 1.6;
+}
+
+/* Where they come from: the families in a light ink; those who asked for a visit of their own, in full ink. */
+.gusta-origen {
+    --cf-sitio: 9rem;
+}
+
+.gusta-origen .barra-pista .barra-dato {
+    background: var(--cf-serie-suave);
+}
+
+.gusta-vienen .gusta-cita {
+    background: var(--cf-serie);
+}
+
+.gusta-vienen .leyenda .clave-ahora {
+    background: var(--cf-serie-suave);
+}
+
+.leyenda .clave-parte {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--cf-serie);
+}
+
+.gusta-edad {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* What they like doing: paper tags, each with how many adults say so. */
+.gusta-fichas {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gusta-fichas li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+    align-items: baseline;
+    padding: 10px 12px 12px;
+    border: 1px solid var(--cf-lapiz);
+    border-radius: 4px 4px 4px 14px;
+    background: var(--piel-hoja);
+}
+
+.gusta-fichas b {
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.ficha-pista {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--cf-serie-suave);
+}
+
+.ficha-pista i {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: calc(var(--v) * 100%);
+    border-radius: 3px;
+    background: var(--cf-serie);
+}
+
+.gusta-hechos {
+    margin: 0;
+    padding-inline-start: 1.1em;
+}
+
+/* The desk, wide: the first and the last sheets across, the others two by two. */
+@media (min-width: 1100px) {
+    .cifras > .gusta-pagina,
+    .cifras > .gusta-dibujo,
+    .cifras > .gusta-correos,
+    .cifras > .gusta-vienen {
+        grid-column: span 3;
+    }
+
+    .cifras > .gusta-vuelven,
+    .cifras > .gusta-aficiones,
+    .cifras > .gusta-vacio {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 719px) {
+    /* As the other bars on the phone (name and figure, then the bar), with the stamps underneath. */
+    .gusta-fila {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "nombre n" "pista pista" "sellos sellos";
+    }
+
+    .gusta-sellos {
+        grid-area: sellos;
+    }
+
+    .gusta-cuenta {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (forced-colors: active) {
+    .sellos i,
+    .tramo-pista i,
+    .cuento-pista i,
+    .ficha-pista i {
+        forced-color-adjust: none;
+        /* stylelint-disable-next-line csstree/validator */
+        background: CanvasText;
+        /* stylelint-disable-next-line csstree/validator */
+        border-color: CanvasText;
+    }
+}
+
 /* ==================== 11.6 Importing what already happened ==================== */
 .tipos-import {
     padding-inline-start: 1.2em;

@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\seen;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
 $eventid = optional_param('e', 0, PARAM_INT);
@@ -47,6 +48,10 @@ if (!$signup) {
 $centre = centres::get((int) $event->centreid);
 $lang = publiclang::choose($centre);
 $full = familymail::signup($household, (int) $event->id);
+// Counted, from their page or from a mail; a robot that only asks for the headers is not a family.
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && !seen::from_team($centre)) {
+    seen::record($household, 'touch', 'calendar', optional_param('de', '', PARAM_ALPHA));
+}
 publicpage::headers();
 @header('Content-Type: text/calendar; charset=utf-8');
 @header('Content-Disposition: attachment; filename="' . clean_filename(format_string($event->name)) . '.ics"');

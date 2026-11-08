@@ -2603,6 +2603,123 @@ textarea.renglones:focus-visible {
 .al-tocar .guardar-encuesta {
     display: none;
 }
+/* What they like doing: one sheet, each adult with their name by hand and their chips; kept when touched */
+.hoja-aficiones {
+    position: relative;
+    display: grid;
+    gap: 28px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    border-radius: var(--radio);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 18px 36px -18px var(--eg-sombra);
+    padding: 22px 20px 24px;
+}
+
+.hoja-aficiones::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: url(img/grano.svg);
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+.hoja-aficiones > * {
+    position: relative;
+}
+
+.aficiones-adulto {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.aficiones-adulto + .aficiones-adulto {
+    padding-top: 24px;
+    border-top: 1.5px dashed var(--eg-linea);
+}
+
+.aficiones-adulto legend {
+    float: left;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.875rem;
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.aficiones-adulto legend + * {
+    clear: both;
+}
+
+.aficiones-adulto .ficha {
+    min-height: 46px;
+    padding: 0 16px 0 12px;
+}
+
+.otra-aficion {
+    display: grid;
+    gap: 8px;
+}
+
+.otra-aficion label {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+.otra-aficion input {
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 14px;
+    border-radius: var(--radio-campo);
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+}
+
+.guardar-aficiones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+}
+
+.al-tocar .guardar-aficiones {
+    display: none;
+}
+
+@media (max-width: 719px) {
+    /* On the phone, the chips closer, so the list of each adult takes a few lines */
+    .aficiones-adulto .fichas {
+        gap: 8px;
+    }
+
+    .aficiones-adulto .ficha {
+        min-height: 42px;
+        gap: 8px;
+        padding: 0 12px 0 9px;
+        font-size: 0.9375rem;
+    }
+
+    .aficiones-adulto .ficha .marca {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (min-width: 720px) {
+    .hoja-aficiones {
+        padding: 30px 32px 32px;
+    }
+}
 
 @media (min-width: 720px) {
     .hoja-pregunta,

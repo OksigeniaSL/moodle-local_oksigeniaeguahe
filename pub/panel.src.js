@@ -2561,4 +2561,19 @@
             target.click();
         }
     });
+
+    // How they heard of the centre: on a network, which one; the field only when it is a network, or already written.
+    all('[data-cual-red]').forEach(function(select) {
+        var form = select.form || doc;
+        var which = one('.cual-red', form);
+        if (!which) {
+            return;
+        }
+        var shown = function() {
+            var input = one('input', which);
+            which.hidden = select.value !== select.getAttribute('data-cual-red') && !(input && input.value);
+        };
+        on(select, 'change', shown);
+        shown();
+    });
 })();

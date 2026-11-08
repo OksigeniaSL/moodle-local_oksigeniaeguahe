@@ -29,8 +29,10 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
+use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
 
@@ -49,6 +51,12 @@ if (!$event || !$centre) {
         publiclang::str('pub_notfound', $lang),
         $url
     );
+}
+// From the invitation to an open act in a mail: the family that pressed it, counted.
+$invited = optional_param('k', '', PARAM_ALPHANUMEXT);
+$from = households::by_link($invited);
+if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
+    seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
 }
 $lang = publiclang::choose($centre);
 if (!$event->open || $event->timeend < time()) {

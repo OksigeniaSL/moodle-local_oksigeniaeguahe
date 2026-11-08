@@ -73,8 +73,8 @@ class panel_centre {
             }
         }
         $index['despues'] = 'panel_after_enrolment';
-        $index += ['datos' => 'centre_data', 'zona' => 'panel_the_area', 'oferta' => 'panel_offer_places',
-            'equipo' => 'centre_members', 'panel' => 'centre_skin', 'ia' => 'centre_ai'];
+        $index += ['datos' => 'centre_data', 'zona' => 'panel_the_area', 'redes' => 'panel_networks',
+            'oferta' => 'panel_offer_places', 'equipo' => 'centre_members', 'panel' => 'centre_skin', 'ia' => 'centre_ai'];
         $providers = [['value' => 0, 'name' => get_string('centre_ai_none', $c), 'selected' => empty($centre->aiprovider)]];
         foreach (ai::providers() as $id => $provider) {
             $providers[] = ['value' => $id, 'name' => $provider, 'selected' => (int) $centre->aiprovider === $id];
@@ -126,6 +126,7 @@ class panel_centre {
             'dpo' => (string) $centre->dpocontact,
             'retention' => (int) $centre->retention,
             'municipalities' => (string) $centre->municipalities,
+            'networks' => implode("\n", centres::networks($centre)),
             'offers' => self::offers($centre),
             'members' => self::members($centre),
             'skins' => self::skins($centre),
@@ -348,6 +349,7 @@ class panel_centre {
             'dpocontact' => optional_param('dpocontact', '', PARAM_TEXT),
             'retention' => optional_param('retention', 24, PARAM_INT),
             'municipalities' => optional_param('municipalities', '', PARAM_TEXT),
+            'networks' => optional_param('networks', '', PARAM_TEXT),
             'aiprovider' => optional_param('aiprovider', 0, PARAM_INT),
             'skin' => optional_param('skin', '', PARAM_ALPHA),
             'handover' => self::member(optional_param('handover', 0, PARAM_INT), (int) $centre->id),

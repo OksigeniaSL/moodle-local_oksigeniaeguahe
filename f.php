@@ -29,9 +29,11 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
+use local_oksigeniaeguahe\local\hobbies;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\surveys;
@@ -55,6 +57,12 @@ if (!$household || !$centre) {
     );
 }
 $lang = publiclang::choose($centre);
+// What the family does here is counted, never when someone of the team looks at their page.
+$note = function (string $what) use ($household, $centre): void {
+    if (!seen::from_team($centre)) {
+        seen::record($household, 'touch', $what);
+    }
+};
 
 $drawing = optional_param('dibujo', 0, PARAM_INT);
 if ($drawing) {
@@ -102,10 +110,16 @@ if ($action === 'drawing') {
             optional_param('strokes', '', PARAM_RAW)
         );
         if (optional_param('fetch', 0, PARAM_BOOL)) {
+            if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
+                $note('drawing_sent');
+            }
             publicpage::headers();
             @header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['saved' => $saved, 'back' => $back->out(false)]);
             die();
+        }
+        if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
+            $note('drawing_sent');
         }
         redirect($saved ? $back : new moodle_url($url, ['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang, 'mal' => 1]));
     }
@@ -120,6 +134,7 @@ if ($action === 'drawing') {
 }
 
 if ($action === 'download') {
+    $note('download');
     publicpage::headers();
     @header('Content-Type: application/json; charset=utf-8');
     @header('Content-Disposition: attachment; filename="' . clean_filename(publiclang::str('pub_data_file', $lang)) .
@@ -134,6 +149,9 @@ if (($action === 'settledask' || $action === 'goneask') && data_submitted() && c
     $question = optional_param('question', '', PARAM_TEXT);
     $asked = $action === 'goneask' ? settled::gone($kids) && settled::ask($household, $question, settled::GONEASKED) :
         settled::in_centre($kids) && settled::ask($household, $question);
+    if ($asked) {
+        $note('question');
+    }
     if (optional_param('fetch', 0, PARAM_BOOL)) {
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');
@@ -152,6 +170,7 @@ if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
     // Once enrolled: yes to telling another family how it went, next year.
     if (settled::in_centre(households::full($household)->children)) {
         settled::volunteer($household, $centre, time());
+        $note('volunteer');
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'ofrecimiento'));
 }
@@ -181,6 +200,7 @@ if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_s
         $question = optional_param('question', '', PARAM_TEXT);
         if (trim($question) !== '' && ($one === -1 || $one === 0)) {
             surveys::ask($household, $last, $question);
+            $note('question');
         }
         $form = $action === 'survey' && surveys::is_open($last, time()) ? surveys::form($last) : null;
         foreach ($form ? forms::fields((int) $form->id) : [] as $field) {
@@ -203,6 +223,51 @@ if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_s
     $asked = trim(optional_param('question', '', PARAM_TEXT)) !== '';
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang] + ($asked ? ['asked' => 1] : []) +
         ($action === 'survey' ? ['saved' => 1] : []), $action === 'survey' ? 'como-fue' : 'pregunta'));
+}
+
+if ($action === 'seen') {
+    // What the page tells about itself, as it happens: opened, a part reached, something touched.
+    if (data_submitted() && confirm_sesskey() && !seen::from_team($centre)) {
+        seen::record(
+            $household,
+            optional_param('kind', '', PARAM_ALPHA),
+            optional_param('what', '', PARAM_ALPHAEXT),
+            optional_param('via', '', PARAM_ALPHA)
+        );
+    }
+    publicpage::headers();
+    @header('Cache-Control: no-store');
+    http_response_code(204);
+    die();
+}
+
+if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
+    // What each adult likes doing: one when touched, or all of them with «Save».
+    $one = optional_param('adult', 0, PARAM_INT);
+    $saved = false;
+    foreach (households::full($household)->adults as $adult) {
+        if ($one && $one !== (int) $adult->id) {
+            continue;
+        }
+        $saved = hobbies::save(
+            $household,
+            (int) $adult->id,
+            optional_param_array('h' . $adult->id, [], PARAM_ALPHANUMEXT),
+            optional_param('o' . $adult->id, '', PARAM_TEXT),
+            time()
+        ) || $saved;
+    }
+    if ($saved) {
+        $note('hobbies');
+    }
+    if (optional_param('fetch', 0, PARAM_BOOL)) {
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('Cache-Control: no-store');
+        echo json_encode(['saved' => $saved]);
+        die();
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'gustos' => 1], 'aficiones'));
 }
 
 if ($action === 'erase') {
@@ -233,6 +298,7 @@ publicpage::output(
     publiclang::str('pub_family_title', $lang),
     'public_family',
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
-        'saved' => optional_param('saved', 0, PARAM_BOOL)]),
+        'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
+        'de' => optional_param('de', '', PARAM_ALPHA)]),
     $url
 );

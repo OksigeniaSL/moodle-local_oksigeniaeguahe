@@ -50,11 +50,162 @@
         });
     };
 
+    // What the family does on its page, counted and never scored: that it opened it, once the page has been in sight
+    // for a moment (the robots that read the links of a mail do not stay); how far down it goes; what it touches. Each
+    // part once a visit. Without the script nothing is counted here, and the page is the same.
+    var count = function() {
+        return;
+    };
+    var measure = function() {
+        var mark = document.querySelector('[data-mide]');
+        if (!mark || !window.FormData) {
+            return;
+        }
+        var where = mark.getAttribute('data-mide');
+        var key = mark.getAttribute('data-sesskey');
+        var from = mark.getAttribute('data-de') || '';
+        var opened = false;
+        var pending = [];
+        count = function(kind, what, via) {
+            if (kind !== 'open' && !opened) {
+                pending.push([kind, what, via]);
+                return;
+            }
+            var data = new window.FormData();
+            data.append('sesskey', key);
+            data.append('kind', kind);
+            data.append('what', what || '');
+            data.append('via', via || '');
+            try {
+                if (navigator.sendBeacon && navigator.sendBeacon(where, data)) {
+                    return;
+                }
+            } catch (err) {
+                // The fetch below.
+            }
+            if (window.fetch) {
+                window.fetch(where, {method: 'POST', body: data, credentials: 'same-origin', keepalive: true})
+                    .catch(function() {
+                        return;
+                    });
+            }
+        };
+        var reached = {};
+        var parts = function() {
+            if (!window.IntersectionObserver) {
+                return;
+            }
+            var watch = new window.IntersectionObserver(function(entries) {
+                entries.forEach(function(en) {
+                    var name = en.target.getAttribute('data-parte');
+                    var enough = en.intersectionRatio >= 0.3 || en.intersectionRect.height >= window.innerHeight * 0.4;
+                    if (en.isIntersecting && enough && !reached[name]) {
+                        reached[name] = true;
+                        watch.unobserve(en.target);
+                        count('part', name);
+                    }
+                });
+            }, {threshold: [0, 0.3, 0.6]});
+            all('[data-parte]').forEach(function(part) {
+                watch.observe(part);
+            });
+        };
+        var open = function() {
+            if (opened || document.visibilityState === 'hidden') {
+                return;
+            }
+            window.setTimeout(function() {
+                if (opened || document.visibilityState === 'hidden') {
+                    return;
+                }
+                opened = true;
+                count('open', '', from);
+                // The address forgets the mail: going back or reloading is not another press.
+                if (from && window.history && window.history.replaceState && window.URL) {
+                    try {
+                        var here = new window.URL(window.location.href);
+                        here.searchParams.delete('de');
+                        window.history.replaceState(window.history.state, '', here.toString());
+                    } catch (err) {
+                        // The address stays.
+                    }
+                }
+                pending.splice(0).forEach(function(one) {
+                    count(one[0], one[1], one[2]);
+                });
+                parts();
+            }, 1000);
+        };
+        open();
+        document.addEventListener('visibilitychange', open);
+        document.addEventListener('click', function(e) {
+            var thing = e.target.closest ? e.target.closest('[data-toca]') : null;
+            if (thing) {
+                count('touch', thing.getAttribute('data-toca'));
+            }
+        });
+        // What the scenes tell: the drawing appearing on the table or under the child.
+        document.addEventListener('eguahe:mide', function(e) {
+            if (e.detail && e.detail.toca) {
+                count('touch', e.detail.toca);
+            }
+        });
+    };
+
     var ready = function() {
         fit();
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function() {
                 fit();
+            });
+        }
+        measure();
+
+        // What the adults like doing: each one kept as soon as it is touched; without the script, «Save» keeps them all.
+        var likes = document.querySelector('[data-aficiones]');
+        if (likes && window.fetch && window.FormData) {
+            likes.classList.add('al-tocar');
+            var keepLikes = function(box) {
+                var data = new window.FormData();
+                data.append('sesskey', likes.querySelector('[name="sesskey"]').value);
+                data.append('fetch', '1');
+                data.append('adult', box.getAttribute('data-adulto'));
+                all('input', box).forEach(function(input) {
+                    if (input.type !== 'checkbox' || input.checked) {
+                        data.append(input.name, input.value);
+                    }
+                });
+                var said = box.querySelector('[data-guardado]');
+                window.fetch(likes.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'})
+                    .then(function(r) {
+                        return r.json();
+                    }).then(function(answer) {
+                        if (answer.saved && said) {
+                            said.textContent = likes.getAttribute('data-guardado-texto');
+                            said.classList.remove('dicho');
+                            void said.offsetWidth;
+                            said.classList.add('dicho');
+                        }
+                    }).catch(function() {
+                        // Without connection the button is back.
+                        likes.classList.remove('al-tocar');
+                    });
+            };
+            var later = null;
+            likes.addEventListener('change', function(e) {
+                var box = e.target.closest ? e.target.closest('[data-adulto]') : null;
+                if (box && e.target.type === 'checkbox') {
+                    keepLikes(box);
+                }
+            });
+            likes.addEventListener('input', function(e) {
+                var box = e.target.closest ? e.target.closest('[data-adulto]') : null;
+                if (box && e.target.type === 'text') {
+                    window.clearTimeout(later);
+                    later = window.setTimeout(function() {
+                        keepLikes(box);
+                    }, 1400);
+                }
             });
         }
 
@@ -119,6 +270,16 @@
             };
             told.addEventListener('change', tell);
             tell();
+        }
+        // On a network: which one, picked from those of the centre or written.
+        var net = document.querySelector('[data-cual-red]');
+        var which = document.querySelector('.cual-red');
+        if (net && which) {
+            var name = function() {
+                which.hidden = net.value !== net.getAttribute('data-cual-red') && !which.querySelector('input').value;
+            };
+            net.addEventListener('change', name);
+            name();
         }
 
         // The label writes itself: with the first letter of a name, the backpack arrives at its hook.
@@ -558,6 +719,7 @@
                             // Only a convenience.
                         }
                         player.play();
+                        count('touch', 'drawing_seen');
                     }, {threshold: 0.8});
                     seen.observe(canvas);
                 }).catch(function() {
@@ -579,6 +741,7 @@
             var src = link ? link.getAttribute('href') : (onTable.getAttribute('data-foto') || onTable.src);
             var alt = img ? (img.alt || img.getAttribute('aria-label') || '') : '';
             show(src, alt, close || '×', link || null);
+            count('touch', 'drawing_enlarged');
         });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {

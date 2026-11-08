@@ -1,0 +1,156 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_likes
+
+    «What they like most», inside «Cifras» (Jujol): what families do with what Eguahe gives them, counted by campaign and
+    never naming anyone. Sheets on the desk, like the rest of «Cifras»: the rows speak in the line of the datum when
+    pointed at (data-grafico, data-dato), and everything reads without JavaScript. panel_likes computes it.
+
+    Example context (json):
+    {"title": "Lo que más gusta", "campaign": {"name": "Esta campaña"}, "cut": "Desde el 1 de octubre hasta hoy.",
+     "def": "Lo que hacen las familias.", "empty": true, "emptytext": "Con pocas familias todavía no se puede decir.",
+     "pages": {"openedtext": "3 de 9 familias han abierto su página.", "visitstext": "La mitad la abre una sola vez."},
+     "hobbies": false, "hashobbies": false, "hobbiesof": "Nadie lo ha contado todavía.", "hobbiesextra": false,
+     "hobbiesdef": "Lo que les gusta hacer."}
+}}
+<header class="gusta-cabeza" id="lo-que-mas-gusta">
+    <h2>{{title}}</h2>
+    <p>{{campaign.name}} · {{cut}}</p>
+</header>
+{{#empty}}
+<section class="lamina grafico gusta-vacio ancha" aria-labelledby="g-vacio">
+    <h2 id="g-vacio" class="oculto">{{title}}</h2>
+    <p class="linea-dato">{{emptytext}}</p>
+    <ul class="gusta-hechos">
+        <li>{{pages.openedtext}}</li>
+        <li>{{pages.visitstext}}</li>
+        {{^hashobbies}}<li>{{hobbiesof}}</li>{{/hashobbies}}
+    </ul>
+    <p class="def">{{def}}</p>
+</section>
+{{/empty}}
+{{^empty}}
+<section class="lamina grafico gusta-vuelven ancha" aria-labelledby="g-vuelven" data-grafico>
+    <h2 id="g-vuelven">{{#str}}panel_likes_again, local_oksigeniaeguahe{{/str}}</h2>
+    <p class="linea-dato" data-linea-dato data-reposo="{{touchesrest}}">{{touchesrest}}</p>
+    <p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_likes_key_times, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-sello"></span>{{#str}}panel_likes_key_stamp, local_oksigeniaeguahe{{/str}}</span></p>
+    <ol class="barras gusta-filas">
+        {{#touches}}
+        <li class="barra-fila gusta-fila{{#vuelve}} vuelve{{/vuelve}}" data-dato="{{line}}" id="g-t-{{key}}" style="--v: {{v}}">
+            <span class="barra-nombre">{{name}}</span>
+            <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i></span>
+            <span class="barra-cifras"><b class="barra-n">{{times}}</b><span class="gusta-familias">{{#str}}panel_likes_fam, local_oksigeniaeguahe, {{families}}{{/str}}</span></span>
+            <span class="gusta-sellos"><span class="sellos" aria-hidden="true">{{#marks}}<i style="--f: {{f}}"></i>{{/marks}}</span><span class="gusta-again">{{againtext}}</span></span>
+        </li>
+        {{/touches}}
+    </ol>
+    <p class="def">{{touchesdef}}</p>
+</section>
+
+<section class="lamina grafico gusta-pagina" aria-labelledby="g-pagina" data-grafico>
+    <h2 id="g-pagina">{{#str}}panel_likes_page, local_oksigeniaeguahe{{/str}}</h2>
+    <p class="cifra-heroe"><b>{{pages.opened}}</b><span>{{#str}}panel_likes_opened, local_oksigeniaeguahe, {{pages.families}}{{/str}}</span></p>
+    <p class="linea-dato" data-linea-dato data-reposo="{{pages.visitstext}}">{{pages.visitstext}}</p>
+    <ol class="gusta-tramos" aria-label="{{#str}}panel_likes_times_each, local_oksigeniaeguahe{{/str}}">
+        {{#pages.distribution}}<li data-dato="{{line}}" style="--v: {{v}}"><b>{{families}}</b><span class="tramo-pista" aria-hidden="true"><i></i></span><span class="tramo-nombre">{{label}}</span></li>{{/pages.distribution}}
+    </ol>
+    <p class="gusta-vuelta">{{pages.returnedtext}}</p>
+    <h3>{{#str}}panel_likes_depth, local_oksigeniaeguahe{{/str}}</h3>
+    <ol class="gusta-hoja" aria-label="{{pages.depthdef}}">
+        {{#pages.depth}}<li data-dato="{{line}}" style="--v: {{v}}"><span class="hoja-parte">{{name}}</span><b>{{families}}</b></li>{{/pages.depth}}
+    </ol>
+    <p class="def">{{pages.depthdef}}</p>
+</section>
+
+<section class="lamina grafico gusta-dibujo" aria-labelledby="g-dibujo">
+    <h2 id="g-dibujo">{{#firstday}}{{#str}}panel_likes_drawing_firstday, local_oksigeniaeguahe{{/str}}{{/firstday}}{{^firstday}}{{#str}}panel_likes_drawing, local_oksigeniaeguahe{{/str}}{{/firstday}}</h2>
+    {{#drawing}}
+    <dl class="gusta-cuenta">
+        <div><dt>{{#str}}panel_likes_has_drawing, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{withdrawing}}</b> {{#str}}panel_likes_of, local_oksigeniaeguahe, {{children}}{{/str}}</dd></div>
+        <div><dt>{{#str}}panel_likes_from_home, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{fromhome}}</b></dd></div>
+        <div><dt>{{#str}}panel_likes_seen, local_oksigeniaeguahe{{/str}}</dt><dd>{{seentext}}</dd></div>
+        <div><dt>{{#str}}panel_likes_enlarged, local_oksigeniaeguahe{{/str}}</dt><dd>{{enlargedtext}}</dd></div>
+    </dl>
+    <p class="linea-dato">{{text}}</p>
+    {{/drawing}}
+    {{#firstday}}
+    <h3>{{#str}}panel_likes_firstday, local_oksigeniaeguahe{{/str}}</h3>
+    <p class="linea-dato">{{text}}</p>
+    <ol class="gusta-cuento" aria-label="{{#str}}panel_likes_firstday_where, local_oksigeniaeguahe{{/str}}">
+        {{#strip}}<li class="{{#last}}final{{/last}}{{#hasfamilies}} se-deja{{/hasfamilies}}" style="--v: {{v}}"><span class="cuento-pagina" aria-hidden="true">{{#hasfamilies}}<i class="cuento-cinta"></i>{{/hasfamilies}}</span><b>{{#hasfamilies}}{{families}}{{/hasfamilies}}</b><span class="cuento-n">{{label}}</span></li>{{/strip}}
+    </ol>
+    <p class="def">{{#str}}panel_likes_firstday_def, local_oksigeniaeguahe{{/str}}{{#musicofftext}} {{musicofftext}}{{/musicofftext}}{{#readwithoutaudiotext}} {{readwithoutaudiotext}}{{/readwithoutaudiotext}}</p>
+    {{/firstday}}
+</section>
+
+<section class="lamina grafico gusta-correos" aria-labelledby="g-correos" data-grafico>
+    <h2 id="g-correos">{{#str}}panel_likes_mails, local_oksigeniaeguahe{{/str}}</h2>
+    <p class="linea-dato" data-linea-dato data-reposo="{{mailsrest}}">{{mailsrest}}</p>
+    <p class="leyenda" aria-hidden="true"><span class="clave clave-lapiz"><span class="clave-antes"></span>{{#str}}panel_likes_key_sent, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_likes_key_clicked, local_oksigeniaeguahe{{/str}}</span></p>
+    <ol class="barras">
+        {{#mails}}
+        <li class="barra-fila" data-dato="{{line}}" id="g-m-{{kind}}" style="--v: {{cv}}">
+            <span class="barra-nombre">{{name}}</span>
+            <span class="barra-pista" aria-hidden="true"><i class="gusta-enviados" style="--v: {{sv}}"></i><i class="barra-dato" style="--v: {{cv}}"></i></span>
+            <span class="barra-cifras"><b class="barra-n">{{clicked}}</b><span class="barra-antes">{{oftext}}</span></span>
+        </li>
+        {{/mails}}
+    </ol>
+    <p class="def">{{mailsdef}}</p>
+    {{#howitwent}}<p class="gusta-ficha"><b>{{title}}</b> {{text}}</p>{{/howitwent}}
+</section>
+
+<section class="lamina grafico gusta-vienen" aria-labelledby="g-vienen" data-grafico>
+    <h2 id="g-vienen">{{#str}}panel_likes_origins, local_oksigeniaeguahe{{/str}}</h2>
+    <p class="linea-dato" data-linea-dato data-reposo="{{originsrest}}">{{originsrest}}</p>
+    <p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_likes_key_families, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-parte"></span>{{#str}}panel_likes_key_appointment, local_oksigeniaeguahe{{/str}}</span></p>
+    <ol class="barras gusta-origen">
+        {{#origins}}
+        <li class="barra-fila" data-dato="{{line}}" style="--v: {{v}}">
+            <span class="barra-nombre" dir="auto">{{place}}</span>
+            <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i><i class="gusta-cita" style="--v: {{av}}"></i></span>
+            <span class="barra-cifras"><b class="barra-n">{{families}}</b>{{#appointments}}<span class="barra-antes">{{appointmentstext}}</span>{{/appointments}}</span>
+        </li>
+        {{/origins}}
+    </ol>
+    <p class="def">{{originsdef}}</p>
+    <h3>{{#str}}panel_likes_courses, local_oksigeniaeguahe{{/str}}</h3>
+    <ol class="barras">
+        {{#courses}}
+        <li class="barra-fila" data-dato="{{line}}" style="--v: {{v}}">
+            <span class="barra-nombre">{{name}}{{#age}} <span class="gusta-edad">{{age}}</span>{{/age}}</span>
+            <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i></span>
+            <span class="barra-cifras"><b class="barra-n">{{asked}}</b></span>
+        </li>
+        {{/courses}}
+    </ol>
+    <p class="def">{{coursesdef}}</p>
+</section>
+
+<section class="lamina grafico gusta-aficiones" aria-labelledby="g-aficiones" data-grafico>
+    <h2 id="g-aficiones">{{#str}}panel_likes_hobbies, local_oksigeniaeguahe{{/str}}</h2>
+    <p class="linea-dato" data-linea-dato data-reposo="{{hobbiesof}}">{{hobbiesof}}</p>
+    {{#hashobbies}}
+    <ul class="gusta-fichas">
+        {{#hobbies}}<li data-dato="{{line}}" style="--v: {{v}}"><span class="ficha-nombre" dir="auto">{{name}}</span><b>{{adults}}</b><span class="ficha-pista" aria-hidden="true"><i></i></span></li>{{/hobbies}}
+    </ul>
+    {{/hashobbies}}
+    {{#hobbiesextra}}<p class="gusta-vuelta">{{hobbiesextra}}</p>{{/hobbiesextra}}
+    <p class="def">{{hobbiesdef}}</p>
+</section>
+{{/empty}}

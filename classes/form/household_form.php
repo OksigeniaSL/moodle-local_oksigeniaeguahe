@@ -118,6 +118,9 @@ class household_form extends \moodleform {
             get_string('heardfrom', $c),
             ['' => get_string('form_heard_unknown', $c)] + lists::options(lists::HEARD_FROM, 'heard_')
         );
+        $mform->addElement('text', 'heardnet', get_string('heardnet', $c), ['size' => 30, 'maxlength' => 60]);
+        $mform->setType('heardnet', PARAM_TEXT);
+        $mform->hideIf('heardnet', 'heardfrom', 'neq', 'social');
         $mform->addElement('advcheckbox', 'incentre', get_string('incentre', $c));
         $mform->addHelpButton('incentre', 'incentre', $c);
         $mform->addElement('select', 'lang', get_string('form_lang', $c), lists::LANG_NAMES);

@@ -34,6 +34,7 @@
         <FIELD NAME="handoverhow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How the centre writes to the families once enrolled, as they read it"/>
         <FIELD NAME="siblingage" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The age children enter at, to tell a family the year before a brother or sister turns it; 0, children do not enter by age here"/>
         <FIELD NAME="invitegone" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the families that left are still invited to open acts; 0, they are left in peace"/>
+        <FIELD NAME="networks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The networks a family may name when it heard of the centre on one, one per line, as the centre writes them; empty, the usual ones"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -98,6 +99,7 @@
         <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
+        <FIELD NAME="heardnet" TYPE="char" LENGTH="60" NOTNULL="false" SEQUENCE="false" COMMENT="Which network, when they heard of the centre on one, as the family named it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -671,6 +673,46 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="answer" UNIQUE="true" FIELDS="eventid, householdid, fieldid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_seen" COMMENT="What a family does with what Eguahe gives it: opening its page, how far down it goes, what it touches, the mails it got and what it pressed in them. Counted, never scored">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="open, part, touch or mailsent"/>
+        <FIELD NAME="what" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The part reached, the thing touched or the kind of mail sent"/>
+        <FIELD NAME="via" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="The mail it came from, when it came from a link in one"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrekind" UNIQUE="false" FIELDS="centreid, kind, timecreated"/>
+        <INDEX NAME="householdtime" UNIQUE="false" FIELDS="householdid, timecreated"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_hobby" COMMENT="What an adult of a family likes doing in their free time, if they told it on their page: to think of activities for the families">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="adultid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hobby" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="One of the list, or other"/>
+        <FIELD NAME="other" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="What they wrote, for other"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+        <KEY NAME="adultid" TYPE="foreign" FIELDS="adultid" REFTABLE="local_oksigeniaeguahe_adult" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrehobby" UNIQUE="false" FIELDS="centreid, hobby"/>
       </INDEXES>
     </TABLE>
   </TABLES>

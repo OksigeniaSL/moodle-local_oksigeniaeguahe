@@ -524,6 +524,8 @@
         seen.disconnect();
         try { root.sessionStorage.setItem(key, '1'); } catch (err) { /* only a convenience */ }
         lift(canvas, photo, a, d.url, rest);
+        // Counted on the page of the family: the drawing seen appearing.
+        document.dispatchEvent(new CustomEvent('eguahe:mide', { detail: { toca: 'drawing_seen' } }));
       }, { threshold: 0.6 });
       seen.observe(target);
     }).catch(function () {});

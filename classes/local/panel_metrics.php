@@ -96,10 +96,14 @@ class panel_metrics {
         $offers = $DB->get_records_menu(centres::OFFERS, $id, '', 'id, name');
         $out = [];
         foreach ($DB->get_records_select(households::T, 'centreid = :centreid AND incentre = 0', $id) as $h) {
-            $out[$h->id] = ['first' => (int) $h->timecreated, 'step' => 1, 'closed' => true, 'enrolledat' => 0, 'course' => '',
-                'coursename' => '', 'moving' => !empty($h->moving), 'voices' => ['first' => '', 'last' => '',
-                'said' => $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
-                    'other'), $c) : '']];
+            $said = $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
+                'other'), $c) : '';
+            // On a network, which one: each one is its own row, the little used too.
+            $said .= $said !== '' && $h->heardfrom === 'social' && trim((string) ($h->heardnet ?? '')) !== '' ?
+                ' · ' . trim($h->heardnet) : '';
+            $out[$h->id] = ['id' => (int) $h->id, 'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
+                'enrolledat' => 0, 'course' => '', 'coursename' => '', 'moving' => !empty($h->moving),
+                'voices' => ['first' => '', 'last' => '', 'said' => $said]];
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'centreid = :centreid', $id, 'id ASC') as $child) {
             if (!isset($out[$child->householdid])) {
@@ -310,6 +314,8 @@ class panel_metrics {
             'referred' => $campaign['import'] || $course !== '' ? false : self::referred((int) $centre->id),
             'gone' => $campaign['import'] || $course !== '' ? false : self::gone((int) $centre->id),
             'starts' => self::starts($campaigns, $canact),
+            // What they like most: what the families do with what Eguahe gives them, and who they are.
+            'likes' => panel_likes::context($centre, $campaign, $mine, $now),
         ];
         $context['spendaction'] = $url([])->out(false);
         $year = $course === '' ? self::year($centre) : null;

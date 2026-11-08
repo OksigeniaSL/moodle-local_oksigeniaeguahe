@@ -174,6 +174,7 @@ class panel_household {
             'aftervisits' => array_map(fn($told) => ['title' => get_string('panel_told_after', $c, $told['name']),
                 'answers' => $told['answers']], surveys::of_household($household, current_language())),
             'visit' => self::visit($household, $centre),
+            'seen' => self::seen($household),
             'events' => self::events($full),
             'hasevents' => (bool) $full->signups,
             'newlink' => $newlink,
@@ -610,6 +611,7 @@ class panel_household {
     protected static function adults(\stdClass $full, bool $joined): array {
         $c = self::C;
         $permissions = households::permissions((int) $full->id);
+        $likes = hobbies::of((int) $full->id);
         $out = [];
         foreach ($full->adults as $adult) {
             $granted = $permissions[$adult->id] ?? [];
@@ -627,9 +629,54 @@ class panel_household {
                 $ways[] = ['icon' => panel::icon('telefono'), 'text' => get_string(!empty($granted['phone']) ? 'panel_calls' :
                     'panel_phone_nopermission', $c), 'value' => $adult->phone, 'href' => $tel];
             }
-            $out[] = ['name' => trim($adult->firstname . ' ' . $adult->lastname), 'ways' => $ways, 'hasways' => (bool) $ways];
+            // What they like doing, as they told it on their page.
+            $words = isset($likes[$adult->id]) ? hobbies::words($likes[$adult->id]) : '';
+            $out[] = ['name' => trim($adult->firstname . ' ' . $adult->lastname), 'ways' => $ways, 'hasways' => (bool) $ways,
+                'likes' => $words !== '' ? get_string('panel_adult_likes', $c, $words) : false];
         }
         return $out;
+    }
+
+    /**
+     * What they do on their page and with the mails, as facts: how many times they opened it and on how many days, the
+     * last time, how far down they go, what they touch most and what they pressed in the mails. Never a score.
+     *
+     * @param \stdClass $household
+     * @return array
+     */
+    protected static function seen(\stdClass $household): array {
+        $c = self::C;
+        $s = seen::summary((int) $household->id);
+        if (!$s['opens']) {
+            return ['facts' => [get_string('panel_facts_none', $c)]];
+        }
+        $when = userdate($s['last'], get_string('strftimedaydatetime', 'langconfig'));
+        $facts = [get_string($s['opens'] === 1 ? 'panel_facts_opened_one' : 'panel_facts_opened', $c, (object) [
+            'n' => $s['opens'], 'last' => $when])];
+        if ($s['days'] > 1) {
+            $facts[] = get_string('panel_facts_days', $c, $s['days']);
+        }
+        // Names inside a sentence: the first letter small.
+        $small = fn(string $s) => \core_text::strtolower(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
+        if ($s['deepest'] !== '') {
+            $facts[] = get_string('panel_facts_deepest', $c, $small(get_string('panel_likes_part_' . $s['deepest'], $c)));
+        }
+        $top = array_slice($s['touches'], 0, 3, true);
+        if ($top) {
+            $facts[] = get_string('panel_facts_touched', $c, implode(', ', array_map(
+                fn($what, $n) => $small(get_string('panel_likes_touch_' . $what, $c)) . ' (' . $n . ')',
+                array_keys($top),
+                $top
+            )));
+        }
+        if ($s['mails']) {
+            $facts[] = get_string('panel_facts_mails', $c, implode(', ', array_map(
+                fn($kind, $n) => $small(get_string('mail_name_' . $kind, $c)) . ' (' . $n . ')',
+                array_keys($s['mails']),
+                $s['mails']
+            )));
+        }
+        return ['facts' => $facts];
     }
 
     /**
