@@ -28,20 +28,23 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\forecast;
 use local_oksigeniaeguahe\local\opendata;
-use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_forecast;
 
 require_login(null, false);
 
 $centreid = required_param('c', PARAM_INT);
-$action = optional_param('action', '', PARAM_ALPHA);
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_work($centreid);
 $canact = centres::can_act((int) $USER->id);
 $url = new moodle_url('/local/oksigeniaeguahe/forecast.php', ['c' => $centre->id]);
-staff::setup($url, get_string('tab_forecast', $c), $centre);
+$PAGE->set_context(context_system::instance());
+panel::setup($url, get_string('tab_forecast', $c));
 
-if ($action && data_submitted() && confirm_sesskey()) {
+$action = data_submitted() ? optional_param('action', '', PARAM_ALPHA) : '';
+if ($action !== '') {
+    require_sesskey();
     centres::require_act((int) $centre->id);
     if ($action === 'fetch') {
         try {
@@ -58,7 +61,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
     if ($action === 'ages') {
         $grades = optional_param_array('grade', [], PARAM_TEXT);
-        $ages = optional_param_array('age', [], PARAM_INT);
+        $ages = optional_param_array('age', [], PARAM_RAW_TRIMMED);
         $flags = optional_param_array('forecast', [], PARAM_BOOL);
         $rows = [];
         foreach ($grades as $i => $grade) {
@@ -71,57 +74,4 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
 }
 
-$number = fn($v) => $v === null ? '–' : format_float((float) $v, 0, true, true);
-$percent = fn($v) => $v === null ? '–' : format_float(100 * $v, 1, true, true);
-$grades = [];
-$i = 0;
-foreach (forecast::grades((int) $centre->id) as $grade => $info) {
-    $grades[] = ['i' => $i++, 'grade' => $grade, 'age' => $info['age'], 'forecast' => $info['forecast'],
-        'suggested' => !$info['saved'] && $info['age'] !== null];
-}
-$courses = [];
-foreach (forecast::by_grade($centre) as $g) {
-    $courses[] = [
-        'grade' => $g['grade'],
-        'age' => $g['age'],
-        'past' => array_map(fn($p) => ['year' => $p['year'], 'students' => $p['students'], 'cohort' => $number($p['cohort']),
-            'share' => $percent($p['share'])], $g['past']),
-        'ahead' => array_map(
-            fn($a) => ['year' => $a['year'], 'cohort' => $number($a['cohort']),
-            'fromage' => $a['kind'] === 'age', 'estimated' => $a['kind'] === 'estimate', 'hasrange' => $a['low'] !== null,
-            'low' => $a['low'], 'mid' => $a['mid'], 'high' => $a['high'],
-            'places' => $a['places'], 'over' => $a['places'] && $a['high'] !== null && $a['high'] > $a['places']],
-            $g['ahead']
-        ),
-    ];
-}
-$reach = array_map(fn($r) => array_merge($r, ['code' => $r['name'] === $r['code'] ? '' : $r['code'],
-    'sharetext' => $r['share'] === null ? '–' : format_float($r['share'], 1, true, true)]), forecast::reach($centre));
-$status = opendata::status((int) $centre->id);
-$sources = [];
-foreach ($status as $source => $s) {
-    $sources[] = ['name' => get_string('opendata_source_' . $source, $c), 'numbers' => $s['numbers'],
-        'places' => $s['places'], 'when' => userdate($s['fetched'], get_string('strftimedatetimeshort', 'langconfig'))];
-}
-$zone = forecast::zone($centre);
-
-echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_oksigeniaeguahe/forecast', [
-    'tabs' => staff::tabs($centre, 'forecast'),
-    'canact' => $canact,
-    'action' => $url->out(false),
-    'sesskey' => sesskey(),
-    'zone' => count($zone),
-    'covered' => count(array_filter($zone, [opendata::class, 'istac_covers'])),
-    'sources' => $sources,
-    'hassources' => (bool) $sources,
-    'istac' => isset($status['istac']),
-    'grades' => $grades,
-    'hasgrades' => (bool) $grades,
-    'courses' => $courses,
-    'hascourses' => (bool) $courses,
-    'reach' => $reach,
-    'hasreach' => (bool) $reach,
-    'importurl' => (new moodle_url('/local/oksigeniaeguahe/import.php', ['c' => $centre->id]))->out(false),
-]);
-echo $OUTPUT->footer();
+panel::output($centre, 'forecast', get_string('tab_forecast', $c), 'panel_forecast', panel_forecast::context($centre, $canact));

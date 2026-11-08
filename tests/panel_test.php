@@ -29,6 +29,8 @@ use local_oksigeniaeguahe\local\panel_centre;
 use local_oksigeniaeguahe\local\panel_event;
 use local_oksigeniaeguahe\local\panel_entry;
 use local_oksigeniaeguahe\local\panel_eventform;
+use local_oksigeniaeguahe\local\panel_forecast;
+use local_oksigeniaeguahe\local\panel_import;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
@@ -51,6 +53,8 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_centre::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_entry::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_bridge::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_import::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_forecast::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -421,6 +425,33 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('El huerto', $seen['¿Qué les gustó?']['example']);
         $this->assertTrue($seen['¿Qué les gustó?']['unknown']);
         $this->assertSame('', panel_bridge::context($entry, $centre, false)['key']);
+    }
+
+    /**
+     * Importing and the forecast with nothing yet: what can be imported, and a forecast that says what it lacks. The rail
+     * with the years to come under it, on the same scale, and without them exactly as before.
+     */
+    public function test_import_and_forecast(): void {
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $import = panel_import::context($centre);
+        $this->assertFalse($import['preview']);
+        $this->assertFalse($import['hasimports']);
+        $this->assertCount(6, $import['kinds']);
+        $forecast = panel_forecast::context($centre, true);
+        $this->assertSame(get_string('panel_forecast_title_nodata', 'local_oksigeniaeguahe'), $forecast['head']['title']);
+        $this->assertNull($forecast['reach']);
+
+        $plain = panel::rail(25, 10);
+        $this->assertStringNotContainsString('con-rango', $plain);
+        $ranged = panel::rail(25, 10, [['low' => 18, 'mid' => 22, 'high' => 30, 'text' => '2027-28'],
+            ['low' => 20, 'mid' => 0, 'high' => 26, 'text' => '2028-29']], 'Infantil 3 años');
+        $this->assertStringContainsString('con-rango', $ranged);
+        $this->assertSame(1, substr_count($ranged, 'r-probable'));
+        $this->assertSame(1, substr_count($ranged, 'r-tope'));
+        $this->assertStringContainsString('aria-label="Infantil 3 años"', $ranged);
+        // Past the last place the band blurs.
+        $this->assertStringContainsString('opacity="0.18"', $ranged);
     }
 
     /**

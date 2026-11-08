@@ -1,0 +1,88 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_import
+
+    Importing what already happened (import.php): the file as it comes (a tray to drop it on, or to choose it), and
+    what was imported before. Then, before anything is brought, what Eguahe understands of each sheet: what it is, its
+    label and school year, and its columns in three lists said in words: what stays, what becomes a key (it cannot be
+    read back: it only stops the same family from counting twice) and what is removed. A sheet with health data is
+    never imported. «Look again» with the changes; «Bring 2 sheets». The file is not kept.
+
+    New in this round (the whole template; it replaces import.mustache in the panel).
+
+    Example context (json):
+    {
+        "i": {"atras": "", "subir": "", "check": "", "borrar": "", "clave": "", "info": ""},
+        "head": {"title": "Importar lo que ya pasó", "sub": "Tal como venga.", "back": {"url": "#", "name": "Cifras"}, "ante": "", "action": null},
+        "preview": false, "action": "#", "sesskey": "abc", "draft": 1, "accept": ".xlsx,.csv",
+        "kinds": [{"value": "contacts", "name": "Contactos de una campaña"}],
+        "hasimports": true, "imports": [{"id": 4, "question": "¿Quitamos lo importado?", "label": "Contactos 2026-27", "kind": "Contactos", "rows": "188 filas", "file": "c.xlsx", "when": "el 3 de octubre", "deleteurl": "#"}],
+        "sheets": [], "count": "", "canbring": false, "keyshelp": ""
+    }
+}}
+<div class="pagina pagina-importar">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{^preview}}
+    <form class="apartado subir-fichero grande" method="post" action="{{action}}" enctype="multipart/form-data" data-subir>
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="upload">
+        <label class="bandeja-fichero" data-bandeja-fichero>{{{i.subir}}}<span><b>{{#str}}panel_drop_file, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_import_kinds, local_oksigeniaeguahe{{/str}}</span></span><input type="file" name="file" accept="{{accept}}" required></label>
+        <div class="acciones"><button class="boton principal" type="submit">{{#str}}panel_look_file, local_oksigeniaeguahe{{/str}}</button></div>
+        <p class="def">{{#str}}panel_import_what, local_oksigeniaeguahe{{/str}}</p>
+        <ul class="tipos-import">{{#kinds}}<li>{{name}}</li>{{/kinds}}</ul>
+    </form>
+    {{/preview}}
+    {{#preview}}
+    <form class="hojas" method="post" action="{{action}}" data-hojas>
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="draft" value="{{draft}}">
+        <p class="aviso-suave">{{{i.clave}}}<span>{{keyshelp}}</span></p>
+        {{#sheets}}
+        <section class="apartado hoja-import{{#none}} no-entra{{/none}}" aria-labelledby="hoja-{{index}}">
+            <header><h2 id="hoja-{{index}}">{{{i.hoja}}}{{name}}</h2><span class="secundario">{{rows}}</span></header>
+            <p class="frase-hoja">{{sentence}}</p>
+            {{#health}}<p class="aviso-suave error">{{{i.info}}}<span>{{#str}}panel_health_never, local_oksigeniaeguahe{{/str}}</span></p>{{/health}}
+            <div class="rejilla-3">
+                <div class="campo"><label for="tipo-{{index}}">{{#str}}panel_what_it_is, local_oksigeniaeguahe{{/str}}</label><select id="tipo-{{index}}" name="kind[{{index}}]" data-volver-a-mirar{{#health}} disabled{{/health}}>{{#kinds}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/kinds}}</select></div>
+                {{^none}}<div class="campo"><label for="rot-{{index}}">{{#str}}panel_import_label, local_oksigeniaeguahe{{/str}}</label><input id="rot-{{index}}" name="label[{{index}}]" value="{{label}}"></div>
+                <div class="campo"><label for="curso-{{index}}">{{#str}}panel_school_year, local_oksigeniaeguahe{{/str}}</label><input id="curso-{{index}}" name="schoolyear[{{index}}]" value="{{schoolyear}}"></div>{{/none}}
+            </div>
+            <div class="columnas-destino">
+                <div class="destino queda"><h3>{{#str}}panel_cols_kept, local_oksigeniaeguahe{{/str}}</h3>{{#haskept}}<ul>{{#kept}}<li>{{c}}</li>{{/kept}}</ul>{{/haskept}}{{^haskept}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/haskept}}</div>
+                <div class="destino en-clave"><h3>{{#str}}panel_cols_keys, local_oksigeniaeguahe{{/str}}</h3>{{#haskeys}}<ul>{{#keys}}<li>{{c}}</li>{{/keys}}</ul>{{/haskeys}}{{^haskeys}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/haskeys}}</div>
+                <div class="destino quita"><h3>{{#str}}panel_cols_removed, local_oksigeniaeguahe{{/str}}</h3>{{#hasremoved}}<ul>{{#removed}}<li>{{c}}</li>{{/removed}}</ul>{{/hasremoved}}{{^hasremoved}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/hasremoved}}</div>
+            </div>
+        </section>
+        {{/sheets}}
+        <div class="guardar-pie">
+            <div class="acciones">
+                <button class="boton principal" type="submit" name="action" value="import"{{^canbring}} disabled{{/canbring}}>{{{i.check}}}{{count}}</button>
+                <button class="boton secundario" type="submit" name="action" value="refresh" data-mirar-otra-vez>{{#str}}panel_look_again, local_oksigeniaeguahe{{/str}}</button>
+                <button class="boton terciario" type="submit" name="action" value="cancel">{{#str}}cancel{{/str}}</button>
+            </div>
+        </div>
+    </form>
+    {{/preview}}
+    {{^preview}}
+    <section class="apartado ya-importado" aria-labelledby="ya-t">
+        <header><h2 id="ya-t">{{#str}}panel_imported_before, local_oksigeniaeguahe{{/str}}</h2></header>
+        {{#hasimports}}
+        <ul class="importados">{{#imports}}<li class="importado"><span class="que"><b>{{label}}</b><span class="secundario">{{kind}} · {{rows}} · {{file}}</span></span><span class="secundario cuando">{{when}}</span><details class="confirmar en-linea"><summary class="boton terciario pequeno">{{{i.borrar}}}<span class="oculto">{{label}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</summary><form method="post" action="{{deleteurl}}"><p><b>{{question}}</b></p><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="import" value="{{id}}"><button class="boton peligro pequeno" type="submit" name="action" value="delete">{{#str}}import_delete_yes, local_oksigeniaeguahe{{/str}}</button><button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}import_delete_no, local_oksigeniaeguahe{{/str}}</button></form></details></li>{{/imports}}</ul>
+        {{/hasimports}}
+        {{^hasimports}}<p class="secundario">{{#str}}panel_imported_none, local_oksigeniaeguahe{{/str}}</p>{{/hasimports}}
+    </section>
+    {{/preview}}
+</div>

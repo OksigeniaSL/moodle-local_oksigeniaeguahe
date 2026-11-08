@@ -602,7 +602,8 @@ class recognise {
                 if ($col['role'] === $role && $rows) {
                     $counts = array_count_values(array_filter(array_map(fn($r) => trim((string) ($r[$j] ?? '')), $rows)));
                     arsort($counts);
-                    if ($counts && reset($counts) >= 0.6 * count($rows)) {
+                    // A name, not the number a tool gives a campaign.
+                    if ($counts && reset($counts) >= 0.6 * count($rows) && !preg_match('/^[\d\s._-]+$/', (string) key($counts))) {
                         return \core_text::substr((string) key($counts), 0, 100);
                     }
                 }

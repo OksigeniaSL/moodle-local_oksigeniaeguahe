@@ -33,27 +33,6 @@ class panel_bridge {
     /** @var int How many of the last mails are shown. */
     const LASTMAILS = 3;
 
-    /**
-     * The file of contacts given and not brought yet, in the draft area of whoever gave it.
-     *
-     * @param int $draft
-     * @return \stored_file|null
-     */
-    public static function file(int $draft): ?\stored_file {
-        global $USER;
-        if (!$draft) {
-            return null;
-        }
-        $files = get_file_storage()->get_area_files(
-            \context_user::instance($USER->id)->id,
-            'user',
-            'draft',
-            $draft,
-            'id DESC',
-            false
-        );
-        return reset($files) ?: null;
-    }
 
     /**
      * The context of the page.
@@ -176,7 +155,7 @@ class panel_bridge {
      * @return array|null
      */
     protected static function preview(\stdClass $entry, int $draft): ?array {
-        $file = self::file($draft);
+        $file = panel::draft_file($draft);
         if (!$file) {
             return null;
         }
@@ -260,11 +239,11 @@ class panel_bridge {
                 entries::renew_secret($entry);
                 return [$url, get_string('entry_renewed', $c), \core\output\notification::NOTIFY_WARNING];
             case 'upload':
-                $draft = self::keep_upload();
+                $draft = panel::keep_upload('.csv,.xlsx,.xls,.tsv,.txt');
                 return $draft ? [new \moodle_url($url, ['draft' => $draft]), '', $ok] :
                     [$url, get_string('panel_file_not_taken', $c), \core\output\notification::NOTIFY_WARNING];
             case 'bring':
-                $file = self::file($draft);
+                $file = panel::draft_file($draft);
                 if ($file && $entry->kind === 'meta') {
                     $path = $file->copy_content_to_temp('local_oksigeniaeguahe');
                     try {
@@ -273,12 +252,12 @@ class panel_bridge {
                         @unlink($path);
                     }
                     $counts = entries::from_rows($entry, $rows);
-                    self::forget($draft);
+                    panel::forget_draft($draft);
                     return [$url, get_string('entry_brought', $c, (object) $counts), $ok];
                 }
                 return [$url, '', $ok];
             case 'cancel':
-                self::forget($draft);
+                panel::forget_draft($draft);
                 return [$url, '', $ok];
             case 'settings':
                 entries::update($entry, (object) ['name' => optional_param('name', $entry->name, PARAM_TEXT),
@@ -291,42 +270,5 @@ class panel_bridge {
                     get_string('entry_deleted', $c), $ok];
         }
         return [$url, '', $ok];
-    }
-
-    /**
-     * Keeps the file sent with the form in a draft area of whoever sent it, until it is brought or left.
-     *
-     * @return int The draft, or 0 if no file of contacts came.
-     */
-    protected static function keep_upload(): int {
-        global $CFG, $USER;
-        require_once($CFG->libdir . '/filelib.php');
-        $sent = $_FILES['file'] ?? null;
-        if (!$sent || (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($sent['tmp_name'])) {
-            return 0;
-        }
-        $filename = clean_param((string) $sent['name'], PARAM_FILE);
-        if (!preg_match('/\.(csv|xlsx|xls|tsv|txt)$/i', $filename)) {
-            return 0;
-        }
-        $draft = file_get_unused_draft_itemid();
-        get_file_storage()->create_file_from_pathname(
-            ['contextid' => \context_user::instance($USER->id)->id,
-            'component' => 'user', 'filearea' => 'draft', 'itemid' => $draft, 'filepath' => '/', 'filename' => $filename],
-            $sent['tmp_name']
-        );
-        return $draft;
-    }
-
-    /**
-     * Forgets a file of contacts given.
-     *
-     * @param int $draft
-     */
-    protected static function forget(int $draft): void {
-        global $USER;
-        if ($draft) {
-            get_file_storage()->delete_area_files(\context_user::instance($USER->id)->id, 'user', 'draft', $draft);
-        }
     }
 }

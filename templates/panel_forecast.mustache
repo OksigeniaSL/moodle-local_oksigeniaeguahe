@@ -1,0 +1,89 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_forecast
+
+    The forecast (forecast.php): each course of entry with its rail (a knob per place, a backpack per enrolled child)
+    and, under it on the same scale, the years ahead in ranges: a band from the least to the most likely, the 3 px line
+    of the most likely next year, the dotted line of the last place; past it the band blurs. Each course says it in one
+    sentence, and its twin is a table. Then how far the centre reaches in each place of its area, as a list with two
+    nested circles per place (children of that age, hollow; students of the centre, solid), never a map. Folded, the
+    age each course starts at, and where the numbers of the area come from.
+
+    New in this round (the whole template; it replaces forecast.mustache in the panel).
+
+    Example context (json):
+    {
+        "i": {"subir": "", "check": "", "info": ""},
+        "head": {"title": "Infantil 3 años podría llenarse", "sub": "Rangos.", "back": null, "ante": "", "action": null},
+        "source": "Datos de ejemplo.", "action": "#", "sesskey": "abc", "canact": true, "fetch": "",
+        "courses": [{"key": "i3", "name": "Infantil 3 años", "age": "empiezan con 3 años", "places": "25 plazas", "sentence": "Podría llenarse.",
+            "rail": "", "table": [{"year": "2027-28", "range": "19 a 24", "mid": 22, "places": 25, "over": false}], "open": true}],
+        "def": "",
+        "reach": {"sentence": "Donde más llegáis, Valle Alto.", "def": "",
+            "rows": [{"name": "Valle Alto", "kids": 212, "ours": 24, "share": "1 de cada 9", "r1": "17", "r2": "6", "cy": "18", "cy1": "7"}]},
+        "grades": [{"i": 0, "grade": "Infantil 3 años", "age": 3, "forecast": true, "suggested": false}]
+    }
+}}
+<div class="pagina pagina-prevision">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="prevision">
+        <section class="apartado cursos-prevision" aria-labelledby="pv-cursos">
+            <header><h2 id="pv-cursos">{{#str}}panel_courses_ahead, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{source}}</span></header>
+            {{#courses}}
+            <div class="curso-rango">
+                <div class="cab"><h3>{{name}}</h3><span class="libres">{{age}} · {{places}}</span></div>
+                {{#rail}}<div class="riel-caja">{{{rail}}}</div>{{/rail}}
+                <p class="linea-dato rango-frase">{{sentence}}</p>
+                <details class="tabla-gemela"{{#open}} data-abrir-ancho{{/open}}><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+                    <table class="tabla-panel"><thead><tr><th scope="col">{{#str}}panel_school_year, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_could_ask, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_most_likely, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_places_word, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                    <tbody>{{#table}}<tr{{#over}} class="pasa"{{/over}}><th scope="row">{{year}}</th><td>{{range}}</td><td>{{mid}}</td><td>{{places}}</td></tr>{{/table}}</tbody></table>
+                </details>
+            </div>
+            {{/courses}}
+            <p class="def">{{def}}</p>
+        </section>
+        {{#reach}}
+        <section class="apartado alcance" aria-labelledby="pv-alc">
+            <header><h2 id="pv-alc">{{#str}}panel_reach_by_place, local_oksigeniaeguahe{{/str}}</h2></header>
+            <p class="linea-dato">{{sentence}}</p>
+            <table class="tabla-panel tabla-alcance">
+                <thead><tr><th scope="col">{{#str}}panel_place_word, local_oksigeniaeguahe{{/str}}</th><th scope="col"><span class="oculto">{{#str}}panel_drawing, local_oksigeniaeguahe{{/str}}</span></th><th scope="col">{{#str}}panel_kids_age, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_ours, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_share, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>
+                    {{#rows}}<tr><th scope="row">{{name}}</th><td class="anidados"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle class="hueco" cx="24" cy="{{cy1}}" r="{{r1}}"/><circle class="macizo" cx="24" cy="{{cy}}" r="{{r2}}"/></svg></td><td>{{kids}}</td><td>{{ours}}</td><td><b>{{share}}</b></td></tr>{{/rows}}
+                </tbody>
+            </table>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/reach}}
+        <details class="apartado plegado">
+            <summary><h2>{{#str}}panel_course_ages, local_oksigeniaeguahe{{/str}}</h2></summary>
+            <form method="post" action="{{action}}" class="formulario-panel">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="ages">
+                <table class="tabla-panel edades">
+                    <thead><tr><th scope="col">{{#str}}panel_course, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}forecast_age, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_forecast_it, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                    <tbody>{{#grades}}<tr><th scope="row">{{grade}}<input type="hidden" name="grade[{{i}}]" value="{{grade}}"></th><td><input class="mini-num" type="number" min="0" max="99" name="age[{{i}}]" value="{{age}}" aria-label="{{#str}}forecast_age, local_oksigeniaeguahe{{/str}} · {{grade}}">{{#suggested}} <span class="secundario">{{#str}}panel_suggested, local_oksigeniaeguahe{{/str}}</span>{{/suggested}}</td><td><input type="checkbox" name="forecast[{{i}}]" value="1"{{#forecast}} checked{{/forecast}} aria-label="{{#str}}panel_forecast_it, local_oksigeniaeguahe{{/str}} · {{grade}}"></td></tr>{{/grades}}</tbody>
+                </table>
+                <div class="acciones"><button class="boton secundario" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+            </form>
+            <form method="post" action="{{action}}" class="acciones">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                <button class="boton terciario pequeno" type="submit" name="action" value="fetch">{{{fetch}}}{{#str}}panel_fetch_area, local_oksigeniaeguahe{{/str}}</button>
+            </form>
+        </details>
+    </div>
+</div>

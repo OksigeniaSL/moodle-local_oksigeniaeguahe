@@ -549,15 +549,20 @@ class panel {
      * wooden plank screwed to the wall, one turned peg per place in fives, and the backpack of each enrolled child hanging
      * from its peg, each a little crooked its own way. Over 40 places, a peg every ten with its number and, under the
      * plank, the backpacks pressed together as a band. Every colour is a class (.perchero .r-* in pub/panel.css), so light,
-     * dark and each skin paint it. The mock-up draws it with the same numbers (maqueta/perchero.cjs).
+     * dark and each skin paint it. The mock-up draws it with the same numbers (maqueta/perchero.cjs). With rows, what may
+     * come under it on the same scale, peg by peg: a band from the lowest to the highest, the most likely as a mark, the
+     * last place as a dotted line, and past it the band blurs.
      *
      * @param int $total
      * @param int $taken
+     * @param array $rows [['low' => int, 'mid' => int, 'high' => int, 'text' => string], ...]
+     * @param string $label The accessible sentence, when the rows need one of their own.
      * @return string SVG.
      */
-    public static function rail(int $total, int $taken): string {
+    public static function rail(int $total, int $taken, array $rows = [], string $label = ''): string {
         $taken = max(0, min($taken, $total));
-        $label = get_string('panel_places_label', self::C, (object) ['taken' => $taken, 'total' => $total]);
+        $label = $label !== '' ? $label : get_string('panel_places_label', self::C, (object) ['taken' => $taken,
+            'total' => $total]);
         $f = fn(float $n) => rtrim(rtrim(sprintf('%.1f', $n), '0'), '.');
         $tilt = [-3.5, 3, -2, 4];
         $py = 13;
@@ -629,6 +634,50 @@ class panel {
             }
         }
         $height = $total > 40 ? 54 : 44;
+        // What may come: one band per row, on the scale of the pegs. Rounded as the mock-up does (half up).
+        $g = fn(float $n): string => rtrim(rtrim(sprintf('%.1f', round($n * 10) / 10), '0'), '.');
+        $extra = '';
+        $full = $width;
+        if ($rows) {
+            $small = $total <= 40;
+            $at = fn(float $v): float => $small ? 18 + ($v - 1) * 15 + floor(max(0, $v - 1) / 5) * 7 + 7.5 :
+                18 + ($width - 36) * $v / $total;
+            $edge = fn(float $v): float => $small ? $at($v) + 7.5 : $at($v);
+            $start = fn(float $v): float => $small ? $at($v) - 7.5 : $at($v - 1);
+            $cap = $width * 1.5;
+            $tope = $small ? $edge($total) + 3.5 : $at($total);
+            $top = $height + 4;
+            foreach (array_values($rows) as $k => $r) {
+                $y = $top + $k * 18;
+                $x0 = max(4, $start(max(1, $r['low'])));
+                $x1 = min($cap, $edge(max($r['low'], $r['high'])));
+                $inside = min($x1, max($x0, $tope));
+                $extra .= '<rect class="r-rango" x="' . $g($x0) . '" y="' . $g($y) . '" width="' . $g(max(2, $inside - $x0)) .
+                    '" height="10" rx="2"/>';
+                if ($x1 > $tope) {
+                    // Past the last place the band blurs: it says «more than fit», not how many more.
+                    $span = $x1 - $tope;
+                    foreach ([0.85, 0.6, 0.38, 0.18] as $q => $opacity) {
+                        $extra .= '<rect class="r-rango" x="' . $g($tope + $span * $q / 4) . '" y="' . $g($y) . '" width="' .
+                            $g($span / 4 + 0.4) . '" height="10" opacity="' . $opacity . '"/>';
+                    }
+                }
+                if (!empty($r['mid'])) {
+                    $extra .= '<rect class="r-probable" x="' . $g(min($cap, $at($r['mid'])) - 1.5) . '" y="' . $g($y - 3) .
+                        '" width="3" height="16" rx="1"/>';
+                }
+                $text = (string) ($r['text'] ?? '');
+                if ($text !== '') {
+                    $extra .= '<text class="r-num r-rango-t" x="' . $g(max($x1, $tope) + 7) . '" y="' . $g($y + 8.6) . '">' .
+                        s($text) . '</text>';
+                }
+                $full = max($full, max($x1, $tope) + 7 + ($text !== '' ? \core_text::strlen($text) * 6.4 : 0) + 4);
+            }
+            $bottom = $top + count($rows) * 18 - 4;
+            $extra = '<path class="r-tope" d="M' . $g($tope) . ' ' . $g($height - 6) . ' V' . $g($bottom) . '"/>' . $extra;
+            $height = $bottom + 4;
+        }
+        $full = (int) ceil($full);
         $plank = '<rect class="r-pared-sombra" x="3" y="9" width="' . ($width - 4) . '" height="12" rx="3"/>' .
             '<rect class="r-tabla" x="2" y="6" width="' . ($width - 4) . '" height="14" rx="3"/>' .
             '<rect class="r-canto" x="2.6" y="6.6" width="' . $f($width - 5.2) . '" height="2" rx="1"/>' .
@@ -644,8 +693,9 @@ class panel {
         }
         $plank .= $screws(8, 13) . $screws($width - 8, 13);
         // Drawn a third larger than its units, and never wider than its box (the CSS lets it shrink).
-        return '<svg class="perchero" viewBox="0 0 ' . $width . ' ' . $height . '" width="' . round($width * 1.3) . '" height="' .
-            round($height * 1.3) . '" role="img" aria-label="' . s($label) . '">' . $plank . $body . '</svg>';
+        return '<svg class="perchero' . ($rows ? ' con-rango' : '') . '" viewBox="0 0 ' . $full . ' ' . $g($height) .
+            '" width="' . round($full * 1.3) . '" height="' . round($height * 1.3) . '" role="img" aria-label="' . s($label) .
+            '">' . $plank . $body . $extra . '</svg>';
     }
 
     /**
@@ -699,5 +749,66 @@ class panel {
         }
         $last = array_pop($names);
         return $names ? get_string('andlist', self::C, (object) ['list' => implode(', ', $names), 'last' => $last]) : $last;
+    }
+
+    /**
+     * Keeps a file sent with a form of the panel in a draft area of whoever sent it, until it is used or left.
+     *
+     * @param string $accept The endings it may have: «.csv,.xlsx».
+     * @return int The draft, or 0 if no such file came.
+     */
+    public static function keep_upload(string $accept): int {
+        global $CFG, $USER;
+        require_once($CFG->libdir . '/filelib.php');
+        $sent = $_FILES['file'] ?? null;
+        if (!$sent || (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($sent['tmp_name'])) {
+            return 0;
+        }
+        $filename = clean_param((string) $sent['name'], PARAM_FILE);
+        $endings = array_map(fn($t) => preg_quote(ltrim(trim($t), '.'), '/'), explode(',', $accept));
+        if (!preg_match('/\\.(' . implode('|', $endings) . ')$/i', $filename)) {
+            return 0;
+        }
+        $draft = file_get_unused_draft_itemid();
+        get_file_storage()->create_file_from_pathname(
+            ['contextid' => \context_user::instance($USER->id)->id,
+            'component' => 'user', 'filearea' => 'draft', 'itemid' => $draft, 'filepath' => '/', 'filename' => $filename],
+            $sent['tmp_name']
+        );
+        return $draft;
+    }
+
+    /**
+     * The file kept in a draft area of whoever is looking.
+     *
+     * @param int $draft
+     * @return \stored_file|null
+     */
+    public static function draft_file(int $draft): ?\stored_file {
+        global $USER;
+        if (!$draft) {
+            return null;
+        }
+        $files = get_file_storage()->get_area_files(
+            \context_user::instance($USER->id)->id,
+            'user',
+            'draft',
+            $draft,
+            'id DESC',
+            false
+        );
+        return reset($files) ?: null;
+    }
+
+    /**
+     * Forgets a file kept in a draft area.
+     *
+     * @param int $draft
+     */
+    public static function forget_draft(int $draft): void {
+        global $USER;
+        if ($draft) {
+            get_file_storage()->delete_area_files(\context_user::instance($USER->id)->id, 'user', 'draft', $draft);
+        }
     }
 }
