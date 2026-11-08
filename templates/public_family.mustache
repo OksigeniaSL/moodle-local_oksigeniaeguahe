@@ -53,7 +53,8 @@
         "jointitle": "", "joinlead": "", "joinedline": "",
         "answerstitle": "",
         "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo",
-            "tales": "#", "talesname": "Cuentos para leer juntos en casa"}],
+            "tales": "#", "talesname": "Cuentos para leer juntos en casa", "drawing": "", "drawingalt": "El dibujo de Leo",
+            "drawingsend": "#", "drawingsendname": "Mandar su dibujo"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
@@ -191,8 +192,8 @@
     <div class="lo-contado">
         {{#haschildren}}
         <div>
-            <h3>{{pub_who_comes}}</h3>
-            <dl>{{#children}}<div><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}</dd></div>{{/children}}</dl>
+            <h3 id="quien-vendria">{{pub_who_comes}}</h3>
+            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a></dd></div>{{/children}}</dl>
         </div>
         {{/haschildren}}
         <div>

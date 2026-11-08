@@ -54,3 +54,9 @@
     padding-left: var(--g);
     padding-right: var(--g);
 }
+
+/* The drawings on the table of the hall can be touched to see them big. */
+.sala-familia .sala .dibujo {
+    pointer-events: auto;
+    cursor: zoom-in;
+}

@@ -452,6 +452,56 @@
             });
         }
 
+        // The drawing of a child, big over the page: from its small one, or from the table of the hall. Touching it,
+        // the button or Escape closes it, and the focus goes back where it was.
+        var viewer = null, from = null;
+        var shut = function() {
+            if (viewer) {
+                viewer.parentNode.removeChild(viewer);
+                viewer = null;
+                if (from && from.focus) {
+                    from.focus();
+                }
+            }
+        };
+        var show = function(src, alt, close, origin) {
+            shut();
+            from = origin;
+            viewer = document.createElement('div');
+            viewer.className = 'visor-dibujo';
+            viewer.setAttribute('role', 'dialog');
+            viewer.setAttribute('aria-modal', 'true');
+            viewer.setAttribute('aria-label', alt);
+            var img = document.createElement('img');
+            img.src = src;
+            img.alt = alt;
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = close;
+            viewer.appendChild(img);
+            viewer.appendChild(button);
+            viewer.addEventListener('click', shut);
+            document.body.appendChild(viewer);
+            button.focus();
+        };
+        document.addEventListener('click', function(e) {
+            var link = e.target.closest ? e.target.closest('[data-ampliar]') : null;
+            var onTable = e.target.matches && e.target.matches('.sala img.dibujo') ? e.target : null;
+            if (!link && !onTable) {
+                return;
+            }
+            e.preventDefault();
+            var any = document.querySelector('[data-ampliar]');
+            var close = (link || any) ? (link || any).getAttribute('data-ampliar') : '×';
+            var img = link ? link.querySelector('img') : onTable;
+            show(link ? link.getAttribute('href') : onTable.src, img ? img.alt : '', close || '×', link || null);
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                shut();
+            }
+        });
+
         // Inside the web of the centre: it says how tall it is, and to go to its top after sending.
         if (window.parent !== window) {
             var tell = function() {

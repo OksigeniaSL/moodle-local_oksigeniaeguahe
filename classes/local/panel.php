@@ -405,6 +405,7 @@ class panel {
 :root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
+<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
 <body class="panel ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') . '">
 ' . $top . $body . $bottom . '

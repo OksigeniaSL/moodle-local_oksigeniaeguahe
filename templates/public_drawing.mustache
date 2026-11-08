@@ -1,0 +1,66 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_drawing
+
+    The page where a family sends the drawing of one of their children, from their private link: a photo of the sheet,
+    its four corners put on those of the paper and straightened in the browser, so only the drawing goes, flat; the one
+    already sent, and taking it away. A detail, not a chore. Without JavaScript, the photo goes as it is.
+
+    Example context (json):
+    {
+        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": ""},
+        "title": "El dibujo de Leo", "name": "Leo", "lead": "Háganle una foto desde arriba.", "current": "",
+        "alt": "El dibujo de Leo", "currentline": "Ya lo tenemos.", "failed": "", "action": "/local/oksigeniaeguahe/f.php",
+        "back": "/local/oksigeniaeguahe/f.php", "sesskey": "abc",
+        "str": {"take": "Hacer la foto del dibujo", "takehelp": "Desde arriba", "corners": "Lleven los cuatro puntos.",
+            "save": "Mandar el dibujo", "saving": "Mandando…", "nottaken": "Esa foto no ha entrado.", "delete": "Quitar",
+            "shape": "Cómo está la hoja", "portrait": "Vertical", "landscape": "Horizontal", "turn": "Girar",
+            "back": "Volver a su página"}
+    }
+}}
+<section class="pared corta pagina-dibujo" aria-labelledby="titulo">
+    <div class="mensaje">
+        <p class="volver"><a class="enlace" href="{{back}}">{{str.back}}</a></p>
+        <h1 id="titulo">{{title}}</h1>
+        <p class="entradilla">{{lead}}</p>
+    </div>
+</section>
+<section class="seccion dibujo-familia">
+    {{#failed}}<p class="aviso-error" role="alert">{{failed}}</p>{{/failed}}
+    {{#current}}
+    <figure class="dibujo-actual">
+        <img src="{{current}}" alt="{{alt}}">
+        <figcaption>{{currentline}}</figcaption>
+        <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="quitar" value="1"><button class="boton rojo" type="submit">{{str.delete}}</button></form>
+    </figure>
+    {{/current}}
+    <form class="hoja-pregunta dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{back}}" data-guardando="{{str.saving}}" data-no-entra="{{str.nottaken}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="drawing">
+        <label class="foto-dibujo"><span class="boton principal">{{str.take}}</span><span class="ayuda-campo">{{str.takehelp}}</span><input type="file" name="photo" accept="image/*" capture="environment" required data-dibujo-foto></label>
+        <div class="dibujo-recorte" data-dibujo-recorte hidden>
+            <p class="ayuda-campo">{{str.corners}}</p>
+            <div class="dibujo-lienzo" data-dibujo-caja><canvas data-dibujo-lienzo></canvas><svg class="dibujo-esquinas" data-dibujo-esquinas aria-hidden="true" focusable="false"></svg></div>
+        </div>
+        <div class="acciones">
+            <button class="boton principal" type="submit" data-dibujo-guardar>{{str.save}}</button>
+            <span class="segmentos" role="group" aria-label="{{str.shape}}" data-dibujo-forma hidden><button type="button" data-forma="vertical" aria-pressed="true">{{str.portrait}}</button><button type="button" data-forma="horizontal" aria-pressed="false">{{str.landscape}}</button></span>
+            <button class="boton secundario" type="button" data-dibujo-girar hidden>{{str.turn}}</button>
+        </div>
+        <p class="estado-dibujo" data-dibujo-estado aria-live="polite"></p>
+    </form>
+</section>

@@ -1043,20 +1043,26 @@ main {
     background: var(--eg-hundido);
 }
 
-.segmentos a {
+.segmentos a,
+.segmentos button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     min-height: 40px;
     padding: 0 14px;
+    border: 0;
     border-radius: 10px;
+    background: transparent;
     color: var(--eg-tinta-2);
+    font: inherit;
     font-weight: 650;
     text-decoration: none;
     white-space: nowrap;
+    cursor: pointer;
 }
 
-.segmentos a[aria-current] {
+.segmentos a[aria-current],
+.segmentos button[aria-pressed="true"] {
     background: var(--eg-superficie);
     color: var(--eg-tinta);
     box-shadow: 0 1px 2px var(--eg-sombra);

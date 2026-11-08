@@ -131,4 +131,55 @@ final class vestibulo_test extends \advanced_testcase {
         $this->assertSame(4, $full['enrolled'], 'Never more than places.');
         $this->assertSame('mochila', panel::hanging_object('Infantil 3 años'));
     }
+
+    /**
+     * The family sends the drawing of one of their children from their page: the page that cuts it, the drawing kept,
+     * a line in their history that awaits no answer, the hall of their page with it, and taking it away.
+     */
+    public function test_family_sends_drawing(): void {
+        global $DB;
+        [$centre, $first] = $this->hall();
+        $children = array_values(households::full($first)->children);
+        $page = familypage::drawing_context($children[0], 'es', 'clave', false);
+        $this->assertSame('El dibujo de Leo', $page['title']);
+        $this->assertSame('', $page['current']);
+        $this->assertSame('', $page['failed']);
+        $this->assertSame('Mandar el dibujo', $page['str']['save']);
+        $this->assertStringContainsString('action=drawing', $page['action']);
+        $this->assertStringContainsString('nino=' . $children[0]->id, $page['action']);
+        $this->assertStringEndsWith('#quien-vendria', $page['back']);
+
+        // What is not a picture does not go in, and leaves no line.
+        $this->assertFalse(familypage::drawing_sent($first, $centre, $children[0], 'no soy una imagen'));
+        $this->assertFalse(familypage::drawing_sent($first, $centre, $children[0], ''));
+        $this->assertSame(0, $DB->count_records(households::CONTACTS, ['householdid' => $first->id]));
+
+        $waiting = (int) $DB->get_field(households::T, 'waitingsince', ['id' => $first->id]);
+        $image = imagecreatetruecolor(30, 40);
+        ob_start();
+        imagepng($image);
+        $this->assertTrue(familypage::drawing_sent($first, $centre, $children[0], (string) ob_get_clean()));
+        $this->assertSame('dibujo.png', drawings::file((int) $children[0]->id)->get_filename());
+        $line = $DB->get_record(households::CONTACTS, ['householdid' => $first->id]);
+        $this->assertSame('in', $line->direction);
+        $this->assertSame('page', $line->channel);
+        $this->assertSame('La familia ha mandado el dibujo de Leo.', $line->body);
+        $after = (int) $DB->get_field(households::T, 'waitingsince', ['id' => $first->id]);
+        $this->assertSame($waiting, $after, 'A drawing is no question: it does not move them in the queue.');
+
+        // Now the page offers to change it, and their hall has it upright.
+        $page = familypage::drawing_context($children[0], 'es', 'clave', true);
+        $this->assertStringContainsString('dibujo=' . $children[0]->id, $page['current']);
+        $this->assertSame('Mandar este en su lugar', $page['str']['save']);
+        $this->assertNotSame('', $page['failed']);
+        $family = familypage::context(households::get((int) $first->id, (int) $centre->id), $centre, 'es', 'clave', false);
+        $this->assertSame('Cambiar su dibujo', $family['children'][0]['drawingsendname']);
+        $this->assertSame('Mandar su dibujo', $family['children'][1]['drawingsendname']);
+        $hall = vestibulo::family($centre, households::full($first), false, time(), 'clave', 'es');
+        $this->assertSame('portrait', $hall['children'][0]['drawing']['orientation']);
+
+        // Taken away, by them.
+        $this->assertTrue(familypage::drawing_sent($first, $centre, $children[0], null));
+        $this->assertNull(drawings::file((int) $children[0]->id));
+    }
 }

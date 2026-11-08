@@ -2700,3 +2700,203 @@ textarea.renglones:focus-visible {
 .colgante text.mano {
     unicode-bidi: plaintext;
 }
+
+/* The drawing of each child: small in «Who would come», big when touched; and the page where the family sends it, a
+   photo of the sheet put straight in the browser by its four corners. A detail, not a chore. */
+.nino-fila dd {
+    overflow-wrap: anywhere;
+}
+
+.dibujo-nino {
+    display: block;
+    width: 96px;
+    margin-block: 10px 0;
+    cursor: zoom-in;
+}
+
+.dibujo-nino img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 2px 8px var(--eg-sombra);
+    transform: rotate(-1.5deg);
+}
+
+.mandar-dibujo {
+    display: inline-block;
+    margin-block-start: 6px;
+}
+
+.pagina-dibujo .volver {
+    margin: 0 0 10px;
+}
+
+.dibujo-familia {
+    display: grid;
+    gap: 22px;
+}
+
+.dibujo-familia .dibujo-actual {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    margin: 0;
+}
+
+.dibujo-familia .dibujo-actual img {
+    display: block;
+    max-width: 100%;
+    max-height: 340px;
+    height: auto;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 6px 20px var(--eg-sombra);
+}
+
+.dibujo-familia .aviso-error {
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: var(--radio-campo);
+    background: var(--eg-error-suave);
+    color: var(--eg-error);
+    font-weight: 650;
+}
+
+.dibujo-tomar {
+    display: grid;
+    gap: 16px;
+}
+
+.dibujo-tomar .segmentos[hidden],
+.dibujo-tomar .boton[hidden],
+.dibujo-tomar .dibujo-recorte[hidden] {
+    display: none;
+}
+
+.foto-dibujo {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    cursor: pointer;
+}
+
+/* Without JavaScript, the plain field: it says which photo goes. With the cutter, the button alone. */
+.dibujo-tomar:not(.con-recorte) .foto-dibujo .boton {
+    display: none;
+}
+
+.con-recorte .foto-dibujo input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.foto-dibujo:focus-within .boton {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.dibujo-lienzo {
+    position: relative;
+    width: max-content;
+    max-width: 100%;
+    touch-action: none;
+}
+
+.dibujo-lienzo canvas {
+    display: block;
+    border-radius: 6px;
+}
+
+.dibujo-esquinas {
+    position: absolute;
+    inset: 0;
+}
+
+.dibujo-esquinas .hoja {
+    fill: rgba(255, 255, 255, 0.12);
+    stroke: var(--c-acento-vivo);
+    stroke-width: 2.5;
+}
+
+.dibujo-esquinas .esquina {
+    fill: #fff;
+    stroke: var(--c-acento-vivo);
+    stroke-width: 3;
+    cursor: grab;
+}
+
+.dibujo-esquinas .esquina.primera {
+    fill: var(--c-acento-vivo);
+}
+
+.dibujo-tomar .segmentos {
+    display: inline-flex;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.dibujo-tomar .segmentos button {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.dibujo-tomar .segmentos button[aria-pressed="true"] {
+    background: var(--c-acento-suave);
+}
+
+.estado-dibujo {
+    min-height: 1.4em;
+    margin: 0;
+    color: var(--eg-tinta-2);
+}
+
+/* The drawing big, over the page: touching it or Escape closes it. */
+.visor-dibujo {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(20, 14, 12, 0.82);
+    cursor: zoom-out;
+}
+
+.visor-dibujo img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 48px);
+    max-height: calc(100vh - 96px);
+    object-fit: contain;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.visor-dibujo button {
+    position: absolute;
+    top: 14px;
+    inset-inline-end: 14px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    color: #2b2226;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}

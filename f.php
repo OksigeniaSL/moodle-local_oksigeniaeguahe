@@ -66,6 +66,39 @@ if ($drawing) {
     send_stored_file($file, DAYSECS, 0, false, ['cacheability' => 'private']);
 }
 
+if ($action === 'drawing') {
+    // The drawing of one of their children, sent by the family: the photo, cut and straightened in the browser.
+    $children = households::full($household)->children;
+    $child = $children[optional_param('nino', 0, PARAM_INT)] ?? null;
+    $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'quien-vendria');
+    if (!$child) {
+        redirect($back);
+    }
+    if (data_submitted() && confirm_sesskey()) {
+        $sent = $_FILES['photo'] ?? null;
+        $bytes = '';
+        if ($sent && (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK && is_uploaded_file($sent['tmp_name'])) {
+            $bytes = (string) file_get_contents($sent['tmp_name']);
+        }
+        $saved = familypage::drawing_sent($household, $centre, $child, optional_param('quitar', 0, PARAM_BOOL) ? null : $bytes);
+        if (optional_param('fetch', 0, PARAM_BOOL)) {
+            publicpage::headers();
+            @header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['saved' => $saved, 'back' => $back->out(false)]);
+            die();
+        }
+        redirect($saved ? $back : new moodle_url($url, ['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang, 'mal' => 1]));
+    }
+    publicpage::output(
+        $centre,
+        $lang,
+        publiclang::str('pub_drawing_title', $lang, familypage::label_name($child) ?: $child->firstname),
+        'public_drawing',
+        familypage::drawing_context($child, $lang, $token, optional_param('mal', 0, PARAM_BOOL)),
+        $url
+    );
+}
+
 if ($action === 'download') {
     publicpage::headers();
     @header('Content-Type: application/json; charset=utf-8');

@@ -171,6 +171,9 @@ class publicpage {
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
         self::headers();
+        // The page of the drawing cuts and straightens the photo in the browser.
+        $cropper = $template === 'public_drawing' ?
+            '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
         echo '<!DOCTYPE html>
 <html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '">
 <head>
@@ -188,7 +191,7 @@ class publicpage {
 <noscript><style>.nino[hidden], .adulto[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] { display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 <script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
-' . $skin . '</head>
+' . $cropper . $skin . '</head>
 <body' . (self::$embedded ? ' class="incrustado"' : '') . '>
 ' . $top . $body . $bottom . '
 </body>

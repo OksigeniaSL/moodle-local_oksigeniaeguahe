@@ -29,7 +29,7 @@ class familypage {
     /** @var string[] Strings the template uses. */
     const STRINGS = ['pub_your_turn', 'pub_add_calendar', 'pub_how_get', 'pub_band_next', 'pub_receives', 'pub_receives_sub',
         'pub_receives_team', 'pub_told', 'pub_who_comes', 'pub_contact', 'pub_data', 'pub_data_hint', 'pub_data_download',
-        'pub_data_erase', 'pub_if_you_wish'];
+        'pub_data_erase', 'pub_if_you_wish', 'pub_drawing_close'];
 
     /**
      * Names joined as people say them: «Leo», «Leo y Noa», «Leo, Noa y Gael».
@@ -166,8 +166,14 @@ class familypage {
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $tag = trim((string) ($child->tagname ?? ''));
+            $drawing = drawings::file((int) $child->id);
             $childrows[] = [
                 'name' => $child->firstname,
+                // Their drawing, small, to see it big; and sending it, or another one.
+                'drawing' => $drawing ? $link(['dibujo' => $child->id, 't' => $drawing->get_timemodified()]) : '',
+                'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
+                'drawingsend' => $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]),
+                'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
                 // Stories to read together at home, from the library of the centre, by the age of its course.
                 'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',
                 'talesname' => publiclang::str('pub_tales', $lang),
@@ -356,6 +362,68 @@ class familypage {
             'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * The page where a family sends the drawing of one of their children: its photo, cut and straightened in the
+     * browser, the one already sent, and taking it away.
+     *
+     * @param \stdClass $child
+     * @param string $lang
+     * @param string $token
+     * @param bool $failed Whether the photo before did not go in.
+     * @return array
+     */
+    public static function drawing_context(\stdClass $child, string $lang, string $token, bool $failed): array {
+        $name = self::label_name($child) ?: (string) $child->firstname;
+        $action = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'action' => 'drawing',
+            'nino' => $child->id]);
+        $file = drawings::file((int) $child->id);
+        $s = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        return [
+            'title' => $s('pub_drawing_title', $name),
+            'name' => $name,
+            'lead' => $s('pub_drawing_lead', $name),
+            'current' => $file ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'dibujo' => $child->id,
+                't' => $file->get_timemodified()]))->out(false) : '',
+            'alt' => $s('pub_drawing_alt', $name),
+            'currentline' => $s('pub_drawing_now'),
+            'failed' => $failed ? $s('pub_drawing_not_taken') : '',
+            'action' => $action->out(false),
+            'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'quien-vendria'))
+                ->out(false),
+            'sesskey' => sesskey(),
+            'str' => ['take' => $s('pub_drawing_take'), 'takehelp' => $s('pub_drawing_take_help'),
+                'corners' => $s('pub_drawing_corners'), 'save' => $s($file ? 'pub_drawing_replace' : 'pub_drawing_save'),
+                'saving' => $s('pub_drawing_saving'), 'nottaken' => $s('pub_drawing_not_taken'),
+                'delete' => $s('pub_drawing_delete'), 'shape' => $s('pub_drawing_shape'),
+                'portrait' => $s('pub_drawing_portrait'), 'landscape' => $s('pub_drawing_landscape'),
+                'turn' => $s('pub_drawing_turn'), 'back' => $s('pub_drawing_back')],
+        ];
+    }
+
+    /**
+     * Keeps the drawing a family sent of one of their children, or takes it away; the team reads it in the history of
+     * the family, without it waiting for an answer.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param \stdClass $child
+     * @param string|null $bytes The photo they sent, or null to take the drawing away.
+     * @return bool Whether it was kept (or taken away).
+     */
+    public static function drawing_sent(\stdClass $household, \stdClass $centre, \stdClass $child, ?string $bytes): bool {
+        if ($bytes === null) {
+            drawings::delete((int) $child->id);
+            return true;
+        }
+        if ($bytes === '' || !drawings::save($child, $bytes)) {
+            return false;
+        }
+        $lang = in_array($centre->lang, lists::LANGS, true) ? $centre->lang : 'es';
+        $name = self::label_name($child) ?: (string) $child->firstname;
+        households::received($household, lists::PAGE, publiclang::str('pub_drawing_sent_note', $lang, $name), false);
+        return true;
     }
 
     /**
