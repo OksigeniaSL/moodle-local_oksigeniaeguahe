@@ -1,0 +1,152 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_bridge
+
+    A bridge (entry.php for Google, Meta, the admissions mailbox or another tool): how to set it up, in numbered steps
+    with what to paste and a button to copy it; for Meta, the file as it comes and, before bringing anything, what each
+    column is; for the mailbox, the address to forward to and the last mails; for another tool, the door and the key.
+    In all of them, the questions that have arrived with what Eguahe made of each one, which the team can change.
+
+    New in this round (the whole template; it replaces entry.mustache for a bridge).
+
+    Example context (json):
+    {
+        "i": {"atras": "", "copiar": "", "clave": "", "subir": "", "check": "", "borrar": "", "ojo": "", "correo": ""},
+        "head": {"title": "Formulario de Google", "ante": "Puente · Google", "sub": "Un guion que se pega una vez.", "back": {"url": "#", "name": "Entradas"}, "action": null},
+        "action": "#", "sesskey": "abc", "canact": true, "active": true,
+        "isgoogle": true, "ismeta": false, "isemail": false, "ishook": false,
+        "places": [{"key": "form", "title": "En un formulario de Google", "steps": ["Abre el formulario."], "script": "// …", "open": true}],
+        "keynote": "La clave va dentro del guion.",
+        "hasseen": true, "seen": [{"i": 0, "question": "Teléfono", "example": "Trae un teléfono", "hasexample": true, "literal": false, "now": "Teléfono", "unknown": false,
+            "options": [{"value": "", "name": "Lo que digan sus palabras", "selected": true}]}],
+        "settings": {"name": "Formulario de Google", "active": true, "acknowledge": true}, "haslast": false, "last": [],
+        "deletequestion": "¿Borramos este puente?"
+    }
+}}
+<div class="pagina pagina-puente">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="puente-rejilla">
+        <div class="puente-col">
+            {{#isgoogle}}
+            {{#places}}
+            <details class="apartado plegado paso-puente"{{#open}} open{{/open}}>
+                <summary><h2>{{title}}</h2></summary>
+                <ol class="pasos-numerados">{{#steps}}<li>{{.}}</li>{{/steps}}</ol>
+                <div class="guion"><pre dir="ltr" tabindex="0" aria-label="{{title}}"><code>{{script}}</code></pre>
+                    <button class="boton secundario pequeno" type="button" data-copiar="{{script}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_script, local_oksigeniaeguahe{{/str}}</button></div>
+            </details>
+            {{/places}}
+            <p class="aviso-suave">{{{i.clave}}}<span>{{keynote}}</span></p>
+            {{/isgoogle}}
+            {{#ismeta}}
+            <section class="apartado" aria-labelledby="meta-t">
+                <header><h2 id="meta-t">{{#str}}panel_bring_file, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="def">{{uploadhelp}}</p>
+                {{^preview}}
+                <form class="subir-fichero" method="post" action="{{action}}" enctype="multipart/form-data">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="upload">
+                    <label class="bandeja-fichero">{{{i.subir}}}<span><b>{{#str}}panel_drop_file, local_oksigeniaeguahe{{/str}}</b><span class="secundario">CSV, Excel</span></span><input type="file" name="file" accept=".csv,.xlsx,.xls" required></label>
+                    <button class="boton principal" type="submit">{{#str}}panel_look_file, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+                {{/preview}}
+                {{#preview}}
+                <p class="fichero-visto"><b>{{filename}}</b> · {{rows}}</p>
+                <div class="tabla-caja" tabindex="0" role="region" aria-label="{{#str}}panel_columns_of, local_oksigeniaeguahe, {{filename}}{{/str}}">
+                    <table class="tabla-panel">
+                        <thead><tr><th scope="col">{{#str}}panel_column_in_file, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_first_value, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_what_it_is, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                        <tbody>{{#columns}}<tr{{#dropped}} class="se-quita"{{/dropped}}><th scope="row" dir="ltr">{{header}}</th><td class="ejemplo">{{example}}</td><td>{{role}}</td></tr>{{/columns}}</tbody>
+                    </table>
+                </div>
+                <form method="post" action="{{action}}" class="acciones">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="draft" value="{{draft}}">
+                    <button class="boton principal" type="submit" name="action" value="bring">{{{i.check}}}{{#str}}entry_meta_bring, local_oksigeniaeguahe{{/str}}</button>
+                    <button class="boton terciario" type="submit" name="action" value="cancel">{{#str}}cancel{{/str}}</button>
+                </form>
+                {{/preview}}
+            </section>
+            {{/ismeta}}
+            {{#isemail}}
+            <section class="apartado" aria-labelledby="buzon-t">
+                <header><h2 id="buzon-t">{{#str}}entry_email_forward, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="direccion-entrada"><span dir="ltr">{{address}}</span><button class="boton secundario pequeno" type="button" data-copiar="{{address}}" hidden>{{{i.copiar}}}{{#str}}panel_copy, local_oksigeniaeguahe{{/str}}</button></p>
+                <p class="def">{{#str}}panel_from_mailbox, local_oksigeniaeguahe, {{forward}}{{/str}}</p>
+                <ol class="pasos-numerados">{{#steps}}<li>{{.}}</li>{{/steps}}</ol>
+            </section>
+            <section class="apartado" aria-labelledby="ultimos-t">
+                <header><h2 id="ultimos-t">{{#str}}panel_last_mails, local_oksigeniaeguahe{{/str}}</h2></header>
+                {{#haslast}}<ul class="lista-simple">{{#last}}<li class="fila-s"><b>{{from}}</b><span>{{subject}} · {{when}}</span></li>{{/last}}</ul>{{/haslast}}
+                {{^haslast}}<p class="secundario">{{#str}}panel_no_mails, local_oksigeniaeguahe{{/str}}</p>{{/haslast}}
+            </section>
+            {{/isemail}}
+            {{#ishook}}
+            <section class="apartado" aria-labelledby="puerta-t">
+                <header><h2 id="puerta-t">{{#str}}entry_hook, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="campo"><label for="hook-url">{{#str}}panel_the_door, local_oksigeniaeguahe{{/str}}</label><input id="hook-url" readonly value="{{url}}" dir="ltr" spellcheck="false"></div>
+                <div class="campo"><label for="hook-clave">{{#str}}entry_key, local_oksigeniaeguahe{{/str}}</label><span class="clave-fila"><input id="hook-clave" type="password" readonly value="{{key}}" dir="ltr" spellcheck="false" data-clave><button class="boton terciario pequeno" type="button" data-ver-clave="hook-clave" aria-pressed="false" hidden>{{{i.ojo}}}{{#str}}panel_show_key, local_oksigeniaeguahe{{/str}}</button></span></div>
+                <p class="def">{{signhelp}}</p>
+                <div class="guion"><pre dir="ltr" tabindex="0" aria-label="{{#str}}panel_example_body, local_oksigeniaeguahe{{/str}}"><code>{{example}}</code></pre></div>
+            </section>
+            {{/ishook}}
+        </div>
+        <div class="puente-col">
+            {{#hasseen}}
+            <form class="apartado preguntas-llegadas" method="post" action="{{action}}" aria-labelledby="vistas-t">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="roles">
+                <header><h2 id="vistas-t">{{#str}}entry_seen, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_seen_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="llegadas-q">
+                    {{#seen}}
+                    <li class="llegada-q{{#unknown}} sin-reconocer{{/unknown}}">
+                        <span class="que"><b>{{question}}</b>{{#hasexample}}<span class="secundario">{{#literal}}{{#str}}panel_for_example, local_oksigeniaeguahe{{/str}} <q>{{example}}</q>{{/literal}}{{^literal}}{{example}}{{/literal}}</span>{{/hasexample}}</span>
+                        <span class="campo"><label for="rol-{{i}}">{{#str}}panel_eguahe_reads, local_oksigeniaeguahe, {{now}}{{/str}}</label><select id="rol-{{i}}" name="role[{{i}}]">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options}}</select></span>
+                    </li>
+                    {{/seen}}
+                </ul>
+                <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+            </form>
+            {{/hasseen}}
+            {{^hasseen}}<section class="apartado"><header><h2>{{#str}}entry_seen, local_oksigeniaeguahe{{/str}}</h2></header><p class="secundario">{{#str}}entry_noseen, local_oksigeniaeguahe{{/str}}</p></section>{{/hasseen}}
+            {{#canact}}
+            <details class="apartado plegado">
+                <summary><h2>{{#str}}panel_bridge_more, local_oksigeniaeguahe{{/str}}</h2></summary>
+                {{#settings}}
+                <form method="post" action="{{action}}" class="formulario-panel">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="settings">
+                    <div class="campo"><label for="p-nombre">{{#str}}entry_name, local_oksigeniaeguahe{{/str}}</label><input id="p-nombre" name="name" value="{{name}}"><span class="ayuda">{{#str}}entry_name_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    <label class="casilla"><input type="checkbox" name="acknowledge" value="1"{{#acknowledge}} checked{{/acknowledge}}><span>{{#str}}entry_acknowledge, local_oksigeniaeguahe{{/str}}</span></label>
+                    <label class="casilla"><input type="checkbox" name="active" value="1"{{#active}} checked{{/active}}><span>{{#str}}entry_active, local_oksigeniaeguahe{{/str}}</span></label>
+                    <div class="acciones"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+                </form>
+                {{/settings}}
+                <form method="post" action="{{action}}" class="acciones">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    {{^ismeta}}{{^isemail}}<button class="boton secundario pequeno" type="submit" name="action" value="renew">{{{i.clave}}}{{#str}}entry_renew, local_oksigeniaeguahe{{/str}}</button>{{/isemail}}{{/ismeta}}
+                </form>
+                <details class="confirmar">
+                    <summary class="boton rojo pequeno">{{{i.borrar}}}{{#str}}entry_delete, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <p><b>{{deletequestion}}</b></p>
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <button class="boton peligro pequeno" type="submit" name="action" value="delete">{{#str}}erase_yes, local_oksigeniaeguahe{{/str}}</button>
+                        <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}erase_no, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+            </details>
+            {{/canact}}
+        </div>
+    </div>
+</div>

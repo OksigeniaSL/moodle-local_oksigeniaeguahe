@@ -486,6 +486,7 @@
         <FIELD NAME="origins" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A form: the places it is shared from, each with its link: JSON"/>
         <FIELD NAME="roles" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What each question is, when the team said it: JSON"/>
         <FIELD NAME="questions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The questions seen, as they come: JSON"/>
+        <FIELD NAME="examples" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The last answer that came to each question of a bridge, by question; never what says who someone is or how to reach them"/>
         <FIELD NAME="acknowledge" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 when each new family gets an email saying it was received, with its page"/>
         <FIELD NAME="received" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many came in"/>
         <FIELD NAME="lastreceived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

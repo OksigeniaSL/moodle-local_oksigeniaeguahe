@@ -45,6 +45,9 @@ class entries {
     const ROLES = ['firstname', 'surname', 'fullname', 'email', 'phone', 'childname', 'grade', 'notes', 'municipality',
         'declared', 'consent', 'incentre', 'date', 'platform', 'campaign', 'adset', 'ad', 'form', 'ids', 'ignore'];
 
+    /** @var string[] What says who someone is or how to reach them: never kept as an example of a question. */
+    const PERSONAL = ['firstname', 'surname', 'fullname', 'guardianname', 'email', 'phone', 'childname', 'notes', 'ids'];
+
     /** @var string[] What is not kept: the state of a lead in the tool it came from, and what the team said to leave. */
     const DROPPED = ['status', 'organic', 'ignore'];
 
@@ -255,6 +258,7 @@ class entries {
         }
         $questions = array_map('strval', array_keys($answers));
         self::note_questions($entry, $questions);
+        self::note_examples($entry, $answers);
         $read = self::read($entry, $centre, $answers);
         $time = $time ?: ($read->time ?: time());
         $externalid = $externalid !== '' ? $externalid : $read->externalid;
@@ -548,6 +552,48 @@ class entries {
         }
         $entry->questions = json_encode(array_slice(array_merge($seen, $new), 0, 60), JSON_UNESCAPED_UNICODE);
         $DB->set_field(self::T, 'questions', $entry->questions, ['id' => $entry->id]);
+    }
+
+    /**
+     * Keeps the last answer to each question, short, for the team to see what each brings; never one that says who
+     * someone is or how to reach them.
+     *
+     * @param \stdClass $entry
+     * @param array $answers
+     */
+    protected static function note_examples(\stdClass $entry, array $answers): void {
+        global $DB;
+        $roles = self::roles($entry, array_map('strval', array_keys($answers)));
+        $examples = self::examples($entry);
+        foreach ($answers as $question => $value) {
+            $value = trim(preg_replace('/\s+/u', ' ', clean_param(
+                is_array($value) ? implode(', ', $value) : (string) $value,
+                PARAM_TEXT
+            )));
+            $key = \core_text::substr(trim((string) $question), 0, 255);
+            if (
+                $value === '' || in_array($roles[$question] ?? '', self::PERSONAL, true) || !in_array(
+                    $key,
+                    self::questions($entry),
+                    true
+                )
+            ) {
+                continue;
+            }
+            $examples[$key] = \core_text::substr($value, 0, 80);
+        }
+        $entry->examples = json_encode($examples, JSON_UNESCAPED_UNICODE);
+        $DB->set_field(self::T, 'examples', $entry->examples, ['id' => $entry->id]);
+    }
+
+    /**
+     * The last answer kept for each question of a bridge.
+     *
+     * @param \stdClass $entry
+     * @return array question => answer
+     */
+    public static function examples(\stdClass $entry): array {
+        return json_decode((string) ($entry->examples ?? ''), true) ?: [];
     }
 
     /**

@@ -24,6 +24,7 @@ use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_bridge;
 use local_oksigeniaeguahe\local\panel_centre;
 use local_oksigeniaeguahe\local\panel_event;
 use local_oksigeniaeguahe\local\panel_entry;
@@ -49,6 +50,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_eventform::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_centre::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_entry::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_bridge::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -393,6 +395,32 @@ final class panel_test extends \advanced_testcase {
         forms::add_origin($entry, 'Instagram');
         $sites = panel_entry::share(entries::get((int) $entry->id, $centreid))['sites'];
         $this->assertSame(['', 'Instagram'], [$sites[0]['key'] === '' ? '' : 'x', $sites[1]['name']]);
+    }
+
+    /**
+     * A bridge: the questions that came with an example of each, never one that says who someone is or how to reach
+     * them, and what Eguahe reads in each; the door of another tool with its example.
+     */
+    public function test_bridge(): void {
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $entry = entries::get(entries::create($centreid, 'hook', 'Web del centro'), $centreid);
+        entries::receive($entry, ['Nombre' => 'Luis Ortega', 'Correo' => 'luis@example.com', 'Teléfono' => '+34 600 000 001',
+            'Curso' => '1.º de Primaria', '¿Qué les gustó?' => 'El huerto'], 'uno');
+        $entry = entries::get((int) $entry->id, $centreid);
+        $examples = entries::examples($entry);
+        $this->assertSame(['Curso' => '1.º de Primaria', '¿Qué les gustó?' => 'El huerto'], $examples);
+
+        $context = panel_bridge::context($entry, $centre, true);
+        $this->assertTrue($context['ishook']);
+        $this->assertSame((string) $entry->secret, $context['key']);
+        $this->assertStringContainsString('"answers"', $context['example']);
+        $seen = array_column($context['seen'], null, 'question');
+        $this->assertFalse($seen['Correo']['literal']);
+        $this->assertStringNotContainsString('luis@example.com', $seen['Correo']['example']);
+        $this->assertSame('El huerto', $seen['¿Qué les gustó?']['example']);
+        $this->assertTrue($seen['¿Qué les gustó?']['unknown']);
+        $this->assertSame('', panel_bridge::context($entry, $centre, false)['key']);
     }
 
     /**

@@ -545,5 +545,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110996, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110997) {
+        // An example of what came to each question of a bridge, for the team to say what it is.
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $field = new xmldb_field('examples', XMLDB_TYPE_TEXT, null, null, null, null, null, 'questions');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110997, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
