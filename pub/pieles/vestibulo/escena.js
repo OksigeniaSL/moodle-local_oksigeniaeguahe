@@ -126,6 +126,7 @@
   function nameSpan(text, font, colour, extra) {
     var t = el('span', '', 'display:block;font:700 ' + font.toFixed(1) + 'px/1 "Eg Mano",Caveat,cursive;color:' + colour + ';white-space:nowrap;' + (extra || ''));
     t.textContent = text;
+    t.dir = 'auto';
     return t;
   }
   function symbol(i, colour, size) {

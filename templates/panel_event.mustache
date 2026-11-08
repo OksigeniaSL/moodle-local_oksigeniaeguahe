@@ -74,7 +74,7 @@
             {{#tailored}}
             {{#requests}}
             <a class="medida" href="{{url}}">
-                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
                 <span class="estado">{{state}}</span>
             </a>
             {{/requests}}
@@ -90,7 +90,7 @@
                 <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span data-cuenta-turno>{{count}}</span>{{{i.chev}}}</span></summary>
                 {{#signups}}
                 <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}" data-llegada="{{id}}">
-                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no">{{tag}}</span><span class="curso">{{course}}</span>{{#drawingurl}}<a class="enlace su-dibujo" href="{{drawingurl}}">{{#hasdrawing}}{{#str}}panel_drawing_has, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}{{^hasdrawing}}{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}</a>{{/drawingurl}}</span>{{/children}}</span><span class="personas">{{people}}</span></div>
+                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}</span>{{#drawingurl}}<a class="enlace su-dibujo" href="{{drawingurl}}">{{#hasdrawing}}{{#str}}panel_drawing_has, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}{{^hasdrawing}}{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}</a>{{/drawingurl}}</span>{{/children}}</span><span class="personas">{{people}}</span></div>
                     {{#canact}}
                     <form method="post" action="{{action}}#s{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">

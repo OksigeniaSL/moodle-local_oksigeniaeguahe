@@ -69,14 +69,14 @@
             {{/hasrows}}
             {{#hasquotes}}
             <ul class="citas-como">
-                {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
+                {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no" dir="auto">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no" dir="auto">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
             </ul>
             {{/hasquotes}}
             {{#morequotes}}
             <details class="plegado mas-citas">
                 <summary>{{label}}</summary>
                 <ul class="citas-como">
-                    {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
+                    {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no" dir="auto">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no" dir="auto">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
                 </ul>
             </details>
             {{/morequotes}}

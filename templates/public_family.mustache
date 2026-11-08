@@ -66,7 +66,7 @@
 {{/hall}}
 <section class="pared{{#hall}} con-sala{{/hall}}" aria-labelledby="titulo">
     <div class="saludo-arriba">
-        <h1 class="titular" id="titulo">{{greeting}}{{#names}} <span class="mano-titular">{{names}}</span>{{/names}}</h1>
+        <h1 class="titular" id="titulo">{{greeting}}{{#names}} <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</h1>
     </div>
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
@@ -137,7 +137,7 @@
             {{> local_oksigeniaeguahe/public_questions }}
         </div>
         <div class="despedida" data-despedida{{^done}} hidden{{/done}}>
-            <p class="gracias">{{farewell}}{{#names}} <span class="mano-titular" translate="no">{{names}}</span>{{/names}}</p>
+            <p class="gracias">{{farewell}}{{#names}} <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</p>
             {{#changeline}}<p class="cambiar">{{changeline}}</p>{{/changeline}}
         </div>
         <div class="acciones guardar-encuesta"><button class="boton secundario" type="submit">{{savetext}}</button></div>

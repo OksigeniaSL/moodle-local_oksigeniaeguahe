@@ -56,7 +56,7 @@
                     {{#items}}
                     <a class="cita{{#proposed}} propuesta-c{{/proposed}}" href="{{url}}">
                         <span class="hora">{{hour}}</span>
-                        <span class="que"><b>{{title}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span>{{#proposed}}<span class="propuesta-p">{{#str}}panel_proposed_waiting, local_oksigeniaeguahe{{/str}}</span>{{/proposed}}</span>
+                        <span class="que"><b>{{title}}</b>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span>{{#proposed}}<span class="propuesta-p">{{#str}}panel_proposed_waiting, local_oksigeniaeguahe{{/str}}</span>{{/proposed}}</span>
                         {{#who}}<span class="lleva">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/who}}
                     </a>
                     {{/items}}
@@ -79,7 +79,7 @@
             {{#asking}}<p class="piden-enlace"><a class="enlace" href="{{url}}">{{{i.enlace}}}{{name}}</a> · <span class="secundario" dir="ltr">{{link}}</span></p>{{/asking}}
             {{#requests}}
             <a class="medida{{#pending}} pendiente{{/pending}}" href="{{url}}">
-                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
                 <span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>
             </a>
             {{/requests}}

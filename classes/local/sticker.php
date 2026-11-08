@@ -83,6 +83,67 @@ class sticker {
         return $pixels * 0.75;
     }
 
+    /** @var string The hand for names in Arabic script, in the folder of the label (the art director, 8 November 2026). */
+    const ARABIC_FONT = 'font/PlaypenSansArabic-Eguahe.ttf';
+
+    /** @var float Its size against Caveat, so the alef stands as tall as an «l». */
+    const ARABIC_SCALE = 0.88;
+
+    /** @var float The ring of paper around the name before the ink, in millimetres: dots and tails do not stick to the line. */
+    const HALO_MM = 0.2;
+
+    /**
+     * How a name is written with GD: the font, the text and the scale. A name in Arabic script, in its hand, each letter
+     * joined and in visual order (GD neither joins nor writes from right to left); any other, as it is.
+     *
+     * @param string $name
+     * @param string $font The hand of the label.
+     * @return array [font, text, scale]
+     */
+    protected static function script(string $name, string $font): array {
+        if (arabic::has($name)) {
+            return [self::dir() . '/' . self::ARABIC_FONT, arabic::for_gd($name), self::ARABIC_SCALE];
+        }
+        return [$font, $name, 1.0];
+    }
+
+    /**
+     * Writes a name with a ring of paper under it, then the ink: where it crosses the line, the line steps aside.
+     *
+     * @param \GdImage|resource $im
+     * @param float $pt
+     * @param float $angle
+     * @param float $x
+     * @param float $y
+     * @param int $ink
+     * @param string $font
+     * @param string $text
+     * @param float $halo The radius of the ring, in pixels.
+     * @param string $paper #rrggbb
+     */
+    protected static function write(
+        $im,
+        float $pt,
+        float $angle,
+        float $x,
+        float $y,
+        int $ink,
+        string $font,
+        string $text,
+        float $halo,
+        string $paper
+    ): void {
+        [$pr, $pg, $pb] = sscanf(ltrim($paper, '#'), '%2x%2x%2x');
+        $white = imagecolorallocatealpha($im, $pr, $pg, $pb, 0);
+        for ($k = 0; $halo > 0 && $k < 16; $k++) {
+            $a = $k * M_PI / 8;
+            $hx = (int) round($x + $halo * cos($a));
+            $hy = (int) round($y + $halo * sin($a));
+            imagettftext($im, $pt, $angle, $hx, $hy, $white, $font, $text);
+        }
+        imagettftext($im, $pt, $angle, (int) round($x), (int) round($y), $ink, $font, $text);
+    }
+
     /**
      * The size of the name, in units of the label: 13, as on the pages, smaller when it is wider than the line or
      * when a capital with an accent (Í, Á, Ñ) would climb into the band; never below the minimum.
@@ -92,9 +153,9 @@ class sticker {
      */
     public static function size_for(string $name): float {
         $n = self::measures()['name'];
-        $font = self::dir() . '/' . $n['font'];
+        [$font, $text, $k0] = self::script($name, self::dir() . '/' . $n['font']);
         $ref = 40.0;
-        $box = imagettfbbox(self::pt($n['size'] * $ref), 0, $font, $name);
+        $box = imagettfbbox(self::pt($n['size'] * $ref * $k0), 0, $font, $text);
         $width = max(1, $box[2] - $box[0]);
         $up = max(1, -min($box[5], $box[7]));
         $k = min(1.0, ($n['room'] * $ref) / $width, ($n['room_up'] * $ref) / $up);
@@ -114,7 +175,7 @@ class sticker {
         $accent = preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ? strtolower($accent) : '#2f5d62';
         $scale = $scale === 1 ? 1 : 2;
         $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
-        $key = sha1($name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json') . '|' .
+        $key = sha1('halo|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json') . '|' .
             filemtime(self::dir() . '/' . self::measures()['name']['font']));
         $png = $cache->get($key);
         if ($png === false) {
@@ -154,9 +215,10 @@ class sticker {
         imagedestroy($over);
         if ($name !== '') {
             $n = $m['name'];
-            $font = $dir . '/' . $n['font'];
-            $pt = self::pt(self::size_for($name) * $px);
-            $box = imagettfbbox($pt, 0, $font, $name);
+            [$font, $text, $k0] = self::script($name, $dir . '/' . $n['font']);
+            $size = self::size_for($name) * $px * $k0;
+            $pt = self::pt($size);
+            $box = imagettfbbox($pt, 0, $font, $text);
             $sx = $n['centre_x'] * $px - ($box[0] + $box[2]) / 2;
             $sy = $n['baseline_y'] * $px;
             $a = deg2rad($m['angle_deg_svg']);
@@ -165,7 +227,9 @@ class sticker {
             $y = $cy * $px + $sx * sin($a) + $sy * cos($a);
             [$ir, $ig, $ib] = sscanf(ltrim($n['ink'], '#'), '%2x%2x%2x');
             $ink = imagecolorallocatealpha($im, $ir, $ig, $ib, 0);
-            imagettftext($im, $pt, $m['angle_deg_gd'], (int) round($x), (int) round($y), $ink, $font, $name);
+            // The ring of paper, about 0.2 mm on the label as on the bottle: 2.6 % of the size of the hand.
+            $paper = (string) ($m['colours']['paper'] ?? '#FFFFFF');
+            self::write($im, $pt, $m['angle_deg_gd'], $x, $y, $ink, $font, $text, $size * 0.026, $paper);
         }
         ob_start();
         imagepng($im, null, 9);
@@ -191,7 +255,7 @@ class sticker {
         $m = json_decode((string) file_get_contents($dir . '/measures.json'), true);
         $font = $dir . '/' . $m['name']['font'];
         $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
-        $key = sha1('bottle|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime($dir . '/measures.json') . '|' .
+        $key = sha1('bottle|halo|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime($dir . '/measures.json') . '|' .
             filemtime($font));
         $png = $cache->get($key);
         if ($png !== false) {
@@ -221,20 +285,21 @@ class sticker {
             $right = $n['right_mm'] * $ppm;
             $base = $n['baseline_mm'] * $ppm;
             // The name shrinks to fit the line, and if a capital with an accent would rise too high; never under the least.
-            $size = $n['size_mm'] * $ppm;
+            [$font, $text, $k0] = self::script($name, $font);
+            $size = $n['size_mm'] * $ppm * $k0;
             do {
-                $box = imagettfbbox(self::pt($size), 0, $font, $name);
+                $box = imagettfbbox(self::pt($size), 0, $font, $text);
                 $width = $box[2] - $box[0];
                 $up = -min($box[5], $box[7]);
                 $fits = $width <= $right - $left && $up <= $n['room_up_mm'] * $ppm;
                 $size *= $fits ? 1 : 0.95;
-            } while (!$fits && $size > $n['min_size_mm'] * $ppm);
-            $size = max($size, $n['min_size_mm'] * $ppm);
-            $box = imagettfbbox(self::pt($size), 0, $font, $name);
+            } while (!$fits && $size > $n['min_size_mm'] * $ppm * $k0);
+            $size = max($size, $n['min_size_mm'] * $ppm * $k0);
+            $box = imagettfbbox(self::pt($size), 0, $font, $text);
             [$ir, $ig, $ib] = sscanf(ltrim($n['ink'], '#'), '%2x%2x%2x');
             $ink = imagecolorallocatealpha($im, $ir, $ig, $ib, 0);
             $x = ($left + $right) / 2 - ($box[2] - $box[0]) / 2 - $box[0];
-            imagettftext($im, self::pt($size), 0, (int) round($x), (int) round($base), $ink, $font, $name);
+            self::write($im, self::pt($size), 0, $x, $base, $ink, $font, $text, self::HALO_MM * $ppm, '#FFFFFF');
         }
         ob_start();
         imagepng($im, null, 9);

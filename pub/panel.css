@@ -18,14 +18,25 @@
     font-display: swap;
 }
 
-/* Names in other alphabets (Cyrillic) and with more accents (the ẽ of eguahẽ): the new Caveat of the art director, only
-   for what the first one does not have, so nothing already drawn changes. */
+/* Names in other alphabets and with more accents («Олена», «Łukasz», «Tomáš», the ẽ of eguahẽ): the rest of Caveat, only
+   downloaded when a name needs it. And names in Arabic script, written by hand too: Playpen Sans Arabic at 88 % of
+   Caveat, so the alef stands as tall as an «l» (the art director, 8 November 2026). */
 @font-face {
     font-family: 'Eg Mano';
-    src: url(fonts/caveat-extra.woff2) format('woff2');
+    src: url(fonts/caveat-mas.woff2) format('woff2');
     font-weight: 400 700;
     font-display: swap;
-    unicode-range: U+0100-024F, U+0300-036F, U+0400-045F, U+1E00-1EFF;
+    unicode-range: U+0100-024F, U+0300-036F, U+0400-052F, U+1E00-1EFF;
+}
+
+@font-face {
+    font-family: 'Eg Mano';
+    src: url(fonts/playpen-sans-arabic.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+    /* stylelint-disable-next-line csstree/validator */
+    size-adjust: 88%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F;
 }
 
 /* The hand has no minus sign (U+2212): its minus comes from the letter of ink, so «−139» keeps one sign. */
@@ -8154,4 +8165,9 @@ a.quien-cita:focus-visible {
     .puerta.paso .banda {
         position: static;
     }
+}
+
+/* A name in Arabic script, or mixed, finds its own direction on the label. */
+.colgante text.mano {
+    unicode-bidi: plaintext;
 }
