@@ -80,3 +80,57 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
             'perweek' => 0.05],
     ];
 }
+
+/**
+ * What admissions has for whoever works in it, for the block «Your work» of Oksigenia (Tembiapo): a door per centre,
+ * with the families that wait for an answer and the visits of today, and on top what was promised to a family and is
+ * due. Nothing for whoever does not work for a centre.
+ *
+ * @param int $userid
+ * @return array As the block takes them: key, title, url, status, alerts and actions.
+ */
+function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
+    global $DB;
+    $c = 'local_oksigeniaeguahe';
+    $now = time();
+    $centres = \local_oksigeniaeguahe\local\centres::for_user($userid);
+    $start = (new \DateTime('@' . $now))->setTimezone(\core_date::get_user_timezone_object())->setTime(0, 0)->getTimestamp();
+    $out = [];
+    foreach ($centres as $centre) {
+        $id = (int) $centre->id;
+        $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $id]);
+        $waiting = \local_oksigeniaeguahe\local\households::waiting_count($id);
+        $today = (int) $DB->count_records_sql(
+            'SELECT COUNT(DISTINCT s.householdid)
+                                                 FROM {local_oksigeniaeguahe_signup} s
+                                                 JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
+                                            LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
+                                                WHERE e.centreid = :centreid AND s.attended = 0
+                                                      AND COALESCE(t.timestart, e.timestart) >= :start
+                                                      AND COALESCE(t.timestart, e.timestart) < :end',
+            ['centreid' => $id, 'start' => $start, 'end' => $start + DAYSECS]
+        );
+        $due = count(\local_oksigeniaeguahe\local\attend::due($id, $now));
+        $alerts = [];
+        if ($due) {
+            $alerts[] = ['text' => get_string($due === 1 ? 'work_promised_one' : 'work_promised', $c, $due),
+                'url' => $url->out(false), 'level' => 'urgent'];
+        }
+        if ($today) {
+            $alerts[] = ['text' => get_string($today === 1 ? 'work_today_one' : 'work_today', $c, $today),
+                'url' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $id]))->out(false), 'level' => 'today'];
+        }
+        $out[] = [
+            'key' => 'eguahe-' . $id,
+            'title' => count($centres) > 1 ? get_string('work_title_centre', $c, format_string($centre->name)) :
+                get_string('work_title', $c),
+            'url' => $url->out(false),
+            'status' => $waiting ? get_string($waiting === 1 ? 'work_waiting_one' : 'work_waiting', $c, $waiting) :
+                get_string('work_waiting_none', $c),
+            'alerts' => $alerts,
+            'actions' => \local_oksigeniaeguahe\local\centres::can_act($userid) ? [['text' => get_string('household_new', $c),
+                'url' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $id]))->out(false)]] : [],
+        ];
+    }
+    return $out;
+}

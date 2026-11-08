@@ -498,6 +498,27 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
+     * The card of admissions for the block «Your work»: the families that wait, and nothing for whoever does not work.
+     */
+    public function test_work_card(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/oksigeniaeguahe/lib.php');
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $user = $this->getDataGenerator()->create_user();
+        $this->assertSame([], local_oksigeniaeguahe_oksigenia_work((int) $user->id));
+        $household = households::get(
+            households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'webform']),
+            $centreid
+        );
+        households::received($household, 'webform', 'Hola', true, time());
+        $cards = local_oksigeniaeguahe_oksigenia_work(2);
+        $this->assertCount(1, $cards);
+        $this->assertSame('eguahe-' . $centreid, $cards[0]['key']);
+        $this->assertSame(get_string('work_waiting_one', 'local_oksigeniaeguahe'), $cards[0]['status']);
+        $this->assertSame([], $cards[0]['alerts']);
+    }
+
+    /**
      * The skin of the panel: the one the offer suggests by the ages of its courses, unless the centre chose one.
      */
     public function test_skin(): void {
