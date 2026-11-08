@@ -106,7 +106,7 @@ class panel_household {
         $email = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? '');
         $phone = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->phone, $full->adults)))[0] ?? '');
         return [
-            'head' => [
+            'head' => panel::head([
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
                     'name' => get_string('tab_inbox', $c)],
                 'ante' => $ante,
@@ -114,7 +114,7 @@ class panel_household {
                 'sub' => implode(' · ', array_filter($origin)),
                 'action' => $canact ? ['url' => '#contestar', 'anchor' => true, 'name' => get_string('panel_answer', $c),
                     'icon' => panel::icon('enviado')] : null,
-            ],
+            ]),
             'action' => $url->out(false),
             'sesskey' => sesskey(),
             'canact' => $canact,

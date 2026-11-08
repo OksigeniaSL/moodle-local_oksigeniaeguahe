@@ -1,0 +1,59 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_entries
+
+    The entries of a centre in the panel: by how many doors families arrive; the forms of the centre, open or closed,
+    with how many families each brought, when the last one came and the places they are shared from; the bridges, and
+    what is missing to start the ones not used yet; and a new entry, with what each kind is.
+
+    Example context (json):
+    {
+        "i": {"atras": "", "der": "", "mas1": ""},
+        "head": {"title": "Las familias llegan por 6 entradas", "sub": "La que más ha traído este mes, «Pidan información»."},
+        "hasforms": true, "forms": [{"name": "Pidan información", "kind": "Formulario", "state": "Abierta",
+            "brought": "23 familias", "last": "la última, ayer a las 21:14", "missing": "", "sites": ["Instagram"], "url": "#"}],
+        "hasbridges": false, "bridges": [], "canact": true, "action": "#", "sesskey": "abc",
+        "kinds": [{"value": "form", "name": "Formulario", "help": "Un formulario de Eguahe.", "checked": true}]
+    }
+}}
+<div class="pagina">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#canact}}
+    <details class="bloque-form nueva-entrada">
+        <summary class="boton principal">{{{i.mas1}}}{{#str}}panel_new_entry, local_oksigeniaeguahe{{/str}}</summary>
+        <form method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <fieldset class="opciones"><legend>{{#str}}panel_entry_kind, local_oksigeniaeguahe{{/str}}</legend>
+                {{#kinds}}<label class="opcion"><input type="radio" name="kind" value="{{value}}"{{#checked}} checked{{/checked}}><span><b>{{name}}</b><span class="secundario">{{help}}</span></span></label>{{/kinds}}
+            </fieldset>
+            <div class="campo"><label for="entry-name">{{#str}}panel_entry_name, local_oksigeniaeguahe{{/str}}</label><input id="entry-name" name="name" autocomplete="off"><span class="ayuda">{{#str}}panel_entry_name_help, local_oksigeniaeguahe{{/str}}</span></div>
+            <button class="boton principal" type="submit">{{#str}}panel_create_entry, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+    </details>
+    {{/canact}}
+    <section class="apartado">
+        <header><h2>{{#str}}panel_forms, local_oksigeniaeguahe{{/str}}</h2></header>
+        {{#forms}}{{> local_oksigeniaeguahe/panel_entry_row }}{{/forms}}
+        {{^hasforms}}<p class="secundario">{{#str}}panel_no_forms, local_oksigeniaeguahe{{/str}}</p>{{/hasforms}}
+    </section>
+    <section class="apartado">
+        <header><h2>{{#str}}panel_bridges, local_oksigeniaeguahe{{/str}}</h2></header>
+        {{#bridges}}{{> local_oksigeniaeguahe/panel_entry_row }}{{/bridges}}
+        {{^hasbridges}}<p class="secundario">{{#str}}panel_no_bridges, local_oksigeniaeguahe{{/str}}</p>{{/hasbridges}}
+    </section>
+</div>

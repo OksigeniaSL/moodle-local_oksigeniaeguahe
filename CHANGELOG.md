@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.15.0 (2026-11-08)
+
+- **The panel, second part: open days and visits.** What comes next and how full it is; the events ahead with who
+  receives; the visits families asked for and how each is going; the events past with how many came.
+- **One event and its door**: the band in the colour of the centre with how many families and people came; the
+  families by their turn, the turn of now open, each with «came» at hand and undone by pressing it again; the search
+  of the list; someone who arrives without signing up; for the event of asking, what each family asked for; the QR,
+  the link to copy and the posters. Everything works without JavaScript.
+- **The entries**: by how many doors families arrive and which brought most this month; the forms of the centre with
+  the places they are shared from; the bridges and what is missing to start the ones not used yet; a new entry with
+  what each kind is.
+- Creating or changing an event, and the pages of a form and a bridge, stay on their pages of Moodle until the new look.
+
 ## 0.14.0 (2026-11-08)
 
 - **The panel of the team, first part**: pages of its own, with none of the look of Moodle (Moodle gives the session,

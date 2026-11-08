@@ -27,13 +27,14 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
-use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_entries;
 
 require_login(null, false);
 $centre = centres::require_work(required_param('c', PARAM_INT));
 $url = new moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id]);
 $c = 'local_oksigeniaeguahe';
-staff::setup($url, get_string('tab_entries', $c), $centre);
+panel::setup($url, get_string('tab_entries', $c));
 $canact = centres::can_act((int) $USER->id);
 
 if ($canact && data_submitted() && confirm_sesskey()) {
@@ -46,42 +47,4 @@ if ($canact && data_submitted() && confirm_sesskey()) {
     }
 }
 
-$forms = [];
-$bridges = [];
-foreach (entries::for_centre((int) $centre->id) as $entry) {
-    $row = [
-        'name' => format_string($entry->name),
-        'kind' => get_string('entry_kind_' . $entry->kind, $c),
-        'received' => (int) $entry->received,
-        'last' => $entry->lastreceived ? userdate((int) $entry->lastreceived, get_string('strftimedatetimeshort', 'langconfig')) :
-            get_string('entry_never', $c),
-        'active' => (bool) $entry->active,
-        'url' => (new moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $entry->id]))->out(false),
-    ];
-    if ($entry->kind === 'form') {
-        $forms[] = $row;
-    } else {
-        $bridges[] = $row;
-    }
-}
-$kinds = [];
-foreach (array_keys(entries::KINDS) as $kind) {
-    if ($kind !== 'form') {
-        $kinds[] = ['value' => $kind, 'name' => get_string('entry_kind_' . $kind, $c),
-            'help' => get_string('entry_kind_' . $kind . '_help', $c)];
-    }
-}
-
-echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_oksigeniaeguahe/entries', [
-    'tabs' => staff::tabs($centre, 'entries'),
-    'forms' => $forms,
-    'hasforms' => (bool) $forms,
-    'bridges' => $bridges,
-    'hasbridges' => (bool) $bridges,
-    'kinds' => $kinds,
-    'canact' => $canact,
-    'action' => $url->out(false),
-    'sesskey' => sesskey(),
-]);
-echo $OUTPUT->footer();
+panel::output($centre, 'entries', get_string('tab_entries', $c), 'panel_entries', panel_entries::context($centre, $canact));

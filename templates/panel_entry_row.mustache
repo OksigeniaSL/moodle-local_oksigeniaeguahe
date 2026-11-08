@@ -1,0 +1,31 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_entry_row
+
+    An entry in a list: its name and kind, open or closed in words, how many families it brought and when the last one
+    came, the places it is shared from, or what is missing to start.
+
+    Example context (json):
+    {"i": {"der": ""}, "name": "Pidan información", "kind": "Formulario", "state": "Abierta", "brought": "23 familias",
+        "last": "la última, ayer a las 21:14", "missing": "", "sites": ["Instagram"], "url": "#"}
+}}
+<a class="entrada-fila" href="{{url}}">
+    <span class="que"><b>{{name}}</b><span class="secundario">{{kind}} · {{state}}</span>{{#sites.0}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/sites.0}}</span>
+    <span class="cuantas"><b>{{brought}}</b><span class="secundario">{{last}}{{missing}}</span></span>
+    {{{i.der}}}
+</a>

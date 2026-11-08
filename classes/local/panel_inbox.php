@@ -69,12 +69,12 @@ class panel_inbox {
         $newfamily = new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centreid]);
         $visits = self::visits($centreid, $userid);
         return [
-            'head' => [
+            'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,
                 'action' => $canact ? ['url' => $newfamily->out(false),
                     'name' => get_string('household_new', $c), 'icon' => panel::icon('mas1')] : null,
-            ],
+            ]),
             'fresh' => $fresh,
             'showtools' => !$fresh,
             'all' => $all,

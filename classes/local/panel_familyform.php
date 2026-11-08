@@ -98,12 +98,12 @@ class panel_familyform {
                 'checked' => !empty($values['consent' . $channel])];
         }
         return [
-            'head' => [
+            'head' => panel::head([
                 'back' => ['url' => $back->out(false), 'name' => $isnew ? get_string('tab_inbox', $c) :
                     panel::adults_line(households::full($household)->adults)],
                 'title' => get_string($isnew ? 'household_new' : 'household_edit', $c),
                 'sub' => $isnew ? get_string('panel_ff_sub', $c) : '',
-            ],
+            ]),
             'action' => $action->out(false),
             'sesskey' => sesskey(),
             'marker' => '_qf__' . $form->identifier(),

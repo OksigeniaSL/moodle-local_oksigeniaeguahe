@@ -82,13 +82,13 @@ class panel_events {
             $sub[] = get_string($waiting === 1 ? 'panel_events_waiting_one' : 'panel_events_waiting', $c, $waiting);
         }
         return [
-            'head' => [
+            'head' => panel::head([
                 'title' => $next ? get_string('panel_events_next', $c, (object) ['name' => format_string($next->name),
                     'day' => userdate((int) $next->timestart, '%A %d')]) : get_string('panel_events_none', $c),
                 'sub' => implode(' ', $sub),
                 'action' => $canact ? ['url' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id,
                     'new' => 1]))->out(false), 'name' => get_string('event_new', $c), 'icon' => panel::icon('mas1')] : null,
-            ],
+            ]),
             'ahead' => array_map(fn($e) => self::row($e, $hosts, $now), $ahead),
             'hasahead' => (bool) $ahead,
             'asking' => array_map(fn($e) => [

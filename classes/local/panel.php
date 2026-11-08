@@ -325,6 +325,17 @@ class panel {
     }
 
     /**
+     * The head of a page with all its parts, the ones it does not have empty: a template must not take them from the
+     * page around it.
+     *
+     * @param array $head title and, if any, back, ante, sub and action.
+     * @return array
+     */
+    public static function head(array $head): array {
+        return $head + ['back' => null, 'ante' => '', 'title' => '', 'sub' => '', 'action' => null];
+    }
+
+    /**
      * How long someone has waited, in words: what goes first (bold), what goes below, and how the head of the inbox
      * says it («La que más lleva espera desde el jueves a las 18:40»).
      *
