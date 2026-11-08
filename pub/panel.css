@@ -7278,7 +7278,8 @@ html.modo-lamina {
 
 @media print {
     .por-crecer .barra-pista > i,
-    .por-crecer .col-pista i {
+    .por-crecer .col-pista i,
+    .barras-como.por-crecer .barra-como {
         transform: none;
     }
 
