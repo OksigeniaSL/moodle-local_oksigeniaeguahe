@@ -2900,3 +2900,133 @@ textarea.renglones:focus-visible {
     font-weight: 700;
     cursor: pointer;
 }
+
+/* Once enrolled, the last moment of the page: who carries them from now on (a person with their face, or a place on
+   the colour of the centre), how the centre writes to them, the offer as a sentence with a yes, and the thanks of
+   whoever received them, signed. The page stays still. */
+.quien-lleva {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+.etiqueta-lleva {
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+.persona-lleva {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.persona-lleva .retrato {
+    width: 56px;
+    height: 56px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--c-acento-suave);
+    color: var(--c-acento-texto);
+    font-weight: 780;
+}
+
+.persona-lleva > span {
+    display: grid;
+}
+
+.persona-lleva b {
+    font-size: 1.1875rem;
+    font-weight: 720;
+    line-height: 1.2;
+}
+
+.persona-lleva .papel {
+    color: var(--eg-tinta-2);
+}
+
+.placa-sitio {
+    justify-self: start;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-size: 1.125rem;
+    font-weight: 720;
+    line-height: 1.3;
+}
+
+.por-donde {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.ofrecimiento {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 0;
+    padding: 12px 14px 12px 16px;
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px var(--eg-sombra);
+}
+
+.ofrecimiento p {
+    flex: 1 1 260px;
+    margin: 0;
+    font-weight: 650;
+    line-height: 1.4;
+}
+
+.ofrecimiento.hecho {
+    flex-wrap: nowrap;
+    background: var(--c-acento-suave);
+    box-shadow: none;
+    font-weight: 650;
+}
+
+.gracias-firmadas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 6px 0 0;
+}
+
+.texto-gracias {
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.gracias-firmadas .firma {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+}
+
+.gracias-firmadas .firma img,
+.gracias-firmadas .firma .ini {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--c-acento-suave);
+    color: var(--c-acento-texto);
+    font-size: 0.8125rem;
+    font-weight: 780;
+}

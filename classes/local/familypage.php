@@ -118,7 +118,21 @@ class familypage {
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
         $host = $hosts[0]->first ?? '';
         $greeting = $upcoming || !$attended ? 'pub_wait' : 'pub_thanks';
-        if ($upcoming) {
+        // After «Enrolled», the last moment of the page: that is it, who carries them from now on, and it stays still.
+        $enrolled = settled::enrolled($children);
+        $issettled = $enrolled && !$upcoming;
+        if ($issettled) {
+            $offer = $offers[$enrolled[0]->offerid] ?? null;
+            if (count($enrolled) > 1) {
+                $all = self::join(array_map([self::class, 'label_name'], $enrolled), $lang);
+                $lead = s(publiclang::str('pub_settled_many', $lang, $all));
+            } else if ($offer) {
+                $a = (object) ['name' => self::label_name($enrolled[0]), 'course' => format_string($offer->name)];
+                $lead = s(publiclang::str('pub_settled_one', $lang, $a));
+            } else {
+                $lead = s(publiclang::str('pub_settled_nocourse', $lang));
+            }
+        } else if ($upcoming) {
             $a = (object) ['date' => '<b>' . s(publicpage::date_parts((int) $upcoming[0]->timestart, $lang)['long']) . '</b>',
                 'host' => s($host), 'names' => s($names)];
             $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' : (count($tags) > 1 ? '_many' : ''));
@@ -214,18 +228,25 @@ class familypage {
         $by = $joined ? 'pub_by_messages' : (isset($channels['email']) ? 'pub_by_email' : (isset($channels['whatsapp']) ?
             'pub_by_whatsapp' : (isset($channels['phone']) ? 'pub_by_phone' : '')));
         $ask = $last ? self::ask_context($centre, $last, $lang, $token, $told, $by, $flags) : false;
+        if ($issettled) {
+            $ask = self::settled_ask($household, $centre, $hosts, $lang, $token, $by, $flags);
+            $surveyform = null;
+        }
         $outcome = $last && $told ? trim((string) ($last->outcome ?? '')) : '';
         $hall = false;
         if (vestibulo::on($centre)) {
-            $scene = vestibulo::family($centre, $full, (bool) $attended, $now, $token, $lang);
+            $scene = vestibulo::family($centre, $full, (bool) $attended || $issettled, $now, $token, $lang);
             $hall = ['json' => json_encode($scene, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false)];
         }
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
-            'greeting' => publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
-            'names' => $names,
+            'greeting' => $issettled ? publiclang::str('pub_settled', $lang) :
+                publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
+            'names' => $issettled ? '' : $names,
             // Once they came, the label stuck down, as the team left it at the door.
-            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming) + ['came' => !$upcoming && (bool) $attended],
+            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming) + ['came' => !$upcoming &&
+                ((bool) $attended || $issettled)],
+            'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
             'lead' => $lead,
             'new' => $new,
             'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
@@ -237,7 +258,8 @@ class familypage {
             'wallask' => $surveyform ? false : $ask,
             'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) :
                 false,
-            'outcome' => $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang), 'text' => $outcome] : false,
+            'outcome' => !$issettled && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),
+                'text' => $outcome] : false,
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
             'others' => array_map($visitrow, array_slice($upcoming, 1)),
@@ -292,15 +314,53 @@ class familypage {
         string $by,
         array $flags
     ): array {
-        $host = surveys::host($last);
+        return self::question(
+            $centre,
+            surveys::host($last),
+            isset($told[0]),
+            'pub_after_question',
+            'ask',
+            $lang,
+            $token,
+            $by,
+            $flags
+        );
+    }
+
+    /**
+     * The one open question, after a visit or once enrolled: the title, the button with the face of whoever answers,
+     * how soon they answer and, once asked, that it was passed on.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass|null $host Whoever answers, from centres::hosts(); null, the team.
+     * @param bool $asked Whether they already asked.
+     * @param string $title The string of the question.
+     * @param string $do The action of the form.
+     * @param string $lang
+     * @param string $token
+     * @param string $by
+     * @param array $flags
+     * @return array
+     */
+    protected static function question(
+        \stdClass $centre,
+        ?\stdClass $host,
+        bool $asked,
+        string $title,
+        string $do,
+        string $lang,
+        string $token,
+        string $by,
+        array $flags
+    ): array {
         $first = $host ? $host->first : '';
         $days = max(1, (int) ($centre->replydays ?? 2));
         $a = (object) ['host' => $first, 'by' => $by !== '' ? publiclang::str($by, $lang) : '',
             'days' => publiclang::str($days === 1 ? 'pub_reply_day' : 'pub_reply_days', $lang, $days)];
-        $asked = isset($told[0]);
         $replykey = ($host ? 'pub_after_reply_host' : 'pub_after_reply_team') . ($by !== '' ? '' : '_noby');
         return [
-            'title' => publiclang::str($asked ? 'pub_after_more' : 'pub_after_question', $lang),
+            'do' => $do,
+            'title' => publiclang::str($asked ? 'pub_after_more' : $title, $lang),
             'help' => publiclang::str('pub_after_help', $lang),
             'sent' => $asked ? publiclang::str($host ? 'pub_after_sent_host' : 'pub_after_sent_team', $lang, $first) : '',
             'justsent' => !empty($flags['asked']),
@@ -310,6 +370,93 @@ class familypage {
             'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'sending' => publiclang::str('pub_after_sending', $lang),
+        ];
+    }
+
+    /**
+     * The question once enrolled, «What were you left to ask before the first day?», answered by whoever attends the
+     * family while Eguahe still carries it, else by whoever carries them from now on, else by the team.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param array $hosts Who received them at their last visit.
+     * @param string $lang
+     * @param string $token
+     * @param string $by
+     * @param array $flags
+     * @return array
+     */
+    protected static function settled_ask(
+        \stdClass $household,
+        \stdClass $centre,
+        array $hosts,
+        string $lang,
+        string $token,
+        string $by,
+        array $flags
+    ): array {
+        $host = null;
+        foreach (centres::hosts((int) $centre->id) as $member) {
+            if ((int) $member->userid === (int) $household->ownerid) {
+                $host = $member;
+            }
+        }
+        $handover = $host ? null : settled::handover($centre, array_values(households::full($household)->children));
+        $host = $host ?? ($handover['person'] ?? null) ?? ($hosts[0] ?? null);
+        return self::question(
+            $centre,
+            $host,
+            settled::asked((int) $household->id),
+            'pub_settled_question',
+            'settledask',
+            $lang,
+            $token,
+            $by,
+            $flags
+        );
+    }
+
+    /**
+     * The last moment of the page of an enrolled family: who carries them from now on (a person with their face, or a
+     * place on the colour of the centre), how the centre writes to them, the offer to tell another family how it went
+     * as a sentence with a yes, and the thanks of whoever received them.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @param array $hosts Who received them at their last visit.
+     * @param string $lang
+     * @param string $token
+     * @return array
+     */
+    protected static function settled_context(
+        \stdClass $household,
+        \stdClass $full,
+        \stdClass $centre,
+        array $hosts,
+        string $lang,
+        string $token
+    ): array {
+        $handover = settled::handover($centre, array_values($full->children));
+        $person = $handover['person'] ?? null;
+        $firsts = array_values(array_filter(array_map(fn($a) => trim((string) $a->firstname), $full->adults)));
+        $host = $hosts[0] ?? null;
+        $volunteered = (int) ($household->volunteer ?? 0) > 0;
+        return [
+            'person' => $person ? ['label' => publiclang::str('pub_handover_person', $lang), 'name' => $person->name,
+                'role' => $person->role, 'photo' => $person->photo ? $person->photo->out(false) : '',
+                'initials' => $person->initials] : false,
+            'place' => !$person && isset($handover['place']) ? ['label' => publiclang::str('pub_handover_place', $lang),
+                'name' => $handover['place']] : false,
+            'team' => $handover ? '' : publiclang::str('pub_handover_team', $lang),
+            'how' => trim((string) ($centre->handoverhow ?? '')),
+            'volunteer' => $volunteered ? false : ['question' => publiclang::str('pub_volunteer_ask', $lang),
+                'yes' => publiclang::str('pub_volunteer_yes', $lang), 'sesskey' => sesskey(),
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false)],
+            'volunteered' => $volunteered ? publiclang::str('pub_volunteer_done', $lang) : '',
+            'thanks' => $firsts ? ['text' => publiclang::str('pub_settled_thanks', $lang, self::join($firsts, $lang)),
+                'who' => $host ? $host->first : '', 'photo' => $host && $host->photo ? $host->photo->out(false) : '',
+                'initials' => $host ? $host->initials : '', 'hashost' => (bool) $host] : false,
         ];
     }
 

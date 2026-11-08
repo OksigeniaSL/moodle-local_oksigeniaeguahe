@@ -121,6 +121,14 @@ class centres {
         if (isset($data->skin)) {
             $row->skin = in_array($data->skin, panel::SKINS, true) ? $data->skin : null;
         }
+        if (isset($data->handover)) {
+            // Who carries the families once enrolled: a person of the team, else a place; and how the centre writes
+            // to them from then on.
+            $row->handover = max(0, (int) $data->handover);
+            $place = trim((string) ($data->handoverplace ?? ''));
+            $row->handoverplace = $place === '' ? null : \core_text::substr($place, 0, 255);
+            $row->handoverhow = trim((string) ($data->handoverhow ?? '')) ?: null;
+        }
         return $row;
     }
 
@@ -458,6 +466,10 @@ class centres {
             'active' => empty($data->active) ? 0 : 1,
             'timemodified' => time(),
         ];
+        if (isset($data->handover)) {
+            // Who carries the families of this course once enrolled (its tutor); 0, the one of the centre.
+            $row->handover = max(0, (int) $data->handover);
+        }
         if (!empty($data->id)) {
             $DB->get_record(self::OFFERS, ['id' => $data->id, 'centreid' => $centreid], 'id', MUST_EXIST);
             $row->id = (int) $data->id;

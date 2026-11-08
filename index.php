@@ -64,7 +64,8 @@ if (optional_param('away', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey
     redirect(new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]));
 }
 if (optional_param('check', 0, PARAM_BOOL)) {
-    // What the page asks every minute: how many wait, and the family that arrived last.
+    // What the page asks every minute: how many wait, and the family that arrived last (its courses are formatted).
+    $PAGE->set_context(context_system::instance());
     @header('Content-Type: application/json; charset=utf-8');
     @header('Cache-Control: no-store');
     echo json_encode(panel_inbox::check($centre));

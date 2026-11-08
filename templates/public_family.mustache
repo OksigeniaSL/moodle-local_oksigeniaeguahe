@@ -25,7 +25,10 @@
     visit, the survey «How did it go?» in the band: who reads it, with their faces, then a sheet with the label of each
     child stuck in its corner (beside it, large, on a wide screen), the open question first and the words of each scale, each answer kept when it is touched; when
     the last one is answered, the thanks with the name used at home, written by hand. And what the centre does with what
-    they told, under the thanks, as a note of the centre.
+    they told, under the thanks, as a note of the centre. Once a child is enrolled, the last moment, and the page stays
+    still: «That is it» and where the child has their place, who carries them from now on (a person with their face, or
+    a place on the colour of the centre) and how the centre writes to them, the one question before the first day, the
+    offer to tell another family how it went as a sentence with a yes, and the thanks of whoever received them.
 
     Example context (json):
     {
@@ -35,7 +38,7 @@
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false,
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false,
         "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
             "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
             "done": "", "farewell": "Gracias por contárnoslo,", "changeline": "Pueden cambiar cualquier respuesta hasta el 21 de noviembre.",
@@ -81,12 +84,39 @@
             </div>
             {{/new}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span>{{text}}</span></p>{{/outcome}}
+            {{#settled}}
+            <div class="quien-lleva">
+                {{#person}}
+                <p class="etiqueta-lleva">{{label}}</p>
+                <p class="persona-lleva">{{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span><b>{{name}}</b>{{#role}}<span class="papel">{{role}}</span>{{/role}}</span></p>
+                {{/person}}
+                {{#place}}
+                <p class="etiqueta-lleva">{{label}}</p>
+                <p class="placa-sitio">{{name}}</p>
+                {{/place}}
+                {{#team}}<p class="etiqueta-lleva">{{team}}</p>{{/team}}
+                {{#how}}<p class="por-donde">{{how}}</p>{{/how}}
+            </div>
+            {{/settled}}
             {{#wallask}}
             <form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
-                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="ask">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">
                 {{> local_oksigeniaeguahe/public_ask }}
             </form>
             {{/wallask}}
+            {{#settled}}
+            {{#volunteer}}
+            <form class="ofrecimiento" id="ofrecimiento" method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="volunteer">
+                <p>{{question}}</p>
+                <button class="boton secundario" type="submit">{{yes}}</button>
+            </form>
+            {{/volunteer}}
+            {{#volunteered}}<p class="ofrecimiento hecho" id="ofrecimiento"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{volunteered}}</span></p>{{/volunteered}}
+            {{#thanks}}
+            <p class="gracias-firmadas"><span class="texto-gracias">{{text}}</span>{{#hashost}}<span class="firma">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span>{{who}}</span></span>{{/hashost}}</p>
+            {{/thanks}}
+            {{/settled}}
         </div>
     </div>
 </section>
@@ -147,6 +177,7 @@
 {{/howitwent}}
 {{^howitwent}}
 {{^hasnext}}
+{{^settled}}
 <section class="banda" aria-label="{{bandnext}}">
     <p class="etiqueta">{{bandnext}}</p>
     <p class="siguiente">{{nextline}}</p>
@@ -158,9 +189,11 @@
         </div>
     </div>
 </section>
+{{/settled}}
 {{/hasnext}}
 {{/howitwent}}
 
+{{^settled}}
 {{#hashosts}}
 <section class="seccion dos-col">
     <div class="cabeza">
@@ -186,6 +219,7 @@
     <p class="equipo">{{#receivespending}}{{receivespending}}{{/receivespending}}{{^receivespending}}{{pub_receives_team}}{{/receivespending}}</p>
 </section>
 {{/hashosts}}
+{{/settled}}
 
 <section class="seccion">
     <h2>{{pub_told}}</h2>

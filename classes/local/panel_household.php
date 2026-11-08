@@ -258,6 +258,7 @@ class panel_household {
                 $reasons[] = ['value' => $reason, 'name' => get_string('closed_' . $reason, $c)];
             }
             $tag = panel::tag($child);
+            $day = get_string('strftimedate', 'langconfig');
             $drawing = drawings::url((int) $child->id);
             $out[] = [
                 'id' => $child->id,
@@ -276,6 +277,10 @@ class panel_household {
                 'reason' => $child->stage === 'closed' && $child->closedreason ?
                     get_string('closed_' . $child->closedreason, $c) : '',
                 'waitlist' => $child->stage === 'waitlist',
+                // Enrolled: in the centre, and on the first day whether they started.
+                'incentre' => $child->stage !== 'enrolled' ? '' : ((int) ($child->started ?? 0) ?
+                    get_string('panel_started_on', $c, userdate((int) $child->started, $day)) :
+                    get_string('panel_incentre_since', $c, userdate((int) $child->stagetime, $day))),
                 'reasons' => $reasons,
                 'canact' => $canact,
                 'label' => get_string('panel_way_of', $c, $tag),

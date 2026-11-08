@@ -635,5 +635,35 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026111101, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026111600) {
+        // After «Enrolled»: who carries the families from then on, whether they offered to tell another family how it
+        // went, and who started on the first day.
+        $fields = [
+            'local_oksigeniaeguahe_centre' => [
+                new xmldb_field('handover', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'library'),
+                new xmldb_field('handoverplace', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'handover'),
+                new xmldb_field('handoverhow', XMLDB_TYPE_TEXT, null, null, null, null, null, 'handoverplace'),
+            ],
+            'local_oksigeniaeguahe_offer' => [
+                new xmldb_field('handover', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'active'),
+            ],
+            'local_oksigeniaeguahe_household' => [
+                new xmldb_field('volunteer', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'lastcontact'),
+            ],
+            'local_oksigeniaeguahe_child' => [
+                new xmldb_field('started', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'stagetime'),
+            ],
+        ];
+        foreach ($fields as $name => $list) {
+            $table = new xmldb_table($name);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026111600, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

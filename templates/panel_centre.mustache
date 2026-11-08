@@ -38,7 +38,9 @@
         "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "",
-        "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": ""}],
+        "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
+            "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
+        "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "",
         "members": [{"id": 5, "name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR", "role": "Admisiones", "me": false}],
         "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
@@ -105,6 +107,14 @@
                     {{^hosts}}<li class="secundario">{{#str}}panel_hosts_none, local_oksigeniaeguahe{{/str}}</li>{{/hosts}}
                 </ul>
             </section>
+            <section class="apartado" id="aj-despues" aria-labelledby="aj-despues-t">
+                <header><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_after_enrolment_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <div class="rejilla-2">
+                    <div class="campo"><label for="c-lleva">{{#str}}panel_handover, local_oksigeniaeguahe{{/str}}</label><select id="c-lleva" name="handover">{{#handover}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handover}}</select><span class="ayuda">{{#str}}panel_handover_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    <div class="campo"><label for="c-sitio">{{#str}}panel_handover_place, local_oksigeniaeguahe{{/str}}</label><input id="c-sitio" name="handoverplace" value="{{handoverplace}}" placeholder="{{#str}}panel_handover_place_example, local_oksigeniaeguahe{{/str}}"></div>
+                </div>
+                <div class="campo"><label for="c-como">{{#str}}panel_handover_how, local_oksigeniaeguahe{{/str}}</label><textarea id="c-como" name="handoverhow" rows="2" placeholder="{{#str}}panel_handover_how_example, local_oksigeniaeguahe{{/str}}">{{handoverhow}}</textarea></div>
+            </section>
             {{#hasmessaging}}
             <section class="apartado" id="aj-mensajes" aria-labelledby="aj-mensajes-t">
                 <header><h2 id="aj-mensajes-t">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</h2></header>
@@ -134,6 +144,7 @@
                         <div class="campo"><label for="o-n-{{i}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><input id="o-n-{{i}}" name="offername[{{i}}]" value="{{name}}"></div>
                         <div class="campo"><label for="o-a-{{i}}">{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</label><input id="o-a-{{i}}" name="offeryear[{{i}}]" value="{{year}}"></div>
                         <div class="campo"><label for="o-p-{{i}}">{{#str}}offer_places, local_oksigeniaeguahe{{/str}}</label><input id="o-p-{{i}}" type="number" min="0" name="offerplaces[{{i}}]" value="{{places}}" inputmode="numeric"></div>
+                        <div class="campo"><label for="o-l-{{i}}">{{#str}}offer_handover, local_oksigeniaeguahe{{/str}}</label><select id="o-l-{{i}}" name="offerhandover[{{i}}]">{{#handovers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handovers}}</select></div>
                         <label class="casilla"><input type="checkbox" name="offeractive[{{i}}]" value="1"{{#active}} checked{{/active}}><span>{{#str}}offer_active, local_oksigeniaeguahe{{/str}}</span></label>
                         {{#rail}}<div class="riel-caja oferta-riel">{{{rail}}}</div>{{/rail}}
                         <input type="hidden" name="offerid[{{i}}]" value="{{id}}">

@@ -518,6 +518,7 @@ class households {
                 'heard_from' => $full->heardfrom,
                 'first_channel' => $full->firstchannel,
                 'already_of_the_centre' => (bool) $full->incentre,
+                'offered_to_tell_another_family' => $date((int) ($full->volunteer ?? 0)),
                 'created' => $date((int) $full->timecreated),
             ],
             'adults' => [],
@@ -533,7 +534,8 @@ class households {
         foreach ($full->children as $child) {
             $data['children'][] = ['first_name' => $child->firstname, 'name_on_the_label' => $child->tagname,
                 'asks_for' => $offers[$child->offerid] ?? null,
-                'stage' => $child->stage, 'since' => $date((int) $child->stagetime)];
+                'stage' => $child->stage, 'since' => $date((int) $child->stagetime),
+                'started' => $date((int) ($child->started ?? 0))];
         }
         foreach ($full->signups as $signup) {
             $data['events'][] = ['event' => $signup->eventname, 'starts' => $date((int) $signup->timestart),

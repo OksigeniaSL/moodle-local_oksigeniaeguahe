@@ -29,6 +29,9 @@
         <FIELD NAME="labelsheets" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sheets of labels of the centre: its favourites of each kind and how much its printer moves each, JSON"/>
         <FIELD NAME="replydays" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="Working days the team usually takes to answer a family, as the families read it"/>
         <FIELD NAME="library" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The library of Ayvurenda whose stories to read at home the families get, by its slug"/>
+        <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families once enrolled; 0, a place or nobody"/>
+        <FIELD NAME="handoverplace" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the families are carried once enrolled when nobody is named: the office of students and its phone"/>
+        <FIELD NAME="handoverhow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How the centre writes to the families once enrolled, as they read it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -66,6 +69,7 @@
         <FIELD NAME="places" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Places for new students; 0 when not counted"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Shown to families in the forms"/>
+        <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families of this course once enrolled (its tutor); 0, the one of the centre"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -89,6 +93,7 @@
         <FIELD NAME="linkhash" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="SHA-256 of the private link of the household; never the link itself"/>
         <FIELD NAME="waitingsince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when the household waits for a person to answer; 0 when nobody is owed an answer"/>
         <FIELD NAME="lastcontact" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -133,6 +138,7 @@
         <FIELD NAME="stage" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="inquiry" SEQUENCE="false" COMMENT="One of the stages of stages.php, each with its fixed definition"/>
         <FIELD NAME="closedreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why the way stopped, when stage is closed"/>
         <FIELD NAME="stagetime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="started" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team marked on the first day that the child started; 0, not marked"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

@@ -145,6 +145,7 @@ class panel_inbox {
             'places' => $places['list'],
             'hasplaces' => (bool) $places['list'],
             'path' => self::path($centreid),
+            'firstday' => panel_start::link($centreid),
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),
@@ -213,6 +214,12 @@ class panel_inbox {
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'espera',
                     'day' => self::day_name((int) $household->waitingsince, $days),
                     'sub' => $days >= 2 ? get_string('panel_ago_days', $c, $days) : '', 'answered' => false, 'rows' => []];
+            } else if (settled::in_centre($household->children)) {
+                // Enrolled: in the centre, behind a line, until something happens.
+                $key = 'encentro';
+                $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'encentro',
+                    'day' => get_string('panel_group_incentre', $c), 'sub' => get_string('panel_group_incentre_sub', $c),
+                    'answered' => true, 'rows' => []];
             } else {
                 $key = 'contestadas';
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'contestadas',
@@ -222,7 +229,7 @@ class panel_inbox {
         }
         // Today first, then the waiting days from the oldest, then the answered ones.
         $order = fn($key) => $key === 'prometido' ? -2000000 : ($key === 'hoy' ? -1000000 : ($key === 'contestadas' ? 1000000 :
-            -(int) substr($key, 6)));
+            ($key === 'encentro' ? 2000000 : -(int) substr($key, 6))));
         uksort($groups, fn($a, $b) => $order($a) <=> $order($b));
         return array_values(array_map(fn($g) => $g + ['count' => count($g['rows'])], $groups));
     }

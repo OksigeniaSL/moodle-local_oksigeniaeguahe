@@ -306,6 +306,7 @@ class panel_metrics {
             'places' => $campaign['import'] ? null : self::places($centre, $families, $course, $previous, $campaign, $elapsed),
             'hasplaces' => !$campaign['import'],
             'placesdef' => get_string('panel_coming_def', $c),
+            'started' => $campaign['import'] || $course !== '' ? false : self::started((int) $centre->id),
             'starts' => self::starts($campaigns, $canact),
         ];
         $context['spendaction'] = $url([])->out(false);
@@ -922,6 +923,26 @@ class panel_metrics {
         $centre = ($p + $z * $z / (2 * $n)) / (1 + $z * $z / $n);
         $half = $z * sqrt($p * (1 - $p) / $n + $z * $z / (4 * $n * $n)) / (1 + $z * $z / $n);
         return [max(0.0, $centre - $half), min(1.0, $centre + $half)];
+    }
+
+    /**
+     * Of the children enrolled for the school year, how many started on the first day, once the team marked anyone:
+     * the first honest number of what comes after the campaign.
+     *
+     * @param int $centreid
+     * @return array|false text, def, url.
+     */
+    protected static function started(int $centreid) {
+        $year = settled::year($centreid);
+        $counts = $year !== '' ? settled::started($centreid, $year) : [];
+        if (!$counts) {
+            return false;
+        }
+        return [
+            'text' => get_string('panel_started_sentence', self::C, (object) ($counts + ['year' => $year])),
+            'def' => get_string('panel_started_def', self::C),
+            'url' => (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false),
+        ];
     }
 
     /**

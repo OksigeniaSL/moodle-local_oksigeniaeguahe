@@ -1729,6 +1729,22 @@ details[open].plegado > summary h2::after {
     font-size: 1.125rem;
 }
 
+/* The families in the centre: behind a line, in secondary ink; they come up only when something happens. */
+.dia-encentro {
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 2px dashed var(--eg-linea);
+}
+
+.dia-encentro .dia {
+    color: var(--eg-tinta-2);
+    font-size: 1.125rem;
+}
+
+.dia-encentro .fila {
+    color: var(--eg-tinta-2);
+}
+
 .sin-resultados {
     padding: 12px 0;
 }
@@ -3323,7 +3339,8 @@ input:focus-visible + .ficha-canal {
     transform: rotate(180deg);
 }
 
-.llegada {
+.llegada,
+.empieza {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px 14px;
@@ -3332,13 +3349,15 @@ input:focus-visible + .ficha-canal {
     border-top: 1px solid var(--eg-linea);
 }
 
-.llegada .quien {
+.llegada .quien,
+.empieza .quien {
     display: grid;
     gap: 6px;
     min-width: 0;
 }
 
-.llegada .quien a {
+.llegada .quien a,
+.empieza .quien a {
     color: var(--eg-tinta);
     text-decoration: none;
     font-size: 1.0625rem;
@@ -3355,7 +3374,8 @@ input:focus-visible + .ficha-canal {
     font-size: 0.875rem;
 }
 
-.llegada .personas {
+.llegada .personas,
+.empieza .personas {
     color: var(--eg-tinta-2);
 }
 /* The label at the door: its corner lifted until the child comes; then it sticks */
@@ -3377,12 +3397,14 @@ input:focus-visible + .ficha-canal {
     transition: transform 200ms var(--curva-papel), opacity 200ms ease;
 }
 
-.llegada.ya .etq-puerta::after {
+.llegada.ya .etq-puerta::after,
+.empieza.ya .etq-puerta::after {
     transform: scale(0.01);
     opacity: 0;
 }
 
-.vino {
+.vino,
+.empezo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -3400,25 +3422,31 @@ input:focus-visible + .ficha-canal {
     touch-action: manipulation;
 }
 
-.vino .ic {
+.vino .ic,
+.empezo .ic {
     display: none;
 }
 
-.vino[aria-pressed="true"] {
+.vino[aria-pressed="true"],
+.empezo[aria-pressed="true"] {
     background: var(--eg-accion);
     color: var(--eg-sobre-accion);
 }
 
-.vino[aria-pressed="true"] .ic {
+.vino[aria-pressed="true"] .ic,
+.empezo[aria-pressed="true"] .ic {
     display: inline;
 }
 
 .llegada.ya .quien a,
-.llegada.ya .personas {
+.empieza.ya .quien a,
+.llegada.ya .personas,
+.empieza.ya .personas {
     color: var(--eg-tinta-2);
 }
 
-.llegada.ya .quien b {
+.llegada.ya .quien b,
+.empieza.ya .quien b {
     font-weight: 600;
 }
 
@@ -6693,7 +6721,7 @@ html.modo-lamina {
 
 .oferta {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr) auto;
     gap: 8px 12px;
     align-items: end;
     padding-bottom: 12px;
@@ -7146,11 +7174,13 @@ html.modo-lamina {
         display: inline;
     }
 
-    .llegada {
+    .llegada,
+    .empieza {
         padding: 12px;
     }
 
-    .vino {
+    .vino,
+    .empezo {
         min-width: 112px;
     }
 
@@ -7169,11 +7199,13 @@ html.modo-lamina {
         font-size: 0.9375rem;
     }
 
-    .llegada {
+    .llegada,
+    .empieza {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .vino {
+    .vino,
+    .empezo {
         width: 100%;
     }
 
@@ -7274,6 +7306,7 @@ html.modo-lamina {
 
     .boton,
     .vino,
+    .empezo,
     .pastilla,
     .segmentos a,
     .ficha-canal {
@@ -7281,6 +7314,7 @@ html.modo-lamina {
     }
 
     .vino[aria-pressed="true"],
+    .empezo[aria-pressed="true"],
     .pastilla[aria-current],
     .camino button.aqui {
         forced-color-adjust: none;
@@ -8176,4 +8210,23 @@ a.quien-cita:focus-visible {
 /* A name in Arabic script, or mixed, finds its own direction on the label. */
 .colgante text.mano {
     unicode-bidi: plaintext;
+}
+
+/* An enrolled child in the file: in the centre since when, and on the first day whether they started. */
+.en-centro {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 0;
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.en-centro .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.bloque-primer-dia p {
+    margin: 0;
 }

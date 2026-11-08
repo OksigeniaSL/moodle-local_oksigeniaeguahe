@@ -72,6 +72,7 @@ class panel_centre {
                     'help' => get_string('panel_messaging_' . $value . '_help', $c), 'checked' => $value === $mode];
             }
         }
+        $index['despues'] = 'panel_after_enrolment';
         $index += ['datos' => 'centre_data', 'zona' => 'panel_the_area', 'oferta' => 'panel_offer_places',
             'equipo' => 'centre_members', 'panel' => 'centre_skin', 'ia' => 'centre_ai'];
         $providers = [['value' => 0, 'name' => get_string('centre_ai_none', $c), 'selected' => empty($centre->aiprovider)]];
@@ -112,6 +113,9 @@ class panel_centre {
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
             'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c)),
             'hosts' => self::hosts($centre),
+            'handover' => self::handovers($centre, (int) ($centre->handover ?? 0), 'panel_handover_place_option'),
+            'handoverplace' => (string) ($centre->handoverplace ?? ''),
+            'handoverhow' => (string) ($centre->handoverhow ?? ''),
             'hasmessaging' => (bool) $messaging,
             'messaging' => $messaging,
             'controller' => (string) $centre->controller,
@@ -200,6 +204,7 @@ class panel_centre {
             $enrolled = (int) ($counts[$offer->id]['enrolled'] ?? 0);
             $out[] = ['i' => $i, 'id' => (int) $offer->id, 'name' => (string) $offer->name,
                 'year' => (string) $offer->schoolyear, 'places' => (int) $offer->places, 'active' => !empty($offer->active),
+                'handovers' => self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre'),
                 'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
                     (int) $offer->places,
                     $enrolled,
@@ -207,7 +212,25 @@ class panel_centre {
                 ) : ''];
         }
         $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',
-            'active' => true, 'empty' => true, 'rail' => ''];
+            'active' => true, 'handovers' => self::handovers($centre, 0, 'offer_handover_centre'), 'empty' => true,
+            'rail' => ''];
+        return $out;
+    }
+
+    /**
+     * Who can carry the families once enrolled, as options: nobody in particular first, then the team.
+     *
+     * @param \stdClass $centre
+     * @param int $chosen The member chosen; 0, nobody in particular.
+     * @param string $none The string of the first option.
+     * @return array
+     */
+    protected static function handovers(\stdClass $centre, int $chosen, string $none): array {
+        $out = [['value' => 0, 'name' => get_string($none, self::C), 'selected' => !$chosen]];
+        foreach (self::hosts($centre) as $host) {
+            $out[] = ['value' => $host['id'], 'name' => $host['role'] !== '' ? $host['name'] . ' · ' . $host['role'] :
+                $host['name'], 'selected' => $host['id'] === $chosen];
+        }
         return $out;
     }
 
@@ -324,6 +347,9 @@ class panel_centre {
             'municipalities' => optional_param('municipalities', '', PARAM_TEXT),
             'aiprovider' => optional_param('aiprovider', 0, PARAM_INT),
             'skin' => optional_param('skin', '', PARAM_ALPHA),
+            'handover' => self::member(optional_param('handover', 0, PARAM_INT), (int) $centre->id),
+            'handoverplace' => optional_param('handoverplace', '', PARAM_TEXT),
+            'handoverhow' => optional_param('handoverhow', '', PARAM_TEXT),
         ];
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);
@@ -356,6 +382,7 @@ class panel_centre {
         $years = optional_param_array('offeryear', [], PARAM_TEXT);
         $places = optional_param_array('offerplaces', [], PARAM_INT);
         $active = optional_param_array('offeractive', [], PARAM_BOOL);
+        $handovers = optional_param_array('offerhandover', [], PARAM_INT);
         foreach ($names as $i => $offername) {
             $offerid = (int) ($ids[$i] ?? 0);
             if (trim((string) $offername) === '') {
@@ -366,7 +393,8 @@ class panel_centre {
             }
             centres::save_offer((int) $centre->id, (object) ['id' => $offerid, 'name' => $offername,
                 'schoolyear' => $years[$i] ?? self::next_year(), 'places' => $places[$i] ?? 0,
-                'active' => !empty($active[$i]), 'sortorder' => $i]);
+                'active' => !empty($active[$i]), 'sortorder' => $i,
+                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id)]);
         }
 
         // The team: who goes out, and someone more by their name or their email in Moodle.
@@ -384,6 +412,19 @@ class panel_centre {
         }
         $transaction->allow_commit();
         return $problems;
+    }
+
+    /**
+     * A member of the team of a centre, or 0.
+     *
+     * @param int $memberid
+     * @param int $centreid
+     * @return int
+     */
+    protected static function member(int $memberid, int $centreid): int {
+        global $DB;
+        return $memberid > 0 && $DB->record_exists(centres::MEMBERS, ['id' => $memberid, 'centreid' => $centreid]) ?
+            $memberid : 0;
     }
 
     /**

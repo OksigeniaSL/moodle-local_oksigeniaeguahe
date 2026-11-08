@@ -44,7 +44,7 @@
         "relay": true, "takeurl": "#", "ownedbyme": false, "promise": null, "typing": null,
         "children": [{"id": 1, "hanging": {"name": "Leo", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "#", "name": "Leonardo", "tagline": "En su etiqueta: Leo",
             "course": "Infantil 3 años · curso 2027-28", "label": "Por dónde va Leo", "closed": false, "reason": "",
-            "waitlist": false, "canact": true,
+            "waitlist": false, "incentre": "", "canact": true,
             "steps": [{"value": "inquiry", "name": "Consulta", "here": true, "done": false, "last": false}],
             "reasons": [{"value": "moved", "name": "Se ha mudado"}]}],
         "hasold": true, "oldlabel": "2 mensajes anteriores",
@@ -108,6 +108,7 @@
                             <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}">
                             {{#steps}}<button type="submit" name="stage" value="{{value}}" class="{{#done}}hecho{{/done}}{{#here}}aqui{{/here}}"{{#here}} aria-current="step"{{/here}}{{^canact}} disabled{{/canact}}>{{name}}</button>{{^last}}<span class="flecha" aria-hidden="true"></span>{{/last}}{{/steps}}
                         </form>
+                        {{#incentre}}<p class="en-centro">{{{i.check}}}<span>{{incentre}}</span></p>{{/incentre}}
                         {{#canact}}
                         <div class="otros">
                             <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>

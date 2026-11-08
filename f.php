@@ -32,6 +32,7 @@ use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\surveys;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
@@ -106,6 +107,32 @@ if ($action === 'download') {
         '.json"');
     echo json_encode(households::export($household), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     die();
+}
+
+if ($action === 'settledask' && data_submitted() && confirm_sesskey()) {
+    // Once enrolled: what they were left to ask before the first day.
+    $asked = settled::in_centre(households::full($household)->children) &&
+        settled::ask($household, optional_param('question', '', PARAM_TEXT));
+    if (optional_param('fetch', 0, PARAM_BOOL)) {
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('Cache-Control: no-store');
+        echo json_encode(['saved' => $asked]);
+        die();
+    }
+    redirect(new moodle_url(
+        '/local/oksigeniaeguahe/f.php',
+        ['k' => $token, 'lang' => $lang] + ($asked ? ['asked' => 1] : []),
+        'pregunta'
+    ));
+}
+
+if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
+    // Once enrolled: yes to telling another family how it went, next year.
+    if (settled::in_centre(households::full($household)->children)) {
+        settled::volunteer($household, $centre, time());
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'ofrecimiento'));
 }
 
 if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_sesskey()) {

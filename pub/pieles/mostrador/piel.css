@@ -927,17 +927,20 @@ body.piel-mostrador::after {
     border-bottom: 0;
 }
 
-.piel-mostrador .llegada {
+.piel-mostrador .llegada,
+.piel-mostrador .empieza {
     border-top-color: var(--pauta);
 }
 
-.piel-mostrador .vino {
+.piel-mostrador .vino,
+.piel-mostrador .empezo {
     border-radius: 4px;
     border-width: 2px;
     background: var(--b-blanco);
 }
 
-.piel-mostrador .vino[aria-pressed="true"] {
+.piel-mostrador .vino[aria-pressed="true"],
+.piel-mostrador .empezo[aria-pressed="true"] {
     background: var(--eg-accion);
 }
 

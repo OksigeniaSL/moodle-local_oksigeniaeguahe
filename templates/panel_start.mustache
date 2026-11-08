@@ -1,0 +1,61 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_start
+
+    The first day (start.php): the enrolled children of the school year by course, with the label of each and its
+    family, and «Started» at one touch, as the door of an open day; pressed again, it undoes. A search, as at the door.
+    Without JavaScript, each touch is a form.
+
+    Example context (json):
+    {
+        "i": {"check": "", "buscar": "", "chev": "", "atras": ""},
+        "head": {"title": "El primer día", "ante": "Curso 2027-28", "sub": "Marquen a cada niño que empieza.",
+            "back": {"url": "#", "name": "Bandeja"}, "action": false},
+        "hasgroups": true, "canact": true, "action": "#", "sesskey": "abc",
+        "groups": [{"title": "Infantil 3 años", "count": "0 de 1",
+            "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
+                "text": "Ha empezado", "search": "leo"}]}]
+    }
+}}
+<div class="pagina pagina-primer-dia">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#hasgroups}}
+    <section class="llegadas primer-dia" aria-labelledby="titulo-pagina">
+        <div class="buscar-puerta">
+            <label class="buscar"><span class="oculto">{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".empieza" placeholder="{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+        </div>
+        {{#groups}}
+        <details class="turno-p" open>
+            <summary><span class="hora">{{title}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+            {{#rows}}
+            <div class="empieza{{#started}} ya{{/started}}" id="n{{id}}" data-buscar="{{search}}">
+                <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{name}}</span></span></span></div>
+                {{#canact}}
+                <form method="post" action="{{action}}#n{{id}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="started" value="{{^started}}1{{/started}}{{#started}}0{{/started}}">
+                    <button class="empezo" type="submit" aria-pressed="{{#started}}true{{/started}}{{^started}}false{{/started}}" aria-label="{{tag}}: {{text}}">{{{i.check}}}<span>{{text}}</span></button>
+                </form>
+                {{/canact}}
+            </div>
+            {{/rows}}
+        </details>
+        {{/groups}}
+        <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+    </section>
+    {{/hasgroups}}
+</div>
