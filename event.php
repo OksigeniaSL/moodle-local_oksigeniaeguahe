@@ -50,6 +50,21 @@ if (optional_param('check', 0, PARAM_BOOL)) {
     echo json_encode(panel_event::check($event));
     die();
 }
+if (optional_param('howitwent', 0, PARAM_BOOL)) {
+    // While the survey is asked, the results are read again every half minute.
+    @header('Content-Type: text/html; charset=utf-8');
+    @header('Cache-Control: no-store');
+    $results = panel_event::howitwent($event, $centre, $canact, time());
+    echo $results ? $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_howitwent', $results + ['i' => panel::icons()]) : '';
+    die();
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'outcome') {
+    // What the centre does with what the families told: the families who answered read it on their page.
+    centres::require_act((int) $centre->id);
+    $outcome = trim(optional_param('outcome', '', PARAM_TEXT));
+    $DB->set_field(events::T, 'outcome', $outcome === '' ? null : core_text::substr($outcome, 0, 600), ['id' => $event->id]);
+    redirect(new moodle_url($url, [], 'como-fue'));
+}
 if (data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);
     $signupid = required_param('signup', PARAM_INT);

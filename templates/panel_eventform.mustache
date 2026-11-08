@@ -38,6 +38,7 @@
         "strip": {"from": "10:00", "to": "13:00", "ticks": [{"left": 0, "text": "10:00"}]},
         "hashosts": true, "nohosts": "", "hosts": [{"id": 2, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "checked": false}],
         "forms": [{"value": 0, "name": "Ninguno", "selected": true}], "hasformquestions": false, "formquestions": [], "formurl": "#",
+        "surveys": [{"value": 0, "name": "Solo la pregunta abierta", "selected": true}], "surveyurl": "",
         "preview": {"kind": "Jornada", "name": "Su nombre", "when": "El día y la hora", "place": "Dónde", "faces": [], "hosts": ""},
         "whenerror": "", "notice": null
     }
@@ -142,6 +143,11 @@
                     <legend><h2>{{#str}}panel_event_questions, local_oksigeniaeguahe{{/str}}</h2></legend>
                     <div class="campo"><label for="acto-form">{{#str}}event_form, local_oksigeniaeguahe{{/str}}</label><select id="acto-form" name="formid">{{#forms}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/forms}}</select><span class="ayuda">{{#str}}panel_event_form_help, local_oksigeniaeguahe{{/str}}</span></div>
                     {{#hasformquestions}}<ol class="preguntas-acto">{{#formquestions}}<li>{{q}}</li>{{/formquestions}}</ol><a class="enlace" href="{{formurl}}">{{{i.lapiz}}}{{#str}}panel_event_form_change, local_oksigeniaeguahe{{/str}}</a>{{/hasformquestions}}
+                </fieldset>
+                <fieldset class="apartado">
+                    <legend><h2>{{#str}}panel_event_after, local_oksigeniaeguahe{{/str}}</h2></legend>
+                    <div class="campo"><label for="acto-encuesta">{{#str}}event_survey, local_oksigeniaeguahe{{/str}}</label><select id="acto-encuesta" name="survey">{{#surveys}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/surveys}}</select><span class="ayuda">{{#str}}panel_event_survey_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    {{#surveyurl}}<a class="enlace" href="{{surveyurl}}">{{{i.lapiz}}}{{#str}}panel_event_survey_change, local_oksigeniaeguahe{{/str}}</a>{{/surveyurl}}
                 </fieldset>
             </div>
             <aside class="acto-muestra" aria-labelledby="muestra-t">

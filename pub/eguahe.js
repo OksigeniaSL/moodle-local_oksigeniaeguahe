@@ -242,15 +242,75 @@
                 }
             });
         };
-        if (form && document.querySelector('[data-si]')) {
+        if (document.querySelector('[data-si]')) {
             var again = function() {
                 // Twice: a question may wait for another that waits for a third.
                 conditions();
                 conditions();
             };
             again();
-            form.addEventListener('change', again);
-            form.addEventListener('input', again);
+            document.addEventListener('change', again);
+            document.addEventListener('input', again);
+        }
+
+        // After the visit: what they were left to ask goes with the button saying so, once.
+        all('form[data-preguntar], form[data-encuesta]').forEach(function(sheet) {
+            sheet.addEventListener('submit', function(e) {
+                var send = sheet.querySelector('button[name="send"]');
+                var text = sheet.querySelector('textarea[name="question"]');
+                if (!send || !text || !text.value.trim()) {
+                    return;
+                }
+                if (send.getAttribute('aria-disabled') === 'true') {
+                    e.preventDefault();
+                    return;
+                }
+                send.setAttribute('aria-disabled', 'true');
+                send.lastChild.textContent = send.getAttribute('data-sending');
+            });
+        });
+        var just = document.querySelector('[data-recien]');
+        if (just) {
+            just.focus();
+        }
+
+        // The survey of the visit: each answer is kept when it is touched, and says so; nothing stays in the
+        // browser, which inside WhatsApp may not keep it. Without this, the button keeps them all.
+        var survey = document.querySelector('form[data-encuesta]');
+        if (survey && window.fetch && window.FormData) {
+            survey.classList.add('al-tocar');
+            var keep = function(question) {
+                var data = new window.FormData();
+                data.append('sesskey', survey.querySelector('[name="sesskey"]').value);
+                data.append('action', 'survey');
+                data.append('fetch', '1');
+                data.append('q', question.getAttribute('data-q'));
+                all('input, textarea', question).forEach(function(input) {
+                    if ((input.type !== 'radio' && input.type !== 'checkbox') || input.checked) {
+                        data.append(input.name, input.value);
+                    }
+                });
+                var said = question.querySelector('[data-guardado]');
+                window.fetch(survey.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
+                    return r.json();
+                }).then(function(answer) {
+                    if (said && answer.saved) {
+                        said.textContent = survey.getAttribute('data-guardado-texto');
+                        said.classList.remove('dicho');
+                        void said.offsetWidth;
+                        said.classList.add('dicho');
+                    }
+                }).catch(function() {
+                    // Without connection the button is back: it keeps them all when they press it.
+                    survey.classList.remove('al-tocar');
+                });
+            };
+            survey.addEventListener('change', function(e) {
+                var question = e.target.closest ? e.target.closest('[data-q]') : null;
+                if (question && e.target.name !== 'question') {
+                    keep(question);
+                }
+            });
         }
 
         // Inside the web of the centre: it says how tall it is, and to go to its top after sending.

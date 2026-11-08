@@ -61,7 +61,7 @@ class entries {
      */
     public static function create(int $centreid, string $kind, string $name): int {
         global $DB;
-        if (!isset(self::KINDS[$kind])) {
+        if (!isset(self::KINDS[$kind]) && $kind !== surveys::KIND) {
             throw new \coding_exception('Unknown kind of entry: ' . $kind);
         }
         do {
@@ -97,18 +97,25 @@ class entries {
     public static function by_token(string $token): ?\stdClass {
         global $DB;
         $token = clean_param($token, PARAM_ALPHANUM);
-        return $token === '' ? null : ($DB->get_record(self::T, ['token' => $token, 'active' => 1]) ?: null);
+        $entry = $token === '' ? null : ($DB->get_record(self::T, ['token' => $token, 'active' => 1]) ?: null);
+        // A survey is asked on the page of the families who came, never by a link of its own.
+        return $entry && $entry->kind !== surveys::KIND ? $entry : null;
     }
 
     /**
-     * The entries of a centre.
+     * The entries of a centre: the doors families come in by, without its surveys.
      *
      * @param int $centreid
      * @return \stdClass[]
      */
     public static function for_centre(int $centreid): array {
         global $DB;
-        return $DB->get_records(self::T, ['centreid' => $centreid], 'active DESC, name ASC, id ASC');
+        return $DB->get_records_select(
+            self::T,
+            'centreid = ? AND kind <> ?',
+            [$centreid, surveys::KIND],
+            'active DESC, name ASC, id ASC'
+        );
     }
 
     /**
@@ -716,6 +723,8 @@ class entries {
     public static function delete(\stdClass $entry): void {
         global $DB;
         $DB->delete_records(self::ARRIVALS, ['entryid' => $entry->id]);
+        // A survey gone: its events ask only the open question again.
+        $DB->set_field(events::T, 'survey', 0, ['survey' => $entry->id]);
         $DB->delete_records(self::T, ['id' => $entry->id]);
     }
 }

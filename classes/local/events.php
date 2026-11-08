@@ -122,6 +122,12 @@ class events {
             'formid' => (int) ($data->formid ?? 0),
             'timemodified' => time(),
         ];
+        if (isset($data->survey)) {
+            // The survey after the visit: one of the centre, or «How it went» made now (-1).
+            $survey = (int) $data->survey === -1 ? surveys::create($centreid, 'howitwent') : (int) $data->survey;
+            $entry = $survey > 0 ? entries::get($survey, $centreid) : null;
+            $row->survey = $entry && $entry->kind === surveys::KIND ? $survey : 0;
+        }
         if (isset($data->hosts)) {
             // Only members of the team the centre shows to the families, in the order chosen.
             $public = array_column(centres::hosts($centreid), 'memberid');

@@ -77,8 +77,34 @@ class panel_entries {
                 'hassites' => (bool) $sites,
             ];
         }
+        // The surveys after a visit: never a door, so apart, with the families that told and the events that ask them.
+        $groups['encuestas'] = [];
+        foreach (surveys::for_centre((int) $centre->id) as $survey) {
+            $told = (int) $DB->count_records_sql('SELECT COUNT(DISTINCT a.householdid)
+                                                    FROM {' . surveys::T . '} a
+                                                    JOIN {' . events::T . '} e ON e.id = a.eventid
+                                                   WHERE e.survey = ?', [$survey->id]);
+            $asked = (int) $DB->count_records(events::T, ['survey' => $survey->id]);
+            $groups['encuestas'][] = [
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $survey->id]))->out(false),
+                'name' => format_string($survey->name),
+                'kindname' => get_string('entry_kind_survey', $c),
+                'icon' => panel::icon('formulario'),
+                'open' => $asked > 0,
+                'statetext' => get_string(!$asked ? 'panel_survey_events_none' : ($asked === 1 ? 'panel_survey_events_one' :
+                    'panel_survey_events'), $c, $asked),
+                'n' => $told,
+                'broughttext' => get_string($told === 1 ? 'panel_survey_told_one' : 'panel_survey_told', $c, $told),
+                'hasn' => $told > 0,
+                'v' => round($told / max(1, $most, $told), 3),
+                'last' => '',
+                'missing' => '',
+                'sites' => [],
+                'hassites' => false,
+            ];
+        }
         $out = [];
-        foreach (['formularios' => 'forms', 'puentes' => 'bridges'] as $key => $string) {
+        foreach (['formularios' => 'forms', 'puentes' => 'bridges', 'encuestas' => 'surveys'] as $key => $string) {
             if ($groups[$key]) {
                 $out[] = ['key' => $key, 'title' => get_string('panel_group_' . $string, $c),
                     'sub' => get_string('panel_group_' . $string . '_sub', $c), 'rows' => $groups[$key]];
@@ -119,6 +145,8 @@ class panel_entries {
             'hasnotused' => $canact && $notused,
             'def' => get_string('panel_entries_def', $c),
             'kinds' => $kinds,
+            'templates' => $canact ? array_map(fn($t) => ['value' => $t, 'name' => get_string('tpl_' . $t, $c),
+                'help' => get_string('panel_tpl_' . $t . '_help', $c)], [...array_keys(surveys::TEMPLATES), surveys::KIND]) : [],
             'canact' => $canact,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id]))->out(false),
             'sesskey' => sesskey(),

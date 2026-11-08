@@ -61,7 +61,7 @@
         "noproposal": "", "labelsurl": "",
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
-        "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}],
+        "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
         "hasuntold": true, "untold": ["dónde viven"], "untoldtext": "dónde viven",
         "visit": {"asked": "Una tarde", "date": "2026-11-12", "place": "", "people": 2, "hasguides": true,
             "guides": [{"id": 1, "name": "Lucía Medina", "selected": true}],
@@ -255,6 +255,12 @@
                 {{#hasuntold}}<p class="sin-contar"><b>{{#str}}panel_untold, local_oksigeniaeguahe{{/str}}</b> {{untoldtext}}. {{#str}}panel_untold_help, local_oksigeniaeguahe{{/str}}</p>{{/hasuntold}}
             </section>
             {{/hasabout}}
+            {{#aftervisits}}
+            <section class="apartado">
+                <header><h2>{{title}}</h2></header>
+                <dl class="respuestas">{{#answers}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/answers}}</dl>
+            </section>
+            {{/aftervisits}}
             {{#hasevents}}
             <section class="apartado">
                 <header><h2>{{#str}}panel_their_events, local_oksigeniaeguahe{{/str}}</h2></header>

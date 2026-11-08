@@ -26,6 +26,15 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
+        'classname' => '\\local_oksigeniaeguahe\\task\\send_thanks',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\send_reminders',
         'blocking' => 0,
         'minute' => 'R',

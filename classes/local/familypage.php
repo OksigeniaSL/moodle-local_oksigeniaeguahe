@@ -29,7 +29,7 @@ class familypage {
     /** @var string[] Strings the template uses. */
     const STRINGS = ['pub_your_turn', 'pub_add_calendar', 'pub_how_get', 'pub_band_next', 'pub_receives', 'pub_receives_sub',
         'pub_receives_team', 'pub_told', 'pub_who_comes', 'pub_contact', 'pub_data', 'pub_data_hint', 'pub_data_download',
-        'pub_data_erase'];
+        'pub_data_erase', 'pub_if_you_wish'];
 
     /**
      * Names joined as people say them: «Leo», «Leo y Noa», «Leo, Noa y Gael».
@@ -90,6 +90,7 @@ class familypage {
      * @param string $lang
      * @param string $token
      * @param bool $new Whether the family has just signed up.
+     * @param array $flags asked: they have just sent what they were left to ask; saved: what they told was kept.
      * @return array
      */
     public static function context(
@@ -97,7 +98,8 @@ class familypage {
         \stdClass $centre,
         string $lang,
         string $token,
-        bool $new
+        bool $new,
+        array $flags = []
     ): array {
         $full = households::full($household);
         $offers = centres::offers((int) $centre->id);
@@ -124,8 +126,8 @@ class familypage {
         } else if ($pending) {
             $lead = s(publiclang::str('pub_lead_pending', $lang));
         } else if ($attended) {
-            $lead = $host !== '' ? publiclang::str('pub_lead_after_host', $lang, s($host)) :
-                publiclang::str('pub_lead_after_team', $lang);
+            // The open question under it already says who answers them, and how soon.
+            $lead = s(publiclang::str('pub_lead_after_short', $lang));
         } else {
             $lead = s(publiclang::str('pub_lead_novisit', $lang));
         }
@@ -166,6 +168,9 @@ class familypage {
             $tag = trim((string) ($child->tagname ?? ''));
             $childrows[] = [
                 'name' => $child->firstname,
+                // Stories to read together at home, from the library of the centre, by the age of its course.
+                'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',
+                'talesname' => publiclang::str('pub_tales', $lang),
                 'course' => $offer ? publiclang::str('pub_course_year', $lang, (object) ['course' => format_string($offer->name),
                     'year' => s($offer->schoolyear)]) : publiclang::str('pub_course_unknown', $lang),
                 'ontag' => $tag !== '' && $tag !== $child->firstname ? publiclang::str('pub_on_tag', $lang, $tag) : '',
@@ -195,6 +200,15 @@ class familypage {
             $emailed = $emailed || !empty($adult->email);
         }
         $address = trim((string) ($centre->address ?? ''));
+        // After the visit: one open question on the wall or, if the centre turned on the survey of that event, the
+        // survey in the band with the open question first; never both waiting at once.
+        $last = !$upcoming && !$pending ? surveys::last_visit($household, $now) : null;
+        $surveyform = $last && surveys::is_open($last, $now) ? surveys::form($last) : null;
+        $told = $last ? surveys::answers((int) $last->id, (int) $household->id) : [];
+        $by = $joined ? 'pub_by_messages' : (isset($channels['email']) ? 'pub_by_email' : (isset($channels['whatsapp']) ?
+            'pub_by_whatsapp' : (isset($channels['phone']) ? 'pub_by_phone' : '')));
+        $ask = $last ? self::ask_context($centre, $last, $lang, $token, $told, $by, $flags) : false;
+        $outcome = $last && $told ? trim((string) ($last->outcome ?? '')) : '';
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'greeting' => publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
             'names' => $names,
@@ -205,6 +219,9 @@ class familypage {
             'savedline' => publiclang::str('pub_done_keep', $lang),
             'emailed' => $new && $emailed ? publiclang::str('pub_done_emailed', $lang) : '',
             'hasnext' => (bool) $upcoming,
+            'wallask' => $surveyform ? false : $ask,
+            'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $lang, $token, $told, $ask, $flags) : false,
+            'outcome' => $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang), 'text' => $outcome] : false,
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
             'others' => array_map($visitrow, array_slice($upcoming, 1)),
@@ -234,6 +251,91 @@ class familypage {
             'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'lang' => $lang]),
+        ];
+    }
+
+    /**
+     * The open question after a visit: «What were you left to ask?», with the button that names whoever receives
+     * them and how soon they answer; once asked, that it was passed on, and «Anything else?».
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $last The event they came to last, from surveys::last_visit().
+     * @param string $lang
+     * @param string $token
+     * @param array $told What they told after it.
+     * @param string $by The string of the way they are answered, or ''.
+     * @param array $flags
+     * @return array
+     */
+    protected static function ask_context(
+        \stdClass $centre,
+        \stdClass $last,
+        string $lang,
+        string $token,
+        array $told,
+        string $by,
+        array $flags
+    ): array {
+        $host = surveys::host($last);
+        $first = $host ? $host->first : '';
+        $days = max(1, (int) ($centre->replydays ?? 2));
+        $a = (object) ['host' => $first, 'by' => $by !== '' ? publiclang::str($by, $lang) : '',
+            'days' => publiclang::str($days === 1 ? 'pub_reply_day' : 'pub_reply_days', $lang, $days)];
+        $asked = isset($told[0]);
+        $replykey = ($host ? 'pub_after_reply_host' : 'pub_after_reply_team') . ($by !== '' ? '' : '_noby');
+        return [
+            'title' => publiclang::str($asked ? 'pub_after_more' : 'pub_after_question', $lang),
+            'help' => publiclang::str('pub_after_help', $lang),
+            'sent' => $asked ? publiclang::str($host ? 'pub_after_sent_host' : 'pub_after_sent_team', $lang, $first) : '',
+            'justsent' => !empty($flags['asked']),
+            'button' => $host ? publiclang::str('pub_after_send_host', $lang, $first) : publiclang::str('pub_after_send', $lang),
+            'face' => $host ? ['photo' => $host->photo ? $host->photo->out(false) : '', 'initials' => $host->initials] : false,
+            'reply' => publiclang::str($replykey, $lang, $a),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'sesskey' => sesskey(),
+            'sending' => publiclang::str('pub_after_sending', $lang),
+        ];
+    }
+
+    /**
+     * The survey of the visit in the band, «How did it go?»: the open question first, then the questions of the
+     * centre, each kept when it is touched, and that the team reads it.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $entry The survey.
+     * @param string $lang
+     * @param string $token
+     * @param array $told What they told after the visit.
+     * @param array $ask The open question, from ask_context().
+     * @param array $flags
+     * @return array
+     */
+    protected static function survey_context(
+        \stdClass $centre,
+        \stdClass $entry,
+        string $lang,
+        string $token,
+        array $told,
+        array $ask,
+        array $flags
+    ): array {
+        $answers = $told;
+        unset($answers[0]);
+        $fields = forms::context($entry, $lang, (string) ($centre->lang ?: 'es'), $answers, []);
+        $questions = array_values(array_filter($fields, fn($f) => !$f['issection']));
+        $answered = count(array_filter($questions, fn($f) => isset($answers[$f['id']])));
+        return [
+            'label' => publiclang::str('pub_howitwent', $lang),
+            'lead' => publiclang::str('pub_howitwent_lead', $lang, count($questions) + 1),
+            'ask' => $ask,
+            'fields' => $fields,
+            'autosave' => true,
+            'saved' => !empty($flags['saved']) ? publiclang::str('pub_howitwent_kept', $lang) : '',
+            'done' => $questions && $answered === count($questions) ? publiclang::str('pub_howitwent_thanks', $lang) : '',
+            'savetext' => publiclang::str('pub_howitwent_save', $lang),
+            'savedtext' => publiclang::str('pub_howitwent_saved', $lang),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'sesskey' => sesskey(),
         ];
     }
 

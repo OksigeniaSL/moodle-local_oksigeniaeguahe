@@ -27,6 +27,8 @@
         <FIELD NAME="arrive" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How families get in on the day: the door, whom they give their name to"/>
         <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the campaign of admissions under way started, as the centre wrote it; 0 if it did not"/>
         <FIELD NAME="labelsheets" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sheets of labels of the centre: its favourites of each kind and how much its printer moves each, JSON"/>
+        <FIELD NAME="replydays" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="Working days the team usually takes to answer a family, as the families read it"/>
+        <FIELD NAME="library" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The library of Ayvurenda whose stories to read at home the families get, by its slug"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -160,6 +162,8 @@
         <FIELD NAME="tailored" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when families ask for a visit saying when it suits them, and the team proposes the day"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The family of a visit of its own, proposed by the team; 0 for an event open to all"/>
         <FIELD NAME="formid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A form of the centre whose questions its sign-up asks too"/>
+        <FIELD NAME="survey" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The survey How it went the families who came answer on their page; 0, only the open question"/>
+        <FIELD NAME="outcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the centre does with what the families told, a line the families who answered read"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -195,6 +199,7 @@
         <FIELD NAME="people" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="reminded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the reminder of the day before was looked at; 0 not yet"/>
         <FIELD NAME="attended" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came; 0 if it has not"/>
+        <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the thanks after the visit was looked at; 0 not yet"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -597,6 +602,27 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
       </KEYS>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_survey" COMMENT="What a family that came told after a visit: what it was left to ask, and its answers to the survey of the event">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="fieldid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The question of the survey; 0, what they were left to ask"/>
+        <FIELD NAME="value" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The answer, in the language of the centre for the options"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+        <KEY NAME="eventid" TYPE="foreign" FIELDS="eventid" REFTABLE="local_oksigeniaeguahe_event" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="answer" UNIQUE="true" FIELDS="eventid, householdid, fieldid"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

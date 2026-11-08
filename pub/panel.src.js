@@ -965,10 +965,151 @@
         };
     });
 
-    // ---- The numbers (round 2): every chart has its line of the datum; a channel lights its part in each bar; the
-    // bars grow once when they come into sight and change from the old value to the new one when a filter changes.
+    // ---- The numbers (round 3): every chart has its line of the datum and lights what is pointed at, by mouse, finger or
+    // keyboard, while the rest steps back; a channel lights its part inside each bar of «How far they got»; the weeks are
+    // read with a pencil rule that follows the pointer, the finger or the arrows, with a dot on each line; the bars grow
+    // once when they come into sight, the line of the weeks is drawn, the ranges open from their likeliest value and the
+    // ledger is stamped; a filter moves what is the same thing from its old value to the new one; «Show» puts a sheet
+    // per chart on the screen. All of it is already drawn by the server: this only lights and moves it.
     var numbers = one('[data-cifras]');
     var chosenChannel = '';
+    var EASE = 'cubic-bezier(.2,.8,.2,1)';
+    var NS = 'http://www.w3.org/2000/svg';
+    var clips = 0;
+    var mirrored = function() {
+        return getComputedStyle(doc.documentElement).direction === 'rtl';
+    };
+    // The weeks: a pencil rule and a dot on each line at the week pointed at; its column under the line lit.
+    var initWeeks = function(chart, tell) {
+        var plot = one('[data-semanas]', chart);
+        var cols = plot ? all('.col-semana', plot) : [];
+        if (!cols.length) {
+            return;
+        }
+        var parse = function(selector) {
+            var path = one(selector, plot);
+            var out = [];
+            (path ? path.getAttribute('d') || '' : '').replace(/(-?[0-9.]+)[ ,]+(-?[0-9.]+)/g, function(x, a, b) {
+                out.push([parseFloat(a), parseFloat(b)]);
+            });
+            return out;
+        };
+        var now = parse('.linea-ahora');
+        var before = parse('.linea-antes');
+        var at = function(points, x) {
+            for (var k = 0; k < points.length; k++) {
+                if (Math.abs(points[k][0] - x) < 0.05) {
+                    return points[k];
+                }
+            }
+            return null;
+        };
+        var dot = function(cls) {
+            var d = doc.createElement('span');
+            d.className = 'punto-semana' + cls;
+            d.setAttribute('aria-hidden', 'true');
+            plot.appendChild(d);
+            return d;
+        };
+        var dotBefore = before.length ? dot(' antes') : null;
+        var dotNow = dot('');
+        var place = function(d, point) {
+            if (!d) {
+                return;
+            }
+            d.style.visibility = point ? '' : 'hidden';
+            if (point) {
+                var x = point[0] / 100 * plot.clientWidth * (mirrored() ? -1 : 1);
+                d.style.transform = 'translate(' + x.toFixed(1) + 'px,' + (point[1] / 100 * plot.clientHeight).toFixed(1) + 'px)';
+            }
+        };
+        // When both lines end at the same place, the label of the one before gives way: the key already names it.
+        var mine = one('.rotulo-linea.ahora', plot);
+        var theirs = one('.rotulo-linea.antes', plot);
+        var giveWay = function() {
+            theirs.hidden = false;
+            var a = mine.getBoundingClientRect();
+            var b = theirs.getBoundingClientRect();
+            theirs.hidden = a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+        };
+        if (mine && theirs) {
+            giveWay();
+            if (doc.fonts && doc.fonts.ready) {
+                doc.fonts.ready.then(giveWay);
+            }
+        }
+        var pulseBox = one('.semanas-pulso', chart);
+        var pulses = all('.pulso', chart);
+        var current = cols.filter(function(c) {
+            return !c.classList.contains('futura');
+        }).pop() || cols[0];
+        cols.forEach(function(c) {
+            c.tabIndex = c === current ? 0 : -1;
+            c.setAttribute('aria-label', c.getAttribute('data-dato'));
+        });
+        var shown = null;
+        chart.eguaheSemana = function(mark) {
+            var lit = !!mark && mark.classList.contains('col-semana');
+            plot.classList.toggle('con-semana', lit);
+            if (pulseBox) {
+                pulseBox.classList.toggle('con-semana', lit);
+            }
+            var cx = lit ? mark.getAttribute('data-cx') : null;
+            pulses.forEach(function(p) {
+                p.classList.toggle('senalado', p.getAttribute('data-cx') === cx);
+            });
+            if (lit) {
+                place(dotNow, at(now, parseFloat(cx)));
+                place(dotBefore, at(before, parseFloat(cx)));
+            }
+        };
+        var point = function(mark) {
+            if (mark && mark !== shown) {
+                shown = mark;
+                tell(mark);
+            }
+        };
+        var fromX = function(clientX) {
+            var r = plot.getBoundingClientRect();
+            var k = (clientX - r.left) / r.width;
+            k = Math.max(0, Math.min(0.9999, mirrored() ? 1 - k : k));
+            return cols[Math.floor(k * cols.length)];
+        };
+        on(plot, 'pointermove', function(e) {
+            point(fromX(e.clientX));
+        });
+        on(plot, 'pointerdown', function(e) {
+            point(fromX(e.clientX));
+        });
+        on(plot, 'pointerleave', function() {
+            shown = null;
+            if (!plot.contains(doc.activeElement)) {
+                tell(null);
+            }
+        });
+        cols.forEach(function(c) {
+            on(c, 'focus', function() {
+                cols.forEach(function(o) {
+                    o.tabIndex = o === c ? 0 : -1;
+                });
+                shown = c;
+                tell(c);
+            });
+            on(c, 'keydown', function(e) {
+                var i = cols.indexOf(c);
+                var back = mirrored() ? 'ArrowRight' : 'ArrowLeft';
+                var next = mirrored() ? 'ArrowLeft' : 'ArrowRight';
+                var moves = {Home: -i, End: cols.length};
+                moves[next] = 1;
+                moves[back] = -1;
+                if (moves[e.key] === undefined) {
+                    return;
+                }
+                e.preventDefault();
+                cols[Math.max(0, Math.min(cols.length - 1, i + moves[e.key]))].focus();
+            });
+        });
+    };
     var initCharts = function(root) {
         all('[data-grafico]', root).forEach(function(chart) {
             var line = one('[data-linea-dato]', chart);
@@ -983,17 +1124,30 @@
                 all('.senalado', chart).forEach(function(m) {
                     m.classList.remove('senalado');
                 });
+                chart.classList.toggle('con-senal', !!mark && !mark.classList.contains('col-semana'));
+                if (chart.eguaheSemana) {
+                    chart.eguaheSemana(mark);
+                }
                 if (!mark) {
                     line.textContent = rest();
+                    line.classList.remove('dato-vivo');
                     return;
                 }
                 mark.classList.add('senalado');
                 var part = chosenChannel && one('[data-parte="' + chosenChannel + '"]', mark);
                 line.textContent = (part && part.getAttribute('data-dato-parte')) || mark.getAttribute('data-dato');
+                line.classList.add('dato-vivo');
             };
+            var lists = [];
             all('[data-dato]', chart).forEach(function(mark) {
+                if (mark.classList.contains('col-semana')) {
+                    return;
+                }
                 if (!mark.hasAttribute('tabindex')) {
                     mark.tabIndex = 0;
+                }
+                if (lists.indexOf(mark.parentNode) < 0) {
+                    lists.push(mark.parentNode);
                 }
                 on(mark, 'mouseenter', function() {
                     tell(mark);
@@ -1005,10 +1159,13 @@
                     tell(mark);
                 });
             });
-            on(chart, 'mouseleave', function() {
-                if (!chart.contains(doc.activeElement)) {
-                    tell(null);
-                }
+            // Leaving the marks (not only the sheet) brings the resting sentence back, unless one keeps the focus.
+            lists.forEach(function(list) {
+                on(list, 'mouseleave', function() {
+                    if (!list.contains(doc.activeElement)) {
+                        tell(null);
+                    }
+                });
             });
             on(chart, 'focusout', function(e) {
                 if (!chart.contains(e.relatedTarget)) {
@@ -1018,34 +1175,86 @@
             chart.eguaheReposo = function() {
                 tell(null);
             };
+            if (chart.classList.contains('grafico-semanas')) {
+                initWeeks(chart, tell);
+            }
+            // In the ledger, those who left open why they left.
+            var why = one('.motivos', chart);
+            all('.libro-fila.sale', chart).forEach(function(row) {
+                on(row, 'click', function() {
+                    if (why && !why.open) {
+                        why.open = true;
+                    }
+                });
+            });
         });
-        // A channel, touched, lights its part inside each bar of «How far they got».
+        // A channel, touched, lights its part inside each bar of «How far they got», says how many of each stop came
+        // by it, and leaves a way to turn it off there.
         var reach = one('.grafico-alcance', root);
+        var light = function(key) {
+            chosenChannel = key;
+            all('[data-canal-elige]', root).forEach(function(r) {
+                r.setAttribute('aria-pressed', r.getAttribute('data-canal-elige') === key ? 'true' : 'false');
+            });
+            if (!reach) {
+                return;
+            }
+            reach.classList.toggle('con-canal', !!key);
+            all('.parte', reach).forEach(function(p) {
+                p.classList.toggle('encendida', p.getAttribute('data-parte') === key);
+            });
+            all('.barra-fila', reach).forEach(function(row) {
+                var figures = one('.barra-cifras', row);
+                var n = one('.barra-parte-n', figures);
+                if (!n) {
+                    n = doc.createElement('span');
+                    n.className = 'barra-parte-n';
+                    figures.insertBefore(n, figures.firstChild);
+                }
+                var part = key && one('[data-parte="' + key + '"]', row);
+                n.textContent = part ? part.getAttribute('data-parte-n') : '0';
+            });
+            var chip = one('[data-canal-encendido]', reach);
+            if (!chip && key) {
+                chip = doc.createElement('p');
+                chip.className = 'canal-encendido';
+                chip.setAttribute('data-canal-encendido', '');
+                chip.appendChild(doc.createElement('span'));
+                var off = doc.createElement('button');
+                off.type = 'button';
+                off.textContent = say('panel_js_channel_off');
+                on(off, 'click', function() {
+                    light('');
+                    var first = one('.barra-fila', reach);
+                    if (first) {
+                        first.focus();
+                    }
+                });
+                chip.appendChild(off);
+                var after = one('[data-linea-dato]', reach);
+                after.parentNode.insertBefore(chip, after.nextSibling);
+            }
+            if (chip) {
+                chip.hidden = !key;
+                var row = key && one('[data-canal-elige="' + key + '"] .canal-nombre', root);
+                chip.firstChild.textContent = row ? say('panel_js_channel_lit', row.textContent) : '';
+            }
+            var last = key && all('[data-parte="' + key + '"]', reach).pop();
+            if (last) {
+                reach.setAttribute('data-reposo-canal', last.getAttribute('data-dato-parte'));
+            } else {
+                reach.removeAttribute('data-reposo-canal');
+            }
+            if (reach.eguaheReposo) {
+                reach.eguaheReposo();
+            }
+        };
         all('[data-canal-elige]', root).forEach(function(row) {
             row.setAttribute('role', 'button');
             row.setAttribute('aria-pressed', 'false');
             var pick = function() {
                 var key = row.getAttribute('data-canal-elige');
-                chosenChannel = chosenChannel === key ? '' : key;
-                all('[data-canal-elige]', root).forEach(function(r) {
-                    r.setAttribute('aria-pressed', r.getAttribute('data-canal-elige') === chosenChannel ? 'true' : 'false');
-                });
-                if (!reach) {
-                    return;
-                }
-                reach.classList.toggle('con-canal', !!chosenChannel);
-                all('.parte', reach).forEach(function(p) {
-                    p.classList.toggle('encendida', p.getAttribute('data-parte') === chosenChannel);
-                });
-                var last = chosenChannel && all('[data-parte="' + chosenChannel + '"]', reach).pop();
-                if (last) {
-                    reach.setAttribute('data-reposo-canal', last.getAttribute('data-dato-parte'));
-                } else {
-                    reach.removeAttribute('data-reposo-canal');
-                }
-                if (reach.eguaheReposo) {
-                    reach.eguaheReposo();
-                }
+                light(chosenChannel === key ? '' : key);
             };
             on(row, 'click', pick);
             on(row, 'keydown', function(e) {
@@ -1056,44 +1265,140 @@
             });
         });
     };
-    var bars = function(root) {
-        return all('.barra-pista > i:not(.fantasma), .col-pista i', root);
+    // What grows: the bars and columns from their baseline, the columns of each week from below.
+    var growing = function(root) {
+        return all('.barra-pista > i:not(.fantasma):not(.fantasma-tope):not(.parte), .col-pista i, .pulso', root);
     };
-    var grow = function(root) {
-        if (still() || !Element.prototype.animate || !('IntersectionObserver' in window)) {
+    var tall = function(bar) {
+        return bar.classList.contains('pulso') || bar.parentNode.classList.contains('col-pista');
+    };
+    // One gesture per chart, the first time it is seen: the bars grow one after another, the line of the weeks is
+    // drawn under a clip that opens, what may come opens from its likeliest value and the ledger is stamped.
+    var play = function(chart) {
+        var bars = growing(chart).filter(function(b) {
+            return !b.classList.contains('pulso');
+        });
+        var pulses = all('.pulso', chart);
+        var line = one('.linea-ahora', chart);
+        var ranges = all('.perchero .r-rango', chart);
+        var stamp = one('.sello-cuadra', chart);
+        var step = parseFloat(getComputedStyle(doc.documentElement).getPropertyValue('--paso-barras')) || 70;
+        if (!gesture(Math.max(900, 600 + Math.min(bars.length, 12) * step))) {
             return;
         }
-        all('.grafico', root).forEach(function(chart) {
-            var list = bars(chart);
-            if (!list.length) {
+        bars.forEach(function(bar, i) {
+            bar.animate([{transform: tall(bar) ? 'scaleY(0)' : 'scaleX(0)'}, {transform: 'none'}],
+                {duration: 600, delay: Math.min(i, 12) * step, easing: EASE, fill: 'backwards'});
+        });
+        pulses.forEach(function(p, i) {
+            p.animate([{transform: 'scaleY(0)'}, {transform: 'none'}],
+                {duration: 300, delay: 120 + Math.round(i * 700 / pulses.length), easing: EASE, fill: 'backwards'});
+        });
+        if (line && line.ownerSVGElement) {
+            var svg = line.ownerSVGElement;
+            var clip = doc.createElementNS(NS, 'clipPath');
+            var rect = doc.createElementNS(NS, 'rect');
+            clip.id = 'eg-revela-' + (++clips);
+            [['x', -2], ['y', -20], ['width', 104], ['height', 140]].forEach(function(a) {
+                rect.setAttribute(a[0], a[1]);
+            });
+            clip.appendChild(rect);
+            svg.insertBefore(clip, svg.firstChild);
+            var drawn = all('.linea-ahora, .area-ahora', svg);
+            drawn.forEach(function(p) {
+                p.setAttribute('clip-path', 'url(#' + clip.id + ')');
+            });
+            rect.style.transformOrigin = '0 0';
+            var reveal = rect.animate([{transform: 'scaleX(0)'}, {transform: 'scaleX(1)'}], {duration: 900, easing: 'ease-in-out'});
+            var done = function() {
+                drawn.forEach(function(p) {
+                    p.removeAttribute('clip-path');
+                });
+                if (clip.parentNode) {
+                    clip.parentNode.removeChild(clip);
+                }
+            };
+            reveal.onfinish = done;
+            reveal.oncancel = done;
+            all('.punto-ahora, .rotulo-linea', chart).forEach(function(el) {
+                el.animate([{opacity: 0}, {opacity: 1}], {duration: 300, delay: 800, fill: 'backwards'});
+            });
+        }
+        ranges.forEach(function(r) {
+            var y = parseFloat(r.getAttribute('y'));
+            var likely = all('.r-probable', r.ownerSVGElement).filter(function(p) {
+                return Math.abs(parseFloat(p.getAttribute('y')) + 3 - y) < 0.5;
+            })[0];
+            var x = likely ? parseFloat(likely.getAttribute('x')) + 1.5 : parseFloat(r.getAttribute('x'));
+            r.style.transformOrigin = x + 'px ' + y + 'px';
+            r.animate([{transform: 'scaleX(0)'}, {transform: 'none'}],
+                {duration: 600, delay: 250, easing: EASE, fill: 'backwards'});
+        });
+        all('.perchero .r-probable, .perchero .r-rango-t', chart).forEach(function(el) {
+            el.animate([{opacity: 0}, {opacity: 1}], {duration: 300, delay: 100, fill: 'backwards'});
+        });
+        if (stamp) {
+            var cs = getComputedStyle(stamp);
+            var rest = cs.transform === 'none' ? 'none' : cs.transform;
+            stamp.animate([
+                {transform: rest + ' scale(1.7)', opacity: 0},
+                {transform: rest + ' scale(0.94)', opacity: cs.opacity, offset: 0.7},
+                {transform: rest, opacity: cs.opacity}
+            ], {duration: 380, delay: 700, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'backwards'});
+        }
+    };
+    // A chart waits at zero until it comes into sight (or, while showing, until its sheet is on the screen).
+    var arm = function(chart, threshold) {
+        if (still() || !Element.prototype.animate || !('IntersectionObserver' in window) ||
+            (!growing(chart).length && !one('.linea-ahora, .perchero .r-rango, .sello-cuadra', chart))) {
+            return;
+        }
+        if (chart.eguaheVista) {
+            chart.eguaheVista.disconnect();
+        }
+        chart.classList.add('por-crecer');
+        var seen = new IntersectionObserver(function(entries) {
+            if (!entries[0].isIntersecting) {
                 return;
             }
-            chart.classList.add('por-crecer');
-            var seen = new IntersectionObserver(function(entries) {
-                if (!entries[0].isIntersecting) {
-                    return;
-                }
-                seen.disconnect();
-                chart.classList.remove('por-crecer');
-                if (!gesture(600 + list.length * 70)) {
-                    return;
-                }
-                list.forEach(function(bar, i) {
-                    var tall = bar.parentNode.classList.contains('col-pista');
-                    bar.animate([{transform: tall ? 'scaleY(0)' : 'scaleX(0)'}, {transform: 'none'}],
-                        {duration: 600, delay: i * 70, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards'});
-                });
-            }, {threshold: 0.2});
-            seen.observe(chart);
-        });
+            seen.disconnect();
+            chart.eguaheVista = null;
+            chart.classList.remove('por-crecer');
+            play(chart);
+        }, {threshold: threshold});
+        seen.observe(chart);
+        chart.eguaheVista = seen;
+    };
+    var disarm = function(chart) {
+        if (chart.eguaheVista) {
+            chart.eguaheVista.disconnect();
+            chart.eguaheVista = null;
+        }
+        chart.classList.remove('por-crecer');
+    };
+    // The key of the rail says only what is drawn: without what may come, neither its band nor the last place.
+    var keyOfRail = function(root) {
+        var chart = one('.grafico-plazas', root);
+        var keys = chart ? all('.leyenda-riel .clave', chart) : [];
+        if (keys.length === 4 && !one('.perchero.con-rango', chart)) {
+            keys[2].hidden = true;
+            keys[3].hidden = true;
+        }
     };
     if (numbers) {
+        keyOfRail(numbers);
         initCharts(numbers);
-        grow(numbers);
+        all('.grafico', numbers).forEach(function(chart) {
+            arm(chart, 0.2);
+        });
         // A filter fetches the same page with other numbers: what is the same thing keeps its place and goes from its old
-        // value to the new one; the rest is replaced. The previous picture stays, dimmed, while it comes.
+        // value and position to the new ones; the rest is replaced. The previous picture stays, dimmed, while it comes.
         var cuerpoCifras = function() {
             return one('[data-cifras-cuerpo]');
+        };
+        var size = function(bar) {
+            var r = bar.getBoundingClientRect();
+            return tall(bar) ? r.height : r.width;
         };
         on(doc, 'click', function(e) {
             var link = e.target.closest && e.target.closest('a[data-filtro-cifras]');
@@ -1103,17 +1408,21 @@
             e.preventDefault();
             var url = link.href;
             var old = {};
-            bars(cuerpoCifras()).forEach(function(bar) {
+            var tops = {};
+            growing(cuerpoCifras()).concat(all('.barra-matricula', cuerpoCifras())).forEach(function(bar) {
                 if (bar.getAnimations) {
                     bar.getAnimations().forEach(function(a) {
                         a.finish();
                     });
                 }
                 if (bar.id) {
-                    var r = bar.getBoundingClientRect();
-                    old[bar.id] = bar.parentNode.classList.contains('col-pista') ? r.height : r.width;
+                    old[bar.id] = size(bar);
                 }
             });
+            all('.canal-fila[id], .barra-fila[id], .columna[id]', cuerpoCifras()).forEach(function(row) {
+                tops[row.id] = row.getBoundingClientRect().top;
+            });
+            all('.grafico', cuerpoCifras()).forEach(disarm);
             cuerpoCifras().classList.add('recargando');
             ask(url).then(function(r) {
                 return r.text();
@@ -1127,29 +1436,42 @@
                     }
                 });
                 chosenChannel = '';
+                keyOfRail(cuerpoCifras());
                 initCharts(cuerpoCifras());
                 window.history.replaceState(window.history.state, '', url);
                 if (still() || !Element.prototype.animate) {
                     return;
                 }
-                bars(cuerpoCifras()).forEach(function(bar) {
+                // What is still below the screen grows when it comes into sight, as the first time.
+                all('.grafico', cuerpoCifras()).forEach(function(chart) {
+                    if (chart.getBoundingClientRect().top > window.innerHeight) {
+                        arm(chart, 0.2);
+                    }
+                });
+                all('.canal-fila[id], .barra-fila[id], .columna[id]', cuerpoCifras()).forEach(function(row) {
+                    var dy = tops[row.id] === undefined ? 0 : tops[row.id] - row.getBoundingClientRect().top;
+                    if (Math.abs(dy) > 1) {
+                        row.animate([{transform: 'translateY(' + dy.toFixed(1) + 'px)'}, {transform: 'none'}],
+                            {duration: 250, easing: EASE});
+                    }
+                });
+                growing(cuerpoCifras()).concat(all('.barra-matricula', cuerpoCifras())).forEach(function(bar) {
                     if (!bar.id || old[bar.id] === undefined) {
                         return;
                     }
-                    var tall = bar.parentNode.classList.contains('col-pista');
-                    var r = bar.getBoundingClientRect();
-                    var now = tall ? r.height : r.width;
+                    var now = size(bar);
                     if (now > 0 && Math.abs(now - old[bar.id]) > 0.5) {
                         var k = Math.max(0, old[bar.id] / now);
-                        bar.animate([{transform: (tall ? 'scaleY(' : 'scaleX(') + k + ')'}, {transform: 'none'}],
-                            {duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)'});
+                        bar.animate([{transform: (tall(bar) ? 'scaleY(' : 'scaleX(') + k.toFixed(4) + ')'}, {transform: 'none'}],
+                            {duration: 300, easing: EASE});
                     }
                 });
             }).catch(function() {
                 window.location.href = url;
             });
         });
-        // «Show»: a sheet per chart, full screen; arrows pass, Escape leaves.
+        // «Show»: a sheet per chart, full screen; arrows pass (the weeks keep left and right for themselves when one is
+        // focused), Escape leaves. Each chart grows again when its sheet comes on the screen.
         var mandosLamina = one('[data-lamina-mandos]');
         var ensenando = false;
         var laminas = function() {
@@ -1195,6 +1517,13 @@
             } catch (err) {
                 // Without full screen, the window.
             }
+            all('.grafico', cuerpoCifras()).forEach(function(chart) {
+                if (yes) {
+                    arm(chart, 0.5);
+                } else {
+                    disarm(chart);
+                }
+            });
             if (yes) {
                 laminas()[0].scrollIntoView({block: 'start'});
                 contarLaminas();
@@ -1223,7 +1552,8 @@
                 return;
             }
             var step = {ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1}[e.key];
-            if (step) {
+            var weeks = e.target.classList && e.target.classList.contains('col-semana');
+            if (step && !(weeks && (e.key === 'ArrowRight' || e.key === 'ArrowLeft'))) {
                 e.preventDefault();
                 irLamina(step);
             } else if (e.key === 'Escape') {

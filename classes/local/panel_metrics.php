@@ -125,7 +125,7 @@ class panel_metrics {
         $entries = $DB->get_records_menu(entries::T, $id, '', 'id, name');
         $contacts = $DB->get_recordset_select(
             households::CONTACTS,
-            "centreid = :centreid AND direction = 'in'",
+            "centreid = :centreid AND direction = 'in' AND channel <> 'page'",
             $id,
             'timecreated ASC, id ASC',
             'id, householdid, channel, entryid, detail, timecreated'
@@ -302,7 +302,9 @@ class panel_metrics {
                 $now,
                 !empty($view['whole'])
             ) : null,
-            'places' => self::places($centre, $families, $course, $previous, $campaign, $elapsed),
+            // The places of this year only for the campaign under way: an imported one is about another year.
+            'places' => $campaign['import'] ? null : self::places($centre, $families, $course, $previous, $campaign, $elapsed),
+            'hasplaces' => !$campaign['import'],
             'placesdef' => get_string('panel_coming_def', $c),
             'starts' => self::starts($campaigns, $canact),
         ];
@@ -442,7 +444,8 @@ class panel_metrics {
                     $parts[] = ['canal' => $key, 'v' => round($part / $top, 4), 'n' => $part,
                         'line' => $k ? get_string('panel_far_part', $c, (object) ['from' => $from, 'name' => $name, 'n' => $part,
                             'what' => get_string('panel_far_did_' . $step, $c), 'frac' => self::fraction($part, $from)]) :
-                            get_string('panel_far_part_first', $c, (object) ['n' => $part, 'name' => $name])];
+                            get_string($part === 1 ? 'panel_far_part_first_one' : 'panel_far_part_first', $c, (object) [
+                            'n' => $part, 'name' => $name])];
                 }
             }
             $line = $k ? get_string('panel_far_step', $c, (object) ['n' => $n[$k], 'total' => $n[0],
@@ -508,7 +511,10 @@ class panel_metrics {
                 ($voice === 'last' ? get_string('panel_last_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 get_string('panel_first_line', $c, (object) ['n' => $row['n'], 'name' => $name, 'enrolled' => $row['enrolled'],
                 'frac' => self::fraction($row['enrolled'], $row['n']), 'cost' => $cost]));
+            // Inside each bar, from its base, the families of the channel that were enrolled; never for what they said.
+            $en = $said ? 0 : $row['enrolled'];
             $out[] = ['key' => $row['key'], 'name' => $name, 'n' => $row['n'], 'v' => round($row['n'] / max(1, $most), 4),
+                'en' => $en, 'ev' => $en ? round($en / max(1, $most), 4) : false,
                 'declared' => $said, 'hasparts' => $voice === 'first',
                 'enrolled' => get_string($row['enrolled'] === 1 ? 'panel_enrolled_one' : 'panel_enrolled_n', $c, $row['enrolled']),
                 'cost' => $cost, 'line' => $line];
@@ -541,6 +547,7 @@ class panel_metrics {
                 'panel_spend_missing_one' : 'panel_spend_missing', $c, $unnoted) : ''),
             'declared' => $said,
             'rows' => $out,
+            'hasenrolled' => !$said && (bool) array_filter(array_column($out, 'en')),
             'spend' => $spendrows,
             'canspend' => (bool) $spendrows,
         ];
@@ -681,15 +688,16 @@ class panel_metrics {
         $total = $whole ? max(4, $current, $prevweeks) : max(4, $current);
         $sum = fn(array $list, int $from, int $w) => count(array_filter($list, fn($t) => $t >= $from - 30 * DAYSECS &&
             $t < $from + $w * $week));
-        $now = [];
+        // The running count of each week so far; $now stays the time of now.
+        $tally = [];
         for ($w = 1; $w <= $current; $w++) {
-            $now[$w] = $sum($times, $start, $w);
+            $tally[$w] = $sum($times, $start, $w);
         }
         $prev = [];
         for ($w = 1; $compare && $w <= $total; $w++) {
             $prev[$w] = $sum($prevtimes, $prevstart, $w);
         }
-        $top = max(1, max($now ?: [0]), max($prev ?: [0]));
+        $top = max(1, max($tally ?: [0]), max($prev ?: [0]));
         $step = self::nice($top / 3);
         $ceil = (int) ceil($top / $step) * $step;
         $x = fn(int $w) => round(100 * ($w - 0.5) / $total, 1);
@@ -705,18 +713,23 @@ class panel_metrics {
                 'strftimedateshort',
                 'langconfig'
             )), 'to' => userdate($from + 6 * DAYSECS, get_string('strftimedateshort', 'langconfig'))]);
-            $has = isset($now[$w]);
-            $added = $has ? $now[$w] - ($now[$w - 1] ?? 0) : 0;
+            $has = isset($tally[$w]);
+            $added = $has ? $tally[$w] - ($tally[$w - 1] ?? 0) : 0;
             $line = get_string('panel_week_label', $c, $w) . ', ' . $range . ': ' . ($has ? get_string(
                 'panel_week_line',
                 $c,
-                (object) ['added' => $added, 'n' => $now[$w], 'what' => $what]
+                (object) ['added' => $added, 'n' => $tally[$w], 'what' => $what]
             ) : get_string('panel_week_future', $c)) .
                 ($compare ? ' ' . get_string('panel_week_before', $c, $prev[$w] ?? 0) : '');
             $cols[] = ['left' => round(100 * ($w - 1) / $total, 2), 'width' => round(100 / $total, 2), 'cx' => $x($w),
-                'line' => $line, 'future' => !$has];
-            $table[] = ['week' => get_string('panel_week_label', $c, $w), 'now' => $has ? $now[$w] : '–',
+                'line' => $line, 'future' => !$has, 'added' => max(0, $added), 'av' => 0];
+            $table[] = ['week' => get_string('panel_week_label', $c, $w), 'now' => $has ? $tally[$w] : '–',
                 'before' => $prev[$w] ?? '–'];
+        }
+        // The pulse of each week: what came in it, on its own scale.
+        $most = max(array_column($cols, 'added') ?: [0]);
+        foreach ($cols as $i => $col) {
+            $cols[$i]['av'] = $most ? round($col['added'] / $most, 4) : 0;
         }
         $events = [];
         foreach (events::for_centre((int) $centre->id) as $event) {
@@ -739,7 +752,7 @@ class panel_metrics {
                 $named = $event['p'];
             }
         }
-        $last = $now[$current];
+        $last = $tally[$current];
         $ticks = [];
         foreach (array_unique([1, (int) ceil($total / 2), $total]) as $w) {
             $ticks[] = ['p' => $x($w), 'label' => get_string('panel_week_label', $c, $w), 'start' => $w === 1,
@@ -759,13 +772,14 @@ class panel_metrics {
             'grid' => $grid,
             'xticks' => $ticks,
             'events' => $events,
-            'now' => $path($now),
+            'now' => $path($tally),
             'before' => $compare ? $path($prev) : '',
             'end' => ['left' => $x($current), 'top' => $y($last), 'label' => get_string('panel_weeks_end', $c, $last),
                 'flip' => $x($current) > 70],
             'beforeend' => $compare ? ['left' => $x($total), 'top' => $y(end($prev) ?: 0),
                 'label' => get_string('panel_weeks_before_end', $c)] : false,
             'cols' => $cols,
+            'hasadded' => $most > 0,
             'rest' => get_string($last === 1 ? 'panel_weeks_rest_one' : 'panel_weeks_rest', $c, (object) ['n' => $last,
                 'what' => $what, 'weeks' => get_string($current === 1 ? 'panel_weeks_one' : 'panel_weeks_n', $c, $current)]) .
                 ($compare ? ' ' . get_string('panel_week_before', $c, $prev[$current] ?? 0) : ''),
@@ -965,16 +979,19 @@ class panel_metrics {
                 $c,
                 abs($n - $last)
             );
+            // The change from the year before, written in pencil under each year: «+35», «−139».
+            $delta = $last === null ? '' : ($n >= $last ? '+' : '−') . format_float(abs($n - $last), 0, true, true);
             $rows[] = ['year' => $year, 'n' => $n, 'v' => round($n / $most, 4), 'last' => $i === count($years) - 1,
-                'line' => get_string('panel_years_line', $c, (object) ['year' => $year, 'n' => $n]) . $diff];
+                'delta' => $delta, 'line' => get_string('panel_years_line', $c, (object) ['year' => $year, 'n' => $n]) . $diff];
             $last = $n;
         }
         $first = reset($rows);
         $final = end($rows);
         return [
             'rows' => $rows,
-            'rest' => count($rows) > 1 ? get_string('panel_years_rest', $c, (object) ['years' => count($rows),
-                'from' => $first['n'], 'to' => $final['n']]) : $final['line'],
+            'rest' => count($rows) < 2 ? $final['line'] : get_string($first['n'] === $final['n'] ? 'panel_years_rest_same' :
+                'panel_years_rest', $c, (object) ['years' => count($rows), 'from' => format_float($first['n'], 0, true, true),
+                'to' => format_float($final['n'], 0, true, true)]),
             'def' => get_string('panel_years_def', $c),
         ];
     }

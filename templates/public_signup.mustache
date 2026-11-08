@@ -170,53 +170,7 @@
 
         {{#hasfields}}
         <fieldset class="preguntas">
-            {{#fields}}
-            {{#issection}}
-            <div class="seccion-form"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
-                <h2>{{label}}</h2>
-                {{#help}}<p class="ayuda">{{help}}</p>{{/help}}
-            </div>
-            {{/issection}}
-            {{^issection}}
-            <div class="campo pregunta{{#invalid}} mal{{/invalid}}" id="{{name}}"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
-                {{#ischips}}
-                <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                <div class="fichas" role="radiogroup" aria-labelledby="{{name}}-label">
-                    {{#options}}<label class="ficha"><input type="radio" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
-                </div>
-                {{/ischips}}
-                {{#ismulti}}
-                <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                <div class="fichas" role="group" aria-labelledby="{{name}}-label">
-                    {{#options}}<label class="ficha"><input type="checkbox" name="{{name}}[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
-                </div>
-                {{/ismulti}}
-                {{#istext}}
-                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-                <input id="{{name}}-in" name="{{name}}" type="text" value="{{value}}" maxlength="500"{{#invalid}} aria-invalid="true"{{/invalid}}>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                {{/istext}}
-                {{#islong}}
-                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-                <textarea id="{{name}}-in" name="{{name}}"{{#invalid}} aria-invalid="true"{{/invalid}}>{{value}}</textarea>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                {{/islong}}
-                {{#isdate}}
-                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-                <input id="{{name}}-in" name="{{name}}" type="date" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                {{/isdate}}
-                {{#isnumber}}
-                <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-                <input id="{{name}}-in" name="{{name}}" type="text" inputmode="decimal" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
-                {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
-                {{/isnumber}}
-                {{#error}}<p class="error">{{{i.alert}}}{{error}}</p>{{/error}}
-            </div>
-            {{/issection}}
-            {{/fields}}
+            {{> local_oksigeniaeguahe/public_questions }}
         </fieldset>
         {{/hasfields}}
 

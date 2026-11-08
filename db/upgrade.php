@@ -580,5 +580,60 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110999, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026111100) {
+        // After the visit: what the families were left to ask and the survey How it went, the thanks, and how soon
+        // the team usually answers.
+        $table = new xmldb_table('local_oksigeniaeguahe_survey');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('eventid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('fieldid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('value', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_key('eventid', XMLDB_KEY_FOREIGN, ['eventid'], 'local_oksigeniaeguahe_event', ['id']);
+        $table->add_key('householdid', XMLDB_KEY_FOREIGN, ['householdid'], 'local_oksigeniaeguahe_household', ['id']);
+        $table->add_index('answer', XMLDB_INDEX_UNIQUE, ['eventid', 'householdid', 'fieldid']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        $fields = [
+            'local_oksigeniaeguahe_event' => [
+                new xmldb_field('survey', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'formid'),
+                new xmldb_field('outcome', XMLDB_TYPE_TEXT, null, null, null, null, null, 'survey'),
+            ],
+            'local_oksigeniaeguahe_signup' => [
+                new xmldb_field('thanked', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'attended'),
+            ],
+            'local_oksigeniaeguahe_centre' => [
+                new xmldb_field('replydays', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '2', 'labelsheets'),
+            ],
+        ];
+        foreach ($fields as $name => $list) {
+            $table = new xmldb_table($name);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        // The families that came before: no thanks now for a visit of long ago.
+        $DB->execute('UPDATE {local_oksigeniaeguahe_signup} SET thanked = ? WHERE attended > 0', [time()]);
+        upgrade_plugin_savepoint(true, 2026111100, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026111101) {
+        // The library of Ayvurenda whose stories to read at home the families get.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('library', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'replydays');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026111101, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

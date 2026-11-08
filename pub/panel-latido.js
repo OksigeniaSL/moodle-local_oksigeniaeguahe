@@ -292,3 +292,48 @@
     });
 })();
 
+
+(function() {
+    'use strict';
+    // How it went: printed alone, a sheet to take away in PDF; and read again every half minute while the survey is
+    // asked, without touching what is being written under it.
+    document.querySelectorAll('[data-imprimir-seccion]').forEach(function(button) {
+        button.hidden = false;
+        button.addEventListener('click', function() {
+            var section = document.getElementById(button.getAttribute('data-imprimir-seccion'));
+            if (!section) {
+                return;
+            }
+            document.body.classList.add('imprime-seccion');
+            section.classList.add('a-imprimir');
+            var done = function() {
+                document.body.classList.remove('imprime-seccion');
+                section.classList.remove('a-imprimir');
+                window.removeEventListener('afterprint', done);
+            };
+            window.addEventListener('afterprint', done);
+            window.print();
+        });
+    });
+    var live = document.querySelector('[data-releer]');
+    if (!live || !window.fetch || !window.DOMParser) {
+        return;
+    }
+    var every = Math.max(15, parseInt(live.getAttribute('data-cada'), 10) || 30) * 1000;
+    var read = function() {
+        if (document.hidden) {
+            return;
+        }
+        fetch(live.getAttribute('data-releer'), {credentials: 'same-origin'}).then(function(r) {
+            return r.ok ? r.text() : '';
+        }).then(function(html) {
+            var fresh = html ? new window.DOMParser().parseFromString(html, 'text/html').querySelector('[data-releer]') : null;
+            if (fresh && fresh.innerHTML !== live.innerHTML) {
+                live.innerHTML = fresh.innerHTML;
+            }
+        }).catch(function() {
+            // The next turn will try again.
+        });
+    };
+    window.setInterval(read, every);
+})();

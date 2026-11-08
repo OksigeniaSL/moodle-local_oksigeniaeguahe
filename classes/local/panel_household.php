@@ -167,6 +167,9 @@ class panel_household {
                 'id' => $household->id]))->out(false),
             'answers' => $answers,
             'hasanswers' => (bool) $answers,
+            // What they told after each visit, in the survey of the event (what they were left to ask is in the thread).
+            'aftervisits' => array_map(fn($told) => ['title' => get_string('panel_told_after', $c, $told['name']),
+                'answers' => $told['answers']], surveys::of_household($household, current_language())),
             'visit' => self::visit($household, $centre),
             'events' => self::events($full),
             'hasevents' => (bool) $full->signups,
@@ -297,7 +300,8 @@ class panel_household {
         $entries = [];
         $out = [];
         foreach ($contacts as $i => $contact) {
-            $channel = in_array($contact->channel, lists::CHANNELS, true) ? $contact->channel : 'other';
+            $channel = in_array($contact->channel, lists::CHANNELS, true) || $contact->channel === lists::PAGE ?
+                $contact->channel : 'other';
             $where = '';
             if ($contact->entryid) {
                 $entries[$contact->entryid] = $entries[$contact->entryid] ??

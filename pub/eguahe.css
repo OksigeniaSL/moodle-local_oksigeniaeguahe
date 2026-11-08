@@ -1876,3 +1876,202 @@ fieldset.mal .fichas .ficha {
 .incrustado .cabecera .placa {
     visibility: hidden;
 }
+
+/* After the visit: one open question on the wall, on a sheet of paper, with the face of whoever answers on the
+   button; and the survey «How did it go?» in the band, its questions on a sheet over the colour of the centre. */
+.hoja-pregunta,
+.hoja-encuesta {
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    border: 1px solid var(--eg-linea);
+    border-radius: var(--radio);
+    box-shadow: 0 10px 28px var(--eg-sombra);
+    padding: 22px 20px 24px;
+}
+
+.pregunta-abierta {
+    display: grid;
+    gap: 8px;
+}
+
+.pregunta-abierta .pregunta-titulo {
+    font-size: var(--eg-fluido-17);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.pregunta-abierta textarea {
+    width: 100%;
+    min-height: 104px;
+    padding: 14px 16px;
+    border-radius: var(--radio-campo);
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+    resize: vertical;
+}
+
+.pregunta-abierta textarea:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 1px;
+    border-color: var(--c-acento-texto);
+}
+
+.enviar-pregunta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin-top: 4px;
+}
+
+.enviar-pregunta .contesta {
+    flex: 1 1 220px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.boton.con-cara {
+    padding-inline-start: 10px;
+}
+
+.cara-boton {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--c-sobre-vivo);
+    color: var(--c-acento-vivo);
+    font-size: 0.8125rem;
+    font-weight: 750;
+}
+
+.cara-boton img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.boton[aria-disabled="true"] {
+    opacity: 0.75;
+    cursor: progress;
+}
+
+.ya-pasado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 6px;
+    padding: 10px 14px;
+    border-radius: var(--radio-campo);
+    background: var(--c-acento-suave);
+    font-weight: 650;
+}
+
+.ya-pasado:focus {
+    outline: none;
+}
+
+.marca-hecho {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--c-acento-vivo);
+    flex: none;
+}
+
+.lo-que-hacemos {
+    margin: 0;
+    padding-inline-start: 14px;
+    border-inline-start: 3px solid var(--c-acento-vivo);
+    font-size: 1.0625rem;
+}
+
+.banda.banda-encuesta {
+    align-items: start;
+}
+
+.cabeza-encuesta {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+}
+
+.cabeza-encuesta .guardado-todo {
+    margin: 0;
+    font-weight: 650;
+}
+
+.hoja-encuesta {
+    display: grid;
+    gap: 26px;
+}
+
+.hoja-encuesta .preguntas-encuesta {
+    display: grid;
+    gap: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.hoja-encuesta .campo {
+    display: grid;
+    gap: 8px;
+}
+
+.hoja-encuesta input[type="text"],
+.hoja-encuesta input[type="date"],
+.hoja-encuesta textarea {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: var(--radio-campo);
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+}
+
+.fichas.escala .ficha {
+    min-height: 56px;
+}
+
+.guardado {
+    min-height: 1.25em;
+    margin: 0;
+    color: var(--c-acento-texto);
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.guardado.dicho {
+    animation: aparecer 0.25s ease-out;
+}
+
+.hecho-encuesta {
+    margin: 0;
+    font-weight: 700;
+}
+
+.al-tocar .guardar-encuesta {
+    display: none;
+}
+
+@media (min-width: 720px) {
+    .hoja-pregunta,
+    .hoja-encuesta {
+        padding: 28px 30px 30px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .guardado.dicho {
+        animation: none;
+    }
+}

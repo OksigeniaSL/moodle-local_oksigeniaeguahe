@@ -21,12 +21,17 @@
     datum (a resting sentence that becomes the datum under the pointer, the focus or the finger; never a floating
     tooltip), its definition and its twin in a table. One row of filters above everything (campaign, course, compare or
     not). How fast families get an answer; how far they got, in bars with the campaign before at the same week as a
-    ghost and each channel's part inside; where they came from in three voices; the campaign week by week; the places of
-    each course with what may still come under the rail; the school year as a ledger and the roll year by year. Two
-    colours: aubergine what comes in, ochre only what leaves; the ghost in ink at 25 %. «Show» puts each chart on a
-    sheet of its own, full screen, for a meeting; printing gives the same sheets.
+    ghost and each channel's part inside; where they came from in three voices, with the families of each channel who
+    enrolled inside its bar; the campaign week by week, with what came each week under the line; the places of each
+    course with what may still come under the rail; the school year as a ledger that adds up; and the roll year by year.
+    Two colours: aubergine what comes in, ochre only what leaves; what was before, in pencil. «Show» puts each chart on
+    a sheet of its own, full screen, for a meeting; printing gives the same sheets. Everything is drawn by the server
+    and reads without the script; the script lights what is touched and moves it.
 
-    New in this round (the whole template; it replaces metrics.mustache in the panel).
+    Round 3 (the numbers get their design): the pencil key of the ghost and its number beside each bar, the enrolled
+    part of each channel (rows.en, rows.ev, hasenrolled), the pulse of each week (cols.added, cols.av, hasadded), the
+    key of the rail, the ledger as a sum that adds up with its stamp, the reasons drawn as parts of those who left, and
+    the change between years (history.rows.delta). The new keys are optional: without them the chart is drawn as before.
 
     Example context (json):
     {
@@ -36,20 +41,22 @@
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
             "compare": [{"name": "Con la anterior", "url": "#", "current": true}]},
         "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": ""},
-        "reach": {"compare": true, "legend": true, "rest": "96 familias han escrito.", "closed": "", "def": "",
-            "steps": [{"key": "inquiry", "name": "Escribieron", "n": 96, "v": 1, "g": 0.9, "hasghost": true, "line": "96 familias.",
+        "reach": {"compare": true, "legend": true, "rest": "96 familias han escrito.", "closed": "", "def": "", "ancha": false,
+            "steps": [{"key": "inquiry", "name": "Escribieron", "n": 96, "v": 1, "g": 0.9, "gn": 86, "hasghost": true, "line": "96 familias.",
                 "parts": [{"canal": "web", "v": 0.3, "n": 34, "line": "34 por la web."}]}]},
         "channels": {"voices": [{"key": "first", "name": "Primer contacto", "def": "", "url": "#", "current": true}], "def": "", "rest": "", "foot": "", "declared": false,
-            "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": ""}],
+            "hasenrolled": true, "ancha": false,
+            "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "en": 8, "ev": 0.2353, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": ""}],
             "spend": [{"key": "cartel", "name": "Cartel", "value": "85,00"}], "canspend": true},
         "weeks": {"views": [{"name": "Llegadas", "url": "#", "current": true}], "compare": true, "grid": [{"p": 100, "label": 0}],
             "xticks": [{"p": 0, "label": "Semana 1", "start": true, "end": false}], "events": [{"p": 27, "label": "Jornada", "ahead": false}],
             "now": "M0 90 L9 80", "before": "M0 95 L9 85", "end": {"left": 9, "top": 80, "label": "19 esta campaña", "flip": false},
-            "beforeend": {"left": 100, "top": 10, "label": "la anterior"}, "cols": [{"left": 0, "width": 9, "cx": 0, "line": "Semana 1.", "future": false}],
+            "beforeend": {"left": 100, "top": 10, "label": "la anterior"}, "hasadded": true,
+            "cols": [{"left": 0, "width": 9, "cx": 0, "line": "Semana 1.", "future": false, "added": 8, "av": 1}],
             "rest": "Van 19 familias.", "def": "", "wholelink": false, "ancha": false, "label": "Llegadas, semana a semana", "what": "familias",
             "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
-        "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": null}],
-        "placesdef": "",
+        "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": false}],
+        "hasplaces": true, "placesdef": "",
         "hasyear": false, "year": false, "hashistory": false, "history": false, "spendaction": "#", "sesskey": "abc",
         "starts": {"rows": [{"key": "live", "name": "Esta campaña", "value": "2026-09-15"}]}
     }
@@ -85,17 +92,18 @@
             <h2 id="c-alc">{{#str}}panel_how_far, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
-            {{#legend}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-antes"></span>{{#str}}panel_before_same_week, local_oksigeniaeguahe{{/str}}</span></p>{{/legend}}
+            {{#legend}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave clave-lapiz"><span class="clave-antes"></span>{{#str}}panel_before_same_week, local_oksigeniaeguahe{{/str}}</span></p>{{/legend}}
             <ol class="barras" data-barras>
                 {{#steps}}
-                <li class="barra-fila" data-dato="{{line}}" id="alc-{{key}}">
+                <li class="barra-fila" data-dato="{{line}}" id="alc-{{key}}" style="--v: {{v}};{{#hasghost}} --g: {{g}};{{/hasghost}}">
                     <span class="barra-nombre">{{name}}</span>
                     <span class="barra-pista" aria-hidden="true">
-                        {{#hasghost}}<i class="fantasma" style="--v: {{g}}" data-m="alc-g-{{key}}" id="alc-g-{{key}}"></i>{{/hasghost}}
-                        <i class="barra-dato" style="--v: {{v}}" data-m="alc-b-{{key}}" id="alc-b-{{key}}"></i>
-                        {{#parts}}<i class="parte" style="--v: {{v}}" data-parte="{{canal}}" data-dato-parte="{{line}}" id="alc-p-{{key}}-{{canal}}" data-m="1"></i>{{/parts}}
+                        {{#hasghost}}<i class="fantasma" style="--v: {{g}}" id="alc-g-{{key}}"></i>{{/hasghost}}
+                        <i class="barra-dato" style="--v: {{v}}" id="alc-b-{{key}}"></i>
+                        {{#parts}}<i class="parte" style="--v: {{v}}" data-parte="{{canal}}" data-parte-n="{{n}}" data-dato-parte="{{line}}" id="alc-p-{{key}}-{{canal}}"></i>{{/parts}}
+                        {{#hasghost}}<i class="fantasma-tope" style="--v: {{g}}"></i>{{/hasghost}}
                     </span>
-                    <b class="barra-n" id="alc-n-{{key}}" data-m="t">{{n}}</b>
+                    <span class="barra-cifras"><b class="barra-n" id="alc-n-{{key}}">{{n}}</b>{{#hasghost}}<span class="barra-antes" aria-hidden="true">{{gn}}</span>{{/hasghost}}</span>
                 </li>
                 {{/steps}}
             </ol>
@@ -108,18 +116,19 @@
         </section>
         {{/reach}}
         {{#channels}}
-        <section class="lamina grafico grafico-canales{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-can" id="por-donde" data-grafico>
+        <section class="lamina grafico grafico-canales{{#ancha}} ancha{{/ancha}}{{#hasenrolled}} con-matricula{{/hasenrolled}}" aria-labelledby="c-can" id="por-donde" data-grafico>
             <h2 id="c-can">{{#str}}panel_where_from, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <nav class="segmentos voces" aria-label="{{#str}}panel_three_voices, local_oksigeniaeguahe{{/str}}">{{#voices}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/voices}}</nav>
             <p class="def">{{def}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            {{#hasenrolled}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-llegaron"></span>{{#str}}panel_far_name_inquiry, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_far_name_enrolled, local_oksigeniaeguahe{{/str}}</span></p>{{/hasenrolled}}
             <ul class="canales{{#declared}} dichos{{/declared}}">
                 {{#rows}}
-                <li class="canal-fila{{#declared}} declarado{{/declared}}" data-dato="{{line}}"{{#hasparts}} data-canal-elige="{{key}}"{{/hasparts}} id="can-{{key}}">
+                <li class="canal-fila{{#declared}} declarado{{/declared}}" data-dato="{{line}}"{{#hasparts}} data-canal-elige="{{key}}"{{/hasparts}} id="can-{{key}}" style="--v: {{v}}">
                     <span class="canal-nombre">{{name}}</span>
-                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="can-b-{{key}}" data-m="1"></i></span>
-                    <b class="barra-n" id="can-n-{{key}}" data-m="t">{{n}}</b>
+                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="can-b-{{key}}"></i>{{#ev}}<i class="barra-matricula" style="--v: {{ev}}" id="can-m-{{key}}"></i>{{/ev}}</span>
+                    <b class="barra-n" id="can-n-{{key}}">{{n}}</b>
                     {{^declared}}<span class="canal-mas"><span>{{enrolled}}</span><span class="coste">{{cost}}</span></span>{{/declared}}
                 </li>
                 {{/rows}}
@@ -137,30 +146,37 @@
         </section>
         {{/channels}}
         {{#weeks}}
-        <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sem" id="semanas" data-grafico>
+        <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}{{#ancha}} ancha{{/ancha}}{{#hasadded}} con-pulso{{/hasadded}}" aria-labelledby="c-sem" id="semanas" data-grafico>
             <h2 id="c-sem">{{#str}}panel_week_by_week, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <nav class="segmentos vistas-sem" aria-label="{{#str}}panel_what_to_count, local_oksigeniaeguahe{{/str}}">{{#views}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/views}}</nav>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
             {{#wholelink}}<p class="ver-entera"><a class="enlace" href="{{url}}" data-filtro-cifras>{{name}}</a></p>{{/wholelink}}
-            {{#compare}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-linea ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-linea antes"></span>{{#str}}panel_before, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
-            <div class="semanas-caja" id="sem-caja" data-m="bloque">
-                <div class="semanas-plot" role="img" aria-label="{{label}}. {{rest}}">
-                    {{#grid}}<span class="rejilla-y" style="top: {{p}}%"><span>{{label}}</span></span>{{/grid}}
+            {{#compare}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-linea ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave clave-lapiz"><span class="clave-linea antes"></span>{{#str}}panel_before, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
+            <div class="semanas-caja" id="sem-caja">
+                <div class="semanas-plot" data-semanas>
+                    {{#grid}}<span class="rejilla-y" style="top: {{p}}%" aria-hidden="true"><span>{{label}}</span></span>{{/grid}}
                     <svg class="semanas-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                        <path class="area-ahora" d="{{now}} L{{end.left}} 100 L{{#xticks}}{{#start}}{{p}}{{/start}}{{/xticks}} 100 Z"/>
                         {{#compare}}<path class="linea-antes" d="{{before}}"/>{{/compare}}
                         <path class="linea-ahora" d="{{now}}"/>
                     </svg>
+                    {{#events}}<span class="marca-acto{{#ahead}} por-venir{{/ahead}}" style="inset-inline-start: {{p}}%" aria-hidden="true"></span>{{/events}}
                     {{#compare}}{{#beforeend}}<span class="rotulo-linea antes" style="inset-inline-end: 0; top: {{top}}%" aria-hidden="true">{{label}}</span>{{/beforeend}}{{/compare}}
                     {{#end}}<span class="punto-ahora" style="inset-inline-start: {{left}}%; top: {{top}}%" aria-hidden="true"></span><span class="rotulo-linea ahora{{#flip}} al-final{{/flip}}" style="inset-inline-start: {{left}}%; top: {{top}}%" aria-hidden="true">{{label}}</span>{{/end}}
-                    {{#events}}<span class="marca-acto{{#ahead}} por-venir{{/ahead}}" style="inset-inline-start: {{p}}%" aria-hidden="true"></span>{{/events}}
-                    {{#cols}}<span class="col-semana{{#future}} futura{{/future}}" style="inset-inline-start: {{left}}%; width: {{width}}%" data-dato="{{line}}"><i></i></span>{{/cols}}
+                    <div class="semanas-cols" role="group" aria-label="{{label}}">{{#cols}}<span class="col-semana{{#future}} futura{{/future}}" style="inset-inline-start: {{left}}%; width: {{width}}%" data-dato="{{line}}" data-cx="{{cx}}"><i></i></span>{{/cols}}</div>
                 </div>
+                {{#hasadded}}
+                <div class="semanas-pulso" aria-hidden="true">
+                    <span class="pulso-rotulo">{{#str}}panel_weeks_each, local_oksigeniaeguahe{{/str}}</span>
+                    {{#cols}}{{#added}}<i class="pulso{{#future}} futura{{/future}}" style="inset-inline-start: {{left}}%; width: {{width}}%; --v: {{av}}" data-cx="{{cx}}"></i>{{/added}}{{/cols}}
+                </div>
+                {{/hasadded}}
                 <div class="semanas-eje" aria-hidden="true">
                     {{#xticks}}<span class="{{#start}}inicio{{/start}}{{#end}}final{{/end}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/xticks}}
                 </div>
                 <div class="semanas-actos" aria-hidden="true">
-                    {{#events}}<span class="{{#ahead}}por-venir{{/ahead}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/events}}
+                    {{#events}}{{#label}}<span class="acto-sello{{#ahead}} por-venir{{/ahead}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/label}}{{/events}}
                 </div>
             </div>
             <p class="def">{{def}}</p>
@@ -170,12 +186,19 @@
             </details>
         </section>
         {{/weeks}}
+        {{#hasplaces}}
         <section class="lamina grafico grafico-plazas" aria-labelledby="c-pla" id="plazas">
             <h2 id="c-pla">{{#str}}panel_places_coming, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
+            <p class="leyenda leyenda-riel" aria-hidden="true">
+                <span class="clave"><svg class="clave-riel" viewBox="0 0 16 16" width="16" height="16" focusable="false"><circle class="k-pomo" cx="8" cy="8" r="4.2"/><circle class="k-brillo" cx="6.6" cy="6.4" r="1.2"/></svg>{{#str}}panel_places_key_place, local_oksigeniaeguahe{{/str}}</span>
+                <span class="clave"><svg class="clave-riel" viewBox="0 0 16 16" width="16" height="16" focusable="false"><path class="k-mochila" d="M3.5 7.2C3.5 4.9 5.2 3.4 7.4 3.4h1.2c2.2 0 3.9 1.5 3.9 3.8v5.5c0 .7-.5 1.2-1.2 1.2H4.7c-.7 0-1.2-.5-1.2-1.2z"/><path class="k-banda" d="M5 9.4h6v1.6H5z"/></svg>{{#str}}panel_places_key_enrolled, local_oksigeniaeguahe{{/str}}</span>
+                <span class="clave"><svg class="clave-riel ancha" viewBox="0 0 26 16" width="26" height="16" focusable="false"><rect class="k-rango" x="1" y="4" width="24" height="8" rx="2"/><rect class="k-probable" x="11" y="1" width="3" height="14" rx="1"/></svg>{{#str}}panel_places_key_range, local_oksigeniaeguahe{{/str}} · {{#str}}panel_places_key_likely, local_oksigeniaeguahe{{/str}}</span>
+                <span class="clave"><svg class="clave-riel" viewBox="0 0 10 16" width="10" height="16" focusable="false"><path class="k-tope" d="M5 1.5V14.5"/></svg>{{#str}}panel_places_key_last, local_oksigeniaeguahe{{/str}}</span>
+            </p>
             <div class="plazas-cursos">
                 {{#places}}
-                <div class="curso-rango">
+                <div class="curso-rango" id="pla-{{key}}">
                     <div class="cab"><b>{{name}}</b><span class="libres">{{free}}</span></div>
                     <div class="riel-caja">{{{rail}}}</div>
                     <p class="linea-dato rango-frase">{{sentence}}</p>
@@ -185,26 +208,28 @@
             </div>
             <p class="def">{{placesdef}}</p>
         </section>
+        {{/hasplaces}}
         {{#hasyear}}{{#year}}
         <section class="lamina grafico grafico-saldo{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sal" id="saldo" data-grafico>
             <h2 id="c-sal">{{title}}</h2>
             <p class="corte">{{cut}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
             <div class="libro">
-                <p class="libro-extremo"><span>{{#str}}panel_started_with, local_oksigeniaeguahe{{/str}}</span><b>{{start}}</b></p>
+                <p class="libro-extremo libro-inicio"><span>{{#str}}panel_started_with, local_oksigeniaeguahe{{/str}}</span><b>{{start}}</b></p>
                 <ul class="libro-filas">
                     {{#rows}}
-                    <li class="libro-fila{{#out}} sale{{/out}}" data-dato="{{line}}">
-                        <b class="libro-n">{{sign}}</b>
-                        <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i></span>
+                    <li class="libro-fila{{#out}} sale{{/out}}" data-dato="{{line}}" id="sal-{{key}}">
                         <span class="libro-que">{{name}}</span>
+                        <b class="libro-n">{{sign}}</b>
+                        <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="sal-b-{{key}}"></i></span>
                     </li>
                     {{/rows}}
                 </ul>
-                <p class="libro-extremo"><span>{{#str}}panel_ended_with, local_oksigeniaeguahe{{/str}}</span><b>{{end}}</b><span class="libro-neto">{{net}}</span></p>
+                <p class="libro-extremo libro-final"><span>{{#str}}panel_ended_with, local_oksigeniaeguahe{{/str}}</span><b>{{end}}</b><span class="libro-neto">{{net}}</span></p>
+                <p class="sello-cuadra" aria-hidden="true">{{#str}}panel_ledger_squares, local_oksigeniaeguahe{{/str}}</p>
             </div>
-            <details class="motivos"><summary>{{#str}}panel_why_they_left, local_oksigeniaeguahe{{/str}}</summary>
-                <ul class="lista-simple">{{#reasons}}<li class="fila-s"><span>{{name}}</span><b>{{n}}</b></li>{{/reasons}}</ul>
+            <details class="motivos" id="motivos"><summary>{{#str}}panel_why_they_left, local_oksigeniaeguahe{{/str}}</summary>
+                <ul class="lista-simple motivos-lista" style="--total: {{#rows}}{{#out}}{{n}}{{/out}}{{/rows}}">{{#reasons}}<li class="fila-s motivo" style="--n: {{n}}"><span>{{name}}</span><i class="motivo-barra" aria-hidden="true"></i><b>{{n}}</b></li>{{/reasons}}</ul>
             </details>
             <p class="def">{{def}}</p>
         </section>
@@ -216,7 +241,7 @@
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
             <div class="columnas-caja">
                 <ol class="columnas">
-                    {{#rows}}<li class="columna{{#last}} ultima{{/last}}" data-dato="{{line}}"><b>{{n}}</b><span class="col-pista" aria-hidden="true"><i style="--v: {{v}}"></i></span><span class="col-ano">{{year}}</span></li>{{/rows}}
+                    {{#rows}}<li class="columna{{#last}} ultima{{/last}}" data-dato="{{line}}" style="--v: {{v}}" id="anos-{{year}}"><b>{{n}}</b>{{#delta}}<span class="col-delta" aria-hidden="true">{{delta}}</span>{{/delta}}<span class="col-pista" aria-hidden="true"><i id="anos-b-{{year}}"></i></span><span class="col-ano">{{year}}</span></li>{{/rows}}
                 </ol>
             </div>
             <p class="def">{{def}}</p>

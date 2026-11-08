@@ -17,6 +17,15 @@
     font-weight: 400 700;
     font-display: swap;
 }
+
+/* The hand has no minus sign (U+2212): its minus comes from the letter of ink, so «−139» keeps one sign. */
+@font-face {
+    font-family: 'Eg Mano';
+    src: url(fonts/schibsted-grotesk.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: swap;
+    unicode-range: U+2212;
+}
 /* ==================== 1. Tokens ==================== */
 :root {
     /* Eguahe's paper and ink (the same as the family page) */
@@ -4821,6 +4830,37 @@ input:focus-visible + .pastilla-r {
     }
 }
 /* ==================== 11.5 The numbers ==================== */
+/* What a chart says is drawn by the server and reads without the script: bars, the ghost of the campaign before, the
+   line of the weeks, the rail of places, the ledger. The script only lights what is pointed at, says it in the line of
+   the datum and moves what changes. Two colours of series: aubergine what comes in, ochre only what leaves; what was
+   before, in pencil (ink at a quarter); a channel lit, aubergine inside the soft bar. */
+.pagina-cifras {
+    --cf-serie: var(--eg-serie-1);
+    --cf-serie-medio: #cbaec5;
+    --cf-serie-suave: var(--eg-serie-1-suave);
+    --cf-sale: var(--eg-serie-2);
+    --cf-lapiz: rgba(var(--eg-tinta-rgb), 0.3);
+    --cf-lapiz-fuerte: rgba(var(--eg-tinta-rgb), 0.62);
+    --cf-lapiz-texto: var(--eg-tinta-2);
+    --cf-anillo: var(--piel-hoja);
+    --cf-area: rgba(123, 63, 114, 0.1);
+    --cf-grosor: 22px;
+    --cf-tenue: 0.45;
+    --cf-sitio: 5.5rem;
+}
+
+:root[data-bs-theme="dark"] .pagina-cifras {
+    --cf-serie-medio: #66485f;
+    --cf-area: rgba(174, 104, 164, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .pagina-cifras {
+        --cf-serie-medio: #66485f;
+        --cf-area: rgba(174, 104, 164, 0.14);
+    }
+}
+
 .cifras-barra {
     display: flex;
     flex-wrap: wrap;
@@ -4862,7 +4902,7 @@ input:focus-visible + .pastilla-r {
 .cifras {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    gap: 22px;
 }
 
 .cifras.recargando {
@@ -4871,11 +4911,12 @@ input:focus-visible + .pastilla-r {
 }
 
 .lamina {
+    position: relative;
     display: grid;
     gap: 12px;
     align-content: start;
     min-width: 0;
-    padding: 20px;
+    padding: 22px;
     border-radius: var(--piel-radio);
     background: var(--piel-hoja);
     border: 1px solid var(--piel-hoja-borde);
@@ -4889,9 +4930,33 @@ input:focus-visible + .pastilla-r {
 .corte {
     display: none;
 }
-
+/* The line of the datum: two lines tall, so nothing jumps when it changes; a rule of ink at its side while it speaks
+   of what is pointed at. */
 .lamina .linea-dato {
+    position: relative;
     min-height: 3em;
+    padding-inline-start: 0;
+    transition: padding var(--dur-1) ease;
+}
+
+.lamina .linea-dato.dato-vivo {
+    padding-inline-start: 14px;
+}
+
+.lamina .linea-dato::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.2em;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--cf-serie);
+    opacity: 0;
+    transition: opacity var(--dur-1) ease;
+}
+
+.lamina .linea-dato.dato-vivo::before {
+    opacity: 1;
 }
 
 .cifra-heroe {
@@ -4922,8 +4987,9 @@ input:focus-visible + .pastilla-r {
 
 .hechos b {
     color: var(--eg-tinta);
+    font-size: 1.125rem;
 }
-
+/* ---------- Keys ---------- */
 .leyenda {
     display: flex;
     flex-wrap: wrap;
@@ -4931,18 +4997,6 @@ input:focus-visible + .pastilla-r {
     gap: 6px 8px;
     color: var(--eg-tinta-2);
     font-size: 0.8125rem;
-}
-
-.clave-ahora,
-.clave-antes {
-    display: inline-block;
-    width: 16px;
-    height: 10px;
-    border-radius: 2px;
-}
-
-.clave-ahora {
-    background: var(--eg-serie-1);
 }
 
 .clave {
@@ -4953,33 +5007,53 @@ input:focus-visible + .pastilla-r {
     margin-inline-end: 12px;
 }
 
+.clave-ahora,
+.clave-antes,
+.clave-llegaron {
+    display: inline-block;
+    width: 18px;
+    height: 10px;
+    border-radius: 0 3px 3px 0;
+}
+
+.clave-ahora {
+    background: var(--cf-serie);
+}
+
+.clave-llegaron {
+    background: var(--cf-serie-medio);
+}
+
 .clave-antes {
-    box-shadow: inset 0 0 0 2px rgba(var(--eg-tinta-rgb), 0.25);
+    box-shadow: inset 0 0 0 2px var(--cf-lapiz);
 }
 
 .clave-linea {
     display: inline-block;
-    width: 18px;
-    border-top: 2px solid var(--eg-serie-1);
+    width: 20px;
+    border-top: 2px solid var(--cf-serie);
 }
 
 .clave-linea.antes {
-    border-top-color: rgba(var(--eg-tinta-rgb), 0.25);
+    border-top-color: var(--cf-lapiz-fuerte);
 }
-
+/* ---------- Bars: one track per row, the datum from its baseline, the ghost behind ---------- */
 .barras {
     display: grid;
-    gap: 6px;
+    gap: 4px;
 }
 
 .barra-fila {
+    --g: 0;
     display: grid;
-    grid-template-columns: minmax(110px, 32%) minmax(0, 1fr) 2.6em;
-    gap: 10px;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: minmax(110px, min(30%, 15em)) minmax(0, 1fr);
+    gap: 12px;
     align-items: center;
-    min-height: 34px;
-    padding: 2px 6px;
+    min-height: 38px;
+    padding: 4px 8px;
     border-radius: 8px;
+    transition: opacity var(--dur-1) ease;
 }
 
 .barra-nombre {
@@ -4991,7 +5065,7 @@ input:focus-visible + .pastilla-r {
 .barra-pista {
     position: relative;
     display: block;
-    height: 22px;
+    height: var(--cf-grosor);
 }
 
 .barra-pista > i {
@@ -5009,26 +5083,48 @@ input:focus-visible + .pastilla-r {
 }
 
 .barra-pista .fantasma {
-    box-shadow: inset 0 0 0 2px rgba(var(--eg-tinta-rgb), 0.25);
+    box-shadow: inset 0 0 0 2px var(--cf-lapiz);
 }
 
 .barra-pista .barra-dato {
-    background: var(--eg-serie-1);
+    background: var(--cf-serie);
     transition: background-color var(--dur-1) ease;
 }
 
 .barra-pista .parte {
-    background: var(--eg-serie-1);
+    background: var(--cf-serie);
     opacity: 0;
     transition: opacity var(--dur-1) ease;
 }
-
-.con-canal .barra-pista .barra-dato {
-    background: var(--eg-serie-1-suave);
+/* Where the ghost ends: a short mark of pencil with a ring of paper, seen on the paper and over the ink alike */
+.barra-pista .fantasma-tope {
+    inset-block: -5px;
+    width: 2px;
+    margin-inline-start: -1px;
+    border-radius: 1px;
+    inset-inline-start: calc(var(--v) * 100%);
+    background: var(--cf-lapiz-fuerte);
+    box-shadow: 0 0 0 1px var(--cf-anillo);
 }
 
-.con-canal .barra-pista .parte.encendida {
-    opacity: 1;
+/* The figures ride the tip of the longer of the two, the bar or its ghost: what is now in ink, what was in pencil */
+.barra-fila .barra-pista,
+.barra-fila .barra-cifras {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.barra-fila .barra-pista {
+    margin-inline-end: var(--cf-sitio);
+}
+
+.barra-cifras {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px 8px;
+    justify-self: start;
+    margin-inline-start: calc(max(var(--v), var(--g)) * (100% - var(--cf-sitio)) + 10px);
+    white-space: nowrap;
 }
 
 .barra-n {
@@ -5037,14 +5133,79 @@ input:focus-visible + .pastilla-r {
     text-align: end;
 }
 
-[data-dato] {
-    cursor: default;
+.barra-antes {
+    color: var(--cf-lapiz-texto);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
-[data-dato]:hover,
-[data-dato].senalado,
-[data-dato]:focus-visible {
-    background-color: var(--eg-hundido);
+.barra-parte-n {
+    display: none;
+    font-weight: 780;
+    font-variant-numeric: tabular-nums;
+}
+/* A channel lit: its part in aubergine inside each bar, the rest soft; the number says the part and the whole */
+.con-canal .barra-pista .barra-dato {
+    background: var(--cf-serie-suave);
+}
+
+.con-canal .barra-pista .parte.encendida {
+    opacity: 1;
+}
+
+.con-canal .barra-parte-n {
+    display: inline;
+}
+
+.con-canal .barra-cifras .barra-n {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.con-canal .barra-cifras .barra-n::before {
+    content: '/ ';
+}
+
+.con-canal .barra-antes {
+    display: none;
+}
+
+.canal-encendido {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.canal-encendido::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 0 3px 3px 0;
+    background: var(--cf-serie);
+}
+
+.canal-encendido[hidden] {
+    display: none;
+}
+
+.canal-encendido button {
+    min-height: 32px;
+    padding: 2px 10px;
+    border: 1px solid var(--eg-borde);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+/* What is pointed at stays; the rest steps back */
+[data-dato] {
+    cursor: default;
 }
 
 [data-dato]:focus-visible {
@@ -5052,28 +5213,42 @@ input:focus-visible + .pastilla-r {
     outline-offset: 1px;
 }
 
+.con-senal .barra-fila:not(.senalado),
+.con-senal .canal-fila:not(.senalado),
+.con-senal .libro-fila:not(.senalado),
+.con-senal .columna:not(.senalado) {
+    opacity: var(--cf-tenue);
+}
+
+.barra-fila.senalado,
+.canal-fila.senalado,
+.libro-fila.senalado {
+    background-color: var(--eg-hundido);
+}
+
 .cerradas {
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
 }
-
+/* ---------- Where they came from ---------- */
 .voces {
     flex-wrap: wrap;
 }
 
 .canales {
     display: grid;
-    gap: 4px;
+    gap: 2px;
 }
 
 .canal-fila {
     display: grid;
-    grid-template-columns: minmax(120px, 36%) minmax(0, 1fr) 2.4em;
-    grid-template-areas: "nombre pista n" ". mas mas";
-    gap: 2px 10px;
+    grid-template-columns: minmax(120px, 36%) minmax(0, 1fr);
+    grid-template-areas: "nombre pista" ". mas";
+    gap: 2px 12px;
     align-items: center;
-    padding: 6px;
+    padding: 7px 8px;
     border-radius: 8px;
+    transition: opacity var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
 .canal-nombre {
@@ -5081,15 +5256,19 @@ input:focus-visible + .pastilla-r {
     font-size: 0.9375rem;
     font-weight: 600;
     line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 
 .canal-fila .barra-pista {
     grid-area: pista;
-    height: 14px;
+    height: 16px;
+    margin-inline-end: 3rem;
 }
 
 .canal-fila .barra-n {
-    grid-area: n;
+    grid-area: pista;
+    justify-self: start;
+    margin-inline-start: calc(var(--v) * (100% - 3rem) + 8px);
 }
 
 .canal-mas {
@@ -5107,11 +5286,30 @@ input:focus-visible + .pastilla-r {
 
 .canal-fila[aria-pressed="true"] {
     background: var(--eg-acento-suave);
+    box-shadow: inset 3px 0 0 var(--cf-serie);
+}
+
+[dir="rtl"] .canal-fila[aria-pressed="true"] {
+    box-shadow: inset -3px 0 0 var(--cf-serie);
+}
+/* With the enrolled of each channel: the bar is those who wrote, in a lighter step, and from its baseline, those who
+   enrolled, in aubergine. */
+.con-matricula .canal-fila .barra-dato {
+    background: var(--cf-serie-medio);
+}
+
+.canal-fila .barra-matricula {
+    background: var(--cf-serie);
+    box-shadow: 2px 0 0 var(--cf-anillo);
+}
+
+[dir="rtl"] .canal-fila .barra-matricula {
+    box-shadow: -2px 0 0 var(--cf-anillo);
 }
 
 .declarado .barra-pista .barra-dato {
     background: none;
-    box-shadow: inset 0 0 0 2px var(--eg-serie-1);
+    box-shadow: inset 0 0 0 2px var(--cf-serie);
 }
 
 .gasto-form {
@@ -5121,15 +5319,16 @@ input:focus-visible + .pastilla-r {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
     align-items: end;
 }
-
+/* ---------- The campaign week by week ---------- */
 .semanas-caja {
-    padding-inline-start: 34px;
+    padding-inline-start: 38px;
 }
 
 .semanas-plot {
     position: relative;
     height: var(--alto-semanas);
-    margin-top: 8px;
+    margin-top: 10px;
+    touch-action: pan-y;
 }
 
 .rejilla-y {
@@ -5156,6 +5355,15 @@ input:focus-visible + .pastilla-r {
     overflow: visible;
 }
 
+[dir="rtl"] .semanas-svg {
+    transform: scaleX(-1);
+}
+
+.area-ahora {
+    fill: var(--cf-area);
+    stroke: none;
+}
+
 .linea-ahora,
 .linea-antes {
     fill: none;
@@ -5167,22 +5375,46 @@ input:focus-visible + .pastilla-r {
 }
 
 .linea-ahora {
-    stroke: var(--eg-serie-1);
+    stroke: var(--cf-serie);
+    stroke-width: 2.5;
 }
 
 .linea-antes {
-    stroke: rgba(var(--eg-tinta-rgb), 0.25);
+    stroke: var(--cf-lapiz-fuerte);
 }
 
-.punto-ahora {
+.punto-ahora,
+.punto-semana {
     position: absolute;
     width: 10px;
     height: 10px;
     margin-top: -5px;
     margin-inline-start: -5px;
     border-radius: 50%;
-    background: var(--eg-serie-1);
-    box-shadow: 0 0 0 2px var(--piel-hoja);
+    background: var(--cf-serie);
+    box-shadow: 0 0 0 2px var(--cf-anillo);
+    pointer-events: none;
+}
+
+.punto-semana {
+    top: 0;
+    inset-inline-start: 0;
+    opacity: 0;
+    transition: opacity var(--dur-1) ease;
+}
+
+.punto-semana.antes {
+    background: var(--cf-anillo);
+    box-shadow: inset 0 0 0 2px var(--cf-lapiz-fuerte), 0 0 0 2px var(--cf-anillo);
+}
+
+.semanas-plot.con-semana .punto-semana {
+    opacity: 1;
+}
+
+.semanas-plot.con-semana .punto-ahora,
+.semanas-plot.con-semana .rotulo-linea {
+    opacity: 0.35;
 }
 
 .rotulo-linea {
@@ -5192,23 +5424,40 @@ input:focus-visible + .pastilla-r {
     font-size: 0.8125rem;
     font-weight: 750;
     white-space: nowrap;
+    transition: opacity var(--dur-1) ease;
 }
 
 .rotulo-linea.antes {
     padding-inline-start: 0;
-    color: var(--eg-tinta-2);
+    color: var(--cf-lapiz-texto);
     font-weight: 650;
+}
+
+.rotulo-linea.al-final {
+    padding-inline-start: 0;
+    padding-inline-end: 10px;
+    transform: translate(-100%, -140%);
+}
+
+[dir="rtl"] .rotulo-linea.al-final {
+    transform: translate(100%, -140%);
 }
 
 .marca-acto {
     position: absolute;
-    bottom: -4px;
-    height: 12px;
-    border-inline-start: 2px solid var(--eg-tinta-2);
+    top: 0;
+    bottom: -6px;
+    border-inline-start: 1.5px solid var(--eg-sello);
+    opacity: 0.45;
 }
 
 .marca-acto.por-venir {
     border-inline-start-style: dotted;
+}
+
+.semanas-cols {
+    position: absolute;
+    inset: 0;
 }
 
 .col-semana {
@@ -5218,18 +5467,16 @@ input:focus-visible + .pastilla-r {
     cursor: crosshair;
 }
 
-.col-semana:hover,
-.col-semana.senalado,
 .col-semana:focus-visible {
-    background: none;
+    outline: 0;
 }
 
 .col-semana i {
     position: absolute;
-    top: 0;
+    top: -6px;
     bottom: 0;
     inset-inline-start: 50%;
-    border-inline-start: 1px solid rgba(var(--eg-tinta-rgb), 0.55);
+    border-inline-start: 1px solid var(--cf-lapiz-fuerte);
     opacity: 0;
 }
 
@@ -5239,10 +5486,53 @@ input:focus-visible + .pastilla-r {
     opacity: 1;
 }
 
+.col-semana:focus-visible i {
+    border-inline-start: 2px solid var(--eg-acento);
+}
+/* What came each week, under the line: a short column per week on its own scale, never a second axis on the line */
+.semanas-pulso {
+    position: relative;
+    height: 34px;
+    margin-top: 28px;
+    border-bottom: 1px solid var(--eg-borde);
+}
+
+.pulso {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    height: calc(var(--v) * 100%);
+    transform-origin: 50% 100%;
+    transition: opacity var(--dur-1) ease;
+}
+
+.pulso::before {
+    content: '';
+    width: calc(100% - 2px);
+    max-width: 12px;
+    border-radius: 2px 2px 0 0;
+    background-color: var(--cf-serie);
+}
+
+.semanas-pulso.con-semana .pulso:not(.senalado) {
+    opacity: var(--cf-tenue);
+}
+
+.pulso-rotulo {
+    position: absolute;
+    inset-inline-start: 0;
+    bottom: calc(100% + 2px);
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
 .semanas-eje,
 .semanas-actos {
     position: relative;
-    height: 22px;
+    min-height: 22px;
     color: var(--eg-tinta-2);
     font-size: 0.75rem;
 }
@@ -5252,6 +5542,7 @@ input:focus-visible + .pastilla-r {
 }
 
 .semanas-actos {
+    min-height: 30px;
     font-weight: 650;
     color: var(--eg-tinta);
 }
@@ -5264,6 +5555,11 @@ input:focus-visible + .pastilla-r {
     white-space: nowrap;
 }
 
+[dir="rtl"] .semanas-eje span,
+[dir="rtl"] .semanas-actos span {
+    transform: translateX(50%);
+}
+
 .semanas-eje .inicio {
     transform: none;
 }
@@ -5272,13 +5568,36 @@ input:focus-visible + .pastilla-r {
     transform: translateX(-100%);
 }
 
-.semanas-actos .por-venir {
-    color: var(--eg-tinta-2);
+[dir="rtl"] .semanas-eje .inicio {
+    transform: none;
 }
 
+[dir="rtl"] .semanas-eje .final {
+    transform: translateX(100%);
+}
+
+.acto-sello {
+    padding: 1px 6px;
+    border: 1.5px solid var(--eg-sello);
+    border-radius: 4px;
+    color: var(--eg-sello);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.semanas-actos .por-venir {
+    border-style: dashed;
+}
+
+.ver-entera {
+    margin-block: -6px 0;
+    font-size: 0.875rem;
+}
+/* ---------- The places and what may come ---------- */
 .plazas-cursos {
     display: grid;
-    gap: 18px 28px;
+    gap: 22px 32px;
     /* stylelint-disable-next-line csstree/validator */
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
 }
@@ -5305,12 +5624,23 @@ input:focus-visible + .pastilla-r {
     min-height: 0;
 }
 
+.grafico-plazas .rango-frase {
+    justify-self: start;
+    padding-inline: 2px;
+    background: linear-gradient(transparent 62%, transparent 62%) no-repeat;
+    transition: background-color var(--dur-1) ease;
+}
+
+.grafico-plazas .curso-rango:hover .rango-frase {
+    background-image: linear-gradient(transparent 58%, var(--cf-serie-suave) 58%, var(--cf-serie-suave) 92%, transparent 92%);
+}
+
 .perchero .r-rango {
     fill: var(--eg-rango);
 }
 
 .perchero .r-probable {
-    fill: var(--eg-serie-1);
+    fill: var(--cf-serie, var(--eg-serie-1));
 }
 
 .perchero .r-tope {
@@ -5324,6 +5654,43 @@ input:focus-visible + .pastilla-r {
 .perchero .r-rango-t {
     font-size: 11px;
     font-weight: 650;
+}
+
+.leyenda-riel .clave-riel {
+    flex: none;
+    overflow: visible;
+}
+
+.clave-riel .k-pomo {
+    fill: var(--eg-gancho);
+}
+
+.clave-riel .k-brillo {
+    fill: var(--eg-gancho-luz);
+}
+
+.clave-riel .k-mochila {
+    fill: var(--eg-mochila);
+}
+
+.clave-riel .k-banda {
+    fill: var(--c-acento-vivo, var(--eg-coral));
+}
+
+.clave-riel .k-rango {
+    fill: var(--eg-rango);
+}
+
+.clave-riel .k-probable {
+    fill: var(--cf-serie);
+}
+
+.clave-riel .k-tope {
+    fill: none;
+    stroke: var(--eg-tinta-2);
+    stroke-width: 1.6;
+    stroke-dasharray: 1.6 3;
+    stroke-linecap: round;
 }
 
 .banco {
@@ -5348,17 +5715,24 @@ input:focus-visible + .pastilla-r {
     background: var(--eg-mochila);
     box-shadow: inset 0 -4px 0 var(--eg-mochila-sombra);
 }
-
+/* ---------- The school year as a ledger: a sum written down that adds up ---------- */
 .libro {
+    position: relative;
     display: grid;
-    gap: 10px;
+    gap: 0;
+    --libro-cifra: 5.5em;
+}
+
+.libro-extremo,
+.libro-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--libro-cifra) minmax(0, 40%);
+    gap: 14px;
+    align-items: center;
 }
 
 .libro-extremo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 10px;
+    min-height: 46px;
     color: var(--eg-tinta-2);
     font-weight: 650;
 }
@@ -5367,31 +5741,47 @@ input:focus-visible + .pastilla-r {
     color: var(--eg-tinta);
     font-size: 1.75rem;
     font-weight: 780;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.libro-final {
+    border-top: 1px solid var(--eg-tinta);
+}
+
+.libro-final b {
+    justify-self: end;
+    border-bottom: 3px double var(--eg-tinta);
+    line-height: 1.15;
 }
 
 .libro-neto {
-    margin-inline-start: auto;
+    justify-self: start;
     color: var(--eg-tinta);
     font-size: 1.5rem;
     font-weight: 780;
+    font-variant-numeric: tabular-nums;
 }
 
 .libro-filas {
     display: grid;
-    gap: 4px;
 }
 
 .libro-fila {
-    display: grid;
-    grid-template-columns: 3.4em minmax(0, 1fr) minmax(0, 42%);
-    gap: 10px;
-    align-items: center;
-    padding: 4px 6px;
-    border-radius: 8px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 6px;
+    transition: opacity var(--dur-1) ease;
+}
+
+.libro-que {
+    padding-inline-start: 1.1em;
+    font-size: 0.9375rem;
 }
 
 .libro-n {
+    font-size: 1.125rem;
     font-variant-numeric: tabular-nums;
     text-align: end;
 }
@@ -5399,8 +5789,8 @@ input:focus-visible + .pastilla-r {
 .libro-fila .barra-pista::before {
     content: '';
     position: absolute;
-    top: -4px;
-    bottom: -4px;
+    top: -9px;
+    bottom: -9px;
     inset-inline-start: 30%;
     border-inline-start: 1px solid var(--eg-borde);
 }
@@ -5413,41 +5803,83 @@ input:focus-visible + .pastilla-r {
 .libro-fila.sale .barra-pista > .barra-dato {
     inset-inline-start: auto;
     inset-inline-end: 70%;
-    background: var(--eg-serie-2);
+    background: var(--cf-sale);
     border-radius: 0;
     border-start-start-radius: 4px;
     border-end-start-radius: 4px;
     transform-origin: 100% 50%;
 }
 
-.libro-que {
-    font-size: 0.9375rem;
+[dir="rtl"] .libro-fila.sale .barra-pista > .barra-dato {
+    transform-origin: 0 50%;
 }
 
+.sello-cuadra {
+    position: absolute;
+    inset-inline-end: 4%;
+    bottom: 8px;
+    padding: 2px 10px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 6px;
+    color: var(--eg-sello);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: rotate(-7deg);
+    pointer-events: none;
+}
+/* Why they left: each reason a part of those who left, in ochre */
+.motivos-lista .motivo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 30%) 2.4em;
+    gap: 12px;
+    align-items: center;
+}
+
+.motivo-barra {
+    display: block;
+    height: 10px;
+    width: calc(var(--n) / var(--total) * 100%);
+    border-radius: 0 3px 3px 0;
+    background: var(--cf-sale);
+}
+
+[dir="rtl"] .motivo-barra {
+    border-radius: 3px 0 0 3px;
+}
+
+.motivos-lista .motivo b {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+/* ---------- The roll year by year, from zero ---------- */
 .columnas {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
     gap: 8px;
     align-items: end;
-    height: 220px;
-    padding-top: 22px;
+    height: 230px;
+    padding-top: 24px;
     border-bottom: 1px solid var(--eg-borde);
 }
 
 .columna {
+    position: relative;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
     justify-items: center;
     height: 100%;
     padding: 0 2px;
     border-radius: 8px 8px 0 0;
+    transition: opacity var(--dur-1) ease;
 }
 
 .col-pista {
     position: relative;
     display: block;
-    width: 22px;
+    width: var(--cf-grosor);
     height: 100%;
 }
 
@@ -5456,33 +5888,51 @@ input:focus-visible + .pastilla-r {
     bottom: 0;
     inset-inline: 0;
     height: calc(var(--v) * 100%);
-    background: var(--eg-serie-1);
+    background: var(--cf-serie);
     border-radius: 4px 4px 0 0;
     transform-origin: 50% 100%;
 }
 
-.columna {
-    position: relative;
-}
-
 .columna b {
     position: absolute;
-    bottom: calc(var(--v) * 100% + 4px);
+    bottom: calc(var(--v) * 100% + 6px);
     font-size: 0.875rem;
     font-variant-numeric: tabular-nums;
 }
 
-.col-ano {
-    padding-top: 6px;
+.columna.ultima b {
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.col-ano,
+.col-delta {
+    position: absolute;
+    top: calc(100% + 6px);
     color: var(--eg-tinta-2);
     font-size: 0.75rem;
     white-space: nowrap;
 }
 
-.nota-importado a {
+.col-delta {
+    top: calc(100% + 24px);
+    color: var(--cf-lapiz-texto);
     font-weight: 650;
 }
 
+.columnas-caja {
+    padding-bottom: 46px;
+}
+
+.columna:nth-last-child(n+10) ~ .columna .col-delta,
+.columna:nth-last-child(n+10) .col-delta {
+    display: none;
+}
+
+.nota-importado a {
+    font-weight: 650;
+}
+/* ---------- The sheets of «Show» ---------- */
 .lamina-mandos {
     position: fixed;
     inset-inline-end: 16px;
@@ -5528,11 +5978,24 @@ input:focus-visible + .pastilla-r {
     .nota-importado {
         grid-column: 1 / -1;
     }
+
+    .cifras > .ancha {
+        grid-column: 1 / -1;
+    }
+}
+
+.cifras > .inicios,
+.cifras > .nota-importado {
+    grid-column: 1 / -1;
 }
 
 @media (max-width: 719px) {
+    .lamina {
+        padding: 18px 16px;
+    }
+
     .barra-fila {
-        grid-template-columns: minmax(0, 1fr) 2.6em;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas: "nombre n" "pista pista";
         gap: 4px 10px;
     }
@@ -5546,25 +6009,64 @@ input:focus-visible + .pastilla-r {
         height: 18px;
     }
 
-    .barra-fila .barra-n {
+    .barra-fila .barra-cifras {
         grid-area: n;
+        margin-inline-start: 0;
+    }
+
+    .barra-fila .barra-pista {
+        margin-inline-end: 0;
     }
 
     .canal-fila {
-        grid-template-columns: minmax(0, 1fr) 2.4em;
+        grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas: "nombre n" "pista pista" "mas mas";
     }
 
+    .canal-fila .barra-pista {
+        margin-inline-end: 0;
+    }
+
+    .canal-fila .barra-n {
+        grid-area: n;
+        margin-inline-start: 0;
+    }
+
+    .libro {
+        --libro-cifra: 4.2em;
+    }
+
+    .libro-extremo,
     .libro-fila {
-        grid-template-columns: 3.2em minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) var(--libro-cifra) minmax(0, 30%);
+        gap: 10px;
     }
 
     .libro-que {
-        grid-column: 2;
+        padding-inline-start: 0.6em;
+    }
+
+    .libro-extremo b {
+        font-size: 1.5rem;
+    }
+
+    .sello-cuadra {
+        position: static;
+        justify-self: end;
+        margin-top: 10px;
     }
 
     .semanas-caja {
-        padding-inline-start: 28px;
+        padding-inline-start: 30px;
+    }
+
+    .columnas {
+        gap: 4px;
+    }
+
+    .col-ano,
+    .col-delta {
+        font-size: 0.6875rem;
     }
 }
 /* «Show»: one sheet per chart, full screen, for a meeting; nothing else on the screen */
@@ -5576,8 +6078,10 @@ body.modo-lamina .cifras-barra,
 body.modo-lamina .lamina .def,
 body.modo-lamina .tabla-gemela,
 body.modo-lamina .nota-importado,
+body.modo-lamina .inicios,
 body.modo-lamina .voces,
 body.modo-lamina .vistas-sem,
+body.modo-lamina .ver-entera,
 body.modo-lamina .motivos,
 body.modo-lamina .avisos {
     display: none;
@@ -5599,7 +6103,7 @@ body.modo-lamina .cifras {
 body.modo-lamina .lamina {
     min-height: 100vh;
     align-content: center;
-    gap: 24px;
+    gap: 22px;
     padding: 7vh 7vw;
     border-radius: 0;
     box-shadow: none;
@@ -5611,8 +6115,13 @@ body.modo-lamina .lamina h2 {
     letter-spacing: -0.03em;
 }
 
+.lamina h2[tabindex="-1"]:focus {
+    outline: 0;
+}
+
 body.modo-lamina .corte {
     display: block;
+    justify-self: start;
     color: var(--eg-tinta-2);
     font-weight: 650;
 }
@@ -5622,14 +6131,21 @@ body.modo-lamina .lamina .linea-dato {
     line-height: 1.35;
 }
 
-body.modo-lamina .barra-pista {
-    height: 26px;
+body.modo-lamina .pagina-cifras {
+    --cf-grosor: 28px;
+    --cf-lapiz: rgba(var(--eg-tinta-rgb), 0.42);
+}
+
+body.modo-lamina .barra-fila {
+    min-height: 52px;
 }
 
 body.modo-lamina .barra-nombre,
 body.modo-lamina .barra-n,
+body.modo-lamina .barra-cifras,
 body.modo-lamina .canal-nombre,
 body.modo-lamina .libro-que,
+body.modo-lamina .libro-n,
 body.modo-lamina .hechos,
 body.modo-lamina .leyenda,
 body.modo-lamina .curso-rango .cab {
@@ -5638,11 +6154,19 @@ body.modo-lamina .curso-rango .cab {
 
 body.modo-lamina .barras,
 body.modo-lamina .canales {
-    gap: 12px;
+    gap: 10px;
+}
+
+body.modo-lamina .canal-fila .barra-pista {
+    height: 22px;
 }
 
 body.modo-lamina .semanas-plot {
-    height: 44vh;
+    height: 42vh;
+}
+
+body.modo-lamina .columnas {
+    height: 42vh;
 }
 
 html.modo-lamina {
@@ -5652,6 +6176,89 @@ html.modo-lamina {
 .en-lamina .lamina {
     min-height: 100vh;
     align-content: center;
+}
+
+/* Before a chart comes into sight (panel.js): its line, its weeks, what may come and its stamp wait */
+.por-crecer .pulso {
+    transform: scaleY(0);
+}
+
+.por-crecer .linea-ahora,
+.por-crecer .area-ahora,
+.por-crecer .punto-ahora,
+.por-crecer .rotulo-linea,
+.por-crecer .perchero .r-rango,
+.por-crecer .perchero .r-probable,
+.por-crecer .perchero .r-rango-t,
+.por-crecer .sello-cuadra {
+    opacity: 0;
+}
+
+@media (forced-colors: active) {
+    .pagina-cifras .barra-pista > i,
+    .pagina-cifras .col-pista i,
+    .pagina-cifras .pulso,
+    .pagina-cifras .motivo-barra {
+        forced-color-adjust: none;
+        /* stylelint-disable-next-line csstree/validator */
+        background: CanvasText;
+    }
+
+    .pagina-cifras .barra-pista .fantasma {
+        /* stylelint-disable-next-line csstree/validator */
+        background: Canvas;
+        /* stylelint-disable-next-line csstree/validator */
+        border: 2px dashed CanvasText;
+    }
+
+    .pagina-cifras .barra-pista .parte {
+        /* stylelint-disable-next-line csstree/validator */
+        background: Highlight;
+    }
+
+    .pagina-cifras .barra-pista .fantasma-tope {
+        /* stylelint-disable-next-line csstree/validator */
+        background: Highlight;
+    }
+
+    .pagina-cifras .linea-ahora {
+        /* stylelint-disable-next-line csstree/validator */
+        stroke: CanvasText;
+    }
+
+    .pagina-cifras .linea-antes {
+        /* stylelint-disable-next-line csstree/validator */
+        stroke: GrayText;
+        stroke-dasharray: 4 3;
+    }
+
+    .pagina-cifras .area-ahora {
+        fill: none;
+    }
+}
+
+@media print {
+    .pagina-cifras .barra-pista > i,
+    .pagina-cifras .col-pista i,
+    .pagina-cifras .pulso {
+        transform: none;
+    }
+
+    .pagina-cifras .semanas-plot .punto-semana,
+    .canal-encendido {
+        display: none;
+    }
+
+    .por-crecer .linea-ahora,
+    .por-crecer .area-ahora,
+    .por-crecer .punto-ahora,
+    .por-crecer .rotulo-linea,
+    .por-crecer .perchero .r-rango,
+    .por-crecer .perchero .r-probable,
+    .por-crecer .perchero .r-rango-t,
+    .por-crecer .sello-cuadra {
+        opacity: 1;
+    }
 }
 /* ==================== 11.6 Importing what already happened ==================== */
 .tipos-import {
@@ -6736,35 +7343,6 @@ html.modo-lamina {
     }
 }
 
-/* Eguahe, the numbers: the label at the end of the line turns back near the right edge, and the dates of the
-   campaigns and the note of what was imported go across the whole page. */
-.rotulo-linea.al-final {
-    padding-inline-start: 0;
-    padding-inline-end: 10px;
-    transform: translate(-100%, -140%);
-}
-
-[dir="rtl"] .rotulo-linea.al-final {
-    transform: translate(100%, -140%);
-}
-
-.cifras > .inicios,
-.cifras > .nota-importado {
-    grid-column: 1 / -1;
-}
-
-/* A chart without its partner in the row takes the whole row. */
-@media (min-width: 1100px) {
-    .cifras > .ancha {
-        grid-column: 1 / -1;
-    }
-}
-
-.ver-entera {
-    margin-block: -6px 0;
-    font-size: 0.875rem;
-}
-
 /* Eguahe, the sheets of labels: each sheet in millimetres as the centre buys it, the label of a backpack or the
    sticker of a bottle in each cell, drawn by the server. Printing gives only the sheets, each on its own page. */
 .mandos-etiquetas {
@@ -7009,3 +7587,155 @@ html.modo-lamina {
     }
 }
 
+/* Eguahe, How it went (Gaudí, 3.3): on the page of an event once it is over, sentences, the words in their order in
+   bars of one tone with the number beside, and the texts as quotes with the name used at home; the event before in
+   soft. Never percentages. Printed alone, it is a sheet to take away in PDF. */
+.como-fue {
+    display: grid;
+    gap: 18px;
+    margin-block-end: 22px;
+}
+
+.cabeza-como-fue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+}
+
+.cabeza-como-fue h2 {
+    margin: 0;
+}
+
+.como-fue-vivo {
+    display: grid;
+    gap: 16px;
+}
+
+.como-fue-vivo > .linea-dato,
+.como-fue-vivo > .def {
+    margin: 0;
+}
+
+.pregunta-como {
+    display: grid;
+    gap: 8px;
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--eg-linea);
+}
+
+.pregunta-como h3 {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+.frase-como {
+    margin: 0;
+    font-size: 1.0625rem;
+}
+
+.barras-como {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.barras-como li {
+    display: grid;
+    grid-template-columns: minmax(5.5em, auto) minmax(0, 1fr) 2.5em;
+    align-items: center;
+    gap: 10px;
+}
+
+.palabra-como {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.pista-como {
+    display: block;
+    height: 22px;
+    border-radius: 4px;
+    background: var(--eg-serie-1-suave);
+    overflow: hidden;
+}
+
+.pista-como i {
+    display: block;
+    height: 100%;
+    width: calc(var(--v) * 100%);
+    border-radius: 4px;
+    background: var(--eg-serie-1);
+}
+
+.barras-como b {
+    font-variant-numeric: tabular-nums;
+}
+
+.citas-como {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+}
+
+.citas-como blockquote {
+    margin: 0;
+    font-size: 1.3125rem;
+    line-height: 1.4;
+}
+
+.citas-como blockquote::before {
+    content: '«';
+}
+
+.citas-como blockquote::after {
+    content: '»';
+}
+
+.quien-cita {
+    display: block;
+    margin-block-start: 2px;
+    color: var(--eg-tinta);
+    font-family: var(--piel-mano);
+    font-size: 1.375rem;
+}
+
+.antes-como {
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.como-fue .lo-que-hacemos {
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--eg-linea);
+}
+
+@media print {
+    body.imprime-seccion * {
+        visibility: hidden;
+    }
+
+    body.imprime-seccion .a-imprimir,
+    body.imprime-seccion .a-imprimir * {
+        visibility: visible;
+    }
+
+    body.imprime-seccion .a-imprimir {
+        position: absolute;
+        inset: 0 0 auto;
+        background: #fff;
+        color: #000;
+    }
+
+    body.imprime-seccion .a-imprimir .lo-que-hacemos,
+    body.imprime-seccion .a-imprimir [data-imprimir-seccion] {
+        display: none;
+    }
+}

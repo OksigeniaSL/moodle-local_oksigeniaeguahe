@@ -1,0 +1,83 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_howitwent
+
+    How it went, on the page of an event once it is over: how many of the families who came told, the last one; by
+    question its sentence, the words in their order in bars of one tone with how many said each, and the texts as quotes
+    with the name used at home; below, in soft, the event before. Never percentages; with few answers only sentences and
+    quotes. Alive every half minute while the survey is asked; to take away in PDF; and «What we do with it».
+
+    Example context (json):
+    {
+        "i": {"imprimir": "", "check": ""},
+        "title": "Cómo fue", "told": "8 de las 10 familias que vinieron nos han contado cómo fue · la última, hace 4 minutos",
+        "state": "Se pregunta hasta el 5 dic.", "few": "", "liveurl": "#", "every": 30, "hasquestions": true,
+        "questions": [{"label": "¿Les ayudó la visita a imaginar el día a día aquí?", "sentence": "6 de 8 dijeron «mucho» o «bastante».",
+            "hasrows": true, "rows": [{"label": "Nada", "n": 0, "v": 0}, {"label": "Mucho", "n": 4, "v": 1}],
+            "hasquotes": false, "quotes": [], "morequotes": false, "before": "La anterior: 5 de 9 dijeron «mucho» o «bastante»."}],
+        "beforeline": "La jornada anterior, «Puertas abiertas», 7 nov.: 9 de 14 familias contaron cómo fue.",
+        "canact": true, "outcome": "", "action": "#", "sesskey": "abc"
+    }
+}}
+<section class="bloque como-fue" id="como-fue" aria-labelledby="como-fue-t">
+    <div class="cabeza-como-fue">
+        <h2 id="como-fue-t">{{title}}</h2>
+        <button class="boton terciario pequeno" type="button" data-imprimir-seccion="como-fue" hidden>{{{i.imprimir}}}{{#str}}panel_howitwent_pdf, local_oksigeniaeguahe{{/str}}</button>
+    </div>
+    <div class="como-fue-vivo"{{#liveurl}} data-releer="{{liveurl}}" data-cada="{{every}}"{{/liveurl}}>
+        <p class="linea-dato" aria-live="polite">{{told}}</p>
+        <p class="def">{{state}}{{#few}} {{few}}{{/few}}</p>
+        {{#questions}}
+        <article class="pregunta-como">
+            <h3>{{label}}</h3>
+            {{#sentence}}<p class="frase-como">{{sentence}}</p>{{/sentence}}
+            {{#hasrows}}
+            <ul class="barras-como">
+                {{#rows}}<li style="--v: {{v}}"><span class="palabra-como">{{label}}</span><span class="pista-como" aria-hidden="true"><i></i></span><b>{{n}}</b></li>{{/rows}}
+            </ul>
+            {{/hasrows}}
+            {{#hasquotes}}
+            <ul class="citas-como">
+                {{#quotes}}<li><blockquote>{{text}}</blockquote>{{#who}}<span class="quien-cita" translate="no">{{who}}</span>{{/who}}</li>{{/quotes}}
+            </ul>
+            {{/hasquotes}}
+            {{#morequotes}}
+            <details class="plegado mas-citas">
+                <summary>{{label}}</summary>
+                <ul class="citas-como">
+                    {{#quotes}}<li><blockquote>{{text}}</blockquote>{{#who}}<span class="quien-cita" translate="no">{{who}}</span>{{/who}}</li>{{/quotes}}
+                </ul>
+            </details>
+            {{/morequotes}}
+            {{#before}}<p class="antes-como">{{before}}</p>{{/before}}
+        </article>
+        {{/questions}}
+        {{#beforeline}}<p class="antes-como">{{beforeline}}</p>{{/beforeline}}
+    </div>
+    {{#canact}}
+    <form class="formulario-panel lo-que-hacemos" method="post" action="{{action}}#como-fue">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="outcome">
+        <div class="campo">
+            <label for="lo-que-hacemos">{{#str}}panel_outcome, local_oksigeniaeguahe{{/str}}</label>
+            <textarea id="lo-que-hacemos" name="outcome" rows="2" maxlength="600" aria-describedby="lo-que-hacemos-a">{{outcome}}</textarea>
+            <span class="ayuda" id="lo-que-hacemos-a">{{#str}}panel_outcome_help, local_oksigeniaeguahe{{/str}}</span>
+        </div>
+        <div class="acciones"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+    </form>
+    {{/canact}}
+</section>

@@ -39,6 +39,9 @@ class lists {
     const CHANNELS = ['openday', 'visit', 'event', 'webform', 'phone', 'walkin', 'email', 'whatsapp', 'telegram', 'meta',
         'googleforms', 'other'];
 
+    /** @var string What a family writes from its own page after a visit: never a way it came in by. */
+    const PAGE = 'page';
+
     /** @var string[] Channels a person of the team notes by hand. */
     const HAND_CHANNELS = ['phone', 'walkin', 'email', 'whatsapp', 'telegram', 'openday', 'other'];
 

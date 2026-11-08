@@ -33,6 +33,9 @@ class panel_centre {
     /** @var string The colour of a centre that has none yet. */
     const COLOUR = '#2f5d62';
 
+    /** @var int[] How many working days the team may say it usually takes to answer. */
+    const REPLYDAYS = [1, 2, 3, 5];
+
     /** @var string[] The pictures a logo can be. */
     const LOGOS = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 
@@ -58,6 +61,7 @@ class panel_centre {
         }
         $logo = centres::logo((int) $centre->id);
         $name = format_string($centre->name);
+        $libraries = tales::libraries();
         $index = ['aspecto' => 'panel_how_families_see', 'reciben' => 'panel_who_receives'];
         $messaging = [];
         if (messaging::available()) {
@@ -96,6 +100,13 @@ class panel_centre {
             'email' => (string) $centre->email,
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
+            'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
+                'panel_replydays_n', self::C, $d), 'selected' => $d === (int) ($centre->replydays ?? 2)], self::REPLYDAYS),
+            'hastales' => (bool) $libraries,
+            'libraries' => array_merge([['value' => '', 'name' => get_string('panel_tales_none', self::C),
+                'selected' => trim((string) ($centre->library ?? '')) === '']], array_map(fn($l) => ['value' => $l['slug'],
+                'name' => $l['tales'] ? $l['name'] : get_string('panel_tales_empty', self::C, $l['name']),
+                'selected' => $l['slug'] === (string) ($centre->library ?? '')], $libraries)),
             'logo' => $logo ? $logo->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
@@ -302,6 +313,8 @@ class panel_centre {
             'email' => optional_param('email', '', PARAM_RAW_TRIMMED),
             'welcome' => optional_param('welcome', '', PARAM_TEXT),
             'arrive' => optional_param('arrive', '', PARAM_TEXT),
+            'replydays' => optional_param('replydays', (int) ($centre->replydays ?? 2), PARAM_INT),
+            'library' => optional_param('library', (string) ($centre->library ?? ''), PARAM_ALPHANUMEXT),
             'logoplate' => optional_param('logoplate', 0, PARAM_BOOL),
             'controller' => optional_param('controller', '', PARAM_TEXT),
             'rightscontact' => optional_param('rightscontact', '', PARAM_TEXT),

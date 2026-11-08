@@ -471,7 +471,7 @@ class metrics {
         foreach (
             $DB->get_records_select(
                 households::CONTACTS,
-                "centreid = :centreid AND direction = 'in'",
+                "centreid = :centreid AND direction = 'in' AND channel <> 'page'",
                 ['centreid' => $centreid],
                 'timecreated ASC, id ASC',
                 'id, householdid, channel, entryid, detail'

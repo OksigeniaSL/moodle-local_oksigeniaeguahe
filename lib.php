@@ -86,6 +86,7 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
             'perweek' => 0.2],
         'visit_changed' => ['examples' => ['Los Almendros School', 'Saturday 21 November, from 11:00 to 13:00, in the hall'],
             'perweek' => 0.05],
+        'visit_thanks' => ['examples' => ['Los Almendros School', 'Lucía Medina'], 'perweek' => 0.2],
     ];
 }
 
@@ -118,11 +119,14 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
                                                       AND COALESCE(t.timestart, e.timestart) < :end',
             ['centreid' => $id, 'start' => $start, 'end' => $start + DAYSECS]
         );
-        $due = count(\local_oksigeniaeguahe\local\attend::due($id, $now));
+        $promised = \local_oksigeniaeguahe\local\attend::due($id, $now);
+        $due = count($promised);
         $alerts = [];
         if ($due) {
+            // The deadline of the alert: the oldest day promised among those due.
+            $days = array_filter(array_map(fn($p) => (int) $p->dueday, $promised));
             $alerts[] = ['text' => get_string($due === 1 ? 'work_promised_one' : 'work_promised', $c, $due),
-                'url' => $url->out(false), 'level' => 'urgent'];
+                'url' => $url->out(false), 'level' => 'urgent'] + ($days ? ['due' => min($days)] : []);
         }
         if ($today) {
             $alerts[] = ['text' => get_string($today === 1 ? 'work_today_one' : 'work_today', $c, $today),

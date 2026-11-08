@@ -47,7 +47,7 @@ class panel_eventform {
             $day = self::day(($now ?: time()) + 14 * DAYSECS);
             return ['id' => 0, 'kind' => 'openday', 'name' => get_string('event_kind_openday', self::C), 'tailored' => false,
                 'day' => $day, 'start' => '10:00', 'end' => '13:00', 'place' => '', 'capacity' => '', 'open' => true,
-                'hosts' => [], 'formid' => 0, 'slots' => []];
+                'hosts' => [], 'formid' => 0, 'survey' => 0, 'slots' => []];
         }
         $slots = [];
         foreach (events::slots((int) $event->id) as $slot) {
@@ -68,6 +68,7 @@ class panel_eventform {
             'open' => !empty($event->open),
             'hosts' => array_values(array_filter(array_map('intval', explode(',', (string) $event->hosts)))),
             'formid' => (int) $event->formid,
+            'survey' => (int) ($event->survey ?? 0),
             'slots' => $slots,
         ];
     }
@@ -97,6 +98,7 @@ class panel_eventform {
             'open' => optional_param('open', 0, PARAM_BOOL),
             'hosts' => array_values(array_filter(array_map('intval', optional_param_array('hosts', [], PARAM_INT)))),
             'formid' => optional_param('formid', 0, PARAM_INT),
+            'survey' => optional_param('survey', 0, PARAM_INT),
             'slots' => [],
         ];
         $ids = optional_param_array('slotid', [], PARAM_INT);
@@ -181,7 +183,7 @@ class panel_eventform {
             'place' => $values['place'], 'timestart' => self::stamp($values['day'], $values['start']),
             'timeend' => self::stamp($values['day'], $values['end']), 'capacity' => (int) $values['capacity'],
             'open' => $values['open'] ? 1 : 0, 'tailored' => $values['tailored'] ? 1 : 0, 'formid' => $values['formid'],
-            'hosts' => $values['hosts'], 'slots' => $slots];
+            'survey' => $values['survey'], 'hosts' => $values['hosts'], 'slots' => $slots];
     }
 
     /**
@@ -524,6 +526,17 @@ class panel_eventform {
                 $chosen = (int) $entry->id === $values['formid'] ? $entry : $chosen;
             }
         }
+        // After the visit: the one open question, or a survey of the centre; the first one made from «How it went».
+        $surveys = [['value' => 0, 'name' => get_string('event_survey_none', $c), 'selected' => !$values['survey']]];
+        $surveyentry = null;
+        foreach (surveys::for_centre((int) $centre->id) as $entry) {
+            $surveys[] = ['value' => (int) $entry->id, 'name' => format_string($entry->name),
+                'selected' => (int) $entry->id === $values['survey']];
+            $surveyentry = (int) $entry->id === $values['survey'] ? $entry : $surveyentry;
+        }
+        if (count($surveys) === 1) {
+            $surveys[] = ['value' => -1, 'name' => get_string('event_survey_new', $c), 'selected' => $values['survey'] === -1];
+        }
         $questions = [];
         foreach ($chosen ? forms::fields((int) $chosen->id) : [] as $field) {
             $label = forms::texts($field, current_language(), (string) $centre->lang)['label'];
@@ -588,6 +601,9 @@ class panel_eventform {
             'hasformquestions' => (bool) $questions,
             'formquestions' => $questions,
             'formurl' => $chosen ? (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $chosen->id]))->out(false) : '',
+            'surveys' => $surveys,
+            'surveyurl' => $surveyentry ? (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $surveyentry->id]))
+                ->out(false) : '',
             'preview' => [
                 'kind' => get_string('event_kind_' . $values['kind'], $c),
                 'name' => $values['name'] !== '' ? $values['name'] : get_string('panel_preview_name', $c),

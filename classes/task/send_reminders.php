@@ -75,7 +75,7 @@ class send_reminders extends \core\task\scheduled_task {
                 continue;
             }
             $signup = familymail::signup($household, (int) $row->eventid);
-            if ($signup && !self::may_email($household)) {
+            if ($signup && !familymail::may_email($household)) {
                 // Without the email allowed, only on the phones the family joined with.
                 messaging::notify('reminder', $household, $centre, $signup, $household->lang ?: $centre->lang);
                 continue;
@@ -88,20 +88,5 @@ class send_reminders extends \core\task\scheduled_task {
                 }
             }
         }
-    }
-
-    /**
-     * Whether the family let the centre write to them by email.
-     *
-     * @param \stdClass $household
-     * @return bool
-     */
-    protected static function may_email(\stdClass $household): bool {
-        foreach (households::permissions((int) $household->id) as $channels) {
-            if (!empty($channels['email'])) {
-                return true;
-            }
-        }
-        return false;
     }
 }

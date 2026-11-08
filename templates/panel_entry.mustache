@@ -39,11 +39,11 @@
         "fields": [{"id": 21, "n": 1, "label": "¿Necesitan comedor?", "typename": "Sí o no", "required": false, "condition": "", "missing": "",
             "first": true, "last": true, "open": false, "editurl": "#", "editor": null}],
         "newfield": {"types": [{"value": "yesno", "name": "Sí o no", "selected": true}]},
-        "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "fixed": "",
+        "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "hassentence": true, "fixed": "",
             "questions": [], "blocks": [], "button": "Apuntarnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
         "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "n": "", "qr": "", "general": true}],
             "embed": "<iframe></iframe>"},
-        "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
+        "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
         "erasequestion": "¿Borramos este formulario?"
     }
 }}
@@ -56,6 +56,7 @@
                 <span class="segmentos">{{#langs}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}} lang="{{code}}">{{name}}{{#missing}} <span class="falta-idioma">· {{missing}}</span>{{/missing}}</a>{{/langs}}</span>
                 <span class="def">{{langnote}}</span>
             </nav>
+            {{^issurvey}}
             <form class="apartado de-siempre" method="post" action="{{action}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="blocks">
                 <header><h2>{{#str}}entry_blocks, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_blocks_help, local_oksigeniaeguahe{{/str}}</span></header>
@@ -64,6 +65,7 @@
                 </div>
                 <div class="acciones sin-js"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
             </form>
+            {{/issurvey}}
             <section class="apartado preguntas" aria-labelledby="preguntas-t" id="preguntas">
                 <header><h2 id="preguntas-t">{{#str}}panel_own_questions, local_oksigeniaeguahe{{/str}}</h2><span class="guardado" data-guardado aria-live="polite">{{saved}}</span></header>
                 <ol class="lista-preguntas">
@@ -123,10 +125,12 @@
                 <form method="post" action="{{action}}" class="formulario-panel">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="settings">
                     <div class="campo"><label for="f-nombre">{{#str}}entry_name, local_oksigeniaeguahe{{/str}}</label><input id="f-nombre" name="name" value="{{name}}"><span class="ayuda">{{#str}}entry_name_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    {{^issurvey}}
                     <div class="campo"><label for="f-titulo">{{#str}}entry_title, local_oksigeniaeguahe{{/str}}</label><input id="f-titulo" name="title" value="{{title}}" data-vivo-movil="titulo"></div>
                     <div class="campo"><label for="f-entradilla">{{#str}}entry_lead, local_oksigeniaeguahe{{/str}}</label><textarea id="f-entradilla" name="lead" rows="2" data-vivo-movil="entradilla">{{lead}}</textarea></div>
                     <label class="casilla"><input type="checkbox" name="acknowledge" value="1"{{#acknowledge}} checked{{/acknowledge}}><span>{{#str}}entry_acknowledge, local_oksigeniaeguahe{{/str}}</span></label>
                     <label class="casilla"><input type="checkbox" name="active" value="1"{{#open}} checked{{/open}}><span>{{#str}}entry_active, local_oksigeniaeguahe{{/str}}</span></label>
+                    {{/issurvey}}
                     <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
                 </form>
                 <details class="confirmar">

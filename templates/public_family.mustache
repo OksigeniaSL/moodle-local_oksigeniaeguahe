@@ -20,7 +20,9 @@
     The page of a family, theirs, from the link they got. The heading is the name the family uses at home, written by
     hand, as on the label of the backpack on its hook. Then their visit, in a band of the colour of the centre, with
     the calendar; the people who will receive them, with their face; and what they told us, with their data to take or
-    to erase. After the visit, what comes next.
+    to erase. After the visit, one open question on the wall, «What were you left to ask?», or, if the centre turned it
+    on for that visit, the survey «How did it go?» in the band, the open question first; and what the centre does with
+    what they told, under the thanks.
 
     Example context (json):
     {
@@ -30,7 +32,7 @@
             "delay": "0.15", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita",
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "howitwent": false, "outcome": false,
         "first": {"weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
@@ -43,7 +45,8 @@
         "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [], "hasjoin": false, "joinlinks": [], "joined": false,
         "jointitle": "", "joinlead": "", "joinedline": "",
         "answerstitle": "",
-        "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo"}],
+        "children": [{"name": "Leonardo", "course": "Infantil 3 años · curso 2027-28", "ontag": "En su etiqueta: Leo",
+            "tales": "#", "talesname": "Cuentos para leer juntos en casa"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
@@ -66,6 +69,13 @@
                 <p><b>{{saved}}.</b> {{savedline}} {{emailed}}</p>
             </div>
             {{/new}}
+            {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> {{text}}</p>{{/outcome}}
+            {{#wallask}}
+            <form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="ask">
+                {{> local_oksigeniaeguahe/public_ask }}
+            </form>
+            {{/wallask}}
         </div>
     </div>
 </section>
@@ -95,6 +105,25 @@
     {{/others}}
 </section>
 {{/hasnext}}
+{{#howitwent}}
+<section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t">
+    <div class="cabeza-encuesta">
+        <p class="etiqueta" id="como-fue-t">{{label}}</p>
+        <p class="siguiente">{{lead}}</p>
+        {{#saved}}<p class="guardado-todo" role="status">{{saved}}</p>{{/saved}}
+    </div>
+    <form class="hoja-encuesta" method="post" action="{{action}}" data-encuesta data-guardado-texto="{{savedtext}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="survey">
+        {{#ask}}{{> local_oksigeniaeguahe/public_ask }}{{/ask}}
+        <div class="preguntas-encuesta">
+            {{> local_oksigeniaeguahe/public_questions }}
+        </div>
+        {{#done}}<p class="hecho-encuesta">{{done}}</p>{{/done}}
+        <div class="acciones guardar-encuesta"><button class="boton secundario" type="submit">{{savetext}}</button></div>
+    </form>
+</section>
+{{/howitwent}}
+{{^howitwent}}
 {{^hasnext}}
 <section class="banda" aria-label="{{bandnext}}">
     <p class="etiqueta">{{bandnext}}</p>
@@ -108,6 +137,7 @@
     </div>
 </section>
 {{/hasnext}}
+{{/howitwent}}
 
 {{#hashosts}}
 <section class="seccion dos-col">
@@ -141,7 +171,7 @@
         {{#haschildren}}
         <div>
             <h3>{{pub_who_comes}}</h3>
-            <dl>{{#children}}<div><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}</dd></div>{{/children}}</dl>
+            <dl>{{#children}}<div><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}</dd></div>{{/children}}</dl>
         </div>
         {{/haschildren}}
         <div>

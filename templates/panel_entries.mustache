@@ -35,7 +35,8 @@
                 "n": 41, "broughttext": "41 familias", "hasn": true, "last": "la última, ayer a las 21:14", "sites": ["Instagram"], "hassites": true, "missing": "", "v": 1}]}],
         "hasnotused": false, "notused": [], "def": "Una llegada es una familia que entra por esa entrada.",
         "canact": true, "action": "#", "sesskey": "abc",
-        "kinds": [{"value": "form", "name": "Formulario", "help": "Hecho en Eguahe.", "icon": "", "checked": true}]
+        "kinds": [{"value": "form", "name": "Formulario", "help": "Hecho en Eguahe.", "icon": "", "checked": true}],
+        "templates": [{"value": "howitwent", "name": "Cómo fue la jornada", "help": "La encuesta de después."}]
     }
 }}
 <div class="pagina pagina-entradas">
@@ -66,6 +67,13 @@
                 <div class="acciones"><button class="boton principal" type="submit">{{{i.mas1}}}{{#str}}panel_create_entry, local_oksigeniaeguahe{{/str}}</button></div>
             </form>
         </details>
+        <section class="apartado hechas" aria-labelledby="g-hechas">
+            <header class="cab-grupo"><h2 id="g-hechas">{{#str}}panel_start_made, local_oksigeniaeguahe{{/str}}</h2><p class="secundario">{{#str}}panel_start_made_sub, local_oksigeniaeguahe{{/str}}</p></header>
+            <form class="hechas-lista" method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                {{#templates}}<button class="sin-usar-fila" type="submit" name="template" value="{{value}}">{{{i.mas1}}}<span class="que"><b>{{name}}</b><span class="secundario">{{help}}</span></span><span class="enlace">{{#str}}panel_start_it, local_oksigeniaeguahe{{/str}}</span></button>{{/templates}}
+            </form>
+        </section>
         {{/canact}}
     </div>
 </div>

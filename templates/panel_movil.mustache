@@ -29,7 +29,7 @@
     Example context (json):
     {
         "i": {"probar": ""}, "centre": "Colegio de ejemplo", "initial": "C", "title": "Hablemos", "lead": "Les contestamos en un día.",
-        "sentence": [{"text": "", "hole": true, "k": "quien"}, {"text": " vendría.", "hole": false, "k": ""}],
+        "sentence": [{"text": "", "hole": true, "k": "quien"}, {"text": " vendría.", "hole": false, "k": ""}], "hassentence": true,
         "fixed": "Primero, las de siempre.",
         "questions": [{"id": 21, "label": "¿Necesitan comedor?", "help": "", "required": false, "isyesno": true, "ischoice": false,
             "ismulti": false, "islong": false, "istext": false, "options": [{"value": "Sí", "name": "Sí"}], "showif": 0, "showvalue": "",
@@ -44,8 +44,8 @@
             <div class="movil-pagina">
                 <p class="movil-titulo" data-movil-titulo>{{title}}</p>
                 <p class="movil-entradilla" data-movil-entradilla>{{lead}}</p>
-                <p class="movil-frase">{{#sentence}}{{#hole}}<span class="hueco" data-hueco="{{k}}"></span>{{/hole}}{{^hole}}{{text}}{{/hole}}{{/sentence}}</p>
-                <p class="movil-fijas">{{fixed}}</p>
+                {{#hassentence}}<p class="movil-frase">{{#sentence}}{{#hole}}<span class="hueco" data-hueco="{{k}}"></span>{{/hole}}{{^hole}}{{text}}{{/hole}}{{/sentence}}</p>{{/hassentence}}
+                {{#fixed}}<p class="movil-fijas">{{fixed}}</p>{{/fixed}}
                 {{#questions}}
                 <div class="movil-q{{#open}} editando{{/open}}{{#conditional}} condicional{{/conditional}}" data-movil-q="{{id}}" data-si="{{showif}}" data-si-valor="{{showvalue}}">
                     {{#conditional}}<span class="movil-si">{{conditionnote}}</span>{{/conditional}}

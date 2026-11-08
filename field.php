@@ -30,12 +30,16 @@ use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_entry;
+use local_oksigeniaeguahe\local\surveys;
 
 $entryid = required_param('e', PARAM_INT);
 $id = optional_param('id', 0, PARAM_INT);
 
 require_login(null, false);
-$entry = $DB->get_record(entries::T, ['id' => $entryid, 'kind' => 'form'], '*', MUST_EXIST);
+$entry = $DB->get_record(entries::T, ['id' => $entryid], '*', MUST_EXIST);
+if ($entry->kind !== 'form' && $entry->kind !== surveys::KIND) {
+    throw new moodle_exception('invalidrecord', 'error');
+}
 $centre = centres::require_work((int) $entry->centreid);
 centres::require_act((int) $centre->id);
 $lang = panel_entry::lang($centre);

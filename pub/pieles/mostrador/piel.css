@@ -104,9 +104,9 @@ body.piel-mostrador::after {
         --eg-sobre-accion: #2b2226;
         --eg-acento: #dcc3d6;
         --eg-acento-suave: #45343f;
-        --eg-serie-1: #c085b6;
+        --eg-serie-1: #b96ead;
         --eg-serie-1-suave: #553e51;
-        --eg-serie-2: #d6944f;
+        --eg-serie-2: #c9833f;
         --eg-mochila: #bba9b8;
         --eg-mochila-sombra: #8f7d8c;
         --eg-mochila-luz: #2f2723;
@@ -173,9 +173,9 @@ body.piel-mostrador::after {
     --eg-sobre-accion: #2b2226;
     --eg-acento: #dcc3d6;
     --eg-acento-suave: #45343f;
-    --eg-serie-1: #c085b6;
+    --eg-serie-1: #b96ead;
     --eg-serie-1-suave: #553e51;
-    --eg-serie-2: #d6944f;
+    --eg-serie-2: #c9833f;
     --eg-mochila: #bba9b8;
     --eg-mochila-sombra: #8f7d8c;
     --eg-mochila-luz: #2f2723;
@@ -1190,30 +1190,7 @@ body.piel-mostrador::after {
 .piel-mostrador .bandeja-fichero .ic {
     color: var(--kraft-tinta);
 }
-/* ---------- Round 2: the numbers, importing, the forecast, the settings ---------- */
-.piel-mostrador .cifras-barra {
-    border-radius: 3px;
-}
-
-.piel-mostrador .lamina {
-    border-radius: 3px;
-}
-
-.piel-mostrador .grafico-alcance,
-.piel-mostrador .grafico-plazas {
-    transform: rotate(-0.15deg);
-}
-
-.piel-mostrador .lamina h2 {
-    justify-self: start;
-    padding-bottom: 2px;
-    border-bottom: 2px solid var(--eg-tinta);
-}
-
-.piel-mostrador .cifra-heroe b {
-    color: var(--eg-tinta);
-}
-
+/* ---------- Round 2: importing, the forecast, the settings ---------- */
 .piel-mostrador .nota-importado {
     padding: 6px 12px;
     border-radius: 3px;
@@ -1273,8 +1250,6 @@ body.piel-mostrador::after {
 }
 
 @media (max-width: 719px) {
-    .piel-mostrador .grafico-alcance,
-    .piel-mostrador .grafico-plazas,
     .piel-mostrador .cartel-muestra {
         transform: none;
     }
@@ -1282,11 +1257,6 @@ body.piel-mostrador::after {
 
 :root[data-mov="menos"] .piel-mostrador .pregunta-fila.abierta {
     transform: none;
-}
-
-body.modo-lamina.piel-mostrador .lamina {
-    transform: none;
-    border-radius: 0;
 }
 
 :root[data-bs-theme="dark"] .piel-mostrador .hoja-import > header h2 {
@@ -1299,6 +1269,317 @@ body.modo-lamina.piel-mostrador .lamina {
         background: #2f3d2b;
         color: #d7e6d0;
     }
+}
+/* ---------- Round 3: the numbers on the desk ---------- */
+/* Each chart is the paper it would be on a real desk: the first answer an index card, the weeks on graph paper, the
+   school year in a ledger that adds up, the places on squared paper. What is now is ink, with the grain of the paper
+   through it; what was before is pencil, written by hand beside its bar; a date, an event or a sum that adds up is a
+   rubber stamp. Nothing here changes what a chart says. */
+.piel-mostrador .pagina-cifras {
+    --cf-lapiz: rgba(58, 60, 70, 0.34);
+    --cf-lapiz-fuerte: rgba(58, 60, 70, 0.62);
+    --cf-lapiz-texto: #615e68;
+    --cf-anillo: var(--papel-b);
+    --libro-papel: #f4f7ec;
+    --libro-raya: rgba(110, 150, 200, 0.3);
+    --libro-margen: rgba(200, 90, 90, 0.55);
+}
+
+:root[data-bs-theme="dark"] .piel-mostrador .pagina-cifras {
+    --cf-serie: #b96ead;
+    --cf-sale: #c9833f;
+    --cf-serie-medio: #66485f;
+    --cf-serie-suave: #4a3746;
+    --cf-area: rgba(185, 110, 173, 0.14);
+    --cf-lapiz: rgba(226, 224, 236, 0.32);
+    --cf-lapiz-fuerte: rgba(226, 224, 236, 0.6);
+    --cf-lapiz-texto: #bdb8c4;
+    --libro-papel: #2c2b23;
+    --libro-raya: rgba(170, 190, 225, 0.16);
+    --libro-margen: rgba(230, 130, 120, 0.42);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .piel-mostrador .pagina-cifras {
+        --cf-serie: #b96ead;
+        --cf-sale: #c9833f;
+        --cf-serie-medio: #66485f;
+        --cf-serie-suave: #4a3746;
+        --cf-area: rgba(185, 110, 173, 0.14);
+        --cf-lapiz: rgba(226, 224, 236, 0.32);
+        --cf-lapiz-fuerte: rgba(226, 224, 236, 0.6);
+        --cf-lapiz-texto: #bdb8c4;
+        --libro-papel: #2c2b23;
+        --libro-raya: rgba(170, 190, 225, 0.16);
+        --libro-margen: rgba(230, 130, 120, 0.42);
+    }
+}
+
+.piel-mostrador .cifras-barra {
+    border-radius: 3px;
+}
+
+.piel-mostrador .lamina {
+    border-radius: 3px;
+}
+/* Sheets of their own height, as they lie on the desk */
+.piel-mostrador .cifras > .lamina {
+    align-self: start;
+}
+
+.piel-mostrador .grafico-alcance,
+.piel-mostrador .grafico-plazas {
+    transform: rotate(-0.15deg);
+}
+
+.piel-mostrador .grafico-saldo {
+    transform: rotate(0.12deg);
+}
+
+.piel-mostrador .lamina h2 {
+    justify-self: start;
+    padding-bottom: 2px;
+    border-bottom: 2px solid var(--eg-tinta);
+}
+
+.piel-mostrador .cifra-heroe b {
+    color: var(--eg-tinta);
+}
+/* Ink: the paper shows through every mark of what is now */
+.piel-mostrador .pagina-cifras .barra-dato,
+.piel-mostrador .pagina-cifras .barra-matricula,
+.piel-mostrador .pagina-cifras .parte,
+.piel-mostrador .pagina-cifras .col-pista i,
+.piel-mostrador .pagina-cifras .pulso::before,
+.piel-mostrador .pagina-cifras .motivo-barra {
+    background-image: var(--ruido);
+}
+/* Pencil: the campaign before, with the grain of graphite; its number written by hand beside the bar */
+.piel-mostrador .pagina-cifras .fantasma,
+.piel-mostrador .pagina-cifras .clave-antes {
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 90px 45px;
+    mask-size: 90px 45px;
+}
+
+.piel-mostrador .barra-antes,
+.piel-mostrador .rotulo-linea.antes,
+.piel-mostrador .col-delta,
+.piel-mostrador .clave-lapiz {
+    font-family: var(--piel-mano);
+    color: var(--cf-lapiz-texto);
+}
+
+.piel-mostrador .barra-antes {
+    min-width: 2.2em;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.piel-mostrador .rotulo-linea.antes {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.piel-mostrador .col-delta {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.piel-mostrador .clave-lapiz {
+    font-size: 1.0625rem;
+    font-weight: 600;
+}
+/* The first answer: an index card on the desk, as tall as what it says. Its text sits on the lines: one line every
+   28px, the red one under the title. */
+.piel-mostrador .grafico-respuesta {
+    --renglon: 28px;
+    align-self: start;
+    gap: 0;
+    padding-top: 14px;
+    line-height: var(--renglon);
+    background:
+        var(--ruido),
+        linear-gradient(var(--margen), var(--margen)) 0 calc(14px + 2 * var(--renglon) - 1px) / 100% 2px no-repeat,
+        repeating-linear-gradient(
+            transparent 0,
+            transparent calc(var(--renglon) - 1px),
+            var(--pauta) calc(var(--renglon) - 1px),
+            var(--pauta) var(--renglon)
+        ) 0 calc(14px + 2 * var(--renglon)) / 100% 100% no-repeat,
+        var(--papel-b);
+}
+
+.piel-mostrador .grafico-respuesta h2 {
+    min-height: calc(2 * var(--renglon));
+    padding-top: 12px;
+    border-bottom: 0;
+    line-height: var(--renglon);
+}
+
+.piel-mostrador .grafico-respuesta .linea-dato {
+    min-height: calc(2 * var(--renglon));
+    line-height: var(--renglon);
+}
+
+.piel-mostrador .grafico-respuesta .cifra-heroe {
+    line-height: calc(2 * var(--renglon));
+}
+
+.piel-mostrador .grafico-respuesta .cifra-heroe b {
+    line-height: calc(2 * var(--renglon));
+}
+
+.piel-mostrador .grafico-respuesta .hechos {
+    gap: 0 18px;
+}
+
+.piel-mostrador .grafico-respuesta .hechos b {
+    line-height: var(--renglon);
+}
+
+.piel-mostrador .grafico-respuesta .def {
+    padding-bottom: var(--renglon);
+    line-height: var(--renglon);
+}
+
+/* The weeks on graph paper: fine squares, a stronger one every five */
+.piel-mostrador .semanas-plot {
+    background:
+        linear-gradient(90deg, var(--cuadricula) 1px, transparent 1px) 0 100% / 60px 60px,
+        linear-gradient(var(--cuadricula) 1px, transparent 1px) 0 100% / 60px 60px,
+        linear-gradient(90deg, var(--cuadricula) 1px, transparent 1px) 0 100% / 12px 12px,
+        linear-gradient(var(--cuadricula) 1px, transparent 1px) 0 100% / 12px 12px;
+    box-shadow: 0 0 0 1px var(--cuadricula);
+}
+
+.piel-mostrador .acto-sello {
+    background: var(--papel-b);
+    transform: translateX(-50%) rotate(-3deg);
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 120px 60px;
+    mask-size: 120px 60px;
+}
+
+[dir="rtl"] .piel-mostrador .acto-sello {
+    transform: translateX(50%) rotate(3deg);
+}
+/* The school year in a ledger: pale ruled paper, the red double line before the column of figures */
+.piel-mostrador .grafico-saldo {
+    background-color: var(--libro-papel);
+}
+
+.piel-mostrador .libro-fila,
+.piel-mostrador .libro-inicio {
+    border-bottom: 1px solid var(--libro-raya);
+    border-radius: 0;
+}
+
+.piel-mostrador .libro-extremo b,
+.piel-mostrador .libro-n {
+    padding-inline-end: 4px;
+    border-inline-start: 3px double var(--libro-margen);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.piel-mostrador .libro-final b {
+    border-bottom: 3px double var(--eg-tinta);
+    align-self: center;
+}
+
+.piel-mostrador .sello-cuadra {
+    opacity: 0.88;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 120px 60px;
+    mask-size: 120px 60px;
+}
+
+.piel-mostrador .motivos-lista .motivo {
+    border-bottom: 1px solid var(--libro-raya);
+}
+/* «Show»: each sheet is a sheet of paper on the desk, with the time of its data stamped on it */
+body.modo-lamina.piel-mostrador .lamina {
+    width: calc(100% - 6vw);
+    min-height: 94vh;
+    margin: 3vh auto;
+    border-radius: 3px;
+    box-shadow: var(--sombra-alta);
+    transform: none;
+    scroll-margin-top: 3vh;
+}
+
+body.modo-lamina.piel-mostrador .corte {
+    position: absolute;
+    top: 5vh;
+    inset-inline-end: 6vw;
+    padding: 4px 14px;
+    border: 3px solid var(--eg-sello);
+    border-radius: 8px;
+    color: var(--eg-sello);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+    opacity: 0.9;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 160px 80px;
+    mask-size: 160px 80px;
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .grafico-saldo {
+        transform: none;
+    }
+
+    body.modo-lamina.piel-mostrador .corte {
+        position: static;
+        justify-self: start;
+    }
+}
+
+@media (forced-colors: active) {
+    .piel-mostrador .pagina-cifras .fantasma,
+    .piel-mostrador .pagina-cifras .clave-antes,
+    .piel-mostrador .acto-sello,
+    .piel-mostrador .sello-cuadra,
+    body.modo-lamina.piel-mostrador .corte {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+@media print {
+    .piel-mostrador .grafico-respuesta,
+    .piel-mostrador .grafico-saldo,
+    .piel-mostrador .semanas-plot {
+        background: none;
+    }
+}
+
+body.modo-lamina.piel-mostrador .grafico-respuesta {
+    background: var(--ruido), var(--papel-b);
+    line-height: 1.5;
+}
+
+body.modo-lamina.piel-mostrador .grafico-respuesta h2 {
+    border-bottom: 2px solid var(--eg-tinta);
+}
+
+body.modo-lamina.piel-mostrador .clave-lapiz {
+    font-size: 1.5rem;
+}
+
+body.modo-lamina.piel-mostrador .barra-antes {
+    font-size: 1.5rem;
 }
 /* ---------- The gestures of the skin (escena.js asks for them; the state is already written) ---------- */
 .sello-golpe {

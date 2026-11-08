@@ -34,7 +34,7 @@
         "action": "#", "sesskey": "abc", "index": [{"key": "aspecto", "name": "Cómo lo ven las familias"}],
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
         "lang": [{"value": "es", "name": "Español", "selected": true}], "country": "ES", "address": "", "phone": "", "email": "",
-        "welcome": "", "arrive": "", "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "",
@@ -83,6 +83,8 @@
                     <div class="campo"><label for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input id="c-correo" type="email" name="email" value="{{email}}" dir="ltr"></div>
                 </div>
                 <div class="campo"><label for="c-llegar">{{#str}}panel_how_to_arrive, local_oksigeniaeguahe{{/str}}</label><textarea id="c-llegar" name="arrive" rows="2">{{arrive}}</textarea><span class="ayuda">{{#str}}panel_how_to_arrive_help, local_oksigeniaeguahe{{/str}}</span></div>
+                <div class="campo"><label for="c-contestamos">{{#str}}panel_replydays, local_oksigeniaeguahe{{/str}}</label><select id="c-contestamos" name="replydays" aria-describedby="c-contestamos-a">{{#replydays}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/replydays}}</select><span class="ayuda" id="c-contestamos-a">{{#str}}panel_replydays_help, local_oksigeniaeguahe{{/str}}</span></div>
+                {{#hastales}}<div class="campo"><label for="c-cuentos">{{#str}}panel_tales, local_oksigeniaeguahe{{/str}}</label><select id="c-cuentos" name="library" aria-describedby="c-cuentos-a">{{#libraries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/libraries}}</select><span class="ayuda" id="c-cuentos-a">{{#str}}panel_tales_help, local_oksigeniaeguahe{{/str}}</span></div>{{/hastales}}
                 <div class="campo"><label for="c-bienvenida">{{#str}}centre_welcome, local_oksigeniaeguahe{{/str}}</label><input id="c-bienvenida" name="welcome" value="{{welcome}}"></div>
             </section>
             <section class="apartado" id="aj-reciben" aria-labelledby="aj-reciben-t">

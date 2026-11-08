@@ -29,6 +29,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_entries;
+use local_oksigeniaeguahe\local\surveys;
 
 require_login(null, false);
 $centre = centres::require_work(required_param('c', PARAM_INT));
@@ -39,6 +40,12 @@ $canact = centres::can_act((int) $USER->id);
 
 if ($canact && data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);
+    // Started from one made (a survey How it went, a form to ask for information, siblings) or an empty survey.
+    $template = optional_param('template', '', PARAM_ALPHA);
+    if ($template !== '' && (isset(surveys::TEMPLATES[$template]) || $template === surveys::KIND)) {
+        $id = surveys::create((int) $centre->id, $template === surveys::KIND ? '' : $template);
+        redirect(new moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $id]));
+    }
     $kind = required_param('kind', PARAM_ALPHA);
     $name = trim(optional_param('name', '', PARAM_TEXT));
     if (isset(entries::KINDS[$kind])) {

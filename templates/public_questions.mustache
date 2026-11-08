@@ -1,0 +1,81 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_questions
+
+    The questions of a form of the centre, as families answer them: on the page of signing up, and in the survey of a
+    visit on the page of the family, where each answer is kept when it is touched (autosave) and says so.
+
+    Example context (json):
+    {
+        "i": {"check": "", "alert": ""}, "pub_if_you_wish": "si quieren", "autosave": true,
+        "fields": [{"id": 3, "name": "f3", "label": "¿Les ayudó la visita a imaginar el día a día aquí?", "help": "",
+            "required": false, "value": "", "error": "", "invalid": false, "hidden": false, "showif": "", "showvalue": "",
+            "issection": false, "istext": false, "islong": false, "isdate": false, "isnumber": false, "ischips": true,
+            "isscale": true, "ismulti": false,
+            "options": [{"value": "Nada", "label": "Nada", "id": "f3-0", "checked": false},
+                {"value": "Mucho", "label": "Mucho", "id": "f3-3", "checked": true}]}]
+    }
+}}
+{{#fields}}
+{{#issection}}
+<div class="seccion-form"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
+    <h2>{{label}}</h2>
+    {{#help}}<p class="ayuda">{{help}}</p>{{/help}}
+</div>
+{{/issection}}
+{{^issection}}
+<div class="campo pregunta{{#invalid}} mal{{/invalid}}" id="{{name}}" data-q="{{id}}"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
+    {{#ischips}}
+    <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    <div class="fichas{{#isscale}} escala{{/isscale}}" role="radiogroup" aria-labelledby="{{name}}-label">
+        {{#options}}<label class="ficha"><input type="radio" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+    </div>
+    {{/ischips}}
+    {{#ismulti}}
+    <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    <div class="fichas" role="group" aria-labelledby="{{name}}-label">
+        {{#options}}<label class="ficha"><input type="checkbox" name="{{name}}[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+    </div>
+    {{/ismulti}}
+    {{#istext}}
+    <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+    <input id="{{name}}-in" name="{{name}}" type="text" value="{{value}}" maxlength="500"{{#invalid}} aria-invalid="true"{{/invalid}}>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    {{/istext}}
+    {{#islong}}
+    <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+    <textarea id="{{name}}-in" name="{{name}}"{{#invalid}} aria-invalid="true"{{/invalid}}>{{value}}</textarea>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    {{/islong}}
+    {{#isdate}}
+    <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+    <input id="{{name}}-in" name="{{name}}" type="date" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    {{/isdate}}
+    {{#isnumber}}
+    <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+    <input id="{{name}}-in" name="{{name}}" type="text" inputmode="decimal" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
+    {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
+    {{/isnumber}}
+    {{#error}}<p class="error">{{{i.alert}}}{{error}}</p>{{/error}}
+    {{#autosave}}<p class="guardado" data-guardado role="status"></p>{{/autosave}}
+</div>
+{{/issection}}
+{{/fields}}

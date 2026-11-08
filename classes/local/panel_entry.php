@@ -30,7 +30,7 @@ class panel_entry {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] The questions with answers to choose, which another one may wait for. */
-    const ANSWERED = ['choice', 'multichoice', 'yesno'];
+    const ANSWERED = ['choice', 'multichoice', 'yesno', 'scale'];
 
     /**
      * The language the form is written in: the one asked, else that of the centre. The parameter is not «lang», which
@@ -113,16 +113,19 @@ class panel_entry {
             $types[] = ['value' => $type, 'name' => get_string('field_type_' . $type, $c), 'selected' => $type === 'yesno'];
         }
         $action = self::url($entry, $lang, $open)->out(false);
+        $issurvey = $entry->kind === surveys::KIND;
         return [
             'head' => panel::head([
                 'title' => format_string($entry->name),
-                'ante' => get_string(!empty($entry->active) ? 'panel_form_ante_open' : 'panel_form_ante_closed', $c),
-                'sub' => get_string('panel_form_sub', $c),
+                'ante' => get_string($issurvey ? 'panel_survey_ante' : (!empty($entry->active) ? 'panel_form_ante_open' :
+                    'panel_form_ante_closed'), $c),
+                'sub' => get_string($issurvey ? 'panel_survey_sub' : 'panel_form_sub', $c),
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id]))->out(false),
                     'name' => get_string('tab_entries', $c)],
-                'action' => ['url' => '#compartir', 'anchor' => true, 'name' => get_string('entry_share', $c),
+                'action' => $issurvey ? false : ['url' => '#compartir', 'anchor' => true, 'name' => get_string('entry_share', $c),
                     'icon' => panel::icon('enlace')],
             ]),
+            'issurvey' => $issurvey,
             'url' => $action,
             'action' => $action,
             'sesskey' => sesskey(),
@@ -134,7 +137,7 @@ class panel_entry {
             'fields' => $fields,
             'newfield' => ['types' => $types],
             'phone' => self::phone($entry, $centre, $lang, $open),
-            'share' => self::share($entry),
+            'share' => $issurvey ? false : self::share($entry),
             'settings' => ['name' => (string) $entry->name, 'title' => (string) $entry->title, 'lead' => (string) $entry->lead,
                 'acknowledge' => !empty($entry->acknowledge), 'open' => !empty($entry->active)],
             'erasequestion' => get_string('panel_erase_form', $c, format_string($entry->name)),
@@ -236,7 +239,8 @@ class panel_entry {
             'label' => (string) ($mine['label'] ?? ''),
             'help' => (string) ($mine['help'] ?? ''),
             'options' => implode("\n", (array) ($mine['options'] ?? [])),
-            'hasoptions' => in_array($field->type, ['choice', 'multichoice'], true),
+            'hasoptions' => in_array($field->type, forms::WITHOPTIONS, true),
+            'isscale' => $field->type === 'scale',
             'required' => !empty($field->required),
             'showif' => count($questions) > 1 ? [
                 'has' => (bool) $field->showif,
@@ -281,7 +285,7 @@ class panel_entry {
                 'help' => $texts['help'],
                 'required' => !empty($field->required),
                 'isyesno' => $field->type === 'yesno',
-                'ischoice' => $field->type === 'choice',
+                'ischoice' => in_array($field->type, ['choice', 'scale'], true),
                 'ismulti' => $field->type === 'multichoice',
                 'islong' => $field->type === 'longtext',
                 'istext' => in_array($field->type, ['text', 'date', 'number'], true),
@@ -304,6 +308,19 @@ class panel_entry {
             $sentence[] = ['text' => $hole ? '' : $part, 'hole' => (bool) $hole, 'k' => $hole ? $m[1] : ''];
         }
         $name = format_string($centre->name);
+        if ($entry->kind === surveys::KIND) {
+            // A survey after the visit: the open question first, and nothing of signing up.
+            array_unshift($questions, ['id' => 0, 'label' => publiclang::str('pub_after_question', $lang),
+                'help' => publiclang::str('pub_after_help', $lang), 'required' => false, 'isyesno' => false, 'ischoice' => false,
+                'ismulti' => false, 'islong' => true, 'istext' => false, 'options' => [], 'showif' => 0, 'showvalue' => '',
+                'conditional' => false, 'conditionnote' => '', 'open' => false]);
+            $count = count(array_filter($all, fn($f) => $f->type !== 'section')) + 1;
+            return ['centre' => $name, 'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
+                'title' => publiclang::str('pub_howitwent', $lang), 'lead' => publiclang::str('pub_howitwent_lead', $lang, $count),
+                'sentence' => [], 'hassentence' => false, 'fixed' => '', 'questions' => $questions, 'blocks' => [],
+                'button' => publiclang::str('pub_howitwent_save', $lang), 'faces' => [], 'foot' => '', 'base' => 0,
+                'perquestion' => 10];
+        }
         return [
             'centre' => $name,
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
@@ -311,6 +328,7 @@ class panel_entry {
                 publiclang::str('pub_form_title', $lang),
             'lead' => trim((string) $entry->lead) !== '' ? format_string($entry->lead) : publiclang::str('pub_form_lead', $lang),
             'sentence' => $sentence,
+            'hassentence' => true,
             'fixed' => publiclang::str('panel_phone_fixed', $lang),
             'questions' => $questions,
             'blocks' => array_map(fn($b) => ['q' => publiclang::str('entry_block_' . $b, $lang)], forms::blocks($entry)),
@@ -409,7 +427,7 @@ class panel_entry {
             case 'settings':
                 entries::update($entry, (object) ['name' => optional_param('name', $entry->name, PARAM_TEXT),
                     'acknowledge' => optional_param('acknowledge', 0, PARAM_BOOL),
-                    'active' => optional_param('active', 0, PARAM_BOOL)]);
+                    'active' => $entry->kind === surveys::KIND ? 1 : optional_param('active', 0, PARAM_BOOL)]);
                 $DB->update_record(entries::T, (object) ['id' => $entry->id,
                     'title' => \core_text::substr(trim(optional_param('title', '', PARAM_TEXT)), 0, 255) ?: null,
                     'lead' => trim(optional_param('lead', '', PARAM_TEXT)) ?: null]);
@@ -445,7 +463,7 @@ class panel_entry {
         }
         $data->{'label_' . $lang} = optional_param('label', '', PARAM_TEXT);
         $data->{'help_' . $lang} = optional_param('help', '', PARAM_TEXT);
-        if (in_array($data->type, ['choice', 'multichoice'], true)) {
+        if (in_array($data->type, forms::WITHOPTIONS, true)) {
             $data->{'options_' . $lang} = optional_param('options', $data->{'options_' . $lang}, PARAM_TEXT);
         }
         forms::save_field($entry, $data);

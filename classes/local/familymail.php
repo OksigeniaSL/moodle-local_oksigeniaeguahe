@@ -30,7 +30,7 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -96,7 +96,7 @@ class familymail {
         ?string $token = null,
         string $text = ''
     ): array {
-        global $CFG;
+        global $CFG, $DB;
         $images = [];
         $embed = function (string $data, string $name, string $mime) use (&$images): string {
             $cid = 'eg' . count($images) . '-' . substr(sha1($data), 0, 12);
@@ -274,6 +274,35 @@ class familymail {
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'nota' => $str('mail_note_reply'),
             ];
+        } else if ($kind === 'thanks') {
+            // After the visit: thanks, and the one open question; or, if the centre turned it on, the survey, which asks
+            // it first. Never both waiting.
+            $event = $DB->get_record(events::T, ['id' => $signup->eventid]);
+            $survey = $event && surveys::is_open($event, time()) ? surveys::form($event) : null;
+            $count = $survey ? 1 + count(array_filter(forms::fields((int) $survey->id), fn($f) => $f->type !== 'section')) : 0;
+            $days = max(1, (int) ($centre->replydays ?? 2));
+            $a = (object) ['host' => $host, 'days' => $str($days === 1 ? 'pub_reply_day' : 'pub_reply_days', $days),
+                'n' => $count];
+            $key = $survey ? 'mail_thanks_survey' : ($host !== '' ? 'mail_thanks_ask_host' : 'mail_thanks_ask_team');
+            $text = $str($key, $a);
+            $leadtext = $host !== '' ? $str('pub_lead_after_host', s($host)) : $str('pub_lead_after_team');
+            $go = $pageurl ? $pageurl . ($survey ? '#como-fue' : '#pregunta') : '';
+            $context['titular'] = $str($tags ? 'pub_thanks' : 'pub_thanks_nochild');
+            $context += [
+                'asunto' => $str('mail_thanks_subject', format_string($centre->name)),
+                'preencabezado' => $str($survey ? 'mail_thanks_preheader_survey' : 'mail_thanks_preheader'),
+                'entradilla' => $leadtext,
+                'entradilla_texto' => html_to_text($leadtext, 0, false),
+                'secciones' => [[
+                    'titulo' => $str($survey ? 'pub_howitwent' : 'pub_after_question'),
+                    'texto' => s($text),
+                    'texto_plano' => $text,
+                    'enlace' => $go ? ['texto' => $survey ? $str('mail_thanks_go_survey') : ($host !== '' ?
+                        $str('mail_thanks_go_host', $host) : $str('mail_thanks_go_team')), 'url' => $go, 'url_texto' => $go] :
+                        null,
+                ]],
+                'nota' => $str('mail_note_reply'),
+            ];
         } else if ($kind === 'request') {
             $pending = visits::pending((int) $household->id);
             $when = $pending ? visits::suits($pending, $lang) : $str('visit_anyday');
@@ -354,6 +383,21 @@ class familymail {
         $html = documents::render('family_mail.html', $context);
         $text = trim(preg_replace("/\n{3,}/", "\n\n", documents::render('family_mail.txt', $context))) . "\n";
         return [$context['asunto'], $html, $text, $images];
+    }
+
+    /**
+     * Whether the family let the centre write to them by email.
+     *
+     * @param \stdClass $household
+     * @return bool
+     */
+    public static function may_email(\stdClass $household): bool {
+        foreach (households::permissions((int) $household->id) as $channels) {
+            if (!empty($channels['email'])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

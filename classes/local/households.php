@@ -329,7 +329,7 @@ class households {
             'centreid' => $household->centreid,
             'householdid' => $household->id,
             'direction' => $direction,
-            'channel' => in_array($channel, lists::CHANNELS, true) ? $channel : 'other',
+            'channel' => in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel : 'other',
             'body' => trim($body),
             'entryid' => $entryid,
             'detail' => $detail === '' ? null : \core_text::substr($detail, 0, 255),
@@ -558,6 +558,11 @@ class households {
             $data['form_answers'][] = ['question' => $answer->label, 'answer' => $answer->value,
                 'when' => $date((int) $answer->timecreated)];
         }
+        // What they told after each visit: what they were left to ask, and the survey.
+        foreach (surveys::of_household($household, (string) $household->lang ?: 'es') as $told) {
+            $data['after_visits'][] = ['event' => $told['name'], 'when' => $date($told['timestart']),
+                'answers' => array_map(fn($a) => ['question' => $a['label'], 'answer' => $a['value']], $told['answers'])];
+        }
         // A visit of its own: when they said it suits them.
         foreach ($DB->get_records(visits::REQUESTS, ['householdid' => $household->id], 'timecreated ASC') as $request) {
             $data['visit_requests'][] = ['days' => $request->days ? array_map('intval', explode(',', $request->days)) : [],
@@ -589,7 +594,7 @@ class households {
         }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS,
-                visits::REQUESTS, forms::ANSWERS, attend::PROMISES] as $table
+                visits::REQUESTS, forms::ANSWERS, attend::PROMISES, surveys::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

@@ -34,10 +34,10 @@ class forms {
     const ANSWERS = 'local_oksigeniaeguahe_answer';
 
     /** @var string[] Kinds of question. */
-    const TYPES = ['choice', 'multichoice', 'yesno', 'text', 'longtext', 'date', 'number', 'section'];
+    const TYPES = ['choice', 'multichoice', 'yesno', 'scale', 'text', 'longtext', 'date', 'number', 'section'];
 
     /** @var string[] Kinds of question with options to choose. */
-    const WITHOPTIONS = ['choice', 'multichoice'];
+    const WITHOPTIONS = ['choice', 'multichoice', 'scale'];
 
     /** @var string[] The common questions a form may ask besides who and how: where they live, how they heard of the
      * centre, whether they are already of the centre, and what they want to tell. */
@@ -122,6 +122,13 @@ class forms {
             }
         }
         $type = in_array($data->type ?? '', self::TYPES, true) ? $data->type : 'text';
+        if ($type === 'scale' && !array_filter(array_column($texts, 'options'))) {
+            // A scale in words starts with four: «Nothing · A little · Quite · A lot», in every language.
+            foreach (lists::LANGS as $lang) {
+                $texts[$lang] = ($texts[$lang] ?? ['label' => '', 'help' => '']) + ['options' => []];
+                $texts[$lang]['options'] = preg_split('/\R/', publiclang::str('scale_words', $lang));
+            }
+        }
         $showif = (int) ($data->showif ?? 0);
         $row = (object) [
             'type' => $type,
@@ -374,7 +381,8 @@ class forms {
                 'islong' => $field->type === 'longtext',
                 'isdate' => $field->type === 'date',
                 'isnumber' => $field->type === 'number',
-                'ischips' => in_array($field->type, ['choice', 'yesno'], true),
+                'ischips' => in_array($field->type, ['choice', 'yesno', 'scale'], true),
+                'isscale' => $field->type === 'scale',
                 'ismulti' => $field->type === 'multichoice',
             ];
         }

@@ -105,6 +105,15 @@ class centres {
         $row->email = $row->email !== null && validate_email($row->email) ? $row->email : null;
         $row->welcome = trim((string) ($data->welcome ?? '')) ?: null;
         $row->arrive = trim((string) ($data->arrive ?? '')) ?: null;
+        if (isset($data->library)) {
+            // The library of Ayvurenda for the stories to read at home, among those open.
+            $slug = trim((string) $data->library);
+            $row->library = $slug !== '' && in_array($slug, array_column(tales::libraries(), 'slug'), true) ? $slug : null;
+        }
+        if (isset($data->replydays)) {
+            // How soon the team usually answers, as the families read it after their visit.
+            $row->replydays = in_array((int) $data->replydays, panel_centre::REPLYDAYS, true) ? (int) $data->replydays : 2;
+        }
         $row->logoplate = empty($data->logoplate) ? 0 : 1;
         if (isset($data->messaging) && in_array($data->messaging, messaging::MODES, true)) {
             $row->messaging = $data->messaging;
@@ -267,7 +276,7 @@ class centres {
      *
      * @param int $centreid
      * @param int[]|null $memberids
-     * @return array A list of objects: memberid, name, first, initials, role, says, photo (URL or null).
+     * @return array A list of objects: memberid, userid, name, first, initials, role, says, photo (URL or null).
      */
     public static function hosts(int $centreid, ?array $memberids = null): array {
         global $DB;
@@ -284,8 +293,8 @@ class centres {
             $first = trim((string) $row->firstname);
             $initials = \core_text::strtoupper(\core_text::substr($first, 0, 1) .
                 \core_text::substr(trim((string) $row->lastname), 0, 1));
-            $out[] = (object) ['memberid' => (int) $row->memberid, 'name' => fullname($row), 'first' => $first,
-                'initials' => $initials, 'role' => (string) $row->rolename, 'says' => (string) $row->says,
+            $out[] = (object) ['memberid' => (int) $row->memberid, 'userid' => (int) $row->userid, 'name' => fullname($row),
+                'first' => $first, 'initials' => $initials, 'role' => (string) $row->rolename, 'says' => (string) $row->says,
                 'photo' => self::host_photo((int) $row->memberid)];
         }
         return array_values($out);

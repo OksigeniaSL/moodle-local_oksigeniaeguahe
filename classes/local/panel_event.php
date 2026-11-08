@@ -233,6 +233,123 @@ class panel_event {
             'open' => $event->open && $event->timeend >= $now,
             'editurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id,
                 'id' => $event->id]))->out(false) : '',
+            'howitwent' => self::howitwent($event, $centre, $canact, $now),
         ];
+    }
+
+    /**
+     * How it went, once the event is over: how many of the families who came told, the last one, and by question a
+     * sentence, its words in their order in bars of one tone with how many said each, and the texts as quotes with the
+     * name used at home; below, in soft, the event before with the same survey. Never percentages; with few answers,
+     * only sentences and quotes. And «What we do with it», the line the families who answered read.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    public static function howitwent(\stdClass $event, \stdClass $centre, bool $canact, int $now) {
+        $c = self::C;
+        if ((int) $event->timeend > $now || !empty($event->tailored)) {
+            return false;
+        }
+        $lang = current_language();
+        $results = surveys::results($event, $centre, $lang);
+        if (!$results['came']) {
+            return false;
+        }
+        $previous = surveys::previous($event);
+        $before = $previous ? surveys::results($previous, $centre, $lang) : null;
+        $beforeby = [];
+        foreach ($before ? $before['questions'] : [] as $question) {
+            $beforeby[$question['id']] = self::sentence($question, $before['told']);
+        }
+        $few = $results['told'] < surveys::FEW;
+        $questions = [];
+        foreach ($results['questions'] as $question) {
+            $most = max(1, ...(array_column($question['rows'], 'n') ?: [0]));
+            $quotes = array_map(fn($q) => ['text' => $q['text'], 'who' => $q['who']], $question['quotes']);
+            $questions[] = [
+                'label' => format_string($question['label']),
+                'sentence' => self::sentence($question, $results['told']),
+                'hasrows' => !$few && (bool) $question['rows'],
+                'rows' => array_map(
+                    fn($r) => ['label' => $r['label'], 'n' => $r['n'], 'v' => round($r['n'] / $most, 4)],
+                    $question['rows']
+                ),
+                'hasquotes' => (bool) $quotes,
+                'quotes' => array_slice($quotes, 0, 6),
+                'morequotes' => count($quotes) > 6 ? ['label' => get_string('panel_howitwent_more', $c, count($quotes) - 6),
+                    'quotes' => array_slice($quotes, 6)] : false,
+                'before' => isset($beforeby[$question['id']]) && $beforeby[$question['id']] !== '' ?
+                    get_string('panel_howitwent_before_q', $c, $beforeby[$question['id']]) : '',
+            ];
+        }
+        $survey = surveys::form($event);
+        $open = surveys::is_open($event, $now);
+        $told = !$results['told'] ? get_string($survey ? 'panel_howitwent_none' : 'panel_howitwent_none_ask', $c) :
+            get_string('panel_howitwent_told' . ($survey ? '' : '_ask') . ($results['came'] === 1 ? '_one' : ''), $c, (object) [
+                'told' => $results['told'], 'came' => $results['came']]) .
+            ($results['last'] ? ' · ' . get_string('panel_howitwent_last', $c, panel::when_words($results['last'], $now)) : '');
+        return [
+            'title' => get_string($survey ? 'panel_howitwent' : 'panel_howitwent_asked', $c),
+            'told' => $told,
+            'questions' => $questions,
+            'hasquestions' => (bool) $questions,
+            'few' => $results['told'] && $few ? get_string('panel_howitwent_few', $c) : '',
+            'beforeline' => $before ? get_string('panel_howitwent_before', $c, (object) ['name' => format_string($previous->name),
+                'date' => userdate((int) $previous->timestart, get_string('strftimedate', 'langconfig')),
+                'told' => $before['told'], 'came' => $before['came']]) : '',
+            'state' => $survey ? get_string($open ? 'panel_howitwent_open' : 'panel_howitwent_closed', $c, userdate(
+                (int) $event->timeend + surveys::DAYS * DAYSECS,
+                get_string('strftimedateshort', 'langconfig')
+            )) : get_string('panel_howitwent_nosurvey', $c),
+            'liveurl' => $open ? (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'howitwent' => 1]))
+                ->out(false) : '',
+            'every' => 30,
+            'canact' => $canact,
+            'outcome' => (string) ($event->outcome ?? ''),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * The sentence of a question of How it went: «8 of 10 said a lot or quite», the word said most, the yes and the
+     * no, or how many wrote.
+     *
+     * @param array $question From surveys::results().
+     * @param int $told How many families told.
+     * @return string
+     */
+    protected static function sentence(array $question, int $told): string {
+        $c = self::C;
+        if (!$question['rows']) {
+            $key = $question['n'] === 1 ? 'panel_howitwent_wrote_one' : 'panel_howitwent_wrote';
+            return $question['n'] ? get_string($key, $c, $question['n']) : '';
+        }
+        $answered = $question['n'];
+        if (!$answered) {
+            return get_string('panel_howitwent_noanswer', $c);
+        }
+        if ($question['type'] === 'yesno') {
+            return get_string('panel_howitwent_yesno', $c, (object) ['yes' => $question['rows'][0]['n'],
+                'no' => $question['rows'][1]['n']]);
+        }
+        if ($question['type'] === 'scale') {
+            // The upper half of the words, the strongest first: «a lot or quite».
+            $upper = array_reverse(array_slice($question['rows'], (int) ceil(count($question['rows']) / 2)));
+            $words = array_map(fn($r) => get_string('panel_howitwent_word', $c, \core_text::strtolower($r['label'])), $upper);
+            $last = array_pop($words);
+            return get_string('panel_howitwent_scale', $c, (object) ['n' => array_sum(array_column($upper, 'n')),
+                'of' => $answered, 'words' => $words ? get_string('panel_howitwent_or', $c, (object) [
+                'list' => implode(', ', $words), 'last' => $last]) : $last]);
+        }
+        $top = $question['rows'][0];
+        foreach ($question['rows'] as $row) {
+            $top = $row['n'] > $top['n'] ? $row : $top;
+        }
+        return get_string('panel_howitwent_choice', $c, (object) ['word' => $top['label'], 'n' => $top['n'], 'of' => $answered]);
     }
 }

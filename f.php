@@ -28,9 +28,11 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familypage;
+use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\surveys;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
 $new = optional_param('new', 0, PARAM_BOOL);
@@ -61,6 +63,40 @@ if ($action === 'download') {
     die();
 }
 
+if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_sesskey()) {
+    // After the visit: what they were left to ask, and the answers of the survey, one when touched or all at once.
+    $last = surveys::last_visit($household, time());
+    $fetch = optional_param('fetch', 0, PARAM_BOOL);
+    $one = optional_param('q', -1, PARAM_INT);
+    $saved = false;
+    if ($last) {
+        $question = optional_param('question', '', PARAM_TEXT);
+        if (trim($question) !== '' && ($one === -1 || $one === 0)) {
+            surveys::ask($household, $last, $question);
+        }
+        $form = $action === 'survey' && surveys::is_open($last, time()) ? surveys::form($last) : null;
+        foreach ($form ? forms::fields((int) $form->id) : [] as $field) {
+            if ($field->type === 'section' || ($one !== -1 && $one !== (int) $field->id)) {
+                continue;
+            }
+            $name = 'f' . $field->id;
+            $answer = $field->type === 'multichoice' ? optional_param_array($name, [], PARAM_TEXT) :
+                optional_param($name, '', PARAM_TEXT);
+            $saved = surveys::save($household, $last, (int) $field->id, $answer, (string) ($centre->lang ?: 'es')) || $saved;
+        }
+    }
+    if ($fetch) {
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('Cache-Control: no-store');
+        echo json_encode(['saved' => $saved || ($last !== null && $one === 0)]);
+        die();
+    }
+    $asked = trim(optional_param('question', '', PARAM_TEXT)) !== '';
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang] + ($asked ? ['asked' => 1] : []) +
+        ($action === 'survey' ? ['saved' => 1] : []), $action === 'survey' ? 'como-fue' : 'pregunta'));
+}
+
 if ($action === 'erase') {
     if (optional_param('confirm', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
         households::erase($household);
@@ -88,6 +124,7 @@ publicpage::output(
     $lang,
     publiclang::str('pub_family_title', $lang),
     'public_family',
-    familypage::context($household, $centre, $lang, $token, $new),
+    familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
+        'saved' => optional_param('saved', 0, PARAM_BOOL)]),
     $url
 );

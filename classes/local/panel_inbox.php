@@ -288,7 +288,8 @@ class panel_inbox {
                 $household->lastcontact);
             $last = $info['last'];
             $channel = $last ? (string) $last->channel : (string) $household->firstchannel;
-            $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) ? $channel : 'other'), $c);
+            $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel :
+                'other'), $c);
             if ($last) {
                 $via .= ', ' . panel::when_words((int) $last->timecreated, $now);
             }

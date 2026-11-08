@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_bridge;
 use local_oksigeniaeguahe\local\panel_entry;
+use local_oksigeniaeguahe\local\surveys;
 
 $id = required_param('id', PARAM_INT);
 
@@ -40,7 +41,7 @@ $centre = centres::require_work((int) $entry->centreid);
 $PAGE->set_context(context_system::instance());
 $canact = centres::can_act((int) $USER->id);
 
-if ($entry->kind === 'form') {
+if ($entry->kind === 'form' || $entry->kind === surveys::KIND) {
     $lang = panel_entry::lang($centre);
     $open = optional_param('q', 0, PARAM_INT);
     $here = panel_entry::url($entry, $lang, $open);
