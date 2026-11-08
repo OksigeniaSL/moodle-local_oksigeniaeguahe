@@ -193,4 +193,33 @@ final class panel_test extends \advanced_testcase {
         $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
         $this->assertSame(0, $door['came']);
     }
+
+    /**
+     * The skin of the panel: the one the offer suggests by the ages of its courses, unless the centre chose one.
+     */
+    public function test_skin(): void {
+        $offer = function (int $centreid, string $name) {
+            centres::save_offer($centreid, (object) ['schoolyear' => '2027-28', 'name' => $name, 'places' => 10,
+                'active' => 1, 'sortorder' => 0]);
+        };
+        $small = centres::create((object) ['name' => 'Escuela infantil de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $this->assertSame('mostrador', panel::proposed_skin($small));
+        $offer($small, 'Infantil 3 años');
+        $offer($small, '1.º de Primaria');
+        $this->assertSame('vestibulo', panel::proposed_skin($small));
+        $offer($small, '1.º de ESO');
+        $this->assertSame('mostrador', panel::proposed_skin($small));
+        $secondary = centres::create((object) ['name' => 'Instituto de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer($secondary, '1.º de ESO');
+        $offer($secondary, '1.º de Bachillerato');
+        $this->assertSame('cinematico', panel::proposed_skin($secondary));
+        $academy = centres::create((object) ['name' => 'Academia de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer($academy, 'Inglés B1');
+        $this->assertSame('cinematico', panel::proposed_skin($academy));
+        // The one chosen wins; anything else is the one suggested.
+        $this->assertSame('vestibulo', panel::skin((object) ['id' => $academy, 'skin' => 'vestibulo']));
+        $this->assertSame('cinematico', panel::skin((object) ['id' => $academy, 'skin' => 'otra']));
+        $this->assertNull(centres::get(centres::create((object) ['name' => 'X', 'skin' => 'otra']))->skin);
+        $this->assertSame('mostrador', centres::get(centres::create((object) ['name' => 'Y', 'skin' => 'mostrador']))->skin);
+    }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.15.1 (2026-11-08)
+
+- **The skin of the panel** (decision of Enrique): the living hall, the paper desk or the cinematic one, chosen in the
+  settings of each centre; without a choice, the one its offer suggests by the ages of its courses. The panel loads
+  the styles and the scene of the skin, and a template of its own for a page when the skin has one. Underneath,
+  everything is the same in the three.
+
 ## 0.15.0 (2026-11-08)
 
 - **The panel, second part: open days and visits.** What comes next and how full it is; the events ahead with who

@@ -85,6 +85,9 @@ class panel {
         'ia' => ['<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="3"/>', 2],
     ];
 
+    /** @var string[] The skins of the panel (decision of Enrique, 8 November 2026): the same panel, another scene. */
+    const SKINS = ['vestibulo', 'mostrador', 'cinematico'];
+
     /** @var array The sections of the bar, in order: key => [string, icon, page]. */
     const SECTIONS = [
         'inbox' => ['tab_inbox', 'bandeja', '/local/oksigeniaeguahe/index.php'],
@@ -147,6 +150,41 @@ class panel {
         $PAGE->set_pagelayout('embedded');
         $PAGE->set_title($title);
         $PAGE->set_cacheable(false);
+    }
+
+    /**
+     * The skin a centre's offer suggests: the living hall for the little ones (nursery and the first courses of
+     * primary), the paper desk for whole schools, and the cinematic one for older students (secondary on, academies,
+     * universities). A centre without an offer yet gets the paper desk.
+     *
+     * @param int $centreid
+     * @return string One of SKINS.
+     */
+    public static function proposed_skin(int $centreid): string {
+        $offers = $centreid ? centres::offers($centreid, true) : [];
+        if (!$offers) {
+            return 'mostrador';
+        }
+        $ages = array_filter(array_map(fn($o) => grades::age((string) $o->name), $offers), fn($a) => $a !== null);
+        if (!$ages) {
+            // Courses that are not school years (languages, degrees, trades): older students.
+            return 'cinematico';
+        }
+        if (max($ages) <= 8) {
+            return 'vestibulo';
+        }
+        return min($ages) >= 12 ? 'cinematico' : 'mostrador';
+    }
+
+    /**
+     * The skin of the panel of a centre: the one it chose, else the one its offer suggests.
+     *
+     * @param \stdClass $centre
+     * @return string One of SKINS.
+     */
+    public static function skin(\stdClass $centre): string {
+        $chosen = (string) ($centre->skin ?? '');
+        return in_array($chosen, self::SKINS, true) ? $chosen : self::proposed_skin((int) $centre->id);
     }
 
     /**
@@ -259,7 +297,17 @@ class panel {
         foreach (\core\notification::fetch() as $notice) {
             $notices[] = ['text' => $notice->get_message(), 'error' => $notice->get_message_type() === 'error'];
         }
-        $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons()]);
+        // The skin: a template of its own for the page if it has one, and its styles and scene if they exist.
+        $skin = self::skin($centre);
+        $own = $template . '_' . $skin;
+        $template = file_exists(dirname(__DIR__, 2) . '/templates/' . $own . '.mustache') ? $own : $template;
+        $skindir = dirname(__DIR__, 2) . '/pub/pieles/' . $skin . '/';
+        $skincss = file_exists($skindir . 'piel.css') ? '<link rel="stylesheet" href="' . $base . 'pieles/' . $skin .
+            '/piel.css?v=' . $version . '">' . "\n" : '';
+        $skinjs = file_exists($skindir . 'escena.js') ? '<script src="' . $base . 'pieles/' . $skin . '/escena.js?v=' .
+            $version . '" defer></script>' . "\n" : '';
+        $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons(),
+            'piel' => [$skin => true], 'pielnombre' => $skin]);
         $frame = $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_frame', [
             'i' => self::icons(),
             'homeurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -300,12 +348,12 @@ class panel {
 <title>' . s($title) . ' · ' . s($name) . '</title>
 <link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'panel.css?v=' . $version . '">
-<style>:root { ' . $vars(publicpage::centre_vars($colour, false)) . ' }
+' . $skincss . '<style>:root { ' . $vars(publicpage::centre_vars($colour, false)) . ' }
 @media (prefers-color-scheme: dark) { :root:not([data-bs-theme]) { ' . $vars(publicpage::centre_vars($colour, true)) . ' } }
 :root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
-</head>
-<body class="panel' . ($door ? '' : ' con-abajo') . '">
+' . $skinjs . '</head>
+<body class="panel piel-' . $skin . ($door ? '' : ' con-abajo') . '">
 ' . $top . $body . $bottom . '
 </body>
 </html>';

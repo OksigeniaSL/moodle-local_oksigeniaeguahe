@@ -77,6 +77,15 @@ class centre_form extends \moodleform {
             $mform->setDefault('messaging', 'notices');
             $mform->addHelpButton('messaging', 'centre_messaging', $c);
         }
+        // The skin of the panel of the team: the one the offer suggests, or one chosen.
+        $centreid = (int) ($this->_customdata['centreid'] ?? 0);
+        $skins = ['' => get_string('centre_skin_auto', $c, get_string('skin_' .
+            \local_oksigeniaeguahe\local\panel::proposed_skin($centreid), $c))];
+        foreach (\local_oksigeniaeguahe\local\panel::SKINS as $skin) {
+            $skins[$skin] = get_string('skin_' . $skin, $c);
+        }
+        $mform->addElement('select', 'skin', get_string('centre_skin', $c), $skins);
+        $mform->addHelpButton('skin', 'centre_skin', $c);
         if (!empty($this->_customdata['hostsurl'])) {
             $mform->addElement(
                 'static',

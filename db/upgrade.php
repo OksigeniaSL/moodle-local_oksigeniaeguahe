@@ -479,5 +479,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110980, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110992) {
+        // The skin of the panel of the team each centre chooses.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('skin', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'messaging');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110992, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -108,6 +108,9 @@ class centres {
         if (isset($data->messaging) && in_array($data->messaging, messaging::MODES, true)) {
             $row->messaging = $data->messaging;
         }
+        if (isset($data->skin)) {
+            $row->skin = in_array($data->skin, panel::SKINS, true) ? $data->skin : null;
+        }
         return $row;
     }
 
