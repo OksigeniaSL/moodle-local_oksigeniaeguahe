@@ -128,7 +128,11 @@ class familypage {
         // After «Enrolled», the last moment of the page: that is it, who carries them from now on, and it stays still.
         $enrolled = settled::enrolled($children);
         $issettled = $enrolled && !$upcoming;
-        if ($issettled) {
+        // A family that left: their page stays, quiet, with thanks and one question if they wish.
+        $isgone = !$upcoming && settled::gone($children);
+        if ($isgone) {
+            $lead = s(publiclang::str('pub_gone_lead', $lang));
+        } else if ($issettled) {
             $offer = $offers[$enrolled[0]->offerid] ?? null;
             if (count($enrolled) > 1) {
                 $all = self::join(array_map([self::class, 'label_name'], $enrolled), $lang);
@@ -240,6 +244,20 @@ class familypage {
         if ($issettled) {
             $ask = self::settled_ask($household, $centre, $hosts, $lang, $token, $by, $flags);
             $surveyform = null;
+        } else if ($isgone) {
+            $ask = self::settled_ask(
+                $household,
+                $centre,
+                $hosts,
+                $lang,
+                $token,
+                $by,
+                $flags,
+                'pub_gone_question',
+                'goneask',
+                settled::GONEASKED
+            );
+            $surveyform = null;
         }
         $outcome = $last && $told ? trim((string) ($last->outcome ?? '')) : '';
         $hall = false;
@@ -263,7 +281,7 @@ class familypage {
             $a = (object) ['name' => $sibling->firstname, 'year' => $label];
             $siblingrows[] = ['name' => $sibling->firstname, 'line' => publiclang::str('pub_sibling_line', $lang, $a)];
             $base = ['id' => (int) $sibling->id, 'action' => $action, 'sesskey' => sesskey()];
-            if (siblings::in_turn($centre, $sibling, $now)) {
+            if (!$isgone && siblings::in_turn($centre, $sibling, $now)) {
                 $turns[] = $base + ['title' => publiclang::str('pub_sibling_turn', $lang, $a),
                     'text' => publiclang::str('pub_sibling_turn_text', $lang, $a),
                     'yes' => publiclang::str('pub_sibling_turn_yes', $lang)];
@@ -281,11 +299,13 @@ class familypage {
             'turns' => $turns,
             'siblingoffers' => $offerlater,
             'greeting' => $issettled ? publiclang::str('pub_settled', $lang) :
-                publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
+                publiclang::str(($isgone ? 'pub_gone' : $greeting) . ($tags ? '' : '_nochild'), $lang),
             'names' => $issettled ? '' : $names,
+            // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
+            'quiet' => $issettled || $isgone,
             // Once they came, the label stuck down, as the team left it at the door.
             'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming) + ['came' => !$upcoming &&
-                ((bool) $attended || $issettled)],
+                ((bool) $attended || $issettled || $isgone)],
             'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
             'lead' => $lead,
             'new' => $new,
@@ -298,7 +318,7 @@ class familypage {
             'wallask' => $surveyform ? false : $ask,
             'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) :
                 false,
-            'outcome' => !$issettled && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),
+            'outcome' => !$issettled && !$isgone && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),
                 'text' => $outcome] : false,
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
@@ -401,7 +421,7 @@ class familypage {
         return [
             'do' => $do,
             'title' => publiclang::str($asked ? 'pub_after_more' : $title, $lang),
-            'help' => publiclang::str('pub_after_help', $lang),
+            'help' => publiclang::str($do === 'goneask' ? 'pub_gone_help' : 'pub_after_help', $lang),
             'sent' => $asked ? publiclang::str($host ? 'pub_after_sent_host' : 'pub_after_sent_team', $lang, $first) : '',
             'justsent' => !empty($flags['asked']),
             'button' => $host ? publiclang::str('pub_after_send_host', $lang, $first) : publiclang::str('pub_after_send', $lang),
@@ -424,6 +444,9 @@ class familypage {
      * @param string $token
      * @param string $by
      * @param array $flags
+     * @param string $title The string of the question.
+     * @param string $do The action of the form.
+     * @param string $detail The mark in the history.
      * @return array
      */
     protected static function settled_ask(
@@ -433,7 +456,10 @@ class familypage {
         string $lang,
         string $token,
         string $by,
-        array $flags
+        array $flags,
+        string $title = 'pub_settled_question',
+        string $do = 'settledask',
+        string $detail = settled::ASKED
     ): array {
         $host = null;
         foreach (centres::hosts((int) $centre->id) as $member) {
@@ -446,9 +472,9 @@ class familypage {
         return self::question(
             $centre,
             $host,
-            settled::asked((int) $household->id),
-            'pub_settled_question',
-            'settledask',
+            settled::asked((int) $household->id, $detail),
+            $title,
+            $do,
             $lang,
             $token,
             $by,

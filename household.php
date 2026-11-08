@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_household;
+use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
 
@@ -69,6 +70,11 @@ $use = optional_param('use', 0, PARAM_INT);
 if ($use && $canact && data_submitted() && confirm_sesskey()) {
     // An answer of always chosen without the script: the file comes back with it in the answer.
     $prefill = (string) attend::use_reply(households::full($household), $use);
+}
+if (optional_param('despedida', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // The farewell, without the script: the message comes written in the answer.
+    $farewell = panel_household::context($household, $centre, true)['proposal'];
+    $prefill = $farewell ? $farewell['text'] : '';
 }
 if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
     // The proposal of a brother or sister, without the script: the message comes written in the answer.
@@ -108,6 +114,16 @@ if ($action && data_submitted() && confirm_sesskey()) {
         }
     };
     switch ($action) {
+        case 'leave':
+            // They are not with us any more: why and a line; the farewell is proposed, and a person sends it.
+            $reason = optional_param('reason', 'unknown', PARAM_ALPHA);
+            settled::leave($household, (int) $USER->id, $reason, optional_param('note', '', PARAM_TEXT), time());
+            redirect(new moodle_url($url, [], 'se-van'));
+            break;
+        case 'stay':
+            settled::stay($household, time());
+            redirect(new moodle_url($url, [], 'se-van'));
+            break;
         case 'thanked':
             // The family that told them about the centre was thanked, or the person decided not to.
             $DB->set_field(households::T, 'thanked', time(), ['id' => $household->id]);

@@ -308,6 +308,7 @@ class panel_metrics {
             'placesdef' => get_string('panel_coming_def', $c),
             'started' => $campaign['import'] || $course !== '' ? false : self::started((int) $centre->id),
             'referred' => $campaign['import'] || $course !== '' ? false : self::referred((int) $centre->id),
+            'gone' => $campaign['import'] || $course !== '' ? false : self::gone((int) $centre->id),
             'starts' => self::starts($campaigns, $canact),
         ];
         $context['spendaction'] = $url([])->out(false);
@@ -944,6 +945,44 @@ class panel_metrics {
             'def' => get_string('panel_started_def', self::C),
             'url' => (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false),
         ];
+    }
+
+    /**
+     * The children who left the centre, of those enrolled for the school year, by why, as the team noted it; when
+     * nobody noted any, that it is not noted here.
+     *
+     * @param int $centreid
+     * @return array|false text, reasons, def.
+     */
+    protected static function gone(int $centreid) {
+        global $DB;
+        $year = settled::year($centreid);
+        if ($year === '') {
+            return false;
+        }
+        $rows = $DB->get_records_sql(
+            'SELECT c.leftreason, COUNT(1) AS n
+               FROM {' . households::CHILDREN . '} c
+               JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid AND o.centreid = c.centreid
+              WHERE c.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year AND c.lefttime > 0
+           GROUP BY c.leftreason',
+            ['centreid' => $centreid, 'stage' => 'enrolled', 'year' => $year]
+        );
+        $total = array_sum(array_map(fn($r) => (int) $r->n, $rows));
+        $c = self::C;
+        if (!$total) {
+            return ['text' => get_string('panel_gone_none', $c), 'reasons' => [], 'hasreasons' => false,
+                'def' => get_string('panel_gone_def', $c)];
+        }
+        $reasons = [];
+        foreach ($rows as $row) {
+            $reasons[] = ['name' => panel::upper_first(get_string('left_' . ($row->leftreason ?: 'unknown'), $c)),
+                'n' => (int) $row->n];
+        }
+        usort($reasons, fn($a, $b) => $b['n'] <=> $a['n']);
+        $key = $total === 1 ? 'panel_gone_sentence_one' : 'panel_gone_sentence';
+        return ['text' => get_string($key, $c, (object) ['n' => $total, 'year' => $year]), 'reasons' => $reasons,
+            'hasreasons' => true, 'def' => get_string('panel_gone_def', $c)];
     }
 
     /**

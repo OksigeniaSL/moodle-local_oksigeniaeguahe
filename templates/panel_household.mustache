@@ -58,7 +58,7 @@
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false,
+        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "leave": false,
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
@@ -133,6 +133,25 @@
                 </div>
                 {{/children}}
             </div>
+            {{#leave}}
+            <div class="se-van" id="se-van">
+                {{#gone}}
+                <p class="se-fueron">{{goneline}}</p>
+                {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stay"><button class="enlace" type="submit">{{#str}}panel_stay, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+                {{/gone}}
+                {{^gone}}{{#canact}}
+                <details class="cerrar-con-motivo">
+                    <summary class="enlace">{{#str}}panel_leave, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="leave">
+                        <div class="campo"><label for="se-van-motivo">{{#str}}panel_leave_why, local_oksigeniaeguahe{{/str}}</label><select id="se-van-motivo" name="reason">{{#reasons}}<option value="{{value}}">{{name}}</option>{{/reasons}}</select></div>
+                        <div class="campo"><label for="se-van-linea">{{#str}}panel_leave_line, local_oksigeniaeguahe{{/str}}</label><input id="se-van-linea" name="note" maxlength="255" placeholder="{{#str}}panel_leave_line_example, local_oksigeniaeguahe{{/str}}"></div>
+                        <button class="boton secundario pequeno" type="submit">{{#str}}panel_leave_save, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+                {{/canact}}{{/gone}}
+            </div>
+            {{/leave}}
             {{#siblings}}
             <div class="hermanos-luego" id="hermanos">
                 <h3>{{#str}}panel_siblings, local_oksigeniaeguahe{{/str}}</h3>

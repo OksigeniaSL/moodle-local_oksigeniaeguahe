@@ -33,6 +33,7 @@
         <FIELD NAME="handoverplace" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the families are carried once enrolled when nobody is named: the office of students and its phone"/>
         <FIELD NAME="handoverhow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How the centre writes to the families once enrolled, as they read it"/>
         <FIELD NAME="siblingage" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The age children enter at, to tell a family the year before a brother or sister turns it; 0, children do not enter by age here"/>
+        <FIELD NAME="invitegone" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the families that left are still invited to open acts; 0, they are left in peace"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -142,6 +143,9 @@
         <FIELD NAME="closedreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why the way stopped, when stage is closed"/>
         <FIELD NAME="stagetime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="started" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team marked on the first day that the child started; 0, not marked"/>
+        <FIELD NAME="lefttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When an enrolled child left the centre, as the team noted it; 0, still there"/>
+        <FIELD NAME="leftreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why they left, from the short list: what Cifras counts"/>
+        <FIELD NAME="leftnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A line from whoever heard it, to read"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

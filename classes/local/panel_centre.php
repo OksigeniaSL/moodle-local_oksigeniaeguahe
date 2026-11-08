@@ -116,6 +116,7 @@ class panel_centre {
             'handover' => self::handovers($centre, (int) ($centre->handover ?? 0), 'panel_handover_place_option'),
             'handoverplace' => (string) ($centre->handoverplace ?? ''),
             'handoverhow' => (string) ($centre->handoverhow ?? ''),
+            'invitegone' => !empty($centre->invitegone),
             'siblingages' => array_map(fn($n) => ['value' => $n, 'name' => $n ? get_string('panel_siblingage_n', $c, $n) :
                 get_string('panel_siblingage_none', $c), 'selected' => $n === (int) ($centre->siblingage ?? 0)], range(0, 12)),
             'hasmessaging' => (bool) $messaging,
@@ -353,6 +354,7 @@ class panel_centre {
             'handoverplace' => optional_param('handoverplace', '', PARAM_TEXT),
             'handoverhow' => optional_param('handoverhow', '', PARAM_TEXT),
             'siblingage' => optional_param('siblingage', (int) ($centre->siblingage ?? 0), PARAM_INT),
+            'invitegone' => optional_param('invitegone', 0, PARAM_BOOL),
         ];
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);

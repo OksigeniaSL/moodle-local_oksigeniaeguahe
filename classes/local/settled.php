@@ -34,6 +34,12 @@ class settled {
     /** @var string The mark of what a family asked from their page once enrolled, in the history. */
     const ASKED = 'settled';
 
+    /** @var string The mark of what a family that left wrote from their page, in the history. */
+    const GONEASKED = 'gone';
+
+    /** @var string[] Why a family left, the short list Cifras counts; the line of whoever heard it, to read. */
+    const LEFT_REASONS = ['moved', 'othercentre', 'cost', 'schedule', 'notadapted', 'other', 'unknown'];
+
     /**
      * The enrolled children of a household.
      *
@@ -41,7 +47,92 @@ class settled {
      * @return \stdClass[]
      */
     public static function enrolled(array $children): array {
-        return array_values(array_filter($children, fn($child) => $child->stage === 'enrolled'));
+        return array_values(array_filter($children, fn($child) => $child->stage === 'enrolled' &&
+            !(int) ($child->lefttime ?? 0)));
+    }
+
+    /**
+     * The enrolled children of a household that left the centre.
+     *
+     * @param \stdClass[] $children
+     * @return \stdClass[]
+     */
+    public static function left(array $children): array {
+        return array_values(array_filter($children, fn($child) => $child->stage === 'enrolled' &&
+            (int) ($child->lefttime ?? 0)));
+    }
+
+    /**
+     * Whether a family left the centre: some enrolled child left and none stays.
+     *
+     * @param \stdClass[] $children
+     * @return bool
+     */
+    public static function gone(array $children): bool {
+        return self::left($children) && !self::enrolled($children);
+    }
+
+    /**
+     * «They are not with us any more»: the enrolled children of a family leave, with why (the short list) and a line
+     * of whoever heard it; a note in its history. The household stays: if they come back, or bring another child, they
+     * fall into their own thread.
+     *
+     * @param \stdClass $household
+     * @param int $userid
+     * @param string $reason
+     * @param string $note
+     * @param int $now
+     * @return int How many children left.
+     */
+    public static function leave(\stdClass $household, int $userid, string $reason, string $note, int $now): int {
+        global $DB;
+        $reason = in_array($reason, self::LEFT_REASONS, true) ? $reason : 'unknown';
+        $note = \core_text::substr(trim(preg_replace('/\s+/u', ' ', $note)), 0, 255);
+        $children = self::enrolled(array_values(households::full($household)->children));
+        foreach ($children as $child) {
+            $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'lefttime' => $now,
+                'leftreason' => $reason, 'leftnote' => $note !== '' ? $note : null, 'timemodified' => $now]);
+        }
+        if ($children) {
+            $why = get_string('left_' . $reason, self::C);
+            $said = get_string('left_note', self::C, $why) . ($note !== '' ? ' ' . $note : '');
+            households::note($household, $userid, $said);
+        }
+        return count($children);
+    }
+
+    /**
+     * They are still with us: what was noted as leaving is undone.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     */
+    public static function stay(\stdClass $household, int $now): void {
+        global $DB;
+        foreach (self::left(array_values(households::full($household)->children)) as $child) {
+            $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'lefttime' => 0, 'leftreason' => null,
+                'leftnote' => null, 'timemodified' => $now]);
+        }
+    }
+
+    /**
+     * When a family left, and whether someone wrote to them since: the farewell is one message, sent by a person.
+     *
+     * @param \stdClass $household
+     * @param \stdClass[] $children
+     * @return array|null ['time' => when, 'reason' => key, 'note' => line, 'written' => bool], or null if they did not.
+     */
+    public static function farewell(\stdClass $household, array $children): ?array {
+        global $DB;
+        if (!self::gone($children)) {
+            return null;
+        }
+        $left = self::left($children);
+        $time = max(array_map(fn($c) => (int) $c->lefttime, $left));
+        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        $written = $DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $time]);
+        return ['time' => $time, 'reason' => (string) ($left[0]->leftreason ?? 'unknown'),
+            'note' => (string) ($left[0]->leftnote ?? ''), 'written' => $written];
     }
 
     /**
@@ -107,14 +198,15 @@ class settled {
      *
      * @param \stdClass $household
      * @param string $question
+     * @param string $detail The mark in the history: once enrolled, or after leaving.
      * @return bool
      */
-    public static function ask(\stdClass $household, string $question): bool {
+    public static function ask(\stdClass $household, string $question, string $detail = self::ASKED): bool {
         $question = trim($question);
         if ($question === '') {
             return false;
         }
-        households::received($household, lists::PAGE, \core_text::substr($question, 0, 4000), true, null, 0, self::ASKED);
+        households::received($household, lists::PAGE, \core_text::substr($question, 0, 4000), true, null, 0, $detail);
         return true;
     }
 
@@ -122,11 +214,12 @@ class settled {
      * Whether an enrolled family already asked from their page.
      *
      * @param int $householdid
+     * @param string $detail
      * @return bool
      */
-    public static function asked(int $householdid): bool {
+    public static function asked(int $householdid, string $detail = self::ASKED): bool {
         global $DB;
-        return $DB->record_exists(households::CONTACTS, ['householdid' => $householdid, 'detail' => self::ASKED]);
+        return $DB->record_exists(households::CONTACTS, ['householdid' => $householdid, 'detail' => $detail]);
     }
 
     /**
@@ -193,7 +286,7 @@ class settled {
         [$in, $params] = $DB->get_in_or_equal(array_keys($offers), SQL_PARAMS_NAMED);
         $children = $DB->get_records_select(
             households::CHILDREN,
-            "centreid = :centreid AND stage = :stage AND offerid $in",
+            "centreid = :centreid AND stage = :stage AND lefttime = 0 AND offerid $in",
             $params + ['centreid' => $centreid, 'stage' => 'enrolled'],
             'firstname ASC, id ASC'
         );

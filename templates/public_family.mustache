@@ -38,7 +38,7 @@
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "turns": [], "siblingoffers": [],
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "quiet": false, "turns": [], "siblingoffers": [],
         "hassiblings": false, "siblings": [], "siblingstitle": "",
         "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
             "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
@@ -195,7 +195,7 @@
 {{/howitwent}}
 {{^howitwent}}
 {{^hasnext}}
-{{^settled}}
+{{^quiet}}
 <section class="banda" aria-label="{{bandnext}}">
     <p class="etiqueta">{{bandnext}}</p>
     <p class="siguiente">{{nextline}}</p>
@@ -207,11 +207,11 @@
         </div>
     </div>
 </section>
-{{/settled}}
+{{/quiet}}
 {{/hasnext}}
 {{/howitwent}}
 
-{{^settled}}
+{{^quiet}}
 {{#hashosts}}
 <section class="seccion dos-col">
     <div class="cabeza">
@@ -237,7 +237,7 @@
     <p class="equipo">{{#receivespending}}{{receivespending}}{{/receivespending}}{{^receivespending}}{{pub_receives_team}}{{/receivespending}}</p>
 </section>
 {{/hashosts}}
-{{/settled}}
+{{/quiet}}
 
 <section class="seccion">
     <h2>{{pub_told}}</h2>

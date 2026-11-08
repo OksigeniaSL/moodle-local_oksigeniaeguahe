@@ -541,7 +541,8 @@ class households {
             $data['children'][] = ['first_name' => $child->firstname, 'name_on_the_label' => $child->tagname,
                 'asks_for' => $offers[$child->offerid] ?? null,
                 'stage' => $child->stage, 'since' => $date((int) $child->stagetime),
-                'started' => $date((int) ($child->started ?? 0))];
+                'started' => $date((int) ($child->started ?? 0)), 'left' => $date((int) ($child->lefttime ?? 0)),
+                'left_why' => $child->leftreason ?? null, 'left_line' => $child->leftnote ?? null];
         }
         foreach ($full->signups as $signup) {
             $data['events'][] = ['event' => $signup->eventname, 'starts' => $date((int) $signup->timestart),

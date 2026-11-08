@@ -58,9 +58,12 @@ class invites {
             return [];
         }
         $children = [];
-        foreach ($DB->get_records(households::CHILDREN, ['centreid' => $centreid], '', 'id, householdid, stage') as $child) {
-            $children[$child->householdid][] = $child->stage;
+        $fields = 'id, householdid, stage, lefttime';
+        foreach ($DB->get_records(households::CHILDREN, ['centreid' => $centreid], '', $fields) as $child) {
+            // A child who left the centre counts as one who is not of it, for the invitation.
+            $children[$child->householdid][] = $child->stage === 'enrolled' && $child->lefttime ? 'left' : $child->stage;
         }
+        $centre = $DB->get_record(centres::T, ['id' => $centreid], 'id, invitegone');
         $emails = [];
         $adults = $DB->get_records_select(
             households::ADULTS,
@@ -79,8 +82,10 @@ class invites {
         $out = [];
         foreach ($households as $id => $household) {
             $stages = $children[$id] ?? [];
-            $going = !$stages || array_diff($stages, ['closed']);
-            if (isset($done[$id]) || empty($emails[$id]) || in_array('enrolled', $stages, true) || !$going) {
+            // A family that left the centre is left in peace, unless the centre wants it invited.
+            $gone = in_array('left', $stages, true) && !in_array('enrolled', $stages, true);
+            $ok = $gone ? !empty($centre->invitegone) : (!$stages || array_diff($stages, ['closed']));
+            if (isset($done[$id]) || empty($emails[$id]) || in_array('enrolled', $stages, true) || !$ok) {
                 continue;
             }
             if (familymail::may_email($household)) {

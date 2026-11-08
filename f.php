@@ -128,10 +128,12 @@ if ($action === 'download') {
     die();
 }
 
-if ($action === 'settledask' && data_submitted() && confirm_sesskey()) {
-    // Once enrolled: what they were left to ask before the first day.
-    $asked = settled::in_centre(households::full($household)->children) &&
-        settled::ask($household, optional_param('question', '', PARAM_TEXT));
+if (($action === 'settledask' || $action === 'goneask') && data_submitted() && confirm_sesskey()) {
+    // Once enrolled: what they were left to ask before the first day; once gone, what could have been better.
+    $kids = households::full($household)->children;
+    $question = optional_param('question', '', PARAM_TEXT);
+    $asked = $action === 'goneask' ? settled::gone($kids) && settled::ask($household, $question, settled::GONEASKED) :
+        settled::in_centre($kids) && settled::ask($household, $question);
     if (optional_param('fetch', 0, PARAM_BOOL)) {
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');

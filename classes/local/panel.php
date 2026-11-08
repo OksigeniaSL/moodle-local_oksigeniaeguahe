@@ -885,4 +885,14 @@ class panel {
             get_file_storage()->delete_area_files(\context_user::instance($USER->id)->id, 'user', 'draft', $draft);
         }
     }
+
+    /**
+     * A sentence with its first letter in capitals, as a list shows it.
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function upper_first(string $text): string {
+        return \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1);
+    }
 }

@@ -8315,3 +8315,35 @@ a.quien-cita:focus-visible {
 .gracias-recomendar form {
     margin: 0;
 }
+
+/* When a family leaves: «They are not with us any more» under the children, and when and why once they left. */
+.se-van {
+    margin-top: 12px;
+}
+
+.se-fueron {
+    margin: 0 0 4px;
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+/* The families that left, last in the list. */
+.dia-sefueron {
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 2px dotted var(--eg-linea);
+}
+
+.dia-sefueron .dia,
+.dia-sefueron .fila {
+    color: var(--eg-tinta-2);
+}
+
+.motivo-baja {
+    display: inline-block;
+    margin-inline-start: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--eg-hundido);
+    font-size: 0.875rem;
+}

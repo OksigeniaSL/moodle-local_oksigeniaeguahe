@@ -721,5 +721,28 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026111900, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026112100) {
+        // When an enrolled child left, why and a line; and whether those who left are still invited to open acts.
+        $fields = [
+            'local_oksigeniaeguahe_child' => [
+                new xmldb_field('lefttime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'started'),
+                new xmldb_field('leftreason', XMLDB_TYPE_CHAR, '30', null, null, null, null, 'lefttime'),
+                new xmldb_field('leftnote', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'leftreason'),
+            ],
+            'local_oksigeniaeguahe_centre' => [
+                new xmldb_field('invitegone', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'siblingage'),
+            ],
+        ];
+        foreach ($fields as $name => $list) {
+            $table = new xmldb_table($name);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026112100, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

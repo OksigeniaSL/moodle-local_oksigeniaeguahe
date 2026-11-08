@@ -152,7 +152,8 @@ class panel_household {
             'me' => panel::person($USER),
             'composer' => $composer,
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
-            'proposal' => $canact ? self::sibling_proposal($household, $full, $centre, $now) : false,
+            'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
+            'leave' => self::leave($household, $full, $canact),
             'siblings' => self::siblings($household, $centre, $canact, $now),
             'thanks' => $canact ? self::thanks($household, $full) : false,
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
@@ -220,6 +221,114 @@ class panel_household {
             'years' => array_map(fn($y) => ['value' => $y], range($year, $year - 12)),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
             'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * An enrolled child in the file: in the centre since when, when it started, or when and why it left.
+     *
+     * @param \stdClass $child
+     * @param string $day The format of a date.
+     * @return string
+     */
+    protected static function incentre(\stdClass $child, string $day): string {
+        $c = self::C;
+        if ($child->stage !== 'enrolled') {
+            return '';
+        }
+        if ((int) ($child->lefttime ?? 0)) {
+            $why = get_string('left_' . ($child->leftreason ?: 'unknown'), $c);
+            return get_string('panel_left_on', $c, (object) ['day' => userdate((int) $child->lefttime, $day), 'why' => $why]);
+        }
+        if ((int) ($child->started ?? 0)) {
+            return get_string('panel_started_on', $c, userdate((int) $child->started, $day));
+        }
+        return get_string('panel_incentre_since', $c, userdate((int) $child->stagetime, $day));
+    }
+
+    /**
+     * The line of a family that left: when and why, and the line of whoever heard it.
+     *
+     * @param array $gone From settled::farewell().
+     * @return string
+     */
+    protected static function gone_line(array $gone): string {
+        $c = self::C;
+        $a = (object) ['day' => userdate($gone['time'], get_string('strftimedate', 'langconfig')),
+            'why' => get_string('left_' . $gone['reason'], $c)];
+        return get_string('panel_gone_line', $c, $a);
+    }
+
+    /**
+     * «They are not with us any more», for a family in the centre: why, from the short list, and a line of whoever
+     * heard it; once they left, when and why, and «They are still with us» to undo it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param bool $canact
+     * @return array|false
+     */
+    protected static function leave(\stdClass $household, \stdClass $full, bool $canact) {
+        $c = self::C;
+        $children = array_values($full->children);
+        $gone = settled::farewell($household, $children);
+        if (!$gone && !settled::in_centre($children)) {
+            return false;
+        }
+        $reasons = [];
+        foreach (settled::LEFT_REASONS as $reason) {
+            $reasons[] = ['value' => $reason, 'name' => panel::upper_first(get_string('left_' . $reason, $c))];
+        }
+        return [
+            'gone' => (bool) $gone,
+            'goneline' => $gone ? self::gone_line($gone) . '.' . ($gone['note'] !== '' ? ' ' . $gone['note'] : '') : '',
+            'reasons' => $reasons,
+            'canact' => $canact,
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * What the proposal says: the farewell to a family that left, else a brother or sister whose turn it is.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|false
+     */
+    protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
+        return self::farewell_proposal($household, $full) ?: self::sibling_proposal($household, $full, $centre, $now);
+    }
+
+    /**
+     * The farewell to a family that left, until someone writes to them: one message, sent by a person, with thanks,
+     * their page that stays, and one question if they wish.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @return array|false
+     */
+    protected static function farewell_proposal(\stdClass $household, \stdClass $full) {
+        $gone = settled::farewell($household, array_values($full->children));
+        if (!$gone || $gone['written']) {
+            return false;
+        }
+        $c = self::C;
+        $when = (object) ['day' => userdate($gone['time'], get_string('strftimedate', 'langconfig')),
+            'why' => get_string('left_' . $gone['reason'], $c)];
+        return [
+            'sentence' => get_string('panel_farewell', $c),
+            'why' => get_string('panel_farewell_why', $c, $when),
+            'text' => self::greeting($full) . get_string('panel_farewell_message', $c),
+            'button' => get_string('panel_sibling_write', $c),
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'despedida' => 1],
+                'borrador'
+            ))->out(false),
+            'visit' => false,
         ];
     }
 
@@ -388,9 +497,7 @@ class panel_household {
                     get_string('closed_' . $child->closedreason, $c) : '',
                 'waitlist' => $child->stage === 'waitlist',
                 // Enrolled: in the centre, and on the first day whether they started.
-                'incentre' => $child->stage !== 'enrolled' ? '' : ((int) ($child->started ?? 0) ?
-                    get_string('panel_started_on', $c, userdate((int) $child->started, $day)) :
-                    get_string('panel_incentre_since', $c, userdate((int) $child->stagetime, $day))),
+                'incentre' => self::incentre($child, $day),
                 'reasons' => $reasons,
                 'canact' => $canact,
                 'label' => get_string('panel_way_of', $c, $tag),

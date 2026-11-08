@@ -210,4 +210,56 @@ final class settled_test extends \advanced_testcase {
         $this->assertSame(0, (int) $DB->get_field(households::CHILDREN, 'started', ['id' => $leo]));
         $this->assertSame([], settled::started($centreid, '2027-28'));
     }
+
+    /**
+     * A family leaves: why and a line, a note in its history, out of the centre and behind its own line in the inbox,
+     * the farewell proposed until someone writes to them, its page quiet with one question, no more places offered,
+     * and invited to open acts only if the centre wants; and undone.
+     */
+    public function test_leave(): void {
+        global $DB;
+        [$centre, $household, $leo] = $this->family();
+        $now = time();
+        $this->assertSame(1, settled::leave($household, (int) get_admin()->id, 'moved', 'Se mudan en junio', $now));
+        $child = $DB->get_record(households::CHILDREN, ['id' => $leo]);
+        $this->assertSame('moved', $child->leftreason);
+        $this->assertSame('Se mudan en junio', $child->leftnote);
+        $children = array_values(households::full($household)->children);
+        $this->assertFalse(settled::in_centre($children));
+        $this->assertTrue(settled::gone($children));
+        $this->assertSame([], panel_start::context($centre, true)['groups'], 'Not on the first day.');
+
+        $days = panel_inbox::days(households::inbox((int) $centre->id, false), (int) $centre->id, $now);
+        $this->assertSame('sefueron', end($days)['kind']);
+
+        $context = \local_oksigeniaeguahe\local\panel_household::context($household, $centre, true);
+        $this->assertTrue($context['leave']['gone']);
+        $this->assertNotFalse($context['proposal'], 'The farewell, until someone writes to them.');
+        households::answered($household, (int) get_admin()->id, 'email', 'Gracias por todo.');
+        $again = households::get((int) $household->id, (int) $centre->id);
+        $context = \local_oksigeniaeguahe\local\panel_household::context($again, $centre, true);
+        $this->assertFalse($context['proposal']);
+
+        $page = familypage::context(households::get((int) $household->id, (int) $centre->id), $centre, 'es', 'clave', false);
+        $this->assertSame('Gracias por estos años,', $page['greeting']);
+        $this->assertTrue($page['quiet']);
+        $this->assertFalse($page['settled']);
+        $this->assertSame('goneask', $page['wallask']['do']);
+        $this->assertTrue(settled::ask($household, 'El comedor, quizá.', settled::GONEASKED));
+        $this->assertTrue(settled::asked((int) $household->id, settled::GONEASKED));
+
+        // Open acts: left in peace, unless the centre wants them invited.
+        $adult = (int) $DB->get_field(households::ADULTS, 'id', ['householdid' => $household->id], IGNORE_MULTIPLE);
+        households::consent($household, $adult, 'email', true, 'form', 'es');
+        $eventid = \local_oksigeniaeguahe\local\events::save((int) $centre->id, (object) ['kind' => 'other',
+            'name' => 'Festival', 'timestart' => $now + 5 * DAYSECS, 'timeend' => $now + 5 * DAYSECS + HOURSECS,
+            'capacity' => 0, 'open' => 1]);
+        $event = \local_oksigeniaeguahe\local\events::get($eventid, (int) $centre->id);
+        $this->assertArrayNotHasKey($household->id, \local_oksigeniaeguahe\local\invites::eligible($event));
+        $DB->set_field(centres::T, 'invitegone', 1, ['id' => $centre->id]);
+        $this->assertArrayHasKey($household->id, \local_oksigeniaeguahe\local\invites::eligible($event));
+
+        settled::stay($household, $now);
+        $this->assertTrue(settled::in_centre(array_values(households::full($household)->children)));
+    }
 }

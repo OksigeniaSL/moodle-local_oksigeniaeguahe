@@ -205,9 +205,18 @@ class siblings {
         if (!self::on($centre)) {
             return [];
         }
+        // A family that left is not offered places any more.
+        $gone = $DB->get_fieldset_sql(
+            'SELECT DISTINCT c.householdid
+               FROM {' . households::CHILDREN . '} c
+              WHERE c.centreid = :centreid AND c.lefttime > 0
+                    AND NOT EXISTS (SELECT 1 FROM {' . households::CHILDREN . '} s
+                                     WHERE s.householdid = c.householdid AND s.stage = :stage AND s.lefttime = 0)',
+            ['centreid' => $centre->id, 'stage' => 'enrolled']
+        );
         $out = [];
         foreach ($DB->get_records(self::T, ['centreid' => $centre->id, 'confirmed' => 0], 'birthyear ASC, id ASC') as $sibling) {
-            if (self::in_turn($centre, $sibling, $now)) {
+            if (!in_array($sibling->householdid, $gone) && self::in_turn($centre, $sibling, $now)) {
                 $out[$sibling->householdid][] = $sibling;
             }
         }
