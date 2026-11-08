@@ -6689,3 +6689,49 @@ html.modo-lamina {
 .pie-producto .firma-palabra + span {
     margin-inline-start: -6px;
 }
+
+/* Eguahe, the settings: the role and the photo of who receives, and taking someone out of the team. */
+.recibe-acciones {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+}
+
+.recibe-foto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--eg-acento);
+    font-size: 0.875rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.recibe-foto svg {
+    width: 16px;
+    height: 16px;
+}
+
+.archivo-oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.recibe-acciones:focus-within .recibe-foto {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.equipo-lista .quitar {
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 719px) {
+    .recibe > .recibe-acciones {
+        grid-column: 2;
+    }
+}

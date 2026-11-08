@@ -288,6 +288,8 @@ class familymail {
                 'nota' => $str('mail_note_confirm'),
             ];
         } else if ($kind === 'reminder') {
+            // How they get in on the day, as the centre wrote it.
+            $arrive = trim((string) ($centre->arrive ?? ''));
             $context['titular'] = $str($tags ? 'mail_tomorrow' : 'mail_tomorrow_nochild');
             $a = (object) ['date' => $plain, 'hour' => $parts['hour'], 'host' => s($host)];
             $leadkey = $host !== '' ? 'mail_reminder_lead' : 'mail_reminder_lead_team';
@@ -303,15 +305,22 @@ class familymail {
                 'entradilla_texto' => html_to_text($str($leadkey, $a), 0, false),
                 'banda' => ['rotulo' => $str('mail_band_tomorrow')] + $band + ['boton' => $map, 'enlace' => $calendar],
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
-                'secciones' => [[
+                'secciones' => array_merge($arrive !== '' ? [[
+                    'titulo' => $str('pub_how_get'),
+                    'titulo_texto' => $str('pub_how_get'),
+                    'texto' => nl2br(s($arrive), false),
+                    'texto_plano' => $arrive,
+                    'enlace' => $map,
+                ]] : [], [[
                     'titulo' => $str('mail_cant_come'),
+                    'titulo_texto' => $str('mail_cant_come'),
                     'texto' => $phone !== '' ? $str('mail_cant_come_text', '<a class="eg-enlace" href="tel:' . s($tel) .
                         '" style="color:' . s(self::colours($colour)['acento_texto']) . '; text-decoration:underline;">' .
                         s($phone) . '</a>') : $str('mail_cant_come_text_nophone'),
                     'texto_plano' => $phone !== '' ? $str('mail_cant_come_text', $phone) : $str('mail_cant_come_text_nophone'),
                     'enlace' => !empty($centre->email) ? ['texto' => $str('pub_write_us'), 'url' => 'mailto:' . $centre->email,
                         'url_texto' => $centre->email] : null,
-                ]],
+                ]]),
             ];
         } else {
             $context += [

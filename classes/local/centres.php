@@ -104,6 +104,7 @@ class centres {
         }
         $row->email = $row->email !== null && validate_email($row->email) ? $row->email : null;
         $row->welcome = trim((string) ($data->welcome ?? '')) ?: null;
+        $row->arrive = trim((string) ($data->arrive ?? '')) ?: null;
         $row->logoplate = empty($data->logoplate) ? 0 : 1;
         if (isset($data->messaging) && in_array($data->messaging, messaging::MODES, true)) {
             $row->messaging = $data->messaging;

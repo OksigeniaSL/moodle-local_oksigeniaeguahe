@@ -45,5 +45,5 @@ foreach (centres::all() as $centre) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('centres', $c));
 echo $OUTPUT->render_from_template('local_oksigeniaeguahe/centres', ['centres' => $list, 'hascentres' => (bool) $list,
-    'newurl' => (new moodle_url('/local/oksigeniaeguahe/centre.php'))->out(false)]);
+    'newurl' => (new moodle_url('/local/oksigeniaeguahe/centre.php'))->out(false), 'sesskey' => sesskey()]);
 echo $OUTPUT->footer();

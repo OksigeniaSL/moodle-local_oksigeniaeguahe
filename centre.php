@@ -15,7 +15,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * A centre, new or changed: how families see it, what it says about their data, its area, its offer and its team.
+ * The settings of a centre, in the panel: how families see it, who receives them, its data, its area, its offer, its
+ * team, the skin of the panel and its AI, saved at once. A new centre starts with its name, from the list of centres.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -24,93 +25,44 @@
 
 require(__DIR__ . '/../../config.php');
 
-use local_oksigeniaeguahe\form\centre_form;
-use local_oksigeniaeguahe\local\ai;
 use local_oksigeniaeguahe\local\centres;
-use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\lists;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_centre;
 
 $id = optional_param('id', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
-$context = context_system::instance();
 
 require_login(null, false);
-require_capability('local/oksigeniaeguahe:manage', $context);
-$centre = $id ? centres::get($id) : null;
-if ($id && !$centre) {
+require_capability('local/oksigeniaeguahe:manage', context_system::instance());
+
+if (!$id) {
+    // A new centre: its name, in the language of whoever makes it, with them in its team; the rest, in its settings.
+    require_sesskey();
+    $name = trim(required_param('name', PARAM_TEXT));
+    if ($name === '') {
+        redirect(new moodle_url('/local/oksigeniaeguahe/centres.php'));
+    }
+    $lang = in_array(current_language(), lists::LANGS, true) ? current_language() : 'en';
+    $id = centres::create((object) ['name' => $name, 'lang' => $lang, 'retention' => 24]);
+    centres::add_member($id, (int) $USER->id);
+    redirect(new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id]));
+}
+
+$centre = centres::get($id);
+if (!$centre) {
     throw new moodle_exception('invalidrecord', 'error');
 }
-$url = new moodle_url('/local/oksigeniaeguahe/centre.php', $id ? ['id' => $id] : []);
-staff::setup($url, get_string($centre ? 'centre_settings' : 'centre_new', $c), $centre);
+$url = new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id]);
+panel::setup($url, get_string('centre_settings', $c));
 
-$offers = $centre ? array_values(centres::offers((int) $centre->id)) : [];
-$form = new centre_form($url, ['offers' => count($offers), 'providers' => ai::providers(),
-    'centreid' => $centre ? (int) $centre->id : 0,
-    'hostsurl' => $centre ? (new moodle_url('/local/oksigeniaeguahe/hosts.php', ['c' => $centre->id]))->out(false) : '']);
-$draft = file_get_submitted_draft_itemid('logo');
-file_prepare_draft_area($draft, $context->id, $c, 'logo', $id, ['subdirs' => 0, 'maxfiles' => 1]);
-if ($centre) {
-    $defaults = (array) $centre + ['logo' => $draft, 'members' => array_keys(centres::members((int) $centre->id))];
-    foreach ($offers as $i => $offer) {
-        $defaults["offerid[$i]"] = $offer->id;
-        $defaults["offername[$i]"] = $offer->name;
-        $defaults["offeryear[$i]"] = $offer->schoolyear;
-        $defaults["offerplaces[$i]"] = $offer->places;
-        $defaults["offeractive[$i]"] = $offer->active;
+if (data_submitted()) {
+    require_sesskey();
+    $problems = panel_centre::save($centre);
+    foreach ($problems as $problem) {
+        \core\notification::warning($problem);
     }
-    $form->set_data($defaults);
-} else {
-    $form->set_data(['logo' => $draft, 'lang' => current_language() === 'pt_br' ? 'pt_br' :
-        (in_array(current_language(), ['es', 'en', 'pt'], true) ? current_language() : 'en'), 'retention' => 24]);
+    redirect($url, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
-if ($form->is_cancelled()) {
-    redirect($centre ? new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]) :
-        new moodle_url('/local/oksigeniaeguahe/centres.php'));
-}
-if ($data = $form->get_data()) {
-    $transaction = $DB->start_delegated_transaction();
-    if ($centre) {
-        centres::update((int) $centre->id, $data);
-        $centreid = (int) $centre->id;
-    } else {
-        $centreid = centres::create($data);
-    }
-    file_save_draft_area_files($data->logo, $context->id, $c, 'logo', $centreid, ['subdirs' => 0, 'maxfiles' => 1]);
-    foreach ($data->offername ?? [] as $i => $name) {
-        $offerid = (int) ($data->offerid[$i] ?? 0);
-        if (trim((string) $name) === '' && !$offerid) {
-            continue;
-        }
-        if (trim((string) $name) === '') {
-            // An offer whose name was emptied stops showing; families and numbers keep it.
-            $DB->set_field(centres::OFFERS, 'active', 0, ['id' => $offerid, 'centreid' => $centreid]);
-            continue;
-        }
-        centres::save_offer($centreid, (object) ['id' => $offerid, 'name' => $name, 'schoolyear' => $data->offeryear[$i],
-            'places' => $data->offerplaces[$i] ?? 0, 'active' => $data->offeractive[$i] ?? 0, 'sortorder' => $i]);
-    }
-    $members = array_map('intval', (array) ($data->members ?? []));
-    foreach (centres::members($centreid) as $userid => $member) {
-        if (!in_array((int) $userid, $members, true)) {
-            centres::remove_member($centreid, (int) $userid);
-        }
-    }
-    foreach ($members as $userid) {
-        centres::add_member($centreid, $userid);
-    }
-    $transaction->allow_commit();
-    redirect(
-        new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]),
-        get_string('changessaved'),
-        null,
-        \core\output\notification::NOTIFY_SUCCESS
-    );
-}
-
-echo $OUTPUT->header();
-if ($centre) {
-    echo $OUTPUT->render_from_template('local_oksigeniaeguahe/tabs', ['tabs' => staff::tabs($centre, 'settings')]);
-}
-echo $OUTPUT->heading(get_string($centre ? 'centre_settings' : 'centre_new', $c));
-$form->display();
-echo $OUTPUT->footer();
+panel::output(centres::get($id), 'settings', get_string('centre_settings', $c), 'panel_centre', panel_centre::context($centre));

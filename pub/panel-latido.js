@@ -15,7 +15,8 @@
 
 /**
  * The beat of the composer: while someone writes to a family, the rest of the team sees it. Every 20 seconds at most,
- * only while writing; the beat lasts 45 seconds on the server. Apart from panel.js, which the art director builds.
+ * only while writing; the beat lasts 45 seconds on the server. And the name of a picture chosen in a hidden file field,
+ * written where its label was. Apart from panel.js, which the art director builds.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -41,6 +42,18 @@
         data.append('sesskey', form.querySelector('input[name="sesskey"]').value);
         fetch(form.getAttribute('data-latido'), {method: 'POST', body: data, credentials: 'same-origin'}).catch(function() {
             last = 0;
+        });
+    });
+})();
+
+(function() {
+    'use strict';
+    document.querySelectorAll('input[type="file"][data-archivo-nombre]').forEach(function(input) {
+        input.addEventListener('change', function() {
+            var label = document.querySelector('label[for="' + input.id + '"] span');
+            if (label && input.files && input.files.length) {
+                label.textContent = input.files[0].name;
+            }
         });
     });
 })();

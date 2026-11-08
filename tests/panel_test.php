@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_centre;
 use local_oksigeniaeguahe\local\panel_event;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\panel_events;
@@ -44,6 +45,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_events::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_event::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_eventform::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_centre::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -283,6 +285,60 @@ final class panel_test extends \advanced_testcase {
         $this->assertStringContainsString('Visita por turnos', $mails[0]->subject);
         $this->assertSame(1, $DB->count_records(households::CONTACTS, ['householdid' => $household->id,
             'direction' => 'out']));
+    }
+
+    /**
+     * The settings of a centre: what the server does with its colour, the skin its offer suggests, everyone of the team
+     * with what families see of them, and all of it saved at once from what was posted.
+     */
+    public function test_centre_settings(): void {
+        global $DB;
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES',
+            'colour' => '#1f5a4e']);
+        $centre = centres::get($centreid);
+        $this->assertSame(get_string('panel_js_colour_light', 'local_oksigeniaeguahe'), panel_centre::guard('#f2d16b'));
+        $this->assertSame(get_string('panel_js_colour_grey', 'local_oksigeniaeguahe'), panel_centre::guard('#808080'));
+        $this->assertStringContainsString('no offer yet', panel_centre::proposal($centreid));
+        centres::save_offer($centreid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        $this->assertStringContainsString('from 3 to 3 years old', panel_centre::proposal($centreid));
+
+        $user = $this->getDataGenerator()->create_user(['firstname' => 'Lucía', 'lastname' => 'Medina',
+            'email' => 'lucia@example.com']);
+        $this->assertSame((int) $user->id, (int) panel_centre::find_user('LUCIA@example.com')->id);
+        $this->assertSame((int) $user->id, (int) panel_centre::find_user('Lucía Medina')->id);
+        $this->assertNull(panel_centre::find_user('Nadie'));
+
+        $context = panel_centre::context($centre);
+        $this->assertSame('#1f5a4e', $context['colour']);
+        $this->assertSame([], $context['hosts']);
+        $this->assertTrue(end($context['offers'])['empty']);
+        $this->assertSame(['', 'vestibulo', 'mostrador', 'cinematico'], array_column($context['skins'], 'value'));
+
+        // Saved at once: the centre, someone more in the team, a new course.
+        $_POST = ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'colour' => '#1f5a4e', 'colourhex' => '#C0392B',
+            'arrive' => 'Por la puerta verde.', 'retention' => 12, 'skin' => 'mostrador', 'addmember' => 'lucia@example.com',
+            'offerid' => [$context['offers'][0]['id'], 0], 'offername' => ['Infantil 3 años', '1.º de Primaria'],
+            'offeryear' => ['2027-28', '2027-28'], 'offerplaces' => [25, 50], 'offeractive' => [1, 1]];
+        $this->assertSame([], panel_centre::save($centre));
+        $saved = centres::get($centreid);
+        $this->assertSame(['#c0392b', 'Por la puerta verde.', 12, 'mostrador'], [$saved->colour, $saved->arrive,
+            (int) $saved->retention, $saved->skin]);
+        $this->assertCount(2, centres::offers($centreid, true));
+        $members = centres::members($centreid);
+        $this->assertArrayHasKey($user->id, $members);
+
+        // Who receives: their role and their sentence, and families see them.
+        $memberid = (int) $members[$user->id]->memberid;
+        $_POST = ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'colour' => '#c0392b', 'colourhex' => '#c0392b',
+            'role' => [$memberid => 'Admisiones'], 'phrase' => [$memberid => 'Les enseño el centro.'],
+            'shown' => [$memberid => 1]];
+        $this->assertSame([], panel_centre::save(centres::get($centreid)));
+        $hosts = centres::hosts($centreid);
+        $this->assertSame(['Admisiones', 'Les enseño el centro.'], [$hosts[0]->role, $hosts[0]->says]);
+        $this->assertSame('#c0392b', centres::get($centreid)->colour);
+        $this->assertNull(centres::get($centreid)->skin);
+        $_POST = [];
     }
 
     /**

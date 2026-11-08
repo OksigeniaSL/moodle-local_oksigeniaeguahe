@@ -1,0 +1,173 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_centre
+
+    The settings of a centre (centre.php), in one form with an index at the side: how families see it (name, logo and
+    colour, with the band, the label and the wall rewritten in light and dark as the colour changes, and a sentence
+    that says what the server did so that everything reads), how to get there and the welcome; who receives the
+    families, with their faces and their sentence; Telegram and WhatsApp in three choices said in words; the data of
+    the families; the area; the offer with its places on the rail; the team; the skin of this panel, each with its
+    picture in light and dark, and the one its offer suggests by age; and the AI of the centre, when it comes.
+
+    New in this round (the whole template; it replaces centre_form in the panel). The colour of the preview comes from
+    publicpage::centre_vars(), for light (lightvars) and dark (darkvars).
+
+    Example context (json):
+    {
+        "i": {"check": "", "subir": "", "info": "", "mas1": ""},
+        "head": {"title": "Ajustes del centro", "sub": "", "back": null, "ante": "", "action": null},
+        "action": "#", "sesskey": "abc", "index": [{"key": "aspecto", "name": "Cómo lo ven las familias"}],
+        "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
+        "lang": [{"value": "es", "name": "Español", "selected": true}], "country": "ES", "address": "", "phone": "", "email": "",
+        "welcome": "", "arrive": "", "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
+        "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
+        "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "",
+        "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": ""}],
+        "members": [{"id": 5, "name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR", "role": "Admisiones", "me": false}],
+        "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
+        "skinproposal": "Su oferta va de los 3 a los 16 años.",
+        "ai": {"providers": [{"value": "", "name": "Ninguno", "selected": true}], "note": ""}
+    }
+}}
+<div class="pagina pagina-ajustes">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <form class="ajustes" method="post" action="{{action}}" enctype="multipart/form-data" data-ajustes>
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <nav class="indice-ajustes" aria-label="{{#str}}panel_settings_index, local_oksigeniaeguahe{{/str}}">
+            <ol>{{#index}}<li><a href="#aj-{{key}}">{{name}}</a></li>{{/index}}</ol>
+        </nav>
+        <div class="ajustes-hojas">
+            <section class="apartado" id="aj-aspecto" aria-labelledby="aj-aspecto-t">
+                <header><h2 id="aj-aspecto-t">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="rejilla-2">
+                    <div class="campo"><label for="c-nombre">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</label><input id="c-nombre" name="name" value="{{name}}" required data-vivo-centro></div>
+                    <div class="campo"><label for="c-idioma">{{#str}}centre_lang, local_oksigeniaeguahe{{/str}}</label><select id="c-idioma" name="lang">{{#lang}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/lang}}</select></div>
+                </div>
+                <div class="color-fila">
+                    <div class="campo"><label for="c-color">{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</label><span class="color-campo"><input id="c-color" type="color" name="colour" value="{{colour}}" data-color-centro><input class="color-hex" name="colourhex" value="{{colour}}" aria-label="{{#str}}panel_colour_code, local_oksigeniaeguahe{{/str}}" data-color-hex dir="ltr" spellcheck="false"></span></div>
+                    <div class="campo"><label for="c-logo">{{#str}}centre_logo, local_oksigeniaeguahe{{/str}}</label><input id="c-logo" type="file" name="logo" accept="image/png,image/svg+xml,image/webp,image/jpeg"><label class="casilla"><input type="checkbox" name="logoplate" value="1"{{#logoplate}} checked{{/logoplate}}><span>{{#str}}centre_logoplate, local_oksigeniaeguahe{{/str}}</span></label></div>
+                </div>
+                <div class="muestra-color" aria-hidden="true">
+                    <div class="muestra-tema muestra-dia" style="{{lightvars}}" data-muestra-tema="claro">
+                        <span class="rotulo-p">{{#str}}panel_light, local_oksigeniaeguahe{{/str}}</span>
+                        <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
+                        <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
+                    </div>
+                    <div class="muestra-tema muestra-noche" style="{{darkvars}}" data-muestra-tema="oscuro">
+                        <span class="rotulo-p">{{#str}}panel_dark, local_oksigeniaeguahe{{/str}}</span>
+                        <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
+                        <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
+                    </div>
+                </div>
+                <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
+                <div class="rejilla-2">
+                    <div class="campo"><label for="c-dir">{{#str}}centre_address, local_oksigeniaeguahe{{/str}}</label><input id="c-dir" name="address" value="{{address}}"></div>
+                    <div class="campo"><label for="c-pais">{{#str}}centre_country, local_oksigeniaeguahe{{/str}}</label><input id="c-pais" name="country" value="{{country}}" maxlength="2" autocapitalize="characters"></div>
+                    <div class="campo"><label for="c-tel">{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}</label><input id="c-tel" type="tel" name="phone" value="{{phone}}" dir="ltr"></div>
+                    <div class="campo"><label for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input id="c-correo" type="email" name="email" value="{{email}}" dir="ltr"></div>
+                </div>
+                <div class="campo"><label for="c-llegar">{{#str}}panel_how_to_arrive, local_oksigeniaeguahe{{/str}}</label><textarea id="c-llegar" name="arrive" rows="2">{{arrive}}</textarea><span class="ayuda">{{#str}}panel_how_to_arrive_help, local_oksigeniaeguahe{{/str}}</span></div>
+                <div class="campo"><label for="c-bienvenida">{{#str}}centre_welcome, local_oksigeniaeguahe{{/str}}</label><input id="c-bienvenida" name="welcome" value="{{welcome}}"></div>
+            </section>
+            <section class="apartado" id="aj-reciben" aria-labelledby="aj-reciben-t">
+                <header><h2 id="aj-reciben-t">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_who_receives_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="reciben-lista">
+                    {{#hosts}}
+                    <li class="recibe">
+                        <span class="recibe-cara">{{> local_oksigeniaeguahe/panel_face }}</span>
+                        <span class="recibe-datos"><b>{{name}}</b>
+                            <label class="oculto" for="cargo-{{id}}">{{#str}}panel_their_role, local_oksigeniaeguahe, {{first}}{{/str}}</label><input class="recibe-cargo" id="cargo-{{id}}" name="role[{{id}}]" value="{{role}}" placeholder="{{#str}}panel_role_example, local_oksigeniaeguahe{{/str}}">
+                            <label class="oculto" for="frase-{{id}}">{{#str}}panel_their_sentence, local_oksigeniaeguahe, {{first}}{{/str}}</label><input id="frase-{{id}}" name="phrase[{{id}}]" value="{{phrase}}" placeholder="{{#str}}panel_their_sentence_example, local_oksigeniaeguahe{{/str}}"></span>
+                        <span class="recibe-acciones">
+                            <label class="casilla"><input type="checkbox" name="shown[{{id}}]" value="1"{{#shown}} checked{{/shown}}><span>{{#str}}panel_shown_families, local_oksigeniaeguahe{{/str}}</span></label>
+                            <label class="recibe-foto" for="foto-{{id}}">{{{i.subir}}}<span>{{#picture}}{{#str}}panel_photo_change, local_oksigeniaeguahe{{/str}}{{/picture}}{{^picture}}{{#str}}panel_photo_add, local_oksigeniaeguahe{{/str}}{{/picture}}</span></label><input class="archivo-oculto" id="foto-{{id}}" type="file" name="photo[{{id}}]" accept="image/png,image/jpeg,image/webp" data-archivo-nombre>
+                        </span>
+                    </li>
+                    {{/hosts}}
+                    {{^hosts}}<li class="secundario">{{#str}}panel_hosts_none, local_oksigeniaeguahe{{/str}}</li>{{/hosts}}
+                </ul>
+            </section>
+            {{#hasmessaging}}
+            <section class="apartado" id="aj-mensajes" aria-labelledby="aj-mensajes-t">
+                <header><h2 id="aj-mensajes-t">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="opciones opciones-3" role="radiogroup" aria-labelledby="aj-mensajes-t">
+                    {{#messaging}}<label class="opcion"><input type="radio" name="messaging" value="{{value}}"{{#checked}} checked{{/checked}}><span><b>{{name}}</b><span class="secundario">{{help}}</span></span></label>{{/messaging}}
+                </div>
+            </section>
+            {{/hasmessaging}}
+            <section class="apartado" id="aj-datos" aria-labelledby="aj-datos-t">
+                <header><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="rejilla-2">
+                    <div class="campo"><label for="c-resp">{{#str}}centre_controller, local_oksigeniaeguahe{{/str}}</label><input id="c-resp" name="controller" value="{{controller}}"></div>
+                    <div class="campo"><label for="c-derechos">{{#str}}centre_rightscontact, local_oksigeniaeguahe{{/str}}</label><input id="c-derechos" name="rightscontact" value="{{rights}}"></div>
+                    <div class="campo"><label for="c-dpd">{{#str}}centre_dpocontact, local_oksigeniaeguahe{{/str}}</label><input id="c-dpd" name="dpocontact" value="{{dpo}}"></div>
+                    <div class="campo"><label for="c-meses">{{#str}}centre_retention, local_oksigeniaeguahe{{/str}}</label><input id="c-meses" type="number" min="1" name="retention" value="{{retention}}" inputmode="numeric"></div>
+                </div>
+            </section>
+            <section class="apartado" id="aj-zona" aria-labelledby="aj-zona-t">
+                <header><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="campo"><label for="c-zona">{{#str}}panel_places_of_area, local_oksigeniaeguahe{{/str}}</label><textarea id="c-zona" name="municipalities" rows="5">{{municipalities}}</textarea><span class="ayuda">{{#str}}panel_places_of_area_help, local_oksigeniaeguahe{{/str}}</span></div>
+            </section>
+            <section class="apartado" id="aj-oferta" aria-labelledby="aj-oferta-t">
+                <header><h2 id="aj-oferta-t">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_offer_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="ofertas">
+                    {{#offers}}
+                    <li class="oferta{{#empty}} vacia{{/empty}}">
+                        <div class="campo"><label for="o-n-{{i}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><input id="o-n-{{i}}" name="offername[{{i}}]" value="{{name}}"></div>
+                        <div class="campo"><label for="o-a-{{i}}">{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</label><input id="o-a-{{i}}" name="offeryear[{{i}}]" value="{{year}}"></div>
+                        <div class="campo"><label for="o-p-{{i}}">{{#str}}offer_places, local_oksigeniaeguahe{{/str}}</label><input id="o-p-{{i}}" type="number" min="0" name="offerplaces[{{i}}]" value="{{places}}" inputmode="numeric"></div>
+                        <label class="casilla"><input type="checkbox" name="offeractive[{{i}}]" value="1"{{#active}} checked{{/active}}><span>{{#str}}offer_active, local_oksigeniaeguahe{{/str}}</span></label>
+                        {{#rail}}<div class="riel-caja oferta-riel">{{{rail}}}</div>{{/rail}}
+                        <input type="hidden" name="offerid[{{i}}]" value="{{id}}">
+                    </li>
+                    {{/offers}}
+                </ul>
+            </section>
+            <section class="apartado" id="aj-equipo" aria-labelledby="aj-equipo-t">
+                <header><h2 id="aj-equipo-t">{{#str}}centre_members, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="equipo-lista">{{#members}}<li>{{> local_oksigeniaeguahe/panel_face }}<span><b>{{name}}</b><span class="secundario">{{role}}</span></span>{{^me}}<label class="casilla quitar"><input type="checkbox" name="removemember[{{id}}]" value="1"><span>{{#str}}panel_member_remove, local_oksigeniaeguahe{{/str}}</span></label>{{/me}}</li>{{/members}}</ul>
+                <div class="campo"><label for="c-equipo">{{#str}}panel_add_person, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo" name="addmember" placeholder="{{#str}}panel_add_person_help, local_oksigeniaeguahe{{/str}}" autocomplete="off"></div>
+            </section>
+            <section class="apartado" id="aj-panel" aria-labelledby="aj-panel-t">
+                <header><h2 id="aj-panel-t">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="linea-dato">{{skinproposal}}</p>
+                <div class="pieles" role="radiogroup" aria-labelledby="aj-panel-t">
+                    {{#skins}}
+                    <label class="piel-opcion{{#auto}} auto{{/auto}}" for="{{id}}">
+                        <input type="radio" id="{{id}}" name="skin" value="{{value}}"{{#checked}} checked{{/checked}}{{#soon}} disabled{{/soon}}>
+                        {{#img}}<span class="piel-muestra"><img class="dia" src="{{img}}" alt="" width="480" height="300" loading="lazy">{{#imgdark}}<img class="noche" src="{{imgdark}}" alt="" width="480" height="300" loading="lazy">{{/imgdark}}</span>{{/img}}
+                        <span class="piel-texto"><b>{{name}}</b><span class="secundario">{{help}}</span></span>
+                    </label>
+                    {{/skins}}
+                </div>
+                <p class="def">{{#str}}panel_skin_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            <section class="apartado" id="aj-ia" aria-labelledby="aj-ia-t">
+                <header><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2></header>
+                {{#ai}}
+                <div class="campo"><label for="c-ia">{{#str}}centre_aiprovider, local_oksigeniaeguahe{{/str}}</label><select id="c-ia" name="aiprovider">{{#providers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/providers}}</select></div>
+                <p class="def">{{note}}</p>
+                {{/ai}}
+            </section>
+        </div>
+        <div class="guardar-pie">
+            <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button><span class="def">{{#str}}panel_settings_save_help, local_oksigeniaeguahe{{/str}}</span></div>
+        </div>
+    </form>
+</div>

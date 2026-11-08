@@ -24,6 +24,7 @@
         <FIELD NAME="logoplate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the logo needs a light plate in dark mode"/>
         <FIELD NAME="messaging" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="notices" SEQUENCE="false" COMMENT="Telegram and WhatsApp with Marandu: off, notices or conversation"/>
         <FIELD NAME="skin" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The skin of the panel of the team: vestibulo, mostrador or cinematico; null, the one its offer suggests"/>
+        <FIELD NAME="arrive" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How families get in on the day: the door, whom they give their name to"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

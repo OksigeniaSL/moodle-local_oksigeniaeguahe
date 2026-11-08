@@ -208,6 +208,7 @@ class familypage {
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
             'others' => array_map($visitrow, array_slice($upcoming, 1)),
+            'arrive' => trim((string) ($centre->arrive ?? '')),
             'mapurl' => $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
                 rawurlencode(format_string($centre->name) . ', ' . $address) : '',
             'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?

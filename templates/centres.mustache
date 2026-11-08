@@ -20,11 +20,16 @@
     The centres of the site: each with its team and who waits for an answer, and a new one.
 
     Example context (json):
-    {"hascentres": true, "newurl": "#",
+    {"hascentres": true, "newurl": "#", "sesskey": "abc",
      "centres": [{"name": "Colegio de ejemplo", "url": "#", "settingsurl": "#", "members": 2, "waiting": 3}]}
 }}
 <div class="eguahe">
-    <p><a class="btn btn-primary" href="{{newurl}}">{{#str}}centre_new, local_oksigeniaeguahe{{/str}}</a></p>
+    <form class="d-flex flex-wrap gap-2 align-items-end mb-3" method="post" action="{{newurl}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <div><label class="form-label" for="eguahe-nuevo">{{#str}}centre_new_name, local_oksigeniaeguahe{{/str}}</label>
+            <input class="form-control" id="eguahe-nuevo" name="name" required></div>
+        <button class="btn btn-primary" type="submit">{{#str}}centre_new, local_oksigeniaeguahe{{/str}}</button>
+    </form>
     {{#hascentres}}
     <table class="table eguahe-table">
         <thead><tr>

@@ -535,5 +535,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110994, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110996) {
+        // How families get in on the day, which they read on their page and in the reminder.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('arrive', XMLDB_TYPE_TEXT, null, null, null, null, null, 'skin');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110996, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

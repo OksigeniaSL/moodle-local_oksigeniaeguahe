@@ -35,14 +35,22 @@
  * @return bool False when there is nothing to serve.
  */
 function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
-    global $DB;
+    global $DB, $USER;
     if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, ['logo', 'hostphoto'], true)) {
         return false;
     }
     $itemid = (int) array_shift($args);
-    // The photo of someone of the team, only while the centre shows that person to the families.
-    if ($filearea === 'hostphoto' && !$DB->record_exists('local_oksigeniaeguahe_member', ['id' => $itemid, 'public' => 1])) {
-        return false;
+    // The photo of someone of the team: for everyone while the centre shows that person to the families, and always
+    // for the team of that centre, which chooses whom to show.
+    if ($filearea === 'hostphoto') {
+        $member = $DB->get_record('local_oksigeniaeguahe_member', ['id' => $itemid], 'id, centreid, public');
+        if (
+            !$member || (!$member->public && !(isloggedin() && (
+            \local_oksigeniaeguahe\local\centres::can_work((int) $member->centreid, (int) $USER->id) ||
+            has_capability('local/oksigeniaeguahe:manage', $context))))
+        ) {
+            return false;
+        }
     }
     $filename = array_pop($args);
     $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
