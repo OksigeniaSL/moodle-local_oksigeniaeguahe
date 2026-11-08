@@ -91,6 +91,25 @@ class panel {
         'mano' => ['<path d="M8 12V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13' .
             'c0 4-2.5 7-6.5 7-2.6 0-4.4-1.4-5.6-3.6L3.5 13.2a1.5 1.5 0 0 1 2.6-1.5L8 14"/>', 1.8],
         'fundir' => ['<path d="M6 4v5a5 5 0 0 0 5 5h1M18 4v5a5 5 0 0 1-5 5"/><path d="M12 14v6M9 17.5l3 3 3-3"/>', 2],
+        'subir' => ['<path d="M12 15.5V4M7 8.5l5-4.5 5 4.5"/>' .
+            '<path d="M4.5 14.5v3A2.5 2.5 0 0 0 7 20h10a2.5 2.5 0 0 0 2.5-2.5v-3"/>', 2],
+        'clave' => ['<circle cx="8" cy="12" r="3.8"/><path d="M11.8 12H20.5M17.5 12v3M20.5 12v2.2"/>', 2],
+        'ensenar' => ['<rect x="3.5" y="4" width="17" height="11.5" rx="2"/><path d="M12 15.5V20M8.5 20h7"/>', 2],
+        'probar' => ['<path d="M8 5.5v13l10.5-6.5z"/>', 2],
+        'codigo' => ['<path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5l-3 14"/>', 2],
+        'puente' => ['<path d="M3 16.5h18M5 16.5V12M19 16.5V12M3 12c3.5-5 14.5-5 18 0"/><path d="M9 16.5v-5.5M15 16.5v-5.5"/>', 2],
+        'hoja' => ['<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 9.5h16M4 14.5h16M10 4v16"/>', 2],
+        'globo' => ['<circle cx="12" cy="12" r="8.5"/>' .
+            '<path d="M3.5 12h17M12 3.5c2.6 2.4 3.6 5.2 3.6 8.5s-1 6.1-3.6 8.5c-2.6-2.4-3.6-5.2-3.6-8.5s1-6.1 3.6-8.5z"/>', 1.8],
+        'reloj' => ['<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', 2],
+        'papelera' => ['<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>', 2],
+        'duplicar' => ['<rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/>' .
+            '<path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>' .
+            '<path d="M14 11.5v5M11.5 14h5"/>', 2],
+        'senalar' => ['<path d="M9 11V4.5a1.5 1.5 0 0 1 3 0V11l5.2 1.2a2 2 0 0 1 1.5 2.3' .
+            'l-1 4.5H9.5L6 14.6a1.6 1.6 0 0 1 2.4-2.1L9 13"/>', 1.8],
+        'ojo2' => ['<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/>' .
+            '<circle cx="12" cy="12" r="3"/><path d="M4 20L20 4"/>', 2],
         'salir' => ['<path d="M10 4.5H6A1.5 1.5 0 0 0 4.5 6v12A1.5 1.5 0 0 0 6 19.5h4"/><path d="M15 8l4 4-4 4M19 12H9.5"/>', 2],
         'ia' => ['<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><rect x="7" y="7" width="10" height="10" rx="3"/>', 2],
     ];
@@ -345,7 +364,7 @@ class panel {
                 userdate($until, get_string('strftimedateshort', 'langconfig'))
             ) : '',
             'jsstrings' => json_encode(self::js_strings(), JSON_UNESCAPED_UNICODE),
-            'credit' => $credit ? get_string('panel_credit', self::C, \html_writer::link(
+            'credit' => $credit ? get_string('panel_credit_after', self::C, \html_writer::link(
                 $credit['url'],
                 'Oksigenia',
                 ['target' => '_blank', 'rel' => 'noopener']
@@ -371,6 +390,7 @@ class panel {
 @media (prefers-color-scheme: dark) { :root:not([data-bs-theme]) { ' . $vars(publicpage::centre_vars($colour, true)) . ' } }
 :root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
+<script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
 <body class="panel piel-' . $skin . ($door ? '' : ' con-abajo') . '">
 ' . $top . $body . $bottom . '

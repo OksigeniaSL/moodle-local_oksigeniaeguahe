@@ -2,7 +2,7 @@
   a card file, each family an index card with the stamp of the day it came, the days on the dividers written by hand;
   with twenty families or more, a ledger. A family opens as a folder beside the file. Your turn is a yellow pad, the
   proposal an index card stamped «Propuesta», writing down a family a clipboard, the week a notebook, the door a printed
-  list with boxes. At night the desk goes dark and a lamp lights the paper. Only what carries a datum is an object:
+  list with boxes. At night the desk goes dark and the paper lies in shadow, with light ink. Only what carries a datum is an object:
   no clips, pencils or tape for decoration. Everything sits on the variables of panel.css; nothing here changes what
   the page says or does. Loaded after pub/panel.css, only when the centre's skin is «mostrador». */
 body.piel-mostrador {
@@ -24,6 +24,17 @@ body.piel-mostrador {
         0 2px 2px rgba(60, 35, 20, 0.14),
         0 14px 20px -8px rgba(60, 35, 20, 0.3),
         0 40px 46px -24px rgba(60, 35, 20, 0.45);
+    /* What was white paper, a veil of light or a highlight, so that the night can dim it */
+    --b-blanco: #fff;
+    --b-velo: rgba(255, 255, 255, 0.6);
+    --b-area: rgba(255, 255, 255, 0.55);
+    --b-resalte: rgba(255, 240, 170, 0.35);
+    --kraft-velo: rgba(255, 255, 255, 0.18);
+    --cuadricula: rgba(90, 130, 170, 0.1);
+    --tinta-azul: #2c3e6b;
+    --b-tablilla: #a5784c;
+    --piel-noche: 0;
+    --b-pijama: rgba(110, 170, 120, 0.13);
     --eg-papel: var(--papel-b);
     --eg-superficie: #fff;
     --piel-fondo: #8a5a30;
@@ -35,18 +46,10 @@ body.piel-mostrador {
     --piel-fila-sombra: var(--sombra-papel);
     position: relative;
     z-index: 0;
-    background: #8a5a30;
+    background: #8a5a30 url(mesa.webp) center top / 1290px auto repeat;
 }
-/* The desk under everything, fixed (it does not repaint when the page scrolls), and the light of the window */
-body.piel-mostrador::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background: url(mesa.webp) center / cover #b98450;
-    filter: saturate(0.78);
-}
-
+/* The desk goes on with the page, however long: a tile with no seam (its colour baked in). Over it, fixed, the light
+  of the window. */
 body.piel-mostrador::after {
     content: '';
     position: fixed;
@@ -57,110 +60,143 @@ body.piel-mostrador::after {
         radial-gradient(120% 90% at 30% 15%, rgba(255, 246, 230, 0.2), transparent 60%),
         radial-gradient(140% 120% at 50% 50%, transparent 55%, rgba(60, 30, 10, 0.3));
 }
-/* At night: the desk in the dark, a lamp on the paper, the paper a little dimmer (and still paper) */
+/* At night (Moodle in dark): the desk in the dark and the paper in shadow, warm and dimmed, the ink light on it, as
+  under a lamp that does not reach the whole desk. Whoever puts Moodle in dark gets a dark panel. */
 @media (prefers-color-scheme: dark) {
     :root:not([data-bs-theme]) body.piel-mostrador {
-        --c-pared: #ddd0bb;
-        --papel-b: #ebe2d2;
-        --papel-b-2: #ddd2c0;
-        --kraft: #b9996c;
-        --kraft-2: #a88a5f;
-        --nota: #ece0b4;
-        --pauta: rgba(90, 120, 165, 0.26);
-        --eg-superficie: #f4ecdf;
-        --eg-hundido: #e0d5c3;
-        --eg-pared: #ded1bc;
-        --eg-tinta: #2b2226;
-        --eg-tinta-rgb: 43, 34, 38;
-        --eg-tinta-2: #564b50;
-        --eg-linea: #d2c4b0;
-        --eg-borde: #7d7176;
-        --eg-madera: #bc8759;
-        --eg-madera-luz: #d2a57c;
-        --eg-madera-sombra: #8e5e3a;
-        --eg-gancho: #7a5236;
-        --eg-gancho-luz: #c99a6e;
-        --eg-chapita: #fff;
-        --eg-error: #a8241c;
-        --eg-error-suave: #f3ddd6;
-        --eg-sombra: rgba(40, 25, 15, 0.3);
-        --eg-accion: #36233a;
-        --eg-sobre-accion: #fbf7f1;
-        --eg-acento: #643f5e;
-        --eg-acento-suave: #e6d8df;
-        --eg-serie-1: #7b3f72;
-        --eg-mochila: #6f5e6e;
-        --eg-mochila-sombra: #54465a;
-        --eg-mochila-luz: #fbf5ec;
-        --eg-coral: #cf6450;
-        --eg-sello: #5e3769;
-        --bs-focus-ring-color: rgba(106, 70, 100, 0.35);
-        --piel-fondo: #2a1d14;
-        background: #2a1d14;
-        color-scheme: light;
-        --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.4), 0 6px 10px -4px rgba(0, 0, 0, 0.5), 0 20px 30px -16px rgba(0, 0, 0, 0.6);
+        --papel-b: #2f2723;
+        --papel-b-2: #28211d;
+        --kraft: #5f4830;
+        --kraft-2: #523e29;
+        --kraft-tinta: #f0dcc0;
+        --nota: #3a3122;
+        --pauta: rgba(170, 190, 225, 0.14);
+        --margen: rgba(230, 130, 120, 0.34);
+        --cuadricula: rgba(170, 190, 225, 0.07);
+        --b-blanco: #3a312b;
+        --b-velo: rgba(255, 255, 255, 0.05);
+        --b-area: rgba(0, 0, 0, 0.18);
+        --b-resalte: rgba(255, 210, 140, 0.1);
+        --kraft-velo: rgba(255, 255, 255, 0.03);
+        --tinta-azul: #b4c4ec;
+        --b-tablilla: #6a4a2e;
+        --piel-noche: 1;
+        --b-pijama: rgba(140, 200, 150, 0.06);
+        --ruido: url(ruido-noche.svg);
+        --eg-superficie: #3a302b;
+        --eg-hundido: #251e1a;
+        --eg-tinta: #f2e8dc;
+        --eg-tinta-rgb: 242, 232, 220;
+        --eg-tinta-2: #c8b9a8;
+        --eg-linea: #4b3f37;
+        --eg-borde: #9a8a7e;
+        --eg-madera: #a87a55;
+        --eg-madera-luz: #c29670;
+        --eg-madera-sombra: #7b573c;
+        --eg-gancho: #cda27a;
+        --eg-gancho-luz: #ead0b2;
+        --eg-chapita: #f3ebe0;
+        --eg-chapita-tinta: #2b2226;
+        --eg-error: #f2a9a2;
+        --eg-error-suave: #4a2622;
+        --eg-sombra: rgba(0, 0, 0, 0.45);
+        --eg-accion: #f0e3d3;
+        --eg-sobre-accion: #2b2226;
+        --eg-acento: #dcc3d6;
+        --eg-acento-suave: #45343f;
+        --eg-serie-1: #c085b6;
+        --eg-serie-1-suave: #553e51;
+        --eg-serie-2: #d6944f;
+        --eg-mochila: #bba9b8;
+        --eg-mochila-sombra: #8f7d8c;
+        --eg-mochila-luz: #2f2723;
+        --eg-coral: #f0947b;
+        --eg-sello: #dcbbe6;
+        --eg-rango: #6f4f6a;
+        --bs-focus-ring-color: rgba(220, 195, 214, 0.4);
+        --piel-fondo: #1f1611;
+        background-color: #1f1611;
+        color-scheme: dark;
+        --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.45), 0 6px 10px -4px rgba(0, 0, 0, 0.55), 0 20px 30px -16px rgba(0, 0, 0, 0.65);
+        --sombra-alta: 0 2px 2px rgba(0, 0, 0, 0.45), 0 14px 20px -8px rgba(0, 0, 0, 0.6), 0 40px 46px -24px rgba(0, 0, 0, 0.7);
     }
 
-    :root:not([data-bs-theme]) body.piel-mostrador::before {
-        filter: saturate(0.55) brightness(0.32);
+    :root:not([data-bs-theme]) body.piel-mostrador {
+        background-image: url(mesa-noche.webp);
     }
 
     :root:not([data-bs-theme]) body.piel-mostrador::after {
         background:
-            radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.3), transparent 70%),
+            radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.16), transparent 70%),
             radial-gradient(140% 120% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55));
     }
 }
 
 :root[data-bs-theme="dark"] body.piel-mostrador {
-    --c-pared: #ddd0bb;
-    --papel-b: #ebe2d2;
-    --papel-b-2: #ddd2c0;
-    --kraft: #b9996c;
-    --kraft-2: #a88a5f;
-    --nota: #ece0b4;
-    --pauta: rgba(90, 120, 165, 0.26);
-    --eg-superficie: #f4ecdf;
-    --eg-hundido: #e0d5c3;
-    --eg-pared: #ded1bc;
-    --eg-tinta: #2b2226;
-    --eg-tinta-rgb: 43, 34, 38;
-    --eg-tinta-2: #564b50;
-    --eg-linea: #d2c4b0;
-    --eg-borde: #7d7176;
-    --eg-madera: #bc8759;
-    --eg-madera-luz: #d2a57c;
-    --eg-madera-sombra: #8e5e3a;
-    --eg-gancho: #7a5236;
-    --eg-gancho-luz: #c99a6e;
-    --eg-chapita: #fff;
-    --eg-error: #a8241c;
-    --eg-error-suave: #f3ddd6;
-    --eg-sombra: rgba(40, 25, 15, 0.3);
-    --eg-accion: #36233a;
-    --eg-sobre-accion: #fbf7f1;
-    --eg-acento: #643f5e;
-    --eg-acento-suave: #e6d8df;
-    --eg-serie-1: #7b3f72;
-    --eg-mochila: #6f5e6e;
-    --eg-mochila-sombra: #54465a;
-    --eg-mochila-luz: #fbf5ec;
-    --eg-coral: #cf6450;
-    --eg-sello: #5e3769;
-    --bs-focus-ring-color: rgba(106, 70, 100, 0.35);
-    --piel-fondo: #2a1d14;
-    background: #2a1d14;
-    color-scheme: light;
-    --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.4), 0 6px 10px -4px rgba(0, 0, 0, 0.5), 0 20px 30px -16px rgba(0, 0, 0, 0.6);
+    --papel-b: #2f2723;
+    --papel-b-2: #28211d;
+    --kraft: #5f4830;
+    --kraft-2: #523e29;
+    --kraft-tinta: #f0dcc0;
+    --nota: #3a3122;
+    --pauta: rgba(170, 190, 225, 0.14);
+    --margen: rgba(230, 130, 120, 0.34);
+    --cuadricula: rgba(170, 190, 225, 0.07);
+    --b-blanco: #3a312b;
+    --b-velo: rgba(255, 255, 255, 0.05);
+    --b-area: rgba(0, 0, 0, 0.18);
+    --b-resalte: rgba(255, 210, 140, 0.1);
+    --kraft-velo: rgba(255, 255, 255, 0.03);
+    --tinta-azul: #b4c4ec;
+    --b-tablilla: #6a4a2e;
+    --piel-noche: 1;
+    --b-pijama: rgba(140, 200, 150, 0.06);
+    --ruido: url(ruido-noche.svg);
+    --eg-superficie: #3a302b;
+    --eg-hundido: #251e1a;
+    --eg-tinta: #f2e8dc;
+    --eg-tinta-rgb: 242, 232, 220;
+    --eg-tinta-2: #c8b9a8;
+    --eg-linea: #4b3f37;
+    --eg-borde: #9a8a7e;
+    --eg-madera: #a87a55;
+    --eg-madera-luz: #c29670;
+    --eg-madera-sombra: #7b573c;
+    --eg-gancho: #cda27a;
+    --eg-gancho-luz: #ead0b2;
+    --eg-chapita: #f3ebe0;
+    --eg-chapita-tinta: #2b2226;
+    --eg-error: #f2a9a2;
+    --eg-error-suave: #4a2622;
+    --eg-sombra: rgba(0, 0, 0, 0.45);
+    --eg-accion: #f0e3d3;
+    --eg-sobre-accion: #2b2226;
+    --eg-acento: #dcc3d6;
+    --eg-acento-suave: #45343f;
+    --eg-serie-1: #c085b6;
+    --eg-serie-1-suave: #553e51;
+    --eg-serie-2: #d6944f;
+    --eg-mochila: #bba9b8;
+    --eg-mochila-sombra: #8f7d8c;
+    --eg-mochila-luz: #2f2723;
+    --eg-coral: #f0947b;
+    --eg-sello: #dcbbe6;
+    --eg-rango: #6f4f6a;
+    --bs-focus-ring-color: rgba(220, 195, 214, 0.4);
+    --piel-fondo: #1f1611;
+    background-color: #1f1611;
+    color-scheme: dark;
+    --sombra-papel: 0 1px 1px rgba(0, 0, 0, 0.45), 0 6px 10px -4px rgba(0, 0, 0, 0.55), 0 20px 30px -16px rgba(0, 0, 0, 0.65);
+    --sombra-alta: 0 2px 2px rgba(0, 0, 0, 0.45), 0 14px 20px -8px rgba(0, 0, 0, 0.6), 0 40px 46px -24px rgba(0, 0, 0, 0.7);
 }
 
-:root[data-bs-theme="dark"] body.piel-mostrador::before {
-    filter: saturate(0.55) brightness(0.32);
+:root[data-bs-theme="dark"] body.piel-mostrador {
+    background-image: url(mesa-noche.webp);
 }
 
 :root[data-bs-theme="dark"] body.piel-mostrador::after {
     background:
-        radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.3), transparent 70%),
+        radial-gradient(75% 65% at 30% 22%, rgba(255, 190, 120, 0.16), transparent 70%),
         radial-gradient(140% 120% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55));
 }
 /* ---------- Paper ---------- */
@@ -173,7 +209,11 @@ body.piel-mostrador::after {
 .piel-mostrador .cabeza,
 .piel-mostrador .teclas-hoja,
 .piel-mostrador .menu-barra .menu,
-.piel-mostrador .entrada-fila {
+.piel-mostrador .entrada-fila,
+.piel-mostrador .lamina,
+.piel-mostrador .cifras-barra,
+.piel-mostrador .pregunta-fila,
+.piel-mostrador .lamina-mandos {
     background-color: var(--papel-b);
     background-image: var(--ruido);
     border-color: transparent;
@@ -448,7 +488,7 @@ body.piel-mostrador::after {
     font-size: 1.375rem;
     font-weight: 700;
     line-height: 1.1;
-    color: #2c3e6b;
+    color: var(--tinta-azul);
 }
 
 .piel-mostrador .fila .promesa {
@@ -460,7 +500,7 @@ body.piel-mostrador::after {
     font-family: var(--piel-mano);
     font-size: 1.1875rem;
     font-style: normal;
-    color: #2c3e6b;
+    color: var(--tinta-azul);
 }
 /* The ledger: twenty families or more, one line each, the days in the margin */
 .piel-mostrador .lista[data-densidad="lista"] {
@@ -496,7 +536,7 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .lista[data-densidad="lista"] .fila:hover {
-    background: rgba(255, 240, 180, 0.35);
+    background: var(--b-resalte);
 }
 
 .piel-mostrador .lista[data-densidad="lista"] .sello-fecha {
@@ -528,8 +568,8 @@ body.piel-mostrador::after {
     padding: 14px 16px 18px;
     border-radius: 4px;
     background:
-        linear-gradient(rgba(90, 130, 170, 0.1) 1px, transparent 1px) 0 0 / 18px 18px,
-        linear-gradient(90deg, rgba(90, 130, 170, 0.1) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(var(--cuadricula) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(90deg, var(--cuadricula) 1px, transparent 1px) 0 0 / 18px 18px,
         var(--papel-b);
     box-shadow: var(--sombra-papel);
     transform: rotate(0.4deg);
@@ -553,7 +593,7 @@ body.piel-mostrador::after {
     box-shadow: inset 0 1px 3px rgba(60, 35, 20, 0.18);
 }
 
-.piel-mostrador .linea-dato {
+.piel-mostrador .bloque-camino .linea-dato {
     padding: 6px 12px;
     border-radius: 999px;
     background: var(--eg-accion);
@@ -566,7 +606,7 @@ body.piel-mostrador::after {
     .piel-mostrador .hoja-lateral {
         padding: 16px 16px 24px;
         border-radius: 4px 12px 12px 12px;
-        background: linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)), var(--ruido), var(--kraft);
+        background: linear-gradient(var(--kraft-velo), var(--kraft-velo)), var(--ruido), var(--kraft);
         box-shadow: var(--sombra-alta);
     }
 
@@ -626,7 +666,7 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .turno-tuyo textarea {
-    background: rgba(255, 255, 255, 0.55);
+    background: var(--b-area);
 }
 
 .piel-mostrador .sugerencia {
@@ -644,10 +684,10 @@ body.piel-mostrador::after {
 }
 /* The stamp «Contestada» on the pad */
 .piel-mostrador .sello-grande {
-    position: absolute;
+    position: relative;
     z-index: 3;
-    inset-inline-end: 18px;
-    top: 6px;
+    flex: none;
+    margin: -8px 2px -6px 6px;
     display: inline-flex;
     flex-direction: column;
     align-items: center;
@@ -668,9 +708,12 @@ body.piel-mostrador::after {
     pointer-events: none;
 }
 
-.piel-mostrador .turno-tuyo.ya .quien {
-    padding-inline-end: 150px;
-    min-height: 52px;
+.piel-mostrador .turno-cab {
+    align-items: flex-start;
+}
+
+.piel-mostrador .turno-cab .turno-titulo {
+    padding-top: 3px;
 }
 
 .piel-mostrador .sello-grande small {
@@ -718,7 +761,7 @@ body.piel-mostrador::after {
     position: relative;
     padding: 34px 18px 8px;
     border-radius: 14px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.06)), #a5784c;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.06)), var(--b-tablilla);
     box-shadow: var(--sombra-alta), inset 0 0 0 1px rgba(60, 35, 20, 0.3);
 }
 
@@ -747,7 +790,7 @@ body.piel-mostrador::after {
     margin: 0 -18px;
     padding-inline: 18px;
     border-radius: 0 0 14px 14px;
-    background: #a5784c;
+    background: var(--b-tablilla);
 }
 
 .piel-mostrador .num-paso {
@@ -804,7 +847,7 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .cita {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--b-velo);
     box-shadow: 0 1px 2px rgba(60, 35, 20, 0.2);
     border-radius: 3px;
 }
@@ -824,12 +867,12 @@ body.piel-mostrador::after {
 
 .piel-mostrador .dia-s.hoy {
     border-color: transparent;
-    background: rgba(255, 240, 170, 0.35);
+    background: var(--b-resalte);
 }
 /* A tear-off calendar leaf, with its binding */
 .piel-mostrador .hoja-cal {
     border-radius: 2px 2px 6px 6px;
-    background: linear-gradient(var(--eg-sello) 0 9px, transparent 9px), #fff;
+    background: linear-gradient(var(--eg-sello) 0 9px, transparent 9px), var(--b-blanco);
     box-shadow: 0 1px 2px rgba(60, 35, 20, 0.3);
     padding-top: 11px;
 }
@@ -891,7 +934,7 @@ body.piel-mostrador::after {
 .piel-mostrador .vino {
     border-radius: 4px;
     border-width: 2px;
-    background: #fff;
+    background: var(--b-blanco);
 }
 
 .piel-mostrador .vino[aria-pressed="true"] {
@@ -899,7 +942,7 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .buscar-puerta .buscar input {
-    background: #fff;
+    background: var(--b-blanco);
 }
 
 @media (max-width: 719px) {
@@ -927,7 +970,11 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .guardar-pie {
-    background: none;
+    margin-inline: -8px;
+    padding-inline: 12px;
+    border-radius: 4px 4px 0 0;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: 0 -8px 16px -10px rgba(30, 15, 5, 0.5);
 }
 /* ---------- The phone: the desk stays, the paper takes the whole width ---------- */
 @media (max-width: 719px) {
@@ -958,6 +1005,299 @@ body.piel-mostrador::after {
     .piel-mostrador .tablilla::before {
         width: 110px;
         margin-inline-start: -55px;
+    }
+}
+/* ---------- Round 2: creating an event, the entries, a form and its phone, a bridge ---------- */
+/* The event being written is a sheet; beside it, the poster the families will see, on the wall of the centre */
+.piel-mostrador .cartel-muestra {
+    border-radius: 3px;
+    box-shadow: inset 0 2px 6px rgba(60, 35, 20, 0.18), var(--sombra-alta);
+    transform: rotate(0.5deg);
+}
+
+.piel-mostrador .banda-muestra {
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .rotulo-muestra {
+    display: inline-block;
+    justify-self: start;
+    padding: 2px 10px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta-2);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .carta-aviso blockquote {
+    border-radius: 3px;
+    background: repeating-linear-gradient(to bottom, transparent 0 25px, var(--pauta) 25px 26px), var(--ruido), var(--b-blanco);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .aviso-cambio {
+    border-inline-start: 0;
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .tira-dia {
+    border-radius: 3px;
+    background:
+        repeating-linear-gradient(to right, transparent 0 calc(33.33% - 1px), var(--pauta) calc(33.33% - 1px) 33.33%),
+        var(--b-blanco);
+    box-shadow: inset 0 1px 3px rgba(60, 35, 20, 0.2);
+}
+
+.piel-mostrador .tira-turno {
+    border-radius: 3px;
+    border-color: var(--eg-sello);
+    background: var(--nota);
+    color: var(--eg-sello);
+    font-family: var(--piel-mano);
+    font-size: 1.125rem;
+}
+
+.piel-mostrador .anfitrion,
+.piel-mostrador .opcion,
+.piel-mostrador .piel-opcion {
+    border-color: transparent;
+    border-radius: 3px;
+    background: var(--b-blanco);
+    box-shadow: 0 1px 2px rgba(60, 35, 20, 0.22);
+}
+/* The entries: a divider written by hand for each kind, an index card for each entry */
+.piel-mostrador .cab-grupo h2 {
+    justify-self: start;
+    padding: 4px 16px 6px;
+    border-radius: 10px 10px 0 0;
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+    font-family: var(--piel-mano);
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    box-shadow: 0 -2px 4px rgba(60, 35, 20, 0.18);
+}
+
+.piel-mostrador .cab-grupo p {
+    justify-self: start;
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .entrada-fila {
+    border-radius: 4px;
+    background:
+        linear-gradient(to bottom, transparent 43px, var(--margen) 43px, var(--margen) 45px, transparent 45px),
+        var(--ruido),
+        var(--papel-b);
+}
+
+.piel-mostrador .tipo-entrada {
+    border-radius: 4px;
+    background: var(--papel-b-2);
+}
+
+.piel-mostrador .sin-usar-fila {
+    border-color: rgba(246, 234, 216, 0.6);
+    background: rgba(255, 253, 247, 0.12);
+    color: #fffaf0;
+}
+
+.piel-mostrador .sin-usar-fila .secundario,
+.piel-mostrador .sin-usar-fila .ic {
+    color: #f0e2cc;
+}
+
+.piel-mostrador .sin-usar-fila .enlace {
+    color: #fffaf0;
+}
+
+.piel-mostrador .entradas > .def {
+    justify-self: start;
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+/* A form: the questions are index cards in a stack; the open one is pulled out of it */
+.piel-mostrador .pregunta-fila {
+    border: 0;
+    border-radius: 3px;
+    transition: transform var(--dur-1) var(--curva-papel), box-shadow var(--dur-1) ease;
+}
+
+.piel-mostrador .pregunta-fila.abierta {
+    box-shadow: var(--sombra-alta), 0 0 0 2px var(--eg-sello);
+    transform: translateX(calc(var(--mov-x) * -6px)) rotate(-0.3deg);
+}
+
+.piel-mostrador .letra-familia {
+    font-size: 1.125rem;
+}
+
+.piel-mostrador .condicion {
+    border-radius: 3px;
+    background: var(--nota) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .frase-condicion {
+    font-family: var(--piel-mano);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--tinta-azul);
+}
+/* The phone lies on the desk, beside the sheets */
+.piel-mostrador .movil-marco {
+    box-shadow: inset 0 0 0 2px #3c3638, 4px 8px 6px -2px rgba(30, 15, 5, 0.35), 18px 30px 40px -18px rgba(30, 15, 5, 0.55);
+}
+
+.piel-mostrador .movil-cuenta {
+    padding: 4px 12px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .movil-col > .rotulo-muestra {
+    justify-self: center;
+}
+/* A bridge: the script printed on continuous paper */
+.piel-mostrador .guion pre {
+    border-radius: 2px;
+    background:
+        repeating-linear-gradient(to bottom, var(--b-pijama) 0 20.8px, transparent 20.8px 41.6px) 0 14px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--b-blanco);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .bandeja-fichero {
+    border-radius: 6px;
+    border-color: var(--kraft-2);
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+}
+
+.piel-mostrador .bandeja-fichero .secundario,
+.piel-mostrador .bandeja-fichero .ic {
+    color: var(--kraft-tinta);
+}
+/* ---------- Round 2: the numbers, importing, the forecast, the settings ---------- */
+.piel-mostrador .cifras-barra {
+    border-radius: 3px;
+}
+
+.piel-mostrador .lamina {
+    border-radius: 3px;
+}
+
+.piel-mostrador .grafico-alcance,
+.piel-mostrador .grafico-plazas {
+    transform: rotate(-0.15deg);
+}
+
+.piel-mostrador .lamina h2 {
+    justify-self: start;
+    padding-bottom: 2px;
+    border-bottom: 2px solid var(--eg-tinta);
+}
+
+.piel-mostrador .cifra-heroe b {
+    color: var(--eg-tinta);
+}
+
+.piel-mostrador .nota-importado {
+    padding: 6px 12px;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+    justify-self: start;
+}
+
+.piel-mostrador .destino {
+    border-radius: 3px;
+    background: var(--papel-b-2);
+}
+
+.piel-mostrador .hoja-import > header h2 {
+    padding: 2px 12px 4px;
+    border-radius: 6px 6px 0 0;
+    background: #d7e6d0;
+    color: #23361f;
+    box-shadow: inset 0 -2px 0 rgba(35, 54, 31, 0.25);
+}
+
+.piel-mostrador .cursos-prevision,
+.piel-mostrador .grafico-plazas {
+    background:
+        linear-gradient(var(--cuadricula) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(90deg, var(--cuadricula) 1px, transparent 1px) 0 0 / 18px 18px,
+        var(--papel-b);
+}
+
+.piel-mostrador .indice-ajustes a {
+    margin-bottom: 4px;
+    padding: 8px 14px;
+    border-radius: 0 10px 10px 0;
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+    box-shadow: 2px 2px 4px rgba(60, 35, 20, 0.25);
+}
+
+.piel-mostrador .indice-ajustes a:hover {
+    background: var(--papel-b) var(--ruido);
+    color: var(--eg-tinta);
+}
+
+.piel-mostrador .muestra-tema {
+    border-color: transparent;
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .pared-muestra {
+    border-radius: 3px;
+}
+
+@media (max-width: 1099px) {
+    .piel-mostrador .indice-ajustes a {
+        border-radius: 10px 10px 0 0;
+    }
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .grafico-alcance,
+    .piel-mostrador .grafico-plazas,
+    .piel-mostrador .cartel-muestra {
+        transform: none;
+    }
+}
+
+:root[data-mov="menos"] .piel-mostrador .pregunta-fila.abierta {
+    transform: none;
+}
+
+body.modo-lamina.piel-mostrador .lamina {
+    transform: none;
+    border-radius: 0;
+}
+
+:root[data-bs-theme="dark"] .piel-mostrador .hoja-import > header h2 {
+    background: #2f3d2b;
+    color: #d7e6d0;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .piel-mostrador .hoja-import > header h2 {
+        background: #2f3d2b;
+        color: #d7e6d0;
     }
 }
 /* ---------- The gestures of the skin (escena.js asks for them; the state is already written) ---------- */

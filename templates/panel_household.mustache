@@ -28,7 +28,10 @@
     New in this round: url, inboxurl, answered, owner, takeurl, ownedbyme, promise, typing, historyold, hasold, oldlabel,
     composer.greeting, composer.draft, composer.suggestions, composer.next, proposal, noproposal, untold, hasuntold,
     untoldtext, hasabout, mergeurl. Kept: everything of 0.15. Drawn only when they exist (Eguahe, 8 November 2026,
-    until Enrique says yes to them): relay (who looks after the family and the promise), composer.next and mergeurl.
+    until Enrique says yes to them): relay (who attends the family, «Quién la atiende», and the promise), composer.next and mergeurl.
+    Round 2: the file is one grid (the handover, the wall, the conversation, what to do, the rest); «Your turn» is a
+    section of its own beside the proposal, which climbs to the right column from 1280 px, and its stamp has a place of
+    its own in the head of the pad (turno-cab), never over the text.
 
     Example context (json):
     {
@@ -72,125 +75,75 @@
         <a class="boton terciario pequeno" href="{{inboxurl}}" data-cerrar-hoja>{{{i.cerrar}}}{{#str}}panel_close_sheet, local_oksigeniaeguahe{{/str}}</a>
     </div>
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    {{#relay}}
-    <div class="relevo">
-        {{#owner}}<span class="lleva-ficha">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_owner, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/owner}}
-        {{^owner}}<span class="lleva-ficha nadie">{{#str}}panel_owner_none, local_oksigeniaeguahe{{/str}}</span>{{/owner}}
-        {{#canact}}{{^ownedbyme}}
-        <form class="en-linea" method="post" action="{{takeurl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="boton terciario pequeno" type="submit" name="action" value="take">{{{i.mano}}}{{#str}}panel_take, local_oksigeniaeguahe{{/str}}</button></form>
-        {{/ownedbyme}}{{/canact}}
-        {{#promise}}
-        <form class="promesa" method="post" action="{{action}}">
-            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="promisedone"><input type="hidden" name="promise" value="{{id}}">
-            {{#who}}{{> local_oksigeniaeguahe/panel_face }}{{/who}}<span class="promesa-texto">{{text}}</span>
-            <button class="boton secundario pequeno" type="submit">{{#str}}panel_promise_done, local_oksigeniaeguahe{{/str}}</button>
-        </form>
-        {{/promise}}
-    </div>
-    {{/relay}}
-    <section class="pared-hijos" aria-label="{{#str}}panel_children, local_oksigeniaeguahe{{/str}}">
-        <div class="riel" aria-hidden="true"></div>
-        <div class="hijos-lista">
-            {{#children}}
-            <div class="hijo">
-                {{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}
-                <div class="datos">
-                    <span class="nombre">{{name}}</span>
-                    <span class="secundario">{{#tagline}}{{tagline}} · {{/tagline}}{{course}}</span>
-                    {{^closed}}
-                    <form class="camino" method="post" action="{{action}}" aria-label="{{label}}">
-                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}">
-                        {{#steps}}<button type="submit" name="stage" value="{{value}}" class="{{#done}}hecho{{/done}}{{#here}}aqui{{/here}}"{{#here}} aria-current="step"{{/here}}{{^canact}} disabled{{/canact}}>{{name}}</button>{{^last}}<span class="flecha" aria-hidden="true"></span>{{/last}}{{/steps}}
-                    </form>
-                    {{#canact}}
-                    <div class="otros">
-                        <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>
-                        <span aria-hidden="true">·</span>
-                        <details class="cerrar-con-motivo">
-                            <summary class="enlace">{{#str}}panel_close_with_reason, local_oksigeniaeguahe{{/str}}</summary>
-                            <form method="post" action="{{action}}">
-                                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="stage" value="closed">
-                                <div class="campo"><label for="motivo-{{id}}">{{#str}}panel_why_close, local_oksigeniaeguahe{{/str}}</label>
-                                    <select id="motivo-{{id}}" name="reason">{{#reasons}}<option value="{{value}}">{{name}}</option>{{/reasons}}</select></div>
-                                <button class="boton secundario pequeno" type="submit">{{#str}}panel_close, local_oksigeniaeguahe{{/str}}</button>
-                            </form>
-                        </details>
-                    </div>
-                    {{/canact}}
-                    {{/closed}}
-                    {{#closed}}
-                    <p class="cerrado">{{#str}}stage_closed, local_oksigeniaeguahe{{/str}}{{#reason}} · {{reason}}{{/reason}}</p>
-                    {{#canact}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="inquiry">{{#str}}panel_reopen, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
-                    {{/closed}}
-                </div>
-            </div>
-            {{/children}}
-        </div>
-    </section>
     <div class="ficha-cuerpo">
-        <div class="col col-hilo">
-            <section class="apartado conversacion" aria-labelledby="conv-t">
-                <header><h2 id="conv-t">{{#str}}panel_conversation, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_conversation_help, local_oksigeniaeguahe{{/str}}</span></header>
-                {{#hasold}}
-                <details class="anteriores">
-                    <summary>{{oldlabel}}</summary>
-                    <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
-                </details>
-                {{/hasold}}
-                <ol class="historial">
-                    {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
-                    {{#canact}}
-                    <li class="turno-tuyo{{^waiting}} ya{{/waiting}}" data-turno>
-                        {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}
-                        <div class="que">
-                            <span class="quien"><b data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</b></span>
-                            {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
-                            {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
-                            <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
-                                <input type="hidden" name="sesskey" value="{{sesskey}}">
-                                {{#composer}}
-                                {{#hassuggestions}}
-                                <div class="ya-dijisteis" role="group" aria-labelledby="yd-t">
-                                    <span class="rotulo-p" id="yd-t">{{#str}}panel_said_before, local_oksigeniaeguahe{{/str}}</span>
-                                    {{#suggestions}}<button class="sugerencia" type="submit" name="use" value="{{id}}" data-texto="{{text}}"><b>{{title}}</b><span>{{uses}}</span></button>{{/suggestions}}
-                                </div>
-                                {{/hassuggestions}}
-                                {{#draft}}
-                                <details class="borrador">
-                                    <summary>{{#str}}panel_draft_of, local_oksigeniaeguahe, {"who": "{{who}}", "when": "{{when}}"}{{/str}}</summary>
-                                    <p>{{text}}</p>
-                                    <button class="enlace" type="submit" name="use" value="draft" data-texto="{{text}}">{{#str}}panel_draft_use, local_oksigeniaeguahe{{/str}}</button>
-                                </details>
-                                {{/draft}}
-                                <div class="por" role="radiogroup" aria-label="{{#str}}panel_answer_by, local_oksigeniaeguahe{{/str}}">
-                                    <span>{{#str}}panel_by, local_oksigeniaeguahe{{/str}}</span>
-                                    {{#ways}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}{{#disabled}} disabled{{/disabled}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}{{#why}} <span class="nota">· {{why}}</span>{{/why}}</label>{{/ways}}
-                                </div>
-                                {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
-                                <div class="campo"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label><textarea id="borrador" name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
-                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
-                                {{#next}}
-                                <div class="campo siguiente">
-                                    <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
-                                    <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off"><input type="date" name="nextday" value="{{next.day}}" aria-label="{{#str}}panel_next_day, local_oksigeniaeguahe{{/str}}"></div>
-                                </div>
-                                {{/next}}
-                                <div class="acciones">
-                                    <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
-                                    <button class="boton secundario" type="submit" name="action" value="answer" data-tecla="c" data-tecla-que="{{#str}}answer_save, local_oksigeniaeguahe{{/str}}" data-tecla-intro="1">{{{i.check}}}{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
-                                    <span class="separa-h"></span>
-                                    <button class="boton terciario pequeno" type="submit" name="action" value="received">{{#str}}panel_wrote_again, local_oksigeniaeguahe{{/str}}</button>
-                                    <button class="boton terciario pequeno" type="submit" name="action" value="note">{{{i.nota}}}{{#str}}panel_team_note, local_oksigeniaeguahe{{/str}}</button>
-                                </div>
-                                {{/composer}}
-                            </form>
-                        </div>
-                    </li>
-                    {{/canact}}
-                </ol>
-            </section>
+        {{#relay}}
+        <div class="relevo" role="group" aria-label="{{#str}}panel_owner_label, local_oksigeniaeguahe{{/str}}">
+            {{#owner}}<span class="lleva-ficha">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_owner, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/owner}}
+            {{^owner}}<span class="lleva-ficha nadie">{{#str}}panel_owner_none, local_oksigeniaeguahe{{/str}}</span>{{/owner}}
+            {{#canact}}{{^ownedbyme}}
+            <form class="en-linea" method="post" action="{{takeurl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="boton terciario pequeno" type="submit" name="action" value="take">{{{i.mano}}}{{#str}}panel_take, local_oksigeniaeguahe{{/str}}</button></form>
+            {{/ownedbyme}}{{/canact}}
+            {{#promise}}
+            <form class="promesa" method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="promisedone"><input type="hidden" name="promise" value="{{id}}">
+                {{#who}}{{> local_oksigeniaeguahe/panel_face }}{{/who}}<span class="promesa-texto">{{text}}</span>
+                <button class="boton secundario pequeno" type="submit">{{#str}}panel_promise_done, local_oksigeniaeguahe{{/str}}</button>
+            </form>
+            {{/promise}}
         </div>
-        <div class="col col-lado">
+        {{/relay}}
+        <section class="pared-hijos" aria-label="{{#str}}panel_children, local_oksigeniaeguahe{{/str}}">
+            <div class="riel" aria-hidden="true"></div>
+            <div class="hijos-lista">
+                {{#children}}
+                <div class="hijo">
+                    {{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}
+                    <div class="datos">
+                        <span class="nombre">{{name}}</span>
+                        <span class="secundario">{{#tagline}}{{tagline}} · {{/tagline}}{{course}}</span>
+                        {{^closed}}
+                        <form class="camino" method="post" action="{{action}}" aria-label="{{label}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}">
+                            {{#steps}}<button type="submit" name="stage" value="{{value}}" class="{{#done}}hecho{{/done}}{{#here}}aqui{{/here}}"{{#here}} aria-current="step"{{/here}}{{^canact}} disabled{{/canact}}>{{name}}</button>{{^last}}<span class="flecha" aria-hidden="true"></span>{{/last}}{{/steps}}
+                        </form>
+                        {{#canact}}
+                        <div class="otros">
+                            <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>
+                            <span aria-hidden="true">·</span>
+                            <details class="cerrar-con-motivo">
+                                <summary class="enlace">{{#str}}panel_close_with_reason, local_oksigeniaeguahe{{/str}}</summary>
+                                <form method="post" action="{{action}}">
+                                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="stage" value="closed">
+                                    <div class="campo"><label for="motivo-{{id}}">{{#str}}panel_why_close, local_oksigeniaeguahe{{/str}}</label>
+                                        <select id="motivo-{{id}}" name="reason">{{#reasons}}<option value="{{value}}">{{name}}</option>{{/reasons}}</select></div>
+                                    <button class="boton secundario pequeno" type="submit">{{#str}}panel_close, local_oksigeniaeguahe{{/str}}</button>
+                                </form>
+                            </details>
+                        </div>
+                        {{/canact}}
+                        {{/closed}}
+                        {{#closed}}
+                        <p class="cerrado">{{#str}}stage_closed, local_oksigeniaeguahe{{/str}}{{#reason}} · {{reason}}{{/reason}}</p>
+                        {{#canact}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="inquiry">{{#str}}panel_reopen, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+                        {{/closed}}
+                    </div>
+                </div>
+                {{/children}}
+            </div>
+        </section>
+        <section class="apartado conversacion col-hilo" aria-labelledby="conv-t">
+            <header><h2 id="conv-t">{{#str}}panel_conversation, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_conversation_help, local_oksigeniaeguahe{{/str}}</span></header>
+            {{#hasold}}
+            <details class="anteriores">
+                <summary>{{oldlabel}}</summary>
+                <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
+            </details>
+            {{/hasold}}
+            <ol class="historial">
+                {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
+            </ol>
+        </section>
+        <div class="col col-accion">
             {{#proposal}}
             <section class="apartado propuesta" aria-labelledby="prop-t">
                 <header><h2 id="prop-t">{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
@@ -228,6 +181,58 @@
                 {{/canact}}
             </details>
             {{/visit}}
+            {{#canact}}
+            <section class="turno-tuyo{{^waiting}} ya{{/waiting}}" data-turno aria-labelledby="turno-t">
+                    <div class="que">
+                    <div class="turno-cab">
+                        {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}
+                        <h2 class="turno-titulo" id="turno-t" data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</h2>
+                        {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
+                    </div>
+                    {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
+                    <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        {{#composer}}
+                        {{#hassuggestions}}
+                        <div class="ya-dijisteis" role="group" aria-labelledby="yd-t">
+                            <span class="rotulo-p" id="yd-t">{{#str}}panel_said_before, local_oksigeniaeguahe{{/str}}</span>
+                            {{#suggestions}}<button class="sugerencia" type="submit" name="use" value="{{id}}" data-texto="{{text}}"><b>{{title}}</b><span>{{uses}}</span></button>{{/suggestions}}
+                        </div>
+                        {{/hassuggestions}}
+                        {{#draft}}
+                        <details class="borrador">
+                            <summary>{{#str}}panel_draft_of, local_oksigeniaeguahe, {"who": "{{who}}", "when": "{{when}}"}{{/str}}</summary>
+                            <p>{{text}}</p>
+                            <button class="enlace" type="submit" name="use" value="draft" data-texto="{{text}}">{{#str}}panel_draft_use, local_oksigeniaeguahe{{/str}}</button>
+                        </details>
+                        {{/draft}}
+                        <div class="por" role="radiogroup" aria-label="{{#str}}panel_answer_by, local_oksigeniaeguahe{{/str}}">
+                            <span>{{#str}}panel_by, local_oksigeniaeguahe{{/str}}</span>
+                            {{#ways}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}{{#disabled}} disabled{{/disabled}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}{{#why}} <span class="nota">· {{why}}</span>{{/why}}</label>{{/ways}}
+                        </div>
+                        {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
+                        <div class="campo"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label><textarea id="borrador" name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
+                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
+                        {{#next}}
+                        <div class="campo siguiente">
+                            <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
+                            <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off"><input type="date" name="nextday" value="{{next.day}}" aria-label="{{#str}}panel_next_day, local_oksigeniaeguahe{{/str}}"></div>
+                        </div>
+                        {{/next}}
+                        <div class="acciones">
+                            <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
+                            <button class="boton secundario" type="submit" name="action" value="answer" data-tecla="c" data-tecla-que="{{#str}}answer_save, local_oksigeniaeguahe{{/str}}" data-tecla-intro="1">{{{i.check}}}{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
+                            <span class="separa-h"></span>
+                            <button class="boton terciario pequeno" type="submit" name="action" value="received">{{#str}}panel_wrote_again, local_oksigeniaeguahe{{/str}}</button>
+                            <button class="boton terciario pequeno" type="submit" name="action" value="note">{{{i.nota}}}{{#str}}panel_team_note, local_oksigeniaeguahe{{/str}}</button>
+                        </div>
+                        {{/composer}}
+                    </form>
+                    </div>
+            </section>
+            {{/canact}}
+        </div>
+        <div class="col col-lado">
             <section class="apartado">
                 <header><h2>{{#str}}panel_who_writes, local_oksigeniaeguahe{{/str}}</h2>{{#canact}}<a class="enlace" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/canact}}</header>
                 <div class="adultos">

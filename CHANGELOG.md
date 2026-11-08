@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.1 (2026-11-08)
+
+- **eguahẽ, with its tilde**, in the word of the mark at the top of the panel and at its foot (decision of Enrique):
+  drawn over the last e, since the letter of the mark has no ẽ. As text, Eguahe goes without it.
+- The second round of the paper desk: the file of a household as a grid, with «Your turn» at the top right on wide
+  screens; at night, paper in shadow; the stamp in its place; the script of the panel minified, with its source.
+- The beat of the composer in a file of its own, apart from the script the art director builds.
+
 ## 0.17.0 (2026-11-08)
 
 - **Who attends each family** (decision of Enrique): by default the last person who answered it, «I will attend them»
