@@ -189,7 +189,7 @@ class familymail {
             'acto' => format_string($signup->eventname),
             'hora' => $hours,
             'lugar' => $place,
-            'personas' => (int) $signup->people === 1 ? $str('pub_people_one') : $str('pub_people_count', (int) $signup->people),
+            'personas' => publiclang::count('pub_people_one', 'pub_people_count', (int) $signup->people, $lang),
         ];
         $calendar = $icsurl ? ['texto' => $str('pub_add_calendar'), 'url' => $icsurl, 'url_texto' => $icsurl] : null;
         $map = $mapurl ? ['texto' => $str('pub_how_get'), 'url' => $mapurl, 'url_texto' => $mapurl] : null;
@@ -306,7 +306,7 @@ class familymail {
             $survey = $event && surveys::is_open($event, time()) ? surveys::form($event) : null;
             $count = $survey ? 1 + count(array_filter(forms::fields((int) $survey->id), fn($f) => $f->type !== 'section')) : 0;
             $days = max(1, (int) ($centre->replydays ?? 2));
-            $a = (object) ['host' => $host, 'days' => $str($days === 1 ? 'pub_reply_day' : 'pub_reply_days', $days),
+            $a = (object) ['host' => $host, 'days' => publiclang::count('pub_reply_day', 'pub_reply_days', $days, $lang),
                 'n' => $count];
             $key = $survey ? 'mail_thanks_survey' : ($host !== '' ? 'mail_thanks_ask_host' : 'mail_thanks_ask_team');
             $text = $str($key, $a);
@@ -506,7 +506,7 @@ class familymail {
             }
         }
         $people = (int) $signup->people;
-        $lines[] = ($people === 1 ? $str('pub_people_one') : $str('pub_people_count', $people)) . '.';
+        $lines[] = publiclang::count('pub_people_one', 'pub_people_count', $people, $lang) . '.';
         $lines[] = '';
         $lines[] = $str('ics_page', $link);
         if (!empty($centre->phone)) {

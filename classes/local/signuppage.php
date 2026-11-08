@@ -233,6 +233,9 @@ class signuppage {
             'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'place' => $event->place ? format_string($event->place) : '',
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
+            // Where, on its own line: the place of the act and the address of the centre.
+            'where' => implode(', ', array_filter([$event->place ? format_string($event->place) : '',
+                !empty($centre->address) ? format_string($centre->address) : ''])),
             'welcome' => !$isform && !empty($centre->welcome) ? format_string($centre->welcome) : '',
             'hashosts' => (bool) $hosts,
             'hosts' => familypage::hosts($hosts),

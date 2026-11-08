@@ -131,6 +131,25 @@ class publiclang {
     }
 
     /**
+     * A string with a number: one, or many; in Arabic also two (the dual) and eleven or more, each with its own form.
+     *
+     * @param string $one The string for one.
+     * @param string $many The string for many, with the number in {$a}; Arabic adds {$many}_two and {$many}_eleven.
+     * @param int $n
+     * @param string $lang
+     * @return string
+     */
+    public static function count(string $one, string $many, int $n, string $lang): string {
+        if ($n === 1) {
+            return self::str($one, $lang);
+        }
+        if ($lang === 'ar' && ($n === 2 || $n >= 11)) {
+            return self::str($many . ($n === 2 ? '_two' : '_eleven'), $lang, $n);
+        }
+        return self::str($many, $lang, $n);
+    }
+
+    /**
      * Each thing put into a sentence, between the marks that isolate its direction (FSI and PDI).
      *
      * @param mixed $a

@@ -40,10 +40,17 @@ class familypage {
      */
     public static function join(array $names, string $lang): string {
         $names = array_values($names);
+        if (lists::dir($lang) === 'rtl') {
+            // Each name keeps its own direction, so «Lucía و Andrés» reads in the order of the sentence.
+            $names = array_map(fn($n) => (string) $n !== '' ? "\u{2068}" . $n . "\u{2069}" : $n, $names);
+        }
         if (count($names) < 2) {
             return $names[0] ?? '';
         }
-        return implode(', ', array_slice($names, 0, -1)) . ' ' . publiclang::str('pub_and', $lang) . ' ' . end($names);
+        // In Arabic «و» is written joined to the word after it, and the comma is the Arabic one.
+        $and = publiclang::str('pub_and', $lang) . ($lang === 'ar' ? '' : ' ');
+        $comma = $lang === 'ar' ? '، ' : ', ';
+        return implode($comma, array_slice($names, 0, -1)) . ' ' . $and . end($names);
     }
 
     /**
@@ -157,8 +164,7 @@ class familypage {
                 'turn' => !empty($s->slotid),
                 'place' => trim(implode(' · ', array_unique(array_filter([$s->place ? format_string($s->place) : '',
                     (string) ($centre->address ?? '')])))),
-                'people' => (int) $s->people === 1 ? publiclang::str('pub_people_one', $lang) :
-                    publiclang::str('pub_people_count', $lang, (int) $s->people),
+                'people' => publiclang::count('pub_people_one', 'pub_people_count', (int) $s->people, $lang),
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
             ];
@@ -390,7 +396,7 @@ class familypage {
         $first = $host ? $host->first : '';
         $days = max(1, (int) ($centre->replydays ?? 2));
         $a = (object) ['host' => $first, 'by' => $by !== '' ? publiclang::str($by, $lang) : '',
-            'days' => publiclang::str($days === 1 ? 'pub_reply_day' : 'pub_reply_days', $lang, $days)];
+            'days' => publiclang::count('pub_reply_day', 'pub_reply_days', $days, $lang)];
         $replykey = ($host ? 'pub_after_reply_host' : 'pub_after_reply_team') . ($by !== '' ? '' : '_noby');
         return [
             'do' => $do,

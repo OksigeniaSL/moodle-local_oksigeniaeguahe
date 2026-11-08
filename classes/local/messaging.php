@@ -149,6 +149,13 @@ class messaging {
         if (!isset(self::NOTICES[$kind]) || !self::joined($household, $centre)) {
             return 0;
         }
+        // The notice goes whole in one language (Marandu 0.26.0): the family's, if the site has it, else the site's;
+        // its values are written in that same one. Their page keeps the language of the family.
+        $pagelang = $lang;
+        $haslang = method_exists('\local_oksigeniamarandu\api', 'language');
+        if ($haslang) {
+            $lang = \local_oksigeniamarandu\api::language($lang);
+        }
         $name = format_string($centre->name);
         $when = '';
         if ($signup) {
@@ -172,17 +179,9 @@ class messaging {
         ][$kind];
         try {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'notice'),
-                'lang' => $lang]);
-            return \local_oksigeniamarandu\api::notify(
-                self::COMPONENT,
-                self::NOTICES[$kind],
-                $params,
-                $url,
-                (int) $household->id,
-                null,
-                false,
-                3 * DAYSECS
-            );
+                'lang' => $pagelang]);
+            $args = [self::COMPONENT, self::NOTICES[$kind], $params, $url, (int) $household->id, null, false, 3 * DAYSECS];
+            return \local_oksigeniamarandu\api::notify(...$args, ...($haslang ? ['lang' => $lang] : []));
         } catch (\Throwable $e) {
             return 0;
         }

@@ -25,6 +25,7 @@
 
     Example context (json):
     {
+        "where": "Entrada principal, Calle de ejemplo 1",
         "i": {"plus": "", "alert": "", "check": ""}, "base": "/local/oksigeniaeguahe/pub/", "version": 1,
         "event": "Jornada de puertas abiertas", "pub_come_meet": "Vengan a conocernos",
         "pegs": {"count": 1, "live": true, "pegs": [{"index": 0, "name": "", "style": "", "arrive": false,
@@ -112,7 +113,7 @@
         {{/tailored}}
         {{^tailored}}
         <p class="cuando"><span>{{weekday}}</span>{{daymonth}}</p>
-        <p class="entradilla">{{hours}}{{#place}} · {{place}}{{/place}}{{#address}}, {{address}}{{/address}}.</p>
+        <p class="entradilla">{{hours}}{{#where}}<br><span class="lugar-acto" dir="auto">{{where}}</span>{{/where}}</p>
         {{/tailored}}
         {{/isform}}
         {{#welcome}}<p class="muted" dir="auto">{{welcome}}</p>{{/welcome}}

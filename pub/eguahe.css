@@ -638,7 +638,8 @@ textarea {
     align-items: center;
     gap: 8px;
     min-height: 44px;
-    padding: 0 14px 0 10px;
+    padding-block: 0;
+    padding-inline: 10px 14px;
     border-radius: 999px;
     border: 1.5px dashed var(--eg-madera-sombra);
     background: transparent;
@@ -3114,4 +3115,14 @@ html[lang="ar"] body * {
 :lang(ar) p,
 :lang(ar) li {
     line-height: 1.75;
+}
+
+/* A note of the centre in another script, in a column written from right to left: its own order, the column's edge. */
+[dir="rtl"] p[dir="auto"],
+[dir="rtl"] .lugar-acto {
+    text-align: right;
+}
+
+.lugar-acto {
+    display: inline-block;
 }

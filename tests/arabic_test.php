@@ -107,6 +107,9 @@ final class arabic_test extends \advanced_testcase {
         $this->assertContains($page['greeting'], [publiclang::str('pub_wait', 'ar'), publiclang::str('pub_wait_nochild', 'ar')]);
         [$subject, $html] = familymail::build('received', $household, $centre, null, 'ar', 'clave');
         $this->assertStringContainsString('dir="rtl"', $html);
-        $this->assertStringContainsString("\u{2068}Colegio de ejemplo (Getafe)\u{2069}", $html . $subject);
+        // The name of the centre goes in bold above the footer, never inside its Arabic sentence.
+        $this->assertStringContainsString(publiclang::str('mail_why', 'ar', 'Colegio de ejemplo (Getafe)'), $html);
+        $this->assertStringNotContainsString('Getafe', publiclang::str('mail_why', 'ar', 'Colegio de ejemplo (Getafe)'));
+        $this->assertNotSame('', $subject);
     }
 }
