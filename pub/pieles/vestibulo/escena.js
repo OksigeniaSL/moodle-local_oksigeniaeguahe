@@ -97,7 +97,9 @@
     if (list.length < 2) { return list[0] || ''; }
     var last = list[list.length - 1], and = T.and;
     if (and === ' y ' && /^(i|hi)(?!e)/i.test(last)) { and = ' e '; }
-    return list.slice(0, -1).join(', ') + and + last;
+    // Each name isolated (U+2068…U+2069): one in Arabic keeps the commas and the «y» in their place.
+    var iso = function (n) { return '\u2068' + n + '\u2069'; };
+    return list.slice(0, -1).map(iso).join(', ') + and + iso(last);
   }
   function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) | 0; } return Math.abs(h); }
   function colourOf(V, child) {
@@ -311,7 +313,36 @@
       make(b, W, H);
       host.appendChild(b);
     }
-    if (text) {
+    var plain = function (l) { return l.replace(/[\u2068\u2069]/g, ''); };
+    var size = function (lines, W, H) {
+      var longest = lines.reduce(function (m, l) { return Math.max(m, plain(l).length); }, 1);
+      return Math.min(H / (lines.length * 1.15), W / (longest * 0.44 + 0.4));
+    };
+    var line = function (text, f) {
+      var t = el('div', '', 'font:700 ' + f.toFixed(1) + 'px/1.08 "Eg Mano",Caveat,cursive;color:' + ctx.L.tiza + ';opacity:.92;' +
+        'text-shadow:0 0 ' + (f * 0.05).toFixed(1) + 'px rgba(255,255,255,.35);white-space:nowrap');
+      t.textContent = text;
+      t.dir = 'auto';
+      return t;
+    };
+    if (text && typeof text === 'object') {
+      onBoard(B.saludo[S], function (b, W, H) {
+        // «¡Hola,» at the size of «¡Hola, Alba!»; the names never under seven tenths of it, else one per line.
+        var f1 = size([text.one], W, H), floor = 0.7 * f1, lines = text.lines;
+        var f = size([text.first].concat(lines), W, H);
+        if (f < floor) {
+          lines = text.each;
+          f = Math.max(floor, Math.min(size(lines, W, H - f1 * 1.15), W / (lines.reduce(function (m, l) {
+            return Math.max(m, plain(l).length);
+          }, 1) * 0.44 + 0.4)));
+        }
+        var first = Math.min(f1, Math.max(f, (H - lines.length * f * 1.15) / 1.15));
+        var col = el('div', '', 'display:flex;flex-direction:column;align-items:center');
+        col.appendChild(line(text.first, first));
+        lines.forEach(function (l) { col.appendChild(line(l, f)); });
+        b.appendChild(col);
+      });
+    } else if (text) {
       onBoard(B.saludo[S], function (b, W, H) {
         var lines = text.split('\n'), longest = lines.reduce(function (m, l) { return Math.max(m, l.length); }, 1);
         var f = Math.min(H / (lines.length * 1.15), W / (longest * 0.44 + 0.4));
@@ -329,15 +360,29 @@
       });
     }
   }
+  // The hello of the board. One child: «¡Hola, Alba!» on one line. Several (the art director): «¡Hola,» alone at its
+  // size, the names under it two at most per line, «y» on the last one and «!» at its end; each name isolated
+  // (U+2068…U+2069), so one in Arabic keeps the commas and the «y» in their place. A text without names: the day.
   function helloText(names, opts) {
     var T = opts.texts || TEXTS;
     if (!names || !names.length) {
       var d = new Date(opts.date || Date.now());
       return fill(T.today, { day: T.days[d.getDay()] });
     }
-    var list = joinNames(names, T);
-    var t = fill(T.hello, { names: list });
-    return names.length > 1 ? t.replace(', ', ',\n') : t;   // with brothers and sisters, the names on a line of their own
+    var iso = function (n) { return '⁨' + n + '⁩'; };
+    var parts = T.hello.split('{names}'), before = parts[0], after = parts[1] || '';
+    if (names.length === 1) {
+      return before + iso(names[0]) + after;
+    }
+    var and = T.and, last = names[names.length - 1];
+    if (and === ' y ' && /^(i|hi)(?!e)/i.test(last)) { and = ' e '; }
+    var lines = [], rest = names.slice(0, -2), i;
+    for (i = 0; i < rest.length; i += 2) { lines.push(rest.slice(i, i + 2).map(iso).join(', ') + ','); }
+    lines.push(iso(names[names.length - 2]) + and + iso(last) + after);
+    // One name per line, when two do not fit at seven tenths of the size of one.
+    var each = names.slice(0, -1).map(function (n, k) { return iso(n) + (k < names.length - 2 ? ',' : ''); });
+    each.push(and.trim() + ' ' + iso(last) + after);
+    return { first: before.trim(), lines: lines, each: each, one: before + iso(names[0]) + after };
   }
 
   // ---- the inbox: the queue on the rail (one family per knob, or by days from nine families on) ----

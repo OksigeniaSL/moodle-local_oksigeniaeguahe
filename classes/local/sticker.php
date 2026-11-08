@@ -92,6 +92,9 @@ class sticker {
     /** @var float The ring of paper around the name before the ink, in millimetres: dots and tails do not stick to the line. */
     const HALO_MM = 0.2;
 
+    /** @var float The same ring on the label, which has no millimetres: a share of the size of the hand (4.7 px at 179). */
+    const HALO_SHARE = 0.026;
+
     /**
      * How a name is written with GD: the font, the text and the scale. A name in Arabic script, in its hand, each letter
      * joined and in visual order (GD neither joins nor writes from right to left); any other, as it is.
@@ -158,7 +161,9 @@ class sticker {
         $box = imagettfbbox(self::pt($n['size'] * $ref * $k0), 0, $font, $text);
         $width = max(1, $box[2] - $box[0]);
         $up = max(1, -min($box[5], $box[7]));
-        $k = min(1.0, ($n['room'] * $ref) / $width, ($n['room_up'] * $ref) / $up);
+        // The room of the line, less the ring of paper on both sides and a margin, so a long name never touches the edge.
+        $room = $n['room'] - 2 * $n['size'] * self::HALO_SHARE - 2;
+        $k = min(1.0, ($room * $ref) / $width, ($n['room_up'] * $ref) / $up);
         return max((float) $n['min_size'], round($n['size'] * $k, 2));
     }
 
@@ -175,7 +180,7 @@ class sticker {
         $accent = preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ? strtolower($accent) : '#2f5d62';
         $scale = $scale === 1 ? 1 : 2;
         $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
-        $key = sha1('halo|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json') . '|' .
+        $key = sha1('halo2|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json') . '|' .
             filemtime(self::dir() . '/' . self::measures()['name']['font']));
         $png = $cache->get($key);
         if ($png === false) {
@@ -227,9 +232,9 @@ class sticker {
             $y = $cy * $px + $sx * sin($a) + $sy * cos($a);
             [$ir, $ig, $ib] = sscanf(ltrim($n['ink'], '#'), '%2x%2x%2x');
             $ink = imagecolorallocatealpha($im, $ir, $ig, $ib, 0);
-            // The ring of paper, about 0.2 mm on the label as on the bottle: 2.6 % of the size of the hand.
+            // The ring of paper, about 0.2 mm on the label as on the bottle.
             $paper = (string) ($m['colours']['paper'] ?? '#FFFFFF');
-            self::write($im, $pt, $m['angle_deg_gd'], $x, $y, $ink, $font, $text, $size * 0.026, $paper);
+            self::write($im, $pt, $m['angle_deg_gd'], $x, $y, $ink, $font, $text, $size * self::HALO_SHARE, $paper);
         }
         ob_start();
         imagepng($im, null, 9);
@@ -255,7 +260,7 @@ class sticker {
         $m = json_decode((string) file_get_contents($dir . '/measures.json'), true);
         $font = $dir . '/' . $m['name']['font'];
         $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
-        $key = sha1('bottle|halo|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime($dir . '/measures.json') . '|' .
+        $key = sha1('bottle|halo2|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime($dir . '/measures.json') . '|' .
             filemtime($font));
         $png = $cache->get($key);
         if ($png !== false) {
@@ -291,7 +296,7 @@ class sticker {
                 $box = imagettfbbox(self::pt($size), 0, $font, $text);
                 $width = $box[2] - $box[0];
                 $up = -min($box[5], $box[7]);
-                $fits = $width <= $right - $left && $up <= $n['room_up_mm'] * $ppm;
+                $fits = $width <= $right - $left - 2 * self::HALO_MM * $ppm && $up <= $n['room_up_mm'] * $ppm;
                 $size *= $fits ? 1 : 0.95;
             } while (!$fits && $size > $n['min_size_mm'] * $ppm * $k0);
             $size = max($size, $n['min_size_mm'] * $ppm * $k0);
