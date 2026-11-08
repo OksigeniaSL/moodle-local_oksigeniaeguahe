@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.1 (2026-11-08)
+
+- **The QR of the poster and of the page of an event, the one the shortener draws** when it draws them (nur.click):
+  round dots, square corners, in black on white, as in every product of Oksigenia. Asked once and kept with the event,
+  shown as a picture; with a shortener that draws none, the one drawn here, as before.
+- The common piece of the shortener, copied again: it gives the keyword and the QR of each link.
+
 ## 0.13.0 (2026-11-08)
 
 - **Who makes Eguahe, small, at the foot**: «Eguahe, by Oksigenia», with a link to oksigenia.com, under what is the

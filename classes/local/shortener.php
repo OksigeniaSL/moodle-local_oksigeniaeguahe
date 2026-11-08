@@ -91,6 +91,17 @@ class shortener {
     }
 
     /**
+     * Whether an address is already one of this shortener's (the host of its API): it is not shortened again.
+     *
+     * @param string $url
+     * @return bool
+     */
+    public function owns(string $url): bool {
+        $host = strtolower((string) parse_url($this->api, PHP_URL_HOST));
+        return $host !== '' && strtolower((string) parse_url($url, PHP_URL_HOST)) === $host;
+    }
+
+    /**
      * The short address of a long one: a new one, or the one it already had.
      *
      * @param string $url The long address.
@@ -100,11 +111,28 @@ class shortener {
      * @return string|null The short address, or null when the shortener did not give one.
      */
     public function shorten(string $url, string $title = '', bool $patient = false, string $keyword = ''): ?string {
+        $link = $this->link($url, $title, $patient, $keyword);
+        return $link ? $link['short'] : null;
+    }
+
+    /**
+     * The short link of a long address, with what the shortener says of it: the short address, its keyword and, when the
+     * shortener draws its QR codes (as nur.click does), the address of the one of this link. A YOURLS that does not draw
+     * them gives no «qrsvg»: the plugin draws its own.
+     *
+     * @param string $url The long address.
+     * @param string $title What it is, for whoever looks at the links of the shortener.
+     * @param bool $patient Whether to wait and try again when it says it is going too fast (many at once).
+     * @param string $keyword A word asked for; when it is taken, the one it gives.
+     * @return array|null ['short' => string, 'keyword' => string, 'qrsvg' => string], '' for what it did not say; null when
+     *     the shortener gave no short address.
+     */
+    public function link(string $url, string $title = '', bool $patient = false, string $keyword = ''): ?array {
         $fields = ['action' => 'shorturl', 'url' => $url, 'title' => \core_text::substr($title, 0, 200)];
         if (trim($keyword) !== '') {
             $answer = $this->call($fields + ['keyword' => trim($keyword)]);
             if (($answer['code'] ?? '') !== 'error:keyword') {
-                return self::short_of($answer);
+                return self::link_of($answer);
             }
         }
         $answer = $this->call($fields);
@@ -112,7 +140,23 @@ class shortener {
             sleep(self::$wait);
             $answer = $this->call($fields);
         }
-        return self::short_of($answer);
+        return self::link_of($answer);
+    }
+
+    /**
+     * The link in an answer: its short address, its keyword and the address of its QR, if the shortener draws them.
+     *
+     * @param array $answer What the shortener answered.
+     * @return array|null
+     */
+    protected static function link_of(array $answer): ?array {
+        $short = self::short_of($answer);
+        if ($short === null) {
+            return null;
+        }
+        $keyword = is_array($answer['url'] ?? null) ? (string) ($answer['url']['keyword'] ?? '') : '';
+        $qr = (string) ($answer['qrsvg'] ?? '');
+        return ['short' => $short, 'keyword' => $keyword, 'qrsvg' => preg_match('#^https://\S+$#', $qr) ? $qr : ''];
     }
 
     /**

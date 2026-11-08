@@ -469,5 +469,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110940, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110980) {
+        // The QR the shortener draws for the short link of an event.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('shortqr', XMLDB_TYPE_TEXT, null, null, null, null, null, 'shorturl');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110980, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

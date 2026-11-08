@@ -212,4 +212,34 @@ final class familymail_test extends \advanced_testcase {
         $this->assertStringContainsString('O llámennos al +34 900 000 014', $html);
         $this->assertStringContainsString('<p class="firma">Eguahe, de Oksigenia</p>', $html);
     }
+
+    /**
+     * The QR of an event: the one the shortener draws, in the common style and kept with the event; else one drawn here.
+     */
+    public function test_designed_qr(): void {
+        global $DB;
+        // Without a shortener: the one drawn here, of the long link.
+        $this->assertStringStartsWith('<svg', events::qr_svg($this->event));
+        set_config('shortenerapi', 'https://short.example/yourls-api.php', 'local_oksigeniaeguahe');
+        set_config('shortenerkey', 'k3y', 'local_oksigeniaeguahe');
+        // The answers come out last first: the shortener answers, then the picture is brought.
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="1"/></svg>';
+        \curl::mock_response($svg);
+        \curl::mock_response(json_encode(['status' => 'success', 'shorturl' => 'https://short.example/visita-2111',
+            'url' => ['keyword' => 'visita-2111'], 'qrsvg' => 'https://short.example/svg/visita-2111']));
+        $html = events::qr_svg($this->event);
+        $this->assertSame('<img src="data:image/svg+xml;base64,' . base64_encode($svg) . '" alt="" />', $html);
+        $this->assertSame($svg, $DB->get_field(events::T, 'shortqr', ['id' => $this->event->id]));
+        // Kept: no more asking.
+        $this->assertSame($html, events::qr_svg(events::get((int) $this->event->id, (int) $this->centre->id)));
+        $this->assertStringContainsString($html, poster::html($this->event, $this->centre));
+
+        // A short link made before, with a shortener that draws none (a plain YOURLS): asked once, and the one drawn here.
+        $DB->set_field(events::T, 'shortqr', null, ['id' => $this->event->id]);
+        \curl::mock_response(json_encode(['status' => 'fail', 'code' => 'error:url',
+            'shorturl' => 'https://short.example/visita-2111']));
+        $event = events::get((int) $this->event->id, (int) $this->centre->id);
+        $this->assertStringStartsWith('<svg', events::qr_svg($event));
+        $this->assertSame('', $DB->get_field(events::T, 'shortqr', ['id' => $this->event->id]));
+    }
 }

@@ -150,6 +150,7 @@
         <FIELD NAME="open" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Families can still sign up"/>
         <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
         <FIELD NAME="shorturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the public sign-up, for the poster, its QR and the texts"/>
+        <FIELD NAME="shortqr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The QR the shortener draws for the short link, as SVG; empty when it draws none, null while not asked"/>
         <FIELD NAME="tailored" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when families ask for a visit saying when it suits them, and the team proposes the day"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The family of a visit of its own, proposed by the team; 0 for an event open to all"/>
         <FIELD NAME="formid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A form of the centre whose questions its sign-up asks too"/>

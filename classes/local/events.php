@@ -40,6 +40,17 @@ class events {
     const CHANNEL = ['openday' => 'openday', 'visit' => 'visit', 'other' => 'event'];
 
     /**
+     * @var array How the QR the shortener draws is asked for, the same in every product of Oksigenia: round dots, square
+     * corners, in black, nothing in the middle, on white and with no frame, what every reader reads (Hechauka and the art
+     * director, 8 November 2026).
+     */
+    const QRSTYLE = ['puntos' => 'circulos', 'esquinas' => 'cuadradas', 'color' => 'oscuro', 'centro' => 'nada',
+        'fondo' => 'blanco', 'marco' => 'no'];
+
+    /** @var int The largest picture of a QR taken from the shortener, in bytes. */
+    const QRMOST = 300000;
+
+    /**
      * An event of a centre.
      *
      * @param int $id
@@ -424,26 +435,90 @@ class events {
         $centre = centres::get((int) $event->centreid);
         $title = get_string('short_title', 'local_oksigeniaeguahe', (object) ['centre' => $centre ? format_string($centre->name) :
             '', 'event' => format_string($event->name)]);
-        $short = $shortener->shorten(
+        $link = $shortener->link(
             self::url($event)->out(false),
             $title,
             true,
             'visita-' . userdate((int) $event->timestart, '%d%m')
         );
-        if ($short) {
-            $DB->set_field(self::T, 'shorturl', \core_text::substr($short, 0, 255), ['id' => $event->id]);
-            $event->shorturl = $short;
+        if (!$link) {
+            return null;
         }
-        return $short;
+        $event->shorturl = \core_text::substr($link['short'], 0, 255);
+        $DB->set_field(self::T, 'shorturl', $event->shorturl, ['id' => $event->id]);
+        self::keep_qr($event, $link['qrsvg']);
+        return $event->shorturl;
     }
 
     /**
-     * The QR of the public link of an event, as SVG.
+     * The QR the shortener draws for the short link of an event, kept with it: asked once, and for a short link made
+     * before, asked again once. Empty when the shortener does not draw them (a plain YOURLS).
      *
      * @param \stdClass $event
-     * @return string
+     * @return string SVG markup, to show as a picture.
+     */
+    public static function designed_qr(\stdClass $event): string {
+        if (self::short_url($event) === null) {
+            return '';
+        }
+        if (!isset($event->shortqr)) {
+            $shortener = shortener::of_site();
+            $link = $shortener ? $shortener->link(self::url($event)->out(false)) : null;
+            if ($link) {
+                self::keep_qr($event, $link['qrsvg']);
+            }
+        }
+        return (string) ($event->shortqr ?? '');
+    }
+
+    /**
+     * Brings the QR the shortener drew, in the common style, and keeps it with the event: '' when it draws none. When it
+     * cannot be brought now, nothing is kept, and it is asked another time.
+     *
+     * @param \stdClass $event
+     * @param string $address Where the shortener draws it, or ''.
+     */
+    protected static function keep_qr(\stdClass $event, string $address): void {
+        global $CFG, $DB;
+        $svg = '';
+        if ($address !== '') {
+            require_once($CFG->libdir . '/filelib.php');
+            $curl = new \curl(['ignoresecurity' => false]);
+            $curl->setopt(['CURLOPT_TIMEOUT' => 2 * shortener::TIMEOUT, 'CURLOPT_CONNECTTIMEOUT' => shortener::TIMEOUT,
+                'CURLOPT_MAXREDIRS' => 0, 'CURLOPT_FOLLOWLOCATION' => false]);
+            $url = $address . (strpos($address, '?') === false ? '?' : '&') . http_build_query(self::QRSTYLE, '', '&');
+            try {
+                $svg = (string) $curl->get($url);
+            } catch (\Throwable $error) {
+                return;
+            }
+            $info = $curl->get_info();
+            $code = is_array($info) && isset($info['http_code']) ? (int) $info['http_code'] : 200;
+            $start = ltrim(substr($svg, 0, 512));
+            if (
+                $code !== 200 || $curl->get_errno() || strlen($svg) > self::QRMOST || strpos($svg, '<svg') === false ||
+                (strpos($start, '<svg') !== 0 && strpos($start, '<?xml') !== 0)
+            ) {
+                return;
+            }
+        }
+        $DB->set_field(self::T, 'shortqr', $svg, ['id' => $event->id]);
+        $event->shortqr = $svg;
+    }
+
+    /**
+     * The QR of the public link of an event: the one the shortener draws, as a picture, else one drawn here, as SVG.
+     *
+     * @param \stdClass $event
+     * @return string HTML.
      */
     public static function qr_svg(\stdClass $event): string {
+        $designed = self::designed_qr($event);
+        if ($designed !== '') {
+            // A picture: nothing in it runs.
+            return \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' . base64_encode($designed),
+                'alt' => '']);
+        }
         // The short link, when there is one: fewer modules, read from further and through a photocopy.
         return self::qr_of(self::short_url($event) ?? self::url($event)->out(false));
     }

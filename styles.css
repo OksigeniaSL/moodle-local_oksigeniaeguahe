@@ -207,7 +207,8 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     color: var(--bs-danger, #ca3120);
 }
 
-.eguahe-qr svg {
+.eguahe-qr svg,
+.eguahe-qr img {
     display: block;
     width: 100%;
     height: auto;
@@ -258,7 +259,8 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
     font-weight: 600;
 }
 
-.eguahe-poster .eguahe-qr svg {
+.eguahe-poster .eguahe-qr svg,
+.eguahe-poster .eguahe-qr img {
     max-width: 22rem;
     margin: 1.5rem auto;
 }
