@@ -114,7 +114,8 @@ class sticker {
         $accent = preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ? strtolower($accent) : '#2f5d62';
         $scale = $scale === 1 ? 1 : 2;
         $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
-        $key = sha1($name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json'));
+        $key = sha1($name . '|' . $accent . '|' . $scale . '|' . filemtime(self::dir() . '/measures.json') . '|' .
+            filemtime(self::dir() . '/' . self::measures()['name']['font']));
         $png = $cache->get($key);
         if ($png === false) {
             $png = self::draw($name, $accent, $scale);
@@ -170,6 +171,77 @@ class sticker {
         imagepng($im, null, 9);
         imagedestroy($im);
         return (string) ob_get_clean();
+    }
+
+    /**
+     * The sticker of a bottle as PNG bytes: the end in the colour of the centre with the white backpack of the mark,
+     * and the name used at home written on the line, smaller when it does not fit; for a sheet of 70 × 16.9 mm.
+     *
+     * @param string $name
+     * @param string $accent The colour of the centre, #rrggbb.
+     * @param int $scale 1 (300 ppi) or 2 (600 ppi).
+     * @return string
+     */
+    public static function bottle(string $name, string $accent, int $scale = 2): string {
+        global $CFG;
+        $name = \core_text::substr(trim(preg_replace('/\s+/u', ' ', $name)), 0, 40);
+        $accent = preg_match('/^#[0-9a-fA-F]{6}$/', $accent) ? strtolower($accent) : '#2f5d62';
+        $scale = $scale === 1 ? 1 : 2;
+        $dir = $CFG->dirroot . '/local/oksigeniaeguahe/assets/bottle';
+        $m = json_decode((string) file_get_contents($dir . '/measures.json'), true);
+        $font = $dir . '/' . $m['name']['font'];
+        $cache = \cache::make('local_oksigeniaeguahe', 'stickers');
+        $key = sha1('bottle|' . $name . '|' . $accent . '|' . $scale . '|' . filemtime($dir . '/measures.json') . '|' .
+            filemtime($font));
+        $png = $cache->get($key);
+        if ($png !== false) {
+            return $png;
+        }
+        $layer = fn(string $key) => imagecreatefrompng($dir . '/' . str_replace('{s}', (string) $scale, $m['layers'][$key]));
+        $band = $layer('band_mask');
+        $w = imagesx($band);
+        $h = imagesy($band);
+        $im = imagecreatetruecolor($w, $h);
+        imagealphablending($im, false);
+        imagefill($im, 0, 0, imagecolorallocatealpha($im, 0, 0, 0, 127));
+        imagesavealpha($im, true);
+        imagealphablending($im, true);
+        imagealphablending($band, false);
+        [$r, $g, $b] = sscanf(ltrim($accent, '#'), '%2x%2x%2x');
+        imagefilter($band, IMG_FILTER_COLORIZE, $r, $g, $b, 0);
+        imagecopy($im, $band, 0, 0, 0, 0, $w, $h);
+        $over = $layer('over');
+        imagecopy($im, $over, 0, 0, 0, 0, $w, $h);
+        imagedestroy($band);
+        imagedestroy($over);
+        if ($name !== '') {
+            $n = $m['name'];
+            $ppm = $m['px_per_mm'][$scale . 'x'];
+            $left = $n['left_mm'] * $ppm;
+            $right = $n['right_mm'] * $ppm;
+            $base = $n['baseline_mm'] * $ppm;
+            // The name shrinks to fit the line, and if a capital with an accent would rise too high; never under the least.
+            $size = $n['size_mm'] * $ppm;
+            do {
+                $box = imagettfbbox(self::pt($size), 0, $font, $name);
+                $width = $box[2] - $box[0];
+                $up = -min($box[5], $box[7]);
+                $fits = $width <= $right - $left && $up <= $n['room_up_mm'] * $ppm;
+                $size *= $fits ? 1 : 0.95;
+            } while (!$fits && $size > $n['min_size_mm'] * $ppm);
+            $size = max($size, $n['min_size_mm'] * $ppm);
+            $box = imagettfbbox(self::pt($size), 0, $font, $name);
+            [$ir, $ig, $ib] = sscanf(ltrim($n['ink'], '#'), '%2x%2x%2x');
+            $ink = imagecolorallocatealpha($im, $ir, $ig, $ib, 0);
+            $x = ($left + $right) / 2 - ($box[2] - $box[0]) / 2 - $box[0];
+            imagettftext($im, self::pt($size), 0, (int) round($x), (int) round($base), $ink, $font, $name);
+        }
+        ob_start();
+        imagepng($im, null, 9);
+        imagedestroy($im);
+        $png = (string) ob_get_clean();
+        $cache->set($key, $png);
+        return $png;
     }
 
     /**

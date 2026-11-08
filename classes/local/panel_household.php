@@ -152,7 +152,9 @@ class panel_household {
             'me' => panel::person($USER),
             'composer' => $composer,
             // Only with what they asked for and the diary of those who guide; Eguahe does not know the diary yet.
-            'proposal' => null,
+            'proposal' => false,
+            'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
+                'household' => $household->id]))->out(false) : '',
             'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',
             'untold' => $untold,
             'hasuntold' => (bool) $untold,

@@ -58,7 +58,7 @@
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "",
+        "noproposal": "", "labelsurl": "",
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}],
@@ -130,6 +130,7 @@
                 </div>
                 {{/children}}
             </div>
+            {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
         </section>
         <section class="apartado conversacion col-hilo" aria-labelledby="conv-t">
             <header><h2 id="conv-t">{{#str}}panel_conversation, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_conversation_help, local_oksigeniaeguahe{{/str}}</span></header>

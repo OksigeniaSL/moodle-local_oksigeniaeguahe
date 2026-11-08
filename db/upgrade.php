@@ -570,5 +570,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026110998, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026110999) {
+        // The sheets of labels of each centre: its favourites and how much its printer moves each.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('labelsheets', XMLDB_TYPE_TEXT, null, null, null, null, null, 'campaignstart');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026110999, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -16,7 +16,8 @@
 /**
  * The beat of the composer: while someone writes to a family, the rest of the team sees it. Every 20 seconds at most,
  * only while writing; the beat lasts 45 seconds on the server. And the name of a picture chosen in a hidden file field,
- * written where its label was. Apart from panel.js, which the art director builds.
+ * written where its label was, and the button that prints a sheet of labels. Apart from panel.js, which the art director
+ * builds.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -54,6 +55,16 @@
             if (label && input.files && input.files.length) {
                 label.textContent = input.files[0].name;
             }
+        });
+    });
+})();
+(function() {
+    'use strict';
+    // Print the sheets of labels: without JavaScript, the browser's own print does the same.
+    document.querySelectorAll('[data-imprimir]').forEach(function(button) {
+        button.hidden = false;
+        button.addEventListener('click', function() {
+            window.print();
         });
     });
 })();

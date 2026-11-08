@@ -31,7 +31,10 @@ use local_oksigeniaeguahe\local\panel_entry;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\panel_forecast;
 use local_oksigeniaeguahe\local\panel_import;
+use local_oksigeniaeguahe\local\panel_labels;
 use local_oksigeniaeguahe\local\panel_metrics;
+use local_oksigeniaeguahe\local\labels;
+use local_oksigeniaeguahe\local\label_sheets;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
@@ -57,6 +60,8 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_import::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_forecast::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_metrics::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_labels::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(labels::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -530,6 +535,43 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('equipaje', panel::hanging_object('1.º de ESO'));
         $this->assertSame('equipaje', panel::hanging_object('Inglés B2'));
         $this->assertSame('llavero', panel::hanging(1, 'Leo', '5.º de Primaria')['object']);
+    }
+
+    /**
+     * The sheet of labels: the children of an event, a sheet already started, the favourite and the nudge of the centre,
+     * and every sheet fits its paper.
+     */
+    public function test_labels(): void {
+        foreach (array_keys(label_sheets::MODELS) as $key) {
+            $this->assertTrue(label_sheets::fits($key), $key);
+        }
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $start = time() + 10 * DAYSECS;
+        $event = events::get(events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => $start,
+            'timeend' => $start + HOURSECS, 'open' => 1]), $centreid);
+        foreach (['Leo', 'Martina'] as $name) {
+            $household = households::get(
+                households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'openday']),
+                $centreid
+            );
+            households::add_child($household, $name, 0, $name);
+            events::sign_up($event, (int) $household->id, 2);
+        }
+        $this->assertSame(['Leo', 'Martina'], array_column(labels::children($centre, $event, null), 'name'));
+        $this->assertSame('apli-01273', labels::chosen($centre, 'labels', ''));
+        $this->assertSame('apli-01294', labels::chosen($centre, 'bottles', ''));
+        $this->assertTrue(labels::favourite($centre, 'labels', 'avery-l7160'));
+        $this->assertSame('avery-l7160', labels::chosen(centres::get($centreid), 'labels', ''));
+        labels::nudge($centre, 'avery-l7160', 1.5, -20);
+        $this->assertSame([1.5, -10.0], labels::own(centres::get($centreid))['nudge']['avery-l7160']);
+
+        $context = panel_labels::context(centres::get($centreid), $event, null, ['kind' => 'labels', 'start' => 5]);
+        $cells = $context['pages'][0]['labels'];
+        $this->assertCount(6, $cells);
+        $this->assertTrue($cells[3]['blank']);
+        $this->assertSame('Leo', $cells[4]['name']);
+        $this->assertStringContainsString('--cols: 3', $context['style']);
     }
 
     /**

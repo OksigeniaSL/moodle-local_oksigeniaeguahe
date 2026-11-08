@@ -26,6 +26,7 @@
         <FIELD NAME="skin" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The skin of the panel of the team: vestibulo, mostrador or cinematico; null, the one its offer suggests"/>
         <FIELD NAME="arrive" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How families get in on the day: the door, whom they give their name to"/>
         <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the campaign of admissions under way started, as the centre wrote it; 0 if it did not"/>
+        <FIELD NAME="labelsheets" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sheets of labels of the centre: its favourites of each kind and how much its printer moves each, JSON"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

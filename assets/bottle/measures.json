@@ -1,0 +1,42 @@
+{
+  "_": "Eguahe, the bottle sticker (Apli 01294, 70 x 16.9 mm, 51 per sheet), by the art director. Units are millimetres; 1x is 300 ppi. The font is the one of the backpack label.",
+  "sheet": "Apli 01294",
+  "size_mm": [
+    70.0,
+    16.9
+  ],
+  "px_per_mm": {
+    "1x": 11.811,
+    "2x": 23.622
+  },
+  "canvas_px": {
+    "1x": [
+      827,
+      200
+    ],
+    "2x": [
+      1654,
+      400
+    ]
+  },
+  "band_mm": 15.0,
+  "corner_radius_mm": 1.6,
+  "name": {
+    "left_mm": 18.0,
+    "right_mm": 67.0,
+    "baseline_mm": 11.3,
+    "size_mm": 8.6,
+    "min_size_mm": 4.2,
+    "room_up_mm": 9.0,
+    "align": "centre",
+    "ink": "#2B2226",
+    "font": "../sticker/font/Caveat-SemiBold.ttf",
+    "rule": "the name shrinks to fit between left and right, and if a capital with an accent would rise above room_up, it shrinks too; never under min_size"
+  },
+  "layers": {
+    "band_mask": "layers/banda-{s}x.png",
+    "over": "layers/papel-{s}x.png"
+  },
+  "how": "fill a canvas with the centre colour through the band mask, put the paper layer over it, write the name",
+  "sample_accent": "#1F5A4E"
+}

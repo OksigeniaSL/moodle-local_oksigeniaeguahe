@@ -41,7 +41,7 @@
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
-        "posterurl": "#", "posterurla3": "#", "labelsurl": "#", "labelsname": "Las etiquetas del sábado",
+        "posterurl": "#", "posterurla3": "#", "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
         "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
     }
@@ -67,6 +67,7 @@
     </div>
     {{/nowturn}}
     <div class="puerta-cuerpo">
+        {{#doorsound}}<audio data-sonido-puerta preload="auto"><source src="{{.}}.ogg" type="audio/ogg"><source src="{{.}}.mp3" type="audio/mpeg"></audio>{{/doorsound}}
         <section class="llegadas" aria-label="{{#str}}panel_at_door_list, local_oksigeniaeguahe{{/str}}">
             {{#own}}<p class="aviso-suave">{{#str}}panel_visit_of, local_oksigeniaeguahe{{/str}} <a href="{{familyurl}}">{{family}}</a></p>{{/own}}
             {{#tailored}}

@@ -1,0 +1,84 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_labels
+
+    The sheet of labels of the children of an event or of a household (labels.php): the label of each backpack or the
+    sticker of each bottle, drawn by the server with the name used at home, on the sheet of sticky labels the centre
+    buys. Above, which, the sheet, where to start on a sheet already used, its favourite, a test sheet and how much the
+    printer moves; below, the sheets as they will print. Printing gives only the sheets, each on its page.
+
+    Example context (json):
+    {
+        "i": {"imprimir": "", "check": ""},
+        "head": {"title": "Las etiquetas de la jornada", "sub": "12 niños.", "back": {"url": "#", "name": "Jornada"},
+            "ante": "", "action": false},
+        "kinds": [{"name": "Etiquetas de mochila", "url": "#", "current": true}],
+        "action": "#", "hidden": [{"name": "c", "value": 1}], "postaction": "#", "sesskey": "abc",
+        "sheetgroups": [{"label": "Apli", "options": [{"value": "apli-01273", "label": "Apli 01273 · 70 × 37 mm · 24", "selected": true}]}],
+        "isfav": false, "start": 1, "per": 24, "nudgex": 0, "nudgey": 0, "nudged": "", "testurl": "#", "backurl": "#",
+        "test": false, "count": "12 etiquetas en una hoja.", "haspages": true, "bottles": false, "letter": false,
+        "style": "--cols: 3; --rows: 8; --w: 70mm; --h: 37mm; --top: 0.5mm; --left: 0mm; --gx: 0mm; --gy: 0mm;",
+        "pages": [{"labels": [{"blank": false, "name": "Leo", "png": ""}]}]
+    }
+}}
+<div class="pagina pagina-etiquetas">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="mandos-etiquetas">
+        <nav class="segmentos" aria-label="{{#str}}panel_labels_what, local_oksigeniaeguahe{{/str}}">{{#kinds}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/kinds}}</nav>
+        <form class="apartado formulario-panel" method="get" action="{{action}}">
+            {{#hidden}}<input type="hidden" name="{{name}}" value="{{value}}">{{/hidden}}
+            <div class="rejilla-2">
+                <div class="campo"><label for="hoja-modelo">{{#str}}panel_labels_sheet_label, local_oksigeniaeguahe{{/str}}</label><select id="hoja-modelo" name="sheet">{{#sheetgroups}}<optgroup label="{{label}}">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/options}}</optgroup>{{/sheetgroups}}</select></div>
+                <div class="campo"><label for="hoja-inicio">{{#str}}panel_labels_start, local_oksigeniaeguahe{{/str}}</label><input id="hoja-inicio" type="number" name="start" min="1" max="{{per}}" value="{{start}}" inputmode="numeric" aria-describedby="hoja-inicio-a"><span class="ayuda" id="hoja-inicio-a">{{#str}}panel_labels_start_help, local_oksigeniaeguahe{{/str}}</span></div>
+            </div>
+            <div class="acciones"><button class="boton secundario" type="submit">{{#str}}panel_labels_look, local_oksigeniaeguahe{{/str}}</button></div>
+        </form>
+        <div class="apartado imprimir-hoja">
+        <div class="acciones mandos-hoja">
+            {{#haspages}}<button class="boton principal" type="button" data-imprimir hidden>{{{i.imprimir}}}{{#str}}panel_labels_print, local_oksigeniaeguahe{{/str}}</button>{{/haspages}}
+            {{^test}}<a class="boton terciario pequeno" href="{{testurl}}">{{#str}}panel_labels_test, local_oksigeniaeguahe{{/str}}</a>{{/test}}
+            {{#test}}<a class="boton terciario pequeno" href="{{backurl}}">{{#str}}panel_labels_back, local_oksigeniaeguahe{{/str}}</a>{{/test}}
+            <form class="en-linea" method="post" action="{{postaction}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="boton terciario pequeno" type="submit" name="action" value="favourite" aria-pressed="{{#isfav}}true{{/isfav}}{{^isfav}}false{{/isfav}}">{{#isfav}}{{#str}}panel_labels_unfavourite, local_oksigeniaeguahe{{/str}}{{/isfav}}{{^isfav}}{{#str}}panel_labels_favourite, local_oksigeniaeguahe{{/str}}{{/isfav}}</button></form>
+        </div>
+        <p class="linea-dato">{{count}}{{^haspages}}{{#str}}panel_labels_none, local_oksigeniaeguahe{{/str}}{{/haspages}}</p>
+        <p class="def">{{#str}}panel_labels_how, local_oksigeniaeguahe{{/str}}</p>
+        </div>
+        <details class="apartado plegado ajuste-hoja">
+            <summary><h2>{{#str}}panel_labels_nudge, local_oksigeniaeguahe{{/str}}</h2></summary>
+            <p class="def">{{#str}}panel_labels_nudge_help, local_oksigeniaeguahe{{/str}}</p>
+            {{#nudged}}<p class="linea-dato">{{.}}</p>{{/nudged}}
+            <form class="formulario-panel" method="post" action="{{postaction}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="nudge">
+                <div class="rejilla-2">
+                    <div class="campo"><label for="ajuste-x">{{#str}}panel_labels_nudge_x, local_oksigeniaeguahe{{/str}}</label><input id="ajuste-x" type="number" name="x" min="-10" max="10" step="0.5" value="{{nudgex}}" inputmode="decimal"></div>
+                    <div class="campo"><label for="ajuste-y">{{#str}}panel_labels_nudge_y, local_oksigeniaeguahe{{/str}}</label><input id="ajuste-y" type="number" name="y" min="-10" max="10" step="0.5" value="{{nudgey}}" inputmode="decimal"></div>
+                </div>
+                <div class="acciones"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>
+            </form>
+        </details>
+    </div>
+    {{#haspages}}
+    <div class="hojas-etiquetas{{#bottles}} de-botella{{/bottles}}{{#letter}} carta{{/letter}}{{#test}} prueba{{/test}}">
+        {{#pages}}
+        <div class="hoja-etiquetas" style="{{style}}">
+            {{#labels}}<div class="etiqueta-celda{{#blank}} vacia{{/blank}}">{{#png}}<img src="{{png}}" alt="{{name}}">{{/png}}{{^png}}<span class="etiqueta-texto">{{name}}</span>{{/png}}</div>{{/labels}}
+        </div>
+        {{/pages}}
+    </div>
+    {{/haspages}}
+</div>

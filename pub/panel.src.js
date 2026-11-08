@@ -659,10 +659,28 @@
             if (navigator.vibrate) {
                 navigator.vibrate(10);
             }
-            if (!soundOn || !window.AudioContext) {
+            if (!soundOn) {
                 return;
             }
-            // A short knock of wood: filtered noise, quiet.
+            // The two notes of wood of the art director, when the page has them; else a short knock, made here.
+            var file = one('audio[data-sonido-puerta]');
+            if (file) {
+                try {
+                    file.currentTime = 0;
+                    var playing = file.play();
+                    if (playing && playing.catch) {
+                        playing.catch(function() {
+                            return null;
+                        });
+                    }
+                    return;
+                } catch (err) {
+                    file = null;
+                }
+            }
+            if (!window.AudioContext) {
+                return;
+            }
             audio = audio || new window.AudioContext();
             var len = Math.floor(audio.sampleRate * 0.05);
             var buf = audio.createBuffer(1, len, audio.sampleRate);

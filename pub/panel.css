@@ -6765,3 +6765,179 @@ html.modo-lamina {
     font-size: 0.875rem;
 }
 
+/* Eguahe, the sheets of labels: each sheet in millimetres as the centre buys it, the label of a backpack or the
+   sticker of a bottle in each cell, drawn by the server. Printing gives only the sheets, each on its own page. */
+.mandos-etiquetas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-block-end: 22px;
+}
+
+.mandos-etiquetas select {
+    width: 100%;
+    max-width: 100%;
+}
+
+.mandos-etiquetas .segmentos {
+    overflow-x: auto;
+}
+
+.hojas-etiquetas {
+    display: grid;
+    gap: 22px;
+    justify-items: center;
+    overflow-x: auto;
+}
+
+.hoja-etiquetas {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--w));
+    grid-auto-rows: var(--h);
+    column-gap: var(--gx, 0);
+    row-gap: var(--gy, 0);
+    align-content: start;
+    width: 210mm;
+    min-height: 297mm;
+    padding: var(--top) 0 0 var(--left);
+    background: #fff;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.18);
+}
+
+.hojas-etiquetas.carta .hoja-etiquetas {
+    width: 215.9mm;
+    min-height: 279.4mm;
+}
+
+.etiqueta-celda {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 1.2mm;
+    outline: 0.2mm dashed #d9d0c3;
+    outline-offset: -0.6mm;
+}
+
+.etiqueta-celda img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.de-botella .etiqueta-celda {
+    padding: 0;
+}
+
+.etiqueta-texto {
+    color: #2b2226;
+    font-family: var(--piel-mano);
+    font-size: 5.6mm;
+}
+
+.prueba .etiqueta-celda {
+    outline: 0.3mm solid #2b2226;
+}
+
+.prueba .etiqueta-texto {
+    font-family: inherit;
+    font-size: 3.2mm;
+}
+
+@page etiquetas {
+    size: A4;
+    /* stylelint-disable-next-line csstree/validator */
+    margin: 0;
+}
+
+@page etiquetas-carta {
+    size: letter;
+    /* stylelint-disable-next-line csstree/validator */
+    margin: 0;
+}
+
+@media print {
+    .pagina-etiquetas > :not(.hojas-etiquetas) {
+        display: none;
+    }
+
+    .pagina-etiquetas,
+    .pagina-etiquetas .hojas-etiquetas {
+        display: block;
+        margin: 0;
+        padding: 0;
+        gap: 0;
+    }
+
+    /* A hair under the page, or the browser sees it does not fit and leaves a blank page before it. */
+    .hoja-etiquetas {
+        height: calc(297mm - 0.5mm);
+        min-height: 0;
+        margin: 0;
+        box-shadow: none;
+        break-after: page;
+    }
+
+    .carta .hoja-etiquetas {
+        height: calc(279.4mm - 0.5mm);
+    }
+
+    .hoja-etiquetas:last-child {
+        break-after: auto;
+    }
+
+    .etiqueta-celda {
+        outline: none;
+    }
+
+    .prueba .etiqueta-celda {
+        outline: 0.3mm solid #000;
+    }
+
+    /* Only the sheets reach the paper: not the table of the skin, nor the frame of the panel above them. */
+    :root:has(.hojas-etiquetas),
+    :root body.panel:has(.hojas-etiquetas) {
+        height: auto;
+        min-height: 0;
+        background: #fff;
+    }
+
+    /* The whole document on the page of the sheet: a page of another name in between would break before and after. */
+    :root body.panel:has(.hojas-etiquetas) {
+        /* stylelint-disable-next-line csstree/validator */
+        page: etiquetas;
+    }
+
+    :root body.panel:has(.hojas-etiquetas.carta) {
+        /* stylelint-disable-next-line csstree/validator */
+        page: etiquetas-carta;
+    }
+
+    body.panel:has(.hojas-etiquetas) > :not(main),
+    body.panel:has(.hojas-etiquetas) main > :not(.pagina-etiquetas) {
+        display: none;
+    }
+
+    body.panel:has(.hojas-etiquetas)::before,
+    body.panel:has(.hojas-etiquetas)::after {
+        display: none;
+    }
+
+    .pagina-etiquetas .hojas-etiquetas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+}
+
+@media (max-width: 719px) {
+    .hojas-etiquetas {
+        justify-items: start;
+    }
+
+    .hoja-etiquetas {
+        /* stylelint-disable-next-line property-no-unknown */
+        zoom: 0.42;
+    }
+}
+
