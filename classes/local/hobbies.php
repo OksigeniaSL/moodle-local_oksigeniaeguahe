@@ -123,6 +123,39 @@ class hobbies {
     }
 
     /**
+     * What one adult told, as the chips say it, for the line of their name: «Sport, Board games, Chess».
+     *
+     * @param array $told keys and other.
+     * @param string $lang
+     * @return string
+     */
+    public static function chips(array $told, string $lang): string {
+        $words = array_map(fn($k) => self::name($k, $lang), $told['keys']);
+        if (($told['other'] ?? '') !== '') {
+            $words[] = \core_text::strtoupper(\core_text::substr($told['other'], 0, 1)) . \core_text::substr($told['other'], 1);
+        }
+        return implode(lists::dir($lang) === 'rtl' ? '، ' : ', ', $words);
+    }
+
+    /**
+     * The list in the order of the most said by the adults of a centre; the rest as the list goes.
+     *
+     * @param int $centreid
+     * @return string[]
+     */
+    public static function order(int $centreid): array {
+        global $DB;
+        $said = $DB->get_records_sql_menu(
+            'SELECT hobby, COUNT(1) FROM {' . self::T . '} WHERE centreid = ? AND hobby <> ? GROUP BY hobby',
+            [$centreid, self::OTHER]
+        );
+        $list = self::LIST;
+        usort($list, fn($x, $y) => [(int) ($said[$y] ?? 0), array_search($x, self::LIST, true)] <=>
+            [(int) ($said[$x] ?? 0), array_search($y, self::LIST, true)]);
+        return $list;
+    }
+
+    /**
      * Added up for some households: how many adults say each thing, and what they wrote of their own, by its words.
      *
      * @param int[] $householdids
@@ -144,8 +177,8 @@ class hobbies {
             if ($row->hobby === self::OTHER) {
                 // The same thing written a little differently (a capital, an accent) is the same thing, named as most
                 // wrote it.
-                $name = trim((string) $row->other, " .\t");
-                $key = \core_text::strtolower(\core_text::specialtoascii($name));
+                $name = \core_text::strtolower(trim((string) $row->other, " .\t"));
+                $key = \core_text::specialtoascii($name);
                 $written[$key] = $written[$key] ?? ['forms' => [], 'adults' => []];
                 $written[$key]['forms'][$name] = ($written[$key]['forms'][$name] ?? 0) + 1;
                 $written[$key]['adults'][$row->adultid] = true;

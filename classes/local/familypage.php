@@ -373,16 +373,23 @@ class familypage {
             return false;
         }
         $told = hobbies::of((int) $household->id);
+        // The most said in the centre first, so the usual ones are at hand.
+        $order = hobbies::order((int) $household->centreid);
+        $tellus = publiclang::str('pub_hobbies_tell', $lang);
         $adults = [];
         foreach (array_values($full->adults) as $adult) {
             $mine = $told[$adult->id] ?? ['keys' => [], 'other' => ''];
+            $said = hobbies::chips($mine, $lang);
             $adults[] = ['adultid' => (int) $adult->id, 'name' => trim((string) $adult->firstname),
-                'other' => $mine['other'], 'options' => array_map(fn($key) => ['key' => $key,
-                'label' => hobbies::name($key, $lang), 'checked' => in_array($key, $mine['keys'], true)], hobbies::LIST)];
+                'other' => $mine['other'], 'told' => $said !== '', 'said' => $said !== '' ? $said : $tellus,
+                'changetext' => publiclang::str('pub_hobbies_change', $lang),
+                'options' => array_map(fn($key) => ['key' => $key, 'label' => hobbies::name($key, $lang),
+                'checked' => in_array($key, $mine['keys'], true)], $order)];
         }
         return [
             'title' => publiclang::str('pub_hobbies_title', $lang),
             'lead' => publiclang::str('pub_hobbies_lead', $lang),
+            'tellus' => $tellus,
             'othertext' => publiclang::str('pub_hobbies_other', $lang),
             'otherexample' => publiclang::str('pub_hobbies_other_example', $lang),
             'savetext' => publiclang::str('pub_hobbies_save', $lang),
@@ -392,7 +399,6 @@ class familypage {
                 'lang' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'adults' => $adults,
-            'many' => count($adults) > 1,
         ];
     }
 

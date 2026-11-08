@@ -163,6 +163,36 @@
 
         // What the adults like doing: each one kept as soon as it is touched; without the script, «Save» keeps them all.
         var likes = document.querySelector('[data-aficiones]');
+        // The line of each adult says what they marked, as they mark it.
+        var sayLikes = function(box) {
+            var words = all('input[type="checkbox"]', box).filter(function(input) {
+                return input.checked;
+            }).map(function(input) {
+                return input.parentNode.querySelector('.palabra').textContent.trim();
+            });
+            var own = box.querySelector('input[type="text"]');
+            if (own && own.value.trim()) {
+                words.push(own.value.trim().charAt(0).toUpperCase() + own.value.trim().slice(1));
+            }
+            var said = box.querySelector('[data-lo-dicho]');
+            var change = box.querySelector('[data-cambiar]');
+            if (said) {
+                said.textContent = words.length ? words.join(document.documentElement.dir === 'rtl' ? '، ' : ', ') :
+                    likes.getAttribute('data-contar');
+                said.classList.toggle('por-contar', !words.length);
+            }
+            if (change) {
+                change.hidden = !words.length;
+            }
+        };
+        if (likes) {
+            likes.addEventListener('change', function(e) {
+                var box = e.target.closest ? e.target.closest('[data-adulto]') : null;
+                if (box) {
+                    sayLikes(box);
+                }
+            });
+        }
         if (likes && window.fetch && window.FormData) {
             likes.classList.add('al-tocar');
             var keepLikes = function(box) {
@@ -201,6 +231,7 @@
             likes.addEventListener('input', function(e) {
                 var box = e.target.closest ? e.target.closest('[data-adulto]') : null;
                 if (box && e.target.type === 'text') {
+                    sayLikes(box);
                     window.clearTimeout(later);
                     later = window.setTimeout(function() {
                         keepLikes(box);

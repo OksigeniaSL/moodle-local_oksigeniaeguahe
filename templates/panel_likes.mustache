@@ -83,8 +83,8 @@
     <dl class="gusta-cuenta">
         <div><dt>{{#str}}panel_likes_has_drawing, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{withdrawing}}</b> {{#str}}panel_likes_of, local_oksigeniaeguahe, {{children}}{{/str}}</dd></div>
         <div><dt>{{#str}}panel_likes_from_home, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{fromhome}}</b></dd></div>
-        <div><dt>{{#str}}panel_likes_seen, local_oksigeniaeguahe{{/str}}</dt><dd>{{seentext}}</dd></div>
-        <div><dt>{{#str}}panel_likes_enlarged, local_oksigeniaeguahe{{/str}}</dt><dd>{{enlargedtext}}</dd></div>
+        <div><dt>{{#str}}panel_likes_seen, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{seen}}</b> {{#str}}panel_likes_times_families, local_oksigeniaeguahe, {{seenfamilies}}{{/str}}</dd></div>
+        <div><dt>{{#str}}panel_likes_enlarged, local_oksigeniaeguahe{{/str}}</dt><dd><b>{{enlarged}}</b> {{#str}}panel_likes_times_families, local_oksigeniaeguahe, {{enlargedfamilies}}{{/str}}</dd></div>
     </dl>
     <p class="linea-dato">{{text}}</p>
     {{/drawing}}
@@ -118,10 +118,12 @@
 <section class="lamina grafico gusta-vienen" aria-labelledby="g-vienen" data-grafico>
     <h2 id="g-vienen">{{#str}}panel_likes_origins, local_oksigeniaeguahe{{/str}}</h2>
     <p class="linea-dato" data-linea-dato data-reposo="{{originsrest}}">{{originsrest}}</p>
+    <div class="gusta-listas">
+    <div class="gusta-lista">
     <p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_likes_key_families, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-parte"></span>{{#str}}panel_likes_key_appointment, local_oksigeniaeguahe{{/str}}</span></p>
     <ol class="barras gusta-origen">
         {{#origins}}
-        <li class="barra-fila" data-dato="{{line}}" style="--v: {{v}}">
+        <li class="barra-fila{{#unknown}} sin-decir{{/unknown}}" data-dato="{{line}}" style="--v: {{v}}">
             <span class="barra-nombre" dir="auto">{{place}}</span>
             <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}"></i><i class="gusta-cita" style="--v: {{av}}"></i></span>
             <span class="barra-cifras"><b class="barra-n">{{families}}</b>{{#appointments}}<span class="barra-antes">{{appointmentstext}}</span>{{/appointments}}</span>
@@ -129,6 +131,8 @@
         {{/origins}}
     </ol>
     <p class="def">{{originsdef}}</p>
+    </div>
+    <div class="gusta-lista">
     <h3>{{#str}}panel_likes_courses, local_oksigeniaeguahe{{/str}}</h3>
     <ol class="barras">
         {{#courses}}
@@ -140,6 +144,8 @@
         {{/courses}}
     </ol>
     <p class="def">{{coursesdef}}</p>
+    </div>
+    </div>
 </section>
 
 <section class="lamina grafico gusta-aficiones" aria-labelledby="g-aficiones" data-grafico>

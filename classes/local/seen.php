@@ -53,6 +53,9 @@ class seen {
     /** @var int Opening the page again within this time is the same visit. */
     const VISIT = 1800;
 
+    /** @var string[] Touched again and again in one visit, it is once: each chip kept is not one more time. */
+    const ONCE_A_VISIT = ['hobbies'];
+
     /**
      * The mail a link came from, when it is one of those Eguahe sends; else nothing.
      *
@@ -94,6 +97,14 @@ class seen {
         }
         $id = (int) $household->id;
         if ($DB->count_records_select(self::T, 'householdid = ? AND timecreated > ?', [$id, $now - DAYSECS]) >= self::MOST) {
+            return false;
+        }
+        $again = $kind === 'touch' && in_array($what, self::ONCE_A_VISIT, true) && $DB->record_exists_select(
+            self::T,
+            'householdid = ? AND kind = ? AND what = ? AND timecreated > ?',
+            [$id, 'touch', $what, $now - self::VISIT]
+        );
+        if ($again) {
             return false;
         }
         if ($kind === 'open' && $via === '') {

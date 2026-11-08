@@ -2603,86 +2603,150 @@ textarea.renglones:focus-visible {
 .al-tocar .guardar-encuesta {
     display: none;
 }
-/* What they like doing: one sheet, each adult with their name by hand and their chips; kept when touched */
+/* In their free time (Jujol): a light part of «What you told us». Each adult folded, with what they said on their line;
+   open, the chips of paper, which read as choosing and not as filling a form. Kept when touched. */
+.aficiones .muted {
+    margin: 0 0 10px;
+}
+
 .hoja-aficiones {
-    position: relative;
-    display: grid;
-    gap: 28px;
-    background: var(--eg-superficie);
-    color: var(--eg-tinta);
-    border-radius: var(--radio);
-    box-shadow: 0 1px 2px var(--eg-sombra), 0 18px 36px -18px var(--eg-sombra);
-    padding: 22px 20px 24px;
-}
-
-.hoja-aficiones::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background-image: url(img/grano.svg);
-    opacity: 0.22;
-    pointer-events: none;
-}
-
-.hoja-aficiones > * {
-    position: relative;
-}
-
-.aficiones-adulto {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
-.aficiones-adulto + .aficiones-adulto {
-    padding-top: 24px;
-    border-top: 1.5px dashed var(--eg-linea);
-}
-
-.aficiones-adulto legend {
-    float: left;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
-    font-size: 1.875rem;
-    font-weight: 600;
-    line-height: 1.05;
-}
-
-.aficiones-adulto legend + * {
-    clear: both;
-}
-
-.aficiones-adulto .ficha {
-    min-height: 46px;
-    padding: 0 16px 0 12px;
-}
-
-.otra-aficion {
     display: grid;
     gap: 8px;
 }
 
-.otra-aficion label {
+.aficiones-adulto {
+    border-bottom: 1px dashed var(--eg-linea);
+}
+
+.aficiones-adulto summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    padding: 8px 0 10px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.aficiones-adulto summary::-webkit-details-marker {
+    display: none;
+}
+
+.aficiones-adulto .quien {
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.aficiones-adulto .lo-dicho {
+    flex: 1 1 10em;
+    min-width: 0;
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
+}
+
+.aficiones-adulto .lo-dicho.por-contar,
+.aficiones-adulto .cambiar {
+    color: var(--c-acento-texto);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.aficiones-adulto .cambiar[hidden] {
+    display: none;
+}
+
+.aficiones-adulto[open] .cambiar {
+    visibility: hidden;
+}
+
+.aficiones-adulto summary:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.aficiones-adulto fieldset {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 0 14px;
+    border: 0;
+}
+
+.fichas-papel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* The chip is its word: the box stays in the page for the keyboard and the screen readers, out of sight */
+.ficha-papel {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+}
+
+.ficha-papel input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.ficha-papel .palabra {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 13px;
+    border-radius: 999px;
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.ficha-papel input:checked + .palabra {
+    border-color: var(--c-acento-texto);
+    background: var(--c-acento-suave);
+}
+
+.ficha-papel input:checked + .palabra::before {
+    content: '✓';
+    color: var(--c-acento-texto);
+    font-weight: 800;
+}
+
+.ficha-papel input:focus-visible + .palabra {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.otra-aficion {
+    display: grid;
+    gap: 6px;
+}
+
+.otra-aficion label {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
     font-weight: 650;
 }
 
 .otra-aficion input {
     width: 100%;
-    min-height: 50px;
-    padding: 12px 14px;
+    min-height: 44px;
+    padding: 10px 12px;
     border-radius: var(--radio-campo);
     border: 1.5px solid var(--eg-borde);
     background: var(--eg-superficie);
     color: var(--eg-tinta);
-    font-size: 1.0625rem;
+    font-size: 1rem;
 }
 
 .guardar-aficiones {
@@ -2690,36 +2754,19 @@ textarea.renglones:focus-visible {
     flex-wrap: wrap;
     align-items: center;
     gap: 14px;
+    padding-top: 6px;
 }
 
 .al-tocar .guardar-aficiones {
     display: none;
 }
 
-@media (max-width: 719px) {
-    /* On the phone, the chips closer, so the list of each adult takes a few lines */
-    .aficiones-adulto .fichas {
-        gap: 8px;
-    }
-
-    .aficiones-adulto .ficha {
-        min-height: 42px;
-        gap: 8px;
-        padding: 0 12px 0 9px;
-        font-size: 0.9375rem;
-    }
-
-    .aficiones-adulto .ficha .marca {
-        width: 20px;
-        height: 20px;
+@media (forced-colors: active) {
+    .ficha-papel input:checked + .palabra {
+        border-width: 3px;
     }
 }
 
-@media (min-width: 720px) {
-    .hoja-aficiones {
-        padding: 30px 32px 32px;
-    }
-}
 
 @media (min-width: 720px) {
     .hoja-pregunta,

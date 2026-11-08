@@ -41,6 +41,9 @@ class panel_likes {
     /** @var int The places drawn one by one; the rest go together. */
     const PLACES = 5;
 
+    /** @var int The stamps drawn at most in a row; the figure beside them says the rest. */
+    const MARKS = 6;
+
     /** @var int The courses drawn. */
     const COURSES = 8;
 
@@ -250,7 +253,7 @@ class panel_likes {
             $families = count($t['h']);
             $again = round($t['times'] / $families, 1);
             $marks = [];
-            for ($left = $again; $left > 0.05; $left -= 1) {
+            for ($left = $again; $left > 0.05 && count($marks) < self::MARKS; $left -= 1) {
                 $marks[] = ['f' => min(1, round($left, 2))];
             }
             $name = get_string('panel_likes_touch_' . $key, $c);
@@ -312,8 +315,6 @@ class panel_likes {
             'seenfamilies' => $seenf,
             'enlarged' => $big,
             'enlargedfamilies' => $bigf,
-            'seentext' => get_string('panel_likes_times_families', $c, (object) ['times' => $seen, 'families' => $seenf]),
-            'enlargedtext' => get_string('panel_likes_times_families', $c, (object) ['times' => $big, 'families' => $bigf]),
             'text' => get_string($children ? ($home ? 'panel_likes_drawing_text' : 'panel_likes_drawing_text_nohome') :
                 'panel_likes_drawing_none', $c, $a),
         ];
@@ -420,14 +421,17 @@ class panel_likes {
         if ($others['families']) {
             $shown[get_string('panel_likes_place_others', $c)] = $others;
         }
+        // Not a place: always last, in pencil.
+        $nowhere = get_string('panel_likes_place_unknown', $c);
         if ($unknown['families']) {
-            $shown[get_string('panel_likes_place_unknown', $c)] = $unknown;
+            $shown[$nowhere] = $unknown;
         }
         $top = max(array_merge([1], array_column($shown, 'families')));
         $rows = [];
         foreach ($shown as $place => $row) {
             $a = (object) ['place' => $place, 'fams' => self::fams($row['families']), 'n' => $row['appointments']];
-            $rows[] = ['place' => (string) $place, 'families' => $row['families'],
+            $rows[] = ['place' => (string) $place, 'unknown' => $unknown['families'] && (string) $place === $nowhere,
+                'families' => $row['families'],
                 'appointments' => $row['appointments'] ?: false,
                 'appointmentstext' => get_string('panel_likes_appointments', $c, $row['appointments']),
                 'v' => round($row['families'] / $top, 4), 'av' => round($row['appointments'] / $top, 4),

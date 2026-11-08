@@ -59,6 +59,7 @@ class panel_event {
      * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
+     * @param string $hobby What goes with an open act, to invite only those who like it; '' for none.
      * @return array
      */
     public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0, string $hobby = ''): array {
@@ -386,6 +387,7 @@ class panel_event {
      * @param \stdClass $event
      * @param bool $canact
      * @param int $now
+     * @param string $hobby What goes with the act, chosen; '' for none.
      * @return array|false
      */
     protected static function invite(\stdClass $event, bool $canact, int $now, string $hobby = '') {

@@ -90,9 +90,12 @@ final class seen_test extends \advanced_testcase {
         $this->assertFalse(seen::record($ana, 'part', 'nowhere', '', $now));
         $this->assertFalse(seen::record($ana, 'score', '', '', $now));
         $this->assertTrue(seen::record($ana, 'part', 'hosts', '', $now));
+        $this->assertTrue(seen::record($ana, 'touch', 'hobbies', '', $now));
+        $this->assertFalse(seen::record($ana, 'touch', 'hobbies', '', $now + 30), 'Each chip kept is not one more time.');
+        $this->assertTrue(seen::record($ana, 'touch', 'hobbies', '', $now + seen::VISIT + 1));
         $this->assertTrue(seen::record($ana, 'touch', 'tales', 'nomail', $now));
         $this->assertNull($DB->get_field(seen::T, 'via', ['householdid' => $ana->id, 'what' => 'tales']), 'Only mails of Eguahe.');
-        $this->assertSame(5, $DB->count_records(seen::T, ['householdid' => $ana->id]));
+        $this->assertSame(7, $DB->count_records(seen::T, ['householdid' => $ana->id]));
 
         $berta = $this->family($centre, $offer, 'Berta');
         for ($i = 0; $i < seen::MOST; $i++) {
@@ -175,6 +178,13 @@ final class seen_test extends \advanced_testcase {
         $this->assertSame(['Parchís' => 2], $counts['others'], 'The same thing written a little differently.');
         $this->assertEquals(['boardgames' => 2, 'cooking' => 1, 'sport' => 1], hobbies::families_by([(int) $ana->id,
             (int) $berta->id]));
+
+        // On their page, the most said in the centre first, and each adult's line as the chips say it.
+        $this->assertSame(['boardgames', 'sport', 'cooking', 'reading'], array_slice(hobbies::order((int) $centre->id), 0, 4));
+        $this->assertSame('Cocina, Juegos de mesa, Parchís', hobbies::chips($told[$adults[0]], 'es'));
+        $page = \local_oksigeniaeguahe\local\familypage::hobbies_context($ana, households::full($ana), 'es', 'k', []);
+        $this->assertSame('boardgames', $page['adults'][0]['options'][0]['key']);
+        $this->assertTrue($page['adults'][0]['told']);
 
         // Unmarking everything takes it all out.
         hobbies::save($ana, $pablo, [], '', time());

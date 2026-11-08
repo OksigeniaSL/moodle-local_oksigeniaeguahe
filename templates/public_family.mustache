@@ -65,11 +65,12 @@
         "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar nuestros datos",
         "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#",
         "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
-        "hobbies": {"title": "Lo que les gusta hacer", "lead": "Si quieren contárnoslo.", "othertext": "Otra cosa",
+        "hobbies": {"title": "En su tiempo libre", "lead": "Si quieren contárnoslo.", "othertext": "Otra cosa",
             "otherexample": "Por ejemplo, el parchís", "savetext": "Guardar", "savedtext": "Guardado", "saved": false,
-            "action": "https://example.com/f.php?action=hobbies", "sesskey": "abc", "many": false,
-            "adults": [{"adultid": 12, "name": "Marta", "other": "", "options": [{"key": "cooking", "label": "Cocina",
-            "checked": true}, {"key": "boardgames", "label": "Juegos de mesa", "checked": false}]}]}
+            "action": "https://example.com/f.php?action=hobbies", "sesskey": "abc", "tellus": "Contárnoslo",
+            "adults": [{"adultid": 12, "name": "Marta", "other": "", "said": "Cocina", "told": true,
+            "changetext": "Cambiar", "options": [{"key": "cooking", "label": "Cocina", "checked": true},
+            {"key": "boardgames", "label": "Juegos de mesa", "checked": false}]}]}
     }
 }}
 {{#measure}}<span class="mide" data-mide="{{url}}" data-sesskey="{{sesskey}}" data-de="{{de}}" hidden></span>{{/measure}}
@@ -246,35 +247,6 @@
 {{/hashosts}}
 {{/quiet}}
 
-{{#hobbies}}
-<section class="seccion aficiones" id="aficiones" aria-labelledby="aficiones-t">
-    <div class="cabeza">
-        <h2 id="aficiones-t">{{title}}</h2>
-        <p class="sub">{{lead}}</p>
-    </div>
-    <form class="hoja-aficiones" method="post" action="{{action}}" data-aficiones data-guardado-texto="{{savedtext}}">
-        <input type="hidden" name="sesskey" value="{{sesskey}}">
-        {{#adults}}
-        <fieldset class="aficiones-adulto" data-adulto="{{adultid}}">
-            <legend dir="auto">{{name}}</legend>
-            <div class="fichas">
-                {{#options}}<label class="ficha"><input type="checkbox" name="h{{adultid}}[]" value="{{key}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span><span class="palabra">{{label}}</span></label>{{/options}}
-            </div>
-            <div class="campo otra-aficion">
-                <label for="o{{adultid}}">{{othertext}}</label>
-                <input id="o{{adultid}}" name="o{{adultid}}" type="text" value="{{other}}" maxlength="100" placeholder="{{otherexample}}" dir="auto">
-            </div>
-            <p class="guardado" data-guardado aria-live="polite"></p>
-        </fieldset>
-        {{/adults}}
-        <div class="acciones guardar-aficiones">
-            <button class="boton secundario" type="submit">{{savetext}}</button>
-            {{#saved}}<p class="guardado" role="status">{{savedtext}}</p>{{/saved}}
-        </div>
-    </form>
-</section>
-{{/hobbies}}
-
 <section class="seccion" data-parte="told">
     <h2>{{pub_told}}</h2>
     <div class="lo-contado">
@@ -292,6 +264,35 @@
             </dl>
             {{#writeby}}<p class="muted escribimos">{{writeby}}</p>{{/writeby}}
         </div>
+        {{#hobbies}}
+        <div class="aficiones" id="aficiones">
+            <h3>{{title}}</h3>
+            <p class="muted">{{lead}}</p>
+            <form class="hoja-aficiones" method="post" action="{{action}}" data-aficiones data-guardado-texto="{{savedtext}}" data-contar="{{tellus}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                {{#adults}}
+                <details class="aficiones-adulto" data-adulto="{{adultid}}">
+                    <summary><span class="quien" dir="auto">{{name}}</span><span class="lo-dicho{{^told}} por-contar{{/told}}" data-lo-dicho dir="auto">{{said}}</span><span class="cambiar" data-cambiar{{^told}} hidden{{/told}}>{{changetext}}</span></summary>
+                    <fieldset>
+                        <legend class="oculto">{{name}}</legend>
+                        <div class="fichas-papel">
+                            {{#options}}<label class="ficha-papel"><input type="checkbox" name="h{{adultid}}[]" value="{{key}}"{{#checked}} checked{{/checked}}><span class="palabra">{{label}}</span></label>{{/options}}
+                        </div>
+                        <div class="campo otra-aficion">
+                            <label for="o{{adultid}}">{{othertext}}</label>
+                            <input id="o{{adultid}}" name="o{{adultid}}" type="text" value="{{other}}" maxlength="100" placeholder="{{otherexample}}" dir="auto">
+                        </div>
+                        <p class="guardado" data-guardado aria-live="polite"></p>
+                    </fieldset>
+                </details>
+                {{/adults}}
+                <div class="acciones guardar-aficiones">
+                    <button class="boton secundario" type="submit">{{savetext}}</button>
+                    {{#saved}}<p class="guardado" role="status">{{savedtext}}</p>{{/saved}}
+                </div>
+            </form>
+        </div>
+        {{/hobbies}}
         {{#hasjoin}}
         <div>
             <h3>{{jointitle}}</h3>
