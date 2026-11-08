@@ -261,8 +261,8 @@ class panel_household {
                 'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : ''),
                 'drawing' => $drawing ? $drawing->out(false) : '',
                 'drawingalt' => get_string('panel_drawing_alt', $c, $tag),
-                'drawingpage' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php',
-                    ['child' => $child->id]))->out(false) : '',
+                'drawingpage' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id]))
+                    ->out(false) : '',
                 'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',
