@@ -37,7 +37,7 @@
         "nowturn": {"wall": [{"came": true, "name": "Leo", "style": "--reposo:-3.5deg"}]},
         "checkurl": "#", "checkevery": 30,
         "hassignups": true, "groups": [{"title": "10:00 a 10:45", "now": true, "open": true, "count": "1 de 2 han venido",
-            "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"tag": "Leo",
+            "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"drawingurl": "#", "hasdrawing": false, "tag": "Leo",
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
@@ -89,7 +89,7 @@
                 <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span data-cuenta-turno>{{count}}</span>{{{i.chev}}}</span></summary>
                 {{#signups}}
                 <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}" data-llegada="{{id}}">
-                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no">{{tag}}</span><span class="curso">{{course}}</span></span>{{/children}}</span><span class="personas">{{people}}</span></div>
+                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no">{{tag}}</span><span class="curso">{{course}}</span>{{#drawingurl}}<a class="enlace su-dibujo" href="{{drawingurl}}">{{#hasdrawing}}{{#str}}panel_drawing_has, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}{{^hasdrawing}}{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}</a>{{/drawingurl}}</span>{{/children}}</span><span class="personas">{{people}}</span></div>
                     {{#canact}}
                     <form method="post" action="{{action}}#s{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">

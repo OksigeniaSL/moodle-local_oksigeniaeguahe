@@ -89,7 +89,10 @@ class panel_event {
             $children = [];
             foreach ($signup->household->children as $child) {
                 $children[] = ['tag' => panel::tag($child), 'course' => $child->offer ? format_string($child->offer->name) :
-                    get_string('panel_nocourse', $c)];
+                    get_string('panel_nocourse', $c),
+                    'drawingurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id,
+                        'event' => $event->id]))->out(false) : '',
+                    'hasdrawing' => (bool) drawings::file((int) $child->id)];
             }
             $arrived = (int) $signup->attended > 0;
             $groups[$key]['signups'][] = [

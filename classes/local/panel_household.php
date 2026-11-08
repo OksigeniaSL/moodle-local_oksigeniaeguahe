@@ -255,9 +255,14 @@ class panel_household {
                 $reasons[] = ['value' => $reason, 'name' => get_string('closed_' . $reason, $c)];
             }
             $tag = panel::tag($child);
+            $drawing = drawings::url((int) $child->id);
             $out[] = [
                 'id' => $child->id,
                 'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : ''),
+                'drawing' => $drawing ? $drawing->out(false) : '',
+                'drawingalt' => get_string('panel_drawing_alt', $c, $tag),
+                'drawingpage' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php',
+                    ['child' => $child->id]))->out(false) : '',
                 'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',

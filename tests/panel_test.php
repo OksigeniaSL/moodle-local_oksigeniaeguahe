@@ -18,6 +18,7 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\forms;
@@ -572,6 +573,31 @@ final class panel_test extends \advanced_testcase {
         $this->assertTrue($cells[3]['blank']);
         $this->assertSame('Leo', $cells[4]['name']);
         $this->assertStringContainsString('--cols: 3', $context['style']);
+    }
+
+    /**
+     * The drawing of a child: kept as a picture, one for each child, seen by its team, and gone with the family.
+     */
+    public function test_drawing(): void {
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(
+            households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'openday']),
+            $centreid
+        );
+        households::add_child($household, 'Leo', 0, 'Leo');
+        $child = array_values(households::full($household)->children)[0];
+        $this->assertNull(drawings::url((int) $child->id));
+        $this->assertFalse(drawings::save($child, 'no soy una imagen'));
+        $image = imagecreatetruecolor(30, 40);
+        ob_start();
+        imagejpeg($image);
+        $jpeg = (string) ob_get_clean();
+        $this->assertTrue(drawings::save($child, $jpeg));
+        $this->assertTrue(drawings::save($child, $jpeg));
+        $this->assertSame('dibujo.jpg', drawings::file((int) $child->id)->get_filename());
+        $this->assertStringContainsString('/drawing/' . $child->id . '/dibujo.jpg', drawings::url((int) $child->id)->out(false));
+        households::erase($household);
+        $this->assertNull(drawings::file((int) $child->id));
     }
 
     /**

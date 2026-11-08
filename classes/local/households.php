@@ -578,6 +578,10 @@ class households {
         $transaction = $DB->start_delegated_transaction();
         $month = date('Y-m', (int) $household->timecreated);
         $children = $DB->get_records(self::CHILDREN, ['householdid' => $household->id]);
+        // The drawings of its children go with the family.
+        foreach ($children as $child) {
+            drawings::delete((int) $child->id);
+        }
         foreach ($children ?: [(object) ['offerid' => 0, 'stage' => 'inquiry']] as $child) {
             $DB->insert_record(self::ERASED, (object) ['centreid' => $household->centreid, 'offerid' => $child->offerid,
                 'stage' => $child->stage, 'firstchannel' => $household->firstchannel, 'month' => $month,

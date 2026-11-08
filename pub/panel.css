@@ -6941,3 +6941,71 @@ html.modo-lamina {
     }
 }
 
+/* Eguahe, the drawing of a child: the photo with the four corners of the sheet to drag, and the drawing kept. */
+.dibujo-rejilla {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+}
+
+.dibujo-actual img,
+.hijo .dibujo-mini {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: var(--sombra-papel, 0 1px 6px rgba(0, 0, 0, 0.18));
+}
+
+.dibujo-actual img {
+    max-height: 70vh;
+    margin-inline: auto;
+}
+
+.dibujo-lienzo {
+    position: relative;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
+    touch-action: none;
+}
+
+.dibujo-lienzo canvas {
+    display: block;
+    border-radius: 6px;
+}
+
+.dibujo-esquinas {
+    position: absolute;
+    inset: 0;
+}
+
+.dibujo-esquinas .hoja {
+    fill: rgba(255, 255, 255, 0.12);
+    stroke: var(--eg-acento);
+    stroke-width: 2.5;
+}
+
+.dibujo-esquinas .esquina {
+    fill: #fff;
+    stroke: var(--eg-acento);
+    stroke-width: 3;
+    cursor: grab;
+}
+
+.dibujo-esquinas .esquina.primera {
+    fill: var(--eg-acento);
+}
+
+.hijo .dibujo-mini {
+    width: 72px;
+    margin-block-start: 6px;
+}
+
+@media (min-width: 900px) {
+    .dibujo-rejilla {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+        align-items: start;
+    }
+}
+

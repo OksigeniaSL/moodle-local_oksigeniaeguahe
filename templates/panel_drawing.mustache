@@ -1,0 +1,58 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_drawing
+
+    The drawing of a child (drawing.php): the one there is, and a photo of the sheet taken with the phone. With
+    JavaScript, the four corners of the sheet are dragged onto those of the photo and it is cut and straightened in the
+    browser before it is sent; without it, the photo goes as it is.
+
+    Example context (json):
+    {
+        "i": {"subir": "", "check": "", "borrar": "", "rama": ""},
+        "head": {"title": "El dibujo de Leo", "sub": "Mientras espera, Leo dibuja.", "back": {"url": "#", "name": "La puerta"},
+            "ante": "", "action": false},
+        "current": "", "alt": "El dibujo de Leo", "action": "#", "backurl": "#", "sesskey": "abc", "canact": true
+    }
+}}
+<div class="pagina pagina-dibujo">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="dibujo-rejilla">
+        {{#current}}
+        <figure class="apartado dibujo-actual">
+            <img src="{{current}}" alt="{{alt}}">
+            {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="boton terciario pequeno" type="submit" name="action" value="delete">{{{i.borrar}}}{{#str}}panel_drawing_delete, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+        </figure>
+        {{/current}}
+        {{#canact}}
+        <form class="apartado dibujo-tomar" method="post" action="{{action}}" enctype="multipart/form-data" data-dibujo data-dibujo-vuelta="{{backurl}}" data-guardando="{{#str}}panel_drawing_saving, local_oksigeniaeguahe{{/str}}" data-no-entra="{{#str}}panel_drawing_not_taken, local_oksigeniaeguahe{{/str}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="save">
+            <label class="bandeja-fichero">{{{i.subir}}}<span><b>{{#str}}panel_drawing_take, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_drawing_take_help, local_oksigeniaeguahe{{/str}}</span></span><input type="file" name="photo" accept="image/*" capture="environment" required data-dibujo-foto></label>
+            <div class="dibujo-recorte" data-dibujo-recorte hidden>
+                <p class="def">{{#str}}panel_drawing_corners, local_oksigeniaeguahe{{/str}}</p>
+                <div class="dibujo-lienzo" data-dibujo-caja><canvas data-dibujo-lienzo></canvas><svg class="dibujo-esquinas" data-dibujo-esquinas aria-hidden="true" focusable="false"></svg></div>
+            </div>
+            <div class="acciones">
+                <button class="boton principal" type="submit" data-dibujo-guardar>{{{i.check}}}{{#str}}panel_drawing_save, local_oksigeniaeguahe{{/str}}</button>
+                <span class="segmentos" role="group" aria-label="{{#str}}panel_drawing_shape, local_oksigeniaeguahe{{/str}}" data-dibujo-forma hidden><button type="button" data-forma="vertical" aria-pressed="true">{{#str}}panel_drawing_portrait, local_oksigeniaeguahe{{/str}}</button><button type="button" data-forma="horizontal" aria-pressed="false">{{#str}}panel_drawing_landscape, local_oksigeniaeguahe{{/str}}</button></span>
+                <button class="boton secundario" type="button" data-dibujo-girar hidden>{{{i.rama}}}{{#str}}panel_drawing_turn, local_oksigeniaeguahe{{/str}}</button>
+            </div>
+            <p class="linea-dato" data-dibujo-estado aria-live="polite"></p>
+        </form>
+        {{/canact}}
+    </div>
+</div>

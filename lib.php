@@ -23,7 +23,8 @@
  */
 
 /**
- * Serves the logo of a centre, which families see without an account on their pages.
+ * Serves the logo of a centre, which families see without an account on their pages; the photos of who receives them;
+ * and the drawing of a child, only to the team of its centre.
  *
  * @param stdClass $course
  * @param stdClass $cm
@@ -36,7 +37,7 @@
  */
 function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $DB, $USER;
-    if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, ['logo', 'hostphoto'], true)) {
+    if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, ['logo', 'hostphoto', 'drawing'], true)) {
         return false;
     }
     $itemid = (int) array_shift($args);
@@ -49,6 +50,13 @@ function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $ar
             \local_oksigeniaeguahe\local\centres::can_work((int) $member->centreid, (int) $USER->id) ||
             has_capability('local/oksigeniaeguahe:manage', $context))))
         ) {
+            return false;
+        }
+    }
+    // The drawing of a child: only for the team of its centre.
+    if ($filearea === 'drawing') {
+        $centreid = (int) $DB->get_field('local_oksigeniaeguahe_child', 'centreid', ['id' => $itemid]);
+        if (!$centreid || !isloggedin() || !\local_oksigeniaeguahe\local\centres::can_work($centreid, (int) $USER->id)) {
             return false;
         }
     }
