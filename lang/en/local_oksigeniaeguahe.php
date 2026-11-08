@@ -1170,6 +1170,7 @@ $string['panel_labels_title_event'] = 'The backpack labels of “{$a}”';
 $string['panel_labels_unfavourite'] = 'Take it out of this centre’s';
 $string['panel_labels_what'] = 'What to print';
 $string['panel_lang_missing'] = '{$a} missing';
+$string['panel_langname_ar'] = 'Arabic';
 $string['panel_langname_en'] = 'English';
 $string['panel_langname_es'] = 'Spanish';
 $string['panel_langname_pt'] = 'Portuguese of Portugal';

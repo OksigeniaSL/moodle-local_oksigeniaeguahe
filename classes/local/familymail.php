@@ -195,6 +195,9 @@ class familymail {
         $map = $mapurl ? ['texto' => $str('pub_how_get'), 'url' => $mapurl, 'url_texto' => $mapurl] : null;
         $context = [
             'lang' => $lang === 'pt_br' ? 'pt-BR' : $lang,
+            // Written from right to left, the mail turns round: the side where things end.
+            'dir' => lists::dir($lang),
+            'fin' => lists::dir($lang) === 'rtl' ? 'left' : 'right',
             'fuente_url' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/fonts/schibsted-grotesk.woff2',
             'c' => self::colours($colour),
             'centro' => [

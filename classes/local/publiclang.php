@@ -93,6 +93,11 @@ class publiclang {
      */
     public static function str(string $id, string $lang, $a = null): string {
         $manager = get_string_manager();
+        if ($a !== null && lists::dir($lang) === 'rtl') {
+            // Written from right to left: each thing put into the sentence (a name, a school year, a phone) keeps its
+            // own direction, so «2027-28» or «Colegio Los Almendros (Getafe)» do not turn round inside it.
+            $a = self::isolate($a);
+        }
         if ($lang === 'en' || $manager->translation_exists($lang, false)) {
             return $manager->get_string($id, self::C, $a, $lang);
         }
@@ -123,6 +128,24 @@ class publiclang {
             self::$own[$lang] = $merged;
         }
         return self::$own[$lang];
+    }
+
+    /**
+     * Each thing put into a sentence, between the marks that isolate its direction (FSI and PDI).
+     *
+     * @param mixed $a
+     * @return mixed
+     */
+    protected static function isolate($a) {
+        $wrap = fn($value) => is_scalar($value) && (string) $value !== '' ? "\u{2068}" . $value . "\u{2069}" : $value;
+        if (is_scalar($a)) {
+            return $wrap($a);
+        }
+        $out = new \stdClass();
+        foreach ((array) $a as $key => $value) {
+            $out->$key = $wrap($value);
+        }
+        return $out;
     }
 
     /**

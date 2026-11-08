@@ -115,7 +115,7 @@
         <p class="entradilla">{{hours}}{{#place}} · {{place}}{{/place}}{{#address}}, {{address}}{{/address}}.</p>
         {{/tailored}}
         {{/isform}}
-        {{#welcome}}<p class="muted">{{welcome}}</p>{{/welcome}}
+        {{#welcome}}<p class="muted" dir="auto">{{welcome}}</p>{{/welcome}}
         {{#hashosts}}
         <div class="caras-mini">
             <span class="pila">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}{{/hosts}}</span>
@@ -158,7 +158,7 @@
                     {{#fields}}
                     <div class="campo{{#invalid}} mal{{/invalid}}">
                         <label for="{{name}}">{{label}}</label>
-                        <input id="{{name}}" name="{{name}}" type="{{type}}" value="{{value}}"{{#autocomplete}} autocomplete="{{autocomplete}}"{{/autocomplete}}{{#inputmode}} inputmode="{{inputmode}}"{{/inputmode}}{{#invalid}} aria-invalid="true" aria-describedby="{{name}}-error"{{/invalid}}>
+                        <input id="{{name}}" name="{{name}}" type="{{type}}" value="{{value}}"{{#ltr}} dir="ltr"{{/ltr}}{{#autocomplete}} autocomplete="{{autocomplete}}"{{/autocomplete}}{{#inputmode}} inputmode="{{inputmode}}"{{/inputmode}}{{#invalid}} aria-invalid="true" aria-describedby="{{name}}-error"{{/invalid}}>
                         {{#error}}<p class="error" id="{{name}}-error">{{{i.alert}}}{{error}}</p>{{/error}}
                     </div>
                     {{/fields}}

@@ -84,7 +84,7 @@
                 <p><b>{{saved}}.</b> {{savedline}} {{emailed}}</p>
             </div>
             {{/new}}
-            {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span>{{text}}</span></p>{{/outcome}}
+            {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span dir="auto">{{text}}</span></p>{{/outcome}}
             {{#turns}}
             <form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">
@@ -96,14 +96,14 @@
             <div class="quien-lleva">
                 {{#person}}
                 <p class="etiqueta-lleva">{{label}}</p>
-                <p class="persona-lleva">{{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span><b>{{name}}</b>{{#role}}<span class="papel">{{role}}</span>{{/role}}</span></p>
+                <p class="persona-lleva">{{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span><b>{{name}}</b>{{#role}}<span class="papel" dir="auto">{{role}}</span>{{/role}}</span></p>
                 {{/person}}
                 {{#place}}
                 <p class="etiqueta-lleva">{{label}}</p>
                 <p class="placa-sitio">{{name}}</p>
                 {{/place}}
                 {{#team}}<p class="etiqueta-lleva">{{team}}</p>{{/team}}
-                {{#how}}<p class="por-donde">{{how}}</p>{{/how}}
+                {{#how}}<p class="por-donde" dir="auto">{{how}}</p>{{/how}}
             </div>
             {{/settled}}
             {{#wallask}}
@@ -148,7 +148,7 @@
         <b>{{name}}</b>
         <span>{{hours}}{{#turn}} · {{pub_your_turn}}{{/turn}}</span>
         {{#place}}<span>{{place}}</span>{{/place}}
-        {{#arrive}}<span class="llegar">{{arrive}}</span>{{/arrive}}
+        {{#arrive}}<span class="llegar" dir="auto">{{arrive}}</span>{{/arrive}}
         <span>{{people}}</span>
         <div class="acciones">
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
@@ -203,7 +203,7 @@
         <p>{{novisit}}</p>
         <div class="acciones">
             {{#email}}<a class="boton inverso" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
         </div>
     </div>
 </section>
@@ -224,8 +224,8 @@
             {{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}
             {{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}
             <b>{{name}}</b>
-            {{#role}}<span class="papel">{{role}}</span>{{/role}}
-            {{#says}}<p class="dice">{{says}}</p>{{/says}}
+            {{#role}}<span class="papel" dir="auto">{{role}}</span>{{/role}}
+            {{#says}}<p class="dice" dir="auto">{{says}}</p>{{/says}}
         </article>
         {{/hosts}}
     </div>

@@ -52,11 +52,24 @@ class lists {
     const CONSENT_CHANNELS = ['email', 'whatsapp', 'phone'];
 
     /** @var string[] Languages offered to families; each has the strings of the plugin. */
-    const LANGS = ['es', 'en', 'pt_br', 'pt'];
+    const LANGS = ['es', 'en', 'pt_br', 'pt', 'ar'];
 
     /** @var array Each language of the families in its own words. */
     const LANG_NAMES = ['es' => 'Español', 'en' => 'English', 'pt_br' => 'Português (Brasil)',
-        'pt' => 'Português (Portugal)'];
+        'pt' => 'Português (Portugal)', 'ar' => 'العربية'];
+
+    /** @var string[] Languages written from right to left: their pages and mails turn round. */
+    const RTL = ['ar'];
+
+    /**
+     * The direction a language is written in, for the dir attribute.
+     *
+     * @param string $lang
+     * @return string rtl or ltr.
+     */
+    public static function dir(string $lang): string {
+        return in_array($lang, self::RTL, true) ? 'rtl' : 'ltr';
+    }
 
     /**
      * Whether a stage goes further than another, to move a way forward without moving it back.

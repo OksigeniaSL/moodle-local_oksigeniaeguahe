@@ -63,7 +63,9 @@ class signuppage {
             string $autocomplete = '',
             string $inputmode = ''
         ) use ($errors): array {
-            return ['name' => $name, 'label' => $label, 'value' => $value, 'type' => $type, 'autocomplete' => $autocomplete,
+            // Emails and phones are written left to right in any language.
+            return ['name' => $name, 'label' => $label, 'value' => $value, 'type' => $type,
+                'ltr' => in_array($type, ['email', 'tel'], true), 'autocomplete' => $autocomplete,
                 'inputmode' => $inputmode, 'error' => $errors[$name] ?? '', 'invalid' => isset($errors[$name])];
         };
         // The adults: the first always; the second when something was written in it.
@@ -147,7 +149,7 @@ class signuppage {
         $firsts = array_map(fn($h) => $h->first, $hosts);
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
         $municipality = (string) $data['municipality'];
-        $altchalang = ['es' => 'es-es', 'en' => 'en', 'pt' => 'pt-pt', 'pt_br' => 'pt-br'][$lang] ?? 'en';
+        $altchalang = ['es' => 'es-es', 'en' => 'en', 'pt' => 'pt-pt', 'pt_br' => 'pt-br', 'ar' => 'ar'][$lang] ?? 'en';
         $altcha = json_encode([
             'auto' => 'onfocus',
             'hideFooter' => true,

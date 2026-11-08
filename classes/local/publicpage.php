@@ -180,7 +180,7 @@ class publicpage {
         $cropper = $template === 'public_drawing' ?
             '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
         echo '<!DOCTYPE html>
-<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '">
+<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '" dir="' . lists::dir($lang) . '">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -340,7 +340,8 @@ display: grid; }
      * @return array weekday, daymonth, long, hour
      */
     public static function date_parts(int $time, string $lang): array {
-        $locale = $lang === 'pt_br' ? 'pt_BR' : ($lang === 'pt' ? 'pt_PT' : $lang);
+        // Arabic with the digits of everywhere (0-9), as on the rest of the page.
+        $locale = ['pt_br' => 'pt_BR', 'pt' => 'pt_PT', 'ar' => 'ar@numbers=latn'][$lang] ?? $lang;
         $zone = \core_date::get_server_timezone_object();
         if (class_exists('\IntlDateFormatter') && class_exists('\IntlDatePatternGenerator')) {
             $generator = new \IntlDatePatternGenerator($locale);

@@ -17,6 +17,12 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\arabic;
+use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\familymail;
+use local_oksigeniaeguahe\local\familypage;
+use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lists;
+use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\sticker;
 
 /**
@@ -29,6 +35,7 @@ use local_oksigeniaeguahe\local\sticker;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(arabic::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(sticker::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(publiclang::class)]
 final class arabic_test extends \advanced_testcase {
     /**
      * The fourteen names of the test of the art director, joined and in visual order as GD needs them.
@@ -72,5 +79,34 @@ final class arabic_test extends \advanced_testcase {
             $this->assertStringStartsWith("\x89PNG", sticker::png($name, '#2f5d62', 1));
             $this->assertStringStartsWith("\x89PNG", sticker::bottle($name, '#2f5d62', 1));
         }
+    }
+
+    /**
+     * The pages and mails of the families in Arabic, right to left: the strings, what goes into them keeping its own
+     * direction (a school year, a name with brackets), the page of a family and its mail.
+     */
+    public function test_right_to_left(): void {
+        $this->resetAfterTest();
+        $this->assertContains('ar', lists::LANGS);
+        $this->assertSame('rtl', lists::dir('ar'));
+        $this->assertSame('ltr', lists::dir('es'));
+        $this->assertSame('ننتظركم،', publiclang::str('pub_wait', 'ar'));
+        $year = publiclang::str('pub_course_year', 'ar', (object) ['course' => 'Infantil 3 años', 'year' => '2027-28']);
+        $this->assertStringContainsString("\u{2068}2027-28\u{2069}", $year);
+        $spanish = publiclang::str('pub_course_year', 'es', (object) ['course' => 'Infantil 3 años', 'year' => '2027-28']);
+        $this->assertStringNotContainsString("\u{2068}", $spanish, 'Only where the page goes right to left.');
+        // What families never read is in English.
+        $this->assertSame(get_string('panel_firstday', 'local_oksigeniaeguahe'), publiclang::str('panel_firstday', 'ar'));
+
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo (Getafe)', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $household = households::get(households::create($id, (object) ['lang' => 'ar', 'firstchannel' => 'webform']), $id);
+        households::add_adult($household, (object) ['firstname' => 'أمينة', 'lastname' => 'مثال', 'email' => 'amina@example.com']);
+        households::add_child($household, 'نور', 0, 'نور');
+        $page = familypage::context($household, $centre, 'ar', 'clave', false);
+        $this->assertContains($page['greeting'], [publiclang::str('pub_wait', 'ar'), publiclang::str('pub_wait_nochild', 'ar')]);
+        [$subject, $html] = familymail::build('received', $household, $centre, null, 'ar', 'clave');
+        $this->assertStringContainsString('dir="rtl"', $html);
+        $this->assertStringContainsString("\u{2068}Colegio de ejemplo (Getafe)\u{2069}", $html . $subject);
     }
 }

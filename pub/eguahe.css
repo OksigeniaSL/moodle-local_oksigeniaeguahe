@@ -8,6 +8,21 @@
     src: url(fonts/schibsted-grotesk.woff2) format('woff2');
     font-weight: 400 800;
     font-display: swap;
+    /* The Latin letters only: the Arabic ones go to its own face, below. */
+    unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
+}
+
+/* Arabic text (Gaudí, 8 November 2026): Vazirmatn, a second face of the same family, so mixed text shares itself out;
+   a point larger, as Arabic needs to read as comfortably as the Latin letters. */
+@font-face {
+    font-family: 'Eg Sans';
+    src: url(fonts/vazirmatn-arabe.woff2) format('woff2');
+    /* The same weights as the Latin face: browsers only share a family out between faces that match. */
+    font-weight: 400 800;
+    font-display: swap;
+    /* stylelint-disable-next-line csstree/validator */
+    size-adjust: 106%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F;
 }
 
 @font-face {
@@ -399,11 +414,11 @@ textarea {
 }
 
 .chapita .placa-nombre::before {
-    left: 9px;
+    inset-inline-start: 9px;
 }
 
 .chapita .placa-nombre::after {
-    right: 9px;
+    inset-inline-end: 9px;
 }
 
 .chapita .placa-nombre.vacia {
@@ -665,11 +680,11 @@ textarea {
     }
 
     .heroe-ancho .perchas {
-        padding-right: 0;
+        padding-inline-end: 0;
     }
 
     .heroe-ancho .bajo-riel {
-        padding-left: 0;
+        padding-inline-start: 0;
         padding-top: 40px;
         padding-bottom: 64px;
         align-content: start;
@@ -1151,7 +1166,7 @@ html[lang="pt-BR"] .persona .dice::after {
 }
 
 .caras-mini img + img {
-    margin-left: -12px;
+    margin-inline-start: -12px;
 }
 
 form {
@@ -1226,7 +1241,11 @@ legend .opc {
     background-image: url(img/flecha.svg);
     background-position: right 18px center;
     background-repeat: no-repeat;
-    padding-right: 46px;
+    padding-inline-end: 46px;
+}
+
+[dir="rtl"] .campo select {
+    background-position: left 18px center;
 }
 
 .campo input:focus-visible,
@@ -1374,7 +1393,7 @@ legend .opc {
     border: 1.5px solid var(--eg-borde);
     background: var(--eg-superficie);
     cursor: pointer;
-    text-align: left;
+    text-align: start;
 }
 
 .turno .punto {
@@ -1479,7 +1498,7 @@ legend .opc {
 }
 
 .robot small {
-    margin-left: auto;
+    margin-inline-start: auto;
     color: var(--eg-tinta-2);
     font-size: 0.8125rem;
 }
@@ -1490,9 +1509,12 @@ legend .opc {
 }
 
 .resumen {
-    border-left: 4px solid var(--eg-error);
+    border-inline-start: 4px solid var(--eg-error);
     background: var(--eg-error-suave);
-    border-radius: 0 var(--radio-campo) var(--radio-campo) 0;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--radio-campo);
+    border-end-end-radius: var(--radio-campo);
     padding: 16px 18px;
     display: grid;
     gap: 8px;
@@ -1504,7 +1526,7 @@ legend .opc {
 
 .resumen ul {
     margin: 0;
-    padding-left: 1.2em;
+    padding-inline-start: 1.2em;
     display: grid;
     gap: 4px;
 }
@@ -1609,7 +1631,7 @@ legend .opc {
 
 .idioma ul {
     position: absolute;
-    right: 0;
+    inset-inline-end: 0;
     top: calc(100% + 8px);
     margin: 0;
     padding: 6px;
@@ -3080,4 +3102,16 @@ textarea.renglones:focus-visible {
 .le-toca .boton.principal {
     background: var(--c-sobre-acento);
     color: var(--c-acento);
+}
+
+/* Arabic joins its letters: no spacing between them anywhere, or the words break apart. */
+html[lang="ar"] body * {
+    /* stylelint-disable-next-line declaration-no-important */
+    letter-spacing: 0 !important;
+}
+
+/* Long Arabic text, with more room between its lines (Gaudí). */
+:lang(ar) p,
+:lang(ar) li {
+    line-height: 1.75;
 }

@@ -9,6 +9,21 @@
     src: url(fonts/schibsted-grotesk.woff2) format('woff2');
     font-weight: 400 800;
     font-display: swap;
+    /* The Latin letters only: the Arabic ones go to its own face, below. */
+    unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
+}
+
+/* Arabic text (Gaudí, 8 November 2026): Vazirmatn, a second face of the same family, so mixed text shares itself out;
+   a point larger, as Arabic needs to read as comfortably as the Latin letters. */
+@font-face {
+    font-family: 'Eg Sans';
+    src: url(fonts/vazirmatn-arabe.woff2) format('woff2');
+    /* The same weights as the Latin face: browsers only share a family out between faces that match. */
+    font-weight: 400 800;
+    font-display: swap;
+    /* stylelint-disable-next-line csstree/validator */
+    size-adjust: 106%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F;
 }
 
 @font-face {

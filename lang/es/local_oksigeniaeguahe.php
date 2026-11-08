@@ -1170,6 +1170,7 @@ $string['panel_labels_title_event'] = 'Las etiquetas de mochila de «{$a}»';
 $string['panel_labels_unfavourite'] = 'Quitarla de las de este centro';
 $string['panel_labels_what'] = 'Qué imprimir';
 $string['panel_lang_missing'] = 'faltan {$a}';
+$string['panel_langname_ar'] = 'árabe';
 $string['panel_langname_en'] = 'inglés';
 $string['panel_langname_es'] = 'español';
 $string['panel_langname_pt'] = 'portugués de Portugal';

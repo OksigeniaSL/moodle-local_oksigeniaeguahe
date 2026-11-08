@@ -37,6 +37,18 @@
         </copyrights>
     </library>
     <library>
+        <location>pub/fonts/vazirmatn-arabe.woff2</location>
+        <name>Vazirmatn</name>
+        <description>The typeface of the Arabic text of the pages of the families and the panel, cut to the Arabic letters.</description>
+        <license>OFL</license>
+        <version>33.003</version>
+        <licenseversion>1.1</licenseversion>
+        <repository>https://github.com/rastikerdar/vazirmatn</repository>
+        <copyrights>
+            <copyright>2015 The Vazirmatn Project Authors</copyright>
+        </copyrights>
+    </library>
+    <library>
         <location>pub/fonts/caveat.woff2</location>
         <name>Caveat</name>
         <description>The handwriting of the name on the label of each child, on the pages of the families.</description>

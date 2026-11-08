@@ -4,7 +4,7 @@
     colour), never Eguahe's. Under the heading, the label of each child (a PNG made by the server) with the name as its
     text. The colours under c.* come from the one colour of the centre, as on the page of the family.
 }}<!doctype html>
-<html lang="{{lang}}" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="{{lang}}" dir="{{dir}}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +19,7 @@
 <style>table, td, p, a, h1, h2, span { font-family: 'Segoe UI', Arial, sans-serif !important; }</style>
 <![endif]-->
 <style>
+  [dir="rtl"] * { letter-spacing: 0 !important; }
 {{#fuente_url}}
 @media screen { @font-face { font-family: 'Schibsted Grotesk'; src: url('{{fuente_url}}') format('woff2'); font-weight: 400 800; font-style: normal; } }
 {{/fuente_url}}
@@ -61,12 +62,12 @@ u + #body a { color: inherit; text-decoration: none; }
 [data-ogsc] .eg-boton-a { color: {{c.oscuro.sobre_vivo}} !important; }
 </style>
 </head>
-<body id="body" class="eg-papel" style="margin:0; padding:0; background-color:#FBF7F1; word-spacing:normal;">
+<body id="body" class="eg-papel" dir="{{dir}}" style="margin:0; padding:0; background-color:#FBF7F1; word-spacing:normal;">
 <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">{{preencabezado}}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="eg-papel" bgcolor="#FBF7F1" style="width:100%; background-color:#FBF7F1;">
 <tr><td align="center" style="padding:0;">
 <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px; margin:0 auto; font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<table role="presentation" width="600" dir="{{dir}}" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px; margin:0 auto; font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
 
 {{#muestra}}
 <tr><td class="eg-pared eg-tinta-2" bgcolor="{{c.pared}}" align="center" style="background-color:{{c.pared}}; padding:10px 20px 0; font-size:11px; line-height:16px; letter-spacing:1.5px; text-transform:uppercase; color:#5F5459;">{{muestra}}</td></tr>
@@ -75,7 +76,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <!-- The centre: its logo on its own plate (readable when a client darkens the message) and its name -->
 <tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:22px 40px 0;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-    {{#centro.placa}}<td style="vertical-align:middle; padding-right:12px;"><img src="{{centro.placa}}" width="{{centro.placa_ancho}}" height="{{centro.placa_alto}}" alt="" style="display:block; width:{{centro.placa_ancho}}px; height:{{centro.placa_alto}}px; border:0;"></td>{{/centro.placa}}
+    {{#centro.placa}}<td style="vertical-align:middle; padding-{{fin}}:12px;"><img src="{{centro.placa}}" width="{{centro.placa_ancho}}" height="{{centro.placa_alto}}" alt="" style="display:block; width:{{centro.placa_ancho}}px; height:{{centro.placa_alto}}px; border:0;"></td>{{/centro.placa}}
     {{#centro.nombre_visible}}<td class="eg-tinta" style="vertical-align:middle; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</td>{{/centro.nombre_visible}}
   </tr></table>
 </td></tr>
@@ -97,7 +98,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;"><tr>
     <td class="eg-sup" bgcolor="#FFFFFF" style="background-color:#FFFFFF; border:1px solid #E7DED3; border-radius:14px; padding:16px 18px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="vertical-align:top; padding-right:12px;"><div class="eg-marca" style="width:26px; height:26px; border-radius:13px; background-color:{{c.vivo}}; color:{{c.sobre_vivo}}; font-size:16px; line-height:26px; font-weight:800; text-align:center;">&#10003;</div></td>
+        <td style="vertical-align:top; padding-{{fin}}:12px;"><div class="eg-marca" style="width:26px; height:26px; border-radius:13px; background-color:{{c.vivo}}; color:{{c.sobre_vivo}}; font-size:16px; line-height:26px; font-weight:800; text-align:center;">&#10003;</div></td>
         <td class="eg-tinta" style="vertical-align:top; font-size:16px; line-height:24px; color:#2B2226;"><strong>{{aviso.titulo}}</strong> {{aviso.texto}}</td>
       </tr></table>
     </td>
@@ -187,7 +188,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <tr><td class="eg-pad" style="padding:44px 40px 40px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="eg-linea" style="border-top:1px solid #E7DED3; padding-top:22px;">
     <p class="eg-tinta" style="margin:0; font-size:15px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</p>
-    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}{{#centro.telefono}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.telefono}}</a>{{/centro.telefono}}{{#centro.correo}} · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a>{{/centro.correo}}</p>
+    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}{{#centro.telefono}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;"><span dir="ltr">{{centro.telefono}}</span></a>{{/centro.telefono}}{{#centro.correo}} · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a>{{/centro.correo}}</p>
     <p class="eg-tinta-2" style="margin:14px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{pie.porque}} <a class="eg-enlace" href="{{pie.datos_url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{pie.datos_texto}}</a></p>
     {{#pie.firma}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{{pie.firma}}}</p>{{/pie.firma}}
     {{#muestra_pie}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{muestra_pie}}</p>{{/muestra_pie}}

@@ -52,8 +52,12 @@
 
 /* Without the backpacks at its side, what goes under the rail keeps the margin of the page. */
 .sala-lista .pared.con-sala .bajo-riel {
-    padding-left: var(--g);
-    padding-right: var(--g);
+    padding-inline: var(--g);
+}
+
+/* The hall is a picture: it does not turn round with a language written from right to left. */
+.sala-familia {
+    direction: ltr;
 }
 
 /* The drawings on the table of the hall can be touched to see them big. */
