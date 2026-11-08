@@ -6753,3 +6753,15 @@ html.modo-lamina {
     grid-column: 1 / -1;
 }
 
+/* A chart without its partner in the row takes the whole row. */
+@media (min-width: 1100px) {
+    .cifras > .ancha {
+        grid-column: 1 / -1;
+    }
+}
+
+.ver-entera {
+    margin-block: -6px 0;
+    font-size: 0.875rem;
+}
+

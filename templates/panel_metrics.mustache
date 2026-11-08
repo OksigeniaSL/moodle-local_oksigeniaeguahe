@@ -46,7 +46,7 @@
             "xticks": [{"p": 0, "label": "Semana 1", "start": true, "end": false}], "events": [{"p": 27, "label": "Jornada", "ahead": false}],
             "now": "M0 90 L9 80", "before": "M0 95 L9 85", "end": {"left": 9, "top": 80, "label": "19 esta campaña", "flip": false},
             "beforeend": {"left": 100, "top": 10, "label": "la anterior"}, "cols": [{"left": 0, "width": 9, "cx": 0, "line": "Semana 1.", "future": false}],
-            "rest": "Van 19 familias.", "def": "", "label": "Llegadas, semana a semana", "what": "familias",
+            "rest": "Van 19 familias.", "def": "", "wholelink": false, "ancha": false, "label": "Llegadas, semana a semana", "what": "familias",
             "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
         "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": null}],
         "placesdef": "",
@@ -74,14 +74,14 @@
         <section class="lamina grafico grafico-respuesta" aria-labelledby="c-resp" id="primera-respuesta">
             <h2 id="c-resp">{{#str}}panel_first_answer, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
-            <p class="cifra-heroe"><b>{{hero}}</b><span>{{#str}}panel_median, local_oksigeniaeguahe{{/str}}</span></p>
+            {{#hero}}<p class="cifra-heroe"><b>{{hero}}</b><span>{{#str}}panel_median, local_oksigeniaeguahe{{/str}}</span></p>{{/hero}}
             <p class="linea-dato">{{sentence}}</p>
             <ul class="hechos">{{#facts}}<li><b>{{n}}</b> {{text}}</li>{{/facts}}</ul>
             <p class="def">{{def}}</p>
         </section>
         {{/response}}
         {{#reach}}
-        <section class="lamina grafico grafico-alcance{{^compare}} sin-comparar{{/compare}}" aria-labelledby="c-alc" id="hasta-donde" data-grafico>
+        <section class="lamina grafico grafico-alcance{{^compare}} sin-comparar{{/compare}}{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-alc" id="hasta-donde" data-grafico>
             <h2 id="c-alc">{{#str}}panel_how_far, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
@@ -108,7 +108,7 @@
         </section>
         {{/reach}}
         {{#channels}}
-        <section class="lamina grafico grafico-canales" aria-labelledby="c-can" id="por-donde" data-grafico>
+        <section class="lamina grafico grafico-canales{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-can" id="por-donde" data-grafico>
             <h2 id="c-can">{{#str}}panel_where_from, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <nav class="segmentos voces" aria-label="{{#str}}panel_three_voices, local_oksigeniaeguahe{{/str}}">{{#voices}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/voices}}</nav>
@@ -137,11 +137,12 @@
         </section>
         {{/channels}}
         {{#weeks}}
-        <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}" aria-labelledby="c-sem" id="semanas" data-grafico>
+        <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sem" id="semanas" data-grafico>
             <h2 id="c-sem">{{#str}}panel_week_by_week, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <nav class="segmentos vistas-sem" aria-label="{{#str}}panel_what_to_count, local_oksigeniaeguahe{{/str}}">{{#views}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/views}}</nav>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+            {{#wholelink}}<p class="ver-entera"><a class="enlace" href="{{url}}" data-filtro-cifras>{{name}}</a></p>{{/wholelink}}
             {{#compare}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-linea ahora"></span>{{#str}}panel_this_campaign, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-linea antes"></span>{{#str}}panel_before, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
             <div class="semanas-caja" id="sem-caja" data-m="bloque">
                 <div class="semanas-plot" role="img" aria-label="{{label}}. {{rest}}">
@@ -185,7 +186,7 @@
             <p class="def">{{placesdef}}</p>
         </section>
         {{#hasyear}}{{#year}}
-        <section class="lamina grafico grafico-saldo" aria-labelledby="c-sal" id="saldo" data-grafico>
+        <section class="lamina grafico grafico-saldo{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sal" id="saldo" data-grafico>
             <h2 id="c-sal">{{title}}</h2>
             <p class="corte">{{cut}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
@@ -209,7 +210,7 @@
         </section>
         {{/year}}{{/hasyear}}
         {{#hashistory}}{{#history}}
-        <section class="lamina grafico grafico-anos" aria-labelledby="c-anos" id="anos" data-grafico>
+        <section class="lamina grafico grafico-anos{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-anos" id="anos" data-grafico>
             <h2 id="c-anos">{{#str}}panel_roll_by_year, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>

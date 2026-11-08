@@ -43,6 +43,7 @@ $view = [
     'voice' => optional_param('voz', 'first', PARAM_ALPHA),
     'show' => optional_param('vista', 'llegadas', PARAM_ALPHA),
     'ensenar' => optional_param('ensenar', 0, PARAM_BOOL),
+    'whole' => optional_param('entera', 0, PARAM_BOOL),
 ];
 $url = panel_metrics::url($centre, $view);
 $PAGE->set_context(context_system::instance());

@@ -289,7 +289,7 @@ class panel_metrics {
             'response' => self::response($centre, $campaign),
             'reach' => $mine ? self::reach($mine, $before, $compare, $elapsed, (int) ($previous['start'] ?? 0)) : null,
             'channels' => $mine ? self::channels($centre, $campaign, $mine, $voice, $url) : null,
-            'weeks' => $mine && ($campaign['start'] || $mine) ? self::weeks(
+            'weeks' => $mine ? self::weeks(
                 $centre,
                 $campaign,
                 $mine,
@@ -299,7 +299,8 @@ class panel_metrics {
                 $end,
                 (int) ($previous['start'] ?? 0),
                 $url,
-                $now
+                $now,
+                !empty($view['whole'])
             ) : null,
             'places' => self::places($centre, $families, $course, $previous, $campaign, $elapsed),
             'placesdef' => get_string('panel_coming_def', $c),
@@ -308,7 +309,20 @@ class panel_metrics {
         $context['spendaction'] = $url([])->out(false);
         $year = $course === '' ? self::year($centre) : null;
         $history = $course === '' ? self::history($centre) : null;
-        return $context + ['hasyear' => (bool) $year, 'year' => $year, 'hashistory' => (bool) $history, 'history' => $history];
+        // A chart without its partner in the row takes the whole row.
+        foreach ([['reach', 'response'], ['channels', 'weeks'], ['weeks', 'channels']] as [$chart, $partner]) {
+            if ($context[$chart]) {
+                $context[$chart]['ancha'] = !$context[$partner];
+            }
+        }
+        if ($year) {
+            $year['ancha'] = !$history;
+        }
+        if ($history) {
+            $history['ancha'] = !$year;
+        }
+        return $context + ['hasyear' => (bool) $year, 'year' => $year ?: false, 'hashistory' => (bool) $history,
+            'history' => $history ?: false];
     }
 
     /**
@@ -330,6 +344,9 @@ class panel_metrics {
         }
         if (isset($view['compare']) && !$view['compare']) {
             $params['comparar'] = 0;
+        }
+        if (!empty($view['whole'])) {
+            $params['entera'] = 1;
         }
         if (!empty($view['ensenar'])) {
             $params['ensenar'] = 1;
@@ -368,7 +385,9 @@ class panel_metrics {
         $c = self::C;
         $r = metrics::response((int) $centre->id);
         if ($r['median'] === null) {
-            return null;
+            return ['hero' => '', 'sentence' => get_string('panel_response_none', $c), 'facts' => $r['waiting'] ?
+                [['n' => $r['waiting'], 'text' => get_string('panel_response_waiting', $c)]] : [],
+                'def' => get_string('panel_response_def', $c)];
         }
         $hours = (float) $r['median'];
         $hero = $hours < 1 ? get_string('panel_resp_minutes', $c, max(1, (int) round($hours * 60))) : ($hours < 48 ?
@@ -632,6 +651,7 @@ class panel_metrics {
      * @param int $prevstart
      * @param callable $url
      * @param int $now
+     * @param bool $whole Whether to draw the whole campaign before; else both up to today, on a scale that shows them.
      * @return array|null
      */
     protected static function weeks(
@@ -644,7 +664,8 @@ class panel_metrics {
         int $end,
         int $prevstart,
         callable $url,
-        int $now
+        int $now,
+        bool $whole = false
     ): ?array {
         $c = self::C;
         $week = WEEKSECS;
@@ -657,7 +678,7 @@ class panel_metrics {
         $current = max(1, (int) ceil(max(1, $end - $start) / $week));
         $prevtimes = array_filter(array_column($before, $field));
         $prevweeks = $compare && $prevtimes ? max(1, (int) ceil((max($prevtimes) - $prevstart) / $week)) : 0;
-        $total = max(4, $current, $prevweeks);
+        $total = $whole ? max(4, $current, $prevweeks) : max(4, $current);
         $sum = fn(array $list, int $from, int $w) => count(array_filter($list, fn($t) => $t >= $from - 30 * DAYSECS &&
             $t < $from + $w * $week));
         $now = [];
@@ -729,6 +750,8 @@ class panel_metrics {
             $grid[] = ['p' => $y($v), 'label' => $v];
         }
         return [
+            'wholelink' => $compare && $prevweeks > $current ? ['url' => $url(['whole' => !$whole])->out(false),
+                'name' => get_string($whole ? 'panel_weeks_to_today' : 'panel_weeks_whole', $c)] : false,
             'views' => array_map(fn($k) => ['name' => get_string('panel_weeks_' . $k, $c),
                 'url' => $url(['show' => $k])->out(false),
                 'current' => $k === $show], ['llegadas', 'matriculadas']),
