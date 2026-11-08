@@ -32,6 +32,7 @@
         <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families once enrolled; 0, a place or nobody"/>
         <FIELD NAME="handoverplace" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the families are carried once enrolled when nobody is named: the office of students and its phone"/>
         <FIELD NAME="handoverhow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How the centre writes to the families once enrolled, as they read it"/>
+        <FIELD NAME="siblingage" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The age children enter at, to tell a family the year before a brother or sister turns it; 0, children do not enter by age here"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -590,6 +591,27 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="centredone" UNIQUE="false" FIELDS="centreid, timedone"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_sibling" COMMENT="A brother or sister at home who would come later, as the family told it: when their turn comes, the team offers them a place">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="firstname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="birthyear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The year they were born, never the day"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="signup" SEQUENCE="false" COMMENT="Where it was told: signup, page or team"/>
+        <FIELD NAME="notify" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family asked to be told when their turn comes; 0, they did not"/>
+        <FIELD NAME="proposed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team wrote to offer them a place; 0, not yet"/>
+        <FIELD NAME="confirmed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes from its page; 0, not yet"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centreyear" UNIQUE="false" FIELDS="centreid, birthyear"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_reply" COMMENT="The answers of always of a centre: what the team already said, kept to start an answer from it">

@@ -132,10 +132,7 @@ class publicpage {
         $skin = '';
         if (!empty($centre->id) && vestibulo::on($centre)) {
             $skin = '<link rel="stylesheet" href="' . $base . 'pieles/vestibulo/familia.css?v=' . $version . '">' . "\n";
-            // The drawing that draws itself on the table, before the scene that puts it there.
-            foreach (['dibujo-vivo.js', 'pieles/vestibulo/escena.js'] as $script) {
-                $skin .= '<script src="' . $base . $script . '?v=' . $version . '" defer></script>' . "\n";
-            }
+            $skin .= '<script src="' . $base . 'pieles/vestibulo/escena.js?v=' . $version . '" defer></script>' . "\n";
         }
         $colour = $centre->colour ?: '#2f5d62';
         $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
@@ -176,6 +173,9 @@ class publicpage {
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
         self::headers();
+        // The page of a family: the drawing that draws itself, under each child and on the table, before what plays it.
+        $vivo = $template === 'public_family' ?
+            '<script src="' . $base . 'dibujo-vivo.js?v=' . $version . '" defer></script>' . "\n" : '';
         // The page of the drawing cuts and straightens the photo in the browser.
         $cropper = $template === 'public_drawing' ?
             '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
@@ -193,9 +193,10 @@ class publicpage {
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
 @media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>
-<noscript><style>.nino[hidden], .adulto[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] { display: grid; }
+<noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden] {
+display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
-<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
+' . $vivo . '<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
 ' . $cropper . $skin . '</head>
 <body' . (self::$embedded ? ' class="incrustado"' : '') . '>
 ' . $top . $body . $bottom . '

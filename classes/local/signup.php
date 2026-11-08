@@ -31,6 +31,9 @@ class signup {
     /** @var int Rows for those who would study. */
     const CHILDREN = 4;
 
+    /** @var int Brothers and sisters for later a family can tell when signing up. */
+    const SIBLINGS = 3;
+
     /** @var int Rows for adults. */
     const ADULTS = 2;
 
@@ -57,6 +60,14 @@ class signup {
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
         }
+        // Brothers and sisters at home who would come later: a name and the year of birth.
+        $siblings = [];
+        for ($i = 0; $i < self::SIBLINGS; $i++) {
+            $siblings[] = [
+                'firstname' => trim(optional_param("s{$i}name", '', PARAM_TEXT)),
+                'birthyear' => optional_param("s{$i}year", 0, PARAM_INT),
+            ];
+        }
         $consents = [];
         foreach (lists::CONSENT_CHANNELS as $channel) {
             $consents[$channel] = optional_param('consent' . $channel, 0, PARAM_BOOL) ? 1 : 0;
@@ -64,6 +75,7 @@ class signup {
         return [
             'adults' => $adults,
             'children' => $children,
+            'siblings' => $siblings,
             'people' => optional_param('people', 2, PARAM_INT),
             'slot' => optional_param('slot', 0, PARAM_INT),
             'incentre' => optional_param('incentre', '', PARAM_ALPHA),
@@ -214,6 +226,17 @@ class signup {
         foreach ($data['children'] as $child) {
             if ($child['firstname'] !== '') {
                 households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
+            }
+        }
+        if (siblings::on($centre)) {
+            // Those who would come later: the year before their turn, the team offers them a place.
+            $known = array_map(fn($s) => \core_text::strtolower($s->firstname), siblings::of((int) $household->id));
+            foreach ($data['siblings'] ?? [] as $sibling) {
+                $name = \core_text::strtolower(trim($sibling['firstname']));
+                if ($name !== '' && !in_array($name, $known, true)) {
+                    siblings::add($household, $sibling['firstname'], (int) $sibling['birthyear'], 'signup', time());
+                    $known[] = $name;
+                }
             }
         }
         $isform = $event->kind === 'form';

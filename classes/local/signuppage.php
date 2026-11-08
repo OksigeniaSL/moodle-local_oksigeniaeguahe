@@ -191,6 +191,22 @@ class signuppage {
             'hasfields' => (bool) $fields,
             'askplace' => in_array('place', $blocks, true),
             'askheard' => in_array('heard', $blocks, true),
+            // Brothers and sisters who would come later, where children enter by age and the event is about admissions.
+            'asksiblings' => siblings::on($centre) && $event->kind !== 'other',
+            'siblingstitle' => publiclang::str('pub_siblings_title', $lang),
+            'siblingshelp' => publiclang::str('pub_siblings_help', $lang),
+            'siblingname' => publiclang::str('pub_sibling_name', $lang),
+            'siblingyear' => publiclang::str('pub_sibling_year', $lang),
+            'siblingadd' => publiclang::str('pub_sibling_add', $lang),
+            'siblings' => array_map(function ($i) use ($data) {
+                $given = $data['siblings'][$i] ?? ['firstname' => '', 'birthyear' => 0];
+                $now = (int) date('Y');
+                $born = (int) $given['birthyear'];
+                $years = array_map(fn($y) => ['value' => $y, 'selected' => $y === $born], range($now, $now - 12));
+                // The first row, and those already written; the others wait for «One more».
+                return ['index' => $i, 'name' => $given['firstname'], 'hidden' => $i > 0 && $given['firstname'] === '',
+                    'years' => $years];
+            }, range(0, signup::SIBLINGS - 1)),
             'askmessage' => in_array('message', $blocks, true),
             'askincentre' => $askincentre,
             'askpeople' => !$isform,

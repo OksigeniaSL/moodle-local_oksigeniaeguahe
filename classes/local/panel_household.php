@@ -151,8 +151,9 @@ class panel_household {
             'waiting' => $household->waitingsince > 0,
             'me' => panel::person($USER),
             'composer' => $composer,
-            // Only with what they asked for and the diary of those who guide; Eguahe does not know the diary yet.
-            'proposal' => false,
+            // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
+            'proposal' => $canact ? self::sibling_proposal($household, $full, $centre, $now) : false,
+            'siblings' => self::siblings($household, $centre, $canact, $now),
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
                 'household' => $household->id]))->out(false) : '',
             'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',
@@ -176,6 +177,89 @@ class panel_household {
             'newlink' => $newlink,
             'erasequestion' => get_string('panel_erase_question', $c, panel::adults_line($full->adults)),
         ];
+    }
+
+    /**
+     * The brothers and sisters for later of a household, where children enter by age: their year of birth, when it
+     * would be their turn, whether the family asked to be told, and noting one more or taking one out.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function siblings(\stdClass $household, \stdClass $centre, bool $canact, int $now) {
+        if (!siblings::on($centre)) {
+            return false;
+        }
+        $c = self::C;
+        $rows = [];
+        $day = get_string('strftimedate', 'langconfig');
+        foreach (siblings::of((int) $household->id) as $sibling) {
+            $label = siblings::year_label($centre, siblings::turn_year($centre, $sibling));
+            $a = (object) ['name' => $sibling->firstname, 'year' => $label, 'born' => (int) $sibling->birthyear];
+            $state = '';
+            if ((int) $sibling->confirmed) {
+                $state = get_string('panel_sibling_confirmed', $c);
+            } else if ((int) $sibling->proposed) {
+                $state = get_string('panel_sibling_proposed', $c, userdate((int) $sibling->proposed, $day));
+            } else if ((int) $sibling->notify) {
+                $state = get_string('panel_sibling_notify', $c);
+            }
+            $rows[] = ['id' => (int) $sibling->id, 'name' => $sibling->firstname,
+                'line' => get_string('panel_sibling_line', $c, $a), 'state' => $state,
+                'turn' => siblings::in_turn($centre, $sibling, $now)];
+        }
+        $year = (int) date('Y', $now);
+        return [
+            'rows' => $rows,
+            'hasrows' => (bool) $rows,
+            'canact' => $canact,
+            'years' => array_map(fn($y) => ['value' => $y], range($year, $year - 12)),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * The proposal of a brother or sister whose turn it is and nobody wrote to yet: «A Mateo le toca el curso que
+     * viene», why (they asked when enrolling Leo, or they told it when signing up), and the message, written.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|false
+     */
+    public static function sibling_proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
+        $c = self::C;
+        foreach (siblings::of((int) $household->id) as $sibling) {
+            if ((int) $sibling->proposed || !siblings::in_turn($centre, $sibling, $now)) {
+                continue;
+            }
+            $label = siblings::year_label($centre, siblings::turn_year($centre, $sibling));
+            $a = (object) ['name' => $sibling->firstname, 'year' => $label];
+            $enrolled = settled::enrolled(array_values($full->children));
+            if ((int) $sibling->notify) {
+                $why = get_string($enrolled ? 'panel_sibling_why_asked_enrolled' : 'panel_sibling_why_asked', $c, (object) [
+                    'who' => $enrolled ? panel::tag($enrolled[0]) : '',
+                    'day' => userdate((int) $sibling->notify, get_string('strftimedate', 'langconfig'))]);
+            } else {
+                $why = get_string($sibling->source === 'team' ? 'panel_sibling_why_team' : 'panel_sibling_why_signup', $c);
+            }
+            $text = self::greeting($full) . get_string('panel_sibling_message', $c, $a);
+            return [
+                'sentence' => get_string('panel_sibling_proposal', $c, $a),
+                'why' => $why,
+                'text' => $text,
+                'button' => get_string('panel_sibling_write', $c),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id,
+                    'hermano' => $sibling->id], 'borrador'))->out(false),
+                'visit' => false,
+            ];
+        }
+        return false;
     }
 
     /**

@@ -40,7 +40,7 @@
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "",
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
-        "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "",
+        "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "", "siblingages": [{"value": 0, "name": "No", "selected": true}],
         "members": [{"id": 5, "name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR", "role": "Admisiones", "me": false}],
         "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
@@ -114,6 +114,7 @@
                     <div class="campo"><label for="c-sitio">{{#str}}panel_handover_place, local_oksigeniaeguahe{{/str}}</label><input id="c-sitio" name="handoverplace" value="{{handoverplace}}" placeholder="{{#str}}panel_handover_place_example, local_oksigeniaeguahe{{/str}}"></div>
                 </div>
                 <div class="campo"><label for="c-como">{{#str}}panel_handover_how, local_oksigeniaeguahe{{/str}}</label><textarea id="c-como" name="handoverhow" rows="2" placeholder="{{#str}}panel_handover_how_example, local_oksigeniaeguahe{{/str}}">{{handoverhow}}</textarea></div>
+                <div class="campo"><label for="c-hermanos">{{#str}}panel_siblingage, local_oksigeniaeguahe{{/str}}</label><select id="c-hermanos" name="siblingage" aria-describedby="c-hermanos-a">{{#siblingages}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/siblingages}}</select><span class="ayuda" id="c-hermanos-a">{{#str}}panel_siblingage_help, local_oksigeniaeguahe{{/str}}</span></div>
             </section>
             {{#hasmessaging}}
             <section class="apartado" id="aj-mensajes" aria-labelledby="aj-mensajes-t">

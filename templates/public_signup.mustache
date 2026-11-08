@@ -29,7 +29,7 @@
         "event": "Jornada de puertas abiertas", "pub_come_meet": "Vengan a conocernos",
         "pegs": {"count": 1, "live": true, "pegs": [{"index": 0, "name": "", "style": "", "arrive": false,
             "delay": "0.15", "hidden": false}]},
-        "children": [{"index": 0, "hidden": false, "first": true, "namelabel": "¿Cómo se llama quien vendría?",
+        "asksiblings": false, "children": [{"index": 0, "hidden": false, "first": true, "namelabel": "¿Cómo se llama quien vendría?",
             "name": "", "nameerror": "", "tag": "", "tagplaceholder": "", "courselabel": "¿En qué curso empezaría?",
             "coursewith": "¿En qué curso empezaría {name}?", "coursewithout": "¿En qué curso empezaría?",
             "offererror": "", "offers": [{"id": 1, "name": "Infantil 3 años · 2027-28", "selected": false}]}],
@@ -256,6 +256,19 @@
                 <input id="municipalityother" name="municipalityother" type="text" autocomplete="address-level2" value="{{municipalityother}}">
             </div>
             {{/askplace}}
+            {{#asksiblings}}
+            <fieldset class="hermanos-luego">
+                <legend>{{siblingstitle}} <span class="opc">{{pub_if_you_wish}}</span></legend>
+                <p class="ayuda-campo">{{siblingshelp}}</p>
+                {{#siblings}}
+                <div class="dos hermano"{{#hidden}} hidden{{/hidden}}>
+                    <div class="campo"><label for="s{{index}}name">{{siblingname}}</label><input id="s{{index}}name" name="s{{index}}name" value="{{name}}" autocomplete="off"></div>
+                    <div class="campo"><label for="s{{index}}year">{{siblingyear}}</label><select id="s{{index}}year" name="s{{index}}year"><option value="0">—</option>{{#years}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{value}}</option>{{/years}}</select></div>
+                </div>
+                {{/siblings}}
+                <button type="button" class="anadir" data-add="hermano">{{{i.plus}}}{{siblingadd}}</button>
+            </fieldset>
+            {{/asksiblings}}
             {{#askmessage}}
             <div class="campo">
                 <label for="message">{{pub_message}}</label>

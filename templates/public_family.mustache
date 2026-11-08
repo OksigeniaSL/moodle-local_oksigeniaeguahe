@@ -38,7 +38,8 @@
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false,
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "turns": [], "siblingoffers": [],
+        "hassiblings": false, "siblings": [], "siblingstitle": "",
         "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
             "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
             "done": "", "farewell": "Gracias por contárnoslo,", "changeline": "Pueden cambiar cualquier respuesta hasta el 21 de noviembre.",
@@ -84,6 +85,13 @@
             </div>
             {{/new}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span>{{text}}</span></p>{{/outcome}}
+            {{#turns}}
+            <form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">
+                <p><b>{{title}}</b> <span>{{text}}</span></p>
+                <button class="boton principal" type="submit">{{yes}}</button>
+            </form>
+            {{/turns}}
             {{#settled}}
             <div class="quien-lleva">
                 {{#person}}
@@ -104,6 +112,16 @@
                 {{> local_oksigeniaeguahe/public_ask }}
             </form>
             {{/wallask}}
+            {{#siblingoffers}}
+            {{#question}}
+            <form class="ofrecimiento" id="avisar-{{id}}" method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingnotify"><input type="hidden" name="hermano" value="{{id}}">
+                <p>{{question}}</p>
+                <button class="boton secundario" type="submit">{{yes}}</button>
+            </form>
+            {{/question}}
+            {{#done}}<p class="ofrecimiento hecho" id="avisar-{{id}}"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+            {{/siblingoffers}}
             {{#settled}}
             {{#volunteer}}
             <form class="ofrecimiento" id="ofrecimiento" method="post" action="{{action}}">
@@ -227,7 +245,8 @@
         {{#haschildren}}
         <div>
             <h3 id="quien-vendria">{{pub_who_comes}}</h3>
-            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a></dd></div>{{/children}}</dl>
+            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a></dd></div>{{/children}}</dl>
+            {{#hassiblings}}<h3>{{siblingstitle}}</h3><dl>{{#siblings}}<div><dt>{{name}}</dt><dd>{{line}}</dd></div>{{/siblings}}</dl>{{/hassiblings}}
         </div>
         {{/haschildren}}
         <div>

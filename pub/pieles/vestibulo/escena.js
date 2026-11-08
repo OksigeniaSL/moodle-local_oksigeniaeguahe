@@ -481,8 +481,10 @@
   }
 
   // the drawing that draws itself (dibujo-vivo.js, Gaudí): a canvas in the place of the photo, with the same
-  // transformation and blend, that starts when it comes into view, once, and then stays still. Without its strokes,
-  // without the script, with «less motion» or if anything fails, the photo stays as it is.
+  // transformation and blend. The first time the table comes into view in a visit (per child, in sessionStorage), the
+  // sheet rises from the table to a flat card above it (0.6 s), draws itself there (3 to 5 s), stays 1.2 s and goes back
+  // down (0.7 s), still; after that, the drawing is on the table, still. Without its strokes, without the script, with
+  // «less motion» or if anything fails, the photo stays as it is.
   function alive(pic, d, W, H) {
     var DV = root.DibujoVivo;
     if (!DV || DV.lessMotion() || !root.fetch || !root.Promise) { return; }
@@ -502,15 +504,81 @@
         return r.json();
       })
     ]).then(function (got) {
-      var player = new DV.Player(canvas, photo, DV.fromJSON(got[1]), { after: 'still' });
+      var a = DV.fromJSON(got[1]);
+      var still = new DV.Player(canvas, photo, a, { after: 'still' });
       if (!pic.parentNode) { return; }
       pic.parentNode.replaceChild(canvas, pic);
-      if (!root.IntersectionObserver) { player.play(); return; }
+      var key = 'eguahe-dibujo-' + d.url;
+      var seenBefore = false;
+      try { seenBefore = root.sessionStorage.getItem(key) === '1'; } catch (err) { seenBefore = false; }
+      var rest = function () { still.renderAt(still.total() + 1); canvas.style.opacity = ''; };
+      if (seenBefore || !root.IntersectionObserver) { rest(); return; }
+      // What is watched: the sheet on the table or, where the frame leaves the table out (the phone), the hall.
+      var stage = canvas.closest ? canvas.closest('[data-vestibulo]') : null, target = canvas;
+      if (stage) {
+        var sr = stage.getBoundingClientRect(), cr = canvas.getBoundingClientRect();
+        if (cr.left < sr.left || cr.right > sr.right || cr.top < sr.top || cr.bottom > sr.bottom) { target = stage; }
+      }
       var seen = new root.IntersectionObserver(function (entries) {
-        if (entries.some(function (en) { return en.isIntersecting; })) { seen.disconnect(); player.play(); }
-      }, { threshold: 0.4 });
-      seen.observe(canvas);
+        if (!entries.some(function (en) { return en.isIntersecting; })) { return; }
+        seen.disconnect();
+        try { root.sessionStorage.setItem(key, '1'); } catch (err) { /* only a convenience */ }
+        lift(canvas, photo, a, d.url, rest);
+      }, { threshold: 0.6 });
+      seen.observe(target);
     }).catch(function () {});
+  }
+
+  // the sheet rises from the table to a card, draws itself and goes back down: a FLIP, the card painted at its own size
+  // from the start and only its transformation animated.
+  function lift(table, photo, a, url, rest) {
+    var DV = root.DibujoVivo;
+    var stage = table.closest ? table.closest('[data-vestibulo]') : null;
+    if (!stage) { rest(); return; }
+    var sr = stage.getBoundingClientRect(), tr = table.getBoundingClientRect();
+    var w = sr.width < 720 ? sr.width * 0.6 : Math.max(220, Math.min(360, sr.width * 0.28));
+    var h = w * table.height / table.width;
+    // Never taller than 62 % of the hall on a desk (Gaudí), nor than the hall on the phone; the width follows the drawing.
+    var most = sr.width < 720 ? sr.height - 16 : sr.height * 0.62;
+    if (h > most) { h = most; w = h * table.width / table.height; }
+    var clampTo = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+    var left = clampTo(tr.left + tr.width / 2 - sr.left - w / 2, 8, sr.width - w - 8);
+    var top = clampTo(tr.top - sr.top - h - 16, 8, Math.max(8, sr.height - h - 8));
+    var ratio = Math.min(2, root.devicePixelRatio || 1);
+    var card = document.createElement('canvas');
+    card.width = Math.round(w * ratio); card.height = Math.round(h * ratio);
+    card.className = 'tarjeta-dibujo';
+    card.setAttribute('data-foto', url);
+    card.setAttribute('role', 'img');
+    card.setAttribute('aria-label', table.getAttribute('aria-label') || '');
+    card.style.cssText = 'left:' + left.toFixed(1) + 'px;top:' + top.toFixed(1) + 'px;width:' + w.toFixed(1) + 'px;height:' +
+      h.toFixed(1) + 'px';
+    var player = new DV.Player(card, photo, a, { after: 'still' });
+    player.renderAt(0);
+    var from = 'translate(' + (tr.left - sr.left - left).toFixed(1) + 'px,' + (tr.top - sr.top - top).toFixed(1) + 'px) scale(' +
+      (tr.width / w).toFixed(4) + ',' + (tr.height / h).toFixed(4) + ')';
+    var up = 'translate(' + (w / 2).toFixed(1) + 'px,' + (h / 2).toFixed(1) + 'px) rotate(-3deg) translate(' + (-w / 2).toFixed(1) +
+      'px,' + (-h / 2).toFixed(1) + 'px)';
+    card.style.transform = from;
+    stage.appendChild(card);
+    table.style.opacity = '0';
+    void card.getBoundingClientRect();
+    card.classList.add('sube');
+    card.style.transform = up;
+    root.setTimeout(function () {
+      player.o.onDone = function () {
+        root.setTimeout(function () {
+          card.classList.remove('sube');
+          card.classList.add('baja');
+          card.style.transform = from;
+          root.setTimeout(function () {
+            rest();
+            if (card.parentNode) { card.parentNode.removeChild(card); }
+          }, 700);
+        }, 1200);
+      };
+      player.play();
+    }, 600);
   }
 
   // ---- the door, animated: open (1 s) and close (0.85 s) through the frames of the strip; the doorway fades in with
@@ -627,8 +695,9 @@
 
 (function () {
   // The start: each [data-vestibulo] of the page, drawn with its data in the frame of its width, again when it changes.
+  // The page of a family: 70 px more of floor under the frame, so the table with its drawings shows whole (Gaudí).
   var FRAMES = { '1920x1080': [1920, 1080], '1600x900': [1600, 900], '1366x768': [1366, 768], '390x844': [390, 844],
-                 familia: [1366, 768] };
+                 familia: [1366, 838] };
   // The bar of the mock-ups the frames were made with: what shows starts under it.
   var BAR = 60;
   function withBase(value, base) {

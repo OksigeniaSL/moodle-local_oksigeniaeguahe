@@ -185,6 +185,9 @@ class familypage {
                 'name' => $child->firstname,
                 // Their drawing, small, to see it big; and sending it, or another one.
                 'drawing' => $drawing ? $link(['dibujo' => $child->id, 't' => $drawing->get_timemodified()]) : '',
+                // Its strokes, for it to draw itself once (Gaudí).
+                'drawingstrokes' => $drawing && ($strokes = drawings::strokes_file((int) $child->id)) ?
+                    $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : '',
                 'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
                 'drawingsend' => $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]),
                 'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
@@ -239,7 +242,38 @@ class familypage {
             $hall = ['json' => json_encode($scene, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false)];
         }
+        // The brothers and sisters who would come later, where children enter by age: told, offered and, once it is
+        // their turn, a place kept with one touch.
+        $later = siblings::on($centre) ? siblings::of((int) $household->id) : [];
+        $siblingrows = [];
+        $turns = [];
+        $offerlater = [];
+        $action = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false);
+        foreach ($later as $sibling) {
+            if ((int) $sibling->confirmed) {
+                continue;
+            }
+            $label = siblings::year_label($centre, siblings::turn_year($centre, $sibling));
+            $a = (object) ['name' => $sibling->firstname, 'year' => $label];
+            $siblingrows[] = ['name' => $sibling->firstname, 'line' => publiclang::str('pub_sibling_line', $lang, $a)];
+            $base = ['id' => (int) $sibling->id, 'action' => $action, 'sesskey' => sesskey()];
+            if (siblings::in_turn($centre, $sibling, $now)) {
+                $turns[] = $base + ['title' => publiclang::str('pub_sibling_turn', $lang, $a),
+                    'text' => publiclang::str('pub_sibling_turn_text', $lang, $a),
+                    'yes' => publiclang::str('pub_sibling_turn_yes', $lang)];
+            } else if ($issettled && (int) $sibling->notify) {
+                $offerlater[] = $base + ['question' => '', 'done' => publiclang::str('pub_sibling_notify_done', $lang, $a)];
+            } else if ($issettled) {
+                $offerlater[] = $base + ['done' => '', 'question' => publiclang::str('pub_sibling_notify_ask', $lang, $a),
+                    'yes' => publiclang::str('pub_sibling_notify_yes', $lang)];
+            }
+        }
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
+            'hassiblings' => (bool) $siblingrows,
+            'siblings' => $siblingrows,
+            'siblingstitle' => publiclang::str('pub_siblings_later', $lang),
+            'turns' => $turns,
+            'siblingoffers' => $offerlater,
             'greeting' => $issettled ? publiclang::str('pub_settled', $lang) :
                 publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
             'names' => $issettled ? '' : $names,

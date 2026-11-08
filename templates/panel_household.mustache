@@ -58,7 +58,7 @@
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "labelsurl": "",
+        "noproposal": "", "labelsurl": "", "siblings": false,
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}]}],
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
@@ -133,6 +133,29 @@
                 </div>
                 {{/children}}
             </div>
+            {{#siblings}}
+            <div class="hermanos-luego" id="hermanos">
+                <h3>{{#str}}panel_siblings, local_oksigeniaeguahe{{/str}}</h3>
+                {{#hasrows}}
+                <ul class="hermanos">
+                    {{#rows}}<li{{#turn}} class="le-toca"{{/turn}}><span><b>{{name}}</b> <span class="secundario">{{line}}</span>{{#state}}<span class="estado-hermano">{{state}}</span>{{/state}}</span>{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingremove"><input type="hidden" name="hermano" value="{{id}}"><button class="enlace" type="submit">{{#str}}panel_sibling_remove, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}</li>{{/rows}}
+                </ul>
+                {{/hasrows}}
+                {{#canact}}
+                <details class="apuntar-hermano">
+                    <summary class="enlace">{{#str}}panel_sibling_add, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingadd">
+                        <div class="rejilla-2">
+                            <div class="campo"><label for="hermano-nombre">{{#str}}panel_sibling_name, local_oksigeniaeguahe{{/str}}</label><input id="hermano-nombre" name="siblingname" autocomplete="off"></div>
+                            <div class="campo"><label for="hermano-ano">{{#str}}panel_sibling_born, local_oksigeniaeguahe{{/str}}</label><select id="hermano-ano" name="siblingyear">{{#years}}<option value="{{value}}">{{value}}</option>{{/years}}</select></div>
+                        </div>
+                        <button class="boton secundario pequeno" type="submit">{{#str}}panel_sibling_save, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+                {{/canact}}
+            </div>
+            {{/siblings}}
             {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
         </section>
         <section class="apartado conversacion col-hilo" aria-labelledby="conv-t">

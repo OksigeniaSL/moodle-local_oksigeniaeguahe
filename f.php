@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\settled;
+use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\surveys;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
@@ -151,6 +152,21 @@ if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
         settled::volunteer($household, $centre, time());
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'ofrecimiento'));
+}
+
+if (($action === 'siblingnotify' || $action === 'siblingconfirm') && data_submitted() && confirm_sesskey()) {
+    // A brother or sister: tell us when their turn comes, or keep them a place now that it has.
+    $sibling = optional_param('hermano', 0, PARAM_INT);
+    if ($action === 'siblingnotify') {
+        siblings::notify($household, $centre, $sibling, time());
+    } else {
+        siblings::confirm($household, $centre, $sibling, time());
+    }
+    redirect(new moodle_url(
+        '/local/oksigeniaeguahe/f.php',
+        ['k' => $token, 'lang' => $lang],
+        $action === 'siblingnotify' ? 'avisar-' . $sibling : 'quien-vendria'
+    ));
 }
 
 if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_sesskey()) {

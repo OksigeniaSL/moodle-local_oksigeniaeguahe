@@ -484,16 +484,86 @@
             document.body.appendChild(viewer);
             button.focus();
         };
+        // The drawing under each child draws itself once a visit, when it comes into view, in about 2.5 s (Gaudí);
+        // without its strokes, the script or with less motion, the photo.
+        var DV = window.DibujoVivo;
+        if (DV && !DV.lessMotion() && window.fetch && window.Promise && window.IntersectionObserver) {
+            all('a.dibujo-nino[data-trazos]').forEach(function(link) {
+                var pic = link.querySelector('img');
+                var photo = new Image();
+                Promise.all([
+                    new Promise(function(ok, ko) {
+                        photo.onload = ok;
+                        photo.onerror = ko;
+                        photo.src = link.getAttribute('href');
+                    }),
+                    window.fetch(link.getAttribute('data-trazos'), {credentials: 'same-origin'}).then(function(r) {
+                        if (!r.ok) {
+                            throw new Error(String(r.status));
+                        }
+                        return r.json();
+                    })
+                ]).then(function(got) {
+                    var a = DV.fromJSON(got[1]);
+                    // Shorter than on the table: the same strokes, at 2.5 s.
+                    var k = a.seconds > 2.5 ? 2.5 / a.seconds : 1;
+                    a.strokes.forEach(function(st) {
+                        st.t0 *= k;
+                        st.t1 *= k;
+                    });
+                    a.seconds *= k;
+                    var ratio = Math.min(2, window.devicePixelRatio || 1);
+                    var canvas = document.createElement('canvas');
+                    canvas.width = Math.round(96 * ratio);
+                    canvas.height = Math.round(96 * ratio * photo.naturalHeight / photo.naturalWidth);
+                    canvas.setAttribute('role', 'img');
+                    canvas.setAttribute('aria-label', pic ? pic.alt : '');
+                    var player = new DV.Player(canvas, photo, a, {after: 'still'});
+                    if (pic && pic.parentNode) {
+                        pic.parentNode.replaceChild(canvas, pic);
+                    }
+                    var key = 'eguahe-mini-' + link.getAttribute('href');
+                    var before = false;
+                    try {
+                        before = window.sessionStorage.getItem(key) === '1';
+                    } catch (err) {
+                        before = false;
+                    }
+                    if (before) {
+                        player.renderAt(player.total() + 1);
+                        return;
+                    }
+                    player.renderAt(0);
+                    var seen = new window.IntersectionObserver(function(entries) {
+                        if (!entries.some(function(en) {
+                            return en.isIntersecting;
+                        })) {
+                            return;
+                        }
+                        seen.disconnect();
+                        try {
+                            window.sessionStorage.setItem(key, '1');
+                        } catch (err) {
+                            // Only a convenience.
+                        }
+                        player.play();
+                    }, {threshold: 0.8});
+                    seen.observe(canvas);
+                }).catch(function() {
+                    // The photo stays.
+                });
+            });
+        }
         document.addEventListener('click', function(e) {
             var link = e.target.closest ? e.target.closest('[data-ampliar]') : null;
-            var onTable = e.target.matches && e.target.matches('.sala .dibujo') ? e.target : null;
+            var onTable = e.target.matches && e.target.matches('.sala .dibujo, .tarjeta-dibujo') ? e.target : null;
             if (!link && !onTable) {
                 return;
             }
             e.preventDefault();
             var any = document.querySelector('[data-ampliar]');
             var close = (link || any) ? (link || any).getAttribute('data-ampliar') : '×';
-            var img = link ? link.querySelector('img') : onTable;
+            var img = link ? (link.querySelector('img') || link.querySelector('canvas')) : onTable;
             // A drawing that drew itself is a canvas: big, it is the photo as it is.
             var src = link ? link.getAttribute('href') : (onTable.getAttribute('data-foto') || onTable.src);
             var alt = img ? (img.alt || img.getAttribute('aria-label') || '') : '';

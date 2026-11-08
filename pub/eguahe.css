@@ -1798,6 +1798,7 @@ fieldset.mal .fichas .ficha {
 /* ---------- Rows of children and adults that wait to be added ---------- */
 .nino[hidden],
 .adulto[hidden],
+.hermano[hidden],
 .percha[hidden],
 .curso[hidden],
 .anadir-nino[hidden],
@@ -2714,7 +2715,8 @@ textarea.renglones:focus-visible {
     cursor: zoom-in;
 }
 
-.dibujo-nino img {
+.dibujo-nino img,
+.dibujo-nino canvas {
     display: block;
     width: 100%;
     height: auto;
@@ -3029,4 +3031,52 @@ textarea.renglones:focus-visible {
     color: var(--c-acento-texto);
     font-size: 0.8125rem;
     font-weight: 780;
+}
+
+/* The brothers and sisters who would come later: told when signing up, offered once enrolled and, when their turn
+   comes, a place kept with one touch, on the wall of the colour of the centre. */
+.hermanos-luego {
+    display: grid;
+    gap: 10px;
+}
+
+.hermanos-luego .ayuda-campo {
+    margin: 0;
+}
+
+/* A question among the others, not a heading. */
+.hermanos-luego legend {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.3;
+}
+
+.le-toca {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.le-toca p {
+    flex: 1 1 260px;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.le-toca b {
+    display: block;
+    font-size: 1.1875rem;
+}
+
+.le-toca .boton.principal {
+    background: var(--c-sobre-acento);
+    color: var(--c-acento);
 }

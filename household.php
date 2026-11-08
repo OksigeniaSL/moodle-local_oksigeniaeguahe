@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_household;
+use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
 
 $id = required_param('id', PARAM_INT);
@@ -69,6 +70,11 @@ if ($use && $canact && data_submitted() && confirm_sesskey()) {
     // An answer of always chosen without the script: the file comes back with it in the answer.
     $prefill = (string) attend::use_reply(households::full($household), $use);
 }
+if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
+    // The proposal of a brother or sister, without the script: the message comes written in the answer.
+    $proposal = panel_household::sibling_proposal($household, households::full($household), $centre, time());
+    $prefill = $proposal ? $proposal['text'] : '';
+}
 if ($action && data_submitted() && confirm_sesskey()) {
     $body = trim(optional_param('body', '', PARAM_TEXT));
     // The greeting the answer starts with is not something said.
@@ -92,8 +98,30 @@ if ($action && data_submitted() && confirm_sesskey()) {
         if ($body !== '' && optional_param('savereply', 0, PARAM_BOOL)) {
             attend::keep_reply($household, (int) $USER->id, $body);
         }
+        // A brother or sister whose turn it is, named in what was sent: it is written to.
+        $said = \core_text::strtolower($body);
+        foreach (siblings::of((int) $household->id) as $sibling) {
+            $named = $said !== '' && \core_text::strpos($said, \core_text::strtolower($sibling->firstname)) !== false;
+            if ($named && !(int) $sibling->proposed) {
+                siblings::proposed($household, (int) $sibling->id, time());
+            }
+        }
     };
     switch ($action) {
+        case 'siblingadd':
+            siblings::add(
+                $household,
+                optional_param('siblingname', '', PARAM_TEXT),
+                optional_param('siblingyear', 0, PARAM_INT),
+                'team',
+                time()
+            );
+            redirect(new moodle_url($url, [], 'hermanos'));
+            break;
+        case 'siblingremove':
+            siblings::remove($household, optional_param('hermano', 0, PARAM_INT));
+            redirect(new moodle_url($url, [], 'hermanos'));
+            break;
         case 'take':
             attend::take($household, (int) $USER->id);
             redirect($url);

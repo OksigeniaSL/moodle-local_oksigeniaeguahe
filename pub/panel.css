@@ -8230,3 +8230,58 @@ a.quien-cita:focus-visible {
 .bloque-primer-dia p {
     margin: 0;
 }
+
+/* The brothers and sisters for later in the file: when it would be their turn, and noting one more. */
+.hermanos-luego {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.hermanos-luego h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.hermanos {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hermanos li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+}
+
+.hermanos li > span {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+
+.hermanos li.le-toca b {
+    color: var(--eg-acento-texto, inherit);
+}
+
+.estado-hermano {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.apuntar-hermano form {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.bloque-hermanos p {
+    margin: 0 0 4px;
+}

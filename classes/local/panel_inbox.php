@@ -68,7 +68,14 @@ class panel_inbox {
         $stage = in_array($view['stage'] ?? '', lists::STAGES, true) ? $view['stage'] : '';
         $waiting = households::waiting_count($centreid);
         $total = $DB->count_records(households::T, ['centreid' => $centreid]);
-        $list = array_filter(households::inbox($centreid, !$all), function ($household) use ($course, $stage) {
+        // The households with a brother or sister whose turn it is, and only them when asked.
+        $due = siblings::due($centre, $now);
+        $onlysiblings = !empty($view['siblings']) && $due;
+        $list = households::inbox($centreid, !$all && !$onlysiblings);
+        if ($onlysiblings) {
+            $list = array_intersect_key($list, $due);
+        }
+        $list = array_filter($list, function ($household) use ($course, $stage) {
             foreach ($course || $stage ? $household->children : [null] as $child) {
                 if (!$child || ((!$course || (int) $child->offerid === $course) && (!$stage || $child->stage === $stage))) {
                     return true;
@@ -146,6 +153,17 @@ class panel_inbox {
             'hasplaces' => (bool) $places['list'],
             'path' => self::path($centreid),
             'firstday' => panel_start::link($centreid),
+            'siblingsdue' => $due ? ['text' => get_string(
+                count($due) === 1 ? 'panel_siblings_due_one' : 'panel_siblings_due',
+                $c,
+                (object) ['n' => count($due),
+                'year' => siblings::year_label(
+                    $centre,
+                    siblings::campaign_year($centre, $now)
+                )]
+            ),
+                'url' => $url(['c' => $centreid, 'hermanos' => 1]), 'on' => $onlysiblings,
+                'allurl' => $url(['c' => $centreid])] : false,
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),

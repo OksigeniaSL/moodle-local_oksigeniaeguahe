@@ -129,6 +129,10 @@ class centres {
             $row->handoverplace = $place === '' ? null : \core_text::substr($place, 0, 255);
             $row->handoverhow = trim((string) ($data->handoverhow ?? '')) ?: null;
         }
+        if (isset($data->siblingage)) {
+            // The age children enter at, for the brothers and sisters; 0, children do not enter by age here.
+            $row->siblingage = max(0, min(18, (int) $data->siblingage));
+        }
         return $row;
     }
 
