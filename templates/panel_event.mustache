@@ -1,0 +1,111 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_event
+
+    One event in the panel, and its door: the band in the colour of the centre with how many came; the families by
+    their turn, the turn of now open, each with «came» at hand (pressed again, it undoes); someone who arrives without
+    signing up; for the event of asking, what each family asked for; for a visit of a family, whose it is; at the side,
+    what is shared (the QR, the link and the posters) and the event itself.
+
+    Example context (json):
+    {
+        "i": {"atras": "", "buscar": "", "mas1": "", "check": "", "copiar": "", "imprimir": "", "lapiz": "", "chev": ""},
+        "back": {"url": "#", "name": "Jornadas y visitas"}, "band": "En la puerta · sábado 21 · 10:52", "name": "Jornada",
+        "detail": "10:00 a 13:00 · Entrada", "counts": true, "came": 12, "households": 31,
+        "camesentence": "de 31 familias han venido", "peoplesentence": "30 de 87 personas", "percent": 34,
+        "tailored": false, "hasrequests": false, "requests": [], "own": false, "family": "", "familyurl": "",
+        "hassignups": true, "groups": [{"title": "10:00 a 10:45", "now": true, "open": true, "count": "1 de 2 han venido",
+            "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"tag": "Leo",
+            "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
+            "search": "marta leo"}]}],
+        "canact": true, "addurl": "#", "action": "#", "sesskey": "abc", "qr": "", "link": "https://nur.click/visita-2111",
+        "posterurl": "#", "posterurla3": "#", "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
+        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
+    }
+}}
+<div class="pagina puerta">
+    {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
+    <section class="banda">
+        <span class="etiqueta-b">{{band}}</span>
+        <div><h1 class="acto-n">{{name}}</h1>{{#detail}}<p class="detalle">{{detail}}</p>{{/detail}}</div>
+        {{#counts}}
+        <div class="cuentas-banda">
+            <div class="cuenta-grande"><span><b>{{came}}</b> {{camesentence}}</span><span>{{peoplesentence}}</span></div>
+            <span class="barra-b" role="img" aria-label="{{peoplesentence}}"><i style="width:{{percent}}%"></i></span>
+        </div>
+        {{/counts}}
+    </section>
+    <div class="puerta-cuerpo">
+        <section aria-label="{{#str}}panel_at_door_list, local_oksigeniaeguahe{{/str}}">
+            {{#own}}<p class="aviso-suave">{{#str}}panel_visit_of, local_oksigeniaeguahe{{/str}} <a href="{{familyurl}}">{{family}}</a></p>{{/own}}
+            {{#tailored}}
+            {{#requests}}
+            <a class="medida" href="{{url}}">
+                <span class="quien"><b>{{adults}}</b>{{#tag}}<span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+                <span class="estado">{{state}}</span>
+            </a>
+            {{/requests}}
+            {{^hasrequests}}<p class="secundario">{{#str}}panel_events_no_requests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
+            {{/tailored}}
+            {{^tailored}}
+            <div class="buscar-puerta">
+                <label class="buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".llegada" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+                {{#addurl}}<a class="boton principal en-ancho" href="{{addurl}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/addurl}}
+            </div>
+            {{#groups}}
+            <details class="turno-p"{{#open}} open{{/open}}>
+                <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+                {{#signups}}
+                <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}">
+                    <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq" translate="no">{{tag}}</span><span class="curso">{{course}}</span></span>{{/children}}</span><span class="personas">{{people}}</span></div>
+                    {{#canact}}
+                    <form method="post" action="{{action}}#s{{id}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">
+                        <button class="vino" type="submit" aria-pressed="{{#came}}true{{/came}}{{^came}}false{{/came}}" aria-label="{{adults}}: {{cametext}}">{{#came}}{{{i.check}}}{{/came}}<span>{{cametext}}</span></button>
+                    </form>
+                    {{/canact}}
+                </div>
+                {{/signups}}
+                {{^hassignups}}<p class="secundario">{{#str}}panel_nobody_yet, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
+            </details>
+            {{/groups}}
+            {{^hassignups}}<p class="secundario">{{#str}}panel_nobody_yet, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
+            {{/tailored}}
+        </section>
+        <aside class="compartir-acto">
+            {{^own}}
+            <section class="bloque">
+                <h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>
+                <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}">{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
+                {{^tailored}}<div class="cabeza-acciones"><a class="boton secundario pequeno" href="{{posterurl}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a4, local_oksigeniaeguahe{{/str}}</a><a class="boton secundario pequeno" href="{{posterurla3}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a3, local_oksigeniaeguahe{{/str}}</a></div>{{/tailored}}
+            </section>
+            {{/own}}
+            <section class="bloque">
+                <h2>{{#str}}panel_the_event, local_oksigeniaeguahe{{/str}}</h2>
+                <div class="lista-simple">
+                    <div class="fila-s"><span>{{#str}}panel_kind, local_oksigeniaeguahe{{/str}}</span><b>{{kind}}</b></div>
+                    {{#capacity}}<div class="fila-s"><span>{{#str}}panel_capacity, local_oksigeniaeguahe{{/str}}</span><b>{{capacity}}</b></div>{{/capacity}}
+                    {{#slots}}<div class="fila-s"><span>{{#str}}panel_turns, local_oksigeniaeguahe{{/str}}</span><b>{{slots}}</b></div>{{/slots}}
+                    {{#questions}}<div class="fila-s"><span>{{#str}}panel_questions, local_oksigeniaeguahe{{/str}}</span><b>{{questions}}</b></div>{{/questions}}
+                    <div class="fila-s"><span>{{#str}}panel_signup, local_oksigeniaeguahe{{/str}}</span><b>{{#open}}{{#str}}panel_open, local_oksigeniaeguahe{{/str}}{{/open}}{{^open}}{{#str}}panel_closed, local_oksigeniaeguahe{{/str}}{{/open}}</b></div>
+                </div>
+                {{#editurl}}<div><a class="boton secundario pequeno" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change_event, local_oksigeniaeguahe{{/str}}</a></div>{{/editurl}}
+            </section>
+        </aside>
+    </div>
+</div>

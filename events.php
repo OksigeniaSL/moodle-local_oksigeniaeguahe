@@ -27,6 +27,8 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\form\event_form;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\staff;
 
 require_login(null, false);
@@ -36,10 +38,17 @@ $id = optional_param('id', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_work($centreid);
-$url = new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []));
-staff::setup($url, get_string('tab_events', $c), $centre);
-
+$new = optional_param('new', 0, PARAM_BOOL);
 $canact = centres::can_act((int) $USER->id);
+if (!$id && !$new) {
+    // The list of open days and visits, in the panel.
+    panel::setup(new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]), get_string('tab_events', $c));
+    panel::output($centre, 'events', get_string('tab_events', $c), 'panel_events', panel_events::context($centre, $canact));
+}
+centres::require_act((int) $centre->id);
+$url = new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id] + ($id ? ['id' => $id] : ['new' => 1]));
+staff::setup($url, get_string($id ? 'event_edit' : 'event_new', $c), $centre);
+
 $event = $id ? events::get($id, (int) $centre->id) : null;
 if ($id && !$canact) {
     centres::require_act((int) $centre->id);
@@ -75,28 +84,7 @@ if ($canact && $data = $form->get_data()) {
     redirect(new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved]));
 }
 
-$list = [];
-foreach (events::for_centre((int) $centre->id) as $each) {
-    $list[] = [
-        'name' => format_string($each->name),
-        'kind' => get_string($each->householdid ? 'visit_own' : ($each->tailored ? 'visit_asking' :
-            'event_kind_' . $each->kind), $c),
-        'when' => userdate((int) $each->timestart, get_string('strftimedatetimeshort', 'langconfig')),
-        'past' => $each->timeend < time(),
-        'open' => (bool) $each->open,
-        'signedup' => (int) $each->signedup,
-        'people' => (int) $each->people,
-        'came' => (int) $each->came,
-        'capacity' => (int) $each->capacity,
-        'url' => (new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $each->id]))->out(false),
-    ];
-}
-
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('local_oksigeniaeguahe/events', ['tabs' => staff::tabs($centre, 'events'),
-    'events' => $list, 'hasevents' => (bool) $list, 'editing' => (bool) $event]);
-if ($canact) {
-    echo $OUTPUT->heading(get_string($event ? 'event_edit' : 'event_new', $c), 3);
-    $form->display();
-}
+echo $OUTPUT->heading(get_string($event ? 'event_edit' : 'event_new', $c));
+$form->display();
 echo $OUTPUT->footer();

@@ -1,0 +1,67 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_events
+
+    The open days and visits of a centre in the panel: what comes next, the events ahead with who receives and how
+    full they are (one colour, never full or empty in red), the visits families asked for and how each is going, and
+    the events past with how many came.
+
+    Example context (json):
+    {
+        "i": {"atras": "", "mas1": "", "enlace": ""},
+        "head": {"title": "Lo próximo: jornada de puertas abiertas, el sábado 21", "sub": "31 familias apuntadas.",
+            "action": {"url": "#", "name": "Nuevo acto", "icon": ""} },
+        "hasahead": true, "ahead": [{"url": "#", "weekday": "sáb", "day": "21", "month": "nov", "name": "Jornada",
+            "kind": "Jornada de puertas abiertas", "hours": "10:00 a 13:00", "place": "Entrada", "slots": "4 turnos",
+            "receive": [{"name": "Lucía", "photo": "", "initials": "LM"}], "load": "31 familias · 87 de 120 personas",
+            "percent": 72, "hasbar": true, "closed": false}],
+        "hasasking": true, "asking": [{"name": "Pidan su visita", "url": "#", "link": "https://example.com/v"}],
+        "hasrequests": true, "requests": [{"adults": "Marta Ruiz", "tag": "Leo", "suits": "Pidieron: tardes",
+            "state": "Esperan que les propongas día", "pending": true, "url": "#"}],
+        "haspast": false, "past": []
+    }
+}}
+<div class="pagina">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="actos">
+        <section class="grupo-actos">
+            <h2>{{#str}}panel_events_ahead, local_oksigeniaeguahe{{/str}}</h2>
+            {{#ahead}}{{> local_oksigeniaeguahe/panel_event_row }}{{/ahead}}
+            {{^hasahead}}<p class="secundario">{{#str}}panel_events_none_ahead, local_oksigeniaeguahe{{/str}}</p>{{/hasahead}}
+        </section>
+        {{#hasasking}}
+        <section class="grupo-actos">
+            <h2>{{#str}}panel_events_asked, local_oksigeniaeguahe{{/str}}</h2>
+            {{#asking}}<p><a class="enlace" href="{{url}}">{{{i.enlace}}}{{name}}</a> · <span class="secundario">{{link}}</span></p>{{/asking}}
+            {{#requests}}
+            <a class="medida" href="{{url}}">
+                <span class="quien"><b>{{adults}}</b>{{#tag}}<span class="etq" translate="no">{{tag}}</span>{{/tag}}<span class="secundario">{{suits}}</span></span>
+                <span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>
+            </a>
+            {{/requests}}
+            {{^hasrequests}}<p class="secundario">{{#str}}panel_events_no_requests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
+        </section>
+        {{/hasasking}}
+        {{#haspast}}
+        <section class="grupo-actos">
+            <h2>{{#str}}panel_events_past, local_oksigeniaeguahe{{/str}}</h2>
+            {{#past}}{{> local_oksigeniaeguahe/panel_event_row }}{{/past}}
+        </section>
+        {{/haspast}}
+    </div>
+</div>

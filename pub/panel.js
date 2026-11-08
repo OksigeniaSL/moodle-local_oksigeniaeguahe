@@ -95,6 +95,30 @@
         update();
     });
 
+    // Copying a link: it says it was copied, for a moment.
+    all('[data-copiar]').forEach(function(button) {
+        button.addEventListener('click', function() {
+            var text = button.getAttribute('data-copiar');
+            var done = function() {
+                button.classList.add('copiado');
+                window.setTimeout(function() {
+                    button.classList.remove('copiado');
+                }, 1800);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(done);
+            } else {
+                var field = document.createElement('textarea');
+                field.value = text;
+                document.body.appendChild(field);
+                field.select();
+                document.execCommand('copy');
+                document.body.removeChild(field);
+                done();
+            }
+        });
+    });
+
     // «No» closes the question asked before something that cannot be undone.
     all('[data-cerrar]').forEach(function(button) {
         button.addEventListener('click', function() {

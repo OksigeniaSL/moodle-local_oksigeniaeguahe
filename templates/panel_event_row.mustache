@@ -1,0 +1,33 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_event_row
+
+    An event in a list: its leaf of the calendar, its name with the kind, the hours, the place and the turns, who
+    receives, and how full it is with one bar of one colour; after it, how many came.
+
+    Example context (json):
+    {"url": "#", "weekday": "sáb", "day": "21", "month": "nov", "name": "Jornada", "kind": "Jornada de puertas abiertas",
+        "hours": "10:00 a 13:00", "place": "Entrada", "slots": "", "receive": [], "load": "31 familias",
+        "percent": 0, "hasbar": false, "closed": false}
+}}
+<a class="acto" href="{{url}}">
+    <span class="hoja"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>
+    <span class="que"><b>{{name}}</b><span class="secundario">{{kind}} · {{hours}}{{#place}} · {{place}}{{/place}}{{#slots}} · {{slots}}{{/slots}}{{#closed}} · {{#str}}panel_closed_signup, local_oksigeniaeguahe{{/str}}{{/closed}}</span></span>
+    <span class="reciben"><span class="pila">{{#receive}}{{#photo}}<img class="avatar" src="{{photo}}" alt="" width="36" height="36">{{/photo}}{{^photo}}<span class="avatar" aria-hidden="true">{{initials}}</span>{{/photo}}{{/receive}}</span></span>
+    <span class="aforo"><span class="cifra">{{load}}</span>{{#hasbar}}<span class="barra-aforo" role="img" aria-label="{{load}}"><i style="width:{{percent}}%"></i></span>{{/hasbar}}</span>
+</a>

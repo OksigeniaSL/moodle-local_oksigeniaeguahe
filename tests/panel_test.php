@@ -18,9 +18,12 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_event;
+use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
 
@@ -35,6 +38,8 @@ use local_oksigeniaeguahe\local\panel_inbox;
 #[\PHPUnit\Framework\Attributes\CoversClass(panel::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_inbox::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_household::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_events::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_event::class)]
 final class panel_test extends \advanced_testcase {
     /**
      * Who looks, in a time zone of their own.
@@ -147,5 +152,45 @@ final class panel_test extends \advanced_testcase {
         $all = panel_inbox::context($centre, true, (int) get_admin()->id, true);
         $this->assertFalse($all['rows'][0]['waiting']);
         $this->assertSame(get_string('panel_answered', 'local_oksigeniaeguahe'), $all['rows'][0]['main']);
+    }
+
+    /**
+     * The open days and the door: what comes next, how full it is, and who came, marked and undone.
+     */
+    public function test_events_and_door(): void {
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $start = time() + 10 * DAYSECS;
+        $eventid = events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jornada de puertas abiertas',
+            'timestart' => $start, 'timeend' => $start + 3 * HOURSECS, 'capacity' => 120, 'open' => 1,
+            'place' => 'Entrada principal']);
+        $event = events::get($eventid, $centreid);
+        $household = households::get(
+            households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'openday']),
+            $centreid
+        );
+        households::add_adult($household, (object) ['firstname' => 'Marta', 'lastname' => 'Ruiz Cabrera',
+            'email' => 'marta@example.com', 'phone' => '']);
+        households::add_child($household, 'Leonardo', 0, 'Leo');
+        $signupid = events::sign_up($event, (int) $household->id, 3);
+
+        $list = panel_events::context($centre, true);
+        $this->assertStringContainsString('Jornada de puertas abiertas', $list['head']['title']);
+        $this->assertSame(1, count($list['ahead']));
+        $this->assertSame(3, $list['ahead'][0]['percent']);
+        $this->assertFalse($list['haspast']);
+
+        $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
+        $this->assertSame([0, 1], [$door['came'], $door['households']]);
+        $signup = $door['groups'][0]['signups'][0];
+        $this->assertSame('Leo', $signup['children'][0]['tag']);
+        $this->assertFalse($signup['came']);
+        events::attend($event, $signupid, true);
+        $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
+        $this->assertSame(1, $door['came']);
+        $this->assertTrue($door['groups'][0]['signups'][0]['came']);
+        events::attend($event, $signupid, false);
+        $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
+        $this->assertSame(0, $door['came']);
     }
 }
