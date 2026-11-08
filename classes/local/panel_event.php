@@ -234,6 +234,8 @@ class panel_event {
             'editurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id,
                 'id' => $event->id]))->out(false) : '',
             'howitwent' => self::howitwent($event, $centre, $canact, $now),
+            // Over: on a phone, the band no longer stays on top of the door.
+            'past' => (int) $event->timeend < $now,
         ];
     }
 
@@ -263,20 +265,32 @@ class panel_event {
         $before = $previous ? surveys::results($previous, $centre, $lang) : null;
         $beforeby = [];
         foreach ($before ? $before['questions'] : [] as $question) {
-            $beforeby[$question['id']] = self::sentence($question, $before['told']);
+            // The one before in lower case after the colon: «La anterior: lo han escrito 5 familias».
+            $sentence = self::sentence($question, $before['told']);
+            $beforeby[$question['id']] = \core_text::strtolower(\core_text::substr($sentence, 0, 1)) .
+                \core_text::substr($sentence, 1);
         }
         $few = $results['told'] < surveys::FEW;
         $questions = [];
         foreach ($results['questions'] as $question) {
             $most = max(1, ...(array_column($question['rows'], 'n') ?: [0]));
-            $quotes = array_map(fn($q) => ['text' => $q['text'], 'who' => $q['who']], $question['quotes']);
+            // The label of each quote leads to the file of its family.
+            $file = fn(int $id) => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false);
+            $quotes = array_map(
+                fn($q) => ['text' => $q['text'], 'who' => $q['who'], 'url' => $q['who'] !== '' ? $file($q['householdid']) : ''],
+                $question['quotes']
+            );
+            // The words the sentence of a scale counts: the upper half, as sentence() says.
+            $upper = $question['type'] === 'scale' ? (int) ceil(count($question['rows']) / 2) : PHP_INT_MAX;
             $questions[] = [
                 'label' => format_string($question['label']),
                 'sentence' => self::sentence($question, $results['told']),
                 'hasrows' => !$few && (bool) $question['rows'],
                 'rows' => array_map(
-                    fn($r) => ['label' => $r['label'], 'n' => $r['n'], 'v' => round($r['n'] / $most, 4)],
-                    $question['rows']
+                    fn($r, $i) => ['label' => $r['label'], 'n' => $r['n'], 'v' => round($r['n'] / $most, 4),
+                        'upper' => $i >= $upper],
+                    $question['rows'],
+                    array_keys($question['rows'])
                 ),
                 'hasquotes' => (bool) $quotes,
                 'quotes' => array_slice($quotes, 0, 6),
@@ -292,8 +306,18 @@ class panel_event {
             get_string('panel_howitwent_told' . ($survey ? '' : '_ask') . ($results['came'] === 1 ? '_one' : ''), $c, (object) [
                 'told' => $results['told'], 'came' => $results['came']]) .
             ($results['last'] ? ' · ' . get_string('panel_howitwent_last', $c, panel::when_words($results['last'], $now)) : '');
+        // The families who came, counted by hand: one stroke each in fives, in ink those who told.
+        $tally = false;
+        if ($results['came'] && $results['came'] <= 60) {
+            $strokes = array_map(fn($i) => ['ink' => $i < $results['told']], range(0, $results['came'] - 1));
+            $tally = ['groups' => array_map(fn($g) => ['strokes' => $g], array_chunk($strokes, 5))];
+        }
+        $short = trim(userdate((int) $event->timeend + surveys::DAYS * DAYSECS, '%e %b'));
         return [
             'title' => get_string($survey ? 'panel_howitwent' : 'panel_howitwent_asked', $c),
+            'tally' => $tally,
+            'stamp' => $survey ? ['word' => get_string($open ? 'panel_howitwent_stamp_open' : 'panel_howitwent_stamp_closed', $c),
+                'date' => preg_match('/^(es|pt)/', current_language()) ? $short . '.' : $short] : false,
             'told' => $told,
             'questions' => $questions,
             'hasquestions' => (bool) $questions,
@@ -326,8 +350,9 @@ class panel_event {
     protected static function sentence(array $question, int $told): string {
         $c = self::C;
         if (!$question['rows']) {
-            $key = $question['n'] === 1 ? 'panel_howitwent_wrote_one' : 'panel_howitwent_wrote';
-            return $question['n'] ? get_string($key, $c, $question['n']) : '';
+            $key = !$question['n'] ? 'panel_howitwent_noanswer' : ($question['n'] === 1 ? 'panel_howitwent_wrote_one' :
+                'panel_howitwent_wrote');
+            return get_string($key, $c, $question['n']);
         }
         $answered = $question['n'];
         if (!$answered) {

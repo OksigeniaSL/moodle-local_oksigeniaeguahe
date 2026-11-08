@@ -1,0 +1,38 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_tags
+
+    The label of each child alone, stuck down like a stamp, with the name used at home written by hand: the same label
+    as on the backpack, without the backpack. It goes with the survey after the visit, in the corner of its sheet on a
+    phone and large beside it on a wide screen (the place where it goes gives its size). Drawings only: the name is in
+    the heading of the page. It takes the context of public_pegs.
+
+    Example context (json):
+    {"count": 2, "pegs": [{"name": "Leo"}, {"name": "Noa"}]}
+}}
+<div class="sellos-etiqueta n{{count}}" aria-hidden="true">
+    {{#pegs}}
+    <svg class="sello-etiqueta" viewBox="-27 -20 54 40" focusable="false">
+        <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
+        <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z"/>
+        <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+        <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
+        <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+    </svg>
+    {{/pegs}}
+</div>

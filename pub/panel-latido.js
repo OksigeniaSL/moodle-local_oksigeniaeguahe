@@ -16,8 +16,8 @@
 /**
  * The beat of the composer: while someone writes to a family, the rest of the team sees it. Every 20 seconds at most,
  * only while writing; the beat lasts 45 seconds on the server. And the name of a picture chosen in a hidden file field,
- * written where its label was, and the button that prints a sheet of labels. Apart from panel.js, which the art director
- * builds.
+ * written where its label was, and the button that prints a sheet of labels (How it went prints and reads itself again in
+ * panel.js). Apart from panel.js, which the art director builds.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -292,50 +292,4 @@
             place();
         }
     });
-})();
-
-
-(function() {
-    'use strict';
-    // How it went: printed alone, a sheet to take away in PDF; and read again every half minute while the survey is
-    // asked, without touching what is being written under it.
-    document.querySelectorAll('[data-imprimir-seccion]').forEach(function(button) {
-        button.hidden = false;
-        button.addEventListener('click', function() {
-            var section = document.getElementById(button.getAttribute('data-imprimir-seccion'));
-            if (!section) {
-                return;
-            }
-            document.body.classList.add('imprime-seccion');
-            section.classList.add('a-imprimir');
-            var done = function() {
-                document.body.classList.remove('imprime-seccion');
-                section.classList.remove('a-imprimir');
-                window.removeEventListener('afterprint', done);
-            };
-            window.addEventListener('afterprint', done);
-            window.print();
-        });
-    });
-    var live = document.querySelector('[data-releer]');
-    if (!live || !window.fetch || !window.DOMParser) {
-        return;
-    }
-    var every = Math.max(15, parseInt(live.getAttribute('data-cada'), 10) || 30) * 1000;
-    var read = function() {
-        if (document.hidden) {
-            return;
-        }
-        fetch(live.getAttribute('data-releer'), {credentials: 'same-origin'}).then(function(r) {
-            return r.ok ? r.text() : '';
-        }).then(function(html) {
-            var fresh = html ? new window.DOMParser().parseFromString(html, 'text/html').querySelector('[data-releer]') : null;
-            if (fresh && fresh.innerHTML !== live.innerHTML) {
-                live.innerHTML = fresh.innerHTML;
-            }
-        }).catch(function() {
-            // The next turn will try again.
-        });
-    };
-    window.setInterval(read, every);
 })();

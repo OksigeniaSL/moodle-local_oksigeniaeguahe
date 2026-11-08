@@ -2187,6 +2187,242 @@
         }
     }
 
+    // ---- How it went (round 4): the sheets of an event once it is over. Pointing at a word of a scale (mouse, finger or
+    // keyboard), its line says how many said it and the other words step back; the bars grow once when they come into
+    // sight; while the survey is asked, the sheets are read again every half minute and what changed moves from its old
+    // value to the new one, a new slip dropped on the desk; printed alone, it is a sheet to take away in PDF. All of it
+    // is already written by the server: this only lights and moves it.
+    var howItWent = one('#como-fue');
+    if (howItWent) {
+        var HIW_EASE = 'cubic-bezier(.2,.8,.2,1)';
+        var rowNumber = function(row) {
+            return parseInt(row.getAttribute('data-n'), 10) || 0;
+        };
+        var rowSentence = function(row) {
+            var n = rowNumber(row);
+            var of = 0;
+            all('.fila-como', row.parentNode).forEach(function(r) {
+                of += rowNumber(r);
+            });
+            var word = (row.getAttribute('data-palabra') || '').toLocaleLowerCase();
+            var key = !n ? 'panel_js_howitwent_row_none' : (n === 1 ? 'panel_js_howitwent_row_one' : 'panel_js_howitwent_row');
+            return say(key, {n: n, of: of, word: word});
+        };
+        var lineOf = function(list) {
+            var sheet = list.closest('.pregunta-como');
+            return sheet ? one('.frase-como', sheet) : null;
+        };
+        var pointRow = function(row) {
+            var list = row.parentNode;
+            var line = lineOf(list);
+            all('.fila-como', list).forEach(function(r) {
+                r.classList.toggle('senalado', r === row);
+            });
+            list.classList.add('con-senal');
+            var text = rowSentence(row);
+            if (line && text) {
+                if (!line.hasAttribute('data-reposo')) {
+                    line.setAttribute('data-reposo', line.textContent);
+                }
+                line.textContent = text;
+                line.classList.add('dato-vivo');
+            }
+        };
+        var restList = function(list) {
+            var line = lineOf(list);
+            list.classList.remove('con-senal');
+            all('.senalado', list).forEach(function(r) {
+                r.classList.remove('senalado');
+            });
+            if (line && line.hasAttribute('data-reposo')) {
+                line.textContent = line.getAttribute('data-reposo');
+                line.classList.remove('dato-vivo');
+            }
+        };
+        var bindBars = function(root) {
+            all('.barras-como', root).forEach(function(list) {
+                var touched = false;
+                on(list, 'pointerover', function(e) {
+                    var row = e.target.closest('.fila-como');
+                    if (row && e.pointerType !== 'touch') {
+                        pointRow(row);
+                    }
+                });
+                on(list, 'pointerleave', function(e) {
+                    if (e.pointerType !== 'touch' && !list.contains(doc.activeElement)) {
+                        restList(list);
+                    }
+                });
+                // A finger: a touch lights a word, the same touch again (or one elsewhere) puts it back.
+                on(list, 'pointerdown', function(e) {
+                    touched = e.pointerType === 'touch';
+                });
+                on(list, 'click', function(e) {
+                    var row = e.target.closest('.fila-como');
+                    if (!row || !touched) {
+                        return;
+                    }
+                    if (row.classList.contains('senalado')) {
+                        restList(list);
+                    } else {
+                        pointRow(row);
+                    }
+                });
+                on(list, 'focusin', function(e) {
+                    var row = e.target.closest('.fila-como');
+                    if (row) {
+                        pointRow(row);
+                    }
+                });
+                on(list, 'focusout', function(e) {
+                    if (!e.relatedTarget || !list.contains(e.relatedTarget)) {
+                        restList(list);
+                    }
+                });
+                // The arrows go along the words of the same question.
+                on(list, 'keydown', function(e) {
+                    var step = {ArrowDown: 1, ArrowUp: -1}[e.key];
+                    var rows = all('.fila-como', list);
+                    var at = rows.indexOf(e.target);
+                    if (!step || at === -1) {
+                        return;
+                    }
+                    e.preventDefault();
+                    rows[Math.max(0, Math.min(rows.length - 1, at + step))].focus();
+                });
+            });
+            all('[data-imprimir-seccion]', root).forEach(function(button) {
+                button.hidden = false;
+            });
+        };
+        // The bars grow once, one after another, the first time they are seen.
+        var growBars = function(list) {
+            var bars = all('.barra-como', list);
+            list.classList.remove('por-crecer');
+            if (still() || !Element.prototype.animate || !bars.length || !gesture(600 + bars.length * 70)) {
+                return;
+            }
+            bars.forEach(function(bar, i) {
+                bar.animate([{transform: 'scaleX(0)'}, {transform: 'scaleX(1)'}],
+                    {duration: 600, delay: i * 70, easing: HIW_EASE, fill: 'backwards'});
+            });
+        };
+        var watchBars = function(root) {
+            var lists = all('.barras-como', root);
+            if (still() || !Element.prototype.animate || !('IntersectionObserver' in window)) {
+                return;
+            }
+            var seen = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        seen.unobserve(entry.target);
+                        growBars(entry.target);
+                    }
+                });
+            }, {threshold: 0.4});
+            lists.forEach(function(list) {
+                list.classList.add('por-crecer');
+                seen.observe(list);
+            });
+        };
+        // The date falls on the first sheet like a stamp, once; the families are counted on it stroke by stroke.
+        var stampDate = function(root) {
+            var stamp = one('.sello-como', root);
+            if (stamp && !still() && gesture(450)) {
+                stamp.classList.add('cae');
+            }
+            var strokes = all('.palotes i', root);
+            if (strokes.length && !still() && Element.prototype.animate && gesture(300 + strokes.length * 45)) {
+                strokes.forEach(function(stroke, i) {
+                    stroke.animate([{opacity: 0}, {opacity: 1}],
+                        {duration: 220, delay: 120 + i * 45, easing: 'ease-out', fill: 'backwards'});
+                });
+            }
+        };
+        bindBars(howItWent);
+        watchBars(howItWent);
+        stampDate(howItWent);
+
+        // Printed alone: everything else hidden, then back as it was.
+        on(howItWent, 'click', function(e) {
+            var button = e.target.closest('[data-imprimir-seccion]');
+            var section = button ? doc.getElementById(button.getAttribute('data-imprimir-seccion')) : null;
+            if (!section) {
+                return;
+            }
+            doc.body.classList.add('imprime-seccion');
+            section.classList.add('a-imprimir');
+            var done = function() {
+                doc.body.classList.remove('imprime-seccion');
+                section.classList.remove('a-imprimir');
+                window.removeEventListener('afterprint', done);
+            };
+            window.addEventListener('afterprint', done);
+            window.print();
+        });
+
+        // While the survey is asked: read again, only with the tab in sight; nothing under what is being written moves.
+        var alive = one('[data-releer]', howItWent);
+        if (alive && window.DOMParser) {
+            var every = Math.max(15, parseInt(alive.getAttribute('data-cada'), 10) || 30) * 1000;
+            var snapshot = function() {
+                var bars = {};
+                var quotes = {};
+                all('.pregunta-como', alive).forEach(function(sheet, q) {
+                    all('.fila-como', sheet).forEach(function(row, r) {
+                        bars[q + ':' + r] = parseFloat(row.style.getPropertyValue('--v')) || 0;
+                    });
+                });
+                all('.cita-como', alive).forEach(function(slip) {
+                    quotes[slip.textContent.replace(/\s+/g, ' ').trim()] = true;
+                });
+                return {bars: bars, quotes: quotes};
+            };
+            var reread = function() {
+                if (doc.hidden) {
+                    return;
+                }
+                ask(alive.getAttribute('data-releer')).then(function(r) {
+                    return r.text();
+                }).then(function(html) {
+                    var fresh = html ? new window.DOMParser().parseFromString(html, 'text/html').querySelector('[data-releer]') :
+                        null;
+                    if (!fresh || fresh.innerHTML === alive.innerHTML) {
+                        return;
+                    }
+                    var before = snapshot();
+                    var focused = doc.activeElement && alive.contains(doc.activeElement) ?
+                        all('.fila-como', alive).indexOf(doc.activeElement) : -1;
+                    alive.innerHTML = fresh.innerHTML;
+                    bindBars(alive);
+                    if (focused !== -1 && all('.fila-como', alive)[focused]) {
+                        all('.fila-como', alive)[focused].focus();
+                    }
+                    var moving = !still() && Element.prototype.animate;
+                    all('.pregunta-como', alive).forEach(function(sheet, q) {
+                        all('.fila-como', sheet).forEach(function(row, r) {
+                            var was = before.bars[q + ':' + r];
+                            var now = parseFloat(row.style.getPropertyValue('--v')) || 0;
+                            if (moving && was !== undefined && now && was !== now) {
+                                one('.barra-como', row).animate([{transform: 'scaleX(' + (was / now) + ')'}, {transform: 'none'}],
+                                    {duration: 300, easing: HIW_EASE});
+                            }
+                        });
+                    });
+                    all('.cita-como', alive).forEach(function(slip) {
+                        if (!before.quotes[slip.textContent.replace(/\s+/g, ' ').trim()] && moving && gesture(500)) {
+                            slip.classList.add('llega');
+                        }
+                    });
+                }).catch(function() {
+                    // The next turn will try again.
+                });
+            };
+            window.setInterval(reread, every);
+            window.Eguahe.releerComoFue = reread;
+        }
+    }
+
     // ---- Keys (DESIGN 3.1): none sends or erases, none acts while a field has the focus. «?» lists them.
     var sheetKeys = one('#teclas');
     var keyButton = one('[data-abrir-teclas]');

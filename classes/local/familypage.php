@@ -218,7 +218,8 @@ class familypage {
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'greeting' => publiclang::str($tags ? $greeting : $greeting . '_nochild', $lang),
             'names' => $names,
-            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming),
+            // Once they came, the label stuck down, as the team left it at the door.
+            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming) + ['came' => !$upcoming && (bool) $attended],
             'lead' => $lead,
             'new' => $new,
             'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
@@ -228,7 +229,8 @@ class familypage {
             // The living hall: their hooks wait with their names, and once they came their backpacks hang.
             'hall' => $hall,
             'wallask' => $surveyform ? false : $ask,
-            'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $lang, $token, $told, $ask, $flags) : false,
+            'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) :
+                false,
             'outcome' => $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang), 'text' => $outcome] : false,
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
@@ -311,6 +313,7 @@ class familypage {
      *
      * @param \stdClass $centre
      * @param \stdClass $entry The survey.
+     * @param \stdClass $last The event they came to.
      * @param string $lang
      * @param string $token
      * @param array $told What they told after the visit.
@@ -321,6 +324,7 @@ class familypage {
     protected static function survey_context(
         \stdClass $centre,
         \stdClass $entry,
+        \stdClass $last,
         string $lang,
         string $token,
         array $told,
@@ -331,15 +335,22 @@ class familypage {
         unset($answers[0]);
         $fields = forms::context($entry, $lang, (string) ($centre->lang ?: 'es'), $answers, []);
         $questions = array_values(array_filter($fields, fn($f) => !$f['issection']));
-        $answered = count(array_filter($questions, fn($f) => isset($answers[$f['id']])));
+        // Done once the questions to choose are answered: the texts are «if you wish» and never hold it back (Gaudí).
+        $choose = array_values(array_filter($questions, fn($f) => $f['ischips'] || $f['ismulti']));
+        $needed = $choose ?: $questions;
+        $answered = count(array_filter($needed, fn($f) => isset($answers[$f['id']])));
+        $parts = publicpage::date_parts((int) $last->timeend + surveys::DAYS * DAYSECS, $lang);
         return [
             'label' => publiclang::str('pub_howitwent', $lang),
             'lead' => publiclang::str('pub_howitwent_lead', $lang, count($questions) + 1),
+            'reads' => publiclang::str(!empty($ask['face']) ? 'pub_howitwent_reads' : 'pub_howitwent_reads_team', $lang),
+            'farewell' => publiclang::str('pub_howitwent_farewell', $lang),
+            'changeline' => publiclang::str('pub_howitwent_change', $lang, $parts['daymonth']),
             'ask' => $ask,
             'fields' => $fields,
             'autosave' => true,
             'saved' => !empty($flags['saved']) ? publiclang::str('pub_howitwent_kept', $lang) : '',
-            'done' => $questions && $answered === count($questions) ? publiclang::str('pub_howitwent_thanks', $lang) : '',
+            'done' => $needed && $answered === count($needed) ? publiclang::str('pub_howitwent_thanks', $lang) : '',
             'savetext' => publiclang::str('pub_howitwent_save', $lang),
             'savedtext' => publiclang::str('pub_howitwent_saved', $lang),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),

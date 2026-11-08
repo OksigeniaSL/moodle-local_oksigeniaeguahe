@@ -48,3 +48,9 @@
         height: 320px;
     }
 }
+
+/* Without the backpacks at its side, what goes under the rail keeps the margin of the page. */
+.sala-lista .pared.con-sala .bajo-riel {
+    padding-left: var(--g);
+    padding-right: var(--g);
+}

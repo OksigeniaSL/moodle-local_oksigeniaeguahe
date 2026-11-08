@@ -247,7 +247,8 @@ class surveys {
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param string $lang The language of the person who reads them.
-     * @return array came, told, last (time), questions: label, type, rows (label, n), yes, no, quotes (text, who).
+     * @return array came, told, last (time), questions: label, type, rows (label, n), yes, no, quotes (text, who,
+     *     householdid).
      */
     public static function results(\stdClass $event, \stdClass $centre, string $lang): array {
         global $DB;
@@ -267,7 +268,7 @@ class surveys {
         }
         $names = self::home_names(array_keys($families));
         $quotes = fn(array $list) => array_map(fn($row) => ['text' => (string) $row->value,
-            'who' => $names[(int) $row->householdid] ?? ''], array_reverse($list));
+            'who' => $names[(int) $row->householdid] ?? '', 'householdid' => (int) $row->householdid], array_reverse($list));
         $questions = [];
         if (!empty($byfield[0])) {
             $questions[] = ['id' => 0, 'label' => publiclang::str('pub_after_question', $lang), 'type' => 'longtext',

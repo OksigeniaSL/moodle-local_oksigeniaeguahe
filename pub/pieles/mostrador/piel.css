@@ -1581,6 +1581,224 @@ body.modo-lamina.piel-mostrador .clave-lapiz {
 body.modo-lamina.piel-mostrador .barra-antes {
     font-size: 1.5rem;
 }
+/* ---------- Round 4: How it went, on the desk ---------- */
+/* The sheets of an event once it is over lie on the desk like the numbers: what the families told now is ink with the
+   grain of the paper, what was before is pencil written by hand, the date a rubber stamp. The first sheet is an index
+   card with its red line under the title and the tally of the families by hand; each text a slip of the lined paper the
+   families wrote on, a little crooked, with the name on its label; «What we do with it» a yellow pad. */
+.piel-mostrador .como-fue {
+    --cf-palote-lapiz: rgba(58, 60, 70, 0.4);
+    --cf-lapiz: rgba(58, 60, 70, 0.34);
+    --cf-lapiz-fuerte: rgba(58, 60, 70, 0.55);
+    --cf-lapiz-texto: #615e68;
+    --cf-anillo: var(--papel-b);
+}
+
+:root[data-bs-theme="dark"] .piel-mostrador .como-fue {
+    --cf-serie: #b96ead;
+    --cf-palote-lapiz: rgba(226, 224, 236, 0.42);
+    --cf-lapiz: rgba(226, 224, 236, 0.32);
+    --cf-lapiz-fuerte: rgba(226, 224, 236, 0.5);
+    --cf-lapiz-texto: #bdb8c4;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .piel-mostrador .como-fue {
+        --cf-serie: #b96ead;
+        --cf-palote-lapiz: rgba(226, 224, 236, 0.42);
+        --cf-lapiz: rgba(226, 224, 236, 0.32);
+        --cf-lapiz-fuerte: rgba(226, 224, 236, 0.5);
+        --cf-lapiz-texto: #bdb8c4;
+    }
+}
+
+.piel-mostrador .como-fue .lamina {
+    border-radius: 3px;
+}
+/* The first sheet: an index card, the red line under its title */
+.piel-mostrador .como-cabeza {
+    background: linear-gradient(var(--margen), var(--margen)) 0 66px / 100% 2px no-repeat, var(--ruido), var(--papel-b);
+}
+
+.piel-mostrador .como-cabeza .cabeza-como-fue {
+    min-height: 44px;
+    margin-bottom: 6px;
+}
+
+.piel-mostrador .como-cabeza h2 {
+    border-bottom: 0;
+    font-size: 1.375rem;
+}
+/* Ink, with the paper showing through; pencil, with the grain of graphite */
+.piel-mostrador .barra-como,
+.piel-mostrador .palotes i,
+.piel-mostrador .fila-como.contada::before {
+    background-image: var(--ruido);
+}
+
+.piel-mostrador .pista-como::before {
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 90px 45px;
+    mask-size: 90px 45px;
+}
+
+.piel-mostrador .antes-como {
+    font-family: var(--piel-mano);
+    font-size: 1.3125rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.piel-mostrador .sello-como {
+    opacity: 0.88;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+    -webkit-mask-size: 120px 60px;
+    mask-size: 120px 60px;
+}
+
+.piel-mostrador .sello-como.cae {
+    animation: sello-cae 0.42s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+@keyframes sello-cae {
+    0% {
+        opacity: 0;
+        transform: rotate(calc(var(--mov-x) * -12deg)) scale(calc(1 + var(--mov-x) * 0.35));
+    }
+
+    60% {
+        opacity: 0.88;
+        transform: rotate(-4deg) scale(0.96);
+    }
+
+    100% {
+        opacity: 0.88;
+        transform: rotate(-5deg);
+    }
+}
+/* Each question a sheet of its own height, laid a little crooked */
+.piel-mostrador .pregunta-como.con-barras:nth-child(odd) {
+    transform: rotate(-0.15deg);
+}
+
+.piel-mostrador .pregunta-como.con-barras:nth-child(even) {
+    transform: rotate(0.12deg);
+}
+
+.piel-mostrador .pregunta-como h3 {
+    justify-self: start;
+    padding-bottom: 2px;
+    border-bottom: 2px solid var(--eg-tinta);
+}
+
+.piel-mostrador .fila-como.contada::before {
+    width: 3.5px;
+    border-radius: 3px 1px 2px 3px;
+}
+
+.piel-mostrador .barras-como.con-senal .fila-como.senalado {
+    background: var(--b-resalte);
+}
+/* The slips: the lined paper the families wrote on, a little crooked, the text on its lines */
+.piel-mostrador .cita-como {
+    padding: 14px 18px 12px;
+    border-radius: 2px;
+    background:
+        repeating-linear-gradient(to bottom, transparent 0 27px, var(--pauta) 27px 28px) 0 8px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--papel-b);
+    box-shadow: var(--sombra-papel);
+    transform: rotate(-0.7deg);
+}
+
+.piel-mostrador .cita-como:nth-child(3n + 2) {
+    transform: rotate(0.6deg);
+}
+
+.piel-mostrador .cita-como:nth-child(3n) {
+    transform: rotate(-0.25deg) translateY(3px);
+}
+
+.piel-mostrador .cita-como:nth-child(4n) {
+    transform: rotate(0.9deg);
+}
+
+.piel-mostrador .cita-como blockquote {
+    font-size: 1.125rem;
+    line-height: 28px;
+}
+
+.piel-mostrador .cita-como .quien-cita {
+    margin-top: -2px;
+}
+
+.piel-mostrador .cita-como.llega {
+    animation-name: cita-cae;
+}
+
+@keyframes cita-cae {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--mov-x) * -22px)) rotate(calc(var(--mov-x) * -4deg));
+    }
+
+    to {
+        opacity: 1;
+        transform: rotate(-0.7deg);
+    }
+}
+/* What we do with it: a yellow pad with its lines, the text typed on them */
+.piel-mostrador .como-fue .lo-que-hacemos {
+    background:
+        repeating-linear-gradient(to bottom, transparent 0 27px, var(--pauta) 27px 28px) 0 54px / 100% 100% no-repeat,
+        var(--ruido),
+        var(--nota);
+    box-shadow: var(--sombra-alta);
+    transform: rotate(0.25deg);
+}
+
+.piel-mostrador .como-fue .lo-que-hacemos textarea {
+    border-color: transparent;
+    background: var(--b-area);
+    line-height: 28px;
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .pregunta-como.con-barras:nth-child(odd),
+    .piel-mostrador .pregunta-como.con-barras:nth-child(even),
+    .piel-mostrador .como-fue .lo-que-hacemos {
+        transform: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .piel-mostrador .pista-como::before,
+    .piel-mostrador .sello-como {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+@media print {
+    .piel-mostrador .como-cabeza,
+    .piel-mostrador .cita-como,
+    .piel-mostrador .como-fue .lo-que-hacemos {
+        background: #fff;
+    }
+
+    .piel-mostrador .cita-como blockquote {
+        line-height: 1.45;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .piel-mostrador .sello-como.cae,
+    .piel-mostrador .cita-como.llega {
+        animation: none;
+    }
+}
 /* ---------- The gestures of the skin (escena.js asks for them; the state is already written) ---------- */
 .sello-golpe {
     position: absolute;

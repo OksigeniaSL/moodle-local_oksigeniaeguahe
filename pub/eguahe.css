@@ -1887,16 +1887,84 @@ fieldset.mal .fichas .ficha {
     visibility: hidden;
 }
 
-/* After the visit: one open question on the wall, on a sheet of paper, with the face of whoever answers on the
-   button; and the survey «How did it go?» in the band, its questions on a sheet over the colour of the centre. */
+/* After the visit (Gaudí, «Cómo fue», 8 November 2026): a warm gesture, not a form. Once they came, the label of each
+   backpack is stuck down, as it was at the door. One open question waits on the wall as a note on lined paper, its top
+   in the colour of the centre like the band of a label, with the face of whoever answers on the button; once sent, a
+   slip says who has it. If the centre turned on the survey «How did it go?», the band says who reads it, with their
+   faces, and holds a sheet with the label of each child stuck in its corner: the open question first, then each scale as
+   a row of words in their order, the one chosen filled with ink, each answer kept when it is touched; when the last
+   one is answered, the thanks with the name used at home, written by hand, and the label is pressed on. Words, never
+   numbers or stars. */
+.perchas.pegada .colgante .pico {
+    opacity: 0;
+}
+
+.perchas.pegada.pegando .colgante .pico {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: pegar-pico 0.44s 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+.perchas.pegada.pegando .colgante .pegado {
+    animation: pegar-esquina 0.44s 0.55s ease-out both;
+}
+
+@keyframes pegar-pico {
+    0% {
+        opacity: 1;
+        transform: rotate(135deg) scaleY(1) rotate(-135deg);
+    }
+
+    70% {
+        opacity: 1;
+        transform: rotate(135deg) scaleY(-1) rotate(-135deg);
+    }
+
+    100% {
+        opacity: 0;
+        transform: rotate(135deg) scaleY(-1) rotate(-135deg);
+    }
+}
+
+@keyframes pegar-esquina {
+    0%,
+    62% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+/* The note on the wall and the sheet of the band: paper, a little grain, a soft shadow */
 .hoja-pregunta,
 .hoja-encuesta {
+    position: relative;
     background: var(--eg-superficie);
     color: var(--eg-tinta);
-    border: 1px solid var(--eg-linea);
     border-radius: var(--radio);
-    box-shadow: 0 10px 28px var(--eg-sombra);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 18px 36px -18px var(--eg-sombra);
     padding: 22px 20px 24px;
+}
+
+.hoja-pregunta::before,
+.hoja-encuesta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: url(img/grano.svg);
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+.hoja-pregunta > *,
+.hoja-encuesta > * {
+    position: relative;
+}
+/* On the wall, the note wears the top of a label: the band of the colour of the centre */
+.hoja-pregunta {
+    border-top: 8px solid var(--c-acento-vivo);
 }
 
 .pregunta-abierta {
@@ -1910,22 +1978,31 @@ fieldset.mal .fichas .ficha {
     letter-spacing: -0.02em;
     line-height: 1.15;
 }
-
-.pregunta-abierta textarea {
+/* Lined paper: the text sits on its lines, and the lines go with it when it scrolls */
+textarea.renglones {
+    --renglon: 30px;
+    display: block;
     width: 100%;
-    min-height: 104px;
-    padding: 14px 16px;
-    border-radius: var(--radio-campo);
+    min-height: calc(3 * var(--renglon) + 18px);
+    margin-top: 4px;
+    padding: 8px 16px 10px;
     border: 1.5px solid var(--eg-borde);
-    background: var(--eg-superficie);
+    border-radius: var(--radio-campo);
+    background-color: var(--eg-superficie);
+    background-image: linear-gradient(transparent calc(var(--renglon) - 1px), var(--eg-linea) calc(var(--renglon) - 1px));
+    background-size: 100% var(--renglon);
+    background-position: 0 2px;
+    background-attachment: local;
     color: var(--eg-tinta);
     font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: var(--renglon);
     resize: vertical;
 }
 
-.pregunta-abierta textarea:focus-visible {
+textarea.renglones:focus-visible {
     outline: 3px solid var(--c-acento-texto);
-    outline-offset: 1px;
+    outline-offset: 2px;
     border-color: var(--c-acento-texto);
 }
 
@@ -1933,8 +2010,8 @@ fieldset.mal .fichas .ficha {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 16px;
-    margin-top: 4px;
+    gap: 12px 16px;
+    margin-top: 8px;
 }
 
 .enviar-pregunta .contesta {
@@ -1942,13 +2019,11 @@ fieldset.mal .fichas .ficha {
     margin: 0;
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
-}
-
-.boton.con-cara {
-    padding-inline-start: 10px;
+    line-height: 1.45;
 }
 
 .cara-boton {
+    margin-inline-start: -15px;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -1958,6 +2033,7 @@ fieldset.mal .fichas .ficha {
     place-items: center;
     background: var(--c-sobre-vivo);
     color: var(--c-acento-vivo);
+    box-shadow: 0 0 0 2px var(--c-sobre-vivo);
     font-size: 0.8125rem;
     font-weight: 750;
 }
@@ -1972,39 +2048,115 @@ fieldset.mal .fichas .ficha {
     opacity: 0.75;
     cursor: progress;
 }
-
+/* The slip that says who has it now */
 .ya-pasado {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 0 0 6px;
-    padding: 10px 14px;
+    gap: 12px;
+    margin: 0 0 10px;
+    padding: 10px 14px 10px 10px;
     border-radius: var(--radio-campo);
     background: var(--c-acento-suave);
     font-weight: 650;
+    line-height: 1.35;
 }
 
 .ya-pasado:focus {
     outline: none;
 }
 
+.ya-pasado.llega {
+    animation: llega-papel 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 .marca-hecho {
-    width: 10px;
-    height: 10px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: var(--c-acento-vivo);
     flex: none;
+    display: grid;
+    place-items: center;
+    background: var(--c-acento-vivo);
+    color: var(--c-sobre-vivo);
 }
 
-.lo-que-hacemos {
-    margin: 0;
-    padding-inline-start: 14px;
-    border-inline-start: 3px solid var(--c-acento-vivo);
+.marca-hecho svg {
+    width: 17px;
+    height: 17px;
+}
+/* What was written leaves as a note, up and away, while the slip comes in its place */
+.nota-que-sale {
+    --renglon: 30px;
+    position: absolute;
+    z-index: 2;
+    padding: 8px 16px 10px;
+    border-radius: var(--radio-campo);
+    background-color: var(--eg-superficie);
+    background-image: linear-gradient(transparent calc(var(--renglon) - 1px), var(--eg-linea) calc(var(--renglon) - 1px));
+    background-size: 100% var(--renglon);
+    background-position: 0 2px;
+    box-shadow: 0 14px 28px -12px var(--eg-sombra);
+    color: var(--eg-tinta);
     font-size: 1.0625rem;
+    line-height: var(--renglon);
+    white-space: pre-wrap;
+    overflow: hidden;
+    pointer-events: none;
+    animation: nota-sale 0.52s cubic-bezier(0.4, 0, 0.6, 1) both;
 }
 
+@keyframes nota-sale {
+    0% {
+        opacity: 1;
+        transform: none;
+    }
+
+    35% {
+        opacity: 1;
+        transform: translateY(-6px) rotate(-1deg) scale(0.98);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-46px) rotate(-3deg) scale(0.9);
+    }
+}
+
+@keyframes llega-papel {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+/* What the centre does with what they told: a note of the centre, under the thanks */
+.lo-que-hacemos {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 12px 16px 14px;
+    border-top: 6px solid var(--c-acento-vivo);
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px var(--eg-sombra);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+}
+
+.lo-que-hacemos b {
+    color: var(--c-acento-texto);
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+/* ---------- The band «How did it go?» ---------- */
 .banda.banda-encuesta {
+    position: relative;
     align-items: start;
+    background-image: radial-gradient(ellipse 70% 55% at 12% 0%, rgba(255, 255, 255, 0.1), transparent 70%);
 }
 
 .cabeza-encuesta {
@@ -2013,31 +2165,220 @@ fieldset.mal .fichas .ficha {
     align-content: start;
 }
 
+.titulo-encuesta {
+    font-size: var(--eg-fluido-16);
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.cabeza-encuesta .siguiente {
+    font-size: 1.1875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.4;
+}
+/* Who reads it, said plainly, with their faces */
+.lo-lee {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.0625rem;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.caras-lee {
+    display: inline-flex;
+    flex: none;
+}
+
+.caras-lee img,
+.caras-lee .ini {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 3px var(--c-acento);
+}
+
+.caras-lee .ini {
+    display: grid;
+    place-items: center;
+    background: var(--c-sobre-acento);
+    color: var(--c-acento);
+    font-size: 0.875rem;
+    font-weight: 750;
+}
+
+.caras-lee > * + * {
+    margin-inline-start: -10px;
+}
+
 .cabeza-encuesta .guardado-todo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0;
     font-weight: 650;
 }
 
+.cabeza-encuesta .guardado-todo::before {
+    content: '';
+    flex: none;
+    width: 10px;
+    height: 6px;
+    margin: 0 4px 4px;
+    border-inline-start: 2.5px solid currentColor;
+    border-bottom: 2.5px solid currentColor;
+    transform: rotate(-45deg);
+}
+/* The sheet, with the label of each child stuck in its corner, as on a card sent from the centre */
 .hoja-encuesta {
     display: grid;
-    gap: 26px;
+    gap: 28px;
+    padding-top: 30px;
+}
+
+.sellos-etiqueta {
+    display: flex;
+    pointer-events: none;
+}
+
+.hoja-encuesta .sellos-etiqueta {
+    position: absolute;
+    top: -30px;
+    inset-inline-end: 14px;
+    z-index: 1;
+}
+/* Beside the sheet, on a wide screen: the label large, a sticker on the colour of the centre with its white edge */
+.cabeza-encuesta .sellos-etiqueta {
+    display: none;
+}
+
+.sello-etiqueta {
+    display: block;
+    width: 84px;
+    height: auto;
+    overflow: visible;
+    transform: rotate(-8deg);
+}
+
+.sello-etiqueta + .sello-etiqueta {
+    margin-inline-start: -22px;
+    transform: rotate(5deg) translateY(6px);
+}
+
+.sello-etiqueta + .sello-etiqueta + .sello-etiqueta {
+    transform: rotate(-3deg) translateY(-2px);
+}
+
+.sellos-etiqueta.n3 .sello-etiqueta,
+.sellos-etiqueta.n4 .sello-etiqueta {
+    width: 70px;
+}
+
+.sello-etiqueta .halo {
+    fill: rgba(43, 34, 38, 0.2);
+    stroke: rgba(43, 34, 38, 0.2);
+    transform: translate(0.6px, 1.6px);
+    filter: blur(1.1px);
+}
+
+.sello-etiqueta .borde {
+    fill: var(--c-acento-vivo);
+}
+
+.sello-etiqueta .papel {
+    fill: var(--eg-chapita);
+}
+
+.sello-etiqueta .renglon {
+    fill: #8c8178;
+}
+
+.sello-etiqueta .mano {
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-weight: 600;
+    fill: #2b2226;
+}
+
+.sellos-etiqueta.estampa .sello-etiqueta {
+    animation: estampar 0.5s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+.sellos-etiqueta.estampa .sello-etiqueta + .sello-etiqueta {
+    animation-name: estampar-2;
+    animation-delay: 0.12s;
+}
+
+@keyframes estampar {
+    0% {
+        transform: rotate(-14deg) scale(1.22) translateY(-8px);
+    }
+
+    55% {
+        transform: rotate(-7deg) scale(0.96);
+    }
+
+    100% {
+        transform: rotate(-8deg);
+    }
+}
+
+@keyframes estampar-2 {
+    0% {
+        transform: rotate(11deg) scale(1.22) translateY(-2px);
+    }
+
+    55% {
+        transform: rotate(4deg) scale(0.96) translateY(6px);
+    }
+
+    100% {
+        transform: rotate(5deg) translateY(6px);
+    }
+}
+/* The title keeps clear of the labels in the corner; its help, lower, takes the whole width of the sheet */
+.hoja-encuesta .pregunta-titulo {
+    padding-inline-end: 64px;
+}
+
+.hoja-encuesta .pregunta-abierta > .ya-pasado {
+    margin-inline-end: 56px;
 }
 
 .hoja-encuesta .preguntas-encuesta {
     display: grid;
-    gap: 24px;
-    padding-top: 22px;
-    border-top: 1px solid var(--eg-linea);
+    gap: 22px;
+    padding-top: 26px;
+    border-top: 1.5px dashed var(--eg-linea);
 }
 
 .hoja-encuesta .campo {
     display: grid;
-    gap: 8px;
+    gap: 10px;
+}
+
+.hoja-encuesta .etiqueta-campo,
+.hoja-encuesta .campo > label {
+    font-size: 1.1875rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+/* All of them are «if you wish», and the head of the band says it once */
+.hoja-encuesta .opc {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 .hoja-encuesta input[type="text"],
-.hoja-encuesta input[type="date"],
-.hoja-encuesta textarea {
+.hoja-encuesta input[type="date"] {
     width: 100%;
     min-height: 52px;
     padding: 12px 14px;
@@ -2047,12 +2388,121 @@ fieldset.mal .fichas .ficha {
     color: var(--eg-tinta);
     font-size: 1.0625rem;
 }
-
-.fichas.escala .ficha {
-    min-height: 56px;
+/* A scale: the words in their order, side by side, the one chosen filled with ink from its start. Four in a row from
+   560 px, two and two below; three always in a row; five, three and two. */
+.fichas.escala {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
+.fichas.escala .ficha {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+    min-width: 0;
+    min-height: 56px;
+    padding: 0 10px;
+    border-radius: var(--radio-campo);
+    background: var(--eg-superficie);
+    isolation: isolate;
+    text-align: center;
+    transition: border-color 0.15s ease;
+}
+
+.fichas.escala .ficha:first-child:nth-last-child(3),
+.fichas.escala .ficha:first-child:nth-last-child(3) ~ .ficha {
+    flex-basis: 0;
+}
+
+.fichas.escala .ficha:first-child:nth-last-child(5),
+.fichas.escala .ficha:first-child:nth-last-child(5) ~ .ficha {
+    flex-basis: calc(33.333% - 6px);
+}
+
+.fichas.escala .ficha:hover {
+    border-color: var(--c-acento-texto);
+}
+
+.fichas.escala .ficha.esta {
+    background: var(--eg-superficie);
+    border-color: var(--c-acento-vivo);
+}
+
+.fichas.escala .ficha .marca {
+    position: absolute;
+    inset: -1.5px;
+    z-index: -1;
+    display: block;
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: inherit;
+    background: var(--c-acento-vivo);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+[dir="rtl"] .fichas.escala .ficha .marca {
+    transform-origin: 100% 50%;
+}
+
+.fichas.escala .ficha input:checked + .marca {
+    transform: none;
+    box-shadow: inset 0 0 0 1.5px var(--c-acento-texto);
+}
+
+.fichas.escala .ficha .marca svg {
+    position: absolute;
+    top: 6px;
+    inset-inline-end: 7px;
+    width: 14px;
+    height: 14px;
+    color: var(--c-sobre-vivo);
+}
+
+.fichas.escala .ficha .palabra {
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.15;
+    transition: color 0.2s ease;
+}
+
+.fichas.escala .ficha input:checked ~ .palabra {
+    color: var(--c-sobre-vivo);
+    font-weight: 750;
+}
+/* The ring of the focus goes round the whole word, whatever its fill */
+.fichas.escala .ficha .palabra::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 3px solid var(--c-acento-texto);
+    border-radius: 18px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fichas.escala .ficha input:focus-visible + .marca {
+    outline: none;
+}
+
+.fichas.escala .ficha input:focus-visible ~ .palabra::after {
+    opacity: 1;
+}
+
+@media (min-width: 560px) {
+    .fichas.escala .ficha,
+    .fichas.escala .ficha:first-child:nth-last-child(5),
+    .fichas.escala .ficha:first-child:nth-last-child(5) ~ .ficha {
+        flex-basis: 0;
+    }
+}
+/* Kept: a small check and the word, once the server has it */
 .guardado {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     min-height: 1.25em;
     margin: 0;
     color: var(--c-acento-texto);
@@ -2060,8 +2510,51 @@ fieldset.mal .fichas .ficha {
     font-weight: 650;
 }
 
+.guardado:not(:empty)::before {
+    content: '';
+    flex: none;
+    width: 9px;
+    height: 5px;
+    margin: 0 2px 3px;
+    border-inline-start: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+}
+
 .guardado.dicho {
-    animation: aparecer 0.25s ease-out;
+    animation: llega-papel 0.3s ease-out both;
+}
+/* The thanks, when the last one is answered: the same words as the head of the page, the name by hand */
+.despedida {
+    display: grid;
+    gap: 12px;
+    padding-top: 26px;
+    border-top: 1.5px dashed var(--eg-linea);
+}
+
+.despedida[hidden] {
+    display: none;
+}
+
+.despedida .gracias {
+    font-size: var(--eg-fluido-16);
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.despedida .gracias .mano-titular {
+    margin-top: 0.08em;
+    color: var(--eg-tinta);
+}
+
+.despedida .cambiar {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.despedida.llega {
+    animation: llega-papel 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .hecho-encuesta {
@@ -2076,12 +2569,116 @@ fieldset.mal .fichas .ficha {
 @media (min-width: 720px) {
     .hoja-pregunta,
     .hoja-encuesta {
-        padding: 28px 30px 30px;
+        padding: 30px 32px 32px;
+    }
+
+    .hoja-encuesta {
+        padding-top: 36px;
+    }
+
+    .sello-etiqueta {
+        width: 104px;
+    }
+
+    .hoja-encuesta .sellos-etiqueta {
+        top: -34px;
+        inset-inline-end: 22px;
+    }
+
+    .hoja-encuesta .pregunta-titulo {
+        padding-inline-end: 96px;
+    }
+}
+
+@media (min-width: 960px) {
+    .banda.banda-encuesta {
+        align-items: start;
+    }
+
+    .banda-encuesta .cabeza-encuesta {
+        position: sticky;
+        top: 32px;
+        padding-top: 8px;
+    }
+
+    .cabeza-encuesta .siguiente {
+        font-size: 1.3125rem;
+    }
+
+    .hoja-encuesta .sellos-etiqueta {
+        display: none;
+    }
+
+    .hoja-encuesta .pregunta-titulo,
+    .hoja-encuesta .pregunta-abierta > .ayuda-campo {
+        padding-inline-end: 0;
+    }
+
+    .hoja-encuesta .pregunta-abierta > .ya-pasado {
+        margin-inline-end: 0;
+    }
+
+    .cabeza-encuesta .sellos-etiqueta {
+        display: flex;
+        margin-top: 40px;
+        padding-inline-start: 14px;
+    }
+
+    .cabeza-encuesta .sello-etiqueta {
+        width: 230px;
+        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.22));
+    }
+
+    .cabeza-encuesta .sellos-etiqueta.n2 .sello-etiqueta {
+        width: 180px;
+    }
+
+    .cabeza-encuesta .sellos-etiqueta.n3 .sello-etiqueta,
+    .cabeza-encuesta .sellos-etiqueta.n4 .sello-etiqueta {
+        width: 130px;
+    }
+
+    .cabeza-encuesta .sello-etiqueta + .sello-etiqueta {
+        margin-inline-start: -36px;
+    }
+
+    .cabeza-encuesta .sello-etiqueta .halo {
+        fill: var(--eg-chapita);
+        stroke: var(--eg-chapita);
+        stroke-width: 5;
+        transform: none;
+        filter: none;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .guardado.dicho {
+    .perchas.pegada.pegando .colgante .pico,
+    .perchas.pegada.pegando .colgante .pegado,
+    .ya-pasado.llega,
+    .nota-que-sale,
+    .sellos-etiqueta.estampa .sello-etiqueta,
+    .guardado.dicho,
+    .despedida.llega {
         animation: none;
+    }
+
+    .nota-que-sale {
+        display: none;
+    }
+
+    .fichas.escala .ficha .marca {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .fichas.escala .ficha input:checked ~ .palabra {
+        text-decoration: underline;
+        text-decoration-thickness: 3px;
+    }
+
+    .hoja-pregunta,
+    .hoja-encuesta {
+        border: 1px solid;
     }
 }

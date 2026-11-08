@@ -31,7 +31,7 @@
     {
         "i": {"atras": "", "buscar": "", "mas1": "", "check": "", "copiar": "", "imprimir": "", "lapiz": "", "chev": "", "etiqueta": "", "altavoz": ""},
         "back": {"url": "#", "name": "Jornadas y visitas"}, "band": "En la puerta · sábado 21 · 10:52", "name": "Jornada",
-        "detail": "10:00 a 13:00 · Entrada", "counts": true, "came": 12, "households": 31,
+        "detail": "10:00 a 13:00 · Entrada", "counts": true, "came": 12, "households": 31, "past": false,
         "camesentence": "de 31 familias han venido", "peoplesentence": "30 de 87 personas", "percent": 34,
         "tailored": false, "hasrequests": false, "requests": [], "own": false, "family": "", "familyurl": "",
         "nowturn": {"wall": [{"came": true, "name": "Leo", "style": "--reposo:-3.5deg"}]},
@@ -46,7 +46,7 @@
         "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
     }
 }}
-<div class="pagina puerta" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
+<div class="pagina puerta{{#past}} paso{{/past}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
     <section class="banda" aria-labelledby="acto-t">
         <span class="etiqueta-b">{{band}}</span>

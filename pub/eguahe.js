@@ -35,7 +35,7 @@
     var UP = 10;
     var BASELINE = 4.4;
     var fit = function(scope) {
-        all('svg.colgante text.mano', scope).forEach(function(text) {
+        all('svg.colgante text.mano, svg.sello-etiqueta text.mano', scope).forEach(function(text) {
             text.setAttribute('font-size', SIZE);
             if (!text.textContent) {
                 return;
@@ -253,12 +253,51 @@
             document.addEventListener('input', again);
         }
 
-        // After the visit: what they were left to ask goes with the button saying so, once.
+        // After the visit. Without motion when the person asked for less of it.
+        var calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Once they came, the label of each backpack is stuck down; the first time the page is seen in a session, its
+        // corner goes down in front of them, as it did at the door.
+        var stuck = document.querySelector('.perchas.pegada');
+        if (stuck && !calm) {
+            try {
+                if (!window.sessionStorage.getItem('eguahe-pegada')) {
+                    window.sessionStorage.setItem('eguahe-pegada', '1');
+                    stuck.classList.add('pegando');
+                }
+            } catch (e) {
+                // A private window: the label is already stuck.
+            }
+        }
+
+        // What they were left to ask goes with the button saying so, once. With the script, it goes without leaving
+        // the page: what was written leaves as a note and the slip that says who has it comes in its place.
+        var leave = function(sheet, text) {
+            if (calm || !text.value.trim()) {
+                return;
+            }
+            var where = sheet.getBoundingClientRect();
+            var box = text.getBoundingClientRect();
+            var note = document.createElement('div');
+            note.className = 'nota-que-sale';
+            note.setAttribute('aria-hidden', 'true');
+            note.textContent = text.value;
+            note.style.left = (box.left - where.left) + 'px';
+            note.style.top = (box.top - where.top) + 'px';
+            note.style.width = box.width + 'px';
+            note.style.height = box.height + 'px';
+            sheet.appendChild(note);
+            window.setTimeout(function() {
+                if (note.parentNode) {
+                    note.parentNode.removeChild(note);
+                }
+            }, 700);
+        };
         all('form[data-preguntar], form[data-encuesta]').forEach(function(sheet) {
             sheet.addEventListener('submit', function(e) {
                 var send = sheet.querySelector('button[name="send"]');
                 var text = sheet.querySelector('textarea[name="question"]');
-                if (!send || !text || !text.value.trim()) {
+                if (!send || !text || !text.value.trim() || (e.submitter && e.submitter !== send)) {
                     return;
                 }
                 if (send.getAttribute('aria-disabled') === 'true') {
@@ -266,7 +305,58 @@
                     return;
                 }
                 send.setAttribute('aria-disabled', 'true');
-                send.lastChild.textContent = send.getAttribute('data-sending');
+                var label = send.lastElementChild || send.lastChild;
+                var was = label.textContent;
+                label.textContent = send.getAttribute('data-sending');
+                if (!window.fetch || !window.FormData || !window.DOMParser) {
+                    return;
+                }
+                e.preventDefault();
+                var action = sheet.getAttribute('action');
+                var data = new window.FormData();
+                data.append('sesskey', sheet.querySelector('[name="sesskey"]').value);
+                data.append('action', sheet.querySelector('[name="action"]').value);
+                data.append('fetch', '1');
+                data.append('q', '0');
+                data.append('question', text.value);
+                var posted = false;
+                window.fetch(action, {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
+                    return r.json();
+                }).then(function(answer) {
+                    if (!answer || !answer.saved) {
+                        throw new Error('not kept');
+                    }
+                    posted = true;
+                    return window.fetch(action + (action.indexOf('?') === -1 ? '?' : '&') + 'asked=1',
+                        {credentials: 'same-origin'}).then(function(r) {
+                        return r.text();
+                    });
+                }).then(function(html) {
+                    var fresh = new window.DOMParser().parseFromString(html, 'text/html').getElementById('pregunta');
+                    var block = sheet.querySelector('#pregunta');
+                    if (!fresh || !block) {
+                        throw new Error('no page');
+                    }
+                    leave(sheet, text);
+                    fresh = document.importNode(fresh, true);
+                    block.parentNode.replaceChild(fresh, block);
+                    var slip = fresh.querySelector('.ya-pasado');
+                    if (slip) {
+                        if (!calm) {
+                            slip.classList.add('llega');
+                        }
+                        slip.focus();
+                    }
+                }).catch(function() {
+                    // Once it is kept, the page says so as it always did; before that, the form goes as it always did.
+                    if (posted) {
+                        window.location.href = action + (action.indexOf('?') === -1 ? '?' : '&') + 'asked=1#pregunta';
+                        return;
+                    }
+                    send.removeAttribute('aria-disabled');
+                    label.textContent = was;
+                    sheet.submit();
+                });
             });
         });
         var just = document.querySelector('[data-recien]');
@@ -275,10 +365,43 @@
         }
 
         // The survey of the visit: each answer is kept when it is touched, and says so; nothing stays in the
-        // browser, which inside WhatsApp may not keep it. Without this, the button keeps them all.
+        // browser, which inside WhatsApp may not keep it. A text is kept a moment after they stop writing. When every
+        // question with words to choose is answered, the thanks comes with the name used at home and the label is
+        // pressed on. Without this, the button keeps them all.
         var survey = document.querySelector('form[data-encuesta]');
         if (survey && window.fetch && window.FormData) {
             survey.classList.add('al-tocar');
+            var farewell = survey.querySelector('[data-despedida]');
+            var stamps = all('.sellos-etiqueta', survey.parentNode);
+            var answered = function(question) {
+                return all('input, textarea', question).some(function(input) {
+                    return input.type === 'radio' || input.type === 'checkbox' ? input.checked : input.value.trim() !== '';
+                });
+            };
+            var finished = function() {
+                var shown = all('[data-q]', survey).filter(function(question) {
+                    return !question.hidden;
+                });
+                var chosen = shown.filter(function(question) {
+                    return question.hasAttribute('data-opciones');
+                });
+                var list = chosen.length ? chosen : shown;
+                return list.length > 0 && list.every(answered);
+            };
+            var goodbye = function() {
+                if (!farewell || !farewell.hidden || !finished()) {
+                    return;
+                }
+                farewell.hidden = false;
+                if (!calm) {
+                    farewell.classList.add('llega');
+                    stamps.forEach(function(stamp) {
+                        stamp.classList.remove('estampa');
+                        void stamp.offsetWidth;
+                        stamp.classList.add('estampa');
+                    });
+                }
+            };
             var keep = function(question) {
                 var data = new window.FormData();
                 data.append('sesskey', survey.querySelector('[name="sesskey"]').value);
@@ -291,24 +414,40 @@
                     }
                 });
                 var said = question.querySelector('[data-guardado]');
-                window.fetch(survey.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
+                var where = survey.getAttribute('action');
+                window.fetch(where, {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
                     return r.json();
                 }).then(function(answer) {
-                    if (said && answer.saved) {
+                    if (!answer.saved) {
+                        return;
+                    }
+                    if (said) {
                         said.textContent = survey.getAttribute('data-guardado-texto');
                         said.classList.remove('dicho');
                         void said.offsetWidth;
                         said.classList.add('dicho');
                     }
+                    goodbye();
                 }).catch(function() {
                     // Without connection the button is back: it keeps them all when they press it.
                     survey.classList.remove('al-tocar');
                 });
             };
+            var waiting = null;
             survey.addEventListener('change', function(e) {
                 var question = e.target.closest ? e.target.closest('[data-q]') : null;
                 if (question && e.target.name !== 'question') {
+                    window.clearTimeout(waiting);
                     keep(question);
+                }
+            });
+            survey.addEventListener('input', function(e) {
+                var question = e.target.closest ? e.target.closest('[data-q]') : null;
+                if (question && (e.target.tagName === 'TEXTAREA' || e.target.type === 'text')) {
+                    window.clearTimeout(waiting);
+                    waiting = window.setTimeout(function() {
+                        keep(question);
+                    }, 1400);
                 }
             });
         }

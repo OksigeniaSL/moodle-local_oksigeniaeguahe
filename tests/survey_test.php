@@ -190,7 +190,9 @@ final class survey_test extends \advanced_testcase {
         $this->over();
         $page = familypage::context($leo, $this->centre, 'es', $token, false);
         $this->assertFalse($page['wallask'], 'Never both waiting.');
-        $this->assertSame('Son 4 preguntas, y lo lee el equipo.', $page['howitwent']['lead']);
+        $this->assertSame('Son 4 preguntas, y contestan solo las que quieran.', $page['howitwent']['lead']);
+        $this->assertSame('Lo lee el equipo que los recibió.', $page['howitwent']['reads']);
+        $this->assertTrue($page['pegs']['came'], 'The label stuck down once they came.');
         $this->assertSame('¿Qué les quedó por preguntar?', $page['howitwent']['ask']['title']);
         $this->assertCount(3, $page['howitwent']['fields']);
 
@@ -219,6 +221,15 @@ final class survey_test extends \advanced_testcase {
         $this->assertSame('2 of 3 said “a lot” or “quite”.', $results['questions'][0]['sentence']);
         $this->assertSame('Más tiempo en el patio.', $results['questions'][2]['quotes'][0]['text']);
         $this->assertSame('Gael', $results['questions'][2]['quotes'][0]['who']);
+        $this->assertStringContainsString('household.php?id=' . $gael->id, $results['questions'][2]['quotes'][0]['url']);
+        // The words the sentence counts, the tally of who told, the stamp of the date.
+        $this->assertSame([false, false, true, true], array_column($results['questions'][0]['rows'], 'upper'));
+        $this->assertSame(3, count(array_filter(array_column($results['tally']['groups'][0]['strokes'], 'ink'))));
+        $this->assertNotFalse($results['stamp']);
+        // Done once the questions to choose are answered: the text never holds it back.
+        $this->assertSame('', familypage::context($noa, $this->centre, 'es', 'x', false)['howitwent']['done']);
+        surveys::save($noa, $this->event, (int) $fields[1]->id, 'Poco', 'es');
+        $this->assertNotSame('', familypage::context($noa, $this->centre, 'es', 'x', false)['howitwent']['done']);
 
         // In the file of the family, and in its download; gone with the family.
         $told = surveys::of_household($gael, 'es');

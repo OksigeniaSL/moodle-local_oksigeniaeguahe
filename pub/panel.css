@@ -7634,13 +7634,42 @@ html.modo-lamina {
     }
 }
 
-/* Eguahe, How it went (Gaudí, 3.3): on the page of an event once it is over, sentences, the words in their order in
-   bars of one tone with the number beside, and the texts as quotes with the name used at home; the event before in
-   soft. Never percentages. Printed alone, it is a sheet to take away in PDF. */
+/* Eguahe, How it went (Gaudí, 3.3; round of 8 November 2026): on the page of an event once it is over, sheets on the
+   desk, in the language of the numbers. The first sheet says how many of the families who came told, with the tally of
+   them by hand (ink those who told, pencil those who did not yet), the date stamped and the event before in pencil.
+   Then a sheet per question: its sentence as the line of the datum, the words in their order in bars of one tone with
+   the number at the tip and a mark by the words the sentence counts; pointing at a bar, its line says that word and the
+   others step back. The texts are slips with the name used at home on its label. Never percentages, never a mark on a
+   family. Printed alone, a sheet to take away in PDF. */
 .como-fue {
+    --cf-serie: var(--eg-serie-1);
+    --cf-serie-suave: var(--eg-serie-1-suave);
+    --cf-lapiz: rgba(var(--eg-tinta-rgb), 0.3);
+    --cf-lapiz-fuerte: rgba(var(--eg-tinta-rgb), 0.6);
+    --cf-palote-lapiz: rgba(var(--eg-tinta-rgb), 0.42);
+    --cf-lapiz-texto: var(--eg-tinta-2);
+    --cf-anillo: var(--piel-hoja);
+    --cf-grosor: 22px;
+    --cf-tenue: 0.4;
     display: grid;
     gap: 18px;
     margin-block-end: 22px;
+}
+
+.como-fue-vivo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.como-fue .lamina {
+    gap: 12px;
+}
+/* ---------- The first sheet: who told, the tally, the stamp ---------- */
+.como-cabeza {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 24px;
 }
 
 .cabeza-como-fue {
@@ -7655,116 +7684,411 @@ html.modo-lamina {
     margin: 0;
 }
 
-.como-fue-vivo {
-    display: grid;
-    gap: 16px;
-}
-
-.como-fue-vivo > .linea-dato,
-.como-fue-vivo > .def {
+.como-cabeza .frase-como-fue {
     margin: 0;
+    min-height: 0;
+    /* stylelint-disable-next-line csstree/validator */
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(1.25rem, 1rem + 0.9vw, 1.75rem);
+    font-weight: 720;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
 }
 
-.pregunta-como {
-    display: grid;
-    gap: 8px;
-    padding-block-start: 16px;
-    border-block-start: 1px solid var(--eg-linea);
-}
-
-.pregunta-como h3 {
+.como-cabeza .def {
     margin: 0;
-    font-size: 1.0625rem;
-    font-weight: 700;
-}
-
-.frase-como {
-    margin: 0;
-    font-size: 1.0625rem;
-}
-
-.barras-como {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-}
-
-.barras-como li {
-    display: grid;
-    grid-template-columns: minmax(5.5em, auto) minmax(0, 1fr) 2.5em;
-    align-items: center;
-    gap: 10px;
-}
-
-.palabra-como {
     color: var(--eg-tinta-2);
-    font-size: 0.9375rem;
+}
+/* The tally: a stroke per family who came, crossed every five; ink who told, pencil who did not yet */
+.palotes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin: 2px 0 4px;
+    padding-inline-start: 2px;
 }
 
-.pista-como {
+.palotes .grupo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding-inline: 1px;
+}
+
+.palotes i {
     display: block;
-    height: 22px;
-    border-radius: 4px;
-    background: var(--eg-serie-1-suave);
-    overflow: hidden;
+    width: 3px;
+    height: 24px;
+    border-radius: 2px;
+    background-color: var(--eg-tinta);
+    transform: rotate(3deg);
 }
 
-.pista-como i {
-    display: block;
-    height: 100%;
-    width: calc(var(--v) * 100%);
-    border-radius: 4px;
-    background: var(--eg-serie-1);
+.palotes i:nth-child(2) {
+    height: 26px;
+    transform: rotate(-2deg) translateY(1px);
 }
 
-.barras-como b {
-    font-variant-numeric: tabular-nums;
+.palotes i:nth-child(3) {
+    height: 23px;
+    transform: rotate(4deg) translateY(-1px);
 }
 
-.citas-como {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 14px;
+.palotes i:nth-child(4) {
+    height: 25px;
+    transform: rotate(-1deg);
 }
 
-.citas-como blockquote {
-    margin: 0;
-    font-size: 1.3125rem;
-    line-height: 1.4;
+.palotes i:nth-child(5) {
+    position: absolute;
+    inset-inline-start: -4px;
+    top: 13px;
+    width: calc(100% + 10px);
+    height: 3px;
+    transform: rotate(-24deg);
 }
 
-.citas-como blockquote::before {
-    content: '«';
+[dir="rtl"] .palotes i:nth-child(5) {
+    transform: rotate(24deg);
 }
 
-.citas-como blockquote::after {
-    content: '»';
+.palotes i.lapiz {
+    background-color: var(--cf-palote-lapiz);
+}
+/* The date, stamped */
+.sello-como {
+    justify-self: start;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 92px;
+    padding: 4px 12px 5px;
+    border: 2.5px solid var(--eg-sello);
+    border-radius: 8px;
+    color: var(--eg-sello);
+    font-weight: 800;
+    line-height: 1.05;
+    text-transform: uppercase;
+    transform: rotate(-5deg);
+    opacity: 0.9;
 }
 
-.quien-cita {
-    display: block;
-    margin-block-start: 2px;
-    color: var(--eg-tinta);
-    font-family: var(--piel-mano);
-    font-size: 1.375rem;
+.sello-como small {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+}
+
+.sello-como b {
+    font-size: 1.1875rem;
+    letter-spacing: 0.03em;
 }
 
 .antes-como {
     margin: 0;
-    color: var(--eg-tinta-2);
+    color: var(--cf-lapiz-texto);
     font-size: 0.9375rem;
 }
+/* ---------- A sheet per question ---------- */
+.pregunta-como h3 {
+    margin: 0;
+    font-size: 1.1875rem;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
 
-.como-fue .lo-que-hacemos {
-    padding-block-start: 16px;
-    border-block-start: 1px solid var(--eg-linea);
+.pregunta-como .frase-como {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 650;
+}
+
+.pregunta-como.sin-nada .frase-como {
+    min-height: 0;
+    color: var(--eg-tinta-2);
+    font-weight: 400;
+}
+/* The line of the datum speaks of what is pointed at: a rule of ink at its side */
+.como-fue .linea-dato::before {
+    background: var(--cf-serie);
+}
+/* The words in their order, a bar of one tone each from a line of pencil, the number at its tip */
+.barras-como {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.fila-como {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(5.5em, max-content) minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    min-height: 40px;
+    padding: 4px 8px 4px 16px;
+    border-radius: 8px;
+    transition: opacity var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+
+.fila-como:focus {
+    outline: none;
+}
+
+.fila-como:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 1px;
+}
+/* The words its sentence counts («much or quite»): a stroke of ink beside them */
+.fila-como.contada::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 3px;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--cf-serie);
+}
+
+.palabra-como {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.pista-como {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    height: var(--cf-grosor);
+}
+
+.pista-como::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -1px;
+    top: -10px;
+    bottom: -10px;
+    width: 1.5px;
+    background: var(--cf-lapiz);
+}
+
+.barra-como {
+    display: block;
+    flex: none;
+    width: calc(var(--v) * (100% - 3rem));
+    height: 100%;
+    border-start-end-radius: 4px;
+    border-end-end-radius: 4px;
+    background-color: var(--cf-serie);
+    transform-origin: 0 50%;
+}
+
+[dir="rtl"] .barra-como {
+    transform-origin: 100% 50%;
+}
+
+.cifra-como {
+    min-width: 1.5em;
+    font-weight: 780;
+    font-variant-numeric: tabular-nums;
+}
+
+.barras-como.por-crecer .barra-como {
+    transform: scaleX(0);
+}
+/* Pointing at a word: it stays, the others step back */
+.barras-como.con-senal .fila-como:not(.senalado) {
+    opacity: var(--cf-tenue);
+}
+
+.barras-como.con-senal .fila-como.senalado {
+    background: var(--eg-hundido);
+}
+/* The texts: slips with the name used at home on its label */
+.citas-como {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.cita-como {
+    position: relative;
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    min-width: 0;
+    padding: 16px 18px 14px;
+    border-radius: 4px;
+    background: var(--piel-hoja);
+    box-shadow: 0 0 0 1px var(--eg-linea);
+}
+
+.cita-como blockquote {
+    margin: 0;
+    font-size: 1.1875rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    quotes: '«' '»' '“' '”';
+}
+
+html[lang|="en"] .cita-como blockquote,
+html[lang="pt-br"] .cita-como blockquote {
+    quotes: '“' '”' '‘' '’';
+}
+
+.cita-como blockquote::before {
+    content: open-quote;
+}
+
+.cita-como blockquote::after {
+    content: close-quote;
+}
+
+.cita-como .quien-cita {
+    justify-self: end;
+    font-size: 1.375rem;
+}
+/* The label leads to the file of the family */
+a.quien-cita {
+    text-decoration: none;
+    transition: transform var(--dur-1) ease;
+}
+
+a.quien-cita:hover {
+    transform: rotate(-1deg) translateY(calc(var(--mov-x) * -1px));
+}
+
+a.quien-cita:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 3px;
+}
+
+.cita-como.llega {
+    animation: cita-llega 0.5s var(--curva-papel) both;
+}
+
+@keyframes cita-llega {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--mov-x) * -18px)) rotate(calc(var(--mov-x) * -3deg));
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.mas-citas > summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--eg-acento);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.mas-citas[open] > .citas-como {
+    margin-top: 8px;
+}
+/* What we do with it */
+.como-fue .lo-que-hacemos .campo {
+    display: grid;
+    gap: 6px;
+}
+
+.como-fue .lo-que-hacemos label {
+    font-size: 1.125rem;
+    font-weight: 750;
+}
+
+.como-fue .lo-que-hacemos textarea {
+    width: 100%;
+}
+
+@media (min-width: 720px) {
+    .pregunta-como .frase-como {
+        min-height: 1.6em;
+    }
+}
+
+@media (min-width: 1100px) {
+    .como-fue-vivo {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .como-cabeza,
+    .pregunta-como.con-citas {
+        grid-column: 1 / -1;
+    }
+
+    .como-cabeza {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .como-cabeza > * {
+        grid-column: 1;
+    }
+
+    .como-cabeza > .sello-como {
+        grid-column: 2;
+        grid-row: 2 / span 3;
+        align-self: center;
+        margin-inline-end: 12px;
+    }
+
+    .como-fue .lo-que-hacemos {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        column-gap: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cita-como.llega {
+        animation: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .barra-como,
+    .palotes i,
+    .fila-como.contada::before {
+        /* stylelint-disable-next-line csstree/validator */
+        /* stylelint-disable-next-line csstree/validator */
+        background: CanvasText;
+    }
+
+    .palotes i.lapiz {
+        /* stylelint-disable-next-line csstree/validator */
+        background: GrayText;
+    }
 }
 
 @media print {
+    html body.imprime-seccion {
+        background: #fff;
+    }
+
+    html body.imprime-seccion::after {
+        content: none;
+    }
+
     body.imprime-seccion * {
         visibility: hidden;
     }
@@ -7784,6 +8108,23 @@ html.modo-lamina {
     body.imprime-seccion .a-imprimir .lo-que-hacemos,
     body.imprime-seccion .a-imprimir [data-imprimir-seccion] {
         display: none;
+    }
+
+    body.imprime-seccion .a-imprimir .lamina,
+    body.imprime-seccion .a-imprimir .cita-como {
+        transform: none;
+        box-shadow: none;
+        background: #fff;
+        border: 1px solid #c8c2bb;
+        break-inside: avoid;
+    }
+
+    body.imprime-seccion .a-imprimir .barra-como,
+    body.imprime-seccion .a-imprimir .palotes i,
+    body.imprime-seccion .a-imprimir .fila-como.contada::before {
+        -webkit-print-color-adjust: exact;
+        /* stylelint-disable-next-line csstree/validator */
+        print-color-adjust: exact;
     }
 }
 
@@ -7805,4 +8146,11 @@ html.modo-lamina {
     overflow-wrap: anywhere;
     color: var(--eg-tinta-2);
     font-size: 0.875rem;
+}
+
+/* Eguahe: an event already over, on a phone, does not keep its band on top: nobody is at the door any more. */
+@media (max-width: 719px) {
+    .puerta.paso .banda {
+        position: static;
+    }
 }

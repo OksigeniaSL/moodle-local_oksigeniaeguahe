@@ -18,7 +18,8 @@
     @template local_oksigeniaeguahe/public_questions
 
     The questions of a form of the centre, as families answer them: on the page of signing up, and in the survey of a
-    visit on the page of the family, where each answer is kept when it is touched (autosave) and says so.
+    visit on the page of the family, where each answer is kept when it is touched (autosave) and says so. A scale is a
+    row of words in their order, the one chosen filled with ink; nothing is a number or a star.
 
     Example context (json):
     {
@@ -39,19 +40,19 @@
 </div>
 {{/issection}}
 {{^issection}}
-<div class="campo pregunta{{#invalid}} mal{{/invalid}}" id="{{name}}" data-q="{{id}}"{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
+<div class="campo pregunta{{#invalid}} mal{{/invalid}}" id="{{name}}" data-q="{{id}}"{{#ischips}} data-opciones{{/ischips}}{{#ismulti}} data-opciones{{/ismulti}}{{#showif}} data-si="{{showif}}" data-si-valor="{{showvalue}}"{{/showif}}{{#hidden}} hidden{{/hidden}}>
     {{#ischips}}
     <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
     {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
     <div class="fichas{{#isscale}} escala{{/isscale}}" role="radiogroup" aria-labelledby="{{name}}-label">
-        {{#options}}<label class="ficha"><input type="radio" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+        {{#options}}<label class="ficha"><input type="radio" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span><span class="palabra">{{label}}</span></label>{{/options}}
     </div>
     {{/ischips}}
     {{#ismulti}}
     <p class="etiqueta-campo" id="{{name}}-label">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</p>
     {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
     <div class="fichas" role="group" aria-labelledby="{{name}}-label">
-        {{#options}}<label class="ficha"><input type="checkbox" name="{{name}}[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label>{{/options}}
+        {{#options}}<label class="ficha"><input type="checkbox" name="{{name}}[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span><span class="palabra">{{label}}</span></label>{{/options}}
     </div>
     {{/ismulti}}
     {{#istext}}
@@ -61,7 +62,7 @@
     {{/istext}}
     {{#islong}}
     <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-    <textarea id="{{name}}-in" name="{{name}}"{{#invalid}} aria-invalid="true"{{/invalid}}>{{value}}</textarea>
+    <textarea id="{{name}}-in" name="{{name}}"{{#autosave}} class="renglones"{{/autosave}}{{#invalid}} aria-invalid="true"{{/invalid}}>{{value}}</textarea>
     {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
     {{/islong}}
     {{#isdate}}

@@ -17,60 +17,75 @@
 {{!
     @template local_oksigeniaeguahe/panel_howitwent
 
-    How it went, on the page of an event once it is over: how many of the families who came told, the last one; by
-    question its sentence, the words in their order in bars of one tone with how many said each, and the texts as quotes
-    with the name used at home; below, in soft, the event before. Never percentages; with few answers only sentences and
-    quotes. Alive every half minute while the survey is asked; to take away in PDF; and «What we do with it».
+    How it went, on the page of an event once it is over, as sheets on the desk. The first one says how many of the
+    families who came told, and the last one, in its line of the datum; below, the tally of the families who came, one
+    stroke each, in ink those who told and in pencil those who did not yet (only up to sixty); the date stamped; the
+    event before in pencil. Then a sheet per question: its sentence as the line of the datum, the words in their order
+    in bars of one tone with the number at the tip, and a mark by the words its sentence counts; the texts as slips
+    with the name used at home on its label. Pointing at a bar, its line says that word. Never percentages and never a
+    mark on a family; with few answers only sentences and quotes. Alive every half minute while the survey is asked;
+    to take away in PDF; and «What we do with it», on a yellow pad.
+
+    New in this round (all optional; without them the sheet says the same): tally (groups of five strokes, each ink or
+    pencil), stamp (word and date), rows[].upper (the words the sentence counts) and quotes[].url (the file of the
+    family, from its label).
 
     Example context (json):
     {
         "i": {"imprimir": "", "check": ""},
         "title": "Cómo fue", "told": "8 de las 10 familias que vinieron nos han contado cómo fue · la última, hace 4 minutos",
+        "tally": {"groups": [{"strokes": [{"ink": true}, {"ink": true}, {"ink": true}, {"ink": true}, {"ink": true}]},
+            {"strokes": [{"ink": true}, {"ink": true}, {"ink": true}, {"ink": false}, {"ink": false}]}]},
+        "stamp": {"word": "Hasta el", "date": "5 dic."},
         "state": "Se pregunta hasta el 5 dic.", "few": "", "liveurl": "#", "every": 30, "hasquestions": true,
         "questions": [{"label": "¿Les ayudó la visita a imaginar el día a día aquí?", "sentence": "6 de 8 dijeron «mucho» o «bastante».",
-            "hasrows": true, "rows": [{"label": "Nada", "n": 0, "v": 0}, {"label": "Mucho", "n": 4, "v": 1}],
-            "hasquotes": false, "quotes": [], "morequotes": false, "before": "La anterior: 5 de 9 dijeron «mucho» o «bastante»."}],
+            "hasrows": true, "rows": [{"label": "Nada", "n": 0, "v": 0, "upper": false}, {"label": "Mucho", "n": 4, "v": 1, "upper": true}],
+            "hasquotes": true, "quotes": [{"text": "Ver el huerto por dentro.", "who": "Alba", "url": "#"}], "morequotes": false, "before": "La anterior: 5 de 9 dijeron «mucho» o «bastante»."}],
         "beforeline": "La jornada anterior, «Puertas abiertas», 7 nov.: 9 de 14 familias contaron cómo fue.",
         "canact": true, "outcome": "", "action": "/local/oksigeniaeguahe/event.php?id=1", "sesskey": "abc"
     }
 }}
-<section class="bloque como-fue" id="como-fue" aria-labelledby="como-fue-t">
-    <div class="cabeza-como-fue">
-        <h2 id="como-fue-t">{{title}}</h2>
-        <button class="boton terciario pequeno" type="button" data-imprimir-seccion="como-fue" hidden>{{{i.imprimir}}}{{#str}}panel_howitwent_pdf, local_oksigeniaeguahe{{/str}}</button>
-    </div>
+<section class="como-fue" id="como-fue" aria-labelledby="como-fue-t">
     <div class="como-fue-vivo"{{#liveurl}} data-releer="{{liveurl}}" data-cada="{{every}}"{{/liveurl}}>
-        <p class="linea-dato" aria-live="polite">{{told}}</p>
-        <p class="def">{{state}}{{#few}} {{few}}{{/few}}</p>
+        <div class="lamina como-cabeza">
+            <div class="cabeza-como-fue">
+                <h2 id="como-fue-t">{{title}}</h2>
+                <button class="boton terciario pequeno" type="button" data-imprimir-seccion="como-fue" hidden>{{{i.imprimir}}}{{#str}}panel_howitwent_pdf, local_oksigeniaeguahe{{/str}}</button>
+            </div>
+            <p class="linea-dato frase-como-fue" aria-live="polite">{{told}}</p>
+            {{#tally}}<p class="palotes" aria-hidden="true">{{#groups}}<span class="grupo">{{#strokes}}<i{{^ink}} class="lapiz"{{/ink}}></i>{{/strokes}}</span>{{/groups}}</p>{{/tally}}
+            <p class="def">{{state}}{{#few}} {{few}}{{/few}}</p>
+            {{#stamp}}<span class="sello-como" aria-hidden="true"><small>{{word}}</small><b>{{date}}</b></span>{{/stamp}}
+            {{#beforeline}}<p class="antes-como">{{beforeline}}</p>{{/beforeline}}
+        </div>
         {{#questions}}
-        <article class="pregunta-como">
+        <article class="lamina pregunta-como{{#hasrows}} con-barras{{/hasrows}}{{#hasquotes}} con-citas{{/hasquotes}}{{^hasrows}}{{^hasquotes}} sin-nada{{/hasquotes}}{{/hasrows}}">
             <h3>{{label}}</h3>
-            {{#sentence}}<p class="frase-como">{{sentence}}</p>{{/sentence}}
+            {{#sentence}}<p class="linea-dato frase-como" aria-live="polite">{{sentence}}</p>{{/sentence}}
             {{#hasrows}}
             <ul class="barras-como">
-                {{#rows}}<li style="--v: {{v}}"><span class="palabra-como">{{label}}</span><span class="pista-como" aria-hidden="true"><i></i></span><b>{{n}}</b></li>{{/rows}}
+                {{#rows}}<li class="fila-como{{#upper}} contada{{/upper}}" style="--v: {{v}}" tabindex="0" data-n="{{n}}" data-palabra="{{label}}"><span class="palabra-como">{{label}}</span><span class="pista-como"><i class="barra-como"></i><b class="cifra-como">{{n}}</b></span></li>{{/rows}}
             </ul>
             {{/hasrows}}
             {{#hasquotes}}
             <ul class="citas-como">
-                {{#quotes}}<li><blockquote>{{text}}</blockquote>{{#who}}<span class="quien-cita" translate="no">{{who}}</span>{{/who}}</li>{{/quotes}}
+                {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
             </ul>
             {{/hasquotes}}
             {{#morequotes}}
             <details class="plegado mas-citas">
                 <summary>{{label}}</summary>
                 <ul class="citas-como">
-                    {{#quotes}}<li><blockquote>{{text}}</blockquote>{{#who}}<span class="quien-cita" translate="no">{{who}}</span>{{/who}}</li>{{/quotes}}
+                    {{#quotes}}<li class="cita-como"><blockquote>{{text}}</blockquote>{{#who}}{{#url}}<a class="etq quien-cita" href="{{url}}" translate="no">{{who}}</a>{{/url}}{{^url}}<span class="etq quien-cita" translate="no">{{who}}</span>{{/url}}{{/who}}</li>{{/quotes}}
                 </ul>
             </details>
             {{/morequotes}}
             {{#before}}<p class="antes-como">{{before}}</p>{{/before}}
         </article>
         {{/questions}}
-        {{#beforeline}}<p class="antes-como">{{beforeline}}</p>{{/beforeline}}
     </div>
     {{#canact}}
-    <form class="formulario-panel lo-que-hacemos" method="post" action="{{action}}#como-fue">
+    <form class="lamina formulario-panel lo-que-hacemos" method="post" action="{{action}}#como-fue">
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="outcome">
         <div class="campo">
             <label for="lo-que-hacemos">{{#str}}panel_outcome, local_oksigeniaeguahe{{/str}}</label>

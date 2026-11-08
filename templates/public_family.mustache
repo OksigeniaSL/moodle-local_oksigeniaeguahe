@@ -20,19 +20,26 @@
     The page of a family, theirs, from the link they got. The heading is the name the family uses at home, written by
     hand, as on the label of the backpack on its hook. Then their visit, in a band of the colour of the centre, with
     the calendar; the people who will receive them, with their face; and what they told us, with their data to take or
-    to erase. After the visit, one open question on the wall, «What were you left to ask?», or, if the centre turned it
-    on for that visit, the survey «How did it go?» in the band, the open question first; and what the centre does with
-    what they told, under the thanks.
+    to erase. After the visit, the label on the backpack is stuck down, as it was at the door, and one open question
+    waits on the wall, «What were you left to ask?», as a note on lined paper; or, if the centre turned it on for that
+    visit, the survey «How did it go?» in the band: who reads it, with their faces, then a sheet with the label of each
+    child stuck in its corner (beside it, large, on a wide screen), the open question first and the words of each scale, each answer kept when it is touched; when
+    the last one is answered, the thanks with the name used at home, written by hand. And what the centre does with what
+    they told, under the thanks, as a note of the centre.
 
     Example context (json):
     {
         "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": ""},
         "greeting": "Los esperamos,", "names": "Leo",
-        "pegs": {"count": 1, "live": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
-            "delay": "0.15", "hidden": false}]},
+        "pegs": {"count": 1, "live": false, "came": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
+            "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "howitwent": false, "outcome": false, "hall": false,
+        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false,
+        "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
+            "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
+            "done": "", "farewell": "Gracias por contárnoslo,", "changeline": "Pueden cambiar cualquier respuesta hasta el 21 de noviembre.",
+            "savetext": "Guardar", "savedtext": "Guardado", "action": "#", "sesskey": "abc"},
         "first": {"weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
@@ -72,7 +79,7 @@
                 <p><b>{{saved}}.</b> {{savedline}} {{emailed}}</p>
             </div>
             {{/new}}
-            {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> {{text}}</p>{{/outcome}}
+            {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span>{{text}}</span></p>{{/outcome}}
             {{#wallask}}
             <form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="ask">
@@ -111,17 +118,28 @@
 {{#howitwent}}
 <section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t">
     <div class="cabeza-encuesta">
-        <p class="etiqueta" id="como-fue-t">{{label}}</p>
+        <h2 class="titulo-encuesta" id="como-fue-t">{{label}}</h2>
         <p class="siguiente">{{lead}}</p>
+        {{#reads}}
+        <p class="lo-lee">
+            {{#hashosts}}<span class="caras-lee" aria-hidden="true">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini">{{initials}}</span>{{/photo}}{{/hosts}}</span>{{/hashosts}}
+            <span>{{reads}}</span>
+        </p>
+        {{/reads}}
         {{#saved}}<p class="guardado-todo" role="status">{{saved}}</p>{{/saved}}
+        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
     </div>
     <form class="hoja-encuesta" method="post" action="{{action}}" data-encuesta data-guardado-texto="{{savedtext}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="survey">
+        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
         {{#ask}}{{> local_oksigeniaeguahe/public_ask }}{{/ask}}
         <div class="preguntas-encuesta">
             {{> local_oksigeniaeguahe/public_questions }}
         </div>
-        {{#done}}<p class="hecho-encuesta">{{done}}</p>{{/done}}
+        <div class="despedida" data-despedida{{^done}} hidden{{/done}}>
+            <p class="gracias">{{farewell}}{{#names}} <span class="mano-titular" translate="no">{{names}}</span>{{/names}}</p>
+            {{#changeline}}<p class="cambiar">{{changeline}}</p>{{/changeline}}
+        </div>
         <div class="acciones guardar-encuesta"><button class="boton secundario" type="submit">{{savetext}}</button></div>
     </form>
 </section>

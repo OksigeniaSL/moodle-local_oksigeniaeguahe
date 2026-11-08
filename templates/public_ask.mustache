@@ -17,24 +17,30 @@
 {{!
     @template local_oksigeniaeguahe/public_ask
 
-    The one open question after a visit, «What were you left to ask?»: what they write goes to whoever receives them,
-    whose face is on the button, with how soon they answer. Once asked, that it was passed on, and «Anything else?».
-    It goes inside a form: on the wall alone, or first in the survey of the band.
+    The one open question after a visit, «What were you left to ask?», written as a note on lined paper: what they
+    write goes to whoever receives them, whose face is on the button, with how soon they answer. Once asked, a slip
+    says it was passed on, and the note asks «Anything else?». It goes inside a form: on the wall alone, or first in
+    the survey of the band. With the script, the note goes without leaving the page and the slip comes in its place.
 
     Example context (json):
     {
+        "i": {"check": ""},
         "title": "¿Qué les quedó por preguntar?", "help": "Lo que no dio tiempo a preguntar.",
         "sent": "", "justsent": false, "button": "Enviar a Lucía", "face": {"photo": "", "initials": "LM"},
         "reply": "Lucía les contesta por correo, normalmente en dos días laborables.", "sending": "Enviando…"
     }
 }}
-<div class="pregunta-abierta" id="pregunta">
-    {{#sent}}<p class="ya-pasado"{{#justsent}} role="status" tabindex="-1" data-recien{{/justsent}}><span class="marca-hecho" aria-hidden="true"></span>{{sent}}</p>{{/sent}}
+<div class="pregunta-abierta" id="pregunta" data-pregunta-abierta>
+    {{#sent}}
+    <p class="ya-pasado"{{#justsent}} role="status" tabindex="-1" data-recien{{/justsent}}>
+        <span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{sent}}</span>
+    </p>
+    {{/sent}}
     <label class="pregunta-titulo" for="pregunta-texto">{{title}}</label>
     <p class="ayuda-campo" id="pregunta-ayuda">{{help}}</p>
-    <textarea id="pregunta-texto" name="question" maxlength="4000" rows="3" aria-describedby="pregunta-ayuda pregunta-contesta"></textarea>
+    <textarea class="renglones" id="pregunta-texto" name="question" maxlength="4000" rows="3" aria-describedby="pregunta-ayuda pregunta-contesta"></textarea>
     <div class="enviar-pregunta">
-        <button class="boton principal con-cara" type="submit" name="send" value="1" data-sending="{{sending}}">{{#face}}<span class="cara-boton" aria-hidden="true">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}{{initials}}{{/photo}}</span>{{/face}}{{button}}</button>
+        <button class="boton principal con-cara" type="submit" name="send" value="1" data-sending="{{sending}}">{{#face}}<span class="cara-boton" aria-hidden="true">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}{{initials}}{{/photo}}</span>{{/face}}<span>{{button}}</span></button>
         <p class="contesta" id="pregunta-contesta">{{reply}}</p>
     </div>
 </div>
