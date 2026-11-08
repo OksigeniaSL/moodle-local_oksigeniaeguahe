@@ -128,7 +128,7 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
             'status' => $waiting ? get_string($waiting === 1 ? 'work_waiting_one' : 'work_waiting', $c, $waiting) :
                 get_string('work_waiting_none', $c),
             'alerts' => $alerts,
-            'actions' => \local_oksigeniaeguahe\local\centres::can_act($userid) ? [['text' => get_string('household_new', $c),
+            'actions' => \local_oksigeniaeguahe\local\centres::can_act($userid) ? [['label' => get_string('household_new', $c),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $id]))->out(false)]] : [],
         ];
     }
