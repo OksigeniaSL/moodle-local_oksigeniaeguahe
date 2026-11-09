@@ -520,7 +520,13 @@ final class panel_test extends \advanced_testcase {
         $cards = local_oksigeniaeguahe_oksigenia_work(2);
         $this->assertCount(1, $cards);
         $this->assertSame('eguahe-' . $centreid, $cards[0]['key']);
-        $this->assertSame(get_string('work_waiting_one', 'local_oksigeniaeguahe'), $cards[0]['status']);
+        // What waits, and what happened this week: a family came in.
+        $this->assertSame(get_string('work_waiting_one', 'local_oksigeniaeguahe') . ' · ' . get_string(
+            'work_week',
+            'local_oksigeniaeguahe',
+            get_string('work_week_new_one', 'local_oksigeniaeguahe', 1)
+        ), $cards[0]['status']);
+        $this->assertSame('', local_oksigeniaeguahe_work_week($centreid, time() + 30 * DAYSECS), 'A quiet week says nothing.');
         $this->assertSame([], $cards[0]['alerts']);
     }
 

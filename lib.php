@@ -102,6 +102,49 @@ function local_oksigeniaeguahe_oksigeniamarandu_posts(): array {
 }
 
 /**
+ * What happened in admissions in the last seven days, added up and without names, for the line of its door in «Your
+ * work»: so whoever runs the centre sees it alive, not only what waits (the common rule of 8 November 2026). Families
+ * that came in, that came to know the centre, and that looked at their page.
+ *
+ * @param int $centreid
+ * @param int $now
+ * @return string « · This week: …», or nothing in a quiet week.
+ */
+function local_oksigeniaeguahe_work_week(int $centreid, int $now): string {
+    global $DB;
+    $c = 'local_oksigeniaeguahe';
+    $since = $now - 7 * DAYSECS;
+    $new = $DB->count_records_select(
+        'local_oksigeniaeguahe_household',
+        'centreid = ? AND incentre = 0 AND timecreated >= ?',
+        [$centreid, $since]
+    );
+    $came = (int) $DB->count_records_sql(
+        'SELECT COUNT(DISTINCT s.householdid)
+           FROM {local_oksigeniaeguahe_signup} s
+           JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
+          WHERE e.centreid = ? AND s.attended >= ?',
+        [$centreid, $since]
+    );
+    $looked = (int) $DB->count_records_sql(
+        'SELECT COUNT(DISTINCT householdid) FROM {local_oksigeniaeguahe_seen} WHERE centreid = ? AND kind = ? AND timecreated >= ?',
+        [$centreid, 'open', $since]
+    );
+    $parts = [];
+    foreach (['new' => $new, 'came' => $came, 'looked' => $looked] as $key => $n) {
+        if ($n) {
+            $parts[] = get_string('work_week_' . $key . ($n === 1 ? '_one' : ''), $c, $n);
+        }
+    }
+    if (!$parts) {
+        return '';
+    }
+    $last = array_pop($parts);
+    $list = $parts ? get_string('andlist', $c, (object) ['list' => implode(', ', $parts), 'last' => $last]) : $last;
+    return ' · ' . get_string('work_week', $c, $list);
+}
+
+/**
  * What admissions has for whoever works in it, for the block «Your work» of Oksigenia (Tembiapo): a door per centre,
  * with the families that wait for an answer and the visits of today, and on top what was promised to a family and is
  * due. Nothing for whoever does not work for a centre.
@@ -148,8 +191,8 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
             'title' => count($centres) > 1 ? get_string('work_title_centre', $c, format_string($centre->name)) :
                 get_string('work_title', $c),
             'url' => $url->out(false),
-            'status' => $waiting ? get_string($waiting === 1 ? 'work_waiting_one' : 'work_waiting', $c, $waiting) :
-                get_string('work_waiting_none', $c),
+            'status' => ($waiting ? get_string($waiting === 1 ? 'work_waiting_one' : 'work_waiting', $c, $waiting) :
+                get_string('work_waiting_none', $c)) . local_oksigeniaeguahe_work_week($id, $now),
             'alerts' => $alerts,
             'actions' => \local_oksigeniaeguahe\local\centres::can_act($userid) ? [['label' => get_string('household_new', $c),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $id]))->out(false)]] : [],
