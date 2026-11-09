@@ -10705,62 +10705,292 @@ a.quien-cita:focus-visible {
     font-size: 0.875rem;
 }
 
-/* The kit of an act for the networks (kit.php): when to post, a link per network, the pictures, the texts and the
-   script. Plain until its design. */
-.pagina-kit .apartado {
-    margin-bottom: 28px;
-}
-
-.kit-dias,
-.kit-redes,
-.kit-planos {
-    margin: 8px 0 0;
-    padding-inline-start: 1.2em;
-}
-
-.kit-dias li,
-.kit-redes li,
-.kit-planos li {
-    margin-bottom: 8px;
-}
-
-.kit-redes .enlace-corto {
-    font-family: var(--eg-mono, monospace);
-    color: var(--eg-tinta-2);
-}
-
-.kit-fotos {
+/* The kit of an act for the networks (kit.php), as a press kit on the desk: the days that lead to the act, the three
+   pictures at their own shapes, the two texts as notes ready to copy, a link per network as a ledger, and the script as
+   a strip of upright frames. Every colour from the skin, so it holds in the three. */
+.pagina-kit {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
-    align-items: start;
+    gap: 18px;
+}
+
+.pagina-kit .apartado {
+    gap: 14px;
+}
+
+/* When to post: the days in a row, joined by a line, to the act; the day of the act in the colour of the centre. */
+.kit-dias {
+    display: grid;
+    gap: 14px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kit-dia {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding-inline-start: 26px;
+}
+
+.kit-dia::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 4px;
+    top: 5px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--eg-borde);
+    background: var(--piel-hoja);
+}
+
+.kit-dia:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 10px;
+    top: 21px;
+    bottom: -12px;
+    width: 1.5px;
+    background: var(--eg-linea);
+}
+
+.kit-dia b {
+    font-weight: 720;
+}
+
+.kit-dia span {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+.kit-dia-day::before {
+    border-color: var(--c-acento-vivo, var(--eg-acento));
+    background: var(--c-acento-vivo, var(--eg-acento));
+}
+
+.kit-dia-day b {
+    color: var(--c-acento-texto, var(--eg-tinta));
+}
+
+@media (min-width: 900px) {
+    .kit-dias {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .kit-dia {
+        padding: 26px 8px 0 0;
+    }
+
+    .kit-dia::before {
+        inset-inline-start: 0;
+        top: 0;
+    }
+
+    .kit-dia:not(:last-child)::after {
+        inset-inline-start: 19px;
+        inset-inline-end: -16px;
+        top: 6px;
+        bottom: auto;
+        width: auto;
+        height: 1.5px;
+    }
+}
+
+/* The pictures, at their own shapes and the same height, as prints on the desk; each ready to download. */
+.kit-fotos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 18px 22px;
 }
 
 .kit-foto {
+    display: grid;
+    gap: 10px;
     margin: 0;
 }
 
 .kit-foto img {
     display: block;
-    width: 100%;
-    height: auto;
+    width: auto;
+    height: clamp(130px, 19vw, 290px);
     border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 10px 22px -12px var(--eg-sombra);
 }
 
 .kit-foto figcaption {
-    margin-top: 6px;
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    font-size: 0.9375rem;
+}
+
+/* The two texts, as notes ready to copy, side by side when there is room. */
+.kit-notas {
+    display: grid;
+    gap: 16px;
+}
+
+@media (min-width: 900px) {
+    .kit-notas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.kit-nota {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 10px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: var(--nota, var(--eg-hundido));
+    box-shadow: 0 1px 2px var(--eg-sombra);
 }
 
 .kit-texto {
-    margin: 4px 0;
-    padding: 12px 14px;
-    border-radius: 8px;
-    background: var(--eg-papel-2, transparent);
-    border: 1px solid var(--eg-linea);
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.55;
     white-space: pre-line;
 }
 
+.kit-copiar {
+    margin: 0;
+}
+
+.kit-ia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.kit-ia:empty {
+    display: none;
+}
+
+/* A link per network, as a ledger: the network, its short link and the button to copy it. */
+.kit-redes {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kit-redes li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 14px;
+    padding: 10px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.kit-redes li:last-child {
+    border-bottom: 1px solid var(--eg-linea);
+}
+
+.kit-redes b {
+    min-width: 9em;
+}
+
+.kit-redes .enlace-corto {
+    flex: 1 1 14em;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+/* The script, as a strip of upright frames: the number of the shot, how long it lasts, and the words on screen at its
+   foot; what to film, under it. */
+.kit-guion .def .ic {
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+}
+
+.kit-planos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 16px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 900px) {
+    .kit-planos {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.kit-plano {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+.kit-cuadro {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    width: min(100%, 168px);
+    aspect-ratio: 9 / 16;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+    border: 1.5px solid var(--eg-linea);
+}
+
+.kit-n {
+    font-size: 2.25rem;
+    font-weight: 780;
+    line-height: 1;
+    color: var(--eg-tinta-2);
+    opacity: 0.55;
+}
+
+.kit-seg {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--piel-hoja);
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 650;
+}
+
+.kit-seg .ic {
+    width: 14px;
+    height: 14px;
+}
+
 .kit-rotulo {
-    font-weight: 600;
+    justify-self: center;
+    max-width: 100%;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--eg-tinta);
+    color: var(--piel-hoja);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.kit-que {
+    font-size: 0.9375rem;
+    line-height: 1.45;
 }
