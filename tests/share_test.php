@@ -81,8 +81,8 @@ final class share_test extends \advanced_testcase {
         $this->assertSame('de Riverside School', share::from_centre($riverside, 'es'));
 
         $seal = share::seal('dibujo', 'es');
-        $this->assertSame('https://eguahe.com/?de=dibujo', $seal['url']);
-        $this->assertSame('https://eguahe.com/?de=cuento', share::seal('cuento', 'pt')['url']);
+        $this->assertSame('https://eguahe.com/?de=dibujo&lang=es', $seal['url']);
+        $this->assertSame('https://eguahe.com/?de=cuento&lang=pt-br', share::seal('cuento', 'pt_br')['url']);
     }
 
     /**

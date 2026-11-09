@@ -132,7 +132,9 @@ class share {
      * @return array url, text, and seal (the frame draws the mark of Eguahe before it).
      */
     public static function seal(string $piece, string $lang): array {
-        return ['url' => self::SEAL . '?de=' . (in_array($piece, self::PIECES, true) ? $piece : 'eguahe'),
+        // The language of the piece goes as a parameter, so any language works without a new address (Enrique, 9-11).
+        return ['url' => self::SEAL . '?de=' . (in_array($piece, self::PIECES, true) ? $piece : 'eguahe') . '&lang=' .
+            rawurlencode(str_replace('_', '-', $lang)),
             'text' => publiclang::str('credit_name', $lang), 'seal' => true];
     }
 
