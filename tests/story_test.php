@@ -148,6 +148,14 @@ final class story_test extends \advanced_testcase {
         $portuguese = json_decode($portuguese['data'], true);
         $this->assertSame(['pt-PT' => 'o Colegio de ejemplo'], $portuguese['centrePhrases']);
 
+        // The story as a video to keep: its file and the gift of the centre, for the sheet.
+        $video = json_decode(
+            story::context($household, $child, centres::get((int) $centre->id), 'es', $links)['data'],
+            true
+        )['video'];
+        $this->assertSame('Tu primer día, Leo.mp4', $video['file']);
+        $this->assertStringContainsString('Colegio de ejemplo', $video['gift']);
+
         // On the page of the family, the card.
         $page = familypage::context($household, centres::get((int) $centre->id), 'es', 'k', false);
         $this->assertCount(1, $page['stories']);

@@ -133,7 +133,127 @@
     };
 
     /**
-     * One frame of the video at t seconds.
+     * Colours for the video, always those of the day: the video is kept and shown anywhere, so it does not follow the
+     * dark of the phone that made it. A wall read in the dark gives way to the paper of the day, and the words of the
+     * centre are taken towards black until they read on it.
+     *
+     * @param {Object} p prepare()
+     * @return {Object} wall, ink, soft, accent, accentText
+     */
+    var day = function(p) {
+        var rgb = function(hex) {
+            var h = String(hex || '').replace('#', '');
+            if (h.length === 3) {
+                h = h.replace(/./g, '$&$&');
+            }
+            var n = parseInt(h.slice(0, 6), 16);
+            return isNaN(n) ? [47, 93, 98] : [n >> 16 & 255, n >> 8 & 255, n & 255];
+        };
+        var lum = function(c) {
+            var f = function(x) {
+                x /= 255;
+                return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+            };
+            return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+        };
+        var ratio = function(a, b) {
+            var x = lum(a);
+            var y = lum(b);
+            return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+        };
+        var css = function(c) {
+            return 'rgb(' + c.map(Math.round).join(',') + ')';
+        };
+        var accent = rgb(p.accent);
+        var wall = rgb(p.wall);
+        if (lum(wall) < 0.45) {
+            // The wall of the day, as the server makes it: warm paper with 6 % of the colour of the centre.
+            wall = [244, 234, 220].map(function(x, i) {
+                return x + (accent[i] - x) * 0.06;
+            });
+        }
+        var text = accent.slice();
+        for (var k = 0; k < 20 && ratio(text, wall) < 4.8; k++) {
+            text = text.map(function(x) {
+                return x * 0.86;
+            });
+        }
+        return {wall: css(wall), light: 'rgba(255, 255, 255, 0.5)', ink: '#2b2226', soft: '#5f5459', accent: css(accent),
+            accentText: css(text)};
+    };
+
+    /**
+     * The label of the first day, as on the pages of the families: the band in the colour of the centre, the paper, its
+     * line and its peeled corner, and the name written by hand, at the largest size that fits its line.
+     *
+     * @param {CanvasRenderingContext2D} c
+     * @param {Object} col day()
+     * @param {string} name
+     * @param {boolean} rtl
+     */
+    var label = function(c, col, name, rtl) {
+        var shape = function(d, fill) {
+            c.fillStyle = fill;
+            c.fill(new Path2D(d));
+        };
+        c.shadowColor = 'rgba(58, 42, 30, 0.35)';
+        c.shadowBlur = 6;
+        c.shadowOffsetY = 2;
+        shape('M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z', col.accent);
+        c.shadowColor = 'transparent';
+        shape('M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z', '#ffffff');
+        c.globalAlpha = 0.75;
+        shape('M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z', '#8c8178');
+        c.globalAlpha = 1;
+        shape('M23 8 L15 16 L15 8 Z', '#dccdbb');
+        c.fillStyle = col.ink;
+        c.textAlign = 'center';
+        c.direction = rtl ? 'rtl' : 'ltr';
+        // The line has room for 27 units; a longer name gets smaller, never narrower.
+        c.font = '600 13.5px "Eg Mano", cursive';
+        var size = Math.min(13.5, 13.5 * 27 / Math.max(1, c.measureText(name).width));
+        c.font = '600 ' + size.toFixed(2) + 'px "Eg Mano", cursive';
+        c.fillText(name, -3, 5);
+    };
+
+    /**
+     * A strip of paper tape, cream and half seen through, its ends torn.
+     *
+     * @param {CanvasRenderingContext2D} c
+     * @param {number} x Its centre.
+     * @param {number} y
+     * @param {number} angle Radians.
+     */
+    var tape = function(c, x, y, angle) {
+        var len = 132;
+        var wide = 38;
+        c.save();
+        c.translate(x, y);
+        c.rotate(angle);
+        c.beginPath();
+        c.moveTo(-len / 2, -wide / 2);
+        c.lineTo(len / 2, -wide / 2);
+        for (var i = 0; i <= 6; i++) {
+            c.lineTo(len / 2 + (i % 2 ? -3 : 3), -wide / 2 + i * wide / 6);
+        }
+        c.lineTo(-len / 2, wide / 2);
+        for (var j = 6; j >= 0; j--) {
+            c.lineTo(-len / 2 + (j % 2 ? 3 : -3), -wide / 2 + j * wide / 6);
+        }
+        c.closePath();
+        c.fillStyle = 'rgba(232, 217, 180, 0.88)';
+        c.fill();
+        c.strokeStyle = 'rgba(201, 180, 138, 0.6)';
+        c.lineWidth = 1;
+        c.stroke();
+        c.restore();
+    };
+
+    /**
+     * One frame of the video at t seconds: the drawing stuck on the wall of the centre with two strips of tape, a little
+     * crooked, drawing itself; when it is done, the label with the name is stuck on its corner; then a still pause; at
+     * the end, the seal of Eguahe comes in. Above, «Un dibujo de» and the name by hand; below, the centre and its gift.
+     * The same in every language: the label goes on the corner where the line ends (left in Arabic).
      *
      * @param {CanvasRenderingContext2D} c
      * @param {Object} p prepare()
@@ -141,78 +261,106 @@
      */
     var frame = function(c, p, t) {
         var v = p.v;
+        var col = day(p);
+        var ease = function(x) {
+            x = Math.max(0, Math.min(1, x));
+            return 1 - Math.pow(1 - x, 3);
+        };
         c.save();
         c.direction = p.rtl ? 'rtl' : 'ltr';
         c.textAlign = 'center';
         c.textBaseline = 'alphabetic';
-        c.fillStyle = p.wall;
+        // The wall, with a soft light from above.
+        c.fillStyle = col.wall;
         c.fillRect(0, 0, W, H);
-        c.fillStyle = p.accent;
-        c.fillRect(0, 0, W, 14);
+        var glow = c.createRadialGradient(W / 2, -120, 40, W / 2, -120, H * 0.85);
+        glow.addColorStop(0, col.light);
+        glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        c.fillStyle = glow;
+        c.fillRect(0, 0, W, H);
         // Who drew it.
-        c.fillStyle = '#5c5650';
-        fit(c, v.kicker, '500', '"Eg Sans", sans-serif', 32, W - 120);
-        c.fillText(v.kicker, W / 2, 150);
-        c.fillStyle = '#1a1614';
-        fit(c, v.name, '600', '"Eg Mano", cursive', 104, W - 120);
-        c.fillText(v.name, W / 2, 262);
-        // The sheet on the wall, taped, with the drawing drawing itself.
+        c.fillStyle = col.soft;
+        fit(c, v.kicker, '600', '"Eg Sans", sans-serif', 30, W - 120);
+        c.fillText(v.kicker, W / 2, 132);
+        c.fillStyle = col.ink;
+        fit(c, v.name, '600', '"Eg Mano", cursive', 112, W - 110);
+        c.fillText(v.name, W / 2, 246);
+        // The drawing on the wall, a little crooked, with its shadow and two strips of tape on its corners.
         p.player.renderAt(Math.min(t, p.drawn));
-        var room = {w: W - 120, h: 640};
+        var room = {w: W - 130, h: 650};
         var s = Math.min(room.w / p.sheet.width, room.h / p.sheet.height);
         var dw = Math.round(p.sheet.width * s);
         var dh = Math.round(p.sheet.height * s);
-        var x = Math.round((W - dw) / 2);
-        var y = 320 + Math.round((room.h - dh) / 2);
-        c.shadowColor = 'rgba(0, 0, 0, 0.18)';
-        c.shadowBlur = 24;
-        c.shadowOffsetY = 8;
-        c.fillStyle = '#ffffff';
-        c.fillRect(x - 14, y - 14, dw + 28, dh + 28);
+        var cx = W / 2;
+        var cy = 312 + room.h / 2;
+        var tilt = -0.035;
+        c.save();
+        c.translate(cx, cy);
+        c.rotate(tilt);
+        c.shadowColor = 'rgba(58, 42, 30, 0.32)';
+        c.shadowBlur = 34;
+        c.shadowOffsetY = 16;
+        c.fillStyle = '#f4efe6';
+        c.fillRect(-dw / 2, -dh / 2, dw, dh);
         c.shadowColor = 'transparent';
-        c.drawImage(p.sheet, x, y, dw, dh);
-        c.fillStyle = 'rgba(232, 217, 180, 0.86)';
-        [[x - 6, y - 26, -0.12], [x + dw - 110, y - 26, 0.1]].forEach(function(tape) {
+        c.drawImage(p.sheet, -dw / 2, -dh / 2, dw, dh);
+        c.restore();
+        var corner = function(sx, sy) {
+            var x = sx * dw / 2;
+            var y = sy * dh / 2;
+            return [cx + x * Math.cos(tilt) - y * Math.sin(tilt), cy + x * Math.sin(tilt) + y * Math.cos(tilt)];
+        };
+        var a = corner(-1, -1);
+        tape(c, a[0] + 10, a[1] + 8, tilt - 0.7);
+        a = corner(1, -1);
+        tape(c, a[0] - 10, a[1] + 8, tilt + 0.7);
+        // When it is done, the label with the name, stuck on the corner where the line ends.
+        var stuck = ease((t - p.drawn) / 0.45);
+        if (stuck > 0 && v.name) {
+            a = corner(p.rtl ? -1 : 1, 1);
             c.save();
-            c.translate(tape[0] + 58, tape[1] + 16);
-            c.rotate(tape[2]);
-            c.fillRect(-58, -16, 116, 32);
+            c.globalAlpha = stuck;
+            c.translate(a[0] + (p.rtl ? 46 : -46), a[1] - 40);
+            c.rotate(-0.09 + (1 - stuck) * 0.25);
+            var k = 4.2 * (1 + (1 - stuck) * 0.35);
+            c.scale(k, k);
+            label(c, col, v.name, p.rtl);
             c.restore();
-        });
-        // The gift of the centre, with its logo or its initials.
-        var base = 1060;
+        }
+        // The centre: its logo or its initials, and its gift.
+        var base = 1046;
         if (p.logo) {
             var lh = 64;
-            var lw = Math.min(260, lh * p.logo.naturalWidth / p.logo.naturalHeight);
-            c.drawImage(p.logo, (W - lw) / 2, base - 30, lw, lw * p.logo.naturalHeight / p.logo.naturalWidth);
+            var lw = Math.min(300, lh * p.logo.naturalWidth / p.logo.naturalHeight);
+            c.drawImage(p.logo, (W - lw) / 2, base - 40, lw, lw * p.logo.naturalHeight / p.logo.naturalWidth);
         } else if (v.initials) {
-            c.fillStyle = p.accent;
+            c.fillStyle = col.accent;
             c.beginPath();
-            c.arc(W / 2, base + 2, 32, 0, Math.PI * 2);
+            c.arc(W / 2, base - 8, 32, 0, Math.PI * 2);
             c.fill();
             c.fillStyle = '#ffffff';
-            c.font = '700 26px "Eg Sans", sans-serif';
-            c.fillText(v.initials, W / 2, base + 12);
+            c.font = '700 25px "Eg Sans", sans-serif';
+            c.fillText(v.initials, W / 2, base + 1);
         }
-        c.fillStyle = p.accentText;
-        fit(c, v.gift, '600', '"Eg Sans", sans-serif', 32, W - 120);
-        c.fillText(v.gift, W / 2, base + 92);
-        // At the end, the seal of Eguahe comes in.
-        var since = t - p.drawn - HOLD;
+        c.fillStyle = col.accentText;
+        fit(c, v.gift, '650', '"Eg Sans", sans-serif', 34, W - 120);
+        c.fillText(v.gift, W / 2, base + 74);
+        // At the end, the seal of Eguahe: its mark and its name, always this size.
+        var since = ease((t - p.drawn - HOLD) / 0.5);
         if (since > 0) {
-            c.globalAlpha = Math.min(1, since / 0.5);
-            var mark = 40;
-            c.font = '500 26px "Eg Sans", sans-serif';
+            c.globalAlpha = since;
+            var mark = 38;
+            c.font = '600 25px "Eg Sans", sans-serif';
+            c.direction = 'ltr';
             var tw = c.measureText(v.credit).width;
             var total = (p.mark ? mark + 12 : 0) + tw;
             var left = (W - total) / 2;
             if (p.mark) {
-                c.drawImage(p.mark, left, H - 104, mark, mark);
+                c.drawImage(p.mark, left, H - 100, mark, mark);
             }
-            c.fillStyle = '#5c5650';
+            c.fillStyle = col.soft;
             c.textAlign = 'left';
-            c.direction = 'ltr';
-            c.fillText(v.credit, left + (p.mark ? mark + 12 : 0), H - 74);
+            c.fillText(v.credit, left + (p.mark ? mark + 12 : 0), H - 72);
             c.globalAlpha = 1;
         }
         c.restore();
@@ -362,16 +510,21 @@
     };
 
     /**
-     * The sheet where the family sees the video before sending it, sends it with its text and link, or saves it; with
-     * the still picture when no video can be made here.
+     * The sheet where the video is seen before it is sent, then sent as a file with its text and link, or saved; and,
+     * when no video can be made here, what keeps instead (the still picture of a drawing, the voice of a story).
      *
-     * @param {HTMLElement} button
+     * @param {Object} v file, title, text, url and words (preparing, send, save, close, failed, and instead/saveinstead);
+     *     instead: {href, file, kind} what goes when there is no video.
+     * @param {function(function(number)): Promise<Blob|null>} build Makes the video, saying how far it got.
+     * @param {HTMLElement} button What opened it: focus goes back there; data-medir and data-medir-guardar count.
      */
-    var open = function(button) {
-        var v = JSON.parse(button.getAttribute('data-video'));
+    var sheet = function(v, build, button) {
         var dialog = document.createElement('dialog');
         dialog.className = 'hoja-video';
-        dialog.setAttribute('aria-label', v.title || v.name);
+        dialog.setAttribute('aria-label', v.title || '');
+        var title = document.createElement('p');
+        title.className = 'hoja-video-titulo';
+        title.textContent = v.title || '';
         var shown = document.createElement('div');
         shown.className = 'hoja-video-vista';
         var state = document.createElement('p');
@@ -394,12 +547,15 @@
             }
             dialog.close();
             dialog.remove();
-            button.focus();
+            if (button) {
+                button.focus();
+            }
         };
         close.addEventListener('click', shut);
         dialog.addEventListener('cancel', shut);
         shown.appendChild(state);
         shown.appendChild(bar);
+        dialog.appendChild(title);
         dialog.appendChild(shown);
         dialog.appendChild(actions);
         dialog.appendChild(close);
@@ -410,7 +566,7 @@
             dialog.setAttribute('open', '');
         }
         var counted = function(what) {
-            var where = button.getAttribute(what === 'saved' ? 'data-medir-guardar' : 'data-medir');
+            var where = button && button.getAttribute(what === 'saved' ? 'data-medir-guardar' : 'data-medir');
             if (where && navigator.sendBeacon) {
                 try {
                     navigator.sendBeacon(where);
@@ -419,10 +575,10 @@
                 }
             }
         };
-        var offer = function(blob, name, kind) {
+        var offer = function(blob, name, label) {
             url = URL.createObjectURL(blob);
             var file = new File([blob], name, {type: blob.type});
-            var text = v.text + (v.url ? '\n' + v.url : '');
+            var text = (v.text || '') + (v.url ? '\n' + v.url : '');
             if (navigator.canShare && navigator.canShare({files: [file]})) {
                 var send = document.createElement('button');
                 send.type = 'button';
@@ -441,47 +597,71 @@
             save.className = 'boton secundario';
             save.href = url;
             save.download = name;
-            save.textContent = v.words[kind === 'video' ? 'save' : 'savepicture'];
+            save.textContent = label;
             save.addEventListener('click', function() {
                 counted('saved');
             });
             actions.appendChild(save);
             return url;
         };
-        make(v, function(done) {
+        build(function(done) {
             bar.value = done;
         }).then(function(blob) {
             shown.removeChild(bar);
             if (blob) {
                 var video = document.createElement('video');
-                video.src = offer(blob, v.file, 'video');
+                video.src = offer(blob, v.file, v.words.save);
                 video.muted = true;
                 video.autoplay = true;
                 video.loop = true;
+                video.controls = !!v.sound;
                 video.playsInline = true;
                 video.setAttribute('playsinline', '');
-                video.setAttribute('aria-label', v.title || v.name);
+                video.setAttribute('aria-label', v.title || '');
                 shown.replaceChild(video, state);
-                return;
+                return null;
             }
-            // No video here: the still picture, which keeps as well.
-            state.textContent = v.words.picture;
-            return root.fetch(v.picture, {credentials: 'same-origin'}).then(function(r) {
+            // No video here: what keeps instead (the still picture, the voice of the story).
+            var instead = v.instead;
+            state.textContent = instead ? v.words.instead : v.words.failed;
+            if (!instead) {
+                return null;
+            }
+            return root.fetch(instead.href, {credentials: 'same-origin'}).then(function(r) {
                 return r.ok ? r.blob() : null;
-            }).then(function(png) {
-                if (!png) {
+            }).then(function(got) {
+                if (!got) {
                     state.textContent = v.words.failed;
                     return;
                 }
-                var img = document.createElement('img');
-                img.alt = v.title || v.name;
-                img.src = offer(png, v.file.replace(/\.mp4$/, '.png'), 'picture');
-                shown.appendChild(img);
+                var href = offer(got, instead.file, v.words.saveinstead);
+                if (instead.kind === 'picture') {
+                    var img = document.createElement('img');
+                    img.alt = v.title || '';
+                    img.src = href;
+                    shown.appendChild(img);
+                }
             });
         }).catch(function() {
             state.textContent = v.words.failed;
         });
     };
 
-    root.DibujoVideo = {make: make, open: open, frame: frame, size: [W, H]};
+    /**
+     * The sheet of the video of a drawing, from its button.
+     *
+     * @param {HTMLElement} button
+     */
+    var open = function(button) {
+        var v = JSON.parse(button.getAttribute('data-video'));
+        v.title = v.title || v.name;
+        v.instead = {href: v.picture, file: v.file.replace(/\.mp4$/, '.png'), kind: 'picture'};
+        v.words.instead = v.words.picture;
+        v.words.saveinstead = v.words.savepicture;
+        sheet(v, function(progress) {
+            return make(v, progress);
+        }, button);
+    };
+
+    root.DibujoVideo = {make: make, open: open, sheet: sheet, frame: frame, size: [W, H]};
 })(window);

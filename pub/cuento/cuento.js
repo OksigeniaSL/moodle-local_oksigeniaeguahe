@@ -190,6 +190,7 @@ const ICON = {
   otra: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 12.4a7.5 7.5 0 1 0 2.3-5.6"/><path d="M5.6 3.8v3.6h3.6"/></svg>',
   guardar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10.5"/><path d="M7.6 10.4 12 14.8l4.4-4.4"/><path d="M5 16.8v1.9c0 .7.6 1.3 1.3 1.3h11.4c.7 0 1.3-.6 1.3-1.3v-1.9"/></svg>',
   mandar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 3.8 3.7 10.4l6.7 2.9 2.9 6.7 7.1-16.2Z"/><path d="m10.4 13.3 4.4-4.4"/></svg>',
+  video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="m10.2 9.4 4.6 2.6-4.6 2.6Z"/></svg>',
 };
 function dedicationHtml(p, i) {
   // «Save it» keeps the whole story heard, with its voice and the song: only where there is one.
@@ -206,6 +207,7 @@ function dedicationHtml(p, i) {
       <button class="gesto" type="button" data-gesto="volver-a-escuchar">${ICON.otra}<span>${esc(VOICE ? T.listen_again : T.read_again)}</span></button>
       ${save}
       <button class="gesto" type="button" data-gesto="mandar">${ICON.mandar}<span>${esc(T.send)}</span></button>
+      ${BOOK.video && VOICE ? `<button class="gesto" type="button" data-cuento-video>${ICON.video}<span>${esc(T.video)}</span></button>` : ''}
     </div>
     <p class="gestos-aviso" id="gestos-aviso" aria-live="polite"></p>
   </section>`;

@@ -51,7 +51,7 @@ class story {
     /** @var string[] All the words of the book (Gaudí's cadenas.json), as strings «firstday_» plus the key. */
     const STRINGS = ['title', 'doc_title', 'book_label', 'page1', 'page2', 'page3', 'page3_maestro', 'page3_tutor',
         'page3_maestro_tutor', 'page4', 'page5', 'page6', 'page6_maestro', 'page6_tutor', 'page6_maestro_tutor', 'page7',
-        'page7_maestro', 'page7_tutor', 'page7_maestro_tutor', 'page8', 'chalk', 'dedication', 'spoken1', 'spoken2',
+        'page7_maestro', 'page7_tutor', 'page7_maestro_tutor', 'page8', 'chalk', 'dedication', 'video', 'spoken1', 'spoken2',
         'spoken3', 'spoken3_maestro', 'spoken4', 'spoken7', 'spoken7_maestro', 'alt1', 'alt2', 'alt3', 'alt3_maestro',
         'alt4', 'alt5', 'alt6', 'alt6_maestro', 'alt7', 'alt7_maestro', 'alt8', 'alt_dedication', 'sample', 'theme',
         'book_role', 'nav', 'prev', 'next', 'listen', 'pause', 'again', 'read_with_music', 'music', 'volume', 'volume_value',
@@ -367,7 +367,8 @@ class story {
             'strings' => [$code => $words], 'lang' => $code, 'teacher' => $teacher, 'childSex' => 'm',
             'tutors' => ['maestra' => $tutor, 'maestro' => $tutor], 'voices' => [$code => $voices], 'music' => $music,
             'drawing' => $drawing, 'classDrawing' => $drawing ? null : $base . 'clase-garabato.jpg', 'book' => self::BOOK,
-            'base' => $base, 'share' => $links['share'], 'measure' => $links['measure'] ?? null, 'childKey' => (int) $child->id];
+            'base' => $base, 'share' => $links['share'], 'measure' => $links['measure'] ?? null, 'childKey' => (int) $child->id,
+            'video' => self::video_data($centre, $words, $name, $lang, (string) $links['share'])];
         $frame = [];
         foreach (self::FRAME as $key) {
             $frame[$key] = $fill($words[$key]);
@@ -375,7 +376,8 @@ class story {
         $colour = $centre->colour ?: '#2f5d62';
         $logo = centres::logo((int) $centre->id);
         // The drawing draws itself with its strokes; without them, no script for it. In Arabic, the voice is asked first.
-        $scripts = [$base . 'voz.js', $base . 'cuento.js', $base . 'medir.js'];
+        // The story as a video to keep, made in the page when asked (video.js, with the sheet of ../dibujo-video.js).
+        $scripts = [$base . 'voz.js', $base . 'cuento.js', $base . 'medir.js', $base . '../dibujo-video.js', $base . 'video.js'];
         if ($drawing && $drawing['strokes']) {
             array_unshift($scripts, $CFG->wwwroot . '/local/oksigeniaeguahe/pub/dibujo-vivo.js');
         }
@@ -399,6 +401,41 @@ class story {
             'choosevoice' => $sexes ? ['title' => publiclang::str('story_voice_title', $lang),
                 'text' => publiclang::str('story_voice_text', $lang), 'boy' => publiclang::str('story_voice_boy', $lang),
                 'girl' => publiclang::str('story_voice_girl', $lang)] : false,
+        ];
+    }
+
+    /**
+     * What the video of the story needs that the book has not: the gift and the colours of the centre, the seal, the
+     * name of the file and the words of the sheet.
+     *
+     * @param \stdClass $centre
+     * @param array $words The words of the book in its language.
+     * @param string $name The name of the child.
+     * @param string $lang
+     * @param string $share The link of the story to send.
+     * @return array
+     */
+    protected static function video_data(\stdClass $centre, array $words, string $name, string $lang, string $share): array {
+        global $CFG;
+        $colour = $centre->colour ?: '#2f5d62';
+        $vars = publicpage::centre_vars($colour, false);
+        $s = fn(string $id) => publiclang::str('share_video_' . $id, $lang);
+        return [
+            'title' => str_replace('{nombre}', $name, $words['doc_title']),
+            'text' => publiclang::str('share_story_text', $lang, $name),
+            'url' => $share,
+            'file' => clean_filename(str_replace('{nombre}', $name, preg_replace(
+                '/\.mp3$/',
+                '.mp4',
+                publiclang::str('firstday_download_name', $lang)
+            ))),
+            'gift' => share::gift($centre, $lang),
+            'credit' => publiclang::str('credit_name', $lang),
+            'mark' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
+            'accent' => $vars['--c-acento'],
+            'accentText' => $vars['--c-acento-texto'],
+            'words' => ['preparing' => $s('preparing'), 'send' => $s('send'), 'save' => $s('save'), 'close' => $s('close'),
+                'failed' => $s('failed'), 'instead' => $s('audio'), 'saveinstead' => $s('saveaudio')],
         ];
     }
 
