@@ -48,7 +48,7 @@ class panel_forecast {
         $courses = [];
         $filling = [];
         foreach (forecast::by_grade($centre) as $k => $grade) {
-            $course = self::course($grade, $taken[recognise::plain((string) $grade['grade'])] ?? 0, $k === 0);
+            $course = self::course($grade, $taken[recognise::plain((string) $grade['grade'])] ?? 0, $k === 0, $centre);
             if ($course['fills']) {
                 $filling[] = ['name' => $course['name'], 'year' => $course['fills']];
             }
@@ -104,9 +104,10 @@ class panel_forecast {
      * @param array $grade As forecast::by_grade() gives each.
      * @param int $taken Already enrolled for the coming school year.
      * @param bool $open Whether its table opens by itself on a wide screen.
+     * @param \stdClass $centre
      * @return array
      */
-    protected static function course(array $grade, int $taken, bool $open): array {
+    protected static function course(array $grade, int $taken, bool $open, \stdClass $centre): array {
         $c = self::C;
         $ahead = $grade['ahead'];
         $places = (int) ($ahead[0]['places'] ?? 0);
@@ -150,7 +151,7 @@ class panel_forecast {
                 'panel_forecast_rail',
                 $c,
                 (object) ['name' => $name, 'places' => $places, 'sentence' => $sentence]
-            ), panel::hanging_object((string) $grade['grade'])) : '',
+            ), panel::hanging_object((string) $grade['grade'], $centre)) : '',
             'table' => $table,
             'open' => $open,
             'hasrange' => (bool) $rows,

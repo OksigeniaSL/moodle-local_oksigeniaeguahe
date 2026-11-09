@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\forecast;
 use local_oksigeniaeguahe\local\grades;
 use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\metrics;
@@ -237,6 +238,38 @@ final class import_test extends \advanced_testcase {
         }
         $this->assertNull(grades::age('infantil_3-5_años'));
         $this->assertSame('2.º de Primaria', grades::label($centreid, 'PRI 2º'));
+    }
+
+    /**
+     * The school systems come from data, not from the code: each centre reads its courses with the one of its country
+     * or the one it chose; the age it wrote wins; without a system, where two say different ages, the age is not known.
+     */
+    public function test_school_systems(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $us = centres::get(centres::create((object) ['name' => 'Example School', 'lang' => 'en', 'country' => 'US']));
+        $this->assertSame('us', grades::system($us));
+        $this->assertSame(6, grades::age('Grade 1', $us));
+        $this->assertSame(16, grades::age('11th grade', $us));
+        $this->assertSame(5, grades::age('Kindergarten', $us));
+        $this->assertSame(4, grades::age('Pre-K', $us));
+        $br = centres::get(centres::create((object) ['name' => 'Escola de exemplo', 'lang' => 'pt_br', 'country' => 'BR']));
+        $this->assertSame(10, grades::age('5º ano', $br));
+        $this->assertSame(15, grades::age('1º ano do Ensino Médio', $br));
+        $this->assertSame(16, grades::age('2ª série', $br));
+        $gb = centres::get(centres::create((object) ['name' => 'Example School', 'lang' => 'en', 'country' => 'GB']));
+        $au = centres::get(centres::create((object) ['name' => 'Example School', 'lang' => 'en', 'country' => 'AU']));
+        $this->assertSame(5, grades::age('Year 1', $gb));
+        $this->assertSame(6, grades::age('Year 1', $au));
+        $this->assertNull(grades::age('Year 1'), 'Without a system, two ages: none is guessed.');
+        $this->assertSame(1, grades::age('1 año'), 'A year of age, never a course of Portugal.');
+        // The centre chooses another system, or none; and the age it writes wins.
+        $DB->set_field(centres::T, 'system', 'gb', ['id' => $au->id]);
+        $this->assertSame(5, grades::age('Year 1', centres::get((int) $au->id)));
+        $DB->insert_record(forecast::AGES, (object) ['centreid' => $us->id, 'grade' => 'Grade 1', 'age' => 7, 'forecast' => 0]);
+        grades::reset();
+        $this->assertSame(7, grades::age('Grade 1', $us));
+        $this->assertContains('kindergarten', grades::words());
         $this->assertSame('2024-25', recognise::schoolyear('Correos alumnos nuevos 2024 2025'));
         $this->assertSame('2025-26', recognise::schoolyear('Correos de alumnos nuevos 25／26'));
         $this->assertNull(recognise::schoolyear('Puertas abiertas 2024'));

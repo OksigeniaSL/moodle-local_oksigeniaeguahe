@@ -1,0 +1,267 @@
+{
+ "about": "School systems Eguahe recognises in the names of courses, as data: each with the countries that use it and its stages. A stage has the words that name it (lower case, without accents), the age turned in the calendar year its first course starts, how many courses it has (max), the usual name of a course ({n}, its number; {age}, its age), and, optionally, words that must also be in the name (with) or a single course without a number (fixed). A centre chooses its system in its settings; the age it writes for a course always wins. Only the system of Spain has been used with real data; the ages of the others are to be checked with each first centre. A number before a word of years («1 año», «3 years») is an age; a course says its number with its ordinal or after its word («1.º ano», «Year 1»).",
+ "generic": {
+  "years": [
+   "anos",
+   "ano",
+   "ano de idade",
+   "years",
+   "year",
+   "year old",
+   "years old",
+   "yrs"
+  ],
+  "months": [
+   "meses",
+   "months",
+   "mois"
+  ],
+  "ordinals": [
+   "o",
+   "a",
+   "st",
+   "nd",
+   "rd",
+   "th"
+  ],
+  "joins": [
+   "de",
+   "do",
+   "da",
+   "of"
+  ],
+  "courses": [
+   "guarderia",
+   "escuela infantil",
+   "nursery",
+   "preschool",
+   "daycare",
+   "creche",
+   "secundaria",
+   "secondary",
+   "primary"
+  ]
+ },
+ "systems": {
+  "es": {
+   "countries": [
+    "ES"
+   ],
+   "stages": [
+    {
+     "words": [
+      "inf",
+      "infantil",
+      "educacion infantil",
+      "ei"
+     ],
+     "age": 3,
+     "max": 3,
+     "usual": "Infantil {age} años"
+    },
+    {
+     "words": [
+      "pri",
+      "prim",
+      "primaria",
+      "educacion primaria",
+      "ep"
+     ],
+     "age": 6,
+     "max": 6,
+     "usual": "{n}.º de Primaria"
+    },
+    {
+     "words": [
+      "eso",
+      "secundaria",
+      "educacion secundaria"
+     ],
+     "age": 12,
+     "max": 4,
+     "usual": "{n}.º de ESO"
+    },
+    {
+     "words": [
+      "bac",
+      "bach",
+      "bachiller",
+      "bachillerato"
+     ],
+     "age": 16,
+     "max": 2,
+     "usual": "{n}.º de Bachillerato"
+    }
+   ]
+  },
+  "pt": {
+   "countries": [
+    "PT"
+   ],
+   "stages": [
+    {
+     "words": [
+      "pre escolar",
+      "jardim de infancia"
+     ],
+     "age": 3,
+     "max": 3,
+     "usual": "Pré-escolar {age} anos"
+    },
+    {
+     "words": [
+      "ano"
+     ],
+     "age": 6,
+     "max": 12,
+     "usual": "{n}.º ano"
+    }
+   ]
+  },
+  "br": {
+   "countries": [
+    "BR"
+   ],
+   "stages": [
+    {
+     "words": [
+      "serie"
+     ],
+     "age": 15,
+     "max": 3,
+     "usual": "{n}ª série do Ensino Médio"
+    },
+    {
+     "words": [
+      "ano"
+     ],
+     "with": [
+      "medio",
+      "em"
+     ],
+     "age": 15,
+     "max": 3,
+     "usual": "{n}ª série do Ensino Médio"
+    },
+    {
+     "words": [
+      "ano",
+      "ensino fundamental",
+      "fundamental",
+      "ef"
+     ],
+     "age": 6,
+     "max": 9,
+     "usual": "{n}º ano do Ensino Fundamental"
+    },
+    {
+     "words": [
+      "pre escola",
+      "educacao infantil"
+     ],
+     "age": 4,
+     "max": 2,
+     "usual": "Pré-escola {age} anos"
+    }
+   ]
+  },
+  "us": {
+   "countries": [
+    "US"
+   ],
+   "stages": [
+    {
+     "words": [
+      "pre k",
+      "prek",
+      "pre kindergarten"
+     ],
+     "age": 4,
+     "fixed": true,
+     "usual": "Pre-K"
+    },
+    {
+     "words": [
+      "kindergarten",
+      "kinder"
+     ],
+     "age": 5,
+     "fixed": true,
+     "usual": "Kindergarten"
+    },
+    {
+     "words": [
+      "grade",
+      "gr"
+     ],
+     "age": 6,
+     "max": 12,
+     "usual": "Grade {n}"
+    }
+   ]
+  },
+  "gb": {
+   "countries": [
+    "GB"
+   ],
+   "stages": [
+    {
+     "words": [
+      "nursery"
+     ],
+     "age": 3,
+     "fixed": true,
+     "usual": "Nursery"
+    },
+    {
+     "words": [
+      "reception"
+     ],
+     "age": 4,
+     "fixed": true,
+     "usual": "Reception"
+    },
+    {
+     "words": [
+      "year",
+      "yr",
+      "y"
+     ],
+     "age": 5,
+     "max": 13,
+     "usual": "Year {n}"
+    }
+   ]
+  },
+  "au": {
+   "countries": [
+    "AU"
+   ],
+   "stages": [
+    {
+     "words": [
+      "foundation",
+      "prep",
+      "kindergarten",
+      "reception",
+      "pre primary",
+      "transition"
+     ],
+     "age": 5,
+     "fixed": true,
+     "usual": "Foundation"
+    },
+    {
+     "words": [
+      "year",
+      "yr",
+      "y"
+     ],
+     "age": 6,
+     "max": 12,
+     "usual": "Year {n}"
+    }
+   ]
+  }
+ }
+}

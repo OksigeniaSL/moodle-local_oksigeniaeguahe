@@ -95,7 +95,9 @@ class panel_centre {
             'darkvars' => $style(publicpage::centre_vars($colour, true)),
             'colourguard' => self::guard($colour),
             'lang' => $lang,
-            'country' => (string) $centre->country,
+            'countries' => self::countries((string) $centre->country),
+            'currencies' => self::currencies($centre),
+            'systems' => self::systems($centre),
             'address' => (string) $centre->address,
             'phone' => (string) $centre->phone,
             'email' => (string) $centre->email,
@@ -111,7 +113,7 @@ class panel_centre {
             'logo' => $logo ? $logo->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
-            'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c)),
+            'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c), '', $centre),
             'hosts' => self::hosts($centre),
             'handover' => self::handovers($centre, (int) ($centre->handover ?? 0), 'panel_handover_place_option'),
             'handoverplace' => (string) ($centre->handoverplace ?? ''),
@@ -218,7 +220,7 @@ class panel_centre {
                 'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
                     (int) $offer->places,
                     $enrolled,
-                    object: panel::hanging_object((string) $offer->name)
+                    object: panel::hanging_object((string) $offer->name, $centre)
                 ) : ''];
         }
         $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',
@@ -336,7 +338,8 @@ class panel_centre {
         $c = self::C;
         $skin = get_string('skin_' . panel::proposed_skin($centreid), $c);
         $offers = centres::offers($centreid, true);
-        $ages = array_filter(array_map(fn($o) => grades::age((string) $o->name), $offers), fn($a) => $a !== null);
+        $centre = centres::get($centreid);
+        $ages = array_filter(array_map(fn($o) => grades::age((string) $o->name, $centre), $offers), fn($a) => $a !== null);
         if (!$offers) {
             return get_string('panel_skin_proposal_nooffer', $c, $skin);
         }
@@ -366,6 +369,8 @@ class panel_centre {
             'name' => $name !== '' ? $name : $centre->name,
             'lang' => optional_param('lang', $centre->lang, PARAM_ALPHAEXT),
             'country' => optional_param('country', '', PARAM_ALPHA),
+            'currency' => optional_param('currency', '', PARAM_ALPHA),
+            'system' => optional_param('system', '', PARAM_ALPHANUMEXT),
             'colour' => $colour,
             'address' => optional_param('address', '', PARAM_TEXT),
             'phone' => optional_param('phone', '', PARAM_TEXT),
@@ -528,5 +533,57 @@ class panel_centre {
         $fs->create_file_from_pathname(['contextid' => $context->id, 'component' => self::C, 'filearea' => $area,
             'itemid' => $itemid, 'filepath' => '/', 'filename' => $filename], $path);
         return true;
+    }
+
+    /**
+     * Every country, as Moodle names them in the language of whoever looks: none is written in the code.
+     *
+     * @param string $current ISO 3166-1 alpha-2, or ''.
+     * @return array value, name, selected; first, none.
+     */
+    protected static function countries(string $current): array {
+        $out = [['value' => '', 'name' => '—', 'selected' => $current === '']];
+        foreach (get_string_manager()->get_list_of_countries() as $code => $name) {
+            $out[] = ['value' => $code, 'name' => $name, 'selected' => $code === $current];
+        }
+        return $out;
+    }
+
+    /**
+     * Every currency, as Moodle names them; first, the one of the country of the centre, which goes when none is chosen.
+     *
+     * @param \stdClass $centre
+     * @return array value, name, selected.
+     */
+    protected static function currencies(\stdClass $centre): array {
+        $names = get_string_manager()->get_list_of_currencies();
+        $own = centres::currency((object) ['country' => $centre->country]);
+        $out = [['value' => '', 'name' => $own !== '' ? get_string('centre_currency_country', self::C, $names[$own] ?? $own) :
+            get_string('centre_currency_none', self::C), 'selected' => empty($centre->currency)]];
+        foreach ($names as $code => $name) {
+            $out[] = ['value' => $code, 'name' => $name . ' (' . $code . ')', 'selected' => $code === $centre->currency];
+        }
+        return $out;
+    }
+
+    /**
+     * The school systems Eguahe knows, each named by its countries; first, the one of the country of the centre.
+     *
+     * @param \stdClass $centre
+     * @return array value, name, selected.
+     */
+    protected static function systems(\stdClass $centre): array {
+        $countries = get_string_manager()->get_list_of_countries();
+        $name = fn(array $system) => implode(', ', array_map(fn($c) => $countries[$c] ?? $c, $system['countries'] ?? []));
+        $systems = grades::data()['systems'] ?? [];
+        $own = grades::system((object) ['country' => $centre->country]);
+        $current = (string) ($centre->system ?? '');
+        $out = [['value' => '', 'name' => $own !== '' ? get_string('centre_system_country', self::C, $name($systems[$own])) :
+            get_string('centre_system_none', self::C), 'selected' => $current === '']];
+        foreach ($systems as $key => $system) {
+            $out[] = ['value' => $key, 'name' => $name($system), 'selected' => $current === $key];
+        }
+        $out[] = ['value' => 'none', 'name' => get_string('centre_system_none', self::C), 'selected' => $current === 'none'];
+        return $out;
     }
 }

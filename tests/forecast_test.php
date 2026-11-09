@@ -20,6 +20,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\forecast;
 use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\opendata;
+use local_oksigeniaeguahe\local\opendata_sources\istac;
 
 /**
  * The forecast: reading the open data, the age of each course, the share of the area, the ranges ahead and the reach
@@ -57,7 +58,7 @@ final class forecast_test extends \advanced_testcase {
      * The observations come in the order of the dimensions, the last one changing fastest.
      */
     public function test_istac_rows(): void {
-        $rows = opendata::istac_rows($this->answer(['TIME_PERIOD' => ['2023', '2024'], 'TERRITORIO' => ['35001', '35002'],
+        $rows = istac::parse($this->answer(['TIME_PERIOD' => ['2023', '2024'], 'TERRITORIO' => ['35001', '35002'],
             'SEXO' => ['_T']], [10, 20, 30, '']));
         $this->assertSame(
             ['TIME_PERIOD' => '2023', 'TERRITORIO' => '35002', 'SEXO' => '_T', 'value' => 20],
@@ -65,8 +66,12 @@ final class forecast_test extends \advanced_testcase {
         );
         $this->assertSame('2024', $rows[2]['TIME_PERIOD']);
         $this->assertNull($rows[3]['value']);
-        $this->assertTrue(opendata::istac_covers('38001'));
-        $this->assertFalse(opendata::istac_covers('28065'));
+        $this->assertTrue((new istac())->covers('38001'));
+        $this->assertFalse((new istac())->covers('28065'));
+        // The sources are found by themselves; none is written in the code that uses them.
+        $this->assertArrayHasKey('istac', opendata::sources());
+        $this->assertSame(['istac'], array_keys(opendata::covering(['38001', '28065'])));
+        $this->assertSame([], opendata::covering(['28065', '3550308']), 'Madrid or São Paulo: the CSV of the centre.');
     }
 
     /**
@@ -103,8 +108,8 @@ final class forecast_test extends \advanced_testcase {
             $ages[] = 50;
         }
         opendata::$testanswers = [
-            opendata::ISTAC_BIRTHS => $this->answer(['TIME_PERIOD' => $years, 'TERRITORIO' => ['35001', '35002']], $births),
-            opendata::ISTAC_AGES => $this->answer(
+            istac::BIRTHS => $this->answer(['TIME_PERIOD' => $years, 'TERRITORIO' => ['35001', '35002']], $births),
+            istac::AGES => $this->answer(
                 ['TERRITORIO' => ['35001', '35002'],
                 'EDAD' => array_map(fn($a) => 'Y' . $a, range(0, opendata::MAXAGE))],
                 array_merge(...array_map(
@@ -115,7 +120,7 @@ final class forecast_test extends \advanced_testcase {
             ),
         ];
         try {
-            $this->assertGreaterThan(0, opendata::fetch_istac($centreid, forecast::zone($centre)));
+            $this->assertGreaterThan(0, opendata::fetch($centreid, forecast::zone($centre)));
         } finally {
             opendata::$testanswers = null;
         }

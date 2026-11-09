@@ -103,7 +103,7 @@ class story {
             return (bool) $offer->story;
         }
         $age = $DB->get_field(forecast::AGES, 'age', ['centreid' => $centreid, 'grade' => $offer->name]);
-        $age = $age !== false ? (int) $age : grades::age((string) $offer->name);
+        $age = $age !== false ? (int) $age : grades::age((string) $offer->name, centres::get($centreid));
         return $age !== null && $age <= self::AGE;
     }
 

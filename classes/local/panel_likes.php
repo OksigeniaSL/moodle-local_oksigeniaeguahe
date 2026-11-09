@@ -539,7 +539,7 @@ class panel_likes {
         $top = max(array_merge([1], array_values($asked)));
         $rows = [];
         foreach ($asked as $name => $n) {
-            $age = isset($ages[$name]) ? (int) $ages[$name] : grades::age((string) $name);
+            $age = isset($ages[$name]) ? (int) $ages[$name] : grades::age((string) $name, $centre);
             $label = format_string($name);
             $a = (object) ['name' => $label, 'age' => $age, 'n' => $n];
             $rows[] = ['name' => $label, 'age' => $age !== null ? get_string('panel_likes_age', $c, $age) : false, 'asked' => $n,

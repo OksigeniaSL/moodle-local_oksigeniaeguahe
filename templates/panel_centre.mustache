@@ -33,7 +33,9 @@
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
         "action": "#", "sesskey": "abc", "index": [{"key": "aspecto", "name": "Cómo lo ven las familias"}],
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
-        "lang": [{"value": "es", "name": "Español", "selected": true}], "country": "ES", "address": "", "phone": "", "email": "",
+        "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
+        "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
+        "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "", "phone": "", "email": "",
         "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
@@ -81,7 +83,9 @@
                 <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
                 <div class="rejilla-2">
                     <div class="campo"><label for="c-dir">{{#str}}centre_address, local_oksigeniaeguahe{{/str}}</label><input id="c-dir" name="address" value="{{address}}"></div>
-                    <div class="campo"><label for="c-pais">{{#str}}centre_country, local_oksigeniaeguahe{{/str}}</label><input id="c-pais" name="country" value="{{country}}" maxlength="2" autocapitalize="characters"></div>
+                    <div class="campo"><label for="c-pais">{{#str}}centre_country, local_oksigeniaeguahe{{/str}}</label><select id="c-pais" name="country">{{#countries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/countries}}</select></div>
+                    <div class="campo"><label for="c-moneda">{{#str}}centre_currency, local_oksigeniaeguahe{{/str}}</label><select id="c-moneda" name="currency">{{#currencies}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/currencies}}</select></div>
+                    <div class="campo"><label for="c-sistema">{{#str}}centre_system, local_oksigeniaeguahe{{/str}}</label><select id="c-sistema" name="system" aria-describedby="c-sistema-a">{{#systems}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/systems}}</select><span class="ayuda" id="c-sistema-a">{{#str}}centre_system_help, local_oksigeniaeguahe{{/str}}</span></div>
                     <div class="campo"><label for="c-tel">{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}</label><input id="c-tel" type="tel" name="phone" value="{{phone}}" dir="ltr"></div>
                     <div class="campo"><label for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input id="c-correo" type="email" name="email" value="{{email}}" dir="ltr"></div>
                 </div>

@@ -479,7 +479,8 @@ class entries {
      */
     public static function offer(int $centreid, string $value): int {
         $want = grades::plain($value);
-        $age = grades::age($value);
+        $centre = centres::get($centreid);
+        $age = grades::age($value, $centre);
         $found = [];
         $sameage = [];
         // Latest school year first.
@@ -488,7 +489,7 @@ class entries {
             if ($name === $want) {
                 return (int) $offer->id;
             }
-            if ($age !== null && grades::age((string) $offer->name) === $age) {
+            if ($age !== null && grades::age((string) $offer->name, $centre) === $age) {
                 $sameage[(string) $offer->schoolyear][] = (int) $offer->id;
             }
             if ($name !== '' && (strpos($want, $name) !== false || strpos($name, $want) !== false)) {

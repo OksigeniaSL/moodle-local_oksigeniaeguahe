@@ -49,9 +49,10 @@ class vestibulo {
      * @param array $children With offer (or offerid and the offers given).
      * @param array $offers Offer id => offer, when the children do not carry theirs.
      * @param string $token The private link of the family, to give the drawing of each on its page; '' for none.
+     * @param \stdClass|null $centre Its school system, for the age of each course.
      * @return array
      */
-    public static function children(array $children, array $offers = [], string $token = ''): array {
+    public static function children(array $children, array $offers = [], string $token = '', ?\stdClass $centre = null): array {
         $out = [];
         $byoffer = [];
         foreach ($children as $child) {
@@ -64,7 +65,7 @@ class vestibulo {
             $row = [
                 'tag' => $tag !== '' ? $tag : (string) $child->firstname,
                 'course' => $course,
-                'age' => $course !== '' ? grades::age($course) : null,
+                'age' => $course !== '' ? grades::age($course, $centre) : null,
                 'sibling_same_course' => (int) $child->offerid > 0 && $byoffer[(int) $child->offerid] > 1,
             ];
             if ($token !== '') {
@@ -111,7 +112,7 @@ class vestibulo {
     public static function hall(\stdClass $centre, array $waiting, int $now): array {
         $families = [];
         foreach ($waiting as $household) {
-            $families[] = ['children' => array_slice(self::children($household->children), 0, 4),
+            $families[] = ['children' => array_slice(self::children($household->children, [], '', $centre), 0, 4),
                 'day' => self::day((int) $household->waitingsince)];
         }
         return self::common($centre, $now) + ['kind' => 'bandeja', 'families' => $families,
@@ -131,7 +132,7 @@ class vestibulo {
      * @return array
      */
     public static function family(\stdClass $centre, \stdClass $full, bool $hung, int $now, string $token, string $lang): array {
-        $children = self::children(array_values($full->children), centres::offers((int) $centre->id), $token);
+        $children = self::children(array_values($full->children), centres::offers((int) $centre->id), $token, $centre);
         return self::common($centre, $now, $lang) + ['kind' => 'familia', 'hung' => $hung,
             'children' => array_slice($children, 0, 4)];
     }
@@ -144,11 +145,12 @@ class vestibulo {
      * @param int $taken
      * @param int $waiting
      * @param string $course
+     * @param \stdClass|null $centre Its school system, for the age of the course.
      * @return string
      */
-    public static function ropero(int $places, int $taken, int $waiting, string $course): string {
+    public static function ropero(int $places, int $taken, int $waiting, string $course, ?\stdClass $centre = null): string {
         return json_encode(['places' => $places, 'enrolled' => min($places, $taken), 'waiting' => $waiting,
-            'age' => grades::age($course)]);
+            'age' => grades::age($course, $centre)]);
     }
 
     /**

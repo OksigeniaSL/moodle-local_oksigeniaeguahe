@@ -47,7 +47,7 @@
         "channels": {"voices": [{"key": "first", "name": "Primer contacto", "def": "", "url": "#", "current": true}], "def": "", "rest": "", "foot": "", "declared": false,
             "hasenrolled": true, "ancha": false,
             "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "en": 8, "ev": 0.2353, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": ""}],
-            "spend": [{"key": "cartel", "name": "Cartel", "value": "85,00"}], "canspend": true},
+            "spend": [{"key": "cartel", "name": "Cartel", "value": "85,00"}], "canspend": true, "currency": "€"},
         "weeks": {"views": [{"name": "Llegadas", "url": "#", "current": true}], "compare": true, "grid": [{"p": 100, "label": 0}],
             "xticks": [{"p": 0, "label": "Semana 1", "start": true, "end": false}], "events": [{"p": 27, "label": "Jornada", "ahead": false}],
             "now": "M0 90 L9 80", "before": "M0 95 L9 85", "end": {"left": 9, "top": 80, "label": "19 esta campaña", "flip": false},
@@ -138,7 +138,7 @@
             <details class="tabla-gemela gasto"><summary>{{#str}}panel_what_it_cost, local_oksigeniaeguahe{{/str}}</summary>
                 <form method="post" action="{{spendaction}}" class="gasto-form">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="spend">
-                    {{#spend}}<div class="campo"><label for="gasto-{{key}}">{{name}} <span class="opcional">€</span></label><input id="gasto-{{key}}" name="amount[{{key}}]" value="{{value}}" inputmode="decimal"></div>{{/spend}}
+                    {{#spend}}<div class="campo"><label for="gasto-{{key}}">{{name}}{{#currency}} <span class="opcional">{{currency}}</span>{{/currency}}</label><input id="gasto-{{key}}" name="amount[{{key}}]" value="{{value}}" inputmode="decimal"></div>{{/spend}}
                     <button class="boton secundario pequeno" type="submit">{{#str}}savechanges{{/str}}</button>
                 </form>
             </details>

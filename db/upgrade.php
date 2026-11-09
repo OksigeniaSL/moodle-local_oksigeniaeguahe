@@ -856,5 +856,19 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026112800, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113000) {
+        // The currency and the school system of the centre: nothing in the code says euros nor names its courses.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('currency', XMLDB_TYPE_CHAR, '3', null, null, null, null, 'country');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('system', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'currency');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026113000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -197,7 +197,8 @@ class panel {
         if (!$offers) {
             return 'mostrador';
         }
-        $ages = array_filter(array_map(fn($o) => grades::age((string) $o->name), $offers), fn($a) => $a !== null);
+        $centre = centres::get($centreid);
+        $ages = array_filter(array_map(fn($o) => grades::age((string) $o->name, $centre), $offers), fn($a) => $a !== null);
         if (!$ages) {
             // Courses that are not school years (languages, degrees, trades): older students.
             return 'cinematico';
@@ -757,13 +758,17 @@ class panel {
      * for courses that are not school years (languages, degrees, trades). A child without a course yet, the backpack.
      *
      * @param string $course The name of the course, as the centre writes it.
+     * @param \stdClass|null $centre Its school system, and its skin: the cinematic one always hangs a luggage tag.
      * @return string mochila, llavero or equipaje.
      */
-    public static function hanging_object(string $course): string {
+    public static function hanging_object(string $course, ?\stdClass $centre = null): string {
+        if ($centre && self::skin($centre) === 'cinematico') {
+            return 'equipaje';
+        }
         if (trim($course) === '') {
             return 'mochila';
         }
-        $age = grades::age($course);
+        $age = grades::age($course, $centre);
         if ($age === null || $age >= 12) {
             return 'equipaje';
         }
@@ -777,9 +782,10 @@ class panel {
      * @param int $i
      * @param string $name
      * @param string $course
+     * @param \stdClass|null $centre
      * @return array
      */
-    public static function hanging(int $i, string $name, string $course = ''): array {
+    public static function hanging(int $i, string $name, string $course = '', ?\stdClass $centre = null): array {
         $style = '';
         if ($i) {
             $tone = ['#6F5E6E', '#5E7F6A', '#B98256'][($i - 1) % 3];
@@ -787,7 +793,7 @@ class panel {
                 ';--mochila-luz:' . publicpage::mix($tone, '#FFFFFF', 0.6) . ';';
         }
         return ['name' => $name, 'style' => $style . '--reposo:' . ['-3.5', '3', '-2', '4'][$i % 4] . 'deg',
-            'object' => self::hanging_object($course)];
+            'object' => self::hanging_object($course, $centre)];
     }
 
     /**

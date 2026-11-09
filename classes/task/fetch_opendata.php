@@ -42,14 +42,18 @@ class fetch_opendata extends \core\task\scheduled_task {
      * Fetches for each centre that fetched before.
      */
     public function execute() {
+        $sources = opendata::sources();
         foreach (centres::all() as $centre) {
-            if (!isset(opendata::status((int) $centre->id)['istac'])) {
-                continue;
-            }
-            try {
-                opendata::fetch_istac((int) $centre->id, forecast::zone($centre));
-            } catch (\moodle_exception $e) {
-                mtrace('Eguahe: ' . $e->getMessage() . ' (centre ' . $centre->id . ')');
+            // Again from each source the centre fetched from before; an upload of its own stays as it is.
+            foreach (array_keys(opendata::status((int) $centre->id)) as $key) {
+                if (!isset($sources[$key])) {
+                    continue;
+                }
+                try {
+                    opendata::fetch((int) $centre->id, forecast::zone($centre), $key);
+                } catch (\moodle_exception $e) {
+                    mtrace('Eguahe: ' . $e->getMessage() . ' (centre ' . $centre->id . ')');
+                }
             }
         }
     }

@@ -191,8 +191,10 @@ class recognise {
             return 'number';
         }
         if (
-            grades::age($v) !== null || preg_match('/\b(infantil|primaria|eso|bachiller|bachillerato|guarderia|' .
-            'nursery|preschool|secundaria|anos|meses)\b/', grades::plain($v))
+            grades::age($v) !== null || preg_match('/\b(' . implode('|', array_map(
+                fn($w) => preg_quote($w, '/'),
+                grades::words()
+            )) . ')\b/', grades::plain($v))
         ) {
             return 'grade';
         }

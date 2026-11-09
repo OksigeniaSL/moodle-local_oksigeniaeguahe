@@ -42,6 +42,21 @@ final class phone_test extends \basic_testcase {
     }
 
     /**
+     * Any country, from the data: its national prefix and its own international prefix (011 in the United States,
+     * 0011 in Australia, 010 in Japan), never «00» for all.
+     */
+    public function test_any_country(): void {
+        $this->assertSame('+15551234567', phone::normalise('(555) 123-4567', 'US'));
+        $this->assertSame('+15551234567', phone::normalise('1 555 123 4567', 'US'));
+        $this->assertSame('+34600111222', phone::normalise('011 34 600 111 222', 'US'));
+        $this->assertSame('+61412345678', phone::normalise('0412 345 678', 'AU'));
+        $this->assertSame('+34600111222', phone::normalise('0011 34 600 111 222', 'AU'));
+        $this->assertSame('+819012345678', phone::normalise('090-1234-5678', 'JP'));
+        $this->assertSame('+34600111222', phone::normalise('010 34 600 111 222', 'JP'));
+        $this->assertSame('55', phone::region('br')['code']);
+    }
+
+    /**
      * What cannot be told is not guessed.
      */
     public function test_unknown(): void {

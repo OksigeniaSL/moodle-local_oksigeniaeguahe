@@ -499,6 +499,7 @@ class panel_household {
     protected static function children(\stdClass $full, array $offers, bool $canact): array {
         $c = self::C;
         $out = [];
+        $centre = centres::get((int) $full->centreid);
         foreach (array_values($full->children) as $i => $child) {
             $offer = $offers[$child->offerid] ?? null;
             $at = lists::STAGE_STEP[$child->stage] ?? 1;
@@ -523,7 +524,7 @@ class panel_household {
             $drawing = drawings::url((int) $child->id);
             $out[] = [
                 'id' => $child->id,
-                'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : ''),
+                'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : '', $centre),
                 'drawing' => $drawing ? $drawing->out(false) : '',
                 'drawingalt' => get_string('panel_drawing_alt', $c, $tag),
                 'drawingpage' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id]))

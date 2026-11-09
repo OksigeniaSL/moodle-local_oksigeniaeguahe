@@ -72,4 +72,16 @@
             <copyright>2014 The Caveat Project Authors</copyright>
         </copyrights>
     </library>
+    <library>
+        <location>thirdparty/libphonenumber-metadata</location>
+        <name>libphonenumber metadata (calling codes)</name>
+        <description>The calling code, national prefix and international prefix of every region, as data, so phone numbers are read the same in any country.</description>
+        <license>Apache-2.0</license>
+        <version>9.0.43</version>
+        <licenseversion></licenseversion>
+        <repository>https://github.com/google/libphonenumber</repository>
+        <copyrights>
+            <copyright>2009-2026 The Libphonenumber Authors</copyright>
+        </copyrights>
+    </library>
 </libraries>

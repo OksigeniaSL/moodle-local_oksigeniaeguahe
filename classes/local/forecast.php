@@ -43,10 +43,11 @@ class forecast {
      * An age for a course from its usual names (es, pt, en), to start from; the centre corrects it.
      *
      * @param string $grade
+     * @param \stdClass|null $centre Its school system.
      * @return int|null The age turned in the calendar year the school year starts.
      */
-    public static function suggest_age(string $grade): ?int {
-        return grades::age($grade);
+    public static function suggest_age(string $grade, ?\stdClass $centre = null): ?int {
+        return grades::age($grade, $centre);
     }
 
     /**
@@ -69,7 +70,7 @@ class forecast {
         $list = [];
         foreach (array_keys($names) as $grade) {
             $row = $saved[$grade] ?? null;
-            $list[$grade] = ['age' => $row ? (int) $row->age : self::suggest_age((string) $grade),
+            $list[$grade] = ['age' => $row ? (int) $row->age : self::suggest_age((string) $grade, centres::get($centreid)),
                 'forecast' => $row ? (bool) $row->forecast : false, 'saved' => (bool) $row];
         }
         uasort($list, fn($a, $b) => [$a['age'] ?? 99] <=> [$b['age'] ?? 99]);

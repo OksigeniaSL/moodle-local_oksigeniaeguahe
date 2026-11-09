@@ -528,8 +528,8 @@ class panel_metrics {
             $amount = $said ? null : ($spend[$name] ?? null);
             $unnoted += !$said && $amount === null ? 1 : 0;
             $cost = $amount === null ? get_string('panel_cost_none', $c) : ($amount == 0 ? get_string('panel_cost_free', $c) :
-                ($row['enrolled'] ? get_string('panel_cost_per', $c, format_float($amount / $row['enrolled'], 0, true, true)) :
-                get_string('panel_cost_nobody', $c, format_float($amount, 0, true, true))));
+                ($row['enrolled'] ? get_string('panel_cost_per', $c, centres::money($centre, $amount / $row['enrolled'])) :
+                get_string('panel_cost_nobody', $c, centres::money($centre, (float) $amount))));
             $line = $said ? get_string('panel_said_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 ($voice === 'last' ? get_string('panel_last_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 get_string('panel_first_line', $c, (object) ['n' => $row['n'], 'name' => $name, 'enrolled' => $row['enrolled'],
@@ -573,6 +573,7 @@ class panel_metrics {
             'hasenrolled' => !$said && (bool) array_filter(array_column($out, 'en')),
             'spend' => $spendrows,
             'canspend' => (bool) $spendrows,
+            'currency' => centres::currency_symbol($centre),
         ];
     }
 
@@ -917,7 +918,7 @@ class panel_metrics {
                     $rows,
                     get_string('panel_places_rail', $c, (object) ['name' => format_string($offer->name), 'taken' => $taken,
                         'places' => $places, 'sentence' => $sentence]),
-                    panel::hanging_object((string) $offer->name)
+                    panel::hanging_object((string) $offer->name, $centre)
                 ) : '',
                 'bench' => $waiting ? ['n' => $waiting, 'bags' => array_fill(0, min(self::BENCH, $waiting), 1),
                     'text' => get_string($waiting === 1 ? 'panel_bench_one' : 'panel_bench', $c, $waiting)] : false,

@@ -88,6 +88,10 @@ class centres {
         $row->lang = in_array($data->lang ?? '', lists::LANGS, true) ? $data->lang : 'en';
         $country = strtoupper(trim((string) ($data->country ?? '')));
         $row->country = preg_match('/^[A-Z]{2}$/', $country) ? $country : null;
+        $currency = strtoupper(trim((string) ($data->currency ?? '')));
+        $row->currency = preg_match('/^[A-Z]{3}$/', $currency) ? $currency : null;
+        $system = (string) ($data->system ?? '');
+        $row->system = $system === 'none' || isset(grades::data()['systems'][$system]) ? $system : null;
         $colour = strtolower(trim((string) ($data->colour ?? '')));
         $row->colour = preg_match('/^#[0-9a-f]{6}$/', $colour) ? $colour : null;
         foreach (['controller', 'rightscontact', 'dpocontact'] as $field) {
@@ -550,5 +554,78 @@ class centres {
      */
     public static function offer_label(\stdClass $offer): string {
         return format_string($offer->name) . ' · ' . s($offer->schoolyear);
+    }
+
+    /**
+     * The currency of a centre: the one it chose, or else the one of its country as the international data has it
+     * (ICU); empty when neither is known. No currency is written in the code.
+     *
+     * @param \stdClass $centre
+     * @return string ISO 4217, or ''.
+     */
+    public static function currency(\stdClass $centre): string {
+        if (!empty($centre->currency)) {
+            return (string) $centre->currency;
+        }
+        if (empty($centre->country) || !class_exists('\NumberFormatter')) {
+            return '';
+        }
+        try {
+            $code = (new \NumberFormatter('en_' . $centre->country, \NumberFormatter::CURRENCY))->getTextAttribute(
+                \NumberFormatter::CURRENCY_CODE
+            );
+        } catch (\Throwable $e) {
+            return '';
+        }
+        return preg_match('/^[A-Z]{3}$/', (string) $code) && $code !== 'XXX' ? $code : '';
+    }
+
+    /**
+     * An amount of a centre with its currency, as the language of the page writes it: «1.234 €», «A$1,234»; without a
+     * currency, the number alone.
+     *
+     * @param \stdClass $centre
+     * @param float $amount
+     * @param int $decimals
+     * @return string
+     */
+    public static function money(\stdClass $centre, float $amount, int $decimals = 0): string {
+        $currency = self::currency($centre);
+        if ($currency === '' || !class_exists('\NumberFormatter')) {
+            return format_float($amount, $decimals, true, true);
+        }
+        $format = new \NumberFormatter(self::locale($centre), \NumberFormatter::CURRENCY);
+        $format->setAttribute(\NumberFormatter::MIN_FRACTION_DIGITS, $decimals);
+        $format->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, $decimals);
+        return (string) $format->formatCurrency($amount, $currency);
+    }
+
+    /**
+     * The symbol of the currency of a centre in the language of the page («€», «R$», «A$»), or '' without one.
+     *
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function currency_symbol(\stdClass $centre): string {
+        $currency = self::currency($centre);
+        if ($currency === '' || !class_exists('\NumberFormatter')) {
+            return $currency;
+        }
+        $format = new \NumberFormatter(self::locale($centre), \NumberFormatter::CURRENCY);
+        $format->setTextAttribute(\NumberFormatter::CURRENCY_CODE, $currency);
+        return (string) $format->getSymbol(\NumberFormatter::CURRENCY_SYMBOL);
+    }
+
+    /**
+     * The locale of an amount: the language of the page with its own region (pt_br is pt_BR), or else with the country of
+     * the centre (English in Spain is en_ES): nothing written per country.
+     *
+     * @param \stdClass $centre
+     * @return string
+     */
+    protected static function locale(\stdClass $centre): string {
+        $parts = explode('_', current_language());
+        $region = strtoupper($parts[1] ?? (string) ($centre->country ?? ''));
+        return $parts[0] . ($region !== '' ? '_' . $region : '');
     }
 }

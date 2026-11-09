@@ -19,8 +19,10 @@ namespace local_oksigeniaeguahe\local;
 /**
  * Phone numbers as one form (E.164, «+34600111222»), so the same family is found whichever way it typed its number.
  *
- * Without a library of numbering plans: a number with its country code is taken as it is; one without it takes the
- * code of the country of the centre, dropping the trunk zero where that country dials one. When it cannot be told,
+ * The numbering of every country comes from data, not from the code: the calling code, the national (trunk) prefix and
+ * the international prefix of each of the 245 regions of libphonenumber (thirdparty/libphonenumber-metadata). A number
+ * with its country code is taken as it is; one dialled with the international prefix of the country of the centre loses
+ * it; one without either takes the calling code of that country, without its national prefix. When it cannot be told,
  * nothing is guessed.
  *
  * @package    local_oksigeniaeguahe
@@ -28,17 +30,26 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class phone {
-    /** @var array Country => [calling code, whether national numbers start with a trunk 0 that is dropped]. */
-    const COUNTRIES = [
-        'AD' => ['376', false], 'AR' => ['54', true], 'AT' => ['43', true], 'BE' => ['32', true], 'BO' => ['591', true],
-        'BR' => ['55', true], 'CA' => ['1', false], 'CH' => ['41', true], 'CL' => ['56', false], 'CO' => ['57', false],
-        'CR' => ['506', false], 'CU' => ['53', false], 'DE' => ['49', true], 'DO' => ['1', false], 'EC' => ['593', true],
-        'ES' => ['34', false], 'FR' => ['33', true], 'GB' => ['44', true], 'GQ' => ['240', false], 'GT' => ['502', false],
-        'HN' => ['504', false], 'IE' => ['353', true], 'IT' => ['39', false], 'MA' => ['212', true], 'MX' => ['52', false],
-        'NI' => ['505', false], 'NL' => ['31', true], 'PA' => ['507', false], 'PE' => ['51', true], 'PR' => ['1', false],
-        'PT' => ['351', false], 'PY' => ['595', true], 'SV' => ['503', false], 'US' => ['1', false], 'UY' => ['598', true],
-        'VE' => ['58', true],
-    ];
+    /** @var string The numbering of every region, as data. */
+    const DATA = '/local/oksigeniaeguahe/thirdparty/libphonenumber-metadata/callingcodes.json';
+
+    /** @var array|null The regions, read once. */
+    protected static $regions = null;
+
+    /**
+     * The numbering of a region: its calling code, its national prefix and its international prefix (a pattern).
+     *
+     * @param string $country ISO 3166-1 alpha-2.
+     * @return array|null code, national, international; null for a region it does not know.
+     */
+    public static function region(string $country): ?array {
+        global $CFG;
+        if (self::$regions === null) {
+            $data = json_decode((string) file_get_contents($CFG->dirroot . self::DATA), true);
+            self::$regions = $data['regions'] ?? [];
+        }
+        return self::$regions[strtoupper($country)] ?? null;
+    }
 
     /**
      * The number in E.164, or null when it cannot be told.
@@ -54,20 +65,25 @@ class phone {
         }
         $plus = $raw[0] === '+';
         $digits = preg_replace('/\D+/', '', $raw);
-        if (!$plus && strpos($digits, '00') === 0) {
+        $region = $country ? self::region($country) : null;
+        $abroad = $region && $region['international'] !== '' ? '/^(?:' . $region['international'] . ')/' : null;
+        if (!$plus && $abroad && preg_match($abroad, $digits, $m)) {
+            // Dialled from the country of the centre to another: what follows has its own country code.
+            $plus = true;
+            $digits = substr($digits, strlen($m[0]));
+        } else if (!$plus && !$region && strpos($digits, '00') === 0) {
+            // Without a country, the most usual international prefix.
             $plus = true;
             $digits = substr($digits, 2);
         }
         if (!$plus) {
-            $country = strtoupper((string) $country);
-            if (!isset(self::COUNTRIES[$country])) {
+            if (!$region) {
                 return null;
             }
-            [$code, $trunk] = self::COUNTRIES[$country];
-            if ($trunk && strpos($digits, '0') === 0) {
-                $digits = substr($digits, 1);
+            if ($region['national'] !== '' && strpos($digits, $region['national']) === 0) {
+                $digits = substr($digits, strlen($region['national']));
             }
-            $digits = $code . $digits;
+            $digits = $region['code'] . $digits;
         }
         // E.164: up to 15 digits with the country code; nothing real is shorter than 8.
         if (strlen($digits) < 8 || strlen($digits) > 15 || $digits[0] === '0') {

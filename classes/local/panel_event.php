@@ -183,7 +183,7 @@ class panel_event {
                 $wall = [];
                 foreach ($group['signups'] as $i => $signup) {
                     $wall[] = ['came' => $signup['came'], 'name' => $signup['children'][0]['tag'] ?? ''] +
-                        ['style' => panel::hanging($i, '')['style']];
+                        ['style' => panel::hanging($i, '', '', $centre)['style']];
                 }
                 $nowturn = $wall ? ['wall' => $wall] : null;
             }

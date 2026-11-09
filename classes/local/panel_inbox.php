@@ -154,7 +154,7 @@ class panel_inbox {
             'filters' => self::filters($centre, $base, $course, $stage),
             'days' => $days,
             'hasrows' => (bool) $days,
-            'emptybag' => panel::hanging(0, ''),
+            'emptybag' => panel::hanging(0, '', '', $centre),
             'emptytitle' => get_string($fresh ? 'panel_inbox_fresh_empty' : 'panel_inbox_upto', $c),
             'emptytext' => get_string($fresh ? 'panel_inbox_fresh_text' : 'panel_inbox_upto_text', $c),
             'newevent' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centreid, 'new' => 1]))->out(false),
@@ -238,7 +238,12 @@ class panel_inbox {
             'latest' => $household ? ['id' => (int) $household->id, 'adults' => panel::adults_line($household->adults),
                 'listurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false),
                 // For the living hall: what of theirs comes in through the door.
-                'children' => vestibulo::children(array_values($household->children), centres::offers($centreid))] : null,
+                'children' => vestibulo::children(
+                    array_values($household->children),
+                    centres::offers($centreid),
+                    '',
+                    $centre
+                )] : null,
         ];
     }
 
@@ -620,13 +625,18 @@ class panel_inbox {
                 'name' => format_string($offer->name),
                 'free' => max(0, $total - $enrolled),
                 'total' => $total,
-                'rail' => $total > 0 ? panel::rail($total, $enrolled, object: panel::hanging_object((string) $offer->name)) :
+                'rail' => $total > 0 ? panel::rail(
+                    $total,
+                    $enrolled,
+                    object: panel::hanging_object((string) $offer->name, $centre)
+                ) :
                     '',
                 'ropero' => $total > 0 ? vestibulo::ropero(
                     $total,
                     $enrolled,
                     (int) ($bystage['waitlist'] ?? 0),
-                    (string) $offer->name
+                    (string) $offer->name,
+                    $centre
                 ) : false,
                 'interested' => array_sum($bystage) - ($bystage['closed'] ?? 0) - $enrolled,
                 'visited' => ($bystage['visit'] ?? 0) + ($bystage['application'] ?? 0) + ($bystage['admitted'] ?? 0) +

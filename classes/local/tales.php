@@ -76,7 +76,7 @@ class tales {
         if ($slug === '' || !self::available()) {
             return null;
         }
-        $age = $course !== '' ? grades::age($course) : null;
+        $age = $course !== '' ? grades::age($course, $centre) : null;
         if ($age !== null && $age > self::MAXAGE) {
             return null;
         }

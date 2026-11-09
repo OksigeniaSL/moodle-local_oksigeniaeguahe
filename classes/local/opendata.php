@@ -19,9 +19,9 @@ namespace local_oksigeniaeguahe\local;
 /**
  * Open data of the area of a centre, always aggregate: births by municipality and year, and children by age.
  *
- * One source per region, with the finest step first. The Canary Institute of Statistics (ISTAC) gives both by
- * municipality, without a key, for commercial use with its citation. Anywhere else, the centre can upload the same
- * numbers as a CSV (imports.php, «population»). What is fetched is kept; the pages only read what is kept.
+ * No country is written here: the sources are the classes of local\opendata_sources, each saying which official codes
+ * it covers (the ISTAC is one of them). Anywhere none covers, the centre uploads the same numbers as a CSV
+ * (imports.php, «population»). What is fetched is kept with its source; the pages only read what is kept.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -31,143 +31,72 @@ class opendata {
     /** @var string */
     const T = 'local_oksigeniaeguahe_population';
 
-    /** @var string The API of the ISTAC. */
-    const ISTAC = 'https://datos.canarias.es/api/estadisticas/statistical-resources/v1.0/datasets/ISTAC/';
-
-    /** @var string Births by municipality of residence of the mother and year (1999 onwards). */
-    const ISTAC_BIRTHS = 'E30304A_000002';
-
-    /** @var string People by single age, municipality and singular entity, on 1 January 2025. */
-    const ISTAC_AGES = 'E30243A_000023';
-
-    /** @var int The year on whose 1 January ISTAC_AGES counts. */
-    const ISTAC_AGES_YEAR = 2025;
-
     /** @var int Ages fetched: from birth to the end of school. */
     const MAXAGE = 18;
 
-    /** @var array|null Answers of the API in the tests: dataset => decoded JSON. */
+    /** @var array|null Answers of the APIs in the tests: dataset => decoded JSON. */
     public static $testanswers = null;
 
     /**
-     * Whether a municipality has its numbers at the ISTAC: the codes of Las Palmas (35) and Santa Cruz de Tenerife (38).
+     * Every source Eguahe has, found in its namespace.
      *
-     * @param string $code
-     * @return bool
+     * @return opendata_sources\source[] Key => source.
      */
-    public static function istac_covers(string $code): bool {
-        return (bool) preg_match('/^(35|38)\d{3}$/', $code);
+    public static function sources(): array {
+        $out = [];
+        $classes = \core_component::get_component_classes_in_namespace('local_oksigeniaeguahe', 'local\\opendata_sources');
+        foreach (array_keys($classes) as $class) {
+            if (is_subclass_of($class, opendata_sources\source::class) && !(new \ReflectionClass($class))->isAbstract()) {
+                $source = new $class();
+                $out[$source->key()] = $source;
+            }
+        }
+        ksort($out);
+        return $out;
     }
 
     /**
-     * The observations of an answer of the ISTAC, each with the codes of its dimensions.
+     * The sources that cover some municipality of an area, each with the codes it covers.
      *
-     * @param array $answer The decoded JSON.
-     * @return array Rows: [dimension id => code, ..., 'value' => int|null].
+     * @param string[] $codes Official codes of the area.
+     * @return array Key => [source, codes].
      */
-    public static function istac_rows(array $answer): array {
-        $dimensions = [];
-        foreach ($answer['data']['dimensions']['dimension'] ?? [] as $dimension) {
-            $codes = [];
-            foreach ($dimension['representations']['representation'] ?? [] as $r) {
-                $codes[(int) $r['index']] = (string) $r['code'];
+    public static function covering(array $codes): array {
+        $out = [];
+        foreach (self::sources() as $key => $source) {
+            $mine = array_values(array_unique(array_filter($codes, fn($c) => $source->covers((string) $c))));
+            if ($mine) {
+                $out[$key] = [$source, $mine];
             }
-            ksort($codes);
-            $dimensions[] = [(string) $dimension['dimensionId'], array_values($codes)];
         }
-        $values = explode('|', (string) ($answer['data']['observations'] ?? ''));
-        $rows = [];
-        foreach ($values as $i => $value) {
-            $codes = [];
-            // The observations go in the order of the dimensions, the last one changing fastest.
-            $rest = $i;
-            for ($d = count($dimensions) - 1; $d >= 0; $d--) {
-                $size = max(1, count($dimensions[$d][1]));
-                $codes[$d] = $dimensions[$d][1][$rest % $size] ?? '';
-                $rest = intdiv($rest, $size);
-            }
-            $row = [];
-            foreach ($dimensions as $d => [$id]) {
-                $row[$id] = $codes[$d];
-            }
-            $value = trim($value);
-            $row['value'] = $value === '' || !is_numeric($value) ? null : (int) round((float) $value);
-            $rows[] = $row;
-        }
-        return $rows;
+        return $out;
     }
 
     /**
-     * Asks the ISTAC for some observations of a dataset.
-     *
-     * @param string $dataset
-     * @param array $dims Dimension => codes.
-     * @return array The decoded answer.
-     */
-    protected static function istac_get(string $dataset, array $dims): array {
-        global $CFG;
-        if (self::$testanswers !== null) {
-            return self::$testanswers[$dataset] ?? [];
-        }
-        $parts = [];
-        foreach ($dims as $dim => $codes) {
-            $parts[] = $dim . ':' . implode('|', $codes);
-        }
-        $url = self::ISTAC . $dataset . '/~latest?lang=es&fields=-metadata&dim=' . rawurlencode(implode(':', $parts));
-        require_once($CFG->libdir . '/filelib.php');
-        $curl = new \curl(['ignoresecurity' => false]);
-        $curl->setHeader(['Accept: application/json']);
-        $body = $curl->get($url, [], ['CURLOPT_TIMEOUT' => 30, 'CURLOPT_CONNECTTIMEOUT' => 10]);
-        $info = $curl->get_info();
-        if ($curl->get_errno() || (int) ($info['http_code'] ?? 0) !== 200) {
-            throw new \moodle_exception('opendata_failed', 'local_oksigeniaeguahe', '', 'ISTAC ' . $dataset);
-        }
-        return json_decode((string) $body, true) ?: [];
-    }
-
-    /**
-     * Fetches from the ISTAC the births and the children by age of the municipalities of the area it covers, and keeps
-     * them in place of what was kept from it before.
+     * Fetches from every source that covers the area its numbers, and keeps them in place of what was kept from it.
      *
      * @param int $centreid
      * @param string[] $codes Official codes of the area.
-     * @return int Numbers kept; 0 when no municipality of the area is covered.
+     * @param string|null $only One source, or all that cover the area.
+     * @return int Numbers kept; 0 when no source covers the area.
      */
-    public static function fetch_istac(int $centreid, array $codes): int {
+    public static function fetch(int $centreid, array $codes, ?string $only = null): int {
         global $DB;
-        $codes = array_values(array_unique(array_filter($codes, [self::class, 'istac_covers'])));
-        if (!$codes) {
-            return 0;
-        }
-        $years = range((int) date('Y') - 12, (int) date('Y'));
-        $births = self::istac_rows(self::istac_get(self::ISTAC_BIRTHS, ['TERRITORIO' => $codes, 'SEXO' => ['_T'],
-            'TIME_PERIOD' => array_map('strval', $years)]));
-        $ages = self::istac_rows(self::istac_get(self::ISTAC_AGES, ['TERRITORIO' => $codes, 'SEXO' => ['_T'],
-            'EDAD' => array_map(fn($a) => 'Y' . $a, range(0, self::MAXAGE))]));
-        $now = time();
-        $records = [];
-        foreach ($births as $row) {
-            if ($row['value'] !== null && in_array($row['TERRITORIO'] ?? '', $codes, true)) {
-                $records[] = (object) ['centreid' => $centreid, 'source' => 'istac', 'kind' => 'births',
-                    'municipality' => $row['TERRITORIO'], 'year' => (int) $row['TIME_PERIOD'], 'age' => -1,
-                    'people' => $row['value'], 'timefetched' => $now];
+        $kept = 0;
+        foreach (self::covering($codes) as $key => [$source, $mine]) {
+            if ($only !== null && $key !== $only) {
+                continue;
             }
+            $now = time();
+            $records = array_map(fn($row) => (object) ($row + ['centreid' => $centreid, 'source' => $key,
+                'timefetched' => $now]), $source->rows($mine, self::MAXAGE));
+            $transaction = $DB->start_delegated_transaction();
+            $DB->delete_records(self::T, ['centreid' => $centreid, 'source' => $key]);
+            $DB->insert_records(self::T, $records);
+            $transaction->allow_commit();
+            $kept += count($records);
         }
-        foreach ($ages as $row) {
-            if (
-                $row['value'] !== null && in_array($row['TERRITORIO'] ?? '', $codes, true) &&
-                    preg_match('/^Y(\d+)$/', (string) ($row['EDAD'] ?? ''), $m)
-            ) {
-                $records[] = (object) ['centreid' => $centreid, 'source' => 'istac', 'kind' => 'age',
-                    'municipality' => $row['TERRITORIO'], 'year' => self::ISTAC_AGES_YEAR, 'age' => (int) $m[1],
-                    'people' => $row['value'], 'timefetched' => $now];
-            }
-        }
-        $transaction = $DB->start_delegated_transaction();
-        $DB->delete_records(self::T, ['centreid' => $centreid, 'source' => 'istac']);
-        $DB->insert_records(self::T, $records);
-        $transaction->allow_commit();
-        return count($records);
+        return $kept;
     }
 
     /**

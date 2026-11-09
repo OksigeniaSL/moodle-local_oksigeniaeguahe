@@ -1,0 +1,1230 @@
+{
+ "source": "libphonenumber 9.0.43 (Apache-2.0)",
+ "regions": {
+  "AC": {
+   "code": "247",
+   "national": "",
+   "international": "00"
+  },
+  "AD": {
+   "code": "376",
+   "national": "",
+   "international": "00"
+  },
+  "AE": {
+   "code": "971",
+   "national": "0",
+   "international": "00"
+  },
+  "AF": {
+   "code": "93",
+   "national": "0",
+   "international": "00"
+  },
+  "AG": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "AI": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "AL": {
+   "code": "355",
+   "national": "0",
+   "international": "00"
+  },
+  "AM": {
+   "code": "374",
+   "national": "0",
+   "international": "00"
+  },
+  "AO": {
+   "code": "244",
+   "national": "",
+   "international": "00"
+  },
+  "AR": {
+   "code": "54",
+   "national": "0",
+   "international": "00"
+  },
+  "AS": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "AT": {
+   "code": "43",
+   "national": "0",
+   "international": "00"
+  },
+  "AU": {
+   "code": "61",
+   "national": "0",
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+  },
+  "AW": {
+   "code": "297",
+   "national": "",
+   "international": "00"
+  },
+  "AX": {
+   "code": "358",
+   "national": "0",
+   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))"
+  },
+  "AZ": {
+   "code": "994",
+   "national": "0",
+   "international": "00"
+  },
+  "BA": {
+   "code": "387",
+   "national": "0",
+   "international": "00"
+  },
+  "BB": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "BD": {
+   "code": "880",
+   "national": "0",
+   "international": "00"
+  },
+  "BE": {
+   "code": "32",
+   "national": "0",
+   "international": "00"
+  },
+  "BF": {
+   "code": "226",
+   "national": "",
+   "international": "00"
+  },
+  "BG": {
+   "code": "359",
+   "national": "0",
+   "international": "00"
+  },
+  "BH": {
+   "code": "973",
+   "national": "",
+   "international": "00"
+  },
+  "BI": {
+   "code": "257",
+   "national": "",
+   "international": "00"
+  },
+  "BJ": {
+   "code": "229",
+   "national": "",
+   "international": "00"
+  },
+  "BL": {
+   "code": "590",
+   "national": "0",
+   "international": "00"
+  },
+  "BM": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "BN": {
+   "code": "673",
+   "national": "",
+   "international": "00"
+  },
+  "BO": {
+   "code": "591",
+   "national": "0",
+   "international": "00(?:1\\d)?"
+  },
+  "BQ": {
+   "code": "599",
+   "national": "",
+   "international": "00"
+  },
+  "BR": {
+   "code": "55",
+   "national": "0",
+   "international": "00(?:1[245]|2[1-35]|31|4[13]|[56]5|99)"
+  },
+  "BS": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "BT": {
+   "code": "975",
+   "national": "",
+   "international": "00"
+  },
+  "BW": {
+   "code": "267",
+   "national": "",
+   "international": "00"
+  },
+  "BY": {
+   "code": "375",
+   "national": "8",
+   "international": "810"
+  },
+  "BZ": {
+   "code": "501",
+   "national": "",
+   "international": "00"
+  },
+  "CA": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "CC": {
+   "code": "61",
+   "national": "0",
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+  },
+  "CD": {
+   "code": "243",
+   "national": "0",
+   "international": "00"
+  },
+  "CF": {
+   "code": "236",
+   "national": "",
+   "international": "00"
+  },
+  "CG": {
+   "code": "242",
+   "national": "",
+   "international": "00"
+  },
+  "CH": {
+   "code": "41",
+   "national": "0",
+   "international": "00"
+  },
+  "CI": {
+   "code": "225",
+   "national": "",
+   "international": "00"
+  },
+  "CK": {
+   "code": "682",
+   "national": "",
+   "international": "00"
+  },
+  "CL": {
+   "code": "56",
+   "national": "",
+   "international": "(?:0|1(?:1[0-69]|2[02-5]|5[13-58]|69|7[0167]|8[018]))0"
+  },
+  "CM": {
+   "code": "237",
+   "national": "",
+   "international": "00"
+  },
+  "CN": {
+   "code": "86",
+   "national": "0",
+   "international": "00|1(?:[12]\\d|79)\\d\\d00"
+  },
+  "CO": {
+   "code": "57",
+   "national": "0",
+   "international": "00(?:4(?:[14]4|56)|[579])"
+  },
+  "CR": {
+   "code": "506",
+   "national": "",
+   "international": "00"
+  },
+  "CU": {
+   "code": "53",
+   "national": "0",
+   "international": "119"
+  },
+  "CV": {
+   "code": "238",
+   "national": "",
+   "international": "0"
+  },
+  "CW": {
+   "code": "599",
+   "national": "",
+   "international": "00"
+  },
+  "CX": {
+   "code": "61",
+   "national": "0",
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+  },
+  "CY": {
+   "code": "357",
+   "national": "",
+   "international": "00"
+  },
+  "CZ": {
+   "code": "420",
+   "national": "",
+   "international": "00"
+  },
+  "DE": {
+   "code": "49",
+   "national": "0",
+   "international": "00"
+  },
+  "DJ": {
+   "code": "253",
+   "national": "",
+   "international": "00"
+  },
+  "DK": {
+   "code": "45",
+   "national": "",
+   "international": "00"
+  },
+  "DM": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "DO": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "DZ": {
+   "code": "213",
+   "national": "0",
+   "international": "00"
+  },
+  "EC": {
+   "code": "593",
+   "national": "0",
+   "international": "00"
+  },
+  "EE": {
+   "code": "372",
+   "national": "",
+   "international": "00"
+  },
+  "EG": {
+   "code": "20",
+   "national": "0",
+   "international": "00"
+  },
+  "EH": {
+   "code": "212",
+   "national": "0",
+   "international": "00"
+  },
+  "ER": {
+   "code": "291",
+   "national": "0",
+   "international": "00"
+  },
+  "ES": {
+   "code": "34",
+   "national": "",
+   "international": "00"
+  },
+  "ET": {
+   "code": "251",
+   "national": "0",
+   "international": "00"
+  },
+  "FI": {
+   "code": "358",
+   "national": "0",
+   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))"
+  },
+  "FJ": {
+   "code": "679",
+   "national": "",
+   "international": "0(?:0|52)"
+  },
+  "FK": {
+   "code": "500",
+   "national": "",
+   "international": "00"
+  },
+  "FM": {
+   "code": "691",
+   "national": "",
+   "international": "00"
+  },
+  "FO": {
+   "code": "298",
+   "national": "",
+   "international": "00"
+  },
+  "FR": {
+   "code": "33",
+   "national": "0",
+   "international": "00"
+  },
+  "GA": {
+   "code": "241",
+   "national": "",
+   "international": "00"
+  },
+  "GB": {
+   "code": "44",
+   "national": "0",
+   "international": "00"
+  },
+  "GD": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "GE": {
+   "code": "995",
+   "national": "0",
+   "international": "00"
+  },
+  "GF": {
+   "code": "594",
+   "national": "0",
+   "international": "00"
+  },
+  "GG": {
+   "code": "44",
+   "national": "0",
+   "international": "00"
+  },
+  "GH": {
+   "code": "233",
+   "national": "0",
+   "international": "00"
+  },
+  "GI": {
+   "code": "350",
+   "national": "",
+   "international": "00"
+  },
+  "GL": {
+   "code": "299",
+   "national": "",
+   "international": "00"
+  },
+  "GM": {
+   "code": "220",
+   "national": "",
+   "international": "00"
+  },
+  "GN": {
+   "code": "224",
+   "national": "",
+   "international": "00"
+  },
+  "GP": {
+   "code": "590",
+   "national": "0",
+   "international": "00"
+  },
+  "GQ": {
+   "code": "240",
+   "national": "",
+   "international": "00"
+  },
+  "GR": {
+   "code": "30",
+   "national": "",
+   "international": "00"
+  },
+  "GT": {
+   "code": "502",
+   "national": "",
+   "international": "00"
+  },
+  "GU": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "GW": {
+   "code": "245",
+   "national": "",
+   "international": "00"
+  },
+  "GY": {
+   "code": "592",
+   "national": "",
+   "international": "001"
+  },
+  "HK": {
+   "code": "852",
+   "national": "",
+   "international": "00(?:30|5[09]|[126-9]?)"
+  },
+  "HN": {
+   "code": "504",
+   "national": "",
+   "international": "00"
+  },
+  "HR": {
+   "code": "385",
+   "national": "0",
+   "international": "00"
+  },
+  "HT": {
+   "code": "509",
+   "national": "",
+   "international": "00"
+  },
+  "HU": {
+   "code": "36",
+   "national": "06",
+   "international": "00"
+  },
+  "ID": {
+   "code": "62",
+   "national": "0",
+   "international": "00[89]"
+  },
+  "IE": {
+   "code": "353",
+   "national": "0",
+   "international": "00"
+  },
+  "IL": {
+   "code": "972",
+   "national": "0",
+   "international": "0(?:0|1(?:05|[2-9]))"
+  },
+  "IM": {
+   "code": "44",
+   "national": "0",
+   "international": "00"
+  },
+  "IN": {
+   "code": "91",
+   "national": "0",
+   "international": "00"
+  },
+  "IO": {
+   "code": "246",
+   "national": "",
+   "international": "00"
+  },
+  "IQ": {
+   "code": "964",
+   "national": "0",
+   "international": "00"
+  },
+  "IR": {
+   "code": "98",
+   "national": "0",
+   "international": "00"
+  },
+  "IS": {
+   "code": "354",
+   "national": "",
+   "international": "00|1(?:0(?:01|[12]0)|100)"
+  },
+  "IT": {
+   "code": "39",
+   "national": "",
+   "international": "00"
+  },
+  "JE": {
+   "code": "44",
+   "national": "0",
+   "international": "00"
+  },
+  "JM": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "JO": {
+   "code": "962",
+   "national": "0",
+   "international": "00"
+  },
+  "JP": {
+   "code": "81",
+   "national": "0",
+   "international": "010"
+  },
+  "KE": {
+   "code": "254",
+   "national": "0",
+   "international": "000"
+  },
+  "KG": {
+   "code": "996",
+   "national": "0",
+   "international": "00"
+  },
+  "KH": {
+   "code": "855",
+   "national": "0",
+   "international": "00[14-9]"
+  },
+  "KI": {
+   "code": "686",
+   "national": "0",
+   "international": "00"
+  },
+  "KM": {
+   "code": "269",
+   "national": "",
+   "international": "00"
+  },
+  "KN": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "KP": {
+   "code": "850",
+   "national": "0",
+   "international": "00|99"
+  },
+  "KR": {
+   "code": "82",
+   "national": "0",
+   "international": "00(?:[125689]|3(?:[46]5|91)|7(?:00|27|3|55|6[126]))"
+  },
+  "KW": {
+   "code": "965",
+   "national": "",
+   "international": "00"
+  },
+  "KY": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "KZ": {
+   "code": "7",
+   "national": "8",
+   "international": "810"
+  },
+  "LA": {
+   "code": "856",
+   "national": "0",
+   "international": "00"
+  },
+  "LB": {
+   "code": "961",
+   "national": "0",
+   "international": "00"
+  },
+  "LC": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "LI": {
+   "code": "423",
+   "national": "0",
+   "international": "00"
+  },
+  "LK": {
+   "code": "94",
+   "national": "0",
+   "international": "00"
+  },
+  "LR": {
+   "code": "231",
+   "national": "0",
+   "international": "00"
+  },
+  "LS": {
+   "code": "266",
+   "national": "",
+   "international": "00"
+  },
+  "LT": {
+   "code": "370",
+   "national": "0",
+   "international": "00"
+  },
+  "LU": {
+   "code": "352",
+   "national": "",
+   "international": "00"
+  },
+  "LV": {
+   "code": "371",
+   "national": "",
+   "international": "00"
+  },
+  "LY": {
+   "code": "218",
+   "national": "0",
+   "international": "00"
+  },
+  "MA": {
+   "code": "212",
+   "national": "0",
+   "international": "00"
+  },
+  "MC": {
+   "code": "377",
+   "national": "0",
+   "international": "00"
+  },
+  "MD": {
+   "code": "373",
+   "national": "0",
+   "international": "00"
+  },
+  "ME": {
+   "code": "382",
+   "national": "0",
+   "international": "00"
+  },
+  "MF": {
+   "code": "590",
+   "national": "0",
+   "international": "00"
+  },
+  "MG": {
+   "code": "261",
+   "national": "0",
+   "international": "00"
+  },
+  "MH": {
+   "code": "692",
+   "national": "1",
+   "international": "011"
+  },
+  "MK": {
+   "code": "389",
+   "national": "0",
+   "international": "00"
+  },
+  "ML": {
+   "code": "223",
+   "national": "",
+   "international": "00"
+  },
+  "MM": {
+   "code": "95",
+   "national": "0",
+   "international": "00"
+  },
+  "MN": {
+   "code": "976",
+   "national": "0",
+   "international": "001"
+  },
+  "MO": {
+   "code": "853",
+   "national": "",
+   "international": "00"
+  },
+  "MP": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "MQ": {
+   "code": "596",
+   "national": "0",
+   "international": "00"
+  },
+  "MR": {
+   "code": "222",
+   "national": "",
+   "international": "00"
+  },
+  "MS": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "MT": {
+   "code": "356",
+   "national": "",
+   "international": "00"
+  },
+  "MU": {
+   "code": "230",
+   "national": "",
+   "international": "0(?:0|[24-7]0|3[03])"
+  },
+  "MV": {
+   "code": "960",
+   "national": "",
+   "international": "0(?:0|19)"
+  },
+  "MW": {
+   "code": "265",
+   "national": "0",
+   "international": "00"
+  },
+  "MX": {
+   "code": "52",
+   "national": "",
+   "international": "0[09]"
+  },
+  "MY": {
+   "code": "60",
+   "national": "0",
+   "international": "00"
+  },
+  "MZ": {
+   "code": "258",
+   "national": "",
+   "international": "00"
+  },
+  "NA": {
+   "code": "264",
+   "national": "0",
+   "international": "00"
+  },
+  "NC": {
+   "code": "687",
+   "national": "",
+   "international": "00"
+  },
+  "NE": {
+   "code": "227",
+   "national": "",
+   "international": "00"
+  },
+  "NF": {
+   "code": "672",
+   "national": "",
+   "international": "00"
+  },
+  "NG": {
+   "code": "234",
+   "national": "0",
+   "international": "009"
+  },
+  "NI": {
+   "code": "505",
+   "national": "",
+   "international": "00"
+  },
+  "NL": {
+   "code": "31",
+   "national": "0",
+   "international": "00"
+  },
+  "NO": {
+   "code": "47",
+   "national": "",
+   "international": "00"
+  },
+  "NP": {
+   "code": "977",
+   "national": "0",
+   "international": "00"
+  },
+  "NR": {
+   "code": "674",
+   "national": "",
+   "international": "00"
+  },
+  "NU": {
+   "code": "683",
+   "national": "",
+   "international": "00"
+  },
+  "NZ": {
+   "code": "64",
+   "national": "0",
+   "international": "0(?:0|161)"
+  },
+  "OM": {
+   "code": "968",
+   "national": "",
+   "international": "00"
+  },
+  "PA": {
+   "code": "507",
+   "national": "",
+   "international": "00"
+  },
+  "PE": {
+   "code": "51",
+   "national": "0",
+   "international": "00|19(?:1[124]|77|90)00"
+  },
+  "PF": {
+   "code": "689",
+   "national": "",
+   "international": "00"
+  },
+  "PG": {
+   "code": "675",
+   "national": "",
+   "international": "00|140[1-3]"
+  },
+  "PH": {
+   "code": "63",
+   "national": "0",
+   "international": "00"
+  },
+  "PK": {
+   "code": "92",
+   "national": "0",
+   "international": "00"
+  },
+  "PL": {
+   "code": "48",
+   "national": "",
+   "international": "00"
+  },
+  "PM": {
+   "code": "508",
+   "national": "0",
+   "international": "00"
+  },
+  "PR": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "PS": {
+   "code": "970",
+   "national": "0",
+   "international": "00"
+  },
+  "PT": {
+   "code": "351",
+   "national": "",
+   "international": "00"
+  },
+  "PW": {
+   "code": "680",
+   "national": "",
+   "international": "01[12]"
+  },
+  "PY": {
+   "code": "595",
+   "national": "0",
+   "international": "00"
+  },
+  "QA": {
+   "code": "974",
+   "national": "",
+   "international": "00"
+  },
+  "RE": {
+   "code": "262",
+   "national": "0",
+   "international": "00"
+  },
+  "RO": {
+   "code": "40",
+   "national": "0",
+   "international": "00"
+  },
+  "RS": {
+   "code": "381",
+   "national": "0",
+   "international": "00"
+  },
+  "RU": {
+   "code": "7",
+   "national": "8",
+   "international": "810"
+  },
+  "RW": {
+   "code": "250",
+   "national": "0",
+   "international": "00"
+  },
+  "SA": {
+   "code": "966",
+   "national": "0",
+   "international": "00"
+  },
+  "SB": {
+   "code": "677",
+   "national": "",
+   "international": "0[01]"
+  },
+  "SC": {
+   "code": "248",
+   "national": "",
+   "international": "010|0[0-2]"
+  },
+  "SD": {
+   "code": "249",
+   "national": "0",
+   "international": "00"
+  },
+  "SE": {
+   "code": "46",
+   "national": "0",
+   "international": "00"
+  },
+  "SG": {
+   "code": "65",
+   "national": "",
+   "international": "0[0-3]\\d"
+  },
+  "SH": {
+   "code": "290",
+   "national": "",
+   "international": "00"
+  },
+  "SI": {
+   "code": "386",
+   "national": "0",
+   "international": "00|10(?:22|66|88|99)"
+  },
+  "SJ": {
+   "code": "47",
+   "national": "",
+   "international": "00"
+  },
+  "SK": {
+   "code": "421",
+   "national": "0",
+   "international": "00"
+  },
+  "SL": {
+   "code": "232",
+   "national": "0",
+   "international": "00"
+  },
+  "SM": {
+   "code": "378",
+   "national": "",
+   "international": "00"
+  },
+  "SN": {
+   "code": "221",
+   "national": "",
+   "international": "00"
+  },
+  "SO": {
+   "code": "252",
+   "national": "0",
+   "international": "00"
+  },
+  "SR": {
+   "code": "597",
+   "national": "",
+   "international": "00"
+  },
+  "SS": {
+   "code": "211",
+   "national": "0",
+   "international": "00"
+  },
+  "ST": {
+   "code": "239",
+   "national": "",
+   "international": "00"
+  },
+  "SV": {
+   "code": "503",
+   "national": "",
+   "international": "00"
+  },
+  "SX": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "SY": {
+   "code": "963",
+   "national": "0",
+   "international": "00"
+  },
+  "SZ": {
+   "code": "268",
+   "national": "",
+   "international": "00"
+  },
+  "TA": {
+   "code": "290",
+   "national": "",
+   "international": "00"
+  },
+  "TC": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "TD": {
+   "code": "235",
+   "national": "",
+   "international": "00|16"
+  },
+  "TG": {
+   "code": "228",
+   "national": "",
+   "international": "00"
+  },
+  "TH": {
+   "code": "66",
+   "national": "0",
+   "international": "00[1-9]"
+  },
+  "TJ": {
+   "code": "992",
+   "national": "",
+   "international": "810"
+  },
+  "TK": {
+   "code": "690",
+   "national": "",
+   "international": "00"
+  },
+  "TL": {
+   "code": "670",
+   "national": "",
+   "international": "00"
+  },
+  "TM": {
+   "code": "993",
+   "national": "8",
+   "international": "810"
+  },
+  "TN": {
+   "code": "216",
+   "national": "",
+   "international": "00"
+  },
+  "TO": {
+   "code": "676",
+   "national": "",
+   "international": "00"
+  },
+  "TR": {
+   "code": "90",
+   "national": "0",
+   "international": "00"
+  },
+  "TT": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "TV": {
+   "code": "688",
+   "national": "",
+   "international": "00"
+  },
+  "TW": {
+   "code": "886",
+   "national": "0",
+   "international": "0(?:0[25-79]|19)"
+  },
+  "TZ": {
+   "code": "255",
+   "national": "0",
+   "international": "00[056]"
+  },
+  "UA": {
+   "code": "380",
+   "national": "0",
+   "international": "00"
+  },
+  "UG": {
+   "code": "256",
+   "national": "0",
+   "international": "00[057]"
+  },
+  "US": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "UY": {
+   "code": "598",
+   "national": "0",
+   "international": "0(?:0|1[3-9]\\d)"
+  },
+  "UZ": {
+   "code": "998",
+   "national": "",
+   "international": "00"
+  },
+  "VA": {
+   "code": "39",
+   "national": "",
+   "international": "00"
+  },
+  "VC": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "VE": {
+   "code": "58",
+   "national": "0",
+   "international": "00"
+  },
+  "VG": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "VI": {
+   "code": "1",
+   "national": "1",
+   "international": "011"
+  },
+  "VN": {
+   "code": "84",
+   "national": "0",
+   "international": "00"
+  },
+  "VU": {
+   "code": "678",
+   "national": "",
+   "international": "00"
+  },
+  "WF": {
+   "code": "681",
+   "national": "",
+   "international": "00"
+  },
+  "WS": {
+   "code": "685",
+   "national": "",
+   "international": "0"
+  },
+  "XK": {
+   "code": "383",
+   "national": "0",
+   "international": "00"
+  },
+  "YE": {
+   "code": "967",
+   "national": "0",
+   "international": "00"
+  },
+  "YT": {
+   "code": "262",
+   "national": "0",
+   "international": "00"
+  },
+  "ZA": {
+   "code": "27",
+   "national": "0",
+   "international": "00"
+  },
+  "ZM": {
+   "code": "260",
+   "national": "0",
+   "international": "00"
+  },
+  "ZW": {
+   "code": "263",
+   "national": "0",
+   "international": "00"
+  }
+ }
+}

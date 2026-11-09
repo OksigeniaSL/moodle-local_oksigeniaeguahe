@@ -48,7 +48,7 @@ if ($action !== '') {
     centres::require_act((int) $centre->id);
     if ($action === 'fetch') {
         try {
-            $n = opendata::fetch_istac((int) $centre->id, forecast::zone($centre));
+            $n = opendata::fetch((int) $centre->id, forecast::zone($centre));
             redirect(
                 $url,
                 get_string($n ? 'forecast_fetched' : 'forecast_nosource', $c, $n),
@@ -56,7 +56,7 @@ if ($action !== '') {
                 $n ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
             );
         } catch (moodle_exception $e) {
-            redirect($url, get_string('opendata_failed', $c, 'ISTAC'), null, \core\output\notification::NOTIFY_ERROR);
+            redirect($url, get_string('opendata_failed', $c, $e->a ?? ''), null, \core\output\notification::NOTIFY_ERROR);
         }
     }
     if ($action === 'ages') {

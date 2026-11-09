@@ -73,7 +73,7 @@ class panel_familyform {
                 'tag' => $field("childtag{$i}"),
                 'offers' => $options($offers, $value("offerid{$i}")),
                 'offername' => "offerid{$i}",
-                'emptybag' => panel::hanging($i, ''),
+                'emptybag' => panel::hanging($i, '', '', $centre),
                 'open' => $i === 0 || $name['value'] !== '',
             ];
         }
@@ -165,7 +165,11 @@ class panel_familyform {
                 'free' => $total ? get_string('panel_free_of', $c, (object) ['free' => max(0, $total - $enrolled),
                     'total' => $total]) : '',
                 'next' => $next ? get_string('panel_next_openday', $c, userdate((int) $next->timestart, '%A %d')) : '',
-                'rail' => $total ? panel::rail($total, $enrolled, object: panel::hanging_object((string) $offer->name)) : '',
+                'rail' => $total ? panel::rail(
+                    $total,
+                    $enrolled,
+                    object: panel::hanging_object((string) $offer->name, $centre)
+                ) : '',
             ];
         }
         return $out;
