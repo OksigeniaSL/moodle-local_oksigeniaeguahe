@@ -35,7 +35,10 @@ $string['cachedef_usedchallenges'] = 'Verificações antispam já usadas';
 $string['came'] = 'Veio';
 $string['centre_address'] = 'Endereço';
 $string['centre_ai'] = 'Inteligência artificial';
+$string['centre_ai_locked'] = 'Só quem administra o Eguahe no site pode ligá-la ou desligá-la.';
 $string['centre_ai_none'] = 'Nenhum';
+$string['centre_ai_on'] = 'Usar a IA do site nesta escola';
+$string['centre_ai_site'] = 'A que o site já usa';
 $string['centre_aiprovider'] = 'Provedor de IA do centro';
 $string['centre_aiprovider_help'] = 'O provedor do subsistema de IA do site que trabalha para este centro, com sua própria chave. Ajuda a equipe nos bastidores; as famílias sempre falam com pessoas.';
 $string['centre_area'] = 'Região';
@@ -2566,6 +2569,12 @@ Pouco
 Bastante
 Muito';
 $string['short_title'] = 'Admissões · {$a->centre} · {$a->event}';
+$string['shortenerapi'] = 'Endereço da API';
+$string['shortenerapi_desc'] = 'O de yourls-api.php, por https.';
+$string['shortenerhdr'] = 'Links curtos';
+$string['shortenerhdr_desc'] = 'O encurtador do site, compatível com YOURLS. É configurado uma vez para todos os plugins da Oksigenia: se outro já tem, aqui pode ficar vazio. Sem encurtador, o endereço longo e o QR dele.';
+$string['shortenerkey'] = 'A chave';
+$string['shortenerkey_desc'] = 'A assinatura (signature) que o encurtador fornece.';
 $string['signedup_note'] = 'Inscreveu-se em {$a->event} (pessoas: {$a->people}).';
 $string['skin_cinematico'] = 'Cinematográfico';
 $string['skin_mostrador'] = 'O balcão de papel';

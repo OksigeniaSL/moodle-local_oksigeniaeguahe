@@ -890,5 +890,16 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026113100, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113200) {
+        // The AI of a centre, on or off; the centres that had a provider, on.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('aion', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'system');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+            $DB->set_field_select('local_oksigeniaeguahe_centre', 'aion', 1, 'aiprovider > 0');
+        }
+        upgrade_plugin_savepoint(true, 2026113200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

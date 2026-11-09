@@ -39,6 +39,26 @@ if ($hassiteconfig) {
             get_string('credit_desc', 'local_oksigeniaeguahe'),
             1
         ));
+        // The shortener of the links, set once for every plugin of Oksigenia (shortener::of_site()): empty here, the one of
+        // another plugin that has it.
+        $settings->add(new admin_setting_heading(
+            'local_oksigeniaeguahe/shortenerhdr',
+            get_string('shortenerhdr', 'local_oksigeniaeguahe'),
+            get_string('shortenerhdr_desc', 'local_oksigeniaeguahe')
+        ));
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/shortenerapi',
+            get_string('shortenerapi', 'local_oksigeniaeguahe'),
+            get_string('shortenerapi_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_URL
+        ));
+        $settings->add(new admin_setting_configpasswordunmask(
+            'local_oksigeniaeguahe/shortenerkey',
+            get_string('shortenerkey', 'local_oksigeniaeguahe'),
+            get_string('shortenerkey_desc', 'local_oksigeniaeguahe'),
+            ''
+        ));
         // Where the towns are, for the maps of the centres: a worldwide source, the site chooses.
         $sources = [];
         foreach (\local_oksigeniaeguahe\local\places::sources() as $key => $source) {

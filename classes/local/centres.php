@@ -101,6 +101,7 @@ class centres {
         $row->retention = max(1, min(120, (int) ($data->retention ?? 24)));
         $row->municipalities = trim((string) ($data->municipalities ?? '')) ?: null;
         $row->aiprovider = (int) ($data->aiprovider ?? 0);
+        $row->aion = empty($data->aion) ? 0 : 1;
         // How families reach the centre, and a line about what a visit is like.
         foreach (['address' => 255, 'phone' => 50, 'email' => 255] as $field => $length) {
             $value = trim((string) ($data->$field ?? ''));

@@ -75,7 +75,8 @@ class panel_centre {
         $index['despues'] = 'panel_after_enrolment';
         $index += ['datos' => 'centre_data', 'zona' => 'panel_the_area', 'redes' => 'panel_networks',
             'oferta' => 'panel_offer_places', 'equipo' => 'centre_members', 'panel' => 'centre_skin', 'ia' => 'centre_ai'];
-        $providers = [['value' => 0, 'name' => get_string('centre_ai_none', $c), 'selected' => empty($centre->aiprovider)]];
+        // Without a provider of its own, the one the site already uses for Oksigenia, or Moodle's own.
+        $providers = [['value' => 0, 'name' => get_string('centre_ai_site', $c), 'selected' => empty($centre->aiprovider)]];
         foreach (ai::providers() as $id => $provider) {
             $providers[] = ['value' => $id, 'name' => $provider, 'selected' => (int) $centre->aiprovider === $id];
         }
@@ -138,7 +139,10 @@ class panel_centre {
             'skins' => self::skins($centre),
             'skinproposal' => self::proposal((int) $centre->id),
             'ai' => ['providers' => $providers, 'note' => get_string(ai::supported() ? 'centre_aiprovider_help' :
-                'panel_ai_later', $c)],
+                'panel_ai_later', $c), 'on' => !empty($centre->aion), 'several' => count($providers) > 2,
+                // Only who manages Eguahe on the site turns it on or off (Enrique, 9-11).
+                'locked' => !has_capability('local/oksigeniaeguahe:manage', \context_system::instance()),
+                'lockednote' => get_string('centre_ai_locked', $c)],
         ];
     }
 
@@ -365,6 +369,7 @@ class panel_centre {
         // The code written wins when it was changed by hand; else the colour picked.
         $colour = preg_match('/^#[0-9a-f]{6}$/', $typed) && $typed !== strtolower((string) $centre->colour) ? $typed : $picked;
         $name = trim(optional_param('name', '', PARAM_TEXT));
+        $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
         $data = (object) [
             'name' => $name !== '' ? $name : $centre->name,
             'lang' => optional_param('lang', $centre->lang, PARAM_ALPHAEXT),
@@ -386,7 +391,8 @@ class panel_centre {
             'retention' => optional_param('retention', 24, PARAM_INT),
             'municipalities' => optional_param('municipalities', '', PARAM_TEXT),
             'networks' => optional_param('networks', '', PARAM_TEXT),
-            'aiprovider' => optional_param('aiprovider', 0, PARAM_INT),
+            'aiprovider' => $manage ? optional_param('aiprovider', 0, PARAM_INT) : (int) $centre->aiprovider,
+            'aion' => $manage ? optional_param('aion', 0, PARAM_BOOL) : (int) ($centre->aion ?? 0),
             'skin' => optional_param('skin', '', PARAM_ALPHA),
             'handover' => self::member(optional_param('handover', 0, PARAM_INT), (int) $centre->id),
             'handoverplace' => optional_param('handoverplace', '', PARAM_TEXT),

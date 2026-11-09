@@ -182,6 +182,11 @@ final class reports_test extends \advanced_testcase {
                 ['theme' => 'Comedor', 'texts' => 40, 'sentence' => 'Preguntan si hay comedor.']],
                 'advice' => [['text' => 'Poner el comedor en la web', 'why' => 'Lo preguntan.']]]) . "\n" . $fence;
         };
+        // Off for the centre: no AI, whatever the site has.
+        $this->assertSame('none', reports::get(reports::make($centre, 'hot', $from, $to, $now), $id)->aistatus);
+        global $DB;
+        $DB->set_field(centres::T, 'aion', 1, ['id' => $id]);
+        $centre = centres::get($id);
         $reportid = reports::make($centre, 'hot', $from, $to, $now);
         $this->assertSame('waiting', reports::get($reportid, $id)->aistatus);
         $this->runAdhocTasks(\local_oksigeniaeguahe\task\report_ai::class);

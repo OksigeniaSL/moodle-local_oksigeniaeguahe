@@ -35,7 +35,10 @@ $string['cachedef_usedchallenges'] = 'Anti-spam challenges already used';
 $string['came'] = 'Came';
 $string['centre_address'] = 'Address';
 $string['centre_ai'] = 'Artificial intelligence';
+$string['centre_ai_locked'] = 'Only who manages Eguahe on the site can turn it on or off.';
 $string['centre_ai_none'] = 'None';
+$string['centre_ai_on'] = 'Use the AI of the site for this centre';
+$string['centre_ai_site'] = 'The one the site already uses';
 $string['centre_aiprovider'] = 'AI provider of the centre';
 $string['centre_aiprovider_help'] = 'The provider of the AI subsystem of the site that works for this centre, with its own key. It helps the team behind the scenes; families always talk to people.';
 $string['centre_area'] = 'Area';
@@ -2566,6 +2569,12 @@ A little
 Quite
 A lot';
 $string['short_title'] = 'Admissions · {$a->centre} · {$a->event}';
+$string['shortenerapi'] = 'Address of its API';
+$string['shortenerapi_desc'] = 'The one of yourls-api.php, by https.';
+$string['shortenerhdr'] = 'Short links';
+$string['shortenerhdr_desc'] = 'The shortener of the site, compatible with YOURLS. It is set once for every plugin of Oksigenia: if another one has it, this can stay empty. Without a shortener, the long address and its QR.';
+$string['shortenerkey'] = 'Its key';
+$string['shortenerkey_desc'] = 'The signature the shortener gives.';
 $string['signedup_note'] = 'Signed up for {$a->event} (people: {$a->people}).';
 $string['skin_cinematico'] = 'Cinematic';
 $string['skin_mostrador'] = 'The paper desk';

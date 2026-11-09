@@ -12,6 +12,7 @@
         <FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="false" SEQUENCE="false" COMMENT="ISO 3166-1 alpha-2, for phone numbers given without their country code"/>
         <FIELD NAME="currency" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="ISO 4217, for what the centre spends; empty, the one of its country"/>
         <FIELD NAME="system" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Its school system, a key of data/school-systems.json; none, no system; empty, the one of its country"/>
+        <FIELD NAME="aion" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the AI of the site works for this centre; only who manages Eguahe on the site turns it on"/>
         <FIELD NAME="colour" TYPE="char" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="Main colour of the centre for its public pages, #rrggbb"/>
         <FIELD NAME="controller" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Who is responsible for the data of the families: the legal name of the centre"/>
         <FIELD NAME="rightscontact" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where families exercise their rights: an address or an email"/>

@@ -63,10 +63,39 @@ class ai {
      */
     public static function manager(\stdClass $centre): ?\core_ai\manager {
         global $DB;
-        if (!self::supported() || empty($centre->aiprovider)) {
+        if (!self::supported() || empty($centre->aion)) {
             return null;
         }
-        return (new ai_manager($DB))->only((int) $centre->aiprovider);
+        // The provider of the centre, else the one another plugin of Oksigenia uses on this site, else Moodle's own order.
+        $only = (int) ($centre->aiprovider ?? 0) ?: self::of_site();
+        if ($only) {
+            return (new ai_manager($DB))->only($only);
+        }
+        $manager = \core\di::get(\core_ai\manager::class);
+        return $manager->is_action_available('core_ai\aiactions\generate_text') ? $manager : null;
+    }
+
+    /**
+     * The provider another plugin of Oksigenia already uses on this site (its setting «aiprovider»), so it is set once for
+     * all of them; 0 when none has one (lo común se usa solo, shared/moodle-convenciones.md).
+     *
+     * @return int The id of the provider instance, or 0.
+     */
+    public static function of_site(): int {
+        global $DB;
+        $rows = $DB->get_records_select(
+            'config_plugins',
+            "name = 'aiprovider' AND " . $DB->sql_like('plugin', ':oks'),
+            ['oks' => '%oksigenia%'],
+            'plugin'
+        );
+        $providers = self::providers();
+        foreach ($rows as $row) {
+            if ((int) $row->value > 0 && isset($providers[(int) $row->value])) {
+                return (int) $row->value;
+            }
+        }
+        return 0;
     }
 
     /**
@@ -133,6 +162,6 @@ class ai {
      * @return bool
      */
     public static function ready(\stdClass $centre): bool {
-        return self::$answer !== null || self::manager($centre) !== null;
+        return !empty($centre->aion) && (self::$answer !== null || self::manager($centre) !== null);
     }
 }
