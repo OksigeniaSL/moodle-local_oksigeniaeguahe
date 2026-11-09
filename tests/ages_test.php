@@ -71,6 +71,28 @@ final class ages_test extends \advanced_testcase {
     }
 
     /**
+     * What hangs for each child on the pages of its family, by the age of its course, whatever the skin of the panel.
+     */
+    public function test_hanging(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        [$centre, $household] = $this->family(['Leo' => 'Infantil 3 años', 'Noa' => '2.º de Primaria',
+            'Juan' => '3.º de ESO', 'Ana' => '1.º de Bachillerato', 'Sara' => '', 'Max' => 'Inglés B2']);
+        $offers = centres::offers((int) $centre->id);
+        $children = households::full($household)->children;
+        $objects = [];
+        foreach ($children as $child) {
+            $objects[$child->firstname] = ages::hanging($child, $offers, $centre);
+        }
+        $this->assertSame(['Leo' => 'mochila', 'Noa' => 'escolar', 'Juan' => 'equipaje', 'Ana' => 'credencial',
+            'Sara' => 'mochila', 'Max' => 'equipaje'], $objects);
+        // The cinematic skin hangs a luggage tag in the panel; the page of the family keeps each by its age.
+        $centre->skin = 'cinematico';
+        $leo = array_values(array_filter($children, fn($c) => $c->firstname === 'Leo'))[0];
+        $this->assertSame('mochila', ages::hanging($leo, $offers, $centre));
+    }
+
+    /**
      * Young and older: the drawing only of the young (and of one without a course yet); one already sent always seen.
      * The visit shows where the backpack would go, or the classrooms when one of them is older.
      */

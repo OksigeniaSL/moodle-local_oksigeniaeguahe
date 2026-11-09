@@ -65,6 +65,25 @@ final class familypage_test extends \advanced_testcase {
     }
 
     /**
+     * The rail of a page of a family: what hangs for each, its tone and its tilt, arriving one after another, and the
+     * label stuck down once they came.
+     */
+    public function test_pegs(): void {
+        $rail = publicpage::pegs(['Leo', 'Juan Sebastián', 'Ana'], true, null, ['mochila', 'equipaje', 'credencial-neutra'], true);
+        $this->assertSame(['mochila', 'equipaje', 'credencial-neutra'], array_column($rail['pegs'], 'object'));
+        $this->assertSame([true, true, true], array_column($rail['pegs'], 'stuck'));
+        $this->assertSame([true, true, true], array_column($rail['pegs'], 'arriving'));
+        $this->assertSame('--reposo:-3.5deg;--retraso:0.15s', $rail['pegs'][0]['style']);
+        $this->assertStringStartsWith('--mochila:#6F5E6E;', $rail['pegs'][1]['style']);
+        $this->assertStringEndsWith('--reposo:3deg;--retraso:0.29s', $rail['pegs'][1]['style']);
+        // The sign-up, without courses: the small backpack, waiting blank, the hidden ones for the form.
+        $signup = publicpage::pegs(['', ''], false, 1);
+        $this->assertSame(['mochila', 'mochila'], array_column($signup['pegs'], 'object'));
+        $this->assertSame([false, true], array_column($signup['pegs'], 'hidden'));
+        $this->assertSame(1, $signup['count']);
+    }
+
+    /**
      * The page of a family just signed up: the names on the labels, who receives them, and their way to be written to.
      */
     public function test_family_page(): void {
@@ -110,6 +129,10 @@ final class familypage_test extends \advanced_testcase {
         $page = familypage::context(households::get((int) $household->id, $id), $centre, 'es', $token, true);
         $this->assertSame('Leo y Noa', $page['names']);
         $this->assertSame(['Leo', 'Noa'], array_column($page['pegs']['pegs'], 'name'));
+        // What hangs for each by the age of its course: Infantil 3 años and none yet, the small backpack; not came yet.
+        $this->assertSame(['mochila', 'mochila'], array_column($page['pegs']['pegs'], 'object'));
+        $this->assertSame([false, false], array_column($page['pegs']['pegs'], 'stuck'));
+        $this->assertFalse($page['pegs']['came']);
         $this->assertStringContainsString('los recibe Lucía', $page['lead']);
         $this->assertStringContainsString('dejarían sus mochilas', $page['lead']);
         $this->assertSame(['Lucía Medina'], array_column($page['hosts'], 'name'));

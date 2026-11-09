@@ -115,6 +115,11 @@ class familypage {
         $now = time();
         $children = array_values($full->children);
         $tags = array_values(array_filter(array_map([self::class, 'label_name'], $children), fn($n) => $n !== ''));
+        // What hangs for each of them on the rail, by the age of its course (the ladder), as in the panel.
+        $hanging = array_values(array_map(
+            fn($c) => ages::hanging($c, $offers, $centre),
+            array_filter($children, fn($c) => self::label_name($c) !== '')
+        ));
         $names = self::join($tags, $lang);
         $upcoming = array_values(array_filter($full->signups, fn($s) => (int) $s->timeend >= $now));
         $pending = $upcoming ? null : visits::pending((int) $household->id);
@@ -327,6 +332,8 @@ class familypage {
                     'yes' => publiclang::str('pub_sibling_notify_yes', $lang)];
             }
         }
+        // Once they came, the label stuck down, as the team left it at the door.
+        $came = !$upcoming && ((bool) $attended || $issettled || $isgone);
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'hassiblings' => (bool) $siblingrows,
             'siblings' => $siblingrows,
@@ -338,9 +345,7 @@ class familypage {
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
             'quiet' => $issettled || $isgone,
-            // Once they came, the label stuck down, as the team left it at the door.
-            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming) + ['came' => !$upcoming &&
-                ((bool) $attended || $issettled || $isgone)],
+            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
             'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
             'lead' => $lead,
             'new' => $new,

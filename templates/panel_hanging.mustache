@@ -24,13 +24,15 @@
     in a clear holder (figura); the narrow flat backpack with the name on the plate of its key ring (llavero); the
     luggage tag of cream card on its cord (equipaje); and the card on a lanyard with the name printed (credencial, and
     credencial-neutra with a plain lanyard). All hang from the same knob and swing the same; a little crooked, each its
-    own way. All are drawn and the class of the svg shows one (pub/panel.css); without object, the backpack. A drawing
-    only: the name is written beside it.
+    own way. All are drawn and the class of the svg shows one (pub/panel.css, and pub/eguahe.css on the pages of the
+    families); without object, the backpack. On those pages they may arrive swinging (arriving), and once the family
+    came the label of the two backpacks is stuck down (stuck): its corner no longer lifted. A drawing only: the name is
+    written beside it.
 
     Example context (json):
     {"name": "Leo", "style": "--reposo:-3.5deg", "object": "figura"}
 }}
-<svg class="colgante colgante-{{object}}" viewBox="6 13 52 64" aria-hidden="true" focusable="false" style="{{style}}">
+<svg class="colgante colgante-{{object}}{{#arriving}} llega{{/arriving}}" viewBox="6 13 52 64" aria-hidden="true" focusable="false" style="{{style}}">
     <path class="gancho" d="M31 13 L33.6 13 L33.6 23.4 L31 23.4 Z"/>
     <g transform="translate(0.3 16)">
         <g class="mochila de-mochila">
@@ -39,10 +41,13 @@
             <path class="correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>
             <path class="cuerpo" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
             <path class="linea" d="M16 22 L16 28.5 C16 31.5 18.4 33.6 21.4 33.6 L42.6 33.6 C45.6 33.6 48 31.5 48 28.5 L48 22 L46.2 22 L46.2 28.5 C46.2 30.5 44.6 31.8 42.6 31.8 L21.4 31.8 C19.4 31.8 17.8 30.5 17.8 28.5 L17.8 22 Z"/>
-            <g transform="translate(32 47) rotate(-8) scale(0.68)">
+            <g class="pegatina" transform="translate(32 47) rotate(-8) scale(0.68)">
                 <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
+                {{#stuck}}<path class="halo pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z" stroke-width="3.5" stroke-linejoin="round"/>{{/stuck}}
                 <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
+                {{#stuck}}<path class="borde pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z"/>{{/stuck}}
                 <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+                {{#stuck}}<path class="papel pegado" d="M20.6 6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L13 13.8 Z"/>{{/stuck}}
                 <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
                 <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
                 <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13" data-segunda="13">{{name}}</text>
@@ -61,10 +66,13 @@
             <path class="trazo" stroke-width="1.1" d="M20.2 22.6 C20.4 17.6 22.6 15.4 26 15.3 Q32 14.9 38 15.3 C41.4 15.4 43.6 17.6 43.8 22.6"/>
             <path class="trazo" stroke-width="1.1" d="M24.4 33 L39.6 33 A4 4 0 0 1 43.6 37 L43.6 54 A4 4 0 0 1 39.6 58 L24.4 58 A4 4 0 0 1 20.4 54 L20.4 37 A4 4 0 0 1 24.4 33 Z"/>
             <path class="gancho" d="M39.8 32.4 L41.2 32.4 L41.5 35.6 A1.1 1.1 0 0 1 39.5 35.6 Z"/>
-            <g transform="translate(32 46) rotate(-4) scale(0.56)">
+            <g class="pegatina" transform="translate(32 46) rotate(-4) scale(0.56)">
                 <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
+                {{#stuck}}<path class="halo pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z" stroke-width="3.5" stroke-linejoin="round"/>{{/stuck}}
                 <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
+                {{#stuck}}<path class="borde pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z"/>{{/stuck}}
                 <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+                {{#stuck}}<path class="papel pegado" d="M20.6 6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L13 13.8 Z"/>{{/stuck}}
                 <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
                 <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
                 <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13" data-segunda="13">{{name}}</text>

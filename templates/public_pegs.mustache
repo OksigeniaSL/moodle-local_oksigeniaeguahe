@@ -17,43 +17,22 @@
 {{!
     @template local_oksigeniaeguahe/public_pegs
 
-    The backpacks on the rail, one peg per child (a wooden knob seen from the front, drawn in front of the handle so
-    the backpack hangs from it): the small backpack of the mark of Eguahe, with the first-day label on
-    its pocket (the band in the colour of the centre, the name written by hand on its line, one corner peeling up). With
-    no name yet, the label waits blank. Once the family came (came), the label is stuck down, as at the door: its corner
-    no longer lifted. Drawings only: the name is in the heading of the page.
+    The rail of the page of a family and of the sign-up, one peg per child (a wooden knob seen from the front, drawn in
+    front of what hangs): what hangs for its age, the same drawings as in the panel (panel_hanging, by the ladder of
+    data/escalera.json), with the name used at home written by hand. Without a course yet, as on the sign-up, the small
+    backpack of the mark of Eguahe with the first-day label on its pocket (the band in the colour of the centre, one
+    corner peeling up). With no name yet, the label waits blank. Once the family came (came), the label of the
+    backpacks is stuck down, as at the door: its corner no longer lifted. Drawings only: the name is in the heading.
 
     Example context (json):
-    {"count": 1, "live": false, "came": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
-        "delay": "0.15", "tilt": "-3.5", "hidden": false}]}
+    {"count": 2, "live": false, "came": true, "pegs": [{"index": 0, "name": "Leo", "style": "--reposo:-3.5deg",
+        "object": "mochila", "arriving": true, "stuck": true, "hidden": false}, {"index": 1, "name": "Ana",
+        "style": "--reposo:3deg", "object": "credencial", "arriving": true, "stuck": true, "hidden": false}]}
 }}
 <div class="perchas n{{count}}{{#came}} pegada{{/came}}"{{#live}} data-live="1"{{/live}}>
     {{#pegs}}
     <div class="percha" data-i="{{index}}"{{#hidden}} hidden{{/hidden}}>
-        <svg class="colgante" viewBox="6 13 52 64" aria-hidden="true" focusable="false"{{#style}} style="{{style}}"{{/style}}>
-            <path class="gancho" d="M31 13 L33.6 13 L33.6 23.4 L31 23.4 Z"/>
-            <g transform="translate(0.3 16)">
-                <g class="mochila{{#arrive}} llega{{/arrive}}" style="animation-delay:{{delay}}s;--inclina:{{tilt}}deg">
-                    <path class="sombra" transform="translate(2 2.4)" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
-                    <path class="cuerpo" d="M28 15.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 15.5 L34.4 15.5 L34.4 11 C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 15.5 Z"/>
-                    <path class="correa" d="M48 19 C55 23 56.4 40 54.6 62 L52.4 61.8 C54 41 52.6 25.4 46.6 21.6 Z"/>
-                    <path class="cuerpo" d="M13 30 C13 21 19.5 14 28.5 14 L35.5 14 C44.5 14 51 21 51 30 L51 55.5 C51 58 49 60 46.5 60 L17.5 60 C15 60 13 58 13 55.5 Z"/>
-                    <path class="linea" d="M16 22 L16 28.5 C16 31.5 18.4 33.6 21.4 33.6 L42.6 33.6 C45.6 33.6 48 31.5 48 28.5 L48 22 L46.2 22 L46.2 28.5 C46.2 30.5 44.6 31.8 42.6 31.8 L21.4 31.8 C19.4 31.8 17.8 30.5 17.8 28.5 L17.8 22 Z"/>
-                    <g transform="translate(32 47) rotate(-8) scale(0.68)">
-                        <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
-                        {{#came}}<path class="halo pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z" stroke-width="3.5" stroke-linejoin="round"/>{{/came}}
-                        <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
-                        {{#came}}<path class="borde pegado" d="M23 7.2 L23 12 Q23 16 19 16 L14.2 16 Z"/>{{/came}}
-                        <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
-                        {{#came}}<path class="papel pegado" d="M20.6 6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L13 13.8 Z"/>{{/came}}
-                        <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
-                        <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
-                        <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
-                    </g>
-                </g>
-            </g>
-            <path class="gancho" d="M32.3 21.2 A3 3 0 1 1 32.29 21.2 Z"/><path class="pomo-luz" d="M31.1 22.6 A1.2 1.2 0 1 1 31.09 22.6 Z"/>
-        </svg>
+        {{> local_oksigeniaeguahe/panel_hanging }}
     </div>
     {{/pegs}}
 </div>

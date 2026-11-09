@@ -145,6 +145,20 @@ class ages {
     }
 
     /**
+     * What hangs for a child on the pages of its family: by the ladder, as in the panel (panel::hanging_object()), and
+     * always by its age, whatever the skin of the panel; without a course yet, the small backpack.
+     *
+     * @param \stdClass $child
+     * @param array $offers
+     * @param \stdClass $centre
+     * @return string mochila, escolar, figura, llavero, equipaje, credencial or credencial-neutra.
+     */
+    public static function hanging(\stdClass $child, array $offers, \stdClass $centre): string {
+        $course = self::course($child, $offers);
+        return trim($course) === '' ? panel::hanging_object('') : panel::age_object(grades::age($course, $centre));
+    }
+
+    /**
      * The children in groups by the steps their texts are written in, each group in the order of its first child.
      *
      * @param array $children

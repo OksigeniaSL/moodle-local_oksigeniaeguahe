@@ -323,27 +323,38 @@ display: grid; }
     }
 
     /**
-     * The backpacks on the rail: one hook per child, with the first-day label on its pocket and the name written by
-     * hand. The first is coral; brothers and sisters, mauve, sage and wood: neighbours, none of them meaning anything.
+     * What hangs on the rail of a page of a family: one hook per child, with what hangs for its age (the partial
+     * panel_hanging, by the ladder; without a course, the small backpack) and the name written by hand. The first is
+     * coral; brothers and sisters, mauve, sage and wood: neighbours, none of them meaning anything. Once they came, the
+     * label of the backpacks is stuck down.
      *
      * @param string[] $names The names on the labels, in order; an empty one waits blank.
-     * @param bool $arrive Whether they arrive swinging.
+     * @param bool $arrive Whether they arrive swinging, one after another.
      * @param int|null $shown How many are shown (the others wait hidden, for the form).
+     * @param string[] $objects What hangs for each, in the same order (ages::hanging()); the backpack without one.
+     * @param bool $stuck Whether the family came: the label stuck down.
      * @return array
      */
-    public static function pegs(array $names, bool $arrive = false, ?int $shown = null): array {
+    public static function pegs(
+        array $names,
+        bool $arrive = false,
+        ?int $shown = null,
+        array $objects = [],
+        bool $stuck = false
+    ): array {
         $pegs = [];
+        $objects = array_values($objects);
         foreach (array_values($names) as $i => $name) {
             $style = '';
             if ($i) {
                 $tone = ['#6F5E6E', '#5E7F6A', '#B98256'][($i - 1) % 3];
                 $style = '--mochila:' . $tone . ';--mochila-sombra:' . self::mix($tone, '#000000', 0.24) .
-                    ';--mochila-luz:' . self::mix($tone, '#FFFFFF', 0.6);
+                    ';--mochila-luz:' . self::mix($tone, '#FFFFFF', 0.6) . ';';
             }
-            // Hung by a child: a little crooked, each its own way, never straight.
-            $tilt = ['-3.5', '3', '-2', '4'][$i % 4];
-            $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'arrive' => $arrive, 'tilt' => $tilt,
-                'delay' => sprintf('%.2f', 0.15 + $i * 0.14), 'hidden' => $shown !== null && $i >= $shown];
+            // Hung by a child: a little crooked, each its own way, never straight; and they arrive one after another.
+            $style .= '--reposo:' . ['-3.5', '3', '-2', '4'][$i % 4] . 'deg;--retraso:' . sprintf('%.2f', 0.15 + $i * 0.14) . 's';
+            $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'object' => (string) ($objects[$i] ?? '') ?: 'mochila',
+                'arriving' => $arrive, 'stuck' => $stuck, 'hidden' => $shown !== null && $i >= $shown];
         }
         return ['pegs' => $pegs, 'count' => $shown ?? count($pegs)];
     }

@@ -31,20 +31,74 @@
     };
 
     // Long names: the handwriting gets smaller until it fits on the line of the label; a capital with an accent
-    // (Í, Á, Ñ) too, so it does not climb into the band. The same rule as the label of the mail.
+    // (Í, Á, Ñ) too, so it does not climb into the band. The same rule as the label of the mail and of the panel. Where
+    // the drawing has room for a second line (data-segunda, its baseline), a name that would get small on one, and has
+    // a space, goes on two, broken where the two come out most even: «María de / los Ángeles». Never squeezed.
     var UP = 10;
     var BASELINE = 4.4;
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var lines = function(text, parts) {
+        while (text.firstChild) {
+            text.removeChild(text.firstChild);
+        }
+        if (parts.length === 1) {
+            text.appendChild(document.createTextNode(parts[0]));
+            return;
+        }
+        parts.forEach(function(part, i) {
+            var span = document.createElementNS(SVGNS, 'tspan');
+            span.setAttribute('x', text.getAttribute('x') || 0);
+            span.setAttribute('y', i ? text.getAttribute('data-segunda') : BASELINE);
+            span.textContent = part;
+            text.appendChild(span);
+        });
+    };
     var fit = function(scope) {
         all('svg.colgante text.mano, svg.sello-etiqueta text.mano', scope).forEach(function(text) {
-            text.setAttribute('font-size', SIZE);
-            if (!text.textContent) {
+            // Only the drawing the svg shows: Chrome measures the hidden ones too, Firefox gives them no length.
+            var drawing = text.closest ? text.closest('.mochila') : null;
+            if (drawing && window.getComputedStyle(drawing).display === 'none') {
                 return;
             }
-            var k = Math.min(1, ROOM / text.getComputedTextLength());
-            var box = text.getBBox();
-            var up = BASELINE - box.y;
-            if (up > UP) {
-                k = Math.min(k, UP / up);
+            // Once on two lines the name is kept whole beside them; written again (the sign-up), it is the text.
+            var name = text.querySelector('tspan') ? text.getAttribute('data-nombre') || '' : text.textContent;
+            lines(text, [name]);
+            text.setAttribute('font-size', SIZE);
+            var length = name ? text.getComputedTextLength() : 0;
+            if (!length) {
+                return;
+            }
+            var size = function(longest) {
+                var k = Math.min(1, ROOM / longest);
+                var up = BASELINE - text.getBBox().y;
+                return up > UP ? Math.min(k, UP / up) : k;
+            };
+            var k = size(length);
+            var second = parseFloat(text.getAttribute('data-segunda'));
+            var gaps = [];
+            for (var at = 1; at < name.length - 1; at++) {
+                if (name.charAt(at) === ' ') {
+                    gaps.push(at);
+                }
+            }
+            if (second && k < 0.62 && gaps.length) {
+                var best = null;
+                gaps.forEach(function(gap) {
+                    var left = text.getSubStringLength(0, gap);
+                    var right = length - text.getSubStringLength(0, gap + 1);
+                    if (!best || Math.max(left, right) < best.longest) {
+                        best = {at: gap, longest: Math.max(left, right)};
+                    }
+                });
+                text.setAttribute('data-nombre', name);
+                lines(text, [name.slice(0, best.at), name.slice(best.at + 1)]);
+                // The second line may not climb into the first: its size is held by the gap between them.
+                var two = Math.min(size(best.longest), (second - BASELINE) / 1.1 / SIZE);
+                if (two > k * 1.12) {
+                    k = two;
+                } else {
+                    lines(text, [name]);
+                }
             }
             text.setAttribute('font-size', (SIZE * k).toFixed(2));
         });
@@ -355,14 +409,19 @@
             var now = labelName(i);
             var peg = rail ? rail.querySelector('.percha[data-i="' + i + '"]') : null;
             if (peg) {
-                var bag = peg.querySelector('.mochila');
-                var text = peg.querySelector('text.mano');
-                var before = text.textContent;
-                text.textContent = now;
-                if (now && !before && bag) {
-                    bag.classList.remove('llega');
-                    bag.getBoundingClientRect();
-                    bag.classList.add('llega');
+                var drawing = peg.querySelector('svg.colgante');
+                var texts = all('text.mano', peg);
+                var before = texts.some(function(text) {
+                    return text.textContent !== '';
+                });
+                // Every object of the drawing carries the name; the one shown is fitted again.
+                texts.forEach(function(text) {
+                    text.textContent = now;
+                });
+                if (now && !before && drawing) {
+                    drawing.classList.remove('llega');
+                    drawing.getBoundingClientRect();
+                    drawing.classList.add('llega');
                 }
                 fit(peg);
             }

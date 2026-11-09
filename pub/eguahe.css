@@ -478,9 +478,28 @@ textarea {
     width: var(--eg-fluido-8);
 }
 
-.perchas.n3 .colgante,
-.perchas.n4 .colgante {
+.perchas.n3 .colgante {
     width: var(--eg-fluido-9);
+}
+/* Four or more brothers and sisters: each a little smaller on a phone, so that all fit on the rail. */
+.perchas.n4 .colgante {
+    /* stylelint-disable-next-line csstree/validator */
+    width: clamp(72px, 20vw, 200px);
+}
+
+.perchas.n5 .colgante {
+    /* stylelint-disable-next-line csstree/validator */
+    width: clamp(58px, 16vw, 140px);
+}
+
+.perchas.n6 .colgante {
+    /* stylelint-disable-next-line csstree/validator */
+    width: clamp(50px, 13vw, 120px);
+}
+
+.perchas.n5,
+.perchas.n6 {
+    gap: 8px;
 }
 
 .perchas.n3,
@@ -545,7 +564,142 @@ textarea {
     transform-box: fill-box;
     transform-origin: 44% 0%;
     /* Hung by a child: each one a little crooked, its own way. */
-    transform: rotate(var(--inclina, 0deg));
+    transform: rotate(var(--reposo, 0deg));
+}
+/* What hangs by the age the course starts at, the same drawings as in the panel (panel_hanging, panel::hanging_object):
+  the small backpack, the tall school backpack with its bottle, the sporty one with a ball and a clear name holder, the
+  narrow flat one with a key ring, the luggage tag and the card on a lanyard. The partial draws them all and the class
+  of the svg shows one; without it, the backpack. Each swings from the point where it rests on the knob. */
+.colgante .de-escolar,
+.colgante .de-figura,
+.colgante .de-llavero,
+.colgante .de-equipaje,
+.colgante .de-credencial,
+.colgante-escolar .de-mochila,
+.colgante-figura .de-mochila,
+.colgante-llavero .de-mochila,
+.colgante-equipaje .de-mochila,
+.colgante-credencial .de-mochila,
+.colgante-credencial-neutra .de-mochila {
+    display: none;
+}
+
+.colgante-escolar .de-escolar,
+.colgante-figura .de-figura,
+.colgante-llavero .de-llavero,
+.colgante-equipaje .de-equipaje,
+.colgante-credencial .de-credencial,
+.colgante-credencial-neutra .de-credencial {
+    display: inline;
+}
+
+.colgante .de-escolar {
+    transform-origin: 53.86% 0%;
+}
+
+.colgante .de-figura {
+    transform-origin: 49.73% 0%;
+}
+
+.colgante .de-llavero {
+    transform-origin: 45.06% 0%;
+}
+
+.colgante .de-equipaje {
+    transform-origin: 45.8% 0%;
+}
+
+.colgante .de-credencial {
+    transform-origin: 47.16% 0%;
+}
+/* The plate of the key ring and the clear name holder hang plumb from their rings, whatever the tilt. */
+.colgante .chapa,
+.colgante .funda {
+    transform-box: fill-box;
+    transform: rotate(calc(var(--reposo, 0deg) * -1));
+}
+
+.colgante .chapa {
+    transform-origin: 48.42% 13.96%;
+}
+
+.colgante .funda {
+    transform-origin: 48.15% 0%;
+}
+
+.colgante .carton {
+    fill: #ecdfc6;
+}
+
+.colgante .trazo {
+    fill: none;
+    stroke: var(--mochila-luz);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* From eight the colours are less sweet: a veil of ink, and a reflective stripe. */
+.colgante .velo {
+    fill: #2b2226;
+    opacity: 0.2;
+}
+
+.colgante .reflectante {
+    fill: #d4d8db;
+}
+
+.colgante .pelota {
+    fill: var(--mochila);
+}
+
+.colgante .pelota-costura {
+    fill: none;
+    stroke: var(--mochila-sombra);
+    stroke-width: 0.5;
+}
+
+.colgante .plastico {
+    fill: #fff;
+    opacity: 0.16;
+}
+
+.colgante .plastico-filo {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 0.7;
+    opacity: 0.55;
+}
+
+.colgante .brillo {
+    fill: #fff;
+    opacity: 0.38;
+}
+
+.colgante .hueco {
+    fill: #1a1416;
+    opacity: 0.55;
+}
+/* The card on its lanyard: the lanyard in the tone of the child; from eighteen a plain one, with a thread of that
+  tone. The name printed, not written. */
+.colgante .cinta,
+.colgante .hilo {
+    fill: var(--mochila);
+}
+
+.colgante .hilo {
+    display: none;
+}
+
+.colgante-credencial-neutra .cinta {
+    fill: var(--eg-tinta-2);
+}
+
+.colgante-credencial-neutra .hilo {
+    display: inline;
+}
+
+.colgante .impreso {
+    font-family: 'Eg Sans', sans-serif;
+    font-weight: 700;
 }
 
 .mano-titular {
@@ -558,29 +712,30 @@ textarea {
     margin-top: 0.04em;
 }
 
-.colgante .mochila.llega {
+.colgante.llega .mochila {
     animation: colgar 1.6s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+    animation-delay: var(--retraso, 0s);
 }
 
 @keyframes colgar {
     0% {
-        transform: rotate(calc(var(--inclina, 0deg) + 8deg));
+        transform: rotate(calc(var(--reposo, 0deg) + 8deg));
     }
 
     28% {
-        transform: rotate(calc(var(--inclina, 0deg) - 4.5deg));
+        transform: rotate(calc(var(--reposo, 0deg) - 4.5deg));
     }
 
     52% {
-        transform: rotate(calc(var(--inclina, 0deg) + 2.2deg));
+        transform: rotate(calc(var(--reposo, 0deg) + 2.2deg));
     }
 
     76% {
-        transform: rotate(calc(var(--inclina, 0deg) - 0.8deg));
+        transform: rotate(calc(var(--reposo, 0deg) - 0.8deg));
     }
 
     100% {
-        transform: rotate(var(--inclina, 0deg));
+        transform: rotate(var(--reposo, 0deg));
     }
 }
 
@@ -601,7 +756,7 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .colgante .mochila.llega,
+    .colgante.llega .mochila,
     .placa-nombre.aparece {
         animation: none;
     }
@@ -1933,11 +2088,11 @@ fieldset.mal .fichas .ficha {
    a row of words in their order, the one chosen filled with ink, each answer kept when it is touched; when the last
    one is answered, the thanks with the name used at home, written by hand, and the label is pressed on. Words, never
    numbers or stars. */
-.perchas.pegada .colgante .pico {
+.perchas.pegada .colgante .pegatina .pico {
     opacity: 0;
 }
 
-.perchas.pegada.pegando .colgante .pico {
+.perchas.pegada.pegando .colgante .pegatina .pico {
     transform-box: fill-box;
     transform-origin: 50% 50%;
     animation: pegar-pico 0.44s 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) both;
@@ -2979,7 +3134,7 @@ textarea.renglones:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .perchas.pegada.pegando .colgante .pico,
+    .perchas.pegada.pegando .colgante .pegatina .pico,
     .perchas.pegada.pegando .colgante .pegado,
     .ya-pasado.llega,
     .nota-que-sale,
