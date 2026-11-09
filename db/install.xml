@@ -191,6 +191,7 @@
         <FIELD NAME="formid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A form of the centre whose questions its sign-up asks too"/>
         <FIELD NAME="survey" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The survey How it went the families who came answer on their page; 0, only the open question"/>
         <FIELD NAME="outcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the centre does with what the families told, a line the families who answered read"/>
+        <FIELD NAME="kit" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The kit for the networks: the short link of each network and the texts written for them, JSON"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

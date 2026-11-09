@@ -42,7 +42,7 @@
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
-        "posterurl": "#", "posterurla3": "#", "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
+        "posterurl": "#", "posterurla3": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
         "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
     }
@@ -118,6 +118,7 @@
                     <a class="boton secundario pequeno" href="{{posterurl}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a4, local_oksigeniaeguahe{{/str}}</a>
                     <a class="boton secundario pequeno" href="{{posterurla3}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a3, local_oksigeniaeguahe{{/str}}</a>
                     {{#labelsurl}}<a class="boton secundario pequeno" href="{{labelsurl}}" target="_blank" rel="noopener">{{{i.etiqueta}}}{{labelsname}}</a>{{/labelsurl}}
+                    {{#kiturl}}<a class="boton secundario pequeno" href="{{kiturl}}">{{#str}}kit_title, local_oksigeniaeguahe{{/str}}</a>{{/kiturl}}
                 </div>
                 {{/tailored}}
             </section>

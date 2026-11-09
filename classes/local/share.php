@@ -20,7 +20,7 @@ namespace local_oksigeniaeguahe\local;
  * What a family shares, well shared: the story of a child, its drawing and an open act of the centre. Each by a signed
  * link that opens that piece and nothing else of the family; with its preview (Open Graph) in the colour and the name
  * of the centre; at its end the gift of the centre, the invitation to whoever receives it (when the centre has it on)
- * and the seal of Eguahe, of Oksigenia. What it brings is counted for the family that shared it, never scored.
+ * and the seal of Eguahe, of Oksigenia (to eguahe.com). What it brings is counted for the family that shared it, never scored.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -36,8 +36,8 @@ class share {
     /** @var string[] What is counted of a piece shared: opened by whoever received it, the invitation followed, sent. */
     const COUNTED = ['opened', 'invite', 'sent'];
 
-    /** @var string The page of Oksigenia for centres; Spanish, and English for every other language. */
-    const SEAL = 'https://oksigenia.com/';
+    /** @var string Where the seal leads: the page of Eguahe for centres, made by Oksigenia (Enrique, 9-11). */
+    const SEAL = 'https://eguahe.com/';
 
     /** @var string[] The readers of links that are not people: their opening is not counted. */
     const ROBOTS = ['whatsapp', 'facebookexternalhit', 'facebot', 'telegrambot', 'twitterbot', 'slackbot', 'linkedinbot',
@@ -124,16 +124,15 @@ class share {
     }
 
     /**
-     * The seal at the end of a piece: «Eguahe, of Oksigenia», to the page of Oksigenia for centres, saying from which
-     * piece it comes.
+     * The seal at the end of a piece: «Eguahe, of Oksigenia», to the page of Eguahe for centres, saying from which piece
+     * it comes.
      *
      * @param string $piece
      * @param string $lang
      * @return array url and text.
      */
     public static function seal(string $piece, string $lang): array {
-        $path = $lang === 'es' ? 'eguahe' : 'en/eguahe';
-        return ['url' => self::SEAL . $path . '?de=' . (in_array($piece, self::PIECES, true) ? $piece : 'eguahe'),
+        return ['url' => self::SEAL . '?de=' . (in_array($piece, self::PIECES, true) ? $piece : 'eguahe'),
             'text' => publiclang::str('credit_name', $lang)];
     }
 
@@ -323,29 +322,40 @@ class share {
     }
 
     /**
-     * The preview image of a piece: the colour of the centre, its logo or its initials, its name, and what is shared
-     * («Un cuento para Leo»), drawn with GD. Nothing else of the family.
+     * The preview image of a piece: the colour of the centre, its name, and what is shared («Un cuento para Leo»),
+     * drawn with GD; nothing else of the family. Wide (1200 × 630, the preview of a link) by default; any size for the
+     * kit of an act (square, upright).
      *
      * @param \stdClass $centre
      * @param string $kicker The small line above («Tu primer día»).
      * @param string $title The big line («Un cuento para Leo»).
      * @param string|null $picture A picture of the piece (the drawing), as bytes.
+     * @param array $size Width and height.
      * @return string PNG bytes, or '' without GD.
      */
-    public static function card(\stdClass $centre, string $kicker, string $title, ?string $picture = null): string {
+    public static function card(
+        \stdClass $centre,
+        string $kicker,
+        string $title,
+        ?string $picture = null,
+        array $size = self::CARD
+    ): string {
         global $CFG;
         if (!function_exists('imagettftext') || !function_exists('imagecreatetruecolor')) {
             return '';
         }
-        [$w, $h] = self::CARD;
+        [$w, $h] = $size;
         $im = imagecreatetruecolor($w, $h);
         $vars = publicpage::centre_vars((string) ($centre->colour ?: '#2f5d62'), false);
         $alloc = function (string $hex) use ($im) {
             [$r, $g, $b] = array_map('hexdec', str_split(ltrim($hex, '#'), 2));
             return imagecolorallocate($im, $r, $g, $b);
         };
+        // Measured on the wide one, and grown with the shorter side.
+        $k = min($w / 1200, $h / 630, $w / 1080 * 1.3);
+        $wide = $w > $h * 1.3;
         imagefilledrectangle($im, 0, 0, $w, $h, $alloc($vars['--c-pared']));
-        imagefilledrectangle($im, 0, 0, 24, $h, $alloc($vars['--c-acento']));
+        imagefilledrectangle($im, 0, 0, max(12, (int) round(24 * $k)), $h, $alloc($vars['--c-acento']));
         $brand = $alloc($vars['--c-acento-texto']);
         $ink = $alloc('#1A1614');
         $soft = $alloc('#5C5650');
@@ -354,20 +364,21 @@ class share {
         $medium = $dir . 'share/font/SchibstedGrotesk-Medium.ttf';
         $hand = $dir . 'sticker/font/Caveat-SemiBold.ttf';
         $arabicfont = $dir . 'sticker/' . sticker::ARABIC_FONT;
-        $left = 96;
-        $box = 380;
-        // With a picture, the words stop well before its sheet.
-        $right = $picture !== null ? $w - 96 - $box - 72 : $w - 96;
-        // The picture of the piece on the right, on a white sheet.
+        $margin = (int) round(0.08 * $w);
+        $left = $margin;
+        $box = (int) round(($wide ? 380 : 0.62 * $w) * ($wide ? $k : 1));
+        // Wide, the picture on the right and the words stop well before it; upright, the picture below the words.
+        $right = $picture !== null && $wide ? $w - $margin - $box - (int) round(72 * $k) : $w - $margin;
         if ($picture !== null && ($src = @imagecreatefromstring($picture))) {
             $sw = imagesx($src);
             $sh = imagesy($src);
             $scale = min($box / $sw, $box / $sh);
             $dw = (int) round($sw * $scale);
             $dh = (int) round($sh * $scale);
-            $x = $w - 96 - $box + (int) (($box - $dw) / 2);
-            $y = (int) (($h - $dh) / 2);
-            imagefilledrectangle($im, $x - 16, $y - 16, $x + $dw + 16, $y + $dh + 16, $alloc('#FFFFFF'));
+            $x = $wide ? $w - $margin - $box + (int) (($box - $dw) / 2) : (int) (($w - $dw) / 2);
+            $y = $wide ? (int) (($h - $dh) / 2) : (int) round($h * 0.56);
+            $pad = (int) round(16 * max($k, 1));
+            imagefilledrectangle($im, $x - $pad, $y - $pad, $x + $dw + $pad, $y + $dh + $pad, $alloc('#FFFFFF'));
             imagecopyresampled($im, $src, $x, $y, 0, 0, $dw, $dh, $sw, $sh);
             imagedestroy($src);
         }
@@ -386,9 +397,11 @@ class share {
             }
             imagettftext($im, $size, 0, $left, $y, $colour, $font, $text);
         };
-        $write($bold, format_string($centre->name), 34, 132, $brand);
-        $write($medium, $kicker, 32, 318, $soft);
-        $write($hand, $title, 92, 430, $ink);
+        $s = $wide ? $k : $w / 1080 * 1.25;
+        $top = $wide ? 0 : (int) round($h * ($picture !== null ? 0.08 : 0.22));
+        $write($bold, format_string($centre->name), (int) round(34 * $s), $top + (int) round(132 * $s), $brand);
+        $write($medium, $kicker, (int) round(32 * $s), $top + (int) round(318 * $s), $soft);
+        $write($hand, $title, (int) round(92 * $s), $top + (int) round(430 * $s), $ink);
         ob_start();
         imagepng($im, null, 9);
         imagedestroy($im);

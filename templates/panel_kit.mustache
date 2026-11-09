@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_kit
+
+    The kit of an open act for the networks (kit.php): when to post; a link for each network, so the numbers say where
+    each family came from; the pictures without a QR, in three shapes; the text for the networks and the one for the
+    families to forward; and a script to film with a phone. A person copies them and posts them.
+
+    Example context (json):
+    {
+        "i": {"copiar": "", "atras": "", "bajar": ""},
+        "head": {"title": "Kit para redes", "ante": "Jornada de puertas abiertas", "sub": "Todo listo para publicar.",
+            "back": {"url": "#", "name": "Jornada de puertas abiertas"}, "action": false},
+        "when": [{"key": "announce", "day": "sábado, 7 de noviembre", "what": "Anúncienla"}],
+        "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig"}],
+        "pictures": [{"name": "Cuadrada", "size": "1080 × 1080", "url": "#", "download": "#", "w": 1080, "h": 1080}],
+        "posterurl": "#", "post": "El sábado abrimos las puertas.", "forward": "Te paso esto.",
+        "shots": [{"n": 1, "shot": "La puerta de entrada", "seconds": "4 s", "onscreen": "Sábado 21"}], "total": "20 s",
+        "byai": "", "canwrite": false, "writelabel": "Que los escriba la IA", "canforget": false, "noai": "",
+        "action": "/local/oksigeniaeguahe/kit.php?id=1", "sesskey": "abc"
+    }
+}}
+<div class="pagina pagina-kit">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <section class="apartado kit-cuando" aria-labelledby="kit-cuando-t">
+        <h2 id="kit-cuando-t">{{#str}}kit_when, local_oksigeniaeguahe{{/str}}</h2>
+        <ol class="kit-dias">{{#when}}<li><b>{{day}}</b> <span>{{what}}</span></li>{{/when}}</ol>
+    </section>
+    <section class="apartado kit-enlaces" aria-labelledby="kit-enlaces-t">
+        <h2 id="kit-enlaces-t">{{#str}}kit_links, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="def">{{#str}}kit_links_help, local_oksigeniaeguahe{{/str}}</p>
+        <ul class="kit-redes">{{#links}}<li><b>{{name}}</b> <span class="enlace-corto" translate="no">{{url}}</span> <button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></li>{{/links}}</ul>
+    </section>
+    <section class="apartado kit-imagenes" aria-labelledby="kit-imagenes-t">
+        <h2 id="kit-imagenes-t">{{#str}}kit_pictures, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="def">{{#str}}kit_pictures_help, local_oksigeniaeguahe{{/str}} <a href="{{posterurl}}" target="_blank" rel="noopener">{{#str}}kit_poster, local_oksigeniaeguahe{{/str}}</a></p>
+        <div class="kit-fotos">
+            {{#pictures}}
+            <figure class="kit-foto"><img src="{{url}}" alt="{{name}}" width="{{w}}" height="{{h}}" loading="lazy"><figcaption><b>{{name}}</b> <span class="secundario">{{size}}</span> <a class="enlace" href="{{download}}">{{#str}}kit_download, local_oksigeniaeguahe{{/str}}</a></figcaption></figure>
+            {{/pictures}}
+        </div>
+    </section>
+    <section class="apartado kit-textos" id="textos" aria-labelledby="kit-textos-t">
+        <h2 id="kit-textos-t">{{#str}}kit_texts, local_oksigeniaeguahe{{/str}}</h2>
+        {{#byai}}<p class="def">{{byai}}</p>{{/byai}}
+        <h3>{{#str}}kit_post_title, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="kit-texto" dir="auto">{{post}}</p>
+        <p><button class="boton terciario pequeno" type="button" data-copiar="{{post}}" hidden>{{{i.copiar}}}{{#str}}kit_copy, local_oksigeniaeguahe{{/str}}</button></p>
+        <h3>{{#str}}kit_forward_title, local_oksigeniaeguahe{{/str}}</h3>
+        <p class="kit-texto" dir="auto">{{forward}}</p>
+        <p><button class="boton terciario pequeno" type="button" data-copiar="{{forward}}" hidden>{{{i.copiar}}}{{#str}}kit_copy, local_oksigeniaeguahe{{/str}}</button></p>
+        {{#canwrite}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="write"><button class="boton secundario pequeno" type="submit">{{writelabel}}</button></form>{{/canwrite}}
+        {{#canforget}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="forget"><button class="enlace" type="submit">{{#str}}kit_forget, local_oksigeniaeguahe{{/str}}</button></form>{{/canforget}}
+        {{#noai}}<p class="def">{{noai}}</p>{{/noai}}
+    </section>
+    <section class="apartado kit-guion" aria-labelledby="kit-guion-t">
+        <h2 id="kit-guion-t">{{#str}}kit_script, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="def">{{#str}}kit_script_help, local_oksigeniaeguahe{{/str}} {{total}}.</p>
+        <ol class="kit-planos">{{#shots}}<li><b>{{shot}}</b> <span class="secundario">{{seconds}}</span>{{#onscreen}}<br><span class="kit-rotulo" dir="auto">«{{onscreen}}»</span>{{/onscreen}}</li>{{/shots}}</ol>
+    </section>
+</div>

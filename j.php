@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\kit;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
@@ -65,15 +66,17 @@ $sharedby = optional_param('f', 0, PARAM_INT);
 $sharesig = optional_param('c', '', PARAM_ALPHANUM);
 $sharer = $sharedby && share::signed('acto', $sharedby, (int) $event->id, $sharesig) ?
     households::get($sharedby, (int) $centre->id) : null;
-$piece = $sharer ? 'acto' : optional_param('d', '', PARAM_ALPHA);
-$piece = in_array($piece, share::PIECES, true) ? $piece : '';
+// Or by the link of a network, from the kit of the act: the network is where they came from.
+$came = $sharer ? 'acto' : optional_param('d', '', PARAM_ALPHA);
+$piece = in_array($came, share::PIECES, true) ? $came : '';
+$network = $piece === '' ? kit::network_of($centre, $came) : '';
 if ($sharer) {
     $url->params(['f' => $sharedby, 'c' => $sharesig]);
     if (data_submitted() === false) {
         share::count($sharer, $centre, 'opened', 'acto');
     }
-} else if ($piece !== '') {
-    $url->param('d', $piece);
+} else if ($piece !== '' || $network !== '') {
+    $url->param('d', $came);
 }
 $lang = publiclang::choose($centre);
 if (!$event->open || $event->timeend < time()) {
@@ -97,7 +100,7 @@ if (data_submitted()) {
         $errors = signup::check($data, $event, $centre, $lang);
     }
     if (!$errors) {
-        $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : '';
+        $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
         // A family already known: whoever filled the form may not be that family, so its page is not shown here and
         // the link goes only to the email it had.

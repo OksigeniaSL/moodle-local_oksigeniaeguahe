@@ -936,5 +936,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026113400, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113500) {
+        // The kit of an act for the networks: its links by network and the texts written for them.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('kit', XMLDB_TYPE_TEXT, null, null, null, null, null, 'outcome');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026113500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

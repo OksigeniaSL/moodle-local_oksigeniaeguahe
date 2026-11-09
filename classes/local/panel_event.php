@@ -233,6 +233,9 @@ class panel_event {
             'link' => events::short_url($event) ?? events::url($event)->out(false),
             'posterurl' => (new \moodle_url($url, ['poster' => 1]))->out(false),
             'posterurla3' => (new \moodle_url($url, ['poster' => 1, 'paper' => 'A3']))->out(false),
+            // The kit for the networks, for an act open to all and still to come.
+            'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
+                ->out(false) : false,
             'kind' => get_string($family ? 'visit_own' : ($tailored ? 'visit_asking' : 'event_kind_' . $event->kind), $c),
             'capacity' => $event->capacity ? get_string('panel_people', $c, (int) $event->capacity) : '',
             'slots' => $slots ? get_string('panel_slots', $c, count($slots)) : '',

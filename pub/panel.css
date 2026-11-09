@@ -10704,3 +10704,63 @@ a.quien-cita:focus-visible {
     background: var(--eg-hundido);
     font-size: 0.875rem;
 }
+
+/* The kit of an act for the networks (kit.php): when to post, a link per network, the pictures, the texts and the
+   script. Plain until its design. */
+.pagina-kit .apartado {
+    margin-bottom: 28px;
+}
+
+.kit-dias,
+.kit-redes,
+.kit-planos {
+    margin: 8px 0 0;
+    padding-inline-start: 1.2em;
+}
+
+.kit-dias li,
+.kit-redes li,
+.kit-planos li {
+    margin-bottom: 8px;
+}
+
+.kit-redes .enlace-corto {
+    font-family: var(--eg-mono, monospace);
+    color: var(--eg-tinta-2);
+}
+
+.kit-fotos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.kit-foto {
+    margin: 0;
+}
+
+.kit-foto img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.kit-foto figcaption {
+    margin-top: 6px;
+}
+
+.kit-texto {
+    margin: 4px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--eg-papel-2, transparent);
+    border: 1px solid var(--eg-linea);
+    white-space: pre-line;
+}
+
+.kit-rotulo {
+    font-weight: 600;
+}
