@@ -263,6 +263,11 @@ final class import_test extends \advanced_testcase {
         $this->assertSame(6, grades::age('Year 1', $au));
         $this->assertNull(grades::age('Year 1'), 'Without a system, two ages: none is guessed.');
         $this->assertSame(1, grades::age('1 año'), 'A year of age, never a course of Portugal.');
+        // Ages of two figures are ages: «18» is never a range from 1 to 8.
+        $this->assertSame(18, grades::age('Grupo de 18 años'));
+        $this->assertSame(12, grades::age('12 years old'));
+        $this->assertNull(grades::age('De 3 a 5 años'));
+        $this->assertNull(grades::age('Infantil 3-5 años'));
         // The centre chooses another system, or none; and the age it writes wins.
         $DB->set_field(centres::T, 'system', 'gb', ['id' => $au->id]);
         $this->assertSame(5, grades::age('Year 1', centres::get((int) $au->id)));

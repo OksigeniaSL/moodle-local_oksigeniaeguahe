@@ -148,7 +148,8 @@ class grades {
         }
         $generic = self::data()['generic'] ?? [];
         $years = self::any($generic['years'] ?? []);
-        if ($years !== '' && preg_match('/\d+\s*(a|y|to|e|-)?\s*\d+\s*(' . $years . ')\b/', $g)) {
+        // A range of ages («3 a 5 años», «3-5 years») is a stage, not a course; its two numbers go apart, never «18».
+        if ($years !== '' && preg_match('/\b\d+(?:\s*(?:a|y|to|e|-)\s*|\s+)\d+\s*(' . $years . ')\b/', $g)) {
             return null;
         }
         $months = self::any($generic['months'] ?? []);
