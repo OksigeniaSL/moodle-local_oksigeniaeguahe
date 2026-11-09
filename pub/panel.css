@@ -10817,6 +10817,7 @@ a.quien-cita:focus-visible {
 .kit-foto img {
     display: block;
     width: auto;
+    /* stylelint-disable-next-line csstree/validator */
     height: clamp(130px, 19vw, 290px);
     border-radius: 6px;
     box-shadow: 0 1px 2px var(--eg-sombra), 0 10px 22px -12px var(--eg-sombra);
@@ -10940,6 +10941,7 @@ a.quien-cita:focus-visible {
     position: relative;
     display: grid;
     align-content: space-between;
+    /* stylelint-disable-next-line csstree/validator */
     width: min(100%, 168px);
     aspect-ratio: 9 / 16;
     padding: 10px;
