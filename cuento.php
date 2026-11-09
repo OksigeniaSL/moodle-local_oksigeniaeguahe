@@ -27,9 +27,11 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\drawings;
+use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
+use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\story;
 
 $householdid = optional_param('h', 0, PARAM_INT);
@@ -64,11 +66,24 @@ if (optional_param('dibujo', 0, PARAM_BOOL)) {
     send_stored_file($file, DAYSECS, 0, false, ['cacheability' => 'private']);
 }
 
+if (optional_param('action', '', PARAM_ALPHA) === 'invitacion') {
+    // The invitation followed by whoever received the story, counted for the family that shared it; then to the centre.
+    $target = share::invite_target($centre, 'cuento');
+    if ($target && !empty($centre->shareinvite)) {
+        share::count($household, $centre, 'invite', 'cuento');
+        redirect($target);
+    }
+    redirect($url);
+}
+
 if (optional_param('action', '', PARAM_ALPHA) === 'seen') {
-    // What is done with the story, counted for the family it belongs to; only that.
-    $counted = data_submitted() && confirm_sesskey() && !seen::from_team($centre);
-    if ($counted && optional_param('kind', '', PARAM_ALPHA) === 'story') {
-        seen::record($household, 'story', optional_param('what', '', PARAM_ALPHAEXT), optional_param('via', '', PARAM_ALPHANUM));
+    // Opened by whoever received it, and sent on: counted as what was shared, for the family it belongs to. What is done
+    // inside the book is the family's reading, not this.
+    $what = optional_param('what', '', PARAM_ALPHAEXT);
+    if (data_submitted() && confirm_sesskey() && optional_param('kind', '', PARAM_ALPHA) === 'story') {
+        if ($what === 'opened' || $what === 'sent') {
+            share::count($household, $centre, $what, 'cuento');
+        }
     }
     publicpage::headers();
     @header('Cache-Control: no-store');
@@ -76,9 +91,24 @@ if (optional_param('action', '', PARAM_ALPHA) === 'seen') {
     die();
 }
 
-story::output(story::context($household, $child, $centre, $lang, [
+$context = story::context($household, $child, $centre, $lang, [
     'drawing' => (new moodle_url($url, ['dibujo' => 1]))->out(false),
     'share' => $url->out(false),
     'measure' => seen::from_team($centre) ? null : ['url' => (new moodle_url($url, ['action' => 'seen']))->out(false),
         'sesskey' => sesskey()],
-]));
+]);
+// Shared: its preview, the gift of the centre, the invitation and the seal of Eguahe.
+$name = familypage::label_name($child) ?: (string) $child->firstname;
+$context['meta'] = share::meta(
+    publiclang::str('pub_story_kicker', $lang, (object) ['name' => $name]),
+    share::gift($centre, $lang),
+    $url,
+    new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'cuento', 'h' => $householdid, 'n' => $childid,
+        's' => $signature, 'lang' => $lang]),
+    $lang,
+    format_string($centre->name)
+);
+$context['credit'] = share::seal('cuento', $lang);
+$context['gift'] = share::gift($centre, $lang);
+$context['invitation'] = share::invitation($centre, 'cuento', $lang, $url);
+story::output($context);

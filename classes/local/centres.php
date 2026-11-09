@@ -102,6 +102,13 @@ class centres {
         $row->municipalities = trim((string) ($data->municipalities ?? '')) ?: null;
         $row->aiprovider = (int) ($data->aiprovider ?? 0);
         $row->aion = empty($data->aion) ? 0 : 1;
+        // What families share invites whoever receives it (on unless the centre says no), and to which form.
+        if (property_exists($data, 'shareinvite')) {
+            $row->shareinvite = empty($data->shareinvite) ? 0 : 1;
+        }
+        if (property_exists($data, 'shareentry')) {
+            $row->shareentry = max(0, (int) $data->shareentry);
+        }
         // How families reach the centre, and a line about what a visit is like.
         foreach (['address' => 255, 'phone' => 50, 'email' => 255] as $field => $length) {
             $value = trim((string) ($data->$field ?? ''));

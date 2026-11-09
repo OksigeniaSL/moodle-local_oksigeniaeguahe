@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
+use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
 
@@ -58,6 +59,22 @@ $from = households::by_link($invited);
 if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
     seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
 }
+// Passed on by a family of the centre (share::act_url()), or reached from the invitation at the end of a piece shared:
+// whoever signs up here comes by it, and the family that passed it on has it counted.
+$sharedby = optional_param('f', 0, PARAM_INT);
+$sharesig = optional_param('c', '', PARAM_ALPHANUM);
+$sharer = $sharedby && share::signed('acto', $sharedby, (int) $event->id, $sharesig) ?
+    households::get($sharedby, (int) $centre->id) : null;
+$piece = $sharer ? 'acto' : optional_param('d', '', PARAM_ALPHA);
+$piece = in_array($piece, share::PIECES, true) ? $piece : '';
+if ($sharer) {
+    $url->params(['f' => $sharedby, 'c' => $sharesig]);
+    if (data_submitted() === false) {
+        share::count($sharer, $centre, 'opened', 'acto');
+    }
+} else if ($piece !== '') {
+    $url->param('d', $piece);
+}
 $lang = publiclang::choose($centre);
 if (!$event->open || $event->timeend < time()) {
     publicpage::message(
@@ -80,7 +97,8 @@ if (data_submitted()) {
         $errors = signup::check($data, $event, $centre, $lang);
     }
     if (!$errors) {
-        [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang);
+        $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : '';
+        [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
         // A family already known: whoever filled the form may not be that family, so its page is not shown here and
         // the link goes only to the email it had.
         $to = $existed ? (string) ($before[0] ?? '') : null;
@@ -112,6 +130,21 @@ if (data_submitted()) {
     }
 }
 
+// Its preview, wherever it is shared; passed on by a family, the seal of Eguahe at its foot.
+if (share::act_open($event)) {
+    $when = publicpage::date_parts((int) $event->timestart, $lang);
+    publicpage::$head = share::meta(
+        format_string($event->name),
+        $when['long'] . (!empty($event->place) ? ' · ' . format_string($event->place) : ''),
+        events::url($event),
+        new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'acto', 't' => $event->token, 'lang' => $lang]),
+        $lang,
+        format_string($centre->name)
+    );
+}
+if ($sharer) {
+    publicpage::$seal = share::seal('acto', $lang);
+}
 publicpage::output(
     $centre,
     $lang,

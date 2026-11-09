@@ -48,7 +48,8 @@
         "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
         "ai": {"providers": [{"value": "", "name": "La del sitio", "selected": true}], "note": "", "on": false, "several": false,
-            "locked": false, "lockednote": ""}
+            "locked": false, "lockednote": ""},
+        "share": {"on": true, "hasforms": true, "forms": [{"value": 0, "name": "El primero activo", "selected": true}]}
     }
 }}
 <div class="pagina pagina-ajustes">
@@ -190,6 +191,14 @@
                     {{/skins}}
                 </div>
                 <p class="def">{{#str}}panel_skin_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            <section class="apartado" id="aj-compartir" aria-labelledby="aj-compartir-t">
+                <header><h2 id="aj-compartir-t">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</h2></header>
+                {{#share}}
+                <label class="casilla"><input type="checkbox" name="shareinvite" value="1"{{#on}} checked{{/on}}><span>{{#str}}centre_shareinvite, local_oksigeniaeguahe{{/str}}</span></label>
+                {{#hasforms}}<div class="campo"><label for="c-compartir">{{#str}}centre_shareentry, local_oksigeniaeguahe{{/str}}</label><select id="c-compartir" name="shareentry">{{#forms}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/forms}}</select></div>{{/hasforms}}
+                <p class="def">{{#str}}centre_share_help, local_oksigeniaeguahe{{/str}}</p>
+                {{/share}}
             </section>
             <section class="apartado" id="aj-ia" aria-labelledby="aj-ia-t">
                 <header><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2></header>

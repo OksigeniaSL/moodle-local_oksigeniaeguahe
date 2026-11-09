@@ -1,0 +1,53 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_shared_drawing
+
+    The drawing of a child, sent by its family to someone: the drawing big, drawing itself once when its strokes were
+    kept; the gift of the centre; sending it on; and, when the centre has it on, the invitation to know the centre.
+    Nothing else of the family. The seal of Eguahe goes at the foot, in the frame of the page.
+
+    Example context (json):
+    {
+        "kicker": "Un dibujo de", "name": "Leo", "img": "/local/oksigeniaeguahe/dibujo.php?action=imagen",
+        "strokes": "", "alt": "El dibujo de Leo", "gift": "Un regalo del Colegio Los Arces",
+        "share": {"label": "Mandarlo a alguien", "url": "/local/oksigeniaeguahe/dibujo.php", "title": "El dibujo de Leo",
+            "text": "Mira lo que ha dibujado Leo", "copied": "Enlace copiado", "measure": ""},
+        "invitation": {"title": "¿Buscan centro?", "text": "Vengan a conocer el Colegio Los Arces.",
+            "button": "Ver cuándo", "url": "/local/oksigeniaeguahe/dibujo.php?action=invitacion"}
+    }
+}}
+<section class="pared corta compartido compartido-dibujo" aria-labelledby="titulo">
+    <div class="mensaje">
+        <p class="antetitulo">{{kicker}}</p>
+        <h1 id="titulo" class="mano-titular" dir="auto" translate="no">{{name}}</h1>
+        <figure class="dibujo-grande-marco">
+            <a class="dibujo-grande" href="{{img}}"{{#strokes}} data-trazos="{{.}}"{{/strokes}}><img src="{{img}}" alt="{{alt}}"></a>
+        </figure>
+        <p class="regalo-firma" dir="auto">{{gift}}</p>
+        {{#share}}
+        <p class="compartir-fila"><button class="boton" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#measure}} data-medir="{{.}}"{{/measure}}>{{label}}</button><span class="compartir-aviso" aria-live="polite"></span></p>
+        {{/share}}
+    </div>
+</section>
+{{#invitation}}
+<section class="invitacion-compartido" aria-labelledby="invitacion-t">
+    <h2 id="invitacion-t">{{title}}</h2>
+    <p dir="auto">{{text}}</p>
+    <p><a class="boton principal" href="{{url}}">{{button}}</a></p>
+</section>
+{{/invitation}}

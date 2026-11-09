@@ -3415,3 +3415,57 @@ html[lang="ar"] body * {
 .lugar-acto {
     display: inline-block;
 }
+
+/* What a family shares (0.43.0): the drawing big, the gift of the centre, sending it on and the invitation. Plain until
+   its design. */
+.compartido-dibujo .mano-titular {
+    font-size: 2.6rem;
+}
+
+.dibujo-grande-marco {
+    margin: 1.2rem 0;
+    padding: 14px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dibujo-grande {
+    display: block;
+}
+
+.dibujo-grande img,
+.dibujo-grande canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.regalo-firma {
+    font-weight: 600;
+    color: var(--c-acento-texto);
+}
+
+.compartir-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.compartir-aviso {
+    color: var(--tinta-2, inherit);
+    font-size: 0.9rem;
+}
+
+.invitacion-compartido {
+    margin: 2rem auto;
+    padding: 1.4rem;
+    border-radius: 12px;
+    background: var(--c-acento-suave);
+    text-align: center;
+}
+
+.invitacion-compartido h2 {
+    margin-top: 0;
+}

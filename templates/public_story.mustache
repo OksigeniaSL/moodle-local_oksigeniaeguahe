@@ -39,7 +39,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <title>{{title}}</title>
-<meta name="color-scheme" content="light dark">
+{{{meta}}}<meta name="color-scheme" content="light dark">
 <link rel="stylesheet" href="{{css}}">
 </head>
 <body>
@@ -84,6 +84,10 @@
     </div>
     </div>
   </nav>
+  {{#gift}}<aside class="regalo" aria-label="{{gift}}">
+    <p class="regalo-firma" dir="auto">{{gift}}</p>
+    {{#invitation}}<p class="regalo-invita"><b>{{title}}</b> <span dir="auto">{{text}}</span> <a href="{{url}}">{{button}}</a></p>{{/invitation}}
+  </aside>{{/gift}}
   {{#credit}}<p class="autor"><a href="{{url}}" target="_blank" rel="noopener">{{text}}</a></p>{{/credit}}
   <p class="vh" id="aviso" aria-live="polite"></p>
 </div>

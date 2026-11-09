@@ -772,6 +772,92 @@
                 });
             });
         }
+        // A drawing sent to someone: big, it draws itself once when it comes into view, at its own pace; without its
+        // strokes, the script or with less motion, the photo.
+        if (DV && !DV.lessMotion() && window.fetch && window.Promise && window.IntersectionObserver) {
+            all('a.dibujo-grande[data-trazos]').forEach(function(link) {
+                var pic = link.querySelector('img');
+                var photo = new Image();
+                Promise.all([
+                    new Promise(function(ok, ko) {
+                        photo.onload = ok;
+                        photo.onerror = ko;
+                        photo.src = link.getAttribute('href');
+                    }),
+                    window.fetch(link.getAttribute('data-trazos'), {credentials: 'same-origin'}).then(function(r) {
+                        if (!r.ok) {
+                            throw new Error(String(r.status));
+                        }
+                        return r.json();
+                    })
+                ]).then(function(got) {
+                    var a = DV.fromJSON(got[1]);
+                    var ratio = Math.min(2, window.devicePixelRatio || 1);
+                    var wide = Math.max(240, Math.round(link.getBoundingClientRect().width || 480));
+                    var canvas = document.createElement('canvas');
+                    canvas.width = Math.round(wide * ratio);
+                    canvas.height = Math.round(wide * ratio * photo.naturalHeight / photo.naturalWidth);
+                    canvas.setAttribute('role', 'img');
+                    canvas.setAttribute('aria-label', pic ? pic.alt : '');
+                    var player = new DV.Player(canvas, photo, a, {after: 'still'});
+                    if (pic && pic.parentNode) {
+                        pic.parentNode.replaceChild(canvas, pic);
+                    }
+                    player.renderAt(0);
+                    var seen = new window.IntersectionObserver(function(entries) {
+                        if (entries.some(function(en) {
+                            return en.isIntersecting;
+                        })) {
+                            seen.disconnect();
+                            player.play();
+                        }
+                    }, {threshold: 0.6});
+                    seen.observe(canvas);
+                }).catch(function() {
+                    // The photo stays.
+                });
+            });
+        }
+        // Sending a piece on: the phone's own way to share, else the link copied; counted for the family that shared it.
+        all('[data-compartir]').forEach(function(button) {
+            button.addEventListener('click', function() {
+                var url = button.getAttribute('data-compartir');
+                var told = function() {
+                    var note = button.parentNode.querySelector('.compartir-aviso');
+                    if (note) {
+                        note.textContent = button.getAttribute('data-copiado') || '';
+                    }
+                };
+                var counted = function() {
+                    var where = button.getAttribute('data-medir');
+                    if (where && navigator.sendBeacon) {
+                        try {
+                            navigator.sendBeacon(where);
+                        } catch (err) {
+                            // Only a count.
+                        }
+                    }
+                };
+                var data = {title: button.getAttribute('data-titulo') || '', text: button.getAttribute('data-texto') || '',
+                    url: url};
+                if (navigator.share) {
+                    navigator.share(data).then(counted).catch(function() {
+                        // Not sent: nothing to count.
+                    });
+                    return;
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function() {
+                        told();
+                        counted();
+                    }).catch(function() {
+                        window.prompt(data.title, url);
+                    });
+                    return;
+                }
+                window.prompt(data.title, url);
+            });
+        });
         document.addEventListener('click', function(e) {
             var link = e.target.closest ? e.target.closest('[data-ampliar]') : null;
             var onTable = e.target.matches && e.target.matches('.sala .dibujo, .tarjeta-dibujo') ? e.target : null;

@@ -222,10 +222,21 @@ class story {
      * @return array|null [household, child, centre]
      */
     public static function from_link(int $householdid, int $childid, string $signature): ?array {
-        global $DB;
         if (!hash_equals(self::signature($householdid, $childid), $signature)) {
             return null;
         }
+        return self::from_ids($householdid, $childid);
+    }
+
+    /**
+     * The family, the child and the centre of a link already checked.
+     *
+     * @param int $householdid
+     * @param int $childid
+     * @return array|null [household, child, centre]
+     */
+    public static function from_ids(int $householdid, int $childid): ?array {
+        global $DB;
         $household = $DB->get_record(households::T, ['id' => $householdid]);
         $centre = $household ? centres::get((int) $household->centreid) : null;
         $child = $household ? $DB->get_record(households::CHILDREN, ['id' => $childid, 'householdid' => $householdid]) : null;

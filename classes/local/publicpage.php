@@ -30,6 +30,12 @@ class publicpage {
     /** @var bool Whether the page goes inside the web of a centre. */
     public static $embedded = false;
 
+    /** @var string More of the head: the preview of a piece shared (share::meta()). */
+    public static $head = '';
+
+    /** @var array|null At the foot of a piece shared, its seal instead of the line of who makes Eguahe. */
+    public static $seal = null;
+
     /** @var string Where the line of who makes Eguahe leads. */
     const CREDITURL = 'https://oksigenia.com/';
 
@@ -178,13 +184,13 @@ class publicpage {
             'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id ?? 0,
                 'lang' => $lang]))->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
-            'credit' => self::credit($lang),
+            'credit' => self::$seal ?? self::credit($lang),
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
         self::headers();
         // The page of a family: the drawing that draws itself, under each child and on the table, before what plays it.
-        $vivo = $template === 'public_family' ?
+        $vivo = in_array($template, ['public_family', 'public_shared_drawing'], true) ?
             '<script src="' . $base . 'dibujo-vivo.js?v=' . $version . '" defer></script>' . "\n" : '';
         // The page of the drawing cuts and straightens the photo in the browser.
         $cropper = $template === 'public_drawing' ?
@@ -199,7 +205,7 @@ class publicpage {
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="' . s($colour) . '">
 <title>' . s($title) . ' · ' . s($name) . '</title>
-<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+' . self::$head . '<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
 @media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>

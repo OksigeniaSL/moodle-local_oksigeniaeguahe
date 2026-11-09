@@ -904,6 +904,27 @@ button.marco {
     text-underline-offset: 2px;
 }
 
+/* Shared: the gift of the centre and, when it has it on, the invitation to whoever received the story. */
+.regalo {
+    margin: 0;
+    padding: 6px 16px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--tinta-2);
+}
+.regalo p {
+    margin: 0 0 2px;
+}
+.regalo-firma {
+    font-weight: 600;
+    color: var(--tinta);
+}
+.regalo a {
+    color: inherit;
+    font-weight: 600;
+    text-underline-offset: 2px;
+}
+
 /* Wide screens and phones on their side: the illustration on the left, the text beside it. */
 @media (min-width: 720px) and (min-aspect-ratio: 5/4) {
     .pagina:not(.portada):not(.dedicatoria) {

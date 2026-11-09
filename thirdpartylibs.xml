@@ -37,6 +37,18 @@
         </copyrights>
     </library>
     <library>
+        <location>assets/share/font</location>
+        <name>Schibsted Grotesk (TTF)</name>
+        <description>The same cut of Schibsted Grotesk, at two weights, for the preview images drawn with GD.</description>
+        <license>OFL</license>
+        <version>1.0</version>
+        <licenseversion>1.1</licenseversion>
+        <repository>https://github.com/schibsted/schibsted-grotesk</repository>
+        <copyrights>
+            <copyright>2023 The Schibsted-Grotesk Project Authors</copyright>
+        </copyrights>
+    </library>
+    <library>
         <location>pub/fonts/vazirmatn-arabe.woff2</location>
         <name>Vazirmatn</name>
         <description>The typeface of the Arabic text of the pages of the families and the panel, cut to the Arabic letters.</description>

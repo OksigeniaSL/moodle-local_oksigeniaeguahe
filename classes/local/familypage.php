@@ -158,10 +158,19 @@ class familypage {
         } else {
             $lead = s(publiclang::str('pub_lead_novisit', $lang));
         }
-        $visitrow = function (\stdClass $s) use ($lang, $token, $ucfirst, $centre): array {
+        $visitrow = function (\stdClass $s) use ($lang, $token, $ucfirst, $centre, $household): array {
             $parts = publicpage::date_parts((int) $s->timestart, $lang);
             $name = format_string($s->eventname);
+            // An act open to all can be passed on to whoever looks for a centre, with the text of the family.
+            $act = (object) ['id' => $s->eventid, 'open' => $s->eventopen ?? 0, 'token' => $s->eventtoken ?? '',
+                'tailored' => $s->eventtailored ?? 0, 'householdid' => $s->eventhousehold ?? 0, 'timeend' => $s->timeend];
+            $share = share::act_open($act) ? ['url' => share::act_url($household, $act)->out(false),
+                'label' => publiclang::str('pub_act_share', $lang), 'title' => $name,
+                'text' => publiclang::str('share_act_text', $lang, (object) ['act' => $name, 'when' => $parts['long'],
+                    'centre' => format_string($centre->name)]),
+                'copied' => publiclang::str('share_copied', $lang)] : false;
             return [
+                'share' => $share,
                 'weekday' => $ucfirst($parts['weekday']),
                 'daymonth' => $parts['daymonth'],
                 'long' => $ucfirst($parts['long']),
@@ -205,6 +214,12 @@ class familypage {
                 'drawingsend' => $drawing || ages::young($child, $offers, $centre) ?
                     $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]) : '',
                 'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
+                // Their drawing, sent to someone: that drawing alone, by its own link.
+                'drawingshare' => $drawing ? ['url' => share::drawing_url($household, $child, $lang)->out(false),
+                    'label' => publiclang::str('pub_drawing_share', $lang),
+                    'title' => publiclang::str('pub_drawing_title', $lang, $tag !== '' ? $tag : $child->firstname),
+                    'text' => publiclang::str('share_drawing_text', $lang, $tag !== '' ? $tag : $child->firstname),
+                    'copied' => publiclang::str('share_copied', $lang)] : false,
                 // Stories to read together at home, from the library of the centre, by the age of its course.
                 'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',
                 'talesname' => publiclang::str('pub_tales', $lang),

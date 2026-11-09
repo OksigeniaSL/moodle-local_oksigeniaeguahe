@@ -324,6 +324,7 @@ $string['privacy_why'] = 'للرد على أسئلتكم، وتنظيم زيار
 $string['privacy_why_title'] = 'لأي غرض';
 $string['promise_sibling'] = 'مراسلتهم لأن دور {$a->name} يحين في {$a->year}';
 $string['promise_volunteer'] = 'دعوتهم إلى يوم مفتوح ليحكوا لعائلة أخرى عن تجربتهم';
+$string['pub_act_share'] = 'شاركوها مع من يبحث عن مدرسة';
 $string['pub_add_calendar'] = 'إضافة إلى تقويمي';
 $string['pub_add_child'] = 'إضافة شخص آخر';
 $string['pub_after_help'] = 'ما لم يتّسع الوقت لسؤاله، أو ما خطر لكم في طريق العودة إلى البيت.';
@@ -392,6 +393,7 @@ $string['pub_drawing_saving'] = 'جارٍ تسوية الرسمة وإرساله
 $string['pub_drawing_send'] = 'إرسال الرسمة';
 $string['pub_drawing_sent_note'] = 'أرسلت العائلة رسمة {$a}.';
 $string['pub_drawing_shape'] = 'وضع الورقة';
+$string['pub_drawing_share'] = 'أرسلوها إلى أحد';
 $string['pub_drawing_take'] = 'التقاط صورة للرسمة';
 $string['pub_drawing_take_help'] = 'من الأعلى، بحيث تظهر الورقة كاملة، وفي إضاءة جيدة.';
 $string['pub_drawing_title'] = 'رسمة {$a}';
@@ -601,6 +603,21 @@ $string['scale_words'] = 'أبدًا
 قليلًا
 إلى حدّ كبير
 كثيرًا جدًا';
+$string['share_act_text'] = 'أشارك معك هذا: {$a->act} · {$a->when} · {$a->centre}';
+$string['share_copied'] = 'تم نسخ الرابط';
+$string['share_drawing_kicker'] = 'من رسم';
+$string['share_drawing_text'] = 'رسمة {$a} الجديدة';
+$string['share_gift'] = 'هدية من {$a}';
+$string['share_gone'] = 'أزالته العائلة، أو لم تعد المدرسة تحتفظ به.';
+$string['share_gone_title'] = 'هذا الرابط لم يعد متاحًا';
+$string['share_invite_button'] = 'أرغب في الزيارة';
+$string['share_invite_text'] = 'تعالوا للتعرّف على {$a}.';
+$string['share_invite_title'] = 'هل تبحثون عن مدرسة؟';
+$string['share_origin_acto'] = 'مشاركة: فعالية';
+$string['share_origin_cuento'] = 'مشاركة: القصة';
+$string['share_origin_dibujo'] = 'مشاركة: رسمة';
+$string['share_send_on'] = 'أرسلها إلى أحد';
+$string['share_story_kicker'] = 'يومك الأول';
 $string['story_gone'] = 'الرابط لم يعد يفتح الحكاية. إن أردتموها، فاطلبوها من العائلة التي أرسلتها إليكم.';
 $string['story_gone_title'] = 'هذه الحكاية لم تعد هنا';
 $string['story_pegs'] = 'سامي، ليلى، عمر، مريم، يوسف، نور، آدم';

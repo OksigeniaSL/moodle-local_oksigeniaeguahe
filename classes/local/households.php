@@ -501,7 +501,8 @@ class households {
         $full->consents = $DB->get_records(self::CONSENTS, $id, 'timecreated ASC, id ASC');
         $full->signups = $DB->get_records_sql('SELECT s.*, e.name AS eventname, COALESCE(t.timestart, e.timestart) AS timestart,
                                                       COALESCE(t.timeend, e.timeend) AS timeend, e.place, e.kind,
-                                                      e.hosts
+                                                      e.hosts, e.open AS eventopen, e.token AS eventtoken,
+                                                      e.tailored AS eventtailored, e.householdid AS eventhousehold
                                                  FROM {' . self::SIGNUPS . '} s JOIN {local_oksigeniaeguahe_event} e
                                                       ON e.id = s.eventid
                                             LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid

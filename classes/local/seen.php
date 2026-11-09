@@ -38,14 +38,15 @@ class seen {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] What is noted. */
-    const KINDS = ['open', 'part', 'touch', 'mailsent', 'story'];
+    const KINDS = ['open', 'part', 'touch', 'mailsent', 'story', 'share'];
 
     /** @var string[] The parts of the page of a family, from the top down. */
     const PARTS = ['wall', 'visit', 'hosts', 'told', 'data'];
 
     /** @var string[] What can be touched on the page of a family. */
     const TOUCHES = ['drawing_seen', 'drawing_enlarged', 'tales', 'directions', 'calendar', 'question', 'phone_join',
-        'language', 'download', 'drawing_sent', 'write', 'call', 'hobbies', 'volunteer', 'open_act'];
+        'language', 'download', 'drawing_sent', 'write', 'call', 'hobbies', 'volunteer', 'open_act', 'share_act',
+        'share_drawing'];
 
     /** @var string[] What is done with the story of the first day; the page, when it matters, goes in «via» (p0 to p9). */
     const STORY = ['opened', 'page', 'like', 'unlike', 'back', 'enlarged', 'again', 'saved', 'sent', 'whole', 'repeated',
@@ -94,10 +95,19 @@ class seen {
     public static function record(\stdClass $household, string $kind, string $what = '', string $via = '', int $now = 0): bool {
         global $DB;
         $now = $now ?: time();
-        // In the story, «via» is the page of the book.
-        $via = $kind === 'story' ? (preg_match('/^p[0-9]$/', $via) ? $via : '') : self::via($via);
+        // In the story, «via» is the page of the book; in what is shared, the piece.
+        if ($kind === 'story') {
+            $via = preg_match('/^p[0-9]$/', $via) ? $via : '';
+        } else if ($kind === 'share') {
+            $via = in_array($via, share::PIECES, true) ? $via : '';
+        } else {
+            $via = self::via($via);
+        }
         $lists = ['open' => [''], 'part' => self::PARTS, 'touch' => self::TOUCHES, 'mailsent' => familymail::KINDS,
-            'story' => self::STORY];
+            'story' => self::STORY, 'share' => share::COUNTED];
+        if ($kind === 'share' && $via === '') {
+            return false;
+        }
         if (!isset($lists[$kind]) || !in_array($what, $lists[$kind], true)) {
             return false;
         }

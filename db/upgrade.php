@@ -901,5 +901,19 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026113200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113300) {
+        // What a family shares invites whoever receives it, unless the centre turns it off; and to which form.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('shareinvite', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'aion');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('shareentry', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'shareinvite');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026113300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

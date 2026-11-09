@@ -143,7 +143,26 @@ class panel_centre {
                 // Only who manages Eguahe on the site turns it on or off (Enrique, 9-11).
                 'locked' => !has_capability('local/oksigeniaeguahe:manage', \context_system::instance()),
                 'lockednote' => get_string('centre_ai_locked', $c)],
+            'share' => self::share_settings($centre),
         ];
+    }
+
+    /**
+     * What families share, in the settings: whether it invites whoever receives it, and to which form.
+     *
+     * @param \stdClass $centre
+     * @return array on, forms (value, name, selected), and whether there is any form.
+     */
+    protected static function share_settings(\stdClass $centre): array {
+        $chosen = (int) ($centre->shareentry ?? 0);
+        $forms = [['value' => 0, 'name' => get_string('centre_shareentry_first', self::C), 'selected' => $chosen === 0]];
+        foreach (entries::for_centre((int) $centre->id) as $entry) {
+            if ($entry->kind === 'form' && !empty($entry->active)) {
+                $forms[] = ['value' => (int) $entry->id, 'name' => format_string($entry->name),
+                    'selected' => $chosen === (int) $entry->id];
+            }
+        }
+        return ['on' => !empty($centre->shareinvite), 'forms' => $forms, 'hasforms' => count($forms) > 1];
     }
 
     /**
@@ -393,6 +412,8 @@ class panel_centre {
             'networks' => optional_param('networks', '', PARAM_TEXT),
             'aiprovider' => $manage ? optional_param('aiprovider', 0, PARAM_INT) : (int) $centre->aiprovider,
             'aion' => $manage ? optional_param('aion', 0, PARAM_BOOL) : (int) ($centre->aion ?? 0),
+            'shareinvite' => optional_param('shareinvite', 0, PARAM_BOOL),
+            'shareentry' => optional_param('shareentry', 0, PARAM_INT),
             'skin' => optional_param('skin', '', PARAM_ALPHA),
             'handover' => self::member(optional_param('handover', 0, PARAM_INT), (int) $centre->id),
             'handoverplace' => optional_param('handoverplace', '', PARAM_TEXT),
