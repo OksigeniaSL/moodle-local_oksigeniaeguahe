@@ -18,8 +18,10 @@
     if (typeof BOOK === 'undefined' || !BOOK.video) {
         return;
     }
+    // The frames are drawn in 720 x 1280 units on a canvas of 1080 x 1920 (Full HD, upright): sharp on any phone.
     var W = 720;
     var H = 1280;
+    var SCALE = 1.5;
     var FPS = 24;
     var RATE = 48000;
     var GAP = 1.1;
@@ -438,9 +440,13 @@
         if (!VOICE || !root.VideoEncoder || !root.AudioEncoder || !root.OfflineAudioContext || !root.AudioData) {
             return Promise.resolve(null);
         }
-        var video = ['avc1.4d401f', 'avc1.42e01f', 'avc1.640028'].map(function(codec) {
-            return {codec: codec, width: W, height: H, bitrate: 700000, framerate: FPS, avc: {format: 'avc'}};
+        var video = ['avc1.640028', 'avc1.4d4028', 'avc1.42e028'].map(function(codec) {
+            return {codec: codec, width: W * SCALE, height: H * SCALE, bitrate: 3000000, framerate: FPS,
+                avc: {format: 'avc'}};
         });
+        video = video.map(function(cfg) {
+            return Object.assign({}, cfg, {bitrateMode: 'quantizer'});
+        }).concat(video);
         var sound = [{codec: 'mp4a.40.2', sampleRate: RATE, numberOfChannels: 1, bitrate: 96000},
             {codec: 'opus', sampleRate: RATE, numberOfChannels: 1, bitrate: 64000}];
         return Promise.all([pick(root.VideoEncoder, video), pick(root.AudioEncoder, sound),
@@ -455,7 +461,7 @@
                 return mix(k.plan, k.bed, k.door).then(function(buffer) {
                     progress(0.1);
                     var muxer = new root.Mp4Muxer.Muxer({target: new root.Mp4Muxer.ArrayBufferTarget(),
-                        video: {codec: 'avc', width: W, height: H, frameRate: FPS},
+                        video: {codec: 'avc', width: W * SCALE, height: H * SCALE, frameRate: FPS},
                         audio: {codec: ac.codec === 'opus' ? 'opus' : 'aac', sampleRate: RATE, numberOfChannels: 1},
                         fastStart: 'in-memory', firstTimestampBehavior: 'offset'});
                     return encodeSound(buffer, muxer, ac).then(function() {
@@ -470,8 +476,8 @@
                         });
                         encoder.configure(vc);
                         var canvas = document.createElement('canvas');
-                        canvas.width = W;
-                        canvas.height = H;
+                        canvas.width = W * SCALE;
+                        canvas.height = H * SCALE;
                         var c = canvas.getContext('2d');
                         var n = Math.ceil(k.plan.total * FPS);
                         var i = 0;
@@ -485,10 +491,15 @@
                                     return new Blob([muxer.target.buffer], {type: 'video/mp4'});
                                 });
                             }
+                            c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
                             frame(c, k, i / FPS);
                             var vf = new root.VideoFrame(canvas, {timestamp: Math.round(i * 1e6 / FPS),
                                 duration: Math.round(1e6 / FPS)});
-                            encoder.encode(vf, {keyFrame: i % (FPS * 3) === 0});
+                            var opts = {keyFrame: i % (FPS * 3) === 0};
+                            if (vc.bitrateMode === 'quantizer') {
+                                opts.avc = {quantizer: 23};
+                            }
+                            encoder.encode(vf, opts);
                             vf.close();
                             i++;
                             progress(0.1 + 0.9 * i / n);

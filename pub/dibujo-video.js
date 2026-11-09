@@ -34,8 +34,10 @@
 (function(root) {
     'use strict';
 
+    // The frames are drawn in 720 x 1280 units on a canvas of 1080 x 1920 (Full HD, upright): sharp on any phone.
     var W = 720;
     var H = 1280;
+    var SCALE = 1.5;
     var FPS = 30;
     var HOLD = 1.5;
     var CREDITS = 2;
@@ -374,9 +376,13 @@
      * @return {Promise<Blob|null>}
      */
     var withCodecs = function(p, progress) {
-        var configs = ['avc1.4d401f', 'avc1.42e01f', 'avc1.640028'].map(function(codec) {
-            return {codec: codec, width: W, height: H, bitrate: 2500000, framerate: FPS, avc: {format: 'avc'}};
+        var configs = ['avc1.640028', 'avc1.4d4028', 'avc1.42e028'].map(function(codec) {
+            return {codec: codec, width: W * SCALE, height: H * SCALE, bitrate: 6000000, framerate: FPS,
+                avc: {format: 'avc'}};
         });
+        configs = configs.map(function(cfg) {
+            return Object.assign({}, cfg, {bitrateMode: 'quantizer'});
+        }).concat(configs);
         var pick = function(i) {
             if (i >= configs.length) {
                 return Promise.resolve(null);
@@ -393,7 +399,7 @@
                 return null;
             }
             var muxer = new root.Mp4Muxer.Muxer({target: new root.Mp4Muxer.ArrayBufferTarget(),
-                video: {codec: 'avc', width: W, height: H, frameRate: FPS}, fastStart: 'in-memory',
+                video: {codec: 'avc', width: W * SCALE, height: H * SCALE, frameRate: FPS}, fastStart: 'in-memory',
                 firstTimestampBehavior: 'offset'});
             var failed = null;
             var encoder = new root.VideoEncoder({
@@ -406,8 +412,8 @@
             });
             encoder.configure(config);
             var canvas = document.createElement('canvas');
-            canvas.width = W;
-            canvas.height = H;
+            canvas.width = W * SCALE;
+            canvas.height = H * SCALE;
             var c = canvas.getContext('2d');
             var n = Math.ceil((p.drawn + HOLD + CREDITS) * FPS);
             var i = 0;
@@ -421,9 +427,14 @@
                         return new Blob([muxer.target.buffer], {type: 'video/mp4'});
                     });
                 }
+                c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
                 frame(c, p, i / FPS);
                 var vf = new root.VideoFrame(canvas, {timestamp: Math.round(i * 1e6 / FPS), duration: Math.round(1e6 / FPS)});
-                encoder.encode(vf, {keyFrame: i % (FPS * 2) === 0});
+                var opts = {keyFrame: i % (FPS * 2) === 0};
+                if (config.bitrateMode === 'quantizer') {
+                    opts.avc = {quantizer: 20};
+                }
+                encoder.encode(vf, opts);
                 vf.close();
                 i++;
                 progress(i / n);
@@ -453,13 +464,13 @@
         if (!type || !canvas.captureStream) {
             return Promise.resolve(null);
         }
-        canvas.width = W;
-        canvas.height = H;
+        canvas.width = W * SCALE;
+        canvas.height = H * SCALE;
         var c = canvas.getContext('2d');
         var total = p.drawn + HOLD + CREDITS;
         return new Promise(function(ok) {
             var parts = [];
-            var rec = new MR(canvas.captureStream(FPS), {mimeType: type, videoBitsPerSecond: 2500000});
+            var rec = new MR(canvas.captureStream(FPS), {mimeType: type, videoBitsPerSecond: 6000000});
             rec.ondataavailable = function(e) {
                 if (e.data && e.data.size) {
                     parts.push(e.data);
@@ -472,6 +483,7 @@
             var tick = function(now) {
                 start = start === null ? now : start;
                 var t = (now - start) / 1000;
+                c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
                 frame(c, p, Math.min(t, total));
                 progress(Math.min(1, t / total));
                 if (t < total) {
@@ -480,6 +492,7 @@
                     rec.stop();
                 }
             };
+            c.setTransform(SCALE, 0, 0, SCALE, 0, 0);
             frame(c, p, 0);
             rec.start();
             root.requestAnimationFrame(tick);
