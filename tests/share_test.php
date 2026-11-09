@@ -86,6 +86,25 @@ final class share_test extends \advanced_testcase {
     }
 
     /**
+     * The video of a drawing: what it needs, with the words on it and its picture to send instead; nothing without its
+     * strokes.
+     */
+    public function test_video(): void {
+        $this->resetAfterTest();
+        [$centre, $household] = $this->family();
+        $childid = households::add_child($household, 'Leonardo', 0, 'Leo');
+        $child = households::full($household)->children[$childid];
+        $this->assertFalse(share::video($household, $child, $centre, 'es', '/foto', ''), 'Without strokes, the link goes.');
+        $video = json_decode(share::video($household, $child, $centre, 'es', '/foto', '/trazos'), true);
+        $this->assertSame('Leo', $video['name']);
+        $this->assertSame('Un regalo del Colegio Los Arces', $video['gift']);
+        $this->assertSame('El dibujo de Leo.mp4', $video['file']);
+        $this->assertStringContainsString('og.php', $video['picture']);
+        $this->assertStringContainsString('dibujo.php', $video['url']);
+        $this->assertNotEmpty($video['words']['preparing']);
+    }
+
+    /**
      * The invitation: to the form chosen or the first active, with its own place per piece; without a form, to the
      * next open act; with nothing, or the centre saying no, none.
      */

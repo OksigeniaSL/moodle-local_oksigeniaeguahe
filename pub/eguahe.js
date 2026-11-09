@@ -878,8 +878,23 @@
             });
         }
         // Sending a piece on: the phone's own way to share, else the link copied; counted for the family that shared it.
+        // A drawing with its strokes goes as a video to keep (pub/dibujo-video.js), seen before it is sent.
+        all('button[data-video]').forEach(function(button) {
+            button.hidden = false;
+            if (!button.hasAttribute('data-compartir')) {
+                button.addEventListener('click', function() {
+                    if (window.DibujoVideo) {
+                        window.DibujoVideo.open(button);
+                    }
+                });
+            }
+        });
         all('[data-compartir]').forEach(function(button) {
             button.addEventListener('click', function() {
+                if (button.hasAttribute('data-video') && window.DibujoVideo) {
+                    window.DibujoVideo.open(button);
+                    return;
+                }
                 var url = button.getAttribute('data-compartir');
                 var told = function() {
                     var note = button.parentNode.querySelector('.compartir-aviso');

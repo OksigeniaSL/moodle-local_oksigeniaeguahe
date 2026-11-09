@@ -3796,3 +3796,52 @@ button.enlace span {
     height: 22px;
     flex: none;
 }
+
+/* The sheet of the video of a drawing (pub/dibujo-video.js): seen before it is sent, then sent or saved. */
+.hoja-video {
+    /* stylelint-disable-next-line csstree/validator */
+    width: min(92vw, 420px);
+    padding: 18px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--eg-papel, #fff);
+    color: var(--eg-tinta, #1a1614);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.hoja-video::backdrop {
+    background: rgba(20, 16, 14, 0.55);
+}
+
+.hoja-video-vista {
+    display: grid;
+    place-items: center;
+    min-height: 200px;
+    margin-bottom: 12px;
+}
+
+.hoja-video-vista video,
+.hoja-video-vista img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.hoja-video-vista progress {
+    width: 80%;
+}
+
+.hoja-video-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.hoja-video > .enlace {
+    display: block;
+    margin: 12px auto 0;
+}

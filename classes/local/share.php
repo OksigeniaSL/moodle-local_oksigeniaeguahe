@@ -34,7 +34,7 @@ class share {
     const PIECES = ['cuento', 'dibujo', 'acto'];
 
     /** @var string[] What is counted of a piece shared: opened by whoever received it, the invitation followed, sent. */
-    const COUNTED = ['opened', 'invite', 'sent'];
+    const COUNTED = ['opened', 'invite', 'sent', 'saved'];
 
     /** @var string Where the seal leads: the page of Eguahe for centres, made by Oksigenia (Enrique, 9-11). */
     const SEAL = 'https://eguahe.com/';
@@ -184,6 +184,57 @@ class share {
      */
     public static function gift(\stdClass $centre, string $lang): string {
         return publiclang::str('share_gift', $lang, self::from_centre($centre, $lang));
+    }
+
+    /**
+     * What the video of a drawing needs, for the sheet of pub/dibujo-video.js: its photo and strokes, the words on it
+     * (who drew it, the gift of the centre, the seal), the logo or the initials of the centre, the still picture to send
+     * instead when no video can be made here, and the words of the sheet. False without strokes: then the link goes.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $child
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $photo The address of the photo of the drawing, as the page serves it.
+     * @param string $strokes The address of its strokes; '' without them.
+     * @return string|false JSON, for the attribute data-video.
+     */
+    public static function video(
+        \stdClass $household,
+        \stdClass $child,
+        \stdClass $centre,
+        string $lang,
+        string $photo,
+        string $strokes
+    ) {
+        global $CFG;
+        if ($strokes === '') {
+            return false;
+        }
+        $name = familypage::label_name($child) ?: (string) $child->firstname;
+        $logo = centres::logo((int) $centre->id);
+        $title = publiclang::str('pub_drawing_title', $lang, $name);
+        $s = fn(string $id) => publiclang::str('share_video_' . $id, $lang);
+        $sig = ['h' => $household->id, 'n' => $child->id, 's' => self::signature('dibujo', (int) $household->id, (int) $child->id)];
+        return json_encode([
+            'photo' => $photo,
+            'strokes' => $strokes,
+            'name' => $name,
+            'title' => $title,
+            'kicker' => publiclang::str('share_drawing_kicker', $lang),
+            'gift' => self::gift($centre, $lang),
+            'credit' => publiclang::str('credit_name', $lang),
+            'mark' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
+            'logo' => $logo ? $logo->out(false) : '',
+            'initials' => publicpage::initials(format_string($centre->name)),
+            'text' => publiclang::str('share_drawing_text', $lang, $name),
+            'url' => self::drawing_url($household, $child, $lang)->out(false),
+            'file' => clean_filename($title) . '.mp4',
+            'picture' => (new \moodle_url('/local/oksigeniaeguahe/og.php', $sig + ['p' => 'dibujo', 'lang' => $lang]))->out(false),
+            'words' => ['preparing' => $s('preparing'), 'send' => $s('send'), 'save' => $s('save'),
+                'savepicture' => $s('savepicture'), 'picture' => $s('picture'), 'failed' => $s('failed'),
+                'close' => $s('close')],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     /**

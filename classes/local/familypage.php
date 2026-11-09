@@ -224,7 +224,17 @@ class familypage {
                     'label' => publiclang::str('pub_drawing_share', $lang),
                     'title' => publiclang::str('pub_drawing_title', $lang, $tag !== '' ? $tag : $child->firstname),
                     'text' => publiclang::str('share_drawing_text', $lang, $tag !== '' ? $tag : $child->firstname),
-                    'copied' => publiclang::str('share_copied', $lang)] : false,
+                    'copied' => publiclang::str('share_copied', $lang),
+                    // With its strokes, the drawing goes as a video to keep (pub/dibujo-video.js).
+                    'video' => share::video(
+                        $household,
+                        $child,
+                        $centre,
+                        $lang,
+                        $link(['dibujo' => $child->id, 't' => $drawing->get_timemodified()]),
+                        ($strokes = drawings::strokes_file((int) $child->id)) ?
+                        $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : ''
+                    )] : false,
                 // Stories to read together at home, from the library of the centre, by the age of its course.
                 'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',
                 'talesname' => publiclang::str('pub_tales', $lang),

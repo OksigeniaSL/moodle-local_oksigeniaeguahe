@@ -79,10 +79,10 @@ if ($action === 'invitacion') {
     }
     redirect($url);
 }
-if ($action === 'mandado') {
-    // Sent on by whoever received it.
+if ($action === 'mandado' || $action === 'guardado') {
+    // Sent on, or kept, by whoever received it.
     if (confirm_sesskey()) {
-        share::count($household, $centre, 'sent', 'dibujo');
+        share::count($household, $centre, $action === 'mandado' ? 'sent' : 'saved', 'dibujo');
     }
     publicpage::headers();
     @header('Cache-Control: no-store');
@@ -114,6 +114,17 @@ publicpage::output($centre, $lang, $title, 'public_shared_drawing', [
     'gift' => share::gift($centre, $lang),
     'share' => ['label' => publiclang::str('share_send_on', $lang), 'url' => $here->out(false), 'title' => $title,
         'text' => publiclang::str('share_drawing_text', $lang, $name), 'copied' => publiclang::str('share_copied', $lang),
-        'measure' => (new moodle_url($url, ['action' => 'mandado', 'sesskey' => sesskey()]))->out(false)],
+        'measure' => (new moodle_url($url, ['action' => 'mandado', 'sesskey' => sesskey()]))->out(false),
+        'measuresave' => (new moodle_url($url, ['action' => 'guardado', 'sesskey' => sesskey()]))->out(false),
+        'save' => publiclang::str('share_video_save', $lang),
+        // The drawing as a video to keep, whoever received it (pub/dibujo-video.js).
+        'video' => share::video(
+            $household,
+            $child,
+            $centre,
+            $lang,
+            (new moodle_url($url, ['action' => 'imagen', 't' => $file->get_timemodified()]))->out(false),
+            $strokes ? (new moodle_url($url, ['action' => 'trazos', 't' => $strokes->get_timemodified()]))->out(false) : ''
+        )],
     'invitation' => share::invitation($centre, 'dibujo', $lang, $url),
 ], $here);

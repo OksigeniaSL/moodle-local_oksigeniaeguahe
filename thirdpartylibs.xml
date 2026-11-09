@@ -49,6 +49,17 @@
         </copyrights>
     </library>
     <library>
+        <location>pub/mp4-muxer</location>
+        <name>mp4-muxer</name>
+        <description>Packs the frames of the video of a drawing into an MP4 in the browser; loaded only when a family asks for the video. Chosen over its successor, Mediabunny, for its size: 32 KB against 720 KB on the phone of a family.</description>
+        <license>MIT</license>
+        <version>5.2.2</version>
+        <repository>https://github.com/Vanilagy/mp4-muxer</repository>
+        <copyrights>
+            <copyright>2023 Vanilagy</copyright>
+        </copyrights>
+    </library>
+    <library>
         <location>pub/fonts/vazirmatn-arabe.woff2</location>
         <name>Vazirmatn</name>
         <description>The typeface of the Arabic text of the pages of the families and the panel, cut to the Arabic letters.</description>

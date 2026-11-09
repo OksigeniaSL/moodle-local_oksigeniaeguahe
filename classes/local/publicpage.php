@@ -191,8 +191,10 @@ class publicpage {
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
         self::headers();
         // The page of a family: the drawing that draws itself, under each child and on the table, before what plays it.
+        // And the video of a drawing, to keep it (it loads its MP4 muxer only when asked).
         $vivo = in_array($template, ['public_family', 'public_shared_drawing'], true) ?
-            '<script src="' . $base . 'dibujo-vivo.js?v=' . $version . '" defer></script>' . "\n" : '';
+            '<script src="' . $base . 'dibujo-vivo.js?v=' . $version . '" defer></script>' . "\n" .
+            '<script src="' . $base . 'dibujo-video.js?v=' . $version . '" defer></script>' . "\n" : '';
         // The page of the drawing cuts and straightens the photo in the browser.
         $cropper = $template === 'public_drawing' ?
             '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
@@ -403,7 +405,7 @@ display: grid; }
         @header('X-Content-Type-Options: nosniff');
         // The widget against spam works in a worker of its own and puts its styles inline.
         @header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " .
-            "script-src 'self'; worker-src 'self' blob:; connect-src 'self'; frame-ancestors " .
+            "script-src 'self'; worker-src 'self' blob:; media-src 'self' blob:; connect-src 'self'; frame-ancestors " .
             (self::$embedded ? '*' : "'none'") . "; form-action 'self'; " .
             "base-uri 'none'; object-src 'none'");
         @header('Cache-Control: no-store');

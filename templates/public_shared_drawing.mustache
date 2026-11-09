@@ -29,7 +29,8 @@
         "kicker": "Un dibujo de", "name": "Leo", "img": "/local/oksigeniaeguahe/dibujo.php?action=imagen",
         "strokes": "", "alt": "El dibujo de Leo", "gift": "Un regalo del Colegio Los Arces",
         "share": {"label": "Mandarlo a alguien", "url": "/local/oksigeniaeguahe/dibujo.php", "title": "El dibujo de Leo",
-            "text": "Mira lo que ha dibujado Leo", "copied": "Enlace copiado", "measure": ""},
+            "text": "Mira lo que ha dibujado Leo", "copied": "Enlace copiado", "measure": "", "measuresave": "",
+            "save": "Guardar el vídeo", "video": false},
         "invitation": {"title": "¿Buscan centro?", "text": "Vengan a conocer el Colegio Los Arces.",
             "button": "Quiero conocerlo", "url": "/local/oksigeniaeguahe/dibujo.php?action=invitacion"}
     }
@@ -52,7 +53,7 @@
     <div class="compartido-pie">
         <p class="regalo-firma" dir="auto">{{gift}}</p>
         {{#share}}
-        <p class="compartir-fila"><button class="boton secundario" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#measure}} data-medir="{{.}}"{{/measure}}>{{{i.send}}}{{label}}</button><span class="compartir-aviso" aria-live="polite"></span></p>
+        <p class="compartir-fila"><button class="boton secundario" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#measure}} data-medir="{{.}}"{{/measure}}{{#measuresave}} data-medir-guardar="{{.}}"{{/measuresave}}{{#video}} data-video="{{.}}"{{/video}}>{{{i.send}}}{{label}}</button>{{#video}}<button class="enlace guardar-video" type="button" data-video="{{.}}"{{#measuresave}} data-medir-guardar="{{.}}"{{/measuresave}} hidden>{{save}}</button>{{/video}}<span class="compartir-aviso" aria-live="polite"></span></p>
         {{/share}}
         {{#invitation}}<p class="invitacion-compartido"><b>{{title}}</b> <span dir="auto">{{text}}</span> <a href="{{url}}">{{button}}</a></p>{{/invitation}}
     </div>
