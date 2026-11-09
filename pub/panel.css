@@ -8026,6 +8026,22 @@ html.modo-lamina {
         grid-column: 1 / -1;
     }
 
+    /* Narrow: who receives them in the story, labelled above like the other fields, the select the whole width. */
+    .oferta-cuento,
+    .oferta-cuento .cuento-quien {
+        display: grid;
+        width: 100%;
+    }
+
+    .oferta-cuento .cuento-quien > label {
+        font-weight: 650;
+        color: var(--eg-tinta);
+    }
+
+    .oferta-cuento .cuento-quien select {
+        width: 100%;
+    }
+
     .indice-ajustes ol {
         flex-wrap: nowrap;
         overflow-x: auto;
