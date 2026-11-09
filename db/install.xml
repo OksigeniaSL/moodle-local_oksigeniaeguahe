@@ -76,6 +76,7 @@
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Shown to families in the forms"/>
         <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families of this course once enrolled (its tutor); 0, the one of the centre"/>
         <FIELD NAME="story" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Whether the children of this course get the story of the first day; empty, the first years at school"/>
+        <FIELD NAME="teacher" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="maestra" SEQUENCE="false" COMMENT="How the story calls whoever receives this course: maestra or maestro"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

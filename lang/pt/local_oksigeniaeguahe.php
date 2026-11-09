@@ -309,6 +309,163 @@ $string['field_type_scale'] = 'Escala em palavras';
 $string['field_type_section'] = 'Um título';
 $string['field_type_text'] = 'Texto curto';
 $string['field_type_yesno'] = 'Sim ou não';
+$string['firstday_again'] = 'Outra vez';
+$string['firstday_alt1'] = 'De manhã, junto à porta de casa, uma criança pequena, de costas, aproxima-se de uma mochila cor de coral que espera num banco de madeira. A etiqueta da mochila tem o nome da criança. Ao lado, a garrafa de água.';
+$string['firstday_alt2'] = 'Umas mãos pequenas metem a garrafa de água na mochila cor de coral, aberta no banco de casa. A etiqueta da garrafa e a da mochila têm o nome da criança.';
+$string['firstday_alt3'] = 'À porta da sala, uma educadora baixa-se e estende a mão a uma criança pequena que chega de costas, com a mochila. Na parede, um quadro verde cumprimenta a criança pelo nome.';
+$string['firstday_alt3_maestro'] = 'À porta da sala, o educador baixa-se e estende a mão a uma criança pequena que chega de costas, com a mochila. Na parede, um quadro verde cumprimenta a criança pelo nome.';
+$string['firstday_alt4'] = 'À entrada da sala, uma fila de cabides de madeira, cada um com um nome por cima. Uma criança pequena, de costas, levanta a mochila cor de coral para o cabide livre, o que tem o seu nome.';
+$string['firstday_alt5'] = 'No tapete da sala, duas crianças pequenas veem cair a torre de blocos de madeira. A da esquerda, de costas, levanta os braços; a outra, de frente, ri-se com vontade.';
+$string['firstday_alt6'] = 'A educadora, sentada numa cadeira baixa, mostra um livro de histórias aberto às crianças sentadas no tapete, de costas. Na parede, um quadro de cortiça com os desenhos da turma e, ao lado, um desenho numa moldura.';
+$string['firstday_alt6_maestro'] = 'O educador, sentado numa cadeira baixa, mostra um livro de histórias aberto às crianças sentadas no tapete, de costas. Na parede, um quadro de cortiça com os desenhos da turma e, ao lado, um desenho numa moldura.';
+$string['firstday_alt7'] = 'Num canto sossegado da sala, a educadora ajoelha-se e segura entre as mãos a mão de uma criança pequena, de costas, que tem a sua garrafa de água. Olha para ela com um sorriso. A etiqueta da garrafa tem o nome da criança.';
+$string['firstday_alt7_maestro'] = 'Num canto sossegado da sala, o educador ajoelha-se e segura entre as mãos a mão de uma criança pequena, de costas, que tem a sua garrafa de água. Olha para ela com um sorriso. A etiqueta da garrafa tem o nome da criança.';
+$string['firstday_alt8'] = 'Com os olhos da criança: a porta da sala abre-se e alguém que gosta muito dela se baixa à sua altura, de braços abertos, na luz dourada do fim da tarde. As mãos pequenas da criança vão ao seu encontro.';
+$string['firstday_alt_dedication'] = 'Uma mão grande e uma mão pequena, de mãos dadas.';
+$string['firstday_book_label'] = 'O teu primeiro dia, {nombre}';
+$string['firstday_book_role'] = 'livro';
+$string['firstday_by'] = 'Eguahe, da Oksigenia';
+$string['firstday_chalk'] = 'Olá, {nombre}!';
+$string['firstday_close'] = 'Fechar';
+$string['firstday_cover'] = 'Capa';
+$string['firstday_dedication'] = 'Para {nombre}, que amanhã começa.
+E para quem lhe dá a mão.';
+$string['firstday_dedication_label'] = 'Dedicatória';
+$string['firstday_doc_title'] = 'O teu primeiro dia · {nombre}';
+$string['firstday_download_name'] = 'O teu primeiro dia, {nombre}.mp3';
+$string['firstday_drawing_caption'] = 'Desenhou-o {nombre} no dia em que nos veio conhecer.';
+$string['firstday_drawing_label'] = 'O desenho de {nombre}';
+$string['firstday_drawing_open'] = 'Ver em grande o desenho de {nombre}';
+$string['firstday_hint'] = 'Passem as páginas com o dedo ou com as setas.';
+$string['firstday_like'] = 'Gostámos desta página';
+$string['firstday_link_copied'] = 'Ligação copiada. Podem colá-la numa mensagem.';
+$string['firstday_link_here'] = 'Esta é a ligação: {url}';
+$string['firstday_listen'] = 'Ouvir';
+$string['firstday_listen_again'] = 'Ouvir outra vez';
+$string['firstday_music'] = 'Música de fundo';
+$string['firstday_nav'] = 'Virar as páginas e ouvir';
+$string['firstday_next'] = 'Página seguinte';
+$string['firstday_page1'] = 'Hoje há uma coisa nova
+junto à porta.
+É uma mochila pequenina,
+com uma etiqueta e um nome.
+Vamos ler? {nombre}!
+É a tua mochila.';
+$string['firstday_page2'] = 'Lá dentro vai a tua garrafa de água.
+E que nome tem a garrafa?
+{nombre}, outra vez!
+Pões a mochila às costas. Quase não pesa.
+Hoje, {centro} está à tua espera.';
+$string['firstday_page3'] = 'À porta da tua sala
+há um quadro pequenino.
+Diz assim: «Olá, {nombre}!»
+Alguém se agacha à tua altura
+e sorri para ti.
+É a tua educadora.
+Já sabe como te chamas.';
+$string['firstday_page3_maestro'] = 'À porta da tua sala
+há um quadro pequenino.
+Diz assim: «Olá, {nombre}!»
+Alguém se agacha à tua altura
+e sorri para ti.
+É o teu educador.
+Já sabe como te chamas.';
+$string['firstday_page3_maestro_tutor'] = 'À porta da tua sala
+há um quadro pequenino.
+Diz assim: «Olá, {nombre}!»
+Alguém se agacha à tua altura
+e sorri para ti.
+É o {tutor}, o teu educador.
+Já sabe como te chamas.';
+$string['firstday_page3_tutor'] = 'À porta da tua sala
+há um quadro pequenino.
+Diz assim: «Olá, {nombre}!»
+Alguém se agacha à tua altura
+e sorri para ti.
+É a {tutor}, a tua educadora.
+Já sabe como te chamas.';
+$string['firstday_page4'] = 'Lá dentro há uma fila de cabides,
+e cada cabide tem um nome.
+Há um à tua espera.
+Vamos ler? {nombre}!
+É aí que penduras a mochila.
+É o teu lugar.';
+$string['firstday_page5'] = 'Há blocos de madeira num cesto.
+Alguém te dá um: fazemos uma torre?
+Mais alto, mais alto…
+e ainda mais alto!
+Pum! Cai tudo.
+Que risota!
+Já tens um amigo novo.';
+$string['firstday_page6'] = 'Depois, todos para o tapete.
+A tua educadora abre um livro de histórias
+e vira as páginas devagarinho,
+como agora.
+Sentas-te pertinho e escutas.';
+$string['firstday_page6_maestro'] = 'Depois, todos para o tapete.
+O teu educador abre um livro de histórias
+e vira as páginas devagarinho,
+como agora.
+Sentas-te pertinho e escutas.';
+$string['firstday_page6_maestro_tutor'] = 'Depois, todos para o tapete.
+O teu educador, o {tutor}, abre um livro de histórias
+e vira as páginas devagarinho,
+como agora.
+Sentas-te pertinho e escutas.';
+$string['firstday_page6_tutor'] = 'Depois, todos para o tapete.
+A tua educadora, a {tutor}, abre um livro de histórias
+e vira as páginas devagarinho,
+como agora.
+Sentas-te pertinho e escutas.';
+$string['firstday_page7'] = 'Se tiveres saudades de casa por um bocadinho,
+podes dizer.
+A tua educadora ouve-te e dá-te a mão.
+Bebes água da tua garrafa, a que tem o nome {nombre}.
+E voltas a brincar.';
+$string['firstday_page7_maestro'] = 'Se tiveres saudades de casa por um bocadinho,
+podes dizer.
+O teu educador ouve-te e dá-te a mão.
+Bebes água da tua garrafa, a que tem o nome {nombre}.
+E voltas a brincar.';
+$string['firstday_page7_maestro_tutor'] = 'Se tiveres saudades de casa por um bocadinho,
+podes dizer.
+O teu educador, o {tutor}, ouve-te e dá-te a mão.
+Bebes água da tua garrafa, a que tem o nome {nombre}.
+E voltas a brincar.';
+$string['firstday_page7_tutor'] = 'Se tiveres saudades de casa por um bocadinho,
+podes dizer.
+A tua educadora, a {tutor}, ouve-te e dá-te a mão.
+Bebes água da tua garrafa, a que tem o nome {nombre}.
+E voltas a brincar.';
+$string['firstday_page8'] = 'No fim do dia,
+a porta abre-se.
+Quem é que te veio buscar?
+Alguém que gosta muito de ti!
+Pões a mochila às costas
+e dizes adeus ao teu cabide.
+Amanhã, está tudo à tua espera outra vez.';
+$string['firstday_page_n'] = 'Página {n}';
+$string['firstday_page_n_of'] = 'Página {n} de {total}';
+$string['firstday_pause'] = 'Pausa';
+$string['firstday_prev'] = 'Página anterior';
+$string['firstday_read_again'] = 'Ler outra vez';
+$string['firstday_read_with_music'] = 'Ler com música';
+$string['firstday_sample'] = 'Demonstração · dados de exemplo';
+$string['firstday_save'] = 'Guardar';
+$string['firstday_send'] = 'Enviar a alguém';
+$string['firstday_share_text'] = 'A história de {nombre} para o primeiro dia.';
+$string['firstday_share_title'] = 'O teu primeiro dia, {nombre}';
+$string['firstday_spoken1'] = 'Hoje há uma coisa nova junto à porta. É uma mochila pequenina, com uma etiqueta e um nome. Vamos ler? É o teu nome! É a tua mochila.';
+$string['firstday_spoken2'] = 'Lá dentro vai a tua garrafa de água. E que nome tem a garrafa? O teu, outra vez! Pões a mochila às costas. Quase não pesa. Hoje, espera-te a tua escola nova.';
+$string['firstday_spoken3'] = 'À porta da tua sala há um quadro pequenino. Diz assim: Olá! E ao lado, o teu nome. Alguém se agacha à tua altura e sorri para ti. É a tua educadora. Já sabe como te chamas.';
+$string['firstday_spoken3_maestro'] = 'À porta da tua sala há um quadro pequenino. Diz assim: Olá! E ao lado, o teu nome. Alguém se agacha à tua altura e sorri para ti. É o teu educador. Já sabe como te chamas.';
+$string['firstday_spoken4'] = 'Lá dentro há uma fila de cabides, e cada cabide tem um nome. Há um à tua espera. Vamos ler? É o teu! É aí que penduras a mochila. É o teu lugar.';
+$string['firstday_spoken7'] = 'Se tiveres saudades de casa por um bocadinho, podes dizer. A tua educadora ouve-te e dá-te a mão. Bebes água da tua garrafa, a que tem o teu nome. E voltas a brincar.';
+$string['firstday_spoken7_maestro'] = 'Se tiveres saudades de casa por um bocadinho, podes dizer. O teu educador ouve-te e dá-te a mão. Bebes água da tua garrafa, a que tem o teu nome. E voltas a brincar.';
+$string['firstday_theme'] = 'Alternar entre claro e escuro';
+$string['firstday_title'] = 'O teu primeiro dia';
+$string['firstday_volume'] = 'Volume';
+$string['firstday_volume_value'] = '{n}%';
 $string['forecast_age'] = 'Idade';
 $string['forecast_agen'] = '(começam com {$a} anos)';
 $string['forecast_children'] = 'Crianças dessas idades';
@@ -679,6 +836,9 @@ $string['offer_handover'] = 'Acompanha';
 $string['offer_handover_centre'] = 'O de todo o centro';
 $string['offer_places'] = 'Vagas';
 $string['offer_story'] = 'Com «O teu primeiro dia», a história para começar';
+$string['offer_teacher'] = 'Na história, quem os recebe';
+$string['offer_teacher_maestra'] = '«A tua educadora»';
+$string['offer_teacher_maestro'] = '«O teu educador»';
 $string['offer_unknown'] = 'Sem curso ainda';
 $string['offer_year'] = 'Ano letivo';
 $string['offers_add'] = 'Adicionar a oferta do centro';
@@ -2249,100 +2409,13 @@ $string['stage_inquiry'] = 'Consulta';
 $string['stage_save'] = 'Alterar';
 $string['stage_visit'] = 'Visita';
 $string['stage_waitlist'] = 'Lista de espera';
-$string['story_alfombra'] = 'Then, everyone to the rug.
-Your teacher opens a story
-and turns the pages slowly,
-like now.
-You sit close and listen.';
-$string['story_alt_alfombra'] = 'The teacher, on a low chair, shows an open story to the children sitting on the rug, seen from behind. On the wall, a corkboard with the drawings of the class and, beside it, a drawing in a frame.';
-$string['story_alt_amigo'] = 'On the rug of the class, two small children watch their tower of wooden blocks fall. The one on the left, seen from behind, raises their arms; the friend, facing us, laughs with all their heart.';
-$string['story_alt_botella'] = 'Small hands put the water bottle into the coral backpack, open on the bench at home. The labels of the bottle and the backpack have their name.';
-$string['story_alt_casa'] = 'In a quiet corner of the class, the teacher kneels and holds the hand of a small child, seen from behind, who holds their water bottle. She looks at them with a smile. The label of the bottle has their name.';
-$string['story_alt_dedicatoria'] = 'A big hand and a small hand, held together.';
-$string['story_alt_mochila'] = 'In the morning, by the door at home, a small child, seen from behind, goes up to a coral backpack waiting on a wooden bench. The label of the backpack has their name. Beside it, their water bottle.';
-$string['story_alt_percha'] = 'At the entrance of the class, a row of wooden pegs with a name above each one. A small child, seen from behind, lifts their coral backpack to the free peg, the one with their name.';
-$string['story_alt_pizarra'] = 'At the door of the class, a teacher crouches down and holds out her hand to a small child arriving with their backpack, seen from behind. On the wall, a green board greets them by name.';
-$string['story_alt_portada'] = 'Your first day';
-$string['story_alt_vuelta'] = 'Seen through the eyes of the child: the door of the class opens and someone who loves them very much crouches down with open arms, in the golden light of the afternoon. The small hands of the child reach out.';
-$string['story_amigo'] = 'In a basket there are wooden blocks.
-Someone gives you one: shall we build a tower?
-Up, higher…
-and higher!
-Boom! It falls.
-What fun!
-Now you have a new friend.';
-$string['story_board_post'] = '!';
-$string['story_board_pre'] = 'Hello, ';
-$string['story_botella'] = 'Your water bottle goes inside.
-And whose name is on the bottle?
-{nombre}, again!
-You put on your backpack. It is light.
-Today {centro} is waiting for you.';
-$string['story_casa'] = 'If for a little while you miss home,
-you can say so.
-Your teacher listens and holds your hand.
-You drink water from your bottle, the one that says {nombre}.
-And you go back to play.';
-$string['story_dedicatoria'] = 'For {nombre}, who starts tomorrow.
-And for whoever brings them by the hand.';
 $string['story_gone'] = 'A ligação já não abre a história. Se a quiserem, peçam-na à família que a enviou.';
 $string['story_gone_title'] = 'Esta história já não está aqui';
-$string['story_mochila'] = 'Today there is something new
-by the door.
-It is a little backpack,
-with a label and a name.
-Shall we read it? {nombre}!
-It is your backpack.';
 $string['story_pegs'] = 'Tiago, Inês, Omar, Rita, Duarte, Leonor, Rui';
-$string['story_percha'] = 'Inside there is a row of pegs,
-and every peg has a name.
-One is waiting for you.
-Shall we read it? {nombre}!
-There you hang your backpack.
-That is your place.';
-$string['story_pizarra'] = 'At the door of your class
-there is a little board.
-It says: «Hello, {nombre}!».
-Someone crouches down to you
-and smiles at you.
-It is your teacher.
-She already knows your name.';
-$string['story_ui_again'] = 'Ouvir outra vez';
-$string['story_ui_close'] = 'Fechar';
-$string['story_ui_controls'] = 'Virar as páginas e ouvir';
-$string['story_ui_copied'] = 'Ligação copiada. Podem colá-la numa mensagem.';
-$string['story_ui_cover'] = 'Capa';
-$string['story_ui_dedication'] = 'Dedicatória';
-$string['story_ui_drawingof'] = 'O desenho de {$a->name}';
-$string['story_ui_drawnby'] = 'Desenhou-o {$a->name} no dia em que nos veio conhecer.';
-$string['story_ui_enlarge'] = 'Ver em grande o desenho de {$a->name}';
-$string['story_ui_filename'] = 'O teu primeiro dia, {$a->name}';
-$string['story_ui_hint'] = 'Vira as páginas com o dedo ou com as setas.';
-$string['story_ui_liked'] = 'Gostámos desta página';
-$string['story_ui_listen'] = 'Ouvir';
-$string['story_ui_music'] = 'Música de fundo';
-$string['story_ui_next'] = 'Página seguinte';
-$string['story_ui_otravez'] = 'Outra vez';
-$string['story_ui_page'] = 'Página {n}';
-$string['story_ui_pageof'] = 'Página {n} de {of}';
-$string['story_ui_pause'] = 'Pausa';
-$string['story_ui_percent'] = '{n} %';
-$string['story_ui_previous'] = 'Página anterior';
-$string['story_ui_save'] = 'Guardá-lo';
-$string['story_ui_send'] = 'Enviá-lo a alguém';
-$string['story_ui_sharetext'] = 'A história de {$a->name} para o primeiro dia.';
-$string['story_ui_thelink'] = 'Esta é a ligação: {url}';
-$string['story_ui_theme'] = 'Mudar entre claro e escuro';
-$string['story_ui_title'] = 'O teu primeiro dia';
-$string['story_ui_titlechild'] = 'O teu primeiro dia, {$a->name}';
-$string['story_ui_volume'] = 'Volume';
-$string['story_vuelta'] = 'At the end of the day,
-the door opens.
-Who has come for you?
-Someone who loves you very much!
-You put on your backpack
-and say goodbye to your peg.
-Tomorrow it waits for you again.';
+$string['story_voice_boy'] = 'Para um menino';
+$string['story_voice_girl'] = 'Para uma menina';
+$string['story_voice_text'] = 'A voz fala para a criança. Digam-nos se é para um menino ou para uma menina; ficamos a lembrar.';
+$string['story_voice_title'] = 'Como lho lemos';
 $string['survey_new_name'] = 'Inquérito novo';
 $string['tab_entries'] = 'Entradas';
 $string['tab_events'] = 'Dias abertos e visitas';

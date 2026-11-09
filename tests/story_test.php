@@ -25,8 +25,9 @@ use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\story;
 
 /**
- * «Your first day» (0.35.0): who has the story and when, the book with its words, the link to send it that opens the
- * story and nothing else, and what is counted of it. With example data.
+ * «Your first day» (0.35.0, in five languages since 0.38.0): who has the story and when, the book with its words, the
+ * teacher of each course and its name, the link to send it that opens the story and nothing else, and what is counted of
+ * it. With example data.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -66,7 +67,8 @@ final class story_test extends \advanced_testcase {
         [$centre, $household, $child, $later] = $this->family();
         $now = time();
         $this->assertSame([(int) $child->id], array_keys(story::children($household, $centre, 'es', $now)));
-        $this->assertSame([], story::children($household, $centre, 'en', $now), 'Not yet written in English.');
+        $this->assertCount(1, story::children($household, $centre, 'en', $now), 'Written in English too.');
+        $this->assertSame([], story::children($household, $centre, 'fr', $now), 'Not written in French.');
         $this->assertFalse(story::offer_gives($DB->get_record(centres::OFFERS, ['id' => $later]), (int) $centre->id));
         $DB->set_field(centres::OFFERS, 'story', 0, ['id' => $child->offerid]);
         $this->assertSame([], story::children($household, $centre, 'es', $now), 'The centre said no.');
@@ -102,19 +104,49 @@ final class story_test extends \advanced_testcase {
         $context = story::context($household, $child, centres::get((int) $centre->id), 'es', $links);
         $book = json_decode($context['data'], true);
         $this->assertSame('Leo', $book['child']);
-        $this->assertSame('nuestro Colegio de ejemplo', $book['centrePhrase'], 'As the centre wrote it.');
+        $this->assertSame('es', $book['lang']);
+        $this->assertSame(['es' => 'nuestro Colegio de ejemplo'], $book['centrePhrases'], 'As the centre wrote it.');
         $this->assertCount(10, $book['pages']);
-        $this->assertSame('¿Lo leemos? ¡{nombre}!', $book['pages'][1]['text'][4]);
-        $dedication = ['Para {nombre}, que mañana empieza.', 'Y para quien lo trae de la mano.'];
-        $this->assertSame($dedication, $book['pages'][9]['lines']);
+        $this->assertSame('p3-pizarra-maestro', $book['pages'][3]['maestro']['img']);
+        $this->assertCount(count(story::STRINGS), $book['strings']['es']);
+        $this->assertStringStartsWith('Para {nombre}', $book['strings']['es']['dedication']);
         $pegs = array_column(array_filter($book['pages'][4]['names'], fn($n) => isset($n['text'])), 'text');
         $this->assertCount(5, $pegs);
         $this->assertNotContains('Leo', $pegs);
-        $this->assertArrayHasKey('sin-nombre', $book['voices']);
+        $this->assertArrayHasKey('sin-nombre', $book['voices']['es']);
+        $this->assertArrayHasKey('sin-nombre-maestro', $book['voices']['es']);
+        $this->assertSame(['maestra', ''], [$book['teacher'], $book['tutors']['maestra']], 'Nobody named for the course.');
         $this->assertNull($book['drawing'], 'Without a drawing of theirs, one of the class hangs on the wall.');
         $this->assertStringContainsString('clase-garabato.jpg', $book['classDrawing']);
-        $this->assertSame('Tu primer día, Leo', $context['title']);
+        $this->assertSame('Tu primer día · Leo', $context['title']);
+        $this->assertFalse($context['choosevoice']);
         $this->assertStringNotContainsString('</', $context['data']);
+
+        // A man receives the group of the course, and families see him: the book says «maestro» and his name.
+        $user = $this->getDataGenerator()->create_user(['firstname' => 'Pablo', 'lastname' => 'Sosa']);
+        centres::add_member((int) $centre->id, (int) $user->id);
+        $member = $DB->get_record(centres::MEMBERS, ['centreid' => $centre->id, 'userid' => $user->id]);
+        $DB->set_field(centres::MEMBERS, 'public', 1, ['id' => $member->id]);
+        $DB->update_record(centres::OFFERS, (object) ['id' => $child->offerid, 'teacher' => 'maestro',
+            'handover' => $member->id]);
+        $this->assertSame(['maestro', 'Pablo'], story::teacher(centres::get((int) $centre->id), $child));
+        $DB->set_field(centres::MEMBERS, 'public', 0, ['id' => $member->id]);
+        $this->assertSame(['maestro', ''], story::teacher(centres::get((int) $centre->id), $child), 'Not seen, not named.');
+
+        // In English, the name of the centre as it is; in Arabic, from right to left, and the voice is chosen first.
+        $english = json_decode(story::context($household, $child, centres::get((int) $centre->id), 'en', $links)['data'], true);
+        $this->assertSame(['en' => 'Colegio de ejemplo'], $english['centrePhrases']);
+        $this->assertSame('Your First Day', $english['strings']['en']['title']);
+        $this->assertArrayHasKey('sin-nombre', $english['voices']['en']);
+        $arabic = story::context($household, $child, centres::get((int) $centre->id), 'ar', $links);
+        $this->assertSame('rtl', $arabic['dir']);
+        $this->assertNotFalse($arabic['choosevoice']);
+        $readings = array_keys(json_decode($arabic['data'], true)['voices']['ar']);
+        sort($readings);
+        $this->assertSame(['sin-nombre-f', 'sin-nombre-m', 'sin-nombre-maestro-f', 'sin-nombre-maestro-m'], $readings);
+        $portuguese = story::context($household, $child, centres::get((int) $centre->id), 'pt', $links);
+        $portuguese = json_decode($portuguese['data'], true);
+        $this->assertSame(['pt-PT' => 'o Colegio de ejemplo'], $portuguese['centrePhrases']);
 
         // On the page of the family, the card.
         $page = familypage::context($household, centres::get((int) $centre->id), 'es', 'k', false);

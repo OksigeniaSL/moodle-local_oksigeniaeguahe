@@ -17,15 +17,17 @@
 {{!
     @template local_oksigeniaeguahe/public_story
 
-    «Tu primer día», the welcome story of a child (Gaudí): the book, its controls and the drawing seen big. The pages are
-    drawn by pub/cuento/cuento.js from the data in #libro-datos; the words of the book come from the strings.
+    «Tu primer día», the welcome story of a child (Gaudí): the book, its controls and the drawing seen big, in the
+    language of the family page. The pages are drawn by pub/cuento/cuento.js from the data in #libro-datos; the words of
+    the book come from the strings firstday_*. In Arabic, a sheet asks once how the voice reads it.
 
     Example context (json):
     {"lang": "es", "dir": "ltr", "title": "Tu primer día · Leo", "css": "#", "accent": "#1F5A4E", "accentdark": "#7CC2AE",
      "logo": "", "initials": "CA", "centre": "Colegio Los Arces", "credit": false, "data": "{}", "scripts": [],
-     "words": {"theme": "Claro y oscuro", "titlechild": "Tu primer día, Leo", "controls": "Pasar las páginas",
-     "previous": "Anterior", "listen": "Escuchar", "next": "Siguiente", "music": "Música", "volume": "Volumen",
-     "volumestart": "25 %", "drawingof": "El dibujo de Leo", "drawnby": "Lo dibujó Leo.", "close": "Cerrar"
+     "choosevoice": false,
+     "words": {"theme": "Claro y oscuro", "book_label": "Tu primer día, Leo", "nav": "Pasar las páginas",
+     "prev": "Anterior", "listen": "Escuchar", "next": "Siguiente", "music": "Música", "volume": "Volumen",
+     "volume_value": "25 %", "drawing_label": "El dibujo de Leo", "drawing_caption": "Lo dibujó Leo.", "close": "Cerrar"
      }
     }
 }}
@@ -44,19 +46,19 @@
 
 <div class="app">
   <header class="top">
-    <div class="centro">{{#logo}}<img class="marca-centro" src="{{logo}}" alt="">{{/logo}}{{^logo}}<span class="marca-centro monograma" aria-hidden="true">{{initials}}</span>{{/logo}}<span>{{centre}}</span></div>
+    <div class="centro">{{#logo}}<img class="marca-centro" src="{{logo}}" alt="">{{/logo}}{{^logo}}<span class="marca-centro monograma" aria-hidden="true">{{initials}}</span>{{/logo}}<span dir="auto">{{centre}}</span></div>
     <button class="redondo tema" type="button" aria-label="{{words.theme}}">
       <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
       <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z"/></svg>
     </button>
   </header>
 
-  <main class="libro" id="libro" aria-roledescription="libro" aria-label="{{words.titlechild}}">
+  <main class="libro" id="libro" aria-roledescription="libro" aria-label="{{words.book_label}}">
     <div class="tira" id="tira"></div>
   </main>
 
-  <nav class="mandos" aria-label="{{words.controls}}">
-    <button class="redondo ant" id="ant" type="button" aria-label="{{words.previous}}">
+  <nav class="mandos" aria-label="{{words.nav}}">
+    <button class="redondo ant" id="ant" type="button" aria-label="{{words.prev}}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
     </button>
     <button class="oir" id="oir" type="button" aria-pressed="false">
@@ -77,7 +79,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4"/></svg>
       <label class="vh" for="vol">{{words.volume}}</label>
       <input id="vol" type="range" min="0" max="100" step="5" value="25">
-      <output id="vol-texto" for="vol">{{words.volumestart}}</output>
+      <output id="vol-texto" for="vol">{{words.volume_value}}</output>
     </span>
     </div>
     </div>
@@ -86,10 +88,10 @@
   <p class="vh" id="aviso" aria-live="polite"></p>
 </div>
 
-<dialog class="ver" id="ver" aria-label="{{words.drawingof}}">
+<dialog class="ver" id="ver" aria-label="{{words.drawing_label}}">
   <div class="ver-cuerpo">
-    <div class="ver-hoja"><canvas id="ver-lienzo" width="600" height="800" role="img" aria-label="{{words.drawingof}}"></canvas></div>
-    <p class="ver-pie">{{words.drawnby}}</p>
+    <div class="ver-hoja"><canvas id="ver-lienzo" width="600" height="800" role="img" aria-label="{{words.drawing_label}}"></canvas></div>
+    <p class="ver-pie" dir="auto">{{words.drawing_caption}}</p>
   </div>
   <button class="redondo ver-cerrar" id="ver-cerrar" type="button" aria-label="{{words.close}}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
@@ -112,6 +114,15 @@
     </filter>
   </defs>
 </svg>
+{{#choosevoice}}
+<div class="elegir-voz" id="elegir-voz" role="dialog" aria-modal="true" aria-labelledby="elegir-voz-t" hidden>
+  <div class="hoja">
+    <h2 id="elegir-voz-t">{{title}}</h2>
+    <p>{{text}}</p>
+    <div class="botones"><button type="button" data-nino="m">{{boy}}</button><button type="button" data-nino="f">{{girl}}</button></div>
+  </div>
+</div>
+{{/choosevoice}}
 <script type="application/json" id="libro-datos">{{{data}}}</script>
 {{#scripts}}<script src="{{.}}"></script>
 {{/scripts}}

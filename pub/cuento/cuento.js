@@ -1,25 +1,87 @@
 // This file is part of Moodle - https://moodle.org/ (GNU GPL v3 or later).
 
 /**
- * «Tu primer día», the welcome story of Eguahe (Gaudí, 8 November 2026): the pages turned by finger or arrow keys, the
- * child's name written over each illustration, their drawing from the visit hung on the wall of the class, the voice
- * of each page with a little song under it, a handwritten dedication, and quiet reactions announced as
- * `eguahe:reaccion` for Eguahe to count. Its data and its words come from the page (#libro-datos).
+ * «Tu primer día», the welcome story of Eguahe (Gaudí, 8 and 9 November 2026): the pages turned by finger or arrow keys
+ * (the other way in Arabic), the child's name written over each illustration, their drawing from the visit hung on the
+ * wall of the class, the voice of each page with a little song under it (or the song alone where a language has no
+ * voice), a handwritten dedication, and quiet reactions announced as `eguahe:reaccion` for Eguahe to count. Its data
+ * and its words come from the page (#libro-datos).
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 'use strict';
 const BOOK = JSON.parse(document.getElementById('libro-datos').textContent);
-const T = BOOK.str;
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const STORY = BOOK.pages.filter(p => !p.kind).length;
-// The reading: with the child's name in the voice when there is one, or without it (?voz=sin-nombre; the reading of
-// Eguahe's first release). The written text always carries the name.
-const VOICE_NAME = new URLSearchParams(location.search).get('voz') === 'sin-nombre' || !BOOK.voices.nombre ? 'sin-nombre' : 'nombre';
-const VOICE = BOOK.voices[VOICE_NAME];
-const pageName = p => p.kind === 'cover' ? T.cover : p.kind === 'dedication' ? T.dedication : T.page.replace('{n}', p.n);
+const params = new URLSearchParams(location.search);
+
+// --- Language, teacher and child -------------------------------------------------------------------------------------
+// The language of the family's page (?lang=en|pt-PT|pt-BR|ar; Spanish by default) picks every text of the book from
+// BOOK.strings (cadenas.json). Arabic reads right to left. The teacher is «maestra» by default and «maestro» when the
+// centre says so (BOOK.teacher, or ?maestro=1 / ?maestro=0). In Arabic the voice says «your» as a boy or as a girl
+// (-ka, -ki): ?nino=m|f (BOOK.childSex), the boy's when nobody says, the grammatical default.
+const LANG = Object.prototype.hasOwnProperty.call(BOOK.strings, params.get('lang')) ? params.get('lang') : BOOK.lang;
+const T = BOOK.strings[LANG];
+const RTL = LANG === 'ar';
+const MAESTRO = params.has('maestro') ? params.get('maestro') === '1' : BOOK.teacher === 'maestro';
+const SEX = ['m', 'f'].includes(params.get('nino')) ? params.get('nino') : BOOK.childSex;
+const fill = (s, v = {}) => String(s).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
+const tr = (key, v) => fill(T[key], Object.assign({ nombre: BOOK.child }, v));
+// The teacher's name (the class tutor), when Eguahe knows it, goes into pages 3, 6 and 7 of the written text (the voice
+// does not say it): BOOK.tutors has the sample's, ?tutor=Name sets another and ?tutor= leaves it out.
+const TUTOR = params.has('tutor') ? params.get('tutor').trim() : ((BOOK.tutors || {})[MAESTRO ? 'maestro' : 'maestra'] || '');
+// a text that changes with the teacher: with «maestro» and with the name when they apply and the key exists
+const tt = key => {
+  const keys = [MAESTRO && TUTOR && key + '_maestro_tutor', MAESTRO && key + '_maestro', !MAESTRO && TUTOR && key + '_tutor', key];
+  for (const k of keys) if (k && T[k] != null) return T[k];
+};
+const CENTRE_PHRASE = BOOK.centrePhrases[LANG] || BOOK.centre;
+
+// The reading: with the child's name in the voice when there is one (only in Spanish, and only with «maestra»), or
+// without it (?voz=sin-nombre; the reading of Eguahe's first release). The written text always carries the name. With
+// «maestro» the reading is the one that says «maestro»; if a language has none, the one with «maestra» only when its
+// words are the same (English: «teacher»), and otherwise no voice: never a voice that contradicts the page. A language
+// without a voice is read aloud at home, with the song.
+const VOICES = BOOK.voices[LANG] || {};
+function pickVoice() {
+  const sx = LANG === 'ar' ? '-' + SEX : '';
+  if (params.get('voz') === 'ninguna') return null;      // read aloud at home, with the song (and to test that way)
+  if (!MAESTRO && params.get('voz') !== 'sin-nombre' && VOICES.nombre) return 'nombre';
+  if (!MAESTRO) return VOICES['sin-nombre' + sx] ? 'sin-nombre' + sx : null;
+  if (VOICES['sin-nombre-maestro' + sx]) return 'sin-nombre-maestro' + sx;
+  const same = ['page3', 'page6', 'page7'].every(k => T[k + '_maestro'] == null || T[k + '_maestro'] === T[k]);
+  return same && VOICES['sin-nombre' + sx] ? 'sin-nombre' + sx : null;
+}
+const VOICE_NAME = pickVoice();
+const VOICE = VOICE_NAME ? VOICES[VOICE_NAME] : null;
+const pageName = p => p.kind === 'cover' ? T.cover : p.kind === 'dedication' ? T.dedication_label : tr('page_n', { n: p.n });
+
+// The fixed texts of the page, in the family's language.
+(function localise() {
+  const root = document.documentElement;
+  root.lang = LANG; root.dir = RTL ? 'rtl' : 'ltr';
+  document.title = tr('doc_title');
+  const set = (sel, attr, text) => { const el = $(sel); if (el) attr ? el.setAttribute(attr, text) : (el.textContent = text); };
+  set('.muestra', null, T.sample);
+  set('.tema', 'aria-label', T.theme);
+  set('#libro', 'aria-roledescription', T.book_role);
+  set('#libro', 'aria-label', tr('book_label'));
+  set('.mandos', 'aria-label', T.nav);
+  set('#ant', 'aria-label', T.prev);
+  set('#sig', 'aria-label', T.next);
+  set('#oir-texto', null, VOICE ? T.listen : T.read_with_music);
+  set('#musica', 'aria-label', T.music); set('#musica', 'title', T.music);
+  set('.vol .vh', null, T.volume);
+  set('#vol-texto', null, fill(T.volume_value, { n: 25 }));
+  set('.autor a', null, T.by);
+  set('#ver', 'aria-label', tr('drawing_label'));
+  set('#ver-lienzo', 'aria-label', tr('drawing_label'));
+  set('.ver-pie', null, tr('drawing_caption'));
+  set('#ver-cerrar', 'aria-label', T.close);
+  if (!VOICE) $('.app').classList.add('sin-voz');
+})();
 
 // --- Reactions ------------------------------------------------------------------------------------------------------
 // Nothing here asks anything. A heart on each page for whoever wants it, three natural gestures at the end, and a few
@@ -36,7 +98,7 @@ function reactState() {
 }
 function reactSave() { try { localStorage.setItem(REACT_KEY, JSON.stringify(reactMem)); } catch (e) {} }
 function announce(tipo, pagina, extra) {
-  const detail = Object.assign({ libro: BOOK.book, pagina, tipo, voz: VOICE_NAME }, extra || {});
+  const detail = Object.assign({ libro: BOOK.book, pagina, tipo, voz: VOICE_NAME, idioma: LANG }, MAESTRO ? { maestro: true } : {}, extra || {});
   try { window.dispatchEvent(new CustomEvent('eguahe:reaccion', { detail })); } catch (e) {}
 }
 function react(tipo, pagina, extra, key) {
@@ -50,17 +112,18 @@ function unreact(key) { delete reactState()[key]; reactSave(); }
 function count(name) { const s = reactState(); s['#' + name] = (s['#' + name] || 0) + 1; reactSave(); return s['#' + name]; }
 
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.2c-.4-.3-7.2-4.6-8.7-9C2.2 8 4.2 4.9 7.3 4.9c2 0 3.6 1.2 4.7 2.9 1.1-1.7 2.7-2.9 4.7-2.9 3.1 0 5.1 3.1 4 6.3-1.5 4.4-8.3 8.7-8.7 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
-const heartHtml = n => `<button class="corazon" type="button" data-pagina="${n}" aria-pressed="${!!reactState()['me-gusta:' + n]}" aria-label="${esc(T.liked)}" title="${esc(T.liked)}">${HEART}</button>`;
+const heartHtml = n => `<button class="corazon" type="button" data-pagina="${n}" aria-pressed="${!!reactState()['me-gusta:' + n]}" aria-label="${esc(T.like)}" title="${esc(T.like)}">${HEART}</button>`;
 
 // --- Pages ---------------------------------------------------------------------------------------------------------
 // The last two words of a line stay together, so no line of the book ends with a word on its own.
-const lineHtml = l => esc(l.replace(/ (\S+)$/, '\u00a0$1')).replace('{nombre}', `<span class="nombre">${esc(BOOK.child)}</span>`)
-  .replace('{centro}', esc(BOOK.centrePhrase));
+const lineHtml = l => esc(l.replace(/ (\S+)$/, '\u00a0$1')).replace('{nombre}', `<span class="nombre" dir="auto">${esc(BOOK.child)}</span>`)
+  .replace('{centro}', `<bdi>${esc(CENTRE_PHRASE)}</bdi>`).replace('{tutor}', `<bdi>${esc(TUTOR)}</bdi>`);
+const linesOf = s => String(s).split('\n');
 
 function coverHtml() {
   // The first-day sticker of Eguahe, with the child's name on its line (geometry of kit/marca-eguahe/etiqueta.py).
   return `<section class="pagina portada" data-i="0" aria-label="${esc(T.cover)}">
-    <h1 aria-label="${esc(T.titlechild)}"><span class="antes" aria-hidden="true">${esc(T.title)}</span>
+    <h1 aria-label="${esc(tr('book_label'))}"><span class="antes" aria-hidden="true">${esc(T.title)}</span>
       <svg class="etiqueta" viewBox="-25 -18 50 36" aria-hidden="true">
         <path class="banda" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
         <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
@@ -92,7 +155,7 @@ function frameHtml(p) {
   const W = Math.round((dist(q[0], q[1]) + dist(q[3], q[2])) / 2), H = Math.round((dist(q[0], q[3]) + dist(q[1], q[2])) / 2);
   const style = `width:${W}px;height:${H}px;transform:matrix3d(${quadMatrix(W, H, q)})`;
   if (BOOK.drawing) {
-    const label = T.enlarge;
+    const label = tr('drawing_open');
     return `<div class="capa"><button class="marco" type="button" aria-label="${esc(label)}" title="${esc(label)}" style="${style}">
       <span class="hoja"><canvas class="dibujo" width="300" height="400"></canvas></span></button></div>`;
   }
@@ -102,20 +165,24 @@ function frameHtml(p) {
 }
 
 function pageHtml(p, i) {
+  // with «maestro», pages 3, 6 and 7 have their own illustration (and its own measures, if they moved)
+  if (MAESTRO && p.maestro) p = Object.assign({}, p, p.maestro);
+  const chalk = T.chalk.split('{nombre}');
   const names = (p.names || []).map(n => `<text class="${n.kind}" x="${n.x}" y="${n.y}" font-size="${n.size}"
       text-anchor="middle" data-w="${n.w}" transform="rotate(${n.rot || 0} ${n.x} ${n.y})${n.skew ? ` skewX(${n.skew})` : ''}"
       ${n.kind === 'chalk' ? 'fill="#F4F1E8" filter="url(#tiza)"' : 'fill="#2B2226" filter="url(#boli)"'}
-      font-family="Caveat" font-weight="${n.kind === 'chalk' ? 600 : 650}">${esc(n.text || (n.pre || '') + BOOK.child + (n.post || ''))}</text>`).join('');
-  return `<section class="pagina" data-i="${i}" aria-label="${esc(T.pageof.replace('{n}', p.n).replace('{of}', STORY))}">
+      ${n.kind === 'chalk' && RTL ? 'direction="rtl"' : ''}
+      font-family="Caveat" font-weight="${n.kind === 'chalk' ? 600 : 650}">${esc(n.text || (n.kind === 'chalk' ? chalk[0] + BOOK.child + (chalk[1] || '') : BOOK.child))}</text>`).join('');
+  return `<section class="pagina" data-i="${i}" aria-label="${esc(tr('page_n_of', { n: p.n, total: STORY }))}">
     <figure class="lamina">
-      <svg viewBox="0 0 1536 1024" role="img" aria-label="${esc(p.alt || '')}">
+      <svg viewBox="0 0 1536 1024" role="img" aria-label="${esc(tt('alt' + p.n) || '')}">
         <image href="${BOOK.base}ilustraciones/${p.img}.webp" width="1536" height="1024" preserveAspectRatio="xMidYMid slice"/>
         ${names}
       </svg>
       ${p.frame ? frameHtml(p) : ''}
       ${heartHtml(p.n)}
     </figure>
-    <p class="texto">${p.text.map(l => `<span class="l">${lineHtml(l)}</span>`).join('')}</p>
+    <p class="texto">${linesOf(tt('page' + p.n)).map(l => `<span class="l">${lineHtml(l)}</span>`).join('')}</p>
   </section>`;
 }
 
@@ -125,17 +192,18 @@ const ICON = {
   mandar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 3.8 3.7 10.4l6.7 2.9 2.9 6.7 7.1-16.2Z"/><path d="m10.4 13.3 4.4-4.4"/></svg>',
 };
 function dedicationHtml(p, i) {
-  const save = VOICE.download
-    ? `<a class="gesto" data-gesto="guardar" href="${esc(VOICE.download.href)}" download="${esc(VOICE.download.name)}" target="_blank" rel="noopener">${ICON.guardar}<span>${esc(T.save)}</span></a>`
-    : `<button class="gesto" type="button" data-gesto="guardar">${ICON.guardar}<span>${esc(T.save)}</span></button>`;
-  return `<section class="pagina dedicatoria" data-i="${i}" aria-label="${esc(T.dedication)}">
+  // «Save it» keeps the whole story heard, with its voice and the song: only where there is one.
+  const save = VOICE && VOICE.download
+    ? `<a class="gesto" data-gesto="guardar" href="${esc(VOICE.download.href)}" download="${esc(tr('download_name'))}" target="_blank" rel="noopener">${ICON.guardar}<span>${esc(T.save)}</span></a>`
+    : '';
+  return `<section class="pagina dedicatoria" data-i="${i}" aria-label="${esc(T.dedication_label)}">
     <div class="hoja-dedicatoria">
-      <img class="manos" src="${BOOK.base}ilustraciones/${p.img}.webp" alt="${esc(p.alt || '')}" width="1024" height="1024">
-      <p class="dedica">${p.lines.map(l => `<span class="l">${lineHtml(l).replace('class="nombre"', 'class="nombre-mano"')}</span>`).join('')}</p>
+      <img class="manos" src="${BOOK.base}ilustraciones/${p.img}.webp" alt="${esc(T.alt_dedication)}" width="1024" height="1024">
+      <p class="dedica">${linesOf(T.dedication).map(l => `<span class="l">${lineHtml(l).replace('class="nombre"', 'class="nombre-mano"')}</span>`).join('')}</p>
       ${heartHtml(p.n)}
     </div>
     <div class="gestos">
-      <button class="gesto" type="button" data-gesto="volver-a-escuchar">${ICON.otra}<span>${esc(T.again)}</span></button>
+      <button class="gesto" type="button" data-gesto="volver-a-escuchar">${ICON.otra}<span>${esc(VOICE ? T.listen_again : T.read_again)}</span></button>
       ${save}
       <button class="gesto" type="button" data-gesto="mandar">${ICON.mandar}<span>${esc(T.send)}</span></button>
     </div>
@@ -221,6 +289,8 @@ tira.addEventListener('click', e => { if (e.target.closest('button.marco')) open
 
 // --- Turning pages -------------------------------------------------------------------------------------------------
 const puntos = $('#puntos');
+// Left to right, the next page is on the right; right to left, on the left: SIDE turns «forward» into a direction.
+const SIDE = RTL ? -1 : 1;
 puntos.innerHTML = BOOK.pages.map(p => `<button type="button" aria-label="${pageName(p)}"></button>`).join('');
 let at = 0;
 const seen = new Set();
@@ -231,13 +301,12 @@ function show(i, opts = {}) {
   if (!opts.restart && at < from && at > 0 && seen.has(at)) react('volver-a-pagina', BOOK.pages[at].n);
   seen.add(at);
   if (opts.instant) { tira.style.transition = 'none'; requestAnimationFrame(() => requestAnimationFrame(() => tira.style.transition = '')); }
-  tira.style.transform = `translateX(${-100 * at}%)`;
+  tira.style.transform = `translateX(${-100 * at * SIDE}%)`;
   pages.forEach((p, k) => { p.inert = k !== at; p.setAttribute('aria-hidden', k !== at); });
   [...puntos.children].forEach((b, k) => b.setAttribute('aria-current', k === at));
   $('#ant').disabled = at === 0; $('#sig').disabled = at === last;
   const p = BOOK.pages[at];
-  $('#aviso').textContent = p.kind === 'cover' ? T.cover : p.kind === 'dedication' ? T.dedication :
-    T.pageof.replace('{n}', p.n).replace('{of}', STORY);
+  $('#aviso').textContent = p.kind === 'cover' ? T.cover : p.kind === 'dedication' ? T.dedication_label : tr('page_n_of', { n: p.n, total: STORY });
   // Eguahe counts how far each family gets, once a page.
   try { window.dispatchEvent(new CustomEvent('eguahe:pagina', { detail: { pagina: p.n, i: at } })); } catch (e) {}
   if (at === ALF) drawInFrame();
@@ -249,8 +318,9 @@ $('#sig').onclick = () => show(at + 1);
 puntos.onclick = e => { const k = [...puntos.children].indexOf(e.target); if (k >= 0) show(k); };
 document.addEventListener('keydown', e => {
   if (dlg.open || e.target.matches('input')) return;
-  if (e.key === 'ArrowRight' || e.key === 'PageDown') { show(at + 1); e.preventDefault(); }
-  if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(at - 1); e.preventDefault(); }
+  const fwd = RTL ? 'ArrowLeft' : 'ArrowRight', back = RTL ? 'ArrowRight' : 'ArrowLeft';
+  if (e.key === fwd || e.key === 'PageDown') { show(at + 1); e.preventDefault(); }
+  if (e.key === back || e.key === 'PageUp') { show(at - 1); e.preventDefault(); }
   if (e.key === 'Home') show(0);
   if (e.key === 'End') show(last);
 });
@@ -269,9 +339,10 @@ libro.addEventListener('pointermove', e => {
     if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 12) drag = null; return; }
     drag.on = true; libro.setPointerCapture(e.pointerId); tira.style.transition = 'none';
   }
-  const edge = (at === 0 && dx > 0) || (at === last && dx < 0) ? .3 : 1;
+  const ahead = -dx * SIDE;     // > 0 when the finger pulls the next page in
+  const edge = (at === 0 && ahead < 0) || (at === last && ahead > 0) ? .3 : 1;
   drag.dx = dx * edge;
-  tira.style.transform = `translateX(calc(${-100 * at}% + ${drag.dx}px))`;
+  tira.style.transform = `translateX(calc(${-100 * at * SIDE}% + ${drag.dx}px))`;
 });
 function endDrag(e) {
   if (!drag || e.pointerId !== drag.id) return;
@@ -279,8 +350,9 @@ function endDrag(e) {
   if (!d.on) return;
   tira.style.transition = '';
   const fast = Math.abs(d.dx) / (performance.now() - d.t) > .45;
-  if (d.dx < -60 || (fast && d.dx < -20)) show(at + 1);
-  else if (d.dx > 60 || (fast && d.dx > 20)) show(at - 1);
+  const ahead = -d.dx * SIDE;
+  if (ahead > 60 || (fast && ahead > 20)) show(at + 1);
+  else if (ahead < -60 || (fast && ahead < -20)) show(at - 1);
   else show(at);
 }
 libro.addEventListener('pointerup', endDrag);
@@ -301,10 +373,13 @@ const vol = $('#vol');
 const level = () => vol.value / 100;
 audio.volume = level();
 const M = BOOK.music;
-const BED = Math.pow(10, M.bedDb / 20), DUCK = Math.pow(10, M.duckDb / 20), DOOR = Math.pow(10, M.doorDb / 20);
+// The song sits 11 dB under the voice (M.bedDb is set for the Spanish voice; another voice moves it by its own level)
+const SHIFT = VOICE && VOICE.lufs != null ? VOICE.lufs - M.voiceLufs : 0;
+const BED = Math.pow(10, (M.bedDb + SHIFT) / 20), DUCK = Math.pow(10, M.duckDb / 20), DOOR = Math.pow(10, (M.doorDb + SHIFT) / 20);
 let ctx = null, bedGain = null, doorGain = null, bedBuf = null, doorBuf = null, bedSrc = null, ready = null;
 const musica = $('#musica');
-let musicOn = stored('cuento-musica') !== 'no';
+// Without a voice the song is what the button plays, so it is always on.
+let musicOn = !VOICE || stored('cuento-musica') !== 'no';
 musica.setAttribute('aria-pressed', musicOn);
 function decode(url) {
   // The song and the door, from the plugin: fetched once the reader taps.
@@ -335,6 +410,8 @@ function startBed() {
   bedSrc.start(0, M.pre);
 }
 function speaking() {
+  // read aloud at home: the song stays down as if someone were reading, except over the dedication, where it sings alone
+  if (!VOICE) return playing && !BOOK.pages[at].kind;
   if (audio.paused || !audio.duration) return false;
   const t = audio.currentTime, sp = VOICE.speech[BOOK.pages[at].audio] || [];
   return sp.some(([a, b]) => t >= a - .05 && t <= b + .12);
@@ -370,19 +447,20 @@ musica.onclick = () => {
   store('cuento-musica', musicOn ? undefined : 'no');
   if (musicOn && playing) sound().then(ok => ok && startBed());
 };
-vol.oninput = () => { audio.volume = level(); $('#vol-texto').textContent = T.percent.replace('{n}', vol.value); lastTarget = -1; };
+vol.oninput = () => { audio.volume = level(); $('#vol-texto').textContent = fill(T.volume_value, { n: vol.value }); lastTarget = -1; };
 const oir = $('#oir');
 function setProgress(f) { oir.style.setProperty('--prog', f); }
 function setPlaying(on) {
   playing = on;
   oir.setAttribute('aria-pressed', on);
-  $('#oir-texto').textContent = on ? T.pause : (at === last && finished ? T.otravez : T.listen);
+  $('#oir-texto').textContent = on ? T.pause : (at === last && finished ? T.again : VOICE ? T.listen : T.read_with_music);
 }
 function clearTimers() { clearTimeout(nextTimer); clearTimeout(doorTimer); clearTimeout(endTimer); clearInterval(endTick); }
 function playPage() {
   clearTimers();
   const p = BOOK.pages[at];
   if (!p.audio) { audio.pause(); return ending(); }
+  if (!VOICE) return;          // no voice: the song plays and the pages are turned by hand
   const src = `${VOICE.audio}/${p.audio}.mp3`;
   if (!audio.src.endsWith(src)) { audio.src = src; setProgress(0); }
   audio.play().catch(() => setPlaying(false));
@@ -442,11 +520,11 @@ async function copyLink() {
     try { ok = document.execCommand('copy'); } catch (e2) {}
     t.remove();
   }
-  say(ok ? T.copied : T.thelink.replace('{url}', BOOK.share));
+  say(ok ? T.link_copied : tr('link_here', { url: BOOK.share }));
   return ok;
 }
 async function sendIt() {
-  const data = { title: T.titlechild, text: T.sharetext, url: BOOK.share };
+  const data = { title: tr('share_title'), text: tr('share_text'), url: BOOK.share };
   let via = null;
   if (navigator.share) {
     try { await navigator.share(data); via = 'compartir'; } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -476,7 +554,6 @@ const root = document.documentElement;
 const prefersDark = matchMedia('(prefers-color-scheme: dark)');
 function store(k, v) { try { v === undefined ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
 function stored(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-const params = new URLSearchParams(location.search);
 const themeWanted = { claro: 'light', oscuro: 'dark' }[params.get('tema')] || stored('cuento-tema');
 if (themeWanted) root.dataset.theme = themeWanted;
 $('.tema').onclick = () => {
@@ -494,4 +571,5 @@ setTimeout(prepareDrawing, 400);
 // For the screenshots, the video and the tests: show a page as if it were being read, without sound.
 window.cuento = { show, setProgress, audio, openDrawing, closeDrawing, state: () => ({ ctx: ctx && ctx.state, bed: bedGain && bedGain.gain.value, target: bedTarget(),
   musicOn, playing, finished, at, speaking: speaking(), bedLoaded: !!bedBuf, doorLoaded: !!doorBuf, src: audio.src,
-  drawing: !!frameP, drawnOnce, heard: [...heard], doors, voice: VOICE_NAME }), pose(on) { oir.setAttribute('aria-pressed', on); $('#oir-texto').textContent = on ? T.pause : T.listen; } };
+  drawing: !!frameP, drawnOnce, heard: [...heard], doors, voice: VOICE_NAME, lang: LANG, maestro: MAESTRO, sex: SEX }),
+  pose(on) { oir.setAttribute('aria-pressed', on); $('#oir-texto').textContent = on ? T.pause : VOICE ? T.listen : T.read_with_music; } };

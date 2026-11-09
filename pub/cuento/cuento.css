@@ -1,11 +1,13 @@
-/* «Tu primer día», the welcome story of Eguahe (Gaudí, 8 November 2026): a picture book to read at home before the
-   first day, with the child's name on the pictures and their drawing on the wall of the class. The colours of the
-   centre come from the page (--centro-acento, --centro-acento-oscuro). */
+/* «Tu primer día», the welcome story of Eguahe (Gaudí, 8 and 9 November 2026): a picture book to read at home before
+   the first day, in the five languages of the family pages, with the child's name on the pictures and their drawing on
+   the wall of the class. The colours of the centre come from the page (--centro-acento, --centro-acento-oscuro). Each
+   family of letters has its Latin and its Arabic face, with the same weights, or Chrome does not share them out. */
 @font-face {
     font-family: 'Caveat';
     src: url(../fonts/caveat.woff2) format('woff2');
     font-weight: 400 700;
     font-display: block;
+    unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
 }
 
 @font-face {
@@ -17,12 +19,109 @@
 }
 
 @font-face {
+    font-family: 'Caveat';
+    src: url(../fonts/playpen-sans-arabic.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: block;
+    size-adjust: 88%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F;
+}
+
+@font-face {
     font-family: 'Schibsted Grotesk';
     src: url(../fonts/schibsted-grotesk.woff2) format('woff2');
     font-weight: 400 900;
     font-display: swap;
+    unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
 }
 
+@font-face {
+    font-family: 'Schibsted Grotesk';
+    src: url(../fonts/vazirmatn-arabe.woff2) format('woff2');
+    font-weight: 400 900;
+    font-display: swap;
+    size-adjust: 106%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F;
+}
+/* The mark of the centre: its logo, or its initials on its colour, as the emblem of the sample. */
+.marca-centro {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 9px;
+}
+img.marca-centro {
+    object-fit: contain;
+}
+.monograma {
+    display: grid;
+    place-items: center;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+.firma-centro .marca-centro {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+}
+/* In Arabic, how the voice reads it: for a boy or for a girl, asked once when the book opens. */
+.elegir-voz {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(23, 20, 19, .55);
+}
+.elegir-voz[hidden] {
+    display: none;
+}
+.elegir-voz .hoja {
+    display: grid;
+    gap: 14px;
+    /* stylelint-disable-next-line csstree/validator */
+    width: min(100%, 420px);
+    padding: 24px;
+    border-radius: 18px;
+    background: var(--superficie);
+    color: var(--tinta);
+    box-shadow: 0 18px 36px -12px var(--sombra-fuerte);
+}
+.elegir-voz h2 {
+    margin: 0;
+    font-size: 22px;
+}
+.elegir-voz p {
+    margin: 0;
+    color: var(--tinta-2);
+}
+.elegir-voz .botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.elegir-voz button {
+    flex: 1 1 140px;
+    min-height: 48px;
+    border-radius: 999px;
+    border: 1.5px solid var(--borde);
+    background: var(--superficie);
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.elegir-voz button:focus-visible {
+    outline: 3px solid var(--c-vivo);
+    outline-offset: 2px;
+}
+
+/* Each family has a Latin face and an Arabic one, split by unicode-range (the same descriptors in both, or Chrome does
+   not split them): the hand is Caveat and Playpen Sans Arabic, the text Schibsted Grotesk and Vazirmatn. */
 
 /* Tokens: the paper and ink of Eguahe, the colour of the centre on top. */
 :root {
@@ -177,36 +276,12 @@ button {
     gap: 10px;
     font-weight: 650;
     font-size: 16px;
-    margin-right: auto;
+    margin-inline-end: auto;
 }
 .centro svg {
     width: 34px;
     height: 34px;
     flex: none;
-}
-/* The mark of the centre: its logo, or its initials on its colour, as the emblem of the sample. */
-.marca-centro {
-    width: 34px;
-    height: 34px;
-    flex: none;
-    border-radius: 9px;
-}
-img.marca-centro {
-    object-fit: contain;
-}
-.monograma {
-    display: grid;
-    place-items: center;
-    background: var(--c-acento);
-    color: var(--c-sobre-acento);
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: .02em;
-}
-.firma-centro .marca-centro {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
 }
 .redondo {
     width: 44px;
@@ -384,7 +459,7 @@ button.marco {
 /* The heart in a corner of each page: always there, quiet, never asked for. */
 .corazon {
     position: absolute;
-    right: 10px;
+    inset-inline-end: 10px;
     bottom: 10px;
     z-index: 2;
     width: 40px;
@@ -559,7 +634,7 @@ button.marco {
     margin-top: .32em;
 }
 .hoja-dedicatoria .corazon {
-    right: 8px;
+    inset-inline-end: 8px;
     bottom: 8px;
     background: transparent;
     opacity: .6;
@@ -660,7 +735,7 @@ button.marco {
 .ver-cerrar {
     position: fixed;
     top: 14px;
-    right: 14px;
+    inset-inline-end: 14px;
 }
 
 /* Controls. */
@@ -719,7 +794,7 @@ button.marco {
 .oir::after {
     content: '';
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     bottom: 0;
     height: 4px;
     width: calc(var(--prog, 0) * 100%);
@@ -814,7 +889,7 @@ button.marco {
     width: 3.4em;
     flex: none;
     white-space: nowrap;
-    text-align: right;
+    text-align: end;
     font-variant-numeric: tabular-nums;
 }
 .autor {
@@ -850,7 +925,7 @@ button.marco {
         font-size: clamp(20px, 1.15vw + 11px, 30px);
     }
     .corazon {
-        right: 14px;
+        inset-inline-end: 14px;
         bottom: 14px;
     }
     .dedicatoria {
@@ -870,7 +945,7 @@ button.marco {
         width: 100%;
     }
     .dedica {
-        text-align: left;
+        text-align: start;
         /* stylelint-disable-next-line csstree/validator */
         font-size: clamp(30px, 1.7vw + 14px, 50px);
     }
@@ -956,4 +1031,30 @@ button.marco {
     .corazon.late svg {
         animation: none;
     }
+}
+/* Right to left (Arabic): the arrows point the other way; the grid, the strip of pages and the corners follow the
+   direction by themselves. Arabic is never spaced out (it breaks the joins) and asks for a little more leading. */
+[dir="rtl"] .ant svg,
+[dir="rtl"] .sig svg {
+    transform: scaleX(-1);
+}
+:lang(ar) .texto,
+:lang(ar) .portada .antes,
+:lang(ar) .dedica,
+:lang(ar) .nombre,
+:lang(ar) .folio {
+    letter-spacing: 0;
+}
+:lang(ar) .muestra {
+    letter-spacing: .02em;
+}
+:lang(ar) .texto {
+    line-height: 1.72;
+}
+:lang(ar) .dedica {
+    line-height: 1.32;
+}
+/* Without a voice in this language the book is read aloud at home, with the song under it: no song switch apart. */
+.sin-voz .musica {
+    display: none;
 }

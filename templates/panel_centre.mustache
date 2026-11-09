@@ -157,7 +157,10 @@
                         <div class="campo"><label for="o-p-{{i}}">{{#str}}offer_places, local_oksigeniaeguahe{{/str}}</label><input id="o-p-{{i}}" type="number" min="0" name="offerplaces[{{i}}]" value="{{places}}" inputmode="numeric"></div>
                         <div class="campo"><label for="o-l-{{i}}">{{#str}}offer_handover, local_oksigeniaeguahe{{/str}}</label><select id="o-l-{{i}}" name="offerhandover[{{i}}]">{{#handovers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handovers}}</select></div>
                         <label class="casilla"><input type="checkbox" name="offeractive[{{i}}]" value="1"{{#active}} checked{{/active}}><span>{{#str}}offer_active, local_oksigeniaeguahe{{/str}}</span></label>
-                        <label class="casilla"><input type="hidden" name="offerstory[{{i}}]" value="0"><input type="checkbox" name="offerstory[{{i}}]" value="1"{{#story}} checked{{/story}}><span>{{#str}}offer_story, local_oksigeniaeguahe{{/str}}</span></label>
+                        <div class="oferta-cuento">
+                            <label class="casilla"><input type="hidden" name="offerstory[{{i}}]" value="0"><input type="checkbox" name="offerstory[{{i}}]" value="1"{{#story}} checked{{/story}}><span>{{#str}}offer_story, local_oksigeniaeguahe{{/str}}</span></label>
+                            <div class="campo cuento-quien"><label for="o-m-{{i}}">{{#str}}offer_teacher, local_oksigeniaeguahe{{/str}}</label><select id="o-m-{{i}}" name="offerteacher[{{i}}]">{{#teachers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/teachers}}</select></div>
+                        </div>
                         {{#rail}}<div class="riel-caja oferta-riel">{{{rail}}}</div>{{/rail}}
                         <input type="hidden" name="offerid[{{i}}]" value="{{id}}">
                     </li>

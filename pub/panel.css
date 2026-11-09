@@ -7846,6 +7846,30 @@ html.modo-lamina {
     grid-column: 1 / -1;
 }
 
+/* «Your first day» for a course: the box and who receives them in the story, on one line across the course. */
+.oferta-cuento {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 28px;
+}
+
+.oferta-cuento .cuento-quien {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.oferta-cuento .cuento-quien > label {
+    font-weight: 500;
+    color: var(--eg-tinta-2);
+}
+
+.oferta-cuento .cuento-quien select {
+    width: auto;
+}
+
 .equipo-lista {
     display: flex;
     flex-wrap: wrap;

@@ -397,7 +397,7 @@ class familypage {
                 'name' => $a->name,
                 'kicker' => publiclang::str('pub_story_kicker', $lang, $a),
                 'open' => publiclang::str('pub_story_open', $lang),
-                'title' => publiclang::str('story_ui_title', $lang, $a),
+                'title' => publiclang::str('firstday_title', $lang),
                 'lead' => publiclang::str($lead, $lang, $a),
             ];
         }

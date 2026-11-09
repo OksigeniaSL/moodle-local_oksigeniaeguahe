@@ -528,6 +528,10 @@ class centres {
             // Whether its children get the story of the first day.
             $row->story = empty($data->story) ? 0 : 1;
         }
+        if (isset($data->teacher)) {
+            // How the story calls whoever receives the course.
+            $row->teacher = in_array($data->teacher, story::TEACHERS, true) ? $data->teacher : 'maestra';
+        }
         if (!empty($data->id)) {
             $DB->get_record(self::OFFERS, ['id' => $data->id, 'centreid' => $centreid], 'id', MUST_EXIST);
             $row->id = (int) $data->id;

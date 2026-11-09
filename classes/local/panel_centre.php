@@ -214,6 +214,7 @@ class panel_centre {
                 'year' => (string) $offer->schoolyear, 'places' => (int) $offer->places, 'active' => !empty($offer->active),
                 'handovers' => self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre'),
                 'story' => story::offer_gives($offer, (int) $centre->id),
+                'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
                 'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
                     (int) $offer->places,
                     $enrolled,
@@ -222,7 +223,7 @@ class panel_centre {
         }
         $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',
             'active' => true, 'handovers' => self::handovers($centre, 0, 'offer_handover_centre'), 'empty' => true,
-            'story' => false,
+            'story' => false, 'teachers' => self::teachers('maestra'),
             'rail' => ''];
         return $out;
     }
@@ -242,6 +243,17 @@ class panel_centre {
                 $host['name'], 'selected' => $host['id'] === $chosen];
         }
         return $out;
+    }
+
+    /**
+     * How the story may call whoever receives a course, as options.
+     *
+     * @param string $chosen
+     * @return array
+     */
+    protected static function teachers(string $chosen): array {
+        return array_map(fn($t) => ['value' => $t, 'name' => get_string('offer_teacher_' . $t, self::C),
+            'selected' => $t === $chosen], story::TEACHERS);
     }
 
     /**
@@ -412,6 +424,7 @@ class panel_centre {
         $active = optional_param_array('offeractive', [], PARAM_BOOL);
         $handovers = optional_param_array('offerhandover', [], PARAM_INT);
         $stories = optional_param_array('offerstory', [], PARAM_BOOL);
+        $teachers = optional_param_array('offerteacher', [], PARAM_ALPHA);
         foreach ($names as $i => $offername) {
             $offerid = (int) ($ids[$i] ?? 0);
             if (trim((string) $offername) === '') {
@@ -422,7 +435,8 @@ class panel_centre {
             }
             $offer = ['id' => $offerid, 'name' => $offername, 'schoolyear' => $years[$i] ?? self::next_year(),
                 'places' => $places[$i] ?? 0, 'active' => !empty($active[$i]), 'sortorder' => $i,
-                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id)];
+                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id),
+                'teacher' => $teachers[$i] ?? 'maestra'];
             // A new course without the box gives the story by its age; once saved, as the box says.
             if ($offerid || !empty($stories[$i])) {
                 $offer['story'] = !empty($stories[$i]);

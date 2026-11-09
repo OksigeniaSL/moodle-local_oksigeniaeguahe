@@ -36,11 +36,32 @@ class story {
     /** @var string The book, as its reactions name it. */
     const BOOK = 'primer-dia';
 
-    /** @var string[] The languages the story is written in, for now; the rest come with their words. */
-    const LANGS = ['es'];
+    /** @var string[] The languages the story is written in: those of the family pages. */
+    const LANGS = ['es', 'en', 'pt', 'pt_br', 'ar'];
 
-    /** @var string[] The languages with a voice for the story. */
-    const VOICES = ['es'];
+    /** @var string[] Each language as the book names it. */
+    const CODES = ['es' => 'es', 'en' => 'en', 'pt' => 'pt-PT', 'pt_br' => 'pt-BR', 'ar' => 'ar'];
+
+    /** @var string[] The pages that change when whoever receives the group is a man, and their pictures (Gaudí). */
+    const MAESTRO = ['pizarra' => 'p3-pizarra-maestro', 'alfombra' => 'p6-alfombra-maestro', 'casa' => 'p7-casa-maestro'];
+
+    /** @var string[] How the teacher of a course is called in the story. */
+    const TEACHERS = ['maestra', 'maestro'];
+
+    /** @var string[] All the words of the book (Gaudí's cadenas.json), as strings «firstday_» plus the key. */
+    const STRINGS = ['title', 'doc_title', 'book_label', 'page1', 'page2', 'page3', 'page3_maestro', 'page3_tutor',
+        'page3_maestro_tutor', 'page4', 'page5', 'page6', 'page6_maestro', 'page6_tutor', 'page6_maestro_tutor', 'page7',
+        'page7_maestro', 'page7_tutor', 'page7_maestro_tutor', 'page8', 'chalk', 'dedication', 'spoken1', 'spoken2',
+        'spoken3', 'spoken3_maestro', 'spoken4', 'spoken7', 'spoken7_maestro', 'alt1', 'alt2', 'alt3', 'alt3_maestro',
+        'alt4', 'alt5', 'alt6', 'alt6_maestro', 'alt7', 'alt7_maestro', 'alt8', 'alt_dedication', 'sample', 'theme',
+        'book_role', 'nav', 'prev', 'next', 'listen', 'pause', 'again', 'read_with_music', 'music', 'volume', 'volume_value',
+        'by', 'drawing_open', 'drawing_label', 'drawing_caption', 'close', 'like', 'cover', 'dedication_label', 'page_n',
+        'page_n_of', 'hint', 'listen_again', 'read_again', 'save', 'send', 'link_copied', 'link_here', 'share_title',
+        'share_text', 'download_name'];
+
+    /** @var string[] The words of the page around the book. */
+    const FRAME = ['theme', 'book_label', 'nav', 'prev', 'listen', 'next', 'music', 'volume', 'volume_value', 'drawing_label',
+        'drawing_caption', 'close'];
 
     /** @var int From how long before the first day the story is there. */
     const BEFORE = 21 * DAYSECS;
@@ -65,16 +86,9 @@ class story {
         ['id' => 'dedicatoria', 'n' => 9, 'kind' => 'dedication', 'img' => 'dedicatoria-manos'],
     ];
 
-    /** @var string[] The words of the controls and the gestures, as the script of the book reads them. */
-    const WORDS = ['cover', 'dedication', 'page', 'pageof', 'liked', 'title', 'titlechild', 'enlarge', 'save', 'again', 'send',
-        'percent', 'pause', 'otravez', 'listen', 'copied', 'thelink', 'sharetext', 'hint'];
-
     /** @var string[] What a person of the team writes around the first day: the story, the eve and the day after. */
     const STEPS = ['story', 'eve', 'after'];
 
-    /** @var string[] The words of the page around the book. */
-    const FRAME = ['theme', 'titlechild', 'controls', 'previous', 'listen', 'next', 'music', 'volume', 'drawingof', 'drawnby',
-        'close'];
 
     /**
      * Whether a course gives the story: as the centre chose, or, before it chose, the first years at school.
@@ -219,32 +233,24 @@ class story {
     }
 
     /**
-     * The name of a centre inside a sentence when the centre did not write it: in Spanish, with the article of its first
-     * word when it is one of the usual ones («el Colegio Los Arces», «la Escuela Infantil El Sol»); else as it is.
+     * The name of a centre inside a sentence when the centre did not write it: in Spanish and Portuguese, with the article
+     * of its first word when it is one of the usual ones («el Colegio Los Arces», «a Escola do Sol»); in English and
+     * Arabic, and else, as it is.
      *
      * @param string $name
      * @param string $lang
      * @return string
      */
     public static function phrase(string $name, string $lang): string {
-        if ($lang !== 'es') {
-            return $name;
-        }
         $first = \core_text::strtolower((string) strtok($name, ' '));
-        $articles = ['colegio' => 'el', 'instituto' => 'el', 'centro' => 'el', 'liceo' => 'el', 'jardín' => 'el',
-            'escuela' => 'la', 'academia' => 'la', 'guardería' => 'la', 'casa' => 'la', 'ikastola' => 'la'];
-        return isset($articles[$first]) ? $articles[$first] . ' ' . $name : $name;
-    }
-
-    /**
-     * The words of the story in a language: each page its lines, with {nombre} and {centro} as the book fills them.
-     *
-     * @param string $id
-     * @param string $lang
-     * @return string[]
-     */
-    protected static function lines(string $id, string $lang): array {
-        return array_values(array_filter(explode("\n", publiclang::str('story_' . $id, $lang)), fn($l) => trim($l) !== ''));
+        $articles = [
+            'es' => ['colegio' => 'el', 'instituto' => 'el', 'centro' => 'el', 'liceo' => 'el', 'jardín' => 'el',
+                'escuela' => 'la', 'academia' => 'la', 'guardería' => 'la', 'casa' => 'la', 'ikastola' => 'la'],
+            'pt' => ['colegio' => 'o', 'colégio' => 'o', 'instituto' => 'o', 'centro' => 'o', 'jardim' => 'o', 'liceu' => 'o',
+                'externato' => 'o', 'escola' => 'a', 'escuela' => 'a', 'academia' => 'a', 'creche' => 'a', 'casa' => 'a'],
+        ];
+        $articles['pt_br'] = $articles['pt'];
+        return isset($articles[$lang][$first]) ? $articles[$lang][$first] . ' ' . $name : $name;
     }
 
     /**
@@ -262,6 +268,22 @@ class story {
     }
 
     /**
+     * How the book calls whoever receives the child's group and their name: from the course of the child, its teacher
+     * («maestra» or «maestro», as the centre set it) and the person who carries it, if families see them.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $child
+     * @return array [teacher, tutor name or '']
+     */
+    public static function teacher(\stdClass $centre, \stdClass $child): array {
+        global $DB;
+        $offer = $DB->get_record(centres::OFFERS, ['id' => $child->offerid, 'centreid' => $centre->id]);
+        $teacher = $offer && in_array($offer->teacher ?? '', self::TEACHERS, true) ? $offer->teacher : 'maestra';
+        $host = $offer && (int) $offer->handover ? (centres::hosts((int) $centre->id, [(int) $offer->handover])[0] ?? null) : null;
+        return [$teacher, $host ? $host->first : ''];
+    }
+
+    /**
      * Everything the book needs, for the page around it and for its script.
      *
      * @param \stdClass $household
@@ -273,54 +295,53 @@ class story {
      */
     public static function context(\stdClass $household, \stdClass $child, \stdClass $centre, string $lang, array $links): array {
         global $CFG;
+        $lang = in_array($lang, self::LANGS, true) ? $lang : 'es';
+        $code = self::CODES[$lang];
         $name = familypage::label_name($child) ?: (string) $child->firstname;
         $centrename = format_string($centre->name);
-        $phrase = trim((string) ($centre->namephrase ?? '')) !== '' ? format_string($centre->namephrase) :
-            self::phrase($centrename, $lang);
-        $a = (object) ['name' => $name, 'centre' => $centrename];
-        $str = fn(string $id) => publiclang::str('story_ui_' . $id, $lang, $a);
+        $own = trim((string) ($centre->namephrase ?? ''));
+        // The phrase the centre wrote is in its own language; in another, Eguahe says the name as that language does.
+        $phrase = $own !== '' && $lang === ($centre->lang ?? '') ? format_string($own) : self::phrase($centrename, $lang);
+        $words = [];
+        foreach (self::STRINGS as $key) {
+            $words[$key] = publiclang::str('firstday_' . $key, $lang);
+        }
+        $fill = fn(string $text) => str_replace(['{nombre}', '{n}'], [$name, '25'], $text);
         $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/cuento/';
         $dir = $CFG->dirroot . '/local/oksigeniaeguahe/pub/cuento/';
-        $geometry = json_decode((string) file_get_contents($dir . 'paginas.json'), true);
+        $read = fn(string $file) => json_decode((string) file_get_contents($dir . $file), true);
+        $geometry = $read('paginas.json');
         $pegs = self::pegs($name, $lang);
         $pages = [];
         foreach (self::PAGES as $page) {
-            $extra = $geometry[$page['id']] ?? [];
-            if (isset($extra['names'])) {
-                foreach ($extra['names'] as $i => $spot) {
-                    if (isset($spot['text'])) {
-                        // The other pegs: names of the language of the book.
-                        $extra['names'][$i]['text'] = $pegs[$i - 1] ?? $spot['text'];
-                    }
-                    if (isset($spot['pre'])) {
-                        $extra['names'][$i]['pre'] = publiclang::str('story_board_pre', $lang);
-                        $extra['names'][$i]['post'] = publiclang::str('story_board_post', $lang);
-                    }
+            $extra = array_diff_key($geometry[$page['id']] ?? [], ['alt' => 1]);
+            foreach ($extra['names'] ?? [] as $i => $spot) {
+                if (isset($spot['text'])) {
+                    // The other pegs: names of the language of the book, never the child's own.
+                    $extra['names'][$i]['text'] = $pegs[$i - 1] ?? $spot['text'];
                 }
             }
-            $extra['alt'] = publiclang::str('story_alt_' . $page['id'], $lang);
-            if (($page['kind'] ?? '') === 'dedication') {
-                $extra['lines'] = self::lines('dedicatoria', $lang);
-            } else if (empty($page['kind'])) {
-                $extra['text'] = self::lines($page['id'], $lang);
+            if (isset(self::MAESTRO[$page['id']])) {
+                $extra['maestro'] = ['img' => self::MAESTRO[$page['id']]];
             }
             $pages[] = $page + $extra;
         }
-        $read = fn(string $file) => json_decode((string) file_get_contents($CFG->dirroot .
-            '/local/oksigeniaeguahe/pub/cuento/' . $file), true);
+        // The readings of the language that has a voice: each with its pages, its timings and the whole story to keep.
         $voices = [];
-        if (in_array($lang, self::VOICES, true)) {
-            $voices['sin-nombre'] = ['audio' => $base . 'voz/' . $lang, 'speech' => $read('voz/' . $lang . '/habla.json'),
-                'download' => ['href' => $base . 'voz/' . $lang . '/cuento-con-cancion.mp3',
-                'name' => clean_filename($str('filename')) . '.mp3']];
+        foreach (glob($dir . 'voz/' . $code . '/*/habla.json') ?: [] as $speech) {
+            $reading = basename(dirname($speech));
+            $level = $read('voz/' . $code . '/nivel.json');
+            $whole = 'voz/' . $code . '/' . $reading . '/cuento-con-cancion.mp3';
+            $voices[$reading] = ['audio' => $base . 'voz/' . $code . '/' . $reading, 'speech' => $read('voz/' . $code . '/' .
+                $reading . '/habla.json'), 'download' => is_file($dir . $whole) ? ['href' => $base . $whole] : null,
+                'lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
         }
         // The song under the reading, at its level against the voice (Gaudí: the bed 11 dB under it, the door 8).
-        $levels = $read('musica/nivel.json');
+        $lufs = (float) ($read('voz/es/nivel.json')['voz_lufs'] ?? -20.91);
         $loop = $read('musica/musica-bucle.json');
-        $lufs = (float) ($levels['voz_lufs'] ?? -18);
         $music = ['bedDb' => round($lufs - 11 + 18, 2), 'duckDb' => -4.0, 'doorDb' => round($lufs - 8 + 18, 2),
-            'pre' => (float) $loop['pre'], 'loopSeconds' => (float) $loop['loop'], 'loop' => $base . 'musica/musica-bucle.mp3',
-            'door' => $base . 'musica/puerta.mp3'];
+            'voiceLufs' => $lufs, 'pre' => (float) $loop['pre'], 'loopSeconds' => (float) $loop['loop'],
+            'loop' => $base . 'musica/musica-bucle.mp3', 'door' => $base . 'musica/puerta.mp3'];
         // Their drawing on the wall of the class: it draws itself when its strokes were kept, else it hangs still.
         $drawing = null;
         $file = drawings::file((int) $child->id);
@@ -330,43 +351,43 @@ class story {
             $drawing = ['src' => $links['drawing'], 'w' => (int) $info['width'], 'h' => (int) $info['height'],
                 'strokes' => $strokes ? json_decode($strokes->get_content(), true) : null];
         }
-        $words = [];
-        foreach (self::WORDS as $id) {
-            $words[$id] = $str($id);
-        }
-        $data = ['child' => $name, 'centre' => $centrename, 'centrePhrase' => $phrase, 'pages' => $pages, 'voices' => $voices,
-            'music' => $music, 'drawing' => $drawing, 'classDrawing' => $drawing ? null : $base . 'clase-garabato.jpg',
-            'book' => self::BOOK, 'base' => $base, 'share' => $links['share'], 'str' => $words,
-            'measure' => $links['measure'] ?? null];
+        [$teacher, $tutor] = self::teacher($centre, $child);
+        $data = ['child' => $name, 'centre' => $centrename, 'centrePhrases' => [$code => $phrase], 'pages' => $pages,
+            'strings' => [$code => $words], 'lang' => $code, 'teacher' => $teacher, 'childSex' => 'm',
+            'tutors' => ['maestra' => $tutor, 'maestro' => $tutor], 'voices' => [$code => $voices], 'music' => $music,
+            'drawing' => $drawing, 'classDrawing' => $drawing ? null : $base . 'clase-garabato.jpg', 'book' => self::BOOK,
+            'base' => $base, 'share' => $links['share'], 'measure' => $links['measure'] ?? null, 'childKey' => (int) $child->id];
         $frame = [];
-        foreach (self::FRAME as $id) {
-            $frame[$id] = $str($id);
+        foreach (self::FRAME as $key) {
+            $frame[$key] = $fill($words[$key]);
         }
-        $frame['volumestart'] = publiclang::str('story_ui_percent', $lang, null);
-        $frame['volumestart'] = str_replace('{n}', '25', $frame['volumestart']);
         $colour = $centre->colour ?: '#2f5d62';
         $logo = centres::logo((int) $centre->id);
-        // The drawing draws itself with its strokes; without them, no script for it.
-        $scripts = [$base . 'cuento.js', $base . 'medir.js'];
+        // The drawing draws itself with its strokes; without them, no script for it. In Arabic, the voice is asked first.
+        $scripts = [$base . 'voz.js', $base . 'cuento.js', $base . 'medir.js'];
         if ($drawing && $drawing['strokes']) {
             array_unshift($scripts, $CFG->wwwroot . '/local/oksigeniaeguahe/pub/dibujo-vivo.js');
         }
-        $credit = publicpage::credit($lang);
+        $sexes = array_filter(array_keys($voices), fn($r) => preg_match('/-[mf]$/', $r));
         return [
             'lang' => str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang),
             'dir' => lists::dir($lang),
-            'title' => $str('titlechild'),
+            'title' => $fill($words['doc_title']),
             'css' => $base . 'cuento.css',
             'accent' => publicpage::centre_vars($colour, false)['--c-acento'] ?? $colour,
             'accentdark' => publicpage::centre_vars($colour, true)['--c-acento-vivo'] ?? $colour,
             'logo' => $logo ? $logo->out(false) : '',
             'initials' => publicpage::initials($centrename),
             'centre' => $centrename,
-            'credit' => $credit ?: false,
+            'credit' => publicpage::credit($lang) ?: false,
             // Inside a script element: nothing in it may close it.
             'data' => str_replace('</', '<\/', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG)),
             'scripts' => $scripts,
             'words' => $frame,
+            // Where the voice says «you» as a boy or as a girl (Arabic), the family chooses once how it is read to them.
+            'choosevoice' => $sexes ? ['title' => publiclang::str('story_voice_title', $lang),
+                'text' => publiclang::str('story_voice_text', $lang), 'boy' => publiclang::str('story_voice_boy', $lang),
+                'girl' => publiclang::str('story_voice_girl', $lang)] : false,
         ];
     }
 
