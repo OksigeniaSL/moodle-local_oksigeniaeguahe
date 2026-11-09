@@ -18,9 +18,11 @@ namespace local_oksigeniaeguahe\local;
 
 /**
  * What the scene of the skin «vestíbulo» needs from Eguahe (the contract of the art director, 8 November 2026): each
- * child with the name used at home, its course, the age of its course, whether a brother or sister shares it, and its
- * drawing; the families waiting, in the order of the queue; the hour of the centre and its texts. The scene draws it in
- * pub/pieles/vestibulo/escena.js; the page carries it in data-escena, as JSON.
+ * child with the name used at home, its course, the age of its course, what hangs from it, whether a brother or sister
+ * shares it, and its drawing; the families waiting, in the order of the queue; the hour of the centre and its texts. The
+ * scene draws it in pub/pieles/vestibulo/escena.js; the page carries it in data-escena, as JSON. What hangs is chosen
+ * here, by the ladder of ages (panel::hanging_object()), and never by the scene: the hall and the paper desk always agree
+ * (the art director, 9 November 2026).
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -49,7 +51,7 @@ class vestibulo {
      * @param array $children With offer (or offerid and the offers given).
      * @param array $offers Offer id => offer, when the children do not carry theirs.
      * @param string $token The private link of the family, to give the drawing of each on its page; '' for none.
-     * @param \stdClass|null $centre Its school system, for the age of each course.
+     * @param \stdClass|null $centre Its school system, for the age of each course and what hangs by it.
      * @return array
      */
     public static function children(array $children, array $offers = [], string $token = '', ?\stdClass $centre = null): array {
@@ -66,6 +68,7 @@ class vestibulo {
                 'tag' => $tag !== '' ? $tag : (string) $child->firstname,
                 'course' => $course,
                 'age' => $course !== '' ? grades::age($course, $centre) : null,
+                'object' => panel::hanging_object($offer ? (string) $offer->name : '', $centre),
                 'sibling_same_course' => (int) $child->offerid > 0 && $byoffer[(int) $child->offerid] > 1,
             ];
             if ($token !== '') {
@@ -138,19 +141,20 @@ class vestibulo {
     }
 
     /**
-     * A course for the cloakroom of the places: its pegs, those taken, those on the waiting list and the age that picks
-     * what hangs, as JSON for data-ropero.
+     * A course for the cloakroom of the places: its pegs, those taken, those on the waiting list, the age of the course
+     * and what hangs from the pegs taken (panel::hanging_object(), as on the rail of the paper desk), as JSON for
+     * data-ropero.
      *
      * @param int $places
      * @param int $taken
      * @param int $waiting
      * @param string $course
-     * @param \stdClass|null $centre Its school system, for the age of the course.
+     * @param \stdClass|null $centre Its school system, for the age of the course and what hangs by it.
      * @return string
      */
     public static function ropero(int $places, int $taken, int $waiting, string $course, ?\stdClass $centre = null): string {
         return json_encode(['places' => $places, 'enrolled' => min($places, $taken), 'waiting' => $waiting,
-            'age' => grades::age($course, $centre)]);
+            'age' => grades::age($course, $centre), 'object' => panel::hanging_object($course, $centre)]);
     }
 
     /**

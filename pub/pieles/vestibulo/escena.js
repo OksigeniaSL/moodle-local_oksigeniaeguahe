@@ -25,14 +25,16 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 'use strict';
-// Reference placement for skin A, isometric (the hall, its door, what hangs from each knob by age, the cards with the
-// names, the bottles, the chalk board that says hello, the clock, the drawings on the table and the cloakroom of places).
+// Reference placement for skin A, isometric (the hall, its door, what hangs from each knob, the cards with the names,
+// the bottles, the chalk board that says hello, the clock, the drawings on the table and the cloakroom of places).
 // It shows how datos/vestibulo.json and datos/ropero.json are meant to be used. No dependencies; Chrome 93 and Firefox 98;
 // only CSSOM (element.style), no inline scripts, so it runs under a 'self' CSP. The skin's escena.js can copy from here.
 //
-// Input data, as Eguahe gives it. A child: { tag, course, age, sibling_same_course, colour?, drawing? }
-//   tag: the house name written on the labels; age: the minimum age of the course (it picks the object); course: the
-//   course or stage, to put same-course siblings together; colour: one of the eight names (otherwise one from the tag).
+// Input data, as Eguahe gives it. A child: { tag, course, age, object, sibling_same_course, colour?, drawing? }
+//   tag: the house name written on the labels; object: what hangs from it, as the server chose it by the ladder of ages
+//   (panel::hanging_object(): mochila, escolar, figura, llavero, equipaje, credencial or credencial-neutra), the same
+//   that skin B draws; age: the age of the course; course: the course or stage, to put same-course siblings together;
+//   colour: one of the eight names (otherwise one from the tag).
 // A family in the inbox: { children: [child…], day? }   (families in queue order: the one waiting longest first)
 (function (root) {
   var SVGNS = 'http://www.w3.org/2000/svg';
@@ -106,7 +108,18 @@
     var cols = V.objetos.colores;
     return child.colour && cols.indexOf(child.colour) >= 0 ? child.colour : cols[hash(child.tag || '') % cols.length];
   }
-  function objectFor(age) { return age == null || age < 10 ? 'mochila' : (age < 12 ? 'mayor' : 'equipaje'); }
+  // What hangs from a child: the object the server gives (panel::hanging_object(), by the ladder of data/escalera.json),
+  // so that the hall and the paper desk never disagree. One the scene has no piece for, or none, hangs the small backpack.
+  function objectOf(V, child) {
+    var o = child && child.object, O = V.objetos;
+    return o && O[o] && O[o].archivo ? o : 'mochila';
+  }
+  // The place of an object on the ladder (V.objetos.orden): on a knob, the earlier ones hang at the back, so the smaller
+  // things of the older ones (the badge, the tag, the card) stay in sight in front.
+  function rank(V, child) {
+    var order = V.objetos.orden || [], i = order.indexOf(objectOf(V, child));
+    return (i < 0 ? 0 : i) * 100 + (child.age || 0);
+  }
 
   // A label drawn in a 3D plane: a w_m x h_m rectangle around c. fontFor(W, H) gives the font size the label uses in its
   // own box of W x H CSS px; the label grows (up to maxGrow times) until that font is at least minPx on screen. make(box,
@@ -124,12 +137,42 @@
     host.appendChild(box);
     return { box: box, font: screenFont };
   }
-  function fits(n, ratio, pad) { return function (W, H) { return Math.min(H * ratio, (W - pad * H) / (Math.max(3, n) * 0.47 + 0.4)); }; }
-  function nameSpan(text, font, colour, extra) {
-    var t = el('span', '', 'display:block;font:700 ' + font.toFixed(1) + 'px/1 "Eg Mano",Caveat,cursive;color:' + colour + ';white-space:nowrap;' + (extra || ''));
+  function fits(n, ratio, pad, em) {
+    return function (W, H) { return Math.min(H * ratio, (W - pad * H) / (Math.max(3, n) * (em || 0.47) + 0.4)); };
+  }
+  // A name in one line, or in two where the piece has room for them and they make it at least 12 % bigger (the rule of
+  // the partial of skin B): «María de / los Ángeles», «Juan / Sebastián». ratio2 is the height the two lines may take.
+  function fitsName(text, ratio, pad, em, ratio2) {
+    var one = fits(text.length, ratio, pad, em), words = text.split(' '), best = null;
+    for (var i = 1; ratio2 && i < words.length; i++) {
+      var a = words.slice(0, i).join(' '), b = words.slice(i).join(' '), m = Math.max(a.length, b.length);
+      if (!best || m < best.m) { best = { lines: [a, b], m: m }; }
+    }
+    var f = function (W, H) {
+      var f1 = one(W, H);
+      f.lines = [text];
+      if (best) {
+        var f2 = Math.min(H * ratio2 / 2, (W - pad * H) / (Math.max(3, best.m) * (em || 0.47) + 0.4));
+        if (f2 >= f1 * 1.12) { f.lines = best.lines; return f2; }
+      }
+      return f1;
+    };
+    f.lines = [text];
+    return f;
+  }
+  function nameSpan(text, font, colour, extra, family) {
+    var t = el('span', '', 'display:block;font:700 ' + font.toFixed(1) + 'px/1 ' + (family || '"Eg Mano",Caveat,cursive') +
+      ';color:' + colour + ';white-space:nowrap;' + (extra || ''));
     t.textContent = text;
     t.dir = 'auto';
     return t;
+  }
+  // One line, or two, centred: each line a nameSpan.
+  function nameBlock(lines, font, colour, extra, family) {
+    if (lines.length < 2) { return nameSpan(lines[0], font, colour, extra, family); }
+    var b = el('span', '', 'display:flex;flex-direction:column;align-items:center;gap:' + (font * 0.06).toFixed(1) + 'px');
+    lines.forEach(function (l) { b.appendChild(nameSpan(l, font, colour, extra, family)); });
+    return b;
   }
   function symbol(i, colour, size) {
     var s = document.createElementNS(SVGNS, 'svg');
@@ -166,8 +209,9 @@
       box.appendChild(nameSpan(text, font, L.tinta));
     });
   }
-  function bagLabel(host, ctx, c, name) {
-    var L = ctx.L, sp = ctx.V.objetos.mochila.etiqueta, w = sp.ancho_m * 0.86;
+  // the label of the brand on the pocket of a backpack (the small one and the school one), written by hand
+  function bagLabel(host, ctx, c, name, sp) {
+    var L = ctx.L, w = sp.ancho_m * 0.86;
     return label(host, ctx.proj, c, w, w * 0.62, 'pared', sp.giro_grados, ctx.minPx * 0.8, 1.35, fits(name.length, 0.42, 0.5), function (box, W, H, font) {
       box.style.background = L.coral;
       box.style.borderRadius = (H * 0.1) + 'px ' + (H * 0.1) + 'px 0 ' + (H * 0.1) + 'px';
@@ -179,8 +223,9 @@
       box.appendChild(el('i', '', 'position:absolute;right:7%;bottom:9%;width:18%;height:38%;background:linear-gradient(135deg,' + L.coral_oscuro + ' 50%,transparent 50%)'));
     });
   }
-  function badge(host, ctx, c, name) {
-    var L = ctx.L, sp = ctx.V.objetos.mayor.chapa;
+  // the badge of the key ring, hanging from its clip
+  function badge(host, ctx, c, name, sp) {
+    var L = ctx.L;
     var cc = [c[0], c[1], c[2] - sp.alto_m / 2 - 0.006];
     return label(host, ctx.proj, cc, sp.ancho_m, sp.alto_m, 'frente', -6, ctx.minPx * 0.8, 1.5, fits(name.length, 0.62, 0.4), function (box, W, H, font) {
       box.style.background = '#FBF8F2';
@@ -194,8 +239,56 @@
       box.appendChild(nameSpan(name, font, '#2B2226'));
     });
   }
-  function tagField(host, ctx, c, name) {
-    var sp = ctx.V.objetos.equipaje.campo;
+  // the clear name holder hanging from the handle of the sports backpack: the card, its plastic edge and the name by
+  // hand under the shine of the plastic. Drawn whole, so that it can grow to be read and still look like the holder.
+  function holderLabel(host, ctx, c, name, sp) {
+    var L = ctx.L, fit = fitsName(name, 0.46, 0.25, 0.47, 0.8);
+    return label(host, ctx.proj, c, sp.ancho_m, sp.alto_m, 'pared', 0, ctx.minPx * 0.8, 1.35, fit, function (box, W, H, font) {
+      box.style.background = L.papel;
+      box.style.border = (H * 0.07).toFixed(1) + 'px solid rgba(232,238,240,.78)';
+      box.style.borderRadius = (H * 0.1) + 'px';
+      box.style.boxShadow = '0 ' + (H * 0.03) + 'px ' + (H * 0.06) + 'px rgba(43,34,38,.3),inset 0 0 0 ' + (H * 0.012).toFixed(1) +
+        'px rgba(43,34,38,.35)';
+      box.style.display = 'flex';
+      box.style.alignItems = 'center';
+      box.style.justifyContent = 'center';
+      box.style.paddingTop = (H * 0.1) + 'px';
+      box.style.filter = 'brightness(' + ctx.paperK + ')';
+      // the slot of the strap, at the top
+      box.appendChild(el('i', '', 'position:absolute;left:50%;top:' + (H * 0.05) + 'px;width:' + (H * 0.36) + 'px;height:' +
+        (H * 0.08) + 'px;margin-left:-' + (H * 0.18) + 'px;border-radius:' + H + 'px;background:' + L.tinta + ';opacity:.7'));
+      box.appendChild(nameBlock(fit.lines, font, L.tinta));
+      // the shine of the plastic, over the name
+      box.appendChild(el('i', '', 'position:absolute;left:0;top:0;right:0;bottom:0;border-radius:inherit;' +
+        'background:linear-gradient(112deg,transparent 18%,rgba(255,255,255,.42) 26%,rgba(255,255,255,.12) 40%,transparent 48%)'));
+    });
+  }
+  // the card on a lanyard: the name printed (the sans of the panel, bold), and a thin printed rule under it
+  function printedCard(host, ctx, c, name, sp) {
+    var fit = fitsName(name, 0.56, 0.12, 0.56, 0.86);
+    return label(host, ctx.proj, c, sp.ancho_m, sp.alto_m, null, 0, ctx.minPx * 0.8, 1.1, fit, function (box, W, H, font) {
+      box.style.display = 'flex';
+      box.style.flexDirection = 'column';
+      box.style.alignItems = 'center';
+      box.style.justifyContent = 'center';
+      box.appendChild(nameBlock(fit.lines, font, ctx.L.tinta, 'mix-blend-mode:multiply;letter-spacing:-.01em',
+        "'Eg Sans','Schibsted Grotesk',sans-serif"));
+      box.appendChild(el('i', '', 'display:block;width:46%;height:' + Math.max(1, H * 0.035).toFixed(1) + 'px;margin-top:' +
+        (H * 0.07) + 'px;border-radius:' + H + 'px;background:' + ctx.L.tinta + ';opacity:.22'));
+    }, sp.u, sp.v);
+  }
+  // the name of the place of each piece (datos/vestibulo.json, objetos): the label of a backpack, the clear holder, the
+  // badge of the key ring, the luggage tag or the printed card
+  function nameOn(host, ctx, sp, p3, name) {
+    if (sp.etiqueta) { return bagLabel(host, ctx, add(p3, sp.etiqueta.centro_m), name, sp.etiqueta); }
+    if (sp.funda) { return holderLabel(host, ctx, add(p3, sp.funda.centro_m), name, sp.funda); }
+    if (sp.chapa) { return badge(host, ctx, add(p3, sp.chapa.cuelga_m), name, sp.chapa); }
+    if (sp.campo) { return tagField(host, ctx, add(p3, sp.campo.centro_m), name, sp.campo); }
+    if (sp.tarjeta) { return printedCard(host, ctx, add(p3, sp.tarjeta.centro_m), name, sp.tarjeta); }
+    return null;
+  }
+  // the luggage tag: the card is in the piece, the name written on it
+  function tagField(host, ctx, c, name, sp) {
     return label(host, ctx.proj, c, sp.ancho_m, sp.alto_m, null, 0, ctx.minPx * 0.8, 1.12, fits(name.length, 0.7, 0.1), function (box, W, H, font) {
       box.style.display = 'flex';
       box.style.alignItems = 'center';
@@ -225,23 +318,26 @@
     });
   }
 
-  // ---- what hangs from a knob: one or more children's objects, back to front, each with its label ----
-  function hang(host, ctx, at, kids, offsets, bright, withLabels) {
+  // ---- what hangs from a knob: one or more children's objects, back to front, each with its label (put in `names`, when
+  //      given, to be drawn after every piece of the hall) ----
+  function hang(host, ctx, at, kids, offsets, bright, withLabels, names) {
     var O = ctx.V.objetos;
     kids.forEach(function (child, j) {
       var o = offsets[j] || [0, 0, 0];
       var p3 = add(at, o);
-      var kind = objectFor(child.age);
+      var kind = objectOf(ctx.V, child);
       var sp = O[kind];
       var px = ctx.proj(p3), an = sp.ancla[ctx.S], sz = sp.tamano[ctx.S];
       host.appendChild(img(fill(sp.archivo, { color: colourOf(ctx.V, child), luz: ctx.light, tamano: ctx.S }),
         px[0] - an[0], px[1] - an[1], sz[0], sz[1], bright));
       if (!withLabels || !child.tag) { return; }
-      if (kind === 'mochila') { bagLabel(host, ctx, add(p3, sp.etiqueta.centro_m), child.tag); }
-      if (kind === 'mayor') { badge(host, ctx, add(p3, sp.chapa.cuelga_m), child.tag); }
-      if (kind === 'equipaje') { tagField(host, ctx, add(p3, sp.campo.centro_m), child.tag); }
+      var write = function () { nameOn(host, ctx, sp, p3, child.tag); };
+      if (names) { names.push(write); } else { write(); }
     });
   }
+  // the knobs, the farthest first (the left of the rail, and the high knobs by the door): what sticks out of a piece
+  // (the bottle of the school backpack, the ball of the sports one) goes over its neighbour on the left, not under it
+  function farFirst(list) { return list.slice().sort(function (a, b) { return (b.at[1] - b.at[0]) - (a.at[1] - a.at[0]); }); }
   // the card over the knob: the house name of each child (brothers and sisters on the same card: «Leo y Noa»)
   function cards(host, ctx, centre, w, h, kids, texts) {
     var T = ctx.texts || TEXTS, n = texts.length;
@@ -257,14 +353,15 @@
       if (withNames && child.tag) { bottleName(host, ctx, add(p3, B.cinta.centro_m), child.tag); }
     });
   }
-  // youngest first: drawn at the back; the older ones' smaller things (badge, luggage tag) stay in sight in front
   function front(host, ctx) {
     var F = ctx.V.bandeja.delante;
     if (!F) { return; }
     var r = F.recorte[ctx.S];
     host.appendChild(img(F.archivos[ctx.light][ctx.S], r[0], r[1], r[2], r[3]));
   }
-  function byAge(kids) { return kids.slice().sort(function (a, b) { return (a.age || 0) - (b.age || 0); }); }
+  // on a knob, by the ladder: the younger ones drawn at the back; the older ones' smaller things (badge, luggage tag,
+  // card) stay in sight in front
+  function byAge(V, kids) { return kids.slice().sort(function (a, b) { return rank(V, a) - rank(V, b); }); }
 
   // ---- the room: background, door, clock, chalk board ----
   function room(host, V, opts) {
@@ -401,33 +498,45 @@
         groups.unshift({ day: '≤ ' + g1.day, fams: g0.fams.concat(g1.fams) });
       }
     }
+    var pieces = [], names = [];
     groups.forEach(function (g, i) {
       var s = slots[i], k = s.luz[ctx.light];
       var bright = Math.abs(k - 1) > 0.03 ? 'filter:brightness(' + Math.min(1.35, Math.max(0.7, k)).toFixed(3) + ');' : '';
       if (!byDays) {
         var kids = (g.fams[0].children || []).slice(0, 4);
-        hang(host, ctx, s.punto, byAge(kids), B.riel.abanico_m[Math.max(1, kids.length)], bright, true);
-        bottles(host, ctx, s.botellas_m.base, s.botellas_m.separacion, kids, bright, true);
+        pieces.push({ at: s.punto, draw: function () {
+          hang(host, ctx, s.punto, byAge(V, kids), B.riel.abanico_m[Math.max(1, kids.length)], bright, true, names);
+          bottles(host, ctx, s.botellas_m.base, s.botellas_m.separacion, kids, bright, true);
+        } });
         var tc = s.tarjeta;
         later.push(function () { cards(host, ctx, tc.centro_m, tc.ancho_m, tc.alto_m, kids, kids.map(function (c) { return c.tag; })); });
       } else {
-        var one = g.fams.slice(0, 6).map(function (f) { return byAge(f.children || [])[0] || {}; });
-        hang(host, ctx, s.punto, one, B.riel.modo_dias.racimo_m.slice(0, one.length), bright, false);
+        var one = g.fams.slice(0, 6).map(function (f) { return byAge(V, f.children || [])[0] || {}; });
+        pieces.push({ at: s.punto, draw: function () {
+          hang(host, ctx, s.punto, one, B.riel.modo_dias.racimo_m.slice(0, one.length), bright, false);
+        } });
         var t = s.tarjeta;
         later.push(function () { cardOnWall(host, ctx, t.centro_m, t.ancho_m, t.alto_m, { tag: g.day, symbol: false }, g.day + ' · ' + g.fams.length); });
       }
     });
+    farFirst(pieces).forEach(function (p) { p.draw(); });
+    names.forEach(function (f) { f(); });
     front(host, ctx);
     later.forEach(function (f) { f(); });
     chalk(host, ctx, helloText(opts.greet, opts), opts.centre);
     return host;
   }
 
-  // ---- the family's page: each child in their own place (the small one on the low rail, the older ones on their own
-  //      hooks by the door, same-course siblings together), their bottles, boxes and drawings, and the hello ----
+  // ---- the family's page: each child in their own place, by what hangs from them (the art director, 9 November 2026):
+  //      a backpack, on the low rail at a child's height; a luggage tag or a card on a lanyard, on the two high knobs by
+  //      the door (B.mayores.objetos); same-course siblings together. Their bottles, the boxes of spare clothes of the
+  //      younger ones (B.riel.muda_objetos), their drawings, and the hello ----
   function family(host, V, opts) {
     var ctx = room(host, V, opts), B = V.bandeja, kids = (opts.children || []).slice(0, 4);
-    var young = kids.filter(function (c) { return (c.age || 0) < 10; }), old = kids.filter(function (c) { return (c.age || 0) >= 10; });
+    var high = B.mayores.objetos || ['equipaje', 'credencial', 'credencial-neutra'];
+    var spare = B.riel.muda_objetos || ['mochila', 'escolar', 'figura'];
+    var up = function (c) { return high.indexOf(objectOf(V, c)) >= 0; };
+    var young = kids.filter(function (c) { return !up(c); }), old = kids.filter(up);
     function grouped(list) {
       var out = [];
       list.forEach(function (c) {
@@ -438,20 +547,27 @@
     }
     var places = [], later = [];
     var low = [3, 4, 2, 5, 1, 6], lowi = 0, highs = B.mayores.pomos.slice().reverse(), hi = 0;
-    grouped(young).forEach(function (g) { places.push({ s: B.riel.huecos[low[lowi++]], kids: g, muda: true }); });
+    var muda = function (g) { return g.some(function (c) { return spare.indexOf(objectOf(V, c)) >= 0; }); };
+    grouped(young).forEach(function (g) { places.push({ s: B.riel.huecos[low[lowi++]], kids: g, muda: muda(g) }); });
     grouped(old).forEach(function (g) {
-      if (hi < highs.length) { places.push({ s: highs[hi++], kids: g, muda: false }); } else { places.push({ s: B.riel.huecos[low[lowi++]], kids: g, muda: true }); }
+      if (hi < highs.length) {
+        places.push({ s: highs[hi++], kids: g, muda: false });
+      } else {
+        places.push({ s: B.riel.huecos[low[lowi++]], kids: g, muda: muda(g) });
+      }
     });
-    places.forEach(function (pl) {
+    var names = [];
+    farFirst(places.map(function (pl) { pl.at = pl.s.punto; return pl; })).forEach(function (pl) {
       var s = pl.s, k = s.luz[ctx.light];
       var bright = Math.abs(k - 1) > 0.03 ? 'filter:brightness(' + Math.min(1.35, Math.max(0.7, k)).toFixed(3) + ');' : '';
-      if (opts.hung !== false) { hang(host, ctx, s.punto, byAge(pl.kids), B.riel.abanico_m[pl.kids.length], bright, true); }
+      if (opts.hung !== false) { hang(host, ctx, s.punto, byAge(V, pl.kids), B.riel.abanico_m[pl.kids.length], bright, true, names); }
       bottles(host, ctx, s.botellas_m.base, s.botellas_m.separacion, pl.kids, bright, true);
       later.push(function () {
         cards(host, ctx, s.tarjeta.centro_m, s.tarjeta.ancho_m, s.tarjeta.alto_m, pl.kids, pl.kids.map(function (c) { return c.tag; }));
         if (pl.muda && s.caja_muda) { boxLabel(host, ctx, s.caja_muda.centro_m, s.caja_muda.ancho_m, s.caja_muda.alto_m, pl.kids.map(function (c) { return c.tag; }).join(' · ')); }
       });
     });
+    names.forEach(function (f) { f(); });
     front(host, ctx);
     later.forEach(function (f) { f(); });
     drawings(host, ctx, kids, opts);
@@ -636,7 +752,7 @@
   }
 
   // ---- the cloakroom of places: one rail per course, built at 2400 (whole pixels) and then scaled ----
-  // courses: [{ places, enrolled, waiting, age }]
+  // courses: [{ places, enrolled, waiting, age, object }]: object, what hangs from the pegs taken (as for a child)
   function cloakroom(host, V, R, light, courses, opts) {
     opts = opts || {};
     var A = R.archivos, pz = R.piezas, T = pz.percha;
@@ -661,11 +777,11 @@
         put(fill(A.percha, { pieza: 'tramo', luz: light }), T.tramo, at(xk(k) - R.paso_m / 2));
       }
       put(fill(A.percha, { pieza: 'fin', luz: light }), T.fin, at(xk(n - 1) + R.paso_m / 2));
-      var kind = objectFor(c.age), enrolled = Math.max(0, Math.min(n, (c.enrolled || 0) - row.from));
+      var kind = objectOf(V, c), enrolled = Math.max(0, Math.min(n, (c.enrolled || 0) - row.from));
       var cols = V.objetos.colores;
       for (k = 0; k < n; k++) { put(fill(A.pomo_fondo, { luz: light }), pz['pomo-fondo'], at(xk(k))); }
       for (k = 0; k < enrolled; k++) {
-        var o = V.objetos[kind], an = R.cosas.ancla[kind]['2400'] || R.cosas.ancla[kind], sz = R.cosas.tamano[kind]['2400'] || R.cosas.tamano[kind];
+        var o = V.objetos[kind], an = R.cosas.ancla[kind] || o.ancla['2400'], sz = R.cosas.tamano[kind] || o.tamano['2400'];
         var p = at(xk(k), [0, -0.045, 0]);
         items.push([fill(A.cosas, { objeto: kind, color: cols[(k * 5 + rows.indexOf(row) * 3) % cols.length], luz: light }), p[0] - an[0], p[1] - an[1], sz[0], sz[1]]);
       }
@@ -692,7 +808,8 @@
   }
 
   root.Vestibulo = { hall: hall, family: family, frame: frame, cloakroom: cloakroom, room: room, chalk: chalk, door: doorAnimator,
-                     planeMatrix: planeMatrix, projector: projector, objectFor: objectFor, colourOf: colourOf, texts: TEXTS };
+                     planeMatrix: planeMatrix, projector: projector, objectOf: objectOf, rank: rank, colourOf: colourOf,
+                     texts: TEXTS };
 })(window);
 
 (function () {
@@ -847,9 +964,9 @@
       return;
     }
     var size = e.imagen, light = stage.getAttribute('data-luz') || 'dia', child = kids.slice().sort(function (a, b) {
-      return (a.age || 0) - (b.age || 0);
+      return Vestibulo.rank(V, a) - Vestibulo.rank(V, b);
     })[0];
-    var kind = Vestibulo.objectFor(child.age), O = V.objetos[kind];
+    var kind = Vestibulo.objectOf(V, child), O = V.objetos[kind];
     var src = O.archivo.replace('{color}', Vestibulo.colourOf(V, child)).replace('{luz}', light).replace('{tamano}', size);
     var from = V.bandeja.entrada[size], proj = Vestibulo.projector(V.proyeccion[size].P), to = proj(slots[index].punto);
     var an = O.ancla[size], sz = O.tamano[size];

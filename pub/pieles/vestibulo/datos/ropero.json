@@ -93,11 +93,27 @@
     112.87,
     57.12
    ],
-   "mayor": [
+   "escolar": [
+    112.87,
+    57.12
+   ],
+   "figura": [
+    112.87,
+    57.12
+   ],
+   "llavero": [
     112.87,
     57.12
    ],
    "equipaje": [
+    112.87,
+    57.12
+   ],
+   "credencial": [
+    112.87,
+    57.12
+   ],
+   "credencial-neutra": [
     112.87,
     57.12
    ]
@@ -107,16 +123,32 @@
     204,
     282
    ],
-   "mayor": [
+   "escolar": [
+    204,
+    282
+   ],
+   "figura": [
+    204,
+    282
+   ],
+   "llavero": [
     204,
     282
    ],
    "equipaje": [
     204,
     282
+   ],
+   "credencial": [
+    204,
+    282
+   ],
+   "credencial-neutra": [
+    204,
+    282
    ]
   },
-  "nota": "Las mismas piezas del vestíbulo, a 2400: el objeto de cada plaza según la edad del curso."
+  "nota": "Las mismas piezas del vestíbulo, a 2400: en cada plaza ocupada, el objeto del curso que da el servidor (object, panel::hanging_object())."
  },
  "regla": {
   "pomo": "El pomo k de una percha está a x(k) = margen + paso·k + hueco_diez·floor(k/10) de su principio; en pantalla, (paso_px[0]·k + hueco_diez_px[0]·floor(k/10), paso_px[1]·k + hueco_diez_px[1]·floor(k/10)) desde el pomo 0, en píxeles enteros a 2400.",

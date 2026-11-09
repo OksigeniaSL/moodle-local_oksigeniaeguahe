@@ -1,5 +1,5 @@
 {
- "version": "2026-11-08",
+ "version": "2026-11-09",
  "nota": "Datos de ejemplo en todas las pruebas. Coordenadas de imagen en píxeles desde la esquina superior izquierda de la imagen de ese tamaño; coordenadas 3D en metros.",
  "camara": {
   "tipo": "ortográfica, isométrica",
@@ -130,25 +130,17 @@
   "nota": "La hora del centro elige la luz; entre dos, un fundido de 3 s."
  },
  "objetos": {
-  "regla": [
-   {
-    "edad_hasta": 9,
-    "objeto": "mochila",
-    "nota": "Infantil a 4.º: la mochila de la marca con la etiqueta a mano"
-   },
-   {
-    "edad_desde": 10,
-    "edad_hasta": 11,
-    "objeto": "mayor",
-    "nota": "5.º y 6.º: mochila sobria con llavero y el nombre en una chapa"
-   },
-   {
-    "edad_desde": 12,
-    "objeto": "equipaje",
-    "nota": "Desde Secundaria: la etiqueta de equipaje"
-   }
+  "objeto": "object: lo que cuelga de cada niño, como lo da el servidor (panel::hanging_object(), por la escalera de edades de data/escalera.json): mochila, escolar, figura, llavero, equipaje, credencial o credencial-neutra; la misma pieza que dibuja la piel B. Sin object, o con uno que la escena no tiene, la mochila pequeña. La escena no decide nada por la edad.",
+  "orden": [
+   "mochila",
+   "escolar",
+   "figura",
+   "llavero",
+   "equipaje",
+   "credencial",
+   "credencial-neutra"
   ],
-  "edad": "age: la edad mínima del curso (Infantil 3 años = 3; 1.º de Primaria = 6; 1.º de ESO = 12). Si falta, se toma de la etapa.",
+  "orden_nota": "Los objetos en el orden de la escalera. En un pomo con varios hermanos, los primeros cuelgan detrás, para que lo pequeño de los mayores (la chapa, la etiqueta, la tarjeta) quede a la vista delante.",
   "colores": [
    "malva",
    "coral",
@@ -195,7 +187,7 @@
     "uso": "La etiqueta de la marca (coral, con el campo blanco y la esquina doblada), en el plano del frente de la mochila, girada 8° (sube hacia la derecha). La pinta la página con el nombre de casa (tag) en Caveat; la escena deja el bolsillo donde va."
    }
   },
-  "mayor": {
+  "escolar": {
    "tamano": {
     "2400": [
      204,
@@ -216,17 +208,86 @@
      38.08
     ]
    },
-   "archivo": "pub/pieles/vestibulo/escena/mayor-{color}-{luz}-{tamano}.webp",
+   "archivo": "pub/pieles/vestibulo/escena/escolar-{color}-{luz}-{tamano}.webp",
+   "etiqueta": {
+    "centro_m": [
+     0.0,
+     -0.137,
+     -0.4008
+    ],
+    "ancho_m": 0.265,
+    "alto_m": 0.232,
+    "plano": "pared",
+    "giro_grados": 6.0,
+    "uso": "La etiqueta de la marca, como la de la mochila pequeña (coral, con el campo blanco y la esquina doblada), en el bolsillo grande de delante, girada 6°. La pinta la página con el nombre de casa en Caveat: a los seis y siete años, todavía escrita a mano."
+   }
+  },
+  "figura": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/figura-{color}-{luz}-{tamano}.webp",
+   "funda": {
+    "centro_m": [
+     0.0,
+     -0.141,
+     -0.215
+    ],
+    "ancho_m": 0.24,
+    "alto_m": 0.16,
+    "plano": "pared",
+    "uso": "El portanombres de plástico transparente que cuelga del asa y descansa en el frente de la mochila deportiva. La página dibuja la funda entera (la tarjeta, su borde de plástico, la ranura y el brillo encima) y escribe el nombre a mano en Caveat, en dos renglones si así se lee mejor."
+   }
+  },
+  "llavero": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/llavero-{color}-{luz}-{tamano}.webp",
    "chapa": {
     "cuelga_m": [
-     0.088,
-     -0.14,
-     -0.4315
+     0.0,
+     -0.065,
+     -0.3366
     ],
-    "ancho_m": 0.2,
-    "alto_m": 0.085,
+    "ancho_m": 0.15,
+    "alto_m": 0.066,
     "plano": "frente",
-    "uso": "La chapa con el nombre cuelga del mosquetón del llavero (cuelga_m es el punto del mosquetón). Mira a quien mira: sin sesgo, solo el escorzo vertical (cos 30°). Esmalte blanco con borde de latón; el nombre, en Caveat."
+    "uso": "La chapa con el nombre cuelga del mosquetón del llavero (cuelga_m es el punto del mosquetón), sobre el bolsillo oscuro. Mira a quien mira: sin sesgo, solo el escorzo vertical (cos 30°). Esmalte blanco con borde de latón; el nombre, en Caveat. Más estrecha que la de la mochila de antes (0,2 m), porque la mochila lo es: vuelta hacia quien mira, una chapa de 0,15 m ya se ve tan ancha como el frente de la mochila."
    }
   },
   "equipaje": {
@@ -271,6 +332,93 @@
     "alto_m": 0.099,
     "uso": "La etiqueta de equipaje ya está en la pieza (cartón crema, la banda y el ojal del color del niño), vuelta hacia quien mira e inclinada como la de la marca. El nombre se escribe en el campo (u: dirección de lectura; v: hacia arriba), en Caveat y en tinta con mix-blend-mode: multiply."
    }
+  },
+  "credencial": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/credencial-{color}-{luz}-{tamano}.webp",
+   "tarjeta": {
+    "centro_m": [
+     0.0067,
+     -0.0469,
+     -0.3823
+    ],
+    "u": [
+     0.7061,
+     0.7061,
+     0.0523
+    ],
+    "v": [
+     -0.037,
+     -0.037,
+     0.9986
+    ],
+    "ancho_m": 0.264,
+    "alto_m": 0.125,
+    "uso": "La tarjeta apaisada ya está en la pieza (blanca, con la franja coral arriba y la ranura del mosquetón), vuelta hacia quien mira en su cinta. El nombre va impreso en el campo bajo la franja (u: dirección de lectura; v: hacia arriba), en Eg Sans negrita y en tinta con mix-blend-mode: multiply, en dos renglones si así se lee mejor, y una raya fina debajo."
+   }
+  },
+  "credencial-neutra": {
+   "tamano": {
+    "2400": [
+     204,
+     282
+    ],
+    "1600": [
+     136,
+     188
+    ]
+   },
+   "ancla": {
+    "2400": [
+     112.87,
+     57.12
+    ],
+    "1600": [
+     75.25,
+     38.08
+    ]
+   },
+   "archivo": "pub/pieles/vestibulo/escena/credencial-neutra-{color}-{luz}-{tamano}.webp",
+   "tarjeta": {
+    "centro_m": [
+     0.0067,
+     -0.0469,
+     -0.3823
+    ],
+    "u": [
+     0.7061,
+     0.7061,
+     0.0523
+    ],
+    "v": [
+     -0.037,
+     -0.037,
+     0.9986
+    ],
+    "ancho_m": 0.264,
+    "alto_m": 0.125,
+    "uso": "La tarjeta apaisada ya está en la pieza (blanca, con la franja coral arriba y la ranura del mosquetón), vuelta hacia quien mira en su cinta. El nombre va impreso en el campo bajo la franja (u: dirección de lectura; v: hacia arriba), en Eg Sans negrita y en tinta con mix-blend-mode: multiply, en dos renglones si así se lee mejor, y una raya fina debajo."
+   },
+   "variante_de": "credencial"
   },
   "botella": {
    "tamano": {
@@ -859,11 +1007,17 @@
      }
     }
    ],
+   "muda_objetos": [
+    "mochila",
+    "escolar",
+    "figura"
+   ],
+   "muda_nota": "En la página de la familia, la caja de muda del hueco lleva el nombre de los hijos con estos objetos (hasta los nueve años, como antes); la de los demás se queda sin nombre.",
    "pomo_vacio": "Cada pomo está en el fondo: el que queda sin nada es el sitio que espera.",
    "orden": "El hueco 0 está junto al mostrador y es la familia que más espera; las nuevas entran por la puerta y cuelgan en el primer hueco libre empezando por el 0, y al contestar a una, las demás avanzan. Con pocas familias, el tramo de la puerta se queda con los pomos vacíos y la cola se amontona contra el mostrador: el orden se ve sin texto. La alfombra del suelo lleva espigas que apuntan al mostrador.",
    "modo_uno": {
     "hasta": 8,
-    "regla": "Una familia por hueco. En su pomo cuelgan las cosas de cada hijo (su objeto por edad), juntas; encima, una tarjeta con el nombre de casa de cada uno; en la balda, su botella."
+    "regla": "Una familia por hueco. En su pomo cuelgan las cosas de cada hijo (su objeto, el que da el servidor), juntas; encima, una tarjeta con el nombre de casa de cada uno; en la balda, su botella."
    },
    "modo_dias": {
     "desde": 9,
@@ -1049,7 +1203,12 @@
      }
     }
    ],
-   "uso": "Los dos pomos altos de los mayores, a la izquierda de la puerta: en la página de la familia, cada hermano de 10 años o más cuelga aquí («cada uno en su sitio»); en la bandeja, esperan vacíos."
+   "uso": "Los dos pomos altos de los mayores, a la izquierda de la puerta: en la página de la familia, cuelga aquí cada hermano con la etiqueta de equipaje o la credencial (objetos), «cada uno en su sitio»; los de mochila, en el riel bajo. En la bandeja, esperan vacíos.",
+   "objetos": [
+    "equipaje",
+    "credencial",
+    "credencial-neutra"
+   ]
   },
   "tarjeta": {
    "uso": "La tarjeta de cada percha, clavada en las lamas: papel crema, el nombre de casa en Caveat y un dibujito (uno de ocho, el mismo para el mismo niño). Plano: pared. Con dos hermanos, dos tarjetas lado a lado; con tres o cuatro, en dos filas."

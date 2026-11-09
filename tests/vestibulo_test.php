@@ -76,6 +76,7 @@ final class vestibulo_test extends \advanced_testcase {
         $kids = $data['families'][0]['children'];
         $this->assertSame(['Leo', 'Noa', 'Bruno'], array_column($kids, 'tag'));
         $this->assertSame([3, 3, 10], array_column($kids, 'age'));
+        $this->assertSame(['mochila', 'mochila', 'llavero'], array_column($kids, 'object'), 'What hangs, by the ladder of ages.');
         $this->assertSame([true, true, false], array_column($kids, 'sibling_same_course'));
         $this->assertArrayNotHasKey('drawing', $kids[0], 'The inbox never shows the drawings.');
         $this->assertSame('Vera', $data['families'][1]['children'][0]['tag']);
@@ -95,6 +96,7 @@ final class vestibulo_test extends \advanced_testcase {
         // What comes in through the door: the children of the family that wrote last.
         $latest = panel_inbox::check($centre)['latest'];
         $this->assertSame('Vera', $latest['children'][0]['tag']);
+        $this->assertSame('mochila', $latest['children'][0]['object']);
 
         // With the paper desk alone, no hall.
         $centre->skin = 'mostrador';
@@ -126,9 +128,12 @@ final class vestibulo_test extends \advanced_testcase {
         $this->assertSame('familia', json_decode($page['hall']['json'], true)['kind']);
 
         $course = json_decode(vestibulo::ropero(25, 3, 1, 'Infantil 3 años'), true);
-        $this->assertSame(['places' => 25, 'enrolled' => 3, 'waiting' => 1, 'age' => 3], $course);
+        $this->assertSame(['places' => 25, 'enrolled' => 3, 'waiting' => 1, 'age' => 3, 'object' => 'mochila'], $course);
         $full = json_decode(vestibulo::ropero(4, 9, 0, '5.º de Primaria'), true);
         $this->assertSame(4, $full['enrolled'], 'Never more than places.');
+        $this->assertSame('llavero', $full['object'], 'The same as the rail of the paper desk.');
+        $this->assertSame('credencial-neutra', json_decode(vestibulo::ropero(20, 2, 0, 'Grupo de 18 años'), true)['object']);
+        $this->assertSame('equipaje', json_decode(vestibulo::ropero(20, 2, 0, 'Inglés B2'), true)['object'], 'No known age.');
         $this->assertSame('mochila', panel::hanging_object('Infantil 3 años'));
     }
 
