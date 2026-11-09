@@ -241,7 +241,23 @@ class familypage {
         $by = $joined ? 'pub_by_messages' : (isset($channels['email']) ? 'pub_by_email' : (isset($channels['whatsapp']) ?
             'pub_by_whatsapp' : (isset($channels['phone']) ? 'pub_by_phone' : '')));
         $ask = $last ? self::ask_context($centre, $last, $lang, $token, $told, $by, $flags) : false;
-        if ($issettled) {
+        $first = (int) ($centre->firstday ?? 0);
+        if ($issettled && $first && $now >= $first + DAYSECS / 2 && $now < $first + settled::FIRSTDAYASK) {
+            // After the first day: how it went, as they want to tell it; it goes to whoever carries them.
+            $ask = self::settled_ask(
+                $household,
+                $centre,
+                $hosts,
+                $lang,
+                $token,
+                $by,
+                $flags,
+                'pub_firstday_question',
+                'firstdayask',
+                settled::FIRSTDAYASKED
+            );
+            $surveyform = null;
+        } else if ($issettled) {
             $ask = self::settled_ask($household, $centre, $hosts, $lang, $token, $by, $flags);
             $surveyform = null;
         } else if ($isgone) {
@@ -378,8 +394,9 @@ class familypage {
             $out[] = [
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'cuento',
                     'nino' => $child->id, 'lang' => $lang]))->out(false),
-                'cover' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/cuento/ilustraciones/p1-mochila.webp',
+                'name' => $a->name,
                 'kicker' => publiclang::str('pub_story_kicker', $lang, $a),
+                'open' => publiclang::str('pub_story_open', $lang),
                 'title' => publiclang::str('story_ui_title', $lang, $a),
                 'lead' => publiclang::str($lead, $lang, $a),
             ];
@@ -501,7 +518,8 @@ class familypage {
         return [
             'do' => $do,
             'title' => publiclang::str($asked ? 'pub_after_more' : $title, $lang),
-            'help' => publiclang::str($do === 'goneask' ? 'pub_gone_help' : 'pub_after_help', $lang),
+            'help' => publiclang::str($do === 'goneask' ? 'pub_gone_help' : ($do === 'firstdayask' ? 'pub_firstday_help' :
+                'pub_after_help'), $lang),
             'sent' => $asked ? publiclang::str($host ? 'pub_after_sent_host' : 'pub_after_sent_team', $lang, $first) : '',
             'justsent' => !empty($flags['asked']),
             'button' => $host ? publiclang::str('pub_after_send_host', $lang, $first) : publiclang::str('pub_after_send', $lang),

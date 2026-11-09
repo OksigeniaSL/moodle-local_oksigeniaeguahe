@@ -123,6 +123,42 @@ final class story_test extends \advanced_testcase {
     }
 
     /**
+     * What a person writes around the first day: the story in the days before, the eve and «How was their first day?»
+     * after; each until someone writes to them in its time. And their page asks how it went.
+     */
+    public function test_steps(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        [$centre, $household] = $this->family();
+        $now = time();
+        // Without a first day, the story as soon as they enrol.
+        $this->assertSame('story', story::step($household, $centre, $now)['step']);
+        $soon = $now + 10 * DAYSECS;
+        $first = make_timestamp((int) date('Y', $soon), (int) date('n', $soon), (int) date('j', $soon));
+        $DB->set_field(centres::T, 'firstday', $first, ['id' => $centre->id]);
+        $centre = centres::get((int) $centre->id);
+        $this->assertSame('story', story::step($household, $centre, $first - 5 * DAYSECS)['step']);
+        $this->assertSame('eve', story::step($household, $centre, $first - HOURSECS)['step']);
+        $this->assertNull(story::step($household, $centre, $first + HOURSECS), 'On the day itself, nothing to write.');
+        $this->assertSame('after', story::step($household, $centre, $first + DAYSECS + HOURSECS)['step']);
+        $this->assertNull(story::step($household, $centre, $first + 5 * DAYSECS));
+        $proposal = \local_oksigeniaeguahe\local\panel_household::firstday_proposal(
+            $household,
+            households::full($household),
+            $centre,
+            $first - HOURSECS
+        );
+        $this->assertStringContainsString('Leo', $proposal['text']);
+        // Written to them on the eve: the eve is done.
+        $DB->insert_record(households::CONTACTS, (object) ['centreid' => $centre->id, 'householdid' => $household->id,
+            'direction' => 'out', 'channel' => 'email', 'body' => 'Hasta mañana', 'userid' => 2,
+            'timecreated' => $first - 2 * HOURSECS]);
+        $this->assertNull(story::step($household, $centre, $first - HOURSECS));
+        $this->assertSame('after', story::step($household, $centre, $first + DAYSECS + HOURSECS)['step']);
+    }
+
+    /**
      * What is counted: the story opened once a reading, the pages it reaches, and in Cifras where they leave it.
      */
     public function test_counted(): void {

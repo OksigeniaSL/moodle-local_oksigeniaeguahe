@@ -76,6 +76,11 @@ if (optional_param('despedida', 0, PARAM_BOOL) && $canact && $prefill === '') {
     $farewell = panel_household::context($household, $centre, true)['proposal'];
     $prefill = $farewell ? $farewell['text'] : '';
 }
+if (optional_param('primerdia', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // What to write around the first day, without the script: the message comes written in the answer.
+    $proposal = panel_household::firstday_proposal($household, households::full($household), $centre, time());
+    $prefill = $proposal ? $proposal['text'] : '';
+}
 if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
     // The proposal of a brother or sister, without the script: the message comes written in the answer.
     $proposal = panel_household::sibling_proposal($household, households::full($household), $centre, time());

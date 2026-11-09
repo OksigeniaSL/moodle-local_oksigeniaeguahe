@@ -152,8 +152,22 @@
         });
     };
 
+    // The name on the label of the story's card: smaller until it fits the line of the label.
+    var fitStory = function() {
+        all('svg.etiqueta-cuento text').forEach(function(text) {
+            var room = parseFloat(text.getAttribute('data-w')) || 27;
+            text.setAttribute('font-size', '13.5');
+            var k = text.textContent ? Math.min(1, room / text.getComputedTextLength()) : 1;
+            text.setAttribute('font-size', (13.5 * k).toFixed(2));
+        });
+    };
+
     var ready = function() {
         fit();
+        fitStory();
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(fitStory);
+        }
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function() {
                 fit();

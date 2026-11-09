@@ -300,7 +300,8 @@ class panel_household {
      * @return array|false
      */
     protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
-        return self::farewell_proposal($household, $full) ?: self::sibling_proposal($household, $full, $centre, $now);
+        return self::farewell_proposal($household, $full) ?: (self::firstday_proposal($household, $full, $centre, $now) ?:
+            self::sibling_proposal($household, $full, $centre, $now));
     }
 
     /**
@@ -330,6 +331,45 @@ class panel_household {
                 'borrador'
             ))->out(false),
             'visit' => false,
+            // Written by Eguahe from what it knows, not from the agenda of a visit.
+            'help' => get_string('panel_proposal_help_written', self::C),
+        ];
+    }
+
+    /**
+     * Around the first day, what a person writes to the family, with its why and the message written: their story in
+     * the days before, the eve, and «How was their first day?» after it. Sent by a person, never by itself.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|false
+     */
+    public static function firstday_proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
+        $step = story::step($household, $centre, $now);
+        if (!$step) {
+            return false;
+        }
+        $c = self::C;
+        $names = fn(array $kids) => self::list_words(array_map(fn($k) => panel::tag($k), $kids));
+        $a = (object) ['names' => $names($step['children']), 'stories' => $names($step['stories']),
+            'day' => $step['first'] ? userdate($step['first'], get_string('strftimedate', 'langconfig')) : ''];
+        $why = 'panel_story_' . $step['step'] . ($step['step'] === 'story' && !$step['first'] ? '_why_nodate' : '_why');
+        $message = 'panel_story_' . $step['step'] . '_message' . ($step['step'] === 'eve' && !$step['stories'] ? '_nostory' : '');
+        return [
+            'sentence' => get_string('panel_story_' . $step['step'], $c),
+            'why' => get_string($why, $c, $a),
+            'text' => self::greeting($full) . get_string($message, $c, $a),
+            'button' => get_string('panel_sibling_write', $c),
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'primerdia' => 1],
+                'borrador'
+            ))->out(false),
+            'visit' => false,
+            // Written by Eguahe from what it knows, not from the agenda of a visit.
+            'help' => get_string('panel_proposal_help_written', self::C),
         ];
     }
 
@@ -393,6 +433,7 @@ class panel_household {
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id,
                     'hermano' => $sibling->id], 'borrador'))->out(false),
                 'visit' => false,
+                'help' => get_string('panel_proposal_help_written', $c),
             ];
         }
         return false;

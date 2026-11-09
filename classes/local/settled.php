@@ -37,6 +37,12 @@ class settled {
     /** @var string The mark of what a family that left wrote from their page, in the history. */
     const GONEASKED = 'gone';
 
+    /** @var string The mark in the history of what a family told about the first day, from their page. */
+    const FIRSTDAYASKED = 'firstday';
+
+    /** @var int How long after the first day their page asks how it went. */
+    const FIRSTDAYASK = 14 * DAYSECS;
+
     /** @var string[] Why a family left, the short list Cifras counts; the line of whoever heard it, to read. */
     const LEFT_REASONS = ['moved', 'othercentre', 'cost', 'schedule', 'notadapted', 'other', 'unknown'];
 

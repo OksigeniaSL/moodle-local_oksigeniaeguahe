@@ -199,7 +199,7 @@
                     <a class="boton principal" href="{{url}}" data-propuesta="{{text}}" data-tecla="v" data-tecla-que="{{button}}">{{{i.enviado}}}{{button}}</a>
                     {{#visit}}<a class="boton terciario pequeno" href="#cambiar-visita" data-abre-detalles="cambiar-visita">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/visit}}
                 </div>
-                <p class="def">{{#str}}panel_proposal_help, local_oksigeniaeguahe{{/str}}</p>
+                <p class="def">{{#help}}{{help}}{{/help}}{{^help}}{{#str}}panel_proposal_help, local_oksigeniaeguahe{{/str}}{{/help}}</p>
             </section>
             {{/proposal}}
             {{#thanks}}

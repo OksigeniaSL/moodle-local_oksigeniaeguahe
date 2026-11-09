@@ -72,7 +72,13 @@ class panel_inbox {
         $due = siblings::due($centre, $now);
         $onlysiblings = !empty($view['siblings']) && $due;
         $onlyvolunteers = !empty($view['volunteers']);
-        $list = households::inbox($centreid, !$all && !$onlysiblings && !$onlyvolunteers);
+        // The families with something to write around the first day today, and only them when asked.
+        $starting = self::starting($centre, $now);
+        $onlystarting = !empty($view['starting']) && $starting;
+        $list = households::inbox($centreid, !$all && !$onlysiblings && !$onlyvolunteers && !$onlystarting);
+        if ($onlystarting) {
+            $list = array_intersect_key($list, $starting);
+        }
         if ($onlysiblings) {
             $list = array_intersect_key($list, $due);
         }
@@ -169,10 +175,42 @@ class panel_inbox {
             ),
                 'url' => $url(['c' => $centreid, 'hermanos' => 1]), 'on' => $onlysiblings,
                 'allurl' => $url(['c' => $centreid])] : false,
+            'startingdue' => $starting ? ['text' => get_string(
+                count($starting) === 1 ? 'panel_story_inbox_one' : 'panel_story_inbox_text',
+                $c,
+                count($starting)
+            ), 'url' => $url(['c' => $centreid, 'primerdia' => 1]), 'on' => $onlystarting,
+                'allurl' => $url(['c' => $centreid])] : false,
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),
         ];
+    }
+
+    /**
+     * The households of a centre with something for a person to write around the first day today.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array household id => the step.
+     */
+    protected static function starting(\stdClass $centre, int $now): array {
+        global $DB;
+        $ids = $DB->get_fieldset_select(
+            households::CHILDREN,
+            'DISTINCT householdid',
+            "centreid = ? AND stage = 'enrolled' AND lefttime = 0",
+            [$centre->id]
+        );
+        $out = [];
+        foreach ($ids as $id) {
+            $household = households::get((int) $id, (int) $centre->id);
+            $step = $household ? story::step($household, $centre, $now) : null;
+            if ($step) {
+                $out[(int) $id] = $step['step'];
+            }
+        }
+        return $out;
     }
 
     /**

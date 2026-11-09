@@ -70,7 +70,7 @@ function coverHtml() {
       </svg>
     </h1>
     <p class="firma-centro">${(document.querySelector('.centro .marca-centro') || { outerHTML: '' }).outerHTML}<span>${esc(BOOK.centre)}</span></p>
-    <p class="pista">Pasa las páginas con el dedo o con las flechas.</p>
+    <p class="pista">${esc(T.hint)}</p>
   </section>`;
 }
 

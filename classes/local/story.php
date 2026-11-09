@@ -67,7 +67,10 @@ class story {
 
     /** @var string[] The words of the controls and the gestures, as the script of the book reads them. */
     const WORDS = ['cover', 'dedication', 'page', 'pageof', 'liked', 'title', 'titlechild', 'enlarge', 'save', 'again', 'send',
-        'percent', 'pause', 'otravez', 'listen', 'copied', 'thelink', 'sharetext'];
+        'percent', 'pause', 'otravez', 'listen', 'copied', 'thelink', 'sharetext', 'hint'];
+
+    /** @var string[] What a person of the team writes around the first day: the story, the eve and the day after. */
+    const STEPS = ['story', 'eve', 'after'];
 
     /** @var string[] The words of the page around the book. */
     const FRAME = ['theme', 'titlechild', 'controls', 'previous', 'listen', 'next', 'music', 'volume', 'drawingof', 'drawnby',
@@ -118,6 +121,44 @@ class story {
             }
         }
         return $out;
+    }
+
+    /**
+     * What a person of the team has to write to a family around the first day, today: their story in the days before
+     * (when a child has it), the eve, and «How was their first day?» in the three days after. Each one until someone
+     * writes to them in its time; never sent by itself.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|null step (story, eve or after) and children (those who start).
+     */
+    public static function step(\stdClass $household, \stdClass $centre, int $now): ?array {
+        global $DB;
+        $kids = array_values(array_filter(
+            households::full($household)->children,
+            fn($c) => $c->stage === 'enrolled' && empty($c->lefttime)
+        ));
+        if (!$kids) {
+            return null;
+        }
+        $written = fn(int $since) => $DB->record_exists_select(
+            households::CONTACTS,
+            'householdid = ? AND direction = ? AND timecreated >= ?',
+            [$household->id, 'out', $since]
+        );
+        $enrolled = max(array_map(fn($c) => (int) $c->stagetime, $kids));
+        $first = (int) ($centre->firstday ?? 0);
+        $stories = self::children($household, $centre, (string) $household->lang, $now);
+        $step = null;
+        if ($first && $now >= $first + DAYSECS && $now < $first + 4 * DAYSECS) {
+            $step = $written($first + DAYSECS) ? null : 'after';
+        } else if ($first && $now >= $first - DAYSECS && $now < $first) {
+            $step = $written($first - DAYSECS) ? null : 'eve';
+        } else if ($stories && (!$first || $now < $first - DAYSECS)) {
+            $step = $written(max($enrolled, $first ? $first - self::BEFORE : 0)) ? null : 'story';
+        }
+        return $step ? ['step' => $step, 'children' => $kids, 'stories' => array_values($stories), 'first' => $first] : null;
     }
 
     /**

@@ -2603,7 +2603,8 @@ textarea.renglones:focus-visible {
 .al-tocar .guardar-encuesta {
     display: none;
 }
-/* «Your first day»: the story of a child who starts, as a card on the wall: its cover and what it is */
+/* «Your first day»: the story of a child who starts, as a card on the wall: its cover, the label with their name, what
+   it is and that it opens (Jujol) */
 .cuento-tarjeta {
     display: grid;
     grid-template-columns: 112px minmax(0, 1fr);
@@ -2612,25 +2613,50 @@ textarea.renglones:focus-visible {
     margin-top: 18px;
     padding: 12px 18px 12px 12px;
     border-radius: var(--radio);
+    border: 1.5px solid transparent;
     background: var(--eg-superficie);
     color: var(--eg-tinta);
     box-shadow: 0 1px 2px var(--eg-sombra), 0 14px 28px -16px var(--eg-sombra);
     text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .cuento-portada {
-    display: block;
-    overflow: hidden;
+    display: grid;
+    place-items: center;
     aspect-ratio: 3 / 2;
     border-radius: 10px;
     background: var(--eg-hundido);
 }
 
-.cuento-portada img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.etiqueta-cuento {
+    width: 84%;
+    height: auto;
+    overflow: visible;
+    transform: rotate(-4deg);
+    filter: drop-shadow(0 1px 1px var(--eg-sombra)) drop-shadow(0 6px 8px var(--eg-sombra));
+}
+
+.etiqueta-cuento .banda {
+    fill: var(--c-acento-vivo);
+}
+
+.etiqueta-cuento .papel {
+    fill: #fff;
+}
+
+.etiqueta-cuento .renglon {
+    fill: #8c8178;
+}
+
+.etiqueta-cuento .pico {
+    fill: #dccdbb;
+}
+
+.etiqueta-cuento text {
+    fill: #2b2226;
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-weight: 650;
 }
 
 .cuento-que {
@@ -2652,20 +2678,49 @@ textarea.renglones:focus-visible {
     letter-spacing: -0.02em;
 }
 
-.cuento-que > span:last-child {
+.cuento-que > span:nth-child(3) {
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
 }
 
-.cuento-tarjeta:hover b,
-.cuento-tarjeta:focus-visible b {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+.cuento-abrir {
+    margin-top: 6px;
+    color: var(--c-acento-texto);
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.cuento-abrir::after {
+    content: ' →';
+}
+
+[dir="rtl"] .cuento-abrir::after {
+    content: ' ←';
 }
 
 .cuento-tarjeta:focus-visible {
+    border-color: var(--c-acento-texto);
     outline: 3px solid var(--c-acento-texto);
     outline-offset: 3px;
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 20px 34px -16px var(--eg-sombra);
+}
+
+@media (hover: hover) {
+    .cuento-tarjeta:hover {
+        border-color: var(--c-acento-texto);
+        box-shadow: 0 1px 2px var(--eg-sombra), 0 20px 34px -16px var(--eg-sombra);
+    }
+
+    .cuento-tarjeta:hover .cuento-abrir {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cuento-tarjeta {
+        transition: none;
+    }
 }
 
 /* In their free time (Jujol): a light part of «What you told us». Each adult folded, with what they said on their line;
