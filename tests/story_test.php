@@ -1,0 +1,152 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_oksigeniaeguahe;
+
+use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\familypage;
+use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\panel_likes;
+use local_oksigeniaeguahe\local\panel_metrics;
+use local_oksigeniaeguahe\local\seen;
+use local_oksigeniaeguahe\local\story;
+
+/**
+ * «Your first day» (0.35.0): who has the story and when, the book with its words, the link to send it that opens the
+ * story and nothing else, and what is counted of it. With example data.
+ *
+ * @package    local_oksigeniaeguahe
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+#[\PHPUnit\Framework\Attributes\CoversClass(story::class)]
+final class story_test extends \advanced_testcase {
+    /**
+     * A centre with a first course of school and a later one, and a family with a child enrolled in the first.
+     *
+     * @return array [centre, household, child, the later offer]
+     */
+    protected function family(): array {
+        global $DB;
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $infant = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $later = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => '1.º de ESO', 'places' => 25,
+            'active' => 1]);
+        $household = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        households::add_adult($household, (object) ['firstname' => 'Ana', 'lastname' => 'Ejemplo',
+            'email' => 'ana@example.com']);
+        $childid = households::add_child($household, 'Leonardo', $infant);
+        $DB->set_field(households::CHILDREN, 'tagname', 'Leo', ['id' => $childid]);
+        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'enrolled');
+        return [centres::get($id), households::get((int) $household->id, $id),
+            $DB->get_record(households::CHILDREN, ['id' => $childid]), $later];
+    }
+
+    /**
+     * Who has it: the children enrolled in a course that gives it, by its age until the centre chooses, around the first
+     * day, and in a language the story is written in.
+     */
+    public function test_who_and_when(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$centre, $household, $child, $later] = $this->family();
+        $now = time();
+        $this->assertSame([(int) $child->id], array_keys(story::children($household, $centre, 'es', $now)));
+        $this->assertSame([], story::children($household, $centre, 'en', $now), 'Not yet written in English.');
+        $this->assertFalse(story::offer_gives($DB->get_record(centres::OFFERS, ['id' => $later]), (int) $centre->id));
+        $DB->set_field(centres::OFFERS, 'story', 0, ['id' => $child->offerid]);
+        $this->assertSame([], story::children($household, $centre, 'es', $now), 'The centre said no.');
+        $DB->set_field(centres::OFFERS, 'story', 1, ['id' => $child->offerid]);
+        $DB->set_field(centres::T, 'firstday', $now + 40 * DAYSECS, ['id' => $centre->id]);
+        $centre = centres::get((int) $centre->id);
+        $this->assertSame([], story::children($household, $centre, 'es', $now), 'Too early.');
+        $this->assertCount(1, story::children($household, $centre, 'es', $now + 25 * DAYSECS));
+        $this->assertSame([], story::children($household, $centre, 'es', $now + 120 * DAYSECS), 'Long over.');
+        $DB->set_field(households::CHILDREN, 'lefttime', $now, ['id' => $child->id]);
+        $this->assertSame([], story::children($household, $centre, 'es', $now + 25 * DAYSECS), 'Gone.');
+    }
+
+    /**
+     * The book: ten pages with the words of the language, the other pegs never with the child's own name, the voice, and
+     * the link to send it, which only opens this child's story.
+     */
+    public function test_book_and_link(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$centre, $household, $child] = $this->family();
+        $share = story::share_url($household, $child, 'es');
+        $this->assertSame((string) $share->get_param('s'), story::signature((int) $household->id, (int) $child->id));
+        $this->assertNotNull(story::from_link((int) $household->id, (int) $child->id, (string) $share->get_param('s')));
+        $this->assertNull(story::from_link((int) $household->id, (int) $child->id, str_repeat('0', 32)));
+        $this->assertNull(story::from_link((int) $household->id, (int) $child->id + 1, (string) $share->get_param('s')));
+
+        $this->assertSame('el Colegio de ejemplo', story::phrase('Colegio de ejemplo', 'es'));
+        $this->assertSame('la Escuela Infantil El Sol', story::phrase('Escuela Infantil El Sol', 'es'));
+        $this->assertSame('Montessori Village', story::phrase('Montessori Village', 'es'));
+        $DB->set_field(centres::T, 'namephrase', 'nuestro Colegio de ejemplo', ['id' => $centre->id]);
+        $links = ['drawing' => '', 'share' => $share->out(false), 'measure' => null];
+        $context = story::context($household, $child, centres::get((int) $centre->id), 'es', $links);
+        $book = json_decode($context['data'], true);
+        $this->assertSame('Leo', $book['child']);
+        $this->assertSame('nuestro Colegio de ejemplo', $book['centrePhrase'], 'As the centre wrote it.');
+        $this->assertCount(10, $book['pages']);
+        $this->assertSame('¿Lo leemos? ¡{nombre}!', $book['pages'][1]['text'][4]);
+        $dedication = ['Para {nombre}, que mañana empieza.', 'Y para quien lo trae de la mano.'];
+        $this->assertSame($dedication, $book['pages'][9]['lines']);
+        $pegs = array_column(array_filter($book['pages'][4]['names'], fn($n) => isset($n['text'])), 'text');
+        $this->assertCount(5, $pegs);
+        $this->assertNotContains('Leo', $pegs);
+        $this->assertArrayHasKey('sin-nombre', $book['voices']);
+        $this->assertNull($book['drawing'], 'Without a drawing of theirs, one of the class hangs on the wall.');
+        $this->assertStringContainsString('clase-garabato.jpg', $book['classDrawing']);
+        $this->assertSame('Tu primer día, Leo', $context['title']);
+        $this->assertStringNotContainsString('</', $context['data']);
+
+        // On the page of the family, the card.
+        $page = familypage::context($household, centres::get((int) $centre->id), 'es', 'k', false);
+        $this->assertCount(1, $page['stories']);
+        $this->assertSame('Un cuento para Leo', $page['stories'][0]['kicker']);
+    }
+
+    /**
+     * What is counted: the story opened once a reading, the pages it reaches, and in Cifras where they leave it.
+     */
+    public function test_counted(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        [$centre, $household] = $this->family();
+        $now = time();
+        $this->assertTrue(seen::record($household, 'story', 'opened', '', $now));
+        $this->assertFalse(seen::record($household, 'story', 'opened', '', $now + 60), 'The same reading.');
+        $this->assertFalse(seen::record($household, 'story', 'nothing', '', $now));
+        foreach ([1, 2, 3, 4] as $page) {
+            seen::record($household, 'story', 'page', 'p' . $page, $now);
+        }
+        seen::record($household, 'story', 'like', 'pX', $now);
+        $this->assertSame([], seen::summary((int) $household->id)['mails'], 'The pages of the story are no mail pressed.');
+        $campaign = panel_metrics::campaigns($centre)['live'];
+        $firstday = panel_likes::context($centre, $campaign, panel_metrics::families($centre, $campaign), $now);
+        $this->assertTrue($firstday['empty'], 'Few families: the card waits.');
+        $method = new \ReflectionMethod(panel_likes::class, 'firstday');
+        $rows = seen::of([(int) $household->id]);
+        $count = new \ReflectionMethod(panel_likes::class, 'count_rows');
+        $result = $method->invoke(null, $centre, [(int) $household->id], $count->invoke(null, $rows));
+        $this->assertSame([1, 1, 0], [$result['opened'], $result['of'], $result['whole']]);
+        $this->assertSame(1, $result['strip'][4]['families'], 'They left it at page 4.');
+        $this->assertSame(0, $result['strip'][9]['families']);
+    }
+}

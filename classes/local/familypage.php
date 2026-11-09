@@ -349,12 +349,42 @@ class familypage {
             'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'lang' => $lang]),
+            // The story «Your first day» of each child who starts, to read at home the days before.
+            'stories' => self::stories($household, $centre, $lang, $token, $now),
             // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.
             'hobbies' => $isgone ? false : self::hobbies_context($household, $full, $lang, $token, $flags),
             // The page counts what is done on it, once it is in sight; not when someone of the team looks at it.
             'measure' => seen::from_team($centre) ? false : ['url' => $link(['action' => 'seen']), 'sesskey' => sesskey(),
                 'de' => seen::via((string) ($flags['de'] ?? ''))],
         ];
+    }
+
+    /**
+     * The stories of the first day of the children who start, as cards: «A story for Leo», with its cover.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @param int $now
+     * @return array
+     */
+    protected static function stories(\stdClass $household, \stdClass $centre, string $lang, string $token, int $now): array {
+        global $CFG;
+        $out = [];
+        foreach (story::children($household, $centre, $lang, $now) as $child) {
+            $a = (object) ['name' => self::label_name($child) ?: (string) $child->firstname];
+            $lead = drawings::file((int) $child->id) ? 'pub_story_lead' : 'pub_story_lead_nodrawing';
+            $out[] = [
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'cuento',
+                    'nino' => $child->id, 'lang' => $lang]))->out(false),
+                'cover' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/cuento/ilustraciones/p1-mochila.webp',
+                'kicker' => publiclang::str('pub_story_kicker', $lang, $a),
+                'title' => publiclang::str('story_ui_title', $lang, $a),
+                'lead' => publiclang::str($lead, $lang, $a),
+            ];
+        }
+        return $out;
     }
 
     /**

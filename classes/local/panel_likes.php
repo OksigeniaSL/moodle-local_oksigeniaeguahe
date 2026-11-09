@@ -98,8 +98,7 @@ class panel_likes {
             'mailsrest' => $mailsrest,
             'mailsdef' => get_string('panel_likes_mails_def', $c),
             'howitwent' => self::howitwent($ids),
-            // The story «Your first day» counts here once it is on the page of the families.
-            'firstday' => false,
+            'firstday' => self::firstday($centre, $ids, $c4),
             'origins' => $origins,
             'originsrest' => $originsrest,
             'originsdef' => get_string('panel_likes_origins_def', $c),
@@ -116,7 +115,8 @@ class panel_likes {
      *               [times, households]), sent (kind => mails) and clicks (kind => [times, households]).
      */
     protected static function count_rows(array $rows): array {
-        $out = ['opens' => [], 'days' => [], 'parts' => [], 'touches' => [], 'sent' => [], 'clicks' => []];
+        $out = ['opens' => [], 'days' => [], 'parts' => [], 'touches' => [], 'sent' => [], 'clicks' => [], 'story' => [],
+            'storypage' => []];
         foreach ($rows as $row) {
             $h = (int) $row->householdid;
             if ($row->kind === 'open') {
@@ -129,8 +129,13 @@ class panel_likes {
                 $out['touches'][$row->what]['h'][$h] = true;
             } else if ($row->kind === 'mailsent') {
                 $out['sent'][$row->what] = ($out['sent'][$row->what] ?? 0) + 1;
+            } else if ($row->kind === 'story') {
+                $out['story'][$row->what][$h] = ($out['story'][$row->what][$h] ?? 0) + 1;
+                if ($row->what === 'page' && preg_match('/^p(\d)$/', (string) $row->via, $m)) {
+                    $out['storypage'][$h] = max($out['storypage'][$h] ?? 0, (int) $m[1]);
+                }
             }
-            if ($row->via && $row->kind !== 'mailsent') {
+            if ($row->via && !in_array($row->kind, ['mailsent', 'story'], true)) {
                 $out['clicks'][$row->via]['times'] = ($out['clicks'][$row->via]['times'] ?? 0) + 1;
                 $out['clicks'][$row->via]['h'][$h] = true;
             }
@@ -381,6 +386,67 @@ class panel_likes {
         return ['answered' => $answered, 'of' => $came, 'openquestion' => $wrote,
             'title' => get_string('panel_likes_howitwent', self::C),
             'text' => get_string($answered || $wrote ? 'panel_likes_howitwent_text' : 'panel_likes_howitwent_none', self::C, $a)];
+    }
+
+    /**
+     * «Your first day»: of the families whose child has the story, how many opened it, heard it whole and again, where
+     * they leave it (the last page each reached), and those who switch the song off or read it without the voice.
+     *
+     * @param \stdClass $centre
+     * @param int[] $ids
+     * @param array $c4
+     * @return array|false
+     */
+    protected static function firstday(\stdClass $centre, array $ids, array $c4) {
+        global $DB;
+        $c = self::C;
+        if (!$ids) {
+            return false;
+        }
+        [$in, $params] = $DB->get_in_or_equal($ids);
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
+        $with = [];
+        $select = "householdid $in AND stage = 'enrolled' AND lefttime = 0";
+        foreach ($DB->get_records_select(households::CHILDREN, $select, $params, '', 'id, householdid, offerid') as $child) {
+            $offer = $offers[$child->offerid] ?? null;
+            if ($offer && story::offer_gives($offer, (int) $centre->id)) {
+                $with[$child->householdid] = true;
+            }
+        }
+        if (!$with) {
+            return false;
+        }
+        $s = $c4['story'];
+        $opened = count($s['opened'] ?? []);
+        $whole = $s['whole'] ?? [];
+        // How many times each family that heard it whole heard it: the first and every repeat.
+        $times = array_map(fn($h) => 1 + (int) ($s['repeated'][$h] ?? 0), array_keys($whole));
+        sort($times);
+        $median = $times ? $times[intdiv(count($times) - 1, 2)] : 0;
+        $left = array_count_values($c4['storypage']);
+        $most = max(array_merge([1], array_values($left)));
+        $strip = [];
+        for ($i = 0; $i <= 9; $i++) {
+            $n = (int) ($left[$i] ?? 0);
+            $strip[] = ['label' => $i === 0 ? get_string('panel_likes_strip_cover', $c) : ($i === 9 ?
+                get_string('panel_likes_strip_whole', $c) : (string) $i), 'families' => $n, 'hasfamilies' => $n > 0,
+                'v' => round($n / $most, 4), 'last' => $i === 9];
+        }
+        $a = (object) ['opened' => $opened, 'of' => count($with), 'whole' => count($whole), 'median' => $median];
+        $musicoff = count($s['musicoff'] ?? []);
+        $read = count($s['read'] ?? []);
+        return [
+            'opened' => $opened,
+            'of' => count($with),
+            'whole' => count($whole),
+            'repeatsmedian' => $median,
+            'pages' => 10,
+            'strip' => $strip,
+            'text' => get_string('panel_likes_firstday_text', $c, $a) . ($median > 1 ?
+                ' ' . get_string('panel_likes_firstday_repeat', $c, $a) : ''),
+            'musicofftext' => $musicoff ? get_string('panel_likes_musicoff', $c, $musicoff) : false,
+            'readwithoutaudiotext' => $read ? get_string('panel_likes_read', $c, $read) : false,
+        ];
     }
 
     /**

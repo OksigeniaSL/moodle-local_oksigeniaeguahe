@@ -1,0 +1,178 @@
+{
+ "mochila": {
+  "alt": "Por la mañana, junto a la puerta de casa, un niño pequeño, de espaldas, se acerca a una mochila coral que espera en un banco de madera. La etiqueta de la mochila lleva su nombre. Al lado, su botella de agua.",
+  "names": [
+   {
+    "x": 1030,
+    "y": 460,
+    "w": 108,
+    "size": 44,
+    "rot": 0,
+    "kind": "ink"
+   },
+   {
+    "x": 1256,
+    "y": 430,
+    "w": 42,
+    "size": 22,
+    "rot": 0,
+    "kind": "ink"
+   }
+  ]
+ },
+ "botella": {
+  "alt": "Unas manos pequeñas meten la botella de agua en la mochila coral, abierta sobre el banco de casa. La etiqueta de la botella y la de la mochila llevan su nombre.",
+  "names": [
+   {
+    "x": 847,
+    "y": 412,
+    "w": 88,
+    "size": 40,
+    "rot": 3.5,
+    "kind": "ink"
+   },
+   {
+    "x": 752,
+    "y": 780,
+    "w": 190,
+    "size": 70,
+    "rot": 0,
+    "kind": "ink"
+   }
+  ]
+ },
+ "pizarra": {
+  "alt": "En la puerta de la clase, una maestra se agacha y tiende la mano a un niño pequeño que llega de espaldas con su mochila. En la pared, una pizarra verde le saluda por su nombre.",
+  "names": [
+   {
+    "x": 1281,
+    "y": 338,
+    "w": 300,
+    "size": 96,
+    "rot": -2,
+    "kind": "chalk",
+    "pre": "¡Hola, ",
+    "post": "!"
+   },
+   {
+    "x": 352,
+    "y": 605,
+    "w": 58,
+    "size": 25,
+    "rot": 0,
+    "kind": "ink"
+   }
+  ]
+ },
+ "percha": {
+  "alt": "En la entrada de la clase, una fila de perchas de madera con un nombre encima de cada una. Un niño pequeño, de espaldas, levanta su mochila coral hacia la percha libre, la que lleva su nombre.",
+  "names": [
+   {
+    "x": 676,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": 0,
+    "kind": "ink"
+   },
+   {
+    "x": 303,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": -1.5,
+    "kind": "ink",
+    "text": "Hugo"
+   },
+   {
+    "x": 488,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": 1,
+    "kind": "ink",
+    "text": "Aitana"
+   },
+   {
+    "x": 862,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": -1,
+    "kind": "ink",
+    "text": "Omar"
+   },
+   {
+    "x": 1051,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": 1.5,
+    "kind": "ink",
+    "text": "Vera"
+   },
+   {
+    "x": 1237,
+    "y": 132,
+    "w": 100,
+    "size": 40,
+    "rot": -0.5,
+    "kind": "ink",
+    "text": "Bruno"
+   },
+   {
+    "x": 659,
+    "y": 580,
+    "w": 54,
+    "size": 22,
+    "rot": -4,
+    "kind": "ink"
+   }
+  ]
+ },
+ "amigo": {
+  "alt": "En la alfombra de la clase, dos niños pequeños ven caer su torre de bloques de madera. El de la izquierda, de espaldas, levanta los brazos; el amigo, de frente, se ríe con todas sus ganas."
+ },
+ "alfombra": {
+  "alt": "La maestra, sentada en una silla baja, enseña un cuento abierto a los niños sentados en la alfombra, de espaldas. En la pared, un corcho con los dibujos de la clase y, al lado, un dibujo en un marco.",
+  "frame": {
+   "quad": [
+    [
+     1224,
+     170
+    ],
+    [
+     1424,
+     170
+    ],
+    [
+     1424,
+     430
+    ],
+    [
+     1224,
+     430
+    ]
+   ]
+  }
+ },
+ "casa": {
+  "alt": "En un rincón tranquilo de la clase, la maestra se arrodilla y recoge entre sus manos la mano de un niño pequeño, de espaldas, que sostiene su botella de agua. Ella lo mira con una sonrisa. La etiqueta de la botella lleva su nombre.",
+  "names": [
+   {
+    "x": 534,
+    "y": 327,
+    "w": 54,
+    "size": 30,
+    "rot": 0,
+    "kind": "ink"
+   }
+  ]
+ },
+ "vuelta": {
+  "alt": "Visto con los ojos del niño: la puerta de la clase se abre y alguien que lo quiere mucho se agacha a su altura con los brazos abiertos, en la luz dorada de la tarde. Las manos pequeñas del niño van hacia él."
+ },
+ "dedicatoria": {
+  "alt": "Una mano grande y una mano pequeña, cogidas."
+ }
+}

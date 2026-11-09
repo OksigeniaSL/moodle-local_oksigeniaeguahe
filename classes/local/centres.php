@@ -137,6 +137,15 @@ class centres {
             // The age children enter at, for the brothers and sisters; 0, children do not enter by age here.
             $row->siblingage = max(0, min(18, (int) $data->siblingage));
         }
+        if (isset($data->firstday)) {
+            // The first day of the next school year, for the story of those who start; 0, not written.
+            $row->firstday = max(0, (int) $data->firstday);
+        }
+        if (isset($data->namephrase)) {
+            // The name as it is said in a sentence («el Colegio Los Arces»), for the story.
+            $phrase = trim((string) $data->namephrase);
+            $row->namephrase = $phrase === '' ? null : \core_text::substr($phrase, 0, 255);
+        }
         if (isset($data->networks)) {
             // The networks a family may name, one per line, as the centre writes them; empty, the usual ones.
             $names = array_slice(array_unique(array_filter(array_map(
@@ -514,6 +523,10 @@ class centres {
         if (isset($data->handover)) {
             // Who carries the families of this course once enrolled (its tutor); 0, the one of the centre.
             $row->handover = max(0, (int) $data->handover);
+        }
+        if (isset($data->story)) {
+            // Whether its children get the story of the first day.
+            $row->story = empty($data->story) ? 0 : 1;
         }
         if (!empty($data->id)) {
             $DB->get_record(self::OFFERS, ['id' => $data->id, 'centreid' => $centreid], 'id', MUST_EXIST);

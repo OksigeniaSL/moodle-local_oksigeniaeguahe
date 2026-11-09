@@ -678,6 +678,7 @@ $string['offer_active'] = 'Shown';
 $string['offer_handover'] = 'Looked after by';
 $string['offer_handover_centre'] = 'The one of the whole centre';
 $string['offer_places'] = 'Places';
+$string['offer_story'] = 'With «Your first day», the story to start';
 $string['offer_unknown'] = 'No course yet';
 $string['offer_year'] = 'School year';
 $string['offers_add'] = 'Add the offer of the centre';
@@ -1030,9 +1031,10 @@ $string['panel_first_answer'] = 'The first answer';
 $string['panel_first_line'] = 'Of the {$a->n} who came through “{$a->name}”, {$a->enrolled} enrolled: {$a->frac}. Cost: {$a->cost}.';
 $string['panel_first_rest'] = 'The one that brings most families, “{$a->name}”: {$a->n} of {$a->total}. Touch a channel and its part lights up in “How far they got”.';
 $string['panel_first_value'] = 'The first thing it brings';
-$string['panel_firstday'] = 'The first day';
+$string['panel_firstday'] = 'First day of the school year';
 $string['panel_firstday_count'] = '{$a->started} of {$a->enrolled} have started.';
 $string['panel_firstday_done'] = 'Started · {$a}';
+$string['panel_firstday_help'] = 'From three weeks before, the families of the courses with «Your first day» have the story on their page. Without a date, they have it once enrolled.';
 $string['panel_firstday_link'] = 'Mark who has started';
 $string['panel_firstday_link_count'] = '{$a->started} of {$a->enrolled} have started';
 $string['panel_firstday_mark'] = 'Started';
@@ -1344,7 +1346,9 @@ $string['panel_likes_fam'] = '{$a} fam.';
 $string['panel_likes_fams'] = '{$a} families';
 $string['panel_likes_fams_one'] = '1 family';
 $string['panel_likes_firstday'] = '«Your first day»';
-$string['panel_likes_firstday_def'] = 'Where they stop: how many families end at each page. The last one is those who hear it all.';
+$string['panel_likes_firstday_def'] = 'Where they stop: the last page each family gets to. «Whole», those who get to the end.';
+$string['panel_likes_firstday_repeat'] = 'Half of them hear it {$a->median} times or more.';
+$string['panel_likes_firstday_text'] = '{$a->opened} of the {$a->of} families with the story opened it; {$a->whole} heard it whole.';
 $string['panel_likes_firstday_where'] = 'At which page they leave the story';
 $string['panel_likes_from_home'] = 'Came from home';
 $string['panel_likes_has_drawing'] = 'Have their drawing';
@@ -1370,6 +1374,7 @@ $string['panel_likes_mails'] = 'The mails';
 $string['panel_likes_mails_def'] = 'The mails with a click. We do not count whether they are opened: only what is pressed inside.';
 $string['panel_likes_mails_none'] = 'No mail has gone out since this is counted.';
 $string['panel_likes_mails_rest'] = 'The one pressed most: «{$a->name}», {$a->clicked} of {$a->sent}.';
+$string['panel_likes_musicoff'] = '{$a} switch the music off.';
 $string['panel_likes_of'] = 'of {$a}';
 $string['panel_likes_opened'] = 'of {$a} have opened it';
 $string['panel_likes_opened_text'] = '{$a->n} of {$a->of} families have opened their page.';
@@ -1387,10 +1392,13 @@ $string['panel_likes_part_wall'] = 'The greeting and the hall';
 $string['panel_likes_place_moving'] = 'Moving to the area';
 $string['panel_likes_place_others'] = 'Other places';
 $string['panel_likes_place_unknown'] = 'Not told';
+$string['panel_likes_read'] = '{$a} read it without the voice.';
 $string['panel_likes_returned'] = '{$a} come back another day: they do not only look at it when the mail arrives.';
 $string['panel_likes_returned_none'] = 'None has come back another day yet.';
 $string['panel_likes_returned_one'] = 'One comes back another day: it does not only look at it when the mail arrives.';
 $string['panel_likes_seen'] = 'Seen appearing';
+$string['panel_likes_strip_cover'] = 'Cover';
+$string['panel_likes_strip_whole'] = 'Whole';
 $string['panel_likes_times'] = '{$a} times';
 $string['panel_likes_times_each'] = 'How many times each family opens it';
 $string['panel_likes_times_families'] = 'times, {$a} families';
@@ -1456,6 +1464,9 @@ $string['panel_most_likely'] = 'Most likely';
 $string['panel_move_down'] = 'Move «{$a}» down';
 $string['panel_move_up'] = 'Move «{$a}» up';
 $string['panel_moving'] = 'moving to the area';
+$string['panel_namephrase'] = 'The name of the centre in a sentence';
+$string['panel_namephrase_example'] = 'the {$a}';
+$string['panel_namephrase_help'] = 'As it is said after «Today … is waiting for you»: with its article if it has one. Without it, the name as it is.';
 $string['panel_networks'] = 'The networks';
 $string['panel_networks_help'] = 'One per line, as they are written. When a family says it heard of the centre on social media, it picks one of these or writes another; in Numbers each network shows on its own, the little used ones too. None is fixed: if another one is used tomorrow, add it here.';
 $string['panel_networks_list'] = 'The networks a family can name';
@@ -2155,6 +2166,9 @@ $string['pub_slot'] = 'Choose your slot';
 $string['pub_slot_full'] = 'Full';
 $string['pub_slot_left'] = '{$a} places left';
 $string['pub_slot_left_one'] = '1 place left';
+$string['pub_story_kicker'] = 'A story for {$a->name}';
+$string['pub_story_lead'] = 'To read together at home in the days before starting. It has their name and their drawing.';
+$string['pub_story_lead_nodrawing'] = 'To read together at home in the days before starting. It has their name.';
 $string['pub_submit'] = 'Sign us up';
 $string['pub_submit_form'] = 'Send';
 $string['pub_submit_request'] = 'Ask for the visit';
@@ -2215,6 +2229,99 @@ $string['stage_inquiry'] = 'Inquiry';
 $string['stage_save'] = 'Change';
 $string['stage_visit'] = 'Visit';
 $string['stage_waitlist'] = 'Waiting list';
+$string['story_alfombra'] = 'Then, everyone to the rug.
+Your teacher opens a story
+and turns the pages slowly,
+like now.
+You sit close and listen.';
+$string['story_alt_alfombra'] = 'The teacher, on a low chair, shows an open story to the children sitting on the rug, seen from behind. On the wall, a corkboard with the drawings of the class and, beside it, a drawing in a frame.';
+$string['story_alt_amigo'] = 'On the rug of the class, two small children watch their tower of wooden blocks fall. The one on the left, seen from behind, raises their arms; the friend, facing us, laughs with all their heart.';
+$string['story_alt_botella'] = 'Small hands put the water bottle into the coral backpack, open on the bench at home. The labels of the bottle and the backpack have their name.';
+$string['story_alt_casa'] = 'In a quiet corner of the class, the teacher kneels and holds the hand of a small child, seen from behind, who holds their water bottle. She looks at them with a smile. The label of the bottle has their name.';
+$string['story_alt_dedicatoria'] = 'A big hand and a small hand, held together.';
+$string['story_alt_mochila'] = 'In the morning, by the door at home, a small child, seen from behind, goes up to a coral backpack waiting on a wooden bench. The label of the backpack has their name. Beside it, their water bottle.';
+$string['story_alt_percha'] = 'At the entrance of the class, a row of wooden pegs with a name above each one. A small child, seen from behind, lifts their coral backpack to the free peg, the one with their name.';
+$string['story_alt_pizarra'] = 'At the door of the class, a teacher crouches down and holds out her hand to a small child arriving with their backpack, seen from behind. On the wall, a green board greets them by name.';
+$string['story_alt_portada'] = 'Your first day';
+$string['story_alt_vuelta'] = 'Seen through the eyes of the child: the door of the class opens and someone who loves them very much crouches down with open arms, in the golden light of the afternoon. The small hands of the child reach out.';
+$string['story_amigo'] = 'In a basket there are wooden blocks.
+Someone gives you one: shall we build a tower?
+Up, higher…
+and higher!
+Boom! It falls.
+What fun!
+Now you have a new friend.';
+$string['story_board_post'] = '!';
+$string['story_board_pre'] = 'Hello, ';
+$string['story_botella'] = 'Your water bottle goes inside.
+And whose name is on the bottle?
+{nombre}, again!
+You put on your backpack. It is light.
+Today {centro} is waiting for you.';
+$string['story_casa'] = 'If for a little while you miss home,
+you can say so.
+Your teacher listens and holds your hand.
+You drink water from your bottle, the one that says {nombre}.
+And you go back to play.';
+$string['story_dedicatoria'] = 'For {nombre}, who starts tomorrow.
+And for whoever brings them by the hand.';
+$string['story_gone'] = 'The link does not open the story any more. If you would like it, ask the family who sent it to you.';
+$string['story_gone_title'] = 'This story is not here any more';
+$string['story_mochila'] = 'Today there is something new
+by the door.
+It is a little backpack,
+with a label and a name.
+Shall we read it? {nombre}!
+It is your backpack.';
+$string['story_pegs'] = 'Sam, Ava, Omar, Mia, Leo, Ruby, Noah';
+$string['story_percha'] = 'Inside there is a row of pegs,
+and every peg has a name.
+One is waiting for you.
+Shall we read it? {nombre}!
+There you hang your backpack.
+That is your place.';
+$string['story_pizarra'] = 'At the door of your class
+there is a little board.
+It says: «Hello, {nombre}!».
+Someone crouches down to you
+and smiles at you.
+It is your teacher.
+She already knows your name.';
+$string['story_ui_again'] = 'Hear it again';
+$string['story_ui_close'] = 'Close';
+$string['story_ui_controls'] = 'Turn the pages and listen';
+$string['story_ui_copied'] = 'Link copied. You can paste it in a message.';
+$string['story_ui_cover'] = 'Cover';
+$string['story_ui_dedication'] = 'Dedication';
+$string['story_ui_drawingof'] = 'The drawing of {$a->name}';
+$string['story_ui_drawnby'] = '{$a->name} drew it the day they came to meet us.';
+$string['story_ui_enlarge'] = 'See the drawing of {$a->name} big';
+$string['story_ui_filename'] = 'Your first day, {$a->name}';
+$string['story_ui_liked'] = 'We liked this page';
+$string['story_ui_listen'] = 'Listen';
+$string['story_ui_music'] = 'Background music';
+$string['story_ui_next'] = 'Next page';
+$string['story_ui_otravez'] = 'Again';
+$string['story_ui_page'] = 'Page {n}';
+$string['story_ui_pageof'] = 'Page {n} of {of}';
+$string['story_ui_pause'] = 'Pause';
+$string['story_ui_percent'] = '{n}%';
+$string['story_ui_previous'] = 'Previous page';
+$string['story_ui_save'] = 'Keep it';
+$string['story_ui_send'] = 'Send it to someone';
+$string['story_ui_sharetext'] = 'The story of {$a->name} for their first day.';
+$string['story_ui_thelink'] = 'This is the link: {url}';
+$string['story_ui_theme'] = 'Switch between light and dark';
+$string['story_ui_title'] = 'Your first day';
+$string['story_ui_titlechild'] = 'Your first day, {$a->name}';
+$string['story_ui_volume'] = 'Volume';
+$string['story_vuelta'] = 'At the end of the day,
+the door opens.
+Who has come for you?
+Someone who loves you very much!
+You put on your backpack
+and say goodbye to your peg.
+Tomorrow it waits for you again.';
 $string['survey_new_name'] = 'New survey';
 $string['tab_entries'] = 'Entries';
 $string['tab_events'] = 'Open days and visits';

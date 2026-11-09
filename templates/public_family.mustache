@@ -65,6 +65,8 @@
         "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar nuestros datos",
         "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#",
         "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
+        "stories": [{"url": "https://example.com/f.php?action=cuento", "cover": "https://example.com/p1.webp",
+            "kicker": "Un cuento para Leo", "title": "Tu primer día", "lead": "Para leerlo juntos en casa."}],
         "hobbies": {"title": "En su tiempo libre", "lead": "Si quieren contárnoslo.", "othertext": "Otra cosa",
             "otherexample": "Por ejemplo, el parchís", "savetext": "Guardar", "savedtext": "Guardado", "saved": false,
             "action": "https://example.com/f.php?action=hobbies", "sesskey": "abc", "tellus": "Contárnoslo",
@@ -93,6 +95,12 @@
             </div>
             {{/new}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span dir="auto">{{text}}</span></p>{{/outcome}}
+            {{#stories}}
+            <a class="cuento-tarjeta" href="{{url}}">
+                <span class="cuento-portada" aria-hidden="true"><img src="{{cover}}" alt="" loading="lazy"></span>
+                <span class="cuento-que"><span class="cuento-etiqueta" dir="auto">{{kicker}}</span><b>{{title}}</b><span>{{lead}}</span></span>
+            </a>
+            {{/stories}}
             {{#turns}}
             <form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">

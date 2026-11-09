@@ -128,7 +128,8 @@ final class channels_test extends \advanced_testcase {
         $kinds = array_column($notices['bykind'], null, 'kind');
         $email = get_string('channel_email', 'local_oksigeniaeguahe');
         $confirmation = array_column($kinds['confirmation']['cells'], null, 'name')[$email];
-        $this->assertSame([2, 1, true], [$confirmation['sent'], $confirmation['clicked'], $confirmation['best']]);
+        // With one channel, there is no best to underline.
+        $this->assertSame([2, 1, false], [$confirmation['sent'], $confirmation['clicked'], $confirmation['best']]);
         $this->assertSame(get_string('panel_ct_rate', 'local_oksigeniaeguahe', 50), $confirmation['rate']);
         $this->assertSame(0, array_column($kinds['reminder']['cells'], 'clicked')[0]);
     }

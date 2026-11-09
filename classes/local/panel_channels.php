@@ -308,8 +308,8 @@ class panel_channels {
         // The mails, as Eguahe counts them: what went, and the mails with something pressed inside.
         $rows = $DB->get_records_select(
             seen::T,
-            'centreid = ? AND timecreated >= ? AND timecreated < ? AND (kind = ? OR via IS NOT NULL)',
-            [$centre->id, $from, $to, 'mailsent'],
+            'centreid = ? AND timecreated >= ? AND timecreated < ? AND (kind = ? OR (via IS NOT NULL AND kind <> ?))',
+            [$centre->id, $from, $to, 'mailsent', 'story'],
             '',
             'id, householdid, kind, what, via'
         );
@@ -376,8 +376,11 @@ class panel_channels {
             if (!array_filter(array_column($cells, 'sent'))) {
                 continue;
             }
+            // The best of a notice only compares when there are two channels or more.
+            $compared = count(array_filter(array_column($cells, 'sent'))) > 1;
             foreach ($cells as $i => $cell) {
-                $cells[$i]['best'] = $best > 0 && $cell['sent'] && abs($cell['clicked'] / $cell['sent'] - $best) < 1e-9;
+                $cells[$i]['best'] = $compared && $best > 0 && $cell['sent'] &&
+                    abs($cell['clicked'] / $cell['sent'] - $best) < 1e-9;
             }
             $table[] = ['kind' => $kind, 'name' => get_string('mail_name_' . $kind, $c), 'cells' => $cells];
         }

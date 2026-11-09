@@ -117,6 +117,10 @@ class panel_centre {
             'handoverplace' => (string) ($centre->handoverplace ?? ''),
             'handoverhow' => (string) ($centre->handoverhow ?? ''),
             'invitegone' => !empty($centre->invitegone),
+            // For the story «Your first day»: when the school year starts, and the name of the centre as it is said in a sentence.
+            'firstday' => !empty($centre->firstday) ? userdate((int) $centre->firstday, '%Y-%m-%d') : '',
+            'namephrase' => (string) ($centre->namephrase ?? ''),
+            'namephraseexample' => get_string('panel_namephrase_example', $c, format_string($centre->name)),
             'siblingages' => array_map(fn($n) => ['value' => $n, 'name' => $n ? get_string('panel_siblingage_n', $c, $n) :
                 get_string('panel_siblingage_none', $c), 'selected' => $n === (int) ($centre->siblingage ?? 0)], range(0, 12)),
             'hasmessaging' => (bool) $messaging,
@@ -209,6 +213,7 @@ class panel_centre {
             $out[] = ['i' => $i, 'id' => (int) $offer->id, 'name' => (string) $offer->name,
                 'year' => (string) $offer->schoolyear, 'places' => (int) $offer->places, 'active' => !empty($offer->active),
                 'handovers' => self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre'),
+                'story' => story::offer_gives($offer, (int) $centre->id),
                 'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
                     (int) $offer->places,
                     $enrolled,
@@ -217,6 +222,7 @@ class panel_centre {
         }
         $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',
             'active' => true, 'handovers' => self::handovers($centre, 0, 'offer_handover_centre'), 'empty' => true,
+            'story' => false,
             'rail' => ''];
         return $out;
     }
@@ -236,6 +242,19 @@ class panel_centre {
                 $host['name'], 'selected' => $host['id'] === $chosen];
         }
         return $out;
+    }
+
+    /**
+     * A day written in a date field, at its start where the centre lives; 0 without one.
+     *
+     * @param string $value Y-m-d.
+     * @return int
+     */
+    protected static function date(string $value): int {
+        if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+            return 0;
+        }
+        return make_timestamp((int) $m[1], (int) $m[2], (int) $m[3]);
     }
 
     /**
@@ -357,6 +376,8 @@ class panel_centre {
             'handoverhow' => optional_param('handoverhow', '', PARAM_TEXT),
             'siblingage' => optional_param('siblingage', (int) ($centre->siblingage ?? 0), PARAM_INT),
             'invitegone' => optional_param('invitegone', 0, PARAM_BOOL),
+            'firstday' => self::date(optional_param('firstday', '', PARAM_RAW_TRIMMED)),
+            'namephrase' => optional_param('namephrase', '', PARAM_TEXT),
         ];
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);
@@ -390,6 +411,7 @@ class panel_centre {
         $places = optional_param_array('offerplaces', [], PARAM_INT);
         $active = optional_param_array('offeractive', [], PARAM_BOOL);
         $handovers = optional_param_array('offerhandover', [], PARAM_INT);
+        $stories = optional_param_array('offerstory', [], PARAM_BOOL);
         foreach ($names as $i => $offername) {
             $offerid = (int) ($ids[$i] ?? 0);
             if (trim((string) $offername) === '') {
@@ -398,10 +420,14 @@ class panel_centre {
                 }
                 continue;
             }
-            centres::save_offer((int) $centre->id, (object) ['id' => $offerid, 'name' => $offername,
-                'schoolyear' => $years[$i] ?? self::next_year(), 'places' => $places[$i] ?? 0,
-                'active' => !empty($active[$i]), 'sortorder' => $i,
-                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id)]);
+            $offer = ['id' => $offerid, 'name' => $offername, 'schoolyear' => $years[$i] ?? self::next_year(),
+                'places' => $places[$i] ?? 0, 'active' => !empty($active[$i]), 'sortorder' => $i,
+                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id)];
+            // A new course without the box gives the story by its age; once saved, as the box says.
+            if ($offerid || !empty($stories[$i])) {
+                $offer['story'] = !empty($stories[$i]);
+            }
+            centres::save_offer((int) $centre->id, (object) $offer);
         }
 
         // The team: who goes out, and someone more by their name or their email in Moodle.

@@ -2603,6 +2603,71 @@ textarea.renglones:focus-visible {
 .al-tocar .guardar-encuesta {
     display: none;
 }
+/* «Your first day»: the story of a child who starts, as a card on the wall: its cover and what it is */
+.cuento-tarjeta {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 12px 18px 12px 12px;
+    border-radius: var(--radio);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 14px 28px -16px var(--eg-sombra);
+    text-decoration: none;
+}
+
+.cuento-portada {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.cuento-portada img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cuento-que {
+    display: grid;
+    gap: 2px;
+}
+
+.cuento-etiqueta {
+    color: var(--c-acento-texto);
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.cuento-que b {
+    font-size: 1.25rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+}
+
+.cuento-que > span:last-child {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.cuento-tarjeta:hover b,
+.cuento-tarjeta:focus-visible b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.cuento-tarjeta:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 3px;
+}
+
 /* In their free time (Jujol): a light part of «What you told us». Each adult folded, with what they said on their line;
    open, the chips of paper, which read as choosing and not as filling a form. Kept when touched. */
 .aficiones .muted {

@@ -36,6 +36,7 @@ use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
+use local_oksigeniaeguahe\local\story;
 use local_oksigeniaeguahe\local\surveys;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
@@ -225,6 +226,20 @@ if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_s
         ($action === 'survey' ? ['saved' => 1] : []), $action === 'survey' ? 'como-fue' : 'pregunta'));
 }
 
+if ($action === 'cuento') {
+    // The story «Your first day»: the one of one of their children who starts at the centre.
+    $child = story::children($household, $centre, $lang, time())[optional_param('nino', 0, PARAM_INT)] ?? null;
+    if (!$child) {
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]));
+    }
+    $here = fn(array $params) => (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token] + $params))->out(false);
+    story::output(story::context($household, $child, $centre, $lang, [
+        'drawing' => $here(['dibujo' => $child->id]),
+        'share' => story::share_url($household, $child, $lang)->out(false),
+        'measure' => seen::from_team($centre) ? null : ['url' => $here(['action' => 'seen']), 'sesskey' => sesskey()],
+    ]));
+}
+
 if ($action === 'seen') {
     // What the page tells about itself, as it happens: opened, a part reached, something touched.
     if (data_submitted() && confirm_sesskey() && !seen::from_team($centre)) {
@@ -232,7 +247,7 @@ if ($action === 'seen') {
             $household,
             optional_param('kind', '', PARAM_ALPHA),
             optional_param('what', '', PARAM_ALPHAEXT),
-            optional_param('via', '', PARAM_ALPHA)
+            optional_param('via', '', PARAM_ALPHANUM)
         );
     }
     publicpage::headers();

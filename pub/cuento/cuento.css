@@ -1,0 +1,959 @@
+/* «Tu primer día», the welcome story of Eguahe (Gaudí, 8 November 2026): a picture book to read at home before the
+   first day, with the child's name on the pictures and their drawing on the wall of the class. The colours of the
+   centre come from the page (--centro-acento, --centro-acento-oscuro). */
+@font-face {
+    font-family: 'Caveat';
+    src: url(../fonts/caveat.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: block;
+}
+
+@font-face {
+    font-family: 'Caveat';
+    src: url(../fonts/caveat-mas.woff2) format('woff2');
+    font-weight: 400 700;
+    font-display: block;
+    unicode-range: U+0100-024F, U+0300-036F, U+0400-052F, U+1E00-1EFF;
+}
+
+@font-face {
+    font-family: 'Schibsted Grotesk';
+    src: url(../fonts/schibsted-grotesk.woff2) format('woff2');
+    font-weight: 400 900;
+    font-display: swap;
+}
+
+
+/* Tokens: the paper and ink of Eguahe, the colour of the centre on top. */
+:root {
+    --papel: #fbf7f1;
+    --superficie: #fff;
+    --hundido: #f3ece3;
+    --tinta: #2b2226;
+    --tinta-2: #5f5459;
+    --linea: #e7ded3;
+    --borde: #8c8086;
+    --madera: #bc8759;
+    --coral: #cf6450;
+    --berenjena: #36233a;
+    --c-acento: var(--centro-acento);
+    --c-sobre-acento: #fff;
+    --c-vivo: var(--centro-acento);
+    --c-sobre-vivo: #fff;
+    --etiqueta-papel: #fff;
+    --etiqueta-renglon: #8c8178;
+    --etiqueta-pico: #dccdbb;
+    --etiqueta-tinta: #2b2226;
+    --hoja-papel: #fbf5ec;
+    --hoja-tinta: #36233a;
+    --sombra: rgba(54, 35, 58, .16);
+    --sombra-fuerte: rgba(54, 35, 58, .26);
+    --imagen: none;
+    --grano: .05;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --papel: #171413;
+        --superficie: #211d1b;
+        --hundido: #120f0e;
+        --tinta: #f3ece6;
+        --tinta-2: #bbb0aa;
+        --linea: #36302d;
+        --borde: #877c77;
+        --madera: #a87a55;
+        --coral: #e07d69;
+        --c-vivo: var(--centro-acento-oscuro);
+        --c-sobre-vivo: #1a1614;
+        --etiqueta-papel: #f5eee5;
+        --hoja-papel: #e9e0d2;
+        --sombra: rgba(0, 0, 0, .45);
+        --sombra-fuerte: rgba(0, 0, 0, .6);
+        --imagen: brightness(.9) saturate(.96);
+        --grano: .07;
+        color-scheme: dark;
+    }
+}
+:root[data-theme="dark"] {
+    --papel: #171413;
+    --superficie: #211d1b;
+    --hundido: #120f0e;
+    --tinta: #f3ece6;
+    --tinta-2: #bbb0aa;
+    --linea: #36302d;
+    --borde: #877c77;
+    --madera: #a87a55;
+    --coral: #e07d69;
+    --c-vivo: var(--centro-acento-oscuro);
+    --c-sobre-vivo: #1a1614;
+    --etiqueta-papel: #f5eee5;
+    --hoja-papel: #e9e0d2;
+    --sombra: rgba(0, 0, 0, .45);
+    --sombra-fuerte: rgba(0, 0, 0, .6);
+    --imagen: brightness(.9) saturate(.96);
+    --grano: .07;
+    color-scheme: dark;
+}
+
+* {
+    box-sizing: border-box;
+}
+html,
+body {
+    margin: 0;
+    height: 100%;
+}
+body {
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+}
+/* Paper grain over the whole page, very light. */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: var(--grano);
+    /* stylelint-disable-next-line function-url-scheme-disallowed-list */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .2 0 0 0 1.2 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+button,
+input {
+    font: inherit;
+    color: inherit;
+}
+button {
+    cursor: pointer;
+}
+:focus-visible {
+    outline: 3px solid var(--c-vivo);
+    outline-offset: 3px;
+    border-radius: 12px;
+}
+.vh {
+    /* stylelint-disable-next-line declaration-no-important */
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.app {
+    position: relative;
+    z-index: 1;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    /* stylelint-disable-next-line csstree/validator */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Top: sample strip and the centre. */
+.muestra {
+    margin: 0;
+    padding: 6px 16px 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--tinta-2);
+}
+.top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+}
+.centro {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 650;
+    font-size: 16px;
+    margin-right: auto;
+}
+.centro svg {
+    width: 34px;
+    height: 34px;
+    flex: none;
+}
+/* The mark of the centre: its logo, or its initials on its colour, as the emblem of the sample. */
+.marca-centro {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 9px;
+}
+img.marca-centro {
+    object-fit: contain;
+}
+.monograma {
+    display: grid;
+    place-items: center;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+.firma-centro .marca-centro {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+}
+.redondo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--borde);
+    background: var(--superficie);
+    display: grid;
+    place-items: center;
+    padding: 0;
+    flex: none;
+    transition: background .2s, transform .15s;
+}
+.redondo:hover {
+    background: var(--hundido);
+}
+.redondo:active {
+    transform: scale(.94);
+}
+.redondo:disabled {
+    opacity: .35;
+    cursor: default;
+}
+.redondo svg {
+    width: 22px;
+    height: 22px;
+}
+.tema .luna {
+    display: none;
+}
+:root[data-theme="dark"] .tema .sol {
+    display: none;
+}
+:root[data-theme="dark"] .tema .luna {
+    display: block;
+}
+
+/* The book: a strip of pages that moves sideways. */
+.libro {
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y;
+    min-height: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.tira {
+    display: flex;
+    height: 100%;
+    transition: transform .5s cubic-bezier(.22, .8, .24, 1);
+    will-change: transform;
+}
+.pagina {
+    flex: 0 0 100%;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: grid;
+    align-content: safe center;
+    gap: 18px;
+    padding: 8px 16px 12px;
+}
+.lamina {
+    margin: 0;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--hundido);
+    box-shadow: 0 1px 2px var(--sombra), 0 12px 32px -14px var(--sombra-fuerte);
+}
+.lamina > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: var(--imagen);
+}
+.texto {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.46;
+    font-weight: 450;
+    letter-spacing: -.005em;
+}
+.texto span.l {
+    display: block;
+    /* stylelint-disable-next-line csstree/validator */
+    text-wrap: balance;
+}
+.nombre {
+    font-family: 'Caveat', cursive;
+    font-weight: 650;
+    font-size: 1.42em;
+    line-height: .8;
+    letter-spacing: .01em;
+    display: inline-block;
+    transform: rotate(-2deg) translateY(.04em);
+    padding: 0 .04em;
+}
+.folio {
+    font-size: 13px;
+    color: var(--tinta-2);
+    letter-spacing: .06em;
+}
+
+/* A layer the size of the illustration (1536 x 1024), scaled with it, for what the page lays on the drawing: the
+   child's own drawing in the frame on the classroom wall. */
+.capa {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1536px;
+    height: 1024px;
+    transform-origin: 0 0;
+    transform: scale(var(--s, .3));
+    pointer-events: none;
+    filter: var(--imagen);
+}
+.marco {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 1px;
+    background: #f5e1cb;
+    pointer-events: auto;
+    overflow: hidden;
+    display: block;
+    /* the frame's own shadow on the mount, from the window light on the left */
+    box-shadow: inset 7px 8px 12px rgba(54, 35, 58, .30), inset -2px -2px 4px rgba(54, 35, 58, .10);
+}
+button.marco {
+    cursor: zoom-in;
+}
+.marco:focus-visible {
+    outline: 8px solid var(--c-vivo);
+    outline-offset: 6px;
+    border-radius: 2px;
+}
+/* the sheet: a little smaller than the opening, a touch crooked, with a soft shadow on the mount */
+.marco .hoja {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 7%;
+    bottom: 8%;
+    transform: rotate(-1.2deg);
+    background: #fcf4e8;
+    box-shadow: 3px 5px 8px rgba(54, 35, 58, .26), 0 0 0 1px rgba(54, 35, 58, .06);
+    isolation: isolate;
+}
+.marco .hoja canvas,
+.marco .hoja img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* A phone photo of a sheet is grey: lifted to white and laid on warm paper, so it hangs in the same light as the class's
+   drawings beside it. */
+.marco .hoja canvas,
+.marco .hoja img,
+.ver-hoja canvas {
+    filter: brightness(1.2) contrast(1.06);
+    mix-blend-mode: multiply;
+}
+/* the class drawing comes with its paper already even (trabajo/dibujo/aplanar.py): no lift, or the crayon fades */
+.marco.sin-dibujo .hoja img {
+    filter: none;
+}
+
+/* The heart in a corner of each page: always there, quiet, never asked for. */
+.corazon {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--berenjena);
+    background: rgba(251, 245, 236, .62);
+    opacity: .78;
+    transition: opacity .2s, background .2s, color .2s;
+}
+.corazon:hover,
+.corazon:focus-visible {
+    opacity: 1;
+    background: rgba(251, 245, 236, .9);
+}
+.corazon svg {
+    width: 22px;
+    height: 22px;
+    overflow: visible;
+}
+.corazon path {
+    fill: transparent;
+    transition: fill .2s;
+}
+.corazon[aria-pressed="true"] {
+    opacity: 1;
+    color: var(--coral);
+}
+.corazon[aria-pressed="true"] path {
+    fill: currentColor;
+}
+.corazon.late svg {
+    animation: latido .55s cubic-bezier(.3, .7, .4, 1) 1;
+}
+
+@keyframes latido {
+    0% {
+        transform: scale(1);
+    }
+    32% {
+        transform: scale(1.3);
+    }
+    62% {
+        transform: scale(.93);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Cover. */
+.portada {
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    gap: 10px;
+}
+.portada h1 {
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    font-weight: 700;
+}
+.portada .antes {
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(30px, 8vw, 54px);
+    letter-spacing: -.02em;
+    line-height: 1.05;
+}
+.etiqueta {
+    /* stylelint-disable-next-line csstree/validator */
+    width: min(78vw, 440px);
+    height: auto;
+    overflow: visible;
+    transform: rotate(-4deg);
+    margin: 6px 0 4px;
+    filter: drop-shadow(0 2px 2px var(--sombra)) drop-shadow(0 16px 22px var(--sombra));
+}
+.etiqueta .banda {
+    fill: var(--c-vivo);
+}
+.etiqueta .papel {
+    fill: var(--etiqueta-papel);
+}
+.etiqueta .renglon {
+    fill: var(--etiqueta-renglon);
+}
+.etiqueta .pico {
+    fill: var(--etiqueta-pico);
+}
+.etiqueta text {
+    fill: var(--etiqueta-tinta);
+    font-family: 'Caveat', cursive;
+    font-weight: 650;
+}
+.firma-centro {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 650;
+    font-size: 18px;
+    margin: 10px 0 0;
+}
+.firma-centro svg {
+    width: 30px;
+    height: 30px;
+}
+.pista {
+    margin: 6px 0 0;
+    font-size: 15px;
+    color: var(--tinta-2);
+}
+
+/* The dedication: a sheet of the book, written by hand, with the two hands; and below, three quiet gestures. */
+.dedicatoria {
+    align-content: center;
+    justify-items: center;
+    gap: 14px;
+}
+.hoja-dedicatoria {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    gap: 4px;
+    padding: 16px 18px 22px;
+    border-radius: 8px;
+    background: var(--hoja-papel);
+    color: var(--hoja-tinta);
+    box-shadow: 0 1px 2px var(--sombra), 0 14px 34px -16px var(--sombra-fuerte);
+}
+.hoja-dedicatoria::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: .06;
+    /* stylelint-disable-next-line function-url-scheme-disallowed-list */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .2 0 0 0 1.4 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.manos {
+    display: block;
+    width: 52%;
+    height: auto;
+    filter: var(--imagen);
+}
+.dedica {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(27px, 7.4vw, 34px);
+    line-height: 1.12;
+    letter-spacing: .005em;
+}
+.dedica .l {
+    display: block;
+    /* stylelint-disable-next-line csstree/validator */
+    text-wrap: balance;
+}
+.dedica .l + .l {
+    margin-top: .32em;
+}
+.hoja-dedicatoria .corazon {
+    right: 8px;
+    bottom: 8px;
+    background: transparent;
+    opacity: .6;
+}
+.hoja-dedicatoria .corazon:hover,
+.hoja-dedicatoria .corazon:focus-visible {
+    background: rgba(54, 35, 58, .06);
+    opacity: 1;
+}
+.hoja-dedicatoria .corazon[aria-pressed="true"] {
+    opacity: 1;
+    color: #cf6450;
+}
+.gestos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 12px;
+    width: 100%;
+}
+.gesto {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 46px;
+    padding: 8px 18px;
+    border-radius: 23px;
+    border: 1.5px solid var(--linea);
+    background: var(--superficie);
+    color: var(--tinta);
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background .2s, border-color .2s, transform .15s;
+}
+.gesto:hover {
+    background: var(--hundido);
+    border-color: var(--borde);
+}
+.gesto:active {
+    transform: scale(.98);
+}
+.gesto svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    color: var(--c-vivo);
+}
+.gestos-aviso {
+    margin: 0;
+    min-height: 1.4em;
+    font-size: 14px;
+    color: var(--tinta-2);
+    text-align: center;
+}
+
+/* The drawing, large. */
+.ver {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+    color: var(--tinta);
+}
+.ver::backdrop {
+    background: rgba(23, 16, 20, .66);
+}
+.ver-cuerpo {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+}
+.ver-hoja {
+    /* stylelint-disable-next-line csstree/validator */
+    height: min(70vh, 118vw);
+    aspect-ratio: 3 / 4;
+    background: #fcf4e8;
+    transform: rotate(-.8deg);
+    isolation: isolate;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .25), 0 22px 50px -18px rgba(0, 0, 0, .6);
+}
+.ver-hoja canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.ver-pie {
+    margin: 0;
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+    font-size: 26px;
+    color: #fbf5ec;
+    text-align: center;
+    /* stylelint-disable-next-line csstree/validator */
+    text-wrap: balance;
+}
+.ver-cerrar {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+}
+
+/* Controls. */
+.mandos {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "ant oir sig" "pie pie pie";
+    align-items: center;
+    gap: 10px 12px;
+    padding: 10px 16px 4px;
+    border-top: 1px solid var(--linea);
+    background: color-mix(in srgb, var(--papel) 92%, transparent);
+}
+.ant {
+    grid-area: ant;
+}
+.sig {
+    grid-area: sig;
+}
+.oir {
+    grid-area: oir;
+    height: 52px;
+    border-radius: 26px;
+    border: 0;
+    background: var(--c-vivo);
+    color: var(--c-sobre-vivo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 650;
+    font-size: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .15s, filter .2s;
+}
+.oir:hover {
+    filter: brightness(1.08);
+}
+.oir:active {
+    transform: scale(.98);
+}
+.oir svg {
+    width: 22px;
+    height: 22px;
+}
+.oir .pausa {
+    display: none;
+}
+.oir[aria-pressed="true"] .play {
+    display: none;
+}
+.oir[aria-pressed="true"] .pausa {
+    display: block;
+}
+.oir::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 4px;
+    width: calc(var(--prog, 0) * 100%);
+    background: currentColor;
+    opacity: .55;
+    transition: width .25s linear;
+}
+.pie {
+    grid-area: pie;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.puntos {
+    grid-area: puntos;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex: none;
+}
+.puntos button {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    border: 0;
+    padding: 0;
+    background: var(--borde);
+    opacity: .55;
+    transition: width .3s, background .3s, opacity .3s;
+}
+.puntos button[aria-current="true"] {
+    width: 22px;
+    background: var(--c-vivo);
+    opacity: 1;
+}
+.sonido {
+    grid-area: vol;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.musica {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    border: 1px solid var(--linea);
+    background: transparent;
+    color: var(--c-vivo);
+    display: grid;
+    place-items: center;
+    padding: 0;
+    flex: none;
+}
+.musica svg {
+    width: 20px;
+    height: 20px;
+}
+.musica .tachado {
+    display: none;
+}
+.musica[aria-pressed="false"] {
+    color: var(--tinta-2);
+}
+.musica[aria-pressed="false"] .tachado {
+    display: inline;
+}
+.vol {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--tinta-2);
+    font-size: 14px;
+    flex: 0 1 auto;
+    min-width: 0;
+}
+.vol svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+}
+.vol input {
+    width: 120px;
+    min-width: 48px;
+    flex: 0 1 auto;
+    accent-color: var(--c-vivo);
+}
+.vol output {
+    width: 3.4em;
+    flex: none;
+    white-space: nowrap;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.autor {
+    margin: 0;
+    padding: 4px 16px 8px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--tinta-2);
+}
+.autor a {
+    color: inherit;
+    text-underline-offset: 2px;
+}
+
+/* Wide screens and phones on their side: the illustration on the left, the text beside it. */
+@media (min-width: 720px) and (min-aspect-ratio: 5/4) {
+    .pagina:not(.portada):not(.dedicatoria) {
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+        align-content: center;
+        align-items: center;
+        /* stylelint-disable-next-line csstree/validator */
+        gap: clamp(20px, 3.5vw, 56px);
+        /* stylelint-disable-next-line csstree/validator */
+        padding: 8px clamp(16px, 4vw, 64px) 12px;
+    }
+    .lamina {
+        /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100dvh - 230px) * 1.5));
+        justify-self: end;
+    }
+    .texto {
+        /* stylelint-disable-next-line csstree/validator */
+        font-size: clamp(20px, 1.15vw + 11px, 30px);
+    }
+    .corazon {
+        right: 14px;
+        bottom: 14px;
+    }
+    .dedicatoria {
+        /* stylelint-disable-next-line csstree/validator */
+        padding: 8px clamp(16px, 4vw, 64px) 12px;
+    }
+    .hoja-dedicatoria {
+        /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100dvh - 300px) * 1.85));
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+        /* stylelint-disable-next-line csstree/validator */
+        gap: clamp(12px, 3vw, 44px);
+        /* stylelint-disable-next-line csstree/validator */
+        padding: clamp(16px, 2.6vw, 40px) clamp(20px, 3.4vw, 56px);
+    }
+    .manos {
+        width: 100%;
+    }
+    .dedica {
+        text-align: left;
+        /* stylelint-disable-next-line csstree/validator */
+        font-size: clamp(30px, 1.7vw + 14px, 50px);
+    }
+    .gestos {
+        width: auto;
+    }
+    .mandos {
+        grid-template-columns: auto auto minmax(180px, 280px) auto auto;
+        grid-template-areas: "puntos ant oir sig vol";
+        justify-content: center;
+        gap: 16px;
+        /* stylelint-disable-next-line csstree/validator */
+        padding: 12px clamp(16px, 4vw, 64px) 6px;
+    }
+    .pie {
+        display: contents;
+    }
+    .puntos {
+        justify-content: flex-end;
+        min-width: 170px;
+    }
+    .sonido {
+        min-width: 234px;
+    }
+    .ver-hoja {
+        /* stylelint-disable-next-line csstree/validator */
+        height: min(78vh, 900px);
+    }
+}
+
+@media (max-height: 560px) and (min-aspect-ratio: 5/4) {
+    .muestra {
+        display: none;
+    }
+    .top {
+        padding: 4px 16px;
+    }
+    .texto {
+        font-size: 18px;
+    }
+    .lamina {
+        /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100dvh - 150px) * 1.5));
+    }
+    .portada {
+        gap: 4px;
+    }
+    .portada .antes {
+        font-size: 26px;
+    }
+    .etiqueta {
+        width: 170px;
+        margin: 0;
+    }
+    .firma-centro {
+        margin: 4px 0 0;
+        font-size: 16px;
+    }
+    .pista {
+        display: none;
+    }
+    .hoja-dedicatoria {
+        /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100dvh - 190px) * 1.85));
+        padding: 10px 20px;
+    }
+    .dedica {
+        font-size: 26px;
+    }
+    .gesto {
+        min-height: 40px;
+        padding: 6px 14px;
+        font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tira,
+    .puntos button,
+    .oir::after {
+        transition: none;
+    }
+    .corazon.late svg {
+        animation: none;
+    }
+}

@@ -38,7 +38,7 @@ class seen {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] What is noted. */
-    const KINDS = ['open', 'part', 'touch', 'mailsent'];
+    const KINDS = ['open', 'part', 'touch', 'mailsent', 'story'];
 
     /** @var string[] The parts of the page of a family, from the top down. */
     const PARTS = ['wall', 'visit', 'hosts', 'told', 'data'];
@@ -46,6 +46,10 @@ class seen {
     /** @var string[] What can be touched on the page of a family. */
     const TOUCHES = ['drawing_seen', 'drawing_enlarged', 'tales', 'directions', 'calendar', 'question', 'phone_join',
         'language', 'download', 'drawing_sent', 'write', 'call', 'hobbies', 'volunteer', 'open_act'];
+
+    /** @var string[] What is done with the story of the first day; the page, when it matters, goes in «via» (p0 to p9). */
+    const STORY = ['opened', 'page', 'like', 'unlike', 'back', 'enlarged', 'again', 'saved', 'sent', 'whole', 'repeated',
+        'musicoff', 'read'];
 
     /** @var int The most a household notes in a day: beyond it, nothing more is kept. */
     const MOST = 400;
@@ -90,8 +94,10 @@ class seen {
     public static function record(\stdClass $household, string $kind, string $what = '', string $via = '', int $now = 0): bool {
         global $DB;
         $now = $now ?: time();
-        $via = self::via($via);
-        $lists = ['open' => [''], 'part' => self::PARTS, 'touch' => self::TOUCHES, 'mailsent' => familymail::KINDS];
+        // In the story, «via» is the page of the book.
+        $via = $kind === 'story' ? (preg_match('/^p[0-9]$/', $via) ? $via : '') : self::via($via);
+        $lists = ['open' => [''], 'part' => self::PARTS, 'touch' => self::TOUCHES, 'mailsent' => familymail::KINDS,
+            'story' => self::STORY];
         if (!isset($lists[$kind]) || !in_array($what, $lists[$kind], true)) {
             return false;
         }
@@ -105,6 +111,15 @@ class seen {
             [$id, 'touch', $what, $now - self::VISIT]
         );
         if ($again) {
+            return false;
+        }
+        // The book opened again a moment later is the same reading.
+        $reading = $kind === 'story' && $what === 'opened' && $DB->record_exists_select(
+            self::T,
+            'householdid = ? AND kind = ? AND what = ? AND timecreated > ?',
+            [$id, 'story', 'opened', $now - self::VISIT]
+        );
+        if ($reading) {
             return false;
         }
         if ($kind === 'open' && $via === '') {
@@ -176,7 +191,7 @@ class seen {
             } else if ($row->kind === 'touch') {
                 $out['touches'][$row->what] = ($out['touches'][$row->what] ?? 0) + 1;
             }
-            if ($row->via && $row->kind !== 'mailsent') {
+            if ($row->via && !in_array($row->kind, ['mailsent', 'story'], true)) {
                 $out['mails'][$row->via] = ($out['mails'][$row->via] ?? 0) + 1;
             }
         }

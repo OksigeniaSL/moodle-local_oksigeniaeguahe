@@ -78,6 +78,23 @@ class publicpage {
     }
 
     /**
+     * The initials of a centre, for its monogram when it has no logo.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function initials(string $name): string {
+        // Without the words every school has: «Los Almendros» gives «LA», never «(».
+        $clean = preg_replace('/\(.*?\)|[^\p{L}\s]/u', ' ', $name);
+        $words = preg_split('/\s+/', trim(preg_replace('/\b(colegio|escuela|academia|instituto|centro|school|college|' .
+            'escola|de|del|la|las|el|of|the|da|do|dos|das)\b/iu', '', $clean))) ?: [$name];
+        return \core_text::strtoupper(implode('', array_map(
+            fn($w) => \core_text::substr($w, 0, 1),
+            array_slice(array_filter($words), 0, 2)
+        ))) ?: \core_text::strtoupper(\core_text::substr($name, 0, 1));
+    }
+
+    /**
      * Prepares Moodle for a page without an account.
      *
      * @param \moodle_url $url
@@ -137,14 +154,7 @@ class publicpage {
         $colour = $centre->colour ?: '#2f5d62';
         $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
         $name = format_string($centre->name);
-        // The initials of the name without the words every school has: «Los Almendros» gives «LA», never «(».
-        $clean = preg_replace('/\(.*?\)|[^\p{L}\s]/u', ' ', $name);
-        $words = preg_split('/\s+/', trim(preg_replace('/\b(colegio|escuela|academia|instituto|centro|school|college|' .
-            'escola|de|del|la|las|el|of|the|da|do|dos|das)\b/iu', '', $clean))) ?: [$name];
-        $initials = \core_text::strtoupper(implode('', array_map(
-            fn($w) => \core_text::substr($w, 0, 1),
-            array_slice(array_filter($words), 0, 2)
-        ))) ?: \core_text::strtoupper(\core_text::substr($name, 0, 1));
+        $initials = self::initials($name);
         $langs = publiclang::switcher($lang, $url);
         $current = '';
         foreach ($langs as $item) {

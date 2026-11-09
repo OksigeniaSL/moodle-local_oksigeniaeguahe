@@ -797,5 +797,28 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026112200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026112400) {
+        // For the story «Your first day»: the first day of the school year, the name of the centre in a sentence, and
+        // the courses that give it.
+        $fields = [
+            'local_oksigeniaeguahe_centre' => [
+                new xmldb_field('firstday', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'networks'),
+                new xmldb_field('namephrase', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'firstday'),
+            ],
+            'local_oksigeniaeguahe_offer' => [
+                new xmldb_field('story', XMLDB_TYPE_INTEGER, '1', null, null, null, null, 'handover'),
+            ],
+        ];
+        foreach ($fields as $name => $list) {
+            $table = new xmldb_table($name);
+            foreach ($list as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026112400, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
