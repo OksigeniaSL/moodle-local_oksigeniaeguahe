@@ -136,6 +136,15 @@ final class cinematico_test extends \advanced_testcase {
         $this->assertEquals(1.0, $north['t']);
         $this->assertSame('Nowhere', $stars['unplaced'][0]['name']);
         $this->assertStringContainsString('OpenStreetMap', $stars['foot'], 'Its source, cited.');
+        $this->assertNotFalse($stars['centre'], 'No town where the centre is: its own light.');
+        // A town where the centre is: one light, the centre's, with both names.
+        places::keep((int) $centre->id, 'Example Town', [-33.005, 151.004], 'nominatim', $now);
+        $merged = cinematico::constellation($centre, [['Example Town', 6, null], ['Northside', 8, null]], 'Each light.', false);
+        $this->assertFalse($merged['centre']);
+        $home = array_column($merged['stars'], null, 'name')['Example Town'];
+        $this->assertTrue($home['iscentre']);
+        $this->assertSame('Example College', $home['centrename']);
+        $this->assertFalse(array_column($merged['stars'], null, 'name')['Northside']['iscentre']);
         foreach ($stars['stars'] as $star) {
             foreach (['x', 'y', 'xm', 'ym'] as $axis) {
                 $this->assertGreaterThanOrEqual(0.09, $star[$axis]);

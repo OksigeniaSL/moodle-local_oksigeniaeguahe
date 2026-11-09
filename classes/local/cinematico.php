@@ -36,8 +36,11 @@ class cinematico {
     /** @var float The river reaches at least this far, in hours: a day and a half. */
     const HOURS = 36.0;
 
-    /** @var float The room of a lantern on its lane, as a share of the river. */
-    const ROOM = 0.4;
+    /** @var float The room of a lantern on its lane, as a share of the river, without JavaScript (escena.js measures). */
+    const ROOM = 0.5;
+
+    /** @var float A town this near the centre, in kilometres, is where the centre is: one light. */
+    const HERE = 2.0;
 
     /** @var int The lanes of the river. */
     const LANES = 3;
@@ -178,11 +181,18 @@ class cinematico {
         $placed = [];
         $points = [];
         $unplaced = [];
+        $home = null;
+        $nearest = self::HERE;
         foreach ($items as [$name, $n, $core]) {
             $where = $here ? ($known[places::key((string) $name)] ?? null) : null;
             if ($where) {
                 [$east, $north] = places::offset($here, $where);
                 $d = hypot($east, $north);
+                // The town the centre is in: its light is the centre's.
+                if ($d <= $nearest) {
+                    $nearest = $d;
+                    $home = count($placed);
+                }
                 $f = $d > 0 ? sqrt($d) / $d : 0;
                 $points[] = [$east * $f, $north * $f];
                 $placed[] = [$name, $n, $core];
@@ -206,7 +216,7 @@ class cinematico {
             $stars[] = ['x' => round($x, 3), 'y' => round($y, 3), 'xm' => round($xm, 3), 'ym' => round($ym, 3),
                 't' => round(sqrt((int) $n / $most), 3), 'core' => $core === null ? 0 : round((float) $core, 3),
                 'hascore' => $core !== null, 'left' => $x > 0.72, 'leftm' => $xm > 0.58, 'name' => (string) $name,
-                'n' => (string) $n];
+                'n' => (string) $n, 'iscentre' => $i === $home, 'centrename' => $i === $home ? format_string($centre->name) : ''];
         }
         usort($unplaced, fn($a, $b) => (int) $b[1] <=> (int) $a[1]);
         $out = [];
@@ -214,8 +224,8 @@ class cinematico {
             $out[] = ['k' => $k, 't' => round(sqrt((int) $n / $most), 3), 'name' => (string) $name, 'n' => (string) $n];
         }
         $credit = $stars ? places::credit((int) $centre->id) : '';
-        return ['rings' => $rings, 'foot' => trim($foot . ' ' . $credit), 'centre' => ['x' => 0.33, 'y' => 0.5,
-            'xm' => round($cxm, 3),
+        return ['rings' => $rings, 'foot' => trim($foot . ' ' . $credit), 'centre' => $home !== null ? false : ['x' => 0.33,
+            'y' => 0.5, 'xm' => round($cxm, 3),
             'ym' => round($cym, 3), 'name' => format_string($centre->name)], 'stars' => $stars, 'unplaced' => $out];
     }
 

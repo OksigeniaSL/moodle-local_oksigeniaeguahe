@@ -372,6 +372,19 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     font-weight: 800;
 }
 
+/* escena.js: a lantern that only fits short, without «Llegó…»; and one that fits nowhere, only in the list below. */
+.farolillo.compacto {
+    width: calc(var(--tarjeta) * 0.74);
+}
+
+.farolillo.compacto .farolillo-como {
+    display: none;
+}
+
+.farolillo.fuera-del-rio {
+    display: none;
+}
+
 .farolillo-como {
     overflow: hidden;
     color: var(--eg-tinta-2);
@@ -666,15 +679,26 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     width: calc(8px + var(--t, 0) * 30px);
     height: calc(8px + var(--t, 0) * 30px);
     border-radius: 50%;
-    /* stylelint-disable-next-line max-line-length */
-    background: radial-gradient(circle, #fff8ee 0 18%, rgba(255, 201, 138, 0.9) 30%, rgba(255, 176, 102, 0.25) 58%, transparent 70%);
+    background:
+        radial-gradient(
+            circle,
+            #fff8ee 0 18%,
+            rgba(255, 201, 138, 0.9) 30%,
+            rgba(255, 176, 102, 0.25) 58%,
+            transparent 70%
+        );
     transform: translate(-50%, -50%);
 }
 
 .con-anillos .estrella .estrella-luz {
     border: 1.5px solid rgba(244, 237, 231, 0.55);
-    /* stylelint-disable-next-line max-line-length */
-    background: radial-gradient(circle, #fff8ee 0, rgba(255, 201, 138, 0.95) calc(var(--nucleo, 0) * 300% + 10%), transparent calc(var(--nucleo, 0) * 300% + 16%));
+    background:
+        radial-gradient(
+            circle,
+            #fff8ee 0,
+            rgba(255, 201, 138, 0.95) calc(var(--nucleo, 0) * 300% + 10%),
+            transparent calc(var(--nucleo, 0) * 300% + 16%)
+        );
 }
 
 .estrella-nombre {
@@ -715,6 +739,24 @@ html body.panel.piel-mostrador.piel-cinematico::after {
 /* In Previsión the reach goes under the courses, across the whole panel: the stars need the width. */
 .piel-cinematico .prevision .apartado.alcance {
     grid-column: 1 / -1;
+}
+
+/* The centre in a town (it is there, or within 2 km): one light, the town's, with the halo of the centre, and the
+   centre's name under the town's. */
+.estrella.es-centro .estrella-luz {
+    box-shadow: 0 0 0 4px rgba(255, 201, 138, 0.22), 0 0 30px 10px rgba(255, 176, 102, 0.35);
+}
+
+.estrella-aqui {
+    display: block;
+    color: var(--eg-tinta);
+    font-size: 0.92em;
+    font-weight: 700;
+}
+
+/* escena.js: a name that fits nowhere is not written (the table under the sky has it). */
+.estrella-nombre.sin-nombre {
+    visibility: hidden;
 }
 
 /* Without a position (no code, another country): on a quiet ring along the bottom, by their count. */
