@@ -3439,6 +3439,7 @@ html[lang="ar"] body * {
 
 .compartido-dibujo .mano-titular {
     margin: 0;
+    /* stylelint-disable-next-line csstree/validator */
     font-size: clamp(3rem, 13vw, 5.6rem);
     color: var(--eg-tinta);
 }
@@ -3471,6 +3472,7 @@ html[lang="ar"] body * {
     position: absolute;
     top: -12px;
     z-index: 1;
+    /* stylelint-disable-next-line csstree/validator */
     width: clamp(72px, 13%, 116px);
     height: clamp(22px, 3.6%, 32px);
     background: rgba(232, 217, 180, 0.84);
