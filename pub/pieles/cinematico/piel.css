@@ -71,6 +71,13 @@ html body.panel.piel-mostrador.piel-cinematico {
     --eg-mochila: #bba9b8;
     --eg-mochila-sombra: #8f7d8c;
     --eg-mochila-luz: #1c1621;
+    /* The hook, the wood and the coral of the night as well, whatever Moodle says: what hangs is the same in both. */
+    --eg-gancho: #cda27a;
+    --eg-gancho-luz: #ead0b2;
+    --eg-madera: #a87a55;
+    --eg-madera-luz: #c29670;
+    --eg-madera-sombra: #7b573c;
+    --eg-coral: #f0947b;
     --bs-focus-ring-color: rgba(255, 201, 138, 0.4);
     --piel-fondo: #0b090d;
     --piel-hoja: var(--cine-vidrio);
@@ -404,25 +411,42 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     box-shadow: inset 0 0 0 1px var(--cine-filo);
 }
 
-.piel-mostrador.piel-cinematico .pared-hijos .riel {
+.piel-mostrador.piel-cinematico .pared-hijos .riel,
+.piel-mostrador.piel-cinematico .pared-turno .riel {
     background: #2a2030;
     box-shadow: inset 0 1px 0 rgba(255, 201, 138, 0.55), 0 0 14px -4px rgba(255, 176, 102, 0.5);
 }
 
-.piel-cinematico .riel-caja {
+.piel-cinematico .riel-caja,
+.piel-cinematico .pared-turno {
     background: rgba(255, 255, 255, 0.04);
     box-shadow: inset 0 0 0 1px var(--cine-filo);
 }
 
-/* ---------- What hangs, by age (Enrique, 8-11): in C, from secondary on, the luggage tag. On the knob of a family's
-   file (the partial draws the three; here only the tag shows) and on the rails, which the server draws with the tag. -- */
-.piel-cinematico .colgante .de-mochila,
-.piel-cinematico .colgante .de-llavero {
-    display: none;
+/* ---------- What hangs, by the age of each child (data/escalera.json), as in B. On the dark glass every card is the
+   cream card of the luggage tag, lit: the labels, the name holder, the plate of the key ring and the card on a lanyard.
+   The lanyard keeps the tone of the child and gets a thread of its light; from eighteen, grey with a thread of the
+   tone, as in B. The veil of the sporty backpack goes towards the mid grey of C: it takes the sweetness away without
+   sinking the tone into the dark. Its reflective stripe catches the light of the counter. ---------- */
+.piel-cinematico .colgante .papel {
+    fill: #ecdfc6;
 }
 
-.piel-cinematico .colgante .de-equipaje {
+.piel-cinematico .colgante .hilo {
     display: inline;
+    fill: var(--mochila-luz, #f1c9c0);
+}
+
+.piel-cinematico .colgante-credencial-neutra .hilo {
+    fill: var(--mochila, #cf6450);
+}
+
+.piel-cinematico .colgante .velo {
+    fill: var(--eg-borde);
+}
+
+.piel-cinematico .colgante .reflectante {
+    fill: #ffe9c9;
 }
 
 /* The names, written by hand on the luggage tag: cream card, notched end and its eyelet in the colour of the centre. */
@@ -482,8 +506,23 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     fill: rgba(255, 176, 102, 0.35);
 }
 
-.piel-cinematico .perchero .r-m-carton {
+.piel-cinematico .perchero .r-m-carton,
+.piel-cinematico .perchero .r-m-etq {
     fill: #ecdfc6;
+}
+
+/* By age on the rail too: the veil towards the mid grey and the stripe lit, as on the knob; the plain lanyard from
+   eighteen darker than the backpacks of the rail, so that it reads plain. */
+.piel-cinematico .perchero .r-m-velo {
+    fill: var(--eg-borde);
+}
+
+.piel-cinematico .perchero .r-m-reflectante {
+    fill: #ffe9c9;
+}
+
+.piel-cinematico .perchero .r-m-cinta-neutra {
+    fill: var(--eg-borde);
 }
 
 /* ---------- The days of the list: a title card of cinema, small capitals, and the time as a timecode ---------- */

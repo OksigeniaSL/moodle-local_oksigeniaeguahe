@@ -55,7 +55,7 @@ final class cinematico_test extends \advanced_testcase {
 
     /**
      * The river: the six that have waited longest, each placed by its wait and in a lane, the days along it; and the
-     * river empty when nobody waits. What hangs is always a luggage tag.
+     * river empty when nobody waits. What hangs follows the ladder of ages, as in every skin.
      */
     public function test_river(): void {
         global $DB;
@@ -87,8 +87,13 @@ final class cinematico_test extends \advanced_testcase {
         }
         $this->assertSame(get_string('cine_today', 'local_oksigeniaeguahe'), $river['days'][0]['name']);
         $this->assertNotEmpty($river['cuts']);
-        $this->assertSame('equipaje', panel::hanging_object('Year 1', $centre));
-        $this->assertSame('equipaje', panel::hanging_object('', $centre));
+        $paper = clone $centre;
+        $paper->skin = 'mostrador';
+        foreach (['', 'Year 1', 'Year 5', 'Year 9', 'Year 12', 'English B2'] as $course) {
+            $this->assertSame(panel::hanging_object($course, $paper), panel::hanging_object($course, $centre), $course);
+        }
+        $this->assertSame('mochila', panel::hanging_object('', $centre));
+        $this->assertSame('credencial', panel::hanging_object('Year 12', $centre));
     }
 
     /**

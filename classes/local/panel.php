@@ -407,7 +407,7 @@ class panel {
 <title>' . s($title) . ' · ' . s($name) . '</title>
 <link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'panel.css?v=' . $version . '">
-' . $skincss . '<style>:root { ' . $vars(publicpage::centre_vars($colour, false)) . ' }
+' . $skincss . '<style>:root { ' . $vars(publicpage::centre_vars($colour, $skin === 'cinematico')) . ' }
 @media (prefers-color-scheme: dark) { :root:not([data-bs-theme]) { ' . $vars(publicpage::centre_vars($colour, true)) . ' } }
 :root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
@@ -823,14 +823,11 @@ class panel {
      * course yet, and a course of no known age (languages, trades, degrees), as the ladder says.
      *
      * @param string $course The name of the course, as the centre writes it.
-     * @param \stdClass|null $centre Its school system, and its skin: the cinematic one always hangs a luggage tag.
+     * @param \stdClass|null $centre Its school system. Every skin hangs the same: the ladder.
      * @return string The object, and its variant after a hyphen: mochila, escolar, figura, llavero, equipaje, credencial
      *     or credencial-neutra.
      */
     public static function hanging_object(string $course, ?\stdClass $centre = null): string {
-        if ($centre && self::skin($centre) === 'cinematico') {
-            return 'equipaje';
-        }
         if (trim($course) === '') {
             return self::step_object(self::ladder()['sin_curso'] ?? []);
         }
