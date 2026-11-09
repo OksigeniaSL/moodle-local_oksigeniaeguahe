@@ -1,0 +1,217 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_report
+
+    A report (report.php): «How it goes» of a week or «The year, cold» of a school year, as it was made. The period in a
+    sentence and its big figures, the reading of the AI, what asks for attention, the way to the enrolment, the pace,
+    where they come from, the places, the acts, what the families tell and its themes, why some left, the first day, what
+    may come, where to grow, advice with its why and where it comes from, and what each figure means. The reports before,
+    making one, and the sheet to print it as a PDF. Functional markup: the design is Jujol's.
+
+    Example context (json):
+    {
+        "head": {"title": "Cómo va: del 2 al 8 de noviembre", "ante": "En caliente", "sub": "Hecho el lunes 9 de noviembre",
+            "back": {"url": "#", "name": "Cifras"}, "action": false},
+        "others": [{"name": "Del 2 al 8 de noviembre", "kind": "En caliente", "url": "#", "current": true, "hot": true}],
+        "hasothers": false, "make": false, "report": true, "id": 1, "kind": "hot", "hot": true,
+        "aistatus": false, "reading": "Una semana tranquila.", "pdf": "Descargar en PDF", "again": false,
+        "hasthemes": false, "themes": [], "themesfrom": false, "hasadvice": false, "advice": [],
+        "data": {"sentence": "Llegaron 3 familias.", "figures": [{"key": "arrived", "value": "3", "label": "familias llegaron",
+            "before": "0", "beforelabel": "la semana anterior", "ago": false, "agolabel": false, "trend": "sube",
+            "hasbefore": true, "hasago": false}],
+            "response": false, "attention": false, "funnel": false, "pace": false, "channels": false, "places": false,
+            "acts": false, "voices": false, "gone": false, "started": false, "referred": false, "forecast": false,
+            "grow": false, "definitions": [{"term": "Llegaron", "text": "Familias que escribieron por primera vez."}]
+        }
+    }
+}}
+<div class="pagina pagina-informe">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="informe-barra">
+        {{#hasothers}}
+        <nav class="informe-otros" aria-label="{{#str}}report_others, local_oksigeniaeguahe{{/str}}">
+            <ul>
+                {{#others}}<li><a href="{{url}}"{{#current}} aria-current="page"{{/current}}><span class="secundario">{{kind}}</span> {{name}}</a></li>{{/others}}
+            </ul>
+        </nav>
+        {{/hasothers}}
+        {{#make}}
+        <form class="informe-hacer" method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            {{#buttons}}<button class="boton secundario pequeno" type="submit" name="kind" value="{{kind}}">{{text}}</button>{{/buttons}}
+        </form>
+        {{/make}}
+    </div>
+    {{^report}}
+    <p class="secundario informe-vacio">{{empty}}</p>
+    {{/report}}
+    {{#report}}
+    <article class="informe informe-{{kind}}" id="informe">
+        {{#data}}
+        <section class="informe-frase" aria-label="{{#str}}report_h_period, local_oksigeniaeguahe{{/str}}">
+            <p class="frase">{{sentence}}</p>
+            <dl class="informe-cifras">
+                {{#figures}}
+                <div class="cifra cifra-{{key}}{{#trend}} {{trend}}{{/trend}}">
+                    <dt>{{label}}</dt>
+                    <dd><b>{{value}}</b>{{#hasbefore}}<span class="antes">{{beforelabel}}: {{before}}</span>{{/hasbefore}}{{#hasago}}<span class="antes hace-un-ano">{{agolabel}}: {{ago}}</span>{{/hasago}}</dd>
+                </div>
+                {{/figures}}
+            </dl>
+            {{#response}}<p class="respuesta">{{text}}</p>{{/response}}
+        </section>
+        {{/data}}
+        {{#aistatus}}<p class="informe-ia-estado secundario{{#waiting}} esperando{{/waiting}}">{{text}}</p>{{/aistatus}}
+        {{#reading}}
+        <section class="informe-lectura" aria-labelledby="inf-lectura">
+            <h2 id="inf-lectura">{{#str}}report_h_reading, local_oksigeniaeguahe{{/str}}</h2>
+            <p>{{reading}}</p>
+        </section>
+        {{/reading}}
+        {{#data}}
+        {{#hasattention}}
+        <section class="informe-atencion" aria-labelledby="inf-atencion">
+            <h2 id="inf-atencion">{{#str}}report_h_attention, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#attention}}<li class="atencion-{{kind}}{{#late}} tarde{{/late}}"><a href="{{url}}">{{text}}</a></li>{{/attention}}</ul>
+        </section>
+        {{/hasattention}}
+        {{#funnel}}
+        <section class="informe-camino" aria-labelledby="inf-camino">
+            <h2 id="inf-camino">{{#str}}report_h_funnel, local_oksigeniaeguahe{{/str}}</h2>
+            <p>{{sentence}}</p>
+            <table class="informe-tabla">
+                <thead><tr><th scope="col">{{#str}}report_col_stop, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_now, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}report_col_before_campaign, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
+                <tbody>{{#steps}}<tr><th scope="row">{{name}}</th><td>{{n}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/steps}}</tbody>
+            </table>
+            <p class="definicion secundario">{{def}}</p>
+        </section>
+        {{/funnel}}
+        {{#pace}}
+        <section class="informe-ritmo" aria-labelledby="inf-ritmo">
+            <h2 id="inf-ritmo">{{title}}</h2>
+            <table class="informe-tabla">
+                <thead><tr><th scope="col">{{#str}}report_col_when, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_families, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}report_col_year_before, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
+                <tbody>{{#rows}}<tr><th scope="row">{{label}}</th><td>{{n}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/rows}}</tbody>
+            </table>
+        </section>
+        {{/pace}}
+        {{#haschannels}}
+        <section class="informe-canales" aria-labelledby="inf-canales">
+            <h2 id="inf-canales">{{#str}}report_h_channels, local_oksigeniaeguahe{{/str}}</h2>
+            {{#channels}}
+            <h3>{{name}}</h3>
+            <table class="informe-tabla">
+                <thead><tr><th scope="col">{{#str}}report_col_channel, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_twelve, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_twelve_before, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>{{#rows}}<tr class="{{trend}}"><th scope="row">{{name}}{{#group}} <span class="secundario">{{group}}</span>{{/group}}</th><td>{{n}}</td><td>{{before}}</td></tr>{{/rows}}</tbody>
+            </table>
+            {{/channels}}
+        </section>
+        {{/haschannels}}
+        {{#hasplaces}}
+        <section class="informe-plazas" aria-labelledby="inf-plazas">
+            <h2 id="inf-plazas">{{#str}}report_h_places, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#places}}<li><b>{{name}}</b> · {{free}}. {{sentence}}</li>{{/places}}</ul>
+        </section>
+        {{/hasplaces}}
+        {{#acts}}
+        <section class="informe-actos" aria-labelledby="inf-actos">
+            <h2 id="inf-actos">{{#str}}report_h_acts, local_oksigeniaeguahe{{/str}}</h2>
+            {{#rows.0}}
+            <table class="informe-tabla">
+                <thead><tr><th scope="col">{{#str}}report_col_act, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_signed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_came, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_told, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                <tbody>{{#rows}}<tr><th scope="row">{{name}} <span class="secundario">{{when}}</span></th><td>{{signed}}</td><td>{{came}}{{#rate}} <span class="secundario">{{rate}}</span>{{/rate}}</td><td>{{told}}</td></tr>{{/rows}}</tbody>
+            </table>
+            {{/rows.0}}
+            {{#own}}<p>{{own}}</p>{{/own}}
+        </section>
+        {{/acts}}
+        {{/data}}
+        {{#data.voices}}
+        <section class="informe-voces" aria-labelledby="inf-voces">
+            <h2 id="inf-voces">{{#str}}report_h_voices, local_oksigeniaeguahe{{/str}}</h2>
+            {{#heard.0}}<h3>{{#str}}report_h_heard, local_oksigeniaeguahe{{/str}}</h3><ul>{{#heard}}<li>{{name}} · {{n}}</li>{{/heard}}</ul>{{/heard.0}}
+            {{#likes.0}}<h3>{{#str}}report_h_likes, local_oksigeniaeguahe{{/str}}</h3><ul>{{#likes}}<li>{{name}} · {{n}}</li>{{/likes}}</ul>{{/likes.0}}
+        </section>
+        {{/data.voices}}
+        {{#hasthemes}}
+        <section class="informe-temas" aria-labelledby="inf-temas">
+            <h2 id="inf-temas">{{#str}}report_h_themes, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#themes}}<li><b>{{theme}}</b> <span class="secundario">{{count}}</span><br>{{sentence}}</li>{{/themes}}</ul>
+            <p class="secundario">{{themesfrom}}</p>
+        </section>
+        {{/hasthemes}}
+        {{#data}}
+        {{#gone}}
+        <section class="informe-bajas" aria-labelledby="inf-bajas">
+            <h2 id="inf-bajas">{{#str}}report_h_gone, local_oksigeniaeguahe{{/str}}</h2>
+            <p>{{text}}</p>
+            {{#reasons.0}}<ul>{{#reasons}}<li>{{name}} · {{n}}</li>{{/reasons}}</ul>{{/reasons.0}}
+        </section>
+        {{/gone}}
+        {{#started}}
+        <section class="informe-primer-dia" aria-labelledby="inf-primer-dia">
+            <h2 id="inf-primer-dia">{{#str}}report_h_firstday, local_oksigeniaeguahe{{/str}}</h2>
+            <p>{{text}}</p>
+        </section>
+        {{/started}}
+        {{#referred}}<p class="informe-recomendadas">{{text}}</p>{{/referred}}
+        {{#hasforecast}}
+        <section class="informe-prevision" aria-labelledby="inf-prevision">
+            <h2 id="inf-prevision">{{#str}}report_h_forecast, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#forecast}}<li><b>{{grade}}</b>: {{#years}}<span class="ano">{{text}}</span> {{/years}}</li>{{/forecast}}</ul>
+        </section>
+        {{/hasforecast}}
+        {{#hasgrow}}
+        <section class="informe-crecer" aria-labelledby="inf-crecer">
+            <h2 id="inf-crecer">{{#str}}report_h_grow, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#grow}}<li><b>{{name}}</b> · {{line}}</li>{{/grow}}</ul>
+        </section>
+        {{/hasgrow}}
+        {{/data}}
+        {{#hasadvice}}
+        <section class="informe-consejos" aria-labelledby="inf-consejos">
+            <h2 id="inf-consejos">{{#str}}report_h_advice, local_oksigeniaeguahe{{/str}}</h2>
+            <ol>
+                {{#advice}}
+                <li class="consejo consejo-{{from}}">
+                    <p class="que">{{#url}}<a href="{{url}}">{{text}}</a>{{/url}}{{^url}}{{text}}{{/url}}</p>
+                    <p class="porque secundario">{{why}}</p>
+                    <p class="de-donde secundario">{{fromtext}}</p>
+                </li>
+                {{/advice}}
+            </ol>
+        </section>
+        {{/hasadvice}}
+        {{#data}}
+        <section class="informe-definiciones" aria-labelledby="inf-definiciones">
+            <h2 id="inf-definiciones">{{#str}}report_h_definitions, local_oksigeniaeguahe{{/str}}</h2>
+            <dl>{{#definitions}}<dt>{{term}}</dt><dd>{{text}}</dd>{{/definitions}}</dl>
+        </section>
+        {{/data}}
+        <div class="informe-acciones">
+            <button class="boton principal" type="button" data-imprimir hidden>{{pdf}}</button>
+            {{#again}}
+            <form method="post" action="{{action}}">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="kind" value="{{kind}}"><input type="hidden" name="from" value="{{from}}">
+                <button class="boton terciario" type="submit">{{text}}</button>
+            </form>
+            {{/again}}
+        </div>
+    </article>
+    {{/report}}
+</div>

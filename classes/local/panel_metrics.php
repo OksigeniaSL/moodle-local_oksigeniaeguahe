@@ -274,6 +274,9 @@ class panel_metrics {
                 ) :
                     get_string('panel_metrics_empty', $c),
                 'sub' => $cut . '.',
+                // The reports, hot and cold, from the numbers.
+                'action' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/report.php', ['c' => $centre->id]))->out(false),
+                    'name' => get_string('report_title', $c), 'icon' => '', 'anchor' => false],
             ]),
             'ensenar' => !empty($view['ensenar']),
             'ensenarurl' => $url(['ensenar' => 1])->out(false),

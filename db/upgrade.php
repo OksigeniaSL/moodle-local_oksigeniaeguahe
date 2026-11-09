@@ -830,5 +830,31 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026112700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026112800) {
+        // The reports, hot and cold, kept as they were made.
+        $table = new xmldb_table('local_oksigeniaeguahe_report');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('kind', XMLDB_TYPE_CHAR, '4', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('periodfrom', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('periodto', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('lang', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, 'es');
+        $table->add_field('data', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('ai', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('aistatus', XMLDB_TYPE_CHAR, '8', null, XMLDB_NOTNULL, null, 'none');
+        $table->add_field('aiprovider', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_field('aierror', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('period', XMLDB_INDEX_UNIQUE, ['centreid', 'kind', 'periodfrom']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026112800, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

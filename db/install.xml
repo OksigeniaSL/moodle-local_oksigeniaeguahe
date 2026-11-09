@@ -719,5 +719,30 @@
         <INDEX NAME="centrehobby" UNIQUE="false" FIELDS="centreid, hobby"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_report" COMMENT="A report of a centre kept as it was made: how the week went, or a whole school year, with what its AI added">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="4" NOTNULL="true" SEQUENCE="false" COMMENT="hot, a week; cold, a school year"/>
+        <FIELD NAME="periodfrom" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="periodto" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="es" SEQUENCE="false" COMMENT="The language it was made in, the one of the centre"/>
+        <FIELD NAME="data" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="What it says, as JSON: figures added up, never a family"/>
+        <FIELD NAME="ai" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the AI of the centre added, as JSON: a reading, themes and advice"/>
+        <FIELD NAME="aistatus" TYPE="char" LENGTH="8" NOTNULL="true" DEFAULT="none" SEQUENCE="false" COMMENT="none, waiting, done or failed"/>
+        <FIELD NAME="aiprovider" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The provider asked, as Moodle names it"/>
+        <FIELD NAME="aierror" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Why the AI could not, when it could not"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who asked for it; 0, the week or the year that ended"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="period" UNIQUE="true" FIELDS="centreid, kind, periodfrom"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

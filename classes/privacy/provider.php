@@ -41,7 +41,7 @@ class provider implements
     \core_privacy\local\request\user_preference_provider {
     /** @var string[] Tables with the people of the teams. */
     const TABLES = ['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent',
-        'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend'];
+        'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend', 'local_oksigeniaeguahe_report'];
 
     /**
      * What is kept about users.
@@ -72,6 +72,10 @@ class provider implements
             'userid' => 'privacy:metadata:spend:userid',
             'timemodified' => 'privacy:metadata:spend:timemodified',
         ], 'privacy:metadata:spend');
+        $collection->add_database_table('local_oksigeniaeguahe_report', [
+            'userid' => 'privacy:metadata:report:userid',
+            'timecreated' => 'privacy:metadata:report:timecreated',
+        ], 'privacy:metadata:report');
         $collection->add_user_preference(
             \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
             'privacy:metadata:preference:density'
@@ -189,6 +193,7 @@ class provider implements
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, 'userid > 0');
+        $DB->set_field_select('local_oksigeniaeguahe_report', 'userid', 0, 'userid > 0');
     }
 
     /**
@@ -231,5 +236,6 @@ class provider implements
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, "userid $in", $params);
+        $DB->set_field_select('local_oksigeniaeguahe_report', 'userid', 0, "userid $in", $params);
     }
 }

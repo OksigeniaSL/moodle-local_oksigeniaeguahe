@@ -61,4 +61,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => '\\local_oksigeniaeguahe\\task\\make_reports',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '6',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];

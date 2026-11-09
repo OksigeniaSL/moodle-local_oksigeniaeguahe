@@ -27,6 +27,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class ai {
+    /** @var callable|null In the tests, what answers in place of the provider: a function of the prompt. */
+    public static $answer = null;
+
     /**
      * Whether this Moodle has providers by instance.
      *
@@ -64,5 +67,72 @@ class ai {
             return null;
         }
         return (new ai_manager($DB))->only((int) $centre->aiprovider);
+    }
+
+    /**
+     * The name of the provider of a centre, as Moodle shows it; empty without one.
+     *
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function name(\stdClass $centre): string {
+        if (self::$answer) {
+            return 'Test';
+        }
+        return empty($centre->aiprovider) ? '' : (string) (self::providers()[(int) $centre->aiprovider] ?? '');
+    }
+
+    /**
+     * Asks the provider of a centre and returns what it wrote.
+     *
+     * @param \stdClass $centre
+     * @param string $prompt
+     * @param int $userid Who asks: the person, or the site for a task.
+     * @return string
+     * @throws \moodle_exception When the centre has no provider or it does not answer.
+     */
+    public static function ask(\stdClass $centre, string $prompt, int $userid): string {
+        if (self::$answer) {
+            return (string) (self::$answer)($prompt);
+        }
+        $manager = self::manager($centre);
+        if (!$manager) {
+            throw new \moodle_exception('report_ai_missing', 'local_oksigeniaeguahe');
+        }
+        $action = new \core_ai\aiactions\generate_text(\context_system::instance()->id, $userid, $prompt);
+        $response = $manager->process_action($action);
+        if (!$response->get_success()) {
+            throw new \moodle_exception('report_ai_error', 'local_oksigeniaeguahe', '', s($response->get_errormessage()));
+        }
+        return (string) ($response->get_response_data()['generatedcontent'] ?? '');
+    }
+
+    /**
+     * The data an answer brings: the first object or list written in JSON in it, with or without a fence around.
+     *
+     * @param string $text
+     * @return array|null
+     */
+    public static function json(string $text): ?array {
+        $start = strcspn($text, '{[');
+        if ($start >= strlen($text)) {
+            return null;
+        }
+        $end = strrpos($text, $text[$start] === '{' ? '}' : ']');
+        if ($end === false || $end < $start) {
+            return null;
+        }
+        $data = json_decode(substr($text, $start, $end - $start + 1), true);
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Whether a centre can ask: a provider chosen, or the tests answering.
+     *
+     * @param \stdClass $centre
+     * @return bool
+     */
+    public static function ready(\stdClass $centre): bool {
+        return self::$answer !== null || self::manager($centre) !== null;
     }
 }
