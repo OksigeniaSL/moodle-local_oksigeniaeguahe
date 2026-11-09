@@ -915,5 +915,26 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026113300, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113400) {
+        // The common family record of the centre: the family a person said a household is, and each child in it.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('familylink', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'heardnet');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        foreach (
+            [
+                new xmldb_field('familychild', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'leftnote'),
+                new xmldb_field('familygone', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'familychild'),
+            ] as $field
+        ) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026113400, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -153,6 +153,7 @@ class panel_household {
             'composer' => $composer,
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
             'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
+            'family' => self::family($household, $full, $canact),
             'leave' => self::leave($household, $full, $canact),
             'siblings' => self::siblings($household, $centre, $canact, $now),
             'thanks' => $canact ? self::thanks($household, $full) : false,
@@ -280,12 +281,53 @@ class panel_household {
         foreach (settled::LEFT_REASONS as $reason) {
             $reasons[] = ['value' => $reason, 'name' => panel::upper_first(get_string('left_' . $reason, $c))];
         }
+        // The common family record of the centre says some left: a person says whether they did.
+        $said = $gone ? [] : family::gone($children);
+        $saidnames = self::list_words(array_map(fn($k) => panel::tag($k), $said));
         return [
             'gone' => (bool) $gone,
+            'familysays' => $said ? get_string('panel_family_gone' . (count($said) > 1 ? '_many' : ''), $c, $saidnames) : '',
             'goneline' => $gone ? self::gone_line($gone) . '.' . ($gone['note'] !== '' ? ' ' . $gone['note'] : '') : '',
             'reasons' => $reasons,
             'canact' => $canact,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * The common family record of the centre, in the file: a hint that the family is already one of the centre (by a
+     * phone verified there or an email), for a person to confirm; or that it is, as a person said; and which children
+     * are in it since they enrolled. Nothing without the record.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param bool $canact
+     * @return array|false
+     */
+    protected static function family(\stdClass $household, \stdClass $full, bool $canact) {
+        if (!family::available()) {
+            return false;
+        }
+        $c = self::C;
+        $linked = (int) ($household->familylink ?? 0);
+        $hints = $linked === 0 ? family::hints($full) : [];
+        $in = array_values(array_filter($full->children, fn($k) => !empty($k->familychild) && empty($k->lefttime)));
+        if (!$hints && $linked <= 0 && !$in) {
+            return false;
+        }
+        $action = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false);
+        $found = [];
+        foreach ($hints as $familyid => $names) {
+            $found[] = ['familyid' => $familyid, 'line' => get_string('panel_family_hint', $c, self::list_words($names))];
+        }
+        return [
+            'hints' => $found,
+            'hashints' => (bool) $found,
+            'linked' => $linked > 0 ? get_string('panel_family_linked', $c) : '',
+            'in' => $in ? get_string('panel_family_in', $c, self::list_words(array_map(fn($k) => panel::tag($k), $in))) : '',
+            'canact' => $canact,
+            'action' => $action,
             'sesskey' => sesskey(),
         ];
     }

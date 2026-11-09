@@ -414,6 +414,7 @@ class households {
             throw new \coding_exception('Unknown stage ' . $stage);
         }
         $now = time();
+        $was = (string) ($child->stage ?? '');
         $DB->update_record(self::CHILDREN, (object) [
             'id' => $child->id,
             'stage' => $stage,
@@ -421,6 +422,12 @@ class households {
             'stagetime' => $now,
             'timemodified' => $now,
         ]);
+        // Enrolled, the child passes to the common family record of the centre; taken back, it leaves it.
+        if ($stage === 'enrolled' && $was !== 'enrolled' && ($household = self::get((int) $child->householdid, 0))) {
+            family::enrol($household, $child);
+        } else if ($was === 'enrolled' && $stage !== 'enrolled') {
+            family::leave($child);
+        }
     }
 
     /**

@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
@@ -127,6 +128,23 @@ if ($action && data_submitted() && confirm_sesskey()) {
             break;
         case 'stay':
             settled::stay($household, time());
+            redirect(new moodle_url($url, [], 'se-van'));
+            break;
+        case 'familysame':
+            // A person says it is that family of the centre: its children go to it when they enrol.
+            $familyid = optional_param('familia', 0, PARAM_INT);
+            if (array_key_exists($familyid, family::hints(households::full($household)))) {
+                family::confirm($household, $familyid);
+            }
+            redirect(new moodle_url($url, [], 'familia-centro'));
+            break;
+        case 'familynot':
+            family::confirm($household, -1);
+            redirect(new moodle_url($url, [], 'familia-centro'));
+            break;
+        case 'familystill':
+            // The common record said they left; a person says they are still here.
+            family::still_here($household);
             redirect(new moodle_url($url, [], 'se-van'));
             break;
         case 'thanked':

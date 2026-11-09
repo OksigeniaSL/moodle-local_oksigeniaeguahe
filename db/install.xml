@@ -109,6 +109,7 @@
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
         <FIELD NAME="heardnet" TYPE="char" LENGTH="60" NOTNULL="false" SEQUENCE="false" COMMENT="Which network, when they heard of the centre on one, as the family named it"/>
+        <FIELD NAME="familylink" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The family of the centre (local_oksigeniafamily) a person said this household is; -1, said it is not; 0, not asked"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -157,6 +158,8 @@
         <FIELD NAME="lefttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When an enrolled child left the centre, as the team noted it; 0, still there"/>
         <FIELD NAME="leftreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why they left, from the short list: what Cifras counts"/>
         <FIELD NAME="leftnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A line from whoever heard it, to read"/>
+        <FIELD NAME="familychild" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The child in the common family record (local_oksigeniafamily) once enrolled; 0, none"/>
+        <FIELD NAME="familygone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the common family record said this child left, for a person to confirm; 0, it did not"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

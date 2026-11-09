@@ -10664,6 +10664,26 @@ a.quien-cita:focus-visible {
     font-weight: 600;
 }
 
+/* The common family record of the centre in the file: the hint, for a person to confirm, and the children in it. */
+.familia-centro {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-inline-start: 3px solid var(--eg-linea);
+}
+
+.familia-centro p {
+    margin: 0 0 6px;
+}
+
+.familia-centro form {
+    margin: 0 8px 6px 0;
+}
+
+.aviso-familia {
+    margin: 0 0 4px;
+    font-weight: 600;
+}
+
 /* The families that left, last in the list. */
 .dia-sefueron {
     margin-top: 10px;

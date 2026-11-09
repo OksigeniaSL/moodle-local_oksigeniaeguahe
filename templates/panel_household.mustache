@@ -58,7 +58,7 @@
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "leave": false,
+        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}], "likes": "Le gusta: cocina y juegos de mesa."}],
         "seen": {"facts": ["Han abierto su página 4 veces; la última, el martes."]},
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
@@ -134,8 +134,24 @@
                 </div>
                 {{/children}}
             </div>
+            {{#family}}
+            <div class="familia-centro" id="familia-centro">
+                {{#hints}}
+                <p>{{line}}</p>
+                {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familysame"><input type="hidden" name="familia" value="{{familyid}}"><button class="boton secundario pequeno" type="submit">{{#str}}panel_family_same, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+                {{/hints}}
+                {{#hashints}}{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familynot"><button class="enlace" type="submit">{{#str}}panel_family_not, local_oksigeniaeguahe{{/str}}</button></form>
+                <p class="secundario">{{#str}}panel_family_same_help, local_oksigeniaeguahe{{/str}}</p>{{/canact}}{{/hashints}}
+                {{#linked}}<p>{{linked}}</p>{{/linked}}
+                {{#in}}<p class="secundario">{{in}}</p>{{/in}}
+            </div>
+            {{/family}}
             {{#leave}}
             <div class="se-van" id="se-van">
+                {{#familysays}}
+                <p class="aviso-familia">{{familysays}}</p>
+                {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familystill"><button class="enlace" type="submit">{{#str}}panel_stay, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+                {{/familysays}}
                 {{#gone}}
                 <p class="se-fueron">{{goneline}}</p>
                 {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stay"><button class="enlace" type="submit">{{#str}}panel_stay, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}

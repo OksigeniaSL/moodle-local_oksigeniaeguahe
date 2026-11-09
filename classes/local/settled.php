@@ -97,7 +97,8 @@ class settled {
         $children = self::enrolled(array_values(households::full($household)->children));
         foreach ($children as $child) {
             $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'lefttime' => $now,
-                'leftreason' => $reason, 'leftnote' => $note !== '' ? $note : null, 'timemodified' => $now]);
+                'leftreason' => $reason, 'leftnote' => $note !== '' ? $note : null, 'familygone' => 0, 'timemodified' => $now]);
+            family::leave($child);
         }
         if ($children) {
             $why = get_string('left_' . $reason, self::C);
@@ -118,6 +119,8 @@ class settled {
         foreach (self::left(array_values(households::full($household)->children)) as $child) {
             $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'lefttime' => 0, 'leftreason' => null,
                 'leftnote' => null, 'timemodified' => $now]);
+            // Back in the common family record too.
+            family::enrol($household, $child);
         }
     }
 
