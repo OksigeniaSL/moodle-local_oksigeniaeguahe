@@ -95,7 +95,7 @@ class panel_report {
         $base['head']['title'] = $data['title'] ?? get_string('report_title', $c);
         $base['head']['ante'] = get_string('report_kind_' . $report->kind, $c);
         $made = userdate((int) $data['made'], get_string('strftimedaydatetime', 'langconfig'));
-        $base['head']['sub'] = get_string('report_made', $c, $made) . (!empty($data['sofar']) ? ' ' . $data['sofar'] : '');
+        $base['head']['sub'] = get_string('report_made', $c, $made) . '.' . (!empty($data['sofar']) ? ' ' . $data['sofar'] : '');
         return $base + [
             'report' => true,
             'id' => (int) $report->id,

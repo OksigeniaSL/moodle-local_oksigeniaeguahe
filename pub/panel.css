@@ -8445,11 +8445,13 @@ html.modo-lamina {
         display: none !important;
     }
 
-    .pagina-informe .cabeza {
+    /* One point above the card of the skin (.piel-mostrador .cabeza), which loads later: on paper, the head is text. */
+    .panel .pagina-informe .cabeza {
         padding: 0 0 6mm;
         border: 0;
         background: none;
         box-shadow: none;
+        transform: none;
     }
 
     .informe {
