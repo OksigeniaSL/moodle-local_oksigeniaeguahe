@@ -3472,13 +3472,15 @@ html[lang="ar"] body * {
     position: absolute;
     top: -12px;
     z-index: 1;
-    /* stylelint-disable-next-line csstree/validator */
+    /* stylelint-disable csstree/validator */
     width: clamp(72px, 13%, 116px);
     height: clamp(22px, 3.6%, 32px);
+    /* stylelint-enable csstree/validator */
     background: rgba(232, 217, 180, 0.84);
     box-shadow: inset 0 0 0 1px rgba(201, 180, 138, 0.5);
-    -webkit-clip-path: polygon(0 0, 100% 0, 97% 20%, 100% 40%, 97% 60%, 100% 80%, 97% 100%, 0 100%, 3% 80%, 0 60%, 3% 40%,
-        0 20%);
+    /* stylelint-disable max-line-length */
+    -webkit-clip-path: polygon(0 0, 100% 0, 97% 20%, 100% 40%, 97% 60%, 100% 80%, 97% 100%, 0 100%, 3% 80%, 0 60%, 3% 40%, 0 20%);
+    /* stylelint-enable max-line-length */
     clip-path: polygon(0 0, 100% 0, 97% 20%, 100% 40%, 97% 60%, 100% 80%, 97% 100%, 0 100%, 3% 80%, 0 60%, 3% 40%, 0 20%);
     pointer-events: none;
 }
