@@ -89,11 +89,16 @@ class panel_event {
             }
             $children = [];
             foreach ($signup->household->children as $child) {
+                // Their drawing, asked for while they are young; one already sent is always seen.
+                $hasdrawing = (bool) drawings::file((int) $child->id);
+                $draws = $hasdrawing || ages::young_course($child->offer ? (string) $child->offer->name : '', $centre);
                 $children[] = ['tag' => panel::tag($child), 'course' => $child->offer ? format_string($child->offer->name) :
                     get_string('panel_nocourse', $c),
-                    'drawingurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id,
-                        'event' => $event->id]))->out(false) : '',
-                    'hasdrawing' => (bool) drawings::file((int) $child->id)];
+                    'drawingurl' => $canact && $draws ? (new \moodle_url(
+                        '/local/oksigeniaeguahe/drawing.php',
+                        ['child' => $child->id, 'event' => $event->id]
+                    ))->out(false) : '',
+                    'hasdrawing' => $hasdrawing];
             }
             $arrived = (int) $signup->attended > 0;
             $groups[$key]['signups'][] = [

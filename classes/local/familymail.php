@@ -179,8 +179,10 @@ class familymail {
         }
         $strong = '<strong>' . s($parts['long']) . '</strong>';
         $plain = $parts['long'];
-        $lead = function (string $date) use ($host, $tags, $names, $str): string {
-            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' : (count($tags) > 1 ? '_many' : ''));
+        $older = ages::older(array_values($full->children), $centre);
+        $lead = function (string $date) use ($host, $tags, $names, $str, $older): string {
+            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
+                ($older ? '_older' : '') . (count($tags) > 1 ? '_many' : ''));
             return $str($key, (object) ['date' => $date, 'host' => s($host), 'names' => s($names)]);
         };
         $band = [

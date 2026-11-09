@@ -120,6 +120,12 @@ class panel {
     /** @var array A skin drawn over another one (Gaudí, 8 November 2026): the living hall is the paper desk in the hall. */
     const UNDER = ['vestibulo' => 'mostrador', 'cinematico' => 'mostrador'];
 
+    /** @var string What hangs for each child by the age of its course, as data: the steps of the ladder. */
+    const LADDER = '/local/oksigeniaeguahe/data/escalera.json';
+
+    /** @var array|null The ladder, read once. */
+    protected static $ladder = null;
+
     /** @var array The sections of the bar, in order: key => [string, icon, page]. */
     const SECTIONS = [
         'inbox' => ['tab_inbox', 'bandeja', '/local/oksigeniaeguahe/index.php'],
@@ -570,13 +576,14 @@ class panel {
      * dark and each skin paint it. The mock-up draws it with the same numbers (maqueta/perchero.cjs). With rows, what may
      * come under it on the same scale, peg by peg: a band from the lowest to the highest, the most likely as a mark, the
      * last place as a dotted line, and past it the band blurs. With the object of the course, what hangs is what the
-     * partial panel_hanging draws for its age: the backpack, the plainer one with a key ring, or the luggage tag.
+     * partial panel_hanging draws for its age (the ladder of data/escalera.json), drawn small.
      *
      * @param int $total
      * @param int $taken
      * @param array $rows [['low' => int, 'mid' => int, 'high' => int, 'text' => string], ...]
      * @param string $label The accessible sentence, when the rows need one of their own.
-     * @param string $object What hangs: mochila, llavero or equipaje (self::hanging_object()).
+     * @param string $object What hangs (self::hanging_object()): mochila, escolar, figura, llavero, equipaje, credencial or
+     *     credencial-neutra.
      * @return string SVG.
      */
     public static function rail(int $total, int $taken, array $rows = [], string $label = '', string $object = 'mochila'): string {
@@ -586,32 +593,88 @@ class panel {
         $f = fn(float $n) => rtrim(rtrim(sprintf('%.1f', $n), '0'), '.');
         $tilt = [-3.5, 3, -2, 4];
         $py = 13;
-        $object = in_array($object, ['llavero', 'equipaje'], true) ? $object : 'mochila';
+        $objects = ['escolar', 'figura', 'llavero', 'equipaje', 'credencial', 'credencial-neutra'];
+        $object = in_array($object, $objects, true) ? $object : 'mochila';
         // What hangs, drawn small with the numbers of the partial panel_hanging: from (x, y), the top of the peg.
         $backpack = function (float $x, float $y, float $t) use ($f, $object): string {
             $svg = '<g class="r-mochila" transform="translate(' . $f($x) . ' ' . $f($y) . ') rotate(' . $t . ')' .
                 ' scale(0.36) translate(-32 -7)">';
-            if ($object === 'llavero') {
-                // The plainer backpack of the fifth and sixth years; its plate hangs plumb from the ring of the zip.
-                return $svg . '<path class="r-m-sombra" d="M16 23.5 A7.5 7.5 0 0 1 23.5 16 L44.5 16 A7.5 7.5 0 0 1 52 23.5' .
-                    ' L52 59 A4 4 0 0 1 48 63 L20 63 A4 4 0 0 1 16 59 Z"/>' .
+            if ($object === 'escolar') {
+                // The school backpack of six and seven: taller than wide, its bottle out of the side pocket, the label
+                // on its pocket.
+                return $svg . '<path class="r-m-sombra" d="M19.5 22 C19.5 17.4 22 15 26.4 14.8 Q34 14.4 41.6 14.8 C46 15 48.5' .
+                    ' 17.4 48.5 22 L48.5 59 A4 4 0 0 1 44.5 63 L23.5 63 A4 4 0 0 1 19.5 59 Z"/>' .
+                    '<path class="r-m-asa" d="M28 13.5 L28 11 C28 8.8 29.8 7 32 7 C34.2 7 36 8.8 36 11 L36 13.5 L34.4 13.5' .
+                    ' L34.4 11 C34.4 9.7 33.3 8.6 32 8.6 C30.7 8.6 29.6 9.7 29.6 11 L29.6 13.5 Z"/>' .
+                    '<path class="r-m-correa" d="M44.2 18 C49.8 22 51 39.6 49.6 61.6 L47.4 61.4 C48.8 41 47.8 25.2 42.8 20.8 Z"/>' .
+                    '<path class="r-m-correa" d="M11.6 21.6 A1 1 0 0 1 12.6 20.6 L15.4 20.6 A1 1 0 0 1 16.4 21.6 L16.4 24.2' .
+                    ' L11.6 24.2 Z"/>' .
+                    '<path class="r-m-banda" d="M10.4 27.2 C10.4 25 11.6 23.8 14 23.8 C16.4 23.8 17.6 25 17.6 27.2 L17.6 46' .
+                    ' L10.4 46 Z"/>' .
+                    '<path class="r-m-correa" d="M18.4 38 L13.4 39 C11 39.6 10 40.8 10 42.4 L10 56.6 C10 58.2 11.2 59.2 12.8' .
+                    ' 59.2 L18.4 59.2 Z"/>' .
+                    '<path class="r-m-cuerpo" d="M17.5 20 C17.5 15.4 20 13 24.4 12.8 Q32 12.4 39.6 12.8 C44 13 46.5 15.4 46.5' .
+                    ' 20 L46.5 57 A4 4 0 0 1 42.5 61 L21.5 61 A4 4 0 0 1 17.5 57 Z"/>' .
+                    '<path class="r-m-luz" d="M19.6 24 C19.8 18.6 21.6 15.8 25.6 15.4 L27.6 15.4 C23.4 16.4 21.8 19 21.8 25 Z"/>' .
+                    '<path class="r-m-tapa" fill-rule="evenodd" d="M24.4 33 L39.6 33 A4 4 0 0 1 43.6 37 L43.6 54 A4 4 0 0 1' .
+                    ' 39.6 58 L24.4 58 A4 4 0 0 1 20.4 54 L20.4 37 A4 4 0 0 1 24.4 33 Z M24.4 34.3 A2.7 2.7 0 0 0 21.7 37' .
+                    ' L21.7 54 A2.7 2.7 0 0 0 24.4 56.7 L39.6 56.7 A2.7 2.7 0 0 0 42.3 54 L42.3 37 A2.7 2.7 0 0 0 39.6 34.3 Z"/>' .
+                    '<g transform="translate(32 46) rotate(-4) scale(0.56)"><path class="r-m-etq" d="M-23 -12 Q-23 -16' .
+                    ' -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/><path class="r-m-banda"' .
+                    ' d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 -6.2 L-23 -6.2 Z"/></g></g>';
+            }
+            if ($object === 'figura') {
+                // The sporty backpack of eight and nine, wider below, in a less sweet tone: a reflective stripe, a ball
+                // on its side zip, and the name in a clear holder hanging plumb from the handle.
+                return $svg . '<path class="r-m-sombra" d="M20.6 23 C20.8 18.2 23.4 16 27.6 16 L40.4 16 C44.6 16 47.2 18.2 47.4' .
+                    ' 23 L52.4 58.6 A4 4 0 0 1 48.4 63 L19.6 63 A4 4 0 0 1 15.6 58.6 Z"/>' .
                     '<path class="r-m-asa" d="M28.3 16 L28.3 10 A3 3 0 0 1 31.3 7 L32.7 7 A3 3 0 0 1 35.7 10 L35.7 16 L34.1 16' .
                     ' L34.1 10.2 A1.6 1.6 0 0 0 32.5 8.6 L31.5 8.6 A1.6 1.6 0 0 0 29.9 10.2 L29.9 16 Z"/>' .
-                    '<path class="r-m-correa" d="M47 18.4 C53.6 22.4 55 39.4 53.4 62.4 L51.2 62.2 C52.6 41.4 51.4 25.2' .
-                    ' 45.8 21 Z"/>' .
-                    '<path class="r-m-cuerpo" d="M14 21.5 A7.5 7.5 0 0 1 21.5 14 L42.5 14 A7.5 7.5 0 0 1 50 21.5 L50 57' .
-                    ' A4 4 0 0 1 46 61 L18 61 A4 4 0 0 1 14 57 Z"/>' .
-                    '<path class="r-m-luz" d="M16.2 27 C16.3 20.2 18.6 16.6 23.5 16.2 L25.5 16.2 C20.6 17.2 18.6 20.6' .
-                    ' 18.4 28 Z"/>' .
-                    '<path class="r-m-tapa" d="M16.1 32 L16.1 21.5 A5.4 5.4 0 0 1 21.5 16.1 L42.5 16.1 A5.4 5.4 0 0 1 47.9 21.5' .
-                    ' L47.9 32 L46.5 32 L46.5 21.5 A4 4 0 0 0 42.5 17.5 L21.5 17.5 A4 4 0 0 0 17.5 21.5 L17.5 32 Z"/>' .
-                    '<path class="r-m-correa" d="M17 38 A3.5 3.5 0 0 1 20.5 34.5 L43.5 34.5 A3.5 3.5 0 0 1 47 38 L47 53.5' .
-                    ' A3.5 3.5 0 0 1 43.5 57 L20.5 57 A3.5 3.5 0 0 1 17 53.5 Z"/>' .
-                    '<g transform="translate(32 43.6) rotate(' . $f(-$t) . ') scale(0.62) translate(0 10.6)">' .
-                    '<path class="r-m-banda" d="M-23 -4 A5 5 0 0 1 -18 -9 L-5.5 -9 L-5.5 -10 A5.5 5.5 0 0 1 5.5 -10 L5.5 -9' .
-                    ' L18 -9 A5 5 0 0 1 23 -4 L23 6 A5 5 0 0 1 18 11 L-18 11 A5 5 0 0 1 -23 6 Z"/>' .
-                    '<path class="r-m-etq" d="M-20.6 -3.6 A3 3 0 0 1 -17.6 -6.6 L17.6 -6.6 A3 3 0 0 1 20.6 -3.6 L20.6 5.6' .
-                    ' A3 3 0 0 1 17.6 8.6 L-17.6 8.6 A3 3 0 0 1 -20.6 5.6 Z"/></g></g>';
+                    '<path class="r-m-correa" d="M46.6 19 C53 23.4 54.6 40 53.6 62.2 L51.4 62 C52.4 41.6 51 25.6 45.6 21.4 Z"/>' .
+                    '<path class="r-m-cuerpo" d="M18.6 21 C18.8 16.2 21.4 14 25.6 14 L38.4 14 C42.6 14 45.2 16.2 45.4 21' .
+                    ' L50.4 56.6 A4 4 0 0 1 46.4 61 L17.6 61 A4 4 0 0 1 13.6 56.6 Z"/>' .
+                    '<path class="r-m-velo" d="M18.6 21 C18.8 16.2 21.4 14 25.6 14 L38.4 14 C42.6 14 45.2 16.2 45.4 21' .
+                    ' L50.4 56.6 A4 4 0 0 1 46.4 61 L17.6 61 A4 4 0 0 1 13.6 56.6 Z"/>' .
+                    '<path class="r-m-reflectante" d="M14.5 51 L48.3 42.6 L49 48 L13.9 56.4 Z"/>' .
+                    '<path class="r-m-luz" d="M20.6 26 C20.8 19.6 22.6 16.6 26.6 16.2 L28.6 16.2 C24.6 17.2 22.8 20 22.8 27 Z"/>' .
+                    '<circle class="r-m-correa" cx="13.4" cy="38.6" r="3.8"/>' .
+                    '<g transform="translate(32 12.8) rotate(' . $f(-$t) . ') translate(-32 -12.8)">' .
+                    '<path class="r-m-correa" d="M30.7 12.8 L33.3 12.8 L33.3 22.4 L30.7 22.4 Z"/>' .
+                    '<path class="r-m-etq" d="M19 23.6 A2.6 2.6 0 0 1 21.6 21 L42.4 21 A2.6 2.6 0 0 1 45 23.6 L45 38.6' .
+                    ' A2.6 2.6 0 0 1 42.4 41.2 L21.6 41.2 A2.6 2.6 0 0 1 19 38.6 Z"/></g></g>';
+            }
+            if ($object === 'credencial' || $object === 'credencial-neutra') {
+                // The card on its lanyard of sixteen on: the band in the colour of the centre; from eighteen, a plain
+                // lanyard. Lower than in the partial, so that the lanyard shows under the big head of the peg.
+                $lanyard = $object === 'credencial' ? 'r-m-cuerpo' : 'r-m-cinta-neutra';
+                return $svg . '<path class="' . $lanyard . '" d="M27.2 9.4 L31 9.4 L32.9 34 L29.5 34 Z M33 9.4 L36.8 9.4' .
+                    ' L34.5 34 L31.1 34 Z"/>' .
+                    '<path class="r-m-sombra" d="M17 38.4 A2.4 2.4 0 0 1 19.4 36 L48.6 36 A2.4 2.4 0 0 1 51 38.4 L51 59.6' .
+                    ' A2.4 2.4 0 0 1 48.6 62 L19.4 62 A2.4 2.4 0 0 1 17 59.6 Z"/>' .
+                    '<path class="r-m-etq" d="M15 36.4 A2.4 2.4 0 0 1 17.4 34 L46.6 34 A2.4 2.4 0 0 1 49 36.4 L49 57.6' .
+                    ' A2.4 2.4 0 0 1 46.6 60 L17.4 60 A2.4 2.4 0 0 1 15 57.6 Z"/>' .
+                    '<path class="r-m-banda" d="M15 36.4 A2.4 2.4 0 0 1 17.4 34 L46.6 34 A2.4 2.4 0 0 1 49 36.4 L49 41.4' .
+                    ' L15 41.4 Z"/>' .
+                    '<path class="r-m-correa" d="M30.1 32.6 L33.9 32.6 L33.5 35.6 L30.5 35.6 Z"/></g>';
+            }
+            if ($object === 'llavero') {
+                // The backpack of ten and eleven: the narrowest and flattest, one block with its dark pocket; its plate
+                // hangs plumb from the ring of the zip.
+                return $svg . '<path class="r-m-sombra" d="M21 18 A2.5 2.5 0 0 1 23.5 15.5 L44.5 15.5 A2.5 2.5 0 0 1 47 18' .
+                    ' L47 60.5 A2.5 2.5 0 0 1 44.5 63 L23.5 63 A2.5 2.5 0 0 1 21 60.5 Z"/>' .
+                    '<path class="r-m-asa" d="M28.3 14 L28.3 10 A3 3 0 0 1 31.3 7 L32.7 7 A3 3 0 0 1 35.7 10 L35.7 14 L34.1 14' .
+                    ' L34.1 10.2 A1.6 1.6 0 0 0 32.5 8.6 L31.5 8.6 A1.6 1.6 0 0 0 29.9 10.2 L29.9 14 Z"/>' .
+                    '<path class="r-m-cuerpo" d="M19 16 A2.5 2.5 0 0 1 21.5 13.5 L42.5 13.5 A2.5 2.5 0 0 1 45 16 L45 58.5' .
+                    ' A2.5 2.5 0 0 1 42.5 61 L21.5 61 A2.5 2.5 0 0 1 19 58.5 Z"/>' .
+                    '<path class="r-m-luz" d="M20.6 16.4 L22 16.4 L22 44 L20.6 44 Z"/>' .
+                    '<path class="r-m-correa" d="M21.5 30 A1.5 1.5 0 0 1 23 28.5 L41 28.5 A1.5 1.5 0 0 1 42.5 30 L42.5 56' .
+                    ' A1.5 1.5 0 0 1 41 57.5 L23 57.5 A1.5 1.5 0 0 1 21.5 56 Z"/>' .
+                    '<g transform="translate(32 35.4) rotate(' . $f(-$t) . ') scale(0.56) translate(0 10.6)">' .
+                    '<path class="r-m-banda" d="M-21.5 -4 A5 5 0 0 1 -16.5 -9 L-5.5 -9 L-5.5 -10 A5.5 5.5 0 0 1 5.5 -10' .
+                    ' L5.5 -9 L16.5 -9 A5 5 0 0 1 21.5 -4 L21.5 12.6 A5 5 0 0 1 16.5 17.6 L-16.5 17.6 A5 5 0 0 1 -21.5' .
+                    ' 12.6 Z"/>' .
+                    '<path class="r-m-etq" d="M-19.2 -3.6 A3 3 0 0 1 -16.2 -6.6 L16.2 -6.6 A3 3 0 0 1 19.2 -3.6 L19.2 12.2' .
+                    ' A3 3 0 0 1 16.2 15.2 L-16.2 15.2 A3 3 0 0 1 -19.2 12.2 Z"/></g></g>';
             }
             if ($object === 'equipaje') {
                 // The luggage tag of secondary on: cream card, its eyelet in the colour of the centre, on its cord. Lower
@@ -753,26 +816,72 @@ class panel {
     }
 
     /**
-     * What hangs for a child by the age its course starts at: the backpack up to the fourth year of primary, a plainer
-     * backpack with a key ring and the name on a tag in the fifth and sixth, and a luggage tag from secondary on, and
-     * for courses that are not school years (languages, degrees, trades). A child without a course yet, the backpack.
+     * What hangs for a child by the age its course starts at, from the ladder of data/escalera.json: fine ages and no
+     * stages, so that it holds in any country. Up to five the small backpack; at six and seven the school backpack; at
+     * eight and nine the backpack with a ball; at ten and eleven the plainer one with a key ring; from twelve to fifteen
+     * the luggage tag; from sixteen the card on a lanyard, and from eighteen with a plain lanyard. A child without a
+     * course yet, and a course of no known age (languages, trades, degrees), as the ladder says.
      *
      * @param string $course The name of the course, as the centre writes it.
      * @param \stdClass|null $centre Its school system, and its skin: the cinematic one always hangs a luggage tag.
-     * @return string mochila, llavero or equipaje.
+     * @return string The object, and its variant after a hyphen: mochila, escolar, figura, llavero, equipaje, credencial
+     *     or credencial-neutra.
      */
     public static function hanging_object(string $course, ?\stdClass $centre = null): string {
         if ($centre && self::skin($centre) === 'cinematico') {
             return 'equipaje';
         }
         if (trim($course) === '') {
+            return self::step_object(self::ladder()['sin_curso'] ?? []);
+        }
+        return self::age_object(grades::age($course, $centre));
+    }
+
+    /**
+     * What hangs at an age, by the step of the ladder it falls in; without an age, what the ladder hangs for a course
+     * of no known age.
+     *
+     * @param int|null $age The age turned in the calendar year the course starts (grades::age()).
+     * @return string As hanging_object().
+     */
+    public static function age_object(?int $age): string {
+        $ladder = self::ladder();
+        foreach ($age === null ? [] : ($ladder['peldanos'] ?? []) as $step) {
+            $from = $step['desde'] ?? null;
+            $to = $step['hasta'] ?? null;
+            if (($from === null || $age >= $from) && ($to === null || $age <= $to)) {
+                return self::step_object($step);
+            }
+        }
+        return self::step_object($ladder['sin_edad'] ?? []);
+    }
+
+    /**
+     * The ladder of what hangs by age, as data: what hangs without a course, without a known age, and each step.
+     *
+     * @return array sin_curso, sin_edad and peldanos (desde, hasta, objeto, variante, tono).
+     */
+    public static function ladder(): array {
+        global $CFG;
+        if (self::$ladder === null) {
+            self::$ladder = json_decode((string) file_get_contents($CFG->dirroot . self::LADDER), true) ?: [];
+        }
+        return self::$ladder;
+    }
+
+    /**
+     * What a step of the ladder hangs: its object, and its variant after a hyphen («credencial-neutra»). Without one,
+     * the backpack.
+     *
+     * @param array $step
+     * @return string
+     */
+    protected static function step_object(array $step): string {
+        $object = (string) ($step['objeto'] ?? '');
+        if ($object === '') {
             return 'mochila';
         }
-        $age = grades::age($course, $centre);
-        if ($age === null || $age >= 12) {
-            return 'equipaje';
-        }
-        return $age >= 10 ? 'llavero' : 'mochila';
+        return $object . (empty($step['variante']) ? '' : '-' . $step['variante']);
     }
 
     /**

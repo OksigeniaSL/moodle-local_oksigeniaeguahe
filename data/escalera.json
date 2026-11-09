@@ -1,0 +1,131 @@
+{
+ "acerca": "Lo que cuelga de cada hijo (en el panel, en la página de la familia y en los rieles), por edades finas y sin nombrar etapas, para que valga en cualquier país. La edad es la que se cumple en el año natural en que empieza el curso (grades::age): la que el centro puso a ese curso, o la que dice su nombre, o la de su etapa en el sistema educativo del centro. Cada peldaño va de «desde» a «hasta», los dos incluidos; null es sin límite. El objeto es la pieza que dibuja el partial panel_hanging y panel::rail(); la variante, un cambio de color de la misma pieza. Lo que recibe Eguahe es «objeto» o «objeto-variante» (credencial-neutra). «tono» dice cómo se escribe a esa edad, y «dia_despues», un ejemplo de la pregunta del día después del primer día: a la familia, de ustedes; al alumno, de tú, sea cual sea su edad; sin marca de sexo. Los ejemplos están en español y son guía de redacción, no cadenas: cada idioma los escribe con su propia voz.",
+ "sin_curso": {
+  "objeto": "mochila",
+  "variante": null,
+  "nota": "Un hijo sin curso todavía (el formulario de apuntar, una familia que aún no ha dicho el curso): la mochila pequeña, la de la marca."
+ },
+ "sin_edad": {
+  "objeto": "equipaje",
+  "variante": null,
+  "nota": "Un curso del que no se sabe la edad (idiomas, oficios, titulaciones, o una etapa entera como «Infantil de 3 a 5 años»): la etiqueta de equipaje, que no es de niño pequeño ni de adulto. El centro lo arregla poniendo la edad a ese curso."
+ },
+ "peldanos": [
+  {
+   "peldano": 1,
+   "desde": null,
+   "hasta": 5,
+   "objeto": "mochila",
+   "variante": null,
+   "nombre": "La mochila pequeña",
+   "pieza": "Pequeña y redonda, con la etiqueta del primer día escrita a mano.",
+   "a_quien": [
+    "familia"
+   ],
+   "tono": "A la familia, cálido y concreto: el día contado en cosas pequeñas (su percha, su etiqueta, quién le recibió), sin diminutivos ni lenguaje de bebé; quien se emociona es el adulto.",
+   "dia_despues": {
+    "familia": "¿Qué tal su primer día?"
+   }
+  },
+  {
+   "peldano": 2,
+   "desde": 6,
+   "hasta": 7,
+   "objeto": "escolar",
+   "variante": null,
+   "nombre": "La mochila escolar",
+   "pieza": "Más alta y menos redonda, con la botella asomando por el bolsillo lateral; la etiqueta, todavía escrita a mano.",
+   "a_quien": [
+    "familia"
+   ],
+   "tono": "A la familia, con {nombre} ya como alguien que cuenta cosas: sus primeras rutinas (su clase, su sitio, su botella) y una invitación a que lo cuente en casa.",
+   "dia_despues": {
+    "familia": "¿Qué tal le fue a Noa el primer día? Si les ha contado algo de su clase, nos encantará saberlo."
+   }
+  },
+  {
+   "peldano": 3,
+   "desde": 8,
+   "hasta": 9,
+   "objeto": "figura",
+   "variante": null,
+   "nombre": "La mochila con llavero de figura",
+   "pieza": "Una pelota pequeña colgada de la cremallera y el nombre en un portanombres de plástico transparente, escrito a mano; colores menos dulces.",
+   "a_quien": [
+    "familia"
+   ],
+   "tono": "A la familia, con {nombre} como protagonista que opina: lo que contó, a quién conoció, qué le gustó y qué no; fuera «peque» y los diminutivos.",
+   "dia_despues": {
+    "familia": "¿Qué les contó Íñigo de su primer día? Lo que más le gustó y lo que no, todo nos sirve."
+   }
+  },
+  {
+   "peldano": 4,
+   "desde": 10,
+   "hasta": 11,
+   "objeto": "llavero",
+   "variante": null,
+   "nombre": "La mochila sobria",
+   "pieza": "Menos redonda, con la cremallera en arco, el bolsillo oscuro y el nombre en la chapa del llavero.",
+   "a_quien": [
+    "familia"
+   ],
+   "tono": "A la familia, de igual a igual sobre alguien que ya decide cosas: su opinión cuenta, y lo que le preocupe se habla con el centro, sin dramatizar.",
+   "dia_despues": {
+    "familia": "¿Cómo vio Aleksandra el primer día? Si hay algo que le preocupe, cuéntennos y lo vemos."
+   }
+  },
+  {
+   "peldano": 5,
+   "desde": 12,
+   "hasta": 15,
+   "objeto": "equipaje",
+   "variante": null,
+   "nombre": "La etiqueta de equipaje",
+   "pieza": "Cartón crema con cordel y ojal del color del centro, y el nombre en la propia etiqueta.",
+   "a_quien": [
+    "familia",
+    "alumno"
+   ],
+   "tono": "Desde aquí también al alumno, de tú, en dos frases y con algo útil (dónde preguntar, a quién escribir), sin infantilizar ni hacerse el joven; a la familia, aparte y de ustedes.",
+   "dia_despues": {
+    "alumno": "¿Qué tal el primer día? Si algo no te quedó claro (horarios, aulas, a quién preguntar), escríbenos y te lo contamos.",
+    "familia": "¿Cómo llegó Juan Sebastián a casa después del primer día? Si quieren contarnos algo, aquí estamos."
+   }
+  },
+  {
+   "peldano": 6,
+   "desde": 16,
+   "hasta": 17,
+   "objeto": "credencial",
+   "variante": null,
+   "nombre": "La credencial",
+   "pieza": "Una tarjeta en su cinta, colgada del pomo, con el nombre impreso, la franja del color del centro y sin foto; la cinta, del tono del hijo.",
+   "a_quien": [
+    "alumno",
+    "familia"
+   ],
+   "tono": "Primero al alumno, de tú, como a alguien que lleva lo suyo: directo, práctico y con margen para pedir cambios; sin jerga, sin emojis y sin imitar su forma de hablar. La familia, en una línea aparte.",
+   "dia_despues": {
+    "alumno": "¿Cómo fue el primer día? Si algo no encaja (horario, materias, lo que sea), dínoslo esta semana y lo miramos.",
+    "familia": "Le hemos preguntado a María de los Ángeles cómo fue el primer día. Si ustedes quieren contarnos algo, también les leemos."
+   }
+  },
+  {
+   "peldano": 6,
+   "desde": 18,
+   "hasta": null,
+   "objeto": "credencial",
+   "variante": "neutra",
+   "nombre": "La credencial, con la cinta neutra",
+   "pieza": "La misma credencial con la cinta en un gris neutro y un hilo del tono del hijo: un cambio de color, no otra pieza.",
+   "a_quien": [
+    "alumno"
+   ],
+   "tono": "Al alumno, de tú y de adulto a adulto: claro, breve y con lo que puede hacer por su cuenta; a la familia, solo si el alumno la puso de contacto.",
+   "dia_despues": {
+    "alumno": "¿Qué tal el primer día? Si necesitas cambiar algo de la matrícula o del horario, ahora es el momento: contesta a este mensaje."
+   }
+  }
+ ]
+}

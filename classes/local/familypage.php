@@ -146,7 +146,9 @@ class familypage {
         } else if ($upcoming) {
             $a = (object) ['date' => '<b>' . s(publicpage::date_parts((int) $upcoming[0]->timestart, $lang)['long']) . '</b>',
                 'host' => s($host), 'names' => s($names)];
-            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' : (count($tags) > 1 ? '_many' : ''));
+            // With an older child, the classrooms for all: the eldest is never shown where a backpack would go.
+            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
+                (ages::older($children, $centre, $offers) ? '_older' : '') . (count($tags) > 1 ? '_many' : ''));
             $lead = publiclang::str($key, $lang, $a);
         } else if ($pending) {
             $lead = s(publiclang::str('pub_lead_pending', $lang));
@@ -199,7 +201,9 @@ class familypage {
                 'drawingstrokes' => $drawing && ($strokes = drawings::strokes_file((int) $child->id)) ?
                     $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : '',
                 'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
-                'drawingsend' => $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]),
+                // Asked for while they are young; one already sent can always change.
+                'drawingsend' => $drawing || ages::young($child, $offers, $centre) ?
+                    $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]) : '',
                 'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
                 // Stories to read together at home, from the library of the centre, by the age of its course.
                 'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',

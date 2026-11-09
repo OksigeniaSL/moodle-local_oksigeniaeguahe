@@ -563,19 +563,72 @@
 
     // ---- Long names on what hangs (panel_hanging): the handwriting gets smaller until it fits on its line, and a
     // capital with an accent (Í, Á, Ñ) too, so it does not climb out of it. The same rule and numbers as the label of the
-    // family page (eguahe.js): every name is drawn at 13 with 35 of room and its line at 4.4, whatever carries it.
+    // family page (eguahe.js): every name is drawn at 13 with 35 of room and its line at 4.4, whatever carries it. Where
+    // the drawing has room for a second line (data-segunda, its baseline) a name that would get small on one, and has a
+    // space, goes on two, broken where the two come out most even: «María de / los Ángeles». Never squeezed.
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var lines = function(text, parts) {
+        while (text.firstChild) {
+            text.removeChild(text.firstChild);
+        }
+        if (parts.length === 1) {
+            text.appendChild(doc.createTextNode(parts[0]));
+            return;
+        }
+        parts.forEach(function(part, i) {
+            var span = doc.createElementNS(SVGNS, 'tspan');
+            span.setAttribute('x', text.getAttribute('x') || 0);
+            span.setAttribute('y', i ? text.getAttribute('data-segunda') : 4.4);
+            span.textContent = part;
+            text.appendChild(span);
+        });
+    };
     var fitNames = function(scope) {
         all('svg.colgante text.mano', scope).forEach(function(text) {
+            // Only the drawing the svg shows: Chrome measures the hidden ones too, Firefox gives them no length.
+            var drawing = text.closest ? text.closest('.mochila') : null;
+            if (drawing && window.getComputedStyle(drawing).display === 'none') {
+                return;
+            }
+            // Once on two lines the name is kept whole beside them; written again (the form), it is the text.
+            var name = one('tspan', text) ? text.getAttribute('data-nombre') || '' : text.textContent;
+            lines(text, [name]);
             text.setAttribute('font-size', 13);
-            // The two drawings not shown have no length: nothing to fit.
-            var length = text.textContent ? text.getComputedTextLength() : 0;
+            var length = name ? text.getComputedTextLength() : 0;
             if (!length) {
                 return;
             }
-            var k = Math.min(1, 35 / length);
-            var up = 4.4 - text.getBBox().y;
-            if (up > 10) {
-                k = Math.min(k, 10 / up);
+            var size = function(longest) {
+                var k = Math.min(1, 35 / longest);
+                var up = 4.4 - text.getBBox().y;
+                return up > 10 ? Math.min(k, 10 / up) : k;
+            };
+            var k = size(length);
+            var second = parseFloat(text.getAttribute('data-segunda'));
+            var gaps = [];
+            for (var at = 1; at < name.length - 1; at++) {
+                if (name.charAt(at) === ' ') {
+                    gaps.push(at);
+                }
+            }
+            if (second && k < 0.62 && gaps.length) {
+                var best = null;
+                gaps.forEach(function(at) {
+                    var left = text.getSubStringLength(0, at);
+                    var right = length - text.getSubStringLength(0, at + 1);
+                    if (!best || Math.max(left, right) < best.longest) {
+                        best = {at: at, longest: Math.max(left, right)};
+                    }
+                });
+                text.setAttribute('data-nombre', name);
+                lines(text, [name.slice(0, best.at), name.slice(best.at + 1)]);
+                // The second line may not climb into the first: its size is held by the gap between them.
+                var two = Math.min(size(best.longest), (second - 4.4) / 1.1 / 13);
+                if (two > k * 1.12) {
+                    k = two;
+                } else {
+                    lines(text, [name]);
+                }
             }
             text.setAttribute('font-size', (13 * k).toFixed(2));
         });
@@ -890,9 +943,13 @@
         var label = function(i) {
             var tag = one('[data-etiqueta-hijo="' + i + '"]', form);
             var name = one('[data-nombre-hijo="' + i + '"]', form);
-            var text = one('[data-etiqueta-viva="' + i + '"] text', form);
-            if (text) {
-                text.textContent = (tag && tag.value.trim()) || (name && name.value.trim().split(/\s+/)[0]) || '';
+            var drawing = one('[data-etiqueta-viva="' + i + '"]', form);
+            if (drawing) {
+                // Every object of the partial carries the name; the one shown is fitted again.
+                all('text.mano', drawing).forEach(function(text) {
+                    text.textContent = (tag && tag.value.trim()) || (name && name.value.trim().split(/\s+/)[0]) || '';
+                });
+                fitNames(drawing);
             }
         };
         all('[data-etiqueta-hijo], [data-nombre-hijo]', form).forEach(function(input) {

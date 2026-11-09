@@ -26,7 +26,9 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Families have no account: their private link lets them in.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\ages;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\hobbies;
@@ -69,7 +71,7 @@ $drawing = optional_param('dibujo', 0, PARAM_INT);
 if ($drawing) {
     // The drawing of one of their children, for the hall of their page.
     $children = households::full($household)->children;
-    $file = isset($children[$drawing]) ? local_oksigeniaeguahe\local\drawings::file($drawing) : null;
+    $file = isset($children[$drawing]) ? drawings::file($drawing) : null;
     if (!$file) {
         send_header_404();
         die();
@@ -94,7 +96,9 @@ if ($action === 'drawing') {
     $children = households::full($household)->children;
     $child = $children[optional_param('nino', 0, PARAM_INT)] ?? null;
     $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'quien-vendria');
-    if (!$child) {
+    // Asked for while they are young; one already sent can always change or go.
+    $young = $child && ages::young($child, centres::offers((int) $centre->id), $centre);
+    if (!$child || (!$young && !drawings::file((int) $child->id))) {
         redirect($back);
     }
     if (data_submitted() && confirm_sesskey()) {

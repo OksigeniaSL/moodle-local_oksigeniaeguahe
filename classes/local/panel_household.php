@@ -356,11 +356,12 @@ class panel_household {
         $a = (object) ['names' => $names($step['children']), 'stories' => $names($step['stories']),
             'day' => $step['first'] ? userdate($step['first'], get_string('strftimedate', 'langconfig')) : ''];
         $why = 'panel_story_' . $step['step'] . ($step['step'] === 'story' && !$step['first'] ? '_why_nodate' : '_why');
-        $message = 'panel_story_' . $step['step'] . '_message' . ($step['step'] === 'eve' && !$step['stories'] ? '_nostory' : '');
+        $text = $step['step'] === 'story' ? get_string('panel_story_story_message', $c, $a) :
+            self::firstday_text($step, $centre, $names);
         return [
             'sentence' => get_string('panel_story_' . $step['step'], $c),
             'why' => get_string($why, $c, $a),
-            'text' => self::greeting($full) . get_string($message, $c, $a),
+            'text' => self::greeting($full) . $text,
             'button' => get_string('panel_sibling_write', $c),
             'url' => (new \moodle_url(
                 '/local/oksigeniaeguahe/household.php',
@@ -371,6 +372,60 @@ class panel_household {
             // Written by Eguahe from what it knows, not from the agenda of a visit.
             'help' => get_string('panel_proposal_help_written', self::C),
         ];
+    }
+
+    /**
+     * The eve and the day after, written for each child in the tone of its age (ages::step()): the little ones by their
+     * name on the door and their peg, the older ones by their classroom and their timetable; and after it, from how
+     * they came home to whatever they would change. The eldest is never spoken of as a little one. The eve opens with
+     * «the big day» while there is a young one, and with the course starting when they are all older.
+     *
+     * @param array $step story::step()
+     * @param \stdClass $centre
+     * @param callable $names From some children to their names, in a list.
+     * @return string
+     */
+    protected static function firstday_text(array $step, \stdClass $centre, callable $names): string {
+        $c = self::C;
+        $offers = centres::offers((int) $centre->id);
+        $sm = get_string_manager();
+        $say = function (string $key, array $kids) use ($c, $names, $sm): string {
+            $key .= count($kids) > 1 ? '_many' : '';
+            return $sm->string_exists($key, $c) ? get_string($key, $c, $names($kids)) : '';
+        };
+        $parts = [];
+        if ($step['step'] === 'eve') {
+            // Three tones on the eve: the youngest, the children, and the older ones (or a course of no known age).
+            $band = fn(string $s) => match (true) {
+                $s === ages::NOCOURSE || $s === 'r1' => 'small',
+                in_array($s, ['r2', 'r3', 'r4'], true) => 'child',
+                default => 'older',
+            };
+            $groups = ages::groups($step['children'], $offers, $centre, $band);
+            $allolder = !array_filter($groups, fn($g) => $g[0] !== 'older');
+            $parts[] = get_string($allolder ? 'panel_story_eve_open_older' : 'panel_story_eve_open', $c);
+            foreach ($groups as [$key, $kids]) {
+                $parts[] = $say('panel_story_eve_' . $key, $kids);
+            }
+            if ($step['stories']) {
+                $parts[] = $say('panel_story_eve_story', $step['stories']);
+            }
+            $parts[] = get_string('panel_story_eve_close', $c);
+        } else {
+            // The day after, each step its own; without a course, as the youngest; of no known age, the plain tone.
+            $band = fn(string $s) => match ($s) {
+                ages::NOCOURSE => 'r1',
+                ages::UNKNOWN => 'r5',
+                default => $s,
+            };
+            $parts[] = get_string('panel_story_after_open', $c);
+            foreach (ages::groups($step['children'], $offers, $centre, $band) as [$key, $kids]) {
+                $line = $say('panel_story_after_' . $key, $kids);
+                $parts[] = $line !== '' ? $line : $say('panel_story_after_r5', $kids);
+            }
+            $parts[] = get_string('panel_story_after_close', $c);
+        }
+        return implode(' ', array_filter($parts, fn($p) => $p !== ''));
     }
 
     /**
@@ -527,8 +582,9 @@ class panel_household {
                 'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : '', $centre),
                 'drawing' => $drawing ? $drawing->out(false) : '',
                 'drawingalt' => get_string('panel_drawing_alt', $c, $tag),
-                'drawingpage' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id]))
-                    ->out(false) : '',
+                // Their drawing, asked for while they are young; one already sent is always seen and can change.
+                'drawingpage' => $canact && ($drawing || ages::young($child, $offers, $centre)) ?
+                    (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id]))->out(false) : '',
                 'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',

@@ -531,17 +531,41 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
-     * What hangs for each child by the age of its course.
+     * What hangs for each child by the age of its course: the ladder of data/escalera.json, by fine ages.
      */
     public function test_hanging_object(): void {
         $this->assertSame('mochila', panel::hanging_object(''));
         $this->assertSame('mochila', panel::hanging_object('Infantil 3 años'));
-        $this->assertSame('mochila', panel::hanging_object('4.º de Primaria'));
+        $this->assertSame('mochila', panel::hanging_object('Infantil 5 años'));
+        $this->assertSame('escolar', panel::hanging_object('1.º de Primaria'));
+        $this->assertSame('escolar', panel::hanging_object('2.º de Primaria'));
+        $this->assertSame('figura', panel::hanging_object('3.º de Primaria'));
+        $this->assertSame('figura', panel::hanging_object('4.º de Primaria'));
         $this->assertSame('llavero', panel::hanging_object('5.º de Primaria'));
         $this->assertSame('llavero', panel::hanging_object('6.º de Primaria'));
         $this->assertSame('equipaje', panel::hanging_object('1.º de ESO'));
+        $this->assertSame('equipaje', panel::hanging_object('4.º de ESO'));
+        $this->assertSame('credencial', panel::hanging_object('1.º de Bachillerato'));
+        $this->assertSame('credencial', panel::hanging_object('2.º de Bachillerato'));
+        $this->assertSame('credencial-neutra', panel::hanging_object('Grupo de 18 años'));
+        $this->assertSame('credencial-neutra', panel::hanging_object('Mayores de 25 años'));
         $this->assertSame('equipaje', panel::hanging_object('Inglés B2'));
         $this->assertSame('llavero', panel::hanging(1, 'Leo', '5.º de Primaria')['object']);
+        $this->assertSame('figura', panel::hanging(2, 'Noa', '3.º de Primaria')['object']);
+        // By fine ages, both ends of every step; from eighteen, the plain lanyard; with no age, the luggage tag.
+        $ages = [1 => 'mochila', 3 => 'mochila', 5 => 'mochila', 6 => 'escolar', 7 => 'escolar', 8 => 'figura', 9 => 'figura',
+            10 => 'llavero', 11 => 'llavero', 12 => 'equipaje', 15 => 'equipaje', 16 => 'credencial', 17 => 'credencial',
+            18 => 'credencial-neutra', 40 => 'credencial-neutra'];
+        foreach ($ages as $age => $object) {
+            $this->assertSame($object, panel::age_object($age), "$age");
+        }
+        $this->assertSame('equipaje', panel::age_object(null));
+        // Every object of the ladder is one the rail draws: only the small backpack draws the small backpack.
+        $backpack = panel::rail(5, 1);
+        foreach (panel::ladder()['peldanos'] as $step) {
+            $object = $step['objeto'] . (empty($step['variante']) ? '' : '-' . $step['variante']);
+            $this->assertSame($object === 'mochila', panel::rail(5, 1, [], '', $object) === $backpack, $object);
+        }
     }
 
     /**
