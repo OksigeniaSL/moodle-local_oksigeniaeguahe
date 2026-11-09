@@ -3416,22 +3416,45 @@ html[lang="ar"] body * {
     display: inline-block;
 }
 
-/* What a family shares (0.43.0): the drawing big, the gift of the centre, sending it on and the invitation. Plain until
-   its design. */
-.compartido-dibujo .mano-titular {
-    font-size: 2.6rem;
+/* ---------- What a family shares: the drawing sent to someone. Stuck on the wall of the centre with two strips of paper
+   tape and the label of its name on its corner, as its preview shows it; under it, the gift of the centre and sending it
+   on; then the invitation, as the band of a visit. Nothing moves but the drawing, which draws itself once. ---------- */
+.compartido-dibujo {
+    display: grid;
+    justify-items: center;
+    gap: 30px;
+    padding: 32px var(--g) 64px;
+    text-align: center;
 }
 
-.dibujo-grande-marco {
-    margin: 1.2rem 0;
-    padding: 14px;
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.1);
+.compartido-cabeza {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+
+.compartido-cabeza .antetitulo {
+    margin: 0;
+}
+
+.compartido-dibujo .mano-titular {
+    margin: 0;
+    font-size: clamp(3rem, 13vw, 5.6rem);
+    color: var(--eg-tinta);
+}
+
+.dibujo-pegado {
+    position: relative;
+    width: 100%;
+    max-width: 880px;
+    margin: 6px 0 18px;
+    transform: rotate(-1.2deg);
 }
 
 .dibujo-grande {
     display: block;
+    background: #f4efe6;
+    box-shadow: 0 1px 2px rgba(58, 42, 30, 0.16), 0 22px 40px -18px rgba(58, 42, 30, 0.42);
 }
 
 .dibujo-grande img,
@@ -3441,31 +3464,175 @@ html[lang="ar"] body * {
     height: auto;
 }
 
+/* The two strips of tape on the corners at the top: cream, half seen through, the ends torn. */
+.dibujo-pegado::before,
+.dibujo-pegado::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    z-index: 1;
+    width: clamp(72px, 13%, 116px);
+    height: clamp(22px, 3.6%, 32px);
+    background: rgba(232, 217, 180, 0.84);
+    box-shadow: inset 0 0 0 1px rgba(201, 180, 138, 0.5);
+    -webkit-clip-path: polygon(0 0, 100% 0, 97% 20%, 100% 40%, 97% 60%, 100% 80%, 97% 100%, 0 100%, 3% 80%, 0 60%, 3% 40%,
+        0 20%);
+    clip-path: polygon(0 0, 100% 0, 97% 20%, 100% 40%, 97% 60%, 100% 80%, 97% 100%, 0 100%, 3% 80%, 0 60%, 3% 40%, 0 20%);
+    pointer-events: none;
+}
+
+.dibujo-pegado::before {
+    left: -3%;
+    transform: rotate(-38deg);
+}
+
+.dibujo-pegado::after {
+    right: -3%;
+    transform: rotate(38deg);
+}
+
+/* The label of the name, stuck on the corner below, as on the preview. */
+.etiqueta-cuento.etiqueta-dibujo {
+    position: absolute;
+    right: -3%;
+    bottom: -7%;
+    z-index: 1;
+    width: clamp(116px, 24%, 210px);
+    transform: rotate(-5deg);
+}
+
+.compartido-pie {
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+}
+
+/* The gift of the centre, signed between two short lines. */
 .regalo-firma {
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 650;
     color: var(--c-acento-texto);
+}
+
+.regalo-firma::before,
+.regalo-firma::after {
+    content: '';
+    flex: none;
+    width: 28px;
+    height: 1.5px;
+    background: currentColor;
+    opacity: 0.5;
 }
 
 .compartir-fila {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
+    justify-content: center;
     align-items: center;
+    gap: 8px 14px;
+    margin: 0;
 }
 
 .compartir-aviso {
-    color: var(--tinta-2, inherit);
-    font-size: 0.9rem;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
 }
 
+.compartir-aviso:empty {
+    display: none;
+}
+
+@media (min-width: 600px) {
+    .regalo-firma {
+        gap: 14px;
+        font-size: 1.0625rem;
+    }
+}
+
+/* The invitation to whoever received it, when the centre has it on: one quiet line, the size of the gift, with its link
+   small. Whoever opens a drawing is mostly family, out of love: the drawing of a child carries no advert. */
 .invitacion-compartido {
-    margin: 2rem auto;
-    padding: 1.4rem;
-    border-radius: 12px;
-    background: var(--c-acento-suave);
-    text-align: center;
+    margin: 6px 0 0;
+    font-size: 1rem;
+    color: var(--eg-tinta-2);
 }
 
-.invitacion-compartido h2 {
-    margin-top: 0;
+.invitacion-compartido b {
+    font-weight: 650;
+    color: var(--eg-tinta);
+}
+
+.invitacion-compartido a {
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+/* Passing a piece on from the page of the family: a button that reads as the links beside it («Cambiar su dibujo»,
+   «Cómo llegar»), with the arrow that sends; what it says when the link is copied, beside it. */
+.pasar {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 12px;
+}
+
+.mandar-dibujo + .compartir-aviso,
+.pasar .compartir-aviso {
+    font-size: 0.9375rem;
+}
+
+button.enlace {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--c-acento-texto);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+button.enlace span {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+}
+
+.banda button.enlace,
+.banda .compartir-aviso {
+    color: var(--c-sobre-acento);
+}
+
+/* Under the drawing, on the line of «Cambiar su dibujo» when there is room. */
+.nino-fila .pasar {
+    margin-inline-start: 18px;
+    vertical-align: baseline;
+}
+
+.nino-fila button.mandar-dibujo {
+    min-height: 0;
+}
+
+/* The seal of Eguahe under a piece shared: its mark and its name, always this size, in this place. */
+.firma.sello a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--eg-tinta-2);
+}
+
+.firma.sello a span {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.sello-marca {
+    width: 22px;
+    height: 22px;
+    flex: none;
 }

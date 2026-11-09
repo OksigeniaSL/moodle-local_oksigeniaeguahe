@@ -302,7 +302,10 @@ class kit {
         if (!isset(self::SHAPES[$shape])) {
             return '';
         }
-        $when = publicpage::date_parts((int) $event->timestart, (string) $centre->lang);
-        return share::card($centre, $when['long'], format_string($event->name), null, self::SHAPES[$shape]);
+        $lang = (string) $centre->lang;
+        $when = publicpage::date_parts((int) $event->timestart, $lang);
+        return share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
+            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
+            'title' => format_string($event->name)], null, self::SHAPES[$shape]);
     }
 }

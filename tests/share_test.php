@@ -156,13 +156,31 @@ final class share_test extends \advanced_testcase {
         );
         $this->assertStringContainsString('<meta property="og:image" content="', $meta);
         $this->assertStringContainsString('<meta property="og:locale" content="es_ES">', $meta);
-        $png = share::card($centre, 'Tu primer día', 'Un cuento para Leo');
+        $png = share::card($centre, 'cuento', ['title' => 'Tu primer día', 'name' => 'Leo']);
         if ($png === '') {
             $this->markTestSkipped('No GD with fonts here.');
         }
         $this->assertStringStartsWith("\x89PNG", $png);
         $size = getimagesizefromstring($png);
         $this->assertSame([1200, 630], [$size[0], $size[1]]);
-        $this->assertNotSame('', share::card($centre, 'يومك الأول', 'حكاية لـليو'), 'Arabic, in its own face.');
+        // The drawing stuck on the wall, and an act as the band of the visit, also square and upright.
+        $sheet = imagecreatetruecolor(300, 400);
+        imagefilledrectangle($sheet, 0, 0, 300, 400, imagecolorallocate($sheet, 240, 236, 228));
+        ob_start();
+        imagejpeg($sheet);
+        $picture = (string) ob_get_clean();
+        $size = getimagesizefromstring(share::card($centre, 'dibujo', ['name' => 'Leo'], $picture));
+        $this->assertSame([1200, 630], [$size[0], $size[1]]);
+        $act = ['weekday' => 'Sábado', 'date' => '21 de noviembre', 'hours' => 'De 10:00 a 13:00',
+            'title' => 'Jornada de puertas abiertas'];
+        foreach ([[1200, 630], [1080, 1080], [1080, 1920]] as $shape) {
+            $size = getimagesizefromstring(share::card($centre, 'acto', $act, null, $shape));
+            $this->assertSame($shape, [$size[0], $size[1]]);
+        }
+        $this->assertNotSame(
+            '',
+            share::card($centre, 'cuento', ['title' => 'يومك الأول', 'name' => 'ليلى']),
+            'Arabic, in its own face.'
+        );
     }
 }

@@ -17,37 +17,43 @@
 {{!
     @template local_oksigeniaeguahe/public_shared_drawing
 
-    The drawing of a child, sent by its family to someone: the drawing big, drawing itself once when its strokes were
-    kept; the gift of the centre; sending it on; and, when the centre has it on, the invitation to know the centre.
-    Nothing else of the family. The seal of Eguahe goes at the foot, in the frame of the page.
+    The drawing of a child, sent by its family to someone: stuck on the wall of the centre with two strips of paper
+    tape and the label of its name on its corner, as its preview shows it; big, and drawing itself once when its strokes
+    were kept. Under it, the gift of the centre and sending it on; then, when the centre has it on, the invitation, in
+    one quiet line of the same size: whoever opens it is mostly a grandmother or an uncle, and the drawing of a child
+    carries no advert. Nothing else of the family. The seal of Eguahe goes at the foot, in the frame of the page.
 
     Example context (json):
     {
+        "i": {"send": ""},
         "kicker": "Un dibujo de", "name": "Leo", "img": "/local/oksigeniaeguahe/dibujo.php?action=imagen",
         "strokes": "", "alt": "El dibujo de Leo", "gift": "Un regalo del Colegio Los Arces",
         "share": {"label": "Mandarlo a alguien", "url": "/local/oksigeniaeguahe/dibujo.php", "title": "El dibujo de Leo",
             "text": "Mira lo que ha dibujado Leo", "copied": "Enlace copiado", "measure": ""},
         "invitation": {"title": "¿Buscan centro?", "text": "Vengan a conocer el Colegio Los Arces.",
-            "button": "Ver cuándo", "url": "/local/oksigeniaeguahe/dibujo.php?action=invitacion"}
+            "button": "Quiero conocerlo", "url": "/local/oksigeniaeguahe/dibujo.php?action=invitacion"}
     }
 }}
-<section class="pared corta compartido compartido-dibujo" aria-labelledby="titulo">
-    <div class="mensaje">
+<section class="pared compartido-dibujo" aria-labelledby="titulo">
+    <div class="compartido-cabeza">
         <p class="antetitulo">{{kicker}}</p>
         <h1 id="titulo" class="mano-titular" dir="auto" translate="no">{{name}}</h1>
-        <figure class="dibujo-grande-marco">
-            <a class="dibujo-grande" href="{{img}}"{{#strokes}} data-trazos="{{.}}"{{/strokes}}><img src="{{img}}" alt="{{alt}}"></a>
-        </figure>
+    </div>
+    <figure class="dibujo-pegado">
+        <a class="dibujo-grande" href="{{img}}"{{#strokes}} data-trazos="{{.}}"{{/strokes}}><img src="{{img}}" alt="{{alt}}"></a>
+        <svg class="etiqueta-cuento etiqueta-dibujo" viewBox="-25 -18 50 36" aria-hidden="true" focusable="false">
+            <path class="banda" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
+            <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+            <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z" opacity=".75"/>
+            <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
+            <text class="mano-cuento" x="-3" y="5" text-anchor="middle" font-size="13.5" data-w="27">{{name}}</text>
+        </svg>
+    </figure>
+    <div class="compartido-pie">
         <p class="regalo-firma" dir="auto">{{gift}}</p>
         {{#share}}
-        <p class="compartir-fila"><button class="boton" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#measure}} data-medir="{{.}}"{{/measure}}>{{label}}</button><span class="compartir-aviso" aria-live="polite"></span></p>
+        <p class="compartir-fila"><button class="boton secundario" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#measure}} data-medir="{{.}}"{{/measure}}>{{{i.send}}}{{label}}</button><span class="compartir-aviso" aria-live="polite"></span></p>
         {{/share}}
+        {{#invitation}}<p class="invitacion-compartido"><b>{{title}}</b> <span dir="auto">{{text}}</span> <a href="{{url}}">{{button}}</a></p>{{/invitation}}
     </div>
 </section>
-{{#invitation}}
-<section class="invitacion-compartido" aria-labelledby="invitacion-t">
-    <h2 id="invitacion-t">{{title}}</h2>
-    <p dir="auto">{{text}}</p>
-    <p><a class="boton principal" href="{{url}}">{{button}}</a></p>
-</section>
-{{/invitation}}

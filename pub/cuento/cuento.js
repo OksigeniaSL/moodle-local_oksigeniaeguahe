@@ -75,7 +75,7 @@ const pageName = p => p.kind === 'cover' ? T.cover : p.kind === 'dedication' ? T
   set('#musica', 'aria-label', T.music); set('#musica', 'title', T.music);
   set('.vol .vh', null, T.volume);
   set('#vol-texto', null, fill(T.volume_value, { n: 25 }));
-  set('.autor a', null, T.by);
+  set('.autor a span', null, T.by);
   set('#ver', 'aria-label', tr('drawing_label'));
   set('#ver-lienzo', 'aria-label', tr('drawing_label'));
   set('.ver-pie', null, tr('drawing_caption'));
@@ -214,6 +214,17 @@ function dedicationHtml(p, i) {
 const tira = $('#tira');
 tira.innerHTML = BOOK.pages.map((p, i) => p.kind === 'cover' ? coverHtml() : p.kind === 'dedication' ? dedicationHtml(p, i) : pageHtml(p, i)).join('');
 const pages = [...tira.children];
+// Shared: the gift of the centre signs the dedication, as in a book given; the invitation closes the last page, under
+// its gestures. Without the script they stay under the book.
+(function () {
+  const gift = $('.regalo'), dedication = tira.querySelector('.dedicatoria');
+  if (!gift || !dedication) return;
+  const sign = gift.querySelector('.regalo-firma'), invite = gift.querySelector('.regalo-invita');
+  const sheet = dedication.querySelector('.hoja-dedicatoria');
+  if (sign) { sheet.appendChild(sign); sheet.classList.add('con-firma'); }
+  if (invite) dedication.appendChild(invite);
+  gift.remove();
+})();
 const last = pages.length - 1;
 
 // Names longer than their blank spot get smaller, never wider than the sticker.

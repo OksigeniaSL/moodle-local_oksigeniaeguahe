@@ -32,7 +32,7 @@
 
     Example context (json):
     {
-        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": ""},
+        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": "", "send": ""},
         "greeting": "Los esperamos,", "names": "Leo",
         "pegs": {"count": 1, "live": false, "came": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
@@ -177,7 +177,7 @@
         <div class="acciones">
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
             {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
-            {{#share}}<button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{label}}</button><span class="compartir-aviso" aria-live="polite"></span>{{/share}}
+            {{#share}}<span class="pasar"><button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/share}}
         </div>
     </div>
     {{/first}}
@@ -270,7 +270,7 @@
         {{#haschildren}}
         <div>
             <h3 id="quien-vendria">{{pub_who_comes}}</h3>
-            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{#drawingsend}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a>{{/drawingsend}}{{#drawingshare}} <button class="enlace mandar-dibujo" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_drawing">{{label}}</button><span class="compartir-aviso" aria-live="polite"></span>{{/drawingshare}}</dd></div>{{/children}}</dl>
+            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{#drawingsend}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a>{{/drawingsend}}{{#drawingshare}}<span class="pasar"><button class="enlace mandar-dibujo" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_drawing">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/drawingshare}}</dd></div>{{/children}}</dl>
             {{#hassiblings}}<h3>{{siblingstitle}}</h3><dl>{{#siblings}}<div><dt>{{name}}</dt><dd>{{line}}</dd></div>{{/siblings}}</dl>{{/hassiblings}}
         </div>
         {{/haschildren}}

@@ -44,7 +44,9 @@ if ($piece === 'acto') {
     if ($event && $centre && share::act_open($event)) {
         $lang = publiclang::choose($centre);
         $when = publicpage::date_parts((int) $event->timestart, $lang);
-        $png = share::card($centre, $when['long'], format_string($event->name));
+        $png = share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
+            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
+            'title' => format_string($event->name)]);
     }
 } else if ($piece === 'cuento' || $piece === 'dibujo') {
     $householdid = optional_param('h', 0, PARAM_INT);
@@ -59,10 +61,10 @@ if ($piece === 'acto') {
         $file = drawings::file((int) $child->id);
         $picture = $file ? $file->get_content() : null;
         if ($piece === 'cuento') {
-            $title = publiclang::str('pub_story_kicker', $lang, (object) ['name' => $name]);
-            $png = share::card($centre, publiclang::str('share_story_kicker', $lang), $title, $picture);
+            // The story as its cover: its title and the label with the name.
+            $png = share::card($centre, 'cuento', ['title' => publiclang::str('share_story_kicker', $lang), 'name' => $name]);
         } else if ($picture !== null) {
-            $png = share::card($centre, publiclang::str('share_drawing_kicker', $lang), $name, $picture);
+            $png = share::card($centre, 'dibujo', ['name' => $name], $picture);
         }
     }
 }

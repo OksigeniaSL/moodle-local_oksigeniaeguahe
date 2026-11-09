@@ -580,7 +580,8 @@ button.marco {
 
 /* The dedication: a sheet of the book, written by hand, with the two hands; and below, three quiet gestures. */
 .dedicatoria {
-    align-content: center;
+    /* Safe: when the last page is taller than the screen (the gift, the invitation), it starts at its top. */
+    align-content: safe center;
     justify-items: center;
     gap: 14px;
 }
@@ -904,25 +905,77 @@ button.marco {
     text-underline-offset: 2px;
 }
 
-/* Shared: the gift of the centre and, when it has it on, the invitation to whoever received the story. */
+/* Shared: the gift of the centre signs the dedication, under its words, with the mark of the centre, as in a book given;
+   the invitation to whoever received the story closes the last page, under its gestures; the seal of Eguahe, at the
+   foot, always the same size. Without the script, the gift and the invitation stay under the book. */
 .regalo {
     margin: 0;
     padding: 6px 16px 0;
-    text-align: center;
-    font-size: 13px;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    font-size: 14px;
     color: var(--tinta-2);
 }
-.regalo p {
-    margin: 0 0 2px;
-}
 .regalo-firma {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 15px;
     font-weight: 600;
     color: var(--tinta);
 }
-.regalo a {
-    color: inherit;
-    font-weight: 600;
+.hoja-dedicatoria.con-firma {
+    padding-bottom: 50px;
+}
+.hoja-dedicatoria .regalo-firma {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(54, 35, 58, .16);
+    color: var(--hoja-tinta);
+}
+.regalo-firma .marca-centro {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+}
+.regalo-invita {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: var(--hundido);
+    color: var(--tinta);
+    font-size: 15px;
+    text-align: center;
+}
+.regalo-invita-texto b {
+    font-weight: 750;
+}
+.gesto.regalo-ir {
+    min-height: 42px;
+    border-color: var(--c-vivo);
+    color: var(--c-vivo);
+}
+.autor.sello a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+}
+.autor.sello a span {
+    text-decoration: underline;
     text-underline-offset: 2px;
+}
+.autor .sello-marca {
+    width: 18px;
+    height: 18px;
+    flex: none;
 }
 
 /* Wide screens and phones on their side: the illustration on the left, the text beside it. */
@@ -963,12 +1016,22 @@ button.marco {
         padding: clamp(16px, 2.6vw, 40px) clamp(20px, 3.4vw, 56px);
     }
     .manos {
+        grid-row: span 2;
         width: 100%;
     }
     .dedica {
         text-align: start;
         /* stylelint-disable-next-line csstree/validator */
         font-size: clamp(30px, 1.7vw + 14px, 50px);
+    }
+    .hoja-dedicatoria.con-firma {
+        /* stylelint-disable-next-line csstree/validator */
+        padding-bottom: clamp(16px, 2.6vw, 40px);
+    }
+    .hoja-dedicatoria .regalo-firma {
+        grid-column: 2;
+        justify-self: start;
+        align-self: start;
     }
     .gestos {
         width: auto;
