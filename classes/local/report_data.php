@@ -584,7 +584,9 @@ class report_data {
             }
             $s = (int) ($signed[$event->id] ?? 0);
             $k = (int) ($came[$event->id] ?? 0);
-            $rows[] = ['name' => format_string($event->name), 'when' => self::day((int) $event->timestart), 'signed' => $s,
+            $hour = userdate((int) $event->timestart, get_string('strftimetime', 'langconfig'));
+            $when = self::day((int) $event->timestart) . ', ' . $hour;
+            $rows[] = ['name' => format_string($event->name), 'when' => $when, 'signed' => $s,
                 'came' => $k, 'told' => (int) ($told[$event->id] ?? 0),
                 'rate' => $s && $event->timestart < time() ? get_string('report_rate', $c, (int) round(100 * $k / $s)) : false];
         }
@@ -769,7 +771,8 @@ class report_data {
                 fn($r) => $r['n'] > 0
             ));
             $n = array_sum(array_column($between, 'n'));
-            if ($n >= 3) {
+            // Only of a school year that ended: half way, its first month is the campaign itself.
+            if ($n >= 3 && empty($data['sofar'])) {
                 $names = array_column($between, 'name');
                 $last = array_pop($names);
                 $add('between', (object) ['n' => $n, 'months' => $names ? get_string('andlist', $c, (object) [

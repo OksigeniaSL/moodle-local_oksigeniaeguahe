@@ -7466,6 +7466,1083 @@ html.modo-lamina {
     }
 }
 
+/* ==================== 11.5.3 The reports ==================== */
+/* «Cómo va» (hot, the week) and «El curso, en frío» (cold, the school year), inside «Cifras» (Jujol, 9 November 2026).
+   One sheet on the desk of the skin, written like a document. What was counted is printed in ink, with what came
+   before in pencil behind it (the outline of a bar, a figure in grey), and every big figure with the one before and,
+   when it was counted, the one a year ago. What the AI of the centre read (the reading, the themes, its advice) is a
+   note stuck on the sheet, with «IA» and its name: never mixed with what was counted. The same page is the PDF: its
+   print sheet is A4 portrait, without the panel around it. Only the variables of the panel and of the skin, so light,
+   dark and both skins follow them. After section 11.5.2. */
+
+.pagina-informe {
+    --inf-tinta: var(--eg-tinta);
+    --inf-lapiz: rgba(var(--eg-tinta-rgb), 0.22);
+    --inf-lapiz-fuerte: rgba(var(--eg-tinta-rgb), 0.6);
+    --inf-lapiz-texto: var(--eg-tinta-2);
+    --inf-serie: var(--eg-serie-1);
+    --inf-serie-suave: var(--eg-serie-1-suave);
+    --inf-sale: var(--eg-serie-2);
+    --inf-rango: var(--eg-rango);
+    --inf-nota: #fff5cf;
+    --inf-nota-borde: #e3cf85;
+    --inf-nota-tinta: #3a3120;
+    --inf-nota-suave: #6a5b39;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .pagina-informe {
+        --inf-lapiz: rgba(var(--eg-tinta-rgb), 0.24);
+        --inf-nota: #39331f;
+        --inf-nota-borde: #6b5d30;
+        --inf-nota-tinta: #f4ecd4;
+        --inf-nota-suave: #d2c49b;
+    }
+}
+
+:root[data-bs-theme="dark"] .pagina-informe {
+    --inf-lapiz: rgba(var(--eg-tinta-rgb), 0.24);
+    --inf-nota: #39331f;
+    --inf-nota-borde: #6b5d30;
+    --inf-nota-tinta: #f4ecd4;
+    --inf-nota-suave: #d2c49b;
+}
+
+/* ---------- The reports before, and making one ---------- */
+.inf-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 18px;
+    margin: 0 0 16px;
+}
+
+.inf-otros ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-otros a {
+    display: grid;
+    min-height: 44px;
+    align-content: center;
+    padding: 5px 14px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: 12px;
+    background: var(--piel-hoja);
+    color: var(--inf-tinta);
+    font-size: 0.92rem;
+    line-height: 1.2;
+    text-decoration: none;
+}
+
+.inf-otro-clase {
+    color: var(--inf-lapiz-texto);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.inf-otros a[aria-current="page"] {
+    border-color: var(--inf-tinta);
+    background: var(--inf-tinta);
+    color: var(--piel-hoja);
+}
+
+.inf-otros a[aria-current="page"] .inf-otro-clase {
+    color: inherit;
+}
+
+.inf-hacer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.inf-vacio {
+    margin: 0;
+    padding: 28px 24px;
+    border: 1.5px dashed var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    color: var(--inf-lapiz-texto);
+    font-size: 1.05rem;
+}
+
+/* ---------- The sheet ---------- */
+.informe {
+    position: relative;
+    display: grid;
+    gap: 30px;
+    /* stylelint-disable-next-line csstree/validator */
+    padding: clamp(20px, 3.6vw, 46px);
+    border: 1px solid var(--piel-hoja-borde);
+    border-top: 6px solid var(--inf-serie);
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    box-shadow: var(--piel-hoja-sombra);
+    color: var(--inf-tinta);
+}
+
+.informe-cold {
+    border-top-color: var(--inf-tinta);
+}
+
+.informe h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.informe h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.inf-seccion {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--inf-lapiz);
+}
+
+.inf-seccion-frase {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.inf-def {
+    margin: 0;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9rem;
+}
+
+.inf-lapiz {
+    color: var(--inf-lapiz-texto);
+    font-weight: 400;
+}
+
+.inf-dos {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px 36px;
+}
+
+/* The key under a chart: ink is now, the pencil outline is before; the range and the places where they are. */
+.inf-clave {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 0;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.84rem;
+}
+
+.inf-clave span::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    margin-inline-end: 6px;
+    vertical-align: -0.05em;
+    border-radius: 2px;
+}
+
+.inf-clave-ahora::before {
+    background: var(--inf-serie);
+}
+.inf-clave-antes::before {
+    border: 2px solid var(--inf-lapiz-fuerte);
+}
+.inf-clave-rango::before {
+    background: var(--inf-rango);
+}
+.inf-clave .inf-clave-plazas::before {
+    width: 0;
+    height: 14px;
+    border-inline-start: 2px dotted var(--inf-tinta);
+    border-radius: 0;
+}
+
+/* ---------- The sentence of the period and its big figures ---------- */
+.inf-frase {
+    display: grid;
+    gap: 18px;
+}
+
+.inf-frase-texto {
+    margin: 0;
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.inf-cifras {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 16px 22px;
+    margin: 0;
+}
+
+.inf-cifra {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    padding-top: 12px;
+    border-top: 2px solid var(--inf-tinta);
+}
+
+.inf-cifra dt {
+    order: 2;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.inf-cifra dd {
+    margin: 0;
+}
+
+.inf-cifra-valor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    order: 1;
+}
+
+.inf-cifra-valor b {
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(2.4rem, 5vw, 3.3rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.inf-tendencia {
+    color: var(--inf-lapiz-texto);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.sube .inf-tendencia::before {
+    content: "↑ ";
+}
+.baja .inf-tendencia::before {
+    content: "↓ ";
+}
+.igual .inf-tendencia::before {
+    content: "= ";
+}
+
+.inf-antes {
+    order: 3;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.88rem;
+}
+
+.inf-antes b {
+    color: var(--inf-tinta);
+    font-variant-numeric: tabular-nums;
+}
+
+.inf-respuesta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--inf-lapiz);
+    border-radius: 6px;
+}
+
+.inf-respuesta b {
+    font-size: 1.35rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* ---------- What the AI read: a note stuck on the sheet ---------- */
+.inf-ia-marca {
+    display: inline-grid;
+    place-items: center;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    vertical-align: 0.15em;
+}
+
+.inf-nota,
+.inf-ia-estado {
+    position: relative;
+    margin: 0;
+    padding: 20px 22px 18px;
+    border: 1px solid var(--inf-nota-borde);
+    border-radius: 3px;
+    background: var(--inf-nota);
+    color: var(--inf-nota-tinta);
+    box-shadow: 0 8px 16px -12px rgba(0, 0, 0, 0.45);
+}
+
+.inf-nota {
+    display: grid;
+    gap: 8px;
+    transform: rotate(-0.25deg);
+}
+
+/* A piece of tape holds the note. */
+.inf-nota::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    width: 96px;
+    height: 20px;
+    margin-left: -48px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.5);
+    transform: rotate(1.5deg);
+}
+
+.inf-nota h2 {
+    font-size: 1.05rem;
+}
+
+.inf-nota p {
+    margin: 0;
+}
+
+.inf-lectura > p:not(.inf-nota-firma) {
+    font-size: 1.08rem;
+    line-height: 1.55;
+}
+
+.inf-nota-firma {
+    color: var(--inf-nota-suave);
+    font-size: 0.86rem;
+}
+
+.inf-ia-estado {
+    border-style: dashed;
+    color: var(--inf-nota-suave);
+}
+
+.inf-ia-estado.esperando .inf-ia-marca {
+    animation: inf-latido 1.6s ease-in-out infinite;
+}
+
+@keyframes inf-latido {
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.inf-temas-lista {
+    display: grid;
+    gap: 12px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-tema {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+}
+
+.inf-tema-cuenta {
+    color: var(--inf-nota-suave);
+    font-size: 0.86rem;
+}
+
+.inf-tema-pista {
+    display: block;
+    height: 6px;
+    margin: 4px 0 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.inf-tema-pista i {
+    display: block;
+    width: calc(var(--v, 0) * 100%);
+    height: 100%;
+    border-radius: 3px;
+    background: var(--inf-nota-suave);
+}
+
+/* ---------- What asks for attention now (hot only): each line leads to the inbox that solves it ---------- */
+.inf-atencion ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-atencion a {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    min-height: 56px;
+    padding: 8px 14px 8px 10px;
+    border: 1px solid var(--inf-lapiz);
+    border-inline-start: 4px solid var(--inf-lapiz-fuerte);
+    border-radius: 6px;
+    color: var(--inf-tinta);
+    text-decoration: none;
+}
+
+.inf-atencion a::after {
+    content: "→";
+    color: var(--inf-lapiz-texto);
+    font-weight: 700;
+}
+
+.inf-atencion a:hover {
+    border-color: var(--inf-tinta);
+}
+
+.inf-atencion .tarde a {
+    border-inline-start-color: var(--inf-tinta);
+}
+
+.inf-atencion-n {
+    font-size: 1.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+/* ---------- Bars: the datum in ink, the time before as a pencil outline over it ---------- */
+.inf-barras {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-barra-fila {
+    display: grid;
+    grid-template-columns: minmax(7rem, 30%) minmax(0, 1fr) minmax(5.5rem, auto);
+    gap: 4px 14px;
+    align-items: center;
+}
+
+.inf-barra-nombre {
+    min-width: 0;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.inf-barra-pista {
+    position: relative;
+    height: 22px;
+}
+
+.inf-ahora-barra,
+.inf-antes-barra {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 2px;
+}
+
+.inf-ahora-barra {
+    width: calc(var(--v, 0) * 100%);
+    background: var(--inf-serie);
+}
+
+.inf-antes-barra {
+    z-index: 1;
+    width: calc(var(--bv, 0) * 100%);
+    border: 2px solid var(--inf-lapiz-fuerte);
+}
+
+.inf-barra-n {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.inf-barra-n b {
+    font-size: 1.05rem;
+}
+
+.inf-barras-cortas .inf-barra-pista {
+    height: 12px;
+}
+
+.inf-barras-cortas .inf-barra-fila {
+    grid-template-columns: minmax(7rem, 42%) minmax(0, 1fr) auto;
+}
+
+.inf-sale .inf-ahora-barra {
+    background: var(--inf-sale);
+}
+
+.inf-crecer .inf-barra-fila {
+    grid-template-columns: 5rem minmax(0, 1fr) minmax(0, 1.4fr);
+}
+
+.inf-crecer-linea {
+    white-space: normal;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9rem;
+}
+
+/* ---------- The pace: a column per week or month, the year before in pencil, what is still to come dashed ---------- */
+.inf-columnas {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 4px;
+    height: 210px;
+    margin: 0;
+    padding: 18px 0 0;
+    list-style: none;
+}
+
+.inf-columna {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 6px;
+    min-width: 0;
+}
+
+.inf-columna-caja {
+    position: relative;
+    border-bottom: 1.5px solid var(--inf-tinta);
+}
+
+.inf-ahora-columna,
+.inf-antes-columna {
+    position: absolute;
+    bottom: 0;
+}
+
+.inf-ahora-columna {
+    left: 20%;
+    right: 20%;
+    height: calc(var(--v, 0) * 100%);
+    border-radius: 2px 2px 0 0;
+    background: var(--inf-serie);
+}
+
+.inf-ahora-columna b {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    padding-bottom: 2px;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    transform: translateX(-50%);
+}
+
+.inf-antes-columna {
+    z-index: 1;
+    left: 8%;
+    right: 8%;
+    height: calc(var(--bv, 0) * 100%);
+    border: 2px solid var(--inf-lapiz-fuerte);
+    border-bottom: 0;
+    border-radius: 2px 2px 0 0;
+}
+
+.futuro .inf-antes-columna {
+    border-style: dashed;
+}
+
+.inf-columna-rotulo {
+    overflow: hidden;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.72rem;
+    line-height: 1.15;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.cumbre .inf-columna-rotulo {
+    color: var(--inf-tinta);
+    font-weight: 700;
+}
+
+.futuro .inf-columna-rotulo {
+    font-style: italic;
+}
+
+.inf-gemela {
+    font-size: 0.92rem;
+}
+
+/* ---------- The places: enrolled in ink along the rail, what may come as a band, the places as a dotted line ---------- */
+.inf-cursos {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-curso {
+    display: grid;
+    gap: 8px;
+}
+
+.inf-curso-nombre {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+}
+
+.inf-curso-nombre span {
+    color: var(--inf-lapiz-texto);
+}
+
+.inf-curso-pista {
+    position: relative;
+    display: block;
+    height: 16px;
+    margin: 6px 0;
+    border-radius: 2px;
+    background: var(--inf-lapiz);
+}
+
+.inf-curso-rango {
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    left: calc(var(--vl, 0) * 100%);
+    width: calc((var(--vh, 0) - var(--vl, 0)) * 100%);
+    border-radius: 3px;
+    background: var(--inf-rango);
+    opacity: 0.8;
+}
+
+.inf-curso-dentro {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--vt, 0) * 100%);
+    border-radius: 2px;
+    background: var(--inf-serie);
+}
+
+.inf-curso-plazas {
+    position: absolute;
+    top: -9px;
+    bottom: -9px;
+    left: calc(var(--vp, 0) * 100%);
+    border-inline-start: 2px dotted var(--inf-tinta);
+}
+
+.inf-curso-frase {
+    margin: 0;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.92rem;
+}
+
+.inf-anos {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inf-anos li {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 12px;
+    align-items: center;
+}
+
+.inf-ano {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.inf-ano-texto {
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9rem;
+}
+
+/* ---------- The acts ---------- */
+.inf-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.inf-tabla th,
+.inf-tabla td {
+    padding: 8px 10px 8px 0;
+    border-bottom: 1px solid var(--inf-lapiz);
+    text-align: start;
+    vertical-align: top;
+}
+
+.inf-tabla thead th {
+    color: var(--inf-lapiz-texto);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.inf-tabla tbody th {
+    font-weight: 600;
+}
+
+/* ---------- Advice: each says where it comes from; the AI's, on its note paper ---------- */
+.inf-consejos ol {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: consejo;
+}
+
+.inf-consejo {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px 12px 54px;
+    border: 1px solid var(--inf-lapiz);
+    border-radius: 6px;
+    counter-increment: consejo;
+}
+
+.inf-consejo::before {
+    content: counter(consejo);
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    color: var(--inf-lapiz-fuerte);
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.inf-consejo p {
+    margin: 0;
+}
+
+.inf-consejo-que {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.inf-consejo-que a {
+    color: var(--inf-serie);
+}
+
+.inf-consejo-porque {
+    color: var(--inf-lapiz-texto);
+}
+
+.inf-consejo .inf-de-donde {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.inf-de-donde-marca {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--inf-tinta);
+}
+
+.inf-consejo-ai {
+    border-color: var(--inf-nota-borde);
+    background: var(--inf-nota);
+    color: var(--inf-nota-tinta);
+}
+
+.inf-consejo-ai .inf-consejo-porque {
+    color: var(--inf-nota-suave);
+}
+
+.inf-consejo-ai .inf-de-donde-marca {
+    display: inline-grid;
+    place-items: center;
+    width: auto;
+    height: 18px;
+    padding: 0 4px;
+    border: 1.5px solid currentColor;
+    background: none;
+}
+
+.inf-consejo-ai .inf-de-donde-marca::before {
+    content: "IA";
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+}
+
+/* ---------- What each figure means ---------- */
+.inf-definiciones dl {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 12px 32px;
+    margin: 0;
+}
+
+.inf-definiciones dt {
+    font-weight: 700;
+}
+
+.inf-definiciones dd {
+    margin: 2px 0 0;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.92rem;
+}
+
+.inf-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.inf-acciones form {
+    margin: 0;
+}
+
+/* ---------- The phone ---------- */
+@media (max-width: 600px) {
+    .inf-barra-fila,
+    .inf-barras-cortas .inf-barra-fila,
+    .inf-crecer .inf-barra-fila {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .inf-barra-fila .inf-barra-pista {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .inf-columnas {
+        height: 170px;
+    }
+
+    .inf-columna-rotulo {
+        font-size: 0.64rem;
+    }
+
+    .inf-anos li {
+        grid-template-columns: 4.6rem minmax(0, 1fr);
+    }
+
+    .inf-ano-texto {
+        grid-column: 1 / -1;
+    }
+
+    .inf-tabla thead {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .inf-ia-estado.esperando .inf-ia-marca {
+        animation: none;
+    }
+}
+
+/* ---------- The PDF: the same page, on A4 portrait, without the panel around it ---------- */
+@media print {
+    @page {
+        size: A4 portrait;
+        /* stylelint-disable-next-line csstree/validator */
+        margin: 14mm 14mm 16mm;
+    }
+
+    /* Paper, whatever the screen: the light tokens of the panel on the body (the skins set theirs there, and their
+       night too), white paper and no desk. */
+    :root:has(.pagina-informe) body.panel.panel {
+        --eg-papel: #fbf7f1;
+        --eg-superficie: #fff;
+        --eg-tinta: #2b2226;
+        --eg-tinta-rgb: 43, 34, 38;
+        --eg-tinta-2: #5f5459;
+        --eg-linea: #e7ded3;
+        --eg-borde: #8c8086;
+        --eg-acento: #6a4664;
+        --eg-serie-1: #7b3f72;
+        --eg-serie-1-suave: #e6d3e1;
+        --eg-serie-2: #b0682e;
+        --eg-rango: #cfa9c8;
+        --papel-b: #fff;
+        --papel-b-2: #fff;
+        --piel-hoja: #fff;
+        --piel-hoja-borde: transparent;
+        --piel-hoja-sombra: none;
+        background: #fff none;
+        color: #2b2226;
+        color-scheme: light;
+    }
+
+    :root:has(.pagina-informe) body.panel.panel::before,
+    :root:has(.pagina-informe) body.panel.panel::after {
+        display: none;
+    }
+
+    :root:has(.pagina-informe) {
+        background: #fff;
+        color-scheme: light;
+    }
+
+    :root:has(.pagina-informe) body .pagina-informe {
+        --inf-lapiz: rgba(43, 34, 38, 0.22);
+        --inf-nota: #fff5cf;
+        --inf-nota-borde: #e3cf85;
+        --inf-nota-tinta: #3a3120;
+        --inf-nota-suave: #6a5b39;
+    }
+
+    .inf-cifras {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .pagina-informe *,
+    .pagina-informe *::before {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .inf-barra,
+    .inf-acciones,
+    .inf-gemela,
+    .pagina-informe .migas {
+        /* stylelint-disable-next-line declaration-no-important */
+        display: none !important;
+    }
+
+    .pagina-informe .cabeza {
+        padding: 0 0 6mm;
+        border: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .informe {
+        gap: 7mm;
+        padding: 0;
+        border: 0;
+        border-top: 2mm solid var(--inf-serie);
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .informe-cold {
+        border-top-color: var(--inf-tinta);
+    }
+
+    .inf-frase,
+    .inf-nota,
+    .inf-cifra,
+    .inf-consejo,
+    .inf-curso,
+    .inf-barra-fila,
+    .inf-definiciones div {
+        break-inside: avoid;
+    }
+
+    .informe h2 {
+        break-after: avoid;
+    }
+
+    /* Chrome does not split a grid well between pages: a row cut in two lands on the next one. In print, the lists of
+       rows are blocks, with the same gap, and every row goes whole. */
+    .inf-atencion ul,
+    .inf-barras,
+    .inf-cursos,
+    .inf-consejos ol,
+    .inf-temas-lista,
+    .inf-anos {
+        display: block;
+    }
+
+    .inf-atencion li,
+    .inf-atencion a,
+    .inf-temas-lista > li,
+    .inf-anos > li {
+        break-inside: avoid;
+    }
+
+    /* What each figure means is short: it goes whole, with its title, never split nor left as a title at the foot. */
+    .inf-definiciones {
+        break-inside: avoid;
+    }
+
+    .inf-atencion li + li {
+        margin-top: 8px;
+    }
+
+    .inf-barras > li + li {
+        margin-top: 9px;
+    }
+
+    .inf-cursos > li + li {
+        margin-top: 18px;
+    }
+
+    .inf-consejos ol > li + li,
+    .inf-temas-lista > li + li {
+        margin-top: 12px;
+    }
+
+    .inf-anos > li + li {
+        margin-top: 6px;
+    }
+
+    .inf-nota {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .inf-nota::before {
+        display: none;
+    }
+
+    .informe a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .inf-atencion a::after {
+        content: none;
+    }
+}
+
 /* ==================== 11.6 Importing what already happened ==================== */
 .tipos-import {
     padding-inline-start: 1.2em;

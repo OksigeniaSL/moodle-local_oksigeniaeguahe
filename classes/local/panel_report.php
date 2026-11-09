@@ -73,7 +73,9 @@ class panel_report {
         foreach ($data['figures'] ?? [] as $i => $figure) {
             $data['figures'][$i]['hasbefore'] = $figure['before'] !== false;
             $data['figures'][$i]['hasago'] = $figure['ago'] !== false;
+            $data['figures'][$i]['trendtext'] = self::trend($figure['trend']);
         }
+        $data = self::scales($data);
         $ai = $report->ai;
         $advice = array_map(fn($a) => $a + ['fromtext' => get_string('report_from_rule', $c)], $data['advice'] ?? []);
         foreach ($ai['advice'] ?? [] as $tip) {
@@ -106,6 +108,7 @@ class panel_report {
                 'hasplaces' => !empty($data['places']), 'hasforecast' => !empty($data['forecast']),
                 'hasgrow' => !empty($data['grow'])],
             'reading' => ($ai['reading'] ?? '') !== '' ? $ai['reading'] : false,
+            'ainame' => ($ai['reading'] ?? '') !== '' ? get_string('report_ai_signed', $c, s($report->aiprovider ?: 'IA')) : false,
             'themes' => $themes,
             'hasthemes' => (bool) $themes,
             'themesfrom' => $themes ? get_string('report_themes_from', $c, (object) ['n' => (int) ($ai['texts'] ?? 0),
@@ -118,5 +121,91 @@ class panel_report {
             'again' => $canact ? ['action' => $url([]), 'sesskey' => sesskey(), 'kind' => $report->kind,
                 'from' => (int) $report->periodfrom, 'text' => get_string('report_again', $c)] : false,
         ];
+    }
+
+    /**
+     * Where each bar and range of the design ends, from 0 to 1, on one scale per chart: what is now and what was before
+     * on the same one (Jujol). A course of the places and a course of what may come, each on its own, with a little air
+     * above. Nothing is made up: the same counts, scaled.
+     *
+     * @param array $data
+     * @return array
+     */
+    public static function scales(array $data): array {
+        $r = fn(float $x) => round($x, 3);
+        $bars = function (array $rows, array $keys) use ($r): array {
+            $top = 1;
+            foreach ($rows as $row) {
+                foreach ($keys as $key) {
+                    $top = max($top, (float) ($row[$key] ?? 0));
+                }
+            }
+            foreach ($rows as $i => $row) {
+                $rows[$i]['v'] = $r((float) ($row['n'] ?? 0) / $top);
+                if (in_array('before', $keys, true)) {
+                    $rows[$i]['bv'] = $r((float) ($row['before'] ?: 0) / $top);
+                }
+            }
+            return $rows;
+        };
+        if (!empty($data['funnel']['steps'])) {
+            $data['funnel']['steps'] = $bars($data['funnel']['steps'], ['n', 'before']);
+        }
+        if (!empty($data['pace']['rows'])) {
+            $most = max(array_merge([0], array_map(
+                fn($row) => empty($row['future']) ? (int) $row['n'] : 0,
+                $data['pace']['rows']
+            )));
+            foreach ($data['pace']['rows'] as $i => $row) {
+                $data['pace']['rows'][$i]['top'] = $most > 0 && empty($row['future']) && (int) $row['n'] === $most;
+                // A month to come has no bar of its own, only the one of the year before.
+                $data['pace']['rows'][$i]['v'] = $row['v'] ?: 0;
+                $data['pace']['rows'][$i]['bv'] = $row['bv'] ?: 0;
+            }
+        }
+        foreach ($data['channels'] ?: [] as $i => $voice) {
+            $data['channels'][$i]['rows'] = $bars($voice['rows'], ['n', 'before']);
+            foreach ($voice['rows'] as $j => $row) {
+                $data['channels'][$i]['rows'][$j]['trendtext'] = self::trend($row['trend'] ?? false);
+            }
+        }
+        foreach ($data['places'] ?: [] as $i => $course) {
+            $top = max(1, $course['places'], (int) $course['high'], $course['taken']) * 1.06;
+            $data['places'][$i] += ['vt' => $r($course['taken'] / $top), 'vp' => $r($course['places'] / $top),
+                'vl' => $r((int) $course['low'] / $top), 'vh' => $r((int) $course['high'] / $top)];
+        }
+        foreach (['heard', 'likes'] as $key) {
+            if (!empty($data['voices'][$key])) {
+                $data['voices'][$key] = $bars($data['voices'][$key], ['n']);
+            }
+        }
+        if (!empty($data['gone']['reasons'])) {
+            $data['gone']['reasons'] = $bars($data['gone']['reasons'], ['n']);
+        }
+        foreach ($data['forecast'] ?: [] as $i => $grade) {
+            $top = max(1, ...array_map(fn($y) => max((int) $y['high'], (int) $y['places']), $grade['years'])) * 1.06;
+            foreach ($grade['years'] as $j => $year) {
+                $data['forecast'][$i]['years'][$j] += ['vl' => $r($year['low'] / $top), 'vh' => $r($year['high'] / $top),
+                    'vp' => $r((int) $year['places'] / $top)];
+            }
+        }
+        if (!empty($data['grow'])) {
+            $share = fn($g) => (float) str_replace(',', '.', (string) $g['share']);
+            $top = max(0.001, ...array_map($share, $data['grow']));
+            foreach ($data['grow'] as $i => $g) {
+                $data['grow'][$i]['v'] = $r($share($g) / $top);
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Whether a figure goes up, down or holds, in words of the language of the page; the key stays for the styles.
+     *
+     * @param string|false $trend sube, baja or igual.
+     * @return string|false
+     */
+    protected static function trend($trend) {
+        return in_array($trend, ['sube', 'baja', 'igual'], true) ? get_string('panel_ct_' . $trend, self::C) : false;
     }
 }

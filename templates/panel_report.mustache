@@ -17,22 +17,25 @@
 {{!
     @template local_oksigeniaeguahe/panel_report
 
-    A report (report.php): «How it goes» of a week or «The year, cold» of a school year, as it was made. The period in a
-    sentence and its big figures, the reading of the AI, what asks for attention, the way to the enrolment, the pace,
-    where they come from, the places, the acts, what the families tell and its themes, why some left, the first day, what
-    may come, where to grow, advice with its why and where it comes from, and what each figure means. The reports before,
-    making one, and the sheet to print it as a PDF. Functional markup: the design is Jujol's.
+    A report (report.php): «How it goes» of a week or «The year, cold» of a school year, as it was made. One sheet on the
+    desk of the skin, written like a document: what was counted is printed in ink with what came before in pencil behind
+    it; what the AI of the centre read is a note stuck on the sheet, never mixed with what was counted. The same page,
+    with its print sheet, is the PDF (A4 portrait, without the panel around it). Design: Jujol, 9 November 2026.
+
+    New keys (computed by panel_report.php from the same counts; see the LEEME of the delivery): v and bv, from 0 to 1 on
+    one scale per chart, in steps, channels, voices, reasons and «where to grow»; vt, vp, vl and vh for each course of
+    the places; vl, vh and vp for each year of what may come; top in the busiest row of the pace; ainame.
 
     Example context (json):
     {
         "head": {"title": "Cómo va: del 2 al 8 de noviembre", "ante": "En caliente", "sub": "Hecho el lunes 9 de noviembre",
             "back": {"url": "#", "name": "Cifras"}, "action": false},
         "others": [{"name": "Del 2 al 8 de noviembre", "kind": "En caliente", "url": "#", "current": true, "hot": true}],
-        "hasothers": false, "make": false, "report": true, "id": 1, "kind": "hot", "hot": true,
+        "hasothers": false, "make": false, "report": true, "id": 1, "kind": "hot", "hot": true, "ainame": false,
         "aistatus": false, "reading": "Una semana tranquila.", "pdf": "Descargar en PDF", "again": false,
         "hasthemes": false, "themes": [], "themesfrom": false, "hasadvice": false, "advice": [],
         "data": {"sentence": "Llegaron 3 familias.", "figures": [{"key": "arrived", "value": "3", "label": "familias llegaron",
-            "before": "0", "beforelabel": "la semana anterior", "ago": false, "agolabel": false, "trend": "sube",
+            "before": "0", "beforelabel": "la semana anterior", "ago": false, "agolabel": false, "trend": "sube", "trendtext": "sube",
             "hasbefore": true, "hasago": false}],
             "response": false, "attention": false, "funnel": false, "pace": false, "channels": false, "places": false,
             "acts": false, "voices": false, "gone": false, "started": false, "referred": false, "forecast": false,
@@ -42,168 +45,236 @@
 }}
 <div class="pagina pagina-informe">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <div class="informe-barra">
+    <div class="inf-barra">
         {{#hasothers}}
-        <nav class="informe-otros" aria-label="{{#str}}report_others, local_oksigeniaeguahe{{/str}}">
+        <nav class="inf-otros" aria-label="{{#str}}report_others, local_oksigeniaeguahe{{/str}}">
             <ul>
-                {{#others}}<li><a href="{{url}}"{{#current}} aria-current="page"{{/current}}><span class="secundario">{{kind}}</span> {{name}}</a></li>{{/others}}
+                {{#others}}<li class="{{#hot}}caliente{{/hot}}{{^hot}}frio{{/hot}}"><a href="{{url}}"{{#current}} aria-current="page"{{/current}}><span class="inf-otro-clase">{{kind}}</span><span class="inf-otro-nombre">{{name}}</span></a></li>{{/others}}
             </ul>
         </nav>
         {{/hasothers}}
         {{#make}}
-        <form class="informe-hacer" method="post" action="{{action}}">
+        <form class="inf-hacer" method="post" action="{{action}}">
             <input type="hidden" name="sesskey" value="{{sesskey}}">
             {{#buttons}}<button class="boton secundario pequeno" type="submit" name="kind" value="{{kind}}">{{text}}</button>{{/buttons}}
         </form>
         {{/make}}
     </div>
     {{^report}}
-    <p class="secundario informe-vacio">{{empty}}</p>
+    <p class="inf-vacio">{{empty}}</p>
     {{/report}}
     {{#report}}
     <article class="informe informe-{{kind}}" id="informe">
         {{#data}}
-        <section class="informe-frase" aria-label="{{#str}}report_h_period, local_oksigeniaeguahe{{/str}}">
-            <p class="frase">{{sentence}}</p>
-            <dl class="informe-cifras">
+        <section class="inf-frase" aria-label="{{#str}}report_h_period, local_oksigeniaeguahe{{/str}}">
+            <p class="inf-frase-texto">{{sentence}}</p>
+            <dl class="inf-cifras">
                 {{#figures}}
-                <div class="cifra cifra-{{key}}{{#trend}} {{trend}}{{/trend}}">
+                <div class="inf-cifra inf-cifra-{{key}}{{#trend}} {{trend}}{{/trend}}">
                     <dt>{{label}}</dt>
-                    <dd><b>{{value}}</b>{{#hasbefore}}<span class="antes">{{beforelabel}}: {{before}}</span>{{/hasbefore}}{{#hasago}}<span class="antes hace-un-ano">{{agolabel}}: {{ago}}</span>{{/hasago}}</dd>
+                    <dd class="inf-cifra-valor"><b>{{value}}</b>{{#trendtext}}<span class="inf-tendencia">{{trendtext}}</span>{{/trendtext}}</dd>
+                    {{#hasbefore}}<dd class="inf-antes"><span>{{beforelabel}}</span> <b>{{before}}</b></dd>{{/hasbefore}}
+                    {{#hasago}}<dd class="inf-antes inf-hace-un-ano"><span>{{agolabel}}</span> <b>{{ago}}</b></dd>{{/hasago}}
                 </div>
                 {{/figures}}
             </dl>
-            {{#response}}<p class="respuesta">{{text}}</p>{{/response}}
+            {{#response}}<p class="inf-respuesta{{#slower}} mas-lenta{{/slower}}"><b>{{value}}</b> <span>{{text}}</span></p>{{/response}}
         </section>
         {{/data}}
-        {{#aistatus}}<p class="informe-ia-estado secundario{{#waiting}} esperando{{/waiting}}">{{text}}</p>{{/aistatus}}
+
+        {{#aistatus}}<p class="inf-ia-estado{{#waiting}} esperando{{/waiting}}"><span class="inf-ia-marca" aria-hidden="true">IA</span> {{text}}</p>{{/aistatus}}
         {{#reading}}
-        <section class="informe-lectura" aria-labelledby="inf-lectura">
-            <h2 id="inf-lectura">{{#str}}report_h_reading, local_oksigeniaeguahe{{/str}}</h2>
+        <section class="inf-nota inf-lectura" aria-labelledby="inf-lectura">
+            <h2 id="inf-lectura"><span class="inf-ia-marca" aria-hidden="true">IA</span> {{#str}}report_h_reading, local_oksigeniaeguahe{{/str}}</h2>
             <p>{{reading}}</p>
+            {{#ainame}}<p class="inf-nota-firma">{{ainame}}</p>{{/ainame}}
         </section>
         {{/reading}}
+
         {{#data}}
         {{#hasattention}}
-        <section class="informe-atencion" aria-labelledby="inf-atencion">
+        <section class="inf-seccion inf-atencion" aria-labelledby="inf-atencion">
             <h2 id="inf-atencion">{{#str}}report_h_attention, local_oksigeniaeguahe{{/str}}</h2>
-            <ul>{{#attention}}<li class="atencion-{{kind}}{{#late}} tarde{{/late}}"><a href="{{url}}">{{text}}</a></li>{{/attention}}</ul>
+            <ul>{{#attention}}<li class="inf-atencion-{{kind}}{{#late}} tarde{{/late}}"><a href="{{url}}"><span class="inf-atencion-n">{{count}}</span><span class="inf-atencion-texto">{{text}}</span></a></li>{{/attention}}</ul>
         </section>
         {{/hasattention}}
+
         {{#funnel}}
-        <section class="informe-camino" aria-labelledby="inf-camino">
+        <section class="inf-seccion inf-camino{{^compare}} sin-comparar{{/compare}}" aria-labelledby="inf-camino">
             <h2 id="inf-camino">{{#str}}report_h_funnel, local_oksigeniaeguahe{{/str}}</h2>
-            <p>{{sentence}}</p>
-            <table class="informe-tabla">
-                <thead><tr><th scope="col">{{#str}}report_col_stop, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_now, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}report_col_before_campaign, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
-                <tbody>{{#steps}}<tr><th scope="row">{{name}}</th><td>{{n}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/steps}}</tbody>
-            </table>
-            <p class="definicion secundario">{{def}}</p>
+            <p class="inf-seccion-frase">{{sentence}}</p>
+            <ol class="inf-barras">
+                {{#steps}}
+                <li class="inf-barra-fila" style="--v: {{v}}; --bv: {{bv}}">
+                    <span class="inf-barra-nombre">{{name}}</span>
+                    <span class="inf-barra-pista" aria-hidden="true">{{#compare}}<i class="inf-antes-barra"></i>{{/compare}}<i class="inf-ahora-barra"></i></span>
+                    <span class="inf-barra-n"><b>{{n}}</b>{{#compare}} <span class="inf-lapiz">{{before}}</span>{{/compare}}</span>
+                </li>
+                {{/steps}}
+            </ol>
+            {{#compare}}<p class="inf-clave"><span class="inf-clave-ahora">{{#str}}report_col_now, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-antes">{{#str}}report_col_before_campaign, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
+            <p class="inf-def">{{def}}</p>
         </section>
         {{/funnel}}
+
         {{#pace}}
-        <section class="informe-ritmo" aria-labelledby="inf-ritmo">
+        <section class="inf-seccion inf-ritmo{{^compare}} sin-comparar{{/compare}}" aria-labelledby="inf-ritmo">
             <h2 id="inf-ritmo">{{title}}</h2>
-            <table class="informe-tabla">
-                <thead><tr><th scope="col">{{#str}}report_col_when, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_families, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}report_col_year_before, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
-                <tbody>{{#rows}}<tr><th scope="row">{{label}}</th><td>{{n}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/rows}}</tbody>
-            </table>
+            <ol class="inf-columnas" aria-hidden="true">
+                {{#rows}}
+                <li class="inf-columna{{#future}} futuro{{/future}}{{#top}} cumbre{{/top}}" style="--v: {{v}}; --bv: {{bv}}">
+                    <span class="inf-columna-caja">{{#compare}}<i class="inf-antes-columna"></i>{{/compare}}{{^future}}<i class="inf-ahora-columna"><b>{{n}}</b></i>{{/future}}</span>
+                    <span class="inf-columna-rotulo">{{label}}</span>
+                </li>
+                {{/rows}}
+            </ol>
+            {{#compare}}<p class="inf-clave"><span class="inf-clave-ahora">{{#str}}report_col_families, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-antes">{{#str}}report_col_year_before, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
+            <details class="tabla-gemela inf-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+                <table class="tabla-panel">
+                    <thead><tr><th scope="col">{{#str}}report_col_when, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_families, local_oksigeniaeguahe{{/str}}</th>{{#compare}}<th scope="col">{{#str}}report_col_year_before, local_oksigeniaeguahe{{/str}}</th>{{/compare}}</tr></thead>
+                    <tbody>{{#rows}}<tr><th scope="row">{{label}}</th><td>{{#future}}—{{/future}}{{^future}}{{n}}{{/future}}</td>{{#compare}}<td>{{before}}</td>{{/compare}}</tr>{{/rows}}</tbody>
+                </table>
+            </details>
         </section>
         {{/pace}}
+
         {{#haschannels}}
-        <section class="informe-canales" aria-labelledby="inf-canales">
+        <section class="inf-seccion inf-canales" aria-labelledby="inf-canales">
             <h2 id="inf-canales">{{#str}}report_h_channels, local_oksigeniaeguahe{{/str}}</h2>
-            {{#channels}}
-            <h3>{{name}}</h3>
-            <table class="informe-tabla">
-                <thead><tr><th scope="col">{{#str}}report_col_channel, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_twelve, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_twelve_before, local_oksigeniaeguahe{{/str}}</th></tr></thead>
-                <tbody>{{#rows}}<tr class="{{trend}}"><th scope="row">{{name}}{{#group}} <span class="secundario">{{group}}</span>{{/group}}</th><td>{{n}}</td><td>{{before}}</td></tr>{{/rows}}</tbody>
-            </table>
-            {{/channels}}
+            <div class="inf-dos">
+                {{#channels}}
+                <div class="inf-canal">
+                    <h3>{{name}}</h3>
+                    <ol class="inf-barras inf-barras-cortas">
+                        {{#rows}}
+                        <li class="inf-barra-fila {{trend}}" style="--v: {{v}}; --bv: {{bv}}">
+                            <span class="inf-barra-nombre">{{name}}{{#group}} <span class="inf-lapiz">{{group}}</span>{{/group}}</span>
+                            <span class="inf-barra-pista" aria-hidden="true"><i class="inf-antes-barra"></i><i class="inf-ahora-barra"></i></span>
+                            <span class="inf-barra-n"><b>{{n}}</b> <span class="inf-lapiz">{{before}}</span>{{#trendtext}} <span class="inf-tendencia">{{trendtext}}</span>{{/trendtext}}</span>
+                        </li>
+                        {{/rows}}
+                    </ol>
+                </div>
+                {{/channels}}
+            </div>
+            <p class="inf-clave"><span class="inf-clave-ahora">{{#str}}report_col_twelve, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-antes">{{#str}}report_col_twelve_before, local_oksigeniaeguahe{{/str}}</span></p>
         </section>
         {{/haschannels}}
+
         {{#hasplaces}}
-        <section class="informe-plazas" aria-labelledby="inf-plazas">
+        <section class="inf-seccion inf-plazas" aria-labelledby="inf-plazas">
             <h2 id="inf-plazas">{{#str}}report_h_places, local_oksigeniaeguahe{{/str}}</h2>
-            <ul>{{#places}}<li><b>{{name}}</b> · {{free}}. {{sentence}}</li>{{/places}}</ul>
+            <ul class="inf-cursos">
+                {{#places}}
+                <li class="inf-curso" style="--vt: {{vt}}; --vp: {{vp}}; --vl: {{vl}}; --vh: {{vh}}">
+                    <p class="inf-curso-nombre"><b>{{name}}</b> <span>{{free}}</span></p>
+                    <span class="inf-curso-pista" aria-hidden="true"><i class="inf-curso-rango"></i><i class="inf-curso-dentro"></i><i class="inf-curso-plazas"></i></span>
+                    <p class="inf-curso-frase">{{sentence}}</p>
+                </li>
+                {{/places}}
+            </ul>
+            <p class="inf-clave"><span class="inf-clave-ahora">{{#str}}report_key_taken, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-rango">{{#str}}report_def_range, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-plazas">{{#str}}report_key_places, local_oksigeniaeguahe{{/str}}</span></p>
         </section>
         {{/hasplaces}}
+
         {{#acts}}
-        <section class="informe-actos" aria-labelledby="inf-actos">
+        <section class="inf-seccion inf-actos" aria-labelledby="inf-actos">
             <h2 id="inf-actos">{{#str}}report_h_acts, local_oksigeniaeguahe{{/str}}</h2>
             {{#rows.0}}
-            <table class="informe-tabla">
+            <table class="inf-tabla">
                 <thead><tr><th scope="col">{{#str}}report_col_act, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_signed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_came, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_told, local_oksigeniaeguahe{{/str}}</th></tr></thead>
-                <tbody>{{#rows}}<tr><th scope="row">{{name}} <span class="secundario">{{when}}</span></th><td>{{signed}}</td><td>{{came}}{{#rate}} <span class="secundario">{{rate}}</span>{{/rate}}</td><td>{{told}}</td></tr>{{/rows}}</tbody>
+                <tbody>{{#rows}}<tr><th scope="row">{{name}} <span class="inf-lapiz">{{when}}</span></th><td>{{signed}}</td><td>{{came}}{{#rate}} <span class="inf-lapiz">{{rate}}</span>{{/rate}}</td><td>{{told}}</td></tr>{{/rows}}</tbody>
             </table>
             {{/rows.0}}
             {{#own}}<p>{{own}}</p>{{/own}}
         </section>
         {{/acts}}
         {{/data}}
+
         {{#data.voices}}
-        <section class="informe-voces" aria-labelledby="inf-voces">
+        <section class="inf-seccion inf-voces" aria-labelledby="inf-voces">
             <h2 id="inf-voces">{{#str}}report_h_voices, local_oksigeniaeguahe{{/str}}</h2>
-            {{#heard.0}}<h3>{{#str}}report_h_heard, local_oksigeniaeguahe{{/str}}</h3><ul>{{#heard}}<li>{{name}} · {{n}}</li>{{/heard}}</ul>{{/heard.0}}
-            {{#likes.0}}<h3>{{#str}}report_h_likes, local_oksigeniaeguahe{{/str}}</h3><ul>{{#likes}}<li>{{name}} · {{n}}</li>{{/likes}}</ul>{{/likes.0}}
+            <div class="inf-dos">
+                {{#heard.0}}<div><h3>{{#str}}report_h_heard, local_oksigeniaeguahe{{/str}}</h3><ol class="inf-barras inf-barras-cortas">{{#heard}}<li class="inf-barra-fila" style="--v: {{v}}"><span class="inf-barra-nombre">{{name}}</span><span class="inf-barra-pista" aria-hidden="true"><i class="inf-ahora-barra"></i></span><span class="inf-barra-n"><b>{{n}}</b></span></li>{{/heard}}</ol></div>{{/heard.0}}
+                {{#likes.0}}<div><h3>{{#str}}report_h_likes, local_oksigeniaeguahe{{/str}}</h3><ol class="inf-barras inf-barras-cortas">{{#likes}}<li class="inf-barra-fila" style="--v: {{v}}"><span class="inf-barra-nombre">{{name}}</span><span class="inf-barra-pista" aria-hidden="true"><i class="inf-ahora-barra"></i></span><span class="inf-barra-n"><b>{{n}}</b></span></li>{{/likes}}</ol></div>{{/likes.0}}
+            </div>
         </section>
         {{/data.voices}}
+
         {{#hasthemes}}
-        <section class="informe-temas" aria-labelledby="inf-temas">
-            <h2 id="inf-temas">{{#str}}report_h_themes, local_oksigeniaeguahe{{/str}}</h2>
-            <ul>{{#themes}}<li><b>{{theme}}</b> <span class="secundario">{{count}}</span><br>{{sentence}}</li>{{/themes}}</ul>
-            <p class="secundario">{{themesfrom}}</p>
+        <section class="inf-nota inf-temas" aria-labelledby="inf-temas">
+            <h2 id="inf-temas"><span class="inf-ia-marca" aria-hidden="true">IA</span> {{#str}}report_h_themes, local_oksigeniaeguahe{{/str}}</h2>
+            <ol class="inf-temas-lista">
+                {{#themes}}
+                <li style="--v: {{v}}"><p class="inf-tema"><b>{{theme}}</b> <span class="inf-tema-cuenta">{{count}}</span></p><span class="inf-tema-pista" aria-hidden="true"><i></i></span><p>{{sentence}}</p></li>
+                {{/themes}}
+            </ol>
+            <p class="inf-nota-firma">{{themesfrom}}</p>
         </section>
         {{/hasthemes}}
+
         {{#data}}
         {{#gone}}
-        <section class="informe-bajas" aria-labelledby="inf-bajas">
+        <section class="inf-seccion inf-bajas" aria-labelledby="inf-bajas">
             <h2 id="inf-bajas">{{#str}}report_h_gone, local_oksigeniaeguahe{{/str}}</h2>
-            <p>{{text}}</p>
-            {{#reasons.0}}<ul>{{#reasons}}<li>{{name}} · {{n}}</li>{{/reasons}}</ul>{{/reasons.0}}
+            <p class="inf-seccion-frase">{{text}}</p>
+            {{#reasons.0}}<ol class="inf-barras inf-barras-cortas inf-sale">{{#reasons}}<li class="inf-barra-fila" style="--v: {{v}}"><span class="inf-barra-nombre">{{name}}</span><span class="inf-barra-pista" aria-hidden="true"><i class="inf-ahora-barra"></i></span><span class="inf-barra-n"><b>{{n}}</b></span></li>{{/reasons}}</ol>{{/reasons.0}}
         </section>
         {{/gone}}
         {{#started}}
-        <section class="informe-primer-dia" aria-labelledby="inf-primer-dia">
+        <section class="inf-seccion inf-primer-dia" aria-labelledby="inf-primer-dia">
             <h2 id="inf-primer-dia">{{#str}}report_h_firstday, local_oksigeniaeguahe{{/str}}</h2>
-            <p>{{text}}</p>
+            <p class="inf-seccion-frase">{{text}}</p>
+            {{#referred}}<p class="inf-seccion-frase">{{text}}</p>{{/referred}}
         </section>
         {{/started}}
-        {{#referred}}<p class="informe-recomendadas">{{text}}</p>{{/referred}}
+        {{^started}}{{#referred}}<p class="inf-seccion inf-recomendadas">{{text}}</p>{{/referred}}{{/started}}
+
         {{#hasforecast}}
-        <section class="informe-prevision" aria-labelledby="inf-prevision">
+        <section class="inf-seccion inf-prevision" aria-labelledby="inf-prevision">
             <h2 id="inf-prevision">{{#str}}report_h_forecast, local_oksigeniaeguahe{{/str}}</h2>
-            <ul>{{#forecast}}<li><b>{{grade}}</b>: {{#years}}<span class="ano">{{text}}</span> {{/years}}</li>{{/forecast}}</ul>
+            <ul class="inf-cursos">
+                {{#forecast}}
+                <li class="inf-prevision-curso">
+                    <p class="inf-curso-nombre"><b>{{grade}}</b></p>
+                    <ol class="inf-anos">{{#years}}<li style="--vl: {{vl}}; --vh: {{vh}}; --vp: {{vp}}"><span class="inf-ano">{{year}}</span><span class="inf-curso-pista" aria-hidden="true"><i class="inf-curso-rango"></i>{{#places}}<i class="inf-curso-plazas"></i>{{/places}}</span><span class="inf-ano-texto">{{text}}</span></li>{{/years}}</ol>
+                </li>
+                {{/forecast}}
+            </ul>
         </section>
         {{/hasforecast}}
+
         {{#hasgrow}}
-        <section class="informe-crecer" aria-labelledby="inf-crecer">
+        <section class="inf-seccion inf-crecer" aria-labelledby="inf-crecer">
             <h2 id="inf-crecer">{{#str}}report_h_grow, local_oksigeniaeguahe{{/str}}</h2>
-            <ul>{{#grow}}<li><b>{{name}}</b> · {{line}}</li>{{/grow}}</ul>
+            <ol class="inf-barras inf-barras-cortas">{{#grow}}<li class="inf-barra-fila" style="--v: {{v}}"><span class="inf-barra-nombre"><b>{{name}}</b></span><span class="inf-barra-pista" aria-hidden="true"><i class="inf-ahora-barra"></i></span><span class="inf-barra-n inf-crecer-linea">{{line}}</span></li>{{/grow}}</ol>
         </section>
         {{/hasgrow}}
         {{/data}}
+
         {{#hasadvice}}
-        <section class="informe-consejos" aria-labelledby="inf-consejos">
+        <section class="inf-seccion inf-consejos" aria-labelledby="inf-consejos">
             <h2 id="inf-consejos">{{#str}}report_h_advice, local_oksigeniaeguahe{{/str}}</h2>
             <ol>
                 {{#advice}}
-                <li class="consejo consejo-{{from}}">
-                    <p class="que">{{#url}}<a href="{{url}}">{{text}}</a>{{/url}}{{^url}}{{text}}{{/url}}</p>
-                    <p class="porque secundario">{{why}}</p>
-                    <p class="de-donde secundario">{{fromtext}}</p>
+                <li class="inf-consejo inf-consejo-{{from}}">
+                    <p class="inf-consejo-que">{{#url}}<a href="{{url}}">{{text}}</a>{{/url}}{{^url}}{{text}}{{/url}}</p>
+                    <p class="inf-consejo-porque">{{why}}</p>
+                    <p class="inf-de-donde"><span class="inf-de-donde-marca" aria-hidden="true"></span>{{fromtext}}</p>
                 </li>
                 {{/advice}}
             </ol>
         </section>
         {{/hasadvice}}
+
         {{#data}}
-        <section class="informe-definiciones" aria-labelledby="inf-definiciones">
+        <section class="inf-seccion inf-definiciones" aria-labelledby="inf-definiciones">
             <h2 id="inf-definiciones">{{#str}}report_h_definitions, local_oksigeniaeguahe{{/str}}</h2>
-            <dl>{{#definitions}}<dt>{{term}}</dt><dd>{{text}}</dd>{{/definitions}}</dl>
+            <dl>{{#definitions}}<div><dt>{{term}}</dt><dd>{{text}}</dd></div>{{/definitions}}</dl>
         </section>
         {{/data}}
-        <div class="informe-acciones">
+
+        <div class="inf-acciones">
             <button class="boton principal" type="button" data-imprimir hidden>{{pdf}}</button>
             {{#again}}
             <form method="post" action="{{action}}">

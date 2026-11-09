@@ -143,6 +143,17 @@ final class reports_test extends \advanced_testcase {
         foreach ($context['advice'] as $tip) {
             $this->assertSame('rule', $tip['from']);
         }
+        // The design: the trend in words, and every bar between 0 and 1 on the scale of its chart.
+        $figures = array_column($context['data']['figures'], null, 'key');
+        $this->assertSame(get_string('panel_ct_sube', 'local_oksigeniaeguahe'), $figures['arrived']['trendtext']);
+        foreach ($context['data']['funnel']['steps'] as $step) {
+            $this->assertGreaterThanOrEqual(0, $step['v']);
+            $this->assertLessThanOrEqual(1, max($step['v'], $step['bv']));
+        }
+        $this->assertSame(1.0, (float) max(array_column($context['data']['funnel']['steps'], 'v')));
+        $this->assertSame(1, count(array_filter(array_column($context['data']['pace']['rows'], 'top'))));
+        $course = $context['data']['places'][0];
+        $this->assertLessThan(1, max($course['vt'], $course['vp'], $course['vh']), 'A little air above.');
         $this->assertCount(1, $context['others']);
     }
 
@@ -186,6 +197,7 @@ final class reports_test extends \advanced_testcase {
         $this->assertSame(2, $report->ai['themes'][0]['texts'], 'Never more texts than it got.');
         $context = panel_report::context($centre, $report, true, $now);
         $this->assertSame('Semana con preguntas por el comedor.', $context['reading']);
+        $this->assertStringContainsString('Test', $context['ainame'], 'The note is signed by the AI of the centre.');
         $last = end($context['advice']);
         $this->assertSame('ai', $last['from']);
         $this->assertFalse($context['aistatus']);
