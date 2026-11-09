@@ -203,7 +203,16 @@ class panel_forecast {
                 $best = $row;
             }
         }
+        // The cinematic skin: each town a star, its ring the children of those ages, its light inside, ours.
+        $stars = cinematico::on($centre) ? cinematico::constellation(
+            $centre,
+            array_map(fn($r) => [format_string($r['name']), (int) $r['children'], $r['children'] ? min(1, $r['students'] /
+                $r['children']) : 0], array_values(array_filter($list, fn($r) => (int) $r['children'] > 0))),
+            get_string('cine_constellation_rings_foot', $c),
+            true
+        ) : false;
         return [
+            'constellation' => $stars,
             'sentence' => $best ? get_string('panel_reach_best', $c, (object) ['name' => format_string($best['name']),
                 'share' => get_string('panel_one_in', $c, (int) max(1, round(100 / $best['share'])))]) :
                 get_string('panel_reach_nobest', $c),

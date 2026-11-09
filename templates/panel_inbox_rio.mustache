@@ -1,0 +1,60 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_inbox_rio
+
+    The scene of the inbox in the skin «cinemático» (C), in place of the hall of the skin «vestíbulo»: the head on the
+    river of the week. Each family waiting is a lantern placed by how long it has waited (x from 0, just arrived, to 1,
+    at the counter, on a logarithmic scale of time) in one of three lanes; the days at the foot, only those where someone
+    waits; the light of the counter on the right. The server places everything, so it reads without JavaScript; escena.js
+    only moves it. The six that have waited longest; the list below has them all. With nobody waiting, the river empty.
+    Design: Jujol, 9 November 2026 (how x, the lanes and the days are worked out: LEEME of the delivery).
+
+    Example context (json):
+    {
+        "head": {"title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el viernes a las 6:03.",
+            "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} },
+        "cine": {"empty": false, "answeredtoday": 0,
+            "lanterns": [{"x": 0.969, "lane": 1, "url": "#", "adults": "Jorge Vidal", "since": "Desde el viernes",
+                "arrived": "Llegó vie 6, 6:03", "owner": "Lucía", "tags": [{"tag": "Vale"}, {"tag": "Hugo"}]}],
+            "cuts": [{"x": 0.493}],
+            "days": [{"x": 0.247, "name": "Hoy", "short": "Hoy", "narrow": false}]}
+    }
+}}
+<section class="cine-sala" aria-labelledby="titular">
+    <div class="cine-cabeza">{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}</div>
+    {{#cine}}
+    <div class="cine-rio{{#empty}} cine-rio-vacio{{/empty}}" data-cine-rio>
+        <div class="cine-corriente" aria-hidden="true"></div>
+        {{^empty}}
+        <ol class="cine-dias" aria-hidden="true">
+            {{#cuts}}<li class="corte" style="--x: {{x}}"></li>{{/cuts}}
+            {{#days}}<li style="--x: {{x}}"{{#narrow}} class="estrecho"{{/narrow}}><span class="dia-largo">{{name}}</span><span class="dia-corto">{{short}}</span></li>{{/days}}
+        </ol>
+        {{/empty}}
+        <p class="cine-llegan" aria-hidden="true">{{#str}}cine_arrive, local_oksigeniaeguahe{{/str}}</p>
+        {{#empty}}<p class="cine-calma"><b>{{#str}}cine_nobody, local_oksigeniaeguahe{{/str}}</b>{{#str}}cine_uptodate_text, local_oksigeniaeguahe{{/str}}</p>{{/empty}}
+        <p class="cine-mostrador"><span class="cine-pilar" aria-hidden="true"></span><b>{{#str}}cine_counter, local_oksigeniaeguahe{{/str}}</b>
+            <span>{{#empty}}{{#str}}cine_uptodate, local_oksigeniaeguahe{{/str}}{{/empty}}{{^empty}}{{#str}}cine_answered, local_oksigeniaeguahe, {{answeredtoday}}{{/str}}{{/empty}}</span></p>
+        {{^empty}}
+        <ol class="cine-farolillos" aria-label="{{#str}}cine_longest, local_oksigeniaeguahe{{/str}}">
+            {{#lanterns}}<li class="farolillo" style="--x: {{x}}; --fila: {{lane}}"><a href="{{url}}" data-abre-hoja><span class="etiquetas" translate="no">{{#tags}}<span class="etiqueta" dir="auto">{{tag}}</span>{{/tags}}</span><b class="farolillo-quien">{{adults}}</b><span class="farolillo-desde">{{since}}</span><span class="farolillo-como">{{arrived}}{{#owner}} · {{owner}}{{/owner}}</span></a></li>{{/lanterns}}
+        </ol>
+        {{/empty}}
+    </div>
+    {{/cine}}
+</section>

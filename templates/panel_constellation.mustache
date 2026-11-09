@@ -1,0 +1,45 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_constellation
+
+    The towns as a constellation, in the skin «cinemático» (C): in Cifras («De dónde vienen») and in Previsión («Hasta
+    dónde llegáis»). Each town is a light in its direction from the centre, at its distance on a square-root scale (the
+    near ones get room); the server writes its place twice, for the wide box (16:6: x, y) and for the phone (8:9: xm, ym),
+    each with one scale for both axes. Its size by the count (t, from 0 to 1, the square root of the share of the
+    largest); with rings (Previsión), the ring is the children of those ages and the core, the share that are the
+    centre's (core). Towns without a position (no code, another country) go on a quiet row at the foot. No contours, no
+    geography: nothing says where anybody lives. A drawing only: the bars or the table under it are its twin.
+    Design: Jujol, 9 November 2026; the sky, Gaudí.
+
+    Example context (json):
+    {
+        "rings": true, "foot": "El anillo son los niños de esas edades; la luz de dentro, los vuestros.",
+        "centre": {"x": 0.33, "y": 0.5, "xm": 0.5, "ym": 0.3, "name": "El centro"},
+        "stars": [{"x": 0.507, "y": 0.479, "xm": 0.772, "ym": 0.457, "t": 1, "core": 0.012, "hascore": true,
+            "left": false, "leftm": true, "name": "Getafe", "n": "17"}],
+        "unplaced": [{"k": 0, "t": 0.3, "name": "Otro país", "n": "2"}]
+    }
+}}
+<div class="cine-constelacion{{#rings}} con-anillos{{/rings}}" aria-hidden="true">
+    <ol>
+        {{#centre}}<li class="estrella-centro" style="--x: {{x}}; --y: {{y}}; --xm: {{xm}}; --ym: {{ym}}"><span class="estrella-luz"></span><span class="estrella-nombre">{{name}}</span></li>{{/centre}}
+        {{#stars}}<li class="estrella{{#left}} izq{{/left}}{{#leftm}} izq-m{{/leftm}}" style="--x: {{x}}; --y: {{y}}; --xm: {{xm}}; --ym: {{ym}}; --t: {{t}}{{#hascore}}; --nucleo: {{core}}{{/hascore}}"><span class="estrella-luz"></span><span class="estrella-nombre" dir="auto">{{name}} <b>{{n}}</b></span></li>{{/stars}}
+        {{#unplaced}}<li class="estrella sin-sitio" style="--k: {{k}}; --t: {{t}}"><span class="estrella-luz"></span><span class="estrella-nombre" dir="auto">{{name}} <b>{{n}}</b></span></li>{{/unplaced}}
+    </ol>
+    <p class="cine-constelacion-pie">{{foot}}</p>
+</div>

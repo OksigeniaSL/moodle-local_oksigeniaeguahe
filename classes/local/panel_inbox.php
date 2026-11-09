@@ -127,8 +127,12 @@ class panel_inbox {
             $hall = ['json' => json_encode(vestibulo::hall($centre, $queue, $now), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false), 'card' => $card, 'hascard' => (bool) $card];
         }
+        // The cinematic skin: the river of the week, the families waiting as lanterns.
+        $cine = cinematico::on($centre) ? cinematico::river($centre, households::inbox($centreid, true, 60), $userid, $now) :
+            false;
         return [
             'hall' => $hall,
+            'cine' => $cine,
             'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,

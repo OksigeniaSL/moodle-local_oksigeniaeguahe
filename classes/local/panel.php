@@ -118,7 +118,7 @@ class panel {
     const SKINS = ['vestibulo', 'mostrador', 'cinematico'];
 
     /** @var array A skin drawn over another one (Gaudí, 8 November 2026): the living hall is the paper desk in the hall. */
-    const UNDER = ['vestibulo' => 'mostrador'];
+    const UNDER = ['vestibulo' => 'mostrador', 'cinematico' => 'mostrador'];
 
     /** @var array The sections of the bar, in order: key => [string, icon, page]. */
     const SECTIONS = [

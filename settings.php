@@ -39,6 +39,32 @@ if ($hassiteconfig) {
             get_string('credit_desc', 'local_oksigeniaeguahe'),
             1
         ));
+        // Where the towns are, for the maps of the centres: a worldwide source, the site chooses.
+        $sources = [];
+        foreach (\local_oksigeniaeguahe\local\places::sources() as $key => $source) {
+            $sources[$key] = get_string('places_source_' . $key, 'local_oksigeniaeguahe');
+        }
+        $settings->add(new admin_setting_configselect(
+            'local_oksigeniaeguahe/placessource',
+            get_string('places_source', 'local_oksigeniaeguahe'),
+            get_string('places_source_desc', 'local_oksigeniaeguahe'),
+            'nominatim',
+            $sources
+        ));
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/geonamesuser',
+            get_string('places_geonamesuser', 'local_oksigeniaeguahe'),
+            get_string('places_geonamesuser_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_ALPHANUMEXT
+        ));
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/nominatimurl',
+            get_string('places_nominatimurl', 'local_oksigeniaeguahe'),
+            get_string('places_nominatimurl_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_URL
+        ));
     }
     $ADMIN->add('localplugins', $settings);
 }

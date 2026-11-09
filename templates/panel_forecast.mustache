@@ -34,7 +34,7 @@
         "courses": [{"key": "i3", "name": "Infantil 3 años", "age": "empiezan con 3 años", "places": "25 plazas", "sentence": "Podría llenarse.",
             "rail": "", "table": [{"year": "2027-28", "range": "19 a 24", "mid": 22, "places": 25, "over": false}], "open": true}],
         "def": "",
-        "reach": {"sentence": "Donde más llegáis, Valle Alto.", "def": "",
+        "reach": {"constellation": false, "sentence": "Donde más llegáis, Valle Alto.", "def": "",
             "rows": [{"name": "Valle Alto", "kids": 212, "ours": 24, "share": "1 de cada 9", "r1": "17", "r2": "6", "cy": "18", "cy1": "7"}]},
         "grades": [{"i": 0, "grade": "Infantil 3 años", "age": 3, "forecast": true, "suggested": false}]
     }
@@ -61,6 +61,7 @@
         <section class="apartado alcance" aria-labelledby="pv-alc">
             <header><h2 id="pv-alc">{{#str}}panel_reach_by_place, local_oksigeniaeguahe{{/str}}</h2></header>
             <p class="linea-dato">{{sentence}}</p>
+            {{#constellation}}{{> local_oksigeniaeguahe/panel_constellation }}{{/constellation}}
             <table class="tabla-panel tabla-alcance">
                 <thead><tr><th scope="col">{{#str}}panel_place_word, local_oksigeniaeguahe{{/str}}</th><th scope="col"><span class="oculto">{{#str}}panel_drawing, local_oksigeniaeguahe{{/str}}</span></th><th scope="col">{{#str}}panel_kids_age, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_ours, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_share, local_oksigeniaeguahe{{/str}}</th></tr></thead>
                 <tbody>

@@ -101,6 +101,17 @@ class panel_likes {
             'firstday' => self::firstday($centre, $ids, $c4),
             'origins' => $origins,
             'originsrest' => $originsrest,
+            // The cinematic skin: the towns as stars around the centre. «Others», «not said» and «moving» are no places.
+            'constellation' => cinematico::on($centre) ? cinematico::constellation(
+                $centre,
+                array_map(fn($r) => [$r['place'], $r['families'], null], array_values(array_filter(
+                    $origins,
+                    fn($r) => !$r['unknown'] && !in_array($r['place'], [get_string('panel_likes_place_others', $c),
+                        get_string('panel_likes_place_moving', $c)], true)
+                ))),
+                get_string('cine_constellation_foot', $c),
+                false
+            ) : false,
             'originsdef' => get_string('panel_likes_origins_def', $c),
             'courses' => self::courses($centre, $ids),
             'coursesdef' => get_string('panel_likes_courses_def', $c),

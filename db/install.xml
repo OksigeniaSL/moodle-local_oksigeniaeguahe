@@ -746,5 +746,24 @@
         <INDEX NAME="period" UNIQUE="true" FIELDS="centreid, kind, periodfrom"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_place" COMMENT="Where a centre and the towns its families come from are, for its maps: a town, never a family">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="plain" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name as a key; empty, the centre itself"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="lat" TYPE="number" LENGTH="10" DECIMALS="6" NOTNULL="false" SEQUENCE="false" COMMENT="Empty when it was not found"/>
+        <FIELD NAME="lon" TYPE="number" LENGTH="10" DECIMALS="6" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Where it came from, or manual"/>
+        <FIELD NAME="timefetched" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centreplain" UNIQUE="true" FIELDS="centreid, plain"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

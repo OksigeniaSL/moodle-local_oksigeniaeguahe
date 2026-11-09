@@ -1,0 +1,857 @@
+/* Eguahe, the skin «cinemático» (C): for secondary schools, academies, universities and higher schools (Enrique, 8
+   November 2026). Dark only: the information is light on black. It goes over the paper desk of «mostrador» (B), with
+   both classes on the body, as «vestíbulo» (A) does: here the paper is dark glass, the card is plum, the ink is warm light
+   and the accent is amber, the light of the counter; the textures of paper go and an ambient light breathes behind. On
+   the inbox, the scene of C: the river of the week, where each family waiting is a lantern placed by how long it has
+   waited, drifting to the light of the counter (panel_inbox_cinematico.mustache; escena.js only moves it). Chrome 93 and
+   Firefox 98: no backdrop-filter, no color-mix, no :has; only transform and opacity move. Jujol, 9 November 2026. */
+
+/* ---------- The tokens: the night of B, taken to the cinema. One selector above the night of B, which also sits on
+   the body, so C is dark whatever Moodle says. ---------- */
+html body.panel.piel-mostrador.piel-cinematico {
+    --cine-fondo: #0b090d;
+    --cine-fondo-2: #15111a;
+    --cine-vidrio: rgba(28, 22, 32, 0.86);
+    --cine-vidrio-2: rgba(40, 31, 44, 0.9);
+    --cine-ambar: #ffc98a;
+    --cine-ambar-2: #ffb066;
+    --cine-ciruela: #b57fab;
+    --cine-verde: #57b89a;
+    --cine-filo: rgba(244, 237, 231, 0.11);
+    --cine-filo-2: rgba(244, 237, 231, 0.2);
+    --papel-b: #1c1621;
+    --papel-b-2: #17121b;
+    --kraft: #2c2230;
+    --kraft-2: #261d2a;
+    --kraft-tinta: #f4ede7;
+    --nota: #2a2131;
+    --pauta: transparent;
+    --margen: transparent;
+    --cuadricula: transparent;
+    --ruido: linear-gradient(transparent, transparent);
+    --ruido-sello: linear-gradient(transparent, transparent);
+    --b-blanco: #241c29;
+    --b-velo: rgba(255, 255, 255, 0.04);
+    --b-area: rgba(0, 0, 0, 0.22);
+    --b-resalte: rgba(255, 201, 138, 0.1);
+    --kraft-velo: rgba(255, 255, 255, 0.03);
+    --tinta-azul: #ffc98a;
+    --b-tablilla: #3a2c3e;
+    --piel-noche: 1;
+    --b-pijama: rgba(255, 201, 138, 0.04);
+    --sombra-papel:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 18px 40px -24px rgba(0, 0, 0, 0.9);
+    --sombra-alta:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 30px 60px -28px rgba(0, 0, 0, 0.95);
+    --eg-papel: #0b090d;
+    --eg-superficie: #1c1621;
+    --eg-hundido: #120e15;
+    --eg-pared: #15111a;
+    --eg-tinta: #f4ede7;
+    --eg-tinta-rgb: 244, 237, 231;
+    --eg-tinta-2: #bcb0b7;
+    --eg-linea: #2e2533;
+    --eg-borde: #8e838b;
+    --eg-chapita: #fff8ee;
+    --eg-chapita-tinta: #1a1216;
+    --eg-error: #f2a9a2;
+    --eg-error-suave: #3a1f22;
+    --eg-sombra: rgba(0, 0, 0, 0.55);
+    --eg-accion: #ffc98a;
+    --eg-sobre-accion: #1a1216;
+    --eg-acento: #ffc98a;
+    --eg-acento-suave: rgba(255, 201, 138, 0.1);
+    --eg-serie-1: #c48bba;
+    --eg-serie-1-suave: #3d2c3c;
+    --eg-serie-2: #f0a36b;
+    --eg-sello: #ffc98a;
+    --eg-rango: #6f4f6a;
+    --eg-mochila: #bba9b8;
+    --eg-mochila-sombra: #8f7d8c;
+    --eg-mochila-luz: #1c1621;
+    --bs-focus-ring-color: rgba(255, 201, 138, 0.4);
+    --piel-fondo: #0b090d;
+    --piel-hoja: var(--cine-vidrio);
+    --piel-hoja-borde: var(--cine-filo);
+    --piel-hoja-sombra: var(--sombra-papel);
+    --piel-radio: 14px;
+    --piel-fila: var(--cine-vidrio-2);
+    --piel-fila-sombra: var(--sombra-papel);
+    color-scheme: dark;
+    background: var(--cine-fondo);
+    color: var(--eg-tinta);
+}
+
+/* The ambient light: three pools of colour that breathe, behind everything (fixed; only opacity moves). */
+html body.panel.piel-mostrador.piel-cinematico::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 50% at 18% 26%, rgba(124, 66, 112, 0.34), transparent 70%),
+        radial-gradient(50% 45% at 84% 40%, rgba(176, 92, 58, 0.22), transparent 70%),
+        radial-gradient(40% 40% at 55% 105%, rgba(70, 120, 110, 0.16), transparent 70%);
+    animation: cine-respira 9s ease-in-out infinite;
+}
+
+@keyframes cine-respira {
+    50% {
+        opacity: 0.62;
+    }
+}
+
+/* ---------- The bar and the head: light on black ---------- */
+.piel-cinematico .barra {
+    border-bottom: 1px solid var(--cine-filo);
+    background: rgba(11, 9, 13, 0.82);
+    box-shadow: none;
+}
+
+.piel-cinematico .secciones a[aria-current] {
+    color: var(--eg-tinta);
+    text-shadow: 0 0 18px rgba(255, 201, 138, 0.45);
+}
+
+.piel-cinematico .secciones a[aria-current]::after {
+    background: var(--cine-ambar);
+}
+
+/* ---------- The scene of the inbox: the head on the river ---------- */
+.cine-sala {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    margin: 0 0 22px;
+}
+
+.piel-cinematico .cine-cabeza .cabeza {
+    padding: 8px 0 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+}
+
+.piel-cinematico .cine-cabeza .titular {
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(2.3rem, 1.2rem + 3.3vw, 4.6rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1;
+}
+
+.piel-cinematico .cine-cabeza .sub {
+    margin-top: 12px;
+    color: var(--eg-tinta-2);
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(1.05rem, 0.95rem + 0.45vw, 1.35rem);
+}
+
+/* The number of the headline, and its words coming up once a session (escena.js wraps them). */
+.titular .cine-num {
+    color: var(--cine-ambar);
+}
+
+.titular .cine-palabra {
+    display: inline-block;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+    margin-bottom: -0.06em;
+    vertical-align: bottom;
+}
+
+.titular .cine-palabra > span {
+    display: inline-block;
+    transform: translateY(105%);
+    transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.1, 1);
+    /* stylelint-disable-next-line time-min-milliseconds */
+    transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.titular.cine-listo .cine-palabra > span {
+    transform: none;
+}
+
+/* The river. */
+.cine-rio {
+    position: relative;
+    /* stylelint-disable-next-line csstree/validator */
+    height: clamp(300px, 34vw, 400px);
+    margin: 4px calc(var(--g-panel, 0px) * -1) 0;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+        radial-gradient(ellipse 58% 40% at 52% 52%, rgba(122, 70, 112, 0.22), transparent 72%),
+        linear-gradient(90deg, transparent 60%, rgba(255, 176, 102, 0.06));
+    --izq: 92px;
+    --der: 168px;
+    --tarjeta: 236px;
+}
+
+/* The current: a tile of streaks of light sliding to the counter (transform only), faint at both ends. */
+.cine-corriente {
+    position: absolute;
+    top: 0;
+    bottom: 34px;
+    left: -2400px;
+    width: calc(100% + 2400px);
+    background: url(estelas.webp?v=1) 0 50% / 2400px 100% repeat-x;
+    opacity: 0.7;
+    -webkit-mask-image: linear-gradient(90deg, transparent 2300px, #000 2700px, #000 calc(100% - 260px), transparent);
+    mask-image: linear-gradient(90deg, transparent 2300px, #000 2700px, #000 calc(100% - 260px), transparent);
+    animation: cine-corre 48s linear infinite;
+}
+
+@keyframes cine-corre {
+    to {
+        transform: translateX(2400px);
+    }
+}
+
+.cine-llegan {
+    position: absolute;
+    top: 50%;
+    left: 22px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: translateY(-50%);
+}
+
+/* The light of the counter, on the right: a pillar of amber light, and who answers today. */
+.cine-mostrador {
+    position: absolute;
+    top: 16px;
+    right: 22px;
+    bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    width: 130px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.82rem;
+    text-align: right;
+}
+
+.cine-mostrador b {
+    color: var(--eg-tinta);
+    font-weight: 700;
+}
+
+.cine-pilar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -18px;
+    width: 3px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, transparent, rgba(255, 201, 138, 0.95) 30%, rgba(255, 176, 102, 0.95) 70%, transparent);
+    box-shadow: 0 0 18px 4px rgba(255, 176, 102, 0.45), 0 0 60px 18px rgba(255, 176, 102, 0.16);
+}
+
+/* The days, at the foot: the name in the middle of its stretch and a faint line where it begins. */
+.cine-dias {
+    position: absolute;
+    left: var(--izq);
+    right: var(--der);
+    bottom: 10px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+}
+
+.cine-dias li {
+    position: absolute;
+    bottom: 0;
+    left: calc(var(--x) * 100%);
+    color: rgba(var(--eg-tinta-rgb), 0.5);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.cine-dias .corte {
+    bottom: 22px;
+    width: 1px;
+    height: calc(100% - 50px);
+    background: linear-gradient(to top, rgba(244, 237, 231, 0.16), transparent);
+    transform: none;
+}
+
+.cine-dias .dia-corto,
+.cine-dias .estrecho .dia-largo {
+    display: none;
+}
+
+.cine-dias .estrecho .dia-corto {
+    display: inline;
+}
+
+/* The lanterns: each family waiting, placed by how long it has waited (--x, from the server) in one of three lanes. */
+.cine-farolillos {
+    position: absolute;
+    inset: 22px var(--der) 40px var(--izq);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.farolillo {
+    position: absolute;
+    top: calc(var(--fila) * 33%);
+    left: calc(var(--x) * (100% - var(--tarjeta)));
+    width: var(--tarjeta);
+}
+
+.farolillo a {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding: 22px 14px 12px;
+    border: 1px solid rgba(255, 201, 138, 0.22);
+    border-radius: 12px;
+    background: rgba(30, 23, 34, 0.9);
+    box-shadow: 0 0 34px -6px rgba(255, 176, 102, calc(0.1 + var(--x) * 0.3)), 0 18px 34px -20px rgba(0, 0, 0, 0.9);
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+.farolillo a:hover,
+.farolillo a:focus-visible {
+    border-color: rgba(255, 201, 138, 0.6);
+}
+
+.farolillo .etiquetas {
+    position: absolute;
+    top: -12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+}
+
+.farolillo .etiqueta {
+    padding: 2px 9px 0;
+    border-top: 4px solid #2f7a68;
+    border-radius: 3px;
+    background: #fff8ee;
+    color: #1a1216;
+    font-family: var(--letra-mano, 'Eg Mano', cursive);
+    font-size: 1.05rem;
+    line-height: 1.2;
+    box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.7);
+    transform: rotate(-2deg);
+}
+
+.farolillo .etiqueta + .etiqueta {
+    transform: rotate(2.5deg);
+}
+
+.farolillo-quien {
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.farolillo-desde {
+    color: var(--cine-ambar);
+    font-weight: 800;
+}
+
+.farolillo-como {
+    overflow: hidden;
+    color: var(--eg-tinta-2);
+    font-size: 0.78rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* ---------- The rest of the inbox: dark glass over the light ---------- */
+.piel-cinematico .mostrador {
+    position: relative;
+}
+
+/* The wall of the children in a family's file: dark glass, the rail and its backpacks lit. */
+.piel-cinematico .pared-hijos {
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 0 0 1px var(--cine-filo);
+}
+
+.piel-mostrador.piel-cinematico .pared-hijos .riel {
+    background: #2a2030;
+    box-shadow: inset 0 1px 0 rgba(255, 201, 138, 0.55), 0 0 14px -4px rgba(255, 176, 102, 0.5);
+}
+
+.piel-cinematico .riel-caja {
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 0 0 1px var(--cine-filo);
+}
+
+/* ---------- What hangs, by age (Enrique, 8-11): in C, from secondary on, the luggage tag. On the knob of a family's
+   file (the partial draws the three; here only the tag shows) and on the rails, which the server draws with the tag. -- */
+.piel-cinematico .colgante .de-mochila,
+.piel-cinematico .colgante .de-llavero {
+    display: none;
+}
+
+.piel-cinematico .colgante .de-equipaje {
+    display: inline;
+}
+
+/* The names, written by hand on the luggage tag: cream card, notched end and its eyelet in the colour of the centre. */
+.piel-cinematico .etq,
+.farolillo .etiqueta {
+    padding: 3px 9px 1px 20px;
+    border: 0;
+    border-radius: 0 3px 3px 0;
+    background:
+        radial-gradient(circle at 9px 50%, #1c1621 0 2.6px, var(--c-acento-vivo, #2f7a68) 2.7px 4.4px, transparent 4.6px),
+        #ecdfc6;
+    color: #1a1216;
+    -webkit-clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+    clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
+    box-shadow: none;
+}
+
+.farolillo .etiqueta {
+    font-family: 'Eg Mano', cursive;
+}
+
+/* In the ledger the tag is smaller: a smaller eyelet, so it never sits on the name. */
+.piel-mostrador.piel-cinematico .lista[data-densidad="lista"] .etq {
+    padding-inline-start: 15px;
+    background:
+        radial-gradient(circle at 7px 50%, #1c1621 0 1.8px, var(--c-acento-vivo, #2f7a68) 1.9px 3.2px, transparent 3.4px),
+        #ecdfc6;
+}
+
+/* The rail of places: no wooden plank in the dark; a thin bar of light, a lit knob for each free place and the tags of
+   the enrolled hanging from theirs. */
+.piel-cinematico .perchero .r-tabla {
+    fill: #2a2030;
+}
+
+.piel-cinematico .perchero .r-canto {
+    fill: rgba(255, 201, 138, 0.55);
+}
+
+.piel-cinematico .perchero .r-bajo,
+.piel-cinematico .perchero .r-veta,
+.piel-cinematico .perchero .r-pared-sombra,
+.piel-cinematico .perchero .r-tornillo {
+    display: none;
+}
+
+.piel-cinematico .perchero .r-p-cabeza,
+.piel-cinematico .perchero .r-p-cuello {
+    fill: #ffc98a;
+}
+
+.piel-cinematico .perchero .r-p-brillo {
+    fill: #fff8ee;
+}
+
+.piel-cinematico .perchero .r-p-sombra {
+    fill: rgba(255, 176, 102, 0.35);
+}
+
+.piel-cinematico .perchero .r-m-carton {
+    fill: #ecdfc6;
+}
+
+/* ---------- The days of the list: a title card of cinema, small capitals, and the time as a timecode ---------- */
+.piel-mostrador.piel-cinematico .lista[data-densidad] .dia {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-inline-start: 0;
+    padding: 0 2px 8px;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--cine-ambar);
+}
+
+.piel-mostrador.piel-cinematico .lista[data-densidad] .dia b {
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.piel-mostrador.piel-cinematico .lista[data-densidad] .dia span {
+    padding: 1px 7px;
+    border: 1px solid rgba(255, 201, 138, 0.35);
+    border-radius: 4px;
+    color: var(--eg-tinta-2);
+    font-size: 0.74rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    opacity: 1;
+}
+
+.piel-mostrador.piel-cinematico .lista[data-densidad] .dia span:empty {
+    display: none;
+}
+
+.piel-cinematico .fila .hora {
+    color: var(--cine-ambar);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}
+
+/* ---------- The way of this campaign: a strip of light by stages, like the frames of a reel ---------- */
+.piel-cinematico .camino-figura {
+    display: none;
+}
+
+.piel-cinematico .bloque-camino .linea-dato {
+    background: none;
+    color: var(--eg-tinta);
+    padding: 0;
+}
+
+.piel-cinematico .paradas {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    padding: 12px 0;
+    border-radius: 6px;
+    /* stylelint-disable max-line-length */
+    background:
+        repeating-linear-gradient(90deg, transparent 0 6px, rgba(244, 237, 231, 0.18) 6px 11px) 0 4px / 100% 4px no-repeat,
+        repeating-linear-gradient(90deg, transparent 0 6px, rgba(244, 237, 231, 0.18) 6px 11px) 0 calc(100% - 4px) / 100% 4px no-repeat,
+        #120e15;
+    /* stylelint-enable max-line-length */
+}
+
+.piel-cinematico .paradas li {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    margin: 0 3px;
+    padding: 12px 4px 10px;
+    border-radius: 3px;
+    background: linear-gradient(to top, rgba(255, 176, 102, 0.16), rgba(255, 201, 138, 0.04));
+    box-shadow: inset 0 0 0 1px rgba(255, 201, 138, 0.18);
+}
+
+.piel-cinematico .paradas li b {
+    color: var(--cine-ambar);
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.piel-cinematico .paradas li span {
+    color: var(--eg-tinta-2);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.piel-cinematico .paradas li:last-child {
+    background: linear-gradient(to top, rgba(255, 176, 102, 0.34), rgba(255, 201, 138, 0.08));
+    box-shadow: inset 0 0 0 1px rgba(255, 201, 138, 0.5), 0 0 22px -6px rgba(255, 176, 102, 0.6);
+}
+
+/* ---------- «Al día»: the river empty, the pillar at rest ---------- */
+.piel-cinematico .vacio-percha {
+    display: none;
+}
+
+.cine-rio-vacio .cine-pilar {
+    opacity: 0.55;
+}
+
+.cine-rio-vacio .cine-corriente {
+    opacity: 0.32;
+    animation-duration: 90s;
+}
+
+.cine-calma {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 1.05rem;
+    text-align: center;
+    transform: translate(-50%, -50%);
+}
+
+.cine-calma b {
+    display: block;
+    color: var(--eg-tinta);
+    font-size: 1.35rem;
+}
+
+/* ---------- Every head of a page, a title on the screen ---------- */
+.piel-cinematico .cabeza .titular {
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+}
+
+.piel-cinematico .cabeza .ante {
+    color: var(--cine-ambar);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* ---------- Cifras: the ledger of the year on glass, not on paper ---------- */
+.piel-mostrador.piel-cinematico .grafico-saldo {
+    --libro-papel: var(--cine-vidrio-2);
+    --libro-raya: rgba(244, 237, 231, 0.07);
+    --libro-margen: rgba(255, 176, 102, 0.32);
+    background-color: var(--cine-vidrio-2);
+    transform: none;
+}
+
+.piel-mostrador.piel-cinematico .lamina h2 {
+    border-bottom-color: rgba(255, 201, 138, 0.45);
+}
+
+/* ---------- The constellation of towns: each a light at its distance from the centre; no geography ---------- */
+.cine-constelacion {
+    position: relative;
+    margin: 6px 0 12px;
+    border-radius: 12px;
+    background: var(--cine-fondo) url(cielo-escritorio.webp?v=1) center / cover no-repeat;
+    box-shadow: inset 0 0 0 1px var(--cine-filo);
+}
+
+.cine-constelacion ol {
+    position: relative;
+    aspect-ratio: 16 / 6;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.estrella,
+.estrella-centro {
+    position: absolute;
+    top: calc(var(--y) * 100%);
+    left: calc(var(--x) * 100%);
+    width: 0;
+    height: 0;
+}
+
+/* The light: its size by the count (--t, from 0 to 1); the core of the centre's part, inside the ring, in rings. */
+.estrella-luz {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(8px + var(--t, 0) * 30px);
+    height: calc(8px + var(--t, 0) * 30px);
+    border-radius: 50%;
+    /* stylelint-disable-next-line max-line-length */
+    background: radial-gradient(circle, #fff8ee 0 18%, rgba(255, 201, 138, 0.9) 30%, rgba(255, 176, 102, 0.25) 58%, transparent 70%);
+    transform: translate(-50%, -50%);
+}
+
+.con-anillos .estrella .estrella-luz {
+    border: 1.5px solid rgba(244, 237, 231, 0.55);
+    /* stylelint-disable-next-line max-line-length */
+    background: radial-gradient(circle, #fff8ee 0, rgba(255, 201, 138, 0.95) calc(var(--nucleo, 0) * 300% + 10%), transparent calc(var(--nucleo, 0) * 300% + 16%));
+}
+
+.estrella-nombre {
+    position: absolute;
+    top: calc(-0.7em);
+    left: calc(8px + var(--t, 0) * 15px);
+    color: var(--eg-tinta-2);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.estrella.izq .estrella-nombre {
+    left: auto;
+    right: calc(8px + var(--t, 0) * 15px);
+}
+
+.estrella-nombre b {
+    color: var(--cine-ambar);
+    font-variant-numeric: tabular-nums;
+}
+
+.estrella-centro .estrella-luz {
+    width: 16px;
+    height: 16px;
+    background: #ffc98a;
+    box-shadow: 0 0 0 4px rgba(255, 201, 138, 0.22), 0 0 30px 10px rgba(255, 176, 102, 0.35);
+}
+
+.estrella-centro .estrella-nombre {
+    top: 12px;
+    left: auto;
+    right: auto;
+    color: var(--eg-tinta);
+    font-weight: 700;
+    transform: translateX(-50%);
+}
+
+/* In Previsión the reach goes under the courses, across the whole panel: the stars need the width. */
+.piel-cinematico .prevision .apartado.alcance {
+    grid-column: 1 / -1;
+}
+
+/* Without a position (no code, another country): on a quiet ring along the bottom, by their count. */
+.estrella.sin-sitio {
+    top: 92%;
+    left: calc(6% + var(--k) * 12%);
+}
+
+.cine-constelacion-pie {
+    margin: 0;
+    padding: 0 14px 10px;
+    color: var(--eg-tinta-2);
+    font-size: 0.82rem;
+}
+
+/* ---------- The cut of cinema when a family opens beside the inbox (escena.js) ---------- */
+.cine-bandas i {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    height: 9vh;
+    background: #000;
+    pointer-events: none;
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+
+.cine-bandas i:first-child {
+    top: 0;
+    transform: translateY(-100%);
+}
+
+.cine-bandas i:last-child {
+    bottom: 0;
+    transform: translateY(100%);
+}
+
+.cine-bandas.cortando i {
+    transform: none;
+}
+
+/* ---------- The phone: the river turns vertical, the counter on top and the one that waits longest next to it ---------- */
+@media (max-width: 700px) {
+    .cine-rio {
+        height: auto;
+        margin: 6px 0 0;
+        padding: 0 0 6px;
+        overflow: visible;
+        background: radial-gradient(ellipse 80% 40% at 50% 0, rgba(255, 176, 102, 0.12), transparent 70%);
+    }
+
+    .cine-corriente,
+    .cine-dias,
+    .cine-llegan {
+        display: none;
+    }
+
+    .cine-mostrador {
+        position: relative;
+        top: auto;
+        right: auto;
+        bottom: auto;
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: flex-start;
+        gap: 10px;
+        width: auto;
+        padding: 18px 4px 12px;
+        text-align: left;
+    }
+
+    .cine-pilar {
+        top: 0;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        width: auto;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, rgba(255, 201, 138, 0.95) 20%, rgba(255, 176, 102, 0.95) 80%, transparent);
+    }
+
+    .cine-farolillos {
+        position: static;
+        display: grid;
+        gap: 18px;
+        padding: 10px 0 0;
+    }
+
+    .farolillo {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: auto;
+    }
+
+    .cine-constelacion {
+        background-image: url(cielo-movil.webp?v=1);
+    }
+
+    .cine-constelacion ol {
+        aspect-ratio: 8 / 9;
+    }
+
+    .estrella,
+    .estrella-centro {
+        top: calc(var(--ym) * 100%);
+        left: calc(var(--xm) * 100%);
+    }
+
+    .estrella-nombre {
+        font-size: 0.7rem;
+    }
+
+    .estrella.izq .estrella-nombre {
+        left: calc(8px + var(--t, 0) * 15px);
+        right: auto;
+    }
+
+    .estrella.izq-m .estrella-nombre {
+        left: auto;
+        right: calc(8px + var(--t, 0) * 15px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html body.panel.piel-mostrador.piel-cinematico::after,
+    .cine-corriente {
+        animation: none;
+    }
+
+    .titular .cine-palabra > span {
+        transition: none;
+        transform: none;
+    }
+}
+
+html[data-mov="menos"] body.piel-cinematico::after,
+html[data-mov="menos"] .cine-corriente {
+    animation: none;
+}

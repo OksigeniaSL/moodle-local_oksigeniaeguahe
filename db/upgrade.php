@@ -870,5 +870,25 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026113000, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026113100) {
+        // Where the centre and its towns are, for the constellation of the cinematic skin.
+        $table = new xmldb_table('local_oksigeniaeguahe_place');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('plain', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('lat', XMLDB_TYPE_NUMBER, '10, 6', null, null, null, null);
+        $table->add_field('lon', XMLDB_TYPE_NUMBER, '10, 6', null, null, null, null);
+        $table->add_field('source', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timefetched', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('centreplain', XMLDB_INDEX_UNIQUE, ['centreid', 'plain']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026113100, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -35,7 +35,7 @@
         "i": {"atras": "", "buscar": "", "der": "", "actos": "", "formulario": "", "mas1": "", "fichero": "", "filas": ""},
         "head": {"title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
             "action": {"url": "#", "name": "Apuntar a una familia", "icon": ""} },
-        "hall": false, "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
+        "hall": false, "cine": false, "fresh": false, "showtools": true, "waitingurl": "#", "allurl": "#", "all": false, "waiting": 5, "total": 9,
         "density": "fichas", "fichas": true, "lista": false, "densityurls": {"fichas": "#", "lista": "#"},
         "checkurl": "#", "checkevery": 60,
         "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
@@ -70,7 +70,8 @@
         </div>
     </section>
     {{/hall}}
-    {{^hall}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/hall}}
+    {{#cine}}{{> local_oksigeniaeguahe/panel_inbox_rio }}{{/cine}}
+    {{^hall}}{{^cine}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/cine}}{{/hall}}
     <p class="novedad" data-novedad role="status" hidden></p>
     <div class="mostrador" data-mostrador>
         <section class="bandeja" aria-labelledby="titular">
