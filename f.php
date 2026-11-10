@@ -290,6 +290,15 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'gustos' => 1], 'aficiones'));
 }
 
+if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
+    // What they call a child at home: the name of the label, the story and its voice, and the birthday.
+    $childid = required_param('nino', PARAM_INT);
+    if (isset(households::full($household)->children[$childid])) {
+        households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'casa' => $childid], 'quien-vendria'));
+}
+
 if ($action === 'erase') {
     if (optional_param('confirm', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
         households::erase($household);
@@ -319,6 +328,7 @@ publicpage::output(
     'public_family',
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
+        'home' => optional_param('casa', 0, PARAM_INT),
         'de' => optional_param('de', '', PARAM_ALPHA)]),
     $url
 );

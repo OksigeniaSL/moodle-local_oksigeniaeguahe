@@ -136,8 +136,23 @@ final class familypage_test extends \advanced_testcase {
         $this->assertStringContainsString('los recibe Lucía', $page['lead']);
         $this->assertStringContainsString('dejarían sus mochilas', $page['lead']);
         $this->assertSame(['Lucía Medina'], array_column($page['hosts'], 'name'));
-        $this->assertSame('En su etiqueta: Leo', $page['children'][0]['ontag']);
+        $this->assertSame('En casa: Leo', $page['children'][0]['ontag']);
         $this->assertSame('', $page['children'][1]['ontag']);
+        // What they call them at home, which the family can change from their page.
+        $this->assertSame(['Leo', ''], array_column(array_column($page['children'], 'home'), 'value'));
+        $this->assertSame(['Cambiarlo', '¿Cómo le llaman en casa?'], array_column(array_column($page['children'], 'home'), 'open'));
+        $noa = (int) $DB->get_field(households::CHILDREN, 'id', ['householdid' => $household->id, 'firstname' => 'Noa']);
+        $this->assertTrue(households::set_home_name($household, $noa, '  Noíta '));
+        $this->assertFalse(households::set_home_name($household, $noa, 'Noíta'), 'Nothing changes.');
+        $other = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $this->assertFalse(households::set_home_name($other, $noa, 'Otra'), 'Only a child of their own household.');
+        $page = familypage::context(households::get((int) $household->id, $id), $centre, 'es', $token, false, ['home' => $noa]);
+        $this->assertSame('En casa: Noíta', $page['children'][1]['ontag']);
+        $this->assertSame(['', 'Guardado'], array_column(array_column($page['children'], 'home'), 'saved'));
+        $this->assertSame('Leo y Noíta', $page['names']);
+        // Empty goes back to their first name.
+        $this->assertTrue(households::set_home_name($household, $noa, ''));
+        $this->assertNull($DB->get_field(households::CHILDREN, 'tagname', ['id' => $noa]));
         $this->assertSame('Les escribimos por correo.', $page['writeby']);
         $this->assertTrue($page['hasnext']);
         antispam::$testpass = null;

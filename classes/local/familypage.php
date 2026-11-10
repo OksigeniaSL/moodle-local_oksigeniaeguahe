@@ -97,7 +97,8 @@ class familypage {
      * @param string $lang
      * @param string $token
      * @param bool $new Whether the family has just signed up.
-     * @param array $flags asked: they have just sent what they were left to ask; saved: what they told was kept.
+     * @param array $flags asked: they have just sent what they were left to ask; saved: what they told was kept;
+     *     home: the child whose name at home they have just changed.
      * @return array
      */
     public static function context(
@@ -241,6 +242,14 @@ class familypage {
                 'course' => $offer ? publiclang::str('pub_course_year', $lang, (object) ['course' => format_string($offer->name),
                     'year' => s($offer->schoolyear)]) : publiclang::str('pub_course_unknown', $lang),
                 'ontag' => $tag !== '' && $tag !== $child->firstname ? publiclang::str('pub_on_tag', $lang, $tag) : '',
+                // What they call them at home, which the family can change: the name of the label, the story and its
+                // voice, and the birthday.
+                'home' => $isgone ? false : ['id' => (int) $child->id, 'value' => $tag,
+                    'action' => $link(['action' => 'homename', 'lang' => $lang]), 'sesskey' => sesskey(),
+                    'open' => publiclang::str($tag !== '' ? 'pub_home_change' : 'pub_tagname', $lang),
+                    'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
+                    'save' => publiclang::str('pub_home_save', $lang),
+                    'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
             ];
         }
         $adults = [];

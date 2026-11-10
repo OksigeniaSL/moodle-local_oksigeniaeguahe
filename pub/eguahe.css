@@ -3199,6 +3199,42 @@ textarea.renglones:focus-visible {
     margin-block-start: 6px;
 }
 
+/* What they call each child at home: a quiet link under the child, which opens to change it, with or without
+   JavaScript. */
+.en-casa {
+    margin-block-start: 6px;
+}
+
+.en-casa > summary {
+    display: inline-flex;
+    color: var(--c-acento-texto);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.en-casa > summary::-webkit-details-marker {
+    display: none;
+}
+
+.hoja-casa {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+    margin-block: 10px 4px;
+}
+
+.hoja-casa .campo {
+    width: 100%;
+}
+
+.casa-guardado {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
 .pagina-dibujo .volver {
     margin: 0 0 10px;
 }

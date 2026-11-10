@@ -237,6 +237,26 @@ class households {
     }
 
     /**
+     * What a child is called at home, which the family can change from their page: the name of the label, the story and
+     * its voice, and the birthday. Empty goes back to their first name; official papers keep the first name.
+     *
+     * @param \stdClass $household
+     * @param int $childid
+     * @param string $name
+     * @return bool Whether it changed.
+     */
+    public static function set_home_name(\stdClass $household, int $childid, string $name): bool {
+        global $DB;
+        $name = self::short($name, 100);
+        $child = $DB->get_record(self::CHILDREN, ['id' => $childid, 'householdid' => $household->id]);
+        if (!$child || trim((string) $child->tagname) === (string) $name) {
+            return false;
+        }
+        $DB->update_record(self::CHILDREN, (object) ['id' => $child->id, 'tagname' => $name, 'timemodified' => time()]);
+        return true;
+    }
+
+    /**
      * The household wrote or came: it is noted, and if it asked something, it waits for a person to answer.
      *
      * @param \stdClass $household

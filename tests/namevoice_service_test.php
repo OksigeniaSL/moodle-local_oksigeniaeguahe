@@ -74,6 +74,9 @@ final class namevoice_service_test extends \advanced_testcase {
         $this->assertSame([], namevoice_service::wanted($now), 'Their story has passed.');
         $DB->set_field(centres::T, 'firstday', $now + 90 * DAYSECS, ['id' => $centre->id]);
         $this->assertCount(1, namevoice_service::wanted($now), 'Asked early, to be ready by then.');
+        // What they call them at home is what the story says.
+        households::set_home_name(households::get((int) $child->householdid, (int) $centre->id), (int) $child->id, 'Leíto');
+        $this->assertSame(['es/nombre-maestro/leito'], array_keys(namevoice_service::wanted($now)));
         $DB->set_field(households::CHILDREN, 'lefttime', $now, ['id' => $child->id]);
         $this->assertSame([], namevoice_service::wanted($now), 'They left.');
     }
