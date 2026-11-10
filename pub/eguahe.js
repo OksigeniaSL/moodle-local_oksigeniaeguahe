@@ -877,6 +877,73 @@
                 });
             });
         }
+        // The birthday: the video of the little ones and the card, made here by the art director's pieces (pub/cumple/),
+        // seen and then kept or sent in the sheet of the drawing; the seal of the older ones, drawn beside the words.
+        var scripts = function(list) {
+            return list.reduce(function(chain, src) {
+                return chain.then(function() {
+                    if (document.querySelector('script[src="' + src + '"]')) {
+                        return null;
+                    }
+                    return new Promise(function(done, failed) {
+                        var tag = document.createElement('script');
+                        tag.src = src;
+                        tag.onload = done;
+                        tag.onerror = failed;
+                        document.head.appendChild(tag);
+                    });
+                });
+            }, Promise.resolve());
+        };
+        var wish = function(data) {
+            var o = Object.assign({}, data.o);
+            if (data.voices) {
+                // In Arabic, the reading the family chose in the story, to a boy or to a girl; none chosen, no voice.
+                var sex = null;
+                try {
+                    sex = window.localStorage.getItem(data.key);
+                } catch (err) {
+                    sex = null;
+                }
+                o.voice = (sex === 'm' || sex === 'f') && data.voices[sex] ? data.voices[sex] : null;
+            }
+            return o;
+        };
+        all('button[data-cumple]').forEach(function(button) {
+            var data = JSON.parse(button.getAttribute('data-cumple'));
+            if (!window.Promise || !window.DibujoVideo || !document.createElement('canvas').getContext) {
+                return;
+            }
+            button.hidden = false;
+            button.addEventListener('click', function() {
+                var o = wish(data);
+                window.DibujoVideo.sheet(data.sheet, function(progress) {
+                    return scripts(data.scripts).then(function() {
+                        var made = window.EguaheCumple;
+                        if (!made) {
+                            return null;
+                        }
+                        return data.piece === 'video' ? made.make(o, progress) : made.card(o);
+                    });
+                }, button);
+            });
+        });
+        all('img[data-cumple-sello]').forEach(function(img) {
+            var data = JSON.parse(img.getAttribute('data-cumple-sello'));
+            if (!window.Promise || !window.URL) {
+                return;
+            }
+            scripts(data.scripts).then(function() {
+                return window.EguaheCumple ? window.EguaheCumple.seal(wish(data)) : null;
+            }).then(function(blob) {
+                if (blob) {
+                    img.src = URL.createObjectURL(blob);
+                    img.hidden = false;
+                }
+            }).catch(function() {
+                // The words alone.
+            });
+        });
         // Sending a piece on: the phone's own way to share, else the link copied; counted for the family that shared it.
         // A drawing with its strokes goes as a video to keep (pub/dibujo-video.js), seen before it is sent.
         all('button[data-video]').forEach(function(button) {

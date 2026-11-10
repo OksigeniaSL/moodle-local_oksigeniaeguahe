@@ -2853,6 +2853,37 @@ textarea.renglones:focus-visible {
     content: ' ←';
 }
 
+/* The birthday of a child, in its days: the words of its card and the piece of its age (the video or the card, made
+   when asked; the seal of the older ones beside the words). */
+.cumple-tarjeta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: var(--radio);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 14px 28px -16px var(--eg-sombra);
+}
+
+.cumple-tarjeta:has(.cumple-sello:not([hidden])) {
+    grid-template-columns: 96px minmax(0, 1fr);
+}
+
+.cumple-sello {
+    display: block;
+    width: 96px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.cumple-tarjeta .boton {
+    justify-self: start;
+    margin-top: 10px;
+}
+
 .cuento-tarjeta:focus-visible {
     border-color: var(--c-acento-texto);
     outline: 3px solid var(--c-acento-texto);

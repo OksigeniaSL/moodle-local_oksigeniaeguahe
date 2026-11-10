@@ -45,6 +45,21 @@ class namevoice_service {
         'ar' => ['nombre-f', 'nombre-m', 'nombre-maestro-f', 'nombre-maestro-m'],
     ];
 
+    /** @var string The recipe of the service for the birthday wish. */
+    const BIRTHDAY_RECIPE = 'eguahe-birthday';
+
+    /** @var array[] The readings of the birthday wish of each language: in Arabic, to a boy and to a girl. */
+    const BIRTHDAY = [
+        'es' => ['cumple'],
+        'en' => ['cumple'],
+        'pt-PT' => ['cumple'],
+        'pt-BR' => ['cumple'],
+        'ar' => ['cumple-f', 'cumple-m'],
+    ];
+
+    /** @var int How long before a birthday its wish is asked for. */
+    const BIRTHDAY_BEFORE = 45 * DAYSECS;
+
     /** @var int The questions at most in each run. */
     const PER_RUN = 20;
 
@@ -91,7 +106,9 @@ class namevoice_service {
      * has not passed yet, the readings of the language of their family, by their name as the book writes it.
      *
      * @param int $now
-     * @return array[] Key "code/reading/namekey" => [code, reading, name].
+     * And the birthday wish of the little ones (birthdays::VIDEO) whose birthday comes in BIRTHDAY_BEFORE.
+     *
+     * @return array[] Key "code/reading/namekey" => [code, reading, name, recipe].
      */
     public static function wanted(int $now): array {
         global $DB;
@@ -109,6 +126,19 @@ class namevoice_service {
             if (!isset(story::CODES[$lang])) {
                 continue;
             }
+            $name = familypage::label_name($child) ?: (string) $child->firstname;
+            $code = story::CODES[$lang];
+            // Their birthday wish, while they are little, from some weeks before.
+            $birth = trim((string) ($child->birthdate ?? ''));
+            if ($birth !== '' && namevoices::key($name) !== '') {
+                [$day, $age] = birthdays::next($birth, $now);
+                if ($age <= birthdays::VIDEO && $day - $now <= self::BIRTHDAY_BEFORE) {
+                    foreach (self::BIRTHDAY[$code] ?? [] as $reading) {
+                        $out[$code . '/' . $reading . '/' . namevoices::key($name)] = [$code, $reading, $name,
+                            self::BIRTHDAY_RECIPE];
+                    }
+                }
+            }
             $centres[$centreid] = $centres[$centreid] ?? centres::get($centreid);
             $centre = $centres[$centreid];
             $first = (int) ($centre->firstday ?? 0);
@@ -121,15 +151,13 @@ class namevoice_service {
             if (!$offer || !story::offer_gives($offer, $centreid)) {
                 continue;
             }
-            $name = familypage::label_name($child) ?: (string) $child->firstname;
             $key = namevoices::key($name);
             if ($key === '') {
                 continue;
             }
-            $code = story::CODES[$lang];
             $teacher = in_array($offer->teacher ?? '', story::TEACHERS, true) ? $offer->teacher : 'maestra';
             foreach (self::readings($code, $teacher) as $reading) {
-                $out[$code . '/' . $reading . '/' . $key] = [$code, $reading, $name];
+                $out[$code . '/' . $reading . '/' . $key] = [$code, $reading, $name, self::RECIPE];
             }
         }
         return $out;
@@ -148,7 +176,7 @@ class namevoice_service {
             return 0;
         }
         $asked = 0;
-        foreach (self::wanted($now) as [$code, $reading, $name]) {
+        foreach (self::wanted($now) as [$code, $reading, $name, $recipe]) {
             if ($asked >= self::PER_RUN) {
                 break;
             }
@@ -161,7 +189,7 @@ class namevoice_service {
                 sleep(1);
             }
             $asked++;
-            $answer = self::post($settings, ['recipe' => self::RECIPE, 'lang' => $code, 'reading' => $reading, 'name' => $name]);
+            $answer = self::post($settings, ['recipe' => $recipe, 'lang' => $code, 'reading' => $reading, 'name' => $name]);
             $status = (string) ($answer['status'] ?? '');
             $wait = max(60, (int) ($answer['retry_after'] ?? 0));
             if ($status === 'limited' || !in_array($status, ['ready', 'pending', 'unavailable'], true)) {
@@ -172,7 +200,7 @@ class namevoice_service {
             $state = ['status' => $status, 'nextcheck' => $now + ($status === 'pending' ? $wait : self::AGAIN)];
             if ($status === 'ready') {
                 $sha = strtolower((string) ($answer['sha256'] ?? ''));
-                $have = namevoices::find($code, $reading, $name);
+                $have = namevoices::find($code, $reading, $name) ?? namevoices::find_birthday($code, $reading, $name);
                 if (!$have || !$row || $row->sha256 !== $sha) {
                     if (!self::keep($settings, (string) ($answer['url'] ?? ''), $sha, $code, $reading, $name)) {
                         $state = ['status' => 'pending', 'nextcheck' => $now + self::PAUSE];
@@ -252,17 +280,19 @@ class namevoice_service {
         if (!get_file_packer('application/zip')->extract_to_pathname($zip, $out)) {
             return false;
         }
-        // The folder as it goes, at the top of the ZIP or inside the only folder it has.
+        // The folder as it goes, at the top of the ZIP or inside the only folder it has: the story says where it
+        // speaks (habla.json), the birthday wish where the name is (cumple.json).
+        $whole = fn(string $dir) => is_file($dir . '/habla.json') || is_file($dir . '/cumple.json');
         $folder = $out;
         $inside = glob($out . '/*', GLOB_ONLYDIR) ?: [];
-        if (!is_file($folder . '/habla.json') && count($inside) === 1) {
+        if (!$whole($folder) && count($inside) === 1) {
             $folder = $inside[0];
         }
-        if (!is_file($folder . '/habla.json')) {
+        if (!$whole($folder)) {
             return false;
         }
         namevoices::store($code, $reading, $name, $folder);
-        return namevoices::find($code, $reading, $name) !== null;
+        return (namevoices::find($code, $reading, $name) ?? namevoices::find_birthday($code, $reading, $name)) !== null;
     }
 
     /**

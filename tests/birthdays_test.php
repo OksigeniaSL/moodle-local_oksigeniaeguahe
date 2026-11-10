@@ -18,6 +18,7 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\birthdays;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel_household;
 
@@ -31,6 +32,7 @@ use local_oksigeniaeguahe\local\panel_household;
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(birthdays::class)]
 #[\PHPUnit\Framework\Attributes\CoversClass(panel_household::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(familypage::class)]
 final class birthdays_test extends \advanced_testcase {
     /**
      * A time of the site on a day: noon, so the start of the day is the same in any time zone of the test.
@@ -100,8 +102,46 @@ final class birthdays_test extends \advanced_testcase {
             'direction' => 'out', 'channel' => 'email', 'body' => '¡Felicidades!', 'timecreated' => $this->noon('2026-11-10')]);
         $this->assertNull(birthdays::step($household, $this->noon('2026-11-11')));
 
+        // The team's message says where the gift of their age is.
+        $this->assertStringContainsString('little birthday gift for Sebas', $proposal['text']);
+
         // Born in 2023, its course is the one that starts the year it turns 3.
         $fits = birthdays::courses('2023-11-11', $centre, $this->noon('2026-11-10'));
         $this->assertSame([$infant], array_map(fn($o) => (int) $o->id, $fits));
+    }
+
+    /**
+     * On the page of the family, in the days of the birthday, the piece of the age it turns: the video, the card or the
+     * seal; and nothing before the day or after a week.
+     */
+    public function test_family_page(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $offer = centres::save_offer($id, (object) ['schoolyear' => '2026-27', 'name' => 'Infantil 4 años', 'places' => 25,
+            'active' => 1]);
+        $household = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $childid = households::add_child($household, 'Juan Sebastián', $offer, 'Sebas');
+        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'enrolled');
+        $token = households::new_link($household, 'team');
+        $page = fn() => familypage::context(households::get((int) $household->id, $id), $centre, 'es', $token, false);
+        $today = (new \DateTimeImmutable('today', \core_date::get_server_timezone_object()));
+        $born = fn(int $age, int $days = 0) => $DB->set_field(households::CHILDREN, 'birthdate',
+            $today->modify("-{$age} years")->modify("-{$days} days")->format('Y-m-d'), ['id' => $childid]);
+        $born(4);
+        [$card] = $page()['birthdays'];
+        $data = json_decode($card['data'], true);
+        $this->assertSame(['video', 'Sebas', 4, 'Hoy cumples 4 años.'], [$data['piece'], $data['o']['name'], $data['o']['age'],
+            $data['o']['words']['years']]);
+        $this->assertSame('Ver su vídeo', $card['button']);
+        $born(7);
+        $this->assertSame('card', json_decode($page()['birthdays'][0]['data'], true)['piece']);
+        $born(13);
+        $this->assertTrue($page()['birthdays'][0]['isseal']);
+        $born(4, 6);
+        $this->assertCount(1, $page()['birthdays'], 'The week of the birthday.');
+        $born(4, 7);
+        $this->assertSame([], $page()['birthdays']);
     }
 }

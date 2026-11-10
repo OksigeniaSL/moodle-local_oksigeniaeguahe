@@ -415,6 +415,7 @@ class familypage {
             'eraseurl' => $link(['action' => 'erase', 'lang' => $lang]),
             // The story «Your first day» of each child who starts, to read at home the days before.
             'stories' => self::stories($household, $centre, $lang, $token, $now),
+            'birthdays' => $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now),
             // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.
             'hobbies' => $isgone ? false : self::hobbies_context($household, $full, $lang, $token, $flags),
             // The page counts what is done on it, once it is in sight; not when someone of the team looks at it.
@@ -447,6 +448,104 @@ class familypage {
                 'open' => publiclang::str('pub_story_open', $lang),
                 'title' => publiclang::str('firstday_title', $lang),
                 'lead' => publiclang::str($lead, $lang, $a),
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * The birthday of each child of the centre in its days (birthdays::SHOWN), with the piece of the age it turns, made
+     * in the browser (pub/cumple/, by the art director): the video with its name said up to birthdays::VIDEO, the card
+     * to keep up to birthdays::CARD, and then the seal beside the words. Without the script, the words alone.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @param int $now
+     * @return array[]
+     */
+    protected static function birthday_cards(
+        \stdClass $household,
+        \stdClass $centre,
+        string $lang,
+        string $token,
+        int $now
+    ): array {
+        global $CFG;
+        $pub = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
+        $code = story::CODES[$lang] ?? null;
+        $s = fn(string $id) => publiclang::str($id, $lang);
+        // Words drawn on a canvas, without the marks that isolate a datum in an Arabic sentence.
+        $years = function (int $age) use ($lang): string {
+            $id = $age === 1 ? 'pub_bday_years_one' : 'pub_bday_years';
+            if ($lang === 'ar' && $age !== 1 && ($age === 2 || $age >= 11)) {
+                $id .= $age === 2 ? '_two' : '_eleven';
+            }
+            return str_replace('{$a}', (string) $age, publiclang::str($id, $lang));
+        };
+        $out = [];
+        foreach (birthdays::celebrating($household, $now) as [$child, , $age]) {
+            $name = self::label_name($child) ?: (string) $child->firstname;
+            $piece = birthdays::piece($age);
+            $drawing = drawings::file((int) $child->id);
+            $voice = null;
+            $voices = null;
+            if ($piece === 'video' && $code === 'ar') {
+                $voices = ['m' => namevoices::find_birthday('ar', 'cumple-m', $name),
+                    'f' => namevoices::find_birthday('ar', 'cumple-f', $name)];
+            } else if ($piece === 'video' && $code) {
+                $voice = namevoices::find_birthday($code, 'cumple', $name);
+            }
+            $title = str_replace('{$a}', $name, publiclang::str('pub_bday_title', $lang));
+            $data = [
+                'piece' => $piece,
+                'scripts' => [$pub . 'cumple/cumple-video.js', $pub . 'cumple/cumple-tarjeta.js'],
+                // The reading in Arabic, to a boy or a girl, as the family chose it in the story.
+                'voices' => $voices,
+                'key' => 'eguahe-cuento-voz-' . $child->id,
+                'o' => [
+                    'base' => $pub . 'cumple/',
+                    'muxer' => $pub . 'mp4-muxer/mp4-muxer.min.js',
+                    'name' => $name,
+                    'age' => $age,
+                    'lang' => $code ?? 'en',
+                    'rtl' => lists::dir($lang) === 'rtl',
+                    'drawing' => $drawing ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token,
+                        'dibujo' => $child->id, 't' => $drawing->get_timemodified()]))->out(false) : null,
+                    'voice' => $voice,
+                    'words' => ['wish' => $s('pub_bday_wish'), 'name' => $name . '!', 'years' => $years($age),
+                        'from' => $s('pub_bday_from')],
+                    'fonts' => ['sans' => '"Eg Sans", sans-serif', 'hand' => '"Eg Mano", cursive'],
+                ],
+                'sheet' => [
+                    'title' => $title,
+                    'text' => $title,
+                    'file' => clean_filename($title) . ($piece === 'video' ? '.mp4' : '.png'),
+                    'still' => $piece !== 'video',
+                    'sound' => $piece === 'video',
+                    'words' => [
+                        'preparing' => $s($piece === 'video' ? 'share_video_preparing' : 'pub_bday_preparing_card'),
+                        'send' => $s('share_video_send'),
+                        'save' => $s($piece === 'video' ? 'share_video_save' : 'pub_bday_save_card'),
+                        'failed' => $s('share_video_failed'),
+                        'close' => $s('share_video_close'),
+                    ],
+                ],
+            ];
+            if ($piece === 'card') {
+                // The card says the whole wish under its badge, with the name.
+                $data['o']['words']['wish'] = $title;
+            } else if ($piece === 'seal') {
+                $data['o']['words'] = ['years' => $s('pub_bday_seal_years')];
+            }
+            $out[] = [
+                'kicker' => $s('pub_bday_kicker'),
+                'title' => $title,
+                'lead' => $s('pub_bday_lead_' . $piece),
+                'isseal' => $piece === 'seal',
+                'button' => $piece === 'seal' ? '' : $s('pub_bday_' . $piece),
+                'data' => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ];
         }
         return $out;

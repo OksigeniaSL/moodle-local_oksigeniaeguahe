@@ -67,7 +67,7 @@ final class namevoice_service_test extends \advanced_testcase {
         $this->resetAfterTest();
         [$centre, $child] = $this->family();
         $now = time();
-        $this->assertSame(['es/nombre/leo' => ['es', 'nombre', 'Leo']], namevoice_service::wanted($now));
+        $this->assertSame(['es/nombre/leo' => ['es', 'nombre', 'Leo', 'eguahe-first-day']], namevoice_service::wanted($now));
         $DB->update_record(centres::OFFERS, (object) ['id' => $child->offerid, 'teacher' => 'maestro']);
         $this->assertSame(['es/nombre-maestro/leo'], array_keys(namevoice_service::wanted($now)));
         $DB->set_field(centres::T, 'firstday', $now - 61 * DAYSECS, ['id' => $centre->id]);
@@ -79,6 +79,43 @@ final class namevoice_service_test extends \advanced_testcase {
         $this->assertSame(['es/nombre-maestro/leito'], array_keys(namevoice_service::wanted($now)));
         $DB->set_field(households::CHILDREN, 'lefttime', $now, ['id' => $child->id]);
         $this->assertSame([], namevoice_service::wanted($now), 'They left.');
+    }
+
+    /**
+     * The birthday wish of the little ones, asked some weeks before their birthday, and kept in the bank from its ZIP.
+     */
+    public function test_birthday(): void {
+        global $DB;
+        $this->resetAfterTest();
+        namevoice_service::$calm = false;
+        [$centre, $child] = $this->family();
+        $now = time();
+        $soon = (new \DateTimeImmutable('@' . ($now + 10 * DAYSECS)))->setTimezone(\core_date::get_server_timezone_object());
+        $household = households::get((int) $child->householdid, (int) $centre->id);
+        households::set_birthdate($household, (int) $child->id, ((int) $soon->format('Y') - 4) . $soon->format('-m-d'));
+        $this->assertSame(['es', 'cumple', 'Leo', 'eguahe-birthday'], namevoice_service::wanted($now)['es/cumple/leo']);
+        households::set_birthdate($household, (int) $child->id, ((int) $soon->format('Y') - 9) . $soon->format('-m-d'));
+        $this->assertArrayNotHasKey('es/cumple/leo', namevoice_service::wanted($now), 'Older ones get a card, without voice.');
+        households::set_birthdate($household, (int) $child->id, ((int) $soon->format('Y') - 4) . $soon->format('-m-d'));
+
+        set_config('voicesapi', 'https://voces.example/v1', 'local_oksigeniaeguahe');
+        set_config('voiceskey', 'k', 'local_oksigeniaeguahe');
+        $dir = make_request_directory();
+        file_put_contents($dir . '/cumple.json', json_encode(['nombre_inicio_s' => 1.2, 'nombre_fin_s' => 1.7]));
+        file_put_contents($dir . '/cumple.mp3', 'ID3');
+        $zip = $dir . '/leo.zip';
+        get_file_packer('application/zip')->archive_to_pathname(['cumple.json' => $dir . '/cumple.json',
+            'cumple.mp3' => $dir . '/cumple.mp3'], $zip);
+        $body = file_get_contents($zip);
+        // The wish is asked first (ready, with its ZIP), then the story (pending): LIFO, the last pushed goes first.
+        \curl::mock_response(json_encode(['status' => 'pending', 'retry_after' => 600]));
+        \curl::mock_response($body);
+        \curl::mock_response(json_encode(['status' => 'ready', 'url' => 'https://voces.example/v1/files/c.zip',
+            'sha256' => hash('sha256', $body), 'recipe_version' => '1']));
+        $this->assertSame(2, namevoice_service::fetch($now));
+        $wish = namevoices::find_birthday('es', 'cumple', 'Leo');
+        $this->assertStringEndsWith('/es/cumple/leo/cumple.mp3', $wish['url']);
+        $this->assertSame('ready', $DB->get_field(namevoice_service::T, 'status', ['reading' => 'cumple', 'namekey' => 'leo']));
     }
 
     /**

@@ -527,7 +527,8 @@
      * when no video can be made here, what keeps instead (the still picture of a drawing, the voice of a story).
      *
      * @param {Object} v file, title, text, url and words (preparing, send, save, close, failed, and instead/saveinstead);
-     *     instead: {href, file, kind} what goes when there is no video.
+     *     instead: {href, file, kind} what goes when there is no video; still: what is made is a picture (the card of a
+     *     birthday), shown as one.
      * @param {function(function(number)): Promise<Blob|null>} build Makes the video, saying how far it got.
      * @param {HTMLElement} button What opened it: focus goes back there; data-medir and data-medir-guardar count.
      */
@@ -621,6 +622,13 @@
             bar.value = done;
         }).then(function(blob) {
             shown.removeChild(bar);
+            if (blob && v.still) {
+                var still = document.createElement('img');
+                still.src = offer(blob, v.file, v.words.save);
+                still.alt = v.title || '';
+                shown.replaceChild(still, state);
+                return null;
+            }
             if (blob) {
                 var video = document.createElement('video');
                 video.src = offer(blob, v.file, v.words.save);

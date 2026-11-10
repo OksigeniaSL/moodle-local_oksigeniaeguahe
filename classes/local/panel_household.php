@@ -398,6 +398,8 @@ class panel_household {
             $lines[] = get_string('panel_birthday_' . $band, $c, (object) ['name' => panel::tag($child),
                 'age' => self::years($age), 'n' => $age, 'when' => get_string('panel_birthday_when_' . $step['step'], $c)]);
         }
+        // The piece of their age waits on their page, from the day itself.
+        $lines[] = get_string('panel_birthday_gift_' . $step['step'], $c, $a->names);
         return [
             'sentence' => get_string('panel_birthday_' . $step['step'], $c),
             'why' => get_string('panel_birthday_' . $step['step'] . '_why', $c, $a),

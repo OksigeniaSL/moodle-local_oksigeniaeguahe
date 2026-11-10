@@ -32,7 +32,7 @@ class namevoices {
     const AREA = 'namevoice';
 
     /** @var string The files of a reading. */
-    const FILES = '/^(\d\d-[a-z]+\.mp3|habla\.json|cuento-con-cancion\.mp3)$/';
+    const FILES = '/^(\d\d-[a-z]+\.mp3|habla\.json|cuento-con-cancion\.mp3|cumple\.mp3|cumple\.json)$/';
 
     /** @var string The reading with the name, as the book calls it. */
     const READING = 'nombre';
@@ -106,18 +106,52 @@ class namevoices {
     }
 
     /**
+     * The birthday wish said with a name («Happy birthday, Sebas!»), when the bank has it: its sound and its JSON,
+     * which says where the name is said.
+     *
+     * @param string $code
+     * @param string $reading cumple, or in Arabic cumple-f or cumple-m.
+     * @param string $name
+     * @return array|null url, json
+     */
+    public static function find_birthday(string $code, string $reading, string $name): ?array {
+        $key = self::key($name);
+        if ($key === '') {
+            return null;
+        }
+        $context = \context_system::instance();
+        $path = self::path($code, $reading, $key);
+        $fs = get_file_storage();
+        foreach (['cumple.mp3', 'cumple.json'] as $file) {
+            if (!$fs->file_exists($context->id, 'local_oksigeniaeguahe', self::AREA, 0, $path, $file)) {
+                return null;
+            }
+        }
+        $url = fn(string $file) => \moodle_url::make_pluginfile_url(
+            $context->id,
+            'local_oksigeniaeguahe',
+            self::AREA,
+            0,
+            $path,
+            $file
+        )->out(false);
+        return ['url' => $url('cumple.mp3'), 'json' => $url('cumple.json')];
+    }
+
+    /**
      * Puts the reading of a name in the bank from a folder, in place of the one it had.
      *
      * @param string $code
      * @param string $reading
      * @param string $name
-     * @param string $dir A folder with the pages, habla.json and, if there is one, cuento-con-cancion.mp3.
+     * @param string $dir A folder with the pages, habla.json and, if there is one, cuento-con-cancion.mp3; or, for the
+     *     birthday, cumple.mp3 and cumple.json.
      * @return int The files kept.
      */
     public static function store(string $code, string $reading, string $name, string $dir): int {
         $key = self::key($name);
-        if ($key === '' || !is_file($dir . '/habla.json')) {
-            throw new \coding_exception('A reading of a name needs a name and its habla.json');
+        if ($key === '' || (!is_file($dir . '/habla.json') && !is_file($dir . '/cumple.json'))) {
+            throw new \coding_exception('A reading of a name needs a name and its habla.json, or its cumple.json');
         }
         self::delete($code, $reading, $name);
         $context = \context_system::instance();

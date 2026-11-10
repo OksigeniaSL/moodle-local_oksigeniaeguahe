@@ -404,7 +404,7 @@ display: grid; }
         @header('X-Robots-Tag: noindex, nofollow');
         @header('X-Content-Type-Options: nosniff');
         // The widget against spam works in a worker of its own and puts its styles inline.
-        @header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " .
+        @header("Content-Security-Policy: default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; " .
             "script-src 'self'; worker-src 'self' blob:; media-src 'self' blob:; connect-src 'self'; frame-ancestors " .
             (self::$embedded ? '*' : "'none'") . "; form-action 'self'; " .
             "base-uri 'none'; object-src 'none'");

@@ -28,6 +28,15 @@ class birthdays {
     /** @var int The oldest date of birth taken, in years: adults study too. */
     const OLDEST = 100;
 
+    /** @var int The days the piece of the birthday stays on the page of the family, the day itself included. */
+    const SHOWN = 7;
+
+    /** @var int Up to this age the piece is the video with the name said; from the next, the card. */
+    const VIDEO = 5;
+
+    /** @var int Up to this age, the card; from the next one, and adults, the seal. */
+    const CARD = 11;
+
     /**
      * A date of birth as a form sends it (YYYY-MM-DD), when it is a real day of the last OLDEST years and not after
      * today; null otherwise.
@@ -102,6 +111,55 @@ class birthdays {
             $day = self::in_year($birthdate, ++$year);
         }
         return [$day->getTimestamp(), $year - (int) substr($birthdate, 0, 4)];
+    }
+
+    /**
+     * The last birthday until today, today included: its day and the age it turned.
+     *
+     * @param string $birthdate
+     * @param int $now
+     * @return array [timestamp of the start of the day, age]
+     */
+    public static function last(string $birthdate, int $now): array {
+        $today = self::today($now);
+        $year = (int) $today->format('Y');
+        $day = self::in_year($birthdate, $year);
+        if ($day > $today) {
+            $day = self::in_year($birthdate, --$year);
+        }
+        return [$day->getTimestamp(), $year - (int) substr($birthdate, 0, 4)];
+    }
+
+    /**
+     * The piece of a birthday by the age it turns: the video, the card or the seal.
+     *
+     * @param int $age
+     * @return string video, card or seal
+     */
+    public static function piece(int $age): string {
+        return $age <= self::VIDEO ? 'video' : ($age <= self::CARD ? 'card' : 'seal');
+    }
+
+    /**
+     * The children of a family in the days of their birthday, in the centre: on the day and SHOWN days in all.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     * @return array[] [child, day, age]
+     */
+    public static function celebrating(\stdClass $household, int $now): array {
+        $out = [];
+        foreach (households::full($household)->children as $child) {
+            $date = trim((string) ($child->birthdate ?? ''));
+            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || $date === '') {
+                continue;
+            }
+            [$day, $age] = self::last($date, $now);
+            if ($now < $day + self::SHOWN * DAYSECS) {
+                $out[] = [$child, $day, $age];
+            }
+        }
+        return $out;
     }
 
     /**
