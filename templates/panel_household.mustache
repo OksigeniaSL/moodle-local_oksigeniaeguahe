@@ -42,7 +42,7 @@
         "url": "#", "inboxurl": "#", "action": "#", "sesskey": "abc", "canact": true, "waiting": true, "answered": null,
         "owner": {"first": "Lucía", "name": "Lucía Medina", "picture": "", "initials": "LM", "mine": false},
         "relay": true, "takeurl": "#", "ownedbyme": false, "promise": null, "typing": null,
-        "children": [{"id": 1, "hanging": {"name": "Leo", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "#", "name": "Leonardo", "tagline": "En su etiqueta: Leo",
+        "children": [{"id": 1, "hanging": {"name": "Leo", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "#", "name": "Leonardo", "tagline": "En casa: Leo", "birthline": "Cumple el 14 de marzo · 3 años", "coursehint": "",
             "course": "Infantil 3 años · curso 2027-28", "label": "Por dónde va Leo", "closed": false, "reason": "",
             "waitlist": false, "incentre": "", "canact": true,
             "steps": [{"value": "inquiry", "name": "Consulta", "here": true, "done": false, "last": false}],
@@ -102,6 +102,7 @@
                     <div class="datos">
                         <span class="nombre">{{name}}</span>
                         <span class="secundario">{{#tagline}}{{tagline}} · {{/tagline}}{{course}}</span>
+                        {{#birthline}}<span class="secundario">{{birthline}}{{#coursehint}} · {{coursehint}}{{/coursehint}}</span>{{/birthline}}
                         {{#drawing}}<a href="{{drawingpage}}"><img class="dibujo-mini" src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}
                         {{^drawing}}{{#drawingpage}}<a class="enlace su-dibujo" href="{{drawingpage}}">{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}</a>{{/drawingpage}}{{/drawing}}
                         {{^closed}}

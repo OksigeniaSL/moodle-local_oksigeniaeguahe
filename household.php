@@ -82,6 +82,11 @@ if (optional_param('primerdia', 0, PARAM_BOOL) && $canact && $prefill === '') {
     $proposal = panel_household::firstday_proposal($household, households::full($household), $centre, time());
     $prefill = $proposal ? $proposal['text'] : '';
 }
+if (optional_param('cumple', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // A birthday, without the script: the message comes written in the answer.
+    $proposal = panel_household::birthday_proposal($household, households::full($household), time());
+    $prefill = $proposal ? $proposal['text'] : '';
+}
 if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
     // The proposal of a brother or sister, without the script: the message comes written in the answer.
     $proposal = panel_household::sibling_proposal($household, households::full($household), $centre, time());

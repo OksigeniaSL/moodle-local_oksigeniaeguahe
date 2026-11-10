@@ -343,7 +343,74 @@ class panel_household {
      */
     protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
         return self::farewell_proposal($household, $full) ?: (self::firstday_proposal($household, $full, $centre, $now) ?:
-            self::sibling_proposal($household, $full, $centre, $now));
+            (self::birthday_proposal($household, $full, $now) ?: self::sibling_proposal($household, $full, $centre, $now)));
+    }
+
+    /**
+     * An age in words: «1 año», «4 años».
+     *
+     * @param int $age
+     * @return string
+     */
+    public static function years(int $age): string {
+        return $age === 1 ? get_string('panel_age_one', self::C) : get_string('panel_age_many', self::C, $age);
+    }
+
+    /**
+     * The course a child is of by its date of birth, when it is not the one it asks for or is in: «By their age, their
+     * course is …» without a course, «would be» with another one. Empty when it fits or no course of the centre fits.
+     *
+     * @param string $birthdate
+     * @param \stdClass|null $offer
+     * @param \stdClass $centre
+     * @return string
+     */
+    protected static function course_hint(string $birthdate, ?\stdClass $offer, \stdClass $centre): string {
+        $fits = birthdays::courses($birthdate, $centre, time());
+        if (!$fits || ($offer && in_array((int) $offer->id, array_map(fn($o) => (int) $o->id, $fits), true))) {
+            return '';
+        }
+        $names = array_map(fn($o) => format_string($o->name) . ' (' . s($o->schoolyear) . ')', $fits);
+        return get_string($offer ? 'panel_birthday_course_other' : 'panel_birthday_course', self::C, self::list_words($names));
+    }
+
+    /**
+     * The birthday of a child of the centre: the day before and on the day, what a person writes to the family, with
+     * its why and the message written in the tone of the age it turns. Sent by a person, never by itself.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param int $now
+     * @return array|false
+     */
+    public static function birthday_proposal(\stdClass $household, \stdClass $full, int $now) {
+        $step = birthdays::step($household, $now);
+        if (!$step) {
+            return false;
+        }
+        $c = self::C;
+        $a = (object) ['names' => self::list_words(array_map(fn($k) => panel::tag($k), $step['children'])),
+            'day' => userdate($step['day'], get_string('strftimedateshort', 'langconfig'))];
+        $lines = [];
+        foreach ($step['children'] as $child) {
+            $age = $step['ages'][(int) $child->id];
+            $band = $age <= 5 ? 'small' : ($age <= 11 ? 'child' : 'older');
+            $lines[] = get_string('panel_birthday_' . $band, $c, (object) ['name' => panel::tag($child),
+                'age' => self::years($age), 'n' => $age, 'when' => get_string('panel_birthday_when_' . $step['step'], $c)]);
+        }
+        return [
+            'sentence' => get_string('panel_birthday_' . $step['step'], $c),
+            'why' => get_string('panel_birthday_' . $step['step'] . '_why', $c, $a),
+            'text' => self::greeting($full) . implode(' ', $lines),
+            'button' => get_string('panel_sibling_write', $c),
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'cumple' => 1],
+                'borrador'
+            ))->out(false),
+            'visit' => false,
+            'help' => get_string('panel_proposal_help_written', $c),
+        ];
     }
 
     /**
@@ -617,6 +684,7 @@ class panel_household {
                 $reasons[] = ['value' => $reason, 'name' => get_string('closed_' . $reason, $c)];
             }
             $tag = panel::tag($child);
+            $birth = trim((string) ($child->birthdate ?? ''));
             $day = get_string('strftimedate', 'langconfig');
             $drawing = drawings::url((int) $child->id);
             $out[] = [
@@ -630,6 +698,12 @@ class panel_household {
                 'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',
+                // Their birthday and age, when the family gave the date; and the course it is of by its age, when
+                // that is not the one asked for.
+                'birthline' => $birth !== '' ? get_string('panel_birthday_line', $c, (object) [
+                    'day' => userdate(birthdays::next($birth, time())[0], get_string('strftimedateshort', 'langconfig')),
+                    'age' => self::years(birthdays::age($birth, time()))]) : '',
+                'coursehint' => $birth !== '' ? self::course_hint($birth, $offer, $centre) : '',
                 'course' => $offer ? get_string('panel_course_year', $c, (object) ['name' => format_string($offer->name),
                     'year' => s($offer->schoolyear)]) : get_string('panel_nocourse', $c),
                 'steps' => $steps,

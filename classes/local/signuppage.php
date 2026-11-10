@@ -26,7 +26,8 @@ namespace local_oksigeniaeguahe\local;
  */
 class signuppage {
     /** @var string[] Strings the template uses. */
-    const STRINGS = ['pub_come_meet', 'pub_tagname', 'pub_tagname_hint', 'pub_if_you_wish', 'pub_add_child', 'pub_offer_unknown',
+    const STRINGS = ['pub_come_meet', 'pub_tagname', 'pub_tagname_hint', 'pub_birthdate', 'pub_birthdate_hint',
+        'pub_if_you_wish', 'pub_add_child', 'pub_offer_unknown',
         'pub_you', 'pub_you_hint', 'pub_another_adult', 'pub_slot', 'pub_incentre', 'pub_incentre_yes', 'pub_incentre_no',
         'pub_more', 'pub_people', 'pub_where', 'pub_where_choose', 'pub_where_other', 'pub_where_moving', 'pub_heardfrom',
         'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_privacy_link', 'pub_info_more',
@@ -87,7 +88,8 @@ class signuppage {
         $children = [];
         $labels = [];
         foreach ($data['children'] as $i => $child) {
-            $shown = $i === 0 || $child['firstname'] !== '' || ($child['tagname'] ?? '') !== '' || $child['offerid'];
+            $shown = $i === 0 || $child['firstname'] !== '' || ($child['tagname'] ?? '') !== '' || $child['offerid'] ||
+                ($child['birthdate'] ?? '') !== '';
             $label = familypage::label_name((object) ['firstname' => $child['firstname'],
                 'tagname' => $child['tagname'] ?? '']);
             $labels[] = $label;
@@ -98,6 +100,9 @@ class signuppage {
                 'name' => $child['firstname'],
                 'nameerror' => $errors["c{$i}name"] ?? '',
                 'tag' => $child['tagname'] ?? '',
+                'birth' => $child['birthdate'] ?? '',
+                'birtherror' => $errors["c{$i}birth"] ?? '',
+                'birthmax' => date('Y-m-d'),
                 'tagplaceholder' => preg_split('/\s+/', $child['firstname'])[0] ?? '',
                 'courselabel' => $label !== '' ? publiclang::str('pub_course_for', $lang, $label) :
                     publiclang::str('pub_course_for_none', $lang),

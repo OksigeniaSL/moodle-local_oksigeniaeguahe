@@ -84,6 +84,7 @@ if ($household) {
         if ($i < household_form::CHILDREN) {
             $defaults += ["childid{$i}" => $child->id, "childname{$i}" => $child->firstname, "offerid{$i}" => $child->offerid,
                 "childtag{$i}" => $child->tagname];
+            $defaults["childbirth{$i}"] = (string) ($child->birthdate ?? '');
         }
     }
     $form->set_data($defaults);
@@ -171,7 +172,11 @@ if ($data = $form->get_data()) {
                     'timemodified' => time()]);
             }
         } else if ($name !== '') {
-            households::add_child($household, $name, $offerid, $tag);
+            $childid = households::add_child($household, $name, $offerid, $tag);
+        }
+        if ($childid && $name !== '') {
+            // The date of birth; empty takes it out.
+            households::set_birthdate($household, $childid, (string) ($data->{"childbirth{$i}"} ?? ''));
         }
     }
     if (!empty($data->eventid) && ($event = events::get((int) $data->eventid, (int) $centre->id))) {

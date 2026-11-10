@@ -207,6 +207,8 @@ class familypage {
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $tag = trim((string) ($child->tagname ?? ''));
+            $birth = trim((string) ($child->birthdate ?? ''));
+            $birthday = $birth !== '' ? publicpage::date_parts(birthdays::next($birth, $now)[0], $lang)['daymonth'] : '';
             $drawing = drawings::file((int) $child->id);
             $childrows[] = [
                 'name' => $child->firstname,
@@ -244,10 +246,13 @@ class familypage {
                 'ontag' => $tag !== '' && $tag !== $child->firstname ? publiclang::str('pub_on_tag', $lang, $tag) : '',
                 // What they call them at home, which the family can change: the name of the label, the story and its
                 // voice, and the birthday.
+                'birthline' => $birthday !== '' ? publiclang::str('pub_birthday_line', $lang, $birthday) : '',
                 'home' => $isgone ? false : ['id' => (int) $child->id, 'value' => $tag,
                     'action' => $link(['action' => 'homename', 'lang' => $lang]), 'sesskey' => sesskey(),
-                    'open' => publiclang::str($tag !== '' ? 'pub_home_change' : 'pub_tagname', $lang),
+                    'open' => publiclang::str($tag !== '' || $birth !== '' ? 'pub_home_change' : 'pub_home_open', $lang),
                     'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
+                    'birth' => $birth, 'birthmax' => date('Y-m-d', $now), 'birthlabel' => publiclang::str('pub_birthdate', $lang),
+                    'birthhint' => publiclang::str('pub_birthdate_hint', $lang),
                     'save' => publiclang::str('pub_home_save', $lang),
                     'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
             ];

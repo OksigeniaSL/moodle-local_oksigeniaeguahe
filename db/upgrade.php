@@ -966,5 +966,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114001, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026114200) {
+        // The date of birth of each child, when the family gives it: their birthday.
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $field = new xmldb_field('birthdate', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'tagname');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026114200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

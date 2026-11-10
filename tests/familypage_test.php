@@ -140,7 +140,8 @@ final class familypage_test extends \advanced_testcase {
         $this->assertSame('', $page['children'][1]['ontag']);
         // What they call them at home, which the family can change from their page.
         $this->assertSame(['Leo', ''], array_column(array_column($page['children'], 'home'), 'value'));
-        $this->assertSame(['Cambiarlo', '¿Cómo le llaman en casa?'], array_column(array_column($page['children'], 'home'), 'open'));
+        $opens = array_column(array_column($page['children'], 'home'), 'open');
+        $this->assertSame(['Cambiar', 'Contarnos cómo le llaman en casa y cuándo nació'], $opens);
         $noa = (int) $DB->get_field(households::CHILDREN, 'id', ['householdid' => $household->id, 'firstname' => 'Noa']);
         $this->assertTrue(households::set_home_name($household, $noa, '  Noíta '));
         $this->assertFalse(households::set_home_name($household, $noa, 'Noíta'), 'Nothing changes.');

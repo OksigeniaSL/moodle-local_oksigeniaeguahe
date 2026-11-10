@@ -291,10 +291,11 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
 }
 
 if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
-    // What they call a child at home: the name of the label, the story and its voice, and the birthday.
+    // What they call a child at home (the name of the label, the story and its voice) and when it was born.
     $childid = required_param('nino', PARAM_INT);
     if (isset(households::full($household)->children[$childid])) {
         households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
+        households::set_birthdate($household, $childid, optional_param('cumple', '', PARAM_RAW_TRIMMED));
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'casa' => $childid], 'quien-vendria'));
 }

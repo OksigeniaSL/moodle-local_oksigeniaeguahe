@@ -71,6 +71,7 @@ class panel_familyform {
                 'id' => (int) $value("childid{$i}"),
                 'name' => $name,
                 'tag' => $field("childtag{$i}"),
+                'birth' => $field("childbirth{$i}") + ['max' => date('Y-m-d')],
                 'offers' => $options($offers, $value("offerid{$i}")),
                 'offername' => "offerid{$i}",
                 'emptybag' => panel::hanging($i, '', '', $centre),

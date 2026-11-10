@@ -75,9 +75,18 @@ class panel_inbox {
         // The families with something to write around the first day today, and only them when asked.
         $starting = self::starting($centre, $now);
         $onlystarting = !empty($view['starting']) && $starting;
-        $list = households::inbox($centreid, !$all && !$onlysiblings && !$onlyvolunteers && !$onlystarting);
+        // The families with a birthday to celebrate today, and only them when asked.
+        $birthdays = self::birthdays($centre, $now);
+        $onlybirthdays = !empty($view['birthdays']) && $birthdays;
+        $list = households::inbox(
+            $centreid,
+            !$all && !$onlysiblings && !$onlyvolunteers && !$onlystarting && !$onlybirthdays
+        );
         if ($onlystarting) {
             $list = array_intersect_key($list, $starting);
+        }
+        if ($onlybirthdays) {
+            $list = array_intersect_key($list, $birthdays);
         }
         if ($onlysiblings) {
             $list = array_intersect_key($list, $due);
@@ -185,6 +194,12 @@ class panel_inbox {
                 count($starting)
             ), 'url' => $url(['c' => $centreid, 'primerdia' => 1]), 'on' => $onlystarting,
                 'allurl' => $url(['c' => $centreid])] : false,
+            'birthdaysdue' => $birthdays ? ['text' => get_string(
+                count($birthdays) === 1 ? 'panel_birthday_inbox_one' : 'panel_birthday_inbox_text',
+                $c,
+                count($birthdays)
+            ), 'url' => $url(['c' => $centreid, 'cumple' => 1]), 'on' => $onlybirthdays,
+                'allurl' => $url(['c' => $centreid])] : false,
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),
@@ -210,6 +225,32 @@ class panel_inbox {
         foreach ($ids as $id) {
             $household = households::get((int) $id, (int) $centre->id);
             $step = $household ? story::step($household, $centre, $now) : null;
+            if ($step) {
+                $out[(int) $id] = $step['step'];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The households of a centre with a birthday to celebrate today: the day before or on the day, until someone writes.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array household id => the step.
+     */
+    protected static function birthdays(\stdClass $centre, int $now): array {
+        global $DB;
+        $ids = $DB->get_fieldset_select(
+            households::CHILDREN,
+            'DISTINCT householdid',
+            "centreid = ? AND stage = 'enrolled' AND lefttime = 0 AND birthdate IS NOT NULL",
+            [$centre->id]
+        );
+        $out = [];
+        foreach ($ids as $id) {
+            $household = households::get((int) $id, (int) $centre->id);
+            $step = $household ? birthdays::step($household, $now) : null;
             if ($step) {
                 $out[(int) $id] = $step['step'];
             }

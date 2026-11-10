@@ -31,11 +31,11 @@
         "pegs": {"count": 1, "live": true, "pegs": [{"index": 0, "name": "", "style": "", "arrive": false,
             "delay": "0.15", "hidden": false}]},
         "asksiblings": false, "children": [{"index": 0, "hidden": false, "first": true, "namelabel": "¿Cómo se llama quien vendría?",
-            "name": "", "nameerror": "", "tag": "", "tagplaceholder": "", "courselabel": "¿En qué curso empezaría?",
+            "name": "", "nameerror": "", "tag": "", "tagplaceholder": "", "birth": "", "birtherror": "", "birthmax": "2026-11-10", "courselabel": "¿En qué curso empezaría?",
             "coursewith": "¿En qué curso empezaría {name}?", "coursewithout": "¿En qué curso empezaría?",
             "offererror": "", "offers": [{"id": 1, "name": "Infantil 3 años · 2027-28", "selected": false}]}],
         "canaddchild": true, "pub_add_child": "Añadir a alguien más", "pub_tagname": "¿Cómo le llaman en casa?",
-        "pub_if_you_wish": "(si quieren)", "pub_tagname_hint": "Así le llamaremos en su etiqueta, en su cuento y en su cumpleaños.",
+        "pub_if_you_wish": "(si quieren)", "pub_birthdate": "Fecha de nacimiento", "pub_birthdate_hint": "Para felicitarle en su cumpleaños.", "pub_tagname_hint": "Así le llamaremos en su etiqueta, en su cuento y en su cumpleaños.",
         "weekday": "Sábado", "daymonth": "21 de noviembre", "hours": "De 10:00 a 13:00", "place": "Entrada principal",
         "address": "Calle de ejemplo 1", "welcome": "Les enseñamos el centro.", "hashosts": true,
         "hosts": [{"photo": "", "initials": "LM"}], "willreceive": "Los recibirá Lucía",
@@ -92,6 +92,12 @@
                     <label for="c{{index}}tag">{{pub_tagname}} <span class="opc">{{pub_if_you_wish}}</span></label>
                     <input id="c{{index}}tag" name="c{{index}}tag" form="eg-form" value="{{tag}}" placeholder="{{tagplaceholder}}" autocomplete="off" data-child="{{index}}" aria-describedby="c{{index}}tag-help">
                     <p class="ayuda-campo" id="c{{index}}tag-help">{{pub_tagname_hint}}</p>
+                </div>
+                <div class="campo{{#birtherror}} mal{{/birtherror}}">
+                    <label for="c{{index}}birth">{{pub_birthdate}} <span class="opc">{{pub_if_you_wish}}</span></label>
+                    <input id="c{{index}}birth" name="c{{index}}birth" form="eg-form" type="date" value="{{birth}}" max="{{birthmax}}" autocomplete="off" data-child="{{index}}" aria-describedby="c{{index}}birth-help"{{#birtherror}} aria-invalid="true"{{/birtherror}}>
+                    {{#birtherror}}<p class="error" id="c{{index}}birth-error">{{{i.alert}}}{{birtherror}}</p>{{/birtherror}}
+                    <p class="ayuda-campo" id="c{{index}}birth-help">{{pub_birthdate_hint}}</p>
                 </div>
             </div>
             {{/children}}

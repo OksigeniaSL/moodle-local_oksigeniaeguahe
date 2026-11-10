@@ -57,6 +57,7 @@ class signup {
             $children[] = [
                 'firstname' => trim(optional_param("c{$i}name", '', PARAM_TEXT)),
                 'tagname' => trim(optional_param("c{$i}tag", '', PARAM_TEXT)),
+                'birthdate' => trim(optional_param("c{$i}birth", '', PARAM_RAW_TRIMMED)),
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
         }
@@ -123,6 +124,9 @@ class signup {
         foreach ($data['children'] as $i => $child) {
             if ($child['offerid'] && !isset($offers[$child['offerid']])) {
                 $errors["c{$i}offer"] = publiclang::str('pub_err_offer', $lang);
+            }
+            if (($child['birthdate'] ?? '') !== '' && !birthdays::clean($child['birthdate'], time())) {
+                $errors["c{$i}birth"] = publiclang::str('pub_birthdate_bad', $lang);
             }
             $any = $any || $child['firstname'] !== '';
         }
@@ -230,7 +234,10 @@ class signup {
         }
         foreach ($data['children'] as $child) {
             if ($child['firstname'] !== '') {
-                households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
+                $childid = households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
+                if (($child['birthdate'] ?? '') !== '') {
+                    households::set_birthdate($household, $childid, $child['birthdate']);
+                }
             }
         }
         if (siblings::on($centre)) {

@@ -257,6 +257,30 @@ class households {
     }
 
     /**
+     * The date of birth of a child, as the family gives it: for their birthday. Empty takes it out; a day that is not
+     * real changes nothing.
+     *
+     * @param \stdClass $household
+     * @param int $childid
+     * @param string $date YYYY-MM-DD.
+     * @return bool Whether it changed.
+     */
+    public static function set_birthdate(\stdClass $household, int $childid, string $date): bool {
+        global $DB;
+        $given = trim($date) !== '';
+        $date = birthdays::clean($date, time());
+        if ($given && $date === null) {
+            return false;
+        }
+        $child = $DB->get_record(self::CHILDREN, ['id' => $childid, 'householdid' => $household->id]);
+        if (!$child || (string) ($child->birthdate ?? '') === (string) $date) {
+            return false;
+        }
+        $DB->update_record(self::CHILDREN, (object) ['id' => $child->id, 'birthdate' => $date, 'timemodified' => time()]);
+        return true;
+    }
+
+    /**
      * The household wrote or came: it is noted, and if it asked something, it waits for a person to answer.
      *
      * @param \stdClass $household
@@ -572,7 +596,8 @@ class households {
                 'email' => $adult->email, 'phone' => $adult->phone];
         }
         foreach ($full->children as $child) {
-            $data['children'][] = ['first_name' => $child->firstname, 'name_on_the_label' => $child->tagname,
+            $data['children'][] = ['first_name' => $child->firstname, 'name_at_home' => $child->tagname,
+                'date_of_birth' => $child->birthdate ?? null,
                 'asks_for' => $offers[$child->offerid] ?? null,
                 'stage' => $child->stage, 'since' => $date((int) $child->stagetime),
                 'started' => $date((int) ($child->started ?? 0)), 'left' => $date((int) ($child->lefttime ?? 0)),

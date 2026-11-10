@@ -105,6 +105,9 @@ class household_form extends \moodleform {
             $mform->addGroup($row, "child{$i}", get_string('form_child', $c, $i + 1), ' ', false);
             $mform->setType("childname{$i}", PARAM_TEXT);
             $mform->setType("childtag{$i}", PARAM_TEXT);
+            // Their date of birth (YYYY-MM-DD), if the family gave it: for their birthday.
+            $mform->addElement('text', "childbirth{$i}", get_string('form_birthdate', $c), ['size' => 10]);
+            $mform->setType("childbirth{$i}", PARAM_RAW_TRIMMED);
         }
 
         $mform->addElement('header', 'aboutheader', get_string('form_about', $c));
@@ -227,6 +230,12 @@ class household_form extends \moodleform {
             }
             if (trim($data["phone{$i}"] ?? '') !== '' && phone::normalise($data["phone{$i}"], $centre->country) === null) {
                 $errors["phone{$i}"] = get_string('form_err_phone', $c);
+            }
+        }
+        for ($i = 0; $i < self::CHILDREN; $i++) {
+            $birth = trim($data["childbirth{$i}"] ?? '');
+            if ($birth !== '' && \local_oksigeniaeguahe\local\birthdays::clean($birth, time()) === null) {
+                $errors["childbirth{$i}"] = get_string('form_err_birthdate', $c);
             }
         }
         if (trim($data['email0'] ?? '') === '' && trim($data['phone0'] ?? '') === '') {

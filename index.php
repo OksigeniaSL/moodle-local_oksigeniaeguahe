@@ -78,7 +78,7 @@ if (in_array($density, ['fichas', 'lista'], true)) {
 }
 $view = ['course' => optional_param('curso', 0, PARAM_INT), 'stage' => optional_param('etapa', '', PARAM_ALPHA),
     'siblings' => optional_param('hermanos', 0, PARAM_BOOL), 'volunteers' => optional_param('voluntarias', 0, PARAM_BOOL),
-    'starting' => optional_param('primerdia', 0, PARAM_BOOL),
+    'starting' => optional_param('primerdia', 0, PARAM_BOOL), 'birthdays' => optional_param('cumple', 0, PARAM_BOOL),
     'density' => $density];
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));
 panel::setup($url, get_string('inbox', $c));
