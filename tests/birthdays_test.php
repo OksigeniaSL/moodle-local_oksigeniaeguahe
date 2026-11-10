@@ -38,7 +38,7 @@ final class birthdays_test extends \advanced_testcase {
      * @param string $day YYYY-MM-DD
      * @return int
      */
-    protected function at(string $day): int {
+    protected function noon(string $day): int {
         return (new \DateTimeImmutable($day . ' 12:00', \core_date::get_server_timezone_object()))->getTimestamp();
     }
 
@@ -47,7 +47,7 @@ final class birthdays_test extends \advanced_testcase {
      */
     public function test_dates(): void {
         $this->resetAfterTest();
-        $now = $this->at('2026-11-10');
+        $now = $this->noon('2026-11-10');
         $this->assertSame('2022-11-11', birthdays::clean(' 2022-11-11 ', $now));
         $this->assertNull(birthdays::clean('2022-02-30', $now), 'Not a real day.');
         $this->assertNull(birthdays::clean('2026-11-11', $now), 'Not after today.');
@@ -56,7 +56,7 @@ final class birthdays_test extends \advanced_testcase {
         $this->assertSame(3, birthdays::age('2022-11-11', $now));
         $this->assertSame(4, birthdays::age('2022-11-10', $now), 'Today is the birthday.');
         [$day, $age] = birthdays::next('2022-11-11', $now);
-        $this->assertSame([$this->at('2026-11-11') - 12 * HOURSECS, 4], [$day, $age]);
+        $this->assertSame([$this->noon('2026-11-11') - 12 * HOURSECS, 4], [$day, $age]);
         [$day, $age] = birthdays::next('2020-02-29', $now);
         $this->assertSame('2027-02-28', userdate($day, '%Y-%m-%d', 99));
         $this->assertSame(7, $age);
@@ -84,24 +84,24 @@ final class birthdays_test extends \advanced_testcase {
         $this->assertSame('2023-11-11', $DB->get_field(households::CHILDREN, 'birthdate', ['id' => $childid]));
 
         // Asking for a place, nothing; in the centre, the day before.
-        $this->assertNull(birthdays::step($household, $this->at('2026-11-10')));
+        $this->assertNull(birthdays::step($household, $this->noon('2026-11-10')));
         households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'enrolled');
-        $this->assertNull(birthdays::step($household, $this->at('2026-11-08')), 'Too early.');
-        $step = birthdays::step($household, $this->at('2026-11-10'));
+        $this->assertNull(birthdays::step($household, $this->noon('2026-11-08')), 'Too early.');
+        $step = birthdays::step($household, $this->noon('2026-11-10'));
         $this->assertSame(['eve', 3], [$step['step'], $step['ages'][$childid]]);
-        $proposal = panel_household::birthday_proposal($household, households::full($household), $this->at('2026-11-10'));
-        $this->assertSame('Their birthday is tomorrow', $proposal['sentence']);
+        $proposal = panel_household::birthday_proposal($household, households::full($household), $this->noon('2026-11-10'));
+        $this->assertSame('The day before a birthday', $proposal['sentence']);
         $this->assertStringContainsString('Tomorrow Sebas turns 3: happy birthday from the whole class!', $proposal['text']);
-        $this->assertSame('day', birthdays::step($household, $this->at('2026-11-11'))['step']);
-        $this->assertNull(birthdays::step($household, $this->at('2026-11-12')), 'It passed.');
+        $this->assertSame('day', birthdays::step($household, $this->noon('2026-11-11'))['step']);
+        $this->assertNull(birthdays::step($household, $this->noon('2026-11-12')), 'It passed.');
 
         // Someone wrote to them: done.
         $DB->insert_record(households::CONTACTS, (object) ['householdid' => $household->id, 'centreid' => $id,
-            'direction' => 'out', 'channel' => 'email', 'body' => '¡Felicidades!', 'timecreated' => $this->at('2026-11-10')]);
-        $this->assertNull(birthdays::step($household, $this->at('2026-11-11')));
+            'direction' => 'out', 'channel' => 'email', 'body' => '¡Felicidades!', 'timecreated' => $this->noon('2026-11-10')]);
+        $this->assertNull(birthdays::step($household, $this->noon('2026-11-11')));
 
         // Born in 2023, its course is the one that starts the year it turns 3.
-        $fits = birthdays::courses('2023-11-11', $centre, $this->at('2026-11-10'));
+        $fits = birthdays::courses('2023-11-11', $centre, $this->noon('2026-11-10'));
         $this->assertSame([$infant], array_map(fn($o) => (int) $o->id, $fits));
     }
 }
