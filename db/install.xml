@@ -779,8 +779,8 @@
         <FIELD NAME="reading" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="namekey" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The name as a key, as the bank keeps it"/>
         <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="ready, pending or unavailable"/>
-        <FIELD NAME="sha256" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="Of the ZIP kept"/>
-        <FIELD NAME="recipeversion" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="" SEQUENCE="false"/>
+        <FIELD NAME="sha256" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Of the ZIP kept, or empty"/>
+        <FIELD NAME="recipeversion" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="nextcheck" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Not asked again before this"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

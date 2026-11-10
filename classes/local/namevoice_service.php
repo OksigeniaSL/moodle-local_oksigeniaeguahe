@@ -200,6 +200,9 @@ class namevoice_service {
     private static function save($row, string $code, string $reading, string $key, array $state, int $now): void {
         global $DB;
         $record = (object) ($state + ['timemodified' => $now]);
+        if ($state['status'] !== 'ready') {
+            $record->sha256 = '';
+        }
         if ($row) {
             $record->id = $row->id;
             $DB->update_record(self::T, $record);
