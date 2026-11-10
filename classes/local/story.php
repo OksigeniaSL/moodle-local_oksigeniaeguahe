@@ -348,11 +348,14 @@ class story {
                 $reading . '/habla.json'), 'download' => is_file($dir . $whole) ? ['href' => $base . $whole] : null,
                 'lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
         }
-        // The child's name in the voice, when the bank has its reading (namevoices): the book reads it, and the one without
-        // the name stays for «maestro», which has none yet.
-        $named = isset($voices['sin-nombre']) ? namevoices::find($code, namevoices::READING, $name) : null;
-        if ($named) {
-            $voices[namevoices::READING] = $named + ['lufs' => $voices['sin-nombre']['lufs']];
+        // The child's name in the voice, when the bank has its readings (namevoices, from the voice service): the book reads
+        // the one of its teacher and, in Arabic, the one for the child the family says; without them, the one without.
+        $level = $read('voz/' . $code . '/nivel.json');
+        foreach (namevoice_service::READINGS[$code] ?? [] as $reading) {
+            $named = namevoices::find($code, $reading, $name);
+            if ($named) {
+                $voices[$reading] = $named + ['lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
+            }
         }
         // The song under the reading, at its level against the voice (Gaudí: the bed 11 dB under it, the door 8).
         $lufs = (float) ($read('voz/es/nivel.json')['voz_lufs'] ?? -20.91);

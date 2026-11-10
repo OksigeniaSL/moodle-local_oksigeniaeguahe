@@ -59,6 +59,26 @@ if ($hassiteconfig) {
             get_string('shortenerkey_desc', 'local_oksigeniaeguahe'),
             ''
         ));
+        // The voice that says each child's name in «Tu primer día», from the voice service of Oksigenia (namevoice_service):
+        // empty, the story is read without the name.
+        $settings->add(new admin_setting_heading(
+            'local_oksigeniaeguahe/voiceshdr',
+            get_string('voiceshdr', 'local_oksigeniaeguahe'),
+            get_string('voiceshdr_desc', 'local_oksigeniaeguahe')
+        ));
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/voicesapi',
+            get_string('voicesapi', 'local_oksigeniaeguahe'),
+            get_string('voicesapi_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_URL
+        ));
+        $settings->add(new admin_setting_configpasswordunmask(
+            'local_oksigeniaeguahe/voiceskey',
+            get_string('voiceskey', 'local_oksigeniaeguahe'),
+            get_string('voiceskey_desc', 'local_oksigeniaeguahe'),
+            ''
+        ));
         // Where the towns are, for the maps of the centres: a worldwide source, the site chooses.
         $sources = [];
         foreach (\local_oksigeniaeguahe\local\places::sources() as $key => $source) {

@@ -132,7 +132,7 @@
      */
     var lineTimes = function(lines, segs, at) {
         var weight = lines.map(function(line) {
-            return Math.max(1, letters(line.replace(/\{nombre\}/g, VOICE_NAME === 'nombre' ? BOOK.child : 'xxxx')
+            return Math.max(1, letters(line.replace(/\{nombre\}/g, /^nombre/.test(VOICE_NAME || '') ? BOOK.child : 'xxxx')
                 .replace(/\{centro\}/g, 'xxxxxxxxx').replace(/\{tutor\}/g, '')));
         });
         var all = weight.reduce(function(a, b) {

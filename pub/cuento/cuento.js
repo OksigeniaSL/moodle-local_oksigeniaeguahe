@@ -39,20 +39,22 @@ const tt = key => {
 };
 const CENTRE_PHRASE = BOOK.centrePhrases[LANG] || BOOK.centre;
 
-// The reading: with the child's name in the voice when there is one (only in Spanish, and only with «maestra»), or
-// without it (?voz=sin-nombre; the reading of Eguahe's first release). The written text always carries the name. With
-// «maestro» the reading is the one that says «maestro»; if a language has none, the one with «maestra» only when its
-// words are the same (English: «teacher»), and otherwise no voice: never a voice that contradicts the page. A language
-// without a voice is read aloud at home, with the song.
+// The reading: with the child's name in the voice when the bank of names has it (nombre, nombre-maestro and, in Arabic,
+// for a girl or a boy), or without it (sin-nombre; ?voz=sin-nombre asks for it). The written text always carries the
+// name. With «maestro» the reading is the one that says «maestro»; if a language has none, the one with «maestra» only
+// when its words are the same (English: «teacher»), and otherwise no voice: never a voice that contradicts the page. A
+// language without a voice is read aloud at home, with the song.
 const VOICES = BOOK.voices[LANG] || {};
 function pickVoice() {
   const sx = LANG === 'ar' ? '-' + SEX : '';
   if (params.get('voz') === 'ninguna') return null;      // read aloud at home, with the song (and to test that way)
-  if (!MAESTRO && params.get('voz') !== 'sin-nombre' && VOICES.nombre) return 'nombre';
-  if (!MAESTRO) return VOICES['sin-nombre' + sx] ? 'sin-nombre' + sx : null;
-  if (VOICES['sin-nombre-maestro' + sx]) return 'sin-nombre-maestro' + sx;
   const same = ['page3', 'page6', 'page7'].every(k => T[k + '_maestro'] == null || T[k + '_maestro'] === T[k]);
-  return same && VOICES['sin-nombre' + sx] ? 'sin-nombre' + sx : null;
+  const pick = base => {
+    if (!MAESTRO) return VOICES[base + sx] ? base + sx : null;
+    if (VOICES[base + '-maestro' + sx]) return base + '-maestro' + sx;
+    return same && VOICES[base + sx] ? base + sx : null;
+  };
+  return (params.get('voz') !== 'sin-nombre' && pick('nombre')) || pick('sin-nombre');
 }
 const VOICE_NAME = pickVoice();
 const VOICE = VOICE_NAME ? VOICES[VOICE_NAME] : null;
