@@ -141,6 +141,13 @@ final class story_test extends \advanced_testcase {
         $arabic = story::context($household, $child, centres::get((int) $centre->id), 'ar', $links);
         $this->assertSame('rtl', $arabic['dir']);
         $this->assertNotFalse($arabic['choosevoice']);
+        // The other pegs in Arabic, one name each: the list goes with the Arabic comma.
+        $arabicnames = json_decode($arabic['data'], true)['pages'][4]['names'];
+        $arabicpegs = array_column(array_filter($arabicnames, fn($n) => isset($n['text'])), 'text');
+        $this->assertCount(5, array_unique($arabicpegs));
+        foreach ($arabicpegs as $peg) {
+            $this->assertStringNotContainsString('،', $peg);
+        }
         $readings = array_keys(json_decode($arabic['data'], true)['voices']['ar']);
         sort($readings);
         $this->assertSame(['sin-nombre-f', 'sin-nombre-m', 'sin-nombre-maestro-f', 'sin-nombre-maestro-m'], $readings);

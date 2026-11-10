@@ -272,7 +272,8 @@ class story {
      * @return string[]
      */
     protected static function pegs(string $child, string $lang): array {
-        $names = array_map('trim', explode(',', publiclang::str('story_pegs', $lang)));
+        // Arabic lists them with its own comma («،»).
+        $names = array_map('trim', preg_split('/[,،]/u', publiclang::str('story_pegs', $lang)));
         $own = \core_text::strtolower($child);
         $names = array_values(array_filter($names, fn($n) => $n !== '' && \core_text::strtolower($n) !== $own));
         return array_slice($names, 0, 5);
