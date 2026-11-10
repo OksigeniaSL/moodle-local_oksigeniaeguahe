@@ -31,7 +31,7 @@
         "pegs": {"count": 1, "live": true, "pegs": [{"index": 0, "name": "", "style": "", "arrive": false,
             "delay": "0.15", "hidden": false}]},
         "asksiblings": false, "children": [{"index": 0, "hidden": false, "first": true, "namelabel": "¿Cómo se llama quien vendría?",
-            "name": "", "nameerror": "", "tag": "", "tagplaceholder": "", "birth": "", "birtherror": "", "birthmax": "2026-11-10", "courselabel": "¿En qué curso empezaría?",
+            "name": "", "nameerror": "", "tag": "", "tagplaceholder": "", "birth": "", "birtherror": "", "birthmax": "2026-11-10", "latin": false, "courselabel": "¿En qué curso empezaría?",
             "coursewith": "¿En qué curso empezaría {name}?", "coursewithout": "¿En qué curso empezaría?",
             "offererror": "", "offers": [{"id": 1, "name": "Infantil 3 años · 2027-28", "selected": false}]}],
         "canaddchild": true, "pub_add_child": "Añadir a alguien más", "pub_tagname": "¿Cómo le llaman en casa?",
@@ -93,6 +93,13 @@
                     <input id="c{{index}}tag" name="c{{index}}tag" form="eg-form" value="{{tag}}" placeholder="{{tagplaceholder}}" autocomplete="off" data-child="{{index}}" aria-describedby="c{{index}}tag-help">
                     <p class="ayuda-campo" id="c{{index}}tag-help">{{pub_tagname_hint}}</p>
                 </div>
+                {{#latin}}
+                <div class="campo">
+                    <label for="c{{index}}latin">{{pub_latinname}} <span class="opc">{{pub_if_you_wish}}</span></label>
+                    <input id="c{{index}}latin" name="c{{index}}latin" form="eg-form" value="{{value}}" dir="ltr" lang="en" autocomplete="off" aria-describedby="c{{index}}latin-help">
+                    <p class="ayuda-campo" id="c{{index}}latin-help">{{pub_latinname_hint}}</p>
+                </div>
+                {{/latin}}
                 <div class="campo{{#birtherror}} mal{{/birtherror}}">
                     <label for="c{{index}}birth">{{pub_birthdate}} <span class="opc">{{pub_if_you_wish}}</span></label>
                     <input id="c{{index}}birth" name="c{{index}}birth" form="eg-form" type="date" value="{{birth}}" max="{{birthmax}}" autocomplete="off" data-child="{{index}}" aria-describedby="c{{index}}birth-help"{{#birtherror}} aria-invalid="true"{{/birtherror}}>

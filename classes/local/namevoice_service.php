@@ -126,7 +126,11 @@ class namevoice_service {
             if (!isset(story::CODES[$lang])) {
                 continue;
             }
-            $name = familypage::label_name($child) ?: (string) $child->firstname;
+            // The name the voice says: in Latin letters (namevoices::spoken()); none, nothing to ask.
+            $name = namevoices::spoken($child);
+            if ($name === '') {
+                continue;
+            }
             $code = story::CODES[$lang];
             // Their birthday wish, while they are little, from some weeks before.
             $birth = trim((string) ($child->birthdate ?? ''));

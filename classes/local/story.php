@@ -352,7 +352,7 @@ class story {
         // the one of its teacher and, in Arabic, the one for the child the family says; without them, the one without.
         $level = $read('voz/' . $code . '/nivel.json');
         foreach (namevoice_service::READINGS[$code] ?? [] as $reading) {
-            $named = namevoices::find($code, $reading, $name);
+            $named = namevoices::find($code, $reading, namevoices::spoken($child));
             if ($named) {
                 $voices[$reading] = $named + ['lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
             }

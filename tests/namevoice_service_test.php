@@ -82,6 +82,27 @@ final class namevoice_service_test extends \advanced_testcase {
     }
 
     /**
+     * A name in another script is said by the voice only in the Latin letters the family wrote; without them, nothing
+     * is asked for it.
+     */
+    public function test_other_script(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$centre, $child] = $this->family();
+        $household = households::get((int) $child->householdid, (int) $centre->id);
+        households::set_home_name($household, (int) $child->id, 'يوسف');
+        $now = time();
+        $this->assertSame([], namevoice_service::wanted($now));
+        $this->assertFalse(households::set_latin_name($household, (int) $child->id, 'يوسف'), 'Only Latin letters.');
+        $this->assertTrue(households::set_latin_name($household, (int) $child->id, 'Yusuf'));
+        $this->assertSame(['es/nombre/yusuf'], array_keys(namevoice_service::wanted($now)));
+        $child = $DB->get_record(households::CHILDREN, ['id' => $child->id]);
+        $this->assertSame('Yusuf', namevoices::spoken($child));
+        households::set_home_name($household, (int) $child->id, 'Leo');
+        $this->assertSame('Leo', namevoices::spoken($DB->get_record(households::CHILDREN, ['id' => $child->id])));
+    }
+
+    /**
      * The birthday wish of the little ones, asked some weeks before their birthday, and kept in the bank from its ZIP.
      */
     public function test_birthday(): void {

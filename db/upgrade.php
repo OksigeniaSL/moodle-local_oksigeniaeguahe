@@ -976,5 +976,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026114300) {
+        // Their name in Latin letters, when the family writes it in another script: what the voice says.
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $field = new xmldb_field('latinname', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'tagname');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026114300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

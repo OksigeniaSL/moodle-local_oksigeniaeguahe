@@ -56,6 +56,32 @@ class namevoices {
     }
 
     /**
+     * Whether a name is written in Latin letters (with its accents), the ones the voice reads.
+     *
+     * @param string $name
+     * @return bool
+     */
+    public static function latin(string $name): bool {
+        return (bool) preg_match("/^[\\p{Latin}\\s'’.-]+$/u", trim($name));
+    }
+
+    /**
+     * The name the voice says of a child: the one the book writes (their name at home, else their first name) when it
+     * is in Latin letters; when it is in another script, the one the family wrote in Latin letters; else none.
+     *
+     * @param \stdClass $child
+     * @return string
+     */
+    public static function spoken(\stdClass $child): string {
+        $name = familypage::label_name($child) ?: trim((string) $child->firstname);
+        if (self::latin($name)) {
+            return $name;
+        }
+        $latin = trim((string) ($child->latinname ?? ''));
+        return $latin !== '' && self::latin($latin) ? $latin : '';
+    }
+
+    /**
      * The folder of a reading in the file area.
      *
      * @param string $code The language of the book (es, en, pt-PT, pt-BR, ar).

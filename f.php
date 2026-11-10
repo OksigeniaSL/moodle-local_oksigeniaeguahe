@@ -296,6 +296,9 @@ if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
     if (isset(households::full($household)->children[$childid])) {
         households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
         households::set_birthdate($household, $childid, optional_param('cumple', '', PARAM_RAW_TRIMMED));
+        if (optional_param('latina', null, PARAM_TEXT) !== null) {
+            households::set_latin_name($household, $childid, optional_param('latina', '', PARAM_TEXT));
+        }
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'casa' => $childid], 'quien-vendria'));
 }

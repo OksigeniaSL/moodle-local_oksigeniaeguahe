@@ -253,6 +253,10 @@ class familypage {
                     'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
                     'birth' => $birth, 'birthmax' => date('Y-m-d', $now), 'birthlabel' => publiclang::str('pub_birthdate', $lang),
                     'birthhint' => publiclang::str('pub_birthdate_hint', $lang),
+                    // A name in another script: in Latin letters too, for the voice.
+                    'latin' => namevoices::latin($tag !== '' ? $tag : (string) $child->firstname) ? false :
+                        ['value' => (string) ($child->latinname ?? ''), 'label' => publiclang::str('pub_latinname', $lang),
+                        'hint' => publiclang::str('pub_latinname_hint', $lang)],
                     'save' => publiclang::str('pub_home_save', $lang),
                     'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
             ];
@@ -492,10 +496,10 @@ class familypage {
             $voice = null;
             $voices = null;
             if ($piece === 'video' && $code === 'ar') {
-                $voices = ['m' => namevoices::find_birthday('ar', 'cumple-m', $name),
-                    'f' => namevoices::find_birthday('ar', 'cumple-f', $name)];
+                $voices = ['m' => namevoices::find_birthday('ar', 'cumple-m', namevoices::spoken($child)),
+                    'f' => namevoices::find_birthday('ar', 'cumple-f', namevoices::spoken($child))];
             } else if ($piece === 'video' && $code) {
-                $voice = namevoices::find_birthday($code, 'cumple', $name);
+                $voice = namevoices::find_birthday($code, 'cumple', namevoices::spoken($child));
             }
             $title = str_replace('{$a}', $name, publiclang::str('pub_bday_title', $lang));
             $data = [

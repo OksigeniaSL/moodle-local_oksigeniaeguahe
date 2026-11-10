@@ -257,6 +257,29 @@ class households {
     }
 
     /**
+     * A child's name in Latin letters, when the family writes it in another script: what the voice of the story says.
+     * Only Latin letters are kept; empty takes it out.
+     *
+     * @param \stdClass $household
+     * @param int $childid
+     * @param string $name
+     * @return bool Whether it changed.
+     */
+    public static function set_latin_name(\stdClass $household, int $childid, string $name): bool {
+        global $DB;
+        $name = self::short($name, 100);
+        if ($name !== null && !namevoices::latin($name)) {
+            return false;
+        }
+        $child = $DB->get_record(self::CHILDREN, ['id' => $childid, 'householdid' => $household->id]);
+        if (!$child || trim((string) ($child->latinname ?? '')) === (string) $name) {
+            return false;
+        }
+        $DB->update_record(self::CHILDREN, (object) ['id' => $child->id, 'latinname' => $name, 'timemodified' => time()]);
+        return true;
+    }
+
+    /**
      * The date of birth of a child, as the family gives it: for their birthday. Empty takes it out; a day that is not
      * real changes nothing.
      *
@@ -597,7 +620,7 @@ class households {
         }
         foreach ($full->children as $child) {
             $data['children'][] = ['first_name' => $child->firstname, 'name_at_home' => $child->tagname,
-                'date_of_birth' => $child->birthdate ?? null,
+                'name_in_latin_letters' => $child->latinname ?? null, 'date_of_birth' => $child->birthdate ?? null,
                 'asks_for' => $offers[$child->offerid] ?? null,
                 'stage' => $child->stage, 'since' => $date((int) $child->stagetime),
                 'started' => $date((int) ($child->started ?? 0)), 'left' => $date((int) ($child->lefttime ?? 0)),

@@ -150,6 +150,7 @@
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="firstname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="tagname" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The name used at home, written on the label of what the family gets; the first name when empty"/>
+        <FIELD NAME="latinname" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Their name in Latin letters, when the family writes it in another script: what the voice of the story says"/>
         <FIELD NAME="birthdate" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The date of birth (YYYY-MM-DD), when the family gives it: their birthday"/>
         <FIELD NAME="offerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The offer asked for; 0 while unknown"/>
         <FIELD NAME="stage" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="inquiry" SEQUENCE="false" COMMENT="One of the stages of stages.php, each with its fixed definition"/>

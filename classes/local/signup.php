@@ -58,6 +58,7 @@ class signup {
                 'firstname' => trim(optional_param("c{$i}name", '', PARAM_TEXT)),
                 'tagname' => trim(optional_param("c{$i}tag", '', PARAM_TEXT)),
                 'birthdate' => trim(optional_param("c{$i}birth", '', PARAM_RAW_TRIMMED)),
+                'latinname' => trim(optional_param("c{$i}latin", '', PARAM_TEXT)),
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
         }
@@ -237,6 +238,9 @@ class signup {
                 $childid = households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
                 if (($child['birthdate'] ?? '') !== '') {
                     households::set_birthdate($household, $childid, $child['birthdate']);
+                }
+                if (($child['latinname'] ?? '') !== '') {
+                    households::set_latin_name($household, $childid, $child['latinname']);
                 }
             }
         }
