@@ -244,13 +244,14 @@ class panel_inbox {
         $ids = $DB->get_fieldset_select(
             households::CHILDREN,
             'DISTINCT householdid',
-            "centreid = ? AND stage = 'enrolled' AND lefttime = 0 AND birthdate IS NOT NULL",
+            "centreid = ? AND stage IN ('enrolled', '" . implode("', '", birthdays::DECIDING) . "') AND lefttime = 0
+                AND birthdate IS NOT NULL",
             [$centre->id]
         );
         $out = [];
         foreach ($ids as $id) {
             $household = households::get((int) $id, (int) $centre->id);
-            $step = $household ? birthdays::step($household, $now) : null;
+            $step = $household ? birthdays::step($household, $centre, $now) : null;
             if ($step) {
                 $out[(int) $id] = $step['step'];
             }

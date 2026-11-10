@@ -20,6 +20,10 @@ namespace local_oksigeniaeguahe\local;
  * The birthday of each child: the date the family gives if they wish, the age, the course it is of, and what a person
  * of the team writes to the family the day before and on the day, in the tone of the age. Never sent by itself.
  *
+ * Who greets depends on where the child is (Enrique, 10-11): a child already in class gets the piece of its age signed
+ * by its class; one with a place that has not started yet, the same piece with «we are waiting for you in your class»;
+ * a family still deciding, only a short message from a person of the centre, signed by the centre.
+ *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -36,6 +40,9 @@ class birthdays {
 
     /** @var int Up to this age, the card; from the next one, and adults, the seal. */
     const CARD = 11;
+
+    /** @var string[] The stages of a family that is still deciding: a birthday gets only a short message. */
+    const DECIDING = ['inquiry', 'visit', 'application', 'admitted', 'waitlist'];
 
     /**
      * A date of birth as a form sends it (YYYY-MM-DD), when it is a real day of the last OLDEST years and not after
@@ -141,53 +148,110 @@ class birthdays {
     }
 
     /**
-     * The children of a family in the days of their birthday, in the centre: on the day and SHOWN days in all.
+     * Where a child is, for its birthday: in class, with a place and waiting for its first day, or in a family still
+     * deciding. Null when it left or the way was closed.
+     *
+     * In class: marked «Started», or its course has begun (the first day the centre wrote, when it is of that school
+     * year; if not, the start of the school year).
+     *
+     * @param \stdClass $child
+     * @param \stdClass|null $offer Its course.
+     * @param \stdClass $centre
+     * @param int $now
+     * @return string|null class, waiting or deciding.
+     */
+    public static function moment(\stdClass $child, ?\stdClass $offer, \stdClass $centre, int $now): ?string {
+        if (!empty($child->lefttime)) {
+            return null;
+        }
+        if (in_array($child->stage, self::DECIDING, true)) {
+            return 'deciding';
+        }
+        if ($child->stage !== 'enrolled') {
+            return null;
+        }
+        if (!empty($child->started) || !$offer) {
+            return 'class';
+        }
+        $year = (int) substr((string) $offer->schoolyear, 0, 4);
+        $first = (int) ($centre->firstday ?? 0);
+        $tz = \core_date::get_server_timezone_object();
+        $start = $first && (int) (new \DateTimeImmutable('@' . $first))->setTimezone($tz)->format('Y') === $year ?
+            $first : imports::year_start((string) $offer->schoolyear);
+        return $now >= $start ? 'class' : 'waiting';
+    }
+
+    /**
+     * Where each child of a family is, for its birthday, by child id (moment()).
      *
      * @param \stdClass $household
+     * @param \stdClass $centre
      * @param int $now
-     * @return array[] [child, day, age]
+     * @return array [child id => [child, moment]], only those with a date of birth and a moment.
      */
-    public static function celebrating(\stdClass $household, int $now): array {
+    protected static function children(\stdClass $household, \stdClass $centre, int $now): array {
+        global $DB;
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $out = [];
         foreach (households::full($household)->children as $child) {
-            $date = trim((string) ($child->birthdate ?? ''));
-            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || $date === '') {
+            if (trim((string) ($child->birthdate ?? '')) === '') {
                 continue;
             }
-            [$day, $age] = self::last($date, $now);
-            if ($now < $day + self::SHOWN * DAYSECS) {
-                $out[] = [$child, $day, $age];
+            $moment = self::moment($child, $offers[$child->offerid ?? 0] ?? null, $centre, $now);
+            if ($moment) {
+                $out[(int) $child->id] = [$child, $moment];
             }
         }
         return $out;
     }
 
     /**
-     * What a person of the team writes today: the day before the birthday of a child in the centre, or on the day, until
-     * someone writes to the family in its time.
+     * The children of a family in the days of their birthday who get its piece on their page, those in class and those
+     * waiting for their first day: on the day and SHOWN days in all.
      *
      * @param \stdClass $household
+     * @param \stdClass $centre
      * @param int $now
-     * @return array|null step (eve or day), day (its start), children (who turn years) and ages (by child id).
+     * @return array[] [child, day, age, moment]
      */
-    public static function step(\stdClass $household, int $now): ?array {
-        global $DB;
-        $found = null;
-        foreach (households::full($household)->children as $child) {
-            $date = trim((string) ($child->birthdate ?? ''));
-            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || $date === '') {
+    public static function celebrating(\stdClass $household, \stdClass $centre, int $now): array {
+        $out = [];
+        foreach (self::children($household, $centre, $now) as [$child, $moment]) {
+            if ($moment === 'deciding') {
                 continue;
             }
-            [$day, $age] = self::next($date, $now);
+            [$day, $age] = self::last(trim($child->birthdate), $now);
+            if ($now < $day + self::SHOWN * DAYSECS) {
+                $out[] = [$child, $day, $age, $moment];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * What a person of the team writes today: the day before the birthday of a child, or on the day, until someone
+     * writes to the family in its time. For the children of the centre and for those of families still deciding.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|null step (eve or day), day (its start), children (who turn years), ages and moments (by child id).
+     */
+    public static function step(\stdClass $household, \stdClass $centre, int $now): ?array {
+        global $DB;
+        $found = null;
+        foreach (self::children($household, $centre, $now) as [$child, $moment]) {
+            [$day, $age] = self::next(trim($child->birthdate), $now);
             $step = $now >= $day ? 'day' : ($now >= $day - DAYSECS ? 'eve' : null);
             if (!$step || ($found && $found['day'] < $day)) {
                 continue;
             }
             if (!$found || $found['day'] > $day) {
-                $found = ['step' => $step, 'day' => $day, 'children' => [], 'ages' => []];
+                $found = ['step' => $step, 'day' => $day, 'children' => [], 'ages' => [], 'moments' => []];
             }
             $found['children'][] = $child;
             $found['ages'][(int) $child->id] = $age;
+            $found['moments'][(int) $child->id] = $moment;
         }
         if (!$found) {
             return null;

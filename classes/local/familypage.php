@@ -460,7 +460,8 @@ class familypage {
     /**
      * The birthday of each child of the centre in its days (birthdays::SHOWN), with the piece of the age it turns, made
      * in the browser (pub/cumple/, by the art director): the video with its name said up to birthdays::VIDEO, the card
-     * to keep up to birthdays::CARD, and then the seal beside the words. Without the script, the words alone.
+     * to keep up to birthdays::CARD, and then the seal beside the words. Without the script, the words alone. Signed by
+     * its class when it already goes, and «we are waiting for you in your class» before its first day.
      *
      * @param \stdClass $household
      * @param \stdClass $centre
@@ -489,7 +490,8 @@ class familypage {
             return str_replace('{$a}', (string) $age, publiclang::str($id, $lang));
         };
         $out = [];
-        foreach (birthdays::celebrating($household, $now) as [$child, , $age]) {
+        foreach (birthdays::celebrating($household, $centre, $now) as [$child, , $age, $moment]) {
+            $wait = $moment === 'waiting' ? '_wait' : '';
             $name = self::label_name($child) ?: (string) $child->firstname;
             $piece = birthdays::piece($age);
             $drawing = drawings::file((int) $child->id);
@@ -519,7 +521,7 @@ class familypage {
                         'dibujo' => $child->id, 't' => $drawing->get_timemodified()]))->out(false) : null,
                     'voice' => $voice,
                     'words' => ['wish' => $s('pub_bday_wish'), 'name' => $name . '!', 'years' => $years($age),
-                        'from' => $s('pub_bday_from')],
+                        'from' => $s('pub_bday_from' . $wait)],
                     'fonts' => ['sans' => '"Eg Sans", sans-serif', 'hand' => '"Eg Mano", cursive'],
                 ],
                 'sheet' => [
@@ -546,7 +548,7 @@ class familypage {
             $out[] = [
                 'kicker' => $s('pub_bday_kicker'),
                 'title' => $title,
-                'lead' => $s('pub_bday_lead_' . $piece),
+                'lead' => $s('pub_bday_lead_' . $piece . ($piece === 'seal' ? '' : $wait)),
                 'isseal' => $piece === 'seal',
                 'button' => $piece === 'seal' ? '' : $s('pub_bday_' . $piece),
                 'data' => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),

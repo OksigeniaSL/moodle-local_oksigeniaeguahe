@@ -84,7 +84,7 @@ if (optional_param('primerdia', 0, PARAM_BOOL) && $canact && $prefill === '') {
 }
 if (optional_param('cumple', 0, PARAM_BOOL) && $canact && $prefill === '') {
     // A birthday, without the script: the message comes written in the answer.
-    $proposal = panel_household::birthday_proposal($household, households::full($household), time());
+    $proposal = panel_household::birthday_proposal($household, households::full($household), $centre, time());
     $prefill = $proposal ? $proposal['text'] : '';
 }
 if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {

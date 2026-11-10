@@ -24,7 +24,7 @@ use local_oksigeniaeguahe\local\panel_household;
 
 /**
  * The birthday of each child (0.50.0): the date, the age, the course it is of, and what a person writes the day before
- * and on the day, in the tone of the age. With example data.
+ * and on the day, in the tone of the age and of where the child is (0.51.0). With example data.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -85,29 +85,62 @@ final class birthdays_test extends \advanced_testcase {
         $this->assertFalse(households::set_birthdate($household, $childid, '2023-02-30'), 'Not a real day: nothing.');
         $this->assertSame('2023-11-11', $DB->get_field(households::CHILDREN, 'birthdate', ['id' => $childid]));
 
-        // Asking for a place, nothing; in the centre, the day before.
-        $this->assertNull(birthdays::step($household, $this->noon('2026-11-10')));
+        // Still deciding: a short message from the centre, and no gift on their page.
+        $eve = $this->noon('2026-11-10');
+        $step = birthdays::step($household, $centre, $this->noon('2026-11-10'));
+        $this->assertSame(['eve', 3, 'deciding'], [$step['step'], $step['ages'][$childid], $step['moments'][$childid]]);
+        $proposal = panel_household::birthday_proposal($household, households::full($household), $centre, $eve);
+        $wish = 'Tomorrow Sebas turns 3: happy birthday from everyone at the centre!';
+        $this->assertStringContainsString($wish, $proposal['text']);
+        $this->assertStringNotContainsString('gift', $proposal['text']);
+
+        // In class (its course began in September): from its class, the day before.
         households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'enrolled');
-        $this->assertNull(birthdays::step($household, $this->noon('2026-11-08')), 'Too early.');
-        $step = birthdays::step($household, $this->noon('2026-11-10'));
-        $this->assertSame(['eve', 3], [$step['step'], $step['ages'][$childid]]);
-        $proposal = panel_household::birthday_proposal($household, households::full($household), $this->noon('2026-11-10'));
+        $this->assertNull(birthdays::step($household, $centre, $this->noon('2026-11-08')), 'Too early.');
+        $step = birthdays::step($household, $centre, $this->noon('2026-11-10'));
+        $this->assertSame(['eve', 3, 'class'], [$step['step'], $step['ages'][$childid], $step['moments'][$childid]]);
+        $proposal = panel_household::birthday_proposal($household, households::full($household), $centre, $eve);
         $this->assertSame('The day before a birthday', $proposal['sentence']);
         $this->assertStringContainsString('Tomorrow Sebas turns 3: happy birthday from the whole class!', $proposal['text']);
-        $this->assertSame('day', birthdays::step($household, $this->noon('2026-11-11'))['step']);
-        $this->assertNull(birthdays::step($household, $this->noon('2026-11-12')), 'It passed.');
+        // The team's message says where the gift of their age is.
+        $this->assertStringContainsString('little birthday gift for Sebas', $proposal['text']);
+        $this->assertSame('day', birthdays::step($household, $centre, $this->noon('2026-11-11'))['step']);
+        $this->assertNull(birthdays::step($household, $centre, $this->noon('2026-11-12')), 'It passed.');
 
         // Someone wrote to them: done.
         $DB->insert_record(households::CONTACTS, (object) ['householdid' => $household->id, 'centreid' => $id,
             'direction' => 'out', 'channel' => 'email', 'body' => '¡Felicidades!', 'timecreated' => $this->noon('2026-11-10')]);
-        $this->assertNull(birthdays::step($household, $this->noon('2026-11-11')));
-
-        // The team's message says where the gift of their age is.
-        $this->assertStringContainsString('little birthday gift for Sebas', $proposal['text']);
+        $this->assertNull(birthdays::step($household, $centre, $this->noon('2026-11-11')));
 
         // Born in 2023, its course is the one that starts the year it turns 3.
         $fits = birthdays::courses('2023-11-11', $centre, $this->noon('2026-11-10'));
         $this->assertSame([$infant], array_map(fn($o) => (int) $o->id, $fits));
+    }
+
+    /**
+     * Where a child is for its birthday: with a place before its course begins, waiting, until the first day the centre
+     * wrote or «Started»; still deciding while the way is open; nothing when it left or the way was closed.
+     */
+    public function test_moment(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $offer = (object) ['schoolyear' => '2027-28'];
+        $child = (object) ['stage' => 'enrolled', 'lefttime' => 0, 'started' => 0];
+        $now = $this->noon('2026-11-10');
+        $this->assertSame('waiting', birthdays::moment($child, $offer, $centre, $now));
+        $this->assertSame('class', birthdays::moment($child, $offer, $centre, $this->noon('2027-09-01')), 'Its year began.');
+        $centre->firstday = $this->noon('2027-09-08');
+        $this->assertSame('waiting', birthdays::moment($child, $offer, $centre, $this->noon('2027-09-07')));
+        $this->assertSame('class', birthdays::moment($child, $offer, $centre, $this->noon('2027-09-08')));
+        $child->started = $now;
+        $this->assertSame('class', birthdays::moment($child, $offer, $centre, $now), 'Marked «Started».');
+        $this->assertSame('class', birthdays::moment((object) ['stage' => 'enrolled'], null, $centre, $now), 'No course.');
+        foreach (['inquiry', 'visit', 'application', 'admitted', 'waitlist'] as $stage) {
+            $this->assertSame('deciding', birthdays::moment((object) ['stage' => $stage], $offer, $centre, $now));
+        }
+        $this->assertNull(birthdays::moment((object) ['stage' => 'closed'], $offer, $centre, $now));
+        $this->assertNull(birthdays::moment((object) ['stage' => 'enrolled', 'lefttime' => $now], $offer, $centre, $now));
     }
 
     /**
@@ -135,6 +168,7 @@ final class birthdays_test extends \advanced_testcase {
         $this->assertSame(['video', 'Sebas', 4, 'Hoy cumples 4 años.'], [$data['piece'], $data['o']['name'], $data['o']['age'],
             $data['o']['words']['years']]);
         $this->assertSame('Ver su vídeo', $card['button']);
+        $this->assertSame('Con cariño, toda tu clase', $data['o']['words']['from'], 'Already in class.');
         $born(7);
         $this->assertSame('card', json_decode($page()['birthdays'][0]['data'], true)['piece']);
         $born(13);
@@ -142,6 +176,20 @@ final class birthdays_test extends \advanced_testcase {
         $born(4, 6);
         $this->assertCount(1, $page()['birthdays'], 'The week of the birthday.');
         $born(4, 7);
+        $this->assertSame([], $page()['birthdays']);
+
+        // With a place in a course that has not begun: the same piece, «we are waiting for you in your class».
+        $next = (int) $today->format('Y') + 1;
+        $later = centres::save_offer($id, (object) ['schoolyear' => $next . '-' . substr((string) ($next + 1), 2),
+            'name' => 'Infantil 4 años', 'places' => 25, 'active' => 1]);
+        $DB->set_field(households::CHILDREN, 'offerid', $later, ['id' => $childid]);
+        $born(4);
+        [$card] = $page()['birthdays'];
+        $this->assertSame('Te esperamos en tu clase', json_decode($card['data'], true)['o']['words']['from']);
+        $this->assertStringContainsString('ya le esperan', $card['lead']);
+
+        // Still deciding: a person writes to them, and nothing waits on their page.
+        $DB->set_field(households::CHILDREN, 'stage', 'visit', ['id' => $childid]);
         $this->assertSame([], $page()['birthdays']);
     }
 }

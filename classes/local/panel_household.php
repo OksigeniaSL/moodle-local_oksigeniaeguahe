@@ -342,8 +342,10 @@ class panel_household {
      * @return array|false
      */
     protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
-        return self::farewell_proposal($household, $full) ?: (self::firstday_proposal($household, $full, $centre, $now) ?:
-            (self::birthday_proposal($household, $full, $now) ?: self::sibling_proposal($household, $full, $centre, $now)));
+        return self::farewell_proposal($household, $full)
+            ?: self::firstday_proposal($household, $full, $centre, $now)
+            ?: self::birthday_proposal($household, $full, $centre, $now)
+            ?: self::sibling_proposal($household, $full, $centre, $now);
     }
 
     /**
@@ -375,16 +377,18 @@ class panel_household {
     }
 
     /**
-     * The birthday of a child of the centre: the day before and on the day, what a person writes to the family, with
-     * its why and the message written in the tone of the age it turns. Sent by a person, never by itself.
+     * The birthday of a child: the day before and on the day, what a person writes to the family, with its why and the
+     * message written in the tone of the age it turns and of where the child is (birthdays::moment). Sent by a person,
+     * never by itself.
      *
      * @param \stdClass $household
      * @param \stdClass $full
+     * @param \stdClass $centre
      * @param int $now
      * @return array|false
      */
-    public static function birthday_proposal(\stdClass $household, \stdClass $full, int $now) {
-        $step = birthdays::step($household, $now);
+    public static function birthday_proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
+        $step = birthdays::step($household, $centre, $now);
         if (!$step) {
             return false;
         }
@@ -392,14 +396,25 @@ class panel_household {
         $a = (object) ['names' => self::list_words(array_map(fn($k) => panel::tag($k), $step['children'])),
             'day' => userdate($step['day'], get_string('strftimedateshort', 'langconfig'))];
         $lines = [];
+        $gifted = [];
         foreach ($step['children'] as $child) {
             $age = $step['ages'][(int) $child->id];
+            $moment = $step['moments'][(int) $child->id];
             $band = $age <= 5 ? 'small' : ($age <= 11 ? 'child' : 'older');
-            $lines[] = get_string('panel_birthday_' . $band, $c, (object) ['name' => panel::tag($child),
-                'age' => self::years($age), 'n' => $age, 'when' => get_string('panel_birthday_when_' . $step['step'], $c)]);
+            // In class, from its class; before the first day, «they are waiting for you»; still deciding, the centre.
+            $id = $moment === 'deciding' ? 'panel_birthday_deciding' :
+                ($moment === 'waiting' ? 'panel_birthday_wait_' . $band : 'panel_birthday_' . $band);
+            $lines[] = get_string($id, $c, (object) ['name' => panel::tag($child), 'age' => self::years($age), 'n' => $age,
+                'when' => get_string('panel_birthday_when_' . $step['step'], $c)]);
+            if ($moment !== 'deciding') {
+                $gifted[] = $child;
+            }
         }
-        // The piece of their age waits on their page, from the day itself.
-        $lines[] = get_string('panel_birthday_gift_' . $step['step'], $c, $a->names);
+        // The piece of their age waits on their page, from the day itself; a family still deciding has none.
+        if ($gifted) {
+            $names = self::list_words(array_map(fn($k) => panel::tag($k), $gifted));
+            $lines[] = get_string('panel_birthday_gift_' . $step['step'], $c, $names);
+        }
         return [
             'sentence' => get_string('panel_birthday_' . $step['step'], $c),
             'why' => get_string('panel_birthday_' . $step['step'] . '_why', $c, $a),
