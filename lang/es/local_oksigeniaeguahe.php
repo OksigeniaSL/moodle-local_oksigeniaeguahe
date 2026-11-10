@@ -414,7 +414,7 @@ Ya sabe cómo te llamas.';
 $string['firstday_page4'] = 'Dentro hay una fila de perchas,
 y cada percha tiene un nombre.
 Una te está esperando.
-¿La leemos? ¡{nombre}!
+¿La leemos? Pone {nombre}.
 Ahí cuelgas tu mochila.
 Ese es tu sitio.';
 $string['firstday_page5'] = 'En una cesta hay bloques de madera.
