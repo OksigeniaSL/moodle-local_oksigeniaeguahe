@@ -242,9 +242,9 @@
                     if (shots.length > 1) {
                         var from = when(e, shots[1].from);
                         var pa = place(shots[0], shots[0].z);
-                        var pb = place(shots[1], 1);
+                        var pb = place(shots[1], zoom(shots[1], 0));
                         var way = Math.sqrt((pb.x - pa.x) * (pb.x - pa.x) + (pb.y - pa.y) * (pb.y - pa.y)) +
-                            Math.abs(Math.log(shots[0].z)) * 200;
+                            Math.abs(Math.log(shots[0].z / zoom(shots[1], 0))) * 200;
                         e.move = [from, from + (shots[1].dur || Math.max(MOVE, way / CALM))];
                         e.end = Math.max(e.end, e.move[1] + HOLD);
                     }
@@ -963,7 +963,7 @@
     // How the camera looks at each page, in the units of the illustration (1536 x 1024): x, the middle of what shows (the
     // crop of the sides: 768 shows its central 68 %; from 524 to 1012, a little to one side, never past the edge); at,
     // what it comes closer to; z, how close by the end of the look (1.04, 1.06 at the most); to, where on the screen what
-    // it looks at ends. It only comes closer. Two pages have a second look from a moment of the page (`from`, see
+    // it looks at ends. It comes closer from z0 (1 if not said). Two pages have a second look from a moment of the page (`from`, see
     // when()), and the camera goes there slowly (in `dur` seconds, or as its way asks at CALM), because it tells
     // something: from the chalkboard to the teacher, and from the child's drawing on the wall to the class.
     // The child's drawing is the moment that moves most: the camera goes to the frame up to 1.5, the frame at 70 % of the
@@ -972,12 +972,16 @@
     // your child's drawing (Gaudí chose it over 2, which shows the frame bigger and loses them). The wall softens, like a
     // depth of field; the drawing, drawn by its player on a sheet of 640 px, stays sharp. Checked page by page: the
     // child, the name and what happens show (the LEEME has the check).
+    // The chalkboard starts close on the board alone, the frame of the door at its edge (z0 1.78), and steps back to the
+    // child and the teacher when the voice gets to her: from further, the teacher, crouching towards the child, would
+    // smile at the edge of the screen for seconds (Enrique, 10 November 2026). The child of the first page and of the
+    // blocks shows whole.
     var FRAMES = {
-        mochila: [{x: 768, at: [1030, 470], z: 1.05}],
+        mochila: [{x: 716, at: [1000, 470], z: 1.05}],
         botella: [{x: 768, at: [800, 560], z: 1.04}],
-        pizarra: [{x: 1012, at: [1282, 300], z: 1.04}, {from: 'chalk+2.4', x: 700, at: [800, 420], z: 1.04}],
+        pizarra: [{x: 1282, at: [1282, 310], z0: 1.78, z: 1.82}, {from: 'chalk+2.4', x: 700, at: [800, 420], z: 1.04}],
         percha: [{x: 700, at: [676, 200], z: 1.05}],
-        amigo: [{x: 768, at: [740, 430], z: 1.04}],
+        amigo: [{x: 716, at: [700, 430], z: 1.04}],
         alfombra: [{x: 1012, at: [1324, 300], z: 1.5, to: [506, 290]}, {from: 'drawn+0.8', dur: 4, x: 600, at: [460, 420],
             z: 1.03}],
         // without the child's drawing the frame keeps one of the class, still: the camera stays with the children
@@ -1051,11 +1055,23 @@
         var ay = f.at[1] * BASE;
         if (f.to) {
             // what it looks at slides, as it comes closer, to where the look wants it on the screen
-            var u = f.z > 1 ? clamp((z - 1) / (f.z - 1), 0, 1) : 1;
+            var u = f.z > (f.z0 || 1) ? clamp((z - (f.z0 || 1)) / (f.z - (f.z0 || 1)), 0, 1) : 1;
             ax += (f.to[0] - ax) * u;
             ay += (f.to[1] - ay) * u;
         }
         return {s: s, x: clamp(ax - f.at[0] * s, W - 1536 * s, 0), y: clamp(ay - f.at[1] * s, PLATE - 1024 * s, 0)};
+    };
+
+    /**
+     * How close a look is when u of its way is done: from z0 (1 if not said) to z.
+     *
+     * @param {Object} f
+     * @param {number} u
+     * @return {number}
+     */
+    var zoom = function(f, u) {
+        var z0 = f.z0 || 1;
+        return z0 + (f.z - z0) * u;
     };
 
     /**
@@ -1069,18 +1085,18 @@
         var looks = framesOf(e);
         var a = looks[0];
         if (!e.move) {
-            return place(a, 1 + (a.z - 1) * smooth(e.shown, e.end, t));
+            return place(a, zoom(a, smooth(e.shown, e.end, t)));
         }
         var b = looks[1];
         if (t <= e.move[0]) {
-            return place(a, 1 + (a.z - 1) * smooth(e.shown, e.move[0], t));
+            return place(a, zoom(a, smooth(e.shown, e.move[0], t)));
         }
         if (t >= e.move[1]) {
-            return place(b, 1 + (b.z - 1) * smooth(e.move[1], e.end, t));
+            return place(b, zoom(b, smooth(e.move[1], e.end, t)));
         }
         // a step back that is one: the scale changes evenly in its ratio, and the middle of what shows goes straight
         var pa = place(a, a.z);
-        var pb = place(b, 1);
+        var pb = place(b, zoom(b, 0));
         var u = sine((t - e.move[0]) / (e.move[1] - e.move[0]));
         var s = Math.exp(Math.log(pa.s) + (Math.log(pb.s) - Math.log(pa.s)) * u);
         var cx = (W / 2 - pa.x) / pa.s + ((W / 2 - pb.x) / pb.s - (W / 2 - pa.x) / pa.s) * u;
@@ -2080,9 +2096,14 @@
      */
     var encodeSound = function(buffer, muxer, config) {
         var failed = null;
+        // WebKit stamps the AAC packets made from a block with the time of the block, and a player or WhatsApp may drop
+        // the packets that share it: an AAC packet is always 1024 samples, so each goes right after the one before.
+        var packets = 0;
         var encoder = new root.AudioEncoder({
             output: function(chunk, meta) {
-                muxer.addAudioChunk(chunk, meta);
+                var aac = config.codec !== 'opus';
+                muxer.addAudioChunk(chunk, meta, aac ? packets * 1024 * 1e6 / RATE : chunk.timestamp);
+                packets++;
             },
             error: function(e) {
                 failed = e;
@@ -2137,7 +2158,7 @@
             return Promise.resolve(null);
         }
         var video = ['avc1.640028', 'avc1.4d4028', 'avc1.42e028'].map(function(codec) {
-            return {codec: codec, width: W * SCALE, height: H * SCALE, bitrate: 1800000, framerate: FPS,
+            return {codec: codec, width: W * SCALE, height: H * SCALE, bitrate: 5000000, framerate: FPS,
                 avc: {format: 'avc'}};
         });
         video = video.map(function(cfg) {
@@ -2195,7 +2216,7 @@
                                 duration: Math.round(1e6 / FPS)});
                             var opts = {keyFrame: i % (FPS * 3) === 0};
                             if (vc.bitrateMode === 'quantizer') {
-                                opts.avc = {quantizer: 27};
+                                opts.avc = {quantizer: 22};
                             }
                             encoder.encode(vf, opts);
                             vf.close();

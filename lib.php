@@ -37,7 +37,8 @@
  */
 function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $DB, $USER;
-    $areas = ['logo', 'hostphoto', 'drawing', 'drawingstrokes'];
+    // The voice saying a first name (namevoices) is for anyone: a page of the story asks for it without an account.
+    $areas = ['logo', 'hostphoto', 'drawing', 'drawingstrokes', 'namevoice'];
     if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, $areas, true)) {
         return false;
     }

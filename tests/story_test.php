@@ -19,6 +19,7 @@ namespace local_oksigeniaeguahe;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\namevoices;
 use local_oksigeniaeguahe\local\panel_likes;
 use local_oksigeniaeguahe\local\panel_metrics;
 use local_oksigeniaeguahe\local\seen;
@@ -34,6 +35,7 @@ use local_oksigeniaeguahe\local\story;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(story::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(namevoices::class)]
 final class story_test extends \advanced_testcase {
     /**
      * A centre with a first course of school and a later one, and a family with a child enrolled in the first.
@@ -162,6 +164,31 @@ final class story_test extends \advanced_testcase {
         )['video'];
         $this->assertSame('Tu primer día, Leo.mp4', $video['file']);
         $this->assertStringContainsString('Colegio de ejemplo', $video['gift']);
+
+        // The name in the voice, when the bank has the reading of «Leo» whole: the book reads it, from its folder.
+        $this->assertArrayNotHasKey('nombre', $book['voices']['es']);
+        $this->assertSame('maria-de-los-angeles', namevoices::key(' María de los Ángeles '));
+        $this->assertSame('inigo', namevoices::key('Íñigo'));
+        $dir = make_request_directory();
+        $speech = ['00-portada' => [[0.03, 0.85]], '01-mochila' => [[0.03, 1.95]]];
+        file_put_contents($dir . '/habla.json', json_encode($speech));
+        file_put_contents($dir . '/00-portada.mp3', 'ID3');
+        $this->assertSame(2, namevoices::store('es', 'nombre', 'Leo', $dir));
+        $this->assertNull(namevoices::find('es', 'nombre', 'Leo'), 'Not whole: a page of its speech is missing.');
+        file_put_contents($dir . '/01-mochila.mp3', 'ID3');
+        file_put_contents($dir . '/notas.txt', 'Not a file of a reading.');
+        $this->assertSame(3, namevoices::store('es', 'nombre', 'Leo', $dir));
+        $named = json_decode(
+            story::context($household, $child, centres::get((int) $centre->id), 'es', $links)['data'],
+            true
+        )['voices']['es']['nombre'];
+        $this->assertSame($speech, $named['speech']);
+        $this->assertStringContainsString('/local_oksigeniaeguahe/namevoice/0/es/nombre/leo', $named['audio']);
+        $this->assertNull($named['download']);
+        $english = json_decode(story::context($household, $child, centres::get((int) $centre->id), 'en', $links)['data'], true);
+        $this->assertArrayNotHasKey('nombre', $english['voices']['en'], 'Only the language it was read in.');
+        namevoices::delete('es', 'nombre', 'Leo');
+        $this->assertNull(namevoices::find('es', 'nombre', 'Leo'));
 
         // On the page of the family, the card.
         $page = familypage::context($household, centres::get((int) $centre->id), 'es', 'k', false);
