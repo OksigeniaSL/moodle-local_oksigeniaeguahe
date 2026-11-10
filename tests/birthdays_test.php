@@ -160,8 +160,10 @@ final class birthdays_test extends \advanced_testcase {
         $token = households::new_link($household, 'team');
         $page = fn() => familypage::context(households::get((int) $household->id, $id), $centre, 'es', $token, false);
         $today = (new \DateTimeImmutable('today', \core_date::get_server_timezone_object()));
-        $born = fn(int $age, int $days = 0) => $DB->set_field(households::CHILDREN, 'birthdate',
-            $today->modify("-{$age} years")->modify("-{$days} days")->format('Y-m-d'), ['id' => $childid]);
+        $born = function (int $age, int $days = 0) use ($DB, $today, $childid): void {
+            $date = $today->modify("-{$age} years")->modify("-{$days} days")->format('Y-m-d');
+            $DB->set_field(households::CHILDREN, 'birthdate', $date, ['id' => $childid]);
+        };
         $born(4);
         [$card] = $page()['birthdays'];
         $data = json_decode($card['data'], true);
