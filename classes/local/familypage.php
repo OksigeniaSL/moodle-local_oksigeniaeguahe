@@ -523,6 +523,8 @@ class familypage {
                     'words' => ['wish' => $s('pub_bday_wish'), 'name' => $name . '!', 'years' => $years($age),
                         'from' => $s('pub_bday_from' . $wait)],
                     'fonts' => ['sans' => '"Eg Sans", sans-serif', 'hand' => '"Eg Mano", cursive'],
+                    // Before its first day the class keeps the cake for it: the candles stay lit (the art director).
+                    'keepLit' => $moment === 'waiting',
                 ],
                 'sheet' => [
                     'title' => $title,

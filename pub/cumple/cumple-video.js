@@ -16,12 +16,14 @@
  *   EguaheCumple.frame(c, k, t)                              one frame, at t seconds (the sheet's stills, the tests)
  *
  * o: {base, name, age, lang, rtl, drawing (URL, image or canvas, or null), voice: {url, json} or null,
- *     words: {wish, name, years, from}, fonts: {sans, hand}}
+ *     words: {wish, name, years, from}, fonts: {sans, hand}, keepLit}
  *   base: where cumple-clase.webp, cumple-musica.mp3 and cumple-musica.json are (with the trailing slash).
  *   voice.json: the cumple.json of the voice bank (kit/voz-nombre, reading «cumple»): nombre_inicio_s and
  *   nombre_fin_s, the seconds where the name is said.
  *   words.wish: «¡Feliz cumpleaños,» — words.name: «Sebas!» — words.years: «Hoy cumples 4 años.» —
  *   words.from: «Con cariño, tu clase de Los Almendros». The plugin writes them in each language.
+ *   keepLit: the candles stay lit, without the breath or the smoke, for a child who has not started yet: its class
+ *   keeps the cake for it to blow («Te esperamos en tu clase»).
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -210,8 +212,9 @@
         c.restore();
     };
 
-    var flame = function(c, k, t, glowOnly) {
-        var on = smooth(k.lit, k.lit + 0.22, t) * (1 - smooth(BLOW + k.seed * 0.02, BLOW + 0.26 + k.seed * 0.02, t));
+    var flame = function(c, k, t, glowOnly, kept) {
+        var out = kept ? 0 : smooth(BLOW + k.seed * 0.02, BLOW + 0.26 + k.seed * 0.02, t);
+        var on = smooth(k.lit, k.lit + 0.22, t) * (1 - out);
         if (on <= 0.001) {
             return;
         }
@@ -341,7 +344,8 @@
         c.drawImage(k.plate, 0, 0);
         framed(c, k, t);
         // the room warms a little while the candles burn
-        var warm = 0.12 * smooth(LIGHT_FROM, LIGHT_FROM + 1.5, t) * (1 - smooth(BLOW, BLOW + 0.6, t));
+        var kept = !!(k.o && k.o.keepLit);
+        var warm = 0.12 * smooth(LIGHT_FROM, LIGHT_FROM + 1.5, t) * (kept ? 1 : 1 - smooth(BLOW, BLOW + 0.6, t));
         if (warm > 0) {
             c.save();
             c.globalCompositeOperation = 'soft-light';
@@ -353,11 +357,13 @@
             candle(c, q, t);
         });
         k.candles.forEach(function(q) {
-            flame(c, q, t, true);
+            flame(c, q, t, true, kept);
         });
         k.candles.forEach(function(q) {
-            flame(c, q, t, false);
-            smoke(c, q, t);
+            flame(c, q, t, false, kept);
+            if (!kept) {
+                smoke(c, q, t);
+            }
         });
         c.restore();
     };
@@ -613,7 +619,9 @@
             bp.frequency.value = 900;
             bp.Q.value = 0.7;
             ns.connect(bp).connect(out);
-            ns.start(BLOW - 0.18);
+            if (!k.o.keepLit) {
+                ns.start(BLOW - 0.18);
+            }
             return ctx.startRendering();
         });
     };
