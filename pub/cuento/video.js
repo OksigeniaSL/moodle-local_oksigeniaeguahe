@@ -972,16 +972,18 @@
     // your child's drawing (Gaudí chose it over 2, which shows the frame bigger and loses them). The wall softens, like a
     // depth of field; the drawing, drawn by its player on a sheet of 640 px, stays sharp. Checked page by page: the
     // child, the name and what happens show (the LEEME has the check).
-    // The chalkboard starts close on the board alone, the frame of the door at its edge (z0 1.78), and steps back to the
-    // child and the teacher when the voice gets to her: from further, the teacher, crouching towards the child, would
-    // smile at the edge of the screen for seconds (Enrique, 10 November 2026). The child of the first page and of the
-    // blocks shows whole.
+    // Nothing cut in half at an edge, at the start or the end of a look: no word, no face (Gaudí, 10 November 2026). The
+    // chalkboard starts close on the board alone, the frame of the door at its edge (z0 1.78), and steps back to the
+    // child and the teacher when the voice gets to her, the board out: from further, the teacher, crouching towards the
+    // child, would smile at the edge of the screen for seconds (Enrique), and the three never fit. The first page ends
+    // where the bottle starts (the child and the bottle never fit either: its edge stays still as the camera comes
+    // closer); the pegs end before the last one; the child of the blocks shows whole.
     var FRAMES = {
-        mochila: [{x: 716, at: [1000, 470], z: 1.05}],
+        mochila: [{x: 679, at: [1202, 470], z: 1.05}],
         botella: [{x: 768, at: [800, 560], z: 1.04}],
-        pizarra: [{x: 1282, at: [1282, 310], z0: 1.78, z: 1.82}, {from: 'chalk+2.4', x: 700, at: [800, 420], z: 1.04}],
-        percha: [{x: 700, at: [676, 200], z: 1.05}],
-        amigo: [{x: 716, at: [700, 430], z: 1.04}],
+        pizarra: [{x: 1282, at: [1282, 310], z0: 1.78, z: 1.82}, {from: 'chalk+2.4', x: 555, at: [560, 420], z: 1.04}],
+        percha: [{x: 616, at: [900, 200], z: 1.05}],
+        amigo: [{x: 700, at: [690, 430], z: 1.04}],
         alfombra: [{x: 1012, at: [1324, 300], z: 1.5, to: [506, 290]}, {from: 'drawn+0.8', dur: 4, x: 600, at: [460, 420],
             z: 1.03}],
         // without the child's drawing the frame keeps one of the class, still: the camera stays with the children
