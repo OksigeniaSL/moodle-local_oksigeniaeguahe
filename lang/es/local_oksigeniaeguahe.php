@@ -447,22 +447,22 @@ Tú te sientas cerca y escuchas.';
 $string['firstday_page7'] = 'Si un ratito echas de menos tu casa,
 lo puedes decir.
 Tu maestra te escucha y te da la mano.
-Bebes agua de tu botella, la de {nombre}.
+Bebes agua de tu botella, la que lleva escrito {nombre}.
 Y vuelves a jugar.';
 $string['firstday_page7_maestro'] = 'Si un ratito echas de menos tu casa,
 lo puedes decir.
 Tu maestro te escucha y te da la mano.
-Bebes agua de tu botella, la de {nombre}.
+Bebes agua de tu botella, la que lleva escrito {nombre}.
 Y vuelves a jugar.';
 $string['firstday_page7_maestro_tutor'] = 'Si un ratito echas de menos tu casa,
 lo puedes decir.
 Tu maestro, {tutor}, te escucha y te da la mano.
-Bebes agua de tu botella, la de {nombre}.
+Bebes agua de tu botella, la que lleva escrito {nombre}.
 Y vuelves a jugar.';
 $string['firstday_page7_tutor'] = 'Si un ratito echas de menos tu casa,
 lo puedes decir.
 Tu maestra, {tutor}, te escucha y te da la mano.
-Bebes agua de tu botella, la de {nombre}.
+Bebes agua de tu botella, la que lleva escrito {nombre}.
 Y vuelves a jugar.';
 $string['firstday_page8'] = 'Al final del día,
 se abre la puerta.

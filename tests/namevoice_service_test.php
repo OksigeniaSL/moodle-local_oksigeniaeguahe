@@ -175,7 +175,7 @@ final class namevoice_service_test extends \advanced_testcase {
         $this->assertSame($speech, namevoices::find('es', 'nombre', 'Leo')['speech']);
         $row = $DB->get_record(namevoice_service::T, ['id' => $row->id]);
         $this->assertSame(['ready', '1'], [$row->status, $row->recipeversion]);
-        $this->assertSame($now + 1000 + namevoice_service::AGAIN, (int) $row->nextcheck);
+        $this->assertSame($now + 1000 + namevoice_service::RECHECK, (int) $row->nextcheck);
 
         // A ZIP that is not the one it said is not kept.
         namevoices::delete('es', 'nombre', 'Leo');

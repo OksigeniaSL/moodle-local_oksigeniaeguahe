@@ -63,8 +63,12 @@ class namevoice_service {
     /** @var int The questions at most in each run. */
     const PER_RUN = 20;
 
-    /** @var int When a name has no voice, or is kept, until it is asked again. */
+    /** @var int When a name has no voice, until it is asked again. */
     const AGAIN = 30 * DAYSECS;
+
+    /** @var int A voice kept is asked for again after this: when it is recorded again (a new take, a new recipe), its
+     * sha256 changes and the new one comes down. */
+    const RECHECK = 7 * DAYSECS;
 
     /** @var int The wait when the service does not answer as it should. */
     const PAUSE = HOURSECS;
@@ -201,7 +205,8 @@ class namevoice_service {
                 set_config('voicespause', $now + ($status === 'limited' ? $wait : self::PAUSE), 'local_oksigeniaeguahe');
                 break;
             }
-            $state = ['status' => $status, 'nextcheck' => $now + ($status === 'pending' ? $wait : self::AGAIN)];
+            $state = ['status' => $status, 'nextcheck' => $now + ($status === 'pending' ? $wait :
+                ($status === 'ready' ? self::RECHECK : self::AGAIN))];
             if ($status === 'ready') {
                 $sha = strtolower((string) ($answer['sha256'] ?? ''));
                 $have = namevoices::find($code, $reading, $name) ?? namevoices::find_birthday($code, $reading, $name);
