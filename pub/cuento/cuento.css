@@ -692,6 +692,52 @@ button.marco {
     color: var(--tinta-2);
     text-align: center;
 }
+/* The gestures of the last page stay in sight at its foot, over the sheet that scrolls under them: on a phone the
+   sheet, the gift and the invitation are taller than the screen, and the gestures under them went unseen. With a
+   voice, «Listen again» is the big button of the bar, so it is not here twice. */
+.gestos-pie {
+    position: sticky;
+    bottom: -12px;
+    z-index: 2;
+    display: grid;
+    gap: 2px;
+    width: calc(100% + 32px);
+    margin: 0 -16px -12px;
+    padding: 22px 16px 10px;
+    background: linear-gradient(to top, var(--papel) 0, var(--papel) calc(100% - 22px), transparent);
+}
+.gestos-pie .gestos-aviso:empty {
+    min-height: 0;
+}
+
+@media (max-width: 559px) {
+    .gestos-pie .gestos {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+    .gestos-pie .gesto {
+        flex-direction: column;
+        gap: 4px;
+        min-height: 62px;
+        padding: 8px 6px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.2;
+        text-align: center;
+    }
+}
+/* A short screen gives the hands and the words a little less room, so more of the sheet shows above the gestures. */
+@media (max-height: 700px) {
+    .manos {
+        width: 40%;
+    }
+    .dedica {
+        /* stylelint-disable-next-line csstree/validator */
+        font-size: clamp(24px, 6.6vw, 30px);
+    }
+}
 
 /* The drawing, large. */
 .ver {

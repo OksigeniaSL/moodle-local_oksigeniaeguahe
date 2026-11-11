@@ -205,13 +205,15 @@ function dedicationHtml(p, i) {
       <p class="dedica">${linesOf(T.dedication).map(l => `<span class="l">${lineHtml(l).replace('class="nombre"', 'class="nombre-mano"')}</span>`).join('')}</p>
       ${heartHtml(p.n)}
     </div>
-    <div class="gestos">
-      <button class="gesto" type="button" data-gesto="volver-a-escuchar">${ICON.otra}<span>${esc(VOICE ? T.listen_again : T.read_again)}</span></button>
-      ${save}
-      <button class="gesto" type="button" data-gesto="mandar">${ICON.mandar}<span>${esc(T.send)}</span></button>
-      ${BOOK.video && VOICE ? `<button class="gesto" type="button" data-cuento-video>${ICON.video}<span>${esc(T.video)}</span></button>` : ''}
+    <div class="gestos-pie">
+      <div class="gestos">
+        ${VOICE ? '' : `<button class="gesto" type="button" data-gesto="volver-a-escuchar">${ICON.otra}<span>${esc(T.read_again)}</span></button>`}
+        ${save}
+        <button class="gesto" type="button" data-gesto="mandar">${ICON.mandar}<span>${esc(T.send)}</span></button>
+        ${BOOK.video && VOICE ? `<button class="gesto" type="button" data-cuento-video>${ICON.video}<span>${esc(T.video)}</span></button>` : ''}
+      </div>
+      <p class="gestos-aviso" id="gestos-aviso" aria-live="polite"></p>
     </div>
-    <p class="gestos-aviso" id="gestos-aviso" aria-live="polite"></p>
   </section>`;
 }
 
