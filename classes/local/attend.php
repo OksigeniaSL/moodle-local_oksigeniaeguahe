@@ -215,7 +215,7 @@ class attend {
     }
 
     /**
-     * A promise in a sentence, said to the team: «Prometisteis llamarles para el lunes 9; hoy es miércoles 11.»
+     * A promise in a sentence, said to the team: «Lo prometido: llamarles, para el lunes 9; hoy es miércoles 11.»
      *
      * @param \stdClass $promise
      * @param int $now
