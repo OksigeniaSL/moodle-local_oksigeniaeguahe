@@ -229,8 +229,8 @@ final class share_test extends \advanced_testcase {
         $household->invitesign = 'La familia de Leo';
         $this->assertSame('La familia de Leo', share::ambassador_sign($household, 'es'));
         // On the card of the invitation, who invites goes apart to be written by hand, escaped inside its sentence.
-        $this->assertSame('<span class="invitacion-firma" dir="auto">La familia de &lt;Leo&gt;</span> les invita',
-            share::from_html('La familia de <Leo>', 'es'));
+        $card = '<span class="invitacion-firma" dir="auto">La familia de &lt;Leo&gt;</span> les invita';
+        $this->assertSame($card, share::from_html('La familia de <Leo>', 'es'));
 
         $told = share::told_by(['heardfrom' => '', 'heardwho' => ''], $household);
         $this->assertSame(['heardfrom' => 'centrefamilies', 'heardwho' => 'Ana Ejemplo'], $told);
