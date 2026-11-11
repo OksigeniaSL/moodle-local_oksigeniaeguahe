@@ -193,6 +193,31 @@ class share {
     }
 
     /**
+     * Who invites, inside the sentence that says so («{$a} les invita»), with the name apart to write it by hand: HTML,
+     * escaped.
+     *
+     * @param string $sign As ambassador_sign() gives it.
+     * @param string $lang
+     * @return string
+     */
+    public static function from_html(string $sign, string $lang): string {
+        $mark = "\u{E000}";
+        $name = '<span class="invitacion-firma" dir="auto">' . s($sign) . '</span>';
+        return str_replace($mark, $name, s(publiclang::str('share_family_from', $lang, $mark)));
+    }
+
+    /**
+     * The emblem of the centre for the card of an invitation: its logo, or its initials when it has none.
+     *
+     * @param \stdClass $centre
+     * @return array logo (a URL or '') and initials.
+     */
+    public static function emblem(\stdClass $centre): array {
+        $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
+        return ['logo' => $logo ? $logo->out(false) : '', 'initials' => publicpage::initials(format_string($centre->name))];
+    }
+
+    /**
      * How many families came to the centre by the link of an ambassador: a number, never which ones.
      *
      * @param \stdClass $household

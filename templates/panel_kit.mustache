@@ -18,23 +18,27 @@
     @template local_oksigeniaeguahe/panel_kit
 
     The kit of an open act for the networks (kit.php), as a press kit on the desk: when to post, as the days that lead to
-    the act; the same moments in the channel of Telegram, each with where its post is and what a person can do (post it
-    now, at a time, not post it or take it out, or leave it as the centre says), all without JavaScript; the pictures without a QR at their own shapes, side by side, each ready to download; the text for the
+    the act, and under each day, when the centre has a channel of Telegram, its post there: where it is (out, waiting,
+    free to post, not going out), whether it goes by itself, and what a person can do (post it now, at a time, not post
+    it or take it out, or leave it as the centre says), all without JavaScript. One line to the act: what to post by hand
+    and what the channel does are the same four moments. Then the pictures without a QR at their own shapes, side by
+    side, each ready to download; the text for the
     networks and the one for the families to forward, as two notes ready to copy; a link for each network, so the
     numbers say where each family came from; and the script to film with a phone, as a strip of upright frames. A person
     copies them and posts them.
 
     Example context (json):
     {
-        "i": {"copiar": "", "atras": "", "abajo": "", "movil": "", "reloj": "", "enlace": ""},
+        "i": {"copiar": "", "atras": "", "abajo": "", "movil": "", "reloj": "", "enlace": "", "enviado": "", "check": ""},
         "head": {"title": "Kit para redes", "ante": "Jornada de puertas abiertas", "sub": "Todo listo para publicar.",
             "back": {"url": "#", "name": "Jornada de puertas abiertas"}, "action": false},
-        "when": [{"key": "announce", "day": "sábado, 7 de noviembre", "what": "Anúncienla"}],
-        "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "none": "",
-            "moments": [{"moment": "announce", "name": "Anunciarlo", "day": "Al abrir la inscripción", "alone": "sale solo",
-                "state": "Publicado el sábado, 7 de noviembre de 2026, 10:00.", "tone": "hecho", "cannow": false,
-                "canat": false, "canoff": true, "offlabel": "Quitarlo del canal", "canreset": false,
-                "min": "2026-11-07T10:05", "max": "2026-11-21T09:59", "value": "2026-11-07T11:00"}]},
+        "when": [{"key": "announce", "day": "sábado, 7 de noviembre", "what": "Anúncienla", "gone": false,
+            "post": {"moment": "announce", "name": "Anunciarlo", "day": "Al abrir la inscripción", "alone": "sale solo",
+                "state": "Publicado el sábado, 7 de noviembre de 2026, 10:00.", "tone": "hecho", "done": true,
+                "waits": false, "out": false, "free": false, "cannow": false, "canat": false, "canoff": true,
+                "offlabel": "Quitarlo del canal", "canreset": false, "min": "2026-11-07T10:05", "max": "2026-11-21T09:59",
+                "value": "2026-11-07T11:00"} }],
+        "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "none": "", "moments": []},
         "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig"}],
         "pictures": [{"name": "Cuadrada", "size": "1080 × 1080", "url": "#", "download": "#", "w": 1080, "h": 1080}],
         "posterurl": "#", "post": "El sábado abrimos las puertas.", "forward": "Te paso esto.",
@@ -45,33 +49,40 @@
 }}
 <div class="pagina pagina-kit">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <section class="apartado kit-cuando" aria-labelledby="kit-cuando-t">
+    <section class="apartado kit-cuando{{#channel.ready}} con-canal{{/channel.ready}}" aria-labelledby="kit-cuando-t">
         <h2 id="kit-cuando-t">{{#str}}kit_when, local_oksigeniaeguahe{{/str}}</h2>
-        <ol class="kit-dias">{{#when}}<li class="kit-dia kit-dia-{{key}}"><b>{{day}}</b> <span>{{what}}</span></li>{{/when}}</ol>
-    </section>
-    {{#channel}}
-    <section class="apartado kit-canal" id="canal" aria-labelledby="kit-canal-t">
-        <h2 id="kit-canal-t">{{#str}}kit_channel, local_oksigeniaeguahe{{/str}}</h2>
+        {{#channel}}
         {{#ready}}
-        <p class="def">{{#url}}<a href="{{url}}" target="_blank" rel="noopener">{{title}}</a>. {{/url}}{{#str}}kit_channel_help, local_oksigeniaeguahe{{/str}}</p>
-        <ol class="kit-momentos">
-            {{#moments}}
-            <li class="kit-momento{{#tone}} kit-momento-{{tone}}{{/tone}}">
-                <span class="kit-momento-que"><b>{{name}}</b> <span class="secundario">{{day}}{{#alone}} · {{alone}}{{/alone}}</span></span>
-                <span class="kit-momento-estado">{{state}}</span>
-                <div class="kit-momento-botones">
-                    {{#cannow}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="now"><button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_now, local_oksigeniaeguahe{{/str}}</button></form>{{/cannow}}
-                    {{#canat}}<details class="kit-programar"><summary class="boton terciario pequeno">{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</summary><form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="at"><label for="kit-at-{{moment}}">{{#str}}kit_channel_at_label, local_oksigeniaeguahe{{/str}}</label> <input type="datetime-local" id="kit-at-{{moment}}" name="at" min="{{min}}" max="{{max}}" value="{{value}}" required> <button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</button></form></details>{{/canat}}
-                    {{#canoff}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="off"><button class="enlace" type="submit">{{offlabel}}</button></form>{{/canoff}}
-                    {{#canreset}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="centre"><button class="enlace" type="submit">{{#str}}kit_channel_reset, local_oksigeniaeguahe{{/str}}</button></form>{{/canreset}}
-                </div>
-            </li>
-            {{/moments}}
-        </ol>
+        <p class="kit-canal-cabeza" id="canal"><span class="kit-canal-sello" aria-hidden="true">{{{i.enviado}}}</span><span><b>{{#str}}kit_channel, local_oksigeniaeguahe{{/str}}</b>{{#title}} · {{#url}}<a href="{{url}}" target="_blank" rel="noopener">{{title}}</a>{{/url}}{{^url}}{{title}}{{/url}}{{/title}}</span></p>
         {{/ready}}
-        {{^ready}}<p class="def">{{none}}</p>{{/ready}}
+        {{/channel}}
+        <ol class="kit-dias">
+            {{#when}}
+            <li class="kit-dia kit-dia-{{key}}{{#gone}} kit-dia-ido{{/gone}}">
+                <b>{{day}}</b>{{#what}} <span>{{what}}</span>{{/what}}
+                {{#post}}
+                <div class="kit-canal kit-canal-{{tone}}">
+                    <p class="kit-canal-estado">
+                        <span class="kit-canal-marca" aria-hidden="true">{{#done}}{{{i.check}}}{{/done}}{{#waits}}{{{i.reloj}}}{{/waits}}{{#free}}{{{i.enviado}}}{{/free}}</span>
+                        <span>{{state}}{{#alone}} <span class="kit-canal-solo">{{alone}}</span>{{/alone}}</span>
+                    </p>
+                    {{#cannow}}
+                    <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="now"><button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_now, local_oksigeniaeguahe{{/str}}</button></form>
+                    {{/cannow}}
+                    {{#canat}}
+                    <details class="kit-programar"><summary class="enlace">{{{i.reloj}}}<span>{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</span></summary><form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="at"><label for="kit-at-{{moment}}">{{#str}}kit_channel_at_label, local_oksigeniaeguahe{{/str}}</label><input type="datetime-local" id="kit-at-{{moment}}" name="at" min="{{min}}" max="{{max}}" value="{{value}}" required><button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</button></form></details>
+                    {{/canat}}
+                    <div class="kit-canal-otros">{{#canoff}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="off"><button class="enlace" type="submit">{{offlabel}}</button></form>{{/canoff}}{{#canreset}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="centre"><button class="enlace" type="submit">{{#str}}kit_channel_reset, local_oksigeniaeguahe{{/str}}</button></form>{{/canreset}}</div>
+                </div>
+                {{/post}}
+            </li>
+            {{/when}}
+        </ol>
+        {{#channel}}
+        {{#ready}}<p class="def">{{#str}}kit_channel_help, local_oksigeniaeguahe{{/str}}</p>{{/ready}}
+        {{^ready}}<p class="def kit-canal-nada" id="canal">{{{i.enviado}}}<span>{{none}}</span></p>{{/ready}}
+        {{/channel}}
     </section>
-    {{/channel}}
     <section class="apartado kit-imagenes" aria-labelledby="kit-imagenes-t">
         <h2 id="kit-imagenes-t">{{#str}}kit_pictures, local_oksigeniaeguahe{{/str}}</h2>
         <p class="def">{{#str}}kit_pictures_help, local_oksigeniaeguahe{{/str}} <a href="{{posterurl}}" target="_blank" rel="noopener">{{#str}}kit_poster, local_oksigeniaeguahe{{/str}}</a></p>

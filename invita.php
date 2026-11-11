@@ -69,6 +69,9 @@ foreach (events::for_centre((int) $centre->id) as $event) {
     $parts = publicpage::date_parts((int) $event->timestart, $lang);
     $acts[] = [
         'name' => format_string($event->name),
+        'weekday' => $parts['weekday'],
+        'daymonth' => $parts['daymonth'],
+        'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
         'when' => core_text::strtoupper(core_text::substr($parts['long'], 0, 1)) . core_text::substr($parts['long'], 1) . ' · ' .
             familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
         'place' => $event->place ? format_string($event->place) : '',
@@ -93,6 +96,7 @@ publicpage::$seal = share::seal('familia', $lang);
 $ask = share::invite_target($centre, 'familia');
 publicpage::output($centre, $lang, $title, 'public_invitation', [
     'kicker' => publiclang::str('share_family_from', $lang, $sign),
+    'card' => share::emblem($centre) + ['from' => share::from_html($sign, $lang)],
     'title' => $title,
     'welcome' => trim((string) ($centre->welcome ?? '')),
     'acts' => $acts,

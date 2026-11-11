@@ -793,9 +793,22 @@ class familypage {
     protected static function ambassador_context(\stdClass $household, \stdClass $centre, string $lang, string $token): array {
         $phrase = share::phrase($centre, $lang);
         $arrived = share::ambassador_counts($household)['arrived'];
+        $value = (string) ($household->invitesign ?? '');
+        // One small backpack for each family that came, while they fit on the rail; past ten, the sentence alone.
+        $backpacks = [];
+        for ($i = 0; $arrived <= 10 && $i < $arrived; $i++) {
+            $backpacks[] = ['name' => '', 'object' => 'mochila', 'stuck' => true,
+                'style' => '--reposo:' . [-4, 3, -2, 5, -3][$i % 5] . 'deg'];
+        }
         return [
             'title' => publiclang::str('pub_ambassador_title', $lang),
             'text' => publiclang::str('pub_ambassador_text', $lang),
+            'card' => share::emblem($centre) + [
+                'from' => share::from_html(share::ambassador_sign($household, $lang), $lang),
+                'invites' => publiclang::str('share_family_title', $lang, $phrase),
+            ],
+            'backpacks' => $backpacks,
+            'hasbackpacks' => (bool) $backpacks,
             'linklabel' => publiclang::str('pub_ambassador_link', $lang),
             'share' => ['label' => publiclang::str('pub_ambassador_send', $lang), 'url' => share::family_url($household)->out(false),
                 'title' => publiclang::str('share_family_title', $lang, $phrase),
@@ -803,7 +816,9 @@ class familypage {
                 'copied' => publiclang::str('share_copied', $lang)],
             'came' => $arrived ? publiclang::count('pub_ambassador_came_one', 'pub_ambassador_came', $arrived, $lang) : '',
             'sign' => ['label' => publiclang::str('pub_ambassador_sign', $lang),
-                'value' => (string) ($household->invitesign ?? ''),
+                'value' => $value,
+                // Folded once they signed it: the card above already says how.
+                'open' => $value === '',
                 'placeholder' => publiclang::str('pub_ambassador_sign_example', $lang),
                 'help' => publiclang::str('pub_ambassador_sign_help', $lang, share::ambassador_sign((object) [], $lang)),
                 'save' => publiclang::str('pub_ambassador_sign_save', $lang), 'sesskey' => sesskey(),

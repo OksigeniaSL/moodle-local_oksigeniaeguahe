@@ -17,40 +17,53 @@
 {{!
     @template local_oksigeniaeguahe/public_invitation
 
-    The invitation of a family that is an ambassador of the centre, as another family opens it: who invites them, in a
-    small line above; the centre, as the titular in hand; its welcome; the next open acts as a short list, each with its
-    day and hours and its button to sign up; and asking for information, in one quiet line. Nothing of the family that
-    invites beyond how it signs. The seal of Eguahe goes at the foot, in the frame of the page. Functional until its
-    design.
+    The invitation of a family that is an ambassador of the centre, as another family opens it: a card from them, on
+    the wall of the centre, a little crooked and stuck with two strips of tape, with the emblem of the centre on its
+    band, who invites written by hand («La familia de Leo» les invita) and what to (Vengan a conocer el Colegio Los
+    Arces); the welcome of the centre under it; the next open acts as visits to come, each with its weekday in small
+    capitals, its date in big, its hours and place, and its button to sign up; and asking for information, in one
+    quiet line. Nothing of the family that invites beyond how it signs. The seal of Eguahe goes at the foot, in the
+    frame of the page. The same card is the one the family sees on its own page.
 
     Example context (json):
     {
-        "kicker": "La familia de Leo les invita", "title": "Vengan a conocer el Colegio Los Arces",
+        "kicker": "La familia de Leo les invita",
+        "card": {"logo": "", "initials": "CA", "from": "<span class=\"invitacion-firma\">La familia de Leo</span> les invita"},
+        "title": "Vengan a conocer el Colegio Los Arces",
         "welcome": "Un colegio pequeño, con patio de árboles.",
         "hasacts": true, "signup": "Apuntarse",
-        "acts": [{"name": "Jornada de puertas abiertas", "when": "Sábado, 21 de noviembre, de 10:00 a 13:00",
+        "acts": [{"name": "Jornada de puertas abiertas", "weekday": "Sábado", "daymonth": "21 de noviembre",
+            "hours": "De 10:00 a 13:00", "when": "Sábado, 21 de noviembre, de 10:00 a 13:00",
             "place": "Entrada principal", "url": "/local/oksigeniaeguahe/j.php?t=abc"}],
         "ask": {"text": "O, si les viene mejor, cuéntennos qué buscan y les contestamos.", "button": "Pedir información",
             "url": "/local/oksigeniaeguahe/invita.php?action=pedir"}
     }
 }}
-<section class="pared compartido-invitacion" aria-labelledby="titulo">
-    <div class="compartido-cabeza">
-        <p class="antetitulo" dir="auto">{{kicker}}</p>
-        <h1 id="titulo" class="mano-titular" dir="auto">{{title}}</h1>
+<section class="pared compartido-invitacion{{^hasacts}} sin-actos{{/hasacts}}" aria-labelledby="titulo">
+    <div class="invitacion-cabeza">
+        {{#card}}
+        <div class="invitacion-tarjeta grande">
+            <span class="invitacion-sello" aria-hidden="true">{{#logo}}<img src="{{logo}}" alt="">{{/logo}}{{^logo}}<span>{{initials}}</span>{{/logo}}</span>
+            <p class="invitacion-de">{{{from}}}</p>
+            <h1 id="titulo" class="invitacion-titulo" dir="auto">{{title}}</h1>
+        </div>
+        {{/card}}
         {{#welcome}}<p class="invitacion-bienvenida" dir="auto">{{welcome}}</p>{{/welcome}}
     </div>
-    {{#hasacts}}
-    <ul class="invitacion-actos">
-        {{#acts}}
-        <li class="invitacion-acto">
-            <span class="invitacion-acto-que"><b dir="auto">{{name}}</b> <span class="secundario">{{when}}{{#place}} · <span dir="auto">{{place}}</span>{{/place}}</span></span>
-            <a class="boton principal" href="{{url}}">{{signup}}</a>
-        </li>
-        {{/acts}}
-    </ul>
-    {{/hasacts}}
-    {{#ask}}
-    <p class="invitacion-pedir"><span>{{text}}</span> <a class="boton secundario" href="{{url}}">{{button}}</a></p>
-    {{/ask}}
+    <div class="invitacion-cuerpo">
+        {{#hasacts}}
+        <ul class="invitacion-actos">
+            {{#acts}}
+            <li class="invitacion-acto">
+                <span class="invitacion-acto-fecha"><span>{{weekday}}</span><b>{{daymonth}}</b></span>
+                <span class="invitacion-acto-que"><b dir="auto">{{name}}</b><span>{{hours}}{{#place}} · <span dir="auto">{{place}}</span>{{/place}}</span></span>
+                <a class="boton principal" href="{{url}}">{{signup}}</a>
+            </li>
+            {{/acts}}
+        </ul>
+        {{/hasacts}}
+        {{#ask}}
+        <p class="invitacion-pedir"><span>{{text}}</span> <a class="boton secundario" href="{{url}}">{{button}}</a></p>
+        {{/ask}}
+    </div>
 </section>

@@ -10802,73 +10802,417 @@ a.quien-cita:focus-visible {
     }
 }
 
-/* The moments in the channel of Telegram: one row each, what it is and its day, where its post is, and what a person
-   can do. A post already out wears the colour of the centre on its edge; one that waits, a dashed edge. Functional
-   until its design. */
-.kit-momentos {
-    display: grid;
+/* ---------- The channel of Telegram, under each day of «Cuándo publicar»: one line to the act, and under each day its
+   post in the channel as a slip: a mark of where it is (out, in the colour of the centre with its tick; waiting, a
+   clock on a dashed ring; free, the arrow that sends; not going out, an empty ring), what it says, whether it goes by
+   itself, and what a person can do. No colours of state: the mark and the words say it. ---------- */
+.kit-canal-cabeza {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    margin: 4px 0 0;
-    padding: 0;
-    list-style: none;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
 }
 
-.kit-momento {
+.kit-canal-cabeza b {
+    color: var(--eg-tinta);
+    font-weight: 700;
+}
+
+.kit-canal-sello,
+.canal-sello,
+.embajadora-ficha-sello {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 4px 16px;
-    padding: 10px 14px;
+    flex: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+}
+
+.kit-canal-sello .ic,
+.canal-sello .ic,
+.embajadora-ficha-sello .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.kit-canal {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
     border: 1px solid var(--eg-linea);
-    border-inline-start: 3px solid var(--eg-borde);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--eg-superficie);
 }
 
-.kit-momento-hecho {
-    border-inline-start-color: var(--c-acento-vivo, var(--eg-acento));
+.kit-canal-espera {
+    border-style: dashed;
+    border-color: var(--eg-borde);
 }
 
-.kit-momento-espera {
-    border-inline-start-style: dashed;
+.kit-canal-fuera {
+    background: transparent;
 }
 
-.kit-momento-que b {
-    font-weight: 720;
-}
-
-.kit-momento-estado {
-    color: var(--eg-tinta-2);
+.kit-canal-estado {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
     font-size: 0.9375rem;
     line-height: 1.45;
 }
 
-.kit-momento-botones {
-    display: flex;
-    flex-wrap: wrap;
+.kit-canal-fuera .kit-canal-estado {
+    color: var(--eg-tinta-2);
+}
+
+.kit-canal-marca {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
+.kit-canal-marca .ic {
+    width: 13px;
+    height: 13px;
+}
+
+.kit-canal-hecho .kit-canal-marca {
+    border-color: var(--c-acento-vivo, var(--eg-acento));
+    background: var(--c-acento-vivo, var(--eg-acento));
+    color: var(--c-sobre-vivo, var(--eg-sobre-accion));
+}
+
+.kit-canal-espera .kit-canal-marca {
+    border-style: dashed;
+}
+
+.kit-canal-libre .kit-canal-marca {
+    border-color: var(--eg-acento);
+    color: var(--eg-acento);
+}
+
+/* «Sale solo», on its own line under what the post says. */
+.kit-canal-solo {
+    display: table;
+    margin-top: 4px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.kit-canal form {
+    margin: 0;
+}
+
+.kit-programar summary {
+    display: inline-flex;
     align-items: center;
-    gap: 8px 14px;
+    gap: 6px;
+    min-height: 36px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.kit-programar summary::-webkit-details-marker {
+    display: none;
+}
+
+.kit-programar summary .ic {
+    width: 15px;
+    height: 15px;
 }
 
 .kit-programar form {
+    display: grid;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+.kit-programar input {
+    width: 100%;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 1px solid var(--eg-borde);
+    border-radius: 10px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+}
+
+.kit-canal-otros {
     display: flex;
     flex-wrap: wrap;
+    gap: 2px 14px;
+    font-size: 0.875rem;
+}
+
+.kit-canal-otros:empty {
+    display: none;
+}
+
+/* A day the kit had left out because it is gone, back for its post in the channel: its dot hollow and dashed. */
+.kit-dia-ido::before {
+    border-style: dashed;
+}
+
+.kit-dia-ido > b {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.kit-canal-nada {
+    display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 8px;
+}
+
+.kit-canal-nada .ic {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+/* Each day keeps to its own height: the slip right under its advice. */
+.con-canal .kit-dia {
+    align-content: start;
 }
 
 @media (min-width: 900px) {
-    .kit-momento {
-        grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) auto;
-        align-items: start;
+    /* The slips line up under the four days: the advice of each day keeps the same room. */
+    .con-canal .kit-dia > span {
+        min-height: 4.4em;
+    }
+
+    .kit-canal .boton.pequeno {
+        width: 100%;
+    }
+}
+
+/* ---------- The channel in the settings of the centre: the channel as a card with its seal; what goes by itself as the
+   same four moments in a line to the act; what comes next as an agenda, the time first; WhatsApp, a quiet note. ---------- */
+.canal-ficha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+}
+
+.canal-ficha p {
+    flex: 1 1 16rem;
+    margin: 0;
+}
+
+.canal-ficha b {
+    font-weight: 720;
+}
+
+.canal-sello {
+    width: 36px;
+    height: 36px;
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.canal-sello .ic {
+    width: 18px;
+    height: 18px;
+}
+
+.canal-ficha-nada .canal-sello {
+    background: var(--eg-superficie);
+    color: var(--eg-tinta-2);
+}
+
+.canal-solos {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.canal-solo {
+    position: relative;
+    padding-inline-start: 26px;
+}
+
+.canal-solo::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 4px;
+    top: 15px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--eg-borde);
+    background: var(--piel-hoja, var(--eg-papel));
+}
+
+.canal-solo:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 10px;
+    top: 31px;
+    bottom: -19px;
+    width: 1.5px;
+    background: var(--eg-linea);
+}
+
+.canal-solo .casilla > span {
+    display: grid;
+    gap: 2px;
+}
+
+.canal-solo .casilla b {
+    font-weight: 700;
+}
+
+@media (min-width: 900px) {
+    .canal-solos {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .canal-solo {
+        padding: 22px 8px 0 0;
+    }
+
+    .canal-solo::before {
+        inset-inline-start: 0;
+        top: 0;
+    }
+
+    .canal-solo:not(:last-child)::after {
+        inset-inline-start: 19px;
+        inset-inline-end: -16px;
+        top: 6px;
+        bottom: auto;
+        width: auto;
+        height: 1.5px;
     }
 }
 
 .lista-canal {
     display: grid;
-    gap: 6px;
     margin: 0;
-    padding-inline-start: 1.2em;
+    padding: 0;
+    list-style: none;
+}
+
+.lista-canal li {
+    display: grid;
+    gap: 2px 18px;
+    padding: 10px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.lista-canal li:first-child {
+    border-top: 0;
+}
+
+@media (min-width: 700px) {
+    .lista-canal li {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        align-items: baseline;
+    }
+}
+
+.lista-canal-cuando {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.lista-canal-que a {
+    font-weight: 700;
+}
+
+.lista-canal-momento,
+.lista-canal-revision {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-inline-start: 6px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+.lista-canal-momento {
+    background: var(--eg-hundido);
+    font-weight: 650;
+}
+
+.lista-canal-revision {
+    border: 1px dashed var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
+.lista-canal-revision .ic {
+    width: 12px;
+    height: 12px;
+}
+
+.canal-whatsapp {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.canal-whatsapp .ic {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+}
+
+/* ---------- An ambassador family, in the page of its household: a slip with its seal, what its invitation brought,
+   and the button. Once it is one, on the soft colour of what is chosen. ---------- */
+.embajadora-ficha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+}
+
+.embajadora-ficha.es {
+    background: var(--eg-acento-suave);
+}
+
+.embajadora-ficha p {
+    flex: 1 1 18rem;
+    margin: 0;
+}
+
+.embajadora-ficha.es .embajadora-ficha-sello {
+    background: var(--eg-acento);
+    color: var(--eg-sobre-accion);
 }
 
 /* The pictures, at their own shapes and the same height, as prints on the desk; each ready to download. */

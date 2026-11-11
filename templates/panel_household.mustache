@@ -338,9 +338,11 @@
                 <ul class="hechos-pagina">{{#facts}}<li>{{.}}</li>{{/facts}}</ul>
                 <p class="secundario">{{#str}}panel_facts_help, local_oksigeniaeguahe{{/str}}</p>
                 {{#ambassador}}
-                <form class="embajadora-ficha" id="embajadora" method="post" action="{{action}}">
+                <form class="embajadora-ficha{{#is}} es{{/is}}" id="embajadora" method="post" action="{{action}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">
-                    <p>{{text}} <button class="enlace" type="submit">{{label}}</button></p>
+                    <span class="embajadora-ficha-sello" aria-hidden="true">{{{i.enviado}}}</span>
+                    <p>{{text}}</p>
+                    <button class="{{#is}}enlace{{/is}}{{^is}}boton secundario pequeno{{/is}}" type="submit">{{label}}</button>
                 </form>
                 {{/ambassador}}
             </section>

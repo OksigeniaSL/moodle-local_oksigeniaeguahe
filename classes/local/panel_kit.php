@@ -57,6 +57,7 @@ class panel_kit {
                 'onscreen' => $shot['onscreen']];
         }
         $ai = ai::ready($centre);
+        $channel = self::channel($event, $centre, $canact, $now);
         return [
             'head' => panel::head([
                 'title' => get_string('kit_title', $c),
@@ -65,8 +66,8 @@ class panel_kit {
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
                     'name' => format_string($event->name)],
             ]),
-            'when' => kit::when($event, (string) $centre->lang, $now),
-            'channel' => self::channel($event, $centre, $canact, $now),
+            'when' => self::days(kit::when($event, (string) $centre->lang, $now), $channel),
+            'channel' => $channel,
             'links' => kit::links($event, $centre),
             'pictures' => $pictures,
             'posterurl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'poster' => 1]))->out(false),
@@ -83,6 +84,29 @@ class panel_kit {
             'action' => $url->out(false),
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * When to post and the channel, as one line to the act: each day of the kit carries its moment in the channel
+     * (post), so the team reads in one place what to post by hand and what the channel does. The kit leaves out the
+     * days already gone; with a channel, those come back (gone), because their post may be out and can be taken out.
+     *
+     * @param array $when Of kit::when().
+     * @param array|false $channel Of self::channel().
+     * @return array Of key, day, what, gone and post (a moment of the channel, or false).
+     */
+    protected static function days(array $when, $channel): array {
+        $kit = array_column($when, null, 'key');
+        $posts = $channel && $channel['ready'] ? array_column($channel['moments'], null, 'moment') : [];
+        $out = [];
+        foreach (array_keys(kit::WHEN) as $key) {
+            if (!isset($kit[$key]) && !isset($posts[$key])) {
+                continue;
+            }
+            $day = $kit[$key] ?? ['key' => $key, 'day' => $posts[$key]['day'], 'what' => '', 'gone' => true];
+            $out[] = $day + ['gone' => false, 'post' => $posts[$key] ?? false];
+        }
+        return $out;
     }
 
     /**
@@ -117,6 +141,10 @@ class panel_kit {
             $waiting = in_array($status, ['review', 'ready'], true);
             $published = $status === 'published';
             $choice = (string) ($m['choice']['do'] ?? '');
+            // Not going out: decided so, by the centre or by whoever reviews, or too late. A failed one too, until
+            // someone posts it again.
+            $gone = !$published && !$waiting && (in_array($status, ['skipped', 'expired', 'failed', 'cancelled', 'remove',
+                'removed'], true) || $choice === 'off' || ($m['day'] && $m['day'] < $now));
             if ($waiting) {
                 $state = $time ? get_string('kit_channel_' . $status, $c, $when($time)) :
                     get_string($status === 'review' ? 'kit_channel_review_notime' : 'kit_channel_nofit', $c);
@@ -144,7 +172,11 @@ class panel_kit {
                     get_string('kit_channel_day_now', $c),
                 'alone' => $m['auto'] && $choice === '' ? get_string('kit_channel_alone', $c) : '',
                 'state' => $state,
-                'tone' => $published ? 'hecho' : ($waiting ? 'espera' : ''),
+                'tone' => $published ? 'hecho' : ($waiting ? 'espera' : ($gone ? 'fuera' : 'libre')),
+                'done' => $published,
+                'waits' => $waiting,
+                'out' => $gone,
+                'free' => !$published && !$waiting && !$gone,
                 'cannow' => $can && !$published,
                 'canat' => $can && !$published,
                 'canoff' => $can && ($waiting || $published || (!$known && ($m['auto'] || in_array($choice, ['now', 'at'], true)))),

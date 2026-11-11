@@ -29,7 +29,7 @@
 
     Example context (json):
     {
-        "i": {"check": "", "subir": "", "info": "", "mas1": ""},
+        "i": {"check": "", "subir": "", "info": "", "mas1": "", "enviado": "", "reloj": "", "whatsapp": ""},
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
         "action": "#", "sesskey": "abc", "index": [{"key": "aspecto", "name": "Cómo lo ven las familias"}],
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
@@ -145,20 +145,24 @@
             <section class="apartado" id="aj-canal" aria-labelledby="aj-canal-t">
                 <header><h2 id="aj-canal-t">{{#str}}centre_channel, local_oksigeniaeguahe{{/str}}</h2></header>
                 {{#ready}}
-                <p class="def">{{#str}}panel_channel_in, local_oksigeniaeguahe{{/str}} {{#url}}<a href="{{url}}" target="_blank" rel="noopener">{{title}}</a>{{/url}}{{^url}}{{title}}{{/url}}{{members}}.{{#marandu}} <a href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</p>
+                <div class="canal-ficha">
+                    <span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span>
+                    <p><span class="secundario">{{#str}}panel_channel_in, local_oksigeniaeguahe{{/str}}</span> {{#url}}<a href="{{url}}" target="_blank" rel="noopener"><b>{{title}}</b></a>{{/url}}{{^url}}<b>{{title}}</b>{{/url}}<span class="secundario">{{members}}</span></p>
+                    {{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}
+                </div>
                 <input type="hidden" name="channelshown" value="1">
                 <h3 id="aj-canal-solo">{{#str}}panel_channel_auto, local_oksigeniaeguahe{{/str}}</h3>
-                <div class="casillas casillas-2" role="group" aria-labelledby="aj-canal-solo">
-                    {{#moments}}<label class="casilla"><input type="checkbox" name="channelauto[]" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{name}} <span class="secundario">· {{help}}</span></span></label>{{/moments}}
-                </div>
+                <ol class="canal-solos" role="group" aria-labelledby="aj-canal-solo">
+                    {{#moments}}<li class="canal-solo"><label class="casilla"><input type="checkbox" name="channelauto[]" value="{{value}}"{{#checked}} checked{{/checked}}><span><b>{{name}}</b> <span class="secundario">{{help}}</span></span></label></li>{{/moments}}
+                </ol>
                 <p class="def">{{#str}}panel_channel_auto_help, local_oksigeniaeguahe{{/str}}</p>
                 {{#hascoming}}
                 <h3>{{#str}}panel_channel_coming, local_oksigeniaeguahe{{/str}}</h3>
-                <ul class="lista-canal">{{#coming}}<li><a href="{{url}}"><b>{{act}}</b></a> · {{moment}} · {{when}}{{#review}} <span class="secundario">{{#str}}panel_channel_waits_review, local_oksigeniaeguahe{{/str}}</span>{{/review}}</li>{{/coming}}</ul>
+                <ol class="lista-canal">{{#coming}}<li><span class="lista-canal-cuando">{{when}}</span><span class="lista-canal-que"><a href="{{url}}">{{act}}</a> <span class="lista-canal-momento">{{moment}}</span>{{#review}} <span class="lista-canal-revision">{{{i.reloj}}}{{#str}}panel_channel_waits_review, local_oksigeniaeguahe{{/str}}</span>{{/review}}</span></li>{{/coming}}</ol>
                 {{/hascoming}}
                 {{/ready}}
-                {{^ready}}<p class="def">{{#str}}panel_channel_none, local_oksigeniaeguahe{{/str}}{{#marandu}} <a href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</p>{{/ready}}
-                <p class="def">{{#str}}panel_channel_whatsapp, local_oksigeniaeguahe{{/str}}</p>
+                {{^ready}}<div class="canal-ficha canal-ficha-nada"><span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span><p>{{#str}}panel_channel_none, local_oksigeniaeguahe{{/str}}</p>{{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</div>{{/ready}}
+                <p class="def canal-whatsapp"><span aria-hidden="true">{{{i.whatsapp}}}</span><span>{{#str}}panel_channel_whatsapp, local_oksigeniaeguahe{{/str}}</span></p>
             </section>
             {{/channel}}
             <section class="apartado" id="aj-datos" aria-labelledby="aj-datos-t">

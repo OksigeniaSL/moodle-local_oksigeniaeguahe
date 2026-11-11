@@ -171,18 +171,37 @@
             {{#ambassador}}
             <div class="embajadora" id="embajadora">
                 <h3>{{title}}</h3>
+                {{#came}}
+                <div class="embajadora-llegaron">
+                    {{#hasbackpacks}}<div class="embajadora-riel" aria-hidden="true">{{#backpacks}}<span class="embajadora-percha">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/backpacks}}</div>{{/hasbackpacks}}
+                    <p>{{came}}</p>
+                </div>
+                {{/came}}
                 <p>{{text}}</p>
+                <div class="embajadora-pasar">
+                {{#card}}
+                <div class="invitacion-tarjeta">
+                    <span class="invitacion-sello" aria-hidden="true">{{#logo}}<img src="{{logo}}" alt="">{{/logo}}{{^logo}}<span>{{initials}}</span>{{/logo}}</span>
+                    <p class="invitacion-de">{{{from}}}</p>
+                    <p class="invitacion-titulo" dir="auto">{{invites}}</p>
+                </div>
+                {{/card}}
                 {{#share}}
-                <p class="compartir-fila"><span class="pasar"><button class="boton secundario" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_family">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span></p>
-                <div class="campo"><label for="embajadora-enlace">{{linklabel}}</label><input id="embajadora-enlace" type="text" readonly value="{{url}}" dir="ltr"></div>
+                <div class="embajadora-acciones">
+                <p class="compartir-fila"><span class="pasar"><button class="boton principal" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_family">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span></p>
+                <div class="campo embajadora-enlace"><label for="embajadora-enlace">{{linklabel}}</label><input id="embajadora-enlace" type="text" readonly value="{{url}}" dir="ltr"></div>
+                </div>
                 {{/share}}
-                {{#came}}<p class="embajadora-llegaron">{{came}}</p>{{/came}}
+                </div>
                 {{#sign}}
-                <form class="hoja-casa embajadora-firma" method="post" action="{{action}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitesign">
-                    <div class="campo"><label for="embajadora-firma">{{label}}</label><input id="embajadora-firma" type="text" name="firma" maxlength="100" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" dir="auto" aria-describedby="embajadora-firma-ayuda"><p class="ayuda-campo" id="embajadora-firma-ayuda">{{help}}</p></div>
-                    <button class="boton secundario" type="submit">{{save}}</button>
-                </form>
+                <details class="embajadora-firma"{{#open}} open{{/open}}>
+                    <summary><span>{{label}}</span>{{{i.chev}}}</summary>
+                    <form class="hoja-casa" method="post" action="{{action}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitesign">
+                        <div class="campo"><label class="oculto" for="embajadora-firma">{{label}}</label><input id="embajadora-firma" type="text" name="firma" maxlength="100" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" dir="auto" aria-describedby="embajadora-firma-ayuda"><p class="ayuda-campo" id="embajadora-firma-ayuda">{{help}}</p></div>
+                        <button class="boton secundario" type="submit">{{save}}</button>
+                    </form>
+                </details>
                 {{/sign}}
             </div>
             {{/ambassador}}
