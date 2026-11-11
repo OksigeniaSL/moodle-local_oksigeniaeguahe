@@ -972,10 +972,42 @@ button.marco {
     text-decoration: underline;
     text-underline-offset: 2px;
 }
+/* The backpack alone, without its tile, so its shape reads; the outline of its label, the paper of the page. */
 .autor .sello-marca {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     flex: none;
+}
+.autor .sello-marca .sm-borde {
+    fill: var(--papel);
+    stroke: var(--papel);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .sello-marca .sm-mochila {
+        fill: #8a7489;
+    }
+    :root:not([data-theme="light"]) .sello-marca .sm-etiqueta {
+        fill: #f0947b;
+    }
+    :root:not([data-theme="light"]) .sello-marca .sm-papel {
+        fill: #f5ece3;
+    }
+    :root:not([data-theme="light"]) .sello-marca .sm-pico {
+        fill: #cdb8a2;
+    }
+}
+:root[data-theme="dark"] .sello-marca .sm-mochila {
+    fill: #8a7489;
+}
+:root[data-theme="dark"] .sello-marca .sm-etiqueta {
+    fill: #f0947b;
+}
+:root[data-theme="dark"] .sello-marca .sm-papel {
+    fill: #f5ece3;
+}
+:root[data-theme="dark"] .sello-marca .sm-pico {
+    fill: #cdb8a2;
 }
 
 /* Wide screens and phones on their side: the illustration on the left, the text beside it. */

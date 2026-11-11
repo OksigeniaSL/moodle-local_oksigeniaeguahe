@@ -755,9 +755,21 @@
                             vf.close();
                             i++;
                             progress(0.08 + 0.92 * i / n);
-                            return encoder.encodeQueueSize > 6 || i % 4 === 0 ? new Promise(function(ok) {
-                                setTimeout(ok, 0);
-                            }).then(step) : step();
+                            // A phone encodes slower than it draws, and every frame waiting holds a whole picture:
+                            // wait until the encoder has at most two before drawing the next (it filled the memory).
+                            if (encoder.encodeQueueSize > 2 || i % 4 === 0) {
+                                return new Promise(function(ok) {
+                                    var check = function() {
+                                        if (encoder.encodeQueueSize <= 2) {
+                                            ok();
+                                        } else {
+                                            setTimeout(check, 4);
+                                        }
+                                    };
+                                    setTimeout(check, 0);
+                                }).then(step);
+                            }
+                            return step();
                         };
                         return step();
                     });

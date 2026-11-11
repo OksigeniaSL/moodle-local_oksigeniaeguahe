@@ -4343,10 +4343,52 @@ button.enlace span {
     text-underline-offset: 3px;
 }
 
+/* The backpack alone, without its tile, a little bigger than the text beside it: its shape reads at a glance and the
+   line stays quiet (Enrique, 11 November 2026: «tan chiquitín que ni se sabe qué es»). The outline of the label is the
+   paper under it. */
 .sello-marca {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     flex: none;
+}
+
+.sello-marca .sm-borde {
+    fill: var(--eg-papel);
+    stroke: var(--eg-papel);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .sello-marca .sm-mochila {
+        fill: #8a7489;
+    }
+
+    :root:not([data-theme="light"]) .sello-marca .sm-etiqueta {
+        fill: #f0947b;
+    }
+
+    :root:not([data-theme="light"]) .sello-marca .sm-papel {
+        fill: #f5ece3;
+    }
+
+    :root:not([data-theme="light"]) .sello-marca .sm-pico {
+        fill: #cdb8a2;
+    }
+}
+
+:root[data-theme="dark"] .sello-marca .sm-mochila {
+    fill: #8a7489;
+}
+
+:root[data-theme="dark"] .sello-marca .sm-etiqueta {
+    fill: #f0947b;
+}
+
+:root[data-theme="dark"] .sello-marca .sm-papel {
+    fill: #f5ece3;
+}
+
+:root[data-theme="dark"] .sello-marca .sm-pico {
+    fill: #cdb8a2;
 }
 
 /* The sheet of the video of a drawing (pub/dibujo-video.js): its title, the video as it will arrive (upright, in the
