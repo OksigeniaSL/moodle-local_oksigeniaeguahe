@@ -1,0 +1,56 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_invitation
+
+    The invitation of a family that is an ambassador of the centre, as another family opens it: who invites them, in a
+    small line above; the centre, as the titular in hand; its welcome; the next open acts as a short list, each with its
+    day and hours and its button to sign up; and asking for information, in one quiet line. Nothing of the family that
+    invites beyond how it signs. The seal of Eguahe goes at the foot, in the frame of the page. Functional until its
+    design.
+
+    Example context (json):
+    {
+        "kicker": "La familia de Leo les invita", "title": "Vengan a conocer el Colegio Los Arces",
+        "welcome": "Un colegio pequeño, con patio de árboles.",
+        "hasacts": true, "signup": "Apuntarse",
+        "acts": [{"name": "Jornada de puertas abiertas", "when": "Sábado, 21 de noviembre, de 10:00 a 13:00",
+            "place": "Entrada principal", "url": "/local/oksigeniaeguahe/j.php?t=abc"}],
+        "ask": {"text": "O, si les viene mejor, cuéntennos qué buscan y les contestamos.", "button": "Pedir información",
+            "url": "/local/oksigeniaeguahe/invita.php?action=pedir"}
+    }
+}}
+<section class="pared compartido-invitacion" aria-labelledby="titulo">
+    <div class="compartido-cabeza">
+        <p class="antetitulo" dir="auto">{{kicker}}</p>
+        <h1 id="titulo" class="mano-titular" dir="auto">{{title}}</h1>
+        {{#welcome}}<p class="invitacion-bienvenida" dir="auto">{{welcome}}</p>{{/welcome}}
+    </div>
+    {{#hasacts}}
+    <ul class="invitacion-actos">
+        {{#acts}}
+        <li class="invitacion-acto">
+            <span class="invitacion-acto-que"><b dir="auto">{{name}}</b> <span class="secundario">{{when}}{{#place}} · <span dir="auto">{{place}}</span>{{/place}}</span></span>
+            <a class="boton principal" href="{{url}}">{{signup}}</a>
+        </li>
+        {{/acts}}
+    </ul>
+    {{/hasacts}}
+    {{#ask}}
+    <p class="invitacion-pedir"><span>{{text}}</span> <a class="boton secundario" href="{{url}}">{{button}}</a></p>
+    {{/ask}}
+</section>

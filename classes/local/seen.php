@@ -46,7 +46,7 @@ class seen {
     /** @var string[] What can be touched on the page of a family. */
     const TOUCHES = ['drawing_seen', 'drawing_enlarged', 'tales', 'directions', 'calendar', 'question', 'phone_join',
         'language', 'download', 'drawing_sent', 'write', 'call', 'hobbies', 'volunteer', 'open_act', 'share_act',
-        'share_drawing'];
+        'share_drawing', 'share_family'];
 
     /** @var string[] What is done with the story of the first day; the page, when it matters, goes in «via» (p0 to p9). */
     const STORY = ['opened', 'page', 'like', 'unlike', 'back', 'enlarged', 'again', 'saved', 'sent', 'whole', 'repeated',
@@ -201,7 +201,8 @@ class seen {
             } else if ($row->kind === 'touch') {
                 $out['touches'][$row->what] = ($out['touches'][$row->what] ?? 0) + 1;
             }
-            if ($row->via && !in_array($row->kind, ['mailsent', 'story'], true)) {
+            // In the story «via» is its page, and in what is shared, the piece: only the rest came from a mail.
+            if ($row->via && !in_array($row->kind, ['mailsent', 'story', 'share'], true)) {
                 $out['mails'][$row->via] = ($out['mails'][$row->via] ?? 0) + 1;
             }
         }

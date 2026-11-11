@@ -181,6 +181,15 @@ if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'ofrecimiento'));
 }
 
+if ($action === 'invitesign' && data_submitted() && confirm_sesskey()) {
+    // An ambassador family: how it signs its invitation to other families; empty, «a family of the centre».
+    if ((int) $household->volunteer > 0) {
+        $sign = core_text::substr(trim(optional_param('firma', '', PARAM_TEXT)), 0, 100);
+        $DB->set_field(households::T, 'invitesign', $sign === '' ? null : $sign, ['id' => $household->id]);
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'embajadora'));
+}
+
 if (($action === 'siblingnotify' || $action === 'siblingconfirm') && data_submitted() && confirm_sesskey()) {
     // A brother or sister: tell us when their turn comes, or keep them a place now that it has.
     $sibling = optional_param('hermano', 0, PARAM_INT);

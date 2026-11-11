@@ -134,6 +134,9 @@ final class seen_test extends \advanced_testcase {
         seen::record($ana, 'touch', 'drawing_enlarged', '', $day + DAYSECS);
         seen::record($ana, 'touch', 'tales', '', $day + DAYSECS);
         seen::record($ana, 'open', '', '', $day + DAYSECS);
+        // What they shared, counted for them, came from no mail.
+        seen::record($ana, 'share', 'opened', 'dibujo', $day + DAYSECS);
+        seen::record($ana, 'share', 'arrived', 'familia', $day + DAYSECS);
         $summary = seen::summary((int) $ana->id);
         $this->assertSame(2, $summary['opens']);
         $this->assertSame(2, $summary['days']);

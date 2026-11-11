@@ -59,12 +59,12 @@
             <li class="kit-momento{{#tone}} kit-momento-{{tone}}{{/tone}}">
                 <span class="kit-momento-que"><b>{{name}}</b> <span class="secundario">{{day}}{{#alone}} · {{alone}}{{/alone}}</span></span>
                 <span class="kit-momento-estado">{{state}}</span>
-                <span class="kit-momento-botones">
+                <div class="kit-momento-botones">
                     {{#cannow}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="now"><button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_now, local_oksigeniaeguahe{{/str}}</button></form>{{/cannow}}
                     {{#canat}}<details class="kit-programar"><summary class="boton terciario pequeno">{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</summary><form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="at"><label for="kit-at-{{moment}}">{{#str}}kit_channel_at_label, local_oksigeniaeguahe{{/str}}</label> <input type="datetime-local" id="kit-at-{{moment}}" name="at" min="{{min}}" max="{{max}}" value="{{value}}" required> <button class="boton secundario pequeno" type="submit">{{#str}}kit_channel_at, local_oksigeniaeguahe{{/str}}</button></form></details>{{/canat}}
                     {{#canoff}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="off"><button class="enlace" type="submit">{{offlabel}}</button></form>{{/canoff}}
                     {{#canreset}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="channel"><input type="hidden" name="moment" value="{{moment}}"><input type="hidden" name="do" value="centre"><button class="enlace" type="submit">{{#str}}kit_channel_reset, local_oksigeniaeguahe{{/str}}</button></form>{{/canreset}}
-                </span>
+                </div>
             </li>
             {{/moments}}
         </ol>

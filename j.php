@@ -64,15 +64,18 @@ if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() ===
 // whoever signs up here comes by it, and the family that passed it on has it counted.
 $sharedby = optional_param('f', 0, PARAM_INT);
 $sharesig = optional_param('c', '', PARAM_ALPHANUM);
-$sharer = $sharedby && share::signed('acto', $sharedby, (int) $event->id, $sharesig) ?
-    households::get($sharedby, (int) $centre->id) : null;
+// Or invited by an ambassador family of the centre, from its invitation (invita.php).
+$ambassador = optional_param('p', '', PARAM_ALPHA) === 'familia' ? share::invited_by($centre, $sharedby, $sharesig) : null;
+$sharer = $ambassador ?? ($sharedby && share::signed('acto', $sharedby, (int) $event->id, $sharesig) ?
+    households::get($sharedby, (int) $centre->id) : null);
 // Or by the link of a network, from the kit of the act: the network is where they came from.
-$came = $sharer ? 'acto' : optional_param('d', '', PARAM_ALPHA);
+$came = $ambassador ? 'familia' : ($sharer ? 'acto' : optional_param('d', '', PARAM_ALPHA));
 $piece = in_array($came, share::PIECES, true) ? $came : '';
 $network = $piece === '' ? kit::network_of($centre, $came) : '';
 if ($sharer) {
-    $url->params(['f' => $sharedby, 'c' => $sharesig]);
-    if (data_submitted() === false) {
+    $url->params(['f' => $sharedby, 'c' => $sharesig] + ($ambassador ? ['p' => 'familia'] : []));
+    // The invitation of an ambassador was counted where it was opened.
+    if (data_submitted() === false && !$ambassador) {
         share::count($sharer, $centre, 'opened', 'acto');
     }
 } else if ($piece !== '' || $network !== '') {
@@ -101,7 +104,12 @@ if (data_submitted()) {
     }
     if (!$errors) {
         $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
+        $data = $ambassador ? share::told_by($data, $ambassador) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
+        if ($ambassador && !$existed) {
+            // One more family that came by its invitation: a number for the ambassador, never which family.
+            share::count($ambassador, $centre, 'arrived', 'familia');
+        }
         // A family already known: whoever filled the form may not be that family, so its page is not shown here and
         // the link goes only to the email it had.
         $to = $existed ? (string) ($before[0] ?? '') : null;

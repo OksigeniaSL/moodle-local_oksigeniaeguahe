@@ -134,6 +134,13 @@ final class settled_test extends \advanced_testcase {
         $now = time();
         $this->assertTrue(settled::volunteer($household, $centre, $now));
         $this->assertFalse(settled::volunteer($household, $centre, $now));
+        // Now an ambassador family: its invitation to pass on, in its page.
+        $page = familypage::context(households::get((int) $household->id, (int) $centre->id), $centre, 'es', 'clave', false);
+        $this->assertFalse($page['settled']['volunteer']);
+        $this->assertSame('Su invitación para otras familias', $page['settled']['ambassador']['title']);
+        $this->assertStringContainsString('/invita.php', $page['settled']['ambassador']['share']['url']);
+        $this->assertStringContainsString('el Colegio', $page['settled']['ambassador']['share']['text']);
+        $this->assertSame('', $page['settled']['ambassador']['came']);
         $this->assertSame(1, settled::volunteers((int) $centre->id));
         $promise = attend::open_promise((int) $household->id);
         $this->assertNotNull($promise);

@@ -152,6 +152,18 @@ if ($action && data_submitted() && confirm_sesskey()) {
             family::still_here($household);
             redirect(new moodle_url($url, [], 'se-van'));
             break;
+        case 'ambassador':
+            // They told a person they would gladly tell another family how it went: an ambassador, with its invitation.
+            if (settled::in_centre(array_values(households::full($household)->children))) {
+                settled::volunteer($household, $centre, time());
+            }
+            redirect(new moodle_url($url, [], 'embajadora'));
+            break;
+        case 'notambassador':
+            // No longer: its invitation stops working, and nothing else changes.
+            $DB->set_field(households::T, 'volunteer', 0, ['id' => $household->id]);
+            redirect(new moodle_url($url, [], 'embajadora'));
+            break;
         case 'thanked':
             // The family that told them about the centre was thanked, or the person decided not to.
             $DB->set_field(households::T, 'thanked', time(), ['id' => $household->id]);

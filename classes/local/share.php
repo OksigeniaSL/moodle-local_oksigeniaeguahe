@@ -17,8 +17,9 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What a family shares, well shared: the story of a child, its drawing and an open act of the centre. Each by a signed
- * link that opens that piece and nothing else of the family; with its preview (Open Graph) in the colour and the name
+ * What a family shares, well shared: the story of a child, its drawing, an open act of the centre, and, for the families
+ * that are ambassadors of the centre, their own invitation to know it. Each by a signed link that opens that piece and
+ * nothing else of the family; with its preview (Open Graph) in the colour and the name
  * of the centre; at its end the gift of the centre, the invitation to whoever receives it (when the centre has it on)
  * and the seal of Eguahe, of Oksigenia (to eguahe.com). What it brings is counted for the family that shared it, never scored.
  *
@@ -31,10 +32,13 @@ class share {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] What a family can share. */
-    const PIECES = ['cuento', 'dibujo', 'acto'];
+    const PIECES = ['cuento', 'dibujo', 'acto', 'familia'];
 
-    /** @var string[] What is counted of a piece shared: opened by whoever received it, the invitation followed, sent. */
-    const COUNTED = ['opened', 'invite', 'sent', 'saved'];
+    /**
+     * @var string[] What is counted of a piece shared: opened by whoever received it, the invitation followed, sent,
+     * kept, and a family that came by it (only a number for the family that shared it, never which family).
+     */
+    const COUNTED = ['opened', 'invite', 'sent', 'saved', 'arrived'];
 
     /** @var string Where the seal leads: the page of Eguahe for centres, made by Oksigenia (Enrique, 9-11). */
     const SEAL = 'https://eguahe.com/';
@@ -109,6 +113,99 @@ class share {
     public static function act_url(\stdClass $household, \stdClass $event): \moodle_url {
         return new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'f' => $household->id,
             'c' => self::signature('acto', (int) $household->id, (int) $event->id)]);
+    }
+
+    /**
+     * The link of a family that is an ambassador of the centre: its invitation to know the centre, to pass on to other
+     * families. It opens that invitation and nothing else of the family.
+     *
+     * @param \stdClass $household
+     * @return \moodle_url
+     */
+    public static function family_url(\stdClass $household): \moodle_url {
+        return new \moodle_url('/local/oksigeniaeguahe/invita.php', ['h' => $household->id,
+            's' => self::signature('familia', (int) $household->id, (int) $household->id)]);
+    }
+
+    /**
+     * The family behind the link of an ambassador, while it is one.
+     *
+     * @param int $householdid
+     * @param string $signature
+     * @return array|null [household, centre]
+     */
+    public static function ambassador(int $householdid, string $signature): ?array {
+        global $DB;
+        if (!$householdid || !self::signed('familia', $householdid, $householdid, $signature)) {
+            return null;
+        }
+        $household = $DB->get_record(households::T, ['id' => $householdid]);
+        $centre = $household ? centres::get((int) $household->centreid) : null;
+        if (!$household || !$centre || (int) $household->volunteer <= 0) {
+            return null;
+        }
+        return [$household, $centre];
+    }
+
+    /**
+     * The ambassador family a sign-up comes from, by the parameters of its link, when it is of this centre.
+     *
+     * @param \stdClass $centre
+     * @param int $householdid
+     * @param string $signature
+     * @return \stdClass|null
+     */
+    public static function invited_by(\stdClass $centre, int $householdid, string $signature): ?\stdClass {
+        $found = self::ambassador($householdid, $signature);
+        return $found && (int) $found[1]->id === (int) $centre->id ? $found[0] : null;
+    }
+
+    /**
+     * Who told a family about the centre, when an ambassador invited it: a family of the centre and, if they did not
+     * write which, the names of the adults of the ambassador, for the team to thank them (heardwho, a name and never a
+     * link between households). If they said they heard of it another way, that is what stays.
+     *
+     * @param array $data The sign-up, as signup::read() gives it.
+     * @param \stdClass $ambassador
+     * @return array
+     */
+    public static function told_by(array $data, \stdClass $ambassador): array {
+        if (!in_array((string) ($data['heardfrom'] ?? ''), ['', 'centrefamilies'], true)) {
+            return $data;
+        }
+        $data['heardfrom'] = 'centrefamilies';
+        if (trim((string) ($data['heardwho'] ?? '')) === '') {
+            $data['heardwho'] = \core_text::substr(staff::adult_names(households::full($ambassador)->adults), 0, 255);
+        }
+        return $data;
+    }
+
+    /**
+     * How an ambassador signs its invitation: as the family wrote it, or «a family of the centre».
+     *
+     * @param \stdClass $household
+     * @param string $lang
+     * @return string
+     */
+    public static function ambassador_sign(\stdClass $household, string $lang): string {
+        $sign = trim((string) ($household->invitesign ?? ''));
+        return $sign !== '' ? $sign : publiclang::str('share_family_someone', $lang);
+    }
+
+    /**
+     * How many families came to the centre by the link of an ambassador: a number, never which ones.
+     *
+     * @param \stdClass $household
+     * @return int[] opened and arrived.
+     */
+    public static function ambassador_counts(\stdClass $household): array {
+        global $DB;
+        $out = [];
+        foreach (['opened', 'arrived'] as $what) {
+            $out[$what] = $DB->count_records(seen::T, ['householdid' => $household->id, 'kind' => 'share', 'what' => $what,
+                'via' => 'familia']);
+        }
+        return $out;
     }
 
     /**
@@ -468,6 +565,10 @@ class share {
                 self::label($im, $name, $accent, $lx - $px(34), $ly - $px(30), 0.62 * $f, 0);
             }
             self::identity($im, $centre, $vars, $cx, $at([0.917, 0.9, 0.78]), $px($tall ? 64 : 50), $w - 2 * $px(80));
+        } else if ($piece === 'familia') {
+            // The invitation of an ambassador family: what it invites to, in big letters, over the centre on its wall.
+            self::write($im, 'bold', $words['title'], $px(64), $cx, $at([0.32, 0.3, 0.36]), '#2B2226', $w - 2 * $px(80));
+            self::identity($im, $centre, $vars, $cx, $at([0.72, 0.7, 0.62]), $px(60), $w - 2 * $px(80));
         } else {
             // The story, as its cover: the title and the big label with the name.
             self::write($im, 'bold', $words['title'], $px(76), $cx, $at([0.21, 0.2, 0.3]), '#2B2226', $w - 2 * $px(80));

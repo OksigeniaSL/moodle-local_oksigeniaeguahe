@@ -176,6 +176,7 @@ class panel_household {
                 'answers' => $told['answers']], surveys::of_household($household, current_language())),
             'visit' => self::visit($household, $centre),
             'seen' => self::seen($household),
+            'ambassador' => $canact && settled::in_centre(array_values($full->children)) ? self::ambassador($household) : false,
             'events' => self::events($full),
             'hasevents' => (bool) $full->signups,
             'newlink' => $newlink,
@@ -866,6 +867,27 @@ class panel_household {
                 'likes' => $words !== '' ? get_string('panel_adult_likes', $c, $words) : false];
         }
         return $out;
+    }
+
+    /**
+     * Whether the family is an ambassador of the centre, and what its invitation brought, as numbers; and the button to
+     * make it one (they said so in person) or to stop.
+     *
+     * @param \stdClass $household
+     * @return array is, text, do and label.
+     */
+    protected static function ambassador(\stdClass $household): array {
+        $c = self::C;
+        $is = (int) ($household->volunteer ?? 0) > 0;
+        $counts = share::ambassador_counts($household);
+        $since = userdate((int) $household->volunteer, get_string('strftimedate', 'langconfig'));
+        return [
+            'is' => $is,
+            'text' => $is ? get_string('panel_ambassador_is', $c, (object) ['since' => $since, 'opened' => $counts['opened'],
+                'arrived' => $counts['arrived']]) : get_string('panel_ambassador_not', $c),
+            'do' => $is ? 'notambassador' : 'ambassador',
+            'label' => get_string($is ? 'panel_ambassador_stop' : 'panel_ambassador_make', $c),
+        ];
     }
 
     /**

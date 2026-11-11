@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
 
@@ -40,8 +41,11 @@ $token = optional_param('e', '', PARAM_ALPHANUM);
 $embedded = optional_param('embed', 0, PARAM_BOOL);
 $from = optional_param('d', '', PARAM_ALPHANUM);
 $preview = optional_param('preview', 0, PARAM_BOOL);
+// Invited by an ambassador family of the centre, from its invitation (invita.php): checked once the centre is known.
+$invited = optional_param('p', '', PARAM_ALPHA) === 'familia' ? ['f' => optional_param('f', 0, PARAM_INT),
+    'c' => optional_param('c', '', PARAM_ALPHANUM), 'p' => 'familia'] : [];
 $url = new moodle_url('/local/oksigeniaeguahe/w.php', ['e' => $token] + ($embedded ? ['embed' => 1] : []) +
-    ($from !== '' ? ['d' => $from] : []) + ($preview ? ['preview' => 1] : []));
+    ($from !== '' ? ['d' => $from] : []) + ($preview ? ['preview' => 1] : []) + $invited);
 publicpage::setup($url);
 publicpage::$embedded = (bool) $embedded;
 
@@ -61,6 +65,7 @@ $lang = publiclang::choose($centre);
 $event = forms::as_event($entry);
 $origins = forms::origins($entry);
 $origin = $origins[$from] ?? '';
+$ambassador = $invited ? share::invited_by($centre, (int) $invited['f'], (string) $invited['c']) : null;
 
 $data = signup::read();
 $data['answers'] = forms::read((int) $entry->id);
@@ -73,8 +78,13 @@ if (data_submitted() && !$preview) {
         $errors = signup::check($data, $event, $centre, $lang);
     }
     if (!$errors) {
+        $data = $ambassador ? share::told_by($data, $ambassador) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, $entry, $origin);
         entries::counted($entry);
+        if ($ambassador && !$existed) {
+            // One more family that came by its invitation: a number for the ambassador, never which family.
+            share::count($ambassador, $centre, 'arrived', 'familia');
+        }
         // A family already known: whoever filled the form may not be that family, so its page is not shown here and
         // the link goes only to the email it had.
         $to = $existed ? (string) ($before[0] ?? '') : null;

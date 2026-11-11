@@ -110,6 +110,7 @@
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
         <FIELD NAME="heardnet" TYPE="char" LENGTH="60" NOTNULL="false" SEQUENCE="false" COMMENT="Which network, when they heard of the centre on one, as the family named it"/>
+        <FIELD NAME="invitesign" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="How an ambassador family signs its invitation to other families, as it wrote it; empty, a family of the centre"/>
         <FIELD NAME="familylink" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The family of the centre (local_oksigeniafamily) a person said this household is; -1, said it is not; 0, not asked"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

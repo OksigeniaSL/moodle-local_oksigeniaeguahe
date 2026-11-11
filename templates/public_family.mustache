@@ -168,6 +168,24 @@
             </form>
             {{/volunteer}}
             {{#volunteered}}<p class="ofrecimiento hecho" id="ofrecimiento"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{volunteered}}</span></p>{{/volunteered}}
+            {{#ambassador}}
+            <div class="embajadora" id="embajadora">
+                <h3>{{title}}</h3>
+                <p>{{text}}</p>
+                {{#share}}
+                <p class="compartir-fila"><span class="pasar"><button class="boton secundario" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_family">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span></p>
+                <div class="campo"><label for="embajadora-enlace">{{linklabel}}</label><input id="embajadora-enlace" type="text" readonly value="{{url}}" dir="ltr"></div>
+                {{/share}}
+                {{#came}}<p class="embajadora-llegaron">{{came}}</p>{{/came}}
+                {{#sign}}
+                <form class="hoja-casa embajadora-firma" method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitesign">
+                    <div class="campo"><label for="embajadora-firma">{{label}}</label><input id="embajadora-firma" type="text" name="firma" maxlength="100" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" dir="auto" aria-describedby="embajadora-firma-ayuda"><p class="ayuda-campo" id="embajadora-firma-ayuda">{{help}}</p></div>
+                    <button class="boton secundario" type="submit">{{save}}</button>
+                </form>
+                {{/sign}}
+            </div>
+            {{/ambassador}}
             {{#thanks}}
             <p class="gracias-firmadas"><span class="texto-gracias">{{text}}</span>{{#hashost}}<span class="firma">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span>{{who}}</span></span>{{/hashost}}</p>
             {{/thanks}}

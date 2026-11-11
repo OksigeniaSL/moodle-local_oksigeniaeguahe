@@ -773,9 +773,41 @@ class familypage {
                 'yes' => publiclang::str('pub_volunteer_yes', $lang), 'sesskey' => sesskey(),
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false)],
             'volunteered' => $volunteered ? publiclang::str('pub_volunteer_done', $lang) : '',
+            'ambassador' => $volunteered ? self::ambassador_context($household, $centre, $lang, $token) : false,
             'thanks' => $firsts ? ['text' => publiclang::str('pub_settled_thanks', $lang, self::join($firsts, $lang)),
                 'who' => $host ? $host->first : '', 'photo' => $host && $host->photo ? $host->photo->out(false) : '',
                 'initials' => $host ? $host->initials : '', 'hashost' => (bool) $host] : false,
+        ];
+    }
+
+    /**
+     * An ambassador family, on its own page: its invitation to pass on to other families, with the message written in
+     * its own voice and the link to copy; what it brought, as a number; and how it signs it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @return array
+     */
+    protected static function ambassador_context(\stdClass $household, \stdClass $centre, string $lang, string $token): array {
+        $phrase = share::phrase($centre, $lang);
+        $arrived = share::ambassador_counts($household)['arrived'];
+        return [
+            'title' => publiclang::str('pub_ambassador_title', $lang),
+            'text' => publiclang::str('pub_ambassador_text', $lang),
+            'linklabel' => publiclang::str('pub_ambassador_link', $lang),
+            'share' => ['label' => publiclang::str('pub_ambassador_send', $lang), 'url' => share::family_url($household)->out(false),
+                'title' => publiclang::str('share_family_title', $lang, $phrase),
+                'text' => publiclang::str('pub_ambassador_message', $lang, $phrase),
+                'copied' => publiclang::str('share_copied', $lang)],
+            'came' => $arrived ? publiclang::count('pub_ambassador_came_one', 'pub_ambassador_came', $arrived, $lang) : '',
+            'sign' => ['label' => publiclang::str('pub_ambassador_sign', $lang),
+                'value' => (string) ($household->invitesign ?? ''),
+                'placeholder' => publiclang::str('pub_ambassador_sign_example', $lang),
+                'help' => publiclang::str('pub_ambassador_sign_help', $lang, share::ambassador_sign((object) [], $lang)),
+                'save' => publiclang::str('pub_ambassador_sign_save', $lang), 'sesskey' => sesskey(),
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false)],
         ];
     }
 

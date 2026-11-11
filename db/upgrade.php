@@ -996,5 +996,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114400, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026114500) {
+        // How an ambassador family signs its invitation to other families; empty, a family of the centre.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('invitesign', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'heardnet');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026114500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

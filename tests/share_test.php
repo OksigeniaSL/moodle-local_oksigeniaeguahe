@@ -202,4 +202,50 @@ final class share_test extends \advanced_testcase {
             'Arabic, in its own face.'
         );
     }
+
+    /**
+     * An ambassador family: its own invitation, signed, that works while it is one and only in its centre; how it
+     * signs; who told the family that came, for the team; and what it brought, as numbers.
+     */
+    public function test_ambassador(): void {
+        global $DB;
+        $this->resetAfterTest();
+        [$centre, $household] = $this->family();
+        [$other] = $this->family('Escuela de ejemplo');
+        $url = share::family_url($household);
+        $this->assertStringContainsString('/local/oksigeniaeguahe/invita.php', $url->out(false));
+        $signature = $url->get_param('s');
+        $this->assertNull(share::ambassador((int) $household->id, $signature), 'Not an ambassador yet.');
+        $DB->set_field(households::T, 'volunteer', time(), ['id' => $household->id]);
+        $household = households::get((int) $household->id, (int) $centre->id);
+        [$found, $itscentre] = share::ambassador((int) $household->id, $signature);
+        $this->assertSame((int) $household->id, (int) $found->id);
+        $this->assertSame((int) $centre->id, (int) $itscentre->id);
+        $this->assertNull(share::ambassador((int) $household->id, 'otra'));
+        $this->assertNull(share::invited_by($other, (int) $household->id, $signature), 'Only in its centre.');
+        $this->assertNotNull(share::invited_by($centre, (int) $household->id, $signature));
+
+        $this->assertSame('Una familia del centro', share::ambassador_sign($household, 'es'));
+        $household->invitesign = 'La familia de Leo';
+        $this->assertSame('La familia de Leo', share::ambassador_sign($household, 'es'));
+
+        $told = share::told_by(['heardfrom' => '', 'heardwho' => ''], $household);
+        $this->assertSame(['heardfrom' => 'centrefamilies', 'heardwho' => 'Ana Ejemplo'], $told);
+        $written = ['heardfrom' => 'centrefamilies', 'heardwho' => 'Los de Leo'];
+        $this->assertSame($written, share::told_by($written, $household));
+        // What they said stays.
+        $social = ['heardfrom' => 'social', 'heardwho' => ''];
+        $this->assertSame($social, share::told_by($social, $household));
+
+        $this->setGuestUser();
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36';
+        $this->assertTrue(share::count($household, $centre, 'opened', 'familia'));
+        $this->assertTrue(share::count($household, $centre, 'arrived', 'familia'));
+        $this->assertTrue(share::count($household, $centre, 'arrived', 'familia'));
+        $this->assertSame(['opened' => 1, 'arrived' => 2], share::ambassador_counts($household));
+
+        // No longer an ambassador: the invitation stops working.
+        $DB->set_field(households::T, 'volunteer', 0, ['id' => $household->id]);
+        $this->assertNull(share::ambassador((int) $household->id, $signature));
+    }
 }

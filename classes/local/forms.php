@@ -304,6 +304,8 @@ class forms {
     public static function save_answers(\stdClass $household, \stdClass $entry, array $answers, string $fallback): array {
         global $DB;
         $lines = [];
+        // One time for the whole sending, so its answers keep the order of the form.
+        $now = time();
         foreach (self::fields((int) $entry->id) as $field) {
             $answer = $answers[$field->id] ?? '';
             if ($field->type === 'section' || !self::shown($field, $answers) || $answer === '' || $answer === []) {
@@ -316,7 +318,7 @@ class forms {
             }
             $DB->insert_record(self::ANSWERS, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
                 'entryid' => $entry->id, 'fieldid' => $field->id, 'label' => \core_text::substr($texts['label'], 0, 255),
-                'value' => \core_text::substr($value, 0, 4000), 'timecreated' => time()]);
+                'value' => \core_text::substr($value, 0, 4000), 'timecreated' => $now]);
             $lines[] = $texts['label'] . ': ' . $value;
         }
         return $lines;

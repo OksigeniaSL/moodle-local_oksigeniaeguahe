@@ -337,6 +337,12 @@
                 <header><h2>{{#str}}panel_facts_title, local_oksigeniaeguahe{{/str}}</h2></header>
                 <ul class="hechos-pagina">{{#facts}}<li>{{.}}</li>{{/facts}}</ul>
                 <p class="secundario">{{#str}}panel_facts_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#ambassador}}
+                <form class="embajadora-ficha" id="embajadora" method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">
+                    <p>{{text}} <button class="enlace" type="submit">{{label}}</button></p>
+                </form>
+                {{/ambassador}}
             </section>
             {{/seen}}
             {{#hasevents}}

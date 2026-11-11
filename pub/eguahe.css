@@ -3798,6 +3798,87 @@ html[lang="ar"] body * {
     white-space: nowrap;
 }
 
+/* ---------- The invitation of an ambassador family, as another family opens it: who invites, small; the centre as the
+   titular in hand; the next open acts as a short list with their buttons; asking for information in one quiet line.
+   Functional until its design. ---------- */
+.compartido-invitacion {
+    display: grid;
+    justify-items: center;
+    gap: 28px;
+    padding: 32px var(--g) 64px;
+    text-align: center;
+}
+
+.compartido-invitacion .mano-titular {
+    margin: 0;
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(2.4rem, 9vw, 4.2rem);
+    color: var(--eg-tinta);
+}
+
+.invitacion-bienvenida {
+    margin: 8px 0 0;
+    font-size: 1.125rem;
+    color: var(--eg-tinta-2);
+}
+
+.invitacion-actos {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-align: start;
+}
+
+.invitacion-acto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 18px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--eg-papel, #fff);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.invitacion-acto-que {
+    display: grid;
+    gap: 2px;
+}
+
+.invitacion-pedir {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 14px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+}
+
+/* An ambassador family, on its own page: its invitation to pass on, how it signs, and what it brought. */
+.embajadora {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.embajadora h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.embajadora p {
+    margin: 0;
+}
+
+.embajadora .compartir-fila {
+    justify-content: flex-start;
+}
+
 /* Passing a piece on from the page of the family: a button that reads as the links beside it («Cambiar su dibujo»,
    «Cómo llegar»), with the arrow that sends; what it says when the link is copied, beside it. */
 .pasar {

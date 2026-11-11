@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The preview image of a piece shared, as a chat or a network shows it: the story or the drawing of a child, by its
- * signed link; an open act, by its public token. In the colour and the name of the centre; nothing else of the family.
+ * The preview image of a piece shared, as a chat or a network shows it: the story or the drawing of a child, or the
+ * invitation of an ambassador family, by its signed link; an open act, by its public token. In the colour and the name of the centre; nothing else of the family.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -66,6 +66,16 @@ if ($piece === 'acto') {
         } else if ($picture !== null) {
             $png = share::card($centre, 'dibujo', ['name' => $name], $picture);
         }
+    }
+}
+if ($piece === 'familia') {
+    // The invitation of an ambassador family, while it is one.
+    $found = share::ambassador(optional_param('h', 0, PARAM_INT), optional_param('s', '', PARAM_ALPHANUM));
+    if ($found) {
+        [, $centre] = $found;
+        $lang = publiclang::choose($centre);
+        $title = publiclang::str('share_family_title', $lang, share::phrase($centre, $lang));
+        $png = share::card($centre, 'familia', ['title' => $title]);
     }
 }
 if ($png === '') {
