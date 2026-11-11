@@ -32,6 +32,7 @@
         "groups": [{"title": "Infantil 3 años", "count": "0 de 1", "offerid": 7,
             "daytext": "Empieza el jueves, 10 de septiembre de 2027.", "general": false, "confirmed": "",
             "missing": false, "check": true, "asked": true, "value": "2027-09-10", "label": "Primer día de Infantil 3 años",
+            "leaf": {"weekday": "jue", "day": "10", "month": "sept"},
             "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
                 "text": "Ha empezado", "search": "leo"}]}]
     }
@@ -46,7 +47,9 @@
         {{#groups}}
         <details class="turno-p" open id="curso{{offerid}}">
             <summary><span class="hora">{{title}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
-            <div class="pd-fecha{{#missing}} pd-falta{{/missing}}{{#asked}} pd-pide{{/asked}}">
+            <div class="pd-fecha{{#missing}} pd-falta{{/missing}}{{#asked}} pd-pide{{/asked}}{{#general}} pd-general{{/general}}{{#confirmed}} pd-confirmada{{/confirmed}}">
+                <span class="hoja-cal pd-hoja" aria-hidden="true">{{#leaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/leaf}}{{#confirmed}}<i class="pd-sello">{{{i.check}}}</i>{{/confirmed}}</span>
+                <div class="pd-texto">
                 <p class="pd-dia"><b>{{daytext}}</b>{{#general}} <span>{{#str}}panel_firstday_course_general, local_oksigeniaeguahe{{/str}}</span>{{/general}}{{#confirmed}} <span>{{confirmed}}</span>{{/confirmed}}</p>
                 {{#check}}<p class="pd-pregunta">{{#str}}panel_firstday_course_check, local_oksigeniaeguahe{{/str}}</p>{{/check}}
                 {{#canact}}
@@ -64,6 +67,7 @@
                     </form>
                 </div>
                 {{/canact}}
+                </div>
             </div>
             {{#rows}}
             <div class="empieza{{#started}} ya{{/started}}" id="n{{id}}" data-buscar="{{search}}">

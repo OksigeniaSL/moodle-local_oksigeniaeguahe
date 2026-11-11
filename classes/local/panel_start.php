@@ -91,6 +91,8 @@ class panel_start {
                 'check' => $kind === 'check',
                 'asked' => $kind !== '',
                 'value' => $first ? userdate($first, '%Y-%m-%d') : '',
+                // The leaf of a calendar for its day, as the next open days of the inbox; none while it has no day.
+                'leaf' => $first ? panel::leaf($first) : false,
                 'label' => get_string('panel_firstday_course_label', $c, format_string($offer->name)),
             ];
         }
@@ -131,10 +133,17 @@ class panel_start {
         $centre = centres::get($centreid);
         foreach ($centre ? firstdays::asking($centre, time()) : [] as $ask) {
             $name = format_string($ask['offer']->name);
-            $asks[] = ['url' => $url . '#curso' . (int) $ask['offer']->id, 'text' => $ask['kind'] === 'missing' ?
+            $missing = $ask['kind'] === 'missing';
+            $asks[] = ['url' => $url . '#curso' . (int) $ask['offer']->id, 'text' => $missing ?
                 get_string('panel_firstday_ask_missing', self::C, $name) :
                 get_string('panel_firstday_ask_check', self::C, (object) ['course' => $name,
-                    'day' => userdate($ask['day'], $format)])];
+                    'day' => userdate($ask['day'], $format)]),
+                // In the inbox each question is a row as the next open days: the leaf of its day (blank without one),
+                // what is asked and, under it, a quiet line.
+                'leaf' => $missing ? false : panel::leaf((int) $ask['day']),
+                'title' => $missing ? get_string('panel_firstday_ask_missing', self::C, $name) : $name,
+                'sub' => $missing ? get_string('panel_firstday_course_none', self::C) :
+                    get_string('panel_firstday_course_check', self::C)];
         }
         return [
             'url' => $url,

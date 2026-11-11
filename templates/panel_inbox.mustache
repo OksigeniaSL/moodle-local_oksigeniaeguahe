@@ -175,7 +175,10 @@
                 {{#firstday}}
                 <section class="bloque bloque-primer-dia">
                     <h3>{{#str}}panel_firstday, local_oksigeniaeguahe{{/str}}</h3>
-                    {{#hasasks}}<ul class="pd-pide-lista">{{#asks}}<li><a class="enlace" href="{{url}}">{{text}}</a></li>{{/asks}}</ul>{{/hasasks}}
+                    {{#hasasks}}<ul class="pd-pide-lista">{{#asks}}<li><a class="acto-corto pd-pide-fila" href="{{url}}" aria-label="{{text}}">
+                        <span class="hoja-cal{{^leaf}} pd-hoja-vacia{{/leaf}}" aria-hidden="true">{{#leaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/leaf}}</span>
+                        <span class="que"><b>{{title}}</b><span class="secundario">{{sub}}</span></span>
+                    </a></li>{{/asks}}</ul>{{/hasasks}}
                     <p><a class="enlace" href="{{url}}">{{text}}</a></p>
                 </section>
                 {{/firstday}}

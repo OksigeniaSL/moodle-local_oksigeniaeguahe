@@ -10589,23 +10589,79 @@ a.quien-cita:focus-visible {
 
 .pd-pide-lista {
     display: grid;
-    gap: 4px;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     padding: 0;
     list-style: none;
-    font-weight: 650;
 }
 
-/* The first day of each course, under its name: the date, whose it is, and what Eguahe asks when it asks. */
+.pd-pide-lista li + li .acto-corto {
+    border-top: 1px solid var(--eg-linea);
+}
+
+.pd-pide-fila .que b {
+    font-weight: 700;
+}
+
+/* A course with no day yet: its leaf of the calendar, blank and dashed, waiting to be written. */
+.pd-hoja-vacia,
+.pd-falta .pd-hoja {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--eg-borde);
+}
+
+/* The first day of each course, under its name, as the leaf of a calendar (the one of the next open days): the day in
+   aubergine when it is the course's own, in the quiet ink when it is the general one of the centre, a little round
+   stamp once it was confirmed, blank while there is none. What Eguahe asks, beside it. */
 .pd-fecha {
     display: grid;
-    gap: 10px;
-    padding: 12px 16px 14px;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 10px 16px;
+    padding: 14px 16px;
     border-block: 1px solid var(--eg-linea);
 }
 
 .pd-fecha.pd-pide {
     background: var(--eg-hundido);
+}
+
+.pd-hoja {
+    position: relative;
+    margin-top: 2px;
+}
+
+.pd-hoja b {
+    color: var(--eg-acento);
+}
+
+.pd-general .pd-hoja b {
+    color: var(--eg-tinta-2);
+}
+
+.pd-sello {
+    position: absolute;
+    top: -7px;
+    inset-inline-end: -7px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--eg-acento);
+    color: var(--eg-sobre-accion);
+    box-shadow: 0 0 0 2px var(--eg-superficie);
+}
+
+.pd-sello .ic {
+    width: 13px;
+    height: 13px;
+}
+
+.pd-texto {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
 }
 
 .pd-dia,
