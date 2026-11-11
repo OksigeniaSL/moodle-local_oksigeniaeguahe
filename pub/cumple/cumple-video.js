@@ -626,13 +626,41 @@
         });
     };
 
+    /**
+     * The metadata of an AAC packet with its description as the bare AudioSpecificConfig mp4-muxer expects. Safari on
+     * the iPhone gives the whole ES_Descriptor of its encoder instead; wrapped again, players read an AAC with no
+     * channels and stay silent (iPhone 11 Pro, iOS 26.6.1, 11 November 2026). A real AudioSpecificConfig never starts
+     * with 0x03 (object type 0): for that one, or for none, the config of AAC-LC is written from the rate and channels.
+     *
+     * @param {Object|undefined} meta What AudioEncoder gives with a packet.
+     * @return {Object|undefined}
+     */
+    var plainAac = function(meta) {
+        var dc = meta && meta.decoderConfig;
+        var d = dc && dc.description;
+        var bytes = !d ? null : ArrayBuffer.isView(d) ? new Uint8Array(d.buffer, d.byteOffset, d.byteLength) :
+            new Uint8Array(d);
+        if (!dc || (bytes && bytes.length && bytes[0] !== 0x03)) {
+            return meta;
+        }
+        var rate = dc.sampleRate || RATE;
+        var channels = dc.numberOfChannels || 1;
+        var index = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350]
+            .indexOf(rate);
+        if (index < 0) {
+            return meta;
+        }
+        return {decoderConfig: {codec: dc.codec, sampleRate: rate, numberOfChannels: channels,
+            description: new Uint8Array([(2 << 3) | (index >> 1), ((index & 1) << 7) | (channels << 3)])}};
+    };
+
     var encodeSound = function(buffer, muxer, config) {
         var failed = null;
         var packets = 0;
         var encoder = new root.AudioEncoder({
             output: function(chunk, meta) {
                 var aac = config.codec !== 'opus';
-                muxer.addAudioChunk(chunk, meta, aac ? packets * 1024 * 1e6 / RATE : chunk.timestamp);
+                muxer.addAudioChunk(chunk, aac ? plainAac(meta) : meta, aac ? packets * 1024 * 1e6 / RATE : chunk.timestamp);
                 packets++;
             },
             error: function(e) {

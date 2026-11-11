@@ -10770,12 +10770,12 @@ a.quien-cita:focus-visible {
 }
 
 .kit-dia-day::before {
-    border-color: var(--c-acento-vivo, var(--eg-acento));
-    background: var(--c-acento-vivo, var(--eg-acento));
+    border-color: var(--eg-acento);
+    background: var(--eg-acento);
 }
 
 .kit-dia-day b {
-    color: var(--c-acento-texto, var(--eg-tinta));
+    color: var(--eg-acento);
 }
 
 @media (min-width: 900px) {
@@ -10891,9 +10891,9 @@ a.quien-cita:focus-visible {
 }
 
 .kit-canal-hecho .kit-canal-marca {
-    border-color: var(--c-acento-vivo, var(--eg-acento));
-    background: var(--c-acento-vivo, var(--eg-acento));
-    color: var(--c-sobre-vivo, var(--eg-sobre-accion));
+    border-color: var(--eg-acento);
+    background: var(--eg-acento);
+    color: var(--eg-sobre-accion);
 }
 
 .kit-canal-espera .kit-canal-marca {
