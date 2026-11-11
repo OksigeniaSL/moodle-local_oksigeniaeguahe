@@ -17,22 +17,51 @@
 {{!
     @template local_oksigeniaeguahe/public_tags
 
-    The label of each child alone, stuck down like a stamp, with the name used at home written by hand: the same label
-    as on the backpack, without the backpack. It goes with the survey after the visit, in the corner of its sheet on a
-    phone and large beside it on a wide screen (the place where it goes gives its size). Drawings only: the name is in
-    the heading of the page. It takes the context of public_pegs.
+    What hangs from the knob of each child, alone, stuck down like a stamp, with the name used at home: the same thing
+    the knob shows for its age (object, from the ladder of data/escalera.json, as in public_pegs). The label of the
+    backpacks for the young ones (mochila, escolar, figura, llavero; and without object, as on the sign-up); the luggage
+    tag of cream card, with its reinforced hole and its cord, from twelve (equipaje); and the card of the lanyard, with
+    the band in the colour of the centre and the name printed, from sixteen (credencial), with a plain lanyard from
+    eighteen (credencial-neutra). The three are drawn and the class of the svg shows one (pub/eguahe.css); each leaves the name the room that fit()
+    in pub/eguahe.js gives it, 35 wide at 13. It goes with
+    the survey after the visit, in the corner of its sheet on a phone and large beside it on a wide screen (the place
+    where it goes gives its size). Drawings only: the name is in the heading of the page. It takes the context of
+    public_pegs.
 
     Example context (json):
-    {"count": 2, "pegs": [{"name": "Leo"}, {"name": "Noa"}]}
+    {"count": 3, "pegs": [{"name": "Leo", "object": "mochila"}, {"name": "Juan", "object": "equipaje"},
+        {"name": "Ana", "object": "credencial"}]}
 }}
 <div class="sellos-etiqueta n{{count}}" aria-hidden="true">
     {{#pegs}}
-    <svg class="sello-etiqueta" viewBox="-27 -20 54 40" focusable="false">
-        <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
-        <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z"/>
-        <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
-        <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
-        <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+    <svg class="sello-etiqueta sello-de-{{object}}" viewBox="-27 -20 54 40" focusable="false">
+        <g class="mochila de-etiqueta">
+            <path class="halo" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z" stroke-width="3.5" stroke-linejoin="round"/>
+            <path class="borde" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 12 Q23 16 19 16 L-19 16 Q-23 16 -23 12 Z"/>
+            <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 11.8 Q20.6 13.8 18.6 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+            <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z"/>
+            <text class="mano" x="-3" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+        </g>
+        <g class="mochila de-equipaje">
+            <path class="halo" d="M-14.5 -13.5 L21.5 -13.5 Q23.5 -13.5 23.5 -11.5 L23.5 11.5 Q23.5 13.5 21.5 13.5 L-14.5 13.5 L-22.5 5.5 L-22.5 -5.5 Z" stroke-width="3.5" stroke-linejoin="round"/>
+            <path class="carton" fill-rule="evenodd" d="M-14.5 -13.5 L21.5 -13.5 Q23.5 -13.5 23.5 -11.5 L23.5 11.5 Q23.5 13.5 21.5 13.5 L-14.5 13.5 L-22.5 5.5 L-22.5 -5.5 Z M-17.9 0 A1.6 1.6 0 1 0 -14.7 0 A1.6 1.6 0 1 0 -17.9 0 Z"/>
+            <path class="filete" d="M-13.2 -11.3 L20.9 -11.3 Q21.3 -11.3 21.3 -10.9 L21.3 10.9 Q21.3 11.3 20.9 11.3 L-13.2 11.3 L-20.3 4.6 L-20.3 -4.6 Z"/>
+            <path class="borde" fill-rule="evenodd" d="M-19.9 0 A3.6 3.6 0 1 0 -12.7 0 A3.6 3.6 0 1 0 -19.9 0 Z M-17.9 0 A1.6 1.6 0 1 0 -14.7 0 A1.6 1.6 0 1 0 -17.9 0 Z"/>
+            <path class="cordel" d="M-16.3 -1.2 C-18.2 -8.5 -24.5 -13.5 -29 -11.2 M-16.3 -1.2 C-19.5 -6.2 -25 -8.6 -29.6 -6.4"/>
+            <path class="renglon" opacity="0.5" d="M-9 7.6 L18 7.6 L18 8.4 L-9 8.4 Z"/>
+            <text class="mano" x="4.5" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+        </g>
+        <g class="mochila de-credencial">
+            <path class="halo" d="M-22 -11.6 Q-22 -14 -19.6 -14 L19.6 -14 Q22 -14 22 -11.6 L22 11.6 Q22 14 19.6 14 L-19.6 14 Q-22 14 -22 11.6 Z" stroke-width="3.5" stroke-linejoin="round"/>
+            <path class="cinta" d="M-3.6 -12.6 C-5.4 -16.4 -8.2 -18.6 -12.4 -19.4 L-11.6 -21.4 C-6.6 -20.4 -3.2 -17.6 -1.2 -13.2 Z M3.6 -12.6 C5.2 -16.6 7.6 -19 11.6 -20.4 L12.6 -18.6 C9 -17.4 6.8 -15.4 5.6 -12.2 Z"/>
+            <path class="hilo" d="M-2.9 -13 C-4.9 -17.2 -7.9 -19.4 -12 -20.3 L-11.9 -20.6 C-7.6 -19.7 -4.6 -17.4 -2.5 -13.2 Z M4.4 -12.8 C6 -16.6 8.4 -18.9 12.1 -19.6 L12.2 -19.3 C8.6 -18.6 6.4 -16.4 4.8 -12.6 Z"/>
+            <path class="gancho" d="M-2.6 -14.8 L2.6 -14.8 L2.2 -12.4 L-2.2 -12.4 Z"/>
+            <path class="papel" d="M-22 -11.6 Q-22 -14 -19.6 -14 L19.6 -14 Q22 -14 22 -11.6 L22 11.6 Q22 14 19.6 14 L-19.6 14 Q-22 14 -22 11.6 Z"/>
+            <path class="borde" d="M-22 -11.6 Q-22 -14 -19.6 -14 L19.6 -14 Q22 -14 22 -11.6 L22 -7.6 L-22 -7.6 Z"/>
+            <path class="hueco" d="M-3.4 -11.4 Q-3.4 -12.2 -2.6 -12.2 L2.6 -12.2 Q3.4 -12.2 3.4 -11.4 Q3.4 -10.6 2.6 -10.6 L-2.6 -10.6 Q-3.4 -10.6 -3.4 -11.4 Z"/>
+            <path class="renglon" opacity="0.55" d="M-12 9.4 L12 9.4 L12 10.2 L-12 10.2 Z"/>
+            <text class="mano impreso" x="0" y="4.4" text-anchor="middle" font-size="13">{{name}}</text>
+        </g>
     </svg>
     {{/pegs}}
 </div>

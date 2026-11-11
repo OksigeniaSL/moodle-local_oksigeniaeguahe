@@ -2496,6 +2496,72 @@ textarea.renglones:focus-visible {
     fill: #2b2226;
 }
 
+/* The stamp is what hangs from the knob for the age (public_tags): the label of the backpacks; from twelve the luggage
+  tag, of cream card with its reinforced hole and its cord; from sixteen the card of the lanyard, the band in the
+  colour of the centre and the name printed, with a plain lanyard and a thread of the tone from eighteen. */
+.sello-etiqueta .de-equipaje,
+.sello-etiqueta .de-credencial,
+.sello-de-equipaje .de-etiqueta,
+.sello-de-credencial .de-etiqueta,
+.sello-de-credencial-neutra .de-etiqueta {
+    display: none;
+}
+
+.sello-de-equipaje .de-equipaje,
+.sello-de-credencial .de-credencial,
+.sello-de-credencial-neutra .de-credencial {
+    display: inline;
+}
+
+.sello-etiqueta .carton {
+    fill: #ecdfc6;
+}
+
+.sello-etiqueta .filete {
+    fill: none;
+    stroke: #8c8178;
+    stroke-width: 0.45;
+    opacity: 0.5;
+}
+
+.sello-etiqueta .cordel {
+    fill: none;
+    stroke: var(--mochila);
+    stroke-width: 1.3;
+    stroke-linecap: round;
+}
+
+.sello-etiqueta .cinta,
+.sello-etiqueta .hilo {
+    fill: var(--mochila);
+}
+
+.sello-etiqueta .hilo {
+    display: none;
+}
+
+.sello-de-credencial-neutra .cinta {
+    fill: var(--eg-tinta-2);
+}
+
+.sello-de-credencial-neutra .hilo {
+    display: inline;
+}
+
+.sello-etiqueta .gancho {
+    fill: var(--eg-gancho);
+}
+
+.sello-etiqueta .hueco {
+    fill: #1a1416;
+    opacity: 0.55;
+}
+
+.sello-etiqueta .impreso {
+    font-family: 'Eg Sans', sans-serif;
+    font-weight: 700;
+}
+
 .sellos-etiqueta.estampa .sello-etiqueta {
     animation: estampar 0.5s cubic-bezier(0.3, 0.7, 0.3, 1) both;
 }

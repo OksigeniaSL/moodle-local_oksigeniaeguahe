@@ -2147,6 +2147,14 @@
     "px_por_metro": 200.0,
     "nota": "La página de la familia (1366 × 768 sin barra): sus perchas (las bajas de Infantil y las altas de los mayores), sus botellas, la pizarra que saluda y la mesa con los dibujos."
    },
+   "familia-390": {
+    "imagen": "1600",
+    "escala": 0.55,
+    "x": -344.0,
+    "y": -100.0,
+    "px_por_metro": 85.0,
+    "nota": "La página de la familia en el móvil (390 × 320): los dos pomos altos junto a la puerta, con la etiqueta y la credencial de los mayores, la percha baja con los huecos 3, 4, 2, 5, 1 y 6, la pizarra y la mesa. El de la bandeja (390x844) dejaba los pomos altos en la esquina, cortados."
+   },
    "nota": "x e y: dónde cae la esquina superior izquierda de la imagen en la ventana (px CSS); escala: la que se aplica a la imagen de ese tamaño."
   }
  },

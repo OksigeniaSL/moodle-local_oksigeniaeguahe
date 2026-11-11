@@ -790,7 +790,11 @@
       if (row.last && c.waiting) {
         var bx = Math.max(0, len - 2.0 - R.banco_desde_fin_m + 0.6);
         put(fill(A.banco, { luz: light }), pz.banco, at(bx, [0, 0.03, 0.3 - 1.2]));
-        for (k = 0; k < Math.min(6, c.waiting); k++) { put(fill(A.espera, { luz: light }), pz.espera, at(bx + 0.3 + 0.3 * k, [0, -0.04, 0.3 - 1.2])); }
+        // What waits on the bench is what hangs from this course's pegs, undyed: the card of the lanyard is the same from
+        // eighteen. Without its piece (older data), the small backpack in crudo, as before.
+        var ek = kind === 'credencial-neutra' ? 'credencial' : kind, pe = A.espera_objeto && pz['espera-' + ek];
+        var fe = pe ? fill(A.espera_objeto, { objeto: ek, luz: light }) : fill(A.espera, { luz: light });
+        for (k = 0; k < Math.min(6, c.waiting); k++) { put(fe, pe || pz.espera, at(bx + 0.3 + 0.3 * k, [0, -0.04, 0.3 - 1.2])); }
       }
       row.origin = [x0, y];
       row.end = at(len);
@@ -816,7 +820,7 @@
   // The start: each [data-vestibulo] of the page, drawn with its data in the frame of its width, again when it changes.
   // The page of a family: 70 px more of floor under the frame, so the table with its drawings shows whole (Gaudí).
   var FRAMES = { '1920x1080': [1920, 1080], '1600x900': [1600, 900], '1366x768': [1366, 768], '390x844': [390, 844],
-                 familia: [1366, 838] };
+                 familia: [1366, 838], 'familia-390': [390, 320] };
   // The bar of the mock-ups the frames were made with: what shows starts under it.
   var BAR = 60;
   function withBase(value, base) {
@@ -829,8 +833,9 @@
     }
     return value;
   }
-  function frameFor(kind, width) {
-    if (kind === 'familia') { return width < 720 ? '390x844' : 'familia'; }
+  function frameFor(kind, width, V) {
+    // On a phone the family has its own frame: the hall's band of the rail left the high knobs by the door out.
+    if (kind === 'familia') { return width < 720 ? (V.bandeja.encuadres['familia-390'] ? 'familia-390' : '390x844') : 'familia'; }
     return width >= 1900 ? '1920x1080' : (width >= 1580 ? '1600x900' : (width >= 720 ? '1366x768' : '390x844'));
   }
   function dark() {
@@ -851,11 +856,12 @@
     // Shown first, so that it can be measured; without the hall drawn, the page goes back to what it shows without it.
     document.documentElement.classList.add('sala-lista');
     try {
-      var width = stage.clientWidth || window.innerWidth, key = frameFor(data.kind, width), e = V.bandeja.encuadres[key];
+      var width = stage.clientWidth || window.innerWidth, key = frameFor(data.kind, width, V), e = V.bandeja.encuadres[key];
       var nominal = FRAMES[key] || [width, stage.clientHeight];
-      var top = key === 'familia' || key === '390x844' ? 0 : BAR;
+      var phone = key === '390x844' || key === 'familia-390';
+      var top = key === 'familia' || phone ? 0 : BAR;
       // The frame was made for its own size: the whole of it in the height there is, and centred in the width.
-      var k = key === '390x844' ? 1 : Math.min(1, (stage.clientHeight || nominal[1] - top) / (nominal[1] - top));
+      var k = phone ? 1 : Math.min(1, (stage.clientHeight || nominal[1] - top) / (nominal[1] - top));
       var light = lightFor(V, data.time);
       while (sala.firstChild) { sala.removeChild(sala.firstChild); }
       var opts = { size: e.imagen, light: light, time: data.time, centre: data.centre, minPx: 15, screenScale: e.escala * k,

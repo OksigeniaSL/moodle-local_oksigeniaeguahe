@@ -77,6 +77,46 @@
     91.64,
     150.65
    ]
+  },
+  "espera-escolar": {
+   "w": 120,
+   "h": 177,
+   "ancla": [
+    63.64,
+    135.65
+   ]
+  },
+  "espera-figura": {
+   "w": 144,
+   "h": 180,
+   "ancla": [
+    89.64,
+    133.65
+   ]
+  },
+  "espera-llavero": {
+   "w": 89,
+   "h": 152,
+   "ancla": [
+    47.64,
+    123.65
+   ]
+  },
+  "espera-equipaje": {
+   "w": 120,
+   "h": 73,
+   "ancla": [
+    79.64,
+    28.65
+   ]
+  },
+  "espera-credencial": {
+   "w": 118,
+   "h": 74,
+   "ancla": [
+    79.64,
+    29.65
+   ]
   }
  },
  "archivos": {
@@ -85,6 +125,7 @@
   "pomo_cabeza": "pub/pieles/vestibulo/ropero/pomo-cabeza-{luz}.webp",
   "banco": "pub/pieles/vestibulo/ropero/banco-{luz}.webp",
   "espera": "pub/pieles/vestibulo/ropero/espera-{luz}.webp",
+  "espera_objeto": "pub/pieles/vestibulo/ropero/espera-{objeto}-{luz}.webp",
   "cosas": "pub/pieles/vestibulo/escena/{objeto}-{color}-{luz}-2400.webp"
  },
  "cosas": {
@@ -155,7 +196,7 @@
   "percha": "Se monta con «inicio», un «tramo» por plaza (el del pomo k empieza medio paso antes), «diez» entre la plaza 9 y la 10 (y 19-20…) y «fin». Cada pieza se pone con su ancla en el punto de su principio: las piezas encajan sin costura.",
   "filas": "Una percha por curso, de arriba abajo, alineadas por el principio: 1,05 m más abajo cada una (fila_px); con lista de espera, 1,6 m. Diagonales paralelas: se comparan como barras.",
   "capas": "Por fila: la percha, los pomos (fondo), las cosas de las plazas ocupadas (plaza 0 en adelante), los pomos (cabeza); el banco y las cosas que esperan, al final.",
-  "espera": "El banco va bajo el extremo de la percha (banco_desde_fin_m); en él, hasta 6 cosas iguales en crudo, a 0,3 m; más, «×12» en texto.",
+  "espera": "El banco va bajo el extremo de la percha (banco_desde_fin_m); en él, hasta 6 cosas iguales en crudo, a 0,3 m: lo que cuelga de las plazas de ese curso (espera-{objeto}; la credencial, también de 18 en adelante; la mochila pequeña, «espera»); más, «×12» en texto.",
   "escala": "Se compone a 2400 (px enteros) y se escala el conjunto (transform: scale) para que quepa.",
   "mas_de_26": "Con más de 26 plazas, el curso sigue en una segunda percha debajo («Infantil 3 años, 2.ª percha»), para que la diagonal no se salga."
  },
