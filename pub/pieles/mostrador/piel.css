@@ -708,12 +708,24 @@ body.piel-mostrador::after {
     pointer-events: none;
 }
 
+/* The title keeps at least 12rem beside the face; where the stamp does not fit beside it, the stamp goes under it, at
+  the end of its own line, with room for its turn above and, on a phone, below. */
 .piel-mostrador .turno-cab {
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: flex-start;
+    row-gap: 22px;
 }
 
 .piel-mostrador .turno-cab .turno-titulo {
+    flex: 1 1 12rem;
     padding-top: 3px;
+}
+
+@media (max-width: 719px) {
+    .piel-mostrador .sello-grande {
+        margin-bottom: 8px;
+    }
 }
 
 .piel-mostrador .sello-grande small {

@@ -2374,10 +2374,12 @@ details[open].plegado > summary h2::after {
 }
 /* The file is one grid: the handover, the wall, the conversation, what to do (the proposal and your turn) and the rest.
   In the order of the DOM on a phone; beside the conversation from 1000; from 1280 «your turn» climbs to the right
-  column, so it is in sight at 1366 without scrolling. */
+  column, so it is in sight at 1366 without scrolling. The pieces carry their area names at every width, so the phone
+  has its map too: an area name the grid does not know puts every piece in the same implicit cell, one over the other. */
 .ficha-cuerpo {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "relevo" "pared" "hilo" "accion" "lado";
     gap: 18px;
     align-items: start;
 }

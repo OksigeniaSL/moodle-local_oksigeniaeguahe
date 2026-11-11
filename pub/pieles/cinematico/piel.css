@@ -29,7 +29,8 @@ html body.panel.piel-mostrador.piel-cinematico {
     --margen: transparent;
     --cuadricula: transparent;
     --ruido: linear-gradient(transparent, transparent);
-    --ruido-sello: linear-gradient(transparent, transparent);
+    /* The stamps without their grain of ink, but seen: a fully transparent mask hid them whole (Jujol, 11 November 2026). */
+    --ruido-sello: none;
     --b-blanco: #241c29;
     --b-velo: rgba(255, 255, 255, 0.04);
     --b-area: rgba(0, 0, 0, 0.22);
