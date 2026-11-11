@@ -75,8 +75,7 @@ final class story_test extends \advanced_testcase {
         $DB->set_field(centres::OFFERS, 'story', 0, ['id' => $child->offerid]);
         $this->assertSame([], story::children($household, $centre, 'es', $now), 'The centre said no.');
         $DB->set_field(centres::OFFERS, 'story', 1, ['id' => $child->offerid]);
-        $DB->set_field(centres::T, 'firstday', $now + 40 * DAYSECS, ['id' => $centre->id]);
-        $centre = centres::get((int) $centre->id);
+        $DB->set_field(centres::OFFERS, 'firstday', $now + 40 * DAYSECS, ['id' => $child->offerid]);
         $this->assertSame([], story::children($household, $centre, 'es', $now), 'Too early.');
         $this->assertCount(1, story::children($household, $centre, 'es', $now + 25 * DAYSECS));
         $this->assertSame([], story::children($household, $centre, 'es', $now + 120 * DAYSECS), 'Long over.');
@@ -208,8 +207,8 @@ final class story_test extends \advanced_testcase {
         $now = time();
         // Without a first day, the story as soon as they enrol.
         $this->assertSame('story', story::step($household, $centre, $now)['step']);
-        $soon = $now + 10 * DAYSECS;
-        $first = make_timestamp((int) date('Y', $soon), (int) date('n', $soon), (int) date('j', $soon));
+        // The general first day of the centre, in the school year of its courses.
+        $first = make_timestamp(2027, 9, 8);
         $DB->set_field(centres::T, 'firstday', $first, ['id' => $centre->id]);
         $centre = centres::get((int) $centre->id);
         $this->assertSame('story', story::step($household, $centre, $first - 5 * DAYSECS)['step']);

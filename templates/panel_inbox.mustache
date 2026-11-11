@@ -175,6 +175,7 @@
                 {{#firstday}}
                 <section class="bloque bloque-primer-dia">
                     <h3>{{#str}}panel_firstday, local_oksigeniaeguahe{{/str}}</h3>
+                    {{#hasasks}}<ul class="pd-pide-lista">{{#asks}}<li><a class="enlace" href="{{url}}">{{text}}</a></li>{{/asks}}</ul>{{/hasasks}}
                     <p><a class="enlace" href="{{url}}">{{text}}</a></p>
                 </section>
                 {{/firstday}}

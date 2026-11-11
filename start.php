@@ -25,6 +25,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\firstdays;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_start;
 use local_oksigeniaeguahe\local\settled;
@@ -40,6 +41,21 @@ panel::setup($url, get_string('panel_firstday', $c));
 if (data_submitted()) {
     require_sesskey();
     centres::require_act((int) $centre->id);
+    $do = optional_param('do', '', PARAM_ALPHA);
+    if ($do === 'firstday' || $do === 'firstdayok') {
+        // The first day of a course: written, or said to hold.
+        $offerid = required_param('offer', PARAM_INT);
+        $offer = $DB->get_record(centres::OFFERS, ['id' => $offerid, 'centreid' => $centre->id], '*', MUST_EXIST);
+        if ($do === 'firstdayok') {
+            firstdays::confirm($offer, $centre, time());
+        } else {
+            $day = firstdays::parse(optional_param('day', '', PARAM_RAW_TRIMMED));
+            if ($day) {
+                firstdays::set($offer, $day, time());
+            }
+        }
+        redirect(new moodle_url($url, [], 'curso' . $offerid));
+    }
     $child = required_param('child', PARAM_INT);
     settled::start((int) $centre->id, $child, optional_param('started', 0, PARAM_BOOL), time());
     redirect(new moodle_url($url, [], 'n' . $child));

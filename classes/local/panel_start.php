@@ -45,6 +45,12 @@ class panel_start {
         $enrolled = 0;
         $started = 0;
         $groups = [];
+        $now = time();
+        $asking = [];
+        foreach (firstdays::asking($centre, $now) as $ask) {
+            $asking[(int) $ask['offer']->id] = $ask['kind'];
+        }
+        $format = get_string('strftimedaydate', 'langconfig');
         foreach ($courses as $course) {
             $rows = [];
             $done = 0;
@@ -66,10 +72,26 @@ class panel_start {
             }
             $enrolled += count($rows);
             $started += $done;
+            $offer = $course['offer'];
+            $first = firstdays::of($offer, $centre);
+            $own = (int) $offer->firstday > 0;
+            $kind = $asking[(int) $offer->id] ?? '';
             $groups[] = [
-                'title' => format_string($course['offer']->name),
+                'title' => format_string($offer->name),
                 'count' => get_string('panel_firstday_of', $c, (object) ['started' => $done, 'enrolled' => count($rows)]),
                 'rows' => $rows,
+                // Its first day: written, the general one of the centre, or none yet; and whether to say it holds.
+                'offerid' => (int) $offer->id,
+                'daytext' => $first ? get_string('panel_firstday_course_on', $c, userdate($first, $format)) :
+                    get_string('panel_firstday_course_none', $c),
+                'general' => $first && !$own,
+                'confirmed' => $own && (int) $offer->firstdayok && $kind !== 'check' ?
+                    get_string('panel_firstday_course_confirmed', $c, userdate((int) $offer->firstdayok, $format)) : '',
+                'missing' => !$first,
+                'check' => $kind === 'check',
+                'asked' => $kind !== '',
+                'value' => $first ? userdate($first, '%Y-%m-%d') : '',
+                'label' => get_string('panel_firstday_course_label', $c, format_string($offer->name)),
             ];
         }
         return [
@@ -102,10 +124,24 @@ class panel_start {
             return false;
         }
         $counts = settled::started($centreid, $year);
+        $url = (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false);
+        // What a person has to say about the first days now: the date of a course, or whether it holds.
+        $asks = [];
+        $format = get_string('strftimedaydate', 'langconfig');
+        $centre = centres::get($centreid);
+        foreach ($centre ? firstdays::asking($centre, time()) : [] as $ask) {
+            $name = format_string($ask['offer']->name);
+            $asks[] = ['url' => $url . '#curso' . (int) $ask['offer']->id, 'text' => $ask['kind'] === 'missing' ?
+                get_string('panel_firstday_ask_missing', self::C, $name) :
+                get_string('panel_firstday_ask_check', self::C, (object) ['course' => $name,
+                    'day' => userdate($ask['day'], $format)])];
+        }
         return [
-            'url' => (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false),
+            'url' => $url,
             'text' => $counts ? get_string('panel_firstday_link_count', self::C, (object) $counts) :
                 get_string('panel_firstday_link', self::C),
+            'asks' => $asks,
+            'hasasks' => (bool) $asks,
         ];
     }
 }

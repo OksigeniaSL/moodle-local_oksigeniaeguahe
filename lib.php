@@ -188,6 +188,17 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
             $alerts[] = ['text' => get_string($today === 1 ? 'work_today_one' : 'work_today', $c, $today),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $id]))->out(false), 'level' => 'today'];
         }
+        // The first day of a course: missing when it comes near, or to confirm when the story comes to the families.
+        $asks = \local_oksigeniaeguahe\local\firstdays::asking($centre, $now);
+        foreach (['missing', 'check'] as $kind) {
+            $these = array_filter($asks, fn($a) => $a['kind'] === $kind);
+            if ($these) {
+                $alerts[] = ['text' => get_string('work_firstday_' . $kind, $c, \local_oksigeniaeguahe\local\firstdays::names(
+                    array_column($these, 'offer')
+                )), 'url' => (new moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $id]))->out(false), 'level' => 'today',
+                    'due' => min(array_column($these, 'day'))];
+            }
+        }
         $out[] = [
             'key' => 'eguahe-' . $id,
             'title' => count($centres) > 1 ? get_string('work_title_centre', $c, format_string($centre->name)) :

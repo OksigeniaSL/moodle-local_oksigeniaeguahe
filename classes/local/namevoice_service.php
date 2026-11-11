@@ -149,14 +149,18 @@ class namevoice_service {
             }
             $centres[$centreid] = $centres[$centreid] ?? centres::get($centreid);
             $centre = $centres[$centreid];
-            $first = (int) ($centre->firstday ?? 0);
-            if (!$centre || ($first && $now > $first + story::AFTER)) {
+            if (!$centre) {
                 continue;
             }
             $offers[$child->offerid] = $offers[$child->offerid] ??
                 $DB->get_record(centres::OFFERS, ['id' => $child->offerid, 'centreid' => $centreid]);
             $offer = $offers[$child->offerid];
             if (!$offer || !story::offer_gives($offer, $centreid)) {
+                continue;
+            }
+            // Until the story is over for its course.
+            $first = firstdays::of($offer, $centre);
+            if ($first && $now > $first + story::AFTER) {
                 continue;
             }
             $key = namevoices::key($name);

@@ -293,8 +293,8 @@ class familypage {
         $by = $joined ? 'pub_by_messages' : (isset($channels['email']) ? 'pub_by_email' : (isset($channels['whatsapp']) ?
             'pub_by_whatsapp' : (isset($channels['phone']) ? 'pub_by_phone' : '')));
         $ask = $last ? self::ask_context($centre, $last, $lang, $token, $told, $by, $flags) : false;
-        $first = (int) ($centre->firstday ?? 0);
-        if ($issettled && $first && $now >= $first + DAYSECS / 2 && $now < $first + settled::FIRSTDAYASK) {
+        $first = $issettled ? firstdays::started_lately(array_values($full->children), $centre, $now, settled::FIRSTDAYASK) : 0;
+        if ($first) {
             // After the first day: how it went, as they want to tell it; it goes to whoever carries them.
             $ask = self::settled_ask(
                 $household,

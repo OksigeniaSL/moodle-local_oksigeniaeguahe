@@ -151,8 +151,8 @@ class birthdays {
      * Where a child is, for its birthday: in class, with a place and waiting for its first day, or in a family still
      * deciding. Null when it left or the way was closed.
      *
-     * In class: marked «Started», or its course has begun (the first day the centre wrote, when it is of that school
-     * year; if not, the start of the school year).
+     * In class: marked «Started», or its course has begun (the first day of its course, firstdays::of(); if there is
+     * none, the start of the school year).
      *
      * @param \stdClass $child
      * @param \stdClass|null $offer Its course.
@@ -173,11 +173,7 @@ class birthdays {
         if (!empty($child->started) || !$offer) {
             return 'class';
         }
-        $year = (int) substr((string) $offer->schoolyear, 0, 4);
-        $first = (int) ($centre->firstday ?? 0);
-        $tz = \core_date::get_server_timezone_object();
-        $start = $first && (int) (new \DateTimeImmutable('@' . $first))->setTimezone($tz)->format('Y') === $year ?
-            $first : imports::year_start((string) $offer->schoolyear);
+        $start = firstdays::of($offer, $centre) ?: imports::year_start((string) $offer->schoolyear);
         return $now >= $start ? 'class' : 'waiting';
     }
 

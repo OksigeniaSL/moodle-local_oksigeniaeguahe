@@ -1006,5 +1006,19 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114500, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026114700) {
+        // The first day of each course in its school year, and when a person last said it holds.
+        $table = new xmldb_table('local_oksigeniaeguahe_offer');
+        $field = new xmldb_field('firstday', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'teacher');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('firstdayok', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'firstday');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026114700, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

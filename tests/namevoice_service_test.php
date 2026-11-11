@@ -70,9 +70,9 @@ final class namevoice_service_test extends \advanced_testcase {
         $this->assertSame(['es/nombre/leo' => ['es', 'nombre', 'Leo', 'eguahe-first-day']], namevoice_service::wanted($now));
         $DB->update_record(centres::OFFERS, (object) ['id' => $child->offerid, 'teacher' => 'maestro']);
         $this->assertSame(['es/nombre-maestro/leo'], array_keys(namevoice_service::wanted($now)));
-        $DB->set_field(centres::T, 'firstday', $now - 61 * DAYSECS, ['id' => $centre->id]);
+        $DB->set_field(centres::OFFERS, 'firstday', $now - 61 * DAYSECS, ['id' => $child->offerid]);
         $this->assertSame([], namevoice_service::wanted($now), 'Their story has passed.');
-        $DB->set_field(centres::T, 'firstday', $now + 90 * DAYSECS, ['id' => $centre->id]);
+        $DB->set_field(centres::OFFERS, 'firstday', $now + 90 * DAYSECS, ['id' => $child->offerid]);
         $this->assertCount(1, namevoice_service::wanted($now), 'Asked early, to be ready by then.');
         // What they call them at home is what the story says.
         households::set_home_name(households::get((int) $child->householdid, (int) $centre->id), (int) $child->id, 'Leíto');

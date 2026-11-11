@@ -109,28 +109,30 @@ class story {
 
     /**
      * The children of a household who have their story now: enrolled, not gone, in a course that gives it, in the time
-     * around the first day; and only in a language the story is written in.
+     * around the first day of their course (firstdays::of(); without one, from when they enrol); and only in a
+     * language the story is written in.
      *
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $lang
      * @param int $now
-     * @return \stdClass[] Children.
+     * @return \stdClass[] Children, by id.
      */
     public static function children(\stdClass $household, \stdClass $centre, string $lang, int $now): array {
         global $DB;
         if (!in_array($lang, self::LANGS, true)) {
             return [];
         }
-        $first = (int) ($centre->firstday ?? 0);
-        if ($first && ($now < $first - self::BEFORE || $now > $first + self::AFTER)) {
-            return [];
-        }
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $out = [];
         foreach (households::full($household)->children as $child) {
             $offer = $offers[$child->offerid] ?? null;
-            if ($child->stage === 'enrolled' && empty($child->lefttime) && $offer && self::offer_gives($offer, (int) $centre->id)) {
+            $gives = $offer && self::offer_gives($offer, (int) $centre->id);
+            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || !$gives) {
+                continue;
+            }
+            $first = firstdays::of($offer, $centre);
+            if (!$first || ($now >= $first - self::BEFORE && $now <= $first + self::AFTER)) {
                 $out[$child->id] = $child;
             }
         }
@@ -138,21 +140,23 @@ class story {
     }
 
     /**
-     * What a person of the team has to write to a family around the first day, today: their story in the days before
-     * (when a child has it), the eve, and «How was their first day?» in the three days after. Each one until someone
-     * writes to them in its time; never sent by itself.
+     * What a person of the team has to write to a family around the first day, today, each child by the first day of
+     * its course (firstdays::of()): «How was their first day?» in the three days after, the eve, and their story in the
+     * days before (when a child has it). Each one until someone writes to them in its time; never sent by itself.
+     * Without a first day for its course, a child gets no eve and no day after: Eguahe asks the team for the date.
      *
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param int $now
-     * @return array|null step (story, eve or after) and children (those who start).
+     * @return array|null step (story, eve or after), children (those it is about), stories (those with the story) and
+     *     first (their first day; 0 for a story with no date yet).
      */
     public static function step(\stdClass $household, \stdClass $centre, int $now): ?array {
         global $DB;
-        $kids = array_values(array_filter(
+        $kids = array_filter(
             households::full($household)->children,
             fn($c) => $c->stage === 'enrolled' && empty($c->lefttime)
-        ));
+        );
         if (!$kids) {
             return null;
         }
@@ -161,18 +165,38 @@ class story {
             'householdid = ? AND direction = ? AND timecreated >= ?',
             [$household->id, 'out', $since]
         );
-        $enrolled = max(array_map(fn($c) => (int) $c->stagetime, $kids));
-        $first = (int) ($centre->firstday ?? 0);
-        $stories = self::children($household, $centre, (string) $household->lang, $now);
-        $step = null;
-        if ($first && $now >= $first + DAYSECS && $now < $first + 4 * DAYSECS) {
-            $step = $written($first + DAYSECS) ? null : 'after';
-        } else if ($first && $now >= $first - DAYSECS && $now < $first) {
-            $step = $written($first - DAYSECS) ? null : 'eve';
-        } else if ($stories && (!$first || $now < $first - DAYSECS)) {
-            $step = $written(max($enrolled, $first ? $first - self::BEFORE : 0)) ? null : 'story';
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
+        $firsts = [];
+        foreach ($kids as $kid) {
+            $firsts[$kid->id] = firstdays::of($offers[$kid->offerid] ?? null, $centre);
         }
-        return $step ? ['step' => $step, 'children' => $kids, 'stories' => array_values($stories), 'first' => $first] : null;
+        $stories = self::children($household, $centre, (string) $household->lang, $now);
+        $after = array_filter($kids, fn($k) => $firsts[$k->id] && $now >= $firsts[$k->id] + DAYSECS &&
+            $now < $firsts[$k->id] + 4 * DAYSECS);
+        if ($after) {
+            $first = max(array_map(fn($k) => $firsts[$k->id], $after));
+            if (!$written($first + DAYSECS)) {
+                return ['step' => 'after', 'children' => array_values($after), 'stories' => [], 'first' => $first];
+            }
+        }
+        $eve = array_filter($kids, fn($k) => $firsts[$k->id] && $now >= $firsts[$k->id] - DAYSECS && $now < $firsts[$k->id]);
+        if ($eve) {
+            $first = min(array_map(fn($k) => $firsts[$k->id], $eve));
+            if (!$written($first - DAYSECS)) {
+                return ['step' => 'eve', 'children' => array_values($eve),
+                    'stories' => array_values(array_intersect_key($stories, $eve)), 'first' => $first];
+            }
+        }
+        $soon = array_filter($stories, fn($k) => !$firsts[$k->id] || $now < $firsts[$k->id] - DAYSECS);
+        if ($soon) {
+            $dated = array_filter(array_map(fn($k) => $firsts[$k->id], $soon));
+            $first = $dated ? min($dated) : 0;
+            $enrolled = max(array_map(fn($k) => (int) $k->stagetime, $soon));
+            if (!$written(max($enrolled, $first ? $first - self::BEFORE : 0))) {
+                return ['step' => 'story', 'children' => array_values($kids), 'stories' => array_values($soon), 'first' => $first];
+            }
+        }
+        return null;
     }
 
     /**

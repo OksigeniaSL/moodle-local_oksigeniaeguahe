@@ -131,8 +131,8 @@ final class ages_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
         [$centre, $household] = $this->family(['Leo' => 'Infantil 3 años', 'Juan' => '3.º de ESO']);
-        $soon = time() + 10 * DAYSECS;
-        $first = make_timestamp((int) date('Y', $soon), (int) date('n', $soon), (int) date('j', $soon));
+        // The general first day of the centre, in the school year of its courses.
+        $first = make_timestamp(2027, 9, 8);
         $DB->set_field(centres::T, 'firstday', $first, ['id' => $centre->id]);
         $centre = centres::get((int) $centre->id);
         $full = households::full($household);

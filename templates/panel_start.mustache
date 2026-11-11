@@ -19,6 +19,8 @@
 
     The first day (start.php): the enrolled children of the school year by course, with the label of each and its
     family, and «Started» at one touch, as the door of an open day; pressed again, it undoes. A search, as at the door.
+    Each course with its own first day: written here, the general one of the centre, or none yet; when Eguahe asks
+    (firstdays::asking()), the date is missing or «Does it still hold?» waits for «Yes, it holds» or a new date.
     Without JavaScript, each touch is a form.
 
     Example context (json):
@@ -27,7 +29,9 @@
         "head": {"title": "El primer día", "ante": "Curso 2027-28", "sub": "Marquen a cada niño que empieza.",
             "back": {"url": "#", "name": "Bandeja"}, "action": false},
         "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/start.php?c=1", "sesskey": "abc",
-        "groups": [{"title": "Infantil 3 años", "count": "0 de 1",
+        "groups": [{"title": "Infantil 3 años", "count": "0 de 1", "offerid": 7,
+            "daytext": "Empieza el jueves, 10 de septiembre de 2027.", "general": false, "confirmed": "",
+            "missing": false, "check": true, "asked": true, "value": "2027-09-10", "label": "Primer día de Infantil 3 años",
             "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
                 "text": "Ha empezado", "search": "leo"}]}]
     }
@@ -40,8 +44,27 @@
             <label class="buscar"><span class="oculto">{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".empieza" placeholder="{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
         </div>
         {{#groups}}
-        <details class="turno-p" open>
+        <details class="turno-p" open id="curso{{offerid}}">
             <summary><span class="hora">{{title}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+            <div class="pd-fecha{{#missing}} pd-falta{{/missing}}{{#asked}} pd-pide{{/asked}}">
+                <p class="pd-dia"><b>{{daytext}}</b>{{#general}} <span>{{#str}}panel_firstday_course_general, local_oksigeniaeguahe{{/str}}</span>{{/general}}{{#confirmed}} <span>{{confirmed}}</span>{{/confirmed}}</p>
+                {{#check}}<p class="pd-pregunta">{{#str}}panel_firstday_course_check, local_oksigeniaeguahe{{/str}}</p>{{/check}}
+                {{#canact}}
+                <div class="pd-acciones">
+                    {{#check}}
+                    <form method="post" action="{{action}}#curso{{offerid}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="firstdayok"><input type="hidden" name="offer" value="{{offerid}}">
+                        <button class="boton principal" type="submit">{{#str}}panel_firstday_course_ok, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                    {{/check}}
+                    <form method="post" action="{{action}}#curso{{offerid}}" class="pd-cambiar">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="firstday"><input type="hidden" name="offer" value="{{offerid}}">
+                        <label><span class="oculto">{{label}}</span><input type="date" name="day" value="{{value}}" required></label>
+                        <button class="boton secundario" type="submit">{{#str}}panel_firstday_course_save, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </div>
+                {{/canact}}
+            </div>
             {{#rows}}
             <div class="empieza{{#started}} ya{{/started}}" id="n{{id}}" data-buscar="{{search}}">
                 <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{name}}</span></span></span></div>

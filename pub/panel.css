@@ -10587,6 +10587,65 @@ a.quien-cita:focus-visible {
     margin: 0;
 }
 
+.pd-pide-lista {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    font-weight: 650;
+}
+
+/* The first day of each course, under its name: the date, whose it is, and what Eguahe asks when it asks. */
+.pd-fecha {
+    display: grid;
+    gap: 10px;
+    padding: 12px 16px 14px;
+    border-block: 1px solid var(--eg-linea);
+}
+
+.pd-fecha.pd-pide {
+    background: var(--eg-hundido);
+}
+
+.pd-dia,
+.pd-pregunta {
+    margin: 0;
+}
+
+.pd-dia span {
+    color: var(--eg-tinta-2);
+}
+
+.pd-falta .pd-dia b,
+.pd-pregunta {
+    color: var(--eg-acento);
+    font-weight: 720;
+}
+
+.pd-acciones,
+.pd-cambiar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.pd-cambiar input {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: var(--radio-campo);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font-size: 1rem;
+}
+
+.pd-cambiar input:focus {
+    border-color: var(--eg-acento);
+    box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+}
+
 /* The brothers and sisters for later in the file: when it would be their turn, and noting one more. */
 .hermanos-luego {
     display: grid;
