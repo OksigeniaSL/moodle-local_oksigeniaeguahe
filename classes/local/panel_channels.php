@@ -442,12 +442,16 @@ class panel_channels {
         }
         $events = $DB->get_records_menu(events::T, ['centreid' => $centre->id], '', 'id, name');
         $posts = [];
-        foreach (\local_oksigeniamarandu\api::channel_stats(self::C, channel::KIND) as $stat) {
-            $id = (int) preg_replace('/^' . preg_quote(channel::KIND, '/') . '-/', '', (string) $stat['key']);
+        foreach (\local_oksigeniamarandu\api::channel_stats(self::C) as $stat) {
+            [$id, $moment] = channel::of_key((string) $stat['key']) ?? [0, ''];
             if (!isset($events[$id]) || empty($stat['timepublished']) || $stat['timepublished'] < $bounds[12]) {
                 continue;
             }
-            $posts[] = $stat + ['name' => format_string($events[$id])];
+            // Each moment of an act is a post of its own: after the announcement, it says which one.
+            $name = format_string($events[$id]);
+            $posts[] = $stat + ['name' => $moment === 'announce' ? $name :
+                get_string('panel_channel_post_moment', $c, (object) ['act' => $name,
+                    'moment' => \core_text::strtolower(get_string('kit_channel_moment_' . $moment, $c))])];
         }
         if (!$posts) {
             return false;

@@ -93,13 +93,14 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
 }
 
 /**
- * What admissions posts in the channel of Telegram of the organisation, with Oksigenia Marandu: the open days, after
- * whoever reviews them unless the site says otherwise. Their names are in the language packs.
+ * What admissions posts in the channel of Telegram of the organisation, with Oksigenia Marandu: the announcement of each
+ * open day, and the rest of the moments of every open act (local\channel), after whoever reviews them unless the site
+ * says otherwise. Their names are in the language packs.
  *
  * @return array By kind of post: its settings ([] for those of the site).
  */
 function local_oksigeniaeguahe_oksigeniamarandu_posts(): array {
-    return ['open_day' => []];
+    return ['open_day' => [], 'act' => []];
 }
 
 /**

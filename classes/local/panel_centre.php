@@ -66,6 +66,7 @@ class panel_centre {
         $messaging = [];
         if (messaging::available()) {
             $index['mensajes'] = 'centre_messaging';
+            $index['canal'] = 'centre_channel';
             $mode = messaging::mode($centre);
             foreach (messaging::MODES as $value) {
                 $messaging[] = ['value' => $value, 'name' => get_string('centre_messaging_' . $value, $c),
@@ -128,6 +129,7 @@ class panel_centre {
                 get_string('panel_siblingage_none', $c), 'selected' => $n === (int) ($centre->siblingage ?? 0)], range(0, 12)),
             'hasmessaging' => (bool) $messaging,
             'messaging' => $messaging,
+            'channel' => self::channel_settings($centre, time()),
             'controller' => (string) $centre->controller,
             'rights' => (string) $centre->rightscontact,
             'dpo' => (string) $centre->dpocontact,
@@ -144,6 +146,54 @@ class panel_centre {
                 'locked' => !has_capability('local/oksigeniaeguahe:manage', \context_system::instance()),
                 'lockednote' => get_string('centre_ai_locked', $c)],
             'share' => self::share_settings($centre),
+        ];
+    }
+
+    /**
+     * The channel of Telegram, in the settings: the channel the site posts in, what goes by itself of each open act, and
+     * what waits to go out. False without Marandu.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array|false
+     */
+    protected static function channel_settings(\stdClass $centre, int $now) {
+        $c = self::C;
+        if (!messaging::available()) {
+            return false;
+        }
+        $info = channel::info();
+        $auto = channel::auto($centre);
+        $moments = [];
+        foreach (channel::MOMENTS as $moment) {
+            $moments[] = ['value' => $moment, 'name' => get_string('kit_channel_moment_' . $moment, $c),
+                'help' => get_string('panel_channel_auto_' . $moment, $c), 'checked' => in_array($moment, $auto, true)];
+        }
+        $coming = [];
+        foreach (array_slice(channel::coming($centre, $now), 0, 8) as $row) {
+            $time = (int) ($row['state']['time'] ?? 0);
+            $coming[] = [
+                'act' => format_string($row['event']->name),
+                'moment' => get_string('kit_channel_moment_' . $row['moment'], $c),
+                'when' => $time ? userdate($time, get_string('strftimedaydatetime', 'langconfig')) :
+                    get_string('panel_channel_notime', $c),
+                'review' => $row['state']['status'] === 'review',
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $row['event']->id], 'canal'))->out(false),
+            ];
+        }
+        $system = \context_system::instance();
+        $marandu = get_capability_info('local/oksigeniamarandu:channel') &&
+            has_capability('local/oksigeniamarandu:channel', $system) ?
+            (new \moodle_url('/local/oksigeniamarandu/channel.php'))->out(false) : '';
+        return [
+            'ready' => channel::ready(),
+            'title' => (string) ($info['title'] ?? ''),
+            'url' => (string) ($info['url'] ?? ''),
+            'members' => isset($info['members']) ? get_string('panel_channel_members', $c, (int) $info['members']) : '',
+            'marandu' => $marandu,
+            'moments' => $moments,
+            'coming' => $coming,
+            'hascoming' => (bool) $coming,
         ];
     }
 
@@ -426,6 +476,12 @@ class panel_centre {
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);
         }
+        $channelauto = null;
+        if (optional_param('channelshown', 0, PARAM_BOOL)) {
+            // The moments of each open act that go by themselves to the channel of Telegram.
+            $data->channelauto = optional_param_array('channelauto', [], PARAM_ALPHA);
+            $channelauto = channel::auto_value($data->channelauto);
+        }
         $transaction = $DB->start_delegated_transaction();
         centres::update((int) $centre->id, $data);
         if (!self::keep_picture('logo', null, 'logo', (int) $centre->id, self::LOGOS)) {
@@ -490,6 +546,10 @@ class panel_centre {
             }
         }
         $transaction->allow_commit();
+        if ($channelauto !== null && $channelauto !== channel::auto_value(channel::auto($centre))) {
+            // What goes by itself changed: the open acts follow it now.
+            channel::resync(centres::get((int) $centre->id));
+        }
         return $problems;
     }
 

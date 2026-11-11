@@ -25,6 +25,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['channel_act_button'] = 'سجّلوا الآن';
+$string['channel_act_kicker'] = 'مفتوح للجميع';
+$string['channel_day_button'] = 'كيف تصلون';
+$string['channel_day_kicker'] = 'اليوم';
+$string['channel_last_kicker'] = 'تذكير أخير';
 $string['channel_open_day_button'] = 'احجزوا زيارة';
 $string['channel_open_day_invite'] = 'تعالوا وتعرّفوا علينا';
 $string['channel_open_day_kicker'] = 'يوم الأبواب المفتوحة';

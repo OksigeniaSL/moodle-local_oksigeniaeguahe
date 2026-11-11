@@ -986,5 +986,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114300, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026114400) {
+        // The moments of each open act that go by themselves to the channel of Telegram; null, the announcement only.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('channelauto', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'networks');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026114400, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

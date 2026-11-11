@@ -17,8 +17,9 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * The data of the page of the kit of an act for the networks, apart from its template: when to post, the link of each
- * network, the pictures, the texts (by the AI of the centre or by rules) and the script.
+ * The data of the page of the kit of an act for the networks, apart from its template: when to post, the moments in
+ * the channel of Telegram (with a click or at a time), the link of each network, the pictures, the texts (by the AI of
+ * the centre or by rules) and the script.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -65,6 +66,7 @@ class panel_kit {
                     'name' => format_string($event->name)],
             ]),
             'when' => kit::when($event, (string) $centre->lang, $now),
+            'channel' => self::channel($event, $centre, $canact, $now),
             'links' => kit::links($event, $centre),
             'pictures' => $pictures,
             'posterurl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'poster' => 1]))->out(false),
@@ -81,5 +83,78 @@ class panel_kit {
             'action' => $url->out(false),
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * The moments of the act in the channel of Telegram: when each would go by itself, where its post is, and what a
+     * person can do: post it now, at a time, not post it or take it out, or leave it as the centre says. False without
+     * Marandu.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function channel(\stdClass $event, \stdClass $centre, bool $canact, int $now) {
+        $c = self::C;
+        if (!messaging::available()) {
+            return false;
+        }
+        $info = channel::info();
+        $out = ['ready' => channel::ready(), 'title' => $info['title'] ?? '', 'url' => $info['url'] ?? '',
+            'none' => get_string('kit_channel_none', $c), 'moments' => []];
+        if (!$out['ready']) {
+            return $out;
+        }
+        $when = fn(int $time) => userdate($time, get_string('strftimedaydatetime', 'langconfig'));
+        $can = $canact && channel::public($event, $now);
+        $known = channel::knows_state();
+        $start = (int) $event->timestart;
+        foreach (channel::moments($event, $centre, $now) as $m) {
+            $status = (string) ($m['state']['status'] ?? '');
+            $time = (int) ($m['state']['time'] ?? 0);
+            $waiting = in_array($status, ['review', 'ready'], true);
+            $published = $status === 'published';
+            $choice = (string) ($m['choice']['do'] ?? '');
+            if ($waiting) {
+                $state = $time ? get_string('kit_channel_' . $status, $c, $when($time)) :
+                    get_string($status === 'review' ? 'kit_channel_review_notime' : 'kit_channel_nofit', $c);
+            } else if ($published) {
+                $state = get_string('kit_channel_published', $c, $when($time));
+            } else if (in_array($status, ['skipped', 'expired', 'failed'], true)) {
+                $state = get_string('kit_channel_' . $status, $c);
+            } else if (in_array($status, ['cancelled', 'remove', 'removed'], true) || $choice === 'off') {
+                $state = get_string('kit_channel_cancelled', $c);
+            } else if ($m['day'] && $m['day'] < $now) {
+                $state = get_string('kit_channel_past', $c);
+            } else if (!$known) {
+                // An older Marandu does not tell where a post is: what was asked, and no more.
+                $state = get_string($m['auto'] || $choice !== '' ? 'kit_channel_asked' : 'kit_channel_click', $c);
+            } else {
+                $state = get_string($m['auto'] ? 'kit_channel_auto_none' : 'kit_channel_click', $c);
+            }
+            $moment = $m['moment'];
+            // To schedule: its day at ten, or within the hour; never after the act starts.
+            $value = min(max($m['day'] ? $m['day'] + 10 * HOURSECS : 0, $now + HOURSECS), $start - HOURSECS);
+            $out['moments'][] = [
+                'moment' => $moment,
+                'name' => get_string('kit_channel_moment_' . $moment, $c),
+                'day' => $m['day'] ? userdate($m['day'], get_string('strftimedaydate', 'langconfig')) :
+                    get_string('kit_channel_day_now', $c),
+                'alone' => $m['auto'] && $choice === '' ? get_string('kit_channel_alone', $c) : '',
+                'state' => $state,
+                'tone' => $published ? 'hecho' : ($waiting ? 'espera' : ''),
+                'cannow' => $can && !$published,
+                'canat' => $can && !$published,
+                'canoff' => $can && ($waiting || $published || (!$known && ($m['auto'] || in_array($choice, ['now', 'at'], true)))),
+                'offlabel' => get_string($published ? 'kit_channel_remove' : 'kit_channel_off', $c),
+                'canreset' => $can && $choice !== '',
+                'min' => userdate($now + 5 * MINSECS, '%Y-%m-%dT%H:%M'),
+                'max' => userdate($start - MINSECS, '%Y-%m-%dT%H:%M'),
+                'value' => userdate($value, '%Y-%m-%dT%H:%M'),
+            ];
+        }
+        return $out;
     }
 }

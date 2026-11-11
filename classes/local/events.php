@@ -146,8 +146,8 @@ class events {
         if (isset($data->slots) && is_array($data->slots)) {
             self::save_slots(self::get($row->id, $centreid), $data->slots);
         }
-        // An open day to the channel of the organisation, changed, or taken back (with Marandu).
-        channel::open_day(self::get($row->id, $centreid));
+        // The moments of an open act in the channel of the organisation, changed, or taken back (with Marandu).
+        channel::sync(self::get($row->id, $centreid));
         return $row->id;
     }
 

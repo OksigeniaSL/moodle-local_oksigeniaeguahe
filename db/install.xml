@@ -40,6 +40,7 @@
         <FIELD NAME="siblingage" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The age children enter at, to tell a family the year before a brother or sister turns it; 0, children do not enter by age here"/>
         <FIELD NAME="invitegone" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the families that left are still invited to open acts; 0, they are left in peace"/>
         <FIELD NAME="networks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The networks a family may name when it heard of the centre on one, one per line, as the centre writes them; empty, the usual ones"/>
+        <FIELD NAME="channelauto" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The moments of each open act that go by themselves to the channel of Telegram, comma separated (announce, tell, last, day); null, the announcement only"/>
         <FIELD NAME="firstday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day of the next school year, for the story of the children who start; 0, not written"/>
         <FIELD NAME="namephrase" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The name of the centre as it is said in a sentence, with its article if it has one"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

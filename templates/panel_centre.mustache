@@ -39,6 +39,11 @@
         "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
+        "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "members": ", con 120 personas",
+            "marandu": "", "hascoming": true,
+            "moments": [{"value": "announce", "name": "Anunciarlo", "help": "En cuanto se abre la inscripción.", "checked": true}],
+            "coming": [{"act": "Jornada de puertas abiertas", "moment": "El último aviso", "when": "jueves, 19 de noviembre de 2026, 08:00",
+                "review": true, "url": "#"}]},
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "", "networks": "Instagram",
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
@@ -136,6 +141,26 @@
                 </div>
             </section>
             {{/hasmessaging}}
+            {{#channel}}
+            <section class="apartado" id="aj-canal" aria-labelledby="aj-canal-t">
+                <header><h2 id="aj-canal-t">{{#str}}centre_channel, local_oksigeniaeguahe{{/str}}</h2></header>
+                {{#ready}}
+                <p class="def">{{#str}}panel_channel_in, local_oksigeniaeguahe{{/str}} {{#url}}<a href="{{url}}" target="_blank" rel="noopener">{{title}}</a>{{/url}}{{^url}}{{title}}{{/url}}{{members}}.{{#marandu}} <a href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</p>
+                <input type="hidden" name="channelshown" value="1">
+                <h3 id="aj-canal-solo">{{#str}}panel_channel_auto, local_oksigeniaeguahe{{/str}}</h3>
+                <div class="casillas casillas-2" role="group" aria-labelledby="aj-canal-solo">
+                    {{#moments}}<label class="casilla"><input type="checkbox" name="channelauto[]" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{name}} <span class="secundario">· {{help}}</span></span></label>{{/moments}}
+                </div>
+                <p class="def">{{#str}}panel_channel_auto_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#hascoming}}
+                <h3>{{#str}}panel_channel_coming, local_oksigeniaeguahe{{/str}}</h3>
+                <ul class="lista-canal">{{#coming}}<li><a href="{{url}}"><b>{{act}}</b></a> · {{moment}} · {{when}}{{#review}} <span class="secundario">{{#str}}panel_channel_waits_review, local_oksigeniaeguahe{{/str}}</span>{{/review}}</li>{{/coming}}</ul>
+                {{/hascoming}}
+                {{/ready}}
+                {{^ready}}<p class="def">{{#str}}panel_channel_none, local_oksigeniaeguahe{{/str}}{{#marandu}} <a href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</p>{{/ready}}
+                <p class="def">{{#str}}panel_channel_whatsapp, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/channel}}
             <section class="apartado" id="aj-datos" aria-labelledby="aj-datos-t">
                 <header><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2></header>
                 <div class="rejilla-2">

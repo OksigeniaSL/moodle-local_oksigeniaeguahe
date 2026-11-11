@@ -158,6 +158,11 @@ class centres {
             $phrase = trim((string) $data->namephrase);
             $row->namephrase = $phrase === '' ? null : \core_text::substr($phrase, 0, 255);
         }
+        if (isset($data->channelauto)) {
+            // The moments of each open act that go by themselves to the channel of Telegram.
+            $row->channelauto = channel::auto_value(is_array($data->channelauto) ? $data->channelauto :
+                explode(',', (string) $data->channelauto));
+        }
         if (isset($data->networks)) {
             // The networks a family may name, one per line, as the centre writes them; empty, the usual ones.
             $names = array_slice(array_unique(array_filter(array_map(

@@ -9772,6 +9772,8 @@ html.modo-lamina {
 
 .archivo-oculto {
     position: absolute;
+    top: 0;
+    inset-inline-start: 0;
     width: 1px;
     height: 1px;
     opacity: 0;
@@ -10798,6 +10800,75 @@ a.quien-cita:focus-visible {
         width: auto;
         height: 1.5px;
     }
+}
+
+/* The moments in the channel of Telegram: one row each, what it is and its day, where its post is, and what a person
+   can do. A post already out wears the colour of the centre on its edge; one that waits, a dashed edge. Functional
+   until its design. */
+.kit-momentos {
+    display: grid;
+    gap: 10px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kit-momento {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--eg-linea);
+    border-inline-start: 3px solid var(--eg-borde);
+    border-radius: 10px;
+    background: var(--eg-superficie);
+}
+
+.kit-momento-hecho {
+    border-inline-start-color: var(--c-acento-vivo, var(--eg-acento));
+}
+
+.kit-momento-espera {
+    border-inline-start-style: dashed;
+}
+
+.kit-momento-que b {
+    font-weight: 720;
+}
+
+.kit-momento-estado {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+.kit-momento-botones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.kit-programar form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (min-width: 900px) {
+    .kit-momento {
+        grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) auto;
+        align-items: start;
+    }
+}
+
+.lista-canal {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-inline-start: 1.2em;
 }
 
 /* The pictures, at their own shapes and the same height, as prints on the desk; each ready to download. */

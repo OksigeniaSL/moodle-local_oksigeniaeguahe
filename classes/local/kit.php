@@ -55,11 +55,24 @@ class kit {
      * What is kept of the kit of an act.
      *
      * @param \stdClass $event
-     * @return array links (network key => short link) and texts.
+     * @return array links (network key => short link), texts, and channel (what a person chose for each moment in the
+     *               channel of Telegram, channel::plan()).
      */
     public static function kept(\stdClass $event): array {
         $kit = json_decode((string) ($event->kit ?? ''), true);
-        return (is_array($kit) ? $kit : []) + ['links' => [], 'texts' => null];
+        return (is_array($kit) ? $kit : []) + ['links' => [], 'texts' => null, 'channel' => []];
+    }
+
+    /**
+     * Keeps what a person chose for each moment of the act in the channel.
+     *
+     * @param \stdClass $event
+     * @param array $plan As channel::plan().
+     */
+    public static function keep_channel(\stdClass $event, array $plan): void {
+        $kit = self::kept($event);
+        $kit['channel'] = $plan;
+        self::keep($event, $kit);
     }
 
     /**
