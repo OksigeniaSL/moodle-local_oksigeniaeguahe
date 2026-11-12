@@ -19,18 +19,19 @@
 
     A date as three numeric fields, day, month and year, in the order of the country of the centre
     (publicpage::date_input()), whatever the language of the browser: a field of type date writes it as its browser
-    does. The page gives the label of the date, with the id <id>-l and for the first field; the group reads it too.
+    does. The page gives the label of the date, with the id <id>-l and for the first field; the group reads it too
+    (labelled, on unless the date stands alone).
 
     Example context (json):
     {
-        "id": "c0birth", "first": "c0birthd", "form": "eg-form", "child": {"i": "0"}, "invalid": false,
-        "describedby": "c0birth-help",
+        "id": "c0birth", "first": "c0birthd", "form": false, "child": {"i": "0"}, "invalid": false,
+        "labelled": false, "describedby": false,
         "parts": [{"key": "d", "id": "c0birthd", "name": "c0birthd", "label": "Día", "value": "", "size": 2},
             {"key": "m", "id": "c0birthm", "name": "c0birthm", "label": "Mes", "value": "", "size": 2},
             {"key": "y", "id": "c0birthy", "name": "c0birthy", "label": "Año", "value": "", "size": 4}]
     }
 }}
-<div class="fecha-tres" role="group" aria-labelledby="{{id}}-l"{{#describedby}} aria-describedby="{{describedby}}"{{/describedby}}>
+<div class="fecha-tres" role="group"{{#labelled}} aria-labelledby="{{id}}-l"{{/labelled}}{{#describedby}} aria-describedby="{{describedby}}"{{/describedby}}>
     {{#parts}}
     <span class="fecha-parte fecha-{{key}}">
         <label class="fecha-nombre" for="{{id}}">{{label}}</label>

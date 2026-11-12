@@ -492,7 +492,7 @@ display: grid; }
         }
         // Off here, so the template never takes them from the page around.
         return ['id' => $id, 'first' => $parts[0]['id'], 'parts' => $parts, 'form' => false, 'child' => false,
-            'invalid' => false, 'describedby' => false];
+            'invalid' => false, 'describedby' => false, 'labelled' => true];
     }
 
     /**
