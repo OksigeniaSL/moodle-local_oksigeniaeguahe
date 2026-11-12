@@ -69,10 +69,11 @@ class panel_household {
         // The signs that a family may leave: facts with their day, never a mark.
         // What the block of next school year already says is not said twice.
         $asked = (bool) renewal::children($centre, (int) $household->id);
-        $signs = array_values(array_map(fn($sign) => ['line' => $sign['text']], array_filter(
-            renewal::signs($household, $centre, $now),
-            fn($sign) => !$asked || !in_array($sign['kind'], ['leave', 'unsure', 'none'], true)
-        )));
+        $signs = array_values(array_map(fn($sign) => ['line' => $sign['text'], 'leaf' => $sign['time'] ?
+            panel::leaf($sign['time']) : false], array_filter(
+                renewal::signs($household, $centre, $now),
+                fn($sign) => !$asked || !in_array($sign['kind'], ['leave', 'unsure', 'none'], true)
+            )));
         // The head: since when they wait, or who answered; who they are; where they came from and since when.
         $ante = '';
         $answered = null;
@@ -251,9 +252,10 @@ class panel_household {
      *
      * @param \stdClass $child
      * @param string $day The format of a date.
+     * @param int $roster When its family came from the roll of the centre; 0, through Eguahe.
      * @return string
      */
-    protected static function incentre(\stdClass $child, string $day): string {
+    protected static function incentre(\stdClass $child, string $day, int $roster = 0): string {
         $c = self::C;
         if ($child->stage !== 'enrolled') {
             return '';
@@ -264,6 +266,10 @@ class panel_household {
         }
         if ((int) ($child->started ?? 0)) {
             return get_string('panel_started_on', $c, userdate((int) $child->started, $day));
+        }
+        if ($roster && (int) $child->familychild) {
+            // Already at the centre before Eguahe: since when is not known here.
+            return get_string('panel_roster_child', $c);
         }
         return get_string('panel_incentre_since', $c, userdate((int) $child->stagetime, $day));
     }
@@ -804,7 +810,7 @@ class panel_household {
                     get_string('closed_' . $child->closedreason, $c) : '',
                 'waitlist' => $child->stage === 'waitlist',
                 // Enrolled: in the centre, and on the first day whether they started.
-                'incentre' => self::incentre($child, $day),
+                'incentre' => self::incentre($child, $day, (int) ($full->roster ?? 0)),
                 'reasons' => $reasons,
                 'canact' => $canact,
                 'label' => get_string('panel_way_of', $c, $tag),

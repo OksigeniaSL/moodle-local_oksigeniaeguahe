@@ -699,6 +699,8 @@ class households {
                 'stage' => $child->stage, 'firstchannel' => $household->firstchannel, 'month' => $month,
                 'timecreated' => time()]);
         }
+        // Brought from the roll of the centre: never brought back.
+        roster::erased($household);
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
                 forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T] as $table
@@ -742,11 +744,14 @@ class households {
      * @param int $centreid
      * @param bool $waitingonly
      * @param int $limit
+     * @param bool $roster Also the families brought from the roll of the centre that wait for nobody.
      * @return \stdClass[] Households with adults and children (with the name of their offer).
      */
-    public static function inbox(int $centreid, bool $waitingonly, int $limit = 200): array {
+    public static function inbox(int $centreid, bool $waitingonly, int $limit = 200, bool $roster = false): array {
         global $DB;
-        $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : '');
+        // The families brought from the roll of the centre come in only when they wait for someone: there may be hundreds.
+        $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ($roster ? '' :
+            ' AND (roster = 0 OR waitingsince > 0)'));
         $order = 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC';
         $list = $DB->get_records_select(self::T, $where, ['centreid' => $centreid], $order, '*', 0, $limit);
         if (!$list) {

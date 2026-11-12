@@ -21,8 +21,9 @@
     asking or once closed, the school years it can ask about, each a button; while it asks, since when and until when (a
     leaf of the calendar), writing once to whoever has not answered, and stopping. Then each course, with where its
     children go and how many go on, and its children: who does not go on first, then who does not know, who said
-    nothing and who goes on, with the three answers for what a family told a person. Without JavaScript, each touch is
-    a form.
+    nothing and who goes on, with the three answers for what a family told a person. And the families that were already
+    at the centre, from its roll (the common family record): where the course of each student comes from, the school
+    year they are in, what each cohort, group or value is, and bringing them. Without JavaScript, each touch is a form.
 
     Example context (json):
     {
@@ -36,6 +37,13 @@
                 "arialabel": "Último día para contestar", "describedby": false, "mirror": false, "value": "2027-03-15",
                 "parts": [{"key": "d", "id": "rm-hastad", "name": "untild", "label": "Día", "value": "15", "size": 2, "months": false}]},
             "tell": "Escribir a las 2 familias que no han contestado", "told": ""},
+        "roster": {"students": "312 alumnos en Family", "nameless": "24 sin cuenta de Moodle: llegan por la importación.",
+            "kinds": [{"key": "cohort", "arg": "", "label": "Por las cohortes", "pressed": true}], "kind": "cohort", "arg": "",
+            "years": [{"year": "2026-27", "label": "Curso 2026-27", "pressed": true}], "year": "2026-27", "noyear": false, "nooffer": "",
+            "hasvalues": true, "summary": "290 de 312 alumnos tienen ya su curso.", "guesses": "Dar por buenos los 3 propuestos",
+            "canbring": true, "brought": "", "open": true,
+            "values": [{"id": 0, "value": "3.º B", "count": "24 alumnos", "none": false, "pending": true,
+                "grades": [{"name": "3.º de Primaria", "value": "3.º de Primaria", "pressed": false, "guess": true}]}]},
         "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/renewal.php?c=1", "sesskey": "abc",
         "groups": [{"offerid": 7, "title": "Infantil 3 años", "next": "Pasan a Infantil 4 años", "count": "1 de 2 siguen", "leave": 1,
             "rows": [{"id": 4, "kind": "leave", "tag": "Leo", "adults": "Marta Ruiz", "url": "#", "said": "Lo dijo la familia el 3/12/26: no sigue.",
@@ -105,6 +113,68 @@
         </div>
         {{/open}}
     </section>
+    {{#roster}}
+    <details class="apartado padron" id="padron"{{#open}} open{{/open}}>
+        <summary><h2>{{#str}}panel_roster, local_oksigeniaeguahe{{/str}}</h2> <span class="secundario">{{students}}</span></summary>
+        <p>{{#str}}panel_roster_help, local_oksigeniaeguahe{{/str}}</p>
+        {{#nameless}}<p class="secundario">{{nameless}}</p>{{/nameless}}
+        <p class="padron-etiqueta">{{#str}}panel_roster_where, local_oksigeniaeguahe{{/str}}</p>
+        <div class="padron-fichas">
+            {{#kinds}}
+            <form method="post" action="{{action}}#padron">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosterkind"><input type="hidden" name="kind" value="{{key}}"><input type="hidden" name="arg" value="{{arg}}">
+                <button class="ficha-boton" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{label}}</button>
+            </form>
+            {{/kinds}}
+        </div>
+        {{#kind}}
+        <p class="padron-etiqueta">{{#str}}panel_roster_year, local_oksigeniaeguahe{{/str}}</p>
+        <div class="padron-fichas">
+            {{#years}}
+            <form method="post" action="{{action}}#padron">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteryear"><input type="hidden" name="year" value="{{year}}">
+                <button class="ficha-boton" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{label}}</button>
+            </form>
+            {{/years}}
+        </div>
+        {{/kind}}
+        {{#nooffer}}<p class="padron-aviso">{{nooffer}}</p>{{/nooffer}}
+        {{#hasvalues}}
+        <p class="padron-resumen"><b>{{summary}}</b></p>
+        {{#canact}}{{#guesses}}
+        <form method="post" action="{{action}}#padron">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteraccept">
+            <button class="boton secundario pequeno" type="submit">{{guesses}}</button>
+        </form>
+        {{/guesses}}{{/canact}}
+        <ul class="padron-valores">
+            {{#values}}
+            <li class="padron-valor{{#pending}} por-decir{{/pending}}" id="pv{{id}}">
+                <span class="padron-nombre"><b dir="auto">{{value}}</b> <span class="secundario">{{count}}</span></span>
+                <form class="padron-fichas" method="post" action="{{action}}#pv{{id}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap"><input type="hidden" name="value" value="{{value}}">
+                    {{#grades}}<button class="ficha-boton{{#guess}} propuesta{{/guess}}" type="submit" name="grade" value="{{value}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{name}}</button>{{/grades}}
+                    <button class="ficha-boton" type="submit" name="grade" value="" aria-pressed="{{#none}}true{{/none}}{{^none}}false{{/none}}"{{^canact}} disabled{{/canact}}>{{#str}}panel_roster_none, local_oksigeniaeguahe{{/str}}</button>
+                </form>
+            </li>
+            {{/values}}
+        </ul>
+        {{#canact}}{{#canbring}}
+        <form method="post" action="{{action}}#padron">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostersync">
+            <button class="boton principal" type="submit">{{#str}}panel_roster_bring, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{/canbring}}{{/canact}}
+        {{#brought}}<p class="secundario">{{brought}}</p>{{/brought}}
+        {{/hasvalues}}
+        {{#kind}}{{#canact}}
+        <form method="post" action="{{action}}#padron">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteroff">
+            <button class="enlace" type="submit">{{#str}}panel_roster_off, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{/canact}}{{/kind}}
+    </details>
+    {{/roster}}
     {{#hasgroups}}
     <section class="llegadas primer-dia quien-sigue" aria-label="{{#str}}panel_renewal, local_oksigeniaeguahe{{/str}}">
         <div class="buscar-puerta">
@@ -112,13 +182,13 @@
         </div>
         {{#groups}}
         <details class="turno-p" open id="curso{{offerid}}">
-            <summary><span class="hora">{{title}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+            <summary><span class="hora">{{title}}</span><span class="sigue-riel" aria-hidden="true">{{#rows}}<i class="peg-{{kind}}"></i>{{/rows}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
             <p class="secundario quien-sigue-pasan">{{next}}</p>
             {{#rows}}
             <div class="empieza sigue-{{kind}}" id="n{{id}}" data-buscar="{{search}}">
-                <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{said}}</span></span></span>{{#note}}<span class="sigue-nota" dir="auto">{{note}}</span>{{/note}}</div>
+                <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span>{{#answers}}{{#pressed}}<span class="sello-sigue sello-{{key}}">{{label}}</span>{{/pressed}}{{/answers}}<span class="curso">{{said}}</span></span></span>{{#note}}<span class="sigue-nota" dir="auto">{{note}}</span>{{/note}}</div>
                 {{#canact}}
-                <form class="quien-sigue-botones" method="post" action="{{action}}#n{{id}}">
+                <form class="quien-sigue-botones respuesta3" method="post" action="{{action}}#n{{id}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="answer"><input type="hidden" name="child" value="{{id}}">
                     {{#answers}}<button class="eleccion" type="submit" name="answer" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/answers}}
                 </form>

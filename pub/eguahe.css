@@ -3797,75 +3797,144 @@ textarea.renglones:focus-visible {
     color: var(--c-acento);
 }
 
+/* Re-enrolment, on the page of the family: for each child, what hangs for them (the same drawing as on their wall) on
+   the peg of next year. Going on, it hangs straight; not knowing yet, it hangs crooked; not going on, the peg stays empty
+   and the thing rests below it; with no answer yet, it waits beside the peg, faint. The three answers are one switch;
+   the reasons and a few words, only when they are wanted. */
 .rematricula {
     display: grid;
-    gap: 12px;
-    margin: 0;
-    padding: 16px 16px 18px;
-    border-radius: 14px;
+    gap: 6px;
+    padding: 22px 24px;
+    border-radius: 18px;
     background: var(--eg-superficie);
-    box-shadow: 0 1px 2px var(--eg-sombra);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 18px 32px -24px rgba(58, 42, 30, 0.55);
 }
 
 .rematricula-titulo {
     margin: 0;
-    font-size: 1.1875rem;
+    font-size: 1.5rem;
 }
 
-.rematricula-entrada,
-.rematricula-pregunta,
-.rematricula-etiqueta {
-    margin: 0;
-    line-height: 1.45;
+.rematricula-entrada {
+    margin: 0 0 6px;
+    color: var(--eg-tinta-2);
 }
 
 .rematricula-nino {
     display: grid;
+    grid-template-columns: 132px minmax(0, 1fr);
+    align-items: start;
+    gap: 6px 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.rematricula-texto {
+    display: grid;
     gap: 10px;
-    padding-top: 12px;
-    border-top: 1px solid var(--eg-linea);
 }
 
 .rematricula-pregunta {
-    font-weight: 650;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
 }
 
-.rematricula-botones,
-.rematricula-porque {
-    display: flex;
+/* The peg of next year: a piece of rail, its knob, what hangs, and the course written under it. */
+.rematricula-percha {
+    position: relative;
+    height: 186px;
+}
+
+.rematricula-riel {
+    position: absolute;
+    top: 34px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    border-radius: 3px;
+    background: linear-gradient(var(--eg-madera-luz), var(--eg-madera) 40%, var(--eg-madera-sombra));
+    box-shadow: 0 4px 6px -3px rgba(0, 0, 0, 0.4);
+}
+
+.rematricula-gancho {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, var(--eg-madera-luz), var(--eg-madera) 55%, var(--eg-madera-sombra));
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+}
+
+.rematricula-colgante {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    width: 84px;
+    margin-left: -42px;
+    transform-origin: 50% 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.rematricula-colgante svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.rematricula-curso {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+}
+
+.rematricula-unsure .rematricula-colgante {
+    transform: rotate(14deg);
+}
+
+.rematricula-leave .rematricula-colgante {
+    transform: translateY(46px) rotate(-12deg);
+    opacity: 0.55;
+}
+
+.rematricula-none .rematricula-colgante {
+    transform: translateX(34px) translateY(30px);
+    opacity: 0.35;
+}
+
+/* The three answers: one switch, the one given in the colour of the centre. */
+.rematricula-botones {
+    display: inline-flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
+    justify-self: start;
+    gap: 3px;
+    padding: 4px;
+    border-radius: 26px;
+    background: var(--eg-hundido);
 }
 
-.rematricula-etiqueta {
-    flex: 1 1 100%;
-    font-size: 0.9375rem;
-}
-
-.rematricula .eleccion,
-.rematricula .ficha-boton {
+.rematricula .eleccion {
     min-height: 44px;
-    padding: 0 16px;
-    border-radius: 999px;
-    border: 1.5px solid var(--eg-borde);
-    background: var(--eg-superficie);
-    color: inherit;
+    padding: 6px 18px;
+    border: 0;
+    border-radius: 22px;
+    background: transparent;
+    color: var(--eg-tinta);
     font: inherit;
-    font-weight: 650;
+    font-weight: 700;
     cursor: pointer;
 }
 
-.rematricula .ficha-boton {
-    min-height: 38px;
-    padding: 0 13px;
-    font-size: 0.9375rem;
-    font-weight: 600;
-}
-
-.rematricula .eleccion[aria-pressed="true"],
-.rematricula .ficha-boton[aria-pressed="true"] {
-    border-color: var(--c-acento);
+.rematricula .eleccion[aria-pressed="true"] {
     background: var(--c-acento);
     color: var(--c-sobre-acento);
 }
@@ -3875,15 +3944,86 @@ textarea.renglones:focus-visible {
     align-items: center;
     gap: 8px;
     margin: 0;
-    font-weight: 600;
+    font-weight: 650;
+}
+
+.rematricula-porque {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.rematricula-etiqueta {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.rematricula .ficha-boton {
+    min-height: 36px;
+    padding: 4px 14px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 18px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 0.9375rem;
+    cursor: pointer;
+}
+
+.rematricula .ficha-boton[aria-pressed="true"] {
+    border-color: var(--c-acento);
+    box-shadow: inset 0 0 0 1px var(--c-acento);
+    font-weight: 700;
+}
+
+.rematricula-mas > summary {
+    color: var(--c-acento-texto);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.rematricula-mas > summary::-webkit-details-marker {
+    display: none;
+}
+
+.rematricula-mas[open] > summary {
+    margin-bottom: 8px;
 }
 
 .rematricula-nota textarea {
-    width: 100%;
+    min-height: 80px;
 }
 
-.rematricula-nino > .boton {
-    justify-self: start;
+@media (max-width: 719px) {
+    .rematricula {
+        padding: 18px 16px;
+    }
+
+    .rematricula-nino {
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 6px 14px;
+    }
+
+    .rematricula-percha {
+        height: 160px;
+    }
+
+    .rematricula-colgante {
+        width: 64px;
+        margin-left: -32px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rematricula-colgante {
+        transition: none;
+    }
 }
 
 /* Arabic joins its letters: no spacing between them anywhere, or the words break apart. */

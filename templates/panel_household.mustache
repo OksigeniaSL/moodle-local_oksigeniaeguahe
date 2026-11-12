@@ -189,13 +189,13 @@
                 <h3>{{title}}</h3>
                 {{#rows}}
                 <div class="sigue-nino" id="sigue-{{id}}">
-                    <p class="sigue-quien"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span> <span class="secundario">{{next}}</span></p>
+                    <p class="sigue-quien"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span> <span class="secundario">{{next}}</span>{{#answers}}{{#pressed}} <span class="sello-sigue sello-{{key}}">{{label}}</span>{{/pressed}}{{/answers}}</p>
                     <p class="sigue-dicho">{{said}}</p>
                     {{#note}}<p class="sigue-nota" dir="auto">{{note}}</p>{{/note}}
                     {{#canact}}
                     <form class="sigue-botones" method="post" action="{{action}}#sigue-{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="child" value="{{id}}">
-                        {{#answers}}<button class="eleccion pequena" type="submit" name="answer" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/answers}}
+                        <span class="respuesta3">{{#answers}}<button class="eleccion pequena" type="submit" name="answer" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/answers}}</span>
                         {{#hasreasons}}<span class="sigue-motivos">{{#reasons}}<button class="ficha-boton" type="submit" name="reason" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/reasons}}</span>{{/hasreasons}}
                     </form>
                     {{/canact}}
@@ -207,7 +207,7 @@
             {{#hassigns}}
             <div class="senales" id="senales">
                 <h3>{{#str}}panel_signs, local_oksigeniaeguahe{{/str}}</h3>
-                <ul>{{#signs}}<li>{{line}}</li>{{/signs}}</ul>
+                <ul>{{#signs}}<li>{{#leaf}}<span class="hoja-cal senal-hoja" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}<span>{{line}}</span></li>{{/signs}}</ul>
             </div>
             {{/hassigns}}
             {{#siblings}}

@@ -318,7 +318,7 @@ class events {
         if (!$signups) {
             return [];
         }
-        $households = households::inbox($event->centreid, false, 0);
+        $households = households::inbox($event->centreid, false, 0, true);
         foreach ($signups as $signup) {
             $signup->household = $households[$signup->householdid] ?? null;
         }

@@ -133,11 +133,16 @@ class familypage {
         $greeting = $upcoming || !$attended ? 'pub_wait' : 'pub_thanks';
         // After «Enrolled», the last moment of the page: that is it, who carries them from now on, and it stays still.
         $enrolled = settled::enrolled($children);
-        $issettled = $enrolled && !$upcoming;
+        // A family that was already at the centre, brought from its roll: never «All set», which is for those who just
+        // enrolled; their page is where the centre asks them what it needs, such as whether they go on next year.
+        $isroster = !empty($household->roster) && $enrolled && !$upcoming;
+        $issettled = $enrolled && !$upcoming && !$isroster;
         // A family that left: their page stays, quiet, with thanks and one question if they wish.
         $isgone = !$upcoming && settled::gone($children);
         if ($isgone) {
             $lead = s(publiclang::str('pub_gone_lead', $lang));
+        } else if ($isroster) {
+            $lead = s(publiclang::str('pub_roster_lead', $lang));
         } else if ($issettled) {
             $offer = $offers[$enrolled[0]->offerid] ?? null;
             if (count($enrolled) > 1) {
@@ -364,18 +369,18 @@ class familypage {
             }
         }
         // Once they came, the label stuck down, as the team left it at the door.
-        $came = !$upcoming && ((bool) $attended || $issettled || $isgone);
+        $came = !$upcoming && ((bool) $attended || $issettled || $isgone || $isroster);
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'hassiblings' => (bool) $siblingrows,
             'siblings' => $siblingrows,
             'siblingstitle' => publiclang::str('pub_siblings_later', $lang),
             'turns' => $turns,
             'siblingoffers' => $offerlater,
-            'greeting' => $issettled ? publiclang::str('pub_settled', $lang) :
-                publiclang::str(($isgone ? 'pub_gone' : $greeting) . ($tags ? '' : '_nochild'), $lang),
+            'greeting' => $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
+                ($isroster ? 'pub_roster' : $greeting)) . ($tags ? '' : '_nochild'), $lang),
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
-            'quiet' => $issettled || $isgone,
+            'quiet' => $issettled || $isgone || $isroster,
             'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
             'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
             'renewal' => $isgone ? false : self::renewal_context($household, $centre, $lang, $token, $now),
@@ -762,12 +767,18 @@ class familypage {
         $year = (string) $centre->renewalyear;
         $until = (int) $centre->renewaluntil;
         $rows = [];
+        $offers = centres::offers((int) $centre->id);
         foreach ($children as $childid => [$child, , $next]) {
             $row = $answers[$childid] ?? null;
             $answer = $row ? (string) $row->answer : '';
             $name = self::label_name($child) ?: trim((string) $child->firstname);
+            // What hangs for its age in the course that comes, on the hook of that course.
+            $object = ages::hanging((object) (['offerid' => $next->id] + (array) $child), $offers, $centre);
             $rows[] = [
                 'id' => $childid,
+                'state' => $answer !== '' ? $answer : 'none',
+                'nextcourse' => format_string($next->name) . ' · ' . $year,
+                'peg' => ['name' => $name, 'object' => $object],
                 'question' => publiclang::str('pub_renewal_ask', $lang, (object) ['name' => $name, 'year' => $year,
                     'course' => format_string($next->name)]),
                 'options' => array_map(fn($key) => ['key' => $key, 'label' => publiclang::str('pub_renewal_' . $key, $lang),
@@ -782,6 +793,17 @@ class familypage {
                 'note' => $answer === 'leave' || $answer === 'unsure' ? ['label' => publiclang::str('pub_renewal_note', $lang),
                     'value' => (string) ($row->note ?? ''), 'save' => publiclang::str('pub_renewal_note_save', $lang)] : false,
             ];
+        }
+        // Each its own tone and its own tilt, as on the rail of the page.
+        $pegs = publicpage::pegs(
+            array_column(array_column($rows, 'peg'), 'name'),
+            false,
+            null,
+            array_column(array_column($rows, 'peg'), 'object'),
+            true
+        )['pegs'];
+        foreach ($rows as $i => $row) {
+            $rows[$i]['peg'] = $pegs[$i];
         }
         return [
             'title' => publiclang::str('pub_renewal_title', $lang, $year),

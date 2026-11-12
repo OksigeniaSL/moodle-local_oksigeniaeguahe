@@ -389,7 +389,7 @@ class renewal {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param int $now
-     * @return array[] kind (leave, unsure, none, quiet, left) and text.
+     * @return array[] kind (leave, unsure, none, quiet, left), text and time (its day).
      */
     public static function signs(\stdClass $household, \stdClass $centre, int $now): array {
         global $DB;
@@ -407,13 +407,14 @@ class renewal {
                     $c,
                     (object) ['name' => $name, 'year' => $centre->renewalyear, 'day' => $date((int) $row->timemodified),
                         'why' => $row->reason ? get_string('left_' . $row->reason, $c) : '']
-                )];
+                ), 'time' => (int) $row->timemodified];
             } else if ($row && $row->answer === 'unsure') {
                 $out[] = ['kind' => 'unsure', 'text' => get_string('renewal_sign_unsure', $c, (object) ['name' => $name,
-                    'year' => $centre->renewalyear, 'day' => $date((int) $row->timemodified)])];
+                    'year' => $centre->renewalyear, 'day' => $date((int) $row->timemodified)]), 'time' => (int) $row->timemodified];
             } else if (!$row && self::open($centre, $now)) {
                 $out[] = ['kind' => 'none', 'text' => get_string('renewal_sign_none', $c, (object) ['name' => $name,
-                    'year' => $centre->renewalyear, 'day' => $date((int) $centre->renewalfrom)])];
+                    'year' => $centre->renewalyear, 'day' => $date((int) $centre->renewalfrom)]),
+                    'time' => (int) $centre->renewalfrom];
             }
         }
         if ($children && self::open($centre, $now)) {
@@ -423,12 +424,12 @@ class renewal {
             );
             if ($now - max($last, (int) $centre->renewalfrom) >= self::QUIET) {
                 $out[] = ['kind' => 'quiet', 'text' => $last ? get_string('renewal_sign_quiet', $c, $date($last)) :
-                    get_string('renewal_sign_never', $c)];
+                    get_string('renewal_sign_never', $c), 'time' => $last];
             }
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'householdid = ? AND lefttime > 0', [$household->id]) as $gone) {
             $out[] = ['kind' => 'left', 'text' => get_string('renewal_sign_left', $c, (object) ['name' => panel::tag($gone),
-                'day' => $date((int) $gone->lefttime)])];
+                'day' => $date((int) $gone->lefttime)]), 'time' => (int) $gone->lefttime];
         }
         return $out;
     }

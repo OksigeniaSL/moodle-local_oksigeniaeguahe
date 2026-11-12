@@ -41,7 +41,9 @@
         "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "quiet": false, "turns": [], "siblingoffers": [],
         "renewal": {"title": "El curso que viene, 2027-28", "lead": "Para preparar el curso, el centro necesita saber quién sigue.",
             "action": "https://example.com/local/oksigeniaeguahe/f.php?k=abc", "sesskey": "abc",
-            "children": [{"id": 7, "question": "¿Sigue Leo en 2027-28? Le toca 1.º de Primaria.",
+            "children": [{"id": 7, "state": "leave", "nextcourse": "1.º de Primaria · 2027-28",
+            "peg": {"index": 0, "name": "Leo", "style": "--reposo:-3.5deg", "object": "mochila", "arriving": false, "stuck": true,
+            "hidden": false}, "question": "¿Sigue Leo en 2027-28? Le toca 1.º de Primaria.",
                 "options": [{"key": "stay", "label": "Sí, sigue", "pressed": false},
                     {"key": "leave", "label": "No sigue", "pressed": true}, {"key": "unsure", "label": "Aún no lo sabemos",
                     "pressed": false}], "done": "Apuntado. Gracias por decírnoslo con tiempo.",
@@ -159,8 +161,14 @@
                 <h2 class="rematricula-titulo" id="rematricula-t">{{title}}</h2>
                 <p class="rematricula-entrada">{{lead}}</p>
                 {{#children}}
-                <form class="rematricula-nino" method="post" action="{{action}}" id="rematricula-{{id}}">
+                <form class="rematricula-nino rematricula-{{state}}" method="post" action="{{action}}" id="rematricula-{{id}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="nino" value="{{id}}">
+                    <div class="rematricula-percha" aria-hidden="true">
+                        <span class="rematricula-riel"></span><span class="rematricula-gancho"></span>
+                        {{#peg}}<span class="rematricula-colgante">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/peg}}
+                        <span class="rematricula-curso">{{nextcourse}}</span>
+                    </div>
+                    <div class="rematricula-texto">
                     <p class="rematricula-pregunta" id="rematricula-p{{id}}" dir="auto">{{question}}</p>
                     <div class="rematricula-botones" role="group" aria-labelledby="rematricula-p{{id}}">
                         {{#options}}<button class="eleccion" type="submit" name="respuesta" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/options}}
@@ -173,12 +181,14 @@
                     </div>
                     {{/why}}
                     {{#note}}
-                    <div class="campo rematricula-nota">
-                        <label for="rematricula-nota-{{id}}">{{label}}</label>
-                        <textarea id="rematricula-nota-{{id}}" name="nota" rows="2" maxlength="1000" dir="auto">{{value}}</textarea>
-                    </div>
-                    <button class="boton secundario" type="submit">{{save}}</button>
+                    <details class="rematricula-mas"{{#value}} open{{/value}}>
+                        <summary>{{label}}</summary>
+                        <div class="campo rematricula-nota"><label class="oculto" for="rematricula-nota-{{id}}">{{label}}</label>
+                        <textarea id="rematricula-nota-{{id}}" name="nota" rows="2" maxlength="1000" dir="auto">{{value}}</textarea></div>
+                        <button class="boton secundario" type="submit">{{save}}</button>
+                    </details>
                     {{/note}}
+                    </div>
                 </form>
                 {{/children}}
             </section>

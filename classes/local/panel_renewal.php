@@ -141,10 +141,95 @@ class panel_renewal {
             ] : false,
             'groups' => $groups,
             'hasgroups' => (bool) $groups,
+            'roster' => roster::available() ? self::roster($centre) : false,
             'canact' => $canact,
             'action' => $action,
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * The families that were already at the centre, from its roll: where the course of each student comes from (each
+     * way a button), the school year they are in now, what each cohort, group or value is (the course pressed, the one
+     * it most likely is marked to confirm), and how many students have a course; then bringing them.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    protected static function roster(\stdClass $centre): array {
+        $c = self::C;
+        $source = roster::source($centre);
+        ['userids' => $userids, 'nameless' => $nameless] = roster::students();
+        $sources = roster::sources($userids);
+        $kinds = [['key' => 'cohort', 'arg' => '', 'label' => get_string('panel_roster_cohort', $c),
+            'pressed' => $source && $source[0] === 'cohort']];
+        foreach ($sources['courses'] as $id => $name) {
+            $kinds[] = ['key' => 'group', 'arg' => (string) $id, 'label' => get_string('panel_roster_group', $c, $name),
+                'pressed' => $source && $source[0] === 'group' && $source[1] === (string) $id];
+        }
+        foreach ($sources['fields'] as $short => $name) {
+            $kinds[] = ['key' => 'profile', 'arg' => (string) $short, 'label' => get_string('panel_roster_field', $c, $name),
+                'pressed' => $source && $source[0] === 'profile' && $source[1] === (string) $short];
+        }
+        $year = trim((string) ($centre->rosteryear ?? ''));
+        $years = array_values(array_unique(array_map(fn($o) => (string) $o->schoolyear, centres::offers((int) $centre->id))));
+        sort($years);
+        $offers = roster::offers($centre);
+        // The courses by age, from the youngest, as the shelves of the offer.
+        uasort($offers, fn($a, $b) => [grades::age((string) $a->name, $centre) ?? 99, (int) $a->sortorder, (int) $a->id] <=>
+            [grades::age((string) $b->name, $centre) ?? 99, (int) $b->sortorder, (int) $b->id]);
+        $out = [
+            'students' => get_string('panel_roster_students', $c, count($userids)),
+            'nameless' => $nameless ? get_string('panel_roster_nameless', $c, $nameless) : '',
+            'kinds' => $kinds,
+            'kind' => $source ? $source[0] : '',
+            'arg' => $source ? $source[1] : '',
+            'years' => array_map(fn($y) => ['year' => $y, 'label' => get_string('panel_renewal_year', $c, s($y)),
+                'pressed' => $y === $year], $years),
+            'year' => $year,
+            'noyear' => $source && $year === '',
+            'nooffer' => $source && $year !== '' && !$offers ? get_string('panel_roster_nooffer', $c, s($year)) : '',
+            'values' => [],
+            'hasvalues' => false,
+            'summary' => '',
+            'guesses' => false,
+            'canbring' => false,
+            'brought' => '',
+            // Open while there is something to say: where, the school year, a value nobody said, or bringing them.
+            'open' => true,
+        ];
+        if (!$source || !$offers) {
+            return $out;
+        }
+        $overview = roster::overview($centre);
+        $guesses = 0;
+        foreach ($overview['values'] as $i => $row) {
+            $mapped = $row['grade'];
+            $guess = $mapped === null ? $row['guess'] : '';
+            $guesses += $guess !== '' ? 1 : 0;
+            $out['values'][] = [
+                'id' => $i,
+                'value' => $row['value'],
+                'count' => get_string('panel_roster_count', $c, $row['count']),
+                'grades' => array_values(array_map(fn($o) => ['name' => format_string($o->name), 'value' => (string) $o->name,
+                    'pressed' => $mapped !== null && grades::plain($mapped) === grades::plain((string) $o->name),
+                    'guess' => $guess !== '' && grades::plain($guess) === grades::plain((string) $o->name)], $offers)),
+                'none' => $mapped === '',
+                'pending' => $mapped === null,
+            ];
+        }
+        $brought = roster::brought($centre);
+        $out['hasvalues'] = (bool) $out['values'];
+        $out['summary'] = get_string('panel_roster_placed', $c, (object) ['placed' => $overview['placed'],
+            'students' => $overview['students']]);
+        $out['guesses'] = $guesses ? get_string('panel_roster_accept', $c, $guesses) : false;
+        $out['canbring'] = $overview['placed'] > 0;
+        $pending = count(array_filter($out['values'], fn($v) => $v['pending']));
+        $out['open'] = $pending > 0 || !$brought['time'];
+        $out['brought'] = $brought['time'] ? get_string('panel_roster_brought', $c, (object) [
+            'families' => $brought['families'], 'children' => $brought['children'],
+            'day' => userdate($brought['time'], get_string('strftimedatetimeshort', 'langconfig'))]) : '';
+        return $out;
     }
 
     /**
@@ -172,7 +257,8 @@ class panel_renewal {
             // A school year ready to be asked about that was never asked: the way in.
             foreach (renewal::candidates($centre) as $cand) {
                 if ($cand['ready'] && $cand['year'] !== trim((string) ($centre->renewalyear ?? ''))) {
-                    return ['url' => $url, 'text' => get_string('panel_renewal_link_start', self::C, s($cand['year']))];
+                    return ['url' => $url, 'text' => get_string('panel_renewal_link_start', self::C, s($cand['year'])),
+                        'pegs' => []];
                 }
             }
             return false;
@@ -180,11 +266,18 @@ class panel_renewal {
         $asked = 0;
         $answered = 0;
         $leave = 0;
+        $pegs = [];
         foreach (renewal::by_course($centre) as $course) {
             $all = count($course['stay']) + count($course['leave']) + count($course['unsure']) + count($course['none']);
             $asked += $all;
             $answered += $all - count($course['none']);
             $leave += count($course['leave']);
+            // A hook for each child, as on «Who goes on»: full, crossed, half or empty.
+            foreach (self::ORDER as $kind) {
+                foreach ($course[$kind] as $unused) {
+                    $pegs[] = ['kind' => $kind];
+                }
+            }
         }
         if (!$asked) {
             return false;
@@ -193,6 +286,7 @@ class panel_renewal {
             'url' => $url,
             'text' => get_string('panel_renewal_link', self::C, (object) ['year' => s((string) $centre->renewalyear),
                 'answered' => $answered, 'asked' => $asked, 'leave' => $leave]),
+            'pegs' => $pegs,
         ];
     }
 }

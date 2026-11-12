@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_renewal;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\renewal;
+use local_oksigeniaeguahe\local\roster;
 
 require_login(null, false);
 
@@ -68,6 +69,28 @@ if (data_submitted()) {
         renewal::set($centre, $year, (int) $centre->renewalfrom, 0);
     } else if ($do === 'tell' && renewal::open($centre, $now)) {
         renewal::tell($centre, (int) $USER->id, $now);
+    } else if (in_array($do, ['rosterkind', 'rosteryear', 'rosteroff'], true)) {
+        // The families already at the centre: where the course of each student comes from, and the school year now.
+        $source = roster::source($centre);
+        $kind = $do === 'rosterkind' ? optional_param('kind', '', PARAM_ALPHA) : ($source[0] ?? '');
+        $arg = $do === 'rosterkind' ? optional_param('arg', '', PARAM_ALPHANUMEXT) : ($source[1] ?? '');
+        $rosteryear = $do === 'rosteryear' ? optional_param('year', '', PARAM_NOTAGS) : (string) ($centre->rosteryear ?? '');
+        roster::set_source($centre, $do === 'rosteroff' ? '' : $kind, $arg, $rosteryear);
+        $anchor = 'padron';
+    } else if ($do === 'rostermap') {
+        roster::set_map($centre, optional_param('value', '', PARAM_TEXT), optional_param('grade', '', PARAM_TEXT));
+        $anchor = 'padron';
+    } else if ($do === 'rosteraccept') {
+        // What each value most likely is, taken as it is for all those nobody said yet.
+        foreach (roster::overview($centre)['values'] as $row) {
+            if ($row['grade'] === null && $row['guess'] !== '') {
+                roster::set_map($centre, $row['value'], $row['guess']);
+            }
+        }
+        $anchor = 'padron';
+    } else if ($do === 'rostersync') {
+        roster::sync($centre, $now);
+        $anchor = 'padron';
     } else if ($do === 'answer') {
         // What a family told a person, from the list.
         $child = required_param('child', PARAM_INT);

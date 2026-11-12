@@ -1073,5 +1073,52 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026115200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026115300) {
+        // The families already at the centre, from the common family record: where each course comes from, what each
+        // value means, and each family brought.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $fields = [
+            new xmldb_field('rostersource', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'renewaluntil'),
+            new xmldb_field('rosteryear', XMLDB_TYPE_CHAR, '9', null, null, null, null, 'rostersource'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('roster', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'familylink');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_rostermap');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('value', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('grade', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+            $table->add_index('centrevalue', XMLDB_INDEX_UNIQUE, ['centreid', 'value']);
+            $dbman->create_table($table);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_roster');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('familyid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+            $table->add_index('centrefamily', XMLDB_INDEX_UNIQUE, ['centreid', 'familyid']);
+            $table->add_index('householdid', XMLDB_INDEX_NOTUNIQUE, ['householdid']);
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026115300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

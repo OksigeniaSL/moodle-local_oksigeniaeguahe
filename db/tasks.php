@@ -97,4 +97,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => '\\local_oksigeniaeguahe\\task\\sync_roster',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '5',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];
