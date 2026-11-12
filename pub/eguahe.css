@@ -3797,6 +3797,95 @@ textarea.renglones:focus-visible {
     color: var(--c-acento);
 }
 
+.rematricula {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 16px 16px 18px;
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px var(--eg-sombra);
+}
+
+.rematricula-titulo {
+    margin: 0;
+    font-size: 1.1875rem;
+}
+
+.rematricula-entrada,
+.rematricula-pregunta,
+.rematricula-etiqueta {
+    margin: 0;
+    line-height: 1.45;
+}
+
+.rematricula-nino {
+    display: grid;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.rematricula-pregunta {
+    font-weight: 650;
+}
+
+.rematricula-botones,
+.rematricula-porque {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.rematricula-etiqueta {
+    flex: 1 1 100%;
+    font-size: 0.9375rem;
+}
+
+.rematricula .eleccion,
+.rematricula .ficha-boton {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--eg-borde);
+    background: var(--eg-superficie);
+    color: inherit;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.rematricula .ficha-boton {
+    min-height: 38px;
+    padding: 0 13px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.rematricula .eleccion[aria-pressed="true"],
+.rematricula .ficha-boton[aria-pressed="true"] {
+    border-color: var(--c-acento);
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.rematricula-hecho {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 600;
+}
+
+.rematricula-nota textarea {
+    width: 100%;
+}
+
+.rematricula-nino > .boton {
+    justify-self: start;
+}
+
 /* Arabic joins its letters: no spacing between them anywhere, or the words break apart. */
 html[lang="ar"] body * {
     /* stylelint-disable-next-line declaration-no-important */

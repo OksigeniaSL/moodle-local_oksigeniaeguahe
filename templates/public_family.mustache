@@ -39,6 +39,15 @@
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
         "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "quiet": false, "turns": [], "siblingoffers": [],
+        "renewal": {"title": "El curso que viene, 2027-28", "lead": "Para preparar el curso, el centro necesita saber quién sigue.",
+            "action": "https://example.com/local/oksigeniaeguahe/f.php?k=abc", "sesskey": "abc",
+            "children": [{"id": 7, "question": "¿Sigue Leo en 2027-28? Le toca 1.º de Primaria.",
+                "options": [{"key": "stay", "label": "Sí, sigue", "pressed": false},
+                    {"key": "leave", "label": "No sigue", "pressed": true}, {"key": "unsure", "label": "Aún no lo sabemos",
+                    "pressed": false}], "done": "Apuntado. Gracias por decírnoslo con tiempo.",
+                "why": {"label": "¿Por qué, si quieren contarlo?", "reasons": [{"key": "moved", "label": "Nos mudamos",
+                    "pressed": true}, {"key": "other", "label": "Otro motivo", "pressed": false}]},
+                "note": {"label": "Algo más que quieran contarnos", "value": "", "save": "Contárselo"} }]},
         "hassiblings": false, "siblings": [], "siblingstitle": "",
         "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
             "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
@@ -145,6 +154,35 @@
                 {{#how}}<p class="por-donde" dir="auto">{{how}}</p>{{/how}}
             </div>
             {{/settled}}
+            {{#renewal}}
+            <section class="rematricula" id="rematricula" aria-labelledby="rematricula-t" data-parte="renewal">
+                <h2 class="rematricula-titulo" id="rematricula-t">{{title}}</h2>
+                <p class="rematricula-entrada">{{lead}}</p>
+                {{#children}}
+                <form class="rematricula-nino" method="post" action="{{action}}" id="rematricula-{{id}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="nino" value="{{id}}">
+                    <p class="rematricula-pregunta" id="rematricula-p{{id}}" dir="auto">{{question}}</p>
+                    <div class="rematricula-botones" role="group" aria-labelledby="rematricula-p{{id}}">
+                        {{#options}}<button class="eleccion" type="submit" name="respuesta" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/options}}
+                    </div>
+                    {{#done}}<p class="rematricula-hecho" role="status"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+                    {{#why}}
+                    <div class="rematricula-porque" role="group" aria-labelledby="rematricula-w{{id}}">
+                        <p class="rematricula-etiqueta" id="rematricula-w{{id}}">{{label}}</p>
+                        {{#reasons}}<button class="ficha-boton" type="submit" name="motivo" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/reasons}}
+                    </div>
+                    {{/why}}
+                    {{#note}}
+                    <div class="campo rematricula-nota">
+                        <label for="rematricula-nota-{{id}}">{{label}}</label>
+                        <textarea id="rematricula-nota-{{id}}" name="nota" rows="2" maxlength="1000" dir="auto">{{value}}</textarea>
+                    </div>
+                    <button class="boton secundario" type="submit">{{save}}</button>
+                    {{/note}}
+                </form>
+                {{/children}}
+            </section>
+            {{/renewal}}
             {{#wallask}}
             <form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">

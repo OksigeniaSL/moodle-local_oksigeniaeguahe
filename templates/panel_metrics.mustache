@@ -268,10 +268,13 @@
         {{/starts}}
         <p class="nota-importado def">{{importnote}} <a href="{{importurl}}">{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>
         {{#exports}}
-        <p class="def descargas">{{#str}}export_take, local_oksigeniaeguahe{{/str}}
-            {{#families}}<span>{{#str}}export_families, local_oksigeniaeguahe{{/str}}: <a href="{{excel}}">Excel</a> · <a href="{{csv}}">CSV</a></span>{{/families}}
-            {{#figures}}<span>{{#str}}export_figures_named, local_oksigeniaeguahe{{/str}}: <a href="{{excel}}">Excel</a> · <a href="{{csv}}">CSV</a></span>{{/figures}}
-        </p>
+        <section class="descargas" aria-labelledby="descargas-t">
+            <p class="descargas-t" id="descargas-t">{{#str}}export_take, local_oksigeniaeguahe{{/str}}</p>
+            <ul class="hojas-calculo">
+                {{#families}}<li class="hoja-calculo"><span class="hoja-calculo-papel" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>{{#str}}export_families, local_oksigeniaeguahe{{/str}}</b><span class="hoja-calculo-bajar"><a class="boton secundario pequeno" href="{{excel}}">{{{i.abajo}}}Excel</a><a class="enlace" href="{{csv}}">CSV</a></span></li>{{/families}}
+                {{#figures}}<li class="hoja-calculo hoja-calculo-cifras"><span class="hoja-calculo-papel" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>{{#str}}export_figures_named, local_oksigeniaeguahe{{/str}}</b><span class="hoja-calculo-bajar"><a class="boton secundario pequeno" href="{{excel}}">{{{i.abajo}}}Excel</a><a class="enlace" href="{{csv}}">CSV</a></span></li>{{/figures}}
+            </ul>
+        </section>
         {{/exports}}
     </div>
     <div class="lamina-mandos" data-lamina-mandos hidden>

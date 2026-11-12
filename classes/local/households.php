@@ -670,6 +670,12 @@ class households {
                 'parts_of_the_day' => $request->periods ? explode(',', $request->periods) : [],
                 'people' => (int) $request->people, 'status' => $request->status, 'asked' => $date((int) $request->timecreated)];
         }
+        // Whether each child goes on into the next school year, as they or the team said it.
+        foreach ($DB->get_records(renewal::T, ['householdid' => $household->id], 'schoolyear ASC, id ASC') as $row) {
+            $data['next_school_year'][] = ['child' => $full->children[$row->childid]->firstname ?? null,
+                'school_year' => $row->schoolyear, 'answer' => $row->answer, 'why' => $row->reason, 'note' => $row->note,
+                'said_by' => (int) $row->userid ? 'team' : 'family', 'when' => $date((int) $row->timemodified)];
+        }
         return $data;
     }
 
@@ -695,7 +701,7 @@ class households {
         }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
-                forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T] as $table
+                forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

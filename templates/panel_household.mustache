@@ -65,6 +65,12 @@
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
         "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
+        "renewal": {"title": "El curso que viene, 2027-28", "canact": true, "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "pageurl": "#",
+            "rows": [{"id": 3, "tag": "Leo", "next": "Le toca 2.º de Primaria", "said": "Lo dijo la familia el 3/12/26: no sigue (cambio de ciudad).",
+                "note": "Se mudan a otra isla.", "hasreasons": true,
+                "answers": [{"key": "stay", "label": "Sigue", "pressed": false}, {"key": "leave", "label": "No sigue", "pressed": true}],
+                "reasons": [{"key": "moved", "label": "Cambio de ciudad", "pressed": true}]}]},
+        "hassigns": true, "signs": [{"line": "Leo no sigue en 2027-28 (cambio de ciudad): lo dijeron el 3/12/26."}],
         "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}], "likes": "Le gusta: cocina y juegos de mesa."}],
         "seen": {"facts": ["Han abierto su página 4 veces; la última, el martes."]},
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
@@ -178,6 +184,32 @@
                 {{/canact}}{{/gone}}
             </div>
             {{/leave}}
+            {{#renewal}}
+            <div class="sigue" id="sigue">
+                <h3>{{title}}</h3>
+                {{#rows}}
+                <div class="sigue-nino" id="sigue-{{id}}">
+                    <p class="sigue-quien"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span> <span class="secundario">{{next}}</span></p>
+                    <p class="sigue-dicho">{{said}}</p>
+                    {{#note}}<p class="sigue-nota" dir="auto">{{note}}</p>{{/note}}
+                    {{#canact}}
+                    <form class="sigue-botones" method="post" action="{{action}}#sigue-{{id}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="child" value="{{id}}">
+                        {{#answers}}<button class="eleccion pequena" type="submit" name="answer" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/answers}}
+                        {{#hasreasons}}<span class="sigue-motivos">{{#reasons}}<button class="ficha-boton" type="submit" name="reason" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/reasons}}</span>{{/hasreasons}}
+                    </form>
+                    {{/canact}}
+                </div>
+                {{/rows}}
+                <a class="enlace" href="{{pageurl}}">{{#str}}panel_renewal_all, local_oksigeniaeguahe{{/str}}</a>
+            </div>
+            {{/renewal}}
+            {{#hassigns}}
+            <div class="senales" id="senales">
+                <h3>{{#str}}panel_signs, local_oksigeniaeguahe{{/str}}</h3>
+                <ul>{{#signs}}<li>{{line}}</li>{{/signs}}</ul>
+            </div>
+            {{/hassigns}}
             {{#siblings}}
             <div class="hermanos-luego" id="hermanos">
                 <h3>{{#str}}panel_siblings, local_oksigeniaeguahe{{/str}}</h3>

@@ -35,6 +35,7 @@ use local_oksigeniaeguahe\local\hobbies;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
@@ -146,6 +147,23 @@ if ($action === 'download') {
         '.json"');
     echo json_encode(households::export($household), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     die();
+}
+
+if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {
+    // Whether a child goes on next school year: each tap is kept, and the page comes back to the same child.
+    $childid = required_param('nino', PARAM_INT);
+    $written = optional_param('nota', null, PARAM_TEXT);
+    renewal::from_family(
+        $centre,
+        $household,
+        $childid,
+        optional_param('respuesta', '', PARAM_ALPHA),
+        optional_param('motivo', '', PARAM_ALPHA),
+        $written === null ? null : (string) $written,
+        $lang,
+        time()
+    );
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'rematricula-' . $childid));
 }
 
 if (in_array($action, ['settledask', 'goneask', 'firstdayask'], true) && data_submitted() && confirm_sesskey()) {

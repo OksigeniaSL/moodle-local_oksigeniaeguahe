@@ -2772,6 +2772,7 @@ input:focus-visible + .ficha-canal {
 .siguiente-fila {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 170px;
+    align-items: center;
     gap: 8px;
 }
 
@@ -6405,7 +6406,8 @@ input:focus-visible + .pastilla-r {
 }
 
 .cifras > .inicios,
-.cifras > .nota-importado {
+.cifras > .nota-importado,
+.cifras > .descargas {
     grid-column: 1 / -1;
 }
 
@@ -10661,6 +10663,122 @@ a.quien-cita:focus-visible {
 }
 
 /* The brothers and sisters for later in the file: when it would be their turn, and noting one more. */
+.quien-sigue-pregunta {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.quien-sigue-pregunta p {
+    margin: 0;
+}
+
+.quien-sigue-anos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.hoja-ano {
+    display: grid;
+    gap: 2px;
+    min-width: 168px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.hoja-ano span {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.hoja-ano:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.quien-sigue-pasan {
+    margin: 0 0 6px;
+}
+
+.empieza.sigue-leave .quien b a {
+    color: var(--eg-accion);
+}
+
+.sigue,
+.senales {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.sigue h3,
+.senales h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.sigue-nino {
+    display: grid;
+    gap: 6px;
+}
+
+.sigue-quien,
+.sigue-dicho,
+.sigue-nota {
+    margin: 0;
+}
+
+.sigue-nota {
+    color: var(--eg-tinta-2);
+    font-style: italic;
+}
+
+.sigue-botones,
+.sigue-motivos,
+.quien-sigue-botones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.eleccion,
+.ficha-boton {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 999px;
+    background: var(--eg-superficie);
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.eleccion[aria-pressed="true"],
+.ficha-boton[aria-pressed="true"] {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.senales ul {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding-inline-start: 18px;
+}
+
 .hermanos-luego {
     display: grid;
     gap: 8px;
@@ -12871,6 +12989,9 @@ details.aj-plegado > summary h2::after {
 
 .campo.ia-escrito textarea {
     border-style: dashed;
+    /* stylelint-disable-next-line csstree/validator, property-no-unknown */
+    field-sizing: content;
+    min-height: 168px;
 }
 
 /* In the inbox, what a family asks, read by the AI: one line under the names, with its mark. */
@@ -12925,4 +13046,96 @@ details.aj-plegado > summary h2::after {
 
 .bloque-preguntan .ia-firma {
     margin: 2px 0 6px;
+}
+
+/* What is taken away from Cifras: each sheet drawn as a page of a spreadsheet, its corner folded, its name and how to
+   take it (Excel as a button, CSV as a link). The figures without names show only columns, no rows of people. */
+.descargas {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.descargas-t {
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+}
+
+.hojas-calculo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hoja-calculo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "papel nombre" "papel bajar";
+    align-items: center;
+    gap: 4px 14px;
+    flex: 1 1 18rem;
+    padding: 12px 16px 12px 12px;
+    border-radius: 12px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 10px 18px -14px rgba(58, 42, 30, 0.5);
+}
+
+.hoja-calculo > b {
+    grid-area: nombre;
+    font-size: 1.0625rem;
+}
+
+.hoja-calculo-bajar {
+    grid-area: bajar;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+/* The little page: squared paper with a header row and the corner folded. */
+.hoja-calculo-papel {
+    grid-area: papel;
+    position: relative;
+    display: grid;
+    gap: 3px;
+    width: 46px;
+    height: 58px;
+    padding: 12px 5px 5px;
+    border-radius: 3px 10px 3px 3px;
+    background:
+        linear-gradient(var(--eg-acento) 0 4px, transparent 4px) 0 0 / 100% 100% no-repeat,
+        repeating-linear-gradient(90deg, transparent 0 11px, var(--eg-linea) 11px 12px),
+        #fff;
+    box-shadow: 0 0 0 1px var(--eg-linea), 0 4px 8px -4px rgba(0, 0, 0, 0.35);
+}
+
+.hoja-calculo-papel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 0 0 0 3px;
+    background: linear-gradient(225deg, var(--eg-superficie) 50%, var(--eg-linea) 50%);
+}
+
+.hoja-calculo-papel i {
+    display: block;
+    height: 3px;
+    border-radius: 1px;
+    background: rgba(43, 34, 38, 0.28);
+}
+
+.hoja-calculo-cifras .hoja-calculo-papel i {
+    width: 60%;
+}
+
+.hoja-calculo-cifras .hoja-calculo-papel i:nth-child(odd) {
+    width: 85%;
 }

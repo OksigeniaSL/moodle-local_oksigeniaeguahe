@@ -378,6 +378,7 @@ class familypage {
             'quiet' => $issettled || $isgone,
             'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
             'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
+            'renewal' => $isgone ? false : self::renewal_context($household, $centre, $lang, $token, $now),
             'lead' => $lead,
             'new' => $new,
             'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
@@ -736,6 +737,63 @@ class familypage {
             $by,
             $flags
         );
+    }
+
+    /**
+     * Whether each child goes on next school year, while the centre asks: a question for each one, the three answers as
+     * buttons that keep what is tapped, and, for one that does not go on, why if they wish. Nothing when it does not ask.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @param int $now
+     * @return array|false
+     */
+    protected static function renewal_context(\stdClass $household, \stdClass $centre, string $lang, string $token, int $now) {
+        if (!renewal::open($centre, $now)) {
+            return false;
+        }
+        $children = renewal::children($centre, (int) $household->id);
+        if (!$children) {
+            return false;
+        }
+        $answers = renewal::answers($centre, (int) $household->id);
+        $year = (string) $centre->renewalyear;
+        $until = (int) $centre->renewaluntil;
+        $rows = [];
+        foreach ($children as $childid => [$child, , $next]) {
+            $row = $answers[$childid] ?? null;
+            $answer = $row ? (string) $row->answer : '';
+            $name = self::label_name($child) ?: trim((string) $child->firstname);
+            $rows[] = [
+                'id' => $childid,
+                'question' => publiclang::str('pub_renewal_ask', $lang, (object) ['name' => $name, 'year' => $year,
+                    'course' => format_string($next->name)]),
+                'options' => array_map(fn($key) => ['key' => $key, 'label' => publiclang::str('pub_renewal_' . $key, $lang),
+                    'pressed' => $answer === $key], renewal::ANSWERS),
+                'done' => $answer !== '' ? publiclang::str('pub_renewal_' . $answer . '_done', $lang, $name) : '',
+                'why' => $answer === 'leave' ? [
+                    'label' => publiclang::str('pub_renewal_why', $lang),
+                    'reasons' => array_values(array_map(fn($key) => ['key' => $key,
+                        'label' => publiclang::str('pub_renewal_reason_' . $key, $lang),
+                        'pressed' => (string) $row->reason === $key], array_diff(settled::LEFT_REASONS, ['unknown']))),
+                ] : false,
+                'note' => $answer === 'leave' || $answer === 'unsure' ? ['label' => publiclang::str('pub_renewal_note', $lang),
+                    'value' => (string) ($row->note ?? ''), 'save' => publiclang::str('pub_renewal_note_save', $lang)] : false,
+            ];
+        }
+        return [
+            'title' => publiclang::str('pub_renewal_title', $lang, $year),
+            'lead' => publiclang::str('pub_renewal_lead', $lang, $year) . ($until ? ' ' . publiclang::str(
+                'pub_renewal_until',
+                $lang,
+                publicpage::date_parts($until - DAYSECS, $lang)['daymonth']
+            ) : ''),
+            'children' => $rows,
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'sesskey' => sesskey(),
+        ];
     }
 
     /**

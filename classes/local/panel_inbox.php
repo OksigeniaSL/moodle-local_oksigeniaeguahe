@@ -177,6 +177,8 @@ class panel_inbox {
             'hasplaces' => (bool) $places['list'],
             'path' => self::path($centreid),
             'firstday' => panel_start::link($centreid),
+            // Who goes on next school year: how many answered while the centre asks, or the way in to ask.
+            'renewal' => panel_renewal::link($centre, time()),
             // What the families ask most, from the themes the AI of the centre read in last week's report.
             'topics' => self::topics($centre),
             'siblingsdue' => $due ? ['text' => get_string(

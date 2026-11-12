@@ -41,6 +41,9 @@
         <FIELD NAME="invitegone" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the families that left are still invited to open acts; 0, they are left in peace"/>
         <FIELD NAME="networks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The networks a family may name when it heard of the centre on one, one per line, as the centre writes them; empty, the usual ones"/>
         <FIELD NAME="channelauto" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The moments of each open act that go by themselves to the channel of Telegram, comma separated (announce, tell, last, day); null, the announcement only"/>
+        <FIELD NAME="renewalyear" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" COMMENT="The school year the families of the centre are asked whether their children go on into; null, not asked"/>
+        <FIELD NAME="renewalfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="From when the families can answer"/>
+        <FIELD NAME="renewaluntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Until when, the start of the day after the last one; 0, no end"/>
         <FIELD NAME="firstday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day of the next school year, for the story of the children who start; 0, not written"/>
         <FIELD NAME="namephrase" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The name of the centre as it is said in a sentence, with its article if it has one"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -621,6 +624,28 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="centredone" UNIQUE="false" FIELDS="centreid, timedone"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_renewal" COMMENT="Whether a child of the centre goes on into the next school year, as its family or the team said it (the re-enrolment)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="childid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="schoolyear" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" COMMENT="The school year it is about: the next one"/>
+        <FIELD NAME="answer" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="stay, leave or unsure"/>
+        <FIELD NAME="reason" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Why they leave, of settled::LEFT_REASONS, if they said"/>
+        <FIELD NAME="note" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What they added, in their words"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who wrote it down; 0, the family from its page"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="childyear" UNIQUE="true" FIELDS="childid, schoolyear"/>
+        <INDEX NAME="centreyear" UNIQUE="false" FIELDS="centreid, schoolyear"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_sibling" COMMENT="A brother or sister at home who would come later, as the family told it: when their turn comes, the team offers them a place">

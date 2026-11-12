@@ -66,6 +66,13 @@ class panel_household {
         $userids = array_unique(array_filter(array_map(fn($x) => (int) $x->userid, $contacts)));
         $people = $userids ? $DB->get_records_list('user', 'id', $userids) : [];
 
+        // The signs that a family may leave: facts with their day, never a mark.
+        // What the block of next school year already says is not said twice.
+        $asked = (bool) renewal::children($centre, (int) $household->id);
+        $signs = array_values(array_map(fn($sign) => ['line' => $sign['text']], array_filter(
+            renewal::signs($household, $centre, $now),
+            fn($sign) => !$asked || !in_array($sign['kind'], ['leave', 'unsure', 'none'], true)
+        )));
         // The head: since when they wait, or who answered; who they are; where they came from and since when.
         $ante = '';
         $answered = null;
@@ -164,6 +171,9 @@ class panel_household {
             'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
             'family' => self::family($household, $full, $canact),
             'leave' => self::leave($household, $full, $canact),
+            'renewal' => self::renewal($household, $centre, $canact, $now),
+            'signs' => $signs,
+            'hassigns' => (bool) $signs,
             'siblings' => self::siblings($household, $centre, $canact, $now),
             'thanks' => $canact ? self::thanks($household, $full) : false,
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
@@ -256,6 +266,61 @@ class panel_household {
             return get_string('panel_started_on', $c, userdate((int) $child->started, $day));
         }
         return get_string('panel_incentre_since', $c, userdate((int) $child->stagetime, $day));
+    }
+
+    /**
+     * Next school year, while the centre asks or once it asked: for each child asked about, what was said and when, by the
+     * family or by whom; and the three answers, with why for one that does not go on, for a person who heard it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function renewal(\stdClass $household, \stdClass $centre, bool $canact, int $now) {
+        $c = self::C;
+        $children = renewal::children($centre, (int) $household->id);
+        if (!$children) {
+            return false;
+        }
+        $answers = renewal::answers($centre, (int) $household->id);
+        $open = renewal::open($centre, $now);
+        $day = get_string('strftimedateshort', 'langconfig');
+        $rows = [];
+        foreach ($children as $childid => [$child, , $next]) {
+            $row = $answers[$childid] ?? null;
+            $answer = $row ? (string) $row->answer : '';
+            $said = '';
+            if ($row) {
+                $who = (int) $row->userid ? \core_user::get_user((int) $row->userid) : null;
+                $a = (object) ['day' => userdate((int) $row->timemodified, $day), 'who' => $who ? fullname($who) : '',
+                    'answer' => get_string('renewal_state_' . $answer, $c) . ($answer === 'leave' && $row->reason ?
+                        ' (' . get_string('left_' . $row->reason, $c) . ')' : '')];
+                $said = get_string($who ? 'panel_renewal_said_by' : 'panel_renewal_said_family', $c, $a);
+            }
+            $rows[] = [
+                'id' => (int) $childid,
+                'tag' => panel::tag($child),
+                'next' => get_string('panel_renewal_next_one', $c, format_string($next->name)),
+                'said' => $said !== '' ? $said : get_string($open ? 'panel_renewal_unanswered' : 'panel_renewal_closed', $c),
+                'note' => $row && trim((string) $row->note) !== '' ? (string) $row->note : '',
+                'answers' => array_map(fn($key) => ['key' => $key, 'label' => get_string('renewal_answer_' . $key, $c),
+                    'pressed' => $answer === $key], renewal::ANSWERS),
+                'reasons' => $answer === 'leave' ? array_values(array_map(fn($key) => ['key' => $key,
+                    'label' => panel::upper_first(get_string('left_' . $key, $c)),
+                    'pressed' => (string) $row->reason === $key], array_diff(settled::LEFT_REASONS, ['unknown']))) : [],
+                'hasreasons' => $answer === 'leave',
+            ];
+        }
+        return [
+            'title' => get_string('panel_renewal_file', $c, s((string) $centre->renewalyear)),
+            'rows' => $rows,
+            'canact' => $canact && $open,
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
+            'pageurl' => (new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centre->id]))->out(false),
+        ];
     }
 
     /**

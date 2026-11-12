@@ -1,0 +1,133 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_renewal
+
+    Who goes on (renewal.php): the centre asks its families, for a school year, whether each child goes on. Before
+    asking or once closed, the school years it can ask about, each a button; while it asks, since when and until when (a
+    leaf of the calendar), writing once to whoever has not answered, and stopping. Then each course, with where its
+    children go and how many go on, and its children: who does not go on first, then who does not know, who said
+    nothing and who goes on, with the three answers for what a family told a person. Without JavaScript, each touch is
+    a form.
+
+    Example context (json):
+    {
+        "i": {"check": "", "buscar": "", "chev": "", "atras": ""},
+        "head": {"title": "Quién sigue", "ante": "Curso 2028-29", "sub": "Han contestado 3 de 5.",
+            "back": {"url": "#", "name": "Bandeja"}, "action": false},
+        "start": false,
+        "open": {"since": "Se pregunta desde el jueves, 12 de noviembre de 2026.", "until": "Hasta el lunes, 15 de marzo de 2027.",
+            "leaf": {"weekday": "lun", "day": "15", "month": "mar"}, "hasend": true,
+            "date": {"id": "rm-hasta", "first": "rm-hastad", "form": false, "child": false, "invalid": false, "labelled": false,
+                "arialabel": "Último día para contestar", "describedby": false, "mirror": false, "value": "2027-03-15",
+                "parts": [{"key": "d", "id": "rm-hastad", "name": "untild", "label": "Día", "value": "15", "size": 2, "months": false}]},
+            "tell": "Escribir a las 2 familias que no han contestado", "told": ""},
+        "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/renewal.php?c=1", "sesskey": "abc",
+        "groups": [{"offerid": 7, "title": "Infantil 3 años", "next": "Pasan a Infantil 4 años", "count": "1 de 2 siguen", "leave": 1,
+            "rows": [{"id": 4, "kind": "leave", "tag": "Leo", "adults": "Marta Ruiz", "url": "#", "said": "Lo dijo la familia el 3/12/26: no sigue.",
+                "note": "", "search": "leo", "answers": [{"key": "stay", "label": "Sigue", "pressed": false},
+                {"key": "leave", "label": "No sigue", "pressed": true}, {"key": "unsure", "label": "No lo saben", "pressed": false}]}]}]
+    }
+}}
+<div class="pagina pagina-quien-sigue">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <section class="quien-sigue-pregunta" id="pregunta" aria-label="{{#str}}panel_renewal_question, local_oksigeniaeguahe{{/str}}">
+        {{#start}}
+        {{#closed}}<p class="pd-dia"><b>{{closed}}</b></p>{{/closed}}
+        {{#hascandidates}}
+        <p>{{#str}}panel_renewal_pick, local_oksigeniaeguahe{{/str}}</p>
+        <div class="quien-sigue-anos">
+            {{#candidates}}
+            <form method="post" action="{{action}}#pregunta">
+                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="start"><input type="hidden" name="year" value="{{year}}">
+                <button class="hoja-ano" type="submit"{{^ready}} disabled{{/ready}}{{^canact}} disabled{{/canact}}><b>{{label}}</b><span>{{line}}</span></button>
+            </form>
+            {{/candidates}}
+        </div>
+        {{/hascandidates}}
+        {{^hascandidates}}<p class="secundario">{{#str}}panel_renewal_none_yet, local_oksigeniaeguahe{{/str}}</p>{{/hascandidates}}
+        {{#closed}}{{#canact}}
+        <form method="post" action="{{action}}#pregunta">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="reopen">
+            <button class="enlace" type="submit">{{#str}}panel_renewal_reopen, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{/canact}}{{/closed}}
+        {{/start}}
+        {{#open}}
+        <div class="pd-fecha{{^hasend}} pd-falta{{/hasend}}">
+            <span class="hoja-cal pd-hoja" aria-hidden="true">{{#leaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/leaf}}</span>
+            <div class="pd-texto">
+                <p class="pd-dia"><b>{{until}}</b> <span>{{since}}</span></p>
+                {{#told}}<p class="secundario">{{told}}</p>{{/told}}
+                {{#canact}}
+                <div class="pd-acciones">
+                    {{#tell}}
+                    <form method="post" action="{{action}}#pregunta">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="tell">
+                        <button class="boton principal" type="submit">{{tell}}</button>
+                    </form>
+                    {{/tell}}
+                    <details class="pd-otra">
+                        <summary>{{#hasend}}{{#str}}panel_renewal_change_end, local_oksigeniaeguahe{{/str}}{{/hasend}}{{^hasend}}{{#str}}panel_renewal_set_end, local_oksigeniaeguahe{{/str}}{{/hasend}}</summary>
+                        <form method="post" action="{{action}}#pregunta" class="pd-cambiar">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="until">
+                            {{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}
+                            <button class="boton principal pequeno" type="submit">{{#str}}panel_firstday_course_save, local_oksigeniaeguahe{{/str}}</button>
+                        </form>
+                        {{#hasend}}
+                        <form method="post" action="{{action}}#pregunta">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="noend">
+                            <button class="enlace" type="submit">{{#str}}panel_renewal_no_end_button, local_oksigeniaeguahe{{/str}}</button>
+                        </form>
+                        {{/hasend}}
+                    </details>
+                    <form method="post" action="{{action}}#pregunta">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="stop">
+                        <button class="enlace" type="submit">{{#str}}panel_renewal_stop, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </div>
+                {{/canact}}
+            </div>
+        </div>
+        {{/open}}
+    </section>
+    {{#hasgroups}}
+    <section class="llegadas primer-dia quien-sigue" aria-label="{{#str}}panel_renewal, local_oksigeniaeguahe{{/str}}">
+        <div class="buscar-puerta">
+            <label class="buscar"><span class="oculto">{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".empieza" placeholder="{{#str}}panel_firstday_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+        </div>
+        {{#groups}}
+        <details class="turno-p" open id="curso{{offerid}}">
+            <summary><span class="hora">{{title}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
+            <p class="secundario quien-sigue-pasan">{{next}}</p>
+            {{#rows}}
+            <div class="empieza sigue-{{kind}}" id="n{{id}}" data-buscar="{{search}}">
+                <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{said}}</span></span></span>{{#note}}<span class="sigue-nota" dir="auto">{{note}}</span>{{/note}}</div>
+                {{#canact}}
+                <form class="quien-sigue-botones" method="post" action="{{action}}#n{{id}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="answer"><input type="hidden" name="child" value="{{id}}">
+                    {{#answers}}<button class="eleccion" type="submit" name="answer" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/answers}}
+                </form>
+                {{/canact}}
+            </div>
+            {{/rows}}
+        </details>
+        {{/groups}}
+        <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+    </section>
+    {{/hasgroups}}
+</div>

@@ -30,7 +30,8 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks', 'openinvite'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks', 'openinvite',
+        'renewal'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -329,6 +330,25 @@ class familymail {
                         $str('mail_thanks_go_host', $host) : $str('mail_thanks_go_team')), 'url' => $go, 'url_texto' => $go] :
                         null,
                 ]],
+                'nota' => $str('mail_note_reply'),
+            ];
+        } else if ($kind === 'renewal') {
+            // The centre asks whether its children go on next school year; they answer on their page, before the day.
+            $year = (string) ($centre->renewalyear ?? '');
+            $until = (int) ($centre->renewaluntil ?? 0);
+            // Only the children asked about, not a younger one still on its way in.
+            $asked = array_map(fn($row) => familypage::label_name($row[0]), renewal::children($centre, (int) $household->id));
+            $a = (object) ['names' => familypage::join(array_values(array_filter($asked)) ?: $tags, $lang), 'year' => $year,
+                'until' => $until ? publicpage::date_parts($until - DAYSECS, $lang)['daymonth'] : ''];
+            $leadkey = $until ? 'mail_renewal_lead' : 'mail_renewal_lead_nodate';
+            $context['titular'] = $str('mail_renewal_titular', $year);
+            $context += [
+                'asunto' => $str('mail_renewal_subject', (object) ['centre' => format_string($centre->name), 'year' => $year]),
+                'preencabezado' => $str('mail_renewal_preheader', $a),
+                'entradilla' => s($str($leadkey, $a)),
+                'entradilla_texto' => $str($leadkey, $a),
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_renewal_go'), 'url' => $pageurl . '#rematricula',
+                    'url_texto' => $pageurl] : null,
                 'nota' => $str('mail_note_reply'),
             ];
         } else if ($kind === 'request') {

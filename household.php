@@ -36,6 +36,7 @@ use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_household;
+use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
@@ -149,6 +150,20 @@ if ($action && data_submitted() && confirm_sesskey()) {
             $reason = optional_param('reason', 'unknown', PARAM_ALPHA);
             settled::leave($household, (int) $USER->id, $reason, optional_param('note', '', PARAM_TEXT), time());
             redirect(new moodle_url($url, [], 'se-van'));
+            break;
+        case 'renewal':
+            // Next school year, as the family told a person: the answer, or why it does not go on.
+            $child = required_param('child', PARAM_INT);
+            renewal::from_team(
+                $centre,
+                $household,
+                $child,
+                optional_param('answer', '', PARAM_ALPHA),
+                optional_param('reason', '', PARAM_ALPHA),
+                (int) $USER->id,
+                time()
+            );
+            redirect(new moodle_url($url, [], 'sigue-' . $child));
             break;
         case 'stay':
             settled::stay($household, time());

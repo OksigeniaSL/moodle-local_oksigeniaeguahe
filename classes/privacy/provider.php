@@ -41,7 +41,8 @@ class provider implements
     \core_privacy\local\request\user_preference_provider {
     /** @var string[] Tables with the people of the teams. */
     const TABLES = ['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent',
-        'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend', 'local_oksigeniaeguahe_report'];
+        'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend', 'local_oksigeniaeguahe_report',
+        'local_oksigeniaeguahe_renewal'];
 
     /**
      * What is kept about users.
@@ -76,6 +77,10 @@ class provider implements
             'userid' => 'privacy:metadata:report:userid',
             'timecreated' => 'privacy:metadata:report:timecreated',
         ], 'privacy:metadata:report');
+        $collection->add_database_table('local_oksigeniaeguahe_renewal', [
+            'userid' => 'privacy:metadata:renewal:userid',
+            'timemodified' => 'privacy:metadata:renewal:timemodified',
+        ], 'privacy:metadata:renewal');
         $collection->add_user_preference(
             \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
             'privacy:metadata:preference:density'
@@ -169,10 +174,11 @@ class provider implements
             $noted = $DB->count_records('local_oksigeniaeguahe_consent', ['userid' => $userid]);
             $imported = $DB->count_records('local_oksigeniaeguahe_import', ['userid' => $userid]);
             $spends = $DB->count_records('local_oksigeniaeguahe_spend', ['userid' => $userid]);
+            $renewals = $DB->count_records('local_oksigeniaeguahe_renewal', ['userid' => $userid]);
             writer::with_context($context)->export_data(
                 [get_string('pluginname', 'local_oksigeniaeguahe')],
                 (object) ['teams' => $teams, 'written' => $written, 'permissionsnoted' => $noted,
-                    'filesimported' => $imported, 'spendsnoted' => $spends]
+                    'filesimported' => $imported, 'spendsnoted' => $spends, 'renewalsnoted' => $renewals]
             );
         }
     }
@@ -194,6 +200,7 @@ class provider implements
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_report', 'userid', 0, 'userid > 0');
+        $DB->set_field_select('local_oksigeniaeguahe_renewal', 'userid', 0, 'userid > 0');
     }
 
     /**
@@ -237,5 +244,6 @@ class provider implements
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_spend', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_report', 'userid', 0, "userid $in", $params);
+        $DB->set_field_select('local_oksigeniaeguahe_renewal', 'userid', 0, "userid $in", $params);
     }
 }
