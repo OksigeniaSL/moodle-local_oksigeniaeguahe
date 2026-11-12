@@ -81,10 +81,16 @@ class signuppage {
                 $field("a{$i}email", publiclang::str('pub_email', $lang), $adult['email'], 'email', 'email'),
             ]];
         }
-        $offers = [];
-        foreach (centres::offers((int) $centre->id, true) as $offer) {
-            $offers[] = ['id' => $offer->id, 'name' => format_string($offer->name) . ' · ' . s($offer->schoolyear)];
-        }
+        // The whole offer of the centre, from the youngest to the oldest: by stage and school year, so the list reads at a
+        // glance; each course with the year of birth it is for, to propose it once the date of birth is written.
+        [$grouped, $loose] = grades::grouped(array_values(centres::offers((int) $centre->id, true)), $centre);
+        $option = fn($o, bool $year) => ['id' => (int) $o->id, 'born' => (int) $o->born,
+            'name' => format_string($o->name) . ($year ? ' · ' . s($o->schoolyear) : '')];
+        $groups = array_map(fn($g) => ['label' => $g['label'], 'offers' => array_map(
+            fn($o) => $option($o, false),
+            $g['offers']
+        )], $grouped);
+        $offers = array_map(fn($o) => $option($o, true), $loose);
         // The children: the first always; the others when something was written in them.
         $children = [];
         $labels = [];
@@ -101,17 +107,23 @@ class signuppage {
                 'name' => $child['firstname'],
                 'nameerror' => $errors["c{$i}name"] ?? '',
                 'tag' => $child['tagname'] ?? '',
-                'birth' => $child['birthdate'] ?? '',
+                // The date of birth in three fields, in the order of the country of the centre.
+                'birth' => ['form' => 'eg-form', 'child' => ['i' => (string) $i], 'invalid' => isset($errors["c{$i}birth"]),
+                    'describedby' => "c{$i}birth-help"] +
+                    publicpage::date_input("c{$i}birth", (string) ($child['birthdate'] ?? ''), $lang, $centre),
                 // Where names are often written in another script, their name in Latin letters too, for the voice.
                 'latin' => $lang === 'ar' ? ['value' => $child['latinname'] ?? ''] : false,
                 'birtherror' => $errors["c{$i}birth"] ?? '',
-                'birthmax' => date('Y-m-d'),
                 'tagplaceholder' => preg_split('/\s+/', $child['firstname'])[0] ?? '',
                 'courselabel' => $label !== '' ? publiclang::str('pub_course_for', $lang, $label) :
                     publiclang::str('pub_course_for_none', $lang),
                 'coursewith' => publiclang::str('pub_course_for', $lang, '{name}'),
                 'coursewithout' => publiclang::str('pub_course_for_none', $lang),
                 'offererror' => $errors["c{$i}offer"] ?? '',
+                'groups' => array_map(fn($g) => ['label' => $g['label'], 'offers' => array_map(
+                    fn($o) => $o + ['selected' => (int) $o['id'] === (int) $child['offerid']],
+                    $g['offers']
+                )], $groups),
                 'offers' => array_map(fn($o) => $o + ['selected' => (int) $o['id'] === (int) $child['offerid']], $offers),
             ];
         }
@@ -262,7 +274,7 @@ class signuppage {
             'sesskey' => sesskey(),
             'adults' => $adults,
             'canaddadult' => (bool) array_filter($adults, fn($a) => $a['hidden']),
-            'hasoffers' => (bool) $offers,
+            'hasoffers' => $groups || $offers,
             'people' => (int) $data['people'] ?: 2,
             'hasslots' => (bool) $slots,
             'slots' => $slots,

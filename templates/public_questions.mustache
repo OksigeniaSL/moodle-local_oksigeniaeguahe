@@ -66,8 +66,8 @@
     {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
     {{/islong}}
     {{#isdate}}
-    <label for="{{name}}-in">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
-    <input id="{{name}}-in" name="{{name}}" type="date" value="{{value}}"{{#invalid}} aria-invalid="true"{{/invalid}}>
+    <label id="{{name}}-l" for="{{date.first}}">{{label}}{{^required}} <span class="opc">{{pub_if_you_wish}}</span>{{/required}}</label>
+    {{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}
     {{#help}}<p class="ayuda-campo">{{help}}</p>{{/help}}
     {{/isdate}}
     {{#isnumber}}

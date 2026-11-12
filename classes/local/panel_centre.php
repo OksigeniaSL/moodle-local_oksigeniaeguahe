@@ -137,6 +137,16 @@ class panel_centre {
             'municipalities' => (string) $centre->municipalities,
             'networks' => implode("\n", centres::networks($centre)),
             'offers' => self::offers($centre),
+            // The stages of its school system, to add one whole; without a system, a line that says where to choose it.
+            'stages' => ($stages = grades::stages($centre)) ? ['year' => self::next_year(), 'list' => array_map(
+                fn($s) => ['key' => $s['key'], 'name' => count($s['courses']) > 1 ? get_string(
+                    'panel_offer_stage_option',
+                    $c,
+                    (object) ['name' => $s['name'], 'first' => $s['courses'][0]['name'],
+                    'last' => end($s['courses'])['name']]
+                ) : $s['name']],
+                $stages
+            )] : false,
             'members' => self::members($centre),
             'skins' => self::skins($centre),
             'skinproposal' => self::proposal((int) $centre->id),
@@ -530,6 +540,12 @@ class panel_centre {
                 $offer['story'] = !empty($stories[$i]);
             }
             centres::save_offer((int) $centre->id, (object) $offer);
+        }
+        // A whole stage of the system at once, from the nursery to the last year: its courses the year does not have.
+        $stage = optional_param('addstage', '', PARAM_ALPHANUMEXT);
+        if ($stage !== '') {
+            $year = trim(optional_param('addstageyear', '', PARAM_TEXT));
+            centres::add_stage((int) $centre->id, (int) $stage, $year !== '' ? $year : self::next_year());
         }
 
         // The team: who goes out, and someone more by their name or their email in Moodle.

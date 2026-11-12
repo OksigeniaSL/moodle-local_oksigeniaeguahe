@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\kit;
+use local_oksigeniaeguahe\local\knownpage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
@@ -129,11 +130,14 @@ if (data_submitted()) {
             ob_end_clean();
         }
         if ($existed) {
-            publicpage::message(
+            // The wall with what they just wrote and their visit; never their page (public_known).
+            $signup = empty($event->tailored) ? familymail::signup($household, (int) $event->id) : null;
+            publicpage::output(
                 $centre,
                 $lang,
                 publiclang::str('pub_known_title', $lang),
-                publiclang::str($to !== '' ? 'pub_known_sent' : 'pub_known_nomail', $lang),
+                'public_known',
+                knownpage::context($centre, $lang, $data['children'], $signup, $to !== ''),
                 $url
             );
         }

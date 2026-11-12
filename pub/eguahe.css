@@ -782,6 +782,35 @@ textarea {
     font-size: 0.9375rem;
 }
 
+/* A date in three fields, day, month and year, in the order of the country of the centre: a field of type date
+   writes it as its browser does, mm/dd/yyyy in an English one. */
+.fecha-tres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fecha-parte {
+    display: grid;
+    gap: 4px;
+}
+
+.campo .fecha-nombre {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.campo .fecha-parte input {
+    width: 4.75rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.campo .fecha-y input {
+    width: 6.5rem;
+}
+
 .nino + .nino {
     padding-top: 18px;
     border-top: 1px solid var(--eg-linea);
@@ -4501,4 +4530,36 @@ button.enlace span {
     display: block;
     min-height: 44px;
     margin: 6px auto 0;
+}
+
+/* ---------- A family that was already known signs up again (public_known) ----------
+   The wall of their page, with the things of the children they just wrote hanging from the rail; under it, the visit as
+   the stub of the invitation and, with small faces, who receives them. */
+.conocidos-correo p {
+    margin: 0;
+}
+
+.conocidos-cuerpo {
+    display: grid;
+    gap: 24px;
+    min-width: 0;
+}
+
+.conocidos-reciben h3 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: var(--eg-tinta-2);
+}
+
+.conocidos-caras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 32px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.conocidos-caras .persona-lleva {
+    margin: 0;
 }

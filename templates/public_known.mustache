@@ -1,0 +1,98 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_known
+
+    What a family that was already known sees when it signs up again (j.php, $existed): not the end of a form, but the wall
+    of the centre with the things of the children they just wrote already hanging from the rail, as on their own page, and
+    the visit they signed up for with who receives them. Their page itself is not shown here, since whoever filled in the
+    form might not be that family: its link went to the address the centre already had (text). Only what they just wrote
+    and the act are shown.
+
+    Context variables required for this template:
+    * i - icons: mail, phone
+    * title, names - «Ya están apuntados» and the names used at home just written, joined («Leo y Ana»), or ''
+    * text - pub_known_sent, or pub_known_nomail when there was no address
+    * rail - the pegs as public_pegs takes them (count, came, live, pegs), from the children just written
+    * hall, json, base - the hall of skin A behind the wall, as on the page of a family, or false
+    * event - the act (lead as the page of a family says it, weekday, daymonth, name, hours, place), or false from w.php
+    * expect - pub_known_expect («Los esperamos»)
+    * hashosts, hosts (name, role, photo, initials), receives - who receives them, as on the page of a family
+    * email, phone, tel, writeus - as public_message
+
+    Example context (json):
+    {
+        "i": {"mail": "", "phone": ""}, "title": "Ya están apuntados", "names": "Leo y Ana",
+        "text": "Ya los conocíamos: les hemos mandado el enlace a su página al correo que nos dieron la otra vez.",
+        "rail": {"count": 2, "came": false, "live": false, "pegs": [{"index": 0, "name": "Leo", "style": "--reposo:-3.5deg",
+            "object": "mochila", "arriving": true, "stuck": false, "hidden": false}, {"index": 1, "name": "Ana",
+            "style": "--reposo:3deg", "object": "mochila", "arriving": true, "stuck": false, "hidden": false}]},
+        "hall": false,
+        "event": {"lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "weekday": "Sábado",
+            "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas", "hours": "De 10:00 a 13:00",
+            "place": "Entrada principal"},
+        "expect": "Los esperamos", "hashosts": true, "receives": "Quién los recibe",
+        "hosts": [{"name": "Lucía Medina", "role": "Tutora", "photo": "", "initials": "LM"}],
+        "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos"
+    }
+}}
+{{#hall}}
+<div class="sala-familia" data-vestibulo data-escena="{{json}}" data-base="{{base}}" aria-hidden="true"><div class="sala"></div></div>
+{{/hall}}
+<section class="pared conocidos{{#hall}} con-sala{{/hall}}" aria-labelledby="titulo">
+    <div class="saludo-arriba">
+        <h1 class="titular" id="titulo">{{title}}{{#names}}, <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</h1>
+    </div>
+    <div class="riel" aria-hidden="true"></div>
+    <div class="heroe-ancho">
+        {{#rail}}{{> local_oksigeniaeguahe/public_pegs }}{{/rail}}
+        <div class="bajo-riel">
+            {{#event}}<p class="entradilla">{{{lead}}}</p>{{/event}}
+            <div class="aviso en-heroe conocidos-correo" role="status">
+                <span class="icono">{{{i.mail}}}</span>
+                <p>{{text}}</p>
+            </div>
+            <div class="acciones">
+                {{#email}}<a class="boton secundario" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
+                {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            </div>
+        </div>
+    </div>
+</section>
+{{#event}}
+<section class="seccion dos-col conocidos-visita" aria-labelledby="conocidos-visita-t">
+    <div class="cabeza">
+        <h2 id="conocidos-visita-t">{{expect}}</h2>
+    </div>
+    <div class="conocidos-cuerpo">
+        <div class="invitacion-acto">
+            <p class="invitacion-acto-fecha"><span>{{weekday}}</span> <b>{{daymonth}}</b></p>
+            <p class="invitacion-acto-que"><b>{{name}}</b><span>{{hours}}{{#place}} · {{place}}{{/place}}</span></p>
+        </div>
+        {{#hashosts}}
+        <div class="conocidos-reciben">
+            <h3>{{receives}}</h3>
+            <ul class="conocidos-caras">
+                {{#hosts}}
+                <li class="persona-lleva">{{#photo}}<img class="retrato" src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="retrato ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span><b>{{name}}</b>{{#role}}<span class="papel" dir="auto">{{role}}</span>{{/role}}</span></li>
+                {{/hosts}}
+            </ul>
+        </div>
+        {{/hashosts}}
+    </div>
+</section>
+{{/event}}

@@ -304,7 +304,7 @@ if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
     $childid = required_param('nino', PARAM_INT);
     if (isset(households::full($household)->children[$childid])) {
         households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
-        households::set_birthdate($household, $childid, optional_param('cumple', '', PARAM_RAW_TRIMMED));
+        households::set_birthdate($household, $childid, publicpage::date_param('cumple'));
         if (optional_param('latina', null, PARAM_TEXT) !== null) {
             households::set_latin_name($household, $childid, optional_param('latina', '', PARAM_TEXT));
         }

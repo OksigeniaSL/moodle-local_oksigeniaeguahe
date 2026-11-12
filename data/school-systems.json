@@ -1,5 +1,5 @@
 {
- "about": "School systems Eguahe recognises in the names of courses, as data: each with the countries that use it and its stages. A stage has the words that name it (lower case, without accents), the age turned in the calendar year its first course starts, how many courses it has (max), the usual name of a course ({n}, its number; {age}, its age), and, optionally, words that must also be in the name (with) or a single course without a number (fixed). A centre chooses its system in its settings; the age it writes for a course always wins. Only the system of Spain has been used with real data; the ages of the others are to be checked with each first centre. A number before a word of years («1 año», «3 years») is an age; a course says its number with its ordinal or after its word («1.º ano», «Year 1»).",
+ "about": "School systems Eguahe recognises in the names of courses, as data: each with the countries that use it and its stages. A stage has its name (to group its courses and add them at once), the words that name it (lower case, without accents), the age turned in the calendar year its first course starts, how many courses it has (max), the usual name of a course ({n}, its number; {age}, its age), and, optionally, words that must also be in the name (with) or a single course without a number (fixed). A centre chooses its system in its settings; the age it writes for a course always wins. Only the system of Spain has been used with real data; the ages of the others are to be checked with each first centre. A number before a word of years («1 año», «3 years») is an age; a course says its number with its ordinal or after its word («1.º ano», «Year 1»). A stage may list the names of its courses in order (names), when the usual pattern does not fit them all («Infantil 1 año»).",
  "generic": {
   "years": [
    "anos",
@@ -49,6 +49,7 @@
    ],
    "stages": [
     {
+     "name": "Infantil (3 a 5 años)",
      "words": [
       "inf",
       "infantil",
@@ -60,6 +61,7 @@
      "usual": "Infantil {age} años"
     },
     {
+     "name": "Primaria",
      "words": [
       "pri",
       "prim",
@@ -72,6 +74,7 @@
      "usual": "{n}.º de Primaria"
     },
     {
+     "name": "ESO",
      "words": [
       "eso",
       "secundaria",
@@ -82,6 +85,7 @@
      "usual": "{n}.º de ESO"
     },
     {
+     "name": "Bachillerato",
      "words": [
       "bac",
       "bach",
@@ -91,6 +95,21 @@
      "age": 16,
      "max": 2,
      "usual": "{n}.º de Bachillerato"
+    },
+    {
+     "name": "Infantil (0 a 2 años)",
+     "words": [
+      "primer ciclo",
+      "guarderia"
+     ],
+     "age": 0,
+     "max": 3,
+     "usual": "Infantil {age} años",
+     "names": [
+      "Infantil 0 años",
+      "Infantil 1 año",
+      "Infantil 2 años"
+     ]
     }
    ]
   },
@@ -100,6 +119,7 @@
    ],
    "stages": [
     {
+     "name": "Pré-escolar",
      "words": [
       "pre escolar",
       "jardim de infancia"
@@ -109,6 +129,7 @@
      "usual": "Pré-escolar {age} anos"
     },
     {
+     "name": "Ensino básico e secundário",
      "words": [
       "ano"
      ],
@@ -124,6 +145,7 @@
    ],
    "stages": [
     {
+     "name": "Ensino Médio",
      "words": [
       "serie"
      ],
@@ -132,6 +154,7 @@
      "usual": "{n}ª série do Ensino Médio"
     },
     {
+     "name": "Ensino Médio",
      "words": [
       "ano"
      ],
@@ -144,6 +167,7 @@
      "usual": "{n}ª série do Ensino Médio"
     },
     {
+     "name": "Ensino Fundamental",
      "words": [
       "ano",
       "ensino fundamental",
@@ -155,6 +179,7 @@
      "usual": "{n}º ano do Ensino Fundamental"
     },
     {
+     "name": "Educação Infantil",
      "words": [
       "pre escola",
       "educacao infantil"
@@ -171,6 +196,7 @@
    ],
    "stages": [
     {
+     "name": "Pre-K",
      "words": [
       "pre k",
       "prek",
@@ -181,6 +207,7 @@
      "usual": "Pre-K"
     },
     {
+     "name": "Kindergarten",
      "words": [
       "kindergarten",
       "kinder"
@@ -190,6 +217,7 @@
      "usual": "Kindergarten"
     },
     {
+     "name": "Grades",
      "words": [
       "grade",
       "gr"
@@ -206,6 +234,7 @@
    ],
    "stages": [
     {
+     "name": "Nursery",
      "words": [
       "nursery"
      ],
@@ -214,6 +243,7 @@
      "usual": "Nursery"
     },
     {
+     "name": "Reception",
      "words": [
       "reception"
      ],
@@ -222,6 +252,7 @@
      "usual": "Reception"
     },
     {
+     "name": "Years",
      "words": [
       "year",
       "yr",
@@ -239,6 +270,7 @@
    ],
    "stages": [
     {
+     "name": "Foundation",
      "words": [
       "foundation",
       "prep",
@@ -252,6 +284,7 @@
      "usual": "Foundation"
     },
     {
+     "name": "Years",
      "words": [
       "year",
       "yr",

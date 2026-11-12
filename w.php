@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
+use local_oksigeniaeguahe\local\knownpage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\share;
@@ -100,11 +101,13 @@ if (data_submitted() && !$preview) {
             ob_end_clean();
         }
         if ($existed) {
-            publicpage::message(
+            // The wall with what they just wrote; never their page (public_known).
+            publicpage::output(
                 $centre,
                 $lang,
                 publiclang::str('pub_known_title', $lang),
-                publiclang::str($to !== '' ? 'pub_known_sent' : 'pub_known_nomail', $lang),
+                'public_known',
+                knownpage::context($centre, $lang, $data['children'], null, $to !== ''),
                 $url
             );
         }

@@ -45,6 +45,7 @@
             "coming": [{"act": "Jornada de puertas abiertas", "moment": "El último aviso", "when": "jueves, 19 de noviembre de 2026, 08:00",
                 "review": true, "url": "#"}]},
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "", "networks": "Instagram",
+        "stages": {"year": "2027-28", "list": [{"key": 1, "name": "Primaria: de 1.º de Primaria a 6.º de Primaria"}]},
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
         "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "", "siblingages": [{"value": 0, "name": "No", "selected": true}], "invitegone": false,
@@ -201,6 +202,15 @@
                     </li>
                     {{/offers}}
                 </ul>
+                {{#stages}}
+                <div class="anadir-etapa">
+                    <div class="campo"><label for="o-etapa">{{#str}}panel_offer_stage, local_oksigeniaeguahe{{/str}}</label><select id="o-etapa" name="addstage"><option value="">{{#str}}panel_offer_stage_choose, local_oksigeniaeguahe{{/str}}</option>{{#list}}<option value="{{key}}">{{name}}</option>{{/list}}</select></div>
+                    <div class="campo"><label for="o-etapa-a">{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</label><input id="o-etapa-a" name="addstageyear" value="{{year}}"></div>
+                    <button class="boton secundario" type="submit">{{#str}}panel_offer_stage_add, local_oksigeniaeguahe{{/str}}</button>
+                    <p class="secundario">{{#str}}panel_offer_stage_help, local_oksigeniaeguahe{{/str}}</p>
+                </div>
+                {{/stages}}
+                {{^stages}}<p class="secundario anadir-etapa-sin">{{#str}}panel_offer_stage_nosystem, local_oksigeniaeguahe{{/str}}</p>{{/stages}}
             </section>
             <section class="apartado" id="aj-equipo" aria-labelledby="aj-equipo-t">
                 <header><h2 id="aj-equipo-t">{{#str}}centre_members, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span></header>

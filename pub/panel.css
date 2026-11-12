@@ -9033,6 +9033,37 @@ html.modo-lamina {
     gap: 12px;
 }
 
+/* A whole stage of the system at once, under the list: the stage, its school year and the button, in one row. */
+.anadir-etapa {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.anadir-etapa .campo {
+    display: grid;
+    gap: 6px;
+}
+
+.anadir-etapa > p {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.anadir-etapa-sin {
+    margin: 16px 0 0;
+}
+
+@media (max-width: 700px) {
+    .anadir-etapa {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .oferta {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr) auto;

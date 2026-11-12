@@ -244,6 +244,93 @@ class grades {
     }
 
     /**
+     * The stages of the school system of a centre, youngest first, each with its courses as their usual names say them:
+     * the whole system, from the nursery to the last year, to add a stage at once and to group the courses of a list.
+     * A stage that only names the same courses as another, to recognise them, goes once. None without a system.
+     *
+     * @param \stdClass|null $centre
+     * @return array[] key (its place in the data), name, from and to (the ages of its first and last course) and
+     *     courses (name, age), in order.
+     */
+    public static function stages(?\stdClass $centre): array {
+        $own = self::system($centre);
+        if ($own === '') {
+            return [];
+        }
+        $out = [];
+        $seen = [];
+        foreach (self::data()['systems'][$own]['stages'] ?? [] as $key => $stage) {
+            $count = !empty($stage['fixed']) ? 1 : (int) ($stage['max'] ?? 1);
+            $first = (int) $stage['age'];
+            $id = $first . ':' . $count;
+            if (isset($seen[$id])) {
+                continue;
+            }
+            $seen[$id] = true;
+            $courses = [];
+            for ($n = 1; $n <= $count; $n++) {
+                $age = $first + $n - 1;
+                $name = $stage['names'][$n - 1] ?? str_replace(['{age}', '{n}'], [$age, $n], (string) $stage['usual']);
+                $courses[] = ['name' => $name, 'age' => $age];
+            }
+            $out[] = ['key' => (int) $key, 'name' => (string) ($stage['name'] ?? $courses[0]['name']), 'from' => $first,
+                'to' => $first + $count - 1, 'courses' => $courses];
+        }
+        usort($out, fn($a, $b) => $a['from'] <=> $b['from']);
+        return $out;
+    }
+
+    /**
+     * The stage of the system of a centre that a course of an age is in, or null.
+     *
+     * @param int $age
+     * @param \stdClass|null $centre
+     * @return array|null As stages() gives it.
+     */
+    public static function stage_of(int $age, ?\stdClass $centre): ?array {
+        foreach (self::stages($centre) as $stage) {
+            if ($age >= $stage['from'] && $age <= $stage['to']) {
+                return $stage;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Some courses of a centre grouped by their stage and school year, in the order of the system, so a long list of the
+     * whole system reads at a glance; those of no known age, after them. Each with the year of birth it is for (the
+     * year it starts less its age), to propose it from a date of birth.
+     *
+     * @param \stdClass[] $offers
+     * @param \stdClass $centre
+     * @return array [groups (label, offers), loose (offers)]; an offer is the record plus born (or 0).
+     */
+    public static function grouped(array $offers, \stdClass $centre): array {
+        $groups = [];
+        $loose = [];
+        foreach ($offers as $offer) {
+            $age = self::age((string) $offer->name, $centre);
+            $start = (int) substr((string) $offer->schoolyear, 0, 4);
+            $offer->born = $age !== null && $start ? $start - $age : 0;
+            $stage = $age !== null ? self::stage_of($age, $centre) : null;
+            if (!$stage) {
+                $loose[] = $offer;
+                continue;
+            }
+            $key = $offer->schoolyear . '|' . str_pad((string) $stage['from'], 3, '0', STR_PAD_LEFT);
+            $groups[$key] = $groups[$key] ?? ['label' => $stage['name'] . ' · ' . $offer->schoolyear, 'offers' => []];
+            $offer->age = $age;
+            $groups[$key]['offers'][] = $offer;
+        }
+        ksort($groups);
+        foreach ($groups as &$group) {
+            usort($group['offers'], fn($a, $b) => [$a->age, (int) $a->sortorder] <=> [$b->age, (int) $b->sortorder]);
+        }
+        unset($group);
+        return [array_values($groups), $loose];
+    }
+
+    /**
      * The words that name a course in any system, for telling a column of courses in a file.
      *
      * @return string[]

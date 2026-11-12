@@ -220,9 +220,15 @@ class forms {
             if ($field->type === 'section') {
                 continue;
             }
-            $answers[$field->id] = $field->type === 'multichoice' ?
-                array_values(array_filter(array_map('trim', optional_param_array('f' . $field->id, [], PARAM_TEXT)))) :
-                trim(optional_param('f' . $field->id, '', PARAM_TEXT));
+            $answers[$field->id] = match ($field->type) {
+                'multichoice' => array_values(array_filter(array_map(
+                    'trim',
+                    optional_param_array('f' . $field->id, [], PARAM_TEXT)
+                ))),
+                // A date comes in three fields.
+                'date' => publicpage::date_param('f' . $field->id),
+                default => trim(optional_param('f' . $field->id, '', PARAM_TEXT)),
+            };
         }
         return $answers;
     }
@@ -347,6 +353,7 @@ class forms {
      */
     public static function context(\stdClass $entry, string $lang, string $fallback, array $answers, array $errors): array {
         $out = [];
+        $centre = centres::get((int) $entry->centreid);
         $values = [];
         foreach (self::fields((int) $entry->id) as $field) {
             $texts = self::texts($field, $lang, $fallback);
@@ -382,6 +389,9 @@ class forms {
                 'istext' => $field->type === 'text',
                 'islong' => $field->type === 'longtext',
                 'isdate' => $field->type === 'date',
+                // In three fields, in the order of the country of the centre.
+                'date' => $field->type === 'date' ? ['invalid' => $error !== ''] +
+                    publicpage::date_input('f' . $field->id, is_array($answer) ? '' : $answer, $lang, $centre) : false,
                 'isnumber' => $field->type === 'number',
                 'ischips' => in_array($field->type, ['choice', 'yesno', 'scale'], true),
                 'isscale' => $field->type === 'scale',

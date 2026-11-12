@@ -372,7 +372,9 @@ class centres {
             $first = trim((string) $row->firstname);
             $initials = \core_text::strtoupper(\core_text::substr($first, 0, 1) .
                 \core_text::substr(trim((string) $row->lastname), 0, 1));
-            $out[] = (object) ['memberid' => (int) $row->memberid, 'userid' => (int) $row->userid, 'name' => fullname($row),
+            // To families, the name as it is said, «Lucía Medina», whatever order the lists of the site use.
+            $out[] = (object) ['memberid' => (int) $row->memberid, 'userid' => (int) $row->userid,
+                'name' => trim($first . ' ' . trim((string) $row->lastname)),
                 'first' => $first, 'initials' => $initials, 'role' => (string) $row->rolename, 'says' => (string) $row->says,
                 'photo' => self::host_photo((int) $row->memberid)];
         }
@@ -557,6 +559,39 @@ class centres {
         }
         $row->timecreated = $row->timemodified;
         return (int) $DB->insert_record(self::OFFERS, $row);
+    }
+
+    /**
+     * Adds the courses of a stage of the school system of a centre to a school year, those it does not have yet (by
+     * name), active and without places, in the order of their age.
+     *
+     * @param int $centreid
+     * @param int $key The stage, as grades::stages() gives it.
+     * @param string $year The school year (2027-28).
+     * @return int How many were added.
+     */
+    public static function add_stage(int $centreid, int $key, string $year): int {
+        $centre = self::get($centreid);
+        $stage = current(array_filter(grades::stages($centre), fn($s) => $s['key'] === $key));
+        if (!$stage) {
+            return 0;
+        }
+        $have = [];
+        foreach (self::offers($centreid) as $offer) {
+            if ((string) $offer->schoolyear === trim($year)) {
+                $have[grades::plain((string) $offer->name)] = true;
+            }
+        }
+        $added = 0;
+        foreach ($stage['courses'] as $course) {
+            if (isset($have[grades::plain($course['name'])])) {
+                continue;
+            }
+            self::save_offer($centreid, (object) ['schoolyear' => $year, 'name' => $course['name'], 'places' => 0,
+                'active' => 1, 'sortorder' => ($course['age'] + 1) * 10]);
+            $added++;
+        }
+        return $added;
     }
 
     /**

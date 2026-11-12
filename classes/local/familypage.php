@@ -251,7 +251,10 @@ class familypage {
                     'action' => $link(['action' => 'homename', 'lang' => $lang]), 'sesskey' => sesskey(),
                     'open' => publiclang::str($tag !== '' || $birth !== '' ? 'pub_home_change' : 'pub_home_open', $lang),
                     'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
-                    'birth' => $birth, 'birthmax' => date('Y-m-d', $now), 'birthlabel' => publiclang::str('pub_birthdate', $lang),
+                    'birth' => $birth, 'birthlabel' => publiclang::str('pub_birthdate', $lang),
+                    // The date of birth in three fields, in the order of the country of the centre.
+                    'birthdate' => ['describedby' => 'cumple-' . (int) $child->id . '-ayuda'] +
+                        publicpage::date_input('cumple', $birth, $lang, $centre, 'cumple-' . (int) $child->id),
                     'birthhint' => publiclang::str('pub_birthdate_hint', $lang),
                     // A name in another script: in Latin letters too, for the voice.
                     'latin' => namevoices::latin($tag !== '' ? $tag : (string) $child->firstname) ? false :

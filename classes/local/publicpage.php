@@ -438,6 +438,85 @@ display: grid; }
     }
 
     /**
+     * The order of day, month and year in the dates of a language and a country, from the international data (ICU):
+     * day first in Spain or Brazil, month first in the United States, year first where it goes first. Nothing written
+     * for a country; without ICU, day, month and year.
+     *
+     * @param string $lang A language of the pages (es, en, pt, pt_br, ar).
+     * @param string $country The country of the centre (ISO), or empty.
+     * @return string[] d, m and y in their order.
+     */
+    public static function date_order(string $lang, string $country): array {
+        $parts = explode('_', $lang);
+        $locale = $parts[0] . '_' . strtoupper($parts[1] ?? $country);
+        $pattern = class_exists('\IntlDateFormatter') ?
+            (string) \IntlDateFormatter::create(rtrim($locale, '_'), \IntlDateFormatter::SHORT, \IntlDateFormatter::NONE)
+                ->getPattern() : '';
+        // Quoted text of a pattern is not a field.
+        $pattern = preg_replace("/'[^']*'/", '', $pattern);
+        $at = ['d' => strpos($pattern, 'd'), 'm' => strcspn($pattern, 'ML'), 'y' => strpos($pattern, 'y')];
+        if ($at['d'] === false || $at['y'] === false || $at['m'] >= strlen($pattern)) {
+            return ['d', 'm', 'y'];
+        }
+        asort($at);
+        return array_keys($at);
+    }
+
+    /**
+     * A date as three fields, day, month and year, in the order of the country of the centre (public_date): a field of
+     * type date writes it as its browser does, mm/dd/yyyy in an English one, whatever the page.
+     *
+     * @param string $name The name of the date; its parts are <name>d, <name>m and <name>y.
+     * @param string $value YYYY-MM-DD, or empty.
+     * @param string $lang
+     * @param \stdClass|null $centre
+     * @param string $id The id of its fields when several dates share a name; the name by default.
+     * @return array id, first (the id of its first field), parts (key, id, name, label, value, size), and form, child,
+     *     invalid and describedby off, for the page to set.
+     */
+    public static function date_input(string $name, string $value, string $lang, ?\stdClass $centre, string $id = ''): array {
+        $id = $id !== '' ? $id : $name;
+        $sent = [];
+        foreach (['d', 'm', 'y'] as $key) {
+            $sent[$key] = trim(optional_param($name . $key, '', PARAM_RAW_TRIMMED));
+        }
+        // What they wrote, when it came back with an error; else the date kept.
+        $have = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) ? ['y' => $m[1], 'm' => $m[2], 'd' => $m[3]] :
+            ['d' => '', 'm' => '', 'y' => ''];
+        $values = implode('', $sent) !== '' ? $sent : $have;
+        $parts = [];
+        foreach (self::date_order($lang, (string) ($centre->country ?? '')) as $key) {
+            $parts[] = ['key' => $key, 'id' => $id . $key, 'name' => $name . $key,
+                'label' => publiclang::str('pub_date_' . ['d' => 'day', 'm' => 'month', 'y' => 'year'][$key], $lang),
+                'value' => $values[$key], 'size' => $key === 'y' ? 4 : 2];
+        }
+        // Off here, so the template never takes them from the page around.
+        return ['id' => $id, 'first' => $parts[0]['id'], 'parts' => $parts, 'form' => false, 'child' => false,
+            'invalid' => false, 'describedby' => false];
+    }
+
+    /**
+     * The date of three fields of date_input(), as YYYY-MM-DD; empty when nothing was written, «invalid» when only some
+     * of it or something that is not a number, so whoever checks it says so. A page sent with the old single field
+     * still reads.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function date_param(string $name): string {
+        $d = trim(optional_param($name . 'd', '', PARAM_RAW_TRIMMED));
+        $m = trim(optional_param($name . 'm', '', PARAM_RAW_TRIMMED));
+        $y = trim(optional_param($name . 'y', '', PARAM_RAW_TRIMMED));
+        if ($d === '' && $m === '' && $y === '') {
+            return trim(optional_param($name, '', PARAM_RAW_TRIMMED));
+        }
+        if (!preg_match('/^\d{1,2}$/', $d) || !preg_match('/^\d{1,2}$/', $m) || !preg_match('/^\d{4}$/', $y)) {
+            return 'invalid';
+        }
+        return sprintf('%04d-%02d-%02d', (int) $y, (int) $m, (int) $d);
+    }
+
+    /**
      * How a family reaches the centre: its email and its phone, with the words of the buttons.
      *
      * @param \stdClass $centre

@@ -435,12 +435,32 @@
                 courseLabel.textContent = now ? courseLabel.getAttribute('data-with').replace('{name}', now) :
                     courseLabel.getAttribute('data-without');
             }
+            // The course that fits the year of birth (the year it starts less its age), while they have not chosen one
+            // themselves; they can always choose another.
+            var year = document.getElementById('c' + i + 'birthy');
+            var select = document.getElementById('c' + i + 'offer');
+            var born = year ? year.value.trim() : '';
+            if (select && /^\d{4}$/.test(born) && (select.value === '0' || select.getAttribute('data-auto') === '1')) {
+                var fits = Array.prototype.filter.call(select.options, function(option) {
+                    return option.getAttribute('data-born') === born;
+                });
+                if (fits.length === 1) {
+                    select.value = fits[0].value;
+                    select.setAttribute('data-auto', '1');
+                }
+            }
             courses();
         };
         document.addEventListener('input', function(e) {
             var i = e.target.getAttribute('data-child');
             if (i !== null) {
                 update(i);
+            }
+        });
+        // A course chosen by hand is theirs: the date no longer moves it.
+        document.addEventListener('change', function(e) {
+            if (/^c\d+offer$/.test(e.target.id || '')) {
+                e.target.removeAttribute('data-auto');
             }
         });
 

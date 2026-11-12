@@ -117,6 +117,10 @@ class mail {
         $mail->Body = $html;
         $mail->AltBody = $text;
         foreach ($images as $image) {
+            // Only the pictures the letter shows: one made but not shown, Gmail lists at its foot as an attachment.
+            if (strpos($html, 'cid:' . $image['cid']) === false) {
+                continue;
+            }
             $mail->addStringEmbeddedImage($image['data'], $image['cid'], $image['name'], 'base64', $image['mime']);
         }
         return (bool) $mail->send();

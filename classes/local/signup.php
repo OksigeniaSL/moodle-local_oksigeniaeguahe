@@ -57,7 +57,7 @@ class signup {
             $children[] = [
                 'firstname' => trim(optional_param("c{$i}name", '', PARAM_TEXT)),
                 'tagname' => trim(optional_param("c{$i}tag", '', PARAM_TEXT)),
-                'birthdate' => trim(optional_param("c{$i}birth", '', PARAM_RAW_TRIMMED)),
+                'birthdate' => publicpage::date_param("c{$i}birth"),
                 'latinname' => trim(optional_param("c{$i}latin", '', PARAM_TEXT)),
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
