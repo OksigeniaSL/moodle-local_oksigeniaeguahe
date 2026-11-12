@@ -69,6 +69,7 @@ if (optional_param('typing', 0, PARAM_BOOL)) {
 
 $newlink = '';
 $prefill = '';
+$drafted = false;
 $use = optional_param('use', 0, PARAM_INT);
 if ($use && $canact && data_submitted() && confirm_sesskey()) {
     // An answer of always chosen without the script: the file comes back with it in the answer.
@@ -103,6 +104,7 @@ if (optional_param('ia', 0, PARAM_BOOL) && $canact && data_submitted() && confir
     $draft = household_ai::draft($household, $centre, (int) $USER->id, $started, time());
     if ($draft && $draft['draft'] !== '') {
         $prefill = rtrim($greeting) . ($greeting !== '' ? "\n\n" : '') . $draft['draft'];
+        $drafted = true;
     } else {
         $prefill = $started;
         \core\notification::warning(get_string('panel_ai_draft_failed', $c));
@@ -345,5 +347,5 @@ panel::output(
     'inbox',
     panel::adults_line(households::full($household)->adults),
     'panel_household',
-    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill)
+    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted)
 );

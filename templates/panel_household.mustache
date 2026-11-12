@@ -40,7 +40,7 @@
             "persona": "", "sistema": "", "info": "", "mano": "", "fuera": "", "cerrar": "", "fundir": ""},
         "head": {"title": "Marta Ruiz y Daniel Ortega", "ante": "Espera respuesta desde el jueves a las 18:40",
             "sub": "Formulario de la web · desde el 5 de noviembre", "back": {"url": "#", "name": "Bandeja"}, "action": false},
-        "url": "#", "inboxurl": "#", "action": "#", "sesskey": "abc", "canact": true, "waiting": true, "answered": null,
+        "url": "#", "inboxurl": "#", "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "canact": true, "waiting": true, "answered": null,
         "owner": {"first": "Lucía", "name": "Lucía Medina", "picture": "", "initials": "LM", "mine": false},
         "relay": true, "takeurl": "#", "ownedbyme": false, "promise": null, "typing": null,
         "children": [{"id": 1, "hanging": {"name": "Leo", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "#", "name": "Leonardo", "tagline": "En casa: Leo", "birthline": "Cumple el 14 de marzo · 3 años", "coursehint": "",
@@ -53,7 +53,7 @@
         "history": [{"family": true, "team": false, "system": false, "who": "Daniel Ortega", "how": "escribió por WhatsApp", "when": "el viernes", "body": "«Mejor por la tarde.»"}],
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
         "ai": {"summary": "Leo, de 3 años, para Infantil 3 años 2027-28. Vinieron a la jornada y preguntan por el comedor.",
-            "when": "hace 2 días", "name": "Claude"},
+            "when": "hace 2 días", "name": "Claude", "drafted": false},
         "composer": {"button": "Mandarlo por WhatsApp", "notes": [], "greeting": "Hola, Marta y Daniel: ",
             "draft": {"who": "Lucía", "when": "hoy a las 10:31", "text": "Hola, Marta y Daniel: sí, hay comedor."},
             "hassuggestions": true, "suggestions": [{"id": "s1", "title": "Comedor en Infantil", "uses": "14 veces", "text": "Hola, Marta y Daniel: sí."}],
@@ -271,7 +271,12 @@
                         {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
                     </div>
                     {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
-                    {{#ai}}{{#summary}}<p class="ia-resumen"><span class="secundario">{{#str}}panel_ai_summary, local_oksigeniaeguahe, {{when}}{{/str}}</span> {{summary}}</p>{{/summary}}{{/ai}}
+                    {{#ai}}{{#summary}}
+                    <aside class="ia-resumen" aria-labelledby="ia-resumen-t">
+                        <p class="ia-firma" id="ia-resumen-t"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_summary, local_oksigeniaeguahe, {{when}}{{/str}}</span></p>
+                        <p class="ia-hechos">{{summary}}</p>
+                    </aside>
+                    {{/summary}}{{/ai}}
                     <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         {{#composer}}
@@ -293,8 +298,8 @@
                             {{#ways}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}{{#disabled}} disabled{{/disabled}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}{{#why}} <span class="nota">· {{why}}</span>{{/why}}</label>{{/ways}}
                         </div>
                         {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
-                        <div class="campo"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label><textarea id="borrador" name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
-                        {{#ai}}<button class="boton terciario pequeno ia-borrador" type="submit" name="ia" value="1">{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}</button>{{/ai}}
+                        <div class="campo{{#ai}}{{#drafted}} ia-escrito{{/drafted}}{{/ai}}"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label>{{#ai}}{{#drafted}}<p class="ia-nota" id="ia-nota"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_drafted, local_oksigeniaeguahe{{/str}}</span></p>{{/drafted}}{{/ai}}<textarea id="borrador"{{#ai}}{{#drafted}} aria-describedby="ia-nota"{{/drafted}}{{/ai}} name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
+                        {{#ai}}<button class="ia-borrador" type="submit" name="ia" value="1" formaction="{{action}}#contestar"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#drafted}}{{#str}}panel_ai_draft_again, local_oksigeniaeguahe{{/str}}{{/drafted}}{{^drafted}}{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}{{/drafted}}</span></button>{{/ai}}
                                 <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
                         {{#next}}
                         <div class="campo siguiente">

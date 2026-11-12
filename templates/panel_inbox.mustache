@@ -173,10 +173,11 @@
                 </section>
                 {{/birthdaysdue}}
                 {{#topics}}
-                <section class="bloque bloque-preguntan">
-                    <h3>{{#str}}panel_topics, local_oksigeniaeguahe{{/str}}</h3>
-                    <ul class="preguntan">{{#list}}<li><b>{{theme}}</b> <span class="secundario">{{texts}}</span></li>{{/list}}</ul>
-                    <p><a class="enlace" href="{{url}}">{{#str}}panel_topics_report, local_oksigeniaeguahe{{/str}}</a></p>
+                <section class="bloque bloque-preguntan" aria-labelledby="preguntan-t">
+                    <h3 id="preguntan-t">{{#str}}panel_topics, local_oksigeniaeguahe{{/str}}</h3>
+                    <ol class="preguntan">{{#list}}<li><b dir="auto">{{theme}}</b><span class="preguntan-n">{{texts}}</span></li>{{/list}}</ol>
+                    <p class="ia-firma"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_topics_by, local_oksigeniaeguahe{{/str}}</span></p>
+                    <a class="enlace" href="{{url}}">{{#str}}panel_topics_report, local_oksigeniaeguahe{{/str}}</a>
                 </section>
                 {{/topics}}
                 {{#firstday}}

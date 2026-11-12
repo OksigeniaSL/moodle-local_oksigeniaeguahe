@@ -38,8 +38,8 @@
     <div class="quien">
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}</a>
         <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
+        {{#asks}}<span class="pide"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span class="oculto">{{#str}}panel_ai_reads, local_oksigeniaeguahe{{/str}}: </span><span dir="auto">{{asks}}</span></span>{{/asks}}
         <span class="meta">{{{viaicon}}}<span>{{via}}</span></span>
-        {{#asks}}<span class="pide">{{asks}}</span>{{/asks}}
         {{#visit}}<span class="visita-hoy">{{text}}</span>{{/visit}}
         {{#typing}}<span class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/typing}}
     </div>

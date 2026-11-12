@@ -227,6 +227,20 @@ class panel_metrics {
     }
 
     /**
+     * The links to take the families and the figures away in a spreadsheet (export.php), in Excel and in CSV.
+     *
+     * @param \stdClass $centre
+     * @param bool $canact Whether the person works with the families: only then, the families.
+     * @return array families (or false) and figures, each with excel and csv.
+     */
+    protected static function exports(\stdClass $centre, bool $canact): array {
+        $url = fn(string $what, string $format) => (new \moodle_url('/local/oksigeniaeguahe/export.php', ['c' => $centre->id,
+            'what' => $what, 'format' => $format, 'sesskey' => sesskey()]))->out(false);
+        $both = fn(string $what) => ['excel' => $url($what, 'excel'), 'csv' => $url($what, 'csv')];
+        return ['families' => $canact ? $both('families') : false, 'figures' => $both('figures')];
+    }
+
+    /**
      * The context of the page.
      *
      * @param \stdClass $centre
@@ -283,6 +297,8 @@ class panel_metrics {
             'cut' => $cut,
             'importurl' => (new \moodle_url('/local/oksigeniaeguahe/import.php', ['c' => $centre->id]))->out(false),
             'importnote' => get_string('panel_import_note', $c),
+            // To take away: the families, for whoever works with them; the figures without names, for whoever sees them.
+            'exports' => self::exports($centre, $canact),
             'sesskey' => sesskey(),
             'canact' => $canact,
             'filters' => [

@@ -12791,32 +12791,138 @@ details.aj-plegado > summary h2::after {
     text-align: start;
 }
 
-/* The AI of the team (household_ai), for now in the plain style of the house until Jujol gives it its own: the line of
-   what a family asks in the inbox, the summary of a family in its file, and what families ask most. */
-.pide {
-    display: block;
-    margin-top: 2px;
+/* The AI of the team (household_ai). One quiet mark, the same everywhere (the chip of the centre's AI, small, in the soft
+   ink) and its words: what it read or wrote, never a mark on a family. A person decides: the draft is a draft until
+   someone sends it, and it says so. */
+.ia-marca {
+    display: inline-flex;
+    flex: none;
     color: var(--eg-tinta-2);
-    font-size: 0.875rem;
-    font-style: italic;
 }
 
+.ia-marca .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.ia-firma {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 650;
+}
+
+/* The summary: a slip the AI typed, set above the conversation, with what is known in two sentences. */
 .ia-resumen {
-    margin: 0 0 12px;
-    padding: 10px 14px;
-    border-inline-start: 3px solid var(--eg-acento);
-    border-radius: var(--radio-campo);
-    background: var(--eg-hundido);
-}
-
-.ia-borrador {
-    margin-top: 8px;
-}
-
-.preguntan {
     display: grid;
     gap: 4px;
-    margin: 0 0 8px;
+    margin: 0 0 14px;
+    padding: 10px 14px 12px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 10px;
+}
+
+.ia-hechos {
+    margin: 0;
+    color: var(--eg-tinta);
+    line-height: 1.45;
+}
+
+/* The draft: a quiet button at the foot of the paper. Once the AI has written, the paper says so above it and its edge
+   is dashed, until it is sent. */
+.ia-borrador {
+    display: inline-flex;
+    justify-self: start;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    margin-top: 6px;
+    padding: 4px 14px 4px 10px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 18px;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.ia-borrador:hover {
+    border-style: solid;
+}
+
+.ia-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0 0 6px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.ia-nota .ia-marca {
+    margin-top: 2px;
+}
+
+.campo.ia-escrito textarea {
+    border-style: dashed;
+}
+
+/* In the inbox, what a family asks, read by the AI: one line under the names, with its mark. */
+.pide {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 2px;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    line-height: 1.35;
+}
+
+.pide .ia-marca .ic {
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+}
+
+/* What families ask most: the index of the week, each theme with a dotted leader to how many messages. */
+.preguntan {
+    margin: 0 0 6px;
     padding: 0;
     list-style: none;
+}
+
+.preguntan li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.preguntan li::before {
+    content: '';
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 16px;
+    border-bottom: 2px dotted var(--eg-borde);
+}
+
+.preguntan b {
+    order: 0;
+}
+
+.preguntan-n {
+    order: 2;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.bloque-preguntan .ia-firma {
+    margin: 2px 0 6px;
 }

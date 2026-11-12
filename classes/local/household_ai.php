@@ -133,7 +133,8 @@ class household_ai {
             "place, a name or a figure. When they ask something the facts do not say, say a person of the centre will tell " .
             "them, without guessing.\n" .
             "- If an open act fits, invite them to it with its day.\n" .
-            "- No greeting and no signature: the person adds them.\n" .
+            "- No greeting, no farewell or closing line («Un abrazo», «Saludos», «Kind regards») and no signature: the " .
+            "person adds them.\n" .
             ($started !== '' ? "- The person began to write this; keep its meaning and finish it: «" . $started . "»\n" : '') .
             "- The summary, in two sentences in $language, says only facts: who comes and for which course, what they " .
             "asked, where they are (a visit booked, they came) and what is pending. Never judge the family, never guess " .

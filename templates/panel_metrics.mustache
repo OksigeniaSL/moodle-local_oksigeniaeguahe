@@ -37,7 +37,7 @@
     {
         "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
         "head": {"title": "96 familias esta campaña", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "action": false},
-        "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "",
+        "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "", "exports": {"families": {"excel": "#a", "csv": "#b"}, "figures": {"excel": "#c", "csv": "#d"} },
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
             "compare": [{"name": "Con la anterior", "url": "#", "current": true}]},
         "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": ""},
@@ -267,6 +267,12 @@
         </details>
         {{/starts}}
         <p class="nota-importado def">{{importnote}} <a href="{{importurl}}">{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>
+        {{#exports}}
+        <p class="def descargas">{{#str}}export_take, local_oksigeniaeguahe{{/str}}
+            {{#families}}<span>{{#str}}export_families, local_oksigeniaeguahe{{/str}}: <a href="{{excel}}">Excel</a> · <a href="{{csv}}">CSV</a></span>{{/families}}
+            {{#figures}}<span>{{#str}}export_figures_named, local_oksigeniaeguahe{{/str}}: <a href="{{excel}}">Excel</a> · <a href="{{csv}}">CSV</a></span>{{/figures}}
+        </p>
+        {{/exports}}
     </div>
     <div class="lamina-mandos" data-lamina-mandos hidden>
         <button class="boton secundario pequeno" type="button" data-lamina="-1">{{{i.atras}}}<span class="oculto">{{#str}}panel_previous, local_oksigeniaeguahe{{/str}}</span></button>

@@ -44,6 +44,7 @@ class panel_household {
      * @param string $newlink A link just made for the family, to show once.
      * @param int $now
      * @param string $prefill What the answer starts with, when an answer of always was chosen without the script.
+     * @param bool $drafted Whether the AI of the centre has just written it (household_ai::draft()).
      * @return array
      */
     public static function context(
@@ -52,7 +53,8 @@ class panel_household {
         bool $canact,
         string $newlink = '',
         int $now = 0,
-        string $prefill = ''
+        string $prefill = '',
+        bool $drafted = false
     ): array {
         global $DB, $USER;
         $now = $now ?: time();
@@ -157,7 +159,7 @@ class panel_household {
             // facts; only when the centre has it on.
             'ai' => ai::ready($centre) ? ['summary' => trim((string) ($household->aisummary ?? '')),
                 'when' => (int) ($household->aisummarytime ?? 0) ? panel::when_words((int) $household->aisummarytime, time()) : '',
-                'name' => ai::name($centre)] : false,
+                'name' => ai::name($centre), 'drafted' => $drafted] : false,
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
             'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
             'family' => self::family($household, $full, $canact),
