@@ -45,11 +45,23 @@
             "coming": [{"act": "Jornada de puertas abiertas", "moment": "El último aviso", "when": "jueves, 19 de noviembre de 2026, 08:00",
                 "review": true, "url": "#"}]},
         "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "", "networks": "Instagram",
-        "stages": {"year": "2027-28", "list": [{"key": 1, "name": "Primaria: de 1.º de Primaria a 6.º de Primaria"}]},
+        "oferta": {"year": "2027-28", "years": [{"name": "2027-28", "url": "#", "current": true, "courses": "2 cursos"}],
+            "copy": {"to": "2028-29", "label": "Empezar"}, "others": [],
+            "newcard": {"i": 1, "id": 0, "name": "", "new": true, "active": true},
+            "stages": [{"key": 1, "name": "Primaria", "ages": "De 6 a 11 años", "on": true, "summary": "1 curso · 25 plazas",
+                "same": false, "cards": [{"i": 0, "id": 3, "name": "1.º de Primaria", "places": 25, "enrolled": 1,
+                "enrolledtext": "1 matriculado", "active": true, "new": false, "more": "Lo lleva: el centro · con el cuento",
+                "story": true, "pegs": [{"on": true}], "manypegs": true,
+                "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}],
+                "teachers": [{"value": "maestra", "name": "«Tu maestra»", "selected": true}]}]}]},
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
         "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "", "siblingages": [{"value": 0, "name": "No", "selected": true}], "invitegone": false,
-        "firstday": "2027-09-08", "namephrase": "", "namephraseexample": "el Colegio de ejemplo",
+        "firstday": "2027-09-08", "firstdaydate": {"id": "c-primer", "first": "c-primerd", "form": false, "child": false,
+            "invalid": false, "labelled": true, "arialabel": false, "describedby": "c-primer-a", "mirror": false,
+            "value": "2027-09-08", "parts": [{"key": "d", "id": "c-primerd", "name": "firstdayd", "label": "Día", "value": "8",
+            "size": 2}]},
+        "namephrase": "", "namephraseexample": "el Colegio de ejemplo",
         "members": [{"id": 5, "name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR", "role": "Admisiones", "me": false}],
         "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
@@ -130,7 +142,7 @@
                 <div class="campo"><label for="c-hermanos">{{#str}}panel_siblingage, local_oksigeniaeguahe{{/str}}</label><select id="c-hermanos" name="siblingage" aria-describedby="c-hermanos-a">{{#siblingages}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/siblingages}}</select><span class="ayuda" id="c-hermanos-a">{{#str}}panel_siblingage_help, local_oksigeniaeguahe{{/str}}</span></div>
                 <label class="casilla"><input type="checkbox" name="invitegone" value="1"{{#invitegone}} checked{{/invitegone}}><span>{{#str}}panel_invitegone, local_oksigeniaeguahe{{/str}}</span></label>
                 <div class="rejilla-2">
-                    <div class="campo"><label for="c-primer">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label><input id="c-primer" type="date" name="firstday" value="{{firstday}}" aria-describedby="c-primer-a"><span class="ayuda" id="c-primer-a">{{#str}}panel_firstday_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    <div class="campo"><label id="c-primer-l" for="{{firstdaydate.first}}">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label>{{#firstdaydate}}{{> local_oksigeniaeguahe/public_date }}{{/firstdaydate}}<span class="ayuda" id="c-primer-a">{{#str}}panel_firstday_help, local_oksigeniaeguahe{{/str}}</span></div>
                     <div class="campo"><label for="c-frase">{{#str}}panel_namephrase, local_oksigeniaeguahe{{/str}}</label><input id="c-frase" name="namephrase" value="{{namephrase}}" placeholder="{{namephraseexample}}" aria-describedby="c-frase-a"><span class="ayuda" id="c-frase-a">{{#str}}panel_namephrase_help, local_oksigeniaeguahe{{/str}}</span></div>
                 </div>
             </section>
@@ -183,34 +195,35 @@
                 <header><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2></header>
                 <div class="campo"><label for="c-redes">{{#str}}panel_networks_list, local_oksigeniaeguahe{{/str}}</label><textarea id="c-redes" name="networks" rows="6" aria-describedby="c-redes-a">{{networks}}</textarea><span class="ayuda" id="c-redes-a">{{#str}}panel_networks_help, local_oksigeniaeguahe{{/str}}</span></div>
             </section>
-            <section class="apartado" id="aj-oferta" aria-labelledby="aj-oferta-t">
+            <section class="apartado oferta-ap" id="aj-oferta" aria-labelledby="aj-oferta-t">
                 <header><h2 id="aj-oferta-t">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_offer_help, local_oksigeniaeguahe{{/str}}</span></header>
-                <ul class="ofertas">
-                    {{#offers}}
-                    <li class="oferta{{#empty}} vacia{{/empty}}">
-                        <div class="campo"><label for="o-n-{{i}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><input id="o-n-{{i}}" name="offername[{{i}}]" value="{{name}}"></div>
-                        <div class="campo"><label for="o-a-{{i}}">{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</label><input id="o-a-{{i}}" name="offeryear[{{i}}]" value="{{year}}"></div>
-                        <div class="campo"><label for="o-p-{{i}}">{{#str}}offer_places, local_oksigeniaeguahe{{/str}}</label><input id="o-p-{{i}}" type="number" min="0" name="offerplaces[{{i}}]" value="{{places}}" inputmode="numeric"></div>
-                        <div class="campo"><label for="o-l-{{i}}">{{#str}}offer_handover, local_oksigeniaeguahe{{/str}}</label><select id="o-l-{{i}}" name="offerhandover[{{i}}]">{{#handovers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handovers}}</select></div>
-                        <label class="casilla"><input type="checkbox" name="offeractive[{{i}}]" value="1"{{#active}} checked{{/active}}><span>{{#str}}offer_active, local_oksigeniaeguahe{{/str}}</span></label>
-                        <div class="oferta-cuento">
-                            <label class="casilla"><input type="hidden" name="offerstory[{{i}}]" value="0"><input type="checkbox" name="offerstory[{{i}}]" value="1"{{#story}} checked{{/story}}><span>{{#str}}offer_story, local_oksigeniaeguahe{{/str}}</span></label>
-                            <div class="campo cuento-quien"><label for="o-m-{{i}}">{{#str}}offer_teacher, local_oksigeniaeguahe{{/str}}</label><select id="o-m-{{i}}" name="offerteacher[{{i}}]">{{#teachers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/teachers}}</select></div>
-                        </div>
-                        {{#rail}}<div class="riel-caja oferta-riel">{{{rail}}}</div>{{/rail}}
-                        <input type="hidden" name="offerid[{{i}}]" value="{{id}}">
-                    </li>
-                    {{/offers}}
-                </ul>
-                {{#stages}}
-                <div class="anadir-etapa">
-                    <div class="campo"><label for="o-etapa">{{#str}}panel_offer_stage, local_oksigeniaeguahe{{/str}}</label><select id="o-etapa" name="addstage"><option value="">{{#str}}panel_offer_stage_choose, local_oksigeniaeguahe{{/str}}</option>{{#list}}<option value="{{key}}">{{name}}</option>{{/list}}</select></div>
-                    <div class="campo"><label for="o-etapa-a">{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</label><input id="o-etapa-a" name="addstageyear" value="{{year}}"></div>
-                    <button class="boton secundario" type="submit">{{#str}}panel_offer_stage_add, local_oksigeniaeguahe{{/str}}</button>
-                    <p class="secundario">{{#str}}panel_offer_stage_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#oferta}}
+                <input type="hidden" name="offerview" value="{{year}}">
+                <div class="of-anos" role="group" aria-label="{{#str}}offer_year, local_oksigeniaeguahe{{/str}}">
+                    {{#years}}<a class="hoja-cal of-ano" href="{{url}}"{{#current}} aria-current="page"{{/current}}><small>{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</small><b>{{name}}</b><span>{{courses}}</span></a>{{/years}}
+                    {{#copy}}<button class="hoja-cal of-ano of-ano-nuevo" type="submit" name="offercopy" value="{{to}}"><small>{{label}}</small><b>{{to}}</b><span>{{#str}}panel_offer_copy_hint, local_oksigeniaeguahe{{/str}}</span></button>{{/copy}}
                 </div>
-                {{/stages}}
-                {{^stages}}<p class="secundario anadir-etapa-sin">{{#str}}panel_offer_stage_nosystem, local_oksigeniaeguahe{{/str}}</p>{{/stages}}
+                <div class="of-escalera">
+                    {{#stages}}
+                    <section class="of-etapa{{^on}} of-etapa-no{{/on}}" aria-labelledby="of-e-{{key}}">
+                        <div class="of-etapa-cabeza">
+                            <h3 id="of-e-{{key}}">{{name}} <span class="of-edades">{{ages}}</span></h3>
+                            {{#on}}<span class="of-resumen">{{summary}}</span>{{/on}}
+                            <button class="of-interruptor" type="submit" name="offerstage" value="{{key}}:{{#on}}off{{/on}}{{^on}}on{{/on}}" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}"><span class="of-lampara" aria-hidden="true"></span><span>{{#on}}{{#str}}panel_offer_stage_on, local_oksigeniaeguahe{{/str}}{{/on}}{{^on}}{{#str}}panel_offer_stage_off, local_oksigeniaeguahe{{/str}}{{/on}}</span></button>
+                        </div>
+                        {{#on}}
+                        <ul class="of-balda">{{#cards}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/cards}}</ul>
+                        {{#same}}<button class="of-igualar" type="submit" name="offerstageplaces" value="{{key}}">{{label}}</button>{{/same}}
+                        {{/on}}
+                    </section>
+                    {{/stages}}
+                    <section class="of-etapa of-otros" aria-labelledby="of-e-otros">
+                        <div class="of-etapa-cabeza"><h3 id="of-e-otros">{{#str}}panel_offer_others, local_oksigeniaeguahe{{/str}}</h3></div>
+                        <ul class="of-balda">{{#others}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/others}}{{#newcard}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/newcard}}</ul>
+                    </section>
+                </div>
+                {{/oferta}}
+                {{^oferta}}<p class="secundario anadir-etapa-sin">{{#str}}panel_offer_stage_nosystem, local_oksigeniaeguahe{{/str}}</p>{{/oferta}}
             </section>
             <section class="apartado" id="aj-equipo" aria-labelledby="aj-equipo-t">
                 <header><h2 id="aj-equipo-t">{{#str}}centre_members, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span></header>

@@ -49,7 +49,7 @@
    ],
    "stages": [
     {
-     "name": "Infantil (3 a 5 años)",
+     "name": "Infantil",
      "words": [
       "inf",
       "infantil",
@@ -97,7 +97,7 @@
      "usual": "{n}.º de Bachillerato"
     },
     {
-     "name": "Infantil (0 a 2 años)",
+     "name": "Primer ciclo de Infantil",
      "words": [
       "primer ciclo",
       "guarderia"

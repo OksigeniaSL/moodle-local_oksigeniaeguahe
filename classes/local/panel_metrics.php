@@ -325,7 +325,7 @@ class panel_metrics {
             'started' => $campaign['import'] || $course !== '' ? false : self::started((int) $centre->id),
             'referred' => $campaign['import'] || $course !== '' ? false : self::referred((int) $centre->id),
             'gone' => $campaign['import'] || $course !== '' ? false : self::gone((int) $centre->id),
-            'starts' => self::starts($campaigns, $canact),
+            'starts' => self::starts($campaigns, $canact, $centre),
             // What they like most: what the families do with what Eguahe gives them, and who they are.
             'likes' => panel_likes::context($centre, $campaign, $mine, $now),
             // The channels compared in time, the whole year round: for the campaign under way and every course.
@@ -1122,16 +1122,19 @@ class panel_metrics {
      *
      * @param array $campaigns
      * @param bool $canact
+     * @param \stdClass $centre
      * @return array|null
      */
-    protected static function starts(array $campaigns, bool $canact): ?array {
+    protected static function starts(array $campaigns, bool $canact, \stdClass $centre): ?array {
         if (!$canact) {
             return null;
         }
         $rows = [];
         foreach ($campaigns as $key => $campaign) {
-            $rows[] = ['key' => $key, 'name' => $campaign['name'],
-                'value' => $campaign['start'] ? date('Y-m-d', $campaign['start']) : ''];
+            $value = $campaign['start'] ? date('Y-m-d', $campaign['start']) : '';
+            // The day in three fields in the order of the centre.
+            $rows[] = ['key' => $key, 'name' => $campaign['name'], 'value' => $value,
+                'date' => panel::date_input('start[' . $key . ']', $value, $centre, 'inicio-' . $key)];
         }
         return ['rows' => $rows];
     }

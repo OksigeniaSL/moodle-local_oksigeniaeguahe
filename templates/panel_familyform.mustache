@@ -34,7 +34,10 @@
             "firstname": {"name": "firstname0", "value": "", "error": ""}, "lastname": {"name": "lastname0", "value": "", "error": ""},
             "phone": {"name": "phone0", "value": "", "error": ""}, "email": {"name": "email0", "value": "", "error": ""} }],
         "children": [{"i": 0, "number": 1, "id": 0, "open": true, "offername": "offerid0", "emptybag": {"name": "", "style": ""},
-            "name": {"name": "childname0", "value": "", "error": ""}, "tag": {"name": "childtag0", "value": "", "error": ""}, "birth": {"name": "childbirth0", "value": "", "error": "", "max": "2026-11-10"},
+            "name": {"name": "childname0", "value": "", "error": ""}, "tag": {"name": "childtag0", "value": "", "error": ""}, "birth": {"name": "childbirth0", "value": "", "error": "", "max": "2026-11-10",
+                "date": {"id": "childbirth0", "first": "childbirth0d", "form": false, "child": false, "invalid": false,
+                "labelled": true, "arialabel": false, "describedby": false, "mirror": false, "value": "",
+                "parts": [{"key": "d", "id": "childbirth0d", "name": "childbirth0d", "label": "Día", "value": "", "size": 2}]}},
             "offers": [{"value": 0, "name": "Sin decir", "selected": true}]}],
         "offersinfo": [{"value": 1, "free": "19 libres de 25", "next": "la próxima jornada, el sábado 21", "rail": ""}],
         "channels": [{"value": "phone", "name": "Teléfono", "selected": true}], "hasevents": false, "events": [],
@@ -70,7 +73,7 @@
                     <div class="rejilla-2">
                         {{#name}}<div class="campo"><label for="{{name}}">{{#str}}form_childname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off" data-nombre-hijo="{{i}}"></div>{{/name}}
                         {{#tag}}<div class="campo"><label for="{{name}}">{{#str}}form_tagname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off" data-etiqueta-hijo="{{i}}"><span class="ayuda">{{#str}}panel_ff_tag_help, local_oksigeniaeguahe{{/str}}</span></div>{{/tag}}
-                        {{#birth}}<div class="campo"><label for="{{name}}">{{#str}}form_birthdate, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" type="date" value="{{value}}" max="{{max}}"{{#error}} aria-invalid="true"{{/error}}>{{#error}}<span class="error">{{error}}</span>{{/error}}<span class="ayuda">{{#str}}panel_ff_birth_help, local_oksigeniaeguahe{{/str}}</span></div>{{/birth}}
+                        {{#birth}}<div class="campo"><label id="{{name}}-l" for="{{date.first}}">{{#str}}form_birthdate, local_oksigeniaeguahe{{/str}}</label>{{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}{{#error}}<span class="error">{{error}}</span>{{/error}}<span class="ayuda">{{#str}}panel_ff_birth_help, local_oksigeniaeguahe{{/str}}</span></div>{{/birth}}
                         <div class="campo ancho"><label for="{{offername}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><select id="{{offername}}" name="{{offername}}" data-curso-hijo="{{i}}">{{#offers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/offers}}</select>
                             <div class="plazas-mini" data-plazas-mini="{{i}}" aria-live="polite"></div></div>
                     </div>

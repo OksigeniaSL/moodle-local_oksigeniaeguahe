@@ -28,6 +28,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\firstdays;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_start;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\settled;
 
 require_login(null, false);
@@ -49,7 +50,7 @@ if (data_submitted()) {
         if ($do === 'firstdayok') {
             firstdays::confirm($offer, $centre, time());
         } else {
-            $day = firstdays::parse(optional_param('day', '', PARAM_RAW_TRIMMED));
+            $day = firstdays::parse(publicpage::date_param('day'));
             if ($day) {
                 firstdays::set($offer, $day, time());
             }

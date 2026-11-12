@@ -91,6 +91,16 @@ class panel_start {
                 'check' => $kind === 'check',
                 'asked' => $kind !== '',
                 'value' => $first ? userdate($first, '%Y-%m-%d') : '',
+                'date' => ['labelled' => false, 'arialabel' => get_string(
+                    'panel_firstday_course_label',
+                    $c,
+                    format_string($offer->name)
+                )] + panel::date_input(
+                    'day',
+                    $first ? userdate($first, '%Y-%m-%d') : '',
+                    $centre,
+                    'pd-' . (int) $offer->id
+                ),
                 // The leaf of a calendar for its day, as the next open days of the inbox; none while it has no day.
                 'leaf' => $first ? panel::leaf($first) : false,
                 'label' => get_string('panel_firstday_course_label', $c, format_string($offer->name)),

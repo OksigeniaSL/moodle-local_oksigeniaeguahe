@@ -1,0 +1,61 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_offer_card
+
+    One course of the offer, a card standing on the shelf of its stage (panel_centre, #aj-oferta). No row of fields:
+    gestures. Its knob turns it on or off; its places are a number with «−» and «+»; how many are enrolled hang from it
+    as a little rail. The rest (its name, who carries it, the story and who receives in it) is on the back of the card,
+    opened by touching «Change», and saved from there. Every gesture is a form of its own, so it works without JavaScript;
+    with it, panel.js may send them without reloading. A new card waits blank at the end of «Other courses».
+
+    Example context (json):
+    {"i": 0, "id": 3, "name": "Infantil 3 años", "places": 25, "enrolled": 12, "enrolledtext": "12 matriculados",
+     "active": true, "new": false, "more": "Lo lleva el centro · con el cuento", "story": true,
+     "pegs": [{"on": true}, {"on": false}], "manypegs": false,
+     "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}],
+     "teachers": [{"value": 0, "name": "Su tutora o tutor", "selected": true}]}
+}}
+<li class="of-curso{{^active}} of-curso-apagado{{/active}}{{#new}} of-curso-nuevo{{/new}}" id="of-c-{{id}}">
+    {{^new}}
+    <div class="of-cara">
+        <button class="of-pomo" type="submit" name="offertoggle" value="{{id}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}"><span class="oculto">{{#str}}offer_active, local_oksigeniaeguahe{{/str}}: {{name}}</span></button>
+        <b class="of-nombre">{{name}}</b>
+        <div class="of-plazas">
+            <button class="of-paso" type="submit" name="offerplaces" value="{{id}}:-1" aria-label="{{#str}}panel_offer_less, local_oksigeniaeguahe{{/str}}"{{^places}} disabled{{/places}}>−</button>
+            <span class="of-cuantas"><b>{{places}}</b> {{#str}}offer_places, local_oksigeniaeguahe{{/str}}</span>
+            <button class="of-paso" type="submit" name="offerplaces" value="{{id}}:1" aria-label="{{#str}}panel_offer_more, local_oksigeniaeguahe{{/str}}">+</button>
+        </div>
+        <span class="of-riel{{#manypegs}} of-riel-mucho{{/manypegs}}" aria-hidden="true">{{#pegs}}<i{{#on}} class="ya"{{/on}}></i>{{/pegs}}</span>
+        <span class="of-matric">{{enrolledtext}}</span>
+    </div>
+    {{/new}}
+    <details class="of-mas">
+        <summary>{{#new}}<b>{{#str}}panel_offer_new, local_oksigeniaeguahe{{/str}}</b>{{/new}}{{^new}}<span>{{more}}</span><span class="of-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span>{{/new}}</summary>
+        <div class="of-dorso">
+            <div class="campo"><label for="o-n-{{i}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><input id="o-n-{{i}}" name="offername[{{i}}]" value="{{name}}" autocomplete="off"></div>
+            {{#new}}<div class="campo"><label for="o-p-{{i}}">{{#str}}offer_places, local_oksigeniaeguahe{{/str}}</label><input id="o-p-{{i}}" type="number" min="0" name="offernewplaces[{{i}}]" inputmode="numeric"></div>{{/new}}
+            {{^new}}
+            <div class="campo"><label for="o-l-{{i}}">{{#str}}offer_handover, local_oksigeniaeguahe{{/str}}</label><select id="o-l-{{i}}" name="offerhandover[{{i}}]">{{#handovers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handovers}}</select></div>
+            <label class="casilla"><input type="hidden" name="offerstory[{{i}}]" value="0"><input type="checkbox" name="offerstory[{{i}}]" value="1"{{#story}} checked{{/story}}><span>{{#str}}offer_story, local_oksigeniaeguahe{{/str}}</span></label>
+            <div class="campo"><label for="o-m-{{i}}">{{#str}}offer_teacher, local_oksigeniaeguahe{{/str}}</label><select id="o-m-{{i}}" name="offerteacher[{{i}}]">{{#teachers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/teachers}}</select></div>
+            {{/new}}
+            <input type="hidden" name="offerid[{{i}}]" value="{{id}}">
+            <button class="boton principal" type="submit" name="offersave" value="{{i}}">{{#new}}{{#str}}panel_offer_add, local_oksigeniaeguahe{{/str}}{{/new}}{{^new}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}{{/new}}</button>
+        </div>
+    </details>
+</li>

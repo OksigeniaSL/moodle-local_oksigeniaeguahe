@@ -34,6 +34,9 @@
         "action": "#", "sesskey": "abc", "id": 0, "isnew": true,
         "kinds": [{"value": "openday", "name": "Jornada de puertas abiertas", "help": "Muchas familias a la vez.", "checked": true, "id": "tipo-openday"}],
         "name": {"value": "", "error": ""}, "tailored": false, "day": "", "start": "", "end": "", "daytext": "",
+        "daydate": {"id": "acto-dia", "first": "acto-diad", "form": false, "child": false, "invalid": false, "labelled": true,
+            "arialabel": false, "describedby": false, "mirror": {"vivo": "dia"}, "value": "",
+            "parts": [{"key": "d", "id": "acto-diad", "name": "dayd", "label": "Día", "value": "", "size": 2}]},
         "place": {"value": "", "error": ""}, "placehelp": "Tal como lo leerán.", "capacity": "", "open": false, "load": null,
         "hasslots": false, "slots": [], "emptyslot": {"i": 0, "n": 1, "start": "", "minutes": 45, "capacity": ""},
         "strip": {"from": "10:00", "to": "13:00", "ticks": [{"left": 0, "text": "10:00"}]},
@@ -77,9 +80,9 @@
                 <fieldset class="apartado">
                     <legend><h2>{{#str}}panel_event_when, local_oksigeniaeguahe{{/str}}</h2></legend>
                     <div class="rejilla-3">
-                        <div class="campo"><label for="acto-dia">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label><input id="acto-dia" type="date" name="day" value="{{day}}" required data-vivo="dia"></div>
-                        <div class="campo"><label for="acto-empieza">{{#str}}event_start, local_oksigeniaeguahe{{/str}}</label><input id="acto-empieza" type="time" name="start" value="{{start}}" step="900" required data-vivo="empieza"></div>
-                        <div class="campo"><label for="acto-termina">{{#str}}event_end, local_oksigeniaeguahe{{/str}}</label><input id="acto-termina" type="time" name="end" value="{{end}}" step="900" required data-vivo="termina"></div>
+                        <div class="campo"><label id="acto-dia-l" for="{{daydate.first}}">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label>{{#daydate}}{{> local_oksigeniaeguahe/public_date }}{{/daydate}}</div>
+                        <div class="campo"><label for="acto-empieza">{{#str}}event_start, local_oksigeniaeguahe{{/str}}</label><input id="acto-empieza" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="start" value="{{start}}" required data-vivo="empieza"></div>
+                        <div class="campo"><label for="acto-termina">{{#str}}event_end, local_oksigeniaeguahe{{/str}}</label><input id="acto-termina" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="end" value="{{end}}" required data-vivo="termina"></div>
                     </div>
                     {{#whenerror}}<p class="error" id="acto-cuando-e">{{.}}</p>{{/whenerror}}
                     <div class="campo"><label for="acto-donde">{{#str}}event_place, local_oksigeniaeguahe{{/str}}</label><input id="acto-donde" name="place" value="{{place.value}}" data-vivo="donde" aria-describedby="acto-donde-a"><span class="ayuda" id="acto-donde-a">{{placehelp}}</span></div>
@@ -98,7 +101,7 @@
                         <li class="turno-fila" data-turno-fila="{{i}}">
                             <input type="hidden" name="slotid[{{i}}]" value="{{id}}">
                             <span class="num-paso" aria-hidden="true">{{n}}</span>
-                            <div class="campo"><label for="t-hora-{{i}}">{{#str}}panel_turn_hour, local_oksigeniaeguahe, {{n}}{{/str}}</label><input id="t-hora-{{i}}" type="time" step="900" name="slotstart[{{i}}]" value="{{start}}"></div>
+                            <div class="campo"><label for="t-hora-{{i}}">{{#str}}panel_turn_hour, local_oksigeniaeguahe, {{n}}{{/str}}</label><input id="t-hora-{{i}}" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="slotstart[{{i}}]" value="{{start}}"></div>
                             <div class="campo"><label for="t-min-{{i}}">{{#str}}event_slot_minutes, local_oksigeniaeguahe{{/str}}</label><input id="t-min-{{i}}" type="number" min="5" step="5" name="slotminutes[{{i}}]" value="{{minutes}}" inputmode="numeric"></div>
                             <div class="campo"><label for="t-cap-{{i}}">{{#str}}panel_turn_capacity, local_oksigeniaeguahe{{/str}}</label><input id="t-cap-{{i}}" type="number" min="0" name="slotcapacity[{{i}}]" value="{{capacity}}" inputmode="numeric"></div>
                             <span class="turno-apuntados">{{signed}}</span>
@@ -113,7 +116,7 @@
                         <li class="turno-fila nueva" data-turno-fila="__i__">
                             <input type="hidden" name="slotid[__i__]" value="0">
                             <span class="num-paso" aria-hidden="true">__n__</span>
-                            <div class="campo"><label for="t-hora-__i__">{{#str}}panel_turn_hour, local_oksigeniaeguahe, __n__{{/str}}</label><input id="t-hora-__i__" type="time" step="900" name="slotstart[__i__]" value=""></div>
+                            <div class="campo"><label for="t-hora-__i__">{{#str}}panel_turn_hour, local_oksigeniaeguahe, __n__{{/str}}</label><input id="t-hora-__i__" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="slotstart[__i__]" value=""></div>
                             <div class="campo"><label for="t-min-__i__">{{#str}}event_slot_minutes, local_oksigeniaeguahe{{/str}}</label><input id="t-min-__i__" type="number" min="5" step="5" name="slotminutes[__i__]" value="{{minutes}}" inputmode="numeric"></div>
                             <div class="campo"><label for="t-cap-__i__">{{#str}}panel_turn_capacity, local_oksigeniaeguahe{{/str}}</label><input id="t-cap-__i__" type="number" min="0" name="slotcapacity[__i__]" value="" inputmode="numeric"></div>
                             <span class="turno-apuntados">{{#str}}panel_turn_new, local_oksigeniaeguahe{{/str}}</span>

@@ -357,7 +357,7 @@ class panel {
                 $version . '" defer></script>' . "\n" : '';
         }
         $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons(),
-            'piel' => array_fill_keys($layers, true), 'pielnombre' => $skin]);
+            'piel' => array_fill_keys($layers, true), 'pielnombre' => $skin, 'h24' => self::h24($centre)]);
         $frame = $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_frame', [
             'i' => self::icons(),
             'homeurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -379,6 +379,7 @@ class panel {
             'footnote' => '',
             'sesskey' => sesskey(),
             'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
+            'untildate' => self::date_input('until', '', $centre, 'fuera-hasta'),
             'away' => ($until = attend::away_until((int) $centre->id, (int) $USER->id)) ? get_string(
                 'panel_you_away',
                 self::C,
@@ -538,6 +539,52 @@ class panel {
      */
     public static function hour(int $time): string {
         return ltrim(userdate($time, get_string('strftimetime', 'langconfig')), '0 ');
+    }
+
+    /**
+     * A date of the team in three fields, in the order of the language and country of the centre, never of the browser
+     * (Enrique, 12-11: «dependerá del idioma del centro»): a field of type date writes mm/dd/yyyy in an English one.
+     *
+     * @param string $name
+     * @param string $value YYYY-MM-DD, or empty.
+     * @param \stdClass $centre
+     * @param string $id The id of its fields when several dates share a name.
+     * @return array For the partial public_date.
+     */
+    public static function date_input(string $name, string $value, \stdClass $centre, string $id = ''): array {
+        return publicpage::date_input($name, $value, (string) ($centre->lang ?: 'es'), $centre, $id);
+    }
+
+    /**
+     * Whether the clock of the centre goes to 24 hours, by the international data of its language and country: then the
+     * hours of the panel are written as hh:mm, since a field of type time writes AM and PM in an English browser.
+     *
+     * @param \stdClass $centre
+     * @return bool
+     */
+    public static function h24(\stdClass $centre): bool {
+        if (!class_exists('\IntlDateFormatter')) {
+            return true;
+        }
+        $lang = explode('_', (string) ($centre->lang ?: 'es'));
+        $locale = $lang[0] . (($lang[1] ?? $centre->country ?? '') !== '' ? '_' . strtoupper($lang[1] ?? $centre->country) : '');
+        $pattern = (string) \IntlDateFormatter::create($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::SHORT)->getPattern();
+        return strpos(preg_replace("/'[^']*'/", '', $pattern), 'a') === false;
+    }
+
+    /**
+     * An hour as the team writes it (9, 930, 9:30, 9.30, 21h) as hh:mm; empty when it is not one.
+     *
+     * @param string $value
+     * @return string
+     */
+    public static function clock(string $value): string {
+        $v = trim(\core_text::strtolower($value));
+        if (!preg_match('/^(\d{1,2})(?:\s*[:.h]\s*(\d{2}))?\s*h?$/', $v, $m) && !preg_match('/^(\d{1,2})(\d{2})$/', $v, $m)) {
+            return '';
+        }
+        [$h, $min] = [(int) $m[1], (int) ($m[2] ?? 0)];
+        return $h <= 23 && $min <= 59 ? sprintf('%02d:%02d', $h, $min) : '';
     }
 
     /**

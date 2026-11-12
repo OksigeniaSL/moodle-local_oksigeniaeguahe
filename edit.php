@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_familyform;
 use local_oksigeniaeguahe\local\phone;
 
@@ -176,7 +177,7 @@ if ($data = $form->get_data()) {
         }
         if ($childid && $name !== '') {
             // The date of birth; empty takes it out.
-            households::set_birthdate($household, $childid, (string) ($data->{"childbirth{$i}"} ?? ''));
+            households::set_birthdate($household, $childid, publicpage::date_param("childbirth{$i}"));
         }
     }
     if (!empty($data->eventid) && ($event = events::get((int) $data->eventid, (int) $centre->id))) {

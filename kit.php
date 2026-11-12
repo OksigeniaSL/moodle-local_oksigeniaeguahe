@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\kit;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_kit;
 
 $id = required_param('id', PARAM_INT);
@@ -78,7 +79,13 @@ if (data_submitted() && confirm_sesskey()) {
     if ($action === 'channel') {
         // A moment in the channel of Telegram: now, at a time, not at all, or as the centre says.
         $at = 0;
-        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/', optional_param('at', '', PARAM_RAW_TRIMMED), $m)) {
+        // The day in three fields and the hour by the clock of the centre; a page sent with the old single field still reads.
+        $day = publicpage::date_param('at');
+        $hour = panel::clock(optional_param('attime', '', PARAM_RAW_TRIMMED));
+        if (
+            preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/', $day . 'T' . $hour, $m) ||
+                preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/', optional_param('at', '', PARAM_RAW_TRIMMED), $m)
+        ) {
             $at = make_timestamp((int) $m[1], (int) $m[2], (int) $m[3], (int) $m[4], (int) $m[5]);
         }
         $done = channel::choose(

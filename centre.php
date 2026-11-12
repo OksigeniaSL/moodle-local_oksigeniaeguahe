@@ -62,7 +62,13 @@ if (data_submitted()) {
     foreach ($problems as $problem) {
         \core\notification::warning($problem);
     }
-    redirect($url, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
+    // Back where the gesture was (a card, a shelf of the offer), without a message for a gesture.
+    $back = panel_centre::$back ?? [];
+    $to = new moodle_url($url, $back['params'] ?? [], $back['anchor'] ?? null);
+    if (!empty($back['quiet']) && !$problems) {
+        redirect($to);
+    }
+    redirect($to, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
 panel::output(centres::get($id), 'settings', get_string('centre_settings', $c), 'panel_centre', panel_centre::context($centre));

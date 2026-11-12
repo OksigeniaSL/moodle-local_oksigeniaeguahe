@@ -329,14 +329,15 @@ final class panel_test extends \advanced_testcase {
         $context = panel_centre::context($centre);
         $this->assertSame('#1f5a4e', $context['colour']);
         $this->assertSame([], $context['hosts']);
-        $this->assertTrue(end($context['offers'])['empty']);
+        $this->assertTrue($context['oferta']['newcard']['new'], 'A blank card for a new course.');
+        $this->assertSame('2027-28', $context['oferta']['year']);
         $this->assertSame(['', 'vestibulo', 'mostrador', 'cinematico'], array_column($context['skins'], 'value'));
 
         // Saved at once: the centre, someone more in the team, a new course.
         $_POST = ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'colour' => '#1f5a4e', 'colourhex' => '#C0392B',
             'arrive' => 'Por la puerta verde.', 'retention' => 12, 'skin' => 'mostrador', 'addmember' => 'lucia@example.com',
-            'offerid' => [$context['offers'][0]['id'], 0], 'offername' => ['Infantil 3 años', '1.º de Primaria'],
-            'offeryear' => ['2027-28', '2027-28'], 'offerplaces' => [25, 50], 'offeractive' => [1, 1]];
+            'offerview' => '2027-28', 'offerid' => [array_key_first(centres::offers($centreid)), 0],
+            'offername' => ['Infantil 3 años', '1.º de Primaria'], 'offernewplaces' => [1 => 50]];
         $this->assertSame([], panel_centre::save($centre));
         $saved = centres::get($centreid);
         $this->assertSame(['#c0392b', 'Por la puerta verde.', 12, 'mostrador'], [$saved->colour, $saved->arrive,
@@ -355,6 +356,65 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame(['Admisiones', 'Les enseño el centro.'], [$hosts[0]->role, $hosts[0]->says]);
         $this->assertSame('#c0392b', centres::get($centreid)->colour);
         $this->assertNull(centres::get($centreid)->skin);
+        $_POST = [];
+    }
+
+    /**
+     * The gestures of the offer (Jujol, 0.57.0): a stage lit makes its courses and put out keeps them unoffered; a
+     * course on or off by its knob; one place more or less, never below none; the same places for a whole stage; and
+     * the next school year started by copying this one. Saving the rest of the page never moves a year or its places.
+     */
+    public function test_offer_gestures(): void {
+        $this->resetAfterTest();
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($centreid);
+        $primary = current(array_filter(\local_oksigeniaeguahe\local\grades::stages($centre), fn($s) => $s['name'] === 'Primaria'));
+        $post = fn(array $gesture) => $_POST = ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES',
+            'colour' => '#1f5a4e', 'colourhex' => '#1f5a4e', 'offerview' => '2027-28'] + $gesture;
+        $byname = fn() => array_column(array_values(centres::offers($centreid)), null, 'name');
+
+        $post(['offerstage' => $primary['key'] . ':on']);
+        panel_centre::save($centre);
+        $this->assertCount(6, centres::offers($centreid, true));
+        $this->assertSame('of-e-' . $primary['key'], panel_centre::$back['anchor']);
+        $first = $byname()['1.º de Primaria'];
+
+        $post(['offerplaces' => $first->id . ':1']);
+        panel_centre::save($centre);
+        $post(['offerplaces' => $first->id . ':1']);
+        panel_centre::save($centre);
+        $this->assertSame(2, (int) $byname()['1.º de Primaria']->places);
+        $post(['offerplaces' => $byname()['2.º de Primaria']->id . ':-1']);
+        panel_centre::save($centre);
+        $this->assertSame(0, (int) $byname()['2.º de Primaria']->places, 'Never below none.');
+
+        $post(['offerstageplaces' => $primary['key']]);
+        panel_centre::save($centre);
+        $this->assertSame([2], array_values(array_unique(array_map(fn($o) => (int) $o->places, centres::offers($centreid, true)))));
+
+        $post(['offertoggle' => $byname()['6.º de Primaria']->id]);
+        panel_centre::save($centre);
+        $this->assertSame(0, (int) $byname()['6.º de Primaria']->active);
+
+        // Saving the back of a card changes its name and nothing of its year, places or whether it is given.
+        $post(['offerid' => [$first->id], 'offername' => ['Primero de Primaria'], 'offerstory' => [0], 'offerhandover' => [0],
+            'offerteacher' => ['maestro']]);
+        panel_centre::save($centre);
+        $renamed = centres::offers($centreid)[$first->id];
+        $this->assertSame(['Primero de Primaria', '2027-28', 2, 1, 'maestro'], [$renamed->name, $renamed->schoolyear,
+            (int) $renamed->places, (int) $renamed->active, $renamed->teacher]);
+
+        $post(['offercopy' => '2028-29']);
+        panel_centre::save($centre);
+        $next = array_filter(centres::offers($centreid), fn($o) => $o->schoolyear === '2028-29');
+        $this->assertCount(6, $next);
+        $this->assertSame(['year' => '2028-29'], panel_centre::$back['params']);
+        $this->assertSame(0, (int) current($next)->firstday, 'Never the dates of the first day.');
+
+        $post(['offerstage' => $primary['key'] . ':off']);
+        panel_centre::save($centre);
+        $this->assertSame(0, count(array_filter(centres::offers($centreid, true), fn($o) => $o->schoolyear === '2027-28')));
+        $this->assertCount(6, array_filter(centres::offers($centreid), fn($o) => $o->schoolyear === '2027-28'), 'Kept.');
         $_POST = [];
     }
 

@@ -80,10 +80,10 @@ class panel_eventform {
      * @return array
      */
     public static function posted(array $old): array {
-        $hour = fn(string $v) => preg_match('/^([01]?\d|2[0-3]):([0-5]\d)/', trim($v), $m) ?
-            sprintf('%02d:%02d', $m[1], $m[2]) : '';
+        // An hour as the team writes it, by the clock of the centre (9, 9:30, 21h); a day in three fields.
+        $hour = fn(string $v) => panel::clock($v);
         $kind = optional_param('kind', 'openday', PARAM_ALPHA);
-        $day = optional_param('day', '', PARAM_RAW_TRIMMED);
+        $day = publicpage::date_param('day');
         $capacity = (int) optional_param('capacity', '', PARAM_RAW_TRIMMED);
         $values = [
             'id' => $old['id'],
@@ -579,6 +579,8 @@ class panel_eventform {
             'name' => ['value' => $values['name'], 'error' => $errors['name'] ?? ''],
             'tailored' => $values['tailored'],
             'day' => $values['day'],
+            // The day in three fields in the order of the centre, with a copy for the preview beside it.
+            'daydate' => ['mirror' => ['vivo' => 'dia']] + panel::date_input('day', (string) $values['day'], $centre, 'acto-dia'),
             'start' => $values['start'],
             'end' => $values['end'],
             'daytext' => $start ? userdate($start, get_string('strftimedaydate', 'langconfig')) : '',

@@ -36,7 +36,9 @@
         "morecurrent": false, "door": false,
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
         "moodleurl": "#", "logouturl": "#", "hasnotices": false, "notices": [],
-        "awayurl": "", "away": "", "sesskey": "abc", "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
+        "awayurl": "", "away": "", "untildate": {"id": "fuera-hasta", "first": "fuera-hastad", "form": false, "child": false,
+            "invalid": false, "labelled": true, "arialabel": false, "describedby": false, "mirror": false, "value": "",
+            "parts": [{"key": "d", "id": "fuera-hastad", "name": "untild", "label": "Día", "value": "", "size": 2}]}, "sesskey": "abc", "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
     }
 }}
 <a class="saltar" href="#main">{{#str}}panel_skip, local_oksigeniaeguahe{{/str}}</a>
@@ -74,7 +76,7 @@
             <form class="fuera" method="post" action="{{awayurl}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
                 {{#away}}<p class="secundario">{{away}}</p><button class="boton terciario pequeno" type="submit" name="back" value="1">{{#str}}panel_back_here, local_oksigeniaeguahe{{/str}}</button>{{/away}}
-                {{^away}}<label for="fuera-hasta">{{#str}}panel_away_label, local_oksigeniaeguahe{{/str}}</label><input id="fuera-hasta" type="date" name="until" required><button class="boton terciario pequeno" type="submit">{{#str}}panel_away_save, local_oksigeniaeguahe{{/str}}</button>{{/away}}
+                {{^away}}<label id="fuera-hasta-l" for="{{untildate.first}}">{{#str}}panel_away_label, local_oksigeniaeguahe{{/str}}</label>{{#untildate}}{{> local_oksigeniaeguahe/public_date }}{{/untildate}}<button class="boton terciario pequeno" type="submit">{{#str}}panel_away_save, local_oksigeniaeguahe{{/str}}</button>{{/away}}
             </form>
             {{/awayurl}}
         </div>

@@ -54,7 +54,7 @@ final class wholeoffer_test extends \advanced_testcase {
         $centre = $this->centre();
         $stages = grades::stages($centre);
         $this->assertSame(
-            ['Infantil (0 a 2 años)', 'Infantil (3 a 5 años)', 'Primaria', 'ESO', 'Bachillerato'],
+            ['Primer ciclo de Infantil', 'Infantil', 'Primaria', 'ESO', 'Bachillerato'],
             array_column($stages, 'name')
         );
         $this->assertSame(['Infantil 0 años', 'Infantil 1 año', 'Infantil 2 años'], array_column($stages[0]['courses'], 'name'));
@@ -73,7 +73,7 @@ final class wholeoffer_test extends \advanced_testcase {
         centres::save_offer((int) $centre->id, (object) ['schoolyear' => '2027-28', 'name' => 'Aula de música',
             'places' => 0, 'active' => 1]);
         [$groups, $loose] = grades::grouped(array_values(centres::offers((int) $centre->id, true)), $centre);
-        $this->assertSame(['Infantil (3 a 5 años) · 2027-28', 'Primaria · 2027-28'], array_column($groups, 'label'));
+        $this->assertSame(['Infantil · 2027-28', 'Primaria · 2027-28'], array_column($groups, 'label'));
         $this->assertSame(['1.º de Primaria', '2.º de Primaria'], array_slice(array_column($groups[1]['offers'], 'name'), 0, 2));
         $this->assertSame(2027 - 6, $groups[1]['offers'][0]->born, 'First of Primary: born six years before it starts.');
         $this->assertSame(['Aula de música'], array_column($loose, 'name'));

@@ -33,6 +33,9 @@
             "daytext": "Empieza el jueves, 10 de septiembre de 2027.", "general": false, "confirmed": "",
             "missing": false, "check": true, "asked": true, "value": "2027-09-10", "label": "Primer día de Infantil 3 años",
             "leaf": {"weekday": "jue", "day": "10", "month": "sept"},
+            "date": {"id": "pd-7", "first": "pd-7d", "form": false, "child": false, "invalid": false, "labelled": false,
+                "arialabel": "Primer día de Infantil 3 años", "describedby": false, "mirror": false, "value": "2027-09-10",
+                "parts": [{"key": "d", "id": "pd-7d", "name": "dayd", "label": "Día", "value": "10", "size": 2}]},
             "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
                 "text": "Ha empezado", "search": "leo"}]}]
     }
@@ -62,7 +65,7 @@
                     {{/check}}
                     <form method="post" action="{{action}}#curso{{offerid}}" class="pd-cambiar">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="firstday"><input type="hidden" name="offer" value="{{offerid}}">
-                        <label><span class="oculto">{{label}}</span><input type="date" name="day" value="{{value}}" required></label>
+                        {{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}
                         <button class="boton secundario" type="submit">{{#str}}panel_firstday_course_save, local_oksigeniaeguahe{{/str}}</button>
                     </form>
                 </div>

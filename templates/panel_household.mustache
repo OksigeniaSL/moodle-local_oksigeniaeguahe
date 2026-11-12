@@ -55,7 +55,10 @@
         "composer": {"button": "Mandarlo por WhatsApp", "notes": [], "greeting": "Hola, Marta y Daniel: ",
             "draft": {"who": "Lucía", "when": "hoy a las 10:31", "text": "Hola, Marta y Daniel: sí, hay comedor."},
             "hassuggestions": true, "suggestions": [{"id": "s1", "title": "Comedor en Infantil", "uses": "14 veces", "text": "Hola, Marta y Daniel: sí."}],
-            "next": {"value": "", "day": ""}, "typingurl": "#",
+            "next": {"value": "", "day": "", "date": {"id": "siguiente-dia", "first": "siguiente-diad", "form": false,
+                "child": false, "invalid": false, "labelled": false, "arialabel": "Para el día", "describedby": false,
+                "mirror": false, "value": "", "parts": [{"key": "d", "id": "siguiente-diad", "name": "nextdayd", "label": "Día",
+                "value": "", "size": 2}]}}, "typingurl": "#",
             "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
@@ -65,7 +68,9 @@
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
         "hasuntold": true, "untold": ["dónde viven"], "untoldtext": "dónde viven",
-        "visit": {"asked": "Una tarde", "date": "2026-11-12", "place": "", "people": 2, "hasguides": true,
+        "visit": {"asked": "Una tarde", "date": "2026-11-12", "datedate": {"id": "vd", "first": "vdd", "form": false,
+            "child": false, "invalid": false, "labelled": true, "arialabel": false, "describedby": false, "mirror": false,
+            "value": "2026-11-12", "parts": [{"key": "d", "id": "vdd", "name": "dated", "label": "Día", "value": "12", "size": 2}]}, "place": "", "people": 2, "hasguides": true,
             "guides": [{"id": 1, "name": "Lucía Medina", "selected": true}],
             "minutes": [{"value": 45, "name": "45 min", "selected": true}]},
         "hasevents": false, "events": [], "newlink": "", "mergeurl": "#", "erasequestion": "¿Borramos todo lo de Marta Ruiz?"
@@ -243,8 +248,8 @@
                 <form method="post" action="{{action}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="propose"><input type="hidden" name="people" value="{{people}}">
                     <div class="rejilla-2">
-                        <div class="campo"><label for="vd">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label><input id="vd" type="date" name="date" value="{{date}}" required></div>
-                        <div class="campo"><label for="vh">{{#str}}panel_hour, local_oksigeniaeguahe{{/str}}</label><input id="vh" type="time" name="time" value="17:30" required></div>
+                        <div class="campo"><label id="vd-l" for="{{datedate.first}}">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label>{{#datedate}}{{> local_oksigeniaeguahe/public_date }}{{/datedate}}</div>
+                        <div class="campo"><label for="vh">{{#str}}panel_hour, local_oksigeniaeguahe{{/str}}</label><input id="vh" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}} name="time" value="17:30" required data-hora></div>
                         <div class="campo"><label for="vm">{{#str}}panel_length, local_oksigeniaeguahe{{/str}}</label><select id="vm" name="minutes">{{#minutes}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/minutes}}</select></div>
                         <div class="campo"><label for="vl">{{#str}}panel_where, local_oksigeniaeguahe{{/str}}</label><input id="vl" name="place" value="{{place}}"></div>
                         {{#hasguides}}<div class="campo ancho"><label for="vg">{{#str}}panel_guide, local_oksigeniaeguahe{{/str}}</label><select id="vg" name="guide">{{#guides}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/guides}}</select></div>{{/hasguides}}
@@ -290,7 +295,7 @@
                         {{#next}}
                         <div class="campo siguiente">
                             <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
-                            <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off"><input type="date" name="nextday" value="{{next.day}}" aria-label="{{#str}}panel_next_day, local_oksigeniaeguahe{{/str}}"></div>
+                            <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off">{{#next.date}}{{> local_oksigeniaeguahe/public_date }}{{/next.date}}</div>
                         </div>
                         {{/next}}
                         <div class="acciones">

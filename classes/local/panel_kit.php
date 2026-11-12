@@ -185,6 +185,10 @@ class panel_kit {
                 'min' => userdate($now + 5 * MINSECS, '%Y-%m-%dT%H:%M'),
                 'max' => userdate($start - MINSECS, '%Y-%m-%dT%H:%M'),
                 'value' => userdate($value, '%Y-%m-%dT%H:%M'),
+                // The day in three fields in the order of the centre, and the hour by its clock.
+                'atdate' => ['labelled' => false, 'arialabel' => get_string('kit_channel_at_label', $c)] +
+                    panel::date_input('at', userdate($value, '%Y-%m-%d'), $centre, 'kit-at-' . $moment),
+                'attime' => userdate($value, '%H:%M'),
             ];
         }
         return $out;

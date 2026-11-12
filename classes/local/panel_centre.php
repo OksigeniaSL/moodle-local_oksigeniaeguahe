@@ -27,6 +27,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class panel_centre {
+    /** @var array|null Where the page goes back to after saving: params, anchor and quiet (a gesture, no message). */
+    public static $back = null;
+
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
@@ -123,6 +126,8 @@ class panel_centre {
             'invitegone' => !empty($centre->invitegone),
             // For the story «Your first day»: when the school year starts, and the name of the centre as it is said in a sentence.
             'firstday' => !empty($centre->firstday) ? userdate((int) $centre->firstday, '%Y-%m-%d') : '',
+            'firstdaydate' => ['describedby' => 'c-primer-a'] + panel::date_input('firstday', !empty($centre->firstday) ?
+                userdate((int) $centre->firstday, '%Y-%m-%d') : '', $centre, 'c-primer'),
             'namephrase' => (string) ($centre->namephrase ?? ''),
             'namephraseexample' => get_string('panel_namephrase_example', $c, format_string($centre->name)),
             'siblingages' => array_map(fn($n) => ['value' => $n, 'name' => $n ? get_string('panel_siblingage_n', $c, $n) :
@@ -136,17 +141,8 @@ class panel_centre {
             'retention' => (int) $centre->retention,
             'municipalities' => (string) $centre->municipalities,
             'networks' => implode("\n", centres::networks($centre)),
-            'offers' => self::offers($centre),
-            // The stages of its school system, to add one whole; without a system, a line that says where to choose it.
-            'stages' => ($stages = grades::stages($centre)) ? ['year' => self::next_year(), 'list' => array_map(
-                fn($s) => ['key' => $s['key'], 'name' => count($s['courses']) > 1 ? get_string(
-                    'panel_offer_stage_option',
-                    $c,
-                    (object) ['name' => $s['name'], 'first' => $s['courses'][0]['name'],
-                    'last' => end($s['courses'])['name']]
-                ) : $s['name']],
-                $stages
-            )] : false,
+            // The offer of one school year as the shelves of its stages, each course a card (Jujol).
+            'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
             'skins' => self::skins($centre),
             'skinproposal' => self::proposal((int) $centre->id),
@@ -283,34 +279,216 @@ class panel_centre {
     }
 
     /**
-     * The offer, the latest school year first, with its places on the rail, and a row more for a new course.
+     * The offer of one school year, as Jujol drew it (panel_centre, #aj-oferta): the years as leaves of the calendar, with a
+     * blank one to start the next by copying this; each stage of the school system as a shelf that the centre lights
+     * when it gives it; each course as a card on its shelf, with its places, how many are enrolled, and the rest on its
+     * back; the courses that are no stage of the system on a last shelf, with a blank card for a new one.
      *
      * @param \stdClass $centre
+     * @param string $year The school year asked for; else the one admissions are for, or the latest there is.
      * @return array
      */
-    protected static function offers(\stdClass $centre): array {
+    protected static function oferta(\stdClass $centre, string $year): array {
+        $c = self::C;
+        $all = array_values(centres::offers((int) $centre->id));
+        $years = array_values(array_unique(array_map(fn($o) => (string) $o->schoolyear, $all)));
+        sort($years);
+        $years = $years ?: [self::next_year()];
+        $year = in_array($year, $years, true) ? $year : (in_array(self::next_year(), $years, true) ? self::next_year() :
+            end($years));
         $counts = households::offer_counts((int) $centre->id);
-        $out = [];
-        $year = '';
-        foreach (array_values(centres::offers((int) $centre->id)) as $i => $offer) {
-            $year = $year ?: (string) $offer->schoolyear;
+        $url = fn(string $y) => (new \moodle_url(
+            '/local/oksigeniaeguahe/centre.php',
+            ['id' => $centre->id, 'year' => $y],
+            'aj-oferta'
+        ))->out(false);
+        $count = fn(int $n) => get_string($n === 1 ? 'panel_offer_courses_one' : 'panel_offer_courses', $c, $n);
+        $leaves = array_map(fn($y) => ['name' => $y, 'url' => $url($y), 'current' => $y === $year,
+            'courses' => $count(count(array_filter($all, fn($o) => (string) $o->schoolyear === $y && $o->active)))], $years);
+        $next = self::year_after($year);
+        $i = 0;
+        $card = function (\stdClass $offer) use (&$i, $centre, $counts, $c): array {
             $enrolled = (int) ($counts[$offer->id]['enrolled'] ?? 0);
-            $out[] = ['i' => $i, 'id' => (int) $offer->id, 'name' => (string) $offer->name,
-                'year' => (string) $offer->schoolyear, 'places' => (int) $offer->places, 'active' => !empty($offer->active),
-                'handovers' => self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre'),
-                'story' => story::offer_gives($offer, (int) $centre->id),
-                'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
-                'empty' => false, 'rail' => $offer->places > 0 && $offer->active ? panel::rail(
-                    (int) $offer->places,
-                    $enrolled,
-                    object: panel::hanging_object((string) $offer->name, $centre)
-                ) : ''];
+            $places = (int) $offer->places;
+            $handovers = self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre');
+            $chosen = array_values(array_filter($handovers, fn($h) => !empty($h['selected'])));
+            $carrier = $chosen[0]['name'] ?? '';
+            $story = story::offer_gives($offer, (int) $centre->id);
+            return ['i' => $i++, 'id' => (int) $offer->id, 'name' => (string) $offer->name, 'places' => $places,
+                'enrolled' => $enrolled, 'enrolledtext' => !$enrolled ? get_string('panel_offer_enrolled_none', $c) :
+                    get_string($enrolled === 1 ? 'panel_offer_enrolled_one' : 'panel_offer_enrolled', $c, $enrolled),
+                'active' => !empty($offer->active), 'new' => false,
+                'more' => ((int) ($offer->handover ?? 0) ? get_string('panel_offer_carrier', $c, $carrier) :
+                    get_string('panel_offer_carrier_centre', $c)) . ' · ' .
+                    get_string($story ? 'panel_offer_with_story' : 'panel_offer_without_story', $c),
+                'story' => $story, 'handovers' => $handovers, 'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
+                // A knob for each place, filled for those enrolled; at most thirty.
+                'pegs' => $places > 0 ? array_map(fn($k) => ['on' => $k < $enrolled], range(0, min($places, 30) - 1)) : [],
+                'manypegs' => $places >= 25];
+        };
+        $mine = array_filter($all, fn($o) => (string) $o->schoolyear === $year);
+        $bystage = [];
+        $others = [];
+        foreach ($mine as $offer) {
+            $age = grades::age((string) $offer->name, $centre);
+            $stage = $age !== null ? grades::stage_of($age, $centre) : null;
+            if ($stage) {
+                $offer->age = $age;
+                $bystage[$stage['key']][] = $offer;
+            } else {
+                $others[] = $offer;
+            }
         }
-        $out[] = ['i' => count($out), 'id' => 0, 'name' => '', 'year' => $year ?: self::next_year(), 'places' => '',
-            'active' => true, 'handovers' => self::handovers($centre, 0, 'offer_handover_centre'), 'empty' => true,
-            'story' => false, 'teachers' => self::teachers('maestra'),
-            'rail' => ''];
-        return $out;
+        $stages = [];
+        foreach (grades::stages($centre) as $stage) {
+            $offers = $bystage[$stage['key']] ?? [];
+            usort($offers, fn($a, $b) => [$a->age, (int) $a->sortorder] <=> [$b->age, (int) $b->sortorder]);
+            $on = array_values(array_filter($offers, fn($o) => !empty($o->active)));
+            $places = array_map(fn($o) => (int) $o->places, $on);
+            $stages[] = ['key' => $stage['key'], 'name' => $stage['name'],
+                'ages' => $stage['from'] === $stage['to'] ? get_string('panel_offer_age_one', $c, $stage['from']) :
+                    get_string('panel_offer_ages', $c, (object) ['from' => $stage['from'], 'to' => $stage['to']]),
+                'on' => (bool) $on,
+                'summary' => $count(count($on)) . ' · ' . get_string('panel_offer_places_sum', $c, array_sum($places)),
+                // The same places for the whole stage, when they differ: those of its first course.
+                'same' => count(array_unique($places)) > 1 ? ['label' => get_string('panel_offer_same', $c, $places[0])] : false,
+                'cards' => array_map($card, $offers)];
+        }
+        return [
+            'year' => $year,
+            'years' => $leaves,
+            'copy' => in_array($next, $years, true) ? false : ['to' => $next, 'label' => get_string('panel_offer_copy_start', $c)],
+            'stages' => $stages,
+            'others' => array_map($card, array_values($others)),
+            'newcard' => ['i' => $i, 'id' => 0, 'name' => '', 'new' => true, 'active' => true],
+        ];
+    }
+
+    /**
+     * The gestures of the offer (oferta()), each a button of its own, and the back of every card. Only what a gesture or
+     * a back says changes: never the year, the places or whether a course is given by saving the rest of the page.
+     * Where the page goes back to, in $back.
+     *
+     * @param \stdClass $centre
+     */
+    protected static function save_offer(\stdClass $centre): void {
+        global $DB;
+        $centreid = (int) $centre->id;
+        $own = centres::offers($centreid);
+        $view = trim(optional_param('offerview', '', PARAM_TEXT));
+        $view = $view !== '' ? $view : self::next_year();
+        self::$back = ['params' => ['year' => $view], 'anchor' => 'aj-oferta', 'quiet' => false];
+        $gesture = fn(string $anchor) => self::$back = ['params' => ['year' => $view], 'anchor' => $anchor, 'quiet' => true];
+        // The back of each card: its name, who carries it, the story and who receives in it; a new one, in the year seen.
+        $ids = optional_param_array('offerid', [], PARAM_INT);
+        $names = optional_param_array('offername', [], PARAM_TEXT);
+        $handovers = optional_param_array('offerhandover', [], PARAM_INT);
+        $stories = optional_param_array('offerstory', [], PARAM_BOOL);
+        $teachers = optional_param_array('offerteacher', [], PARAM_ALPHA);
+        $newplaces = optional_param_array('offernewplaces', [], PARAM_INT);
+        foreach ($names as $i => $name) {
+            $id = (int) ($ids[$i] ?? 0);
+            $name = trim((string) $name);
+            if ($id && isset($own[$id])) {
+                $offer = $own[$id];
+                // Renamed, a course keeps its age, so it stays on the shelf of its stage («Primero de Primaria»).
+                $age = $name !== '' && $name !== $offer->name ? grades::age((string) $offer->name, $centre) : null;
+                if ($age !== null && grades::age($name, $centre) !== $age) {
+                    $kept = $DB->get_field(forecast::AGES, 'forecast', ['centreid' => $centreid, 'grade' => $offer->name]);
+                    forecast::save_ages($centreid, [$name => ['age' => $age, 'forecast' => $kept === false ? 1 : (int) $kept]]);
+                    grades::reset();
+                }
+                centres::save_offer($centreid, (object) ['id' => $id, 'name' => $name !== '' ? $name : $offer->name,
+                    'schoolyear' => $offer->schoolyear, 'places' => $offer->places, 'active' => $offer->active,
+                    'sortorder' => $offer->sortorder, 'handover' => self::member((int) ($handovers[$i] ?? 0), $centreid),
+                    'story' => !empty($stories[$i]), 'teacher' => $teachers[$i] ?? 'maestra']);
+            } else if (!$id && $name !== '') {
+                $new = centres::save_offer($centreid, (object) ['name' => $name, 'schoolyear' => $view,
+                    'places' => max(0, (int) ($newplaces[$i] ?? 0)), 'active' => 1, 'sortorder' => 999]);
+                $gesture('of-c-' . $new);
+            }
+        }
+        $stageof = function (\stdClass $offer) use ($centre): ?int {
+            $age = grades::age((string) $offer->name, $centre);
+            $stage = $age !== null ? grades::stage_of($age, $centre) : null;
+            return $stage ? (int) $stage['key'] : null;
+        };
+        $inyear = fn() => array_filter(centres::offers($centreid), fn($o) => (string) $o->schoolyear === $view);
+        // A course on or off, by its knob.
+        $toggle = optional_param('offertoggle', 0, PARAM_INT);
+        if ($toggle && isset($own[$toggle])) {
+            $DB->set_field(centres::OFFERS, 'active', $own[$toggle]->active ? 0 : 1, ['id' => $toggle, 'centreid' => $centreid]);
+            $gesture('of-c-' . $toggle);
+        }
+        // One place more or one less, never below none.
+        if (preg_match('/^(\d+):(-?1)$/', optional_param('offerplaces', '', PARAM_RAW_TRIMMED), $m) && isset($own[(int) $m[1]])) {
+            $DB->set_field(
+                centres::OFFERS,
+                'places',
+                max(0, (int) $own[(int) $m[1]]->places + (int) $m[2]),
+                ['id' => (int) $m[1], 'centreid' => $centreid]
+            );
+            $gesture('of-c-' . (int) $m[1]);
+        }
+        // A whole stage lit (its courses made, or given again) or put out (not given; nothing is deleted).
+        if (preg_match('/^(\d+):(on|off)$/', optional_param('offerstage', '', PARAM_RAW_TRIMMED), $m)) {
+            $key = (int) $m[1];
+            if ($m[2] === 'on') {
+                centres::add_stage($centreid, $key, $view);
+            }
+            foreach ($inyear() as $offer) {
+                if ($stageof($offer) === $key) {
+                    $DB->set_field(centres::OFFERS, 'active', $m[2] === 'on' ? 1 : 0, ['id' => $offer->id]);
+                }
+            }
+            $gesture('of-e-' . $key);
+        }
+        // The places of the first course of a stage, for all of it.
+        $same = optional_param('offerstageplaces', -1, PARAM_INT);
+        if ($same >= 0) {
+            $offers = array_filter($inyear(), fn($o) => $o->active && $stageof($o) === $same);
+            usort($offers, fn($a, $b) => [grades::age((string) $a->name, $centre), (int) $a->sortorder] <=>
+                [grades::age((string) $b->name, $centre), (int) $b->sortorder]);
+            if ($offers) {
+                $DB->set_field_select(
+                    centres::OFFERS,
+                    'places',
+                    (int) $offers[0]->places,
+                    'id IN (' . implode(',', array_map(fn($o) => (int) $o->id, $offers)) . ')'
+                );
+            }
+            $gesture('of-e-' . $same);
+        }
+        // The next school year, started by copying this one: its courses and places, never the dates of their first day.
+        $to = trim(optional_param('offercopy', '', PARAM_TEXT));
+        if ($to !== '' && $to === self::year_after($view)) {
+            $there = array_map(
+                fn($o) => grades::plain((string) $o->name),
+                array_filter(centres::offers($centreid), fn($o) => (string) $o->schoolyear === $to)
+            );
+            foreach ($inyear() as $offer) {
+                if (in_array(grades::plain((string) $offer->name), $there, true)) {
+                    continue;
+                }
+                centres::save_offer($centreid, (object) ['schoolyear' => $to, 'name' => $offer->name, 'places' => $offer->places,
+                    'active' => $offer->active, 'sortorder' => $offer->sortorder, 'handover' => (int) ($offer->handover ?? 0),
+                    'story' => $offer->story, 'teacher' => $offer->teacher]);
+            }
+            self::$back = ['params' => ['year' => $to], 'anchor' => 'aj-oferta', 'quiet' => true];
+        }
+    }
+
+    /**
+     * The school year after one: 2027-28 gives 2028-29; a year alone, the next.
+     *
+     * @param string $year
+     * @return string
+     */
+    protected static function year_after(string $year): string {
+        if (preg_match('/^(\d{4})-(\d{2})$/', $year, $m)) {
+            return ((int) $m[1] + 1) . '-' . sprintf('%02d', ((int) $m[2] + 1) % 100);
+        }
+        return preg_match('/^\d{4}$/', $year) ? (string) ((int) $year + 1) : $year;
     }
 
     /**
@@ -480,7 +658,7 @@ class panel_centre {
             'handoverhow' => optional_param('handoverhow', '', PARAM_TEXT),
             'siblingage' => optional_param('siblingage', (int) ($centre->siblingage ?? 0), PARAM_INT),
             'invitegone' => optional_param('invitegone', 0, PARAM_BOOL),
-            'firstday' => self::date(optional_param('firstday', '', PARAM_RAW_TRIMMED)),
+            'firstday' => self::date(publicpage::date_param('firstday')),
             'namephrase' => optional_param('namephrase', '', PARAM_TEXT),
         ];
         if (messaging::available()) {
@@ -514,39 +692,8 @@ class panel_centre {
             }
         }
 
-        // The offer: a row without a name goes out of the campaign; a new one comes in.
-        $ids = optional_param_array('offerid', [], PARAM_INT);
-        $names = optional_param_array('offername', [], PARAM_TEXT);
-        $years = optional_param_array('offeryear', [], PARAM_TEXT);
-        $places = optional_param_array('offerplaces', [], PARAM_INT);
-        $active = optional_param_array('offeractive', [], PARAM_BOOL);
-        $handovers = optional_param_array('offerhandover', [], PARAM_INT);
-        $stories = optional_param_array('offerstory', [], PARAM_BOOL);
-        $teachers = optional_param_array('offerteacher', [], PARAM_ALPHA);
-        foreach ($names as $i => $offername) {
-            $offerid = (int) ($ids[$i] ?? 0);
-            if (trim((string) $offername) === '') {
-                if ($offerid) {
-                    $DB->set_field(centres::OFFERS, 'active', 0, ['id' => $offerid, 'centreid' => $centre->id]);
-                }
-                continue;
-            }
-            $offer = ['id' => $offerid, 'name' => $offername, 'schoolyear' => $years[$i] ?? self::next_year(),
-                'places' => $places[$i] ?? 0, 'active' => !empty($active[$i]), 'sortorder' => $i,
-                'handover' => self::member((int) ($handovers[$i] ?? 0), (int) $centre->id),
-                'teacher' => $teachers[$i] ?? 'maestra'];
-            // A new course without the box gives the story by its age; once saved, as the box says.
-            if ($offerid || !empty($stories[$i])) {
-                $offer['story'] = !empty($stories[$i]);
-            }
-            centres::save_offer((int) $centre->id, (object) $offer);
-        }
-        // A whole stage of the system at once, from the nursery to the last year: its courses the year does not have.
-        $stage = optional_param('addstage', '', PARAM_ALPHANUMEXT);
-        if ($stage !== '') {
-            $year = trim(optional_param('addstageyear', '', PARAM_TEXT));
-            centres::add_stage((int) $centre->id, (int) $stage, $year !== '' ? $year : self::next_year());
-        }
+        // The offer: the back of its cards and its gestures (save_offer()).
+        self::save_offer($centre);
 
         // The team: who goes out, and someone more by their name or their email in Moodle.
         foreach (array_keys(array_filter(optional_param_array('removemember', [], PARAM_BOOL))) as $userid) {

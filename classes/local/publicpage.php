@@ -477,8 +477,10 @@ display: grid; }
     public static function date_input(string $name, string $value, string $lang, ?\stdClass $centre, string $id = ''): array {
         $id = $id !== '' ? $id : $name;
         $sent = [];
+        $list = strpos($name, '[') !== false;
         foreach (['d', 'm', 'y'] as $key) {
-            $sent[$key] = trim(optional_param($name . $key, '', PARAM_RAW_TRIMMED));
+            // A date of a list is read with its list (date_params()); here only what came for a plain one.
+            $sent[$key] = $list ? '' : trim(optional_param($name . $key, '', PARAM_RAW_TRIMMED));
         }
         // What they wrote, when it came back with an error; else the date kept.
         $have = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) ? ['y' => $m[1], 'm' => $m[2], 'd' => $m[3]] :
@@ -486,13 +488,17 @@ display: grid; }
         $values = implode('', $sent) !== '' ? $sent : $have;
         $parts = [];
         foreach (self::date_order($lang, (string) ($centre->country ?? '')) as $key) {
-            $parts[] = ['key' => $key, 'id' => $id . $key, 'name' => $name . $key,
+            $bracket = strpos($name, '[');
+            $parts[] = ['key' => $key, 'id' => $id . $key,
+                'name' => $bracket === false ? $name . $key : substr($name, 0, $bracket) . $key . substr($name, $bracket),
                 'label' => publiclang::str('pub_date_' . ['d' => 'day', 'm' => 'month', 'y' => 'year'][$key], $lang),
                 'value' => $values[$key], 'size' => $key === 'y' ? 4 : 2];
         }
         // Off here, so the template never takes them from the page around.
         return ['id' => $id, 'first' => $parts[0]['id'], 'parts' => $parts, 'form' => false, 'child' => false,
-            'invalid' => false, 'describedby' => false, 'labelled' => true];
+            'invalid' => false, 'describedby' => false, 'labelled' => true, 'arialabel' => false,
+            // A copy without a name for the scripts that read the whole date (the preview of an act); not sent.
+            'mirror' => false, 'value' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : ''];
     }
 
     /**
@@ -514,6 +520,31 @@ display: grid; }
             return 'invalid';
         }
         return sprintf('%04d-%02d-%02d', (int) $y, (int) $m, (int) $d);
+    }
+
+    /**
+     * The dates of a list of three fields each (date_input() with a name like start[key]), by key.
+     *
+     * @param string $name The name of the list, without brackets.
+     * @return string[] key => YYYY-MM-DD, '' or «invalid», as date_param() says them.
+     */
+    public static function date_params(string $name): array {
+        $d = optional_param_array($name . 'd', [], PARAM_RAW_TRIMMED);
+        $m = optional_param_array($name . 'm', [], PARAM_RAW_TRIMMED);
+        $y = optional_param_array($name . 'y', [], PARAM_RAW_TRIMMED);
+        $out = [];
+        foreach (array_unique(array_merge(array_keys($d), array_keys($m), array_keys($y))) as $key) {
+            [$day, $month, $year] = [trim((string) ($d[$key] ?? '')), trim((string) ($m[$key] ?? '')),
+                trim((string) ($y[$key] ?? ''))];
+            if ($day === '' && $month === '' && $year === '') {
+                $out[$key] = '';
+            } else if (!preg_match('/^\d{1,2}$/', $day) || !preg_match('/^\d{1,2}$/', $month) || !preg_match('/^\d{4}$/', $year)) {
+                $out[$key] = 'invalid';
+            } else {
+                $out[$key] = sprintf('%04d-%02d-%02d', (int) $year, (int) $month, (int) $day);
+            }
+        }
+        return $out;
     }
 
     /**

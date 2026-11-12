@@ -116,7 +116,9 @@ class panel_household {
         $suggestions = attend::suggest($full);
         $composer = self::composer($mode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
             self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
-            'next' => ['value' => '', 'day' => ''], 'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
+            'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
+                'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
+            'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
         $owner = attend::owner($household, (int) $USER->id);
         $open = attend::open_promise((int) $household->id);
         $untold = self::untold($full, $offers);
@@ -973,6 +975,8 @@ class panel_household {
             'asked' => get_string('visit_asked', self::C, (object) ['when' => visits::suits($pending, current_language()),
                 'people' => (int) $pending->people]),
             'date' => date('Y-m-d', time() + DAYSECS),
+            // The day in three fields in the order of the centre.
+            'datedate' => panel::date_input('date', date('Y-m-d', time() + DAYSECS), $centre, 'vd'),
             'place' => $pending->eventid ? format_string((string) $DB->get_field(events::T, 'place', ['id' => $pending->eventid])) :
                 '',
             'people' => (int) $pending->people,

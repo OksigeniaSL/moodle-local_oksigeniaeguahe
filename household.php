@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
@@ -109,7 +110,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
     // After answering: what comes next, promised with its day, and the answer kept as one of always if asked.
     $aftersend = function () use ($household, $body) {
         global $USER;
-        $day = optional_param('nextday', '', PARAM_TEXT);
+        $day = publicpage::date_param('nextday');
         $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
         attend::promise($household, (int) $USER->id, optional_param('next', '', PARAM_TEXT), $when);
         if ($body !== '' && optional_param('savereply', 0, PARAM_BOOL)) {
@@ -269,8 +270,8 @@ if ($action && data_submitted() && confirm_sesskey()) {
             break;
         case 'propose':
             // A visit of its own: the day, the hour and who guides them; the invitation goes by email if they have one.
-            $date = optional_param('date', '', PARAM_TEXT);
-            $time = optional_param('time', '', PARAM_TEXT);
+            $date = publicpage::date_param('date');
+            $time = panel::clock(optional_param('time', '', PARAM_TEXT));
             $start = 0;
             if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $d) && preg_match('/^(\d{1,2}):(\d{2})$/', $time, $t)) {
                 $start = make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], (int) $t[1], (int) $t[2]);

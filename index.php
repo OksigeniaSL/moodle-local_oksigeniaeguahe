@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_inbox;
 use local_oksigeniaeguahe\local\staff;
+use local_oksigeniaeguahe\local\publicpage;
 
 require_login(null, false);
 
@@ -58,7 +59,7 @@ if (!$centre) {
 
 if (optional_param('away', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
     // The relay: until when this person is away, or that they are back.
-    $until = optional_param('until', '', PARAM_TEXT);
+    $until = publicpage::date_param('until');
     $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $until, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
     attend::set_away((int) $centre->id, (int) $USER->id, optional_param('back', 0, PARAM_BOOL) ? 0 : $when);
     redirect(new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]));

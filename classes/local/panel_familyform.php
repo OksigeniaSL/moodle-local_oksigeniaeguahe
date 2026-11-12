@@ -71,7 +71,10 @@ class panel_familyform {
                 'id' => (int) $value("childid{$i}"),
                 'name' => $name,
                 'tag' => $field("childtag{$i}"),
-                'birth' => $field("childbirth{$i}") + ['max' => date('Y-m-d')],
+                'birth' => $field("childbirth{$i}") + ['max' => date('Y-m-d'),
+                    // In three fields in the order of the centre.
+                    'date' => ['invalid' => $field("childbirth{$i}")['error'] !== ''] +
+                        panel::date_input("childbirth{$i}", (string) $value("childbirth{$i}"), $centre)],
                 'offers' => $options($offers, $value("offerid{$i}")),
                 'offername' => "offerid{$i}",
                 'emptybag' => panel::hanging($i, '', '', $centre),

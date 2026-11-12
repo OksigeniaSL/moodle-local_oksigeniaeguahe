@@ -1660,6 +1660,29 @@
         }
     }
 
+    // ---- A date in three fields, in the order of the centre: its copy without a name (data-fecha-espejo) keeps the whole
+    // date for those that read it, as the preview of an act, and tells them it changed.
+    on(doc, 'input', function(e) {
+        if (!e.target.hasAttribute || !e.target.hasAttribute('data-fecha-parte')) {
+            return;
+        }
+        var group = e.target.closest('.fecha-tres');
+        var mirror = group ? one('[data-fecha-espejo]', group) : null;
+        if (!mirror) {
+            return;
+        }
+        var part = function(key) {
+            var input = one('[data-fecha-parte="' + key + '"]', group);
+            return input ? input.value.trim() : '';
+        };
+        var d = part('d');
+        var m = part('m');
+        var y = part('y');
+        mirror.value = /^\d{1,2}$/.test(d) && /^\d{1,2}$/.test(m) && /^\d{4}$/.test(y) ?
+            y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2) : '';
+        mirror.dispatchEvent(new Event('input', {bubbles: true}));
+    });
+
     // ---- Creating or changing an event: the poster beside it is rewritten as it is written; a turn otroTurno without
     // posting; the tira of the day follows the turns.
     var eventForm = one('[data-acto-form]');
@@ -1668,9 +1691,16 @@
         if (avisoCambio) {
             avisoCambio.focus();
         }
+        // An hour as the team writes it, by the clock of the centre: 9, 930, 9:30, 9.30 or 21h.
         var aMinutos = function(v) {
-            var m = /^(\d{1,2}):(\d{2})/.exec(v || '');
-            return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+            var t = (v || '').trim().toLowerCase();
+            var m = /^(\d{1,2})(?:\s*[:.h]\s*(\d{2}))?\s*h?$/.exec(t) || /^(\d{1,2})(\d{2})$/.exec(t);
+            if (!m) {
+                return null;
+            }
+            var h = parseInt(m[1], 10);
+            var min = m[2] ? parseInt(m[2], 10) : 0;
+            return h <= 23 && min <= 59 ? h * 60 + min : null;
         };
         var aHora = function(m) {
             return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2);
@@ -1707,7 +1737,7 @@
             }
             var day = one('.tira-dia', box);
             all('[data-turno-fila]', eventForm).forEach(function(row, i) {
-                var start = aMinutos(one('input[type="time"]', row).value);
+                var start = aMinutos(one('[data-hora]', row).value);
                 var len = parseInt(one('input[name^="slotminutes"]', row).value, 10) || 0;
                 var block = one('[data-tira-turno="' + i + '"]', box);
                 if (!block) {
@@ -1788,7 +1818,7 @@
                 holder.innerHTML = moldeTurno.innerHTML.replace(/__i__/g, n).replace(/__n__/g, n + 1);
                 var row = holder.firstElementChild;
                 list.appendChild(row);
-                one('input[type="time"]', row).focus();
+                one('[data-hora]', row).focus();
                 tira();
             });
         }

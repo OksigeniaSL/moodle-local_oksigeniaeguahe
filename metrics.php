@@ -28,6 +28,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_metrics;
+use local_oksigeniaeguahe\local\publicpage;
 
 require_login(null, false);
 
@@ -58,7 +59,9 @@ if ($action !== '') {
         $campaign = $campaigns[$view['campaign']] ?? $campaigns['live'];
         panel_metrics::save_spend($centre, $campaign, optional_param_array('amount', [], PARAM_RAW_TRIMMED), (int) $USER->id);
     } else if ($action === 'starts') {
-        panel_metrics::save_starts($centre, optional_param_array('start', [], PARAM_RAW_TRIMMED));
+        // Each start in three fields; a day that does not read is left as it was.
+        $starts = publicpage::date_params('start') ?: optional_param_array('start', [], PARAM_RAW_TRIMMED);
+        panel_metrics::save_starts($centre, array_filter($starts, fn($d) => $d !== 'invalid'));
     }
     redirect($url, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }

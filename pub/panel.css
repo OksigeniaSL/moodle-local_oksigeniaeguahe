@@ -960,6 +960,54 @@ main {
     font-size: 1rem;
 }
 
+/* A date in three fields, day, month and year, in the order of the language and country of the centre, and an hour
+   by its clock: a field of type date or time writes them as its browser does (mm/dd/yyyy, AM and PM in an English one).
+   Each field as wide as what it holds. */
+.fecha-tres {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 6px;
+}
+
+.fecha-parte {
+    display: grid;
+    gap: 2px;
+}
+
+.fecha-tres .fecha-nombre,
+.campo .fecha-tres .fecha-nombre {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.fecha-tres input,
+.campo .fecha-tres input,
+.campo input[data-hora],
+input[data-hora] {
+    width: 3.5rem;
+    min-height: 44px;
+    padding: 8px 6px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: var(--radio-campo);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font-size: 1rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.fecha-tres .fecha-y input,
+.campo .fecha-tres .fecha-y input {
+    width: 5rem;
+}
+
+.campo input[data-hora],
+input[data-hora] {
+    width: 6rem;
+}
+
 .campo textarea {
     min-height: 120px;
     resize: vertical;
@@ -11558,4 +11606,385 @@ a.quien-cita:focus-visible {
 .kit-que {
     font-size: 0.9375rem;
     line-height: 1.45;
+}
+
+/* ---------- The offer and its places (#aj-oferta) ----------
+   No row of fields: the school years are leaves of the calendar to touch, with a blank one to start the next by copying
+   this; each stage of the system is a shelf that lights when the centre gives it; each course, a card standing on it,
+   with its knob to turn it on or off, its places with «−» and «+», and those enrolled as a little rail. The rest is on
+   the back of the card. Every gesture is a form of its own. */
+.of-anos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 4px 0 18px;
+}
+
+.of-ano {
+    width: auto;
+    min-width: 96px;
+    min-height: 64px;
+    padding: 6px 12px;
+    color: var(--eg-tinta);
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+    border: 0;
+}
+
+.of-ano b {
+    font-size: 1.125rem;
+}
+
+.of-ano[aria-current="page"] {
+    transform: translateY(-3px);
+    box-shadow: inset 0 0 0 2px var(--eg-acento), 0 12px 20px -12px rgba(58, 42, 30, 0.55);
+}
+
+.of-ano:not([aria-current="page"]):not(.of-ano-nuevo) {
+    opacity: 0.75;
+}
+
+.of-ano-nuevo {
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
+.of-ano-nuevo b {
+    color: var(--eg-acento);
+}
+
+.of-escalera {
+    display: grid;
+    gap: 22px;
+}
+
+/* A shelf: the cards stand on a plank of wood; when the centre gives the stage, a warm light falls on it. */
+.of-etapa {
+    --of-luz: rgba(255, 236, 200, 0.55);
+    display: grid;
+    gap: 12px;
+    padding: 14px 14px 0;
+    border-radius: 14px 14px 4px 4px;
+    background: radial-gradient(ellipse 70% 120% at 50% 0%, var(--of-luz), transparent 70%);
+}
+
+/* At night the light of a shelf is a glow, not a spotlight. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-bs-theme]) .of-etapa {
+        --of-luz: rgba(255, 210, 150, 0.08);
+    }
+}
+
+:root[data-bs-theme="dark"] .of-etapa,
+.piel-cinematico .of-etapa {
+    --of-luz: rgba(255, 210, 150, 0.08);
+}
+
+.of-etapa::after {
+    content: '';
+    height: 12px;
+    margin: 0 -14px;
+    border-radius: 2px;
+    background: linear-gradient(var(--eg-madera-luz), var(--eg-madera) 30%, var(--eg-madera-sombra));
+    box-shadow: 0 6px 10px -6px rgba(0, 0, 0, 0.45);
+}
+
+.of-etapa-no {
+    background: none;
+}
+
+.of-etapa-no::after {
+    opacity: 0.45;
+    filter: grayscale(0.6);
+}
+
+.of-etapa-cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+}
+
+.of-etapa-cabeza h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.of-edades,
+.of-resumen {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 400;
+}
+
+.of-etapa-no h3 {
+    color: var(--eg-tinta-2);
+}
+
+/* The switch of a shelf: its lamp, lit or out, with what it says. */
+.of-interruptor {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    margin-inline-start: auto;
+    padding: 4px 14px 4px 6px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 20px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.of-lampara {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+}
+
+.of-interruptor[aria-pressed="true"] .of-lampara {
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 12px 2px rgba(241, 184, 74, 0.55);
+}
+
+.of-balda {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    align-items: end;
+}
+
+/* A course: a card of paper standing on the shelf. */
+.of-curso {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding: 12px 12px 10px;
+    border-radius: 12px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
+}
+
+.of-cara {
+    display: grid;
+    gap: 8px;
+}
+
+.of-nombre {
+    padding-inline-end: 30px;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+/* The knob of a card: wood when the course is given, hollow when it is not. */
+.of-pomo {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 10px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+    cursor: pointer;
+}
+
+.of-pomo[aria-pressed="true"] {
+    background: radial-gradient(circle at 38% 32%, var(--eg-madera-luz), var(--eg-madera) 55%, var(--eg-madera-sombra));
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.of-plazas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.of-paso {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.of-paso:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.of-cuantas {
+    flex: 1;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.of-cuantas b {
+    display: block;
+    color: var(--eg-tinta);
+    font-size: 1.375rem;
+    line-height: 1.1;
+}
+
+/* Those enrolled, as the rail of the course: a peg per place, those taken with something hanging. */
+.of-riel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.of-riel i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 1px var(--eg-borde);
+}
+
+.of-riel i.ya {
+    background: var(--eg-acento);
+    box-shadow: none;
+}
+
+.of-riel-mucho i {
+    width: 5px;
+    height: 5px;
+    gap: 2px;
+}
+
+.of-matric {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.of-curso-apagado {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+}
+
+.of-curso-apagado .of-cara > :not(.of-pomo):not(.of-nombre) {
+    opacity: 0.45;
+}
+
+.of-curso-apagado .of-nombre {
+    color: var(--eg-tinta-2);
+}
+
+/* The back of the card: what it has now in one line, and «Change» to open it. */
+.of-mas summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px 8px;
+    min-height: 32px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.of-mas summary::-webkit-details-marker {
+    display: none;
+}
+
+.of-cambiar {
+    color: var(--eg-acento);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.of-dorso {
+    display: grid;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+.of-dorso .campo input,
+.of-dorso .campo select {
+    width: 100%;
+}
+
+.of-curso-nuevo {
+    align-self: stretch;
+    background: transparent;
+    box-shadow: none;
+    border: 1.5px dashed var(--eg-borde);
+}
+
+.of-curso-nuevo summary {
+    justify-content: center;
+    min-height: 120px;
+    align-items: center;
+    border-top: 0;
+    padding-top: 0;
+    color: var(--eg-acento);
+    font-size: 1rem;
+}
+
+.of-curso-nuevo .of-mas[open] summary {
+    min-height: 32px;
+    justify-content: flex-start;
+}
+
+.of-igualar {
+    justify-self: start;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--eg-acento);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.of-otros {
+    background: none;
+}
+
+@media (max-width: 560px) {
+    .of-balda {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .of-etapa {
+        padding: 12px 10px 0;
+    }
+
+    .of-etapa::after {
+        margin: 0 -10px;
+    }
+
+    .of-interruptor {
+        margin-inline-start: 0;
+    }
 }
