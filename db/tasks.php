@@ -88,4 +88,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => '\\local_oksigeniaeguahe\\task\\read_messages',
+        'blocking' => 0,
+        'minute' => '*/10',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];

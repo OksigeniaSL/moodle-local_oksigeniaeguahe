@@ -41,7 +41,7 @@
         "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
             "stages": [{"name": "Todas las etapas", "key": "", "url": "#", "current": true}]},
         "hasrows": true,
-        "firstday": false, "siblingsdue": false, "startingdue": false, "birthdaysdue": false, "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
+        "firstday": false, "topics": {"list": [{"theme": "El comedor", "texts": "3 mensajes"}], "url": "/local/oksigeniaeguahe/report.php?c=1"}, "siblingsdue": false, "startingdue": false, "birthdaysdue": false, "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
             "rows": [{"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
                 "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
                 "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}],
@@ -172,6 +172,13 @@
                     <p>{{^on}}<a class="enlace" href="{{url}}">{{#str}}panel_story_inbox_see, local_oksigeniaeguahe{{/str}}</a>{{/on}}{{#on}}<a class="enlace" href="{{allurl}}">{{#str}}panel_siblings_all, local_oksigeniaeguahe{{/str}}</a>{{/on}}</p>
                 </section>
                 {{/birthdaysdue}}
+                {{#topics}}
+                <section class="bloque bloque-preguntan">
+                    <h3>{{#str}}panel_topics, local_oksigeniaeguahe{{/str}}</h3>
+                    <ul class="preguntan">{{#list}}<li><b>{{theme}}</b> <span class="secundario">{{texts}}</span></li>{{/list}}</ul>
+                    <p><a class="enlace" href="{{url}}">{{#str}}panel_topics_report, local_oksigeniaeguahe{{/str}}</a></p>
+                </section>
+                {{/topics}}
                 {{#firstday}}
                 <section class="bloque bloque-primer-dia">
                     <h3>{{#str}}panel_firstday, local_oksigeniaeguahe{{/str}}</h3>

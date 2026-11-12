@@ -1020,5 +1020,24 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026114700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026115000) {
+        // The AI of the team: a summary of each family, and what each message of a family asks, in a line.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('aisummary', XMLDB_TYPE_TEXT, null, null, null, null, null, 'familylink');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('aisummarytime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'aisummary');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_contact');
+        $field = new xmldb_field('asks', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'userid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026115000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

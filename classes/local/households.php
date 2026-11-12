@@ -781,7 +781,7 @@ class households {
             "householdid $in",
             $params,
             'timecreated DESC, id DESC',
-            'id, householdid, direction, channel, body, entryid, detail, userid, timecreated'
+            'id, householdid, direction, channel, body, entryid, detail, userid, timecreated, asks'
         );
         foreach ($contacts as $contact) {
             $row = $out[$contact->householdid];

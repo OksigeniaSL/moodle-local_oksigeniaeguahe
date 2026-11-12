@@ -177,6 +177,8 @@ class panel_inbox {
             'hasplaces' => (bool) $places['list'],
             'path' => self::path($centreid),
             'firstday' => panel_start::link($centreid),
+            // What the families ask most, from the themes the AI of the centre read in last week's report.
+            'topics' => self::topics($centre),
             'siblingsdue' => $due ? ['text' => get_string(
                 count($due) === 1 ? 'panel_siblings_due_one' : 'panel_siblings_due',
                 $c,
@@ -401,6 +403,30 @@ class panel_inbox {
     }
 
     /**
+     * What the families ask most, from the themes the AI of the centre read in the report of last week: three at most,
+     * with how many messages said each; false without the AI or without themes.
+     *
+     * @param \stdClass $centre
+     * @return array|false list (theme, texts), url, when.
+     */
+    protected static function topics(\stdClass $centre) {
+        if (!ai::ready($centre)) {
+            return false;
+        }
+        $week = reports::latest((int) $centre->id, 'hot');
+        $themes = $week && is_array($week->ai) ? array_slice($week->ai['themes'] ?? [], 0, 3) : [];
+        if (!$themes) {
+            return false;
+        }
+        return ['list' => array_map(fn($t) => ['theme' => (string) $t['theme'], 'texts' => get_string(
+            (int) $t['texts'] === 1 ? 'panel_topics_one' : 'panel_topics_many',
+            self::C,
+            (int) $t['texts']
+        )], $themes),
+            'url' => (new \moodle_url('/local/oksigeniaeguahe/report.php', ['c' => $centre->id, 'id' => $week->id]))->out(false)];
+    }
+
+    /**
      * The rows of the inbox: the hour, the adults, the children with their course and stage, how and when they wrote,
      * and what is filtered by.
      *
@@ -459,6 +485,8 @@ class panel_inbox {
                 'adults' => panel::adults_line($household->adults),
                 'children' => $children,
                 'via' => $via,
+                // What their last message asks, in a line, when the AI of the centre read it (household_ai).
+                'asks' => $waiting && $info['said'] ? trim((string) ($info['said']->asks ?? '')) : '',
                 'viaicon' => panel::channel_icon($channel),
                 'owner' => self::owner_face($household, $userid),
                 'typing' => attend::typing((int) $household->id, $userid),

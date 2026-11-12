@@ -52,6 +52,8 @@
         "historyold": [{"family": true, "team": false, "system": false, "who": "La familia", "how": "llegó por la web", "when": "el jueves", "body": "«¿Tienen comedor?»"}],
         "history": [{"family": true, "team": false, "system": false, "who": "Daniel Ortega", "how": "escribió por WhatsApp", "when": "el viernes", "body": "«Mejor por la tarde.»"}],
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
+        "ai": {"summary": "Leo, de 3 años, para Infantil 3 años 2027-28. Vinieron a la jornada y preguntan por el comedor.",
+            "when": "hace 2 días", "name": "Claude"},
         "composer": {"button": "Mandarlo por WhatsApp", "notes": [], "greeting": "Hola, Marta y Daniel: ",
             "draft": {"who": "Lucía", "when": "hoy a las 10:31", "text": "Hola, Marta y Daniel: sí, hay comedor."},
             "hassuggestions": true, "suggestions": [{"id": "s1", "title": "Comedor en Infantil", "uses": "14 veces", "text": "Hola, Marta y Daniel: sí."}],
@@ -269,6 +271,7 @@
                         {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
                     </div>
                     {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
+                    {{#ai}}{{#summary}}<p class="ia-resumen"><span class="secundario">{{#str}}panel_ai_summary, local_oksigeniaeguahe, {{when}}{{/str}}</span> {{summary}}</p>{{/summary}}{{/ai}}
                     <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         {{#composer}}
@@ -291,6 +294,7 @@
                         </div>
                         {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
                         <div class="campo"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label><textarea id="borrador" name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
+                        {{#ai}}<button class="boton terciario pequeno ia-borrador" type="submit" name="ia" value="1">{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}</button>{{/ai}}
                                 <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
                         {{#next}}
                         <div class="campo siguiente">

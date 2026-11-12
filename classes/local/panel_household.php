@@ -153,6 +153,11 @@ class panel_household {
             'waiting' => $household->waitingsince > 0,
             'me' => panel::person($USER),
             'composer' => $composer,
+            // The AI of the team (household_ai): a draft to read and change, and where the family is in two sentences of
+            // facts; only when the centre has it on.
+            'ai' => ai::ready($centre) ? ['summary' => trim((string) ($household->aisummary ?? '')),
+                'when' => (int) ($household->aisummarytime ?? 0) ? panel::when_words((int) $household->aisummarytime, time()) : '',
+                'name' => ai::name($centre)] : false,
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
             'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
             'family' => self::family($household, $full, $canact),

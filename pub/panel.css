@@ -12790,3 +12790,33 @@ details.aj-plegado > summary h2::after {
     max-width: 100%;
     text-align: start;
 }
+
+/* The AI of the team (household_ai), for now in the plain style of the house until Jujol gives it its own: the line of
+   what a family asks in the inbox, the summary of a family in its file, and what families ask most. */
+.pide {
+    display: block;
+    margin-top: 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.ia-resumen {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    border-inline-start: 3px solid var(--eg-acento);
+    border-radius: var(--radio-campo);
+    background: var(--eg-hundido);
+}
+
+.ia-borrador {
+    margin-top: 8px;
+}
+
+.preguntan {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}

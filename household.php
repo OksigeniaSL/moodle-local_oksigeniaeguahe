@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\attend;
+use local_oksigeniaeguahe\local\household_ai;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
@@ -92,6 +93,21 @@ if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
     // The proposal of a brother or sister, without the script: the message comes written in the answer.
     $proposal = panel_household::sibling_proposal($household, households::full($household), $centre, time());
     $prefill = $proposal ? $proposal['text'] : '';
+}
+if (optional_param('ia', 0, PARAM_BOOL) && $canact && data_submitted() && confirm_sesskey()) {
+    // A draft of the AI of the centre, to read and change before sending: nothing is sent, and what the person had begun
+    // to write is kept or finished.
+    $started = trim(optional_param('body', '', PARAM_TEXT));
+    $greeting = panel_household::greeting(households::full($household));
+    $started = $started === trim($greeting) ? '' : $started;
+    $draft = household_ai::draft($household, $centre, (int) $USER->id, $started, time());
+    if ($draft && $draft['draft'] !== '') {
+        $prefill = rtrim($greeting) . ($greeting !== '' ? "\n\n" : '') . $draft['draft'];
+    } else {
+        $prefill = $started;
+        \core\notification::warning(get_string('panel_ai_draft_failed', $c));
+    }
+    $action = '';
 }
 if ($action && data_submitted() && confirm_sesskey()) {
     $body = trim(optional_param('body', '', PARAM_TEXT));

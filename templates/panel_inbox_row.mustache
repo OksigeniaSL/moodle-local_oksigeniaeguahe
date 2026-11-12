@@ -28,6 +28,7 @@
     {"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
         "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
         "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}], "via": "Por WhatsApp, el viernes a las 9:02",
+        "asks": "Pregunta por el comedor de Infantil",
         "viaicon": "", "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
         "typing": null, "visit": null, "courses": "i3", "stages": "inquiry", "search": "marta leo",
         "promise": {"text": "Lo prometido: llamarles, para el lunes; hoy es miércoles.", "action": "#", "sesskey": "abc", "id": "1",
@@ -38,6 +39,7 @@
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}</a>
         <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
         <span class="meta">{{{viaicon}}}<span>{{via}}</span></span>
+        {{#asks}}<span class="pide">{{asks}}</span>{{/asks}}
         {{#visit}}<span class="visita-hoy">{{text}}</span>{{/visit}}
         {{#typing}}<span class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/typing}}
     </div>
