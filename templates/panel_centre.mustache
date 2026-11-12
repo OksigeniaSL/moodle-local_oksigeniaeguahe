@@ -54,7 +54,7 @@
         "i": {"check": "", "subir": "", "info": "", "mas1": "", "enviado": "", "reloj": "", "whatsapp": "", "correo": "",
             "telefono": "", "plano": "", "globo": "", "persona": "", "cerrar": ""},
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
-        "action": "#", "sesskey": "abc",
+        "action": "/local/oksigeniaeguahe/centre.php?id=1", "sesskey": "abc",
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
@@ -250,7 +250,7 @@
 
             {{! ===== How families see it: the band and the wall are the editor ===== }}
             <details class="apartado aj-plegado" id="aj-aspecto">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-aspecto-t">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-aspecto-t">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura"><span class="aj-banda-mini" style="{{lightvars}}">{{#logo}}<img src="{{logo}}" alt="" width="22" height="22">{{/logo}}<span>{{name}}</span></span></span></summary>
                 <div class="aj-cuerpo">
                     <div class="muestra-color">
@@ -301,7 +301,7 @@
 
             {{! ===== Address and contact: a visiting card ===== }}
             <details class="apartado aj-plegado" id="aj-contacto">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-contacto-t">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-contacto-t">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#address}}<span>{{address}}</span>{{/address}}{{#phone}}<span dir="ltr">{{phone}}</span>{{/phone}}{{#email}}<span dir="ltr">{{email}}</span>{{/email}}<span>{{replyread}}</span></span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-visita">
@@ -326,7 +326,7 @@
 
             {{! ===== The country, the language and the system: four plates ===== }}
             <details class="apartado aj-plegado" id="aj-pais">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-pais-t">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-pais-t">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#lang}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/lang}}{{#countries}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/countries}}{{#currencies}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/currencies}}{{#systems}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/systems}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-placas">
@@ -341,7 +341,7 @@
 
             {{! ===== After enrolling: who carries them, the first day, the name in a sentence, the siblings ===== }}
             <details class="apartado aj-plegado" id="aj-despues">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#handover}}{{#selected}}<span>{{#value}}{{name}}{{/value}}{{^value}}{{#handoverplace}}{{handoverplace}}{{/handoverplace}}{{^handoverplace}}{{name}}{{/handoverplace}}{{/value}}</span>{{/selected}}{{/handover}}{{#firstdayleaf}}<span>{{#str}}panel_read_firstday, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/firstdayleaf}}{{#siblingages}}{{#selected}}{{#value}}<span>{{#str}}panel_read_siblings, local_oksigeniaeguahe, {{value}}{{/str}}</span>{{/value}}{{/selected}}{{/siblingages}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-elige-fila aj-elige-caras">
@@ -364,7 +364,7 @@
                     <div class="aj-dos">
                         <div class="aj-primer con-ayuda">
                             <span class="hoja-cal aj-primer-hoja{{^firstdayleaf}} aj-primer-sin{{/firstdayleaf}}" aria-hidden="true">{{#firstdayleaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/firstdayleaf}}{{^firstdayleaf}}<b>?</b>{{/firstdayleaf}}</span>
-                            <span class="aj-primer-texto"><label id="c-primer-l" for="{{firstdaydate.first}}">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label>{{#firstdaydate}}{{> local_oksigeniaeguahe/public_date }}{{/firstdaydate}}</span>
+                            <div class="aj-primer-texto"><label id="c-primer-l" for="{{firstdaydate.first}}">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label>{{#firstdaydate}}{{> local_oksigeniaeguahe/public_date }}{{/firstdaydate}}</div>
                             <span class="ayuda" id="c-primer-a">{{#str}}panel_firstday_help, local_oksigeniaeguahe{{/str}}</span>
                         </div>
                         <div class="aj-frase aj-hoy con-ayuda">
@@ -388,7 +388,7 @@
 
             {{! ===== The data of the families: the sheet they read, with its blanks ===== }}
             <details class="apartado aj-plegado" id="aj-datos">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#controller}}<span>{{controller}}</span>{{/controller}}{{^controller}}<span>{{#str}}panel_read_nocontroller, local_oksigeniaeguahe{{/str}}</span>{{/controller}}{{#retentions}}{{#selected}}<span>{{#str}}panel_read_retention, local_oksigeniaeguahe, {{name}}{{/str}}</span>{{/selected}}{{/retentions}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-hoja">
@@ -408,7 +408,7 @@
 
             {{! ===== The area and the networks: a list on lined paper ===== }}
             <details class="apartado aj-plegado" id="aj-zona">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura aj-lectura-lista">{{#areaplaces}}<span class="aj-sitio">{{.}}</span>{{/areaplaces}}{{^areaplaces}}<span>{{#str}}panel_read_noplaces, local_oksigeniaeguahe{{/str}}</span>{{/areaplaces}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-frase con-ayuda">
@@ -420,7 +420,7 @@
                 </div>
             </details>
             <details class="apartado aj-plegado" id="aj-redes">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura aj-lectura-lista">{{#networklist}}<span class="aj-sitio">{{.}}</span>{{/networklist}}{{^networklist}}<span>{{#str}}panel_read_nonetworks, local_oksigeniaeguahe{{/str}}</span>{{/networklist}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-frase con-ayuda">
@@ -434,7 +434,7 @@
 
             {{! ===== The skin of the panel: each one its picture, touched to choose it ===== }}
             <details class="apartado aj-plegado" id="aj-panel">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-panel-t">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-panel-t">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#skins}}{{#checked}}<span>{{name}}</span>{{/checked}}{{/skins}}</span></summary>
                 <div class="aj-cuerpo">
                     <p class="linea-dato">{{skinproposal}}</p>
@@ -454,7 +454,7 @@
 
             {{! ===== What families share ===== }}
             <details class="apartado aj-plegado" id="aj-compartir">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-compartir-t">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-compartir-t">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#share}}{{#on}}<span>{{#str}}panel_read_share_on, local_oksigeniaeguahe{{/str}}</span>{{#hasforms}}{{#forms}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/forms}}{{/hasforms}}{{/on}}{{^on}}<span>{{#str}}panel_read_share_off, local_oksigeniaeguahe{{/str}}</span>{{/on}}{{/share}}</span></summary>
                 <div class="aj-cuerpo">
                     {{#share}}
@@ -476,7 +476,7 @@
 
             {{! ===== The AI ===== }}
             <details class="apartado aj-plegado" id="aj-ia">
-                <summary><span class="aj-plegado-cabeza"><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                <summary><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
                     <span class="aj-lectura">{{#ai}}{{#on}}<span>{{#str}}panel_read_on, local_oksigeniaeguahe{{/str}}</span>{{#several}}{{#providers}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/providers}}{{/several}}{{/on}}{{^on}}<span>{{#str}}panel_read_off, local_oksigeniaeguahe{{/str}}</span>{{/on}}{{/ai}}</span></summary>
                 <div class="aj-cuerpo">
                     {{#ai}}

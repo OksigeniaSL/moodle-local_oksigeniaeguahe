@@ -3886,6 +3886,11 @@ input:focus-visible + .ficha-canal {
     gap: 14px 18px;
 }
 
+/* A day with its hours (or several days) side by side, also on a phone: a leaf and its plates are narrow. */
+.rejilla-3:has(> .campo > .fecha-tres) {
+    grid-template-columns: repeat(auto-fill, minmax(104px, max-content));
+}
+
 fieldset.apartado {
     margin: 0;
     min-width: 0;
@@ -11577,7 +11582,7 @@ a.quien-cita:focus-visible {
 
 .of-balda {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 12px;
     margin: 0;
     padding: 0;
@@ -12023,10 +12028,28 @@ select.aj-hueco {
 
 details.aj-plegado > summary {
     display: grid;
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 12px;
     min-width: 0;
     cursor: pointer;
     list-style: none;
+}
+
+/* The title, its «Change» or «Close» beside it, and what it holds below: a summary holds a heading, a span does not. */
+details.aj-plegado > summary > h2 {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+details.aj-plegado > summary > .aj-cambiar,
+details.aj-plegado > summary > .aj-cerrar {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+details.aj-plegado > summary > .aj-lectura {
+    grid-column: 1 / -1;
 }
 
 /* «Change» and «Close» say it in words: no arrow of the folded sections here. */
