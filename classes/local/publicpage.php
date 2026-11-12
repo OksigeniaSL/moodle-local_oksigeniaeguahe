@@ -487,12 +487,16 @@ display: grid; }
             ['d' => '', 'm' => '', 'y' => ''];
         $values = implode('', $sent) !== '' ? $sent : $have;
         $parts = [];
+        $months = self::month_names($lang, (string) ($centre->country ?? ''));
         foreach (self::date_order($lang, (string) ($centre->country ?? '')) as $key) {
             $bracket = strpos($name, '[');
             $parts[] = ['key' => $key, 'id' => $id . $key,
                 'name' => $bracket === false ? $name . $key : substr($name, 0, $bracket) . $key . substr($name, $bracket),
                 'label' => publiclang::str('pub_date_' . ['d' => 'day', 'm' => 'month', 'y' => 'year'][$key], $lang),
-                'value' => $values[$key], 'size' => $key === 'y' ? 4 : 2];
+                'value' => $values[$key], 'size' => $key === 'y' ? 4 : 2,
+                // The month by its short name in the language, when the international data has them (Jujol); a number else.
+                'months' => $key === 'm' && $months ? ['list' => array_map(fn($n) => ['value' => $n, 'name' => $months[$n],
+                    'selected' => (int) $values['m'] === $n], array_keys($months))] : false];
         }
         // Off here, so the template never takes them from the page around.
         return ['id' => $id, 'first' => $parts[0]['id'], 'parts' => $parts, 'form' => false, 'child' => false,
@@ -520,6 +524,34 @@ display: grid; }
             return 'invalid';
         }
         return sprintf('%04d-%02d-%02d', (int) $y, (int) $m, (int) $d);
+    }
+
+    /**
+     * The short names of the months in a language and country (ICU, «ene», «feb», «sept»), by number; none without ICU.
+     *
+     * @param string $lang
+     * @param string $country
+     * @return string[] 1..12 => name.
+     */
+    public static function month_names(string $lang, string $country): array {
+        if (!class_exists('\IntlDateFormatter')) {
+            return [];
+        }
+        $parts = explode('_', $lang);
+        $locale = rtrim($parts[0] . '_' . strtoupper($parts[1] ?? $country), '_');
+        $format = \IntlDateFormatter::create(
+            $locale,
+            \IntlDateFormatter::NONE,
+            \IntlDateFormatter::NONE,
+            'UTC',
+            \IntlDateFormatter::GREGORIAN,
+            'LLL'
+        );
+        $out = [];
+        for ($n = 1; $n <= 12; $n++) {
+            $out[$n] = rtrim((string) $format->format(gmmktime(12, 0, 0, $n, 15, 2027)), '.');
+        }
+        return $out;
     }
 
     /**

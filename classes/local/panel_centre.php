@@ -110,6 +110,11 @@ class panel_centre {
             'arrive' => (string) ($centre->arrive ?? ''),
             'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
                 'panel_replydays_n', self::C, $d), 'selected' => $d === (int) ($centre->replydays ?? 2)], self::REPLYDAYS),
+            'replyread' => get_string('panel_read_replies', self::C, \core_text::strtolower(get_string(
+                (int) ($centre->replydays ?? 2) === 1 ? 'panel_replydays_one' : 'panel_replydays_n',
+                self::C,
+                (int) ($centre->replydays ?? 2)
+            ))),
             'hastales' => (bool) $libraries,
             'libraries' => array_merge([['value' => '', 'name' => get_string('panel_tales_none', self::C),
                 'selected' => trim((string) ($centre->library ?? '')) === '']], array_map(fn($l) => ['value' => $l['slug'],
@@ -139,8 +144,15 @@ class panel_centre {
             'rights' => (string) $centre->rightscontact,
             'dpo' => (string) $centre->dpocontact,
             'retention' => (int) $centre->retention,
+            // How long the data of families is kept, as chips: six months, a year, two, three or five years, and the one
+            // it has if it is another.
+            'retentions' => self::retentions((int) $centre->retention),
             'municipalities' => (string) $centre->municipalities,
             'networks' => implode("\n", centres::networks($centre)),
+            // What the folded cards say in a line: the places of its area and its networks, as little plates.
+            'areaplaces' => array_values(centres::municipalities($centre)),
+            'networklist' => array_values(centres::networks($centre)),
+            'firstdayleaf' => !empty($centre->firstday) ? panel::leaf((int) $centre->firstday) : false,
             // The offer of one school year as the shelves of its stages, each course a card (Jujol).
             'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
@@ -253,7 +265,7 @@ class panel_centre {
      * @return array
      */
     protected static function hosts(\stdClass $centre): array {
-        global $DB;
+        global $DB, $USER;
         $rows = $DB->get_records(
             centres::MEMBERS,
             ['centreid' => $centre->id],
@@ -269,7 +281,9 @@ class panel_centre {
             }
             $photo = centres::host_photo((int) $member->id);
             $person = panel::person($user);
-            $out[] = ['id' => (int) $member->id, 'name' => $person['name'], 'first' => $person['first'],
+            // The person in Moodle, to take them out of the team from their own card; never oneself.
+            $out[] = ['id' => (int) $member->id, 'userid' => (int) $user->id, 'me' => (int) $user->id === (int) $USER->id,
+                'name' => $person['name'], 'first' => $person['first'],
                 'picture' => $photo ? $photo->out(false) : $person['picture'], 'initials' => $person['initials'],
                 'role' => (string) $member->rolename, 'shown' => !empty($member->public), 'phrase' => (string) $member->says,
                 'sortorder' => (int) $member->sortorder];
@@ -377,7 +391,6 @@ class panel_centre {
         $own = centres::offers($centreid);
         $view = trim(optional_param('offerview', '', PARAM_TEXT));
         $view = $view !== '' ? $view : self::next_year();
-        self::$back = ['params' => ['year' => $view], 'anchor' => 'aj-oferta', 'quiet' => false];
         $gesture = fn(string $anchor) => self::$back = ['params' => ['year' => $view], 'anchor' => $anchor, 'quiet' => true];
         // The back of each card: its name, who carries it, the story and who receives in it; a new one, in the year seen.
         $ids = optional_param_array('offerid', [], PARAM_INT);
@@ -476,6 +489,24 @@ class panel_centre {
             }
             self::$back = ['params' => ['year' => $to], 'anchor' => 'aj-oferta', 'quiet' => true];
         }
+    }
+
+    /**
+     * How long the data of families is kept, as chips: six months, a year, two, three and five years, and the one the
+     * centre has if it is another.
+     *
+     * @param int $current Months.
+     * @return array[] value, name, selected.
+     */
+    protected static function retentions(int $current): array {
+        $months = [6, 12, 24, 36, 60];
+        if ($current > 0 && !in_array($current, $months, true)) {
+            $months[] = $current;
+            sort($months);
+        }
+        return array_map(fn($m) => ['value' => $m, 'selected' => $m === $current, 'name' => $m === 12 ?
+            get_string('panel_retention_year', self::C) : ($m % 12 === 0 ? get_string('panel_retention_years', self::C, $m / 12) :
+            get_string('panel_retention_months', self::C, $m))], $months);
     }
 
     /**
@@ -661,6 +692,11 @@ class panel_centre {
             'firstday' => self::date(publicpage::date_param('firstday')),
             'namephrase' => optional_param('namephrase', '', PARAM_TEXT),
         ];
+        // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
+        if ($data->email !== '' && !validate_email($data->email)) {
+            $problems[] = get_string('panel_email_kept', $c, s($data->email));
+            $data->email = (string) $centre->email;
+        }
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);
         }

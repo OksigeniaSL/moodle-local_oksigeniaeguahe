@@ -17,7 +17,8 @@
 {{!
     @template local_oksigeniaeguahe/panel_offer_card
 
-    One course of the offer, a card standing on the shelf of its stage (panel_centre, #aj-oferta). No row of fields:
+    One course of the offer, a card standing on the shelf of its stage (panel_centre, #aj-oferta, which holds it in its
+    <li class="of-curso" id="of-c-{id}">, so the card stands alone as valid HTML). No row of fields:
     gestures. Its knob turns it on or off; its places are a number with «−» and «+»; how many are enrolled hang from it
     as a little rail. The rest (its name, who carries it, the story and who receives in it) is on the back of the card,
     opened by touching «Change», and saved from there. Every gesture is a form of its own, so it works without JavaScript;
@@ -30,7 +31,6 @@
      "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}],
      "teachers": [{"value": 0, "name": "Su tutora o tutor", "selected": true}]}
 }}
-<li class="of-curso{{^active}} of-curso-apagado{{/active}}{{#new}} of-curso-nuevo{{/new}}" id="of-c-{{id}}">
     {{^new}}
     <div class="of-cara">
         <button class="of-pomo" type="submit" name="offertoggle" value="{{id}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}"><span class="oculto">{{#str}}offer_active, local_oksigeniaeguahe{{/str}}: {{name}}</span></button>
@@ -58,4 +58,3 @@
             <button class="boton principal" type="submit" name="offersave" value="{{i}}">{{#new}}{{#str}}panel_offer_add, local_oksigeniaeguahe{{/str}}{{/new}}{{^new}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}{{/new}}</button>
         </div>
     </details>
-</li>

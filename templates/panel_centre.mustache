@@ -17,34 +17,61 @@
 {{!
     @template local_oksigeniaeguahe/panel_centre
 
-    The settings of a centre (centre.php), in one form with an index at the side: how families see it (name, logo and
-    colour, with the band, the label and the wall rewritten in light and dark as the colour changes, and a sentence
-    that says what the server did so that everything reads), how to get there and the welcome; who receives the
-    families, with their faces and their sentence; Telegram and WhatsApp in three choices said in words; the data of
-    the families; the area; the offer with its places on the rail; the team; the skin of this panel, each with its
-    picture in light and dark, and the one its offer suggests by age; and the AI of the centre, when it comes.
+    The settings of a centre (centre.php), without the look of a form: every setting is a gesture of the world of Eguahe.
 
-    New in this round (the whole template; it replaces centre_form in the panel). The colour of the preview comes from
-    publicpage::centre_vars(), for light (lightvars) and dark (darkvars).
+    Two stretches. «Every day»: the offer (shelves and cards, panel_offer_card), the people (cards that hang from the
+    rail when the families see them, with their face, their sentence and the rest on the back) and Telegram and
+    WhatsApp (three choices, and what goes by itself to the channel as stops on a line of time). «Set once»: folded
+    cards, each with what it has now in one line (built here from the context) and «Change» to open it: how families
+    see the centre (the band and the wall in light and dark, the name written on the band itself), the address and
+    contact, the country and the system, after enrolling, the data of the families, the area, the networks, the skin
+    of the panel, what families share and the AI.
+
+    Saving. The page is one form and every button sends all of it, so panel_centre::save() saves everything posted as
+    before; there is no common «Save» at the foot. A switch, a chip or a choice carries what it has now as a hidden field
+    and, after it, a button with the same name and the value it changes to: PHP keeps the last one, so one touch saves
+    it. Text is saved with the «Save» of its card (name guardar, the only one that says «Changes saved»), or with any
+    other gesture. Each button comes back to its part (formaction with #aj-key; the redirect keeps that anchor). With JavaScript, a photo, a logo or a choice in a select saves itself (data-envio-solo).
+    The form has novalidate: the server keeps the name when it comes empty, and says so when an address is not one.
+
+    Context variables required for this template:
+    * i - icons; head - panel_head; action - the address of the form (with ?year= when another school year is shown)
+    * sesskey, name, colour, lightvars, darkvars, colourguard, logo, logoplate, initial, hanging - how families see it
+    * lang, countries, currencies, systems - options (value, name, selected)
+    * address, phone, email, welcome, arrive, replydays (options), replyread (panel_read_replies), hastales, libraries
+    * hosts - everyone of the team: id (member), userid, me, name, first, picture, initials, role, shown, phrase
+    * hasmessaging, messaging (value, name, help, checked), channel (as panel_kit)
+    * handover (options), handoverplace, handoverhow, siblingages (options), invitegone
+    * firstday (Y-m-d), firstdaydate (public_date), firstdayleaf (weekday, day, month) or false, namephrase,
+      namephraseexample
+    * controller, rights, dpo, retentions (options: value, name, selected)
+    * municipalities, areaplaces (names), networks, networklist (names)
+    * oferta - the offer (see panel_offer_card), or false without a school system
+    * skins, skinproposal, ai, share
 
     Example context (json):
     {
-        "i": {"check": "", "subir": "", "info": "", "mas1": "", "enviado": "", "reloj": "", "whatsapp": ""},
+        "i": {"check": "", "subir": "", "info": "", "mas1": "", "enviado": "", "reloj": "", "whatsapp": "", "correo": "",
+            "telefono": "", "plano": "", "globo": "", "persona": "", "cerrar": ""},
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
-        "action": "#", "sesskey": "abc", "index": [{"key": "aspecto", "name": "Cómo lo ven las familias"}],
+        "action": "#", "sesskey": "abc",
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
-        "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "", "phone": "", "email": "",
-        "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
-        "hosts": [{"id": 1, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
-        "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": false}],
+        "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "",
+        "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
+        "replyread": "Contestamos en 2 días laborables",
+        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
+            "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
+        "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "members": ", con 120 personas",
             "marandu": "", "hascoming": true,
             "moments": [{"value": "announce", "name": "Anunciarlo", "help": "En cuanto se abre la inscripción.", "checked": true}],
             "coming": [{"act": "Jornada de puertas abiertas", "moment": "El último aviso", "when": "jueves, 19 de noviembre de 2026, 08:00",
                 "review": true, "url": "#"}]},
-        "controller": "", "rights": "", "dpo": "", "retention": 24, "municipalities": "", "networks": "Instagram",
+        "controller": "", "rights": "", "dpo": "", "retentions": [{"value": 24, "name": "2 años", "selected": true}],
+        "municipalities": "", "areaplaces": [], "networks": "Instagram", "networklist": ["Instagram"],
         "oferta": {"year": "2027-28", "years": [{"name": "2027-28", "url": "#", "current": true, "courses": "2 cursos"}],
             "copy": {"to": "2028-29", "label": "Empezar"}, "others": [],
             "newcard": {"i": 1, "id": 0, "name": "", "new": true, "active": true},
@@ -56,145 +83,51 @@
                 "teachers": [{"value": "maestra", "name": "«Tu maestra»", "selected": true}]}]}]},
         "offers": [{"i": 0, "id": 3, "name": "Infantil 3 años", "year": "2027-28", "places": 25, "active": true, "empty": false, "rail": "",
             "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}]}],
-        "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "", "siblingages": [{"value": 0, "name": "No", "selected": true}], "invitegone": false,
+        "handover": [{"value": 0, "name": "Nadie en concreto: un sitio", "selected": true}], "handoverplace": "", "handoverhow": "",
+        "siblingages": [{"value": 0, "name": "No", "selected": true}], "invitegone": false,
         "firstday": "2027-09-08", "firstdaydate": {"id": "c-primer", "first": "c-primerd", "form": false, "child": false,
             "invalid": false, "labelled": true, "arialabel": false, "describedby": "c-primer-a", "mirror": false,
             "value": "2027-09-08", "parts": [{"key": "d", "id": "c-primerd", "name": "firstdayd", "label": "Día", "value": "8",
-            "size": 2}]},
-        "namephrase": "", "namephraseexample": "el Colegio de ejemplo",
-        "members": [{"id": 5, "name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR", "role": "Admisiones", "me": false}],
-        "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "", "imgdark": "", "id": "piel-auto", "soon": false}],
+            "size": 2, "months": false}]},
+        "firstdayleaf": {"weekday": "mié", "day": "08", "month": "sep"}, "namephrase": "",
+        "namephraseexample": "el Colegio de ejemplo",
+        "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "",
+            "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
-        "ai": {"providers": [{"value": "", "name": "La del sitio", "selected": true}], "note": "", "on": false, "several": false,
+        "ai": {"providers": [{"value": 0, "name": "La del sitio", "selected": true}], "note": "", "on": false, "several": false,
             "locked": false, "lockednote": ""},
         "share": {"on": true, "hasforms": true, "forms": [{"value": 0, "name": "El primero activo", "selected": true}]}
     }
 }}
 <div class="pagina pagina-ajustes">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <form class="ajustes" method="post" action="{{action}}" enctype="multipart/form-data" data-ajustes>
+    <form class="ajustes" method="post" action="{{action}}" enctype="multipart/form-data" novalidate data-ajustes>
         <input type="hidden" name="sesskey" value="{{sesskey}}">
         <nav class="indice-ajustes" aria-label="{{#str}}panel_settings_index, local_oksigeniaeguahe{{/str}}">
-            <ol>{{#index}}<li><a href="#aj-{{key}}">{{name}}</a></li>{{/index}}</ol>
+            <p class="indice-t">{{#str}}panel_settings_daily, local_oksigeniaeguahe{{/str}}</p>
+            <ol>
+                <li><a href="#aj-oferta">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-reciben">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}</a></li>
+                {{#hasmessaging}}<li><a href="#aj-canal">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</a></li>{{/hasmessaging}}
+            </ol>
+            <p class="indice-t">{{#str}}panel_settings_once, local_oksigeniaeguahe{{/str}}</p>
+            <ol>
+                <li><a href="#aj-aspecto">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-despues">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-datos">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-zona">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-redes">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-panel">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-compartir">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-ia">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</a></li>
+            </ol>
         </nav>
         <div class="ajustes-hojas">
-            <section class="apartado" id="aj-aspecto" aria-labelledby="aj-aspecto-t">
-                <header><h2 id="aj-aspecto-t">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</h2></header>
-                <div class="rejilla-2">
-                    <div class="campo"><label for="c-nombre">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</label><input id="c-nombre" name="name" value="{{name}}" required data-vivo-centro></div>
-                    <div class="campo"><label for="c-idioma">{{#str}}centre_lang, local_oksigeniaeguahe{{/str}}</label><select id="c-idioma" name="lang">{{#lang}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/lang}}</select></div>
-                </div>
-                <div class="color-fila">
-                    <div class="campo"><label for="c-color">{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</label><span class="color-campo"><input id="c-color" type="color" name="colour" value="{{colour}}" data-color-centro><input class="color-hex" name="colourhex" value="{{colour}}" aria-label="{{#str}}panel_colour_code, local_oksigeniaeguahe{{/str}}" data-color-hex dir="ltr" spellcheck="false"></span></div>
-                    <div class="campo"><span class="etiqueta" id="c-logo-t">{{#str}}centre_logo, local_oksigeniaeguahe{{/str}}</span><span class="elegir-archivo"><label class="boton secundario pequeno" for="c-logo">{{{i.subir}}}<span>{{#str}}panel_logo_choose, local_oksigeniaeguahe{{/str}}</span></label><input class="archivo-oculto" id="c-logo" type="file" name="logo" accept="image/png,image/svg+xml,image/webp,image/jpeg" aria-labelledby="c-logo-t" aria-describedby="c-logo-nombre" data-archivo-nombre data-nombre-en="c-logo-nombre"><span class="archivo-nombre" id="c-logo-nombre">{{#logo}}{{#str}}panel_logo_has, local_oksigeniaeguahe{{/str}}{{/logo}}{{^logo}}{{#str}}panel_logo_none, local_oksigeniaeguahe{{/str}}{{/logo}}</span></span><label class="casilla"><input type="checkbox" name="logoplate" value="1"{{#logoplate}} checked{{/logoplate}}><span>{{#str}}centre_logoplate, local_oksigeniaeguahe{{/str}}</span></label></div>
-                </div>
-                <div class="muestra-color" aria-hidden="true">
-                    <div class="muestra-tema muestra-dia" style="{{lightvars}}" data-muestra-tema="claro">
-                        <span class="rotulo-p">{{#str}}panel_light, local_oksigeniaeguahe{{/str}}</span>
-                        <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
-                        <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
-                    </div>
-                    <div class="muestra-tema muestra-noche" style="{{darkvars}}" data-muestra-tema="oscuro">
-                        <span class="rotulo-p">{{#str}}panel_dark, local_oksigeniaeguahe{{/str}}</span>
-                        <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
-                        <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
-                    </div>
-                </div>
-                <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
-                <div class="rejilla-2">
-                    <div class="campo"><label for="c-dir">{{#str}}centre_address, local_oksigeniaeguahe{{/str}}</label><input id="c-dir" name="address" value="{{address}}"></div>
-                    <div class="campo"><label for="c-pais">{{#str}}centre_country, local_oksigeniaeguahe{{/str}}</label><select id="c-pais" name="country">{{#countries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/countries}}</select></div>
-                    <div class="campo"><label for="c-moneda">{{#str}}centre_currency, local_oksigeniaeguahe{{/str}}</label><select id="c-moneda" name="currency">{{#currencies}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/currencies}}</select></div>
-                    <div class="campo"><label for="c-sistema">{{#str}}centre_system, local_oksigeniaeguahe{{/str}}</label><select id="c-sistema" name="system" aria-describedby="c-sistema-a">{{#systems}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/systems}}</select><span class="ayuda" id="c-sistema-a">{{#str}}centre_system_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    <div class="campo"><label for="c-tel">{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}</label><input id="c-tel" type="tel" name="phone" value="{{phone}}" dir="ltr"></div>
-                    <div class="campo"><label for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input id="c-correo" type="email" name="email" value="{{email}}" dir="ltr"></div>
-                </div>
-                <div class="campo"><label for="c-llegar">{{#str}}panel_how_to_arrive, local_oksigeniaeguahe{{/str}}</label><textarea id="c-llegar" name="arrive" rows="2">{{arrive}}</textarea><span class="ayuda">{{#str}}panel_how_to_arrive_help, local_oksigeniaeguahe{{/str}}</span></div>
-                <div class="campo"><label for="c-contestamos">{{#str}}panel_replydays, local_oksigeniaeguahe{{/str}}</label><select id="c-contestamos" name="replydays" aria-describedby="c-contestamos-a">{{#replydays}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/replydays}}</select><span class="ayuda" id="c-contestamos-a">{{#str}}panel_replydays_help, local_oksigeniaeguahe{{/str}}</span></div>
-                {{#hastales}}<div class="campo"><label for="c-cuentos">{{#str}}panel_tales, local_oksigeniaeguahe{{/str}}</label><select id="c-cuentos" name="library" aria-describedby="c-cuentos-a">{{#libraries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/libraries}}</select><span class="ayuda" id="c-cuentos-a">{{#str}}panel_tales_help, local_oksigeniaeguahe{{/str}}</span></div>{{/hastales}}
-                <div class="campo"><label for="c-bienvenida">{{#str}}centre_welcome, local_oksigeniaeguahe{{/str}}</label><input id="c-bienvenida" name="welcome" value="{{welcome}}"></div>
-            </section>
-            <section class="apartado" id="aj-reciben" aria-labelledby="aj-reciben-t">
-                <header><h2 id="aj-reciben-t">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_who_receives_help, local_oksigeniaeguahe{{/str}}</span></header>
-                <ul class="reciben-lista">
-                    {{#hosts}}
-                    <li class="recibe">
-                        <span class="recibe-cara">{{> local_oksigeniaeguahe/panel_face }}</span>
-                        <span class="recibe-datos"><b>{{name}}</b>
-                            <label class="oculto" for="cargo-{{id}}">{{#str}}panel_their_role, local_oksigeniaeguahe, {{first}}{{/str}}</label><input class="recibe-cargo" id="cargo-{{id}}" name="role[{{id}}]" value="{{role}}" placeholder="{{#str}}panel_role_example, local_oksigeniaeguahe{{/str}}">
-                            <label class="oculto" for="frase-{{id}}">{{#str}}panel_their_sentence, local_oksigeniaeguahe, {{first}}{{/str}}</label><input id="frase-{{id}}" name="phrase[{{id}}]" value="{{phrase}}" placeholder="{{#str}}panel_their_sentence_example, local_oksigeniaeguahe{{/str}}"></span>
-                        <span class="recibe-acciones">
-                            <label class="casilla"><input type="checkbox" name="shown[{{id}}]" value="1"{{#shown}} checked{{/shown}}><span>{{#str}}panel_shown_families, local_oksigeniaeguahe{{/str}}</span></label>
-                            <label class="recibe-foto" for="foto-{{id}}">{{{i.subir}}}<span>{{#picture}}{{#str}}panel_photo_change, local_oksigeniaeguahe{{/str}}{{/picture}}{{^picture}}{{#str}}panel_photo_add, local_oksigeniaeguahe{{/str}}{{/picture}}</span></label><input class="archivo-oculto" id="foto-{{id}}" type="file" name="photo[{{id}}]" accept="image/png,image/jpeg,image/webp" data-archivo-nombre>
-                        </span>
-                    </li>
-                    {{/hosts}}
-                    {{^hosts}}<li class="secundario">{{#str}}panel_hosts_none, local_oksigeniaeguahe{{/str}}</li>{{/hosts}}
-                </ul>
-            </section>
-            <section class="apartado" id="aj-despues" aria-labelledby="aj-despues-t">
-                <header><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_after_enrolment_help, local_oksigeniaeguahe{{/str}}</span></header>
-                <div class="rejilla-2">
-                    <div class="campo"><label for="c-lleva">{{#str}}panel_handover, local_oksigeniaeguahe{{/str}}</label><select id="c-lleva" name="handover">{{#handover}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handover}}</select><span class="ayuda">{{#str}}panel_handover_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    <div class="campo"><label for="c-sitio">{{#str}}panel_handover_place, local_oksigeniaeguahe{{/str}}</label><input id="c-sitio" name="handoverplace" value="{{handoverplace}}" placeholder="{{#str}}panel_handover_place_example, local_oksigeniaeguahe{{/str}}"></div>
-                </div>
-                <div class="campo"><label for="c-como">{{#str}}panel_handover_how, local_oksigeniaeguahe{{/str}}</label><textarea id="c-como" name="handoverhow" rows="2" placeholder="{{#str}}panel_handover_how_example, local_oksigeniaeguahe{{/str}}">{{handoverhow}}</textarea></div>
-                <div class="campo"><label for="c-hermanos">{{#str}}panel_siblingage, local_oksigeniaeguahe{{/str}}</label><select id="c-hermanos" name="siblingage" aria-describedby="c-hermanos-a">{{#siblingages}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/siblingages}}</select><span class="ayuda" id="c-hermanos-a">{{#str}}panel_siblingage_help, local_oksigeniaeguahe{{/str}}</span></div>
-                <label class="casilla"><input type="checkbox" name="invitegone" value="1"{{#invitegone}} checked{{/invitegone}}><span>{{#str}}panel_invitegone, local_oksigeniaeguahe{{/str}}</span></label>
-                <div class="rejilla-2">
-                    <div class="campo"><label id="c-primer-l" for="{{firstdaydate.first}}">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label>{{#firstdaydate}}{{> local_oksigeniaeguahe/public_date }}{{/firstdaydate}}<span class="ayuda" id="c-primer-a">{{#str}}panel_firstday_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    <div class="campo"><label for="c-frase">{{#str}}panel_namephrase, local_oksigeniaeguahe{{/str}}</label><input id="c-frase" name="namephrase" value="{{namephrase}}" placeholder="{{namephraseexample}}" aria-describedby="c-frase-a"><span class="ayuda" id="c-frase-a">{{#str}}panel_namephrase_help, local_oksigeniaeguahe{{/str}}</span></div>
-                </div>
-            </section>
-            {{#hasmessaging}}
-            <section class="apartado" id="aj-mensajes" aria-labelledby="aj-mensajes-t">
-                <header><h2 id="aj-mensajes-t">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</h2></header>
-                <div class="opciones opciones-3" role="radiogroup" aria-labelledby="aj-mensajes-t">
-                    {{#messaging}}<label class="opcion"><input type="radio" name="messaging" value="{{value}}"{{#checked}} checked{{/checked}}><span><b>{{name}}</b><span class="secundario">{{help}}</span></span></label>{{/messaging}}
-                </div>
-            </section>
-            {{/hasmessaging}}
-            {{#channel}}
-            <section class="apartado" id="aj-canal" aria-labelledby="aj-canal-t">
-                <header><h2 id="aj-canal-t">{{#str}}centre_channel, local_oksigeniaeguahe{{/str}}</h2></header>
-                {{#ready}}
-                <div class="canal-ficha">
-                    <span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span>
-                    <p><span class="secundario">{{#str}}panel_channel_in, local_oksigeniaeguahe{{/str}}</span> {{#url}}<a href="{{url}}" target="_blank" rel="noopener"><b>{{title}}</b></a>{{/url}}{{^url}}<b>{{title}}</b>{{/url}}<span class="secundario">{{members}}</span></p>
-                    {{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}
-                </div>
-                <input type="hidden" name="channelshown" value="1">
-                <h3 id="aj-canal-solo">{{#str}}panel_channel_auto, local_oksigeniaeguahe{{/str}}</h3>
-                <ol class="canal-solos" role="group" aria-labelledby="aj-canal-solo">
-                    {{#moments}}<li class="canal-solo"><label class="casilla"><input type="checkbox" name="channelauto[]" value="{{value}}"{{#checked}} checked{{/checked}}><span><b>{{name}}</b> <span class="secundario">{{help}}</span></span></label></li>{{/moments}}
-                </ol>
-                <p class="def">{{#str}}panel_channel_auto_help, local_oksigeniaeguahe{{/str}}</p>
-                {{#hascoming}}
-                <h3>{{#str}}panel_channel_coming, local_oksigeniaeguahe{{/str}}</h3>
-                <ol class="lista-canal">{{#coming}}<li><span class="lista-canal-cuando">{{when}}</span><span class="lista-canal-que"><a href="{{url}}">{{act}}</a> <span class="lista-canal-momento">{{moment}}</span>{{#review}} <span class="lista-canal-revision">{{{i.reloj}}}{{#str}}panel_channel_waits_review, local_oksigeniaeguahe{{/str}}</span>{{/review}}</span></li>{{/coming}}</ol>
-                {{/hascoming}}
-                {{/ready}}
-                {{^ready}}<div class="canal-ficha canal-ficha-nada"><span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span><p>{{#str}}panel_channel_none, local_oksigeniaeguahe{{/str}}</p>{{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</div>{{/ready}}
-                <p class="def canal-whatsapp"><span aria-hidden="true">{{{i.whatsapp}}}</span><span>{{#str}}panel_channel_whatsapp, local_oksigeniaeguahe{{/str}}</span></p>
-            </section>
-            {{/channel}}
-            <section class="apartado" id="aj-datos" aria-labelledby="aj-datos-t">
-                <header><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2></header>
-                <div class="rejilla-2">
-                    <div class="campo"><label for="c-resp">{{#str}}centre_controller, local_oksigeniaeguahe{{/str}}</label><input id="c-resp" name="controller" value="{{controller}}"></div>
-                    <div class="campo"><label for="c-derechos">{{#str}}centre_rightscontact, local_oksigeniaeguahe{{/str}}</label><input id="c-derechos" name="rightscontact" value="{{rights}}"></div>
-                    <div class="campo"><label for="c-dpd">{{#str}}centre_dpocontact, local_oksigeniaeguahe{{/str}}</label><input id="c-dpd" name="dpocontact" value="{{dpo}}"></div>
-                    <div class="campo"><label for="c-meses">{{#str}}centre_retention, local_oksigeniaeguahe{{/str}}</label><input id="c-meses" type="number" min="1" name="retention" value="{{retention}}" inputmode="numeric"></div>
-                </div>
-            </section>
-            <section class="apartado" id="aj-zona" aria-labelledby="aj-zona-t">
-                <header><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2></header>
-                <div class="campo"><label for="c-zona">{{#str}}panel_places_of_area, local_oksigeniaeguahe{{/str}}</label><textarea id="c-zona" name="municipalities" rows="5">{{municipalities}}</textarea><span class="ayuda">{{#str}}panel_places_of_area_help, local_oksigeniaeguahe{{/str}}</span></div>
-            </section>
-            <section class="apartado" id="aj-redes" aria-labelledby="aj-redes-t">
-                <header><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2></header>
-                <div class="campo"><label for="c-redes">{{#str}}panel_networks_list, local_oksigeniaeguahe{{/str}}</label><textarea id="c-redes" name="networks" rows="6" aria-describedby="c-redes-a">{{networks}}</textarea><span class="ayuda" id="c-redes-a">{{#str}}panel_networks_help, local_oksigeniaeguahe{{/str}}</span></div>
-            </section>
+            <p class="aj-tramo-t">{{#str}}panel_settings_daily, local_oksigeniaeguahe{{/str}}</p>
+
+            {{! ===== The offer: shelves and cards ===== }}
             <section class="apartado oferta-ap" id="aj-oferta" aria-labelledby="aj-oferta-t">
                 <header><h2 id="aj-oferta-t">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_offer_help, local_oksigeniaeguahe{{/str}}</span></header>
                 {{#oferta}}
@@ -209,60 +142,361 @@
                         <div class="of-etapa-cabeza">
                             <h3 id="of-e-{{key}}">{{name}} <span class="of-edades">{{ages}}</span></h3>
                             {{#on}}<span class="of-resumen">{{summary}}</span>{{/on}}
-                            <button class="of-interruptor" type="submit" name="offerstage" value="{{key}}:{{#on}}off{{/on}}{{^on}}on{{/on}}" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}"><span class="of-lampara" aria-hidden="true"></span><span>{{#on}}{{#str}}panel_offer_stage_on, local_oksigeniaeguahe{{/str}}{{/on}}{{^on}}{{#str}}panel_offer_stage_off, local_oksigeniaeguahe{{/str}}{{/on}}</span></button>
+                            <button class="interruptor" type="submit" name="offerstage" value="{{key}}:{{#on}}off{{/on}}{{^on}}on{{/on}}" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}"><span class="lampara" aria-hidden="true"></span><span>{{#on}}{{#str}}panel_offer_stage_on, local_oksigeniaeguahe{{/str}}{{/on}}{{^on}}{{#str}}panel_offer_stage_off, local_oksigeniaeguahe{{/str}}{{/on}}</span></button>
                         </div>
                         {{#on}}
-                        <ul class="of-balda">{{#cards}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/cards}}</ul>
+                        <ul class="of-balda">{{#cards}}<li class="of-curso{{^active}} of-curso-apagado{{/active}}{{#new}} of-curso-nuevo{{/new}}" id="of-c-{{id}}">{{> local_oksigeniaeguahe/panel_offer_card }}</li>{{/cards}}</ul>
                         {{#same}}<button class="of-igualar" type="submit" name="offerstageplaces" value="{{key}}">{{label}}</button>{{/same}}
                         {{/on}}
                     </section>
                     {{/stages}}
-                    <section class="of-etapa of-otros" aria-labelledby="of-e-otros">
-                        <div class="of-etapa-cabeza"><h3 id="of-e-otros">{{#str}}panel_offer_others, local_oksigeniaeguahe{{/str}}</h3></div>
-                        <ul class="of-balda">{{#others}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/others}}{{#newcard}}{{> local_oksigeniaeguahe/panel_offer_card }}{{/newcard}}</ul>
+                    <section class="of-etapa of-otros" id="of-e-otros" aria-labelledby="of-e-otros-t">
+                        <div class="of-etapa-cabeza"><h3 id="of-e-otros-t">{{#str}}panel_offer_others, local_oksigeniaeguahe{{/str}}</h3></div>
+                        <ul class="of-balda">{{#others}}<li class="of-curso{{^active}} of-curso-apagado{{/active}}{{#new}} of-curso-nuevo{{/new}}" id="of-c-{{id}}">{{> local_oksigeniaeguahe/panel_offer_card }}</li>{{/others}}{{#newcard}}<li class="of-curso{{^active}} of-curso-apagado{{/active}}{{#new}} of-curso-nuevo{{/new}}" id="of-c-{{id}}">{{> local_oksigeniaeguahe/panel_offer_card }}</li>{{/newcard}}</ul>
                     </section>
                 </div>
                 {{/oferta}}
                 {{^oferta}}<p class="secundario anadir-etapa-sin">{{#str}}panel_offer_stage_nosystem, local_oksigeniaeguahe{{/str}}</p>{{/oferta}}
             </section>
-            <section class="apartado" id="aj-equipo" aria-labelledby="aj-equipo-t">
-                <header><h2 id="aj-equipo-t">{{#str}}centre_members, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span></header>
-                <ul class="equipo-lista">{{#members}}<li>{{> local_oksigeniaeguahe/panel_face }}<span><b>{{name}}</b><span class="secundario">{{role}}</span></span>{{^me}}<label class="casilla quitar"><input type="checkbox" name="removemember[{{id}}]" value="1"><span>{{#str}}panel_member_remove, local_oksigeniaeguahe{{/str}}</span></label>{{/me}}</li>{{/members}}</ul>
-                <div class="campo"><label for="c-equipo">{{#str}}panel_add_person, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo" name="addmember" placeholder="{{#str}}panel_add_person_help, local_oksigeniaeguahe{{/str}}" autocomplete="off"></div>
+
+            {{! ===== The people: who hangs from the rail is who the families see ===== }}
+            <section class="apartado" id="aj-reciben" aria-labelledby="aj-reciben-t">
+                <header><h2 id="aj-reciben-t">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_people_help, local_oksigeniaeguahe{{/str}}</span></header>
+                <ul class="aj-pared">
+                    {{#hosts}}
+                    <li class="aj-persona{{^shown}} aj-persona-fuera{{/shown}}" id="rc-{{id}}">
+                        <input type="hidden" name="shown[{{id}}]" value="{{#shown}}1{{/shown}}{{^shown}}0{{/shown}}">
+                        <input class="archivo-oculto" id="foto-{{id}}" type="file" name="photo[{{id}}]" accept="image/png,image/jpeg,image/webp" required data-envio-solo>
+                        <label class="aj-cara" for="foto-{{id}}">
+                            {{#picture}}<img src="{{picture}}" alt="" width="84" height="84">{{/picture}}{{^picture}}<span class="aj-iniciales" aria-hidden="true">{{initials}}</span>{{/picture}}
+                            <span class="aj-cara-foto">{{{i.subir}}}<span class="oculto">{{#picture}}{{#str}}panel_photo_change, local_oksigeniaeguahe{{/str}}{{/picture}}{{^picture}}{{#str}}panel_photo_add, local_oksigeniaeguahe{{/str}}{{/picture}}: {{name}}</span></span>
+                        </label>
+                        <b class="aj-persona-n">{{name}}</b>
+                        {{#role}}<span class="aj-persona-papel" dir="auto">{{role}}</span>{{/role}}
+                        {{#phrase}}<q class="aj-persona-frase mano" dir="auto">{{phrase}}</q>{{/phrase}}
+                        <button class="boton principal pequeno aj-foto-guardar" type="submit" name="guardar" value="1" formaction="{{action}}#rc-{{id}}">{{{i.check}}}{{#str}}panel_photo_save, local_oksigeniaeguahe{{/str}}</button>
+                        <button class="interruptor aj-persona-sale" type="submit" name="shown[{{id}}]" value="{{#shown}}0{{/shown}}{{^shown}}1{{/shown}}" formaction="{{action}}#rc-{{id}}" aria-pressed="{{#shown}}true{{/shown}}{{^shown}}false{{/shown}}"><span class="lampara" aria-hidden="true"></span><span>{{#shown}}{{#str}}panel_shown_families, local_oksigeniaeguahe{{/str}}{{/shown}}{{^shown}}{{#str}}panel_shown_not, local_oksigeniaeguahe{{/str}}{{/shown}}</span></button>
+                        <details class="of-mas aj-persona-mas">
+                            <summary><span>{{#phrase}}{{#str}}panel_person_has_phrase, local_oksigeniaeguahe{{/str}}{{/phrase}}{{^phrase}}{{#str}}panel_person_no_phrase, local_oksigeniaeguahe{{/str}}{{/phrase}}</span><span class="of-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span></summary>
+                            <div class="of-dorso">
+                                <div class="campo"><label for="cargo-{{id}}">{{#str}}panel_their_role, local_oksigeniaeguahe, {{first}}{{/str}}</label><input id="cargo-{{id}}" name="role[{{id}}]" value="{{role}}" placeholder="{{#str}}panel_role_example, local_oksigeniaeguahe{{/str}}" size="18"></div>
+                                <div class="campo"><label for="frase-{{id}}">{{#str}}panel_their_sentence, local_oksigeniaeguahe, {{first}}{{/str}}</label><textarea id="frase-{{id}}" name="phrase[{{id}}]" rows="3" placeholder="{{#str}}panel_their_sentence_example, local_oksigeniaeguahe{{/str}}">{{phrase}}</textarea></div>
+                                <div class="aj-dorso-pie">
+                                    <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#rc-{{id}}" data-guardar>{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button>
+                                    {{^me}}
+                                    <details class="aj-quitar">
+                                        <summary>{{#str}}panel_member_remove, local_oksigeniaeguahe{{/str}}</summary>
+                                        <button class="boton peligro pequeno" type="submit" name="removemember[{{userid}}]" value="1" formaction="{{action}}#aj-reciben">{{#str}}panel_member_remove_confirm, local_oksigeniaeguahe, {{first}}{{/str}}</button>
+                                    </details>
+                                    {{/me}}
+                                </div>
+                            </div>
+                        </details>
+                    </li>
+                    {{/hosts}}
+                    <li class="aj-persona aj-persona-nueva" id="aj-equipo">
+                        <details class="of-mas">
+                            <summary><b>{{#str}}panel_person_new, local_oksigeniaeguahe{{/str}}</b></summary>
+                            <div class="of-dorso">
+                                <div class="campo"><label for="c-equipo">{{#str}}panel_add_person_help, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo" name="addmember" autocomplete="off" size="18"></div>
+                                <span class="ayuda">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span>
+                                <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-reciben">{{#str}}panel_offer_add, local_oksigeniaeguahe{{/str}}</button>
+                            </div>
+                        </details>
+                    </li>
+                </ul>
             </section>
-            <section class="apartado" id="aj-panel" aria-labelledby="aj-panel-t">
-                <header><h2 id="aj-panel-t">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</h2></header>
-                <p class="linea-dato">{{skinproposal}}</p>
-                <div class="pieles" role="radiogroup" aria-labelledby="aj-panel-t">
-                    {{#skins}}
-                    <label class="piel-opcion{{#auto}} auto{{/auto}}" for="{{id}}">
-                        <input type="radio" id="{{id}}" name="skin" value="{{value}}"{{#checked}} checked{{/checked}}{{#soon}} disabled{{/soon}}>
-                        {{#img}}<span class="piel-muestra"><img class="dia" src="{{img}}" alt="" width="480" height="300" loading="lazy">{{#imgdark}}<img class="noche" src="{{imgdark}}" alt="" width="480" height="300" loading="lazy">{{/imgdark}}</span>{{/img}}
-                        <span class="piel-texto"><b>{{name}}</b><span class="secundario">{{help}}</span></span>
-                    </label>
-                    {{/skins}}
+
+            {{! ===== Telegram and WhatsApp: three choices, and the channel ===== }}
+            {{#hasmessaging}}
+            <section class="apartado" id="aj-canal" aria-labelledby="aj-canal-t">
+                <header><h2 id="aj-canal-t">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</h2></header>
+                <div class="aj-modos" id="aj-mensajes" role="group" aria-labelledby="aj-canal-t">
+                    {{#messaging}}<button class="aj-modo" type="submit" name="messaging" value="{{value}}" formaction="{{action}}#aj-canal" aria-pressed="{{#checked}}true{{/checked}}{{^checked}}false{{/checked}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b><span>{{help}}</span></button>{{/messaging}}
                 </div>
-                <p class="def">{{#str}}panel_skin_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#channel}}
+                <h3 class="aj-sub">{{#str}}centre_channel, local_oksigeniaeguahe{{/str}}</h3>
+                {{#ready}}
+                <div class="canal-ficha">
+                    <span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span>
+                    <p><span class="secundario">{{#str}}panel_channel_in, local_oksigeniaeguahe{{/str}}</span> {{#url}}<a href="{{url}}" target="_blank" rel="noopener"><b>{{title}}</b></a>{{/url}}{{^url}}<b>{{title}}</b>{{/url}}<span class="secundario">{{members}}</span></p>
+                    {{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}
+                </div>
+                <input type="hidden" name="channelshown" value="1">
+                <p class="aj-linea-t" id="aj-canal-solo">{{#str}}panel_channel_auto, local_oksigeniaeguahe{{/str}}</p>
+                <ol class="aj-linea" aria-labelledby="aj-canal-solo">
+                    {{#moments}}
+                    <li class="aj-parada{{#checked}} aj-parada-sale{{/checked}}">
+                        <input type="hidden" name="channelauto[{{value}}]" value="{{#checked}}{{value}}{{/checked}}">
+                        <span class="aj-parada-cuando">{{help}}</span>
+                        <button class="interruptor" type="submit" name="channelauto[{{value}}]" value="{{^checked}}{{value}}{{/checked}}" formaction="{{action}}#aj-canal" aria-pressed="{{#checked}}true{{/checked}}{{^checked}}false{{/checked}}"><span class="lampara" aria-hidden="true"></span><span>{{name}}</span></button>
+                    </li>
+                    {{/moments}}
+                </ol>
+                <p class="def">{{#str}}panel_channel_auto_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#hascoming}}
+                <p class="aj-linea-t">{{#str}}panel_channel_coming, local_oksigeniaeguahe{{/str}}</p>
+                <ol class="lista-canal">{{#coming}}<li><span class="lista-canal-cuando">{{when}}</span><span class="lista-canal-que"><a href="{{url}}">{{act}}</a> <span class="lista-canal-momento">{{moment}}</span>{{#review}} <span class="lista-canal-revision">{{{i.reloj}}}{{#str}}panel_channel_waits_review, local_oksigeniaeguahe{{/str}}</span>{{/review}}</span></li>{{/coming}}</ol>
+                {{/hascoming}}
+                {{/ready}}
+                {{^ready}}<div class="canal-ficha canal-ficha-nada"><span class="canal-sello" aria-hidden="true">{{{i.enviado}}}</span><p>{{#str}}panel_channel_none, local_oksigeniaeguahe{{/str}}</p>{{#marandu}}<a class="enlace" href="{{marandu}}">{{#str}}panel_channel_marandu, local_oksigeniaeguahe{{/str}}</a>{{/marandu}}</div>{{/ready}}
+                {{/channel}}
+                <p class="def canal-whatsapp"><span aria-hidden="true">{{{i.whatsapp}}}</span><span>{{#str}}panel_channel_whatsapp, local_oksigeniaeguahe{{/str}}</span></p>
             </section>
-            <section class="apartado" id="aj-compartir" aria-labelledby="aj-compartir-t">
-                <header><h2 id="aj-compartir-t">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</h2></header>
-                {{#share}}
-                <label class="casilla"><input type="checkbox" name="shareinvite" value="1"{{#on}} checked{{/on}}><span>{{#str}}centre_shareinvite, local_oksigeniaeguahe{{/str}}</span></label>
-                {{#hasforms}}<div class="campo"><label for="c-compartir">{{#str}}centre_shareentry, local_oksigeniaeguahe{{/str}}</label><select id="c-compartir" name="shareentry">{{#forms}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/forms}}</select></div>{{/hasforms}}
-                <p class="def">{{#str}}centre_share_help, local_oksigeniaeguahe{{/str}}</p>
-                {{/share}}
-            </section>
-            <section class="apartado" id="aj-ia" aria-labelledby="aj-ia-t">
-                <header><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2></header>
-                {{#ai}}
-                <label class="casilla"><input type="checkbox" name="aion" value="1"{{#on}} checked{{/on}}{{#locked}} disabled{{/locked}}><span>{{#str}}centre_ai_on, local_oksigeniaeguahe{{/str}}</span></label>
-                {{#several}}<div class="campo"><label for="c-ia">{{#str}}centre_aiprovider, local_oksigeniaeguahe{{/str}}</label><select id="c-ia" name="aiprovider"{{#locked}} disabled{{/locked}}>{{#providers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/providers}}</select></div>{{/several}}
-                <p class="def">{{note}}{{#locked}} {{lockednote}}{{/locked}}</p>
-                {{/ai}}
-            </section>
-        </div>
-        <div class="guardar-pie">
-            <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button><span class="def">{{#str}}panel_settings_save_help, local_oksigeniaeguahe{{/str}}</span></div>
+            {{/hasmessaging}}
+
+            <p class="aj-tramo-t">{{#str}}panel_settings_once, local_oksigeniaeguahe{{/str}}</p>
+            <div class="aj-tarjetas">
+
+            {{! ===== How families see it: the band and the wall are the editor ===== }}
+            <details class="apartado aj-plegado" id="aj-aspecto">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-aspecto-t">{{#str}}panel_how_families_see, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura"><span class="aj-banda-mini" style="{{lightvars}}">{{#logo}}<img src="{{logo}}" alt="" width="22" height="22">{{/logo}}<span>{{name}}</span></span></span></summary>
+                <div class="aj-cuerpo">
+                    <div class="muestra-color">
+                        <div class="muestra-tema muestra-dia" style="{{lightvars}}" data-muestra-tema="claro">
+                            <span class="rotulo-p">{{#str}}panel_light, local_oksigeniaeguahe{{/str}}</span>
+                            <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><label class="oculto" for="c-nombre">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</label><input class="aj-banda-nombre" id="c-nombre" name="name" value="{{name}}" data-vivo-centro autocomplete="off"></div>
+                            <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
+                        </div>
+                        <div class="muestra-tema muestra-noche" style="{{darkvars}}" data-muestra-tema="oscuro">
+                            <span class="rotulo-p">{{#str}}panel_dark, local_oksigeniaeguahe{{/str}}</span>
+                            <div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
+                            <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
+                        </div>
+                    </div>
+                    <div class="aj-utiles">
+                        <div class="aj-util">
+                            <label class="aj-bote" for="c-color"><input id="c-color" type="color" name="colour" value="{{colour}}" data-color-centro><span class="oculto">{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</span></label>
+                            <span class="aj-util-texto"><b>{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</b><input class="aj-hueco aj-hex" name="colourhex" value="{{colour}}" size="8" aria-label="{{#str}}panel_colour_code, local_oksigeniaeguahe{{/str}}" data-color-hex dir="ltr" spellcheck="false"></span>
+                        </div>
+                        <div class="aj-util">
+                            <input class="archivo-oculto" id="c-logo" type="file" name="logo" accept="image/png,image/svg+xml,image/webp,image/jpeg" required data-envio-solo>
+                            <label class="aj-placa-logo" for="c-logo">{{#logo}}<img src="{{logo}}" alt="" width="48" height="48">{{/logo}}{{^logo}}<span aria-hidden="true">{{initial}}</span>{{/logo}}</label>
+                            <span class="aj-util-texto"><b>{{#str}}centre_logo, local_oksigeniaeguahe{{/str}}</b><label class="enlace" for="c-logo">{{#logo}}{{#str}}panel_logo_other, local_oksigeniaeguahe{{/str}}{{/logo}}{{^logo}}{{#str}}panel_logo_choose, local_oksigeniaeguahe{{/str}}{{/logo}}</label></span>
+                            <button class="boton principal pequeno aj-foto-guardar" type="submit" name="guardar" value="1" formaction="{{action}}#aj-aspecto">{{{i.check}}}{{#str}}panel_photo_save, local_oksigeniaeguahe{{/str}}</button>
+                        </div>
+                        <div class="aj-util">
+                            <input type="hidden" name="logoplate" value="{{#logoplate}}1{{/logoplate}}{{^logoplate}}0{{/logoplate}}">
+                            <button class="interruptor" type="submit" name="logoplate" value="{{#logoplate}}0{{/logoplate}}{{^logoplate}}1{{/logoplate}}" formaction="{{action}}#aj-aspecto" aria-pressed="{{#logoplate}}true{{/logoplate}}{{^logoplate}}false{{/logoplate}}" aria-describedby="c-placa-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_logoplate_short, local_oksigeniaeguahe{{/str}}</span></button>
+                            <span class="ayuda" id="c-placa-a">{{#str}}centre_logoplate_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                    </div>
+                    <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
+                    <div class="aj-frase con-ayuda">
+                        <label for="c-bienvenida">{{#str}}centre_welcome, local_oksigeniaeguahe{{/str}}</label>
+                        <span class="aj-cita"><input class="aj-hueco" id="c-bienvenida" name="welcome" value="{{welcome}}" aria-describedby="c-bienvenida-a"></span>
+                        <span class="ayuda" id="c-bienvenida-a">{{#str}}centre_welcome_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    {{#hastales}}
+                    <div class="aj-frase con-ayuda">
+                        <label for="c-cuentos">{{#str}}panel_tales, local_oksigeniaeguahe{{/str}}</label>
+                        <select class="aj-hueco" id="c-cuentos" name="library" aria-describedby="c-cuentos-a" data-envio-solo>{{#libraries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/libraries}}</select>
+                        <span class="ayuda" id="c-cuentos-a">{{#str}}panel_tales_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    {{/hastales}}
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-aspecto" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== Address and contact: a visiting card ===== }}
+            <details class="apartado aj-plegado" id="aj-contacto">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-contacto-t">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#address}}<span>{{address}}</span>{{/address}}{{#phone}}<span dir="ltr">{{phone}}</span>{{/phone}}{{#email}}<span dir="ltr">{{email}}</span>{{/email}}<span>{{replyread}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-visita">
+                        <div class="aj-visita-fila"><span class="aj-visita-ic" aria-hidden="true">{{{i.plano}}}</span><label class="oculto" for="c-dir">{{#str}}centre_address, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-dir" name="address" value="{{address}}" placeholder="{{#str}}centre_address, local_oksigeniaeguahe{{/str}}" autocomplete="off"></div>
+                        <div class="aj-visita-fila aj-visita-dos">
+                            <span class="aj-visita-par"><span class="aj-visita-ic" aria-hidden="true">{{{i.telefono}}}</span><label class="oculto" for="c-tel">{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-tel" type="tel" name="phone" value="{{phone}}" placeholder="{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}" size="16" dir="ltr"></span>
+                            <span class="aj-visita-par"><span class="aj-visita-ic" aria-hidden="true">{{{i.correo}}}</span><label class="oculto" for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-correo" type="email" name="email" value="{{email}}" placeholder="{{#str}}centre_email, local_oksigeniaeguahe{{/str}}" size="26" dir="ltr"></span>
+                        </div>
+                        <div class="aj-visita-llegar con-ayuda">
+                            <label for="c-llegar">{{#str}}panel_how_to_arrive, local_oksigeniaeguahe{{/str}}</label>
+                            <textarea class="aj-cuaderno" id="c-llegar" name="arrive" rows="2" aria-describedby="c-llegar-a">{{arrive}}</textarea>
+                            <span class="ayuda" id="c-llegar-a">{{#str}}panel_how_to_arrive_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                    </div>
+                    <div class="aj-elige-fila">
+                        <span class="aj-elige-t" id="c-contestamos">{{#str}}panel_replydays, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige" role="group" aria-labelledby="c-contestamos">{{#replydays}}<button class="aj-chapa" type="submit" name="replydays" value="{{value}}" formaction="{{action}}#aj-contacto" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/replydays}}</span>
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-contacto" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== The country, the language and the system: four plates ===== }}
+            <details class="apartado aj-plegado" id="aj-pais">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-pais-t">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#lang}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/lang}}{{#countries}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/countries}}{{#currencies}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/currencies}}{{#systems}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/systems}}</span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-placas">
+                        <div class="aj-placa"><label for="c-idioma">{{#str}}centre_lang, local_oksigeniaeguahe{{/str}}</label><select class="aj-hueco" id="c-idioma" name="lang" data-envio-solo>{{#lang}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/lang}}</select></div>
+                        <div class="aj-placa con-ayuda"><label for="c-pais">{{#str}}centre_country, local_oksigeniaeguahe{{/str}}</label><select class="aj-hueco" id="c-pais" name="country" aria-describedby="c-pais-a" data-envio-solo>{{#countries}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/countries}}</select><span class="ayuda" id="c-pais-a">{{#str}}centre_country_help, local_oksigeniaeguahe{{/str}}</span></div>
+                        <div class="aj-placa"><label for="c-moneda">{{#str}}centre_currency, local_oksigeniaeguahe{{/str}}</label><select class="aj-hueco" id="c-moneda" name="currency" data-envio-solo>{{#currencies}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/currencies}}</select></div>
+                        <div class="aj-placa con-ayuda"><label for="c-sistema">{{#str}}centre_system, local_oksigeniaeguahe{{/str}}</label><select class="aj-hueco" id="c-sistema" name="system" aria-describedby="c-sistema-a" data-envio-solo>{{#systems}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/systems}}</select><span class="ayuda" id="c-sistema-a">{{#str}}centre_system_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    </div>
+                    <div class="aj-guardar aj-sin-js"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-pais" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== After enrolling: who carries them, the first day, the name in a sentence, the siblings ===== }}
+            <details class="apartado aj-plegado" id="aj-despues">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#handover}}{{#selected}}<span>{{#value}}{{name}}{{/value}}{{^value}}{{#handoverplace}}{{handoverplace}}{{/handoverplace}}{{^handoverplace}}{{name}}{{/handoverplace}}{{/value}}</span>{{/selected}}{{/handover}}{{#firstdayleaf}}<span>{{#str}}panel_read_firstday, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/firstdayleaf}}{{#siblingages}}{{#selected}}{{#value}}<span>{{#str}}panel_read_siblings, local_oksigeniaeguahe, {{value}}{{/str}}</span>{{/value}}{{/selected}}{{/siblingages}}</span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-elige-fila aj-elige-caras">
+                        <input type="hidden" name="handover" value="{{#handover}}{{#selected}}{{value}}{{/selected}}{{/handover}}">
+                        <span class="aj-elige-t" id="c-lleva">{{#str}}panel_handover, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige" role="group" aria-labelledby="c-lleva" aria-describedby="c-lleva-a">{{#handover}}<button class="aj-chapa" type="submit" name="handover" value="{{value}}" formaction="{{action}}#aj-despues" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/handover}}</span>
+                        <span class="ayuda" id="c-lleva-a">{{#str}}panel_handover_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    {{#handover}}{{#selected}}{{^value}}
+                    <div class="aj-frase">
+                        <label for="c-sitio">{{#str}}panel_handover_place, local_oksigeniaeguahe{{/str}}</label>
+                        <input class="aj-hueco" id="c-sitio" name="handoverplace" value="{{handoverplace}}" placeholder="{{#str}}panel_handover_place_example, local_oksigeniaeguahe{{/str}}" size="30">
+                    </div>
+                    {{/value}}{{/selected}}{{/handover}}
+                    {{#handover}}{{#selected}}{{#value}}<input type="hidden" name="handoverplace" value="{{handoverplace}}">{{/value}}{{/selected}}{{/handover}}
+                    <div class="aj-frase">
+                        <label for="c-como">{{#str}}panel_handover_how, local_oksigeniaeguahe{{/str}}</label>
+                        <textarea class="aj-cuaderno" id="c-como" name="handoverhow" rows="2" placeholder="{{#str}}panel_handover_how_example, local_oksigeniaeguahe{{/str}}">{{handoverhow}}</textarea>
+                    </div>
+                    <div class="aj-dos">
+                        <div class="aj-primer con-ayuda">
+                            <span class="hoja-cal aj-primer-hoja{{^firstdayleaf}} aj-primer-sin{{/firstdayleaf}}" aria-hidden="true">{{#firstdayleaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/firstdayleaf}}{{^firstdayleaf}}<b>?</b>{{/firstdayleaf}}</span>
+                            <span class="aj-primer-texto"><label id="c-primer-l" for="{{firstdaydate.first}}">{{#str}}panel_firstday_date, local_oksigeniaeguahe{{/str}}</label>{{#firstdaydate}}{{> local_oksigeniaeguahe/public_date }}{{/firstdaydate}}</span>
+                            <span class="ayuda" id="c-primer-a">{{#str}}panel_firstday_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                        <div class="aj-frase aj-hoy con-ayuda">
+                            <label for="c-frase">{{#str}}panel_namephrase, local_oksigeniaeguahe{{/str}}</label>
+                            <span class="aj-hoy-frase mano"><span aria-hidden="true">{{#str}}panel_namephrase_lead, local_oksigeniaeguahe{{/str}}</span> <input class="aj-hueco" id="c-frase" name="namephrase" value="{{namephrase}}" placeholder="{{namephraseexample}}" size="22" aria-describedby="c-frase-a"></span>
+                            <span class="ayuda" id="c-frase-a">{{#str}}panel_namephrase_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                    </div>
+                    <div class="aj-elige-fila">
+                        <span class="aj-elige-t" id="c-hermanos">{{#str}}panel_siblingage, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige aj-regla" role="group" aria-labelledby="c-hermanos" aria-describedby="c-hermanos-a">{{#siblingages}}<button class="aj-chapa" type="submit" name="siblingage" value="{{value}}" formaction="{{action}}#aj-despues" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{#value}}{{value}}{{/value}}{{^value}}{{#str}}no{{/str}}{{/value}}<span class="oculto"> · {{name}}</span></button>{{/siblingages}}</span>
+                        <span class="ayuda" id="c-hermanos-a">{{#str}}panel_siblingage_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    <div>
+                        <input type="hidden" name="invitegone" value="{{#invitegone}}1{{/invitegone}}{{^invitegone}}0{{/invitegone}}">
+                        <button class="interruptor" type="submit" name="invitegone" value="{{#invitegone}}0{{/invitegone}}{{^invitegone}}1{{/invitegone}}" formaction="{{action}}#aj-despues" aria-pressed="{{#invitegone}}true{{/invitegone}}{{^invitegone}}false{{/invitegone}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_invitegone, local_oksigeniaeguahe{{/str}}</span></button>
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-despues" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== The data of the families: the sheet they read, with its blanks ===== }}
+            <details class="apartado aj-plegado" id="aj-datos">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-datos-t">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#controller}}<span>{{controller}}</span>{{/controller}}{{^controller}}<span>{{#str}}panel_read_nocontroller, local_oksigeniaeguahe{{/str}}</span>{{/controller}}{{#retentions}}{{#selected}}<span>{{#str}}panel_read_retention, local_oksigeniaeguahe, {{name}}{{/str}}</span>{{/selected}}{{/retentions}}</span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-hoja">
+                        <div class="aj-hoja-fila con-ayuda"><label for="c-resp">{{#str}}centre_controller, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-resp" name="controller" value="{{controller}}" aria-describedby="c-resp-a"><span class="ayuda" id="c-resp-a">{{#str}}centre_controller_help, local_oksigeniaeguahe{{/str}}</span></div>
+                        <div class="aj-hoja-fila"><label for="c-derechos">{{#str}}centre_rightscontact, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-derechos" name="rightscontact" value="{{rights}}"></div>
+                        <div class="aj-hoja-fila"><label for="c-dpd">{{#str}}centre_dpocontact, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-dpd" name="dpocontact" value="{{dpo}}"></div>
+                    </div>
+                    <div class="aj-elige-fila">
+                        <span class="aj-elige-t" id="c-meses">{{#str}}centre_retention, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige" role="group" aria-labelledby="c-meses" aria-describedby="c-meses-a">{{#retentions}}<button class="aj-chapa" type="submit" name="retention" value="{{value}}" formaction="{{action}}#aj-datos" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/retentions}}</span>
+                        <span class="ayuda" id="c-meses-a">{{#str}}centre_retention_help, local_oksigeniaeguahe{{/str}}</span>
+                        <input type="hidden" name="retention" value="{{#retentions}}{{#selected}}{{value}}{{/selected}}{{/retentions}}">
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-datos" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== The area and the networks: a list on lined paper ===== }}
+            <details class="apartado aj-plegado" id="aj-zona">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-zona-t">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura aj-lectura-lista">{{#areaplaces}}<span class="aj-sitio">{{.}}</span>{{/areaplaces}}{{^areaplaces}}<span>{{#str}}panel_read_noplaces, local_oksigeniaeguahe{{/str}}</span>{{/areaplaces}}</span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-frase con-ayuda">
+                        <label for="c-zona">{{#str}}panel_places_of_area, local_oksigeniaeguahe{{/str}}</label>
+                        <textarea class="aj-cuaderno" id="c-zona" name="municipalities" rows="6" aria-describedby="c-zona-a">{{municipalities}}</textarea>
+                        <span class="ayuda" id="c-zona-a">{{#str}}panel_places_of_area_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-zona" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+            <details class="apartado aj-plegado" id="aj-redes">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-redes-t">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura aj-lectura-lista">{{#networklist}}<span class="aj-sitio">{{.}}</span>{{/networklist}}{{^networklist}}<span>{{#str}}panel_read_nonetworks, local_oksigeniaeguahe{{/str}}</span>{{/networklist}}</span></summary>
+                <div class="aj-cuerpo">
+                    <div class="aj-frase con-ayuda">
+                        <label for="c-redes">{{#str}}panel_networks_list, local_oksigeniaeguahe{{/str}}</label>
+                        <textarea class="aj-cuaderno" id="c-redes" name="networks" rows="6" aria-describedby="c-redes-a">{{networks}}</textarea>
+                        <span class="ayuda" id="c-redes-a">{{#str}}panel_networks_help, local_oksigeniaeguahe{{/str}}</span>
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-redes" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== The skin of the panel: each one its picture, touched to choose it ===== }}
+            <details class="apartado aj-plegado" id="aj-panel">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-panel-t">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#skins}}{{#checked}}<span>{{name}}</span>{{/checked}}{{/skins}}</span></summary>
+                <div class="aj-cuerpo">
+                    <p class="linea-dato">{{skinproposal}}</p>
+                    <input type="hidden" name="skin" value="{{#skins}}{{#checked}}{{value}}{{/checked}}{{/skins}}">
+                    <div class="pieles" role="group" aria-labelledby="aj-panel-t">
+                        {{#skins}}
+                        <button class="piel-opcion{{#auto}} auto{{/auto}}" type="submit" name="skin" value="{{value}}" formaction="{{action}}#aj-panel" aria-pressed="{{#checked}}true{{/checked}}{{^checked}}false{{/checked}}"{{#soon}} disabled{{/soon}}>
+                            {{#img}}<span class="piel-muestra"><img class="dia" src="{{img}}" alt="" width="480" height="300" loading="lazy">{{#imgdark}}<img class="noche" src="{{imgdark}}" alt="" width="480" height="300" loading="lazy">{{/imgdark}}</span>{{/img}}
+                            <span class="lampara" aria-hidden="true"></span>
+                            <span class="piel-texto"><b>{{name}}</b><span class="secundario">{{help}}</span></span>
+                        </button>
+                        {{/skins}}
+                    </div>
+                    <p class="def">{{#str}}panel_skin_help, local_oksigeniaeguahe{{/str}}</p>
+                </div>
+            </details>
+
+            {{! ===== What families share ===== }}
+            <details class="apartado aj-plegado" id="aj-compartir">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-compartir-t">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#share}}{{#on}}<span>{{#str}}panel_read_share_on, local_oksigeniaeguahe{{/str}}</span>{{#hasforms}}{{#forms}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/forms}}{{/hasforms}}{{/on}}{{^on}}<span>{{#str}}panel_read_share_off, local_oksigeniaeguahe{{/str}}</span>{{/on}}{{/share}}</span></summary>
+                <div class="aj-cuerpo">
+                    {{#share}}
+                    <div>
+                        <input type="hidden" name="shareinvite" value="{{#on}}1{{/on}}{{^on}}0{{/on}}">
+                        <button class="interruptor" type="submit" name="shareinvite" value="{{#on}}0{{/on}}{{^on}}1{{/on}}" formaction="{{action}}#aj-compartir" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}centre_shareinvite, local_oksigeniaeguahe{{/str}}</span></button>
+                    </div>
+                    <input type="hidden" name="shareentry" value="{{#forms}}{{#selected}}{{value}}{{/selected}}{{/forms}}">
+                    {{#on}}{{#hasforms}}
+                    <div class="aj-elige-fila">
+                        <span class="aj-elige-t" id="c-compartir">{{#str}}centre_shareentry, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige" role="group" aria-labelledby="c-compartir">{{#forms}}<button class="aj-chapa" type="submit" name="shareentry" value="{{value}}" formaction="{{action}}#aj-compartir" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/forms}}</span>
+                    </div>
+                    {{/hasforms}}{{/on}}
+                    <p class="def">{{#str}}centre_share_help, local_oksigeniaeguahe{{/str}}</p>
+                    {{/share}}
+                </div>
+            </details>
+
+            {{! ===== The AI ===== }}
+            <details class="apartado aj-plegado" id="aj-ia">
+                <summary><span class="aj-plegado-cabeza"><h2 id="aj-ia-t">{{#str}}centre_ai, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span></span>
+                    <span class="aj-lectura">{{#ai}}{{#on}}<span>{{#str}}panel_read_on, local_oksigeniaeguahe{{/str}}</span>{{#several}}{{#providers}}{{#selected}}<span>{{name}}</span>{{/selected}}{{/providers}}{{/several}}{{/on}}{{^on}}<span>{{#str}}panel_read_off, local_oksigeniaeguahe{{/str}}</span>{{/on}}{{/ai}}</span></summary>
+                <div class="aj-cuerpo">
+                    {{#ai}}
+                    <div>
+                        <input type="hidden" name="aion" value="{{#on}}1{{/on}}{{^on}}0{{/on}}">
+                        <button class="interruptor" type="submit" name="aion" value="{{#on}}0{{/on}}{{^on}}1{{/on}}" formaction="{{action}}#aj-ia" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}"{{#locked}} disabled{{/locked}}><span class="lampara" aria-hidden="true"></span><span>{{#str}}centre_ai_on, local_oksigeniaeguahe{{/str}}</span></button>
+                    </div>
+                    <input type="hidden" name="aiprovider" value="{{#providers}}{{#selected}}{{value}}{{/selected}}{{/providers}}">
+                    {{#several}}
+                    <div class="aj-elige-fila">
+                        <span class="aj-elige-t" id="c-ia">{{#str}}centre_aiprovider, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="aj-elige" role="group" aria-labelledby="c-ia">{{#providers}}<button class="aj-chapa" type="submit" name="aiprovider" value="{{value}}" formaction="{{action}}#aj-ia" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}"{{#locked}} disabled{{/locked}}>{{name}}</button>{{/providers}}</span>
+                    </div>
+                    {{/several}}
+                    <p class="def">{{note}}{{#locked}} {{lockednote}}{{/locked}}</p>
+                    {{/ai}}
+                </div>
+            </details>
+
+            </div>
         </div>
     </form>
 </div>

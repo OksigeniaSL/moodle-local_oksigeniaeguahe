@@ -62,10 +62,13 @@ if (data_submitted()) {
     foreach ($problems as $problem) {
         \core\notification::warning($problem);
     }
-    // Back where the gesture was (a card, a shelf of the offer), without a message for a gesture.
-    $back = panel_centre::$back ?? [];
-    $to = new moodle_url($url, $back['params'] ?? [], $back['anchor'] ?? null);
-    if (!empty($back['quiet']) && !$problems) {
+    // Back where the gesture was: a card or a shelf of the offer, or else the place its button names (formaction), which
+    // the browser keeps across the redirection; the school year of the offer that was seen, kept.
+    $back = panel_centre::$back;
+    $view = optional_param('offerview', '', PARAM_TEXT);
+    $to = new moodle_url($url, $back['params'] ?? ($view !== '' ? ['year' => $view] : []), $back['anchor'] ?? null);
+    // A switch or a chip is seen to change: only «Save» (or a problem) says it was saved.
+    if (($back['quiet'] ?? !optional_param('guardar', 0, PARAM_BOOL)) && !$problems) {
         redirect($to);
     }
     redirect($to, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);

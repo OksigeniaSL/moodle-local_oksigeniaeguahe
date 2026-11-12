@@ -35,7 +35,7 @@
             "leaf": {"weekday": "jue", "day": "10", "month": "sept"},
             "date": {"id": "pd-7", "first": "pd-7d", "form": false, "child": false, "invalid": false, "labelled": false,
                 "arialabel": "Primer día de Infantil 3 años", "describedby": false, "mirror": false, "value": "2027-09-10",
-                "parts": [{"key": "d", "id": "pd-7d", "name": "dayd", "label": "Día", "value": "10", "size": 2}]},
+                "parts": [{"key": "d", "id": "pd-7d", "name": "dayd", "label": "Día", "value": "10", "size": 2, "months": false}]},
             "rows": [{"id": 4, "tag": "Leo", "name": "Leonardo", "adults": "Marta Ruiz", "url": "#", "started": false,
                 "text": "Ha empezado", "search": "leo"}]}]
     }
@@ -63,11 +63,14 @@
                         <button class="boton principal" type="submit">{{#str}}panel_firstday_course_ok, local_oksigeniaeguahe{{/str}}</button>
                     </form>
                     {{/check}}
-                    <form method="post" action="{{action}}#curso{{offerid}}" class="pd-cambiar">
-                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="firstday"><input type="hidden" name="offer" value="{{offerid}}">
-                        {{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}
-                        <button class="boton secundario" type="submit">{{#str}}panel_firstday_course_save, local_oksigeniaeguahe{{/str}}</button>
-                    </form>
+                    <details class="pd-otra"{{#missing}} open{{/missing}}>
+                        <summary>{{#missing}}{{#str}}panel_firstday_set, local_oksigeniaeguahe{{/str}}{{/missing}}{{^missing}}{{#str}}panel_firstday_change, local_oksigeniaeguahe{{/str}}{{/missing}}</summary>
+                        <form method="post" action="{{action}}#curso{{offerid}}" class="pd-cambiar">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="firstday"><input type="hidden" name="offer" value="{{offerid}}">
+                            {{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}
+                            <button class="boton principal pequeno" type="submit">{{#str}}panel_firstday_course_save, local_oksigeniaeguahe{{/str}}</button>
+                        </form>
+                    </details>
                 </div>
                 {{/canact}}
                 </div>

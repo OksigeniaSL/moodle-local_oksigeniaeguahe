@@ -893,6 +893,13 @@ body.piel-mostrador::after {
     color: var(--eg-tinta-2);
 }
 
+/* A date written on a leaf, and an hour on a plate of the same paper: the binding, the colour of the stamps. */
+.piel-mostrador .fecha-tres,
+.piel-mostrador input[data-hora],
+.piel-mostrador .campo input[type="time"] {
+    background: linear-gradient(var(--eg-sello) 0 6px, transparent 6px), var(--b-blanco);
+}
+
 .piel-mostrador .grupo-actos > h2,
 .piel-mostrador .grupo-actos > summary h2,
 .piel-mostrador .plegable > summary h2 {

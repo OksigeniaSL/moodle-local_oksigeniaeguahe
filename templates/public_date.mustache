@@ -17,9 +17,11 @@
 {{!
     @template local_oksigeniaeguahe/public_date
 
-    A date as three numeric fields, day, month and year, in the order of the country of the centre
+    A date as three fields, day, month and year, in the order of the country of the centre
     (publicpage::date_input()), whatever the language of the browser: a field of type date writes it as its browser
-    does. The page gives the label of the date, with the id <id>-l and for the first field; the group reads it too
+    does. It looks like a leaf of the calendar written in place (the month small on top, the day big, the year under
+    it), whatever the order of the fields for the keyboard; empty, each field says what goes in it. The month may be a
+    list of its names: months, in its part, as {list: [{value, name, selected}]}; else, false, and it is a number. The page gives the label of the date, with the id <id>-l and for the first field; the group reads it too
     (labelled, on unless the date stands alone; else arialabel). With mirror, a copy of the whole date without a name, kept
     by the panel script for those that read it (data-vivo).
 
@@ -27,9 +29,10 @@
     {
         "id": "c0birth", "first": "c0birthd", "form": false, "child": {"i": "0"}, "invalid": false,
         "labelled": false, "arialabel": "Fecha de nacimiento", "describedby": false, "mirror": false, "value": "",
-        "parts": [{"key": "d", "id": "c0birthd", "name": "c0birthd", "label": "Día", "value": "", "size": 2},
-            {"key": "m", "id": "c0birthm", "name": "c0birthm", "label": "Mes", "value": "", "size": 2},
-            {"key": "y", "id": "c0birthy", "name": "c0birthy", "label": "Año", "value": "", "size": 4}]
+        "parts": [{"key": "d", "id": "c0birthd", "name": "c0birthd", "label": "Día", "value": "", "size": 2, "months": false},
+            {"key": "m", "id": "c0birthm", "name": "c0birthm", "label": "Mes", "value": "", "size": 2,
+                "months": {"list": [{"value": 1, "name": "enero", "selected": false}]} },
+            {"key": "y", "id": "c0birthy", "name": "c0birthy", "label": "Año", "value": "", "size": 4, "months": false}]
     }
 }}
 <div class="fecha-tres" role="group"{{#labelled}} aria-labelledby="{{id}}-l"{{/labelled}}{{#arialabel}} aria-label="{{arialabel}}"{{/arialabel}}{{#describedby}} aria-describedby="{{describedby}}"{{/describedby}}>
@@ -37,7 +40,8 @@
     {{#parts}}
     <span class="fecha-parte fecha-{{key}}">
         <label class="fecha-nombre" for="{{id}}">{{label}}</label>
-        <input id="{{id}}" name="{{name}}"{{#form}} form="{{form}}"{{/form}} type="text" inputmode="numeric" pattern="[0-9]*" maxlength="{{size}}" size="{{size}}" value="{{value}}" autocomplete="off" data-fecha-parte="{{key}}"{{#child}} data-child="{{i}}"{{/child}}{{#invalid}} aria-invalid="true"{{/invalid}}>
+        {{#months}}<select id="{{id}}" name="{{name}}"{{#form}} form="{{form}}"{{/form}} data-fecha-parte="{{key}}"{{#child}} data-child="{{i}}"{{/child}}{{#invalid}} aria-invalid="true"{{/invalid}}><option value="">{{label}}</option>{{#list}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/list}}</select>{{/months}}
+        {{^months}}<input id="{{id}}" name="{{name}}"{{#form}} form="{{form}}"{{/form}} type="text" inputmode="numeric" pattern="[0-9]*" maxlength="{{size}}" size="{{size}}" value="{{value}}" placeholder="{{label}}" autocomplete="off" data-fecha-parte="{{key}}"{{#child}} data-child="{{i}}"{{/child}}{{#invalid}} aria-invalid="true"{{/invalid}}>{{/months}}
     </span>
     {{/parts}}
 </div>

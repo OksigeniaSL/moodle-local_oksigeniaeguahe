@@ -782,33 +782,119 @@ textarea {
     font-size: 0.9375rem;
 }
 
-/* A date in three fields, day, month and year, in the order of the country of the centre: a field of type date
-   writes it as its browser does, mm/dd/yyyy in an English one. */
+/* A date is a leaf of the calendar written in place: its binding in the aubergine of Eguahe (the centre keeps its
+   colour for what is its own), the month small, the day big and the year under it. The fields keep the order of the
+   country of the centre for the keyboard; only the leaf puts them in their place. Empty, each says what goes in it. */
 .fecha-tres {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: inline-grid;
+    justify-self: start;
+    width: max-content;
+    grid-template-columns: 7rem;
+    grid-template-areas: "m" "d" "y";
+    padding: 12px 0 8px;
+    border-radius: 3px 3px 12px 12px;
+    background: linear-gradient(var(--eg-maqueta) 0 7px, transparent 7px), var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde), 0 12px 20px -16px rgba(58, 42, 30, 0.6);
+    text-align: center;
+}
+
+.fecha-tres:focus-within {
+    box-shadow: inset 0 0 0 3px var(--c-acento-texto), 0 12px 20px -16px rgba(58, 42, 30, 0.6);
 }
 
 .fecha-parte {
-    display: grid;
-    gap: 4px;
+    display: block;
 }
 
-.campo .fecha-nombre {
-    color: var(--eg-tinta-2);
-    font-weight: 600;
-    font-size: 0.875rem;
+.fecha-tres .fecha-m {
+    grid-area: m;
 }
 
-.campo .fecha-parte input {
-    width: 4.75rem;
+.fecha-tres .fecha-d {
+    grid-area: d;
+}
+
+.fecha-tres .fecha-y {
+    grid-area: y;
+}
+
+/* The names of the parts stay for those who listen; on the leaf, each empty field says it. */
+.fecha-tres .fecha-nombre,
+.campo .fecha-tres .fecha-nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.fecha-tres .fecha-parte input,
+.campo .fecha-tres .fecha-parte input,
+.fecha-tres .fecha-parte select,
+.campo .fecha-tres .fecha-parte select {
+    width: 100%;
+    min-height: 0;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
     text-align: center;
+    text-align-last: center;
     font-variant-numeric: tabular-nums;
+    appearance: none;
 }
 
-.campo .fecha-y input {
-    width: 6.5rem;
+.fecha-tres .fecha-m input,
+.campo .fecha-tres .fecha-m input,
+.fecha-tres .fecha-m select,
+.campo .fecha-tres .fecha-m select {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.fecha-tres .fecha-d input,
+.campo .fecha-tres .fecha-d input {
+    font-size: 2.5rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.fecha-tres .fecha-y input,
+.campo .fecha-tres .fecha-y input {
+    color: var(--eg-tinta-2);
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+.fecha-tres .fecha-parte input::placeholder {
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.75;
+}
+
+.fecha-tres .fecha-parte input:focus,
+.fecha-tres .fecha-parte select:focus,
+.campo .fecha-tres .fecha-parte input:focus-visible,
+.campo .fecha-tres .fecha-parte select:focus-visible {
+    border: 0;
+    outline: none;
+    background: var(--eg-hundido);
+    box-shadow: none;
+}
+
+.fecha-tres:has([aria-invalid="true"]) {
+    box-shadow: inset 0 0 0 3px var(--eg-error), 0 12px 20px -16px rgba(58, 42, 30, 0.6);
 }
 
 .nino + .nino {

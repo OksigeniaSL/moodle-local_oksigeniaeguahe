@@ -960,52 +960,151 @@ main {
     font-size: 1rem;
 }
 
-/* A date in three fields, day, month and year, in the order of the language and country of the centre, and an hour
-   by its clock: a field of type date or time writes them as its browser does (mm/dd/yyyy, AM and PM in an English one).
-   Each field as wide as what it holds. */
+/* A date is a leaf of the calendar written in place: its binding on top, the month small, the day big and the year
+   under it, as every leaf of Eguahe (.hoja-cal). The fields keep the order of the language and country of the centre
+   for the keyboard; only the leaf puts them in their place. Empty, each says what goes in it. An hour is a plate of
+   the same paper beside it, its figures large. */
 .fecha-tres {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: end;
-    gap: 6px;
+    display: inline-grid;
+    justify-self: start;
+    width: max-content;
+    grid-template-columns: 6.25rem;
+    grid-template-areas: "m" "d" "y";
+    padding: 10px 0 6px;
+    border-radius: 3px 3px 10px 10px;
+    background: linear-gradient(var(--eg-acento) 0 6px, transparent 6px), var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
+    text-align: center;
+    vertical-align: top;
+}
+
+.fecha-tres:focus-within {
+    box-shadow: inset 0 0 0 2px var(--eg-acento), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
 }
 
 .fecha-parte {
-    display: grid;
-    gap: 2px;
+    display: block;
 }
 
+.fecha-tres .fecha-m {
+    grid-area: m;
+}
+
+.fecha-tres .fecha-d {
+    grid-area: d;
+}
+
+.fecha-tres .fecha-y {
+    grid-area: y;
+}
+
+/* The names of the parts stay for those who listen; on the leaf, each empty field says it. */
 .fecha-tres .fecha-nombre,
 .campo .fecha-tres .fecha-nombre {
-    color: var(--eg-tinta-2);
-    font-weight: 600;
-    font-size: 0.75rem;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
-.fecha-tres input,
-.campo .fecha-tres input,
-.campo input[data-hora],
-input[data-hora] {
-    width: 3.5rem;
-    min-height: 44px;
-    padding: 8px 6px;
-    border: 1.5px solid var(--eg-borde);
-    border-radius: var(--radio-campo);
-    background: var(--eg-superficie);
+.fecha-tres .fecha-parte input,
+.campo .fecha-tres .fecha-parte input,
+.fecha-tres .fecha-parte select,
+.campo .fecha-tres .fecha-parte select {
+    width: 100%;
+    min-height: 0;
+    padding: 1px 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
     color: var(--eg-tinta);
-    font-size: 1rem;
+    font: inherit;
     text-align: center;
+    text-align-last: center;
     font-variant-numeric: tabular-nums;
+    appearance: none;
+}
+
+.fecha-tres .fecha-m input,
+.campo .fecha-tres .fecha-m input,
+.fecha-tres .fecha-m select,
+.campo .fecha-tres .fecha-m select {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.fecha-tres .fecha-d input,
+.campo .fecha-tres .fecha-d input {
+    font-size: 2.125rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
 }
 
 .fecha-tres .fecha-y input,
 .campo .fecha-tres .fecha-y input {
-    width: 5rem;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.fecha-tres .fecha-parte input::placeholder {
+    color: var(--eg-tinta-2);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.fecha-tres .fecha-parte input:focus,
+.fecha-tres .fecha-parte select:focus {
+    border: 0;
+    outline: none;
+    background: var(--eg-hundido);
+    box-shadow: none;
+}
+
+.fecha-tres:has([aria-invalid="true"]) {
+    box-shadow: inset 0 0 0 2px var(--eg-error, #b3261e), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
 }
 
 .campo input[data-hora],
-input[data-hora] {
-    width: 6rem;
+input[data-hora],
+.campo input[type="time"] {
+    width: 6.5rem;
+    min-height: 58px;
+    padding: 12px 6px 6px;
+    border: 0;
+    border-radius: 3px 3px 10px 10px;
+    background: linear-gradient(var(--eg-acento) 0 6px, transparent 6px), var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
+    color: var(--eg-tinta);
+    font-size: 1.5rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.campo input[data-hora]:focus,
+input[data-hora]:focus,
+.campo input[type="time"]:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--eg-acento), 0 10px 18px -14px rgba(58, 42, 30, 0.6);
+}
+
+.campo input[data-hora]::placeholder {
+    color: var(--eg-tinta-2);
+    font-size: 1rem;
+    font-weight: 600;
+    opacity: 0.7;
 }
 
 .campo textarea {
@@ -8916,35 +9015,6 @@ html.modo-lamina {
     scroll-margin-top: 16px;
 }
 
-.ajustes > .guardar-pie {
-    grid-column: 1 / -1;
-}
-
-.color-fila {
-    display: grid;
-    gap: 14px;
-    /* stylelint-disable-next-line csstree/validator */
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-}
-
-.color-campo {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.campo .color-campo input[type="color"] {
-    width: 56px;
-    flex: none;
-    padding: 4px;
-    cursor: pointer;
-}
-
-.campo .color-campo .color-hex {
-    flex: 1 1 auto;
-    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-}
-
 .muestra-color {
     display: grid;
     gap: 10px;
@@ -9042,131 +9112,8 @@ html.modo-lamina {
     width: 52px;
 }
 
-.reciben-lista {
-    display: grid;
-    gap: 12px;
-}
-
-.recibe {
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) auto;
-    gap: 12px;
-    align-items: center;
-}
-
-.recibe .cara {
-    width: 48px;
-    height: 48px;
-    font-size: 0.9375rem;
-}
-
-.recibe-datos {
-    display: grid;
-    gap: 4px;
-    min-width: 0;
-}
-
-.recibe-datos input {
-    width: 100%;
-    min-height: 40px;
-    padding: 6px 10px;
-    border: 1.5px solid var(--eg-borde);
-    border-radius: 10px;
-    background: var(--eg-superficie);
-    color: var(--eg-tinta);
-}
-
-.ofertas {
-    display: grid;
-    gap: 12px;
-}
-
-/* A whole stage of the system at once, under the list: the stage, its school year and the button, in one row. */
-.anadir-etapa {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
-    align-items: end;
-    gap: 8px 12px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px dashed var(--eg-linea);
-}
-
-.anadir-etapa .campo {
-    display: grid;
-    gap: 6px;
-}
-
-.anadir-etapa > p {
-    grid-column: 1 / -1;
-    margin: 0;
-}
-
 .anadir-etapa-sin {
     margin: 16px 0 0;
-}
-
-@media (max-width: 700px) {
-    .anadir-etapa {
-        grid-template-columns: minmax(0, 1fr);
-    }
-}
-
-.oferta {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr) auto;
-    gap: 8px 12px;
-    align-items: end;
-    padding-bottom: 12px;
-    border-bottom: 1px dashed var(--eg-linea);
-}
-
-.oferta-riel {
-    grid-column: 1 / -1;
-}
-
-/* «Your first day» for a course: the box and who receives them in the story, on one line across the course. */
-.oferta-cuento {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 28px;
-}
-
-.oferta-cuento .cuento-quien {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.oferta-cuento .cuento-quien > label {
-    font-weight: 500;
-    color: var(--eg-tinta-2);
-}
-
-.oferta-cuento .cuento-quien select {
-    width: auto;
-}
-
-.equipo-lista {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 20px;
-}
-
-.equipo-lista li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.equipo-lista li > span {
-    display: grid;
-}
-
-.equipo-lista .secundario {
-    font-size: 0.8125rem;
 }
 
 .pieles {
@@ -9192,15 +9139,30 @@ html.modo-lamina {
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas: "muestra muestra" "radio texto";
     column-gap: 8px;
+    width: 100%;
+    color: var(--eg-tinta);
+    font: inherit;
+    text-align: start;
 }
 
-.piel-opcion > input {
+.piel-opcion .lampara {
     grid-area: radio;
-    width: 22px;
-    height: 22px;
-    margin: 4px 0 0 4px;
-    accent-color: var(--eg-accion);
+    margin: 2px 0 0 2px;
 }
+
+.piel-opcion[aria-pressed="true"] {
+    border-color: var(--eg-acento);
+}
+
+.piel-opcion[aria-pressed="true"] .piel-muestra {
+    box-shadow: 0 0 0 3px var(--eg-acento);
+}
+
+.piel-opcion:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
 
 .piel-muestra {
     grid-area: muestra;
@@ -9231,16 +9193,6 @@ html.modo-lamina {
 
 .piel-muestra .noche {
     display: none;
-}
-
-.piel-opcion > input:checked ~ .piel-muestra {
-    box-shadow: 0 0 0 3px var(--eg-accion);
-}
-
-.piel-opcion > input:checked ~ .piel-texto b {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 4px;
 }
 
 .piel-texto {
@@ -9289,37 +9241,6 @@ html.modo-lamina {
 }
 
 @media (max-width: 719px) {
-    .recibe {
-        grid-template-columns: 48px minmax(0, 1fr);
-    }
-
-    .recibe > .casilla {
-        grid-column: 2;
-    }
-
-    .oferta {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-
-    .oferta > .campo:first-child {
-        grid-column: 1 / -1;
-    }
-
-    /* Narrow: who receives them in the story, labelled above like the other fields, the select the whole width. */
-    .oferta-cuento,
-    .oferta-cuento .cuento-quien {
-        display: grid;
-        width: 100%;
-    }
-
-    .oferta-cuento .cuento-quien > label {
-        font-weight: 650;
-        color: var(--eg-tinta);
-    }
-
-    .oferta-cuento .cuento-quien select {
-        width: 100%;
-    }
 
     .indice-ajustes ol {
         flex-wrap: nowrap;
@@ -9829,28 +9750,6 @@ html.modo-lamina {
     margin-inline-start: -6px;
 }
 
-/* Eguahe, the settings: the role and the photo of who receives, and taking someone out of the team. */
-.recibe-acciones {
-    display: grid;
-    gap: 6px;
-    justify-items: start;
-}
-
-.recibe-foto {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--eg-acento);
-    font-size: 0.875rem;
-    font-weight: 650;
-    cursor: pointer;
-}
-
-.recibe-foto svg {
-    width: 16px;
-    height: 16px;
-}
-
 .archivo-oculto {
     position: absolute;
     top: 0;
@@ -9859,22 +9758,6 @@ html.modo-lamina {
     height: 1px;
     opacity: 0;
     overflow: hidden;
-}
-
-.recibe-acciones:focus-within .recibe-foto {
-    outline: 2px solid var(--eg-acento);
-    outline-offset: 2px;
-    border-radius: 4px;
-}
-
-.equipo-lista .quitar {
-    font-size: 0.8125rem;
-}
-
-@media (max-width: 719px) {
-    .recibe > .recibe-acciones {
-        grid-column: 2;
-    }
 }
 
 /* Eguahe, the sheets of labels: each sheet in millimetres as the centre buys it, the label of a backpack or the
@@ -10615,26 +10498,6 @@ a.quien-cita:focus-visible {
     }
 }
 
-/* Eguahe, a file chosen with a button like the others, its name beside; the field of the browser hidden but there. */
-.elegir-archivo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px 12px;
-}
-
-.elegir-archivo:focus-within .boton {
-    outline: 2px solid var(--eg-acento);
-    outline-offset: 2px;
-}
-
-.archivo-nombre {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    color: var(--eg-tinta-2);
-    font-size: 0.875rem;
-}
-
 /* Eguahe: an event already over, on a phone, does not keep its band on top: nobody is at the door any more. */
 @media (max-width: 719px) {
     .puerta.paso .banda {
@@ -10766,19 +10629,30 @@ a.quien-cita:focus-visible {
     gap: 8px 12px;
 }
 
-.pd-cambiar input {
+/* Another day for the course: «Change the date» opens a leaf to write it on, beside its «Save»; without a date yet,
+   it comes open. */
+.pd-otra > summary {
+    display: inline-flex;
+    align-items: center;
     min-height: 44px;
-    padding: 8px 12px;
-    border: 1.5px solid var(--eg-borde);
-    border-radius: var(--radio-campo);
-    background: var(--eg-superficie);
-    color: var(--eg-tinta);
-    font-size: 1rem;
+    color: var(--eg-acento);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    list-style: none;
 }
 
-.pd-cambiar input:focus {
-    border-color: var(--eg-acento);
-    box-shadow: 0 0 0 3px var(--bs-focus-ring-color);
+.pd-otra > summary::-webkit-details-marker {
+    display: none;
+}
+
+.pd-otra[open] > summary {
+    display: none;
+}
+
+.pd-otra .pd-cambiar {
+    align-items: flex-end;
 }
 
 /* The brothers and sisters for later in the file: when it would be their turn, and noting one more. */
@@ -11240,76 +11114,6 @@ a.quien-cita:focus-visible {
     color: var(--eg-tinta-2);
 }
 
-.canal-solos {
-    display: grid;
-    gap: 4px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.canal-solo {
-    position: relative;
-    padding-inline-start: 26px;
-}
-
-.canal-solo::before {
-    content: '';
-    position: absolute;
-    inset-inline-start: 4px;
-    top: 15px;
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    border: 2px solid var(--eg-borde);
-    background: var(--piel-hoja, var(--eg-papel));
-}
-
-.canal-solo:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    inset-inline-start: 10px;
-    top: 31px;
-    bottom: -19px;
-    width: 1.5px;
-    background: var(--eg-linea);
-}
-
-.canal-solo .casilla > span {
-    display: grid;
-    gap: 2px;
-}
-
-.canal-solo .casilla b {
-    font-weight: 700;
-}
-
-@media (min-width: 900px) {
-    .canal-solos {
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(0, 1fr);
-        gap: 20px;
-    }
-
-    .canal-solo {
-        padding: 22px 8px 0 0;
-    }
-
-    .canal-solo::before {
-        inset-inline-start: 0;
-        top: 0;
-    }
-
-    .canal-solo:not(:last-child)::after {
-        inset-inline-start: 19px;
-        inset-inline-end: -16px;
-        top: 6px;
-        bottom: auto;
-        width: auto;
-        height: 1.5px;
-    }
-}
-
 .lista-canal {
     display: grid;
     margin: 0;
@@ -11724,13 +11528,13 @@ a.quien-cita:focus-visible {
     color: var(--eg-tinta-2);
 }
 
-/* The switch of a shelf: its lamp, lit or out, with what it says. */
-.of-interruptor {
+/* A switch of the settings (a shelf, a moment of the channel, a choice of the centre): its lamp, lit or out, with what
+   it says. */
+.interruptor {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     min-height: 40px;
-    margin-inline-start: auto;
     padding: 4px 14px 4px 6px;
     border: 1.5px solid var(--eg-linea);
     border-radius: 20px;
@@ -11738,10 +11542,27 @@ a.quien-cita:focus-visible {
     color: var(--eg-tinta);
     font: inherit;
     font-weight: 700;
+    text-align: start;
     cursor: pointer;
 }
 
-.of-lampara {
+.of-etapa-cabeza .interruptor {
+    margin-inline-start: auto;
+}
+
+@media (max-width: 1099px) {
+    .ajustes-hojas > .aj-tramo-t:first-child {
+        display: none;
+    }
+}
+
+.interruptor:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.lampara {
+    flex: none;
     width: 26px;
     height: 26px;
     border-radius: 50%;
@@ -11749,7 +11570,7 @@ a.quien-cita:focus-visible {
     box-shadow: inset 0 0 0 2px var(--eg-borde);
 }
 
-.of-interruptor[aria-pressed="true"] .of-lampara {
+[aria-pressed="true"] > .lampara {
     background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
     box-shadow: 0 0 12px 2px rgba(241, 184, 74, 0.55);
 }
@@ -11984,7 +11805,965 @@ a.quien-cita:focus-visible {
         margin: 0 -10px;
     }
 
-    .of-interruptor {
+    .of-etapa-cabeza .interruptor {
         margin-inline-start: 0;
     }
+}
+
+/* ---------- The settings of the centre, without the look of a form ----------
+   Two stretches: what is touched every day, open, and what is set once, as folded cards that say in one line what they
+   have now. Every choice is a gesture (a switch with its lamp, a chip, a face that hangs or not) and text is written on
+   the thing the families read: the band, a visiting card, a sheet with its blanks, a page of lined paper. */
+.indice-t {
+    margin: 12px 12px 4px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.indice-t:first-child {
+    margin-top: 0;
+}
+
+.aj-tramo-t {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 -6px;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.aj-tramo-t::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--eg-linea);
+}
+
+/* A choice among a few: chips side by side; the one chosen, filled. */
+.aj-elige-fila {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+
+.aj-elige-t {
+    font-weight: 650;
+}
+
+.aj-elige {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.aj-chapa {
+    min-height: 38px;
+    padding: 4px 14px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 19px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.aj-chapa:hover {
+    border-color: var(--eg-borde);
+}
+
+.aj-chapa[aria-pressed="true"] {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.aj-chapa:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* The ages for the siblings: a ruler of round chips. */
+.aj-regla {
+    gap: 4px;
+}
+
+.aj-regla .aj-chapa {
+    min-width: 38px;
+    padding-inline: 10px;
+}
+
+/* The help of a field is said when it is being used, not under every field at once. */
+.con-ayuda .ayuda,
+.aj-elige-fila .ayuda,
+.aj-util .ayuda,
+.aj-persona-nueva .ayuda {
+    display: none;
+}
+
+.con-ayuda:focus-within .ayuda,
+.aj-elige-fila:focus-within .ayuda,
+.aj-util:focus-within .ayuda,
+.aj-persona-nueva:focus-within .ayuda {
+    display: block;
+}
+
+/* A blank to write in: on the paper itself, with its dotted line, as long as what it holds. */
+.aj-hueco {
+    min-width: 0;
+    min-height: 40px;
+    padding: 4px 2px;
+    border: 0;
+    border-bottom: 1.5px dashed var(--eg-borde);
+    border-radius: 0;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 600;
+}
+
+.aj-hueco::placeholder {
+    color: var(--eg-tinta-2);
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.aj-hueco:focus {
+    outline: none;
+    border-bottom: 2px solid var(--eg-acento);
+    background: var(--eg-hundido);
+}
+
+select.aj-hueco {
+    width: auto;
+    max-width: 100%;
+    padding-inline-end: 4px;
+    cursor: pointer;
+}
+
+/* Short data in short blanks, as long as what they hold; sentences take their line. */
+@supports (field-sizing: content) {
+    .aj-visita-par .aj-hueco,
+    .aj-hex {
+        /* stylelint-disable-next-line csstree/validator, property-no-unknown */
+        field-sizing: content;
+        min-width: 10ch;
+        max-width: 100%;
+    }
+}
+
+.aj-frase {
+    display: grid;
+    gap: 6px;
+}
+
+.aj-frase > label,
+.aj-visita-llegar > label,
+.aj-primer-texto > label {
+    font-weight: 650;
+}
+
+.aj-frase .aj-hueco:not(select) {
+    width: 100%;
+}
+
+.aj-cita {
+    display: flex;
+    font-size: 1.0625rem;
+}
+
+/* A page of lined paper: a list, one per line, or a few lines of text. */
+.aj-cuaderno {
+    width: 100%;
+    min-height: 76px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 10px;
+    background-color: var(--eg-superficie);
+    background-image: repeating-linear-gradient(transparent 0 31px, var(--eg-linea) 31px 32px);
+    background-attachment: local;
+    background-position: 0 6px;
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    color: var(--eg-tinta);
+    font: inherit;
+    line-height: 32px;
+    resize: vertical;
+}
+
+.aj-cuaderno:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--eg-acento);
+}
+
+/* The folded cards of what is set once: a grid of cards, the one open across. */
+.aj-tarjetas {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 14px;
+    align-items: start;
+}
+
+.aj-plegado {
+    display: block;
+    scroll-margin-top: 16px;
+}
+
+.aj-plegado[open] {
+    grid-column: 1 / -1;
+}
+
+details.aj-plegado > summary {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    cursor: pointer;
+    list-style: none;
+}
+
+/* «Change» and «Close» say it in words: no arrow of the folded sections here. */
+details.aj-plegado > summary h2::after {
+    content: none;
+}
+
+.aj-plegado > summary::-webkit-details-marker {
+    display: none;
+}
+
+.aj-plegado-cabeza {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.aj-plegado h2 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.aj-cambiar,
+.aj-cerrar {
+    flex: none;
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.aj-cerrar,
+.aj-plegado[open] .aj-cambiar,
+.aj-plegado[open] .aj-lectura {
+    display: none;
+}
+
+.aj-plegado[open] .aj-cerrar {
+    display: inline;
+}
+
+.aj-lectura {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 4px;
+    min-width: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    overflow-wrap: anywhere;
+}
+
+.aj-lectura > span:not(:last-child)::after {
+    content: '·';
+    margin: 0 8px;
+    color: var(--eg-borde);
+}
+
+.aj-lectura-lista {
+    gap: 6px;
+}
+
+.aj-lectura.aj-lectura-lista > span::after {
+    content: none;
+}
+
+.aj-sitio {
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    font-size: 0.875rem;
+}
+
+/* How families see it, folded: their band, small, with the logo and the name. */
+.aj-banda-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 4px 12px 4px 6px;
+    border-radius: 8px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-weight: 700;
+}
+
+.aj-banda-mini img {
+    border-radius: 4px;
+    background: #fff;
+    object-fit: contain;
+}
+
+.aj-cuerpo {
+    display: grid;
+    gap: 18px;
+    margin-top: 14px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.aj-guardar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* The name of the centre, written on its band. */
+.banda-muestra .aj-banda-nombre {
+    width: 100%;
+    min-width: 0;
+    padding: 0 0 2px;
+    border: 0;
+    border-bottom: 1.5px dashed currentColor;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.375rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+}
+
+.banda-muestra .aj-banda-nombre:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-bottom-color: transparent;
+}
+
+/* The tools under the two walls: the pot of colour, the plate of the logo, its light plate at night. */
+.aj-utiles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 32px;
+}
+
+.aj-util {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.aj-util-texto {
+    display: grid;
+    gap: 2px;
+}
+
+.aj-util .ayuda {
+    flex-basis: 100%;
+}
+
+.aj-bote {
+    position: relative;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px var(--eg-superficie), 0 0 0 4.5px var(--eg-linea), 0 6px 12px -6px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+
+.aj-bote input[type="color"] {
+    position: absolute;
+    inset: -10px;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+}
+
+.aj-bote:focus-within {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 4px;
+}
+
+.aj-hex {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 0.9375rem;
+    text-transform: uppercase;
+}
+
+.aj-placa-logo {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 1.25rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.aj-placa-logo img {
+    width: 100%;
+    height: 100%;
+    padding: 4px;
+    object-fit: contain;
+}
+
+.archivo-oculto:focus-visible + .aj-placa-logo,
+.archivo-oculto:focus-visible + .aj-cara {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 3px;
+}
+
+/* A photo or a logo just chosen: its «Save» comes out beside it (with JavaScript it saves itself). */
+.aj-foto-guardar {
+    display: none;
+}
+
+.aj-persona:has(input[type="file"]:valid) .aj-foto-guardar,
+.aj-util:has(input[type="file"]:valid) .aj-foto-guardar {
+    display: inline-flex;
+}
+
+/* The address and the contact: the visiting card of the centre. */
+.aj-visita {
+    display: grid;
+    gap: 10px;
+    padding: 18px 20px;
+    border-top: 6px solid var(--c-acento, var(--eg-acento));
+    border-radius: 6px 6px 12px 12px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 24px -18px rgba(58, 42, 30, 0.6);
+}
+
+.aj-visita-fila {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.aj-visita-fila > .aj-hueco {
+    flex: 1;
+}
+
+.aj-visita-dos {
+    flex-wrap: wrap;
+    gap: 10px 28px;
+}
+
+.aj-visita-par {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.aj-visita-ic {
+    display: inline-flex;
+    color: var(--eg-tinta-2);
+}
+
+.aj-visita-ic svg {
+    width: 20px;
+    height: 20px;
+}
+
+.aj-visita-llegar {
+    display: grid;
+    gap: 6px;
+    padding-top: 6px;
+}
+
+/* The country, the language, the money and the system: four plates. */
+.aj-placas {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    gap: 12px;
+}
+
+.aj-placa {
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+}
+
+.aj-placa > label {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
+
+.aj-placa .aj-hueco {
+    width: 100%;
+    border-bottom-color: transparent;
+    font-size: 1.0625rem;
+}
+
+/* After enrolling: the first day as a leaf of the calendar, the name in its sentence. */
+.aj-dos {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 16px 28px;
+    align-items: start;
+}
+
+.aj-primer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.aj-primer-hoja {
+    flex: none;
+}
+
+.aj-primer-sin {
+    border: 1.5px dashed var(--eg-borde);
+    background: transparent;
+    box-shadow: none;
+    color: var(--eg-tinta-2);
+}
+
+.aj-primer-texto {
+    display: grid;
+    gap: 4px;
+}
+
+.aj-primer .ayuda {
+    flex-basis: 100%;
+}
+
+.aj-hoy-frase {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 1.375rem;
+}
+
+.aj-frase .aj-hoy-frase .aj-hueco {
+    flex: 1 1 10em;
+    width: auto;
+    font: inherit;
+}
+
+/* The data of the families: the sheet they read, with its blanks. */
+.aj-hoja {
+    display: grid;
+    gap: 6px;
+    padding: 16px 20px;
+    border-radius: 4px 4px 12px 12px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 24px -18px rgba(58, 42, 30, 0.55);
+}
+
+.aj-hoja-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 17em) minmax(0, 1fr);
+    align-items: baseline;
+    gap: 2px 14px;
+}
+
+.aj-hoja-fila > label {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.aj-hoja-fila > .aj-hueco {
+    width: 100%;
+}
+
+.aj-hoja-fila .ayuda {
+    grid-column: 2;
+}
+
+/* The people: everyone of the team is a card; who the families see hangs from its nail by a string. */
+.aj-pared {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 40px 14px;
+    margin: 0;
+    padding: 34px 0 6px;
+    list-style: none;
+    align-items: start;
+}
+
+.aj-persona {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 18px 14px 12px;
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 22px -16px rgba(58, 42, 30, 0.6);
+    text-align: center;
+}
+
+.aj-persona::before {
+    content: '';
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    width: 56px;
+    height: 28px;
+    transform: translateX(-50%);
+    background:
+        linear-gradient(
+            to bottom right,
+            transparent calc(50% - 1px),
+            var(--eg-madera-sombra) calc(50% - 1px),
+            var(--eg-madera-sombra) calc(50% + 0.5px),
+            transparent calc(50% + 0.5px)
+        ) left / 50% 100% no-repeat,
+        linear-gradient(
+            to bottom left,
+            transparent calc(50% - 1px),
+            var(--eg-madera-sombra) calc(50% - 1px),
+            var(--eg-madera-sombra) calc(50% + 0.5px),
+            transparent calc(50% + 0.5px)
+        ) right / 50% 100% no-repeat;
+}
+
+.aj-persona::after {
+    content: '';
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, var(--eg-madera-luz), var(--eg-madera) 55%, var(--eg-madera-sombra));
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Who the families do not see is not hanging: leaning against the wall, without its string. */
+.aj-persona-fuera {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    transform: translateY(12px);
+}
+
+.aj-persona-fuera::before,
+.aj-persona-nueva::before,
+.aj-persona-nueva::after {
+    display: none;
+}
+
+.aj-persona-fuera::after {
+    opacity: 0.35;
+    top: -46px;
+}
+
+.aj-persona-fuera .aj-cara {
+    filter: grayscale(0.6);
+    opacity: 0.8;
+}
+
+.aj-cara {
+    position: relative;
+    display: block;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.aj-cara img,
+.aj-iniciales {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.aj-iniciales {
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 1.625rem;
+    font-weight: 800;
+}
+
+.aj-cara-foto {
+    position: absolute;
+    inset-inline-end: -2px;
+    bottom: -2px;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    box-shadow: 0 0 0 1.5px var(--eg-linea), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.aj-cara-foto svg {
+    width: 16px;
+    height: 16px;
+}
+
+.aj-persona-n {
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.aj-persona-papel {
+    margin-top: -4px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.aj-persona-frase {
+    color: var(--eg-tinta);
+    font-size: 1.125rem;
+    line-height: 1.25;
+}
+
+.aj-persona .interruptor {
+    min-height: 36px;
+    margin-top: 2px;
+    padding-inline-end: 12px;
+    font-size: 0.875rem;
+}
+
+.aj-persona .lampara {
+    width: 22px;
+    height: 22px;
+}
+
+.aj-persona-mas {
+    width: 100%;
+    text-align: start;
+}
+
+.of-dorso .campo textarea {
+    width: 100%;
+}
+
+.aj-dorso-pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.aj-quitar > summary {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.aj-quitar > summary::-webkit-details-marker {
+    display: none;
+}
+
+.aj-quitar[open] > summary {
+    display: none;
+}
+
+.aj-persona-nueva {
+    align-self: stretch;
+    align-content: center;
+    min-height: 160px;
+    border: 1.5px dashed var(--eg-borde);
+    background: transparent;
+    box-shadow: none;
+    scroll-margin-top: 60px;
+}
+
+.aj-persona-nueva .of-mas {
+    width: 100%;
+}
+
+.aj-persona-nueva summary {
+    justify-content: center;
+    border-top: 0;
+    color: var(--eg-acento);
+    font-size: 1rem;
+}
+
+/* Telegram and WhatsApp: three choices, each with its lamp. */
+.aj-modos {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 10px;
+}
+
+.aj-modo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "lampara nombre" "lampara texto";
+    align-content: start;
+    align-items: start;
+    gap: 2px 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.aj-modo .lampara {
+    grid-area: lampara;
+}
+
+.aj-modo b {
+    grid-area: nombre;
+    line-height: 1.6;
+}
+
+.aj-modo > span:last-child {
+    grid-area: texto;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.aj-modo[aria-pressed="true"] {
+    border-color: var(--eg-acento);
+    box-shadow: inset 0 0 0 1px var(--eg-acento);
+}
+
+.aj-sub {
+    margin: 10px 0 0;
+}
+
+.aj-linea-t {
+    margin: 4px 0 0;
+    font-weight: 700;
+}
+
+/* What goes by itself to the channel: the stops of a line of time, each lit or out. */
+.aj-linea {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aj-parada {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+}
+
+.aj-parada .interruptor {
+    position: relative;
+    order: 1;
+}
+
+.aj-parada-cuando {
+    order: 2;
+    padding-inline-start: 8px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+@media (min-width: 900px) {
+    .aj-linea {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .aj-linea::before {
+        content: '';
+        position: absolute;
+        inset-inline: 20px;
+        top: 19px;
+        height: 2px;
+        background: var(--eg-linea);
+    }
+}
+
+@media (max-width: 719px) {
+    .indice-t {
+        margin: 6px 0 2px;
+    }
+
+    .aj-hoja-fila {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .aj-hoja-fila .ayuda {
+        grid-column: auto;
+    }
+
+    .aj-pared {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 40px 10px;
+    }
+
+    .aj-persona {
+        padding-inline: 10px;
+    }
+
+    .aj-hoy-frase {
+        font-size: 1.25rem;
+    }
+}
+
+/* A card turned over (a course or a person) takes two columns, so its back reads without squeezing. */
+.of-curso:has(> .of-mas[open]),
+.aj-persona:has(> .aj-persona-mas[open]) {
+    grid-column: span 2;
+}
+
+.aj-persona {
+    min-width: 0;
+}
+
+.aj-persona .interruptor {
+    max-width: 100%;
+    text-align: start;
 }

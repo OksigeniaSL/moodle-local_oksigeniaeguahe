@@ -2274,6 +2274,29 @@
         }
     }
 
+    // ---- The settings of the centre: a photo, a logo or a choice in a select saves itself as soon as it is chosen,
+    // like every other gesture of the page, with the «Save» of its card (so it comes back to that card). Without
+    // JavaScript, that «Save» is there to press.
+    var settingsForm = one('[data-ajustes]');
+    if (settingsForm) {
+        all('[data-envio-solo]', settingsForm).forEach(function(field) {
+            on(field, 'change', function() {
+                if (field.type === 'file' && !(field.files && field.files.length)) {
+                    return;
+                }
+                var part = field.closest('.aj-persona, .aj-plegado, .apartado');
+                var save = part ? one('.aj-foto-guardar, [data-guardar]', part) : null;
+                if (settingsForm.requestSubmit) {
+                    settingsForm.requestSubmit(save || undefined);
+                } else if (save) {
+                    save.click();
+                } else {
+                    settingsForm.submit();
+                }
+            });
+        });
+    }
+
     // ---- How it went (round 4): the sheets of an event once it is over. Pointing at a word of a scale (mouse, finger or
     // keyboard), its line says how many said it and the other words step back; the bars grow once when they come into
     // sight; while the survey is asked, the sheets are read again every half minute and what changed moves from its old
