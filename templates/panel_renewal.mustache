@@ -37,13 +37,20 @@
                 "arialabel": "Último día para contestar", "describedby": false, "mirror": false, "value": "2027-03-15",
                 "parts": [{"key": "d", "id": "rm-hastad", "name": "untild", "label": "Día", "value": "15", "size": 2, "months": false}]},
             "tell": "Escribir a las 2 familias que no han contestado", "told": ""},
-        "roster": {"students": "312 alumnos en Family", "nameless": "24 sin cuenta de Moodle: llegan por la importación.",
-            "kinds": [{"key": "cohort", "arg": "", "label": "Por las cohortes", "pressed": true}], "kind": "cohort", "arg": "",
+        "roster": {"students": "Alumnos en Family: 312", "nameless": "Sin cuenta de Moodle: 24.",
+            "kinds": [{"key": "cohort", "arg": "", "label": "En las cohortes", "pressed": true}], "kind": "cohort", "arg": "",
             "years": [{"year": "2026-27", "label": "Curso 2026-27", "pressed": true}], "year": "2026-27", "noyear": false, "nooffer": "",
-            "hasvalues": true, "summary": "290 de 312 alumnos tienen ya su curso.", "guesses": "Dar por buenos los 3 propuestos",
-            "canbring": true, "brought": "", "open": true,
-            "values": [{"id": 0, "value": "3.º B", "count": "24 alumnos", "none": false, "pending": true,
-                "grades": [{"name": "3.º de Primaria", "value": "3.º de Primaria", "pressed": false, "guess": true}]}]},
+            "hasvalues": true, "values": [{"pending": true}], "summary": "Con su curso: 290 de 312 alumnos.",
+            "guesses": "Dar por buenos los propuestos (1)", "canbring": true, "brought": "", "open": true,
+            "rack": [{"key": "s006", "name": "Primaria", "ages": "de 6 a 11 años", "grades": [
+                {"value": "1.º de Primaria", "hook": "1.º de Primaria", "name": "1.º de Primaria", "tags": [{"id": "a1", "value": "1.º Primaria A",
+                    "count": "Alumnos: 24", "guess": true, "grade": "1.º de Primaria", "picked": false, "url": "#"}]},
+                {"value": "2.º de Primaria", "hook": "2.º de Primaria", "name": "2.º de Primaria", "tags": []}]}],
+            "hasloose": true, "loose": [{"id": "b2", "value": "3.º B", "count": "Alumnos: 22", "guess": false, "grade": "",
+                "picked": true, "url": "#"}],
+            "notcourses": [{"id": "c3", "value": "Comedor", "count": "Alumnos: 80", "guess": false, "grade": "", "picked": false,
+                "url": "#"}],
+            "picked": {"id": "b2", "value": "3.º B", "count": "Alumnos: 22"}, "dropurl": "/local/oksigeniaeguahe/renewal.php?c=1"},
         "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/renewal.php?c=1", "sesskey": "abc",
         "groups": [{"offerid": 7, "title": "Infantil 3 años", "next": "Pasan a Infantil 4 años", "count": "1 de 2 siguen", "leave": 1,
             "rows": [{"id": 4, "kind": "leave", "tag": "Leo", "adults": "Marta Ruiz", "url": "#", "said": "Lo dijo la familia el 3/12/26: no sigue.",
@@ -133,7 +140,7 @@
             {{#years}}
             <form method="post" action="{{action}}#padron">
                 <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteryear"><input type="hidden" name="year" value="{{year}}">
-                <button class="ficha-boton" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{label}}</button>
+                <button class="hoja-ano padron-ano" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}><small>{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</small><b>{{year}}</b></button>
             </form>
             {{/years}}
         </div>
@@ -147,18 +154,43 @@
             <button class="boton secundario pequeno" type="submit">{{guesses}}</button>
         </form>
         {{/guesses}}{{/canact}}
-        <ul class="padron-valores">
-            {{#values}}
-            <li class="padron-valor{{#pending}} por-decir{{/pending}}" id="pv{{id}}">
-                <span class="padron-nombre"><b dir="auto">{{value}}</b> <span class="secundario">{{count}}</span></span>
-                <form class="padron-fichas" method="post" action="{{action}}#pv{{id}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap"><input type="hidden" name="value" value="{{value}}">
-                    {{#grades}}<button class="ficha-boton{{#guess}} propuesta{{/guess}}" type="submit" name="grade" value="{{value}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{name}}</button>{{/grades}}
-                    <button class="ficha-boton" type="submit" name="grade" value="" aria-pressed="{{#none}}true{{/none}}{{^none}}false{{/none}}"{{^canact}} disabled{{/canact}}>{{#str}}panel_roster_none, local_oksigeniaeguahe{{/str}}</button>
-                </form>
-            </li>
-            {{/values}}
-        </ul>
+        {{#picked}}
+        <div class="padron-tengo" id="padron-tengo" role="status">
+            <span class="padron-tag padron-tag-alzada"><b dir="auto">{{value}}</b><span>{{count}}</span></span>
+            <p>{{#str}}panel_roster_hang, local_oksigeniaeguahe, {{value}}{{/str}}</p>
+            <a class="enlace" href="{{dropurl}}">{{#str}}panel_roster_drop, local_oksigeniaeguahe{{/str}}</a>
+        </div>
+        {{/picked}}
+        {{#hasloose}}
+        <div class="padron-bandeja" aria-labelledby="padron-sueltas">
+            <p class="padron-etiqueta" id="padron-sueltas">{{#str}}panel_roster_loose, local_oksigeniaeguahe{{/str}}</p>
+            <ul class="padron-tags">{{#loose}}<li><a class="padron-tag{{#picked}} padron-tag-alzada{{/picked}}" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a></li>{{/loose}}</ul>
+        </div>
+        {{/hasloose}}
+        <form class="padron-perchero" method="post" action="{{action}}#padron-perchero" id="padron-perchero">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap">
+            {{#picked}}<input type="hidden" name="value" value="{{value}}">{{/picked}}
+            {{#rack}}
+            <section class="padron-etapa" aria-labelledby="pe-{{key}}">
+                <h3 id="pe-{{key}}">{{name}} <span class="secundario">{{ages}}</span></h3>
+                <ul class="padron-ganchos">
+                    {{#grades}}
+                    <li class="padron-gancho{{#tags.0}} con-algo{{/tags.0}}">
+                        {{#picked}}<button class="padron-pomo" type="submit" name="grade" value="{{hook}}"{{^canact}} disabled{{/canact}}><span class="oculto">{{#str}}panel_roster_hang_here, local_oksigeniaeguahe{{/str}}: </span>{{name}}</button>{{/picked}}
+                        {{^picked}}<span class="padron-pomo">{{name}}</span>{{/picked}}
+                        <ul class="padron-colgadas">{{#tags}}<li><a class="padron-tag{{#guess}} padron-tag-propuesta{{/guess}}" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a>{{#guess}}{{#canact}}<button class="padron-si" type="submit" form="pf{{id}}" aria-label="{{#str}}panel_roster_yes, local_oksigeniaeguahe, {{value}}{{/str}}">{{{i.check}}}</button>{{/canact}}{{/guess}}</li>{{/tags}}</ul>
+                    </li>
+                    {{/grades}}
+                </ul>
+            </section>
+            {{/rack}}
+            <section class="padron-etapa padron-cajon" aria-labelledby="pe-no">
+                <h3 id="pe-no">{{#str}}panel_roster_none_box, local_oksigeniaeguahe{{/str}}</h3>
+                {{#picked}}<button class="padron-pomo padron-pomo-no" type="submit" name="grade" value=""{{^canact}} disabled{{/canact}}>{{#str}}panel_roster_none, local_oksigeniaeguahe{{/str}}</button>{{/picked}}
+                <ul class="padron-tags">{{#notcourses}}<li><a class="padron-tag padron-tag-no" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a></li>{{/notcourses}}</ul>
+            </section>
+        </form>
+        {{#rack}}{{#grades}}{{#tags}}{{#guess}}<form id="pf{{id}}" method="post" action="{{action}}#padron-perchero"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap"><input type="hidden" name="value" value="{{value}}"><input type="hidden" name="grade" value="{{grade}}"></form>{{/guess}}{{/tags}}{{/grades}}{{/rack}}
         {{#canact}}{{#canbring}}
         <form method="post" action="{{action}}#padron">
             <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostersync">

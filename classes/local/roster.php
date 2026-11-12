@@ -38,8 +38,8 @@ class roster {
     /** @var string What each value of the roll means. */
     const MAPS = 'local_oksigeniaeguahe_rostermap';
 
-    /** @var string[] Where the course of each student comes from. */
-    const KINDS = ['cohort', 'group', 'profile'];
+    /** @var string[] Where the course of each student comes from; family, only the group the record keeps. */
+    const KINDS = ['cohort', 'group', 'profile', 'family'];
 
     /** @var string The source of the permission to write, for the families brought from the roll of the centre. */
     const CONSENT = 'roster';
@@ -87,8 +87,8 @@ class roster {
      */
     public static function source(\stdClass $centre): ?array {
         $source = trim((string) ($centre->rostersource ?? ''));
-        if ($source === 'cohort') {
-            return ['cohort', ''];
+        if ($source === 'cohort' || $source === 'family') {
+            return [$source, ''];
         }
         if (preg_match('/^(group|profile):(.+)$/', $source, $m)) {
             return [$m[1], $m[2]];
@@ -107,8 +107,8 @@ class roster {
     public static function set_source(\stdClass $centre, string $kind, string $arg, string $year): void {
         global $DB;
         $source = null;
-        if ($kind === 'cohort') {
-            $source = 'cohort';
+        if ($kind === 'cohort' || $kind === 'family') {
+            $source = $kind;
         } else if (in_array($kind, self::KINDS, true) && trim($arg) !== '') {
             $source = \core_text::substr($kind . ':' . trim($arg), 0, 100);
         }
@@ -130,7 +130,7 @@ class roster {
         global $DB;
         $source = self::source($centre);
         $out = [];
-        if (!$source || !$userids) {
+        if (!$source || !$userids || $source[0] === 'family') {
             return $out;
         }
         [$kind, $arg] = $source;
@@ -187,7 +187,8 @@ class roster {
     public static function set_map(\stdClass $centre, string $value, string $grade): void {
         global $DB;
         $value = \core_text::substr(trim($value), 0, 255);
-        if ($value === '') {
+        // Only a course of the school year now, or nothing (not a course).
+        if ($value === '' || (trim($grade) !== '' && !isset(self::offers($centre)[grades::plain($grade)]))) {
             return;
         }
         $row = (object) ['centreid' => $centre->id, 'value' => $value, 'grade' => \core_text::substr(trim($grade), 0, 255),
@@ -219,9 +220,10 @@ class roster {
     }
 
     /**
-     * The course a value most likely is, for a person to confirm: the course all of whose words it holds (the one with
-     * most words: «3.º Primaria B» is 3.º de Primaria); else the only course of the same age; else the only course with
-     * its number («3.º B», when only Primaria has a third).
+     * The course a value most likely is, for a person to confirm: the course all of whose words it holds, an abbreviation
+     * counting as its word and a number as itself («INF 3ºA» is Infantil 3 años, «3.º Primaria B» is 3.º de Primaria),
+     * the one with most words; else the only course of the same age; else, for a value that is only a number and a
+     * letter («3.º B»), the only course with that number.
      *
      * @param string $value
      * @param \stdClass[] $offers self::offers()
@@ -229,16 +231,23 @@ class roster {
      * @return string The name of the course; empty, none.
      */
     public static function guess(string $value, array $offers, \stdClass $centre): string {
-        $words = fn(string $text) => array_values(array_diff(
-            explode(' ', grades::plain($text)),
-            ['', 'de', 'del', 'la', 'el', 'of', 'the', 'do', 'da', 'y', 'e']
-        ));
+        $skip = ['', 'de', 'del', 'la', 'el', 'of', 'the', 'do', 'da', 'y', 'e', 'ano', 'anos', 'year', 'years', 'curso'];
+        $words = fn(string $text) => array_values(array_diff(explode(' ', grades::plain($text)), $skip));
+        $number = fn(string $word) => preg_match('/^(\d+)[a-z]{0,2}$/', $word, $m) ? (int) $m[1] : null;
+        $same = function (string $theirs, string $mine) use ($number): bool {
+            if ($number($theirs) !== null || $number($mine) !== null) {
+                return $number($theirs) !== null && $number($theirs) === $number($mine);
+            }
+            $short = min(strlen($theirs), strlen($mine));
+            return $theirs === $mine || ($short >= 3 && (str_starts_with($theirs, $mine) || str_starts_with($mine, $theirs)));
+        };
         $mine = $words($value);
         $best = null;
         $most = 0;
         foreach ($offers as $offer) {
             $theirs = $words((string) $offer->name);
-            if ($theirs && !array_diff($theirs, $mine) && count($theirs) > $most) {
+            $all = $theirs && !array_filter($theirs, fn($t) => !array_filter($mine, fn($m) => $same($t, $m)));
+            if ($all && count($theirs) > $most) {
                 $best = $offer;
                 $most = count($theirs);
             }
@@ -253,12 +262,15 @@ class roster {
                 return (string) reset($same)->name;
             }
         }
-        $number = fn(string $text) => preg_match('/\d+/', $text, $m) ? (int) $m[0] : null;
-        $n = $number($value);
-        if ($n === null) {
+        // Only a number and letters of a group: the number alone says it, when only one course has it.
+        $numbers = array_filter(array_map($number, $mine), fn($n) => $n !== null);
+        $letters = array_filter($mine, fn($w) => $number($w) === null && strlen($w) >= 3);
+        if (count($numbers) !== 1 || $letters) {
             return '';
         }
-        $same = array_filter($offers, fn($o) => $number((string) $o->name) === $n);
+        $n = reset($numbers);
+        $first = fn(string $text) => preg_match('/\d+/', $text, $m) ? (int) $m[0] : null;
+        $same = array_filter($offers, fn($o) => $first((string) $o->name) === $n);
         return count($same) === 1 ? (string) reset($same)->name : '';
     }
 
@@ -282,23 +294,58 @@ class roster {
     }
 
     /**
-     * The students of the roll with an account, and how many have none.
+     * The students of the roll the centre can place: those with an account, and those without one whose name the record
+     * has from the data of the centre; and how many have neither, so cannot be named.
      *
-     * @return array userids, nameless.
+     * @return array userids, groups (whether any has the group of the record), count, nameless.
      */
     public static function students(): array {
         $userids = [];
+        $count = 0;
         $nameless = 0;
+        $groups = false;
         foreach (self::families() as $family) {
             foreach ($family->children as $child) {
+                $groups = $groups || trim((string) ($child->group ?? '')) !== '';
                 if ($child->userid) {
                     $userids[] = (int) $child->userid;
+                    $count++;
+                } else if (trim((string) ($child->firstname ?? '')) !== '') {
+                    $count++;
                 } else {
                     $nameless++;
                 }
             }
         }
-        return ['userids' => array_values(array_unique($userids)), 'nameless' => $nameless];
+        return ['userids' => array_values(array_unique($userids)), 'groups' => $groups, 'count' => $count,
+            'nameless' => $nameless];
+    }
+
+    /**
+     * The values of one student: those of its account, from where the centre said, and the group the record keeps for it
+     * («INF 3ºA», from the data of the centre), if any.
+     *
+     * @param \stdClass $child A child of the roll.
+     * @param array $values self::values()
+     * @return string[]
+     */
+    public static function of(\stdClass $child, array $values): array {
+        $out = $child->userid ? ($values[(int) $child->userid] ?? []) : [];
+        $group = trim((string) ($child->group ?? ''));
+        if ($group !== '') {
+            $out[] = \core_text::substr($group, 0, 255);
+        }
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Whether a child of the roll has a name to be brought with.
+     *
+     * @param \stdClass $child
+     * @return bool
+     */
+    protected static function named(\stdClass $child): bool {
+        return (bool) $child->userid || trim((string) ($child->firstname ?? '')) !== '';
     }
 
     /**
@@ -342,17 +389,23 @@ class roster {
      * @return array values (value, count, grade or null, guess), students, placed, unplaced, nameless.
      */
     public static function overview(\stdClass $centre): array {
-        ['userids' => $userids, 'nameless' => $nameless] = self::students();
+        ['userids' => $userids, 'count' => $students, 'nameless' => $nameless] = self::students();
         $values = self::values($centre, $userids);
         $maps = self::maps($centre);
         $offers = self::offers($centre);
         $counts = [];
         $placed = 0;
-        foreach ($userids as $userid) {
-            foreach (array_unique($values[$userid] ?? []) as $value) {
-                $counts[$value] = ($counts[$value] ?? 0) + 1;
+        foreach (self::families() as $family) {
+            foreach ($family->children as $child) {
+                if (!self::named($child)) {
+                    continue;
+                }
+                $mine = self::of($child, $values);
+                foreach ($mine as $value) {
+                    $counts[$value] = ($counts[$value] ?? 0) + 1;
+                }
+                $placed += self::place($mine, $maps, $offers) ? 1 : 0;
             }
-            $placed += self::place($values[$userid] ?? [], $maps, $offers) ? 1 : 0;
         }
         \core_collator::ksort($counts, \core_collator::SORT_NATURAL);
         $out = [];
@@ -360,8 +413,8 @@ class roster {
             $out[] = ['value' => (string) $value, 'count' => $count, 'grade' => array_key_exists($value, $maps) ?
                 (string) $maps[$value] : null, 'guess' => self::guess((string) $value, $offers, $centre)];
         }
-        return ['values' => $out, 'students' => count($userids), 'placed' => $placed,
-            'unplaced' => count($userids) - $placed, 'nameless' => $nameless];
+        return ['values' => $out, 'students' => $students, 'placed' => $placed, 'unplaced' => $students - $placed,
+            'nameless' => $nameless];
     }
 
     /**
@@ -395,7 +448,7 @@ class roster {
         foreach ($families as $familyid => $family) {
             $placed = [];
             foreach ($family->children as $child) {
-                $offer = $child->userid ? self::place($values[(int) $child->userid] ?? [], $maps, $offers) : null;
+                $offer = self::named($child) ? self::place(self::of($child, $values), $maps, $offers) : null;
                 if ($offer) {
                     $placed[] = [$child, $offer];
                 }

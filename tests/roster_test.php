@@ -20,6 +20,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\panel_renewal;
 use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\roster;
 
@@ -33,6 +34,7 @@ use local_oksigeniaeguahe\local\roster;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 #[\PHPUnit\Framework\Attributes\CoversClass(roster::class)]
+#[\PHPUnit\Framework\Attributes\CoversClass(panel_renewal::class)]
 final class roster_test extends \advanced_testcase {
     /**
      * Forgets the roll made for the tests.
@@ -69,9 +71,9 @@ final class roster_test extends \advanced_testcase {
         $adult = fn(int $id, string $first, string $email) => (object) ['adultid' => $id, 'userid' => null,
             'firstname' => $first, 'lastname' => 'Ejemplo', 'email' => $email, 'phone' => '+34600111222',
             'phoneverified' => true, 'status' => 'active'];
-        $child = fn(int $id, ?int $userid, string $first) => (object) ['childid' => $id, 'userid' => $userid,
-            'sourcekey' => 'csv:' . $id, 'firstname' => $userid ? $first : null, 'lastname' => null, 'status' => 'active',
-            'timeleft' => null];
+        $child = fn(int $id, ?int $userid, string $first, ?string $group = null) => (object) ['childid' => $id,
+            'userid' => $userid, 'sourcekey' => 'csv:' . $id, 'firstname' => $first !== '' ? $first : null, 'lastname' => null,
+            'group' => $group, 'status' => 'active', 'timeleft' => null];
         roster::$testfamilies = [
             101 => (object) ['familyid' => 101, 'status' => 'active', 'source' => 'csv', 'sourcekey' => 'csv:f1',
                 'timeclosed' => null, 'children' => [$child(11, (int) $lucia->id, 'Lucía'), $child(12, null, '')],
@@ -79,6 +81,10 @@ final class roster_test extends \advanced_testcase {
             102 => (object) ['familyid' => 102, 'status' => 'active', 'source' => 'csv', 'sourcekey' => 'csv:f2',
                 'timeclosed' => null, 'children' => [$child(13, (int) $hugo->id, 'Hugo')],
                 'adults' => [$adult(22, 'Ana', 'ana@example.com')]],
+            // Without an account: the record has his name and group from the data of the centre.
+            103 => (object) ['familyid' => 103, 'status' => 'active', 'source' => 'csv', 'sourcekey' => 'csv:f3',
+                'timeclosed' => null, 'children' => [$child(14, null, 'Mateo', 'INF 3ºA')],
+                'adults' => [$adult(23, 'Carmen', 'carmen@example.com')]],
         ];
         return [centres::get($id), $lucia];
     }
@@ -92,14 +98,19 @@ final class roster_test extends \advanced_testcase {
         roster::set_source($centre, 'cohort', '', '2026-27');
         $this->assertSame(['cohort', ''], roster::source($centre));
         $overview = roster::overview($centre);
-        $this->assertSame(2, $overview['students']);
+        $this->assertSame(3, $overview['students'], 'Lucía and Hugo, and Mateo without an account.');
         $this->assertSame(1, $overview['nameless']);
         $this->assertSame(0, $overview['placed'], 'Nothing said yet.');
         $guesses = array_column($overview['values'], 'guess', 'value');
-        $this->assertSame(['3.º B' => '3.º de Primaria', '4.º A' => '4.º de Primaria', 'Comedor' => ''], $guesses);
+        $this->assertSame(
+            ['3.º B' => '3.º de Primaria', '4.º A' => '4.º de Primaria', 'Comedor' => '', 'INF 3ºA' => ''],
+            $guesses
+        );
 
         roster::set_map($centre, '3.º B', '3.º de Primaria');
         roster::set_map($centre, 'Comedor', '');
+        roster::set_map($centre, '4.º A', '4.º A');
+        $this->assertArrayNotHasKey('4.º A', roster::maps($centre), 'Not a course of the centre.');
         $this->assertSame(1, roster::overview($centre)['placed']);
         roster::set_source($centre, 'profile', 'curso', '2026-27');
         $this->assertSame(['profile', 'curso'], roster::source($centre));
@@ -168,5 +179,47 @@ final class roster_test extends \advanced_testcase {
         $this->assertSame(0, (int) $DB->get_field(roster::T, 'householdid', ['familyid' => 101]));
         $this->assertSame(0, roster::sync($centre, time())['families'], 'Never brought back.');
         $this->assertFalse($DB->record_exists(households::CHILDREN, ['familychild' => 11]));
+    }
+
+    /**
+     * The rack of «Who goes on»: each cohort hung from the hook of its course, the one Eguahe proposes marked, those that
+     * are not courses in their drawer, and the one lifted to be hung.
+     */
+    public function test_rack(): void {
+        [$centre] = $this->centre();
+        roster::set_source($centre, 'cohort', '', '2026-27');
+        roster::set_map($centre, '3.º B', '3.º de Primaria');
+        roster::set_map($centre, 'Comedor', '');
+        $page = panel_renewal::context($centre, true, time(), dechex(crc32('4.º A')))['roster'];
+        $hooks = [];
+        foreach ($page['rack'] as $stage) {
+            foreach ($stage['grades'] as $grade) {
+                $hooks[$grade['value']] = array_map(fn($t) => [$t['value'], $t['guess']], $grade['tags']);
+            }
+        }
+        $this->assertSame(['3.º de Primaria' => [['3.º B', false]], '4.º de Primaria' => [['4.º A', true]]], $hooks);
+        $this->assertSame(['Comedor'], array_column($page['notcourses'], 'value'));
+        $this->assertSame('4.º A', $page['picked']['value']);
+        $this->assertSame(['INF 3ºA'], array_column($page['loose'], 'value'), 'No course for it, nor a guess.');
+    }
+
+    /**
+     * A student without an account comes with the name and the group the record has from the data of the centre, once
+     * the centre says what that group is; and a centre can take only those groups.
+     */
+    public function test_without_account(): void {
+        global $DB;
+        [$centre] = $this->centre();
+        centres::save_offer((int) $centre->id, (object) ['schoolyear' => '2026-27', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        roster::set_source($centre, 'family', '', '2026-27');
+        $this->assertSame(['family', ''], roster::source($centre));
+        $values = roster::overview($centre)['values'];
+        $this->assertSame(['INF 3ºA'], array_column($values, 'value'), 'Only the groups.');
+        $this->assertSame('Infantil 3 años', $values[0]['guess'], 'INF is Infantil.');
+        roster::set_map($centre, 'INF 3ºA', 'Infantil 3 años');
+        $this->assertSame(1, roster::sync($centre, time())['families']);
+        $child = $DB->get_record(households::CHILDREN, ['familychild' => 14]);
+        $this->assertSame(['Mateo', 'enrolled'], [$child->firstname, $child->stage]);
     }
 }

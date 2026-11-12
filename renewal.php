@@ -117,5 +117,5 @@ panel::output(
     'inbox',
     get_string('panel_renewal', $c),
     'panel_renewal',
-    panel_renewal::context($centre, centres::can_act((int) $USER->id), time())
+    panel_renewal::context($centre, centres::can_act((int) $USER->id), time(), optional_param('cohorte', '', PARAM_ALPHANUM))
 );

@@ -37,9 +37,10 @@ class panel_renewal {
      * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
+     * @param string $picked The value of the roll lifted to be hung, by its id; empty, none.
      * @return array
      */
-    public static function context(\stdClass $centre, bool $canact, int $now): array {
+    public static function context(\stdClass $centre, bool $canact, int $now, string $picked = ''): array {
         $c = self::C;
         $centreid = (int) $centre->id;
         $year = trim((string) ($centre->renewalyear ?? ''));
@@ -141,7 +142,7 @@ class panel_renewal {
             ] : false,
             'groups' => $groups,
             'hasgroups' => (bool) $groups,
-            'roster' => roster::available() ? self::roster($centre) : false,
+            'roster' => roster::available() ? self::roster($centre, $picked) : false,
             'canact' => $canact,
             'action' => $action,
             'sesskey' => sesskey(),
@@ -154,18 +155,24 @@ class panel_renewal {
      * it most likely is marked to confirm), and how many students have a course; then bringing them.
      *
      * @param \stdClass $centre
+     * @param string $picked The id of the value lifted to be hung; empty, none.
      * @return array
      */
-    protected static function roster(\stdClass $centre): array {
+    protected static function roster(\stdClass $centre, string $picked = ''): array {
         $c = self::C;
         $source = roster::source($centre);
-        ['userids' => $userids, 'nameless' => $nameless] = roster::students();
+        ['userids' => $userids, 'nameless' => $nameless, 'count' => $count, 'groups' => $groups] = roster::students();
         $sources = roster::sources($userids);
         $kinds = [['key' => 'cohort', 'arg' => '', 'label' => get_string('panel_roster_cohort', $c),
             'pressed' => $source && $source[0] === 'cohort']];
         foreach ($sources['courses'] as $id => $name) {
             $kinds[] = ['key' => 'group', 'arg' => (string) $id, 'label' => get_string('panel_roster_group', $c, $name),
                 'pressed' => $source && $source[0] === 'group' && $source[1] === (string) $id];
+        }
+        if ($groups) {
+            // Only the group the record keeps from the data of the centre, for a centre without cohorts or groups.
+            $kinds[] = ['key' => 'family', 'arg' => '', 'label' => get_string('panel_roster_family', $c),
+                'pressed' => $source && $source[0] === 'family'];
         }
         foreach ($sources['fields'] as $short => $name) {
             $kinds[] = ['key' => 'profile', 'arg' => (string) $short, 'label' => get_string('panel_roster_field', $c, $name),
@@ -179,7 +186,7 @@ class panel_renewal {
         uasort($offers, fn($a, $b) => [grades::age((string) $a->name, $centre) ?? 99, (int) $a->sortorder, (int) $a->id] <=>
             [grades::age((string) $b->name, $centre) ?? 99, (int) $b->sortorder, (int) $b->id]);
         $out = [
-            'students' => get_string('panel_roster_students', $c, count($userids)),
+            'students' => get_string('panel_roster_students', $c, $count),
             'nameless' => $nameless ? get_string('panel_roster_nameless', $c, $nameless) : '',
             'kinds' => $kinds,
             'kind' => $source ? $source[0] : '',
@@ -195,6 +202,12 @@ class panel_renewal {
             'guesses' => false,
             'canbring' => false,
             'brought' => '',
+            'rack' => [],
+            'loose' => [],
+            'hasloose' => false,
+            'notcourses' => [],
+            'picked' => false,
+            'dropurl' => '',
             // Open while there is something to say: where, the school year, a value nobody said, or bringing them.
             'open' => true,
         ];
@@ -203,21 +216,61 @@ class panel_renewal {
         }
         $overview = roster::overview($centre);
         $guesses = 0;
-        foreach ($overview['values'] as $i => $row) {
+        $base = new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centre->id]);
+        // The courses of the system as the hooks of a rack, a row for each stage; what cannot be placed in one, apart.
+        $rack = [];
+        foreach ($offers as $plain => $offer) {
+            $age = grades::age((string) $offer->name, $centre);
+            $stage = $age !== null ? grades::stage_of($age, $centre) : null;
+            $key = $stage ? 's' . str_pad((string) $stage['from'], 3, '0', STR_PAD_LEFT) : 'zotros';
+            $rack[$key] = $rack[$key] ?? ['key' => $key, 'name' => $stage ? $stage['name'] :
+                get_string('panel_roster_other', $c), 'ages' => $stage ? get_string(
+                    'panel_roster_ages',
+                    $c,
+                    (object) ['from' => $stage['from'], 'to' => $stage['to']]
+                ) : '', 'grades' => []];
+            // The hook, not the value: inside the lifted tag, «value» is the name of the tag.
+            $rack[$key]['grades'][$plain] = ['value' => (string) $offer->name, 'hook' => (string) $offer->name,
+                'name' => format_string($offer->name), 'tags' => []];
+        }
+        $loose = [];
+        $notcourses = [];
+        $lifted = false;
+        foreach ($overview['values'] as $row) {
+            $id = dechex(crc32($row['value']));
             $mapped = $row['grade'];
             $guess = $mapped === null ? $row['guess'] : '';
-            $guesses += $guess !== '' ? 1 : 0;
-            $out['values'][] = [
-                'id' => $i,
-                'value' => $row['value'],
-                'count' => get_string('panel_roster_count', $c, $row['count']),
-                'grades' => array_values(array_map(fn($o) => ['name' => format_string($o->name), 'value' => (string) $o->name,
-                    'pressed' => $mapped !== null && grades::plain($mapped) === grades::plain((string) $o->name),
-                    'guess' => $guess !== '' && grades::plain($guess) === grades::plain((string) $o->name)], $offers)),
-                'none' => $mapped === '',
-                'pending' => $mapped === null,
-            ];
+            $tag = ['id' => $id, 'value' => $row['value'], 'count' => get_string('panel_roster_count', $c, $row['count']),
+                'guess' => $guess !== '', 'grade' => $mapped ?? $guess, 'picked' => $id === $picked,
+                'url' => (new \moodle_url($base, ['cohorte' => $id], 'padron-tengo'))->out(false)];
+            if ($id === $picked) {
+                $lifted = ['id' => $id, 'value' => $row['value'], 'count' => $tag['count']];
+            }
+            $where = grades::plain((string) ($mapped ?? $guess));
+            if ($mapped === '') {
+                $notcourses[] = $tag;
+                continue;
+            }
+            $placed = false;
+            foreach ($rack as $key => $stage) {
+                if ($where !== '' && isset($stage['grades'][$where])) {
+                    $rack[$key]['grades'][$where]['tags'][] = $tag;
+                    $placed = true;
+                }
+            }
+            $guesses += $placed && $guess !== '' ? 1 : 0;
+            if (!$placed) {
+                $loose[] = $tag;
+            }
+            $out['values'][] = ['pending' => $mapped === null];
         }
+        ksort($rack);
+        $out['rack'] = array_values(array_map(fn($stage) => ['grades' => array_values($stage['grades'])] + $stage, $rack));
+        $out['loose'] = $loose;
+        $out['hasloose'] = (bool) $loose;
+        $out['notcourses'] = $notcourses;
+        $out['picked'] = $lifted;
+        $out['dropurl'] = (new \moodle_url($base, [], 'padron'))->out(false);
         $brought = roster::brought($centre);
         $out['hasvalues'] = (bool) $out['values'];
         $out['summary'] = get_string('panel_roster_placed', $c, (object) ['placed' => $overview['placed'],
@@ -225,7 +278,7 @@ class panel_renewal {
         $out['guesses'] = $guesses ? get_string('panel_roster_accept', $c, $guesses) : false;
         $out['canbring'] = $overview['placed'] > 0;
         $pending = count(array_filter($out['values'], fn($v) => $v['pending']));
-        $out['open'] = $pending > 0 || !$brought['time'];
+        $out['open'] = $pending > 0 || !$brought['time'] || $lifted;
         $out['brought'] = $brought['time'] ? get_string('panel_roster_brought', $c, (object) [
             'families' => $brought['families'], 'children' => $brought['children'],
             'day' => userdate($brought['time'], get_string('strftimedatetimeshort', 'langconfig'))]) : '';
