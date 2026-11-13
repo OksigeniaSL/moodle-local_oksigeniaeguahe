@@ -344,9 +344,10 @@ class panel_centre {
                     get_string($enrolled === 1 ? 'panel_offer_enrolled_one' : 'panel_offer_enrolled', $c, $enrolled),
                 'active' => !empty($offer->active), 'new' => false,
                 'more' => ((int) ($offer->handover ?? 0) ? get_string('panel_offer_carrier', $c, $carrier) :
-                    get_string('panel_offer_carrier_centre', $c)) . ' · ' .
-                    get_string($story ? 'panel_offer_with_story' : 'panel_offer_without_story', $c),
-                'story' => $story, 'handovers' => $handovers, 'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
+                    get_string('panel_offer_carrier_centre', $c)) . (story::available() ? ' · ' .
+                    get_string($story ? 'panel_offer_with_story' : 'panel_offer_without_story', $c) : ''),
+                'story' => $story, 'storyon' => story::available(), 'handovers' => $handovers,
+                'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
                 'nexts' => self::nexts($names, (string) $offer->name, trim((string) ($offer->nextname ?? ''))),
                 // A knob for each place, filled for those enrolled; at most thirty.
                 'pegs' => $places > 0 ? array_map(fn($k) => ['on' => $k < $enrolled], range(0, min($places, 30) - 1)) : [],
@@ -427,7 +428,9 @@ class panel_centre {
                 centres::save_offer($centreid, (object) ['id' => $id, 'name' => $name !== '' ? $name : $offer->name,
                     'schoolyear' => $offer->schoolyear, 'places' => $offer->places, 'active' => $offer->active,
                     'sortorder' => $offer->sortorder, 'handover' => self::member((int) ($handovers[$i] ?? 0), $centreid),
-                    'story' => !empty($stories[$i]), 'teacher' => $teachers[$i] ?? 'maestra']);
+                    // Without the art of the story its switch is not shown: what the course said is kept.
+                    'story' => story::available() ? !empty($stories[$i]) : $offer->story,
+                    'teacher' => story::available() ? ($teachers[$i] ?? 'maestra') : $offer->teacher]);
                 if (array_key_exists($i, $nexts)) {
                     $to = \core_text::substr(trim((string) $nexts[$i]), 0, 255);
                     $DB->set_field(centres::OFFERS, 'nextname', $to === '' ? null : $to, ['id' => $id, 'centreid' => $centreid]);

@@ -60,6 +60,26 @@ final class story_test extends \advanced_testcase {
     }
 
     /**
+     * Without the art of the story (its own package), no course gives it, and nothing a course said is lost.
+     */
+    public function test_without_its_art(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offerid = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0, 'story' => 1]);
+        $offer = centres::offers($id)[$offerid];
+        $this->assertTrue(story::offer_gives($offer, $id));
+        story::$testavailable = false;
+        try {
+            $this->assertFalse(story::available());
+            $this->assertFalse(story::offer_gives($offer, $id));
+            $this->assertSame('1', (string) centres::offers($id)[$offerid]->story, 'Kept for when the art comes.');
+        } finally {
+            story::$testavailable = null;
+        }
+    }
+
+    /**
      * Who has it: the children enrolled in a course that gives it, by its age until the centre chooses, around the first
      * day, and in a language the story is written in.
      */

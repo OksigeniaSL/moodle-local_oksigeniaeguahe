@@ -72,6 +72,12 @@ class story {
     /** @var int The age up to which a course gives the story when nobody chose: the first years at school. */
     const AGE = 5;
 
+    /** @var string The package with the art of the story: its voices, its drawings and its music (free, apart). */
+    const ART = 'local_oksigeniaeguahearte';
+
+    /** @var bool|null Only for the tests: whether the art of the story is there, whatever the site has. */
+    public static $testavailable = null;
+
     /** @var array[] The pages: the cover, the eight of the story and the dedication; geometry in pub/cuento/paginas.json. */
     const PAGES = [
         ['id' => 'portada', 'n' => 0, 'kind' => 'cover', 'audio' => '00-portada'],
@@ -99,12 +105,34 @@ class story {
      */
     public static function offer_gives(\stdClass $offer, int $centreid): bool {
         global $DB;
+        if (!self::available()) {
+            // Without the art of the story, no course gives it; what each course says is kept for when it comes.
+            return false;
+        }
         if (isset($offer->story) && $offer->story !== null && (int) $offer->story >= 0) {
             return (bool) $offer->story;
         }
         $age = $DB->get_field(forecast::AGES, 'age', ['centreid' => $centreid, 'grade' => $offer->name]);
         $age = $age !== false ? (int) $age : grades::age((string) $offer->name, centres::get($centreid));
         return $age !== null && $age <= self::AGE;
+    }
+
+    /**
+     * Whether the site has the art of the story (its own package, local_oksigeniaeguahearte): its voices, drawings and
+     * music. Its words, the timings of its readings and the places on its pages stay in Eguahe, in pub/cuento/. The tests
+     * run with it, as the CI has no package of art.
+     *
+     * @return bool
+     */
+    public static function available(): bool {
+        if (self::$testavailable !== null) {
+            return self::$testavailable;
+        }
+        if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
+            return true;
+        }
+        $dir = \core_component::get_component_directory(self::ART);
+        return $dir !== null && is_dir($dir . '/cuento/ilustraciones');
     }
 
     /**
@@ -363,8 +391,10 @@ class story {
             $words[$key] = publiclang::str('firstday_' . $key, $lang);
         }
         $fill = fn(string $text) => str_replace(['{nombre}', '{n}'], [$name, '25'], $text);
-        $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/cuento/';
+        // The words and timings, here; the voices, drawings and music, in the package of art.
+        $base = $CFG->wwwroot . '/local/oksigeniaeguahearte/cuento/';
         $dir = $CFG->dirroot . '/local/oksigeniaeguahe/pub/cuento/';
+        $art = (string) \core_component::get_component_directory(self::ART) . '/cuento/';
         $read = fn(string $file) => json_decode((string) file_get_contents($dir . $file), true);
         $geometry = $read('paginas.json');
         $pegs = self::pegs($name, $lang);
@@ -389,7 +419,7 @@ class story {
             $level = $read('voz/' . $code . '/nivel.json');
             $whole = 'voz/' . $code . '/' . $reading . '/cuento-con-cancion.mp3';
             $voices[$reading] = ['audio' => $base . 'voz/' . $code . '/' . $reading, 'speech' => $read('voz/' . $code . '/' .
-                $reading . '/habla.json'), 'download' => is_file($dir . $whole) ? ['href' => $base . $whole] : null,
+                $reading . '/habla.json'), 'download' => is_file($art . $whole) ? ['href' => $base . $whole] : null,
                 'lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
         }
         // The child's name in the voice, when the bank has its readings (namevoices, from the voice service): the book reads
@@ -431,7 +461,9 @@ class story {
         $logo = centres::logo((int) $centre->id);
         // The drawing draws itself with its strokes; without them, no script for it. In Arabic, the voice is asked first.
         // The story as a video to keep, made in the page when asked (video.js, with the sheet of ../dibujo-video.js).
-        $scripts = [$base . 'voz.js', $base . 'cuento.js', $base . 'medir.js', $base . '../dibujo-video.js', $base . 'video.js'];
+        // The code of the book is Eguahe's; only its art comes from its package ($base).
+        $code = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/cuento/';
+        $scripts = [$code . 'voz.js', $code . 'cuento.js', $code . 'medir.js', $code . '../dibujo-video.js', $code . 'video.js'];
         if ($drawing && $drawing['strokes']) {
             array_unshift($scripts, $CFG->wwwroot . '/local/oksigeniaeguahe/pub/dibujo-vivo.js');
         }
@@ -440,7 +472,7 @@ class story {
             'lang' => str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang),
             'dir' => lists::dir($lang),
             'title' => $fill($words['doc_title']),
-            'css' => $base . 'cuento.css',
+            'css' => $code . 'cuento.css',
             'accent' => publicpage::centre_vars($colour, false)['--c-acento'] ?? $colour,
             'accentdark' => publicpage::centre_vars($colour, true)['--c-acento-vivo'] ?? $colour,
             'logo' => $logo ? $logo->out(false) : '',

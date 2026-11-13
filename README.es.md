@@ -76,7 +76,8 @@ Moodle 4.5 a 5.3. Las páginas públicas no usan el JavaScript de Moodle y funci
   ve sin contestar ni cambiar nada.
 - **Si se quiere**, en *Administración del sitio › Extensiones › Extensiones locales › Oksigenia Eguahe*: el
   acortador de enlaces, el servicio que dice el nombre de cada niño en el cuento de su primer día, los datos abiertos
-  de las plazas y la línea de quién hace Eguahe (apagada de serie). Un proveedor de IA de Moodle, si el centro lo
+  de las plazas y la línea de quién hace Eguahe (apagada de serie). El cuento «Tu primer día» necesita su arte, un paquete
+  gratis aparte (`local_oksigeniaeguahearte`: sus voces, dibujos y música); sin él, no hay cuento y todo lo demás funciona. Un proveedor de IA de Moodle, si el centro lo
   enciende, prepara borradores de respuesta que siempre lee una persona.
 
 ## Primeros pasos
