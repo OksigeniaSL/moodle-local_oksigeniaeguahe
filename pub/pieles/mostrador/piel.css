@@ -343,6 +343,19 @@ body.piel-mostrador::after {
 .piel-mostrador .herramientas + .filtros {
     position: relative;
 }
+/* ---------- The notes of today: slips of the same paper, each a little crooked ---------- */
+.piel-mostrador .hoy-nota {
+    border: 0;
+    border-radius: 3px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+    transform: rotate(-0.4deg);
+}
+
+.piel-mostrador .hoy-nota:nth-child(2n) {
+    transform: rotate(0.5deg);
+}
+
 /* ---------- The card file: a divider per day, written by hand; an index card per family ---------- */
 .piel-mostrador .lista[data-densidad="fichas"] {
     gap: 22px;

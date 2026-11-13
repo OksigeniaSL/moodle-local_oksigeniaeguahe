@@ -183,7 +183,7 @@ class publicpage {
             'langlabel' => publiclang::str('pub_language', $lang),
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
             'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id ?? 0,
-                'lang' => $lang]))->out(false),
+                'idioma' => $lang]))->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
             'credit' => self::$seal ?? self::credit($lang),
         ]);

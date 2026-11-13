@@ -48,7 +48,8 @@ class panel_inbox {
      * @param bool $all Every family, not only those that wait.
      * @param int $userid Who looks.
      * @param bool $canact Whether they may write down a family.
-     * @param array $view What the person chose: course (an offer id), stage, density («fichas» or «lista»).
+     * @param array $view What the person chose: course (an offer id), stage, density («fichas» or «lista») and places
+     *     (the school year of the places, when it is not the one of the campaign).
      * @param int $now
      * @return array
      */
@@ -126,16 +127,22 @@ class panel_inbox {
         $base = ['c' => $centreid] + ($all ? ['all' => 1] : []) + ($course ? ['curso' => $course] : []) +
             ($stage ? ['etapa' => $stage] : []);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
-        $places = self::places($centre);
+        $places = self::places($centre, (string) ($view['places'] ?? ''), $now, $base);
         $next = self::next_events($centre, $now);
-        // The living hall: the families that wait hanging from the rail, the card of the queue on its wall.
+        // The living hall, as a window at the head of the side column: the families that wait hanging from its rail.
+        // The list is the queue; the hall only shows it.
         $hall = false;
         if (vestibulo::on($centre)) {
             $queue = households::inbox($centreid, true, 60);
-            $card = vestibulo::card($queue, $now);
             $hall = ['json' => json_encode(vestibulo::hall($centre, $queue, $now), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false), 'card' => $card, 'hascard' => (bool) $card];
+                'base' => (new \moodle_url('/local/oksigeniaeguahe/'))->out(false)];
         }
+        // The work of today besides the families waiting, as notes under the sentence of the page.
+        $firstday = panel_start::link($centreid);
+        $today = self::today($centre, $now, $url, [
+            'starting' => [$starting, $onlystarting], 'birthdays' => [$birthdays, $onlybirthdays],
+            'siblings' => [$due, $onlysiblings],
+        ], $firstday ? $firstday['asks'] : []);
         // The cinematic skin: the river of the week, the families waiting as lanterns.
         $cine = cinematico::on($centre) ? cinematico::river($centre, households::inbox($centreid, true, 60), $userid, $now) :
             false;
@@ -164,7 +171,11 @@ class panel_inbox {
             'densityurls' => ['fichas' => $url($base + ['vista' => 'fichas']), 'lista' => $url($base + ['vista' => 'lista'])],
             'checkurl' => $url(['c' => $centreid, 'check' => 1]),
             'checkevery' => self::CHECK,
-            'filters' => self::filters($centre, $base, $course, $stage),
+            'filters' => self::filters($centre, $base, $course, $stage, $now),
+            // The filters stay folded unless one is chosen.
+            'filtering' => $course || $stage !== '',
+            'today' => $today,
+            'hastoday' => (bool) $today,
             'days' => $days,
             'hasrows' => (bool) $days,
             'emptybag' => panel::hanging(0, '', '', $centre),
@@ -175,39 +186,100 @@ class panel_inbox {
             'year' => $places['year'],
             'places' => $places['list'],
             'hasplaces' => (bool) $places['list'],
+            // The school years with places, as leaves, when there is more than one; the one of the campaign first chosen.
+            'placesyears' => $places['years'],
+            'hasplacesyears' => count($places['years']) > 1,
             'path' => self::path($centreid),
-            'firstday' => panel_start::link($centreid),
+            // The first day of the courses, without its questions (they are notes of today).
+            'firstday' => $firstday ? ['url' => $firstday['url'], 'text' => $firstday['text']] : false,
             // Who goes on next school year: how many answered while the centre asks, or the way in to ask.
             'renewal' => panel_renewal::link($centre, time()),
             // What the families ask most, from the themes the AI of the centre read in last week's report.
             'topics' => self::topics($centre),
-            'siblingsdue' => $due ? ['text' => get_string(
-                count($due) === 1 ? 'panel_siblings_due_one' : 'panel_siblings_due',
-                $c,
-                (object) ['n' => count($due),
-                'year' => siblings::year_label(
-                    $centre,
-                    siblings::campaign_year($centre, $now)
-                )]
-            ),
-                'url' => $url(['c' => $centreid, 'hermanos' => 1]), 'on' => $onlysiblings,
-                'allurl' => $url(['c' => $centreid])] : false,
-            'startingdue' => $starting ? ['text' => get_string(
-                count($starting) === 1 ? 'panel_story_inbox_one' : 'panel_story_inbox_text',
-                $c,
-                count($starting)
-            ), 'url' => $url(['c' => $centreid, 'primerdia' => 1]), 'on' => $onlystarting,
-                'allurl' => $url(['c' => $centreid])] : false,
-            'birthdaysdue' => $birthdays ? ['text' => get_string(
-                count($birthdays) === 1 ? 'panel_birthday_inbox_one' : 'panel_birthday_inbox_text',
-                $c,
-                count($birthdays)
-            ), 'url' => $url(['c' => $centreid, 'cumple' => 1]), 'on' => $onlybirthdays,
-                'allurl' => $url(['c' => $centreid])] : false,
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),
         ];
+    }
+
+    /**
+     * The work of today besides the families waiting, one note each, in the order a person would do it: the first days
+     * to confirm, then what to write today around the first day, the birthdays and the brothers and sisters whose turn
+     * it is. Each note says what and has its way in; one shown alone gives the way back to the whole inbox.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @param callable $url Builds a link to the inbox from its parameters.
+     * @param array $due key => [household id => …, whether only those are shown], for starting, birthdays and siblings.
+     * @param array $asks The questions about the first days, as panel_start::link() gives them.
+     * @return array [leaf, blank, title, text, url, link]
+     */
+    protected static function today(\stdClass $centre, int $now, callable $url, array $due, array $asks): array {
+        $c = self::C;
+        $centreid = (int) $centre->id;
+        $out = [];
+        foreach ($asks as $ask) {
+            // A course without a day yet: its leaf blank, waiting to be written.
+            $out[] = ['leaf' => $ask['leaf'], 'blank' => !$ask['leaf'], 'title' => '', 'text' => $ask['text'], 'url' => $ask['url'],
+                'link' => get_string('panel_today_look', $c)];
+        }
+        $notes = [
+            'starting' => ['panel_story_inbox', 'panel_story_inbox_one', 'panel_story_inbox_text', 'primerdia'],
+            'birthdays' => ['panel_birthday_inbox', 'panel_birthday_inbox_one', 'panel_birthday_inbox_text', 'cumple'],
+            'siblings' => ['panel_siblings', 'panel_siblings_due_one', 'panel_siblings_due', 'hermanos'],
+        ];
+        foreach ($notes as $key => [$title, $one, $many, $param]) {
+            [$list, $only] = $due[$key];
+            if (!$list) {
+                continue;
+            }
+            $a = $key === 'siblings' ? (object) ['n' => count($list),
+                'year' => siblings::year_label($centre, siblings::campaign_year($centre, $now))] : count($list);
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string($title, $c),
+                'text' => get_string(count($list) === 1 ? $one : $many, $c, $a),
+                'url' => $only ? $url(['c' => $centreid]) : $url(['c' => $centreid, $param => 1]),
+                'link' => get_string($only ? 'panel_siblings_all' : ($key === 'siblings' ? 'panel_siblings_see' :
+                    'panel_story_inbox_see'), $c)];
+        }
+        return $out;
+    }
+
+    /**
+     * The school year whose new families the campaign under way receives: the first one offered that starts after the
+     * campaign began (in the same year when the campaign begins in the first half of the year, as where school years
+     * are calendar years), else the latest one offered. Creating the offer of a later year, to ask who goes on, does
+     * not move it.
+     *
+     * @param \stdClass $centre
+     * @param string[] $years The school years offered.
+     * @param int $now
+     * @return string '' without offers.
+     */
+    public static function campaign_school_year(\stdClass $centre, array $years, int $now): string {
+        if (!$years) {
+            return '';
+        }
+        sort($years);
+        $zone = \core_date::get_user_timezone_object();
+        $start = (int) ($centre->campaignstart ?? 0);
+        $began = (new \DateTime('@' . ($start > 0 ? $start : $now)))->setTimezone($zone);
+        if ($start <= 0) {
+            // Without a start written down, campaigns begin on the first of October.
+            $began->setDate((int) $began->format('Y'), 10, 1)->setTime(0, 0);
+        }
+        while ($began->getTimestamp() > $now) {
+            $began->modify('-1 year');
+        }
+        while ((clone $began)->modify('+1 year')->getTimestamp() <= $now) {
+            $began->modify('+1 year');
+        }
+        $from = (int) $began->format('Y') + ((int) $began->format('n') >= 7 ? 1 : 0);
+        foreach ($years as $year) {
+            if (preg_match('/^(\d{4})/', $year, $m) && (int) $m[1] >= $from) {
+                return $year;
+            }
+        }
+        return (string) end($years);
     }
 
     /**
@@ -550,16 +622,18 @@ class panel_inbox {
      * @param array $base The parameters of the page now.
      * @param int $course
      * @param string $stage
+     * @param int $now
      * @return array courses, stages
      */
-    protected static function filters(\stdClass $centre, array $base, int $course, string $stage): array {
+    protected static function filters(\stdClass $centre, array $base, int $course, string $stage, int $now): array {
         $c = self::C;
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         $courses = [['name' => get_string('panel_all_courses', $c), 'key' => '',
             'url' => $url(array_diff_key($base, ['curso' => 1])), 'current' => !$course]];
-        $places = self::places($centre);
-        foreach (centres::offers((int) $centre->id, true) as $offer) {
-            if ((string) $offer->schoolyear === html_entity_decode($places['year'])) {
+        $offers = centres::offers((int) $centre->id, true);
+        $year = self::campaign_school_year($centre, array_unique(array_map(fn($o) => (string) $o->schoolyear, $offers)), $now);
+        foreach ($offers as $offer) {
+            if ((string) $offer->schoolyear === $year) {
                 $courses[] = ['name' => format_string($offer->name), 'key' => 'o' . $offer->id,
                     'url' => $url(['curso' => $offer->id] + $base), 'current' => $course === (int) $offer->id];
             }
@@ -702,18 +776,34 @@ class panel_inbox {
     }
 
     /**
-     * The places of each course of the latest school year offered: free, interested, visited and enrolled, and the rail.
+     * The places for new pupils of each course of a school year, those of the campaign unless another is asked: free,
+     * interested, visited and enrolled, and the rail. Only the courses with places; and the school years that have them,
+     * as leaves to change.
      *
      * @param \stdClass $centre
-     * @return array year, list
+     * @param string $asked The school year asked for; '' for the one of the campaign.
+     * @param int $now
+     * @param array $base The parameters of the inbox as it is, for the links of the leaves.
+     * @return array year, list, years
      */
-    public static function places(\stdClass $centre): array {
-        $offers = centres::offers((int) $centre->id, true);
+    public static function places(\stdClass $centre, string $asked = '', int $now = 0, array $base = []): array {
+        $now = $now ?: time();
+        $offers = array_filter(centres::offers((int) $centre->id, true), fn($o) => (int) $o->places > 0);
+        $years = array_values(array_unique(array_map(fn($o) => (string) $o->schoolyear, $offers)));
         if (!$offers) {
-            return ['year' => '', 'list' => []];
+            return ['year' => '', 'list' => [], 'years' => []];
         }
-        // The offers come with the latest school year first.
-        $year = (string) reset($offers)->schoolyear;
+        $campaign = self::campaign_school_year($centre, $years, $now);
+        $year = in_array($asked, $years, true) ? $asked : $campaign;
+        sort($years);
+        $leaves = [];
+        foreach ($years as $each) {
+            $params = array_diff_key($base, ['plazas' => 1]) + ($each === $campaign ? [] : ['plazas' => $each]);
+            $leaves[] = ['name' => s($each), 'current' => $each === $year, 'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/index.php',
+                $params
+            ))->out(false) . '#plazas'];
+        }
         $counts = households::offer_counts((int) $centre->id);
         $list = [];
         foreach ($offers as $offer) {
@@ -746,6 +836,6 @@ class panel_inbox {
                 'enrolled' => $enrolled,
             ];
         }
-        return ['year' => s($year), 'list' => $list];
+        return ['year' => s($year), 'list' => $list, 'years' => $leaves];
     }
 }

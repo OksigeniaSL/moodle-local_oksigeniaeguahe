@@ -305,19 +305,29 @@ class imports {
                 }
             }
         }
+        // The order of the dates of each column, from all its values at once: a sheet from one country is all one way.
+        $centre = centres::get($centreid);
+        $monthfirst = [];
+        foreach (['birthdate', 'date', 'enrolleddate', 'datein', 'dateout', 'refdate'] as $role) {
+            $monthfirst[$role] = recognise::monthfirst(
+                array_map(fn($row) => (string) (array_values(self::values($row, $columns, $role))[0] ?? ''), $plan['rows']),
+                (string) ($centre->country ?? ''),
+                (string) ($centre->lang ?? 'es')
+            );
+        }
         foreach ($plan['rows'] as $row) {
             $v = fn(string $role) => (string) (array_values(self::values($row, $columns, $role))[0] ?? '');
             // A text kept for the numbers never keeps an email or a phone someone wrote in it.
             $short = fn(string $value, int $len) => ($value = self::scrub($value)) === '' ? null :
                 \core_text::substr($value, 0, $len);
-            $birth = recognise::date($v('birthdate'));
+            $birth = recognise::date($v('birthdate'), $monthfirst['birthdate']);
             $birthyear = $birth ? (int) date('Y', $birth) : 0;
             $hkeys = array_merge(
                 array_map([pseudonym::class, 'email'], self::values($row, $columns, 'email')),
                 array_map([pseudonym::class, 'phone'], self::values($row, $columns, 'phone'))
             );
             if ($kind === 'contacts') {
-                $date = recognise::date($v('date'));
+                $date = recognise::date($v('date'), $monthfirst['date']);
                 if (!$date) {
                     $skipped++;
                     continue;
@@ -333,7 +343,7 @@ class imports {
                 $medium = $v('medium') !== '' ? $v('medium') :
                     (in_array('organic', $roles, true) ? (self::yes($v('organic')) ? 'organic' : 'paid') : '');
                 $grade = trim(explode('|', $v('grade'))[0]);
-                $enrolled = recognise::date($v('enrolleddate'));
+                $enrolled = recognise::date($v('enrolleddate'), $monthfirst['enrolleddate']);
                 $out[] = (object) [
                     'household' => $household,
                     'student' => array_filter($skeys) ? $keys->token('student', $skeys) : null,
@@ -376,8 +386,8 @@ class imports {
                     (array_filter($hkeys) ? $keys->token('household', $hkeys) : null);
                 [$grade, $group] = grades::split_group($v('grade'));
                 $start = self::year_start($schoolyear);
-                $in = recognise::date($v('datein'));
-                $outdate = recognise::date($v('dateout'));
+                $in = recognise::date($v('datein'), $monthfirst['datein']);
+                $outdate = recognise::date($v('dateout'), $monthfirst['dateout']);
                 $reasons = [];
                 foreach (self::values($row, $columns, 'leavebool') as $j => $value) {
                     if (self::yes($value)) {
@@ -417,7 +427,8 @@ class imports {
                     continue;
                 }
                 $out[] = (object) ['schoolyear' => $schoolyear, 'grade' => grades::label($centreid, $v('grade')),
-                    'students' => (int) $v('count'), 'referencedate' => (int) recognise::date($v('refdate'))];
+                    'students' => (int) $v('count'),
+                    'referencedate' => (int) recognise::date($v('refdate'), $monthfirst['refdate'])];
             } else if ($kind === 'population') {
                 $popkind = in_array($v('kindcol'), ['births', 'age'], true) ? $v('kindcol') :
                     ($v('agecol') !== '' ? 'age' : 'births');

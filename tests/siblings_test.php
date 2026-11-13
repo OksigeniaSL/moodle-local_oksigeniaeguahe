@@ -143,8 +143,9 @@ final class siblings_test extends \advanced_testcase {
         );
         households::add_child($other, 'Vera', 0);
         $context = panel_inbox::context($centre, true, (int) get_admin()->id, true, [], $this->now);
-        $this->assertNotFalse($context['siblingsdue']);
-        $this->assertStringContainsString('2027-28', $context['siblingsdue']['text']);
+        // A note of today, under the sentence of the inbox.
+        $this->assertTrue($context['hastoday']);
+        $this->assertStringContainsString('2027-28', implode(' ', array_column($context['today'], 'text')));
         $only = panel_inbox::context($centre, false, (int) get_admin()->id, true, ['siblings' => 1], $this->now);
         $ids = array_merge(...array_map(fn($d) => array_column($d['rows'], 'id'), $only['days']));
         $this->assertSame([(string) $household->id], $ids);

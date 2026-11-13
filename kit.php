@@ -86,7 +86,16 @@ if (data_submitted() && confirm_sesskey()) {
             preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/', $day . 'T' . $hour, $m) ||
                 preg_match('/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/', optional_param('at', '', PARAM_RAW_TRIMMED), $m)
         ) {
-            $at = make_timestamp((int) $m[1], (int) $m[2], (int) $m[3], (int) $m[4], (int) $m[5]);
+            // Where the centre lives, whatever the zone of whoever schedules it.
+            $at = make_timestamp(
+                (int) $m[1],
+                (int) $m[2],
+                (int) $m[3],
+                (int) $m[4],
+                (int) $m[5],
+                0,
+                \core_date::get_server_timezone()
+            );
         }
         $done = channel::choose(
             $event,

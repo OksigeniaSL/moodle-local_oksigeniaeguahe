@@ -97,10 +97,12 @@ class panel_metrics {
         $c = self::C;
         $id = ['centreid' => $centre->id];
         $offers = $DB->get_records_menu(centres::OFFERS, $id, '', 'id, name');
-        $year = (string) $DB->get_field_sql(
-            'SELECT MAX(schoolyear) FROM {' . centres::OFFERS . '} WHERE centreid = ?',
-            [$centre->id]
-        );
+        // The school year of the campaign under way, as the inbox counts it: not the last one offered (a centre that
+        // writes next year's offer to ask who goes on does not end its campaign).
+        $year = panel_inbox::campaign_school_year($centre, array_values(array_unique(array_map(
+            'strval',
+            $DB->get_fieldset_select(centres::OFFERS, 'schoolyear', 'centreid = ?', [$centre->id])
+        ))), $now ?: time());
         $since = (int) ($centre->campaignstart ?? 0) ?: (new \DateTimeImmutable('@' . ($now ?: time())))->modify('-12 months')
             ->getTimestamp();
         $out = [];
@@ -893,7 +895,10 @@ class panel_metrics {
         if (!$offers) {
             return [];
         }
-        $year = (string) reset($offers)->schoolyear;
+        $year = panel_inbox::campaign_school_year($centre, array_values(array_unique(array_map(
+            fn($o) => (string) $o->schoolyear,
+            $offers
+        ))), time());
         $counts = households::offer_counts((int) $centre->id);
         // How the families of the campaign before that were still on their way at this week ended.
         $rate = null;

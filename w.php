@@ -126,7 +126,7 @@ if (data_submitted() && !$preview) {
                 $url
             );
         }
-        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'lang' => $lang]);
+        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]);
         if ($embedded) {
             // Inside the web of the centre: done, and their page opens apart.
             publicpage::message(
@@ -145,7 +145,7 @@ if (data_submitted() && !$preview) {
 
 $context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
 $context['sesskey'] = entries::mark($entry);
-$context['action'] = (new moodle_url($url, ['lang' => $lang]))->out(false);
+$context['action'] = (new moodle_url($url, ['idioma' => $lang]))->out(false);
 $context['preview'] = (bool) $preview;
 $context['previewnote'] = publiclang::str('pub_preview', $lang);
 publicpage::output(

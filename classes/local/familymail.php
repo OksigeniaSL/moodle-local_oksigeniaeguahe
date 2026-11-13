@@ -127,7 +127,7 @@ class familymail {
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
         $host = $hosts[0]->first ?? '';
         // Each link says which mail it is in, so what is pressed inside is counted (never whether it is opened).
-        $pageurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang,
+        $pageurl = $token ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang,
             'de' => $kind]))->out(false) : '';
         $icsurl = $token && $signup->eventid ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
             'e' => $signup->eventid, 'de' => $kind]))->out(false) : '';
@@ -221,7 +221,7 @@ class familymail {
                 'porque' => $str('mail_why', format_string($centre->name)),
                 'datos_texto' => $str('pub_privacy_link'),
                 'datos_url' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
-                    'lang' => $lang]))->out(false),
+                    'idioma' => $lang]))->out(false),
                 'firma' => $credit ? $str('mail_credit', $creditlink) : '',
                 'firma_texto' => $credit ? $str('mail_credit', $credit['text']) . ': ' . $credit['url'] : '',
             ],
@@ -230,7 +230,7 @@ class familymail {
         if ($kind === 'openinvite') {
             // An open act of the centre for a family that is not of it yet: what, when and where, and how to sign up.
             $joinurl = !empty($signup->token) ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token,
-                'lang' => $lang] + ($token ? ['k' => $token, 'de' => $kind] : [])))->out(false) : '';
+                'idioma' => $lang] + ($token ? ['k' => $token, 'de' => $kind] : [])))->out(false) : '';
             $event = format_string($signup->eventname);
             $context['titular'] = $str($tags ? 'mail_open_titular' : 'mail_open_titular_nochild');
             // Why they get it: they let the centre write to them, not that they signed up to a visit.

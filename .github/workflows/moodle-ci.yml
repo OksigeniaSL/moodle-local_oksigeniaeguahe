@@ -32,13 +32,16 @@ jobs:
       - id: pick
         run: |
           low='{"moodle-branch":"MOODLE_405_STABLE","php":"8.1","node":"20"}'
+          b500='{"moodle-branch":"MOODLE_500_STABLE","php":"8.2","node":"22"}'
+          b501='{"moodle-branch":"MOODLE_501_STABLE","php":"8.3","node":"22"}'
           b502='{"moodle-branch":"MOODLE_502_STABLE","php":"8.3","node":"22"}'
           high='{"moodle-branch":"MOODLE_503_STABLE","php":"8.3","node":"22","pg":"17"}'
           next='{"moodle-branch":"main","php":"8.4","node":"22","pg":"17","experimental":true}'
+          # Every push: the oldest, one in the middle and the newest. A tag or a run by hand: every branch supported.
           if [[ "$GITHUB_REF" == refs/tags/* || "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
-            echo "include=[$low,$b502,$high,$next]" >> "$GITHUB_OUTPUT"
+            echo "include=[$low,$b500,$b501,$b502,$high,$next]" >> "$GITHUB_OUTPUT"
           else
-            echo "include=[$low,$high]" >> "$GITHUB_OUTPUT"
+            echo "include=[$low,$b502,$high]" >> "$GITHUB_OUTPUT"
           fi
 
   test:

@@ -131,7 +131,15 @@ if ($action && data_submitted() && confirm_sesskey()) {
     $aftersend = function () use ($household, $body) {
         global $USER;
         $day = publicpage::date_param('nextday');
-        $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
+        $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) ? make_timestamp(
+            (int) $d[1],
+            (int) $d[2],
+            (int) $d[3],
+            12,
+            0,
+            0,
+            \core_date::get_server_timezone()
+        ) : 0;
         attend::promise($household, (int) $USER->id, optional_param('next', '', PARAM_TEXT), $when);
         if ($body !== '' && optional_param('savereply', 0, PARAM_BOOL)) {
             attend::keep_reply($household, (int) $USER->id, $body);
@@ -308,7 +316,16 @@ if ($action && data_submitted() && confirm_sesskey()) {
             $time = panel::clock(optional_param('time', '', PARAM_TEXT));
             $start = 0;
             if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $d) && preg_match('/^(\d{1,2}):(\d{2})$/', $time, $t)) {
-                $start = make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], (int) $t[1], (int) $t[2]);
+                // Where the centre lives, as the act form reads its hours: whoever proposes it may have another zone.
+                $start = make_timestamp(
+                    (int) $d[1],
+                    (int) $d[2],
+                    (int) $d[3],
+                    (int) $t[1],
+                    (int) $t[2],
+                    0,
+                    \core_date::get_server_timezone()
+                );
             }
             if ($start <= time()) {
                 redirect($url, get_string('visit_err_when', $c), null, \core\output\notification::NOTIFY_ERROR);

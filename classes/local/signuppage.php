@@ -270,7 +270,7 @@ class signuppage {
                 $lang,
                 familypage::join($firsts, $lang)
             ) : '',
-            'action' => (new \moodle_url($url, ['lang' => $lang]))->out(false),
+            'action' => (new \moodle_url($url, ['idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'adults' => $adults,
             'canaddadult' => (bool) array_filter($adults, fn($a) => $a['hidden']),
@@ -300,7 +300,7 @@ class signuppage {
             'channelerror' => $errors['channels'] ?? '',
             'info' => self::first_layer($centre, $lang),
             'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
-                'lang' => $lang]))->out(false),
+                'idioma' => $lang]))->out(false),
             'haserrors' => (bool) $errors,
             'errortitle' => count($errors) === 1 ? publiclang::str('pub_errors_one', $lang) :
                 publiclang::str('pub_errors_many', $lang, count($errors)),

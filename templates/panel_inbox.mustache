@@ -17,13 +17,22 @@
 {{!
     @template local_oksigeniaeguahe/panel_inbox
 
-    The inbox, three things and an epilogue. The sentence (the h1), the tab «Waiting | All» with the search and the
-    filters, and the list: by the rule of time, each day written once, big, and its families hanging from it with their
-    hour; on top, only on days with visits, «Today» with the families that come, and the promises that are due. The
-    epilogue, at the end and folded on a phone: the places of each course on their rail, the way of the campaign and the
-    next open days. With twenty families or more the list turns into a ledger, one line each. On a wide screen a family
-    opens in a sheet beside the list (the script fetches its page); without the script, its link opens the whole page.
-    No colour says anything of a family.
+    The inbox, the work first. The sentence (the h1); the notes of today (the first days to confirm, what to write today
+    around the first day, the birthdays, the brothers and sisters whose turn it is), at the head of the side column on a
+    wide screen and before the list on a phone; the tab «Waiting | All» with the search, the filters folded in one line
+    unless one is chosen; and the list: by the rule of time, each
+    day written once, big, and its families hanging from it with their hour; on top, only on days with visits, «Today»
+    with the families that come, and the promises that are due. Beside it, and after it on a phone: in the skin
+    «vestíbulo», the hall as a window with the families that wait hanging from its rail (the list is the queue; the
+    hall only shows it); then the epilogue, folded on a phone: the places for new pupils of each course of the campaign
+    on their rail (with the leaves of the other school years that have places), the way of the campaign, the first day,
+    who goes on and the next open days. With twenty families or more the list turns into a ledger, one line each. On a
+    wide screen a family opens in a sheet beside the list (the script fetches its page); without the script, its link
+    opens the whole page. No colour says anything of a family.
+
+    New in the review of 13 November 2026 (Jujol): today, hastoday, filtering, placesyears, hasplacesyears. The hall
+    without its card (hall.card, hall.hascard) and, as notes of today, what were siblingsdue, startingdue, birthdaysdue
+    and firstday.asks.
 
     New in this round: days (replaces rows), density, densityurls, filters, checkurl, checkevery, path, nextevents,
     hasnextevents, keyhint. Kept: head, fresh, showtools, all, waiting, total, waitingurl, allurl, hasrows, emptybag,
@@ -39,10 +48,13 @@
         "density": "fichas", "fichas": true, "lista": false, "densityurls": {"fichas": "#", "lista": "#"},
         "checkurl": "#", "checkevery": 60,
         "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
-            "stages": [{"name": "Todas las etapas", "key": "", "url": "#", "current": true}]},
+            "stages": [{"name": "Todas las etapas", "key": "", "url": "#", "current": true}]}, "filtering": false,
+        "hastoday": true, "today": [{"leaf": {"weekday": "dom", "day": "22", "month": "nov"}, "title": "",
+            "blank": false, "text": "Infantil 3 años empieza el domingo, 22 de noviembre. ¿Sigue así?", "url": "#", "link": "Mirarlo"},
+            {"leaf": false, "blank": false, "title": "Cumpleaños", "text": "Una familia tiene hoy un cumpleaños que felicitar.", "url": "#", "link": "Ver solo esas"}],
         "hasrows": true,
-        "firstday": false, "renewal": {"url": "#", "text": "Han contestado 3 de 5 para 2028-29; 1 no sigue.",
-            "pegs": [{"kind": "leave"}, {"kind": "unsure"}, {"kind": "stay"}, {"kind": "none"}, {"kind": "none"}]}, "topics": {"list": [{"theme": "El comedor", "texts": "3 mensajes"}], "url": "/local/oksigeniaeguahe/report.php?c=1"}, "siblingsdue": false, "startingdue": false, "birthdaysdue": false, "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
+        "firstday": {"url": "#", "text": "Marcar quién ha empezado"}, "renewal": {"url": "#", "text": "Han contestado 3 de 5 para 2028-29; 1 no sigue.",
+            "pegs": [{"kind": "leave"}, {"kind": "unsure"}, {"kind": "stay"}, {"kind": "none"}, {"kind": "none"}]}, "topics": {"list": [{"theme": "El comedor", "texts": "3 mensajes"}], "url": "/local/oksigeniaeguahe/report.php?c=1"}, "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
             "rows": [{"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
                 "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
                 "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}],
@@ -52,7 +64,8 @@
                 "courses": "i3", "stages": "inquiry", "search": "marta leo"}]}],
         "emptybag": {"name": "", "style": ""}, "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.",
         "newevent": "#", "newform": "#",
-        "year": "2027-28", "hasplaces": true,
+        "year": "2027-28", "hasplaces": true, "hasplacesyears": true,
+        "placesyears": [{"name": "2027-28", "url": "#", "current": true}, {"name": "2028-29", "url": "#", "current": false}],
         "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11, "enrolled": 6, "ropero": false}],
         "path": {"total": 96, "sentence": "96 familias en esta campaña.", "def": "Cada familia cuenta donde va su hijo más adelantado.",
             "steps": [{"key": "inquiry", "name": "Consulta", "n": 38, "line": "38 familias han preguntado."}]},
@@ -62,19 +75,21 @@
     }
 }}
 <div class="pagina pagina-bandeja" data-bandeja{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
-    {{#hall}}
-    <section class="vestibulo-sala" aria-labelledby="titular">
-        <div class="vestibulo-escena" data-vestibulo data-escena="{{json}}" data-base="{{base}}"><div class="sala" aria-hidden="true"></div></div>
-        <div class="vestibulo-tarjeta">
-            {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-            {{#hascard}}<ul class="cola-sala">{{#card}}<li><a href="{{url}}"><b>{{adults}}</b><span>{{since}}</span></a><span class="ninos" translate="no" dir="auto">{{tags}}</span></li>{{/card}}</ul>{{/hascard}}
-        </div>
-    </section>
-    {{/hall}}
     {{#cine}}{{> local_oksigeniaeguahe/panel_inbox_rio }}{{/cine}}
-    {{^hall}}{{^cine}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/cine}}{{/hall}}
+    {{^cine}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/cine}}
     <p class="novedad" data-novedad role="status" hidden></p>
-    <div class="mostrador" data-mostrador>
+    <div class="mostrador{{#hastoday}} con-hoy{{/hastoday}}" data-mostrador>
+        {{#hastoday}}
+        <section class="hoy" aria-labelledby="hoy-t">
+            <h2 class="hoy-t" id="hoy-t">{{#str}}panel_today_also, local_oksigeniaeguahe{{/str}}</h2>
+            <ul class="hoy-notas">
+                {{#today}}<li class="hoy-nota">
+                    {{#leaf}}<span class="hoja-cal" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}{{#blank}}<span class="hoja-cal pd-hoja-vacia" aria-hidden="true"></span>{{/blank}}
+                    <p>{{#title}}<b>{{title}}.</b> {{/title}}{{text}} <a class="enlace" href="{{url}}">{{link}}</a></p>
+                </li>{{/today}}
+            </ul>
+        </section>
+        {{/hastoday}}
         <section class="bandeja" aria-labelledby="titular">
             {{#showtools}}
             <div class="herramientas">
@@ -88,8 +103,8 @@
                     <a href="{{densityurls.lista}}"{{#lista}} aria-current="true"{{/lista}} title="{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}">{{{i.filas}}}<span class="oculto">{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}</span></a>
                 </div>
             </div>
-            <details class="filtros" open data-plegar-movil>
-                <summary class="filtros-titulo">{{#str}}panel_filters, local_oksigeniaeguahe{{/str}}</summary>
+            <details class="filtros"{{#filtering}} open{{/filtering}}>
+                <summary class="filtros-titulo"><span>{{#str}}panel_filters, local_oksigeniaeguahe{{/str}}</span><span class="filtros-ahora">{{#filters.courses}}{{#current}}{{name}}{{/current}}{{/filters.courses}} · {{#filters.stages}}{{#current}}{{name}}{{/current}}{{/filters.stages}}</span>{{{i.chev}}}</summary>
                 <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_course, local_oksigeniaeguahe{{/str}}">{{#filters.courses}}<a class="pastilla" href="{{url}}" data-filtro="curso" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.courses}}</div>
                 <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_stage, local_oksigeniaeguahe{{/str}}">{{#filters.stages}}<a class="pastilla" href="{{url}}" data-filtro="etapa" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.stages}}</div>
             </details>
@@ -124,11 +139,15 @@
             {{#keyhint}}<p class="pista-teclas" data-pista-teclas>{{keyhint}}</p>{{/keyhint}}
         </section>
         <aside class="epilogo" aria-labelledby="epilogo-t" data-epilogo>
+            {{#hall}}
+            <div class="vestibulo-ventana" data-vestibulo data-ventana data-escena="{{json}}" data-base="{{base}}"><div class="sala" aria-hidden="true"></div></div>
+            {{/hall}}
             <details class="plegable" open data-plegar-movil>
                 <summary><h2 id="epilogo-t">{{#str}}panel_epilogue, local_oksigeniaeguahe, {{year}}{{/str}}</h2>{{{i.chev}}}</summary>
                 {{#hasplaces}}
-                <section class="bloque bloque-plazas">
+                <section class="bloque bloque-plazas" id="plazas">
                     <h3>{{#str}}panel_places_for, local_oksigeniaeguahe, {{year}}{{/str}}</h3>
+                    {{#hasplacesyears}}<p class="plazas-hojas" role="group" aria-label="{{#str}}panel_places_years, local_oksigeniaeguahe{{/str}}">{{#placesyears}}<a class="plazas-hoja" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/placesyears}}</p>{{/hasplacesyears}}
                     <div class="plazas">
                         {{#places}}
                         <div class="curso-plazas">
@@ -152,27 +171,6 @@
                     <p class="def">{{def}}</p>
                 </section>
                 {{/path}}
-                {{#siblingsdue}}
-                <section class="bloque bloque-hermanos">
-                    <h3>{{#str}}panel_siblings, local_oksigeniaeguahe{{/str}}</h3>
-                    <p>{{text}}</p>
-                    <p>{{^on}}<a class="enlace" href="{{url}}">{{#str}}panel_siblings_see, local_oksigeniaeguahe{{/str}}</a>{{/on}}{{#on}}<a class="enlace" href="{{allurl}}">{{#str}}panel_siblings_all, local_oksigeniaeguahe{{/str}}</a>{{/on}}</p>
-                </section>
-                {{/siblingsdue}}
-                {{#startingdue}}
-                <section class="bloque bloque-hermanos">
-                    <h3>{{#str}}panel_story_inbox, local_oksigeniaeguahe{{/str}}</h3>
-                    <p>{{text}}</p>
-                    <p>{{^on}}<a class="enlace" href="{{url}}">{{#str}}panel_story_inbox_see, local_oksigeniaeguahe{{/str}}</a>{{/on}}{{#on}}<a class="enlace" href="{{allurl}}">{{#str}}panel_siblings_all, local_oksigeniaeguahe{{/str}}</a>{{/on}}</p>
-                </section>
-                {{/startingdue}}
-                {{#birthdaysdue}}
-                <section class="bloque bloque-hermanos">
-                    <h3>{{#str}}panel_birthday_inbox, local_oksigeniaeguahe{{/str}}</h3>
-                    <p>{{text}}</p>
-                    <p>{{^on}}<a class="enlace" href="{{url}}">{{#str}}panel_story_inbox_see, local_oksigeniaeguahe{{/str}}</a>{{/on}}{{#on}}<a class="enlace" href="{{allurl}}">{{#str}}panel_siblings_all, local_oksigeniaeguahe{{/str}}</a>{{/on}}</p>
-                </section>
-                {{/birthdaysdue}}
                 {{#topics}}
                 <section class="bloque bloque-preguntan" aria-labelledby="preguntan-t">
                     <h3 id="preguntan-t">{{#str}}panel_topics, local_oksigeniaeguahe{{/str}}</h3>
@@ -184,10 +182,6 @@
                 {{#firstday}}
                 <section class="bloque bloque-primer-dia">
                     <h3>{{#str}}panel_firstday, local_oksigeniaeguahe{{/str}}</h3>
-                    {{#hasasks}}<ul class="pd-pide-lista">{{#asks}}<li><a class="acto-corto pd-pide-fila" href="{{url}}" aria-label="{{text}}">
-                        <span class="hoja-cal{{^leaf}} pd-hoja-vacia{{/leaf}}" aria-hidden="true">{{#leaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/leaf}}</span>
-                        <span class="que"><b>{{title}}</b><span class="secundario">{{sub}}</span></span>
-                    </a></li>{{/asks}}</ul>{{/hasasks}}
                     <p><a class="enlace" href="{{url}}">{{text}}</a></p>
                 </section>
                 {{/firstday}}

@@ -83,12 +83,12 @@ share::count($household, $centre, 'opened', 'familia');
 $sign = share::ambassador_sign($household, $lang);
 $phrase = share::phrase($centre, $lang);
 $title = publiclang::str('share_family_title', $lang, $phrase);
-$here = new moodle_url($url, ['lang' => $lang]);
+$here = new moodle_url($url, ['idioma' => $lang]);
 publicpage::$head = share::meta(
     $title,
     publiclang::str('share_family_from', $lang, $sign),
     $here,
-    new moodle_url('/local/oksigeniaeguahe/og.php', $params + ['p' => 'familia', 'lang' => $lang]),
+    new moodle_url('/local/oksigeniaeguahe/og.php', $params + ['p' => 'familia', 'idioma' => $lang]),
     $lang,
     format_string($centre->name)
 );

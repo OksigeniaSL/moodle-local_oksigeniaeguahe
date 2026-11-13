@@ -29,7 +29,8 @@
      "active": true, "new": false, "more": "Lo lleva el centro · con el cuento", "story": true,
      "pegs": [{"on": true}, {"on": false}], "manypegs": false,
      "handovers": [{"value": 0, "name": "El de todo el centro", "selected": true}],
-     "teachers": [{"value": 0, "name": "Su tutora o tutor", "selected": true}]}
+     "teachers": [{"value": 0, "name": "Su tutora o tutor", "selected": true}],
+     "nexts": [{"value": "", "name": "El siguiente por su edad", "selected": true}]}
 }}
     {{^new}}
     <div class="of-cara">
@@ -53,6 +54,7 @@
             <div class="campo"><label for="o-l-{{i}}">{{#str}}offer_handover, local_oksigeniaeguahe{{/str}}</label><select id="o-l-{{i}}" name="offerhandover[{{i}}]">{{#handovers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/handovers}}</select></div>
             <label class="casilla"><input type="hidden" name="offerstory[{{i}}]" value="0"><input type="checkbox" name="offerstory[{{i}}]" value="1"{{#story}} checked{{/story}}><span>{{#str}}offer_story, local_oksigeniaeguahe{{/str}}</span></label>
             <div class="campo"><label for="o-m-{{i}}">{{#str}}offer_teacher, local_oksigeniaeguahe{{/str}}</label><select id="o-m-{{i}}" name="offerteacher[{{i}}]">{{#teachers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/teachers}}</select></div>
+            <div class="campo"><label for="o-x-{{i}}">{{#str}}offer_next, local_oksigeniaeguahe{{/str}}</label><select id="o-x-{{i}}" name="offernext[{{i}}]">{{#nexts}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/nexts}}</select></div>
             {{/new}}
             <input type="hidden" name="offerid[{{i}}]" value="{{id}}">
             <button class="boton principal" type="submit" name="offersave" value="{{i}}">{{#new}}{{#str}}panel_offer_add, local_oksigeniaeguahe{{/str}}{{/new}}{{^new}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}{{/new}}</button>

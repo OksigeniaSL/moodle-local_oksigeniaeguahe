@@ -120,11 +120,13 @@ class siblings {
      */
     public static function campaign_year(\stdClass $centre, int $now): int {
         global $DB;
-        $latest = (string) $DB->get_field_sql(
-            'SELECT MAX(schoolyear) FROM {' . centres::OFFERS . '} WHERE centreid = ?',
-            [$centre->id]
-        );
-        if (preg_match('/^(\d{4})/', $latest, $m)) {
+        // The school year of the campaign under way, as the inbox counts it, not the last one offered.
+        $years = array_values(array_unique(array_map(
+            'strval',
+            $DB->get_fieldset_select(centres::OFFERS, 'schoolyear', 'centreid = ?', [$centre->id])
+        )));
+        $year = panel_inbox::campaign_school_year($centre, $years, $now);
+        if (preg_match('/^(\d{4})/', $year, $m)) {
             return (int) $m[1];
         }
         return (int) date('Y', $now) + ((int) date('n', $now) >= 9 ? 1 : 0);

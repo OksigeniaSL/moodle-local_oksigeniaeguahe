@@ -321,7 +321,9 @@ class panel_centre {
             'courses' => $count(count(array_filter($all, fn($o) => (string) $o->schoolyear === $y && $o->active)))], $years);
         $next = self::year_after($year);
         $i = 0;
-        $card = function (\stdClass $offer) use (&$i, $centre, $counts, $c): array {
+        // The courses each one may go on to, by name: those of the centre, without repeating.
+        $names = array_values(array_unique(array_map(fn($o) => (string) $o->name, $all)));
+        $card = function (\stdClass $offer) use (&$i, $centre, $counts, $c, $names): array {
             $enrolled = (int) ($counts[$offer->id]['enrolled'] ?? 0);
             $places = (int) $offer->places;
             $handovers = self::handovers($centre, (int) ($offer->handover ?? 0), 'offer_handover_centre');
@@ -336,6 +338,7 @@ class panel_centre {
                     get_string('panel_offer_carrier_centre', $c)) . ' · ' .
                     get_string($story ? 'panel_offer_with_story' : 'panel_offer_without_story', $c),
                 'story' => $story, 'handovers' => $handovers, 'teachers' => self::teachers((string) ($offer->teacher ?? 'maestra')),
+                'nexts' => self::nexts($names, (string) $offer->name, trim((string) ($offer->nextname ?? ''))),
                 // A knob for each place, filled for those enrolled; at most thirty.
                 'pegs' => $places > 0 ? array_map(fn($k) => ['on' => $k < $enrolled], range(0, min($places, 30) - 1)) : [],
                 'manypegs' => $places >= 25];
@@ -398,6 +401,7 @@ class panel_centre {
         $handovers = optional_param_array('offerhandover', [], PARAM_INT);
         $stories = optional_param_array('offerstory', [], PARAM_BOOL);
         $teachers = optional_param_array('offerteacher', [], PARAM_ALPHA);
+        $nexts = optional_param_array('offernext', [], PARAM_TEXT);
         $newplaces = optional_param_array('offernewplaces', [], PARAM_INT);
         foreach ($names as $i => $name) {
             $id = (int) ($ids[$i] ?? 0);
@@ -415,6 +419,10 @@ class panel_centre {
                     'schoolyear' => $offer->schoolyear, 'places' => $offer->places, 'active' => $offer->active,
                     'sortorder' => $offer->sortorder, 'handover' => self::member((int) ($handovers[$i] ?? 0), $centreid),
                     'story' => !empty($stories[$i]), 'teacher' => $teachers[$i] ?? 'maestra']);
+                if (array_key_exists($i, $nexts)) {
+                    $to = \core_text::substr(trim((string) $nexts[$i]), 0, 255);
+                    $DB->set_field(centres::OFFERS, 'nextname', $to === '' ? null : $to, ['id' => $id, 'centreid' => $centreid]);
+                }
             } else if (!$id && $name !== '') {
                 $new = centres::save_offer($centreid, (object) ['name' => $name, 'schoolyear' => $view,
                     'places' => max(0, (int) ($newplaces[$i] ?? 0)), 'active' => 1, 'sortorder' => 999]);
@@ -540,7 +548,30 @@ class panel_centre {
     }
 
     /**
-     * How the story may call whoever receives a course, as options.
+     * The courses a course may go on to next school year: by its age, none (they finish here), or another one by name.
+     *
+     * @param string[] $names The names of the courses of the centre.
+     * @param string $own The name of this one.
+     * @param string $chosen What the centre chose.
+     * @return array
+     */
+    protected static function nexts(array $names, string $own, string $chosen): array {
+        $c = self::C;
+        $out = [['value' => '', 'name' => get_string('offer_next_age', $c), 'selected' => $chosen === ''],
+            ['value' => '-', 'name' => get_string('offer_next_none', $c), 'selected' => $chosen === '-']];
+        foreach ($names as $name) {
+            if ($name !== $own) {
+                $out[] = ['value' => $name, 'name' => format_string($name), 'selected' => $chosen === $name];
+            }
+        }
+        if ($chosen !== '' && $chosen !== '-' && !in_array($chosen, $names, true)) {
+            $out[] = ['value' => $chosen, 'name' => format_string($chosen), 'selected' => true];
+        }
+        return $out;
+    }
+
+    /**
+     * Who receives in the story of a course: a teacher, «maestra» or «maestro».
      *
      * @param string $chosen
      * @return array
@@ -560,7 +591,7 @@ class panel_centre {
         if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) || !checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
             return 0;
         }
-        return make_timestamp((int) $m[1], (int) $m[2], (int) $m[3]);
+        return make_timestamp((int) $m[1], (int) $m[2], (int) $m[3], 0, 0, 0, \core_date::get_server_timezone());
     }
 
     /**

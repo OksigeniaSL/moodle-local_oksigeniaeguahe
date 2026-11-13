@@ -41,7 +41,9 @@ class publiclang {
      */
     public static function choose(\stdClass $centre): string {
         global $SESSION;
-        $asked = optional_param('lang', '', PARAM_ALPHANUMEXT);
+        // The parameter is «idioma», never «lang»: Moodle reads «lang» too and would change the language of the whole
+        // site for whoever is logged in. «lang» still works for the links sent before.
+        $asked = optional_param('idioma', '', PARAM_ALPHANUMEXT) ?: optional_param('lang', '', PARAM_ALPHANUMEXT);
         if (in_array($asked, lists::LANGS, true)) {
             $SESSION->local_oksigeniaeguahe_lang = $asked;
             return $asked;
@@ -203,7 +205,8 @@ class publiclang {
             (self::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) === 'pt' ? 'pt' : 'pt_br');
         $list = [];
         foreach (['es', 'en', $portuguese] as $code) {
-            $link = new \moodle_url($url, ['lang' => $code]);
+            $link = new \moodle_url($url, ['idioma' => $code]);
+            $link->remove_params('lang');
             $list[] = ['name' => $names[$code], 'url' => $link->out(false), 'current' => $code === $lang,
                 'code' => str_replace('_', '-', $code)];
         }

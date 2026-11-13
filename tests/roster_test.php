@@ -216,7 +216,9 @@ final class roster_test extends \advanced_testcase {
         $this->assertSame(['family', ''], roster::source($centre));
         $values = roster::overview($centre)['values'];
         $this->assertSame(['INF 3ºA'], array_column($values, 'value'), 'Only the groups.');
-        $this->assertSame('Infantil 3 años', $values[0]['guess'], 'INF is Infantil.');
+        // The value «INF 3ºA»: by its words, Infantil 3 años; by its age, the third year of Infantil (five). Two readings,
+        // no guess.
+        $this->assertSame('', $values[0]['guess'], 'A person hangs it.');
         roster::set_map($centre, 'INF 3ºA', 'Infantil 3 años');
         $this->assertSame(1, roster::sync($centre, time())['families']);
         $child = $DB->get_record(households::CHILDREN, ['familychild' => 14]);

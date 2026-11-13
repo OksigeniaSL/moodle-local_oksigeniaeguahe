@@ -60,7 +60,15 @@ if (!$centre) {
 if (optional_param('away', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
     // The relay: until when this person is away, or that they are back.
     $until = publicpage::date_param('until');
-    $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $until, $d) ? make_timestamp((int) $d[1], (int) $d[2], (int) $d[3], 12) : 0;
+    $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $until, $d) ? make_timestamp(
+        (int) $d[1],
+        (int) $d[2],
+        (int) $d[3],
+        12,
+        0,
+        0,
+        \core_date::get_server_timezone()
+    ) : 0;
     attend::set_away((int) $centre->id, (int) $USER->id, optional_param('back', 0, PARAM_BOOL) ? 0 : $when);
     redirect(new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]));
 }
@@ -80,7 +88,7 @@ if (in_array($density, ['fichas', 'lista'], true)) {
 $view = ['course' => optional_param('curso', 0, PARAM_INT), 'stage' => optional_param('etapa', '', PARAM_ALPHA),
     'siblings' => optional_param('hermanos', 0, PARAM_BOOL), 'volunteers' => optional_param('voluntarias', 0, PARAM_BOOL),
     'starting' => optional_param('primerdia', 0, PARAM_BOOL), 'birthdays' => optional_param('cumple', 0, PARAM_BOOL),
-    'density' => $density];
+    'density' => $density, 'places' => optional_param('plazas', '', PARAM_TEXT)];
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));
 panel::setup($url, get_string('inbox', $c));
 panel::output($centre, 'inbox', get_string('inbox', $c), 'panel_inbox', panel_inbox::context(

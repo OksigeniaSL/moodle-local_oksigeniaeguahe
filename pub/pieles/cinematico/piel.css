@@ -146,7 +146,7 @@ html body.panel.piel-mostrador.piel-cinematico::after {
 
 .piel-cinematico .cine-cabeza .titular {
     /* stylelint-disable-next-line csstree/validator */
-    font-size: clamp(2.3rem, 1.2rem + 3.3vw, 4.6rem);
+    font-size: clamp(1.9rem, 0.9rem + 2vw, 3.1rem);
     font-weight: 800;
     letter-spacing: -0.045em;
     line-height: 1;
@@ -184,11 +184,12 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     transform: none;
 }
 
-/* The river. */
+/* The river: a band under the sentence, low enough for the list to start on the first screen (Jujol, 13 November
+   2026: it was up to 400 px). */
 .cine-rio {
     position: relative;
     /* stylelint-disable-next-line csstree/validator */
-    height: clamp(300px, 34vw, 400px);
+    height: clamp(270px, 20vw, 310px);
     margin: 4px calc(var(--g-panel, 0px) * -1) 0;
     overflow: hidden;
     border-radius: 18px;
@@ -391,6 +392,35 @@ html body.panel.piel-mostrador.piel-cinematico::after {
 
 .farolillo.fuera-del-rio {
     display: none;
+}
+
+/* In the band, the lantern says who and since when; how they came and who looks after them, in the list. */
+@media (min-width: 701px) {
+    .cine-rio .farolillo-como {
+        display: none;
+    }
+
+    .cine-rio .farolillo a {
+        padding: 16px 12px 8px;
+    }
+
+    .cine-rio .farolillo .etiquetas {
+        top: -9px;
+    }
+
+    .cine-rio .farolillo .etiqueta {
+        padding-top: 1px;
+        border-top-width: 3px;
+        font-size: 0.95rem;
+    }
+
+    .cine-rio .farolillo-quien {
+        font-size: 0.875rem;
+    }
+
+    .cine-rio .farolillo-desde {
+        font-size: 0.9375rem;
+    }
 }
 
 .farolillo-como {
@@ -890,6 +920,12 @@ html body.panel.piel-mostrador.piel-cinematico::after {
         top: auto;
         left: auto;
         width: auto;
+    }
+
+    /* Only the one that waits longest, next to the counter (the last of the six); the others are right below, in the
+       list. */
+    .cine-farolillos .farolillo:not(:last-child) {
+        display: none;
     }
 
     .cine-constelacion {

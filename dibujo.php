@@ -92,14 +92,14 @@ if ($action === 'mandado' || $action === 'guardado') {
 
 share::count($household, $centre, 'opened', 'dibujo');
 $name = familypage::label_name($child) ?: (string) $child->firstname;
-$here = new moodle_url($url, ['lang' => $lang]);
+$here = new moodle_url($url, ['idioma' => $lang]);
 $strokes = drawings::strokes_file($childid);
 $title = publiclang::str('pub_drawing_title', $lang, $name);
 publicpage::$head = share::meta(
     $title,
     share::gift($centre, $lang),
     $here,
-    new moodle_url('/local/oksigeniaeguahe/og.php', $params + ['p' => 'dibujo', 'lang' => $lang]),
+    new moodle_url('/local/oksigeniaeguahe/og.php', $params + ['p' => 'dibujo', 'idioma' => $lang]),
     $lang,
     format_string($centre->name)
 );

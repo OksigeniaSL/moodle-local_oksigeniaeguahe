@@ -179,7 +179,7 @@ class messaging {
         ][$kind];
         try {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'notice'),
-                'lang' => $pagelang]);
+                'idioma' => $pagelang]);
             $args = [self::COMPONENT, self::NOTICES[$kind], $params, $url, (int) $household->id, null, false, 3 * DAYSECS];
             return \local_oksigeniamarandu\api::notify(...$args, ...($haslang ? ['lang' => $lang] : []));
         } catch (\Throwable $e) {
@@ -203,7 +203,7 @@ class messaging {
         $lang = $household->lang ?: $centre->lang;
         try {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'reply'),
-                'lang' => $lang]);
+                'idioma' => $lang]);
             $closed = null;
             foreach (\local_oksigeniamarandu\api::send_text(self::COMPONENT, (int) $household->id, $text, $url) as $line) {
                 if (($line['status'] ?? '') === 'sent') {

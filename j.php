@@ -155,7 +155,7 @@ if (data_submitted()) {
                 $url
             );
         }
-        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'lang' => $lang]));
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]));
     }
 }
 
@@ -166,7 +166,7 @@ if (share::act_open($event)) {
         format_string($event->name),
         $when['long'] . (!empty($event->place) ? ' · ' . format_string($event->place) : ''),
         events::url($event),
-        new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'acto', 't' => $event->token, 'lang' => $lang]),
+        new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'acto', 't' => $event->token, 'idioma' => $lang]),
         $lang,
         format_string($centre->name)
     );

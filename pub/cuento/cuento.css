@@ -247,6 +247,8 @@ button {
 .app {
     position: relative;
     z-index: 1;
+    height: 100vh;
+    /* stylelint-disable-next-line declaration-block-no-duplicate-properties */
     height: 100dvh;
     display: grid;
     grid-template-rows: auto auto 1fr auto auto;
@@ -794,6 +796,8 @@ button.marco {
     gap: 10px 12px;
     padding: 10px 16px 4px;
     border-top: 1px solid var(--linea);
+    background: var(--papel);
+    /* stylelint-disable-next-line declaration-block-no-duplicate-properties */
     background: color-mix(in srgb, var(--papel) 92%, transparent);
 }
 .ant {
@@ -1069,6 +1073,8 @@ button.marco {
     }
     .lamina {
         /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100vh - 230px) * 1.5));
+        /* stylelint-disable-next-line csstree/validator, declaration-block-no-duplicate-properties */
         width: min(100%, calc((100dvh - 230px) * 1.5));
         justify-self: end;
     }
@@ -1086,6 +1092,8 @@ button.marco {
     }
     .hoja-dedicatoria {
         /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100vh - 300px) * 1.85));
+        /* stylelint-disable-next-line csstree/validator, declaration-block-no-duplicate-properties */
         width: min(100%, calc((100dvh - 300px) * 1.85));
         grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
         /* stylelint-disable-next-line csstree/validator */
@@ -1150,6 +1158,8 @@ button.marco {
     }
     .lamina {
         /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100vh - 150px) * 1.5));
+        /* stylelint-disable-next-line csstree/validator, declaration-block-no-duplicate-properties */
         width: min(100%, calc((100dvh - 150px) * 1.5));
     }
     .portada {
@@ -1171,6 +1181,8 @@ button.marco {
     }
     .hoja-dedicatoria {
         /* stylelint-disable-next-line csstree/validator */
+        width: min(100%, calc((100vh - 190px) * 1.85));
+        /* stylelint-disable-next-line csstree/validator, declaration-block-no-duplicate-properties */
         width: min(100%, calc((100dvh - 190px) * 1.85));
         padding: 10px 20px;
     }

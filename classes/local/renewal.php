@@ -165,13 +165,18 @@ class renewal {
         }
         $before = self::year_before($year);
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
-        // The courses of the year asked about, by their age: where each child would go.
+        // The courses of the year asked about, by their age and by their name: where each child would go.
         $next = [];
+        $named = [];
         foreach ($offers as $offer) {
+            if ((string) $offer->schoolyear !== $year || empty($offer->active)) {
+                continue;
+            }
             $age = grades::age((string) $offer->name, $centre);
-            if ((string) $offer->schoolyear === $year && $age !== null && !empty($offer->active)) {
+            if ($age !== null) {
                 $next[$age] = $next[$age] ?? $offer;
             }
+            $named[recognise::plain((string) $offer->name)] = $named[recognise::plain((string) $offer->name)] ?? $offer;
         }
         $params = ['centreid' => $centre->id, 'stage' => 'enrolled'] + ($householdid ? ['householdid' => $householdid] : []);
         $out = [];
@@ -180,6 +185,14 @@ class renewal {
         foreach ($DB->get_records(households::CHILDREN, $params, 'id ASC') as $child) {
             $offer = $offers[$child->offerid] ?? null;
             if (!empty($child->lefttime) || !$offer || (string) $offer->schoolyear !== $before) {
+                continue;
+            }
+            // The course the centre wrote it goes on to (a dash: they finish here); without one, the next by age.
+            $to = trim((string) ($offer->nextname ?? ''));
+            if ($to !== '') {
+                if ($to !== '-' && isset($named[recognise::plain($to)])) {
+                    $out[(int) $child->id] = [$child, $offer, $named[recognise::plain($to)]];
+                }
                 continue;
             }
             $age = $ages[$offer->id] = array_key_exists($offer->id, $ages) ? $ages[$offer->id] :

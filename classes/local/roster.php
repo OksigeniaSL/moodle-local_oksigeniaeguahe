@@ -252,10 +252,13 @@ class roster {
                 $most = count($theirs);
             }
         }
-        if ($best) {
-            return (string) $best->name;
-        }
         $age = grades::age($value, $centre);
+        if ($best) {
+            // Read by its words and by its age, two different courses («INF 3º»: three years old, or the third year of
+            // Infantil?): nothing is proposed, a person hangs it.
+            $bestage = grades::age((string) $best->name, $centre);
+            return $age !== null && $bestage !== null && $bestage !== $age ? '' : (string) $best->name;
+        }
         if ($age !== null) {
             $same = array_filter($offers, fn($o) => grades::age((string) $o->name, $centre) === $age);
             if (count($same) === 1) {

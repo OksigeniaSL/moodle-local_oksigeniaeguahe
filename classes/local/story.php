@@ -254,7 +254,7 @@ class story {
      */
     public static function share_url(\stdClass $household, \stdClass $child, string $lang): \moodle_url {
         return new \moodle_url('/local/oksigeniaeguahe/cuento.php', ['h' => $household->id, 'n' => $child->id,
-            's' => self::signature((int) $household->id, (int) $child->id), 'lang' => $lang]);
+            's' => self::signature((int) $household->id, (int) $child->id), 'idioma' => $lang]);
     }
 
     /**

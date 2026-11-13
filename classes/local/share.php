@@ -100,7 +100,7 @@ class share {
      */
     public static function drawing_url(\stdClass $household, \stdClass $child, string $lang): \moodle_url {
         return new \moodle_url('/local/oksigeniaeguahe/dibujo.php', ['h' => $household->id, 'n' => $child->id,
-            's' => self::signature('dibujo', (int) $household->id, (int) $child->id), 'lang' => $lang]);
+            's' => self::signature('dibujo', (int) $household->id, (int) $child->id), 'idioma' => $lang]);
     }
 
     /**
@@ -355,7 +355,8 @@ class share {
             'text' => publiclang::str('share_drawing_text', $lang, $name),
             'url' => self::drawing_url($household, $child, $lang)->out(false),
             'file' => clean_filename($title) . '.mp4',
-            'picture' => (new \moodle_url('/local/oksigeniaeguahe/og.php', $sig + ['p' => 'dibujo', 'lang' => $lang]))->out(false),
+            'picture' => (new \moodle_url('/local/oksigeniaeguahe/og.php', $sig + ['p' => 'dibujo', 'idioma' => $lang]))
+                ->out(false),
             'words' => ['preparing' => $s('preparing'), 'send' => $s('send'), 'save' => $s('save'),
                 'savepicture' => $s('savepicture'), 'picture' => $s('picture'), 'failed' => $s('failed'),
                 'close' => $s('close')],

@@ -37,9 +37,9 @@ use local_oksigeniaeguahe\local\story;
 $householdid = optional_param('h', 0, PARAM_INT);
 $childid = optional_param('n', 0, PARAM_INT);
 $signature = optional_param('s', '', PARAM_ALPHANUM);
-$lang = optional_param('lang', '', PARAM_ALPHANUMEXT);
+$lang = optional_param('idioma', '', PARAM_ALPHANUMEXT) ?: optional_param('lang', '', PARAM_ALPHANUMEXT);
 $lang = in_array($lang, story::LANGS, true) ? $lang : story::LANGS[0];
-$params = ['h' => $householdid, 'n' => $childid, 's' => $signature, 'lang' => $lang];
+$params = ['h' => $householdid, 'n' => $childid, 's' => $signature, 'idioma' => $lang];
 $url = new moodle_url('/local/oksigeniaeguahe/cuento.php', $params);
 publicpage::setup($url);
 
@@ -104,7 +104,7 @@ $context['meta'] = share::meta(
     share::gift($centre, $lang),
     $url,
     new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'cuento', 'h' => $householdid, 'n' => $childid,
-        's' => $signature, 'lang' => $lang]),
+        's' => $signature, 'idioma' => $lang]),
     $lang,
     format_string($centre->name)
 );

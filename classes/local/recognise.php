@@ -205,15 +205,17 @@ class recognise {
      * A date or a date and time, in the forms files use; a timestamp, or null.
      *
      * @param string $v
+     * @param bool $monthfirst Whether its column puts the month first (monthfirst()).
      * @return int|null
      */
-    public static function date(string $v): ?int {
+    public static function date(string $v, bool $monthfirst = false): ?int {
         $v = trim($v);
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/', $v, $m)) {
             [$y, $mo, $d] = [(int) $m[1], (int) $m[2], (int) $m[3]];
         } else if (preg_match('/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/', $v, $m)) {
-            // Day first, as in Spanish and Portuguese, unless the day cannot be the month.
-            [$d, $mo, $y] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+            // Day first, as in Spanish and Portuguese, or month first when the column says so (monthfirst()); and
+            // never a day that cannot be the month.
+            [$d, $mo, $y] = $monthfirst ? [(int) $m[2], (int) $m[1], (int) $m[3]] : [(int) $m[1], (int) $m[2], (int) $m[3]];
             if ($mo > 12 && $d <= 12) {
                 [$d, $mo] = [$mo, $d];
             }
@@ -225,6 +227,29 @@ class recognise {
             return null;
         }
         return make_timestamp($y, $mo, $d, 12);
+    }
+
+    /**
+     * Whether the dates of a column put the month first (03/25/2027): a value whose second number cannot be a month says
+     * day first, one whose first cannot be says month first; if none says, the order of the country of the centre.
+     *
+     * @param string[] $values
+     * @param string $country
+     * @param string $lang
+     * @return bool
+     */
+    public static function monthfirst(array $values, string $country, string $lang): bool {
+        foreach ($values as $v) {
+            if (preg_match('/^(\d{1,2})[\/.-](\d{1,2})[\/.-]\d{2,4}/', trim((string) $v), $m)) {
+                if ((int) $m[1] > 12) {
+                    return false;
+                }
+                if ((int) $m[2] > 12) {
+                    return true;
+                }
+            }
+        }
+        return array_values(publicpage::date_order($lang, $country))[0] === 'm';
     }
 
     /**

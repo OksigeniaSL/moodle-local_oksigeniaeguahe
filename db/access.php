@@ -29,13 +29,13 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
     // Create centres, set them up and say who works for each. Sees every centre of the site.
+    // Only whoever the site gives it to (administrators have it always): the families of every centre are behind it, so
+    // it is not given to every manager of a Moodle by default.
     'local/oksigeniaeguahe:manage' => [
         'riskbitmask' => RISK_PERSONAL | RISK_CONFIG,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-        ],
+        'archetypes' => [],
     ],
     // See the inbox, the households, the events and the numbers of the centres one is in the team of, without
     // answering nor changing anything: for whoever supervises.

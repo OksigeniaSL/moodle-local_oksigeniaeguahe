@@ -2,8 +2,9 @@
   (Gaudí, 8 November 2026). Loaded after pieles/mostrador/piel.css, with both classes on the body, so every screen keeps
   the desk and its paper; here the desk is light oak or beech like the floor and the counter of the hall, the paper a
   point warmer, the accents those of the scene (cream, light wood, coral only for what is pointed out) and the night that
-  of its night light. On the inbox and the page of a family, the hall itself, in isometric, drawn by escena.js from
-  datos/vestibulo.json; without JavaScript, the desk as it is. */
+  of its night light. On the page of a family, the hall itself, in isometric, drawn by escena.js from
+  datos/vestibulo.json; on the inbox, its rail as a window beside the list (Jujol, 13 November 2026); without
+  JavaScript, the desk as it is. */
 body.piel-vestibulo {
     --papel-b: #fffaf0;
     --papel-b-2: #f7eddc;
@@ -82,165 +83,54 @@ body.piel-vestibulo::after {
 }
 
 /* ---------- The hall of the inbox ---------- */
-/* The whole width under the bar, as tall as the frame of the screen; the card of the queue on its quiet wall. */
-.piel-vestibulo .vestibulo-sala {
+/* A window at the head of the side column, framed in the wood of the hall: the band of its rail, with the families that
+   wait hanging from it. The work is the list; the hall only shows it. On a phone, after the list. Without JavaScript, or
+   until it is drawn, nothing: the list says it all. */
+.piel-vestibulo .vestibulo-ventana {
     position: relative;
-    /* stylelint-disable-next-line csstree/validator */
-    height: min(708px, calc(100vh - 64px));
-    margin: -22px calc(-1 * var(--g)) 26px;
-    box-shadow: 0 1px 0 rgba(80, 55, 30, 0.2), 0 14px 26px -18px rgba(60, 40, 20, 0.6);
-}
-
-.piel-vestibulo .vestibulo-escena {
-    position: absolute;
-    inset: 0;
+    aspect-ratio: 390 / 300;
+    margin: 0 0 22px;
     overflow: hidden;
+    border-radius: 6px;
     background: #f4eee3;
+    box-shadow:
+        0 0 0 6px var(--eg-madera),
+        0 0 0 7px var(--eg-madera-sombra),
+        0 18px 26px -14px rgba(60, 40, 20, 0.55);
 }
 
 /* Around the cut of the room, the colour of the light of the hour. */
-.piel-vestibulo .vestibulo-escena[data-luz="tarde"] {
+.piel-vestibulo .vestibulo-ventana[data-luz="tarde"] {
     background: #efe2cf;
 }
 
-.piel-vestibulo .vestibulo-escena[data-luz="noche"] {
+.piel-vestibulo .vestibulo-ventana[data-luz="noche"] {
     background: #2a211b;
 }
 
-.piel-vestibulo .vestibulo-escena .sala {
+.piel-vestibulo .vestibulo-ventana .sala {
     position: absolute;
     left: 0;
     top: 0;
     pointer-events: none;
 }
 
-.piel-vestibulo .vestibulo-escena .sala .dibujo {
+.piel-vestibulo .vestibulo-ventana .sala .dibujo {
     pointer-events: auto;
 }
 
-.piel-vestibulo .vestibulo-tarjeta {
-    position: absolute;
-    z-index: 2;
-    left: var(--g);
-    top: 16px;
-    width: 368px;
-    max-height: calc(100% - 32px);
-    overflow: auto;
-    padding: 18px 20px 10px;
-    border-radius: 10px;
-    background: var(--papel-b);
-    color: var(--eg-tinta);
-    box-shadow: 0 10px 30px rgba(43, 34, 38, 0.18);
-}
-
-.piel-vestibulo .vestibulo-tarjeta .cabeza {
-    margin: 0 0 6px;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-}
-
-.piel-vestibulo .vestibulo-tarjeta .titular {
-    font-size: 1.75rem;
-    line-height: 1.1;
-}
-
-.piel-vestibulo .vestibulo-tarjeta .cabeza p {
-    font-size: 0.9375rem;
-}
-
-.piel-vestibulo .cola-sala {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.piel-vestibulo .cola-sala li {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    padding: 8px 0;
-    border-top: 1px solid var(--eg-linea);
-}
-
-.piel-vestibulo .cola-sala a {
-    display: grid;
-    flex: 1 1 auto;
-    min-width: 0;
-    color: var(--eg-tinta);
-    text-decoration: none;
-}
-
-.piel-vestibulo .cola-sala a b {
-    font-weight: 650;
-}
-
-.piel-vestibulo .cola-sala a span {
-    color: var(--eg-tinta-2);
-    font-size: 0.875rem;
-}
-
-.piel-vestibulo .cola-sala a:hover b,
-.piel-vestibulo .cola-sala a:focus-visible b {
-    text-decoration: underline;
-}
-
-.piel-vestibulo .cola-sala .ninos {
-    flex: none;
-    font-family: var(--piel-mano);
-    font-size: 1.1875rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-@media (min-width: 1580px) {
-    .piel-vestibulo .vestibulo-sala {
-        /* stylelint-disable-next-line csstree/validator */
-        height: min(840px, calc(100vh - 64px));
-    }
-}
-
-@media (min-width: 1900px) {
-    .piel-vestibulo .vestibulo-sala {
-        /* stylelint-disable-next-line csstree/validator */
-        height: min(1020px, calc(100vh - 64px));
-    }
-}
-
-/* Without JavaScript, or until it is drawn, no hall: the card is the head of the inbox on the desk. */
-html:not(.sala-lista) .piel-vestibulo .vestibulo-sala {
-    height: auto;
-    margin: 0 0 18px;
-    box-shadow: none;
-}
-
-html:not(.sala-lista) .piel-vestibulo .vestibulo-escena {
+html:not(.sala-lista) .piel-vestibulo .vestibulo-ventana {
     display: none;
 }
 
-html:not(.sala-lista) .piel-vestibulo .vestibulo-tarjeta {
-    position: static;
-    width: auto;
-    max-height: none;
-}
-
-/* On the phone, a band of the rail; the card of the queue under it, in the page. */
+/* On a phone the window comes after the list, before the epilogue: the frame a little thinner. */
 @media (max-width: 719px) {
-    .piel-vestibulo .vestibulo-sala {
-        height: auto;
-        box-shadow: none;
-    }
-
-    .piel-vestibulo .vestibulo-escena {
-        position: relative;
-        height: 300px;
-    }
-
-    .piel-vestibulo .vestibulo-tarjeta {
-        position: static;
-        width: auto;
-        max-height: none;
-        margin: -14px var(--g) 0;
+    .piel-vestibulo .vestibulo-ventana {
+        margin: 6px 0 22px;
+        box-shadow:
+            0 0 0 4px var(--eg-madera),
+            0 0 0 5px var(--eg-madera-sombra),
+            0 12px 20px -12px rgba(60, 40, 20, 0.55);
     }
 }
 

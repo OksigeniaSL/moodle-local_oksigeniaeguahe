@@ -356,6 +356,9 @@ class panel {
             $skinjs .= file_exists($skindir . 'escena.js') ? '<script src="' . $base . 'pieles/' . $layer . '/escena.js?v=' .
                 $version . '" defer></script>' . "\n" : '';
         }
+        // The page by its template, on the html and the body: what printing needs (the report, the sheets of labels)
+        // without :has(), which the browsers of the classrooms do not have.
+        $page = 'pl-' . str_replace('_', '-', $template) . (!empty($context['letter']) ? ' pl-carta' : '');
         $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + ['i' => self::icons(),
             'piel' => array_fill_keys($layers, true), 'pielnombre' => $skin, 'h24' => self::h24($centre)]);
         $frame = $OUTPUT->render_from_template('local_oksigeniaeguahe/panel_frame', [
@@ -397,7 +400,7 @@ class panel {
         $mode = self::mode();
         self::headers();
         echo '<!DOCTYPE html>
-<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '"' .
+<html class="' . $page . '" lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '"' .
             ($mode !== '' ? ' data-bs-theme="' . $mode . '"' : '') . '>
 <head>
 <meta charset="utf-8">
@@ -415,7 +418,8 @@ class panel {
 <script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
-<body class="panel ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') . '">
+<body class="panel ' . $page . ' ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') .
+            '">
 ' . $top . $body . $bottom . '
 </body>
 </html>';

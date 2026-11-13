@@ -856,12 +856,16 @@
     // Shown first, so that it can be measured; without the hall drawn, the page goes back to what it shows without it.
     document.documentElement.classList.add('sala-lista');
     try {
-      var width = stage.clientWidth || window.innerWidth, key = frameFor(data.kind, width, V), e = V.bandeja.encuadres[key];
+      // The window of the inbox (data-ventana, at the head of its side column): the band of the rail of the phone, as
+      // wide as the window, whatever the screen.
+      var window_ = stage.hasAttribute('data-ventana');
+      var width = stage.clientWidth || window.innerWidth, key = window_ ? '390x844' : frameFor(data.kind, width, V);
+      var e = V.bandeja.encuadres[key];
       var nominal = FRAMES[key] || [width, stage.clientHeight];
       var phone = key === '390x844' || key === 'familia-390';
       var top = key === 'familia' || phone ? 0 : BAR;
       // The frame was made for its own size: the whole of it in the height there is, and centred in the width.
-      var k = phone ? 1 : Math.min(1, (stage.clientHeight || nominal[1] - top) / (nominal[1] - top));
+      var k = window_ ? width / nominal[0] : (phone ? 1 : Math.min(1, (stage.clientHeight || nominal[1] - top) / (nominal[1] - top)));
       var light = lightFor(V, data.time);
       while (sala.firstChild) { sala.removeChild(sala.firstChild); }
       var opts = { size: e.imagen, light: light, time: data.time, centre: data.centre, minPx: 15, screenScale: e.escala * k,

@@ -1846,8 +1846,100 @@ details[open].plegado > summary h2::after {
     gap: 8px;
 }
 
+/* The filters folded in one line that says what is shown; open when one is chosen. */
 .filtros-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    min-height: 40px;
+    list-style: none;
+    cursor: pointer;
+}
+
+.filtros-titulo::-webkit-details-marker {
     display: none;
+}
+
+.filtros-titulo > span:first-child {
+    color: var(--eg-acento);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.filtros-ahora {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.filtros-titulo .ic {
+    margin-inline-start: auto;
+    transition: transform var(--dur-1) ease;
+}
+
+.filtros[open] > .filtros-titulo .ic {
+    transform: rotate(180deg);
+}
+
+.filtros[open] > .filtros-titulo {
+    margin-bottom: 2px;
+}
+
+/* ---------- The work of today besides the families waiting: notes at the head of the side column ---------- */
+/* On a phone, before the list; on a wide screen, over the epilogue, beside the list. */
+.hoy {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.hoy-t {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hoy-notas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hoy-nota {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 19rem;
+    min-width: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+    box-shadow: var(--piel-fila-sombra);
+}
+
+.hoy-nota p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.hoy-nota .enlace {
+    white-space: nowrap;
+}
+
+.hoy-nota .hoja-cal {
+    width: 46px;
+    min-height: 52px;
+}
+
+.hoy-nota .hoja-cal b {
+    font-size: 1.25rem;
 }
 
 .lista {
@@ -2164,6 +2256,32 @@ details[open].plegado > summary h2::after {
     gap: 16px;
 }
 
+/* The school years with places, as small leaves; the one shown, raised. */
+.plazas-hojas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -4px 0 14px;
+}
+
+.plazas-hoja {
+    padding: 4px 12px 3px;
+    border-radius: 3px 3px 8px 8px;
+    background: linear-gradient(var(--eg-linea) 0 4px, transparent 4px), var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.plazas-hoja[aria-current] {
+    background: linear-gradient(var(--eg-sello) 0 4px, transparent 4px), var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-tinta), 0 4px 8px -4px rgba(0, 0, 0, 0.35);
+    color: var(--eg-tinta);
+    transform: translateY(-2px);
+}
+
 .curso-plazas {
     display: grid;
     gap: 6px;
@@ -2324,8 +2442,33 @@ details[open].plegado > summary h2::after {
         grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.5fr);
     }
 
-    .mostrador.con-hoja .epilogo {
+    .mostrador.con-hoja .epilogo,
+    .mostrador.con-hoja .hoy {
         display: none;
+    }
+
+    /* The notes of today over the epilogue, the list beside both. */
+    .mostrador.con-hoy {
+        grid-template-areas: "lista hoy" "lista epilogo";
+        grid-template-rows: auto 1fr;
+        row-gap: 24px;
+    }
+
+    .mostrador.con-hoy > .bandeja {
+        grid-area: lista;
+    }
+
+    .mostrador.con-hoy > .hoy {
+        grid-area: hoy;
+    }
+
+    .mostrador.con-hoy > .epilogo {
+        grid-area: epilogo;
+    }
+
+    .mostrador.con-hoy > .hoja-lateral {
+        grid-column: 2;
+        grid-row: 1 / span 2;
     }
 
     .mostrador.con-hoja .filtros,
@@ -8661,7 +8804,7 @@ html.modo-lamina {
 
     /* Paper, whatever the screen: the light tokens of the panel on the body (the skins set theirs there, and their
        night too), white paper and no desk. */
-    :root:has(.pagina-informe) body.panel.panel {
+    html.pl-panel-report body.panel.panel {
         --eg-papel: #fbf7f1;
         --eg-superficie: #fff;
         --eg-tinta: #2b2226;
@@ -8684,17 +8827,17 @@ html.modo-lamina {
         color-scheme: light;
     }
 
-    :root:has(.pagina-informe) body.panel.panel::before,
-    :root:has(.pagina-informe) body.panel.panel::after {
+    html.pl-panel-report body.panel.panel::before,
+    html.pl-panel-report body.panel.panel::after {
         display: none;
     }
 
-    :root:has(.pagina-informe) {
+    html.pl-panel-report {
         background: #fff;
         color-scheme: light;
     }
 
-    :root:has(.pagina-informe) body .pagina-informe {
+    html.pl-panel-report body .pagina-informe {
         --inf-lapiz: rgba(43, 34, 38, 0.22);
         --inf-nota: #fff5cf;
         --inf-nota-borde: #e3cf85;
@@ -9384,18 +9527,7 @@ html.modo-lamina {
     }
 
     .filtros-titulo {
-        display: flex;
-        align-items: center;
-        min-height: 40px;
-        color: var(--eg-acento);
-        font-weight: 650;
         font-size: 0.9375rem;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    .filtros[open] .filtros-titulo {
-        margin-bottom: 4px;
     }
 
     .camino button {
@@ -9897,31 +10029,31 @@ html.modo-lamina {
     }
 
     /* Only the sheets reach the paper: not the table of the skin, nor the frame of the panel above them. */
-    :root:has(.hojas-etiquetas),
-    :root body.panel:has(.hojas-etiquetas) {
+    html.pl-panel-labels,
+    html.pl-panel-labels body.panel {
         height: auto;
         min-height: 0;
         background: #fff;
     }
 
     /* The whole document on the page of the sheet: a page of another name in between would break before and after. */
-    :root body.panel:has(.hojas-etiquetas) {
+    html.pl-panel-labels body.panel {
         /* stylelint-disable-next-line csstree/validator */
         page: etiquetas;
     }
 
-    :root body.panel:has(.hojas-etiquetas.carta) {
+    html.pl-carta body.panel {
         /* stylelint-disable-next-line csstree/validator */
         page: etiquetas-carta;
     }
 
-    body.panel:has(.hojas-etiquetas) > :not(main),
-    body.panel:has(.hojas-etiquetas) main > :not(.pagina-etiquetas) {
+    body.panel.pl-panel-labels > :not(main),
+    body.panel.pl-panel-labels main > :not(.pagina-etiquetas) {
         display: none;
     }
 
-    body.panel:has(.hojas-etiquetas)::before,
-    body.panel:has(.hojas-etiquetas)::after {
+    body.panel.pl-panel-labels::before,
+    body.panel.pl-panel-labels::after {
         display: none;
     }
 
@@ -10536,22 +10668,8 @@ a.quien-cita:focus-visible {
     margin: 0;
 }
 
-.pd-pide-lista {
-    display: grid;
-    margin: 0 0 6px;
-    padding: 0;
-    list-style: none;
-}
-
-.pd-pide-lista li + li .acto-corto {
-    border-top: 1px solid var(--eg-linea);
-}
-
-.pd-pide-fila .que b {
-    font-weight: 700;
-}
-
-/* A course with no day yet: its leaf of the calendar, blank and dashed, waiting to be written. */
+/* A course with no day yet: its leaf of the calendar, blank and dashed, waiting to be written (also in the notes of
+   today of the inbox). */
 .pd-hoja-vacia,
 .pd-falta .pd-hoja {
     background: transparent;
@@ -11296,10 +11414,6 @@ button.padron-pomo-no::after {
     display: grid;
     gap: 8px;
     margin-top: 8px;
-}
-
-.bloque-hermanos p {
-    margin: 0 0 4px;
 }
 
 /* The thanks to the family that told them about the centre: a text written, for the person to decide. */
@@ -12853,14 +12967,17 @@ details.aj-plegado > summary h2::after {
     outline-offset: 3px;
 }
 
-/* A photo or a logo just chosen: its «Save» comes out beside it (with JavaScript it saves itself). */
-.aj-foto-guardar {
-    display: none;
-}
+/* A photo or a logo just chosen: its «Save» comes out beside it (with JavaScript it saves itself). A browser without
+   :has() always shows it, so that the photo can be saved there too. */
+@supports selector(:has(*)) {
+    .aj-foto-guardar {
+        display: none;
+    }
 
-.aj-persona:has(input[type="file"]:valid) .aj-foto-guardar,
-.aj-util:has(input[type="file"]:valid) .aj-foto-guardar {
-    display: inline-flex;
+    .aj-persona:has(input[type="file"]:valid) .aj-foto-guardar,
+    .aj-util:has(input[type="file"]:valid) .aj-foto-guardar {
+        display: inline-flex;
+    }
 }
 
 /* The address and the contact: the visiting card of the centre. */

@@ -195,7 +195,7 @@ class familypage {
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
                 // Not coming after all: one touch, and the centre knows.
                 'cantcome' => ['action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token,
-                    'lang' => $lang]))->out(false), 'sesskey' => sesskey(), 'eventid' => (int) $s->eventid,
+                    'idioma' => $lang]))->out(false), 'sesskey' => sesskey(), 'eventid' => (int) $s->eventid,
                     'label' => publiclang::str('pub_cantcome', $lang)],
             ];
         };
@@ -229,7 +229,7 @@ class familypage {
                 'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
                 // Asked for while they are young; one already sent can always change.
                 'drawingsend' => $drawing || ages::young($child, $offers, $centre) ?
-                    $link(['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang]) : '',
+                    $link(['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang]) : '',
                 'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
                 // Their drawing, sent to someone: that drawing alone, by its own link.
                 'drawingshare' => $drawing ? ['url' => share::drawing_url($household, $child, $lang)->out(false),
@@ -257,7 +257,7 @@ class familypage {
                 // voice, and the birthday.
                 'birthline' => $birthday !== '' ? publiclang::str('pub_birthday_line', $lang, $birthday) : '',
                 'home' => $isgone ? false : ['id' => (int) $child->id, 'value' => $tag,
-                    'action' => $link(['action' => 'homename', 'lang' => $lang]), 'sesskey' => sesskey(),
+                    'action' => $link(['action' => 'homename', 'idioma' => $lang]), 'sesskey' => sesskey(),
                     'open' => publiclang::str($tag !== '' || $birth !== '' ? 'pub_home_change' : 'pub_home_open', $lang),
                     'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
                     'birth' => $birth, 'birthlabel' => publiclang::str('pub_birthdate', $lang),
@@ -352,7 +352,7 @@ class familypage {
         $siblingrows = [];
         $turns = [];
         $offerlater = [];
-        $action = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false);
+        $action = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false);
         foreach ($later as $sibling) {
             if ((int) $sibling->confirmed) {
                 continue;
@@ -429,7 +429,7 @@ class familypage {
             'adults' => $adults,
             'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
             'downloadurl' => $link(['action' => 'download']),
-            'eraseurl' => $link(['action' => 'erase', 'lang' => $lang]),
+            'eraseurl' => $link(['action' => 'erase', 'idioma' => $lang]),
             // The story «Your first day» of each child who starts, to read at home the days before.
             'stories' => self::stories($household, $centre, $lang, $token, $now),
             'birthdays' => $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now),
@@ -459,7 +459,7 @@ class familypage {
             $lead = drawings::file((int) $child->id) ? 'pub_story_lead' : 'pub_story_lead_nodrawing';
             $out[] = [
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'cuento',
-                    'nino' => $child->id, 'lang' => $lang]))->out(false),
+                    'nino' => $child->id, 'idioma' => $lang]))->out(false),
                 'name' => $a->name,
                 'kicker' => publiclang::str('pub_story_kicker', $lang, $a),
                 'open' => publiclang::str('pub_story_open', $lang),
@@ -611,7 +611,7 @@ class familypage {
             'savedtext' => publiclang::str('pub_hobbies_saved', $lang),
             'saved' => !empty($flags['hobbies']),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'hobbies',
-                'lang' => $lang]))->out(false),
+                'idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'adults' => $adults,
         ];
@@ -693,7 +693,7 @@ class familypage {
             'button' => $host ? publiclang::str('pub_after_send_host', $lang, $first) : publiclang::str('pub_after_send', $lang),
             'face' => $host ? ['photo' => $host->photo ? $host->photo->out(false) : '', 'initials' => $host->initials] : false,
             'reply' => publiclang::str($replykey, $lang, $a),
-            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
             'sending' => publiclang::str('pub_after_sending', $lang),
         ];
@@ -817,7 +817,7 @@ class familypage {
                 publicpage::date_parts($until - DAYSECS, $lang)['daymonth']
             ) : ''),
             'children' => $rows,
-            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
         ];
     }
@@ -858,7 +858,7 @@ class familypage {
             'how' => trim((string) ($centre->handoverhow ?? '')),
             'volunteer' => $volunteered ? false : ['question' => publiclang::str('pub_volunteer_ask', $lang),
                 'yes' => publiclang::str('pub_volunteer_yes', $lang), 'sesskey' => sesskey(),
-                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false)],
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false)],
             'volunteered' => $volunteered ? publiclang::str('pub_volunteer_done', $lang) : '',
             'ambassador' => $volunteered ? self::ambassador_context($household, $centre, $lang, $token) : false,
             'thanks' => $firsts ? ['text' => publiclang::str('pub_settled_thanks', $lang, self::join($firsts, $lang)),
@@ -910,7 +910,7 @@ class familypage {
                 'placeholder' => publiclang::str('pub_ambassador_sign_example', $lang),
                 'help' => publiclang::str('pub_ambassador_sign_help', $lang, share::ambassador_sign((object) [], $lang)),
                 'save' => publiclang::str('pub_ambassador_sign_save', $lang), 'sesskey' => sesskey(),
-                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false)],
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false)],
         ];
     }
 
@@ -960,7 +960,7 @@ class familypage {
             'done' => $needed && $answered === count($needed) ? publiclang::str('pub_howitwent_thanks', $lang) : '',
             'savetext' => publiclang::str('pub_howitwent_save', $lang),
             'savedtext' => publiclang::str('pub_howitwent_saved', $lang),
-            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
         ];
     }
@@ -977,7 +977,7 @@ class familypage {
      */
     public static function drawing_context(\stdClass $child, string $lang, string $token, bool $failed): array {
         $name = self::label_name($child) ?: (string) $child->firstname;
-        $action = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'action' => 'drawing',
+        $action = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'action' => 'drawing',
             'nino' => $child->id]);
         $file = drawings::file((int) $child->id);
         $s = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
@@ -991,7 +991,7 @@ class familypage {
             'currentline' => $s('pub_drawing_now'),
             'failed' => $failed ? $s('pub_drawing_not_taken') : '',
             'action' => $action->out(false),
-            'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'quien-vendria'))
+            'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang], 'quien-vendria'))
                 ->out(false),
             'sesskey' => sesskey(),
             'str' => ['take' => $s('pub_drawing_take'), 'takehelp' => $s('pub_drawing_take_help'),
@@ -1046,8 +1046,8 @@ class familypage {
      */
     public static function erase_context(\stdClass $household, \stdClass $centre, string $lang, string $token): array {
         return publicpage::strings($lang, ['pub_erase_title', 'pub_erase_text', 'pub_erase_yes', 'pub_erase_no']) + [
-            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
-            'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]))->out(false),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
+            'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
             'sesskey' => sesskey(),
         ];
     }

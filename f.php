@@ -97,7 +97,7 @@ if ($action === 'drawing') {
     // The drawing of one of their children, sent by the family: the photo, cut and straightened in the browser.
     $children = households::full($household)->children;
     $child = $children[optional_param('nino', 0, PARAM_INT)] ?? null;
-    $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'quien-vendria');
+    $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang], 'quien-vendria');
     // Asked for while they are young; one already sent can always change or go.
     $young = $child && ages::young($child, centres::offers((int) $centre->id), $centre);
     if (!$child || (!$young && !drawings::file((int) $child->id))) {
@@ -128,7 +128,8 @@ if ($action === 'drawing') {
         if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
             $note('drawing_sent');
         }
-        redirect($saved ? $back : new moodle_url($url, ['action' => 'drawing', 'nino' => $child->id, 'lang' => $lang, 'mal' => 1]));
+        redirect($saved ? $back : new moodle_url($url, ['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang,
+            'mal' => 1]));
     }
     publicpage::output(
         $centre,
@@ -156,7 +157,7 @@ if ($action === 'cantcome' && data_submitted() && confirm_sesskey()) {
     if ($event) {
         events::unsign($event, $household, publiclang::str('pub_cantcome_note', $lang, format_string($event->name)), true);
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
 }
 
 if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {
@@ -173,7 +174,7 @@ if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {
         $lang,
         time()
     );
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'rematricula-' . $childid));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang], 'rematricula-' . $childid));
 }
 
 if (in_array($action, ['settledask', 'goneask', 'firstdayask'], true) && data_submitted() && confirm_sesskey()) {
@@ -195,7 +196,7 @@ if (in_array($action, ['settledask', 'goneask', 'firstdayask'], true) && data_su
     }
     redirect(new moodle_url(
         '/local/oksigeniaeguahe/f.php',
-        ['k' => $token, 'lang' => $lang] + ($asked ? ['asked' => 1] : []),
+        ['k' => $token, 'idioma' => $lang] + ($asked ? ['asked' => 1] : []),
         'pregunta'
     ));
 }
@@ -206,7 +207,7 @@ if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
         settled::volunteer($household, $centre, time());
         $note('volunteer');
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'ofrecimiento'));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang], 'ofrecimiento'));
 }
 
 if ($action === 'invitesign' && data_submitted() && confirm_sesskey()) {
@@ -215,7 +216,7 @@ if ($action === 'invitesign' && data_submitted() && confirm_sesskey()) {
         $sign = core_text::substr(trim(optional_param('firma', '', PARAM_TEXT)), 0, 100);
         $DB->set_field(households::T, 'invitesign', $sign === '' ? null : $sign, ['id' => $household->id]);
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang], 'embajadora'));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang], 'embajadora'));
 }
 
 if (($action === 'siblingnotify' || $action === 'siblingconfirm') && data_submitted() && confirm_sesskey()) {
@@ -228,7 +229,7 @@ if (($action === 'siblingnotify' || $action === 'siblingconfirm') && data_submit
     }
     redirect(new moodle_url(
         '/local/oksigeniaeguahe/f.php',
-        ['k' => $token, 'lang' => $lang],
+        ['k' => $token, 'idioma' => $lang],
         $action === 'siblingnotify' ? 'avisar-' . $sibling : 'quien-vendria'
     ));
 }
@@ -264,7 +265,7 @@ if (($action === 'ask' || $action === 'survey') && data_submitted() && confirm_s
         die();
     }
     $asked = trim(optional_param('question', '', PARAM_TEXT)) !== '';
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang] + ($asked ? ['asked' => 1] : []) +
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang] + ($asked ? ['asked' => 1] : []) +
         ($action === 'survey' ? ['saved' => 1] : []), $action === 'survey' ? 'como-fue' : 'pregunta'));
 }
 
@@ -272,7 +273,7 @@ if ($action === 'cuento') {
     // The story «Your first day»: the one of one of their children who starts at the centre.
     $child = story::children($household, $centre, $lang, time())[optional_param('nino', 0, PARAM_INT)] ?? null;
     if (!$child) {
-        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]));
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
     }
     $here = fn(array $params) => (new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token] + $params))->out(false);
     story::output(story::context($household, $child, $centre, $lang, [
@@ -324,7 +325,7 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
         echo json_encode(['saved' => $saved]);
         die();
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'gustos' => 1], 'aficiones'));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'gustos' => 1], 'aficiones'));
 }
 
 if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
@@ -337,7 +338,11 @@ if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
             households::set_latin_name($household, $childid, optional_param('latina', '', PARAM_TEXT));
         }
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang, 'casa' => $childid], 'quien-vendria'));
+    redirect(new moodle_url(
+        '/local/oksigeniaeguahe/f.php',
+        ['k' => $token, 'idioma' => $lang, 'casa' => $childid],
+        'quien-vendria'
+    ));
 }
 
 if ($action === 'erase') {

@@ -28,8 +28,19 @@ require_once($CFG->libdir . '/adminlib.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
 
-admin_externalpage_setup('local_oksigeniaeguahe_centres');
 $c = 'local_oksigeniaeguahe';
+require_login();
+if (has_capability('moodle/site:config', context_system::instance())) {
+    admin_externalpage_setup('local_oksigeniaeguahe_centres');
+} else {
+    // Who manages Eguahe without managing the site does not have the administration tree: the same page, on its own.
+    require_capability('local/oksigeniaeguahe:manage', context_system::instance());
+    $PAGE->set_context(context_system::instance());
+    $PAGE->set_url(new moodle_url('/local/oksigeniaeguahe/centres.php'));
+    $PAGE->set_pagelayout('admin');
+    $PAGE->set_title(get_string('centres', $c));
+    $PAGE->set_heading(get_string('centres', $c));
+}
 
 $list = [];
 foreach (centres::all() as $centre) {
