@@ -6630,6 +6630,15 @@ input:focus-visible + .pastilla-r {
 }
 
 /* ---------- The sheets of Cifras (Jujol, 13 November 2026) ---------- */
+/* A sheet with nothing to count yet: a blank page, dashed, that says where it comes from and the way to it. */
+.curso-vacio {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    border: 1.5px dashed var(--eg-borde);
+    box-shadow: none;
+}
+
 /* Three tabs of a binder under the head: each its name and what is in it; the one open raised and joined to the
    page. On a phone they scroll sideways as one row. */
 .hojas-cifras {

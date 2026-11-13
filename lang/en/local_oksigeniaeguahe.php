@@ -2212,6 +2212,7 @@ $string['panel_sheet_families'] = 'The families';
 $string['panel_sheet_families_what'] = 'What they like most and where they come from month by month';
 $string['panel_sheet_not_taken'] = 'That file is not a spreadsheet: it has to be Excel, LibreOffice or CSV.';
 $string['panel_sheet_year'] = 'The school year';
+$string['panel_sheet_year_empty'] = 'The ledger of the school year comes from what is imported from the program of the centre: the pupils at the start of each year, the new ones and those who left. Nothing has been imported yet.';
 $string['panel_sheet_year_what'] = 'The ledger of the year and the pupils year by year';
 $string['panel_sheets'] = 'The sheets of the numbers';
 $string['panel_show'] = 'Show';

@@ -45,7 +45,7 @@
         "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
         "sheets": [{"key": "campana", "name": "La campaña", "what": "Respuestas, hasta dónde llegan, por dónde, semana a semana y plazas", "url": "#", "current": true},
             {"key": "curso", "name": "El curso escolar", "what": "Las cuentas del curso y los alumnos año a año", "url": "#", "current": false}],
-        "sheetcampaign": true, "sheetyear": false, "sheetfamilies": false,
+        "sheetcampaign": true, "sheetyear": false, "sheetfamilies": false, "yearempty": false,
         "head": {"title": "96 familias esta campaña", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "action": false},
         "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "", "exports": {"families": {"excel": "#a", "csv": "#b"}, "figures": {"excel": "#c", "csv": "#d"} },
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
@@ -268,6 +268,13 @@
             <p class="def">{{def}}</p>
         </section>
         {{/history}}{{/hashistory}}
+        {{#yearempty}}
+        <section class="lamina ancha curso-vacio" aria-labelledby="c-vacio">
+            <h2 id="c-vacio">{{#str}}panel_sheet_year, local_oksigeniaeguahe{{/str}}</h2>
+            <p>{{#str}}panel_sheet_year_empty, local_oksigeniaeguahe{{/str}}</p>
+            <p><a class="boton secundario" href="{{importurl}}">{{{i.subir}}}{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>
+        </section>
+        {{/yearempty}}
         {{#likes}}{{> local_oksigeniaeguahe/panel_likes }}{{/likes}}
         {{#channelstime}}{{> local_oksigeniaeguahe/panel_channels_time }}{{/channelstime}}
         {{#starts}}

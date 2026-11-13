@@ -2212,6 +2212,7 @@ $string['panel_sheet_families'] = 'As famílias';
 $string['panel_sheet_families_what'] = 'O que mais lhes agrada e por onde chegam mês a mês';
 $string['panel_sheet_not_taken'] = 'Esse ficheiro não é uma folha de cálculo: tem de ser Excel, LibreOffice ou CSV.';
 $string['panel_sheet_year'] = 'O ano letivo';
+$string['panel_sheet_year_empty'] = 'As contas do ano letivo saem do que se importa do programa de gestão do centro: os alunos no início de cada ano, os novos e os que saíram. Ainda não há nada importado.';
 $string['panel_sheet_year_what'] = 'As contas do ano letivo e os alunos ano a ano';
 $string['panel_sheets'] = 'As folhas dos números';
 $string['panel_show'] = 'Pôr em ecrã grande';

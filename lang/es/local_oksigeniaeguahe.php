@@ -2212,6 +2212,7 @@ $string['panel_sheet_families'] = 'Las familias';
 $string['panel_sheet_families_what'] = 'Lo que más les gusta y por dónde llegan mes a mes';
 $string['panel_sheet_not_taken'] = 'Ese fichero no es una hoja de cálculo: tiene que ser Excel, LibreOffice o CSV.';
 $string['panel_sheet_year'] = 'El curso escolar';
+$string['panel_sheet_year_empty'] = 'Las cuentas del curso salen de lo que se importa del programa de gestión del centro: los alumnos al empezar cada curso, los nuevos y los que se fueron. Todavía no hay nada importado.';
 $string['panel_sheet_year_what'] = 'Las cuentas del curso y los alumnos año a año';
 $string['panel_sheets'] = 'Las hojas de las cifras';
 $string['panel_show'] = 'Ponerlo en pantalla grande';

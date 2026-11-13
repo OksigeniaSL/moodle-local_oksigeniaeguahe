@@ -408,6 +408,9 @@ class panel_metrics {
         if ($history) {
             $history['ancha'] = !$year;
         }
+        // The sheet of the school year with nothing to count yet: it comes from what is imported from the program of the
+        // centre, and says so with the way to import it.
+        $context['yearempty'] = $on('curso') && !$year && !$history;
         return $context + ['hasyear' => (bool) $year, 'year' => $year ?: false, 'hashistory' => (bool) $history,
             'history' => $history ?: false];
     }
