@@ -232,8 +232,9 @@ final class share_test extends \advanced_testcase {
         $card = '<span class="invitacion-firma" dir="auto">La familia de &lt;Leo&gt;</span> les invita';
         $this->assertSame($card, share::from_html('La familia de <Leo>', 'es'));
 
-        $told = share::told_by(['heardfrom' => '', 'heardwho' => ''], $household);
-        $this->assertSame(['heardfrom' => 'centrefamilies', 'heardwho' => 'Ana Ejemplo'], $told);
+        // As it signed, which the new family already read: never the names of its adults.
+        $told = share::told_by(['heardfrom' => '', 'heardwho' => ''], $household, 'es');
+        $this->assertSame(['heardfrom' => 'centrefamilies', 'heardwho' => 'La familia de Leo'], $told);
         $written = ['heardfrom' => 'centrefamilies', 'heardwho' => 'Los de Leo'];
         $this->assertSame($written, share::told_by($written, $household));
         // What they said stays.

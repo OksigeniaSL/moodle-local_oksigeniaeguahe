@@ -42,7 +42,11 @@ class provider implements
     /** @var string[] Tables with the people of the teams. */
     const TABLES = ['local_oksigeniaeguahe_member', 'local_oksigeniaeguahe_contact', 'local_oksigeniaeguahe_consent',
         'local_oksigeniaeguahe_import', 'local_oksigeniaeguahe_spend', 'local_oksigeniaeguahe_report',
-        'local_oksigeniaeguahe_renewal'];
+        'local_oksigeniaeguahe_renewal', 'local_oksigeniaeguahe_promise', 'local_oksigeniaeguahe_invite',
+        'local_oksigeniaeguahe_reply'];
+
+    /** @var array Other columns that name a person of the team: table => column. */
+    const OTHERS = ['local_oksigeniaeguahe_promise' => 'doneby', 'local_oksigeniaeguahe_household' => 'ownerid'];
 
     /**
      * What is kept about users.
@@ -54,8 +58,30 @@ class provider implements
         $collection->add_database_table('local_oksigeniaeguahe_member', [
             'centreid' => 'privacy:metadata:member:centreid',
             'userid' => 'privacy:metadata:member:userid',
+            'rolename' => 'privacy:metadata:member:rolename',
+            'says' => 'privacy:metadata:member:says',
+            'awayuntil' => 'privacy:metadata:member:awayuntil',
             'timecreated' => 'privacy:metadata:member:timecreated',
         ], 'privacy:metadata:member');
+        $collection->add_database_table('local_oksigeniaeguahe_household', [
+            'ownerid' => 'privacy:metadata:household:ownerid',
+        ], 'privacy:metadata:household');
+        $collection->add_database_table('local_oksigeniaeguahe_promise', [
+            'userid' => 'privacy:metadata:promise:userid',
+            'body' => 'privacy:metadata:promise:body',
+            'doneby' => 'privacy:metadata:promise:doneby',
+        ], 'privacy:metadata:promise');
+        $collection->add_database_table('local_oksigeniaeguahe_invite', [
+            'userid' => 'privacy:metadata:invite:userid',
+            'timecreated' => 'privacy:metadata:invite:timecreated',
+        ], 'privacy:metadata:invite');
+        $collection->add_database_table('local_oksigeniaeguahe_reply', [
+            'userid' => 'privacy:metadata:reply:userid',
+            'body' => 'privacy:metadata:reply:body',
+        ], 'privacy:metadata:reply');
+        // The photo of whoever receives the families, and what is asked of the AI of the centre.
+        $collection->add_subsystem_link('core_files', [], 'privacy:metadata:core_files');
+        $collection->add_subsystem_link('core_ai', [], 'privacy:metadata:core_ai');
         $collection->add_database_table('local_oksigeniaeguahe_contact', [
             'userid' => 'privacy:metadata:contact:userid',
             'body' => 'privacy:metadata:contact:body',
@@ -118,6 +144,11 @@ class provider implements
                 return true;
             }
         }
+        foreach (self::OTHERS as $t => $column) {
+            if ($DB->record_exists($t, [$column => $userid])) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -147,6 +178,9 @@ class provider implements
         foreach (self::TABLES as $t) {
             $userlist->add_from_sql('userid', "SELECT userid FROM {{$t}} WHERE userid > 0", []);
         }
+        foreach (self::OTHERS as $t => $column) {
+            $userlist->add_from_sql($column, "SELECT {$column} FROM {{$t}} WHERE {$column} > 0", []);
+        }
     }
 
     /**
@@ -164,8 +198,24 @@ class provider implements
             $teams = [];
             foreach ($DB->get_records('local_oksigeniaeguahe_member', ['userid' => $userid]) as $member) {
                 $teams[] = ['centre' => $DB->get_field('local_oksigeniaeguahe_centre', 'name', ['id' => $member->centreid]),
-                    'since' => \core_privacy\local\request\transform::datetime($member->timecreated)];
+                    'since' => \core_privacy\local\request\transform::datetime($member->timecreated),
+                    'what_families_read_you_do' => $member->rolename ?? null, 'your_line' => $member->says ?? null,
+                    'away_until' => (int) ($member->awayuntil ?? 0) ?
+                        \core_privacy\local\request\transform::datetime($member->awayuntil) : null];
+                writer::with_context($context)->export_area_files(
+                    [get_string('pluginname', 'local_oksigeniaeguahe'), 'photo'],
+                    'local_oksigeniaeguahe',
+                    'hostphoto',
+                    (int) $member->id
+                );
             }
+            $replies = [];
+            foreach ($DB->get_records('local_oksigeniaeguahe_reply', ['userid' => $userid], 'timecreated ASC') as $row) {
+                $replies[] = ['title' => $row->title, 'text' => $row->body];
+            }
+            $promised = $DB->count_records('local_oksigeniaeguahe_promise', ['userid' => $userid]);
+            $invited = $DB->count_records('local_oksigeniaeguahe_invite', ['userid' => $userid]);
+            $attends = $DB->count_records('local_oksigeniaeguahe_household', ['ownerid' => $userid]);
             $written = [];
             foreach ($DB->get_records('local_oksigeniaeguahe_contact', ['userid' => $userid], 'timecreated ASC') as $row) {
                 $written[] = ['kind' => $row->direction, 'channel' => $row->channel, 'text' => $row->body,
@@ -178,7 +228,9 @@ class provider implements
             writer::with_context($context)->export_data(
                 [get_string('pluginname', 'local_oksigeniaeguahe')],
                 (object) ['teams' => $teams, 'written' => $written, 'permissionsnoted' => $noted,
-                    'filesimported' => $imported, 'spendsnoted' => $spends, 'renewalsnoted' => $renewals]
+                    'filesimported' => $imported, 'spendsnoted' => $spends, 'renewalsnoted' => $renewals,
+                    'answersofalways' => $replies, 'promisesmade' => $promised, 'invitationssent' => $invited,
+                    'familiesyouattend' => $attends]
             );
         }
     }
@@ -194,7 +246,14 @@ class provider implements
         if ($context->contextlevel != CONTEXT_SYSTEM) {
             return;
         }
+        get_file_storage()->delete_area_files($context->id, 'local_oksigeniaeguahe', 'hostphoto');
         $DB->delete_records('local_oksigeniaeguahe_member');
+        foreach (['local_oksigeniaeguahe_promise', 'local_oksigeniaeguahe_invite', 'local_oksigeniaeguahe_reply'] as $t) {
+            $DB->set_field_select($t, 'userid', 0, 'userid > 0');
+        }
+        foreach (self::OTHERS as $t => $column) {
+            $DB->set_field_select($t, $column, 0, "{$column} > 0");
+        }
         $DB->set_field_select('local_oksigeniaeguahe_contact', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, 'userid > 0');
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, 'userid > 0');
@@ -238,7 +297,21 @@ class provider implements
             return;
         }
         [$in, $params] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        foreach ($DB->get_fieldset_select('local_oksigeniaeguahe_member', 'id', "userid $in", $params) as $memberid) {
+            get_file_storage()->delete_area_files(
+                \context_system::instance()->id,
+                'local_oksigeniaeguahe',
+                'hostphoto',
+                (int) $memberid
+            );
+        }
         $DB->delete_records_select('local_oksigeniaeguahe_member', "userid $in", $params);
+        foreach (['local_oksigeniaeguahe_promise', 'local_oksigeniaeguahe_invite', 'local_oksigeniaeguahe_reply'] as $t) {
+            $DB->set_field_select($t, 'userid', 0, "userid $in", $params);
+        }
+        foreach (self::OTHERS as $t => $column) {
+            $DB->set_field_select($t, $column, 0, "{$column} $in", $params);
+        }
         $DB->set_field_select('local_oksigeniaeguahe_contact', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_consent', 'userid', 0, "userid $in", $params);
         $DB->set_field_select('local_oksigeniaeguahe_import', 'userid', 0, "userid $in", $params);

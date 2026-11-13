@@ -60,8 +60,9 @@ if ($action && !$canact) {
 }
 
 if (optional_param('typing', 0, PARAM_BOOL)) {
-    // The beat of the composer: someone is writing to this family now.
+    // The beat of the composer: someone is writing to this family now. Only who may write.
     require_sesskey();
+    centres::require_act((int) $centre->id);
     attend::beat((int) $household->id, (int) $USER->id);
     @header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['ok' => true]);

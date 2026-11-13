@@ -573,9 +573,18 @@ class households {
             if ($year !== '' && trim((string) ($child->startyear ?? '')) === '') {
                 $DB->set_field(self::CHILDREN, 'startyear', $year, ['id' => $child->id]);
             }
-            family::enrol($household, $child);
+            // The common record is another plugin: if it fails, the way of the child is kept all the same.
+            try {
+                family::enrol($household, $child);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: Family did not take child ' . $child->id . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
         } else if ($was === 'enrolled' && $stage !== 'enrolled') {
-            family::leave($child);
+            try {
+                family::leave($child);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: Family did not let child ' . $child->id . ' go: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
         }
     }
 
@@ -688,6 +697,8 @@ class households {
                 'first_channel' => $full->firstchannel,
                 'already_of_the_centre' => (bool) $full->incentre,
                 'offered_to_tell_another_family' => $date((int) ($full->volunteer ?? 0)),
+                'how_your_invitation_is_signed' => $full->invitesign ?? null,
+                'summary_for_the_team' => $full->aisummary ?? null,
                 'created' => $date((int) $full->timecreated),
             ],
             'adults' => [],
@@ -706,17 +717,32 @@ class households {
                 'asks_for' => $offers[$child->offerid] ?? null,
                 'stage' => $child->stage, 'since' => $date((int) $child->stagetime),
                 'started' => $date((int) ($child->started ?? 0)), 'left' => $date((int) ($child->lefttime ?? 0)),
-                'left_why' => $child->leftreason ?? null, 'left_line' => $child->leftnote ?? null];
+                'left_why' => $child->leftreason ?? null, 'left_line' => $child->leftnote ?? null,
+                'drawing' => drawings::file((int) $child->id) ? 'yes' : null,
+                'drawing_strokes' => drawings::strokes_file((int) $child->id) ? 'yes' : null];
         }
         foreach ($full->signups as $signup) {
             $data['events'][] = ['event' => $signup->eventname, 'starts' => $date((int) $signup->timestart),
                 'people' => (int) $signup->people, 'came' => $date((int) $signup->attended)];
         }
         foreach ($full->contacts as $contact) {
+            // What they wrote and what the centre wrote, with the line the team reads of each message.
             if ($contact->direction !== 'note') {
                 $data['messages'][] = ['from' => $contact->direction === 'in' ? 'family' : 'centre',
-                    'channel' => $contact->channel, 'text' => $contact->body, 'when' => $date((int) $contact->timecreated)];
+                    'channel' => $contact->channel, 'text' => $contact->body,
+                    'in_a_line' => trim((string) ($contact->asks ?? '')) !== '' ? $contact->asks : null,
+                    'when' => $date((int) $contact->timecreated)];
             }
+        }
+        // What the centre promised them, with its day.
+        foreach ($DB->get_records(attend::PROMISES, ['householdid' => $household->id], 'timecreated ASC') as $promise) {
+            $data['promised'][] = ['what' => $promise->body, 'by' => $promise->dueday ?: null,
+                'when' => $date((int) $promise->timecreated), 'done' => $date((int) $promise->timedone)];
+        }
+        // The open acts they were invited to.
+        foreach ($DB->get_records(invites::T, ['householdid' => $household->id], 'timecreated ASC') as $invite) {
+            $data['invited_to'][] = ['event' => (string) $DB->get_field(events::T, 'name', ['id' => $invite->eventid]),
+                'when' => $date((int) $invite->timecreated)];
         }
         $names = [];
         foreach ($full->adults as $adult) {
@@ -724,7 +750,8 @@ class households {
         }
         foreach ($full->consents as $consent) {
             $data['permissions'][] = ['adult' => $names[$consent->adultid] ?? null, 'channel' => $consent->channel,
-                'granted' => (bool) $consent->granted, 'when' => $date((int) $consent->timecreated)];
+                'granted' => (bool) $consent->granted, 'how' => $consent->source ?? null,
+                'text_read' => $consent->textversion ?? null, 'when' => $date((int) $consent->timecreated)];
         }
         // What they answered in the forms of the centre.
         foreach (forms::answers_of((int) $household->id) as $answer) {
@@ -783,6 +810,8 @@ class households {
         }
         // Brought from the roll of the centre (or in it since it enrolled): never brought back.
         roster::erased($household);
+        // Nor named in the answers of always of the centre.
+        attend::forget_family($household);
         // Its phones, unjoined in Marandu: nobody answers any more for a family that is gone.
         if (class_exists('\\local_oksigeniamarandu\\api') && method_exists('\\local_oksigeniamarandu\\api', 'unlink')) {
             try {
@@ -828,6 +857,25 @@ class households {
                 'enrolled' => 'enrolled']);
         }
         return $expired;
+    }
+
+    /**
+     * What is only of the admissions, kept no longer than the centre keeps any family, also in a family that stays
+     * because its children study at the centre: what was counted of its page, what it answered after a visit, and the
+     * summary of the AI. Its messages, its children and its permissions stay.
+     *
+     * @param int $now
+     */
+    public static function tidy(int $now): void {
+        global $DB;
+        foreach ($DB->get_records('local_oksigeniaeguahe_centre', null, '', 'id, retention') as $centre) {
+            $limit = (new \DateTimeImmutable('@' . $now))->modify('-' . max(1, (int) $centre->retention) . ' months')
+                ->getTimestamp();
+            $DB->delete_records_select(seen::T, 'centreid = ? AND timecreated < ?', [$centre->id, $limit]);
+            $DB->delete_records_select(surveys::T, 'centreid = ? AND timecreated < ?', [$centre->id, $limit]);
+            $DB->execute('UPDATE {' . self::T . '} SET aisummary = NULL, aisummarytime = 0
+                           WHERE centreid = ? AND aisummarytime > 0 AND aisummarytime < ?', [$centre->id, $limit]);
+        }
     }
 
     /**

@@ -147,7 +147,7 @@ class signup {
         if ($slots && !isset($slots[$data['slot'] ?? 0])) {
             $errors['slot'] = publiclang::str('pub_err_slot', $lang);
         }
-        if ($data['people'] < 1 || $data['people'] > 20) {
+        if ($data['people'] < 1 || $data['people'] > events::MAXPEOPLE) {
             $errors['people'] = publiclang::str('pub_err_people', $lang);
         } else if (
             empty($event->tailored) && !isset($errors['slot']) &&
@@ -167,6 +167,43 @@ class signup {
             $errors['altcha'] = publiclang::str('pub_err_robot', $lang);
         }
         return $errors;
+    }
+
+    /**
+     * Whether the sign-up still fits, checked again under the lock of the act just before it is kept: the room (counting
+     * what this family had already signed up for), and not a flood from one address.
+     *
+     * @param array $data From read(), already checked.
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array Errors by field, as check() gives them.
+     */
+    public static function fits(array $data, \stdClass $event, \stdClass $centre, string $lang): array {
+        global $DB;
+        if ($event->kind === 'form' || !empty($event->tailored)) {
+            return [];
+        }
+        if (!events::allowed_from($event, getremoteaddr())) {
+            return ['form' => publiclang::str('pub_err_toomany', $lang)];
+        }
+        $already = 0;
+        foreach ($data['adults'] as $adult) {
+            $id = households::find(
+                (int) $centre->id,
+                households::email($adult['email'] ?? ''),
+                phone::normalise((string) ($adult['phone'] ?? ''), $centre->country)
+            );
+            if ($id) {
+                $already = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $id]);
+                break;
+            }
+        }
+        $slots = events::slots((int) $event->id);
+        if (!events::has_room($event, (int) $data['people'], $already, (int) ($data['slot'] ?? 0))) {
+            return [$slots ? 'slot' : 'people' => publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang)];
+        }
+        return [];
     }
 
     /**

@@ -280,15 +280,11 @@ class attend {
         if ($greeting !== '' && strpos($text, $greeting) === 0) {
             $text = trim(\core_text::substr($text, \core_text::strlen($greeting)));
         }
-        foreach ($full->adults as $adult) {
-            if (trim((string) $adult->firstname) !== '') {
-                $text = str_replace(trim((string) $adult->firstname), '{names}', $text);
-            }
-        }
+        $text = self::without_family($text, $full);
         $said = '';
         foreach (array_reverse($full->contacts) as $contact) {
             if ($contact->direction === 'in' && trim((string) $contact->body) !== '') {
-                $said = (string) $contact->body;
+                $said = self::without_family((string) $contact->body, $full);
                 break;
             }
         }
@@ -304,6 +300,57 @@ class attend {
             'timecreated' => time(),
             'timemodified' => time(),
         ]);
+    }
+
+    /**
+     * A text with nothing of a family in it: the first names of its adults become the gap {names}, those of its children
+     * the gap {children}, and their surnames, emails and phones go. An answer kept for the whole centre never carries a
+     * family with it.
+     *
+     * @param string $text
+     * @param \stdClass $full The household, as households::full() gives it.
+     * @return string
+     */
+    public static function without_family(string $text, \stdClass $full): string {
+        $gaps = [];
+        foreach ($full->adults as $adult) {
+            $gaps[trim((string) $adult->lastname)] = '';
+            $gaps[trim((string) ($adult->email ?? ''))] = '';
+            $gaps[trim((string) ($adult->phone ?? ''))] = '';
+            $gaps[trim((string) $adult->firstname)] = '{names}';
+        }
+        foreach ($full->children as $child) {
+            $gaps[trim((string) ($child->lastname ?? ''))] = '';
+            $gaps[trim((string) $child->firstname)] = '{children}';
+            $gaps[trim((string) ($child->tagname ?? ''))] = '{children}';
+        }
+        unset($gaps['']);
+        // The longest first, so that «María José» goes before «María».
+        uksort($gaps, fn($a, $b) => \core_text::strlen($b) <=> \core_text::strlen($a));
+        foreach ($gaps as $name => $gap) {
+            $text = preg_replace('/(?<![\p{L}\p{N}])' . preg_quote($name, '/') . '(?![\p{L}\p{N}])/iu', $gap, $text);
+        }
+        return trim(preg_replace('/[ \t]{2,}/u', ' ', (string) $text));
+    }
+
+    /**
+     * Takes a family out of the answers of always of its centre, when it erases its data: those kept before the gaps
+     * were made may still name it.
+     *
+     * @param \stdClass $household
+     */
+    public static function forget_family(\stdClass $household): void {
+        global $DB;
+        $full = households::full($household);
+        foreach ($DB->get_records(self::REPLIES, ['centreid' => $household->centreid]) as $reply) {
+            $body = self::without_family((string) $reply->body, $full);
+            $title = self::without_family((string) $reply->title, $full);
+            if ($body !== (string) $reply->body || $title !== (string) $reply->title) {
+                $DB->update_record(self::REPLIES, (object) ['id' => $reply->id, 'body' => $body,
+                    'title' => \core_text::substr($title, 0, 100),
+                    'words' => implode(' ', self::words($title . ' ' . $body)), 'timemodified' => time()]);
+            }
+        }
     }
 
     /**
@@ -357,11 +404,19 @@ class attend {
      * @return string
      */
     public static function fill(\stdClass $reply, \stdClass $full): string {
-        $names = array_values(array_filter(array_map(fn($a) => trim((string) $a->firstname), $full->adults)));
-        $last = array_pop($names);
-        $list = $names ? get_string('andlist', self::C, (object) ['list' => implode(', ', $names), 'last' => $last]) :
-            (string) $last;
-        return panel_household::greeting($full) . "\n\n" . str_replace('{names}', $list, (string) $reply->body);
+        $list = function (array $names): string {
+            $names = array_values(array_filter($names));
+            $last = array_pop($names);
+            return $names ? get_string('andlist', self::C, (object) ['list' => implode(', ', $names), 'last' => $last]) :
+                (string) $last;
+        };
+        $adults = $list(array_map(fn($a) => trim((string) $a->firstname), $full->adults));
+        $children = $list(array_map(fn($c) => trim((string) (($c->tagname ?? '') ?: $c->firstname)), $full->children));
+        return panel_household::greeting($full) . "\n\n" . str_replace(
+            ['{names}', '{children}'],
+            [$adults, $children],
+            (string) $reply->body
+        );
     }
 
     /**

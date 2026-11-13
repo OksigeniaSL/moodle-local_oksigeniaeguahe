@@ -241,7 +241,7 @@
                 <label for="people">{{pub_people}}</label>
                 <div class="paso">
                     <button type="button" data-step="-1" aria-label="−" hidden>−</button>
-                    <input id="people" name="people" type="number" inputmode="numeric" min="1" max="20" value="{{people}}"{{#peopleerror}} aria-invalid="true" aria-describedby="people-error"{{/peopleerror}}>
+                    <input id="people" name="people" type="number" inputmode="numeric" min="1" max="10" value="{{people}}"{{#peopleerror}} aria-invalid="true" aria-describedby="people-error"{{/peopleerror}}>
                     <button type="button" data-step="1" aria-label="+" hidden>+</button>
                 </div>
                 {{#peopleerror}}<p class="error" id="people-error">{{{i.alert}}}{{peopleerror}}</p>{{/peopleerror}}

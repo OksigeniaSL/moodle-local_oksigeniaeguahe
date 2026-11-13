@@ -1170,5 +1170,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026115500, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026115600) {
+        // What «Ha venido» moved, to undo it if it was a mistake.
+        $table = new xmldb_table('local_oksigeniaeguahe_signup');
+        $field = new xmldb_field('wasstages', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'thanked');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026115600, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

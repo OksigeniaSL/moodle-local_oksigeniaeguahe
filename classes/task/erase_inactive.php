@@ -42,7 +42,13 @@ class erase_inactive extends \core\task\scheduled_task {
      */
     public function execute() {
         foreach (households::expired(time()) as $household) {
-            households::erase($household);
+            // One family that fails to go never stops the others.
+            try {
+                households::erase($household);
+            } catch (\Throwable $e) {
+                mtrace('Eguahe: household ' . $household->id . ' could not be erased: ' . $e->getMessage());
+            }
         }
+        households::tidy(time());
     }
 }

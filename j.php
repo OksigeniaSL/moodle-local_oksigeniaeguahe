@@ -103,10 +103,24 @@ if (data_submitted()) {
     } else {
         $errors = signup::check($data, $event, $centre, $lang);
     }
+    $lock = null;
+    if (!$errors) {
+        // The room again, now under the lock of the act: two families sending at once never take its last place twice.
+        $lock = events::lock($event);
+        $errors = signup::fits($data, $event, $centre, $lang);
+        if ($errors && $lock) {
+            $lock->release();
+            $lock = null;
+        }
+    }
     if (!$errors) {
         $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
-        $data = $ambassador ? share::told_by($data, $ambassador) : $data;
+        $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
+        if ($lock) {
+            $lock->release();
+            $lock = null;
+        }
         if ($ambassador && !$existed) {
             // One more family that came by its invitation: a number for the ambassador, never which family.
             share::count($ambassador, $centre, 'arrived', 'familia');

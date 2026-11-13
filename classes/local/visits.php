@@ -137,6 +137,20 @@ class visits {
         $lang = $household->lang ?: 'es';
         $name = $host ? publiclang::str('visit_name', $lang, $host->first) : publiclang::str('visit_name_team', $lang);
         $transaction = $DB->start_delegated_transaction();
+        // A visit of its own still to come is replaced by this one, never kept beside it: one day for the family, and
+        // no reminder of the old one.
+        $now = time();
+        $old = $DB->get_records_select(
+            events::T,
+            'householdid = ? AND timeend >= ? AND cancelled = 0',
+            [$household->id, $now],
+            '',
+            'id'
+        );
+        foreach (array_keys($old) as $oldid) {
+            $DB->delete_records(events::SIGNUPS, ['eventid' => $oldid]);
+            $DB->update_record(events::T, (object) ['id' => $oldid, 'cancelled' => $now, 'open' => 0, 'timemodified' => $now]);
+        }
         $eventid = events::save($centreid, (object) ['kind' => 'visit', 'name' => \core_text::substr($name, 0, 255),
             'place' => $place, 'timestart' => $start, 'timeend' => $start + max(15, $minutes) * MINSECS,
             'capacity' => 0, 'open' => 0, 'hosts' => [$guide]]);
@@ -147,6 +161,9 @@ class visits {
         if ($request) {
             $DB->update_record(self::REQUESTS, (object) ['id' => $request->id, 'status' => 'scheduled', 'visitid' => $eventid,
                 'timemodified' => time()]);
+        }
+        foreach (array_keys($old) as $oldid) {
+            $DB->set_field(self::REQUESTS, 'visitid', $eventid, ['householdid' => $household->id, 'visitid' => $oldid]);
         }
         $transaction->allow_commit();
         return $event;
@@ -220,7 +237,7 @@ class visits {
         foreach (
             $DB->get_records_select(
                 events::T,
-                'centreid = :centreid AND timeend > :now AND hosts IS NOT NULL',
+                'centreid = :centreid AND timeend > :now AND hosts IS NOT NULL AND cancelled = 0',
                 ['centreid' => $centreid, 'now' => time()],
                 'timestart ASC'
             ) as $event

@@ -162,20 +162,23 @@ class share {
 
     /**
      * Who told a family about the centre, when an ambassador invited it: a family of the centre and, if they did not
-     * write which, the names of the adults of the ambassador, for the team to thank them (heardwho, a name and never a
-     * link between households). If they said they heard of it another way, that is what stays.
+     * write which, the ambassador as it signed its invitation (heardwho, a name and never a link between households). If
+     * they said they heard of it another way, that is what stays.
      *
      * @param array $data The sign-up, as signup::read() gives it.
      * @param \stdClass $ambassador
+     * @param string $lang The language of the page, for a family that signs as «a family of the centre».
      * @return array
      */
-    public static function told_by(array $data, \stdClass $ambassador): array {
+    public static function told_by(array $data, \stdClass $ambassador, string $lang = 'es'): array {
         if (!in_array((string) ($data['heardfrom'] ?? ''), ['', 'centrefamilies'], true)) {
             return $data;
         }
         $data['heardfrom'] = 'centrefamilies';
         if (trim((string) ($data['heardwho'] ?? '')) === '') {
-            $data['heardwho'] = \core_text::substr(staff::adult_names(households::full($ambassador)->adults), 0, 255);
+            // As the family signed its invitation, which the new one already read: never more than that, also in what the
+            // new family downloads of its data.
+            $data['heardwho'] = \core_text::substr(self::ambassador_sign($ambassador, $lang), 0, 255);
         }
         return $data;
     }

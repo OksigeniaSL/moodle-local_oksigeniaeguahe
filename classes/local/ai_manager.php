@@ -40,7 +40,12 @@ class ai_manager extends \core_ai\manager {
         return $this;
     }
 
-    #[\Override]
+    /**
+     * The providers Moodle asks, in its order: only the one of the centre. Without #[\Override]: Moodle 4.5 has no
+     * such method, and the attribute would stop the class from loading there.
+     *
+     * @return array
+     */
     public function get_sorted_providers(): array {
         $all = parent::get_sorted_providers();
         return isset($all[$this->only]) ? [$this->only => $all[$this->only]] : [];

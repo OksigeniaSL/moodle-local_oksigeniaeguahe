@@ -998,6 +998,11 @@ class panel {
             return 0;
         }
         $filename = clean_param((string) $sent['name'], PARAM_FILE);
+        // No bigger than the site lets anyone upload: a whole file of years of a centre fits well within it.
+        $most = get_max_upload_file_size($CFG->maxbytes ?? 0);
+        if ($most > 0 && (int) filesize($sent['tmp_name']) > $most) {
+            return 0;
+        }
         $endings = array_map(fn($t) => preg_quote(ltrim(trim($t), '.'), '/'), explode(',', $accept));
         if (!preg_match('/\\.(' . implode('|', $endings) . ')$/i', $filename)) {
             return 0;

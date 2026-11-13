@@ -16,11 +16,14 @@
 
 namespace local_oksigeniaeguahe;
 
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\siblings;
+use local_oksigeniaeguahe\local\visits;
 
 /**
  * What the deep review of November 2026 found and fixed: calling an act off, a family that cannot come, the reminder
@@ -199,5 +202,83 @@ final class review_test extends \advanced_testcase {
         $this->assertSame([(int) $yes->id], array_keys(households::emailable((int) $this->centre->id)));
         $this->assertNotContains((int) $no->id, array_keys(households::emailable((int) $this->centre->id)));
         $this->assertSame([], renewal::to_tell($this->centre));
+    }
+
+    /**
+     * Taking «Ha venido» back takes the way of the children back too, unless something else moved it since.
+     */
+    public function test_attend_undo(): void {
+        global $DB;
+        $act = $this->act();
+        $household = $this->household('marta@example.com');
+        $childid = households::add_child($household, 'Leo', 0);
+        $DB->set_field(households::CHILDREN, 'stage', 'inquiry', ['id' => $childid]);
+        $signupid = events::sign_up($act, (int) $household->id, 2);
+        events::attend($act, $signupid, true);
+        $this->assertSame('visit', $DB->get_field(households::CHILDREN, 'stage', ['id' => $childid]));
+        events::attend($act, $signupid, false);
+        $this->assertSame('inquiry', $DB->get_field(households::CHILDREN, 'stage', ['id' => $childid]));
+    }
+
+    /**
+     * An answer of always never keeps the family it was written for: names become gaps, surnames and emails go.
+     */
+    public function test_reply_without_family(): void {
+        $household = $this->household('marta@example.com');
+        households::add_child($household, 'Leonardo', 0, 'Leo');
+        $full = households::full($household);
+        $text = attend::without_family(
+            'Marta, Leo puede venir el lunes. Escriban a marta@example.com o pregunten por Ruiz.',
+            $full
+        );
+        $this->assertSame('{names}, {children} puede venir el lunes. Escriban a o pregunten por .', $text);
+        $id = attend::keep_reply($household, 0, 'Marta, Leonardo tiene plaza.');
+        $other = $this->household('pablo@example.com');
+        $reply = attend::use_reply(households::full($other), $id);
+        $this->assertStringNotContainsString('Leonardo', (string) $reply);
+    }
+
+    /**
+     * A photo straight from a phone loses what the camera wrote in it, and a huge one is refused.
+     */
+    public function test_photo_clean(): void {
+        $image = imagecreatetruecolor(40, 20);
+        ob_start();
+        imagejpeg($image);
+        $jpeg = (string) ob_get_clean();
+        // An EXIF block saying «turned 90°» (orientation 6), after the start of the JPEG.
+        $tiff = 'MM' . pack('n', 42) . pack('N', 8) . pack('n', 1) . pack('n', 0x0112) . pack('n', 3) . pack('N', 1) .
+            pack('n', 6) . pack('n', 0) . pack('N', 0);
+        $app1 = "\xFF\xE1" . pack('n', strlen($tiff) + 8) . "Exif\0\0" . $tiff;
+        $withexif = substr($jpeg, 0, 2) . $app1 . substr($jpeg, 2);
+        $this->assertSame(6, drawings::orientation($withexif));
+        [$clean, $info] = drawings::clean($withexif, getimagesizefromstring($withexif));
+        $this->assertStringNotContainsString("Exif\0\0", $clean);
+        $this->assertSame([20, 40], [$info[0], $info[1]], 'Turned the way it was taken.');
+    }
+
+    /**
+     * A visit of its own given again replaces the one before: one day for the family.
+     */
+    public function test_visit_replaced(): void {
+        global $DB;
+        $household = $this->household('marta@example.com');
+        $first = visits::propose($household, time() + 3 * DAYSECS, 45, 0, 'Recepción', 2);
+        $second = visits::propose($household, time() + 5 * DAYSECS, 45, 0, 'Recepción', 2);
+        $this->assertGreaterThan(0, (int) $DB->get_field(events::T, 'cancelled', ['id' => $first->id]));
+        $this->assertSame(0, $DB->count_records(events::SIGNUPS, ['eventid' => $first->id]));
+        $this->assertSame(1, $DB->count_records(events::SIGNUPS, ['eventid' => $second->id]));
+    }
+
+    /**
+     * A flood of sign-ups from one address to one act is stopped after the hour's allowance.
+     */
+    public function test_flood(): void {
+        $act = $this->act();
+        for ($i = 0; $i < events::PERHOUR; $i++) {
+            $this->assertTrue(events::allowed_from($act, '192.0.2.10'));
+        }
+        $this->assertFalse(events::allowed_from($act, '192.0.2.10'));
+        $this->assertTrue(events::allowed_from($act, '192.0.2.11'));
     }
 }

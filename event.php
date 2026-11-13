@@ -70,10 +70,11 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invite') {
     // An open act: the invitation to the families that are not of the centre yet, once.
     centres::require_act((int) $centre->id);
-    $sent = invites::send($event, $centre, (int) $USER->id, time(), optional_param('gusto', '', PARAM_ALPHA));
+    // Hundreds of mails do not fit in a page: they go in the background.
+    $sent = invites::queue($event, $centre, (int) $USER->id, time(), optional_param('gusto', '', PARAM_ALPHA));
     redirect(
         new moodle_url($url, [], 'invitar'),
-        get_string($sent === 1 ? 'panel_invite_sent_one' : 'panel_invite_sent', $c, $sent),
+        get_string($sent === 1 ? 'panel_invite_going_one' : 'panel_invite_going', $c, $sent),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );

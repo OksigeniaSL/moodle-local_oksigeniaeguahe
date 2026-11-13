@@ -15,7 +15,8 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Caches: the anti-spam challenges already used, so that a solved one is not sent twice.
+ * Caches: the anti-spam challenges already used, so that a solved one is not sent twice; and the sign-ups from each
+ * address in the last hour.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -38,6 +39,14 @@ $definitions = [
         'simplekeys' => true,
         'simpledata' => true,
         'ttl' => 45,
+    ],
+    // Sign-ups sent from each address of the internet to each act in the last hour, only as a hash: a flood of them
+    // never fills an act.
+    'signupsfrom' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 3600,
     ],
     // The first-day labels as PNG, by name, colour and scale: the same always give the same bytes.
     'stickers' => [

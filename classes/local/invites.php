@@ -107,15 +107,43 @@ class invites {
     }
 
     /**
-     * Sends the invitation to an act to each family that can get it: a new link to their page, the mail with the act
-     * and how to sign up, a line in their history, and kept so they are not invited twice.
+     * Puts in the background the invitation to an act for each family that can get it: a new link to their page, the
+     * mail with the act and how to sign up, a line in their history, and kept so they are not invited twice.
      *
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param int $userid Who sends it.
      * @param int $now
      * @param string $hobby Only those where an adult said they like it, when it goes with the act; '' for all.
-     * @return int How many were invited.
+     * @return int How many will be invited.
+     */
+    public static function queue(\stdClass $event, \stdClass $centre, int $userid, int $now, string $hobby = ''): int {
+        if (!self::fits($event, $now)) {
+            return 0;
+        }
+        $eligible = self::eligible($event);
+        if ($hobby !== '') {
+            $eligible = array_intersect_key($eligible, array_flip(hobbies::households_with(array_keys($eligible), [$hobby])));
+        }
+        if (!$eligible) {
+            return 0;
+        }
+        $task = new \local_oksigeniaeguahe\task\send_invites();
+        $task->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id, 'userid' => $userid,
+            'hobby' => $hobby]);
+        \core\task\manager::queue_adhoc_task($task, true);
+        return count($eligible);
+    }
+
+    /**
+     * Sends the invitation, once, to the families it may go to (see queue()), from a task in the background.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param int $userid Who sends it.
+     * @param int $now
+     * @param string $hobby Only the families who said they like this, if any.
+     * @return int How many were sent.
      */
     public static function send(\stdClass $event, \stdClass $centre, int $userid, int $now, string $hobby = ''): int {
         global $DB;

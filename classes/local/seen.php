@@ -112,7 +112,13 @@ class seen {
             return false;
         }
         $id = (int) $household->id;
-        if ($DB->count_records_select(self::T, 'householdid = ? AND timecreated > ?', [$id, $now - DAYSECS]) >= self::MOST) {
+        // What strangers do with what the family shared (open it, pass it on) has an allowance of its own: a link passed
+        // round a group never leaves the family's own page uncounted.
+        $own = $kind === 'share' ? 'kind = ?' : 'kind <> ?';
+        if (
+            $DB->count_records_select(self::T, "householdid = ? AND timecreated > ? AND $own", [$id, $now - DAYSECS, 'share'])
+                >= self::MOST
+        ) {
             return false;
         }
         $again = $kind === 'touch' && in_array($what, self::ONCE_A_VISIT, true) && $DB->record_exists_select(

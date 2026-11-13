@@ -126,7 +126,10 @@ class panel_events {
             $start = $day->getTimestamp();
             $items = [];
             foreach ($all as $event) {
-                if (!empty($event->tailored) || $event->timestart < $start || $event->timestart >= $start + DAYSECS) {
+                if (
+                    !empty($event->tailored) || !empty($event->cancelled) || $event->timestart < $start ||
+                    $event->timestart >= $start + DAYSECS
+                ) {
                     continue;
                 }
                 $guide = null;

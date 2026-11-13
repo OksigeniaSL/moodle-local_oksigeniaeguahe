@@ -451,6 +451,10 @@ class centres {
      */
     public static function remove_member(int $centreid, int $userid): void {
         global $DB;
+        // Its photo for the families goes with it.
+        foreach ($DB->get_fieldset_select(self::MEMBERS, 'id', 'centreid = ? AND userid = ?', [$centreid, $userid]) as $id) {
+            get_file_storage()->delete_area_files(\context_system::instance()->id, 'local_oksigeniaeguahe', 'hostphoto', $id);
+        }
         $DB->delete_records(self::MEMBERS, ['centreid' => $centreid, 'userid' => $userid]);
     }
 

@@ -29,6 +29,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\knownpage;
@@ -78,9 +79,23 @@ if (data_submitted() && !$preview) {
     } else {
         $errors = signup::check($data, $event, $centre, $lang);
     }
+    $lock = null;
     if (!$errors) {
-        $data = $ambassador ? share::told_by($data, $ambassador) : $data;
+        // The room again, now under the lock of the act: two families sending at once never take its last place twice.
+        $lock = events::lock($event);
+        $errors = signup::fits($data, $event, $centre, $lang);
+        if ($errors && $lock) {
+            $lock->release();
+            $lock = null;
+        }
+    }
+    if (!$errors) {
+        $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, $entry, $origin);
+        if ($lock) {
+            $lock->release();
+            $lock = null;
+        }
         entries::counted($entry);
         if ($ambassador && !$existed) {
             // One more family that came by its invitation: a number for the ambassador, never which family.

@@ -280,7 +280,8 @@ class renewal {
         string $lang,
         int $now
     ): bool {
-        $asked = self::children($centre, (int) $household->id)[$childid] ?? null;
+        // Only while the centre asks: a page left open after the last day changes nothing.
+        $asked = self::open($centre, $now) ? (self::children($centre, (int) $household->id)[$childid] ?? null) : null;
         if (!$asked) {
             return false;
         }

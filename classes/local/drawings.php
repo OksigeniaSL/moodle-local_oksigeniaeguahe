@@ -34,6 +34,12 @@ class drawings {
     /** @var int The largest picture taken, in bytes. */
     const MOST = 12 * 1024 * 1024;
 
+    /** @var int The most pixels a picture may have: more would take the memory of the server to open it. */
+    const PIXELS = 40 * 1000 * 1000;
+
+    /** @var int The longest side kept: enough for any screen, and a photo from a phone weighs less. */
+    const SIDE = 2400;
+
     /** @var string The strokes of the drawing, found in the browser, for it to draw itself on the page of its family. */
     const STROKES = 'drawingstrokes';
 
@@ -92,9 +98,10 @@ class drawings {
      */
     public static function save(\stdClass $child, string $bytes, ?string $strokes = null): bool {
         $info = $bytes !== '' && strlen($bytes) <= self::MOST ? @getimagesizefromstring($bytes) : false;
-        if (!$info || !isset(self::TYPES[$info['mime']])) {
+        if (!$info || !isset(self::TYPES[$info['mime']]) || $info[0] * $info[1] > self::PIXELS) {
             return false;
         }
+        [$bytes, $info] = self::clean($bytes, $info);
         $context = \context_system::instance();
         $fs = get_file_storage();
         $fs->delete_area_files($context->id, 'local_oksigeniaeguahe', self::AREA, (int) $child->id);
@@ -112,6 +119,86 @@ class drawings {
     }
 
     /**
+     * A photo as it is kept: without what the camera wrote in it (the place, the phone, the hour), turned the way it was
+     * taken, and no longer than SIDE. What the browser already cut on a canvas carries none of that and stays as it is.
+     *
+     * @param string $bytes
+     * @param array $info As getimagesizefromstring() gives it.
+     * @return array [bytes, info]
+     */
+    public static function clean(string $bytes, array $info): array {
+        $exif = $info['mime'] === 'image/jpeg' && strpos(substr($bytes, 0, 65536), "Exif\0\0") !== false;
+        $big = max($info[0], $info[1]) > self::SIDE;
+        if ((!$exif && !$big) || !function_exists('imagecreatefromstring')) {
+            return [$bytes, $info];
+        }
+        $image = @imagecreatefromstring($bytes);
+        if (!$image) {
+            return [$bytes, $info];
+        }
+        if ($exif) {
+            $turn = [3 => 180, 6 => -90, 8 => 90][self::orientation($bytes)] ?? 0;
+            if ($turn) {
+                $image = imagerotate($image, $turn, 0) ?: $image;
+            }
+        }
+        $w = imagesx($image);
+        $h = imagesy($image);
+        if (max($w, $h) > self::SIDE) {
+            $scale = self::SIDE / max($w, $h);
+            $image = imagescale($image, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale))) ?: $image;
+        }
+        ob_start();
+        if ($info['mime'] === 'image/png') {
+            imagesavealpha($image, true);
+            imagepng($image, null, 6);
+        } else if ($info['mime'] === 'image/webp' && function_exists('imagewebp')) {
+            imagewebp($image, null, 88);
+        } else {
+            imagejpeg($image, null, 88);
+        }
+        $out = (string) ob_get_clean();
+        $outinfo = $out !== '' ? @getimagesizefromstring($out) : false;
+        return $outinfo ? [$out, $outinfo] : [$bytes, $info];
+    }
+
+    /**
+     * The orientation the camera wrote in a JPEG (1 when it says nothing), read from its EXIF without any extension.
+     *
+     * @param string $bytes
+     * @return int
+     */
+    public static function orientation(string $bytes): int {
+        $at = strpos(substr($bytes, 0, 65536), "Exif\0\0");
+        if ($at === false) {
+            return 1;
+        }
+        $tiff = $at + 6;
+        $little = substr($bytes, $tiff, 2) === 'II';
+        $short = fn(int $o) => (int) unpack($little ? 'v' : 'n', substr($bytes, $o, 2))[1];
+        $long = fn(int $o) => (int) unpack($little ? 'V' : 'N', substr($bytes, $o, 4))[1];
+        if (strlen($bytes) < $tiff + 8) {
+            return 1;
+        }
+        $ifd = $tiff + $long($tiff + 4);
+        if (strlen($bytes) < $ifd + 2) {
+            return 1;
+        }
+        $count = min(200, $short($ifd));
+        for ($i = 0; $i < $count; $i++) {
+            $entry = $ifd + 2 + 12 * $i;
+            if (strlen($bytes) < $entry + 12) {
+                break;
+            }
+            if ($short($entry) === 0x0112) {
+                $value = $short($entry + 8);
+                return $value >= 1 && $value <= 8 ? $value : 1;
+            }
+        }
+        return 1;
+    }
+
+    /**
      * Whether some strokes are as dibujo-vivo.js gives them (version 1): a size of its own, the paper and the strokes,
      * each with numbers only.
      *
@@ -124,7 +211,9 @@ class drawings {
         }
         $data = json_decode($strokes, true);
         $shaped = is_array($data) && ($data['v'] ?? null) === 1 && is_numeric($data['w'] ?? null) &&
-            is_numeric($data['h'] ?? null) && is_string($data['paper']['col'] ?? null) && is_array($data['strokes'] ?? null);
+            is_numeric($data['h'] ?? null) && is_string($data['paper']['col'] ?? null) && is_array($data['strokes'] ?? null) &&
+            $data['w'] > 0 && $data['w'] <= 10000 && $data['h'] > 0 && $data['h'] <= 10000 &&
+            strlen($data['paper']['col']) <= 32;
         if (!$shaped) {
             return false;
         }

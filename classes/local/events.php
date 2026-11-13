@@ -93,6 +93,8 @@ class events {
                                                e.token, e.open, e.cancelled, e.timecreated, e.timemodified
                                       ORDER BY e.timestart DESC', ['centreid' => $centreid]);
         $now = time();
+        // A visit of its own replaced by another is gone: only the one the family has now.
+        $events = array_filter($events, fn($e) => !((int) ($e->householdid ?? 0) && (int) ($e->cancelled ?? 0)));
         $next = array_filter($events, fn($e) => $e->timeend >= $now);
         $past = array_filter($events, fn($e) => $e->timeend < $now);
         uasort($next, fn($a, $b) => $a->timestart <=> $b->timestart);
@@ -119,7 +121,8 @@ class events {
             'open' => empty($data->open) ? 0 : 1,
             // A visit of its own: families say when it suits them, and the team proposes the day.
             'tailored' => !empty($data->tailored) && ($data->kind ?? '') === 'visit' ? 1 : 0,
-            'formid' => (int) ($data->formid ?? 0),
+            // Only a form of this centre.
+            'formid' => !empty($data->formid) && entries::get((int) $data->formid, $centreid) ? (int) $data->formid : 0,
             'timemodified' => time(),
         ];
         if (isset($data->survey)) {
@@ -278,6 +281,43 @@ class events {
         return !$event->capacity || self::people($event->id) - $already + $people <= $event->capacity;
     }
 
+    /** @var int How many people one sign-up may bring. */
+    const MAXPEOPLE = 10;
+
+    /** @var int Sign-ups to one act from one address of the internet in an hour; more look like a flood. */
+    const PERHOUR = 20;
+
+    /**
+     * The lock of an act while a family signs up: two sending at once never take its last place twice. Null when the
+     * site cannot give one in time; the sign-up goes on, as before.
+     *
+     * @param \stdClass $event
+     * @return \core\lock\lock|null
+     */
+    public static function lock(\stdClass $event): ?\core\lock\lock {
+        try {
+            $factory = \core\lock\lock_config::get_lock_factory('local_oksigeniaeguahe_signup');
+            return $factory->get_lock('event' . (int) $event->id, 10) ?: null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Counts a sign-up sent from an address to an act, and says whether it is still within the hour's allowance.
+     *
+     * @param \stdClass $event
+     * @param string $ip
+     * @return bool
+     */
+    public static function allowed_from(\stdClass $event, string $ip): bool {
+        $cache = \cache::make('local_oksigeniaeguahe', 'signupsfrom');
+        $key = sha1($ip . '|' . (int) $event->id . '|' . get_site_identifier());
+        $count = (int) $cache->get($key) + 1;
+        $cache->set($key, $count);
+        return $count <= self::PERHOUR;
+    }
+
     /**
      * Signs a household up for an event, or changes how many come.
      *
@@ -289,7 +329,7 @@ class events {
      */
     public static function sign_up(\stdClass $event, int $householdid, int $people, int $slotid = 0): int {
         global $DB;
-        $people = max(1, min(20, $people));
+        $people = max(1, min(self::MAXPEOPLE, $people));
         $current = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid]);
         if ($current) {
             $slot = $slotid ?: (int) $current->slotid;
@@ -437,8 +477,26 @@ class events {
         // A mark from the phone keeps its hour if it is of the last day; otherwise, now.
         $when = $when > time() - DAYSECS && $when <= time() + MINSECS ? $when : time();
         $DB->set_field('local_oksigeniaeguahe_signup', 'attended', $came ? $when : 0, ['id' => $signup->id]);
-        if ($came && $event->kind !== 'other') {
+        if ($came && !(int) $signup->attended && $event->kind !== 'other') {
+            // What each child was before, so that taking the mark back takes the way back too.
+            $was = [];
+            foreach ($DB->get_records(households::CHILDREN, ['householdid' => $signup->householdid]) as $child) {
+                if (lists::further((string) $child->stage, 'visit')) {
+                    $was[] = (int) $child->id . ':' . $child->stage;
+                }
+            }
+            $DB->set_field(self::SIGNUPS, 'wasstages', $was ? implode(',', $was) : null, ['id' => $signup->id]);
             households::advance((int) $signup->householdid, 'visit');
+        } else if (!$came && (int) $signup->attended) {
+            // A mark by mistake: each child that is still where the mark left it goes back to where it was.
+            foreach (array_filter(explode(',', (string) ($signup->wasstages ?? ''))) as $pair) {
+                [$childid, $stage] = array_pad(explode(':', $pair, 2), 2, '');
+                $child = $DB->get_record(households::CHILDREN, ['id' => (int) $childid, 'householdid' => $signup->householdid]);
+                if ($child && $child->stage === 'visit' && in_array($stage, lists::STAGES, true)) {
+                    households::set_stage($child, $stage);
+                }
+            }
+            $DB->set_field(self::SIGNUPS, 'wasstages', null, ['id' => $signup->id]);
         }
     }
 

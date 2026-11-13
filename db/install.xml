@@ -247,6 +247,7 @@
         <FIELD NAME="reminded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the reminder of the day before was looked at; 0 not yet"/>
         <FIELD NAME="attended" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came; 0 if it has not"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the thanks after the visit was looked at; 0 not yet"/>
+        <FIELD NAME="wasstages" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The way each child had before «Ha venido» moved it to the visit, as childid:stage separated by commas, to undo it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
