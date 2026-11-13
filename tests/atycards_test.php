@@ -72,8 +72,10 @@ final class atycards_test extends \advanced_testcase {
         $this->assertSame('¿Sigue Leo en ' . $after . '?', $row['title']);
         $this->assertTrue($row['urgent']);
         $this->assertSame('due', $row['kind']);
-        $link = new \moodle_url($row['url']);
-        $this->assertSame('rematricula-' . $child, $link->get_param('a'));
+        // Answered inside the app, on the page of Eguahe there.
+        $this->assertSame('mobile_renewal_view', $row['method']);
+        $this->assertSame(['h' => (int) $household->id], $row['args']);
+        $link = new \moodle_url($cards[0]['seeall']['url']);
         $this->assertSame([], atycards::home_cards((int) $user->id + 1, $now), 'Nothing for someone of no family.');
 
         // The link: good for a day, signed for that household and person only.
@@ -126,5 +128,49 @@ final class atycards_test extends \advanced_testcase {
         $this->assertCount(1, $cards);
         $this->assertSame('¿Sigue Leo en ' . $after . '?', $cards[0]['items'][0]['title']);
         $this->assertSame('Abrir su página', $cards[0]['seeall']['label']);
+    }
+
+    /**
+     * The page of the app: what a person has to answer, and the answer kept only for a family of theirs.
+     */
+    public function test_page_in_the_app(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'system' => 'es']);
+        $now = time();
+        $year = (int) date('Y', $now);
+        $before = $year . '-' . substr((string) ($year + 1), 2);
+        $after = ($year + 1) . '-' . substr((string) ($year + 2), 2);
+        $three = centres::save_offer($id, (object) ['schoolyear' => $before, 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        centres::save_offer($id, (object) ['schoolyear' => $after, 'name' => 'Infantil 4 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 1]);
+        renewal::set(centres::get($id), $after, $now - DAYSECS, $now + 20 * DAYSECS);
+        $household = households::get(households::create($id, (object) ['lang' => 'es']), $id);
+        $child = households::add_child($household, 'Leo', $three);
+        $DB->set_field(households::CHILDREN, 'stage', 'enrolled', ['id' => $child]);
+        $user = $this->getDataGenerator()->create_user();
+        $other = $this->getDataGenerator()->create_user();
+        atycards::$testfamilies = [(int) $user->id => [['familyid' => 9, 'source' => 'eguahe',
+            'sourcekey' => 'eguahe:' . $household->id]]];
+
+        $this->setUser($user);
+        $sections = \local_oksigeniaeguahe\output\mobile::sections((int) $user->id, $now);
+        $this->assertCount(1, $sections);
+        $this->assertSame((int) $household->id, $sections[0]['householdid']);
+        $this->assertSame('', $sections[0]['children'][0]['state']);
+        $this->assertFalse(\local_oksigeniaeguahe\output\mobile::mobile_init([])['disabled']);
+        $page = \local_oksigeniaeguahe\output\mobile::mobile_renewal_view(['h' => (int) $household->id]);
+        $this->assertStringContainsString('local_oksigeniaeguahe_renewal_answer', $page['templates'][0]['html']);
+
+        $result = \local_oksigeniaeguahe\external\renewal_answer::execute((int) $household->id, $child, 'leave', 'moved');
+        $this->assertTrue($result['saved']);
+        $said = renewal::answers(centres::get($id), (int) $household->id)[$child];
+        $this->assertSame(['leave', 'moved'], [$said->answer, $said->reason]);
+
+        // Someone of no family of it: refused.
+        $this->setUser($other);
+        $this->expectException(\moodle_exception::class);
+        \local_oksigeniaeguahe\external\renewal_answer::execute((int) $household->id, $child, 'stay');
     }
 }

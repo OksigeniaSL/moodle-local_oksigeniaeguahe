@@ -131,10 +131,12 @@ class atycards {
                     continue;
                 }
                 $name = familypage::label_name($child) ?: (string) $child->firstname;
+                // Answered inside the app (output\mobile), as an account of Aty cannot open the site in a browser.
                 $rows[] = ['title' => $s('aty_renewal', (object) ['name' => $name, 'year' => s((string) $centre->renewalyear)]),
-                    'detail' => $s('aty_renewal_detail'), 'urgent' => true, 'actionlabel' => $s('aty_answer')] +
-                    ((int) ($centre->renewaluntil ?? 0) ? ['date' => (int) $centre->renewaluntil - 1, 'kind' => 'due'] : []) +
-                    $open('rematricula-' . $childid);
+                    'detail' => $s('aty_renewal_detail'), 'urgent' => true, 'actionlabel' => $s('aty_answer'),
+                    'method' => 'mobile_renewal_view', 'args' => ['h' => (int) $household->id],
+                    'pagetitle' => $s('pub_renewal_title', (string) $centre->renewalyear)] +
+                    ((int) ($centre->renewaluntil ?? 0) ? ['date' => (int) $centre->renewaluntil - 1, 'kind' => 'due'] : []);
             }
         }
         // Their next visit, with its hour.

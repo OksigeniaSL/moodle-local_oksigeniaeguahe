@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['app_renewal_none'] = 'لا يوجد ما تجيبون عنه الآن.';
+$string['app_renewal_title'] = 'هل تواصلون العام المقبل؟';
+$string['apprenewal_notyours'] = 'هذه العائلة ليست لهذا الحساب.';
 $string['aty_answer'] = 'أجيبوا';
 $string['aty_birthday'] = 'عيد ميلاد سعيد يا {$a}!';
 $string['aty_birthday_detail'] = 'في صفحتكم شيء للاحتفال به.';

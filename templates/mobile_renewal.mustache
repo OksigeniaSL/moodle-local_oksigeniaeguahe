@@ -1,0 +1,71 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/mobile_renewal
+
+    Whether each child goes on next school year, in the Moodle app and in Oksigenia Aty: for each family of the person
+    whose centre asks, its title, the centre, why it asks and until when; each child with its question, what was said and
+    three buttons (yes, it goes on; it does not, with why if they want; not sure yet). It has no data of its own:
+    sections (householdid, centre, title, lead, until, children with id, key, ask, state, statetext, saved), reasons
+    (key, label) and why come as the page's other data, which the app binds, so that nothing the centre or the family
+    wrote is compiled as part of the template.
+
+    Example context (json):
+    {}
+}}
+{{=<% %>=}}
+<ng-container *ngFor="let section of CONTENT_OTHERDATA.sections">
+    <ion-item lines="none">
+        <ion-label class="ion-text-wrap">
+            <h1>{{ section.title }}</h1>
+            <p>{{ section.centre }}</p>
+            <p>{{ section.lead }}</p>
+            <ng-container *ngIf="section.until"><p>{{ section.until }}</p></ng-container>
+        </ion-label>
+    </ion-item>
+    <ion-card *ngFor="let child of section.children">
+        <ion-card-header>
+            <ion-card-title>{{ child.ask }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+            <ion-text *ngIf="child.state" role="status" color="success">
+                <p>{{ child.statetext }}</p>
+            </ion-text>
+            <ion-button expand="block" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
+                [params]="{householdid: section.householdid, childid: child.id, answer: 'stay', reason: ''}"
+                [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.stay"
+                refreshOnSuccess="true"><%#str%>pub_renewal_stay, local_oksigeniaeguahe<%/str%></ion-button>
+            <ion-select [(ngModel)]="CONTENT_OTHERDATA.why[child.key]" interface="action-sheet"
+                label="<%#str%>pub_renewal_why, local_oksigeniaeguahe<%/str%>" label-placement="stacked">
+                <ion-select-option *ngFor="let reason of CONTENT_OTHERDATA.reasons" [value]="reason.key">{{ reason.label }}</ion-select-option>
+            </ion-select>
+            <ion-button expand="block" fill="outline" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
+                [params]="{householdid: section.householdid, childid: child.id, answer: 'leave', reason: CONTENT_OTHERDATA.why[child.key] || ''}"
+                [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.leave"
+                refreshOnSuccess="true"><%#str%>pub_renewal_leave, local_oksigeniaeguahe<%/str%></ion-button>
+            <ion-button expand="block" fill="clear" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
+                [params]="{householdid: section.householdid, childid: child.id, answer: 'unsure', reason: ''}"
+                [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.unsure"
+                refreshOnSuccess="true"><%#str%>pub_renewal_unsure, local_oksigeniaeguahe<%/str%></ion-button>
+        </ion-card-content>
+    </ion-card>
+</ng-container>
+<ion-list *ngIf="!CONTENT_OTHERDATA.sections?.length">
+    <ion-item lines="none">
+        <ion-label class="ion-text-wrap"><%#str%>app_renewal_none, local_oksigeniaeguahe<%/str%></ion-label>
+    </ion-item>
+</ion-list>
