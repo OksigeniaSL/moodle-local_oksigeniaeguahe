@@ -179,6 +179,16 @@ class centres {
                 [$row->applyfrom, $row->applyuntil] = [$row->applyuntil, $row->applyfrom];
             }
         }
+        if (isset($data->guide)) {
+            // The guide on the pages of the families, and what it says, as the centre writes it.
+            $row->guide = in_array($data->guide, guide::KINDS, true) ? $data->guide : '';
+        }
+        foreach (['guidewhere', 'guidehello'] as $said) {
+            if (isset($data->$said)) {
+                $text = \core_text::substr(trim((string) $data->$said), 0, 255);
+                $row->$said = $text !== '' ? $text : null;
+            }
+        }
         if (isset($data->familyfrom)) {
             // Who puts an enrolled family in the common record: Eguahe, or the management system of the centre.
             $row->familyfrom = in_array($data->familyfrom, family::FROM, true) ? $data->familyfrom : 'eguahe';

@@ -64,7 +64,7 @@ class mobile {
             'templates' => [['id' => 'main', 'html' => $OUTPUT->render_from_template('local_oksigeniaeguahe/mobile_renewal', [])]],
             'javascript' => '',
             'otherdata' => ['sections' => $json(self::sections((int) $USER->id, time(), (int) ($args['h'] ?? 0))),
-                'reasons' => $json($reasons), 'why' => $json(new \stdClass())],
+                'reasons' => $json($reasons), 'why' => $json(new \stdClass()), 'leaving' => $json(new \stdClass())],
         ];
     }
 

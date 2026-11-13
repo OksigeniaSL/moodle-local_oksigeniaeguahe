@@ -64,7 +64,10 @@
     </div>
     {{#miniature}}
     <figure class="miniatura">
-        <a href="{{src}}" data-ampliar="{{pub_drawing_close}}" data-toca="miniature" data-deslizar="{{slide}}"><picture>{{#narrow}}<source media="(max-width: 640px)" srcset="{{narrow}}">{{/narrow}}<img src="{{src}}" alt="{{caption}}" loading="lazy" decoding="async"></picture></a>
+        <div class="miniatura-lamina">
+            <a href="{{src}}" data-ampliar="{{pub_drawing_close}}" data-toca="miniature" data-deslizar="{{slide}}"><picture>{{#narrow}}<source media="(max-width: 640px)" srcset="{{narrow}}">{{/narrow}}<img src="{{src}}" alt="{{caption}}" loading="lazy" decoding="async"></picture></a>
+            {{#guide}}<div class="guia guia-mapa" style="{{style}}"><p class="bocadillo" dir="auto">{{bubble}}</p><img src="{{img.src}}" srcset="{{img.srcset}}" alt="" width="96" height="96"></div>{{/guide}}
+        </div>
         <figcaption aria-hidden="true"><span class="marca"><svg viewBox="0 0 16 20" width="13" height="16" aria-hidden="true"><path d="M8 1a6.5 6.5 0 0 0-6.5 6.5C1.5 12.5 8 19 8 19s6.5-6.5 6.5-11.5A6.5 6.5 0 0 0 8 1z" fill="#c2603f"/><circle cx="8" cy="7.5" r="2.4" fill="#fff"/></svg>{{here}}</span><span class="marca"><svg viewBox="0 0 28 8" width="28" height="8" aria-hidden="true"><path d="M2 4h24" stroke="#c2603f" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="4 4"/></svg>{{way}}</span></figcaption>
     </figure>
     {{/miniature}}

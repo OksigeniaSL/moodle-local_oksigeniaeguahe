@@ -63,7 +63,7 @@
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "",
         "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
-        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "hasminiature": false, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
@@ -345,7 +345,7 @@
             {{! ===== The miniature of the centre: the way in, drawn ===== }}
             <details class="apartado aj-plegado" id="aj-miniatura">
                 <summary><h2 id="aj-miniatura-t">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura"><span>{{#hasminiature}}{{#str}}panel_miniature_has, local_oksigeniaeguahe{{/str}}{{/hasminiature}}{{^hasminiature}}{{#str}}panel_miniature_none, local_oksigeniaeguahe{{/str}}{{/hasminiature}}</span></span></summary>
+                    <span class="aj-lectura"><span>{{#hasminiature}}{{#str}}panel_miniature_has, local_oksigeniaeguahe{{/str}}{{/hasminiature}}{{^hasminiature}}{{#str}}panel_miniature_none, local_oksigeniaeguahe{{/str}}{{/hasminiature}}</span>{{#guide.on}}<span>{{#str}}panel_guide_on, local_oksigeniaeguahe{{/str}}</span>{{/guide.on}}</span></summary>
                 <div class="aj-cuerpo">
                     <p class="ayuda">{{#str}}panel_miniature_lead, local_oksigeniaeguahe{{/str}}</p>
                     <ul class="aj-miniaturas">
@@ -360,6 +360,30 @@
                         </li>
                         {{/miniatures}}
                     </ul>
+                    {{#guide}}
+                    <div class="aj-guia">
+                        <img class="aj-guia-perro" src="{{picture.src}}" srcset="{{picture.srcset}}" alt="" width="112" height="112">
+                        <div class="aj-guia-cuerpo">
+                            <div class="aj-guia-cabeza">
+                                <b>{{#str}}panel_guidedog, local_oksigeniaeguahe{{/str}}</b>
+                                <input type="hidden" name="guide" value="{{#on}}perro{{/on}}{{^on}}no{{/on}}">
+                                <button class="interruptor" type="submit" name="guide" value="{{#on}}no{{/on}}{{^on}}perro{{/on}}" formaction="{{action}}#aj-miniatura" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}" aria-describedby="c-guia-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_guide_on, local_oksigeniaeguahe{{/str}}</span></button>
+                            </div>
+                            <span class="ayuda" id="c-guia-a">{{#str}}panel_guide_help, local_oksigeniaeguahe{{/str}}</span>
+                            {{#on}}
+                            <div class="aj-guia-dice">
+                                <label for="c-guia-donde">{{#str}}panel_guide_where, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="aj-hueco" id="c-guia-donde" name="guidewhere" value="{{where}}" maxlength="255" aria-describedby="c-guia-donde-a">
+                                <span class="ayuda" id="c-guia-donde-a">{{#str}}panel_guide_where_help, local_oksigeniaeguahe{{/str}}</span>
+                                <label for="c-guia-hola">{{#str}}panel_guide_hello, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="aj-hueco" id="c-guia-hola" name="guidehello" value="{{hello}}" placeholder="{{hellodefault}}" maxlength="255" aria-describedby="c-guia-hola-a">
+                                <span class="ayuda" id="c-guia-hola-a">{{#str}}panel_guide_hello_help, local_oksigeniaeguahe{{/str}}</span>
+                            </div>
+                            <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-miniatura" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                            {{/on}}
+                        </div>
+                    </div>
+                    {{/guide}}
                 </div>
             </details>
 

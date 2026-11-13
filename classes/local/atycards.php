@@ -33,6 +33,9 @@ class atycards {
     /** @var int The longest a link from the app lasts: that of a notice, which may be read days later (appnotices). */
     const LONGEST = 7 * DAYSECS;
 
+    /** @var int How close the last day to answer has to be for the row to be urgent. */
+    const URGENT = 3 * DAYSECS;
+
     /** @var int The most rows of a card, as Aty shows them. */
     const ROWS = 5;
 
@@ -129,6 +132,10 @@ class atycards {
         // Whether each child goes on next year, while the centre asks and nobody said it.
         if (renewal::open($centre, $now)) {
             $said = renewal::answers($centre, (int) $household->id);
+            // The last day to answer, as a day (the end of it), not an hour; urgent only in its last days (Aty).
+            $until = (int) ($centre->renewaluntil ?? 0);
+            $due = $until ? ['date' => usergetmidnight($until - 1) + DAYSECS - 60, 'kind' => 'due'] : [];
+            $urgent = $until && $until - $now <= self::URGENT;
             foreach (renewal::children($centre, (int) $household->id) as $childid => [$child]) {
                 if (isset($said[$childid])) {
                     continue;
@@ -136,10 +143,9 @@ class atycards {
                 $name = familypage::label_name($child) ?: (string) $child->firstname;
                 // Answered inside the app (output\mobile), as an account of Aty cannot open the site in a browser.
                 $rows[] = ['title' => $s('aty_renewal', (object) ['name' => $name, 'year' => s((string) $centre->renewalyear)]),
-                    'detail' => $s('aty_renewal_detail'), 'urgent' => true, 'actionlabel' => $s('aty_answer'),
+                    'detail' => $s('aty_renewal_detail'), 'urgent' => $urgent, 'actionlabel' => $s('aty_answer'),
                     'method' => 'mobile_renewal_view', 'args' => ['h' => (int) $household->id],
-                    'pagetitle' => $s('app_renewal_title')] +
-                    ((int) ($centre->renewaluntil ?? 0) ? ['date' => (int) $centre->renewaluntil - 1, 'kind' => 'due'] : []);
+                    'pagetitle' => $s('app_renewal_title')] + $due;
             }
         }
         // Their next visit, with its hour.

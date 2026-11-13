@@ -49,14 +49,19 @@
                 [params]="{householdid: section.householdid, childid: child.id, answer: 'stay', reason: ''}"
                 [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.stay"
                 refreshOnSuccess="true"><%#str%>pub_renewal_stay, local_oksigeniaeguahe<%/str%></ion-button>
-            <ion-select [(ngModel)]="CONTENT_OTHERDATA.why[child.key]" interface="action-sheet"
-                label="<%#str%>pub_renewal_why, local_oksigeniaeguahe<%/str%>" label-placement="stacked">
-                <ion-select-option *ngFor="let reason of CONTENT_OTHERDATA.reasons" [value]="reason.key">{{ reason.label }}</ion-select-option>
-            </ion-select>
-            <ion-button expand="block" fill="outline" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
-                [params]="{householdid: section.householdid, childid: child.id, answer: 'leave', reason: CONTENT_OTHERDATA.why[child.key] || ''}"
-                [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.leave"
-                refreshOnSuccess="true"><%#str%>pub_renewal_leave, local_oksigeniaeguahe<%/str%></ion-button>
+            <ng-container *ngIf="!CONTENT_OTHERDATA.leaving[child.key]">
+                <ion-button expand="block" fill="outline" (click)="CONTENT_OTHERDATA.leaving[child.key] = true"><%#str%>pub_renewal_leave, local_oksigeniaeguahe<%/str%></ion-button>
+            </ng-container>
+            <ng-container *ngIf="CONTENT_OTHERDATA.leaving[child.key]">
+                <ion-select [(ngModel)]="CONTENT_OTHERDATA.why[child.key]" interface="action-sheet"
+                    label="<%#str%>app_renewal_why, local_oksigeniaeguahe<%/str%>" label-placement="stacked">
+                    <ion-select-option *ngFor="let reason of CONTENT_OTHERDATA.reasons" [value]="reason.key">{{ reason.label }}</ion-select-option>
+                </ion-select>
+                <ion-button expand="block" fill="outline" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
+                    [params]="{householdid: section.householdid, childid: child.id, answer: 'leave', reason: CONTENT_OTHERDATA.why[child.key] || ''}"
+                    [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.leave"
+                    refreshOnSuccess="true"><%#str%>app_renewal_leave_send, local_oksigeniaeguahe<%/str%></ion-button>
+            </ng-container>
             <ion-button expand="block" fill="clear" core-site-plugins-call-ws name="local_oksigeniaeguahe_renewal_answer"
                 [params]="{householdid: section.householdid, childid: child.id, answer: 'unsure', reason: ''}"
                 [preSets]="{getFromCache: 0, saveToCache: 0}" [successMessage]="child.saved.unsure"

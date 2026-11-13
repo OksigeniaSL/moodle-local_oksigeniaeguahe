@@ -13678,6 +13678,46 @@ details.aj-plegado > summary h2::after {
     }
 }
 
+/* The guide of the centre, in the card of the miniature: the little dog, its switch and what it says. */
+.aj-guia {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.aj-guia-perro {
+    flex: none;
+    width: 112px;
+    height: 112px;
+}
+
+.aj-guia-cuerpo {
+    display: grid;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.aj-guia-cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.aj-guia-dice {
+    display: grid;
+    gap: 4px;
+}
+
+.aj-guia-dice label {
+    margin-top: 8px;
+    font-weight: 600;
+}
+
 /* An act that shows where to park: its box, with the miniature of where to park small beside it (Jujol). */
 .acto-aparcar {
     display: flex;

@@ -25,8 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['app_renewal_leave_send'] = 'إرسال: لن يواصل';
 $string['app_renewal_none'] = 'لا يوجد ما تجيبون عنه الآن.';
 $string['app_renewal_title'] = 'هل تواصلون العام المقبل؟';
+$string['app_renewal_why'] = 'إن لم يواصل، فلماذا؟ (إن أردتم إخبارنا)';
 $string['appnotice_renewal_subject'] = 'هل تواصلون في {$a}؟';
 $string['appnotice_renewal_text'] = 'تريد المدرسة أن تعرف من سيواصل العام المقبل. تكفي لمسة واحدة.';
 $string['appnotice_replied_subject'] = 'وصلكم ردّ';
@@ -568,6 +570,11 @@ $string['pub_gone_help'] = 'أي شيء، ولو كان صغيرًا: يساعد
 $string['pub_gone_lead'] = 'صفحتكم باقية هنا بكل ما فيها. وإن رغبتم يومًا في العودة أو في تسجيل طفل آخر، فاكتبوا إلينا: سيردّ عليكم من يعرفكم.';
 $string['pub_gone_nochild'] = 'شكرًا على هذه السنوات';
 $string['pub_gone_question'] = 'هل هناك ما كان بإمكاننا أن نقوم به بشكل أفضل؟';
+$string['pub_guide_from'] = 'سأرافقكم من المدخل';
+$string['pub_guide_hello'] = 'مرحبًا! سأرافقكم في زيارتكم.';
+$string['pub_guide_receives_many'] = 'يستقبلكم {$a}';
+$string['pub_guide_receives_one'] = 'يستقبلكم {$a}';
+$string['pub_guide_to'] = 'سأرافقكم حتى {$a}';
 $string['pub_handover_person'] = 'من الآن أنتم في رعاية';
 $string['pub_handover_place'] = 'من الآن تُتابَع أموركم في';
 $string['pub_handover_team'] = 'من الآن يرافقكم فريقنا.';

@@ -489,6 +489,10 @@ class familypage {
             'receivestitle' => publiclang::str($upcoming || !$attended ? 'pub_receives' : 'pub_received', $lang),
             'receivessub' => publiclang::str($upcoming || !$attended ? 'pub_receives_sub' : 'pub_received_sub', $lang),
             'hosts' => self::hosts($hosts),
+            // The guide of the centre: it waves by the greeting before their visit, and introduces who receives them.
+            'guidehello' => $upcoming && !($issettled || $isgone || $isroster || $allclosed) ? guide::hello($centre, $lang) :
+                false,
+            'guidehosts' => $upcoming ? guide::presents($centre, self::hosts($hosts), $lang) : false,
             'hasjoin' => (bool) $joinlinks,
             'joinlinks' => $joinlinks,
             'joined' => $joined,
@@ -613,7 +617,8 @@ class familypage {
      * @param \stdClass $centre
      * @param \stdClass|null $signup Their next visit.
      * @param string $lang
-     * @return array|false src, narrow (for phones, or ''), caption (its alt), here and way (what each mark is), slide.
+     * @return array|false src, narrow (for phones, or ''), guide (guide::on_map()), caption (its alt), here and way (what
+     *     each mark is), slide.
      */
     public static function miniature_context(\stdClass $centre, ?\stdClass $signup, string $lang) {
         global $DB;
@@ -629,7 +634,10 @@ class familypage {
         if (!$src) {
             return false;
         }
+        $area = $parking ? 'miniatureparking' : ($way ? 'miniature' : 'miniaturenarrow');
         return ['src' => $src->out(false), 'narrow' => $narrow && $way ? $narrow->out(false) : '',
+            // The guide at the entrance, walking the way.
+            'guide' => guide::on_map($centre, $area, $narrow && $way, $lang),
             'caption' => publiclang::str($parking ? 'pub_miniature_parking' : 'pub_miniature', $lang),
             // What each mark of the picture is: the pin and the dotted way (Jujol).
             'here' => publiclang::str('pub_miniature_here', $lang), 'way' => publiclang::str('pub_miniature_way', $lang),

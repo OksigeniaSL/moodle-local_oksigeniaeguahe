@@ -49,10 +49,10 @@
         "first": {"share": false, "weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
-        "pub_your_turn": "su turno", "pub_add_calendar": "Añadir al calendario", "mapurl": "#", "miniature": {"src": "#", "narrow": "", "caption": "Por dónde se entra y dónde los esperamos", "here": "Los esperamos aquí", "way": "El camino desde la entrada", "slide": "Deslicen para ver el resto"},
+        "pub_your_turn": "su turno", "pub_add_calendar": "Añadir al calendario", "mapurl": "#", "miniature": {"src": "#", "narrow": "", "guide": {"img": {"src": "#", "srcset": "#"}, "style": "--x:50%;--y:60%;--giro:1;", "bubble": "Los acompaño hasta Secretaría"}, "caption": "Por dónde se entra y dónde los esperamos", "here": "Los esperamos aquí", "way": "El camino desde la entrada", "slide": "Deslicen para ver el resto"},
         "pub_how_get": "Cómo llegar", "others": [], "pub_band_next": "Lo siguiente", "bandnext": "Lo siguiente", "nextline": "",
         "novisit": "", "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "canwrite": true,
-        "writeus": "Escribirnos", "receivestitle": "Quién los recibe", "receivessub": "Son las personas…",
+        "writeus": "Escribirnos", "guidehello": {"img": {"src": "#", "srcset": "#"}, "bubble": "¡Hola! Los acompaño en su visita."}, "guidehosts": false, "receivestitle": "Quién los recibe", "receivessub": "Son las personas…",
         "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
             "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.",
         "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [], "hasjoin": false, "joinlinks": [], "joined": false,
@@ -95,6 +95,7 @@
         {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
         <div class="bajo-riel">
             <p class="entradilla">{{{lead}}}</p>
+            {{#guidehello}}<div class="guia guia-saluda"><img src="{{img.src}}" srcset="{{img.srcset}}" alt="" width="96" height="96"><p class="bocadillo" dir="auto">{{bubble}}</p></div>{{/guidehello}}
             {{#new}}
             <div class="aviso en-heroe" role="status">
                 <span class="icono">{{{i.check}}}</span>
@@ -149,6 +150,7 @@
     <div class="cabeza">
         <h2>{{receivestitle}}</h2>
         <p class="sub">{{receivessub}}</p>
+        {{#guidehosts}}<div class="guia guia-presenta"><img src="{{img.src}}" srcset="{{img.srcset}}" alt="" width="96" height="96"><p class="bocadillo" dir="auto">{{bubble}}</p></div>{{/guidehosts}}
     </div>
     <div class="personas">
         {{#hosts}}

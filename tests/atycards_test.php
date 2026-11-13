@@ -41,7 +41,8 @@ final class atycards_test extends \advanced_testcase {
     }
 
     /**
-     * A family of the centre asked whether its child goes on: a card with that question, urgent, to its page; nothing
+     * A family of the centre asked whether its child goes on: a card with that question, to its page, urgent only in its
+     * last days, with the end of its last day; nothing
      * for a person of no family; and the link from the app, good for a day and only signed.
      */
     public function test_cards(): void {
@@ -70,8 +71,11 @@ final class atycards_test extends \advanced_testcase {
         $this->assertSame('Colegio de ejemplo', $cards[0]['heading']);
         $row = $cards[0]['items'][0];
         $this->assertSame('¿Sigue Leo en ' . $after . '?', $row['title']);
-        $this->assertTrue($row['urgent']);
+        $this->assertFalse($row['urgent'], 'Twenty days ahead, not urgent yet.');
         $this->assertSame('due', $row['kind']);
+        $this->assertSame('23:59', userdate($row['date'], '%H:%M'));
+        $closing = atycards::home_cards((int) $user->id, $now + 18 * DAYSECS)[0]['items'][0];
+        $this->assertTrue($closing['urgent'], 'Two days before the end, urgent.');
         // Answered inside the app, on the page of Eguahe there.
         $this->assertSame('mobile_renewal_view', $row['method']);
         $this->assertSame(['h' => (int) $household->id], $row['args']);

@@ -48,6 +48,12 @@ $definitions = [
         'simpledata' => true,
         'ttl' => 3600,
     ],
+    // Where the way drawn on each version of a miniature starts and ends (guide::way()), by the hash of the picture.
+    'miniatureways' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+    ],
     // Whether the domain of an email receives mail (emailcheck::reachable()), asked to the DNS once a day per domain.
     'maildomains' => [
         'mode' => cache_store::MODE_APPLICATION,

@@ -128,6 +128,10 @@ class panel_centre {
             // The miniature of the centre: its plan with the way in, the same for phones, and where to park.
             'miniatures' => self::miniatures((int) $centre->id),
             'hasminiature' => centres::miniature((int) $centre->id) !== null,
+            // The guide: a little dog that welcomes, shows the way and introduces who receives.
+            'guide' => ['on' => guide::of($centre) !== '', 'picture' => guide::picture(guide::KINDS[0], 'saluda'),
+                'where' => (string) ($centre->guidewhere ?? ''), 'hello' => (string) ($centre->guidehello ?? ''),
+                'hellodefault' => publiclang::str('pub_guide_hello', (string) ($centre->lang ?: 'es'))],
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
             'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c), '', $centre),
             'hosts' => self::hosts($centre),
@@ -779,6 +783,9 @@ class panel_centre {
             'costs' => optional_param('costs', '', PARAM_TEXT),
             'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
             'familyfrom' => optional_param('familyfrom', (string) ($centre->familyfrom ?? 'eguahe'), PARAM_ALPHA),
+            'guide' => optional_param('guide', (string) ($centre->guide ?? ''), PARAM_ALPHA),
+            'guidewhere' => optional_param('guidewhere', (string) ($centre->guidewhere ?? ''), PARAM_TEXT),
+            'guidehello' => optional_param('guidehello', (string) ($centre->guidehello ?? ''), PARAM_TEXT),
         ];
         // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
         if ($data->email !== '' && !validate_email($data->email)) {
