@@ -34,6 +34,7 @@ $string['aty_birthday'] = 'Parabéns, {$a}!';
 $string['aty_birthday_detail'] = 'Na vossa página há algo para o celebrar.';
 $string['aty_renewal'] = '{$a->name} continua em {$a->year}?';
 $string['aty_renewal_detail'] = 'Com um toque na vossa página: sim, não ou ainda não sabem.';
+$string['aty_seeall'] = 'Abrir a vossa página';
 $string['aty_story'] = 'A história de {$a}';
 $string['aty_visit'] = 'A vossa visita';
 $string['cachedef_maildomains'] = 'Se o domínio de cada e-mail pode receber mensagens';

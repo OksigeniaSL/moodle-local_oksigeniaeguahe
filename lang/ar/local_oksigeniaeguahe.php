@@ -30,6 +30,7 @@ $string['aty_birthday'] = 'عيد ميلاد سعيد يا {$a}!';
 $string['aty_birthday_detail'] = 'في صفحتكم شيء للاحتفال به.';
 $string['aty_renewal'] = 'هل يواصل {$a->name} في {$a->year}؟';
 $string['aty_renewal_detail'] = 'بلمسة واحدة في صفحتكم: نعم، لا، أو لم تقرروا بعد.';
+$string['aty_seeall'] = 'افتحوا صفحتكم';
 $string['aty_story'] = 'قصة {$a}';
 $string['aty_visit'] = 'زيارتكم';
 $string['channel_act_button'] = 'سجّلوا الآن';

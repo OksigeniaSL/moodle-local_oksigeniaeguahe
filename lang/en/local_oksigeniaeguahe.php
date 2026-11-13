@@ -34,6 +34,7 @@ $string['aty_birthday'] = 'Happy birthday, {$a}!';
 $string['aty_birthday_detail'] = 'There is something on your page to celebrate it.';
 $string['aty_renewal'] = 'Is {$a->name} staying on in {$a->year}?';
 $string['aty_renewal_detail'] = 'One tap on your page: yes, no or not sure yet.';
+$string['aty_seeall'] = 'Open your page';
 $string['aty_story'] = '{$a}\'s story';
 $string['aty_visit'] = 'Your visit';
 $string['cachedef_maildomains'] = 'Whether the domain of each email can receive mail';

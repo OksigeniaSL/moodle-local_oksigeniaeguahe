@@ -94,4 +94,37 @@ final class atycards_test extends \advanced_testcase {
         households::tidy($now);
         $this->assertSame(0, $DB->count_records(households::LINKS, ['reason' => 'app']));
     }
+
+    /**
+     * With the common family record of the site saying the families of a person: the adult with an account of the family
+     * Eguahe made for the household gets its card.
+     */
+    public function test_with_the_family_record(): void {
+        global $DB;
+        $api = '\\local_oksigeniafamily\\api';
+        if (!class_exists($api) || !method_exists($api, 'families_of_user')) {
+            $this->markTestSkipped('The site has no common family record that says the families of a person.');
+        }
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'system' => 'es']);
+        $now = time();
+        $year = (int) date('Y', $now);
+        $before = $year . '-' . substr((string) ($year + 1), 2);
+        $after = ($year + 1) . '-' . substr((string) ($year + 2), 2);
+        $three = centres::save_offer($id, (object) ['schoolyear' => $before, 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        centres::save_offer($id, (object) ['schoolyear' => $after, 'name' => 'Infantil 4 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 1]);
+        renewal::set(centres::get($id), $after, $now - DAYSECS, $now + 20 * DAYSECS);
+        $household = households::get(households::create($id, (object) ['lang' => 'es']), $id);
+        $child = households::add_child($household, 'Leo', $three);
+        $DB->set_field(households::CHILDREN, 'stage', 'enrolled', ['id' => $child]);
+        $user = $this->getDataGenerator()->create_user();
+        $familyid = $api::create_family('eguahe', 'eguahe:' . $household->id);
+        $api::add_adult($familyid, ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'userid' => (int) $user->id]);
+        $cards = atycards::home_cards((int) $user->id, $now);
+        $this->assertCount(1, $cards);
+        $this->assertSame('¿Sigue Leo en ' . $after . '?', $cards[0]['items'][0]['title']);
+        $this->assertSame('Abrir su página', $cards[0]['seeall']['label']);
+    }
 }

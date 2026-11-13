@@ -98,7 +98,11 @@ class atycards {
             }
             $items = self::rows($household, $centre, $userid, $now);
             if ($items) {
-                $cards[] = ['heading' => format_string($centre->name), 'items' => array_slice($items, 0, self::ROWS)];
+                // The home shows two rows: the rest, and everything else of theirs, on their page.
+                $lang = (string) ($household->lang ?: ($centre->lang ?: 'es'));
+                $cards[] = ['heading' => format_string($centre->name), 'items' => array_slice($items, 0, self::ROWS),
+                    'seeall' => ['label' => publiclang::str('aty_seeall', $lang),
+                        'url' => self::url($household, $userid, '', $now)->out(false)]];
             }
         }
         return $cards;

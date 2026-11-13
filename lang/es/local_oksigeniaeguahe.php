@@ -34,6 +34,7 @@ $string['aty_birthday'] = '¡Feliz cumpleaños, {$a}!';
 $string['aty_birthday_detail'] = 'En su página hay algo para celebrarlo.';
 $string['aty_renewal'] = '¿Sigue {$a->name} en {$a->year}?';
 $string['aty_renewal_detail'] = 'Con un toque en su página: sí, no o aún no lo saben.';
+$string['aty_seeall'] = 'Abrir su página';
 $string['aty_story'] = 'El cuento de {$a}';
 $string['aty_visit'] = 'Su visita';
 $string['cachedef_maildomains'] = 'Si el dominio de cada correo puede recibir mensajes';
