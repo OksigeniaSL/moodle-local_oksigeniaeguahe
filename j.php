@@ -61,6 +61,12 @@ $from = households::by_link($invited);
 if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
     seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
 }
+if ($invited !== '' && data_submitted() === false) {
+    // Counted, the private link of the family leaves the address at once: never kept in the history of the browser or
+    // passed on with the page.
+    $lang = optional_param('idioma', '', PARAM_ALPHANUMEXT);
+    redirect(new moodle_url($url, $lang !== '' ? ['idioma' => $lang] : []));
+}
 // Passed on by a family of the centre (share::act_url()), or reached from the invitation at the end of a piece shared:
 // whoever signs up here comes by it, and the family that passed it on has it counted.
 $sharedby = optional_param('f', 0, PARAM_INT);

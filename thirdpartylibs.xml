@@ -107,4 +107,40 @@
             <copyright>2009-2026 The Libphonenumber Authors</copyright>
         </copyrights>
     </library>
+    <library>
+        <location>pub/fonts/caveat-mas.woff2</location>
+        <name>Caveat (Cyrillic and the tilde of eguahẽ)</name>
+        <description>The same handwriting for names in Cyrillic and for the «ẽ», loaded only when a name needs it.</description>
+        <license>OFL</license>
+        <version>1.5</version>
+        <licenseversion>1.1</licenseversion>
+        <repository>https://github.com/googlefonts/caveat</repository>
+        <copyrights>
+            <copyright>2014 The Caveat Project Authors</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>pub/fonts/playpen-sans-arabic.woff2</location>
+        <name>Playpen Sans Arabic</name>
+        <description>The handwriting of names in Arabic on the pages of the families.</description>
+        <license>OFL</license>
+        <version>1.000</version>
+        <licenseversion>1.1</licenseversion>
+        <repository>https://github.com/TypeTogether/Playpen-Sans</repository>
+        <copyrights>
+            <copyright>2023 The Playpen Sans Project Authors</copyright>
+        </copyrights>
+    </library>
+    <library>
+        <location>assets/sticker/font/PlaypenSansArabic-Eguahe.ttf</location>
+        <name>Playpen Sans Arabic (subset)</name>
+        <description>The handwriting of names in Arabic on the labels sent as images.</description>
+        <license>OFL</license>
+        <version>1.000</version>
+        <licenseversion>1.1</licenseversion>
+        <repository>https://github.com/TypeTogether/Playpen-Sans</repository>
+        <copyrights>
+            <copyright>2023 The Playpen Sans Project Authors</copyright>
+        </copyrights>
+    </library>
 </libraries>

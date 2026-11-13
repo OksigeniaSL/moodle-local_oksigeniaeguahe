@@ -2472,6 +2472,7 @@ $string['places_source'] = 'Fonte de posições';
 $string['places_source_desc'] = 'De onde o Eguahe tira a posição do centro e das localidades das suas famílias, para os seus mapas. Uma localidade, nunca uma família.';
 $string['places_source_geonames'] = 'GeoNames, com utilizador';
 $string['places_source_nominatim'] = 'OpenStreetMap (Nominatim), sem chave';
+$string['places_source_none'] = 'Nenhuma: as localidades não são procuradas fora do site (sem mapa de localidades)';
 $string['pluginname'] = 'Admissões (Oksigenia Eguahe)';
 $string['poster_call'] = 'Inscrevam-se pelo telemóvel';
 $string['poster_how'] = 'Abram a câmara e apontem para o código. Guardamos o vosso lugar e dizemos-vos quem vos recebe.';

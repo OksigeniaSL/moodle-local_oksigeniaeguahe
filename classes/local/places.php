@@ -64,8 +64,12 @@ class places {
      */
     public static function source(): ?places_sources\source {
         $sources = array_filter(self::sources(), fn($s) => $s->ready());
-        $chosen = (string) get_config('local_oksigeniaeguahe', 'placessource');
-        return $sources[$chosen] ?? (reset($sources) ?: null);
+        $chosen = get_config('local_oksigeniaeguahe', 'placessource');
+        // Nothing is asked outside the site until the site chooses a source: «none», or never chosen.
+        if ($chosen === false || (string) $chosen === '' || (string) $chosen === 'none') {
+            return null;
+        }
+        return $sources[(string) $chosen] ?? null;
     }
 
     /**

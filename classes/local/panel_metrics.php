@@ -1066,9 +1066,11 @@ class panel_metrics {
                FROM {' . households::T . '} h
                JOIN {' . households::CHILDREN . '} c ON c.householdid = h.id
                JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid AND o.centreid = c.centreid
-              WHERE h.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year',
+              WHERE h.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year AND c.roster = 0
+                    AND (c.lefttime IS NULL OR c.lefttime = 0)',
             ['centreid' => $centreid, 'stage' => 'enrolled', 'year' => $year]
         );
+        // Families of the campaign that still have their place: never the roll of the centre, nor those who left.
         $told = count(array_filter($rows, fn($r) => $r->heardfrom === 'centrefamilies'));
         if (!$told) {
             return false;

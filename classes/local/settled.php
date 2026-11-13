@@ -263,7 +263,7 @@ class settled {
     }
 
     /**
-     * The school year of the first day: the latest one with a child enrolled.
+     * The school year of the first day: the latest one with a new pupil enrolled (never one brought from the roll).
      *
      * @param int $centreid
      * @return string '' when nobody is enrolled.
@@ -274,7 +274,7 @@ class settled {
             'SELECT MAX(o.schoolyear)
                FROM {' . households::CHILDREN . '} c
                JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid AND o.centreid = c.centreid
-              WHERE c.centreid = :centreid AND c.stage = :stage',
+              WHERE c.centreid = :centreid AND c.stage = :stage AND c.roster = 0',
             ['centreid' => $centreid, 'stage' => 'enrolled']
         );
     }
@@ -350,7 +350,8 @@ class settled {
             'SELECT COUNT(1) AS enrolled, SUM(CASE WHEN c.started > 0 THEN 1 ELSE 0 END) AS started
                FROM {' . households::CHILDREN . '} c
                JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid AND o.centreid = c.centreid
-              WHERE c.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year',
+              WHERE c.centreid = :centreid AND c.stage = :stage AND o.schoolyear = :year AND c.roster = 0
+                    AND (c.lefttime IS NULL OR c.lefttime = 0)',
             ['centreid' => $centreid, 'stage' => 'enrolled', 'year' => $year]
         );
         if (!$row || !(int) $row->started) {

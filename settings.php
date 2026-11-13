@@ -80,7 +80,7 @@ if ($hassiteconfig) {
             ''
         ));
         // Where the towns are, for the maps of the centres: a worldwide source, the site chooses.
-        $sources = [];
+        $sources = ['none' => get_string('places_source_none', 'local_oksigeniaeguahe')];
         foreach (\local_oksigeniaeguahe\local\places::sources() as $key => $source) {
             $sources[$key] = get_string('places_source_' . $key, 'local_oksigeniaeguahe');
         }
@@ -88,7 +88,7 @@ if ($hassiteconfig) {
             'local_oksigeniaeguahe/placessource',
             get_string('places_source', 'local_oksigeniaeguahe'),
             get_string('places_source_desc', 'local_oksigeniaeguahe'),
-            'nominatim',
+            'none',
             $sources
         ));
         $settings->add(new admin_setting_configtext(

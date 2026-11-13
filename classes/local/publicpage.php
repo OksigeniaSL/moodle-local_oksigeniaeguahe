@@ -520,7 +520,11 @@ display: grid; }
         if ($d === '' && $m === '' && $y === '') {
             return trim(optional_param($name, '', PARAM_RAW_TRIMMED));
         }
-        if (!preg_match('/^\d{1,2}$/', $d) || !preg_match('/^\d{1,2}$/', $m) || !preg_match('/^\d{4}$/', $y)) {
+        // A day that does not exist (31 February) is not moved to another one: it is said to be wrong.
+        if (
+            !preg_match('/^\d{1,2}$/', $d) || !preg_match('/^\d{1,2}$/', $m) || !preg_match('/^\d{4}$/', $y) ||
+            !checkdate((int) $m, (int) $d, (int) $y)
+        ) {
             return 'invalid';
         }
         return sprintf('%04d-%02d-%02d', (int) $y, (int) $m, (int) $d);
@@ -570,7 +574,10 @@ display: grid; }
                 trim((string) ($y[$key] ?? ''))];
             if ($day === '' && $month === '' && $year === '') {
                 $out[$key] = '';
-            } else if (!preg_match('/^\d{1,2}$/', $day) || !preg_match('/^\d{1,2}$/', $month) || !preg_match('/^\d{4}$/', $year)) {
+            } else if (
+                !preg_match('/^\d{1,2}$/', $day) || !preg_match('/^\d{1,2}$/', $month) || !preg_match('/^\d{4}$/', $year) ||
+                !checkdate((int) $month, (int) $day, (int) $year)
+            ) {
                 $out[$key] = 'invalid';
             } else {
                 $out[$key] = sprintf('%04d-%02d-%02d', (int) $year, (int) $month, (int) $day);
