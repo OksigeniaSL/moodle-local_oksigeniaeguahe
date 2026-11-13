@@ -1132,6 +1132,7 @@ textarea {
     /* With a miniature (Jujol): the day and what they need to know on the left, the miniature on the right, level
        with the day; the two columns even. */
     .banda.banda-con-miniatura {
+        grid-template-rows: auto auto 1fr;
         align-items: start;
     }
 
