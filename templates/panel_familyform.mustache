@@ -88,7 +88,7 @@
                         <fieldset class="campo ancho ap-cursos" data-curso-hijo="{{i}}">
                             <legend>{{#str}}offer, local_oksigeniaeguahe{{/str}}</legend>
                             {{#offergroups}}
-                            {{#campaign}}<div class="ap-fichas">{{#offers}}<input class="oculto" type="radio" name="{{offername}}" id="{{offername}}-{{id}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="{{offername}}-{{id}}"><b>{{name}}</b>{{#free}}<small>{{free}}</small>{{/free}}</label>{{/offers}}</div>{{/campaign}}
+                            {{#campaign}}<div class="ap-fichas">{{#offers}}<input class="oculto" type="radio" name="{{offername}}" id="{{offername}}-{{id}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha{{#quiet}} ap-ficha-callada{{/quiet}}" for="{{offername}}-{{id}}"><b>{{name}}</b>{{#free}}<small>{{free}}</small>{{/free}}</label>{{/offers}}</div>{{/campaign}}
                             {{^campaign}}<details class="ap-otro-curso"><summary>{{#str}}panel_ff_course_other, local_oksigeniaeguahe, {{year}}{{/str}}</summary><div class="ap-fichas">{{#offers}}<input class="oculto" type="radio" name="{{offername}}" id="{{offername}}-{{id}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="{{offername}}-{{id}}"><b>{{name}}</b>{{#free}}<small>{{free}}</small>{{/free}}</label>{{/offers}}</div></details>{{/campaign}}
                             {{/offergroups}}
                             <div class="plazas-mini" data-plazas-mini="{{i}}" aria-live="polite"></div>

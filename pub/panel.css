@@ -3514,6 +3514,17 @@ input:focus-visible + .ficha-canal {
     font-size: 0.8125rem;
 }
 
+/* A course without places for new pupils: there, but quieter than those that have them. */
+.ap-ficha.ap-ficha-callada {
+    border-color: transparent;
+    background: transparent;
+    color: var(--eg-tinta-2);
+}
+
+.ap-ficha.ap-ficha-callada b {
+    font-weight: 500;
+}
+
 input:checked + .ap-ficha {
     border-color: var(--eg-accion);
     background: var(--eg-accion);

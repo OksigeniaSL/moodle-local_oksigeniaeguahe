@@ -76,12 +76,14 @@ class panel_familyform {
         }
         $campaign = panel_inbox::campaign_school_year($centre, array_keys($byyear), time());
         $groups = function (int $i, string $chosen) use ($byyear, $campaign, $free, $c): array {
-            $chip = fn(int $value, string $name, string $free) => ['value' => $value, 'name' => $name, 'free' => $free,
-                'selected' => (string) $value === ($chosen === '' ? '0' : $chosen), 'id' => 'o' . $value];
+            // A course of the campaign without places for new pupils is still there, but quieter.
+            $chip = fn(int $value, string $name, string $free, bool $quiet = false) => ['value' => $value, 'name' => $name,
+                'free' => $free, 'quiet' => $quiet, 'selected' => (string) $value === ($chosen === '' ? '0' : $chosen),
+                'id' => 'o' . $value];
             $out = [['year' => s($campaign), 'campaign' => true,
                 'offers' => [$chip(0, get_string('offer_unknown', $c), '')]]];
             foreach ($byyear[$campaign] ?? [] as $offer) {
-                $out[0]['offers'][] = $chip((int) $offer->id, format_string($offer->name), $free($offer));
+                $out[0]['offers'][] = $chip((int) $offer->id, format_string($offer->name), $free($offer), !(int) $offer->places);
             }
             foreach ($byyear as $year => $list) {
                 if ((string) $year === $campaign) {
