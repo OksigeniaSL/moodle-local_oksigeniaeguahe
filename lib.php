@@ -225,3 +225,15 @@ function local_oksigeniaeguahe_oksigeniaaty_browser_pages(): array {
         '/local/oksigeniaeguahe/invita.php', '/local/oksigeniaeguahe/j.php', '/local/oksigeniaeguahe/w.php',
         '/local/oksigeniaeguahe/privacy.php', '/local/oksigeniaeguahe/ics.php'];
 }
+
+/**
+ * What Eguahe adds to the home of the app of Oksigenia Aty for an adult of a family of the centre: whether each child
+ * goes on next year, their next visit, the story of the first day and a birthday (local\atycards). Without Family
+ * saying the families of a person, nothing.
+ *
+ * @param int $userid The person.
+ * @return array Cards, as Aty's homecards class describes them.
+ */
+function local_oksigeniaeguahe_oksigeniaaty_home_cards(int $userid): array {
+    return \local_oksigeniaeguahe\local\atycards::home_cards($userid);
+}

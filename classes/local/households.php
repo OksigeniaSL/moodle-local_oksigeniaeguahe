@@ -877,6 +877,9 @@ class households {
             $DB->execute('UPDATE {' . self::T . '} SET aisummary = NULL, aisummarytime = 0
                            WHERE centreid = ? AND aisummarytime > 0 AND aisummarytime < ?', [$centre->id, $limit]);
         }
+        // The private links opened from the app of Aty (app.php) last two days: whoever wants the page again comes from
+        // the app, which makes another.
+        $DB->delete_records_select(self::LINKS, 'reason = ? AND timecreated < ?', ['app', $now - 2 * DAYSECS]);
     }
 
     /**

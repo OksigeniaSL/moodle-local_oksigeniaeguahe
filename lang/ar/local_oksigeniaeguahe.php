@@ -25,6 +25,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['aty_answer'] = 'أجيبوا';
+$string['aty_birthday'] = 'عيد ميلاد سعيد يا {$a}!';
+$string['aty_birthday_detail'] = 'في صفحتكم شيء للاحتفال به.';
+$string['aty_renewal'] = 'هل يواصل {$a->name} في {$a->year}؟';
+$string['aty_renewal_detail'] = 'بلمسة واحدة في صفحتكم: نعم، لا، أو لم تقرروا بعد.';
+$string['aty_story'] = 'قصة {$a}';
+$string['aty_visit'] = 'زيارتكم';
 $string['channel_act_button'] = 'سجّلوا الآن';
 $string['channel_act_kicker'] = 'مفتوح للجميع';
 $string['channel_day_button'] = 'كيف تصلون';
@@ -412,6 +419,8 @@ $string['pub_ambassador_title'] = 'دعوتكم لعائلات أخرى';
 $string['pub_and'] = 'و';
 $string['pub_another_adult'] = 'إضافة شخص بالغ آخر';
 $string['pub_answers'] = 'إجاباتكم';
+$string['pub_app_gone'] = 'روابط التطبيق تدوم يومًا واحدًا. افتحوه من جديد من التطبيق.';
+$string['pub_app_gone_title'] = 'لم يعد هذا الرابط صالحًا';
 $string['pub_apply_from_line'] = 'يبدأ تقديم الطلبات في';
 $string['pub_apply_go'] = 'أين يُقدَّم الطلب';
 $string['pub_apply_help'] = 'إن كانت لديكم أسئلة، أو أردتم مساعدة في الطلب، أو العودة في يوم آخر، راسلونا.';
