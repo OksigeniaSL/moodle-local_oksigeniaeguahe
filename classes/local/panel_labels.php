@@ -65,6 +65,8 @@ class panel_labels {
         $pages = (int) ceil(($count + $start - 1) / $format['per']);
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_labels', self::C),
                 'title' => get_string(($kind === 'bottles' ? 'panel_labels_title_bottles' : 'panel_labels_title') .
                     ($event ? '_event' : ''), $c, $name),
                 'sub' => $count ? get_string($count === 1 ? 'panel_labels_sub_one' : 'panel_labels_sub', $c, $count) :

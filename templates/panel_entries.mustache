@@ -24,7 +24,7 @@
 
     New in this round: groups[] (key, title, sub, rows[]) in place of forms and bridges; in each row v (its share of the
     largest, 0 to 1), n, broughttext, hasn, kindname, icon, statetext, open; notused[], hasnotused, def. Kept: head,
-    canact, action, sesskey, kinds (with icon).
+    canact, action, sesskey, kinds (with icon). With no entry yet, firsttime (text, button {url, name} or false).
 
     Example context (json):
     {
@@ -33,7 +33,7 @@
         "groups": [{"key": "formularios", "title": "Los formularios del centro", "sub": "Hechos en Eguahe.",
             "rows": [{"url": "#", "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
                 "n": 41, "broughttext": "41 familias", "hasn": true, "last": "la última, ayer a las 21:14", "sites": ["Instagram"], "hassites": true, "missing": "", "v": 1}]}],
-        "hasnotused": false, "notused": [], "def": "Una llegada es una familia que entra por esa entrada.",
+        "firsttime": false, "hasnotused": false, "notused": [], "def": "Una llegada es una familia que entra por esa entrada.",
         "canact": true, "action": "#", "sesskey": "abc",
         "kinds": [{"value": "form", "name": "Formulario", "help": "Hecho en Eguahe.", "icon": "", "checked": true}],
         "templates": [{"value": "howitwent", "name": "Cómo fue la jornada", "help": "La encuesta de después."}]
@@ -41,6 +41,12 @@
 }}
 <div class="pagina pagina-entradas">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#firsttime}}
+    <section class="primera-vez">
+        <p>{{text}}</p>
+        {{#button}}<a class="boton principal" href="{{url}}">{{{i.mas1}}}{{name}}</a>{{/button}}
+    </section>
+    {{/firsttime}}
     <div class="entradas">
         {{#groups}}
         <section class="grupo-entradas" aria-labelledby="g-{{key}}">

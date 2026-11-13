@@ -55,11 +55,42 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
   municipio. Los datos abiertos salen del Instituto Canario de Estadística (ISTAC) cuando el centro los pide (la única
   llamada fuera del sitio, con su fuente citada) o, en cualquier otro sitio, de un CSV del centro.
 
-Datos de ejemplo para una demostración: `php local/oksigeniaeguahe/cli/sample.php`.
-
 ## Requisitos
 
 Moodle 4.5 a 5.3. Las páginas públicas no usan el JavaScript de Moodle y funcionan en cualquier móvil reciente.
+
+## Instalación
+
+1. Se pone el plugin en `local/oksigeniaeguahe` (el ZIP de una versión, o `git clone` de este repositorio), o se
+   instala el ZIP desde *Administración del sitio › Extensiones › Instalar complementos*.
+2. Se termina en *Administración del sitio › Notificaciones*.
+
+## Lo que necesita el sitio
+
+- **El cron, cada minuto.** Las gracias después de una visita, el recordatorio del día antes, los informes y el
+  borrado de las familias a las que se les acabó el plazo son tareas programadas.
+- **El correo de salida** (*Administración del sitio › Servidor › Correo › Configuración del correo saliente*). Los
+  correos a las familias salen de la dirección de no responder del sitio, con el nombre y los colores del centro.
+- **Quién hace qué**, por capacidades: `local/oksigeniaeguahe:manage` prepara los centros y sus equipos;
+  `local/oksigeniaeguahe:work` atiende a las familias de los centros donde trabaja; `local/oksigeniaeguahe:view` las
+  ve sin contestar ni cambiar nada.
+- **Si se quiere**, en *Administración del sitio › Extensiones › Extensiones locales › Oksigenia Eguahe*: el
+  acortador de enlaces, el servicio que dice el nombre de cada niño en el cuento de su primer día, los datos abiertos
+  de las plazas y la línea de quién hace Eguahe. Un proveedor de IA de Moodle, si el centro lo enciende, prepara
+  borradores de respuesta que siempre lee una persona.
+
+## Primeros pasos
+
+1. En *Administración del sitio › Extensiones › Extensiones locales › Centros de admisiones*, se crea el centro: su
+   nombre, su idioma y su país. Su equipo se añade en sus ajustes, en el panel.
+2. Se abre el panel (`/local/oksigeniaeguahe/`). Mientras falte algo, la bandeja enseña **Para abrir las
+   admisiones**: seis pasos que se sellan al hacerlos. Son la oferta y sus plazas, quién recibe a las familias, la
+   dirección y el contacto, la primera jornada o visita, por dónde llegan (lo más rápido, el formulario para la web:
+   una línea que se pega) y cómo se pide plaza.
+3. Cada acto se comparte desde su kit: el enlace, el QR para el cartel y los textos para las redes.
+4. Se imprime **Eguahe en una página** (desde la bandeja) y se deja junto al teléfono de la secretaría.
+
+Para probarlo con datos de ejemplo: `php local/oksigeniaeguahe/cli/sample.php`.
 
 ## Licencia
 

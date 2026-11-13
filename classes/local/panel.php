@@ -462,12 +462,12 @@ class panel {
      * page around it. Empty is false, never null: an older Mustache (Moodle 4.5) looks a null up in the page around it,
      * and would draw its «action» as a button.
      *
-     * @param array $head title and, if any, back, ante, sub and action.
+     * @param array $head title and, if any, back, ante, sub, what («What is this?») and action.
      * @return array
      */
     public static function head(array $head): array {
         $head = array_map(fn($v) => $v ?? false, $head);
-        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'action' => false];
+        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'what' => false, 'action' => false];
     }
 
     /**
@@ -617,6 +617,18 @@ class panel {
             'day' => userdate($time, '%d'),
             'month' => rtrim(userdate($time, '%b'), '.'),
         ];
+    }
+
+    /**
+     * How many places are free of a course, «19 free of 25», with its singular for one.
+     *
+     * @param int $free
+     * @param int $total
+     * @return string
+     */
+    public static function free_of(int $free, int $total): string {
+        $a = (object) ['free' => $free, 'total' => $total];
+        return get_string($free === 1 ? 'panel_free_of_one' : 'panel_free_of', 'local_oksigeniaeguahe', $a);
     }
 
     /**

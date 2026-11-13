@@ -55,11 +55,41 @@ households are waiting for an answer, how many places each course still has, and
   The open data comes from the Canary Islands Statistics Institute (ISTAC) when the centre asks for it (the only call
   outside the site, with its source cited), or from a CSV of the centre anywhere else.
 
-Example data for a demo: `php local/oksigeniaeguahe/cli/sample.php`.
-
 ## Requirements
 
 Moodle 4.5 to 5.3. The public pages do not use the JavaScript of Moodle; they work on any recent phone.
+
+## Installation
+
+1. Put the plugin in `local/oksigeniaeguahe` (the ZIP of a release, or `git clone` of this repository) or install the
+   ZIP from *Site administration › Plugins › Install plugins*.
+2. Go to *Site administration › Notifications* to finish the installation.
+
+## What the site needs
+
+- **Cron, every minute.** The thanks after a visit, the reminder the day before, the reports and the erasing of the
+  families whose time has passed are scheduled tasks.
+- **Outgoing email** (*Site administration › Server › Email › Outgoing mail configuration*). The mails to families go
+  out from the no-reply address of the site, with the name and colours of the centre.
+- **Who does what**, by capability: `local/oksigeniaeguahe:manage` sets up the centres and their teams;
+  `local/oksigeniaeguahe:work` receives the families of the centres one works for; `local/oksigeniaeguahe:view`
+  sees them without answering nor changing anything.
+- **Optional**, in *Site administration › Plugins › Local plugins › Oksigenia Eguahe*: the link shortener, the
+  service that says each child's name in the story of their first day, the open data for places and the line of who
+  makes Eguahe. An AI provider of Moodle, when the centre turns it on, drafts answers that a person always reads.
+
+## First steps
+
+1. In *Site administration › Plugins › Local plugins › Admissions centres*, create the centre: its name, language and
+   country. Its team is added in its settings, in the panel.
+2. Open the panel (`/local/oksigeniaeguahe/`). While something is missing, the inbox shows **To open admissions**, six
+   steps stamped as they are done: the offer and its places, who welcomes families, the address and contact, the
+   first open day or visit, how families come in (the quickest: the form for the website, one line to paste) and how
+   to apply for a place.
+3. Share each event from its kit: the link, the QR code for the poster and the texts for social media.
+4. Print **Eguahe on one page** (from the inbox) and keep it by the office phone.
+
+To try it with example data: `php local/oksigeniaeguahe/cli/sample.php`.
 
 ## License
 

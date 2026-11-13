@@ -158,6 +158,10 @@ class panel_inbox {
                 ))->out(false),
                     'name' => get_string('household_new', $c), 'icon' => panel::icon('mas1')] : null,
             ]),
+            // To open admissions, while something is missing: six steps, each stamped when done (Jujol). Most are in the
+            // settings, so only for whoever may change them.
+            'opening' => $canact && has_capability('local/oksigeniaeguahe:manage', \context_system::instance()) ?
+                self::opening($centre) : false,
             'fresh' => $fresh,
             'showtools' => !$fresh,
             'all' => $all,
@@ -817,6 +821,7 @@ class panel_inbox {
                 'name' => format_string($offer->name),
                 'free' => max(0, $total - $enrolled),
                 'total' => $total,
+                'freetext' => panel::free_of(max(0, $total - $enrolled), $total),
                 'rail' => $total > 0 ? panel::rail(
                     $total,
                     $enrolled,
@@ -837,5 +842,89 @@ class panel_inbox {
             ];
         }
         return ['year' => s($year), 'list' => $list, 'years' => $leaves];
+    }
+
+    /**
+     * What a centre needs to open admissions, in six steps, each done or not by what is already there: its offer with
+     * places, who receives the families, its address and contact, a first open day or visit, a way in for families
+     * (an entry) and how a place is asked for. False once all are done.
+     *
+     * @param \stdClass $centre
+     * @return array|false title, count, steps (n, name, why, done, url, go, next), sheet (url)
+     */
+    public static function opening(\stdClass $centre) {
+        global $DB;
+        $c = self::C;
+        $id = (int) $centre->id;
+        $settings = fn(string $anchor) => (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id], $anchor))
+            ->out(false);
+        $phone = trim((string) ($centre->phone ?? ''));
+        $email = trim((string) ($centre->email ?? ''));
+        $done = [
+            'offer' => $DB->record_exists_select(centres::OFFERS, 'centreid = ? AND places > 0', [$id]),
+            'team' => (bool) centres::hosts($id),
+            'contact' => trim((string) ($centre->address ?? '')) !== '' && ($phone !== '' || $email !== ''),
+            'event' => $DB->record_exists(events::T, ['centreid' => $id]),
+            'entry' => $DB->record_exists(entries::T, ['centreid' => $id]),
+            'apply' => trim((string) ($centre->applyhow ?? '')) !== '' || !empty($centre->applyfrom) ||
+                !empty($centre->applyuntil),
+        ];
+        if (!in_array(false, $done, true)) {
+            return false;
+        }
+        $urls = [
+            'offer' => $settings('aj-oferta'),
+            'team' => $settings('aj-reciben'),
+            'contact' => $settings('aj-contacto'),
+            'event' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $id, 'new' => 1]))->out(false),
+            'entry' => (new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $id]))->out(false),
+            'apply' => $settings('aj-pedir'),
+        ];
+        $steps = [];
+        $next = true;
+        $n = 0;
+        foreach ($done as $key => $isdone) {
+            $steps[] = ['n' => ++$n, 'key' => $key, 'name' => get_string('panel_opening_' . $key, $c),
+                'why' => get_string('panel_opening_' . $key . '_why', $c), 'done' => $isdone, 'url' => $urls[$key],
+                'go' => get_string('panel_opening_go', $c), 'next' => !$isdone && $next];
+            $next = $next && $isdone;
+        }
+        $count = count(array_filter($done));
+        return [
+            'title' => get_string('panel_opening', $c),
+            'count' => get_string('panel_opening_count', $c, (object) ['done' => $count, 'all' => count($done)]),
+            'steps' => $steps,
+            'sheet' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/hoja.php', ['c' => $id]))->out(false),
+                'text' => get_string('panel_onepage_link', $c)],
+        ];
+    }
+
+    /**
+     * «Eguahe on one page», for the office: what is done each day, at the door and after, in plain words, to print
+     * and keep by the phone. The centre's name, its contact and its own words where it has them.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    public static function onepage(\stdClass $centre): array {
+        $c = self::C;
+        $days = max(1, (int) ($centre->replydays ?? 2));
+        $daystext = \core_text::strtolower(get_string($days === 1 ? 'panel_replydays_one' : 'panel_replydays_n', $c, $days));
+        $parts = [];
+        foreach (['inbox', 'answer', 'door', 'after', 'places', 'data'] as $key) {
+            $parts[] = ['n' => count($parts) + 1, 'title' => get_string('panel_onepage_' . $key, $c),
+                'text' => get_string('panel_onepage_' . $key . '_text', $c, $daystext)];
+        }
+        $phone = trim((string) ($centre->phone ?? ''));
+        return [
+            'head' => panel::head([
+                'title' => get_string('panel_onepage', $c),
+                'sub' => get_string('panel_onepage_sub', $c, share::from_centre($centre, current_language())),
+            ]),
+            'centre' => format_string($centre->name),
+            'contact' => implode(' · ', array_filter([$phone, trim((string) ($centre->email ?? ''))])),
+            'parts' => $parts,
+            'print' => get_string('panel_onepage_print', $c),
+        ];
     }
 }

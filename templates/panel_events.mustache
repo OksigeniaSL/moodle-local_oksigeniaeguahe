@@ -23,7 +23,8 @@
     going, and, folded, the events past with how many came.
 
     New in this round: week (title, sub, days[weekday, day, today, past, empty, items[hour, title, tag, what, who, url,
-    proposed]]). Kept: head, ahead, hasahead, asking, hasasking, requests, hasrequests, past, haspast.
+    proposed]]). Kept: head, ahead, hasahead, asking, hasasking, requests, hasrequests, past, haspast. With no act yet,
+    firsttime (text, button {url, name} or false) instead of the week and the lists.
 
     Example context (json):
     {
@@ -40,11 +41,17 @@
         "hasasking": true, "asking": [{"name": "Pidan su visita", "url": "#", "link": "https://example.com/v"}],
         "hasrequests": true, "requests": [{"adults": "Marta Ruiz", "tag": "Leo", "suits": "Pidieron: tardes",
             "state": "Esperan que les propongas día", "pending": true, "url": "#"}],
-        "haspast": false, "past": []
+        "haspast": false, "past": [], "firsttime": false
     }
 }}
 <div class="pagina pagina-actos">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#firsttime}}
+    <section class="primera-vez">
+        <p>{{text}}</p>
+        {{#button}}<a class="boton principal" href="{{url}}">{{{i.mas1}}}{{name}}</a>{{/button}}
+    </section>
+    {{/firsttime}}
     {{#week}}
     <section class="semana" aria-labelledby="semana-t">
         <header><h2 id="semana-t">{{title}}</h2><span class="secundario">{{sub}}</span></header>
@@ -67,6 +74,7 @@
         </ol>
     </section>
     {{/week}}
+    {{^firsttime}}
     <div class="actos">
         <section class="grupo-actos" aria-labelledby="actos-t">
             <h2 id="actos-t">{{#str}}panel_events_ahead, local_oksigeniaeguahe{{/str}}</h2>
@@ -87,6 +95,7 @@
         </section>
         {{/hasasking}}
     </div>
+    {{/firsttime}}
     {{#haspast}}
     <details class="grupo-actos plegado pasados">
         <summary><h2>{{#str}}panel_events_past, local_oksigeniaeguahe{{/str}}</h2></summary>

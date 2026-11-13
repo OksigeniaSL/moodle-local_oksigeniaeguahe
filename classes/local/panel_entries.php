@@ -136,11 +136,17 @@ class panel_entries {
         }
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => $list ? get_string('panel_isthis_entries', self::C) : false,
                 'title' => $list ? get_string(count($list) === 1 ? 'panel_entries_one' : 'panel_entries', $c, count($list)) :
                     get_string('panel_entries_none', $c),
                 'sub' => implode(' ', $sub),
             ]),
             'groups' => $out,
+            // No entry yet: what one is, and the button to start with the form for the web.
+            'firsttime' => !$list ? ['text' => get_string('panel_entries_first', $c), 'button' => $canact ? ['url' =>
+                (new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id, 'kind' => 'form'], 'nueva'))
+                    ->out(false), 'name' => get_string('panel_entries_first_go', $c)] : false] : false,
             'notused' => $canact ? $notused : [],
             'hasnotused' => $canact && $notused,
             'def' => get_string('panel_entries_def', $c),

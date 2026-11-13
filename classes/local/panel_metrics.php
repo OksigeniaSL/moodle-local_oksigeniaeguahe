@@ -320,6 +320,8 @@ class panel_metrics {
             'sheetyear' => $on('curso'),
             'sheetfamilies' => $on('familias'),
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_metrics', self::C),
                 'title' => $total ? get_string(
                     ($enrolled ? 'panel_metrics_title' : 'panel_metrics_title_none') .
                     ($total === 1 ? '_one' : ''),
@@ -982,7 +984,7 @@ class panel_metrics {
                     'low' => $places - $rows[0]['high'], 'high' => $places - $rows[0]['low']]);
             }
             $out[] = ['key' => 'o' . $offer->id, 'name' => format_string($offer->name),
-                'free' => $places ? get_string('panel_places_free_of', $c, (object) ['free' => $free, 'places' => $places]) : '',
+                'free' => $places ? panel::free_of($free, $places) : '',
                 'sentence' => $sentence,
                 'rail' => $places ? panel::rail(
                     $places,

@@ -62,11 +62,11 @@
                 "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
                 "typing": {"first": "Lucía", "picture": "", "initials": "LM"}, "promise": null, "visit": null,
                 "courses": "i3", "stages": "inquiry", "search": "marta leo"}]}],
-        "emptybag": {"name": "", "style": ""}, "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.",
+        "opening": false, "emptybag": {"name": "", "style": ""}, "emptytitle": "Al día", "emptytext": "Cuando alguien escriba, aparecerá aquí.",
         "newevent": "#", "newform": "#",
         "year": "2027-28", "hasplaces": true, "hasplacesyears": true,
         "placesyears": [{"name": "2027-28", "url": "#", "current": true}, {"name": "2028-29", "url": "#", "current": false}],
-        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "rail": "", "interested": 19, "visited": 11, "enrolled": 6, "ropero": false}],
+        "places": [{"name": "Infantil 3 años", "free": 19, "total": 25, "freetext": "19 libres de 25", "rail": "", "interested": 19, "visited": 11, "enrolled": 6, "ropero": false}],
         "path": {"total": 96, "sentence": "96 familias en esta campaña.", "def": "Cada familia cuenta donde va su hijo más adelantado.",
             "steps": [{"key": "inquiry", "name": "Consulta", "n": 38, "line": "38 familias han preguntado."}]},
         "hasnextevents": true, "nextevents": [{"url": "#", "weekday": "sáb", "day": "21", "month": "nov",
@@ -77,6 +77,7 @@
 <div class="pagina pagina-bandeja" data-bandeja{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#cine}}{{> local_oksigeniaeguahe/panel_inbox_rio }}{{/cine}}
     {{^cine}}{{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}{{/cine}}
+    {{#opening}}{{> local_oksigeniaeguahe/panel_opening }}{{/opening}}
     <p class="novedad" data-novedad role="status" hidden></p>
     <div class="mostrador{{#hastoday}} con-hoy{{/hastoday}}" data-mostrador>
         {{#hastoday}}
@@ -151,7 +152,7 @@
                     <div class="plazas">
                         {{#places}}
                         <div class="curso-plazas">
-                            <div class="cab"><b>{{name}}</b><span class="libres">{{#str}}panel_free_of, local_oksigeniaeguahe, {"free": {{free}}, "total": {{total}} }{{/str}}</span></div>
+                            <div class="cab"><b>{{name}}</b><span class="libres">{{freetext}}</span></div>
                             <div class="riel-caja"{{#ropero}} data-ropero="{{.}}"{{/ropero}}>{{{rail}}}</div>
                             <span class="tres"><span><b>{{interested}}</b> {{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b> {{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b> {{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
                         </div>

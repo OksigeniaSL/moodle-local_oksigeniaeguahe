@@ -14421,3 +14421,298 @@ details.aj-plegado > summary h2::after {
 .quien-sigue-lista {
     margin: 6px 16px 12px;
 }
+
+/* ==================== Help (Jujol, piece 7) ==================== */
+/* To open admissions: six slips of the desk at the head of the inbox, each stamped once done. */
+.abrir-admisiones {
+    margin: 0 0 28px;
+    padding: 18px 20px 16px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 18px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 16px 30px -24px var(--eg-sombra);
+}
+
+.abrir-cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    margin-bottom: 12px;
+}
+
+.abrir-cab h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.abrir-cuenta {
+    color: var(--eg-tinta-2);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.abrir-pasos {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 900px) {
+    .abrir-pasos {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.abrir-paso {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 8px 12px;
+    padding: 12px 14px;
+    border: 1px dashed var(--eg-linea);
+    border-radius: 12px;
+    background: var(--eg-papel);
+}
+
+.abrir-paso.siguiente {
+    border-style: solid;
+    border-color: var(--eg-accion);
+    box-shadow: inset 0 0 0 1px var(--eg-accion);
+}
+
+.abrir-n {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    font-weight: 800;
+    font-size: 0.875rem;
+}
+
+.abrir-que {
+    display: grid;
+    gap: 2px;
+}
+
+.abrir-que b {
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.abrir-que span {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.abrir-paso > a,
+.abrir-sello {
+    grid-column: 2;
+    justify-self: start;
+}
+
+/* Done: the ink stamp of the desk, a little crooked, and the slip quieter. */
+.abrir-sello {
+    padding: 3px 10px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 6px;
+    color: var(--eg-sello);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: rotate(-2deg);
+}
+
+.abrir-paso.hecho .abrir-que b {
+    color: var(--eg-tinta-2);
+}
+
+.abrir-paso.hecho .abrir-n {
+    background: var(--eg-sello);
+    color: var(--eg-papel);
+}
+
+.abrir-hoja {
+    margin: 12px 0 0;
+}
+
+/* «What is this?»: folded under the sentence of the page, one paragraph when it opens. */
+.que-es {
+    margin-top: 8px;
+}
+
+.que-es > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: underline dotted;
+    text-underline-offset: 4px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.que-es > summary::-webkit-details-marker {
+    display: none;
+}
+
+.que-es > summary::before {
+    content: '?';
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.que-es[open] > summary {
+    color: var(--eg-tinta);
+}
+
+.que-es p {
+    margin: 6px 0 0;
+    padding: 10px 14px;
+    border-inline-start: 3px solid var(--eg-sello);
+    border-radius: 0 10px 10px 0;
+    background: var(--eg-superficie);
+    line-height: 1.55;
+}
+
+/* A page with nothing yet: what goes there, and the button to make the first one. */
+.primera-vez {
+    display: grid;
+    min-width: 0;
+    justify-items: start;
+    gap: 14px;
+    margin: 0 0 28px;
+    padding: 22px 24px;
+    border: 1.5px dashed var(--eg-linea);
+    border-radius: 18px;
+    background: var(--eg-papel);
+}
+
+.primera-vez > * {
+    max-width: 100%;
+}
+
+.primera-vez .boton {
+    min-height: 48px;
+    height: auto;
+    padding-block: 10px;
+    white-space: normal;
+}
+
+.primera-vez p {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+}
+
+/* Eguahe on one page: a sheet of paper on screen, and on paper, alone. */
+.una-hoja {
+    padding: 28px 30px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 6px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 18px 34px -26px var(--eg-sombra);
+}
+
+.una-hoja-cab {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 18px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--eg-tinta);
+    font-size: 1.0625rem;
+}
+
+.una-hoja-cab span {
+    color: var(--eg-tinta-2);
+}
+
+.una-hoja-partes {
+    display: grid;
+    gap: 18px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 900px) {
+    .una-hoja-partes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 34px;
+    }
+}
+
+.una-hoja-partes li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.una-hoja-n {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 50%;
+    color: var(--eg-sello);
+    font-weight: 800;
+}
+
+.una-hoja-partes h2 {
+    margin: 4px 0 4px;
+    font-size: 1.125rem;
+}
+
+.una-hoja-partes p {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.una-hoja-imprimir {
+    margin: 18px 0 0;
+}
+
+@media print {
+    .pagina-una-hoja .cabeza,
+    .pagina-una-hoja .migas,
+    .una-hoja-imprimir {
+        /* stylelint-disable-next-line declaration-no-important */
+        display: none !important;
+    }
+
+    .una-hoja {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .una-hoja-partes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 28px;
+    }
+
+    .una-hoja-partes li {
+        break-inside: avoid;
+    }
+}

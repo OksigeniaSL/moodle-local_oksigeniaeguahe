@@ -81,8 +81,13 @@ class panel_events {
         if ($waiting) {
             $sub[] = get_string($waiting === 1 ? 'panel_events_waiting_one' : 'panel_events_waiting', $c, $waiting);
         }
+        // Nothing yet: no empty week of «Nothing», but what an act is and the button to make the first one.
+        $firsttime = !$all ? ['text' => get_string('panel_events_first', $c), 'button' => $canact ? ['url' =>
+            (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'new' => 1]))->out(false),
+            'name' => get_string('panel_events_first_go', $c)] : false] : false;
         return [
-            'week' => self::week($centre, $all, $hosts, $now),
+            'firsttime' => $firsttime,
+            'week' => $firsttime ? false : self::week($centre, $all, $hosts, $now),
             'head' => panel::head([
                 'title' => $next ? get_string('panel_events_next', $c, (object) ['name' => format_string($next->name),
                     'day' => userdate((int) $next->timestart, '%A %d')]) : get_string('panel_events_none', $c),

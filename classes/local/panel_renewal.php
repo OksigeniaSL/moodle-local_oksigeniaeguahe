@@ -147,6 +147,8 @@ class panel_renewal {
         $untilday = $until ? $until - DAYSECS : 0;
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_renewal', self::C),
                 'title' => get_string('panel_renewal', $c),
                 'ante' => $year !== '' ? get_string('panel_renewal_year', $c, s($year)) : '',
                 'sub' => $year === '' ? get_string('panel_renewal_sub', $c) : ($asked ? get_string(

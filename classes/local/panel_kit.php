@@ -60,6 +60,8 @@ class panel_kit {
         $channel = self::channel($event, $centre, $canact, $now);
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_kit', self::C),
                 'title' => get_string('kit_title', $c),
                 'ante' => format_string($event->name),
                 'sub' => get_string('kit_sub', $c),

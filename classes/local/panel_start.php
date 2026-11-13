@@ -108,6 +108,8 @@ class panel_start {
         }
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_start', self::C),
                 'title' => get_string('panel_firstday', $c),
                 'ante' => $year !== '' ? get_string('panel_firstday_year', $c, s($year)) : '',
                 'sub' => !$enrolled ? get_string('panel_firstday_none', $c) : ($started ?

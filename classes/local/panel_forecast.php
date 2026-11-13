@@ -80,6 +80,8 @@ class panel_forecast {
         }
         return [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_forecast', self::C),
                 'title' => $title,
                 'sub' => get_string('panel_forecast_sub', $c),
                 'action' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/import.php', ['c' => $centre->id]))->out(false),

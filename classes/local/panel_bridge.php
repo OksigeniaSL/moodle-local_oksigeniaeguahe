@@ -51,6 +51,8 @@ class panel_bridge {
         $action = (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $entry->id]))->out(false);
         $out = [
             'head' => panel::head([
+                // The «What is this?» of a name of its own, said in one paragraph.
+                'what' => get_string('panel_isthis_bridge', self::C),
                 'title' => format_string($entry->name),
                 'ante' => get_string('panel_bridge_ante', $c, (object) ['kind' => get_string('entry_kind_' . $kind, $c),
                     'state' => get_string(!empty($entry->active) ? 'panel_bridge_open' : 'panel_bridge_closed', $c)]),

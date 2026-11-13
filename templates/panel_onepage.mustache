@@ -1,0 +1,42 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_onepage
+
+    Eguahe on one page, for the office (hoja.php): the centre and its contact at the top, then six parts in plain
+    words, numbered (the inbox, answering, the door, after the visit, places, the data of families), to print on one
+    sheet and keep by the phone. With the script, a button prints it.
+
+    Example context (json):
+    {
+        "head": {"title": "Eguahe en una página", "sub": "Para la secretaría del Colegio de ejemplo.", "back": false,
+            "ante": "", "action": false},
+        "centre": "Colegio de ejemplo", "contact": "+34 900 000 000 · admisiones@example.com",
+        "parts": [{"n": 1, "title": "La bandeja, al llegar", "text": "Arriba, quien más lleva esperando."}],
+        "print": "Imprimirla"
+    }
+}}
+<div class="pagina pagina-una-hoja">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <article class="una-hoja">
+        <header class="una-hoja-cab"><b>{{centre}}</b>{{#contact}}<span dir="ltr">{{contact}}</span>{{/contact}}</header>
+        <ol class="una-hoja-partes">
+            {{#parts}}<li><span class="una-hoja-n" aria-hidden="true">{{n}}</span><div><h2>{{title}}</h2><p>{{text}}</p></div></li>{{/parts}}
+        </ol>
+    </article>
+    <p class="una-hoja-imprimir"><button class="boton principal" type="button" data-imprimir hidden>{{print}}</button></p>
+</div>

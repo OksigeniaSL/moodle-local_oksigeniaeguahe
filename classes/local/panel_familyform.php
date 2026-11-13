@@ -240,8 +240,7 @@ class panel_familyform {
             $total = (int) $offer->places;
             $out[] = [
                 'value' => (int) $offer->id,
-                'free' => $total ? get_string('panel_free_of', $c, (object) ['free' => max(0, $total - $enrolled),
-                    'total' => $total]) : '',
+                'free' => $total ? panel::free_of(max(0, $total - $enrolled), $total) : '',
                 'next' => $next ? get_string('panel_next_openday', $c, userdate((int) $next->timestart, '%A %d')) : '',
                 'rail' => $total ? panel::rail(
                     $total,
