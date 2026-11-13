@@ -88,7 +88,7 @@ final class invites_test extends \advanced_testcase {
             'token' => $event->token], 'es', 'clave');
         $this->assertSame('Colegio de ejemplo les invita: Festival de Infantil', $mail[0]);
         $this->assertStringContainsString('j.php?t=' . $event->token, $mail[1]);
-        $this->assertStringContainsString('Apuntarse', $mail[2]);
+        $this->assertStringContainsString('Inscribirse', $mail[2]);
 
         $sink = $this->redirectEmails();
         $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time()));

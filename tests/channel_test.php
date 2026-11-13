@@ -74,7 +74,7 @@ final class channel_test extends \advanced_testcase {
         $announce = channel::content($event, 'announce');
         $this->assertSame('Abierto a todos', $announce['card']['zones']['kicker']);
         $this->assertSame('Festival de otoño', $announce['card']['zones']['title']);
-        $this->assertSame('Apuntarse', $announce['label']);
+        $this->assertSame('Inscribirse', $announce['label']);
         $this->assertArrayNotHasKey('text', $announce);
         $tell = channel::content($event, 'tell');
         $this->assertStringContainsString('Festival de otoño', $tell['text'], 'The text of the kit, by rules.');
