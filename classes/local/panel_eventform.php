@@ -69,6 +69,7 @@ class panel_eventform {
             'hosts' => array_values(array_filter(array_map('intval', explode(',', (string) $event->hosts)))),
             'formid' => (int) $event->formid,
             'survey' => (int) ($event->survey ?? 0),
+            'parking' => !empty($event->parking),
             'slots' => $slots,
         ];
     }
@@ -99,6 +100,7 @@ class panel_eventform {
             'hosts' => array_values(array_filter(array_map('intval', optional_param_array('hosts', [], PARAM_INT)))),
             'formid' => optional_param('formid', 0, PARAM_INT),
             'survey' => optional_param('survey', 0, PARAM_INT),
+            'parking' => optional_param('parking', 0, PARAM_BOOL),
             'slots' => [],
         ];
         $ids = optional_param_array('slotid', [], PARAM_INT);
@@ -183,7 +185,8 @@ class panel_eventform {
             'place' => $values['place'], 'timestart' => self::stamp($values['day'], $values['start']),
             'timeend' => self::stamp($values['day'], $values['end']), 'capacity' => (int) $values['capacity'],
             'open' => $values['open'] ? 1 : 0, 'tailored' => $values['tailored'] ? 1 : 0, 'formid' => $values['formid'],
-            'survey' => $values['survey'], 'hosts' => $values['hosts'], 'slots' => $slots];
+            'survey' => $values['survey'], 'parking' => empty($values['parking']) ? 0 : 1, 'hosts' => $values['hosts'],
+            'slots' => $slots];
     }
 
     /**
@@ -586,6 +589,9 @@ class panel_eventform {
             'daytext' => $start ? userdate($start, get_string('strftimedaydate', 'langconfig')) : '',
             'whenerror' => $errors['when'] ?? '',
             'place' => ['value' => $values['place'], 'error' => ''],
+            // Where to park, on the miniature of the centre: only when the centre has one that shows it.
+            'parkingon' => centres::miniature((int) $centre->id, 'miniatureparking') !== null,
+            'parking' => !empty($values['parking']),
             'placehelp' => get_string('panel_place_help', $c),
             'capacity' => $values['capacity'],
             'open' => $values['open'],

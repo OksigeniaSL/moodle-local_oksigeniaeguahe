@@ -475,6 +475,8 @@ class familypage {
             'first' => $upcoming ? $visitrow($upcoming[0]) : null,
             'others' => array_map($visitrow, array_slice($upcoming, 1)),
             'arrive' => trim((string) ($centre->arrive ?? '')),
+            // The miniature of the centre with the way in; for a big act, the one with where to park.
+            'miniature' => self::miniature_context($centre, $upcoming[0] ?? null, $lang),
             'mapurl' => $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
                 rawurlencode(format_string($centre->name) . ', ' . $address) : '',
             'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?
@@ -602,6 +604,33 @@ class familypage {
             $now['fold'] = false;
         }
         return [$now, $things];
+    }
+
+    /**
+     * The miniature of the centre for their visit: its plan drawn with the way from the entrance to where they are
+     * received; for a big act, the one with where to park, if the centre has it.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass|null $signup Their next visit.
+     * @param string $lang
+     * @return array|false src, narrow (for phones, or '') and caption.
+     */
+    public static function miniature_context(\stdClass $centre, ?\stdClass $signup, string $lang) {
+        global $DB;
+        if (!$signup) {
+            return false;
+        }
+        $id = (int) $centre->id;
+        $parking = (int) $DB->get_field(events::T, 'parking', ['id' => $signup->eventid]) ?
+            centres::miniature($id, 'miniatureparking') : null;
+        $way = centres::miniature($id);
+        $narrow = $parking ? null : centres::miniature($id, 'miniaturenarrow');
+        $src = $parking ?: ($way ?: $narrow);
+        if (!$src) {
+            return false;
+        }
+        return ['src' => $src->out(false), 'narrow' => $narrow && $way ? $narrow->out(false) : '',
+            'caption' => publiclang::str($parking ? 'pub_miniature_parking' : 'pub_miniature', $lang)];
     }
 
     /**

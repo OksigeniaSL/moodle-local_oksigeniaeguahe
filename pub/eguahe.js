@@ -1136,7 +1136,10 @@
             var src = link ? link.getAttribute('href') : (onTable.getAttribute('data-foto') || onTable.src);
             var alt = img ? (img.alt || img.getAttribute('aria-label') || '') : '';
             show(src, alt, close || '×', link || null);
-            count('touch', 'drawing_enlarged');
+            // The miniature of the centre counts as itself (its data-toca), not as a drawing.
+            if (!link || !link.hasAttribute('data-toca')) {
+                count('touch', 'drawing_enlarged');
+            }
         });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {

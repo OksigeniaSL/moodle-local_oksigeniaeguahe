@@ -221,6 +221,7 @@
         <FIELD NAME="kit" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The kit for the networks: the short link of each network and the texts written for them, JSON"/>
         <FIELD NAME="cancelled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the centre called it off; 0, it goes ahead"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="parking" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the miniature of the centre shows where to park, for a big act"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

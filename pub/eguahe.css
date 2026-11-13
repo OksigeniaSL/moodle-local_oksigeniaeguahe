@@ -1062,6 +1062,32 @@ textarea {
     border-top: 1px solid var(--c-banda-linea);
 }
 
+/* The miniature of the centre: the way from the entrance to where they are received, as a cut-out on the band. */
+.banda .miniatura {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.banda .miniatura a {
+    display: block;
+    border-radius: 6px;
+}
+
+.banda .miniatura img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    background: var(--c-pared);
+    box-shadow: 0 2px 0 rgb(0 0 0 / 12%), 0 14px 30px -18px rgb(0 0 0 / 45%);
+}
+
+.banda .miniatura figcaption {
+    font-size: 0.9375rem;
+    opacity: 0.85;
+}
+
 .banda .otra b {
     display: block;
     font-weight: 700;
@@ -1089,6 +1115,12 @@ textarea {
 
     .banda .otra {
         grid-column: 2;
+    }
+
+    /* Under the day, beside what they need to know: one look, not a whole screen. */
+    .banda .miniatura {
+        grid-column: 1;
+        align-self: start;
     }
 }
 /* ---------- Buttons ---------- */

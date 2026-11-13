@@ -125,6 +125,10 @@ class events {
             'formid' => !empty($data->formid) && entries::get((int) $data->formid, $centreid) ? (int) $data->formid : 0,
             'timemodified' => time(),
         ];
+        if (isset($data->parking)) {
+            // A big act: the miniature of the centre shows where to park.
+            $row->parking = empty($data->parking) ? 0 : 1;
+        }
         if (isset($data->survey)) {
             // The survey after the visit: one of the centre, or «How it went» made now (-1).
             $survey = (int) $data->survey === -1 ? surveys::create($centreid, 'howitwent') : (int) $data->survey;

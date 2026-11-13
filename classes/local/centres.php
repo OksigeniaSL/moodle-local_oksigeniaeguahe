@@ -27,6 +27,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class centres {
+    /** @var string[] The pictures of the miniature of a centre: the way in, the same for phones, and where to park. */
+    const MINIATURES = ['miniature', 'miniaturenarrow', 'miniatureparking'];
+
     /** @var string */
     const T = 'local_oksigeniaeguahe_centre';
 
@@ -548,6 +551,35 @@ class centres {
             }
         }
         return $list;
+    }
+
+    /**
+     * The miniature of the centre, if it has one: its plan drawn, with the way from the entrance to where families are
+     * received (miniature; miniaturenarrow, the same cut for phones); or the whole with where to park lit, for a big act
+     * (miniatureparking). Families see it on their page.
+     *
+     * @param int $centreid
+     * @param string $area One of MINIATURES.
+     * @return \moodle_url|null
+     */
+    public static function miniature(int $centreid, string $area = 'miniature'): ?\moodle_url {
+        if (!in_array($area, self::MINIATURES, true)) {
+            return null;
+        }
+        $context = \context_system::instance()->id;
+        $files = get_file_storage()->get_area_files($context, 'local_oksigeniaeguahe', $area, $centreid, 'filename', false);
+        $file = reset($files);
+        if (!$file) {
+            return null;
+        }
+        return \moodle_url::make_pluginfile_url(
+            $context,
+            'local_oksigeniaeguahe',
+            $area,
+            $centreid,
+            $file->get_filepath(),
+            $file->get_filename()
+        );
     }
 
     /**

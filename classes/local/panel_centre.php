@@ -125,6 +125,9 @@ class panel_centre {
                 'selected' => $l['slug'] === (string) ($centre->library ?? '')], $libraries)),
             'logo' => $logo ? $logo->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
+            // The miniature of the centre: its plan with the way in, the same for phones, and where to park.
+            'miniatures' => self::miniatures((int) $centre->id),
+            'hasminiature' => centres::miniature((int) $centre->id) !== null,
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
             'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c), '', $centre),
             'hosts' => self::hosts($centre),
@@ -793,6 +796,15 @@ class panel_centre {
         }
         $transaction = $DB->start_delegated_transaction();
         centres::update((int) $centre->id, $data);
+        $drop = optional_param('miniaturedrop', '', PARAM_ALPHA);
+        foreach (centres::MINIATURES as $area) {
+            // The miniature of the centre, drawn: a picture or an SVG with its way; or taken away.
+            if ($drop === $area) {
+                get_file_storage()->delete_area_files(\context_system::instance()->id, self::C, $area, (int) $centre->id);
+            } else if (!self::keep_picture($area, null, $area, (int) $centre->id, self::LOGOS)) {
+                $problems[] = get_string('panel_miniature_not_taken', $c);
+            }
+        }
         if (!self::keep_picture('logo', null, 'logo', (int) $centre->id, self::LOGOS)) {
             $problems[] = get_string('panel_logo_not_taken', $c);
         }
@@ -869,6 +881,22 @@ class panel_centre {
                 ['name' => $DB->sql_like_escape($what)], '', 'id', 0, 2);
         }
         return count($found) === 1 ? reset($found) : null;
+    }
+
+    /**
+     * The three pictures of the miniature, each with what it is for and the one there is.
+     *
+     * @param int $centreid
+     * @return array area, url, title, help.
+     */
+    protected static function miniatures(int $centreid): array {
+        $out = [];
+        foreach (centres::MINIATURES as $area) {
+            $url = centres::miniature($centreid, $area);
+            $out[] = ['area' => $area, 'url' => $url ? $url->out(false) : '',
+                'title' => get_string('panel_' . $area, self::C), 'help' => get_string('panel_' . $area . '_help', self::C)];
+        }
+        return $out;
     }
 
     /**

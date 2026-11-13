@@ -63,7 +63,7 @@
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "",
         "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
-        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "hasminiature": false, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
@@ -339,6 +339,27 @@
                         <span class="aj-elige" role="group" aria-labelledby="c-contestamos">{{#replydays}}<button class="aj-chapa" type="submit" name="replydays" value="{{value}}" formaction="{{action}}#aj-contacto" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/replydays}}</span>
                     </div>
                     <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-contacto" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+
+            {{! ===== The miniature of the centre: the way in, drawn ===== }}
+            <details class="apartado aj-plegado" id="aj-miniatura">
+                <summary><h2 id="aj-miniatura-t">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{#hasminiature}}{{#str}}panel_miniature_has, local_oksigeniaeguahe{{/str}}{{/hasminiature}}{{^hasminiature}}{{#str}}panel_miniature_none, local_oksigeniaeguahe{{/str}}{{/hasminiature}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda">{{#str}}panel_miniature_lead, local_oksigeniaeguahe{{/str}}</p>
+                    <ul class="aj-miniaturas">
+                        {{#miniatures}}
+                        <li class="aj-miniatura">
+                            <input class="archivo-oculto" id="c-{{area}}" type="file" name="{{area}}" accept="image/png,image/svg+xml,image/webp,image/jpeg" required data-envio-solo>
+                            <label class="aj-miniatura-marco" for="c-{{area}}">{{#url}}<img src="{{url}}" alt="" loading="lazy">{{/url}}{{^url}}<span class="aj-miniatura-vacia">{{{i.plano}}}</span>{{/url}}</label>
+                            <b>{{title}}</b>
+                            <span class="ayuda">{{help}}</span>
+                            <span class="aj-miniatura-acciones"><label class="enlace" for="c-{{area}}">{{#url}}{{#str}}panel_miniature_change, local_oksigeniaeguahe{{/str}}{{/url}}{{^url}}{{#str}}panel_miniature_choose, local_oksigeniaeguahe{{/str}}{{/url}}</label>{{#url}}<button class="enlace" type="submit" name="miniaturedrop" value="{{area}}" formaction="{{action}}#aj-miniatura">{{#str}}panel_miniature_drop, local_oksigeniaeguahe{{/str}}</button>{{/url}}</span>
+                            <button class="boton principal pequeno aj-foto-guardar" type="submit" name="guardar" value="1" formaction="{{action}}#aj-miniatura">{{{i.check}}}{{#str}}panel_photo_save, local_oksigeniaeguahe{{/str}}</button>
+                        </li>
+                        {{/miniatures}}
+                    </ul>
                 </div>
             </details>
 

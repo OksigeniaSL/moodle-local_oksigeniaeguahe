@@ -13672,9 +13672,60 @@ details.aj-plegado > summary h2::after {
     }
 
     .aj-persona:has(input[type="file"]:valid) .aj-foto-guardar,
-    .aj-util:has(input[type="file"]:valid) .aj-foto-guardar {
+    .aj-util:has(input[type="file"]:valid) .aj-foto-guardar,
+    .aj-miniatura:has(input[type="file"]:valid) .aj-foto-guardar {
         display: inline-flex;
     }
+}
+
+/* The miniature of the centre: three pictures, each in its frame, as families will see them. */
+.aj-miniaturas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aj-miniatura {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+}
+
+.aj-miniatura-marco {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 10;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--eg-hundido);
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    color: var(--eg-tinta-2);
+    cursor: pointer;
+}
+
+.aj-miniatura-marco img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.aj-miniatura-vacia svg {
+    width: 36px;
+    height: 36px;
+}
+
+.archivo-oculto:focus-visible + .aj-miniatura-marco {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 3px;
+}
+
+.aj-miniatura-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
 }
 
 /* The address and the contact: the visiting card of the centre. */

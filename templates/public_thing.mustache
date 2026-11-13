@@ -62,6 +62,12 @@
             {{#cantcome}}<form class="no-podemos" id="no-podemos-{{eventid}}" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
         </div>
     </div>
+    {{#miniature}}
+    <figure class="miniatura">
+        <a href="{{src}}" data-ampliar="{{pub_drawing_close}}" data-toca="miniature"><picture>{{#narrow}}<source media="(max-width: 640px)" srcset="{{narrow}}">{{/narrow}}<img src="{{src}}" alt="{{caption}}" loading="lazy" decoding="async"></picture></a>
+        <figcaption aria-hidden="true">{{caption}}</figcaption>
+    </figure>
+    {{/miniature}}
     {{/first}}
     {{#others}}
     <div class="otra">
