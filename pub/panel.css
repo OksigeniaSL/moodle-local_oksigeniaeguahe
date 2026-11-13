@@ -2608,7 +2608,7 @@ details[open].plegado > summary h2::after {
 .camino button {
     min-height: 36px;
     padding: 0 10px;
-    border: 1.5px solid transparent;
+    border: 1.5px solid var(--eg-linea);
     border-radius: 999px;
     background: none;
     color: var(--eg-tinta-2);
@@ -2627,7 +2627,7 @@ details[open].plegado > summary h2::after {
 }
 
 .camino button:not(.aqui):hover {
-    border-color: var(--eg-borde);
+    border-color: var(--eg-tinta-2);
 }
 
 .camino .flecha {
@@ -2662,14 +2662,16 @@ details[open].plegado > summary h2::after {
     font-weight: 650;
     color: var(--eg-tinta-2);
 }
-/* The file is one grid: the handover, the wall, the conversation, what to do (the proposal and your turn) and the rest.
-  In the order of the DOM on a phone; beside the conversation from 1000; from 1280 «your turn» climbs to the right
-  column, so it is in sight at 1366 without scrolling. The pieces carry their area names at every width, so the phone
-  has its map too: an area name the grid does not know puts every piece in the same implicit cell, one over the other. */
+/* The file is one grid: the handover, the proposal, what to do (the conversation and your turn, so the last message is
+  right over the pad that answers it), the wall and the rest. In the order of the DOM on a phone; from 1000 what to do
+  goes beside the proposal; from 1280 it climbs to the right column, the proposal and the wall at its left, so the last
+  message and the pad are in sight at 1366 without scrolling. The pieces carry their area names at every width, so the
+  phone has its map too: an area name the grid does not know puts every piece in the same implicit cell, one over the
+  other. */
 .ficha-cuerpo {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "relevo" "pared" "hilo" "accion" "lado";
+    grid-template-areas: "relevo" "propuesta" "accion" "pared" "lado";
     gap: 18px;
     align-items: start;
 }
@@ -2681,9 +2683,8 @@ details[open].plegado > summary h2::after {
     align-content: start;
 }
 
-.col-hilo {
-    grid-area: hilo;
-    min-width: 0;
+.col-propuesta {
+    grid-area: propuesta;
 }
 
 .col-accion {
@@ -2912,6 +2913,167 @@ input:focus-visible + .ficha-canal {
     outline-offset: 2px;
 }
 
+/* The conversation, tight over the pad: the older messages folded on the line of its title, opened under it. */
+.conversacion {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+}
+
+.conversacion > * {
+    grid-column: 1 / -1;
+}
+
+.conversacion > header {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.conversacion > .anteriores:not([open]) {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.conversacion > .anteriores > summary {
+    margin-top: 0;
+}
+
+.conversacion > .anteriores[open] {
+    margin-top: 10px;
+}
+
+.conversacion > .historial {
+    margin-top: 12px;
+}
+
+/* Each action, its paper. Under the conversation, folded in one line: the slip of what they said elsewhere (torn off a
+   pad, dashed at the top) and the sticky note for the team. */
+.papeles-hilo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 2px 22px;
+    margin-top: 12px;
+    padding-top: 6px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.papeles-hilo > details {
+    min-width: 0;
+}
+
+.papeles-hilo > details > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    font-size: 0.9375rem;
+    list-style: none;
+    cursor: pointer;
+}
+
+.papeles-hilo > details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.papeles-hilo > details[open] {
+    flex: 1 1 100%;
+}
+
+.papeles-hilo form {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 14px 16px;
+}
+
+.papeles-hilo textarea {
+    width: 100%;
+}
+
+.papel-recibido form {
+    border-top: 2px dashed var(--eg-borde);
+    border-radius: 2px 2px 10px 10px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 10px 18px -14px rgba(0, 0, 0, 0.45);
+}
+
+.papel-nota form {
+    border-radius: 2px;
+    background: #fbefb0;
+    color: #3a321c;
+    box-shadow: 0 1px 1px rgba(60, 45, 10, 0.18), 0 12px 18px -12px rgba(60, 45, 10, 0.45);
+    transform: rotate(-0.6deg);
+}
+
+.papel-nota textarea {
+    border-color: rgba(58, 50, 28, 0.25);
+    background: rgba(255, 255, 255, 0.55);
+    color: #3a321c;
+}
+
+/* The number beside «Phone»: to call without looking for it. */
+.llamar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+    color: var(--eg-acento);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* Answered elsewhere: a stamp to press, by how. Its own form, outside the pad. */
+.sello-contestada {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.sello-c-t {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+.sello-c-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sello-c {
+    min-height: 40px;
+    padding: 0 12px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--eg-sello);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transform: rotate(-1.5deg);
+}
+
+.sello-c:nth-child(2) {
+    transform: rotate(1deg);
+}
+
+.sello-c:hover,
+.sello-c:focus-visible {
+    background: var(--eg-hundido);
+}
+
 .siguiente-fila {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 170px;
@@ -3047,8 +3209,8 @@ input:focus-visible + .ficha-canal {
 @media (min-width: 1000px) {
     .ficha-cuerpo {
         grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-        grid-template-rows: auto auto auto auto 1fr;
-        grid-template-areas: "relevo relevo" "pared pared" "hilo lado" "accion lado" ". lado";
+        grid-template-rows: auto auto 1fr auto;
+        grid-template-areas: "relevo relevo" "propuesta lado" "accion lado" "pared pared";
         gap: 18px 24px;
     }
 }
@@ -3056,7 +3218,7 @@ input:focus-visible + .ficha-canal {
 @media (min-width: 1280px) {
     .ficha-cuerpo {
         grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-        grid-template-areas: "relevo accion" "pared accion" "hilo accion" "lado accion" ". accion";
+        grid-template-areas: "relevo accion" "propuesta accion" "pared accion" "lado accion" ". accion";
     }
 }
 /* Inside the sheet: the wall in one compact row, the side under the conversation */
@@ -3127,7 +3289,7 @@ input:focus-visible + .ficha-canal {
     .hoja-lateral .ficha-cuerpo {
         grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
         grid-template-rows: auto auto auto auto 1fr;
-        grid-template-areas: "relevo accion" "pared accion" "hilo accion" "lado accion" ". accion";
+        grid-template-areas: "relevo accion" "propuesta accion" "pared accion" "lado accion" ". accion";
     }
 
     .hoja-lateral .relevo {
@@ -3138,8 +3300,8 @@ input:focus-visible + .ficha-canal {
         grid-area: pared;
     }
 
-    .hoja-lateral .col-hilo {
-        grid-area: hilo;
+    .hoja-lateral .col-propuesta {
+        grid-area: propuesta;
     }
 
     .hoja-lateral .col-accion {

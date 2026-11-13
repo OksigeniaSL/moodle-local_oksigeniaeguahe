@@ -281,4 +281,17 @@ final class review_test extends \advanced_testcase {
         $this->assertFalse(events::allowed_from($act, '192.0.2.10'));
         $this->assertTrue(events::allowed_from($act, '192.0.2.11'));
     }
+
+    /**
+     * The pages of the families open in the browser of the phone from Aty: each one is a page of the plugin.
+     */
+    public function test_aty_browser_pages(): void {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/oksigeniaeguahe/lib.php');
+        $pages = local_oksigeniaeguahe_oksigeniaaty_browser_pages();
+        $this->assertContains('/local/oksigeniaeguahe/f.php', $pages);
+        foreach ($pages as $page) {
+            $this->assertFileExists($CFG->dirroot . $page);
+        }
+    }
 }

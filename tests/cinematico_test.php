@@ -118,6 +118,11 @@ final class cinematico_test extends \advanced_testcase {
             ][$q['q']] ?? [];
         };
         $now = time();
+        // Nothing is asked outside the site until the site chooses a source.
+        set_config('placessource', 'none', 'local_oksigeniaeguahe');
+        $this->assertSame(0, places::locate($centre, 10, $now));
+        $this->assertSame([], $asked);
+        set_config('placessource', 'nominatim', 'local_oksigeniaeguahe');
         $this->assertSame(4, places::locate($centre, 10, $now));
         $this->assertContains('Northside|au', $asked, 'In the country of the centre.');
         $known = places::known((int) $centre->id);

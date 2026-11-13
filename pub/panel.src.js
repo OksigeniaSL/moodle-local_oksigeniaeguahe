@@ -231,7 +231,8 @@
 
     // ---- The file of a household: what the centre already said, the draft, the proposal, the channel, the way.
     var setText = function(root, text) {
-        var area = one('textarea[name="body"]', root);
+        // The pad that answers; the slip and the sticky note under the conversation have their own text.
+        var area = one('[data-redactor] textarea[name="body"]', root);
         if (area) {
             area.value = text;
             area.focus();
@@ -2663,7 +2664,7 @@
                 news.hidden = false;
             }
         } else if (target.getAttribute('data-ancla')) {
-            var area = one('textarea[name="body"]', scope);
+            var area = one('[data-redactor] textarea[name="body"]', scope);
             if (area) {
                 area.focus();
             }

@@ -901,13 +901,19 @@ class panel_household {
                 'checked' => $way === $chosen,
                 'disabled' => !$can[$way] && $way !== 'phone',
                 'why' => !$can[$way] ? get_string($way === 'mobile' ? 'panel_not_joined' : 'panel_none', $c) : '',
+                // The number beside «Phone», to call without looking for it.
+                'tel' => $way === 'phone' && $phone !== '' ? ['text' => $phone,
+                    'href' => 'tel:' . preg_replace('/[^0-9+]/', '', $phone)] : false,
             ];
         }
+        // The ways there are not yet, in one sentence: the file draws only those there are.
         $notes = [];
-        if ($mode !== 'off' && !$joined) {
+        $nomobile = $mode !== 'off' && !$joined;
+        if ($nomobile && $email === '') {
+            $notes[] = get_string('panel_note_both', $c);
+        } else if ($nomobile) {
             $notes[] = get_string('panel_note_notjoined', $c);
-        }
-        if ($email === '') {
+        } else if ($email === '') {
             $notes[] = get_string('panel_note_nomail', $c);
         }
         return ['ways' => $ways, 'notes' => $notes, 'button' => get_string('panel_send_' . $chosen, $c)];

@@ -213,3 +213,15 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
     }
     return $out;
 }
+
+/**
+ * The pages of the families that Aty opens in the browser of the phone, never inside the app: there they share, save
+ * the films and the calendar, and open Telegram and WhatsApp (local_oksigeniaaty 0.5.58 and later).
+ *
+ * @return string[] Paths from the root of the site.
+ */
+function local_oksigeniaeguahe_oksigeniaaty_browser_pages(): array {
+    return ['/local/oksigeniaeguahe/f.php', '/local/oksigeniaeguahe/cuento.php', '/local/oksigeniaeguahe/dibujo.php',
+        '/local/oksigeniaeguahe/invita.php', '/local/oksigeniaeguahe/j.php', '/local/oksigeniaeguahe/w.php',
+        '/local/oksigeniaeguahe/privacy.php', '/local/oksigeniaeguahe/ics.php'];
+}

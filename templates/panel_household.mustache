@@ -33,6 +33,12 @@
     section of its own beside the proposal, which climbs to the right column from 1280 px, and its stamp has a place of
     its own in the head of the pad (turno-cab), never over the text. Below 1000 px the grid is one column, in this order;
     where the stamp does not fit beside the title, it goes under it.
+    Review of 13 November 2026 (Jujol): the conversation is the head of what to do, so the last message is right over
+    the pad that answers it (on a wide screen, the proposal climbs to the left column, beside them; on a phone it goes
+    first, then the conversation and the pad, then the wall); and each action has its own paper: the pad answers (by the way chosen, the number beside
+    «Phone»), a stamp says it was answered elsewhere (in person, by phone, some other way), a slip under the
+    conversation writes down what they said elsewhere, and a sticky note is for the team. The ways there are not yet,
+    in one sentence and not as chips. A child already at the centre is not offered the waiting list.
 
     Example context (json):
     {
@@ -61,7 +67,9 @@
                 "child": false, "invalid": false, "labelled": false, "arialabel": "Para el día", "describedby": false,
                 "mirror": false, "value": "", "parts": [{"key": "d", "id": "siguiente-diad", "name": "nextdayd", "label": "Día",
                 "value": "", "size": 2, "months": false}]} }, "typingurl": "#",
-            "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": ""}]},
+            "ways": [{"value": "mobile", "name": "WhatsApp", "icon": "", "button": "Mandarlo por WhatsApp", "checked": true, "disabled": false, "why": "", "tel": false},
+                {"value": "phone", "name": "Teléfono", "icon": "", "button": "Anotar la llamada", "checked": false, "disabled": false, "why": "",
+                    "tel": {"text": "+34 600 333 444", "href": "tel:+34600333444"} }]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
         "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
@@ -107,6 +115,162 @@
             {{/promise}}
         </div>
         {{/relay}}
+        <div class="col col-propuesta">
+            {{#proposal}}
+            <section class="apartado propuesta" aria-labelledby="prop-t">
+                <header><h2 id="prop-t">{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="frase"><b>{{sentence}}</b>: {{why}}.</p>
+                <div class="acciones">
+                    <a class="boton principal" href="{{url}}" data-propuesta="{{text}}" data-tecla="v" data-tecla-que="{{button}}">{{{i.enviado}}}{{button}}</a>
+                    {{#visit}}<a class="boton terciario pequeno" href="#cambiar-visita" data-abre-detalles="cambiar-visita">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/visit}}
+                </div>
+                <p class="def">{{#help}}{{help}}{{/help}}{{^help}}{{#str}}panel_proposal_help, local_oksigeniaeguahe{{/str}}{{/help}}</p>
+            </section>
+            {{/proposal}}
+            {{#thanks}}
+            <section class="apartado propuesta gracias-recomendar" aria-labelledby="gracias-t">
+                <header><h2 id="gracias-t">{{#str}}panel_thanks_title, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="frase"><b>{{sentence}}</b>: {{why}}.</p>
+                <blockquote class="texto-propuesto">{{text}}</blockquote>
+                <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="thanked"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}panel_thanks_done, local_oksigeniaeguahe{{/str}}</button></form>
+                <p class="def">{{#str}}panel_thanks_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/thanks}}
+            {{^proposal}}{{#noproposal}}
+            <section class="apartado propuesta sin">
+                <header><h2>{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
+                <p class="frase">{{noproposal}}</p>
+            </section>
+            {{/noproposal}}{{/proposal}}
+            {{#visit}}
+            <details class="apartado visita-propia" id="cambiar-visita">
+                <summary><h2>{{#str}}panel_visit, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_visit_only, local_oksigeniaeguahe{{/str}}</span></summary>
+                <div class="pidieron"><span class="secundario">{{#str}}panel_they_asked, local_oksigeniaeguahe{{/str}}</span><b>{{asked}}</b></div>
+                {{#canact}}
+                <form method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="propose"><input type="hidden" name="people" value="{{people}}">
+                    <div class="rejilla-2">
+                        <div class="campo"><label id="vd-l" for="{{datedate.first}}">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label>{{#datedate}}{{> local_oksigeniaeguahe/public_date }}{{/datedate}}</div>
+                        <div class="campo"><label for="vh">{{#str}}panel_hour, local_oksigeniaeguahe{{/str}}</label><input id="vh" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}} name="time" value="17:30" required data-hora></div>
+                        <div class="campo"><label for="vm">{{#str}}panel_length, local_oksigeniaeguahe{{/str}}</label><select id="vm" name="minutes">{{#minutes}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/minutes}}</select></div>
+                        <div class="campo"><label for="vl">{{#str}}panel_where, local_oksigeniaeguahe{{/str}}</label><input id="vl" name="place" value="{{place}}"></div>
+                        {{#hasguides}}<div class="campo ancho"><label for="vg">{{#str}}panel_guide, local_oksigeniaeguahe{{/str}}</label><select id="vg" name="guide">{{#guides}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/guides}}</select></div>{{/hasguides}}
+                    </div>
+                    <button class="boton secundario" type="submit">{{{i.actos}}}{{#str}}panel_propose, local_oksigeniaeguahe{{/str}}</button>
+                    <p class="def">{{#str}}panel_propose_help, local_oksigeniaeguahe{{/str}}</p>
+                </form>
+                {{/canact}}
+            </details>
+            {{/visit}}
+        </div>
+        <div class="col col-accion">
+            <section class="apartado conversacion" aria-labelledby="conv-t">
+                <header><h2 id="conv-t">{{#str}}panel_conversation, local_oksigeniaeguahe{{/str}}</h2></header>
+                {{#hasold}}
+                <details class="anteriores">
+                    <summary>{{oldlabel}}</summary>
+                    <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
+                </details>
+                {{/hasold}}
+                <ol class="historial">
+                    {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
+                </ol>
+                {{#canact}}
+                <div class="papeles-hilo">
+                    <details class="papel-recibido">
+                        <summary class="enlace">{{#str}}panel_paper_received, local_oksigeniaeguahe{{/str}}</summary>
+                        <form method="post" action="{{action}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="received">
+                            <div class="por" role="radiogroup" aria-label="{{#str}}panel_paper_received_how, local_oksigeniaeguahe{{/str}}">
+                                <span>{{#str}}panel_by, local_oksigeniaeguahe{{/str}}</span>
+                                <input class="oculto" type="radio" name="channel" id="recibido-phone" value="phone" checked><label class="ficha-canal" for="recibido-phone">{{#str}}channel_phone, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="oculto" type="radio" name="channel" id="recibido-walkin" value="walkin"><label class="ficha-canal" for="recibido-walkin">{{#str}}channel_walkin, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="oculto" type="radio" name="channel" id="recibido-whatsapp" value="whatsapp"><label class="ficha-canal" for="recibido-whatsapp">{{#str}}channel_whatsapp, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="oculto" type="radio" name="channel" id="recibido-email" value="email"><label class="ficha-canal" for="recibido-email">{{#str}}channel_email, local_oksigeniaeguahe{{/str}}</label>
+                                <input class="oculto" type="radio" name="channel" id="recibido-other" value="other"><label class="ficha-canal" for="recibido-other">{{#str}}channel_other, local_oksigeniaeguahe{{/str}}</label>
+                            </div>
+                            <label class="oculto" for="recibido-texto">{{#str}}panel_paper_received_what, local_oksigeniaeguahe{{/str}}</label>
+                            <textarea id="recibido-texto" name="body" rows="3" placeholder="{{#str}}panel_paper_received_what, local_oksigeniaeguahe{{/str}}"></textarea>
+                            <button class="boton secundario pequeno" type="submit">{{#str}}panel_paper_received_save, local_oksigeniaeguahe{{/str}}</button>
+                        </form>
+                    </details>
+                    <details class="papel-nota">
+                        <summary class="enlace">{{{i.nota}}}{{#str}}panel_paper_note, local_oksigeniaeguahe{{/str}}</summary>
+                        <form method="post" action="{{action}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="note">
+                            <label class="oculto" for="nota-texto">{{#str}}panel_team_note, local_oksigeniaeguahe{{/str}}</label>
+                            <textarea id="nota-texto" name="body" rows="3" placeholder="{{#str}}panel_paper_note_example, local_oksigeniaeguahe{{/str}}"></textarea>
+                            <button class="boton secundario pequeno" type="submit">{{#str}}panel_paper_note_save, local_oksigeniaeguahe{{/str}}</button>
+                        </form>
+                    </details>
+                </div>
+                {{/canact}}
+            </section>
+            {{#canact}}
+            <section class="turno-tuyo{{^waiting}} ya{{/waiting}}" data-turno aria-labelledby="turno-t">
+                    <div class="que">
+                    <div class="turno-cab">
+                        {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}
+                        <h2 class="turno-titulo" id="turno-t" data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</h2>
+                        {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
+                    </div>
+                    {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
+                    {{#ai}}{{#summary}}
+                    <aside class="ia-resumen" aria-labelledby="ia-resumen-t">
+                        <p class="ia-firma" id="ia-resumen-t"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_summary, local_oksigeniaeguahe, {{when}}{{/str}}</span></p>
+                        <p class="ia-hechos">{{summary}}</p>
+                    </aside>
+                    {{/summary}}{{/ai}}
+                    <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        {{#composer}}
+                        {{#hassuggestions}}
+                        <div class="ya-dijisteis" role="group" aria-labelledby="yd-t">
+                            <span class="rotulo-p" id="yd-t">{{#str}}panel_said_before, local_oksigeniaeguahe{{/str}}</span>
+                            {{#suggestions}}<button class="sugerencia" type="submit" name="use" value="{{id}}" data-texto="{{text}}"><b>{{title}}</b><span>{{uses}}</span></button>{{/suggestions}}
+                        </div>
+                        {{/hassuggestions}}
+                        {{#draft}}
+                        <details class="borrador">
+                            <summary>{{#str}}panel_draft_of, local_oksigeniaeguahe, {"who": "{{who}}", "when": "{{when}}"}{{/str}}</summary>
+                            <p>{{text}}</p>
+                            <button class="enlace" type="submit" name="use" value="draft" data-texto="{{text}}">{{#str}}panel_draft_use, local_oksigeniaeguahe{{/str}}</button>
+                        </details>
+                        {{/draft}}
+                        <div class="por" role="radiogroup" aria-label="{{#str}}panel_answer_by, local_oksigeniaeguahe{{/str}}">
+                            <span>{{#str}}panel_by, local_oksigeniaeguahe{{/str}}</span>
+                            {{#ways}}{{^disabled}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}</label>{{#tel}}<a class="llamar" href="{{href}}" dir="ltr">{{#str}}panel_call_number, local_oksigeniaeguahe, {{text}}{{/str}}</a>{{/tel}}{{/disabled}}{{/ways}}
+                        </div>
+                        {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
+                        <div class="campo{{#ai}}{{#drafted}} ia-escrito{{/drafted}}{{/ai}}"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label>{{#ai}}{{#drafted}}<p class="ia-nota" id="ia-nota"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_drafted, local_oksigeniaeguahe{{/str}}</span></p>{{/drafted}}{{/ai}}<textarea id="borrador"{{#ai}}{{#drafted}} aria-describedby="ia-nota"{{/drafted}}{{/ai}} name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
+                        {{#ai}}<button class="ia-borrador" type="submit" name="ia" value="1" formaction="{{action}}#contestar"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#drafted}}{{#str}}panel_ai_draft_again, local_oksigeniaeguahe{{/str}}{{/drafted}}{{^drafted}}{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}{{/drafted}}</span></button>{{/ai}}
+                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
+                        {{#next}}
+                        <div class="campo siguiente">
+                            <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
+                            <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off">{{#next.date}}{{> local_oksigeniaeguahe/public_date }}{{/next.date}}</div>
+                        </div>
+                        {{/next}}
+                        <div class="acciones">
+                            <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
+                        </div>
+                        {{/composer}}
+                    </form>
+                    {{#waiting}}
+                    <form class="sello-contestada" method="post" action="{{action}}" aria-labelledby="sello-c-t">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="answer">
+                        <span class="sello-c-t" id="sello-c-t">{{#str}}panel_answered_stamp, local_oksigeniaeguahe{{/str}}</span>
+                        <span class="sello-c-botones">
+                            <button class="sello-c" type="submit" name="channel" value="walkin" data-tecla="c" data-tecla-que="{{#str}}answer_save, local_oksigeniaeguahe{{/str}}" data-tecla-intro="1">{{#str}}channel_walkin, local_oksigeniaeguahe{{/str}}</button>
+                            <button class="sello-c" type="submit" name="channel" value="phone">{{#str}}panel_answered_phone, local_oksigeniaeguahe{{/str}}</button>
+                            <button class="sello-c" type="submit" name="channel" value="other">{{#str}}panel_answered_other, local_oksigeniaeguahe{{/str}}</button>
+                        </span>
+                    </form>
+                    {{/waiting}}
+                    </div>
+            </section>
+            {{/canact}}
+        </div>
         <section class="pared-hijos" aria-label="{{#str}}panel_children, local_oksigeniaeguahe{{/str}}">
             <div class="riel" aria-hidden="true"></div>
             <div class="hijos-lista">
@@ -127,8 +291,8 @@
                         {{#incentre}}<p class="en-centro">{{{i.check}}}<span>{{incentre}}</span></p>{{/incentre}}
                         {{#canact}}
                         <div class="otros">
-                            <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>
-                            <span aria-hidden="true">·</span>
+                            {{^incentre}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><button class="enlace" type="submit" name="stage" value="waitlist">{{#str}}stage_waitlist, local_oksigeniaeguahe{{/str}}</button></form>
+                            <span aria-hidden="true">·</span>{{/incentre}}
                             <details class="cerrar-con-motivo">
                                 <summary class="enlace">{{#str}}panel_close_with_reason, local_oksigeniaeguahe{{/str}}</summary>
                                 <form method="post" action="{{action}}">
@@ -235,123 +399,6 @@
             {{/siblings}}
             {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
         </section>
-        <section class="apartado conversacion col-hilo" aria-labelledby="conv-t">
-            <header><h2 id="conv-t">{{#str}}panel_conversation, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_conversation_help, local_oksigeniaeguahe{{/str}}</span></header>
-            {{#hasold}}
-            <details class="anteriores">
-                <summary>{{oldlabel}}</summary>
-                <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
-            </details>
-            {{/hasold}}
-            <ol class="historial">
-                {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
-            </ol>
-        </section>
-        <div class="col col-accion">
-            {{#proposal}}
-            <section class="apartado propuesta" aria-labelledby="prop-t">
-                <header><h2 id="prop-t">{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
-                <p class="frase"><b>{{sentence}}</b>: {{why}}.</p>
-                <div class="acciones">
-                    <a class="boton principal" href="{{url}}" data-propuesta="{{text}}" data-tecla="v" data-tecla-que="{{button}}">{{{i.enviado}}}{{button}}</a>
-                    {{#visit}}<a class="boton terciario pequeno" href="#cambiar-visita" data-abre-detalles="cambiar-visita">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/visit}}
-                </div>
-                <p class="def">{{#help}}{{help}}{{/help}}{{^help}}{{#str}}panel_proposal_help, local_oksigeniaeguahe{{/str}}{{/help}}</p>
-            </section>
-            {{/proposal}}
-            {{#thanks}}
-            <section class="apartado propuesta gracias-recomendar" aria-labelledby="gracias-t">
-                <header><h2 id="gracias-t">{{#str}}panel_thanks_title, local_oksigeniaeguahe{{/str}}</h2></header>
-                <p class="frase"><b>{{sentence}}</b>: {{why}}.</p>
-                <blockquote class="texto-propuesto">{{text}}</blockquote>
-                <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="thanked"><button class="boton secundario pequeno" type="submit">{{{i.check}}}{{#str}}panel_thanks_done, local_oksigeniaeguahe{{/str}}</button></form>
-                <p class="def">{{#str}}panel_thanks_help, local_oksigeniaeguahe{{/str}}</p>
-            </section>
-            {{/thanks}}
-            {{^proposal}}{{#noproposal}}
-            <section class="apartado propuesta sin">
-                <header><h2>{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
-                <p class="frase">{{noproposal}}</p>
-            </section>
-            {{/noproposal}}{{/proposal}}
-            {{#visit}}
-            <details class="apartado visita-propia" id="cambiar-visita">
-                <summary><h2>{{#str}}panel_visit, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}panel_visit_only, local_oksigeniaeguahe{{/str}}</span></summary>
-                <div class="pidieron"><span class="secundario">{{#str}}panel_they_asked, local_oksigeniaeguahe{{/str}}</span><b>{{asked}}</b></div>
-                {{#canact}}
-                <form method="post" action="{{action}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="propose"><input type="hidden" name="people" value="{{people}}">
-                    <div class="rejilla-2">
-                        <div class="campo"><label id="vd-l" for="{{datedate.first}}">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label>{{#datedate}}{{> local_oksigeniaeguahe/public_date }}{{/datedate}}</div>
-                        <div class="campo"><label for="vh">{{#str}}panel_hour, local_oksigeniaeguahe{{/str}}</label><input id="vh" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}} name="time" value="17:30" required data-hora></div>
-                        <div class="campo"><label for="vm">{{#str}}panel_length, local_oksigeniaeguahe{{/str}}</label><select id="vm" name="minutes">{{#minutes}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/minutes}}</select></div>
-                        <div class="campo"><label for="vl">{{#str}}panel_where, local_oksigeniaeguahe{{/str}}</label><input id="vl" name="place" value="{{place}}"></div>
-                        {{#hasguides}}<div class="campo ancho"><label for="vg">{{#str}}panel_guide, local_oksigeniaeguahe{{/str}}</label><select id="vg" name="guide">{{#guides}}<option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/guides}}</select></div>{{/hasguides}}
-                    </div>
-                    <button class="boton secundario" type="submit">{{{i.actos}}}{{#str}}panel_propose, local_oksigeniaeguahe{{/str}}</button>
-                    <p class="def">{{#str}}panel_propose_help, local_oksigeniaeguahe{{/str}}</p>
-                </form>
-                {{/canact}}
-            </details>
-            {{/visit}}
-            {{#canact}}
-            <section class="turno-tuyo{{^waiting}} ya{{/waiting}}" data-turno aria-labelledby="turno-t">
-                    <div class="que">
-                    <div class="turno-cab">
-                        {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}
-                        <h2 class="turno-titulo" id="turno-t" data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</h2>
-                        {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
-                    </div>
-                    {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}
-                    {{#ai}}{{#summary}}
-                    <aside class="ia-resumen" aria-labelledby="ia-resumen-t">
-                        <p class="ia-firma" id="ia-resumen-t"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_summary, local_oksigeniaeguahe, {{when}}{{/str}}</span></p>
-                        <p class="ia-hechos">{{summary}}</p>
-                    </aside>
-                    {{/summary}}{{/ai}}
-                    <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
-                        <input type="hidden" name="sesskey" value="{{sesskey}}">
-                        {{#composer}}
-                        {{#hassuggestions}}
-                        <div class="ya-dijisteis" role="group" aria-labelledby="yd-t">
-                            <span class="rotulo-p" id="yd-t">{{#str}}panel_said_before, local_oksigeniaeguahe{{/str}}</span>
-                            {{#suggestions}}<button class="sugerencia" type="submit" name="use" value="{{id}}" data-texto="{{text}}"><b>{{title}}</b><span>{{uses}}</span></button>{{/suggestions}}
-                        </div>
-                        {{/hassuggestions}}
-                        {{#draft}}
-                        <details class="borrador">
-                            <summary>{{#str}}panel_draft_of, local_oksigeniaeguahe, {"who": "{{who}}", "when": "{{when}}"}{{/str}}</summary>
-                            <p>{{text}}</p>
-                            <button class="enlace" type="submit" name="use" value="draft" data-texto="{{text}}">{{#str}}panel_draft_use, local_oksigeniaeguahe{{/str}}</button>
-                        </details>
-                        {{/draft}}
-                        <div class="por" role="radiogroup" aria-label="{{#str}}panel_answer_by, local_oksigeniaeguahe{{/str}}">
-                            <span>{{#str}}panel_by, local_oksigeniaeguahe{{/str}}</span>
-                            {{#ways}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}{{#disabled}} disabled{{/disabled}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}{{#why}} <span class="nota">· {{why}}</span>{{/why}}</label>{{/ways}}
-                        </div>
-                        {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
-                        <div class="campo{{#ai}}{{#drafted}} ia-escrito{{/drafted}}{{/ai}}"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label>{{#ai}}{{#drafted}}<p class="ia-nota" id="ia-nota"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_drafted, local_oksigeniaeguahe{{/str}}</span></p>{{/drafted}}{{/ai}}<textarea id="borrador"{{#ai}}{{#drafted}} aria-describedby="ia-nota"{{/drafted}}{{/ai}} name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
-                        {{#ai}}<button class="ia-borrador" type="submit" name="ia" value="1" formaction="{{action}}#contestar"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#drafted}}{{#str}}panel_ai_draft_again, local_oksigeniaeguahe{{/str}}{{/drafted}}{{^drafted}}{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}{{/drafted}}</span></button>{{/ai}}
-                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
-                        {{#next}}
-                        <div class="campo siguiente">
-                            <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
-                            <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off">{{#next.date}}{{> local_oksigeniaeguahe/public_date }}{{/next.date}}</div>
-                        </div>
-                        {{/next}}
-                        <div class="acciones">
-                            <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
-                            <button class="boton secundario" type="submit" name="action" value="answer" data-tecla="c" data-tecla-que="{{#str}}answer_save, local_oksigeniaeguahe{{/str}}" data-tecla-intro="1">{{{i.check}}}{{#str}}answer_save, local_oksigeniaeguahe{{/str}}</button>
-                            <span class="separa-h"></span>
-                            <button class="boton terciario pequeno" type="submit" name="action" value="received">{{#str}}panel_wrote_again, local_oksigeniaeguahe{{/str}}</button>
-                            <button class="boton terciario pequeno" type="submit" name="action" value="note">{{{i.nota}}}{{#str}}panel_team_note, local_oksigeniaeguahe{{/str}}</button>
-                        </div>
-                        {{/composer}}
-                    </form>
-                    </div>
-            </section>
-            {{/canact}}
-        </div>
         <div class="col col-lado">
             <section class="apartado">
                 <header><h2>{{#str}}panel_who_writes, local_oksigeniaeguahe{{/str}}</h2>{{#canact}}<a class="enlace" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/canact}}</header>
