@@ -558,11 +558,16 @@ class metrics {
             'total' => $total['households'] ? $total : null, 'incentre' => $incentre];
     }
 
+    /** @var string[] When a family wrote first, in the time of the site: the part of the week that may wait longer. */
+    const BANDS = ['weekmorning', 'weekafternoon', 'night', 'weekend'];
+
     /**
-     * The campaign in Eguahe itself: how long the families wait for a first answer from a person, and who has none yet.
+     * The campaign in Eguahe itself: how long the families wait for a first answer from a person, and who has none yet;
+     * also by where they wrote first and by when (BANDS), to see where the waits are.
      *
      * @param int $centreid
-     * @return array median hours to the first answer, households answered, households still waiting.
+     * @return array median hours to the first answer, households answered, households still waiting, and bychannel and
+     *     byband: name => [median, count].
      */
     public static function response(int $centreid): array {
         global $DB;
@@ -573,15 +578,51 @@ class metrics {
                                         JOIN {local_oksigeniaeguahe_household} h ON h.id = c.householdid
                                        WHERE c.centreid = :centreid AND h.incentre = 0
                                     GROUP BY c.householdid", ['centreid' => $centreid]);
+        // The channel of the first message of each family.
+        $channels = [];
+        $firsts = $DB->get_recordset_sql("SELECT c.householdid, c.channel, c.timecreated
+                                            FROM {local_oksigeniaeguahe_contact} c
+                                           WHERE c.centreid = :centreid AND c.direction = 'in'
+                                        ORDER BY c.householdid, c.timecreated, c.id", ['centreid' => $centreid]);
+        foreach ($firsts as $first) {
+            $channels[$first->householdid] = $channels[$first->householdid] ?? (string) $first->channel;
+        }
+        $firsts->close();
         $hours = [];
+        $bychannel = [];
+        $byband = [];
+        $zone = \core_date::get_server_timezone();
         foreach ($rows as $row) {
             if ($row->firstin && $row->firstout && $row->firstout >= $row->firstin) {
-                $hours[] = ($row->firstout - $row->firstin) / HOURSECS;
+                $wait = ($row->firstout - $row->firstin) / HOURSECS;
+                $hours[] = $wait;
+                $bychannel[$channels[$row->householdid] ?? 'other'][] = $wait;
+                $byband[self::band((int) $row->firstin, $zone)][] = $wait;
             }
         }
-        sort($hours);
-        $median = $hours ? $hours[(int) floor((count($hours) - 1) / 2)] : null;
-        return ['median' => $median === null ? null : round($median, 1), 'answered' => count($hours),
-            'waiting' => households::waiting_count($centreid)];
+        $median = function (array $list): ?float {
+            sort($list);
+            return $list ? round($list[(int) floor((count($list) - 1) / 2)], 1) : null;
+        };
+        $split = fn(array $groups) => array_map(fn($list) => ['median' => $median($list), 'count' => count($list)], $groups);
+        $byband = array_merge(array_intersect_key(array_flip(self::BANDS), $byband), $byband);
+        return ['median' => $median($hours), 'answered' => count($hours), 'waiting' => households::waiting_count($centreid),
+            'bychannel' => $split($bychannel), 'byband' => $split($byband)];
+    }
+
+    /**
+     * The part of the week a moment falls in: mornings or afternoons of working days, nights, or the weekend.
+     *
+     * @param int $time
+     * @param string $zone
+     * @return string One of BANDS.
+     */
+    public static function band(int $time, string $zone): string {
+        $date = usergetdate($time, $zone);
+        if ((int) $date['wday'] === 0 || (int) $date['wday'] === 6) {
+            return 'weekend';
+        }
+        $hour = (int) $date['hours'];
+        return $hour >= 8 && $hour < 15 ? 'weekmorning' : ($hour >= 15 && $hour < 21 ? 'weekafternoon' : 'night');
     }
 }

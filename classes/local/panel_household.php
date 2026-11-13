@@ -190,7 +190,9 @@ class panel_household {
             'untold' => $untold,
             'hasuntold' => (bool) $untold,
             'untoldtext' => self::list_words($untold),
-            'hasabout' => (bool) $answers || (bool) $untold,
+            // Why they chose another centre, as they told it on their page.
+            'whyother' => (int) ($household->whyothertime ?? 0) ? whyother::words($household) : false,
+            'hasabout' => (bool) $answers || (bool) $untold || (int) ($household->whyothertime ?? 0),
             'mergeurl' => '',
             'adults' => self::adults($full, $joined),
             'lang' => get_string('panel_speak', $c, lists::LANG_NAMES[$household->lang] ?? $household->lang),
@@ -431,6 +433,7 @@ class panel_household {
      */
     protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
         return self::farewell_proposal($household, $full)
+            ?: self::chose_proposal($household, $full, $now)
             ?: self::firstday_proposal($household, $full, $centre, $now)
             ?: self::birthday_proposal($household, $full, $centre, $now)
             ?: self::sibling_proposal($household, $full, $centre, $now);
@@ -547,6 +550,41 @@ class panel_household {
             'visit' => false,
             // Written by Eguahe from what it knows, not from the agenda of a visit.
             'help' => get_string('panel_proposal_help_written', self::C),
+        ];
+    }
+
+    /**
+     * A family that chose another centre, just closed: a kind goodbye that leaves the door open, with its page asking
+     * in one tap what decided it. Until someone writes to it, or it has told why.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param int $now
+     * @return array|false
+     */
+    public static function chose_proposal(\stdClass $household, \stdClass $full, int $now) {
+        global $DB;
+        $since = whyother::since($household, array_values($full->children), $now);
+        if ($since === null || $since < $now - 14 * DAYSECS) {
+            return false;
+        }
+        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        if ($DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $since])) {
+            return false;
+        }
+        $c = self::C;
+        return [
+            'sentence' => get_string('panel_chose', $c),
+            'why' => get_string('panel_chose_why', $c, userdate($since, get_string('strftimedate', 'langconfig'))),
+            'text' => self::greeting($full) . get_string('panel_chose_message', $c),
+            'button' => get_string('panel_sibling_write', $c),
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'eligieron' => 1],
+                'borrador'
+            ))->out(false),
+            'visit' => false,
+            'help' => get_string('panel_proposal_help_written', $c),
         ];
     }
 

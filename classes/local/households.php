@@ -698,6 +698,7 @@ class households {
                 'already_of_the_centre' => (bool) $full->incentre,
                 'offered_to_tell_another_family' => $date((int) ($full->volunteer ?? 0)),
                 'how_your_invitation_is_signed' => $full->invitesign ?? null,
+                'why_you_chose_another_centre' => ($full->whyothertime ?? 0) ? ($full->whyother ?: '') : null,
                 'summary_for_the_team' => $full->aisummary ?? null,
                 'created' => $date((int) $full->timecreated),
             ],

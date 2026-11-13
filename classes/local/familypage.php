@@ -98,7 +98,8 @@ class familypage {
      * @param string $token
      * @param bool $new Whether the family has just signed up.
      * @param array $flags asked: they have just sent what they were left to ask; saved: what they told was kept;
-     *     home: the child whose name at home they have just changed.
+     *     home: the child whose name at home they have just changed; whyother: they have just said why they chose another
+     *     centre.
      * @return array
      */
     public static function context(
@@ -213,6 +214,8 @@ class familypage {
         // The notices on the phone too, when the site has Marandu and the centre wants them.
         [$joinlinks, $joined] = messaging::join($household, $centre);
         $childrows = [];
+        // A family whose every way is closed (they chose another centre, moved away) is not asked for more.
+        $allclosed = $children && !array_filter($children, fn($c) => $c->stage !== 'closed');
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $tag = trim((string) ($child->tagname ?? ''));
@@ -228,7 +231,7 @@ class familypage {
                     $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : '',
                 'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
                 // Asked for while they are young; one already sent can always change.
-                'drawingsend' => $drawing || ages::young($child, $offers, $centre) ?
+                'drawingsend' => !$allclosed && ($drawing || ages::young($child, $offers, $centre)) ?
                     $link(['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang]) : '',
                 'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
                 // Their drawing, sent to someone: that drawing alone, by its own link.
@@ -256,7 +259,7 @@ class familypage {
                 // What they call them at home, which the family can change: the name of the label, the story and its
                 // voice, and the birthday.
                 'birthline' => $birthday !== '' ? publiclang::str('pub_birthday_line', $lang, $birthday) : '',
-                'home' => $isgone ? false : ['id' => (int) $child->id, 'value' => $tag,
+                'home' => $isgone || $allclosed ? false : ['id' => (int) $child->id, 'value' => $tag,
                     'action' => $link(['action' => 'homename', 'idioma' => $lang]), 'sesskey' => sesskey(),
                     'open' => publiclang::str($tag !== '' || $birth !== '' ? 'pub_home_change' : 'pub_home_open', $lang),
                     'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
@@ -397,8 +400,15 @@ class familypage {
         $survey = $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) : false;
         $stories = self::stories($household, $centre, $lang, $token, $now);
         $birthdays = $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now);
+        // Closed because they chose another centre: why, if they want to say, in one tap; and the thanks once said.
+        $whyother = whyother::since($household, $children, $now) !== null ?
+            whyother::context($household, $lang, $link(['action' => 'whyother', 'idioma' => $lang])) : false;
+        if (!$whyother && !empty($flags['whyother'])) {
+            $whyother = ['done' => publiclang::str('pub_whyother_thanks', $lang)];
+        }
         // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
         [$current, $more] = self::arrange([
+            'whyother' => $whyother,
             'turns' => $turns,
             'band' => $band,
             'renewal' => $renewal,
@@ -493,8 +503,8 @@ class familypage {
      * the first day, the open question, how to ask for a place before or after its days, how to write with no visit
      * yet, next year already answered, and what is offered to an enrolled family.
      *
-     * @param array $p turns, band, renewal, survey, birthdays, firstday, stories, ask, siblings and settled, as context()
-     *     builds them; each false or empty when it is not there.
+     * @param array $p whyother, turns, band, renewal, survey, birthdays, firstday, stories, ask, siblings and settled, as
+     *     context() builds them; each false or empty when it is not there.
      * @param array|null $visit The row of the next visit, for its line.
      * @param string $lang
      * @return array [the thing of now or null, the rest]
@@ -504,12 +514,17 @@ class familypage {
         $list = [];
         $add = function (int $rank, string $kind, $context, array $line = []) use (&$list): void {
             $thing = ['band' => false, 'turn' => false, 'renewal' => false, 'survey' => false, 'birthday' => false,
-                'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false];
+                'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false,
+                'whyother' => false];
             $list[] = [$rank, count($list), [$kind => $context] + $thing + ['fold' => (bool) $line,
                 'kicker' => $line['kicker'] ?? '', 'title' => $line['title'] ?? '', 'state' => $line['state'] ?? '']];
         };
         foreach ($p['turns'] as $turn) {
             $add(10, 'turn', $turn);
+        }
+        if (!empty($p['whyother'])) {
+            // A family that chose another centre: the only thing that may be of now for it.
+            $add(15, 'whyother', $p['whyother'], ['title' => $p['whyother']['title'] ?? $p['whyother']['done']]);
         }
         $band = $p['band'];
         if ($band && !empty($band['isvisit']) && $visit) {

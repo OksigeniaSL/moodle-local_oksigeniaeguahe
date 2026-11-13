@@ -388,6 +388,8 @@ class panel_metrics {
             'started' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::started((int) $centre->id),
             'referred' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::referred((int) $centre->id),
             'gone' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::gone((int) $centre->id),
+            'chose' => $campaign['import'] || $course !== '' || !$on('campana') ? false :
+                self::chose((int) $centre->id, (int) $campaign['start']),
             'starts' => $on('campana') ? self::starts($campaigns, $canact, $centre) : null,
             // What they like most: what the families do with what Eguahe gives them, and who they are.
             'likes' => $on('familias') ? panel_likes::context($centre, $campaign, $mine, $now) : null,
@@ -486,15 +488,45 @@ class panel_metrics {
                 [['n' => $r['waiting'], 'text' => get_string('panel_response_waiting', $c)]] : [],
                 'def' => get_string('panel_response_def', $c)];
         }
-        $hours = (float) $r['median'];
-        $hero = $hours < 1 ? get_string('panel_resp_minutes', $c, max(1, (int) round($hours * 60))) : ($hours < 48 ?
-            get_string((int) round($hours) === 1 ? 'panel_resp_hour' : 'panel_resp_hours', $c, (int) round($hours)) :
-            get_string('panel_resp_days', $c, (int) round($hours / 24)));
+        $words = function (float $hours) use ($c): string {
+            return $hours < 1 ? get_string('panel_resp_minutes', $c, max(1, (int) round($hours * 60))) : ($hours < 48 ?
+                get_string((int) round($hours) === 1 ? 'panel_resp_hour' : 'panel_resp_hours', $c, (int) round($hours)) :
+                get_string('panel_resp_days', $c, (int) round($hours / 24)));
+        };
+        $hero = $words((float) $r['median']);
+        // Where they wrote first and when: only where there is more than one, or it says the same as the whole.
+        $known = fn(string $id) => get_string_manager()->string_exists($id, $c);
+        $splits = [];
+        foreach (['bychannel' => 'panel_resp_by_channel', 'byband' => 'panel_resp_by_band'] as $key => $title) {
+            if (count($r[$key]) < 2) {
+                continue;
+            }
+            $longest = max(array_column($r[$key], 'median')) ?: 1;
+            if ($key === 'bychannel') {
+                // The channels most families came by first; the parts of the week keep their order.
+                uasort($r[$key], fn($a, $b) => $b['count'] <=> $a['count']);
+            }
+            $rows = [];
+            foreach ($r[$key] as $name => $group) {
+                $one = $group['count'] === 1;
+                $rows[] = [
+                    'name' => $key === 'bychannel' ? get_string('channel_' . ($known('channel_' . $name) ? $name : 'other'), $c) :
+                        get_string('panel_band_' . $name, $c),
+                    'hero' => $words((float) $group['median']),
+                    'count' => get_string($one ? 'panel_resp_families_one' : 'panel_resp_families', $c, $group['count']),
+                    'v' => round(max(0.02, (float) $group['median'] / $longest), 3),
+                ];
+            }
+            $splits[] = ['title' => get_string($title, $c), 'rows' => $rows];
+        }
         return [
             'hero' => $hero,
             'sentence' => get_string('panel_response_sentence', $c, $hero),
             'facts' => [['n' => $r['answered'], 'text' => get_string('panel_response_answered', $c)],
                 ['n' => $r['waiting'], 'text' => get_string('panel_response_waiting', $c)]],
+            'splits' => $splits,
+            'hassplits' => (bool) $splits,
+            'bandsdef' => $splits ? get_string('panel_resp_bands_def', $c) : false,
             'def' => get_string('panel_response_def', $c),
         ];
     }
@@ -1066,6 +1098,28 @@ class panel_metrics {
             'def' => get_string('panel_started_def', self::C),
             'url' => (new \moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centreid]))->out(false),
         ];
+    }
+
+    /**
+     * Why the families that chose another centre did, as they told it on their page, added up and without names;
+     * nothing when none told it.
+     *
+     * @param int $centreid
+     * @param int $since The start of the campaign.
+     * @return array|false text, reasons.
+     */
+    protected static function chose(int $centreid, int $since) {
+        $told = whyother::counts($centreid, $since);
+        if (!$told['told']) {
+            return false;
+        }
+        $c = self::C;
+        $reasons = [];
+        foreach ($told['reasons'] as $key => $n) {
+            $reasons[] = ['name' => panel::upper_first(get_string('whyother_' . $key, $c)), 'n' => $n];
+        }
+        return ['text' => $told['told'] === 1 ? get_string('panel_chose_sentence_one', $c) :
+            get_string('panel_chose_sentence', $c, $told['told']), 'reasons' => $reasons];
     }
 
     /**

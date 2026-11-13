@@ -50,7 +50,10 @@
         "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "", "exports": {"families": {"excel": "#a", "csv": "#b"}, "figures": {"excel": "#c", "csv": "#d"} },
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
             "compare": [{"name": "Con la anterior", "url": "#", "current": true}]},
-        "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": ""},
+        "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": "",
+            "hassplits": true, "splits": [{"title": "Según cuándo escribieron", "rows": [{"name": "Mañanas de diario",
+            "hero": "2 horas", "count": "41 familias", "v": 0.1}, {"name": "Fin de semana", "hero": "2 días", "count": "12 familias",
+            "v": 1}]}], "bandsdef": "Mañanas de diario, de 8:00 a 15:00."},
         "reach": {"compare": true, "legend": true, "rest": "96 familias han escrito.", "closed": "", "def": "", "ancha": false,
             "steps": [{"key": "inquiry", "name": "Escribieron", "n": 96, "v": 1, "g": 0.9, "gn": 86, "hasghost": true, "line": "96 familias.",
                 "parts": [{"canal": "web", "v": 0.3, "n": 34, "line": "34 por la web."}]}]},
@@ -66,7 +69,7 @@
             "rest": "Van 19 familias.", "def": "", "wholelink": false, "ancha": false, "label": "Llegadas, semana a semana", "what": "familias",
             "table": [{"week": "Semana 1", "now": 8, "before": 6}]},
         "places": [{"key": "i3", "name": "Infantil 3 años", "free": "19 libres de 25", "sentence": "Quedarían de 1 a 6 pomos libres.", "rail": "", "bench": false}],
-        "hasplaces": true, "noplaces": false, "placesdef": "", "started": false, "referred": false, "gone": false,
+        "hasplaces": true, "noplaces": false, "placesdef": "", "started": false, "referred": false, "gone": false, "chose": {"text": "3 familias que eligieron otro centro contaron por qué", "reasons": [{"name": "El precio", "n": 2}]},
         "hasyear": false, "year": false, "hashistory": false, "history": false, "spendaction": "#", "sesskey": "abc",
         "starts": {"rows": [{"key": "live", "name": "Esta campaña", "value": "2026-09-15", "date": {"id": "inicio-live",
             "first": "inicio-lived", "form": false, "child": false, "invalid": false, "labelled": true, "arialabel": false,
@@ -102,7 +105,17 @@
             {{#hero}}<p class="cifra-heroe"><b>{{hero}}</b><span>{{#str}}panel_median, local_oksigeniaeguahe{{/str}}</span></p>{{/hero}}
             <p class="linea-dato">{{sentence}}</p>
             <ul class="hechos">{{#facts}}<li><b>{{n}}</b> {{text}}</li>{{/facts}}</ul>
-            <p class="def">{{def}}</p>
+            {{#hassplits}}
+            <div class="resp-partes">
+                {{#splits}}
+                <div class="resp-parte">
+                    <h3>{{title}}</h3>
+                    <ul>{{#rows}}<li><span class="resp-que">{{name}} <span class="resp-n">· {{count}}</span></span><span class="resp-barra" aria-hidden="true"><i style="--v: {{v}}"></i></span><b>{{hero}}</b></li>{{/rows}}</ul>
+                </div>
+                {{/splits}}
+            </div>
+            {{/hassplits}}
+            <p class="def">{{def}}{{#bandsdef}} {{.}}{{/bandsdef}}</p>
         </section>
         {{/response}}
         {{#reach}}
@@ -228,6 +241,7 @@
             {{#started}}<p class="linea-dato empezaron"><a href="{{url}}">{{text}}</a></p><p class="def">{{def}}</p>{{/started}}
             {{#referred}}<p class="linea-dato recomendadas">{{text}}</p>{{/referred}}
             {{#gone}}<p class="linea-dato se-fueron">{{text}}{{#hasreasons}} {{#reasons}}<span class="motivo-baja">{{name}} · {{n}}</span>{{/reasons}}{{/hasreasons}}</p><p class="def">{{def}}</p>{{/gone}}
+            {{#chose}}<p class="linea-dato se-fueron">{{text}}: {{#reasons}}<span class="motivo-baja">{{name}} · {{n}}</span>{{/reasons}}</p>{{/chose}}
             <p class="def">{{placesdef}}</p>
         </section>
         {{/hasplaces}}

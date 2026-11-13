@@ -14814,10 +14814,21 @@ details.aj-plegado > summary h2::after {
     color: var(--eg-tinta-2);
 }
 
+/* Answered: a tick, not a filled circle, so it reads as a list being ticked off and not as one to choose (Jujol). */
 .preguntaron .hecha .pr-marca {
-    border-color: var(--eg-acento);
-    background: var(--eg-acento);
-    box-shadow: inset 0 0 0 3px var(--eg-papel);
+    position: relative;
+    border-color: transparent;
+}
+
+.preguntaron .hecha .pr-marca::after {
+    content: "✓";
+    position: absolute;
+    inset: -3px 0 0;
+    color: var(--eg-acento);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
 }
 
 .preguntaron .ayuda {
@@ -14842,4 +14853,59 @@ details.aj-plegado > summary h2::after {
     font-size: 0.8125rem;
     font-weight: 650;
     color: var(--eg-acento);
+}
+
+/* Cifras, the first answer: where they wrote first and when, each with its median as a bar on the longest one. */
+.resp-partes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px 28px;
+    margin: 14px 0 6px;
+}
+
+.resp-parte h3 {
+    margin: 0 0 6px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.resp-parte ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.resp-parte li {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(48px, 1fr) 5.5em;
+    column-gap: 10px;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.resp-barra {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--eg-hundido);
+}
+
+.resp-barra i {
+    display: block;
+    width: calc(var(--v) * 100%);
+    height: 100%;
+    border-radius: 4px;
+    background: var(--eg-tinta);
+}
+
+.resp-parte b {
+    text-align: end;
+    white-space: nowrap;
+}
+
+.resp-n {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    white-space: nowrap;
 }

@@ -36,7 +36,7 @@
     {
         "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "send": "", "chev": ""},
         "band": false, "turn": false, "survey": false, "birthday": false, "ask": false, "sibling": false,
-        "volunteer": false, "ambassador": false,
+        "volunteer": false, "ambassador": false, "whyother": false,
         "story": {"url": "#", "name": "Leo", "open": "Abrir el cuento", "kicker": "Un cuento para Leo",
             "title": "Tu primer día", "lead": "Para leerlo juntos en casa."},
         "renewal": false, "fold": false, "kicker": "", "title": "", "state": ""
@@ -225,6 +225,22 @@
 {{/question}}
 {{#done}}<p class="ofrecimiento hecho" id="avisar-{{id}}"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
 {{/sibling}}
+{{#whyother}}
+{{^done}}
+<form class="hoja-pregunta otro-centro" id="otro-centro" method="post" action="{{action}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}">
+    <h3>{{title}}</h3>
+    <p class="muted">{{lead}}</p>
+    <fieldset>
+        <legend class="oculto">{{title}}</legend>
+        <div class="fichas-papel">{{#options}}<label class="ficha-papel"><input type="checkbox" name="motivo[]" value="{{key}}"><span class="palabra">{{label}}</span></label>{{/options}}</div>
+    </fieldset>
+    <div class="campo"><label for="otro-centro-texto">{{othertext}}</label><textarea id="otro-centro-texto" name="otro" rows="2" maxlength="500" dir="auto"></textarea></div>
+    <div class="acciones"><button class="boton secundario" type="submit">{{button}}</button></div>
+</form>
+{{/done}}
+{{#done}}<p class="ofrecimiento hecho" id="otro-centro"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+{{/whyother}}
 {{#volunteer}}
 {{#ask}}
 <form class="ofrecimiento" id="ofrecimiento" method="post" action="{{action}}">

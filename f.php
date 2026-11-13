@@ -42,6 +42,7 @@ use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\story;
 use local_oksigeniaeguahe\local\surveys;
+use local_oksigeniaeguahe\local\whyother;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
 $new = optional_param('new', 0, PARAM_BOOL);
@@ -199,6 +200,20 @@ if (in_array($action, ['settledask', 'goneask', 'firstdayask'], true) && data_su
         ['k' => $token, 'idioma' => $lang] + ($asked ? ['asked' => 1] : []),
         'pregunta'
     ));
+}
+
+if ($action === 'whyother' && data_submitted() && confirm_sesskey()) {
+    // Why they chose another centre, if they want to say: while the page asks it.
+    $told = whyother::since($household, array_values(households::full($household)->children), time()) !== null &&
+        whyother::save(
+            $household,
+            $centre,
+            optional_param_array('motivo', [], PARAM_ALPHA),
+            optional_param('otro', '', PARAM_TEXT),
+            time()
+        );
+    $back = ['k' => $token, 'idioma' => $lang] + ($told ? ['otro' => 1] : []);
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', $back, 'otro-centro'));
 }
 
 if ($action === 'volunteer' && data_submitted() && confirm_sesskey()) {
@@ -374,7 +389,7 @@ publicpage::output(
     'public_family',
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
-        'home' => optional_param('casa', 0, PARAM_INT),
+        'home' => optional_param('casa', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
         'de' => optional_param('de', '', PARAM_ALPHA)]),
     $url
 );

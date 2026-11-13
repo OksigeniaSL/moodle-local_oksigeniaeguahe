@@ -127,6 +127,8 @@
         <FIELD NAME="roster" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came from the roll of the centre (the common family record), already at the centre; 0, it came through Eguahe"/>
         <FIELD NAME="aisummary" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Where the family is, in two sentences of facts, as the AI of the centre last wrote it for the team; never a judgement"/>
         <FIELD NAME="aisummarytime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the summary was written"/>
+        <FIELD NAME="whyother" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Why it chose another centre, if it said: the reasons it marked (whyother::REASONS), comma-separated"/>
+        <FIELD NAME="whyothertime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it said why it chose another centre"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

@@ -82,6 +82,11 @@ if (optional_param('despedida', 0, PARAM_BOOL) && $canact && $prefill === '') {
     $farewell = panel_household::context($household, $centre, true)['proposal'];
     $prefill = $farewell ? $farewell['text'] : '';
 }
+if (optional_param('eligieron', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // The goodbye to a family that chose another centre, without the script: the message comes written in the answer.
+    $proposal = panel_household::chose_proposal($household, households::full($household), time());
+    $prefill = $proposal ? $proposal['text'] : '';
+}
 if (optional_param('primerdia', 0, PARAM_BOOL) && $canact && $prefill === '') {
     // What to write around the first day, without the script: the message comes written in the answer.
     $proposal = panel_household::firstday_proposal($household, households::full($household), $centre, time());

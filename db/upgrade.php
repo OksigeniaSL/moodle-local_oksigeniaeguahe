@@ -1221,5 +1221,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026116000, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026116100) {
+        // Why a family chose another centre, if it said, and when.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $fields = [
+            new xmldb_field('whyother', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'aisummarytime'),
+            new xmldb_field('whyothertime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'whyother'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026116100, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
