@@ -66,4 +66,15 @@ final class phone_test extends \basic_testcase {
         $this->assertNull(phone::normalise('12', 'ES'));
         $this->assertNull(phone::normalise('+1234567890123456', 'ES'));
     }
+
+    /**
+     * A number written to be read and dictated, by groups, for any country.
+     */
+    public function test_display(): void {
+        $this->assertSame('+34 600 333 444', phone::display('+34600333444'));
+        $this->assertSame('+1 555 123 4567', phone::display('+15551234567'));
+        $this->assertSame('+351 912 345 678', phone::display('+351912345678'));
+        $this->assertSame('+55 11 912 345 678', phone::display('+5511912345678'));
+        $this->assertSame('612', phone::display('612'), 'Not a number in E.164: as it is.');
+    }
 }

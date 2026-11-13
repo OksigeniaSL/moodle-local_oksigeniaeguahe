@@ -902,7 +902,7 @@ class panel_household {
                 'disabled' => !$can[$way] && $way !== 'phone',
                 'why' => !$can[$way] ? get_string($way === 'mobile' ? 'panel_not_joined' : 'panel_none', $c) : '',
                 // The number beside «Phone», to call without looking for it.
-                'tel' => $way === 'phone' && $phone !== '' ? ['text' => $phone,
+                'tel' => $way === 'phone' && $phone !== '' ? ['text' => phone::display($phone),
                     'href' => 'tel:' . preg_replace('/[^0-9+]/', '', $phone)] : false,
             ];
         }

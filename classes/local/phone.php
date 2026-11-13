@@ -91,4 +91,38 @@ class phone {
         }
         return '+' . $digits;
     }
+
+    /**
+     * A number in E.164 written to be read and dictated: its country code, then the rest in groups of three (the last
+     * of four, or the first of two, so that no group is left with one digit): «+34 600 333 444».
+     *
+     * @param string $e164
+     * @return string
+     */
+    public static function display(string $e164): string {
+        if (!preg_match('/^\+(\d{8,15})$/', $e164, $m)) {
+            return $e164;
+        }
+        $digits = $m[1];
+        self::region('ES');
+        $codes = array_unique(array_map(fn($r) => (string) ($r['code'] ?? ''), self::$regions ?? []));
+        $code = '';
+        foreach ([3, 2, 1] as $length) {
+            if (in_array(substr($digits, 0, $length), $codes, true)) {
+                $code = substr($digits, 0, $length);
+                break;
+            }
+        }
+        $rest = substr($digits, strlen($code));
+        $n = strlen($rest);
+        $groups = [];
+        if ($n % 3 === 2) {
+            $groups[] = substr($rest, 0, 2);
+            $rest = substr($rest, 2);
+        }
+        $tail = $n % 3 === 1 && strlen($rest) >= 4 ? substr($rest, -4) : '';
+        $rest = $tail !== '' ? substr($rest, 0, -4) : $rest;
+        $groups = array_merge($groups, $rest !== '' ? str_split($rest, 3) : [], $tail !== '' ? [$tail] : []);
+        return '+' . ($code !== '' ? $code . ' ' : '') . implode(' ', $groups);
+    }
 }
