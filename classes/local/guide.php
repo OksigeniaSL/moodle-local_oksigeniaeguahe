@@ -57,7 +57,8 @@ class guide {
      * its path of class «ruta» (the recipe of the miniatures keeps it, and it always ends at the door of the place).
      *
      * @param string $svg
-     * @return array x, y, endx, endy, and up (whether its first stretch goes up); empty when the picture has no way.
+     * @return array x, y, endx, endy, up (whether its first stretch goes up) and marks (the labels and the pin, which
+     *     the bubble never covers: x, y, w, h); empty when the picture has no way.
      */
     public static function read_way(string $svg): array {
         if (!preg_match('/viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/', $svg, $box)) {
@@ -74,7 +75,38 @@ class guide {
         }
         $part = fn($v, $of) => round(min(1, max(0, (float) $v / $of)), 4);
         return ['x' => $part($n[0], $w), 'y' => $part($n[1], $h), 'endx' => $part($n[count($n) - 2], $w),
-            'endy' => $part($n[count($n) - 1], $h), 'up' => (float) $n[3] < (float) $n[1]];
+            'endy' => $part($n[count($n) - 1], $h), 'up' => (float) $n[3] < (float) $n[1], 'marks' => self::marks($svg, $w, $h)];
+    }
+
+    /**
+     * The labels of a miniature (its rectangles) and its pin (a group moved and scaled, as the recipe draws it), as
+     * boxes in parts of the picture, a little bigger than they are.
+     *
+     * @param string $svg
+     * @param float $w Width of the picture.
+     * @param float $h Height of the picture.
+     * @return array[] x, y, w, h.
+     */
+    protected static function marks(string $svg, float $w, float $h): array {
+        $boxes = [];
+        $pad = 6;
+        preg_match_all('/<rect\b[^>]*>/', $svg, $rects);
+        foreach ($rects[0] as $rect) {
+            $at = [];
+            foreach (['x', 'y', 'width', 'height'] as $k) {
+                $at[$k] = preg_match('/\s' . $k . '="(-?[\d.]+)"/', $rect, $m) ? (float) $m[1] : null;
+            }
+            if ($at['x'] !== null && $at['y'] !== null && $at['width'] && $at['height'] && $at['width'] < $w * 0.6) {
+                $boxes[] = [$at['x'] - $pad, $at['y'] - $pad, $at['width'] + 2 * $pad, $at['height'] + 2 * $pad];
+            }
+        }
+        $pin = '/<g\b[^>]*transform="translate\((-?[\d.]+)[ ,]+(-?[\d.]+)\)\s*scale\(([\d.]+)\)"/';
+        preg_match_all($pin, $svg, $pins, PREG_SET_ORDER);
+        foreach ($pins as [, $x, $y, $s]) {
+            $boxes[] = [(float) $x - 7 * $s, (float) $y - 18 * $s, 14 * $s, 20 * $s];
+        }
+        $part = fn($b) => [round($b[0] / $w, 4), round($b[1] / $h, 4), round($b[2] / $w, 4), round($b[3] / $h, 4)];
+        return array_map($part, $boxes);
     }
 
     /**
@@ -119,7 +151,9 @@ class guide {
         $phone = $narrow ? self::way((int) $centre->id, 'miniaturenarrow') : null;
         $style .= $phone ? self::spot($phone, 'n') : self::spot($way, 'n');
         $where = trim((string) ($centre->guidewhere ?? ''));
-        return ['img' => self::picture($kind, 'senala'), 'style' => $style,
+        // What the bubble never covers, for the page to choose its side; without script, behind the guide.
+        $avoid = implode(';', array_map(fn($b) => implode(',', $b), $way['marks'] ?? []));
+        return ['img' => self::picture($kind, 'senala'), 'style' => $style, 'avoid' => $avoid,
             'bubble' => $where !== '' ? publiclang::str('pub_guide_to', $lang, format_string($where)) :
                 publiclang::str('pub_guide_from', $lang)];
     }
@@ -159,7 +193,8 @@ class guide {
     }
 
     /**
-     * The guide by those who receive the family: it holds out a paw and says who they are.
+     * The guide by those who receive the family: it holds out a paw and says what the cards do not, where the first of
+     * them waits for them (Jujol).
      *
      * @param \stdClass $centre
      * @param array $hosts familypage::hosts()
@@ -172,8 +207,9 @@ class guide {
         if (!$kind || !$names) {
             return false;
         }
-        $key = count($names) === 1 ? 'pub_guide_receives_one' : 'pub_guide_receives_many';
-        return ['img' => self::picture($kind, 'presenta'),
-            'bubble' => publiclang::str($key, $lang, familypage::join($names, $lang))];
+        $where = trim((string) ($centre->guidewhere ?? ''));
+        return ['img' => self::picture($kind, 'presenta'), 'bubble' => $where !== '' ?
+            publiclang::str('pub_guide_waits', $lang, (object) ['name' => $names[0], 'where' => format_string($where)]) :
+            publiclang::str('pub_guide_opens', $lang, $names[0])];
     }
 }

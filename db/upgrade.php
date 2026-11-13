@@ -1275,7 +1275,7 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         // The guide of each centre, and what it says.
         $table = new xmldb_table('local_oksigeniaeguahe_centre');
         $fields = [
-            new xmldb_field('guide', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, ''),
+            new xmldb_field('guide', XMLDB_TYPE_CHAR, '20', null, null, null, null),
             new xmldb_field('guidewhere', XMLDB_TYPE_CHAR, '255', null, null, null, null),
             new xmldb_field('guidehello', XMLDB_TYPE_CHAR, '255', null, null, null, null),
         ];
@@ -1285,6 +1285,17 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
             }
         }
         upgrade_plugin_savepoint(true, 2026117000, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026117003) {
+        // The guide may be null: a required text with an empty default makes XMLDB complain on install.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('guide', XMLDB_TYPE_CHAR, '20', null, null, null, null);
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_notnull($table, $field);
+            $dbman->change_field_default($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026117003, 'local', 'oksigeniaeguahe');
     }
 
     return true;

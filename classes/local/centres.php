@@ -181,7 +181,7 @@ class centres {
         }
         if (isset($data->guide)) {
             // The guide on the pages of the families, and what it says, as the centre writes it.
-            $row->guide = in_array($data->guide, guide::KINDS, true) ? $data->guide : '';
+            $row->guide = in_array($data->guide, guide::KINDS, true) ? $data->guide : null;
         }
         foreach (['guidewhere', 'guidehello'] as $said) {
             if (isset($data->$said)) {

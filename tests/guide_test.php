@@ -65,15 +65,24 @@ final class guide_test extends \advanced_testcase {
         $this->assertSame(get_string('pub_guide_to', 'local_oksigeniaeguahe', 'Secretaría'), $map['bubble']);
         $this->assertStringContainsString('/pub/guia/perro-senala-256.webp', $map['img']['src']);
         $this->assertStringContainsString('perro-senala-512.webp 2x', $map['img']['srcset']);
+        $this->assertSame('', $map['avoid'], 'This miniature has no labels.');
+        $marks = guide::read_way(self::SVG . '<rect x="558" y="579.4" width="229.6" height="73"/>' .
+            '<g transform="translate(726.9 304.0) scale(5.80)"><path d="M0 0"/></g>')['marks'];
+        $this->assertCount(2, $marks, 'A label and the pin.');
+        $this->assertEqualsWithDelta(0.345, $marks[0][0], 0.001);
 
         // By the greeting: the words of Eguahe, or those of the centre.
         $this->assertSame(get_string('pub_guide_hello', 'local_oksigeniaeguahe'), guide::hello($centre, 'en')['bubble']);
         centres::update($id, (object) ['guidehello' => '¡Bienvenidos!']);
         $this->assertSame('¡Bienvenidos!', guide::hello(centres::get($id), 'es')['bubble']);
 
-        // By who receives: one, or several by name.
-        $one = guide::presents($centre, [['first' => 'Marta', 'name' => 'Marta Ruiz']], 'en');
-        $this->assertSame(get_string('pub_guide_receives_one', 'local_oksigeniaeguahe', 'Marta'), $one['bubble']);
+        // By who receives: where the first of them waits for them, or that they open the door.
+        $hosts = [['first' => 'Marta', 'name' => 'Marta Ruiz'], ['first' => 'Javier', 'name' => 'Javier Pérez']];
+        $waits = get_string('pub_guide_waits', 'local_oksigeniaeguahe', (object) ['name' => 'Marta', 'where' => 'Secretaría']);
+        $this->assertSame($waits, guide::presents($centre, $hosts, 'en')['bubble']);
+        centres::update($id, (object) ['guidewhere' => '']);
+        $opens = guide::presents(centres::get($id), $hosts, 'en');
+        $this->assertSame(get_string('pub_guide_opens', 'local_oksigeniaeguahe', 'Marta'), $opens['bubble']);
         $this->assertFalse(guide::presents($centre, [], 'es'), 'Nobody to introduce.');
 
         // Off again.

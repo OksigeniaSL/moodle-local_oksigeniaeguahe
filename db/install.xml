@@ -55,7 +55,7 @@
         <FIELD NAME="costs" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it all costs, as the centre writes it: a line per thing, «what: how much»"/>
         <FIELD NAME="costswhen" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="after" SEQUENCE="false" COMMENT="When families see what it costs: start, after the visit, or never"/>
         <FIELD NAME="familyfrom" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="eguahe" SEQUENCE="false" COMMENT="Who puts an enrolled family in the common family record: eguahe, or records (the management system of the centre loads it, and a person joins it)"/>
-        <FIELD NAME="guide" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="" SEQUENCE="false" COMMENT="The guide on the pages of the families (guide::KINDS), or empty for none"/>
+        <FIELD NAME="guide" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The guide on the pages of the families (guide::KINDS), or null for none"/>
         <FIELD NAME="guidewhere" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the guide takes families on the miniature, as the centre writes it"/>
         <FIELD NAME="guidehello" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What the guide says by the greeting, as the centre writes it; empty, the words of Eguahe"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

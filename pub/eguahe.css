@@ -1109,7 +1109,7 @@ textarea {
     background: #fffdf8;
     color: #2b2226;
     font-family: 'Eg Mano', 'Eg Sans', sans-serif;
-    font-size: 1.375rem;
+    font-size: 1.625rem;
     line-height: 1.15;
     box-shadow: 0 1px 0 rgb(0 0 0 / 10%), 0 8px 18px -12px rgb(0 0 0 / 45%);
 }
@@ -1147,22 +1147,86 @@ textarea {
     transform: scaleX(var(--giro, 1));
 }
 
+/* Without script, behind the guide, away from where the way goes; the page then moves it to the first side where it
+   covers no label nor the pin (data-lado: right, left, above). */
 .guia-mapa .bocadillo {
     position: absolute;
     top: 6%;
-    left: calc(50% + var(--giro, 1) * 40%);
+    left: calc(50% - var(--giro, 1) * 40%);
     width: max-content;
-    max-width: 250%;
+    max-width: 320%;
     margin: 0;
     padding: 4px 10px 5px;
-    font-size: 1.125rem;
-    transform: translateX(calc(-50% + var(--giro, 1) * 50%));
+    font-size: 1.25rem;
+    transform: translateX(calc(-50% - var(--giro, 1) * 50%));
+}
+
+.guia-mapa[data-lado="derecha"] .bocadillo {
+    left: 92%;
+    transform: none;
+}
+
+.guia-mapa[data-lado="izquierda"] .bocadillo {
+    left: 8%;
+    transform: translateX(-100%);
+}
+
+.guia-mapa[data-lado="derecha-pies"] .bocadillo {
+    top: auto;
+    bottom: 2%;
+    left: 92%;
+    transform: none;
+}
+
+.guia-mapa[data-lado="izquierda-pies"] .bocadillo {
+    top: auto;
+    bottom: 2%;
+    left: 8%;
+    transform: translateX(-100%);
+}
+
+.guia-mapa[data-lado="encima"] .bocadillo {
+    top: auto;
+    bottom: 96%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.guia-mapa[data-lado="debajo"] .bocadillo {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* On a phone what it says goes first in the caption, with its head (Jujol). */
+.banda .miniatura figcaption .marca-guia {
+    display: none;
+}
+
+.cabeza-perro {
+    display: inline-block;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #fffdf8;
+}
+
+.cabeza-perro img {
+    display: block;
+    width: 72px;
+    max-width: none;
+    height: 72px;
+    margin: -8px 0 0 -44px;
 }
 
 @media (max-width: 640px) {
     .guia-mapa {
         left: var(--xn, var(--x));
         top: var(--yn, var(--y));
+        width: 44px;
+        min-width: 0;
         transform: translate(-50%, var(--alton, var(--alto, -100%)));
     }
 
@@ -1171,9 +1235,17 @@ textarea {
     }
 
     .guia-mapa .bocadillo {
-        left: calc(50% + var(--giron, var(--giro, 1)) * 40%);
-        font-size: 0.9375rem;
-        transform: translateX(calc(-50% + var(--giron, var(--giro, 1)) * 50%));
+        display: none;
+    }
+
+    .banda .miniatura figcaption .marca-guia {
+        display: inline-flex;
+        flex-basis: 100%;
+    }
+
+    .guia-saluda .bocadillo,
+    .guia-presenta .bocadillo {
+        font-size: 1.375rem;
     }
 }
 

@@ -1193,6 +1193,67 @@
                 count('touch', 'drawing_enlarged');
             }
         });
+        // The guide on the miniature: what it says goes to the first side, right, left or above, where it covers no
+        // label nor the pin of the picture (data-evita, read by the server) and stays inside it (Jujol).
+        var placeGuide = function(guide) {
+            var bubble = guide.querySelector('.bocadillo');
+            var sheet = guide.parentNode;
+            if (!bubble || !sheet || window.getComputedStyle(bubble).display === 'none') {
+                return;
+            }
+            var marks = (guide.getAttribute('data-evita') || '').split(';').filter(Boolean).map(function(t) {
+                return t.split(',').map(parseFloat);
+            });
+            // How much of a label, the pin or the outside of the picture it would cover, in square pixels.
+            var covers = function() {
+                var box = sheet.getBoundingClientRect();
+                var b = bubble.getBoundingClientRect();
+                var over = function(l, t, r, bt) {
+                    return Math.max(0, Math.min(b.right, r) - Math.max(b.left, l)) *
+                        Math.max(0, Math.min(b.bottom, bt) - Math.max(b.top, t));
+                };
+                var sum = b.width * b.height - over(box.left, box.top, box.right, box.bottom);
+                marks.forEach(function(m) {
+                    var l = box.left + m[0] * box.width;
+                    var t = box.top + m[1] * box.height;
+                    sum += over(l, t, l + m[2] * box.width, t + m[3] * box.height);
+                });
+                return sum;
+            };
+            // By its head first, right and left; then by its feet; above; below. The first that covers nothing, or else
+            // the one that covers least.
+            var sides = ['derecha', 'izquierda', 'derecha-pies', 'izquierda-pies', 'encima', 'debajo'];
+            var best = null;
+            var least = Infinity;
+            for (var i = 0; i < sides.length; i++) {
+                guide.setAttribute('data-lado', sides[i]);
+                var c = covers();
+                if (c < least) {
+                    least = c;
+                    best = sides[i];
+                }
+                if (c === 0) {
+                    break;
+                }
+            }
+            guide.setAttribute('data-lado', best);
+        };
+        all('.guia-mapa').forEach(function(guide) {
+            var picture = guide.parentNode.querySelector('picture img');
+            var place = function() {
+                placeGuide(guide);
+            };
+            if (!picture || picture.complete) {
+                place();
+            } else {
+                picture.addEventListener('load', place);
+            }
+            var waiting = null;
+            window.addEventListener('resize', function() {
+                window.clearTimeout(waiting);
+                waiting = window.setTimeout(place, 200);
+            });
+        });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 shut();
