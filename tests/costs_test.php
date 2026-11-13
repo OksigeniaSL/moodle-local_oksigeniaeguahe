@@ -77,6 +77,10 @@ final class costs_test extends \advanced_testcase {
             "Uniforme aparte", 'costswhen' => 'nonsense']);
         $centre = centres::get((int) $this->centre->id);
         $this->assertSame('after', $centre->costswhen);
+        // A change of a few fields keeps the rest of the centre.
+        $this->assertSame('Colegio de ejemplo', $centre->name);
+        $this->assertSame('es', $centre->lang);
+        $this->assertSame('ES', $centre->country);
         $this->assertSame([['what' => 'Cuota mensual', 'amount' => '320 €'], ['what' => 'Comedor', 'amount' => '6 € al día'],
             ['what' => 'Uniforme aparte', 'amount' => '']], costs::rows($centre));
         $this->assertFalse(costs::shown($centre, false));
@@ -128,6 +132,7 @@ final class costs_test extends \advanced_testcase {
         $this->assertSame('Si algún día cambian de idea, aquí seguimos.', $context['lead']);
         $this->assertTrue($context['pegs']['resting']);
         $this->assertTrue($context['quiet']);
+        $this->assertFalse($context['nowband'], 'Nothing of the next visit or of when admissions open.');
     }
 
     /**

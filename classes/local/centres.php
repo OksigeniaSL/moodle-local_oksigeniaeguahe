@@ -70,6 +70,13 @@ class centres {
      */
     public static function update(int $id, \stdClass $data): void {
         global $DB;
+        // What is not passed keeps what the centre had: a change of a few fields never empties the rest.
+        $data = clone $data;
+        foreach ((array) ($DB->get_record(self::T, ['id' => $id]) ?: []) as $field => $value) {
+            if (!property_exists($data, $field)) {
+                $data->$field = $value;
+            }
+        }
         $row = self::clean($data);
         $row->id = $id;
         $row->timemodified = time();

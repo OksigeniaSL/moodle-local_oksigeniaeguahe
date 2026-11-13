@@ -411,6 +411,10 @@ class familypage {
         if (!$whyother && !empty($flags['whyother'])) {
             $whyother = ['done' => publiclang::str('pub_whyother_thanks', $lang)];
         }
+        if ($allclosed) {
+            // Every way closed: no next visit nor «when admissions open», only thanks.
+            $band = false;
+        }
         // What it all costs, when the centre shows it: from the start, or once they came (costs).
         $costs = !$allclosed && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
         // A child on the waiting list: said plainly, with nothing of the places of the course.

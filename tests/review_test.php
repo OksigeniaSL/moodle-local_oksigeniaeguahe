@@ -325,7 +325,9 @@ final class review_test extends \advanced_testcase {
         $this->assertNull($centre->applyurl);
         $this->assertEquals($from, $centre->applyfrom);
         $this->assertEquals($until, $centre->applyuntil);
-        centres::update((int) $this->centre->id, (object) ['applyhow' => '', 'applyurl' => 'https://example.com/admision']);
+        // The settings always send both days, 0 when they are cleared; what is not sent is kept.
+        centres::update((int) $this->centre->id, (object) ['applyhow' => '', 'applyurl' => 'https://example.com/admision',
+            'applyfrom' => 0]);
         $centre = centres::get((int) $this->centre->id);
         $this->assertNull($centre->applyhow);
         $this->assertSame('https://example.com/admision', $centre->applyurl);

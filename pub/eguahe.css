@@ -5178,10 +5178,41 @@ button.enlace span {
     cursor: pointer;
 }
 
-/* A family whose every way is closed: what hung rests on the shelf, straight and off its knob (Jujol). */
+/* A family whose every way is closed: what hung stands on a shelf, off its knob, a little leaning, with a short
+   shadow where it touches the wood (Jujol). The shelf runs under all of them. */
+.perchas.apoyadas {
+    position: relative;
+}
+
+.perchas.apoyadas::after {
+    content: "";
+    position: absolute;
+    inset-inline: var(--g);
+    bottom: 8px;
+    height: 12px;
+    border-radius: 2px;
+    background:
+        linear-gradient(
+            to bottom,
+            var(--eg-madera-luz) 0 2px,
+            var(--eg-madera) 2px calc(100% - 3px),
+            var(--eg-madera-sombra) calc(100% - 3px)
+        );
+    box-shadow: 0 10px 14px -10px var(--eg-sombra);
+}
+
+@media (min-width: 960px) {
+    .perchas.apoyadas::after {
+        bottom: 36px;
+    }
+}
+
 .perchas.apoyadas .colgante {
     --reposo: 0deg;
-    transform: translateY(16%);
+    margin-top: 28px;
+    transform: rotate(-6deg);
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 3px 1.5px rgba(40, 25, 15, 0.3));
 }
 
 .perchas.apoyadas .colgante .gancho,
