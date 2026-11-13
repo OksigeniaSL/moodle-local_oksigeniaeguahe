@@ -613,7 +613,7 @@ class familypage {
      * @param \stdClass $centre
      * @param \stdClass|null $signup Their next visit.
      * @param string $lang
-     * @return array|false src, narrow (for phones, or '') and caption.
+     * @return array|false src, narrow (for phones, or ''), caption (its alt), here and way (what each mark is), slide.
      */
     public static function miniature_context(\stdClass $centre, ?\stdClass $signup, string $lang) {
         global $DB;
@@ -630,7 +630,10 @@ class familypage {
             return false;
         }
         return ['src' => $src->out(false), 'narrow' => $narrow && $way ? $narrow->out(false) : '',
-            'caption' => publiclang::str($parking ? 'pub_miniature_parking' : 'pub_miniature', $lang)];
+            'caption' => publiclang::str($parking ? 'pub_miniature_parking' : 'pub_miniature', $lang),
+            // What each mark of the picture is: the pin and the dotted way (Jujol).
+            'here' => publiclang::str('pub_miniature_here', $lang), 'way' => publiclang::str('pub_miniature_way', $lang),
+            'slide' => publiclang::str('pub_miniature_slide', $lang)];
     }
 
     /**

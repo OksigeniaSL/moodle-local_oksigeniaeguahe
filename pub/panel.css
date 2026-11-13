@@ -13678,6 +13678,22 @@ details.aj-plegado > summary h2::after {
     }
 }
 
+/* An act that shows where to park: its box, with the miniature of where to park small beside it (Jujol). */
+.acto-aparcar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.acto-aparcar img {
+    flex: none;
+    order: -1;
+    width: auto;
+    height: 64px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+}
+
 /* The miniature of the centre: three pictures, each in its frame, as families will see them. */
 .aj-miniaturas {
     display: grid;

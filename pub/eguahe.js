@@ -863,6 +863,16 @@
                 }
             }
         };
+        // Where the way of a miniature ends (its pin), as a part of its width: the last point of its «ruta» path.
+        var pinAt = function(svg) {
+            var box = /viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)/.exec(svg);
+            var way = /<path[^>]*class="ruta"[^>]*\sd="([^"]*)"|<path[^>]*\sd="([^"]*)"[^>]*class="ruta"/.exec(svg);
+            var nums = way ? (way[1] || way[2]).match(/-?\d+(?:\.\d+)?/g) : null;
+            if (!box || !nums || nums.length < 2) {
+                return 0.5;
+            }
+            return Math.min(1, Math.max(0, parseFloat(nums[nums.length - 2]) / parseFloat(box[1])));
+        };
         var show = function(src, alt, close, origin) {
             shut();
             from = origin;
@@ -877,7 +887,49 @@
             var button = document.createElement('button');
             button.type = 'button';
             button.textContent = close;
-            viewer.appendChild(img);
+            var slide = origin ? origin.getAttribute('data-deslizar') : null;
+            if (slide !== null) {
+                // The miniature of the centre: on a phone it slides sideways, opened at its pin, and pinching works.
+                viewer.className += ' visor-miniatura';
+                var hint = document.createElement('span');
+                hint.className = 'visor-pista';
+                hint.textContent = slide;
+                var box = document.createElement('div');
+                box.className = 'visor-caja';
+                box.setAttribute('dir', 'ltr');
+                box.appendChild(img);
+                box.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+                viewer.appendChild(hint);
+                viewer.appendChild(box);
+                var at = function(part) {
+                    if (box.scrollWidth > box.clientWidth) {
+                        box.scrollLeft = Math.max(0, part * img.offsetWidth - box.clientWidth / 2);
+                    }
+                };
+                var place = function() {
+                    if (!window.fetch) {
+                        at(0.5);
+                        return;
+                    }
+                    window.fetch(src, {credentials: 'same-origin'}).then(function(r) {
+                        var svg = /svg/.test(r.headers.get('Content-Type') || '');
+                        return svg ? r.text() : '';
+                    }).then(function(text) {
+                        at(text ? pinAt(text) : 0.5);
+                    }).catch(function() {
+                        at(0.5);
+                    });
+                };
+                if (img.complete) {
+                    place();
+                } else {
+                    img.addEventListener('load', place);
+                }
+            } else {
+                viewer.appendChild(img);
+            }
             viewer.appendChild(button);
             viewer.addEventListener('click', shut);
             document.body.appendChild(viewer);

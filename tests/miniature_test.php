@@ -70,6 +70,8 @@ final class miniature_test extends \advanced_testcase {
         $way = familypage::miniature_context($centre, $visit, 'es');
         $this->assertStringContainsString('/miniature/' . $id . '/miniature.svg', $way['src']);
         $this->assertStringContainsString('/miniaturenarrow/', $way['narrow']);
+        $this->assertNotEmpty($way['here']);
+        $this->assertNotEmpty($way['way']);
 
         // A big act: where to park, the whole, with no cut for phones.
         $park = familypage::miniature_context($centre, $openday, 'es');

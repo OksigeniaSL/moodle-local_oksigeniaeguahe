@@ -37,7 +37,7 @@
         "daydate": {"id": "acto-dia", "first": "acto-diad", "form": false, "child": false, "invalid": false, "labelled": true,
             "arialabel": false, "describedby": false, "mirror": {"vivo": "dia"}, "value": "",
             "parts": [{"key": "d", "id": "acto-diad", "name": "dayd", "label": "Día", "value": "", "size": 2, "months": false}]},
-        "place": {"value": "", "error": ""}, "parkingon": true, "parking": false, "placehelp": "Tal como lo leerán.", "capacity": "", "open": false, "load": null,
+        "place": {"value": "", "error": ""}, "parkingon": true, "parkingimg": "#", "parking": false, "placehelp": "Tal como lo leerán.", "capacity": "", "open": false, "load": null,
         "hasslots": false, "slots": [], "emptyslot": {"i": 0, "n": 1, "start": "", "minutes": 45, "capacity": ""},
         "strip": {"from": "10:00", "to": "13:00", "ticks": [{"left": 0, "text": "10:00"}]},
         "hashosts": true, "nohosts": "", "hosts": [{"id": 2, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM", "role": "Tutora", "checked": false}],
@@ -86,7 +86,7 @@
                     </div>
                     {{#whenerror}}<p class="error" id="acto-cuando-e">{{.}}</p>{{/whenerror}}
                     <div class="campo"><label for="acto-donde">{{#str}}event_place, local_oksigeniaeguahe{{/str}}</label><input id="acto-donde" name="place" value="{{place.value}}" data-vivo="donde" aria-describedby="acto-donde-a"><span class="ayuda" id="acto-donde-a">{{placehelp}}</span></div>
-                    {{#parkingon}}<label class="casilla"><input type="checkbox" name="parking" value="1"{{#parking}} checked{{/parking}}><span>{{#str}}event_parking, local_oksigeniaeguahe{{/str}}</span></label>{{/parkingon}}
+                    {{#parkingon}}<div class="acto-aparcar"><label class="casilla"><input type="checkbox" name="parking" value="1"{{#parking}} checked{{/parking}}><span>{{#str}}event_parking, local_oksigeniaeguahe{{/str}}</span></label><img src="{{parkingimg}}" alt="{{#str}}panel_event_parking_img, local_oksigeniaeguahe{{/str}}" height="64" loading="lazy"></div>{{/parkingon}}
                 </fieldset>
                 <fieldset class="apartado turnos-campo" data-turnos>
                     <legend><h2>{{#str}}panel_event_turns, local_oksigeniaeguahe{{/str}}</h2></legend>

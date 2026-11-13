@@ -590,7 +590,8 @@ class panel_eventform {
             'whenerror' => $errors['when'] ?? '',
             'place' => ['value' => $values['place'], 'error' => ''],
             // Where to park, on the miniature of the centre: only when the centre has one that shows it.
-            'parkingon' => centres::miniature((int) $centre->id, 'miniatureparking') !== null,
+            'parkingon' => ($parkingimg = centres::miniature((int) $centre->id, 'miniatureparking')) !== null,
+            'parkingimg' => $parkingimg ? $parkingimg->out(false) : '',
             'parking' => !empty($values['parking']),
             'placehelp' => get_string('panel_place_help', $c),
             'capacity' => $values['capacity'],
