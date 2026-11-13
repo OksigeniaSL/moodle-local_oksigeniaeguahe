@@ -301,6 +301,30 @@ class share {
     }
 
     /**
+     * The name of the centre after «to» in a language: «al Colegio Los Arces», «à Escola do Sol», «Riverside School»
+     * (the sentence of each language carries its own word when it needs one).
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function to_centre(\stdClass $centre, string $lang): string {
+        $phrase = self::phrase($centre, $lang);
+        $contract = ['es' => ['el ' => 'al ', 'la ' => 'a la ', 'los ' => 'a los ', 'las ' => 'a las '],
+            'pt' => ['o ' => 'ao ', 'a ' => 'à ', 'os ' => 'aos ', 'as ' => 'às ']];
+        $contract['pt_br'] = $contract['pt'];
+        if (!isset($contract[$lang])) {
+            return $phrase;
+        }
+        foreach ($contract[$lang] as $article => $joined) {
+            if (\core_text::strpos(\core_text::strtolower($phrase), $article) === 0) {
+                return $joined . \core_text::substr($phrase, \core_text::strlen($article));
+            }
+        }
+        return 'a ' . $phrase;
+    }
+
+    /**
      * The gift of the centre that closes a piece: «Un regalo del Colegio Los Arces».
      *
      * @param \stdClass $centre

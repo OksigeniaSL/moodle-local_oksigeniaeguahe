@@ -134,8 +134,8 @@ final class familymail_test extends \advanced_testcase {
         [$household, $token] = $this->family();
         $signup = familymail::signup($household, (int) $this->event->id);
         [$subject, $html, $text, $images] = familymail::build('confirmation', $household, $this->centre, $signup, 'es', $token);
-        $this->assertStringStartsWith('Ya está: los esperamos el ', $subject);
-        $this->assertStringContainsString('Abrir nuestra página', $html);
+        $this->assertStringStartsWith('Los esperamos el ', $subject);
+        $this->assertStringContainsString('Abrir su página', $html);
         $this->assertStringContainsString('Lucía', $html);
         $this->assertStringContainsString('Leo y Íñigo', $text);
         $this->assertStringNotContainsStringIgnoringCase('eguahe.', $html);
@@ -166,7 +166,7 @@ final class familymail_test extends \advanced_testcase {
         send_reminders::$testnow = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j'), 12, 0);
         (new send_reminders())->execute();
         $this->assertCount(1, $sink->get_messages());
-        $this->assertStringStartsWith('Mañana los esperamos', $sink->get_messages()[0]->subject);
+        $this->assertStringStartsWith('Mañana ', $sink->get_messages()[0]->subject);
         (new send_reminders())->execute();
         $this->assertCount(1, $sink->get_messages(), 'Once.');
 

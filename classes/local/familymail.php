@@ -180,6 +180,23 @@ class familymail {
         }
         $strong = '<strong>' . s($parts['long']) . '</strong>';
         $plain = $parts['long'];
+        // When to come: at its hour for a turn or a short visit; any time within its hours for a long open act.
+        $lower = fn(string $s) => \core_text::strtolower(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
+        $open = empty($signup->slotid) && (int) $signup->timeend - (int) $signup->timestart >= 2 * HOURSECS;
+        $when = $open ? $lower($hours) : $str('mail_at_hour', $parts['hour']);
+        // The day with its hour, for the first line: «el sábado 21 de noviembre, a las 10:00, los recibe…». Each language
+        // puts its own commas: the lead of English and Portuguese already has one after the date.
+        // From right to left, a mark of that direction first: the day and the hour are isolated each on their own, so
+        // nothing else would tell the isolate around both which way it goes, and the hour came before the day.
+        $rlm = lists::dir($lang) === 'rtl' ? "\u{200F}" : '';
+        $strongwhen = $rlm . $str('mail_date_when', (object) ['date' => $strong, 'when' => s($when)]);
+        $plainwhen = $rlm . $str('mail_date_when', (object) ['date' => $plain, 'when' => $when]);
+        // The centre in a sentence, with its article: «al Colegio Los Arces», «del Colegio Los Arces».
+        $to = share::to_centre($centre, $lang);
+        $from = share::from_centre($centre, $lang);
+        // Why they get it, by the moment: they signed up, came, wrote, asked for a visit or are a family of the centre.
+        $why = ['thanks' => 'mail_why_came', 'received' => 'mail_why_wrote', 'reply' => 'mail_why_wrote',
+            'request' => 'mail_why_request', 'renewal' => 'mail_why_family'][$kind] ?? 'mail_why';
         $older = ages::older(array_values($full->children), $centre);
         $lead = function (string $date) use ($host, $tags, $names, $str, $older): string {
             $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
@@ -191,11 +208,23 @@ class familymail {
             'dia_semana' => $ucfirst($parts['weekday']),
             'dia_mes' => $parts['daymonth'],
             'acto' => format_string($signup->eventname),
-            'hora' => $hours,
+            'hora' => $open ? $str('mail_hours_open', $lower($hours)) : $hours .
+                (!empty($signup->slotid) ? ' · ' . $str('pub_your_turn') : ''),
             'lugar' => $place,
             'personas' => publiclang::count('pub_people_one', 'pub_people_count', (int) $signup->people, $lang),
         ];
         $calendar = $icsurl ? ['texto' => $str('pub_add_calendar'), 'url' => $icsurl, 'url_texto' => $icsurl] : null;
+        // The phone of the centre in a sentence: left to right and in one piece, also inside Arabic.
+        $phonelink = '<a class="eg-enlace" dir="ltr" href="tel:' . s($tel) . '" style="color:' .
+            s(self::colours($colour)['acento_texto']) . '; text-decoration:underline; white-space:nowrap;">' . s($phone) . '</a>';
+        // Not coming after all: one touch on their page, where the visit has its «We cannot come»; or a call.
+        $cantgo = $pageurl && $signup->eventid ? $pageurl . '#no-podemos-' . (int) $signup->eventid : '';
+        $cantcome = $cantgo ? [
+            'titulo' => $str('mail_cant_come'),
+            'texto' => $phone !== '' ? $str('mail_cant_come_page_phone', $phonelink) : $str('mail_cant_come_page'),
+            'texto_plano' => $phone !== '' ? $str('mail_cant_come_page_phone', $phone) : $str('mail_cant_come_page'),
+            'enlace' => ['texto' => $str('mail_cant_come_go'), 'url' => $cantgo, 'url_texto' => $cantgo],
+        ] : null;
         $map = $mapurl ? ['texto' => $str('pub_how_get'), 'url' => $mapurl, 'url_texto' => $mapurl] : null;
         $context = [
             'lang' => $lang === 'pt_br' ? 'pt-BR' : $lang,
@@ -210,6 +239,8 @@ class familymail {
                 'placa_ancho' => $plate[1],
                 'placa_alto' => $plate[2],
                 'nombre_visible' => true,
+                // Without a logo, its initials on its colour, as at the head of its pages.
+                'iniciales' => publicpage::initials(format_string($centre->name)),
                 'direccion' => $address,
                 'telefono' => $phone,
                 'telefono_url' => $tel !== '' ? 'tel:' . $tel : '',
@@ -218,7 +249,7 @@ class familymail {
             'nombres' => $names,
             'etiquetas_filas' => $rows,
             'pie' => [
-                'porque' => $str('mail_why', format_string($centre->name)),
+                'porque' => $str($why, $kind === 'renewal' ? $from : $to),
                 'datos_texto' => $str('pub_privacy_link'),
                 'datos_url' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
                     'idioma' => $lang]))->out(false),
@@ -251,25 +282,30 @@ class familymail {
             ];
         } else if ($kind === 'confirmation') {
             $context += [
-                'asunto' => $str('mail_confirm_subject', $plain),
+                'asunto' => $str('mail_confirm_subject', (object) ['date' => $plain, 'when' => $when]),
                 'preencabezado' => $str($tags ? 'mail_confirm_preheader' : 'mail_confirm_preheader_nochild', $names),
-                'entradilla' => $lead($strong),
-                'entradilla_texto' => html_to_text($lead(s($plain)), 0, false),
+                'entradilla' => $lead($strongwhen),
+                'entradilla_texto' => html_to_text($lead(s($plainwhen)), 0, false),
                 'aviso' => ['titulo' => $str('mail_saved_title'), 'texto' => $str('mail_saved_text')],
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
+                'secciones' => $cantcome ? [$cantcome] : null,
                 'nota' => $str('mail_note_confirm'),
             ];
         } else if ($kind === 'received') {
             // A family that wrote through a form or an entry: it was received, and a person will answer.
+            // The thanks go to whoever wrote, never to the child: no label under the heading.
+            $days = publiclang::count('pub_reply_day', 'pub_reply_days', max(1, (int) ($centre->replydays ?? 2)), $lang);
             $context['titular'] = $str('mail_received_titular');
+            $context['etiquetas_filas'] = [];
+            $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_received_subject'),
-                'preencabezado' => $str('mail_received_lead'),
-                'entradilla' => s($str('mail_received_lead')),
-                'entradilla_texto' => $str('mail_received_lead'),
+                'preencabezado' => $str('mail_received_lead', $days),
+                'entradilla' => s($str('mail_received_lead', $days)),
+                'entradilla_texto' => $str('mail_received_lead', $days),
                 'aviso' => ['titulo' => $str('mail_saved_title_received'), 'texto' => $str('mail_saved_text')],
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
@@ -279,6 +315,8 @@ class familymail {
             // What a person of the team writes, as it was written, with its page below.
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
             $context['titular'] = $str('mail_reply_titular');
+            $context['etiquetas_filas'] = [];
+            $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_reply_subject', format_string($centre->name)),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', $text), 0, 120),
@@ -292,6 +330,8 @@ class familymail {
             // The team changed the hour, the place or who receives them: what it is now, with its band and calendar.
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
             $context['titular'] = $str('mail_change_titular');
+            $context['etiquetas_filas'] = [];
+            $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_change_subject', format_string($signup->eventname)),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', end($paragraphs) ?: $text), 0, 120),
@@ -310,6 +350,8 @@ class familymail {
             $lead = $str('mail_cancelled_lead', $a);
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
             $context['titular'] = $str('mail_cancelled_titular');
+            $context['etiquetas_filas'] = [];
+            $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_cancelled_subject', $a),
                 'preencabezado' => $lead,
@@ -333,23 +375,42 @@ class familymail {
                 'n' => $count];
             $key = $survey ? 'mail_thanks_survey' : ($host !== '' ? 'mail_thanks_ask_host' : 'mail_thanks_ask_team');
             $text = $str($key, $a);
-            $leadtext = $host !== '' ? $str('pub_lead_after_host', s($host)) : $str('pub_lead_after_team');
+            $leadtext = s($str('pub_lead_after_short'));
             $go = $pageurl ? $pageurl . ($survey ? '#como-fue' : '#pregunta') : '';
+            // How to ask for a place, as the centre wrote it and as their page says it.
+            $offers = centres::offers((int) $centre->id);
+            $year = '';
+            foreach ($full->children as $child) {
+                $year = $year ?: (string) ($offers[$child->offerid]->schoolyear ?? '');
+            }
+            $apply = familypage::apply_context($centre, $year, $lang, time());
+            $applytext = trim(($apply['when'] ? trim($apply['when']['line'] . ' ' . $apply['when']['day']) . '. ' : '') .
+                $apply['how']);
+            $applysection = $applytext !== '' && $apply['next'] === '' ? [
+                'titulo' => $apply['label'],
+                'texto' => ($apply['when'] ? '<strong>' . s(trim($apply['when']['line'] . ' ' . $apply['when']['day'])) .
+                    '.</strong> ' : '') . nl2br(s($apply['how']), false),
+                'texto_plano' => $applytext,
+                'enlace' => $apply['go'] ? ['texto' => $apply['go']['label'], 'url' => $apply['go']['url'],
+                    'url_texto' => $apply['go']['url']] : ($pageurl ? ['texto' => $str('mail_apply_page'),
+                    'url' => $pageurl . '#pedir-plaza', 'url_texto' => $pageurl] : null),
+            ] : null;
             $context['titular'] = $str($tags ? 'pub_thanks' : 'pub_thanks_nochild');
             $context += [
-                'asunto' => $str('mail_thanks_subject', format_string($centre->name)),
+                'asunto' => $str('mail_thanks_subject', $to),
                 'preencabezado' => $str($survey ? 'mail_thanks_preheader_survey' : 'mail_thanks_preheader'),
                 'entradilla' => $leadtext,
                 'entradilla_texto' => html_to_text($leadtext, 0, false),
-                'secciones' => [[
+                'secciones' => array_merge($applysection ? [$applysection] : [], [[
                     'titulo' => $str($survey ? 'pub_howitwent' : 'pub_after_question'),
                     'texto' => s($text),
                     'texto_plano' => $text,
                     'enlace' => $go ? ['texto' => $survey ? $str('mail_thanks_go_survey') : ($host !== '' ?
                         $str('mail_thanks_go_host', $host) : $str('mail_thanks_go_team')), 'url' => $go, 'url_texto' => $go] :
                         null,
-                ]],
-                'nota' => $str('mail_note_reply'),
+                ]]),
+                // The question above already says how to write to them.
+                'nota' => null,
             ];
         } else if ($kind === 'renewal') {
             // The centre asks whether its children go on next school year; they answer on their page, before the day.
@@ -359,10 +420,13 @@ class familymail {
             $asked = array_map(fn($row) => familypage::label_name($row[0]), renewal::children($centre, (int) $household->id));
             $a = (object) ['names' => familypage::join(array_values(array_filter($asked)) ?: $tags, $lang), 'year' => $year,
                 'until' => $until ? publicpage::date_parts($until - DAYSECS, $lang)['daymonth'] : ''];
-            $leadkey = $until ? 'mail_renewal_lead' : 'mail_renewal_lead_nodate';
-            $context['titular'] = $str('mail_renewal_titular', $year);
+            $leadkey = $year === '' ? 'mail_renewal_lead_noyear' : ($until ? 'mail_renewal_lead' : 'mail_renewal_lead_nodate');
+            $context['titular'] = $year !== '' ? $str('mail_renewal_titular', $year) : $str('mail_renewal_titular_noyear');
+            // A question for heading: the names go in the line under it, not after the question mark.
+            $context['nombres'] = '';
             $context += [
-                'asunto' => $str('mail_renewal_subject', (object) ['centre' => format_string($centre->name), 'year' => $year]),
+                'asunto' => $str('mail_renewal_subject' . ($year !== '' ? '' : '_noyear'), (object) [
+                    'centre' => format_string($centre->name), 'year' => $year]),
                 'preencabezado' => $str('mail_renewal_preheader', $a),
                 'entradilla' => s($str($leadkey, $a)),
                 'entradilla_texto' => $str($leadkey, $a),
@@ -387,13 +451,14 @@ class familymail {
             // How they get in on the day, as the centre wrote it.
             $arrive = trim((string) ($centre->arrive ?? ''));
             $context['titular'] = $str($tags ? 'mail_tomorrow' : 'mail_tomorrow_nochild');
-            $a = (object) ['date' => $plain, 'hour' => $parts['hour'], 'host' => s($host)];
-            $leadkey = $host !== '' ? 'mail_reminder_lead' : 'mail_reminder_lead_team';
+            $a = (object) ['date' => $plain, 'hour' => $parts['hour'], 'host' => s($host), 'hours' => $lower($hours)];
+            $leadkey = ($host !== '' ? 'mail_reminder_lead' : 'mail_reminder_lead_team') . ($open ? '_open' : '');
             $a->date = $strong;
             $html = $str($leadkey, $a);
             $a->date = s($plain);
             $context += [
-                'asunto' => $str($tags ? 'mail_reminder_subject' : 'mail_reminder_subject_nochild', $names),
+                'asunto' => $str($tags ? 'mail_reminder_subject' : 'mail_reminder_subject_nochild', (object) ['names' => $names,
+                    'when' => $when]),
                 'preencabezado' => trim($ucfirst($plain) . ', ' . \core_text::strtolower(\core_text::substr($hours, 0, 1)) .
                     \core_text::substr($hours, 1) . ($place !== '' ? ', ' . $place : '') . '.' .
                     ($host !== '' ? ' ' . $str('mail_reminder_preheader_host', $host) : '')),
@@ -407,12 +472,10 @@ class familymail {
                     'texto' => nl2br(s($arrive), false),
                     'texto_plano' => $arrive,
                     'enlace' => $map,
-                ]] : [], [[
+                ]] : [], $cantcome ? [$cantcome] : [[
                     'titulo' => $str('mail_cant_come'),
                     'titulo_texto' => $str('mail_cant_come'),
-                    'texto' => $phone !== '' ? $str('mail_cant_come_text', '<a class="eg-enlace" href="tel:' . s($tel) .
-                        '" style="color:' . s(self::colours($colour)['acento_texto']) . '; text-decoration:underline;">' .
-                        s($phone) . '</a>') : $str('mail_cant_come_text_nophone'),
+                    'texto' => $phone !== '' ? $str('mail_cant_come_text', $phonelink) : $str('mail_cant_come_text_nophone'),
                     'texto_plano' => $phone !== '' ? $str('mail_cant_come_text', $phone) : $str('mail_cant_come_text_nophone'),
                     'enlace' => !empty($centre->email) ? ['texto' => $str('pub_write_us'), 'url' => 'mailto:' . $centre->email,
                         'url_texto' => $centre->email] : null,
@@ -420,12 +483,11 @@ class familymail {
             ];
         } else {
             $context += [
-                'asunto' => $str('mail_invite_subject', (object) ['centre' => format_string($centre->name),
-                    'date' => $plain]),
+                'asunto' => $str('mail_invite_subject', (object) ['centre' => $to, 'date' => $plain, 'when' => $when]),
                 'preencabezado' => $host !== '' ? $str('mail_invite_preheader', (object) ['names' => $names,
-                    'host' => $hosts[0]->name, 'hour' => $parts['hour']]) : $ucfirst($plain) . ', ' . $hours . '.',
-                'entradilla' => $lead($strong),
-                'entradilla_texto' => html_to_text($lead(s($plain)), 0, false),
+                    'host' => $hosts[0]->name, 'hour' => $parts['hour']]) : $ucfirst($plain) . ', ' . $lower($hours) . '.',
+                'entradilla' => $lead($strongwhen),
+                'entradilla_texto' => html_to_text($lead(s($plainwhen)), 0, false),
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
                 'anfitriones' => $portraits ? ['titulo' => $str('pub_receives'), 'sub' => $str('pub_receives_sub'),
                     'filas' => array_map(

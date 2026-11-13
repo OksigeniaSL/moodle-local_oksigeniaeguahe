@@ -280,7 +280,7 @@ final class survey_test extends \advanced_testcase {
         (new send_thanks())->execute();
         $messages = $sink->get_messages();
         $this->assertCount(1, $messages);
-        $this->assertSame('Gracias por venir a Colegio de ejemplo', $messages[0]->subject);
+        $this->assertSame('Gracias por venir al Colegio de ejemplo', $messages[0]->subject);
         $this->assertSame('leo@example.com', $messages[0]->to);
         (new send_thanks())->execute();
         $this->assertCount(1, $sink->get_messages(), 'Once.');

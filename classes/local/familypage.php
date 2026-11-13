@@ -577,7 +577,7 @@ class familypage {
      * @param int $now
      * @return array open (it can be asked now), when (line and day), year, how, go (url, label), help, next, summary
      */
-    protected static function apply_context(\stdClass $centre, string $year, string $lang, int $now): array {
+    public static function apply_context(\stdClass $centre, string $year, string $lang, int $now): array {
         $s = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $day = fn(int $time) => publicpage::date_parts($time, $lang)['daymonth'];
         $from = (int) ($centre->applyfrom ?? 0);

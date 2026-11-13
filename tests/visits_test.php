@@ -118,7 +118,7 @@ final class visits_test extends \advanced_testcase {
         $signup = familymail::signup($household, (int) $visit->id);
         [$subject, $html] = familymail::build('invitation', $household, $this->centre, $signup, 'es', $second);
         $this->assertStringContainsString('Lucía Medina', $html);
-        $this->assertStringStartsWith('Su visita a Colegio de ejemplo', $subject);
+        $this->assertStringStartsWith('Su visita al Colegio de ejemplo', $subject);
         $page = familypage::context($household, $this->centre, 'es', $second, false);
         $this->assertTrue($page['hasnext']);
         $this->assertSame('Visita con Lucía', $page['first']['name']);
