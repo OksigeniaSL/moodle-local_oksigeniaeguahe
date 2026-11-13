@@ -13041,29 +13041,59 @@ button.padron-pomo-no::after {
 }
 
 /* Those enrolled, as the rail of the course: a peg per place, those taken with something hanging. */
+/* The places of a course on its card: the coat rail of the inbox and Cifras, small (Jujol, one way to draw places).
+   Planks of the same wood, one turned peg for each place, and for each one enrolled what hangs from it in the colour
+   of the backpacks; ten pegs a plank. */
 .of-riel {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 0 3px;
+    max-width: 117px;
+    padding: 0 3px;
+    border-radius: 2px;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0 2px,
+            var(--eg-madera) 2px 4px,
+            var(--eg-madera-sombra) 4px 7px,
+            transparent 7px 18px
+        );
 }
 
 .of-riel i {
-    width: 7px;
-    height: 7px;
+    position: relative;
+    width: 8px;
+    height: 18px;
+}
+
+.of-riel i::before {
+    content: '';
+    position: absolute;
+    top: 0.5px;
+    left: 0;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--eg-hundido);
-    box-shadow: inset 0 0 0 1px var(--eg-borde);
+    background: radial-gradient(circle at 36% 34%, var(--eg-gancho-luz), var(--eg-gancho) 62%);
+    box-shadow: 0 1px 1px rgba(40, 20, 8, 0.28);
 }
 
-.of-riel i.ya {
-    background: var(--eg-acento);
-    box-shadow: none;
+.of-riel i.ya::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0.5px;
+    width: 7px;
+    height: 10px;
+    border-radius: 2.5px 2.5px 2px 2px;
+    background: var(--eg-mochila);
+    box-shadow: inset 0 -3px 0 var(--eg-mochila-sombra);
+    transform: rotate(-4deg);
 }
 
-.of-riel-mucho i {
-    width: 5px;
-    height: 5px;
-    gap: 2px;
+.of-riel i.ya:nth-child(even)::after {
+    transform: rotate(3deg);
 }
 
 .of-matric {
@@ -14715,4 +14745,9 @@ details.aj-plegado > summary h2::after {
     .una-hoja-partes li {
         break-inside: avoid;
     }
+}
+
+/* Cifras: the courses of the year without places, in one line with the way to put them (Jujol, piece 8). */
+.sin-plazas {
+    margin: 4px 0 0;
 }

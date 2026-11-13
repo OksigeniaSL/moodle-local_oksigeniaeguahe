@@ -85,15 +85,25 @@ class panel_events {
         $firsttime = !$all ? ['text' => get_string('panel_events_first', $c), 'button' => $canact ? ['url' =>
             (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'new' => 1]))->out(false),
             'name' => get_string('panel_events_first_go', $c)] : false] : false;
+        // The heading: the first time, that there is nothing yet; else the next act, or that none is ahead.
+        if ($firsttime) {
+            $title = get_string('panel_events_first_title', $c);
+        } else if ($next) {
+            $title = get_string('panel_events_next', $c, (object) ['name' => format_string($next->name),
+                'day' => userdate((int) $next->timestart, '%A %d')]);
+        } else {
+            $title = get_string('panel_events_none', $c);
+        }
+        // The first time, the card below has the one button.
+        $newurl = (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'new' => 1]))->out(false);
         return [
             'firsttime' => $firsttime,
             'week' => $firsttime ? false : self::week($centre, $all, $hosts, $now),
             'head' => panel::head([
-                'title' => $next ? get_string('panel_events_next', $c, (object) ['name' => format_string($next->name),
-                    'day' => userdate((int) $next->timestart, '%A %d')]) : get_string('panel_events_none', $c),
+                'title' => $title,
                 'sub' => implode(' ', $sub),
-                'action' => $canact ? ['url' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id,
-                    'new' => 1]))->out(false), 'name' => get_string('event_new', $c), 'icon' => panel::icon('mas1')] : null,
+                'action' => $canact && !$firsttime ? ['url' => $newurl, 'name' => get_string('event_new', $c),
+                    'icon' => panel::icon('mas1')] : null,
             ]),
             'ahead' => array_map(fn($e) => self::row($e, $hosts, $now), $ahead),
             'hasahead' => (bool) $ahead,

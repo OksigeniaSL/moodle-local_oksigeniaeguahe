@@ -314,6 +314,8 @@ class panel_metrics {
                 'url' => $url(['sheet' => $key] + ($key === 'curso' ? ['course' => ''] : []))->out(false),
                 'current' => $on($key)];
         }
+        $placelist = $campaign['import'] || !$on('campana') ? null :
+            self::places($centre, $families, $course, $previous, $campaign, $elapsed);
         $context = [
             'sheets' => $sheets,
             'sheetcampaign' => $on('campana'),
@@ -377,9 +379,10 @@ class panel_metrics {
                 $now,
                 !empty($view['whole'])
             ) : null,
-            // The places of this year only for the campaign under way: an imported one is about another year.
-            'places' => $campaign['import'] || !$on('campana') ? null :
-                self::places($centre, $families, $course, $previous, $campaign, $elapsed),
+            // The places of this year only for the campaign under way: an imported one is about another year. Each
+            // course with places on its coat rail; those without, named in one line, never an empty rail each.
+            'places' => $placelist === null ? null : array_values(array_filter($placelist, fn($p) => $p['places'] > 0)),
+            'noplaces' => $placelist ? self::unplaced($placelist, $centre) : false,
             'hasplaces' => !$campaign['import'] && $on('campana'),
             'placesdef' => get_string('panel_coming_def', $c),
             'started' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::started((int) $centre->id),
@@ -1002,6 +1005,29 @@ class panel_metrics {
                 'mid' => $rows ? $rows[0]['mid'] : false, 'high' => $rows ? $rows[0]['high'] : false];
         }
         return $out;
+    }
+
+    /**
+     * The courses of the year without places, named in one line with the way to the settings where they are put; false
+     * when every course has them.
+     *
+     * @param array $places From places().
+     * @param \stdClass $centre
+     * @return array|false text, url (false without the right to change the settings), link
+     */
+    protected static function unplaced(array $places, \stdClass $centre) {
+        $names = array_column(array_filter($places, fn($p) => !$p['places']), 'name');
+        if (!$names) {
+            return false;
+        }
+        // The way to put them, only for whoever may change the settings: Cifras is also read by who only looks.
+        $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
+        return [
+            'text' => get_string('panel_places_unset', self::C, familypage::join($names, current_language())),
+            'url' => $manage ? (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id], 'aj-oferta'))
+                ->out(false) : false,
+            'link' => get_string('panel_places_unset_go', self::C),
+        ];
     }
 
     /**
