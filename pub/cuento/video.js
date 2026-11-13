@@ -1683,8 +1683,9 @@
             }, 30, V.gift, '600 ' + gs + 'px ' + SANS, k.accentText, BOX_BOTTOM - 26);
             c.restore();
         }
+        // The seal of Eguahe, when the site shows who makes it.
         var seal = smooth(e.seal, e.seal + 0.9, t);
-        if (seal > 0) {
+        if (seal > 0 && V.credit) {
             c.save();
             c.globalAlpha *= seal;
             signed(c, function(x, y, size) {

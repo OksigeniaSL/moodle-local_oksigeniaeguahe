@@ -484,8 +484,8 @@ class story {
                 publiclang::str('firstday_download_name', $lang)
             ))),
             'gift' => share::gift($centre, $lang),
-            'credit' => publiclang::str('credit_name', $lang),
-            'mark' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
+            'credit' => publicpage::credit_on() ? publiclang::str('credit_name', $lang) : '',
+            'mark' => publicpage::credit_on() ? $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg' : '',
             'accent' => $vars['--c-acento'],
             'accentText' => $vars['--c-acento-texto'],
             'words' => ['preparing' => $s('preparing'), 'send' => $s('send'), 'save' => $s('save'), 'close' => $s('close'),

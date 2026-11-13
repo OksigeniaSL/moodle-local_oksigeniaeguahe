@@ -133,6 +133,7 @@ final class familymail_test extends \advanced_testcase {
     public function test_confirmation(): void {
         [$household, $token] = $this->family();
         $signup = familymail::signup($household, (int) $this->event->id);
+        set_config('credit', 1, 'local_oksigeniaeguahe');
         [$subject, $html, $text, $images] = familymail::build('confirmation', $household, $this->centre, $signup, 'es', $token);
         $this->assertStringStartsWith('Los esperamos el ', $subject);
         $this->assertStringContainsString('Abrir su página', $html);
@@ -205,6 +206,7 @@ final class familymail_test extends \advanced_testcase {
      * The poster, with its QR and the question of the name.
      */
     public function test_poster(): void {
+        set_config('credit', 1, 'local_oksigeniaeguahe');
         $html = poster::html($this->event, $this->centre, 'A3');
         $this->assertStringContainsString('<svg', $html);
         $this->assertStringContainsString('Vengan a<br>conocernos', $html);

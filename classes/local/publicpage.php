@@ -40,13 +40,24 @@ class publicpage {
     const CREDITURL = 'https://oksigenia.com/';
 
     /**
-     * The line of who makes Eguahe at the foot, unless the site turns it off.
+     * Whether the site shows who makes Eguahe: off by default, as the Moodle Plugins directory asks (no advertising
+     * inside Moodle); the hosting of Oksigenia turns it on. One switch for the line at the foot, the seal of what
+     * families share and the end of the videos.
+     *
+     * @return bool
+     */
+    public static function credit_on(): bool {
+        return (string) get_config('local_oksigeniaeguahe', 'credit') === '1';
+    }
+
+    /**
+     * The line of who makes Eguahe at the foot, when the site turns it on.
      *
      * @param string $lang
      * @return array|null text and url.
      */
     public static function credit(string $lang): ?array {
-        if ((string) get_config('local_oksigeniaeguahe', 'credit') === '0') {
+        if (!self::credit_on()) {
             return null;
         }
         return ['text' => publiclang::str('credit_name', $lang), 'url' => self::CREDITURL];
@@ -184,7 +195,7 @@ class publicpage {
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
             'privacyurl' => self::privacy_url($centre, $lang)->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
-            'credit' => self::$seal ?? self::credit($lang),
+            'credit' => self::$seal ?? self::credit($lang) ?? false,
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));

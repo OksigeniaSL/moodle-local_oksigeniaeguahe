@@ -108,7 +108,7 @@ $context['meta'] = share::meta(
     $lang,
     format_string($centre->name)
 );
-$context['credit'] = share::seal('cuento', $lang);
+$context['credit'] = share::seal('cuento', $lang) ?? false;
 $context['gift'] = share::gift($centre, $lang);
 $context['invitation'] = share::invitation($centre, 'cuento', $lang, $url);
 story::output($context);

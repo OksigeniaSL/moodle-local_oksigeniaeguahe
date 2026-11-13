@@ -37,7 +37,7 @@ if ($hassiteconfig) {
             'local_oksigeniaeguahe/credit',
             get_string('credit', 'local_oksigeniaeguahe'),
             get_string('credit_desc', 'local_oksigeniaeguahe'),
-            1
+            0
         ));
         // The shortener of the links, set once for every plugin of Oksigenia (shortener::of_site()): empty here, the one of
         // another plugin that has it.

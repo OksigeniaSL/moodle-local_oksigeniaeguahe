@@ -273,7 +273,11 @@ final class entries_test extends \advanced_testcase {
         $this->assertSame('Respuesta de Colegio de ejemplo', $subject);
         $this->assertStringContainsString('Sí hay comedor.<br>', $html);
         $this->assertStringContainsString('Y aula matinal desde las 7:30.', $text);
-        // Who makes Eguahe, at the end, unless the site turns it off.
+        // Who makes Eguahe: off by default (the Moodle Plugins directory), at the end when the site turns it on.
+        $this->assertStringNotContainsString('Oksigenia', $html . $text);
+        $this->assertNull(publicpage::credit('es'));
+        set_config('credit', 1, 'local_oksigeniaeguahe');
+        [, $html, $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
         $this->assertStringContainsString('href="https://oksigenia.com/">Eguahe, de Oksigenia</a>', $html);
         $this->assertStringContainsString('Enviado con Eguahe, de Oksigenia: https://oksigenia.com/', $text);
         set_config('credit', 0, 'local_oksigeniaeguahe');

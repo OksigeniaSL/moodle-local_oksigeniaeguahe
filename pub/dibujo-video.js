@@ -347,9 +347,9 @@
         c.fillStyle = col.accentText;
         fit(c, v.gift, '650', '"Eg Sans", sans-serif', 34, W - 120);
         c.fillText(v.gift, W / 2, base + 74);
-        // At the end, the seal of Eguahe: its mark and its name, always this size.
+        // At the end, the seal of Eguahe: its mark and its name, always this size; none when the site does not show it.
         var since = ease((t - p.drawn - HOLD) / 0.5);
-        if (since > 0) {
+        if (since > 0 && v.credit) {
             c.globalAlpha = since;
             var mark = 38;
             c.font = '600 25px "Eg Sans", sans-serif';

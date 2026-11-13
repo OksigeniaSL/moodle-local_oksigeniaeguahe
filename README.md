@@ -76,7 +76,8 @@ Moodle 4.5 to 5.3. The public pages do not use the JavaScript of Moodle; they wo
   sees them without answering nor changing anything.
 - **Optional**, in *Site administration › Plugins › Local plugins › Oksigenia Eguahe*: the link shortener, the
   service that says each child's name in the story of their first day, the open data for places and the line of who
-  makes Eguahe. An AI provider of Moodle, when the centre turns it on, drafts answers that a person always reads.
+  makes Eguahe (off by default). An AI provider of Moodle, when the centre turns it on, drafts answers that a person
+  always reads.
 
 ## First steps
 

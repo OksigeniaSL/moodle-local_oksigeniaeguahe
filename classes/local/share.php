@@ -250,13 +250,16 @@ class share {
 
     /**
      * The seal at the end of a piece: «Eguahe, of Oksigenia», to the page of Eguahe for centres, saying from which piece
-     * it comes.
+     * it comes; none when the site does not show who makes Eguahe (publicpage::credit_on()).
      *
      * @param string $piece
      * @param string $lang
-     * @return array url, text, and seal (the frame draws the mark of Eguahe before it).
+     * @return array|null url, text, and seal (the frame draws the mark of Eguahe before it).
      */
-    public static function seal(string $piece, string $lang): array {
+    public static function seal(string $piece, string $lang): ?array {
+        if (!publicpage::credit_on()) {
+            return null;
+        }
         // The language of the piece goes as a parameter, so any language works without a new address (Enrique, 9-11).
         return ['url' => self::SEAL . '?de=' . (in_array($piece, self::PIECES, true) ? $piece : 'eguahe') . '&lang=' .
             rawurlencode(str_replace('_', '-', $lang)),
@@ -372,8 +375,8 @@ class share {
             'title' => $title,
             'kicker' => publiclang::str('share_drawing_kicker', $lang),
             'gift' => self::gift($centre, $lang),
-            'credit' => publiclang::str('credit_name', $lang),
-            'mark' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
+            'credit' => publicpage::credit_on() ? publiclang::str('credit_name', $lang) : '',
+            'mark' => publicpage::credit_on() ? $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg' : '',
             'logo' => $logo ? $logo->out(false) : '',
             'initials' => publicpage::initials(format_string($centre->name)),
             'text' => publiclang::str('share_drawing_text', $lang, $name),
