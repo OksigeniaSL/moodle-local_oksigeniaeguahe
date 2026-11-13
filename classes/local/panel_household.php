@@ -434,6 +434,7 @@ class panel_household {
     protected static function proposal(\stdClass $household, \stdClass $full, \stdClass $centre, int $now) {
         return self::farewell_proposal($household, $full)
             ?: self::chose_proposal($household, $full, $now)
+            ?: self::waitlist_proposal($household, $full, $now)
             ?: self::firstday_proposal($household, $full, $centre, $now)
             ?: self::birthday_proposal($household, $full, $centre, $now)
             ?: self::sibling_proposal($household, $full, $centre, $now);
@@ -581,6 +582,49 @@ class panel_household {
             'url' => (new \moodle_url(
                 '/local/oksigeniaeguahe/household.php',
                 ['id' => $household->id, 'eligieron' => 1],
+                'borrador'
+            ))->out(false),
+            'visit' => false,
+            'help' => get_string('panel_proposal_help_written', $c),
+        ];
+    }
+
+    /**
+     * A child just put on the waiting list: an answer even when there is no place, written, until someone writes to the
+     * family after it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param int $now
+     * @return array|false
+     */
+    public static function waitlist_proposal(\stdClass $household, \stdClass $full, int $now) {
+        global $DB;
+        $waiting = array_values(array_filter($full->children, fn($c) => $c->stage === 'waitlist'));
+        if (!$waiting) {
+            return false;
+        }
+        $since = max(array_map(fn($c) => (int) $c->stagetime, $waiting));
+        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        $written = $DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $since]);
+        if ($since < $now - 30 * DAYSECS || $written) {
+            return false;
+        }
+        $c = self::C;
+        $offers = centres::offers((int) $household->centreid);
+        $one = count($waiting) === 1;
+        $offer = $offers[$waiting[0]->offerid] ?? null;
+        $a = (object) ['name' => panel::tag($waiting[0]), 'course' => $offer ? format_string($offer->name) : '',
+            'names' => self::list_words(array_map(fn($k) => panel::tag($k), $waiting))];
+        $key = $one && $a->course !== '' ? 'panel_waitlist_message_one' : 'panel_waitlist_message_many';
+        return [
+            'sentence' => get_string('panel_waitlist', $c),
+            'why' => get_string('panel_waitlist_why', $c, userdate($since, get_string('strftimedate', 'langconfig'))),
+            'text' => self::greeting($full) . get_string($key, $c, $a),
+            'button' => get_string('panel_sibling_write', $c),
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'espera' => 1],
                 'borrador'
             ))->out(false),
             'visit' => false,

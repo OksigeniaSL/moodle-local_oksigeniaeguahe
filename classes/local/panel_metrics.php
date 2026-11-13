@@ -497,6 +497,7 @@ class panel_metrics {
         // Where they wrote first and when: only where there is more than one, or it says the same as the whole.
         $known = fn(string $id) => get_string_manager()->string_exists($id, $c);
         $splits = [];
+        $few = false;
         foreach (['bychannel' => 'panel_resp_by_channel', 'byband' => 'panel_resp_by_band'] as $key => $title) {
             if (count($r[$key]) < 2) {
                 continue;
@@ -515,7 +516,10 @@ class panel_metrics {
                     'hero' => $words((float) $group['median']),
                     'count' => get_string($one ? 'panel_resp_families_one' : 'panel_resp_families', $c, $group['count']),
                     'v' => round(max(0.02, (float) $group['median'] / $longest), 3),
+                    // One or two families say little yet: in soft ink, so nobody reads much into them (Jujol).
+                    'few' => $group['count'] < 3,
                 ];
+                $few = $few || $group['count'] < 3;
             }
             $splits[] = ['title' => get_string($title, $c), 'rows' => $rows];
         }
@@ -527,6 +531,7 @@ class panel_metrics {
             'splits' => $splits,
             'hassplits' => (bool) $splits,
             'bandsdef' => $splits ? get_string('panel_resp_bands_def', $c) : false,
+            'fewnote' => $few ? get_string('panel_resp_few', $c) : false,
             'def' => get_string('panel_response_def', $c),
         ];
     }

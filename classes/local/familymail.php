@@ -408,13 +408,23 @@ class familymail {
                     'url_texto' => $apply['go']['url']] : ($pageurl ? ['texto' => $str('mail_apply_page'),
                     'url' => $pageurl . '#pedir-plaza', 'url_texto' => $pageurl] : null),
             ] : null;
+            // What it all costs, when the centre shows it once they came (costs): a line per thing.
+            $lines = costs::rows($centre);
+            $plain = fn($r) => $r['what'] . ($r['amount'] !== '' ? ': ' . $r['amount'] : '');
+            $costsection = costs::shown($centre, true) ? [
+                'titulo' => $str('pub_costs_title'),
+                'texto' => implode('<br>', array_map(fn($r) => s($r['what']) . ($r['amount'] !== '' ? ': <strong>' .
+                    s($r['amount']) . '</strong>' : ''), $lines)),
+                'texto_plano' => implode("\n", array_map($plain, $lines)),
+                'enlace' => false,
+            ] : null;
             $context['titular'] = $str($tags ? 'pub_thanks' : 'pub_thanks_nochild');
             $context += [
                 'asunto' => $str('mail_thanks_subject', $to),
                 'preencabezado' => $str($survey ? 'mail_thanks_preheader_survey' : 'mail_thanks_preheader'),
                 'entradilla' => $leadtext,
                 'entradilla_texto' => html_to_text($leadtext, 0, false),
-                'secciones' => array_merge($applysection ? [$applysection] : [], [[
+                'secciones' => array_merge($applysection ? [$applysection] : [], $costsection ? [$costsection] : [], [[
                     'titulo' => $str($survey ? 'pub_howitwent' : 'pub_after_question'),
                     'texto' => s($text),
                     'texto_plano' => $text,

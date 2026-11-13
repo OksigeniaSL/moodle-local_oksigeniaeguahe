@@ -368,7 +368,7 @@ display: grid; }
             $pegs[] = ['index' => $i, 'name' => $name, 'style' => $style, 'object' => (string) ($objects[$i] ?? '') ?: 'mochila',
                 'arriving' => $arrive, 'stuck' => $stuck, 'hidden' => $shown !== null && $i >= $shown];
         }
-        return ['pegs' => $pegs, 'count' => $shown ?? count($pegs)];
+        return ['pegs' => $pegs, 'count' => $shown ?? count($pegs), 'resting' => false];
     }
 
     /**

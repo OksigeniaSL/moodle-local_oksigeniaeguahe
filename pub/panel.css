@@ -14909,3 +14909,20 @@ details.aj-plegado > summary h2::after {
     font-size: 0.8125rem;
     white-space: nowrap;
 }
+
+/* One or two families say little yet: their row in soft ink (Jujol). */
+.resp-parte .pocas .resp-barra i {
+    background: var(--eg-tinta-2);
+    opacity: 0.45;
+}
+
+.resp-parte .pocas b {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.resp-pocas {
+    margin: 4px 0 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}

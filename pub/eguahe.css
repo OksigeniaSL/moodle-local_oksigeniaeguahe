@@ -5177,3 +5177,71 @@ button.enlace span {
     font-weight: 650;
     cursor: pointer;
 }
+
+/* A family whose every way is closed: what hung rests on the shelf, straight and off its knob (Jujol). */
+.perchas.apoyadas .colgante {
+    --reposo: 0deg;
+    transform: translateY(16%);
+}
+
+.perchas.apoyadas .colgante .gancho,
+.perchas.apoyadas .colgante .pomo-luz {
+    display: none;
+}
+
+/* The waiting list, said plainly: who waits for which course, and that they will hear as soon as a place is free. */
+.en-espera h3,
+.lo-que-cuesta h3 {
+    margin: 0 0 8px;
+}
+
+.en-espera-quien {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+    font-weight: 700;
+}
+
+.en-espera p,
+.lo-que-cuesta p {
+    margin: 6px 0 0;
+}
+
+/* What it costs, as a receipt: what on the left, how much on the right, a dotted line between them. */
+.recibo {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.recibo div {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.recibo dt {
+    flex: 1 1 auto;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+}
+
+.recibo dt::after {
+    content: "";
+    flex: 1 1 auto;
+    min-width: 16px;
+    border-bottom: 2px dotted var(--eg-linea);
+    transform: translateY(-4px);
+}
+
+.recibo dd {
+    margin: 0;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.recibo .sin-importe dt::after {
+    content: none;
+}

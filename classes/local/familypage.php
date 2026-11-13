@@ -116,6 +116,8 @@ class familypage {
         $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
         $now = time();
         $children = array_values($full->children);
+        // A family whose every way is closed (they chose another centre, moved away): thanked, and not asked for more.
+        $allclosed = $children && !array_filter($children, fn($c) => $c->stage !== 'closed');
         $tags = array_values(array_filter(array_map([self::class, 'label_name'], $children), fn($n) => $n !== ''));
         // What hangs for each of them on the rail, by the age of its course (the ladder), as in the panel.
         $hanging = array_values(array_map(
@@ -155,6 +157,11 @@ class familypage {
             } else {
                 $lead = s(publiclang::str('pub_settled_nocourse', $lang));
             }
+        } else if ($allclosed) {
+            $lead = s(publiclang::str('pub_lead_closed', $lang));
+        } else if (!$upcoming && array_filter($children, fn($c) => $c->stage === 'waitlist')) {
+            // On the waiting list, the card under it says it: not «write to us to come and see the centre».
+            $lead = s(publiclang::str('pub_lead_waitlist', $lang));
         } else if ($upcoming) {
             $a = (object) ['date' => '<b>' . s(publicpage::date_parts((int) $upcoming[0]->timestart, $lang)['long']) . '</b>',
                 'host' => s($host), 'names' => s($names)];
@@ -214,8 +221,6 @@ class familypage {
         // The notices on the phone too, when the site has Marandu and the centre wants them.
         [$joinlinks, $joined] = messaging::join($household, $centre);
         $childrows = [];
-        // A family whose every way is closed (they chose another centre, moved away) is not asked for more.
-        $allclosed = $children && !array_filter($children, fn($c) => $c->stage !== 'closed');
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $tag = trim((string) ($child->tagname ?? ''));
@@ -406,9 +411,15 @@ class familypage {
         if (!$whyother && !empty($flags['whyother'])) {
             $whyother = ['done' => publiclang::str('pub_whyother_thanks', $lang)];
         }
+        // What it all costs, when the centre shows it: from the start, or once they came (costs).
+        $costs = !$allclosed && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
+        // A child on the waiting list: said plainly, with nothing of the places of the course.
+        $waitlist = self::waitlist_context($children, $offers, $lang);
         // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
         [$current, $more] = self::arrange([
             'whyother' => $whyother,
+            'waitlist' => $waitlist,
+            'costs' => $costs,
             'turns' => $turns,
             'band' => $band,
             'renewal' => $renewal,
@@ -439,11 +450,13 @@ class familypage {
             'hasmore' => (bool) $more,
             'moretitle' => publiclang::str('pub_more_title', $lang),
             'greeting' => $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
-                ($isroster ? 'pub_roster' : $greeting)) . ($tags ? '' : '_nochild'), $lang),
+                ($isroster ? 'pub_roster' : ($allclosed ? 'pub_metus' : $greeting))) . ($tags ? '' : '_nochild'), $lang),
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
-            'quiet' => $issettled || $isgone || $isroster,
-            'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
+            'quiet' => $issettled || $isgone || $isroster || $allclosed,
+            // Closed, what hung rests on the shelf, off its knob (Jujol).
+            'pegs' => ['resting' => $allclosed] +
+                publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
             'settled' => $settled,
             'lead' => $lead,
             'new' => $new,
@@ -503,8 +516,8 @@ class familypage {
      * the first day, the open question, how to ask for a place before or after its days, how to write with no visit
      * yet, next year already answered, and what is offered to an enrolled family.
      *
-     * @param array $p whyother, turns, band, renewal, survey, birthdays, firstday, stories, ask, siblings and settled, as
-     *     context() builds them; each false or empty when it is not there.
+     * @param array $p whyother, waitlist, costs, turns, band, renewal, survey, birthdays, firstday, stories, ask, siblings
+     *     and settled, as context() builds them; each false or empty when it is not there.
      * @param array|null $visit The row of the next visit, for its line.
      * @param string $lang
      * @return array [the thing of now or null, the rest]
@@ -515,7 +528,7 @@ class familypage {
         $add = function (int $rank, string $kind, $context, array $line = []) use (&$list): void {
             $thing = ['band' => false, 'turn' => false, 'renewal' => false, 'survey' => false, 'birthday' => false,
                 'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false,
-                'whyother' => false];
+                'whyother' => false, 'waitlist' => false, 'costs' => false];
             $list[] = [$rank, count($list), [$kind => $context] + $thing + ['fold' => (bool) $line,
                 'kicker' => $line['kicker'] ?? '', 'title' => $line['title'] ?? '', 'state' => $line['state'] ?? '']];
         };
@@ -537,6 +550,12 @@ class familypage {
                 'state' => $band['year']]);
         } else if ($band) {
             $add(120, 'band', $band, ['kicker' => $s('pub_band_next'), 'title' => $s('pub_novisit')]);
+        }
+        if (!empty($p['waitlist'])) {
+            $add(45, 'waitlist', $p['waitlist'], ['title' => $p['waitlist']['title'], 'state' => $p['waitlist']['state']]);
+        }
+        if (!empty($p['costs'])) {
+            $add(135, 'costs', $p['costs'], ['title' => $p['costs']['title']]);
         }
         if ($p['renewal']) {
             $states = array_column($p['renewal']['children'], 'state');
@@ -579,6 +598,34 @@ class familypage {
             $now['fold'] = false;
         }
         return [$now, $things];
+    }
+
+    /**
+     * The children on the waiting list of the centre, each with the course it waits for, and that the family hears as
+     * soon as a place is free. Nothing of how many places there are, nor of a position: a person decides.
+     *
+     * @param \stdClass[] $children
+     * @param \stdClass[] $offers
+     * @param string $lang
+     * @return array|false title, lines, text, state.
+     */
+    protected static function waitlist_context(array $children, array $offers, string $lang) {
+        $lines = [];
+        foreach ($children as $child) {
+            if ($child->stage !== 'waitlist') {
+                continue;
+            }
+            $offer = $offers[$child->offerid] ?? null;
+            $name = self::label_name($child) ?: (string) $child->firstname;
+            $lines[] = $offer ? publiclang::str('pub_waitlist_line', $lang, (object) ['name' => $name,
+                'course' => format_string($offer->name), 'year' => s($offer->schoolyear)]) : $name;
+        }
+        if (!$lines) {
+            return false;
+        }
+        return ['title' => publiclang::str('pub_waitlist_title', $lang), 'lines' => $lines,
+            'text' => publiclang::str('pub_waitlist_text', $lang), 'write' => publiclang::str('pub_waitlist_write', $lang),
+            'state' => implode(' · ', $lines)];
     }
 
     /**

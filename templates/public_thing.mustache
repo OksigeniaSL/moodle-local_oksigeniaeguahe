@@ -36,7 +36,8 @@
     {
         "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "send": "", "chev": ""},
         "band": false, "turn": false, "survey": false, "birthday": false, "ask": false, "sibling": false,
-        "volunteer": false, "ambassador": false, "whyother": false,
+        "volunteer": false, "ambassador": false, "whyother": false, "waitlist": false,
+        "costs": {"title": "Lo que cuesta", "rows": [{"what": "Cuota mensual", "amount": "320 €"}], "note": "Pregúntennos."},
         "story": {"url": "#", "name": "Leo", "open": "Abrir el cuento", "kicker": "Un cuento para Leo",
             "title": "Tu primer día", "lead": "Para leerlo juntos en casa."},
         "renewal": false, "fold": false, "kicker": "", "title": "", "state": ""
@@ -225,6 +226,21 @@
 {{/question}}
 {{#done}}<p class="ofrecimiento hecho" id="avisar-{{id}}"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
 {{/sibling}}
+{{#waitlist}}
+<div class="en-espera" id="lista-espera">
+    {{^fold}}<h3>{{title}}</h3>{{/fold}}
+    <ul class="en-espera-quien">{{#lines}}<li dir="auto">{{.}}</li>{{/lines}}</ul>
+    <p>{{text}}</p>
+    {{#canwrite}}<p class="muted">{{write}}</p>{{/canwrite}}
+</div>
+{{/waitlist}}
+{{#costs}}
+<div class="lo-que-cuesta" id="lo-que-cuesta">
+    {{^fold}}<h3>{{title}}</h3>{{/fold}}
+    <dl class="recibo">{{#rows}}<div{{^amount}} class="sin-importe"{{/amount}}><dt dir="auto">{{what}}</dt>{{#amount}}<dd dir="auto">{{amount}}</dd>{{/amount}}</div>{{/rows}}</dl>
+    <p class="muted">{{note}}</p>
+</div>
+{{/costs}}
 {{#whyother}}
 {{^done}}
 <form class="hoja-pregunta otro-centro" id="otro-centro" method="post" action="{{action}}">

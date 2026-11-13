@@ -1236,5 +1236,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026116100, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026116200) {
+        // What it all costs, as the centre writes it, and when families see it.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $fields = [
+            new xmldb_field('costs', XMLDB_TYPE_TEXT, null, null, null, null, null, 'applyuntil'),
+            new xmldb_field('costswhen', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'after', 'costs'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026116200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

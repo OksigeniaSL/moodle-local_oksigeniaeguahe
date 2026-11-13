@@ -52,6 +52,8 @@
         <FIELD NAME="applyurl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where a place is asked for, when it is on a website"/>
         <FIELD NAME="applyfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day a place can be asked for; 0, not written"/>
         <FIELD NAME="applyuntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last day a place can be asked for; 0, not written"/>
+        <FIELD NAME="costs" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it all costs, as the centre writes it: a line per thing, «what: how much»"/>
+        <FIELD NAME="costswhen" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="after" SEQUENCE="false" COMMENT="When families see what it costs: start, after the visit, or never"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

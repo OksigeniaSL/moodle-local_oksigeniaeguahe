@@ -22,14 +22,15 @@
     data/escalera.json), with the name used at home written by hand. Without a course yet, as on the sign-up, the small
     backpack of the mark of Eguahe with the first-day label on its pocket (the band in the colour of the centre, one
     corner peeling up). With no name yet, the label waits blank. Once the family came (came), the label of the
-    backpacks is stuck down, as at the door: its corner no longer lifted. Drawings only: the name is in the heading.
+    backpacks is stuck down, as at the door: its corner no longer lifted. Once every way of the family is closed
+    (resting), what hung rests on the shelf, straight and off its knob. Drawings only: the name is in the heading.
 
     Example context (json):
-    {"count": 2, "live": false, "came": true, "pegs": [{"index": 0, "name": "Leo", "style": "--reposo:-3.5deg",
+    {"count": 2, "live": false, "came": true, "resting": false, "pegs": [{"index": 0, "name": "Leo", "style": "--reposo:-3.5deg",
         "object": "mochila", "arriving": true, "stuck": true, "hidden": false}, {"index": 1, "name": "Ana",
         "style": "--reposo:3deg", "object": "credencial", "arriving": true, "stuck": true, "hidden": false}]}
 }}
-<div class="perchas n{{count}}{{#came}} pegada{{/came}}"{{#live}} data-live="1"{{/live}}>
+<div class="perchas n{{count}}{{#came}} pegada{{/came}}{{#resting}} apoyadas{{/resting}}"{{#live}} data-live="1"{{/live}}>
     {{#pegs}}
     <div class="percha" data-i="{{index}}"{{#hidden}} hidden{{/hidden}}>
         {{> local_oksigeniaeguahe/panel_hanging }}

@@ -80,6 +80,20 @@ class roster {
     }
 
     /**
+     * The roll of the site to go through, for counting and asking about the children: without its adults and a batch at
+     * a time when Family can (each_household(), Family 0.3.13), so a big centre never loads it all; else the whole roll.
+     *
+     * @return iterable family id => household of Family.
+     */
+    public static function children_of_families(): iterable {
+        if (self::$testfamilies !== null || !self::available()) {
+            return self::families();
+        }
+        $api = family::API;
+        return method_exists($api, 'each_household') ? $api::each_household(true, false) : self::families();
+    }
+
+    /**
      * Where a centre takes the course of each student from.
      *
      * @param \stdClass $centre
@@ -307,7 +321,7 @@ class roster {
         $count = 0;
         $nameless = 0;
         $groups = false;
-        foreach (self::families() as $family) {
+        foreach (self::children_of_families() as $family) {
             foreach ($family->children as $child) {
                 $groups = $groups || trim((string) ($child->group ?? '')) !== '';
                 if ($child->userid) {
@@ -398,7 +412,7 @@ class roster {
         $offers = self::offers($centre);
         $counts = [];
         $placed = 0;
-        foreach (self::families() as $family) {
+        foreach (self::children_of_families() as $family) {
             foreach ($family->children as $child) {
                 if (!self::named($child)) {
                     continue;

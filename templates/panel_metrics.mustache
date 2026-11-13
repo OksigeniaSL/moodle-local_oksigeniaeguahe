@@ -52,8 +52,9 @@
             "compare": [{"name": "Con la anterior", "url": "#", "current": true}]},
         "response": {"hero": "5 horas", "sentence": "La mitad tuvo respuesta en menos de 5 horas.", "facts": [{"n": "87", "text": "contestadas"}], "def": "",
             "hassplits": true, "splits": [{"title": "Según cuándo escribieron", "rows": [{"name": "Mañanas de diario",
-            "hero": "2 horas", "count": "41 familias", "v": 0.1}, {"name": "Fin de semana", "hero": "2 días", "count": "12 familias",
-            "v": 1}]}], "bandsdef": "Mañanas de diario, de 8:00 a 15:00."},
+            "hero": "2 horas", "count": "41 familias", "v": 0.1, "few": false}, {"name": "Fin de semana", "hero": "2 días",
+            "count": "1 familia", "v": 1, "few": true}]}], "bandsdef": "Mañanas de diario, de 8:00 a 15:00.",
+            "fewnote": "Con una o dos familias, la cifra todavía dice poco."},
         "reach": {"compare": true, "legend": true, "rest": "96 familias han escrito.", "closed": "", "def": "", "ancha": false,
             "steps": [{"key": "inquiry", "name": "Escribieron", "n": 96, "v": 1, "g": 0.9, "gn": 86, "hasghost": true, "line": "96 familias.",
                 "parts": [{"canal": "web", "v": 0.3, "n": 34, "line": "34 por la web."}]}]},
@@ -110,10 +111,11 @@
                 {{#splits}}
                 <div class="resp-parte">
                     <h3>{{title}}</h3>
-                    <ul>{{#rows}}<li><span class="resp-que">{{name}} <span class="resp-n">· {{count}}</span></span><span class="resp-barra" aria-hidden="true"><i style="--v: {{v}}"></i></span><b>{{hero}}</b></li>{{/rows}}</ul>
+                    <ul>{{#rows}}<li{{#few}} class="pocas"{{/few}}><span class="resp-que">{{name}} <span class="resp-n">· {{count}}</span></span><span class="resp-barra" aria-hidden="true"><i style="--v: {{v}}"></i></span><b>{{hero}}</b></li>{{/rows}}</ul>
                 </div>
                 {{/splits}}
             </div>
+            {{#fewnote}}<p class="resp-pocas">{{.}}</p>{{/fewnote}}
             {{/hassplits}}
             <p class="def">{{def}}{{#bandsdef}} {{.}}{{/bandsdef}}</p>
         </section>

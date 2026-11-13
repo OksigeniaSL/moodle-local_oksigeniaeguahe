@@ -158,6 +158,7 @@ class panel_centre {
             'firstdayleaf' => !empty($centre->firstday) ? panel::leaf((int) $centre->firstday) : false,
             // How a family asks for a place, where and between which days: what its page says after the visit.
             'apply' => self::apply_settings($centre),
+            'costs' => costs::settings($centre),
             // The offer of one school year as the shelves of its stages, each course a card (Jujol).
             'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
@@ -753,6 +754,8 @@ class panel_centre {
             'applyurl' => optional_param('applyurl', '', PARAM_URL),
             'applyfrom' => self::date(publicpage::date_param('applyfrom')),
             'applyuntil' => self::date(publicpage::date_param('applyuntil')),
+            'costs' => optional_param('costs', '', PARAM_TEXT),
+            'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
         ];
         // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
         if ($data->email !== '' && !validate_email($data->email)) {

@@ -93,6 +93,8 @@
             "size": 2, "months": false}]},
         "firstdayleaf": {"weekday": "mié", "day": "08", "month": "sep"}, "namephrase": "",
         "namephraseexample": "el Colegio de ejemplo",
+        "costs": {"text": "Cuota mensual: 320 €", "written": true, "read": "Después de la visita · 1 línea",
+            "whens": [{"value": "after", "name": "Después de la visita", "pressed": true}]},
         "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true,
             "fromdate": {"id": "c-desde", "first": "c-desded", "form": false, "child": false, "invalid": false,
             "labelled": true, "arialabel": false, "describedby": "c-pedir-a", "mirror": false, "value": "2027-03-01",
@@ -383,6 +385,26 @@
                 </div>
             </details>
             {{/apply}}
+
+            {{! ===== What it costs: a line per thing, and when families see it ===== }}
+            {{#costs}}
+            <details class="apartado aj-plegado" id="aj-cuesta">
+                <summary><h2 id="aj-cuesta-t">{{#str}}panel_costs_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{read}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda" id="c-cuesta-a">{{#str}}panel_costs_help, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="aj-frase">
+                        <label for="c-cuesta">{{#str}}panel_costs_lines, local_oksigeniaeguahe{{/str}}</label>
+                        <textarea class="aj-cuaderno" id="c-cuesta" name="costs" rows="5" aria-describedby="c-cuesta-a" placeholder="{{#str}}panel_costs_example, local_oksigeniaeguahe{{/str}}">{{text}}</textarea>
+                    </div>
+                    <div class="aj-modos" role="group" aria-labelledby="c-cuando-t">
+                        <p class="rotulo-p" id="c-cuando-t">{{#str}}panel_costs_when, local_oksigeniaeguahe{{/str}}</p>
+                        {{#whens}}<button class="aj-modo" type="submit" name="costswhen" value="{{value}}" formaction="{{action}}#aj-cuesta" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/whens}}
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-cuesta" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+            {{/costs}}
 
             {{! ===== After enrolling: who carries them, the first day, the name in a sentence, the siblings ===== }}
             <details class="apartado aj-plegado" id="aj-despues">
