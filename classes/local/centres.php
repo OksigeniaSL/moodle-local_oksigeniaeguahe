@@ -176,6 +176,10 @@ class centres {
                 [$row->applyfrom, $row->applyuntil] = [$row->applyuntil, $row->applyfrom];
             }
         }
+        if (isset($data->familyfrom)) {
+            // Who puts an enrolled family in the common record: Eguahe, or the management system of the centre.
+            $row->familyfrom = in_array($data->familyfrom, family::FROM, true) ? $data->familyfrom : 'eguahe';
+        }
         if (isset($data->costs)) {
             // What it all costs, and when families see it: from the start, after their visit, or never.
             $row->costs = trim((string) $data->costs) !== '' ? \core_text::substr(trim((string) $data->costs), 0, 2000) : null;

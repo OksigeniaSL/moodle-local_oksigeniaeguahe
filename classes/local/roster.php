@@ -94,6 +94,32 @@ class roster {
     }
 
     /**
+     * Whether a family of the record is one Eguahe already has enrolled in this centre and not yet joined to it: an adult
+     * of it with the same email as one of a household with a child enrolled here and no family of the record.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $family A household of Family.
+     * @return bool
+     */
+    public static function awaiting(\stdClass $centre, \stdClass $family): bool {
+        global $DB;
+        $emails = array_values(array_unique(array_filter(array_map(
+            fn($a) => \core_text::strtolower(trim((string) ($a->email ?? ''))),
+            $family->adults ?? []
+        ))));
+        if (!$emails) {
+            return false;
+        }
+        [$in, $params] = $DB->get_in_or_equal($emails, SQL_PARAMS_NAMED);
+        $sql = "SELECT 1
+                  FROM {" . households::ADULTS . "} a
+                  JOIN {" . households::T . "} h ON h.id = a.householdid
+                 WHERE h.centreid = :centreid AND h.familylink = 0 AND h.roster = 0 AND LOWER(a.email) $in
+                       AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} c WHERE c.householdid = h.id AND c.stage = :stage)";
+        return $DB->record_exists_sql($sql, $params + ['centreid' => $centre->id, 'stage' => 'enrolled']);
+    }
+
+    /**
      * Where a centre takes the course of each student from.
      *
      * @param \stdClass $centre
@@ -500,6 +526,11 @@ class roster {
                 continue;
             }
             $household = self::household_of($centre, (int) $familyid, $family, $brought);
+            if (!$household && self::awaiting($centre, $family)) {
+                // A family Eguahe enrolled here, loaded by the management system of the centre and not yet joined by
+                // a person (family::hints()): never brought as a second household.
+                continue;
+            }
             if (!$household) {
                 $household = self::bring($centre, (int) $familyid, $family, $now);
                 $done['families']++;

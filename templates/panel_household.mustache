@@ -333,6 +333,7 @@
                 {{#hashints}}{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familynot"><button class="enlace" type="submit">{{#str}}panel_family_not, local_oksigeniaeguahe{{/str}}</button></form>
                 <p class="secundario">{{#str}}panel_family_same_help, local_oksigeniaeguahe{{/str}}</p>{{/canact}}{{/hashints}}
                 {{#linked}}<p>{{linked}}</p>{{/linked}}
+                {{#waiting}}<p class="secundario">{{waiting}}</p>{{/waiting}}
                 {{#in}}<p class="secundario">{{in}}</p>{{/in}}
             </div>
             {{/family}}

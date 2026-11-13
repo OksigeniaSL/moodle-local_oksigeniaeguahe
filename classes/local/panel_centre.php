@@ -159,6 +159,9 @@ class panel_centre {
             // How a family asks for a place, where and between which days: what its page says after the visit.
             'apply' => self::apply_settings($centre),
             'costs' => costs::settings($centre),
+            // Who puts an enrolled family in the common record, when the site has it.
+            'familyfrom' => family::available() ? self::family_from($centre) : [],
+            'hasfamilyfrom' => family::available(),
             // The offer of one school year as the shelves of its stages, each course a card (Jujol).
             'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
@@ -588,6 +591,19 @@ class panel_centre {
     }
 
     /**
+     * Who puts an enrolled family in the common family record: Eguahe when it enrols, or the management system of the
+     * centre, which loads it (and a person joins both), each as a mode to press.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    protected static function family_from(\stdClass $centre): array {
+        $now = (string) ($centre->familyfrom ?? '') ?: 'eguahe';
+        return array_map(fn($f) => ['value' => $f, 'name' => get_string('panel_familyfrom_' . $f, self::C),
+            'help' => get_string('panel_familyfrom_' . $f . '_help', self::C), 'pressed' => $f === $now], family::FROM);
+    }
+
+    /**
      * How a family asks for a place, for the card of the settings: the words of the centre, where (a website, if it is
      * one) and the two days, each with its leaf of the calendar.
      *
@@ -756,6 +772,7 @@ class panel_centre {
             'applyuntil' => self::date(publicpage::date_param('applyuntil')),
             'costs' => optional_param('costs', '', PARAM_TEXT),
             'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
+            'familyfrom' => optional_param('familyfrom', (string) ($centre->familyfrom ?? 'eguahe'), PARAM_ALPHA),
         ];
         // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
         if ($data->email !== '' && !validate_email($data->email)) {

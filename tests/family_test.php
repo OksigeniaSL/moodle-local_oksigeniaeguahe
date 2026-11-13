@@ -20,6 +20,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel_household;
+use local_oksigeniaeguahe\local\roster;
 use local_oksigeniaeguahe\local\settled;
 
 /**
@@ -145,6 +146,40 @@ final class family_test extends \advanced_testcase {
         $this->assertCount(1, family::gone([$kid]));
         family::still_here($household);
         $this->assertCount(0, family::gone([$DB->get_record(households::CHILDREN, ['id' => $kid->id])]));
+    }
+
+    /**
+     * Where the management system of the centre loads the families: enrolling makes nothing in the record, the file
+     * says it waits; once the system loads the family, the file proposes joining them, the roll never brings it as a
+     * second household, and joining finds its child there by name.
+     */
+    public function test_loaded_by_the_management_system(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $api = '\local_oksigeniafamily\api';
+        [$centre, $household] = $this->household(['Leo']);
+        centres::update((int) $centre->id, (object) ['familyfrom' => 'records']);
+        $centre = centres::get((int) $centre->id);
+        $kid = array_values(households::full($household)->children)[0];
+        households::set_stage($kid, 'enrolled');
+        $this->assertNull($api::family_by_key(family::SOURCE, family::key('h', (int) $household->id)), 'Eguahe makes none.');
+        $this->assertSame('0', (string) $DB->get_field(households::CHILDREN, 'familychild', ['id' => $kid->id]));
+        $file = panel_household::context($household, $centre, true, '', time());
+        $this->assertNotSame('', $file['family']['waiting']);
+
+        // The management system loads it, with the child by its key and its name.
+        $theirs = $api::create_family('cifra', 'cifra:77');
+        $api::add_adult($theirs, ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'email' => 'ana@example.com']);
+        $childid = $api::add_child($theirs, null, 'cifra:123');
+        $api::set_child_details('cifra:123', 'Leo', 'Ejemplo', 'INF 3ºA');
+        $this->assertSame([$theirs => ['Ana Ejemplo']], family::hints(households::full($household)));
+        $this->assertTrue(roster::awaiting($centre, roster::families()[$theirs]), 'Never brought as a second household.');
+
+        family::confirm($household, $theirs);
+        $this->assertSame((string) $childid, (string) $DB->get_field(households::CHILDREN, 'familychild', ['id' => $kid->id]));
+        $this->assertFalse(roster::awaiting($centre, roster::families()[$theirs]));
+        $this->assertSame(1, $DB->count_records('local_oksigeniafamily_child', ['status' => 'active']), 'Nobody twice.');
     }
 
     /**

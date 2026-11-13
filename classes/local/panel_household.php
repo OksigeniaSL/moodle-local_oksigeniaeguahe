@@ -403,7 +403,11 @@ class panel_household {
         $linked = (int) ($household->familylink ?? 0);
         $hints = $linked === 0 ? family::hints($full) : [];
         $in = array_values(array_filter($full->children, fn($k) => !empty($k->familychild) && empty($k->lefttime)));
-        if (!$hints && $linked <= 0 && !$in) {
+        // Enrolled where the management system loads the families: until it is there and someone joins them.
+        $centre = centres::get((int) $household->centreid);
+        $waiting = !$hints && $linked === 0 && ($centre->familyfrom ?? 'eguahe') === 'records' &&
+            array_filter($full->children, fn($k) => $k->stage === 'enrolled' && empty($k->lefttime));
+        if (!$hints && $linked <= 0 && !$in && !$waiting) {
             return false;
         }
         $action = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false);
@@ -415,6 +419,7 @@ class panel_household {
             'hints' => $found,
             'hashints' => (bool) $found,
             'linked' => $linked > 0 ? get_string('panel_family_linked', $c) : '',
+            'waiting' => $waiting ? get_string('panel_family_waiting', $c) : '',
             'in' => $in ? get_string('panel_family_in', $c, self::list_words(array_map(fn($k) => panel::tag($k), $in))) : '',
             'canact' => $canact,
             'action' => $action,

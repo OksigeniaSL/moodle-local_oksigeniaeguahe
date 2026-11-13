@@ -93,6 +93,7 @@
             "size": 2, "months": false}]},
         "firstdayleaf": {"weekday": "mié", "day": "08", "month": "sep"}, "namephrase": "",
         "namephraseexample": "el Colegio de ejemplo",
+        "hasfamilyfrom": true, "familyfrom": [{"value": "eguahe", "name": "La crea Eguahe", "help": "Al matricular.", "pressed": true}],
         "costs": {"text": "Cuota mensual: 320 €", "written": true, "read": "Después de la visita · 1 línea",
             "whens": [{"value": "after", "name": "Después de la visita", "pressed": true}]},
         "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true,
@@ -445,6 +446,12 @@
                         <span class="aj-elige aj-regla" role="group" aria-labelledby="c-hermanos" aria-describedby="c-hermanos-a">{{#siblingages}}<button class="aj-chapa" type="submit" name="siblingage" value="{{value}}" formaction="{{action}}#aj-despues" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{#value}}{{value}}{{/value}}{{^value}}{{#str}}no{{/str}}{{/value}}<span class="oculto"> · {{name}}</span></button>{{/siblingages}}</span>
                         <span class="ayuda" id="c-hermanos-a">{{#str}}panel_siblingage_help, local_oksigeniaeguahe{{/str}}</span>
                     </div>
+                    {{#hasfamilyfrom}}
+                    <div class="aj-modos" role="group" aria-labelledby="c-ficha-t">
+                        <p class="rotulo-p" id="c-ficha-t">{{#str}}panel_familyfrom, local_oksigeniaeguahe{{/str}}</p>
+                        {{#familyfrom}}<button class="aj-modo" type="submit" name="familyfrom" value="{{value}}" formaction="{{action}}#aj-despues" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b><span>{{help}}</span></button>{{/familyfrom}}
+                    </div>
+                    {{/hasfamilyfrom}}
                     <div>
                         <input type="hidden" name="invitegone" value="{{#invitegone}}1{{/invitegone}}{{^invitegone}}0{{/invitegone}}">
                         <button class="interruptor" type="submit" name="invitegone" value="{{#invitegone}}0{{/invitegone}}{{^invitegone}}1{{/invitegone}}" formaction="{{action}}#aj-despues" aria-pressed="{{#invitegone}}true{{/invitegone}}{{^invitegone}}false{{/invitegone}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_invitegone, local_oksigeniaeguahe{{/str}}</span></button>

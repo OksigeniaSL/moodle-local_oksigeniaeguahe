@@ -1251,5 +1251,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026116200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026116300) {
+        // Who puts an enrolled family in the common family record: Eguahe, or the management system of the centre.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('familyfrom', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'eguahe', 'costswhen');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026116300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

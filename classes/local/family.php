@@ -34,6 +34,10 @@ class family {
     /** @var string Where the families and children made by Eguahe come from, in the common record. */
     const SOURCE = 'eguahe';
 
+    /** @var string[] Who puts an enrolled family in the common record: Eguahe, or the management system of the centre
+     *  (records), which loads it; then a person joins the household to it, and nobody is there twice. */
+    const FROM = ['eguahe', 'records'];
+
     /** @var string The API of the common record. */
     const API = '\\local_oksigeniafamily\\api';
 
@@ -109,6 +113,20 @@ class family {
         global $DB;
         $DB->set_field(households::T, 'familylink', $familyid > 0 ? $familyid : -1, ['id' => $household->id]);
         $household->familylink = $familyid > 0 ? $familyid : -1;
+        if ($familyid <= 0) {
+            return;
+        }
+        // Its children found there by their first name: each knows its record, so its leaving is noticed.
+        $theirs = roster::families()[$familyid]->children ?? [];
+        foreach ($DB->get_records(households::CHILDREN, ['householdid' => $household->id, 'familychild' => 0]) as $mine) {
+            foreach ($theirs as $child) {
+                $same = questions::normal(trim((string) ($child->firstname ?? ''))) === questions::normal(trim($mine->firstname));
+                if ($same && trim($mine->firstname) !== '') {
+                    $DB->set_field(households::CHILDREN, 'familychild', (int) $child->childid, ['id' => $mine->id]);
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -151,6 +169,12 @@ class family {
     public static function enrol(\stdClass $household, \stdClass $child): int {
         global $DB;
         if (!self::available()) {
+            return 0;
+        }
+        $centre = centres::get((int) $household->centreid);
+        if ($centre && ($centre->familyfrom ?? 'eguahe') === 'records') {
+            // The management system of the centre loads the family: Eguahe makes none, and the file proposes joining
+            // them once it is there (hints()), so the same child is never in the record twice.
             return 0;
         }
         $api = self::API;
