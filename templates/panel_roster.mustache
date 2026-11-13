@@ -1,0 +1,126 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_roster
+
+    The families already at the centre, set up once in the settings of the centre (Jujol, 13 November 2026; before, at
+    the head of «Who goes on»): where the course of each student comes from, the school year, the coat rack of the
+    courses with each label hung from the hook of its course, and bringing them. Its forms post to renewal.php, which
+    comes back to the settings (action carries volver=ajustes); the settings draw it after their own form, never inside
+    it. The labels are lifted with a link to the settings (?cohorte=).
+
+    Example context (json):
+    {"students": "Alumnos en Family: 312", "nameless": "Sin cuenta de Moodle: 24.",
+    "kinds": [{"key": "cohort", "arg": "", "label": "En las cohortes", "pressed": true}], "kind": "cohort", "arg": "",
+    "years": [{"year": "2026-27", "label": "Curso 2026-27", "pressed": true}], "year": "2026-27", "noyear": false, "nooffer": "",
+    "hasvalues": true, "values": [{"pending": true}], "summary": "Con su curso: 290 de 312 alumnos.",
+    "guesses": "Dar por buenos los propuestos (1)", "canbring": true, "brought": "", "open": true,
+    "rack": [{"key": "s006", "name": "Primaria", "ages": "de 6 a 11 años", "grades": [
+    {"value": "1.º de Primaria", "hook": "1.º de Primaria", "name": "1.º de Primaria", "tags": [{"id": "a1", "value": "1.º Primaria A",
+    "count": "Alumnos: 24", "guess": true, "grade": "1.º de Primaria", "picked": false, "url": "#"}]},
+    {"value": "2.º de Primaria", "hook": "2.º de Primaria", "name": "2.º de Primaria", "tags": []}]}],
+    "hasloose": true, "loose": [{"id": "b2", "value": "3.º B", "count": "Alumnos: 22", "guess": false, "grade": "",
+    "picked": true, "url": "#"}],
+    "notcourses": [{"id": "c3", "value": "Comedor", "count": "Alumnos: 80", "guess": false, "grade": "", "picked": false,
+    "url": "#"}],
+    "picked": {"id": "b2", "value": "3.º B", "count": "Alumnos: 22"}, "dropurl": "/local/oksigeniaeguahe/renewal.php?c=1", "action": "/local/oksigeniaeguahe/renewal.php?c=1&volver=ajustes", "sesskey": "abc"}
+}}
+<details class="apartado padron" id="padron"{{#open}} open{{/open}}>
+    <summary><h2>{{#str}}panel_roster, local_oksigeniaeguahe{{/str}}</h2> <span class="secundario">{{students}}</span></summary>
+    <p>{{#str}}panel_roster_help, local_oksigeniaeguahe{{/str}}</p>
+    {{#nameless}}<p class="secundario">{{nameless}}</p>{{/nameless}}
+    <p class="padron-etiqueta">{{#str}}panel_roster_where, local_oksigeniaeguahe{{/str}}</p>
+    <div class="padron-fichas">
+        {{#kinds}}
+        <form method="post" action="{{action}}#padron">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosterkind"><input type="hidden" name="kind" value="{{key}}"><input type="hidden" name="arg" value="{{arg}}">
+            <button class="ficha-boton" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}>{{label}}</button>
+        </form>
+        {{/kinds}}
+    </div>
+    {{#kind}}
+    <p class="padron-etiqueta">{{#str}}panel_roster_year, local_oksigeniaeguahe{{/str}}</p>
+    <div class="padron-fichas">
+        {{#years}}
+        <form method="post" action="{{action}}#padron">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteryear"><input type="hidden" name="year" value="{{year}}">
+            <button class="hoja-ano padron-ano" type="submit" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"{{^canact}} disabled{{/canact}}><small>{{#str}}offer_year, local_oksigeniaeguahe{{/str}}</small><b>{{year}}</b></button>
+        </form>
+        {{/years}}
+    </div>
+    {{/kind}}
+    {{#nooffer}}<p class="padron-aviso">{{nooffer}}</p>{{/nooffer}}
+    {{#hasvalues}}
+    <p class="padron-resumen"><b>{{summary}}</b></p>
+    {{#canact}}{{#guesses}}
+    <form method="post" action="{{action}}#padron">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteraccept">
+        <button class="boton secundario pequeno" type="submit">{{guesses}}</button>
+    </form>
+    {{/guesses}}{{/canact}}
+    {{#picked}}
+    <div class="padron-tengo" id="padron-tengo" role="status">
+        <span class="padron-tag padron-tag-alzada"><b dir="auto">{{value}}</b><span>{{count}}</span></span>
+        <p>{{#str}}panel_roster_hang, local_oksigeniaeguahe, {{value}}{{/str}}</p>
+        <a class="enlace" href="{{dropurl}}">{{#str}}panel_roster_drop, local_oksigeniaeguahe{{/str}}</a>
+    </div>
+    {{/picked}}
+    {{#hasloose}}
+    <div class="padron-bandeja" aria-labelledby="padron-sueltas">
+        <p class="padron-etiqueta" id="padron-sueltas">{{#str}}panel_roster_loose, local_oksigeniaeguahe{{/str}}</p>
+        <ul class="padron-tags">{{#loose}}<li><a class="padron-tag{{#picked}} padron-tag-alzada{{/picked}}" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a></li>{{/loose}}</ul>
+    </div>
+    {{/hasloose}}
+    <form class="padron-perchero" method="post" action="{{action}}#padron-perchero" id="padron-perchero">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap">
+        {{#picked}}<input type="hidden" name="value" value="{{value}}">{{/picked}}
+        {{#rack}}
+        <section class="padron-etapa" aria-labelledby="pe-{{key}}">
+            <h3 id="pe-{{key}}">{{name}} <span class="secundario">{{ages}}</span></h3>
+            <ul class="padron-ganchos">
+                {{#grades}}
+                <li class="padron-gancho{{#tags.0}} con-algo{{/tags.0}}">
+                    {{#picked}}<button class="padron-pomo" type="submit" name="grade" value="{{hook}}"{{^canact}} disabled{{/canact}}><span class="oculto">{{#str}}panel_roster_hang_here, local_oksigeniaeguahe{{/str}}: </span>{{name}}</button>{{/picked}}
+                    {{^picked}}<span class="padron-pomo">{{name}}</span>{{/picked}}
+                    <ul class="padron-colgadas">{{#tags}}<li><a class="padron-tag{{#guess}} padron-tag-propuesta{{/guess}}" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a>{{#guess}}{{#canact}}<button class="padron-si" type="submit" form="pf{{id}}" aria-label="{{#str}}panel_roster_yes, local_oksigeniaeguahe, {{value}}{{/str}}">{{{i.check}}}</button>{{/canact}}{{/guess}}</li>{{/tags}}</ul>
+                </li>
+                {{/grades}}
+            </ul>
+        </section>
+        {{/rack}}
+        <section class="padron-etapa padron-cajon" aria-labelledby="pe-no">
+            <h3 id="pe-no">{{#str}}panel_roster_none_box, local_oksigeniaeguahe{{/str}}</h3>
+            {{#picked}}<button class="padron-pomo padron-pomo-no" type="submit" name="grade" value=""{{^canact}} disabled{{/canact}}>{{#str}}panel_roster_none, local_oksigeniaeguahe{{/str}}</button>{{/picked}}
+            <ul class="padron-tags">{{#notcourses}}<li><a class="padron-tag padron-tag-no" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a></li>{{/notcourses}}</ul>
+        </section>
+    </form>
+    {{#rack}}{{#grades}}{{#tags}}{{#guess}}<form id="pf{{id}}" method="post" action="{{action}}#padron-perchero"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostermap"><input type="hidden" name="value" value="{{value}}"><input type="hidden" name="grade" value="{{grade}}"></form>{{/guess}}{{/tags}}{{/grades}}{{/rack}}
+    {{#canact}}{{#canbring}}
+    <form method="post" action="{{action}}#padron">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rostersync">
+        <button class="boton principal" type="submit">{{#str}}panel_roster_bring, local_oksigeniaeguahe{{/str}}</button>
+    </form>
+    {{/canbring}}{{/canact}}
+    {{#brought}}<p class="secundario">{{brought}}</p>{{/brought}}
+    {{/hasvalues}}
+    {{#kind}}{{#canact}}
+    <form method="post" action="{{action}}#padron">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="do" value="rosteroff">
+        <button class="enlace" type="submit">{{#str}}panel_roster_off, local_oksigeniaeguahe{{/str}}</button>
+    </form>
+    {{/canact}}{{/kind}}
+</details>

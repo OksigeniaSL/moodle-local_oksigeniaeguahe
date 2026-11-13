@@ -103,7 +103,11 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
 if (data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);
     $signupid = required_param('signup', PARAM_INT);
-    events::attend($event, $signupid, (bool) required_param('came', PARAM_BOOL), optional_param('at', 0, PARAM_INT));
+    // Marking that a family came, only from the day of the act on: before it, the door is not open.
+    $came = (bool) required_param('came', PARAM_BOOL);
+    if (!$came || \local_oksigeniaeguahe\local\panel::days_between((int) $event->timestart, time()) >= 0) {
+        events::attend($event, $signupid, $came, optional_param('at', 0, PARAM_INT));
+    }
     redirect(new moodle_url($url, [], 's' . $signupid));
 }
 

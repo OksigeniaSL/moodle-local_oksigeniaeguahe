@@ -49,6 +49,9 @@ class panel_metrics {
     /** @var string The label of the spend of the campaign under way. */
     const LIVE = 'eguahe';
 
+    /** @var string[] The sheets of the page: the campaign, the school year and the families. */
+    const SHEETS = ['campana', 'curso', 'familias'];
+
     /** @var float How wide the range of what may come is: 80 % of the times, it falls inside. */
     const Z = 1.2816;
 
@@ -297,7 +300,25 @@ class panel_metrics {
         $enrolled = count(array_filter($mine, fn($f) => $f['step'] >= 5));
         $voice = in_array($view['voice'] ?? '', self::VOICES, true) ? $view['voice'] : 'first';
         $show = ($view['show'] ?? '') === 'matriculadas' ? 'matriculadas' : 'llegadas';
+        // Three sheets instead of one long page (Jujol, 13 November 2026): the campaign (answers, how far, where from,
+        // week by week, places), the school year (the ledger and the roll year by year) and the families (what they like
+        // and the channels month by month). Only the blocks of the sheet shown are worked out.
+        $sheet = in_array($view['sheet'] ?? '', self::SHEETS, true) ? $view['sheet'] : 'campana';
+        $on = fn(string $key) => $sheet === $key;
+        $sheets = [];
+        foreach (self::SHEETS as $key) {
+            $name = ['campana' => 'campaign', 'curso' => 'year', 'familias' => 'families'][$key];
+            $sheets[] = ['key' => $key, 'name' => get_string('panel_sheet_' . $name, $c),
+                'what' => get_string('panel_sheet_' . $name . '_what', $c),
+                // The school year is the whole centre: its sheet leaves the course aside.
+                'url' => $url(['sheet' => $key] + ($key === 'curso' ? ['course' => ''] : []))->out(false),
+                'current' => $on($key)];
+        }
         $context = [
+            'sheets' => $sheets,
+            'sheetcampaign' => $on('campana'),
+            'sheetyear' => $on('curso'),
+            'sheetfamilies' => $on('familias'),
             'head' => panel::head([
                 'title' => $total ? get_string(
                     ($enrolled ? 'panel_metrics_title' : 'panel_metrics_title_none') .
@@ -337,10 +358,11 @@ class panel_metrics {
                     'current' => (bool) ($view['compare'] ?? 1)], ['name' => get_string('panel_compare_without', $c),
                     'url' => $url(['compare' => 0])->out(false), 'current' => !($view['compare'] ?? 1)]],
             ],
-            'response' => self::response($centre, $campaign),
-            'reach' => $mine ? self::reach($mine, $before, $compare, $elapsed, (int) ($previous['start'] ?? 0)) : null,
-            'channels' => $mine ? self::channels($centre, $campaign, $mine, $voice, $url) : null,
-            'weeks' => $mine ? self::weeks(
+            'response' => $on('campana') ? self::response($centre, $campaign) : null,
+            'reach' => $mine && $on('campana') ?
+                self::reach($mine, $before, $compare, $elapsed, (int) ($previous['start'] ?? 0)) : null,
+            'channels' => $mine && $on('campana') ? self::channels($centre, $campaign, $mine, $voice, $url) : null,
+            'weeks' => $mine && $on('campana') ? self::weeks(
                 $centre,
                 $campaign,
                 $mine,
@@ -354,25 +376,26 @@ class panel_metrics {
                 !empty($view['whole'])
             ) : null,
             // The places of this year only for the campaign under way: an imported one is about another year.
-            'places' => $campaign['import'] ? null : self::places($centre, $families, $course, $previous, $campaign, $elapsed),
-            'hasplaces' => !$campaign['import'],
+            'places' => $campaign['import'] || !$on('campana') ? null :
+                self::places($centre, $families, $course, $previous, $campaign, $elapsed),
+            'hasplaces' => !$campaign['import'] && $on('campana'),
             'placesdef' => get_string('panel_coming_def', $c),
-            'started' => $campaign['import'] || $course !== '' ? false : self::started((int) $centre->id),
-            'referred' => $campaign['import'] || $course !== '' ? false : self::referred((int) $centre->id),
-            'gone' => $campaign['import'] || $course !== '' ? false : self::gone((int) $centre->id),
-            'starts' => self::starts($campaigns, $canact, $centre),
+            'started' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::started((int) $centre->id),
+            'referred' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::referred((int) $centre->id),
+            'gone' => $campaign['import'] || $course !== '' || !$on('campana') ? false : self::gone((int) $centre->id),
+            'starts' => $on('campana') ? self::starts($campaigns, $canact, $centre) : null,
             // What they like most: what the families do with what Eguahe gives them, and who they are.
-            'likes' => panel_likes::context($centre, $campaign, $mine, $now),
+            'likes' => $on('familias') ? panel_likes::context($centre, $campaign, $mine, $now) : null,
             // The channels compared in time, the whole year round: for the campaign under way and every course.
-            'channelstime' => $campaign['import'] || $course !== '' ? false : panel_channels::context(
+            'channelstime' => $campaign['import'] || $course !== '' || !$on('familias') ? false : panel_channels::context(
                 $centre,
                 $now,
                 $campaign['key'] === $campaigns['live']['key'] ? $families : null
             ),
         ];
         $context['spendaction'] = $url([])->out(false);
-        $year = $course === '' ? self::year($centre) : null;
-        $history = $course === '' ? self::history($centre) : null;
+        $year = $course === '' && $on('curso') ? self::year($centre) : null;
+        $history = $course === '' && $on('curso') ? self::history($centre) : null;
         // A chart without its partner in the row takes the whole row.
         foreach ([['reach', 'response'], ['channels', 'weeks'], ['weeks', 'channels']] as [$chart, $partner]) {
             if ($context[$chart]) {
@@ -398,10 +421,12 @@ class panel_metrics {
      */
     public static function url(\stdClass $centre, array $view): \moodle_url {
         $params = ['c' => $centre->id];
-        foreach (['campaign' => 'campana', 'course' => 'curso', 'voice' => 'voz', 'show' => 'vista'] as $key => $name) {
+        $names = ['campaign' => 'campana', 'course' => 'curso', 'voice' => 'voz', 'show' => 'vista', 'sheet' => 'hoja'];
+        foreach ($names as $key => $name) {
             if (
                 !empty($view[$key]) && !($key === 'campaign' && $view[$key] === 'live') && !($key === 'voice' &&
-                    $view[$key] === 'first') && !($key === 'show' && $view[$key] === 'llegadas')
+                    $view[$key] === 'first') && !($key === 'show' && $view[$key] === 'llegadas') &&
+                    !($key === 'sheet' && $view[$key] === 'campana')
             ) {
                 $params[$name] = $view[$key];
             }
@@ -802,7 +827,9 @@ class panel_metrics {
             }
             $name = $event->kind === 'openday' ? get_string('panel_week_openday', $c) : format_string($event->name);
             $name = \core_text::strlen($name) > 18 ? \core_text::substr($name, 0, 17) . '…' : $name;
-            $events[] = ['p' => round(100 * ($at - $start) / ($total * $week), 1), 'ahead' => $at > $now,
+            $p = round(100 * ($at - $start) / ($total * $week), 1);
+            // Near the right edge its stamp hangs to the left of its mark, so it never pushes the page sideways.
+            $events[] = ['p' => $p, 'ahead' => $at > $now, 'end' => $p > 72,
                 'label' => $name . ' · ' . userdate($at, get_string('strftimedateshort', 'langconfig'))];
         }
         // Every event keeps its mark; its name only where it does not fall on the one before.

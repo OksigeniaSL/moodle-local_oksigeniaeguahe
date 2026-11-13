@@ -74,4 +74,8 @@ if (data_submitted()) {
     redirect($to, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
-panel::output(centres::get($id), 'settings', get_string('centre_settings', $c), 'panel_centre', panel_centre::context($centre));
+panel::output(centres::get($id), 'settings', get_string('centre_settings', $c), 'panel_centre', panel_centre::context(
+    $centre,
+    // The families already at the centre: the label lifted to be hung on the hook of its course.
+    optional_param('cohorte', '', PARAM_ALPHANUM)
+));

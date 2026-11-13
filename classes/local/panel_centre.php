@@ -52,9 +52,10 @@ class panel_centre {
      * The context of the page.
      *
      * @param \stdClass $centre
+     * @param string $picked The label of the families already at the centre lifted to be hung; empty, none.
      * @return array
      */
-    public static function context(\stdClass $centre): array {
+    public static function context(\stdClass $centre, string $picked = ''): array {
         $c = self::C;
         $colour = $centre->colour ?: self::COLOUR;
         $style = fn(array $vars) => implode(';', array_map(fn($k, $v) => $k . ':' . $v, array_keys($vars), $vars));
@@ -85,6 +86,8 @@ class panel_centre {
             $providers[] = ['value' => $id, 'name' => $provider, 'selected' => (int) $centre->aiprovider === $id];
         }
         return [
+            // The families already at the centre (Jujol, 13 November 2026): set up here, once, and not in «Who goes on».
+            'roster' => roster::available() ? panel_renewal::settings_roster($centre, $picked) : false,
             'head' => panel::head(['title' => get_string('centre_settings', $c),
                 'sub' => get_string('panel_settings_sub', $c)]),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]))->out(false),

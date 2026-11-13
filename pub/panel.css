@@ -4397,6 +4397,82 @@ input:checked + .ap-hoja {
     color: var(--eg-tinta);
 }
 
+/* The sound of the door is a lamp: off, an empty ring; on, lit (it looked switched off either way). */
+.sonido::before {
+    content: "";
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+}
+
+.sonido[aria-pressed="true"]::before {
+    background: radial-gradient(circle at 40% 35%, #fff4cf, #f0b43c 62%, #d99418);
+    box-shadow: 0 0 10px 2px rgba(240, 180, 60, 0.5);
+}
+
+/* ---------- The two moments of an act (Jujol, 13 November 2026) ---------- */
+/* Before its day: when the door opens, in one line over «Who is coming»; the list without «Came». */
+.se-abre {
+    margin: 0 0 4px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1.5px dashed var(--eg-borde);
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.quien-viene {
+    margin: 6px 0 2px;
+    font-size: 1.25rem;
+}
+
+.antes .llegada {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.antes .llegada .quitar-inscripcion {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+}
+
+.antes .llegada .quitar-inscripcion .enlace {
+    font-size: 0.875rem;
+}
+
+/* What is shared: open before the day, folded in one line at the door. */
+.compartir-plegable > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.compartir-plegable > summary::-webkit-details-marker {
+    display: none;
+}
+
+.compartir-plegable > summary h2 {
+    margin: 0;
+}
+
+.compartir-plegable > summary .ic {
+    transition: transform var(--dur-1) ease;
+}
+
+.compartir-plegable[open] > summary .ic {
+    transform: rotate(180deg);
+}
+
+.compartir-plegable[open] > summary {
+    margin-bottom: 10px;
+}
+
 .compartir-acto {
     display: grid;
     gap: 18px;
@@ -6553,6 +6629,59 @@ input:focus-visible + .pastilla-r {
     white-space: nowrap;
 }
 
+/* ---------- The sheets of Cifras (Jujol, 13 November 2026) ---------- */
+/* Three tabs of a binder under the head: each its name and what is in it; the one open raised and joined to the
+   page. On a phone they scroll sideways as one row. */
+.hojas-cifras {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 2px solid var(--eg-linea);
+}
+
+.hojas-cifras::-webkit-scrollbar {
+    display: none;
+}
+
+.hoja-cifras {
+    display: grid;
+    flex: 1 1 0;
+    min-width: 12rem;
+    gap: 2px;
+    margin-bottom: -2px;
+    padding: 10px 14px 9px;
+    border: 1.5px solid var(--eg-linea);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    text-decoration: none;
+}
+
+.hoja-cifras b {
+    font-size: 1.0625rem;
+    font-weight: 750;
+}
+
+.hoja-cifras span {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.hoja-cifras[aria-current] {
+    border-top: 4px solid var(--eg-sello);
+    background: var(--piel-hoja, var(--eg-superficie));
+    color: var(--eg-tinta);
+}
+
+.hoja-cifras:not([aria-current]):hover b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .semanas-eje,
 .semanas-actos {
     position: relative;
@@ -6590,6 +6719,15 @@ input:focus-visible + .pastilla-r {
 
 .semanas-eje .final {
     transform: translateX(-100%);
+}
+
+/* A stamp near the right edge hangs to the left of its mark, so it never pushes the page sideways. */
+.semanas-actos .al-final {
+    transform: translateX(-100%);
+}
+
+[dir="rtl"] .semanas-actos .al-final {
+    transform: translateX(100%);
 }
 
 [dir="rtl"] .semanas-eje .inicio {
@@ -9617,6 +9755,30 @@ html.modo-lamina {
     min-width: 0;
 }
 
+/* The families already at the centre, after the form of the settings, in its same column (Jujol, 13 November 2026). */
+.ajustes-padron {
+    margin-top: 18px;
+}
+
+.indice-hueco {
+    display: none;
+}
+
+/* In «Who goes on», one line that says how they are and leads to the settings; a dashed edge while still to do. */
+.padron-enlace {
+    margin: 0 0 18px;
+    padding: 12px 16px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: var(--piel-fila-sombra);
+}
+
+.padron-enlace.por-hacer {
+    border: 1.5px dashed var(--eg-borde);
+    box-shadow: none;
+}
+
 .indice-ajustes {
     min-width: 0;
 }
@@ -9842,6 +10004,10 @@ html.modo-lamina {
     .indice-ajustes {
         position: sticky;
         top: 12px;
+    }
+
+    .indice-hueco {
+        display: block;
     }
 
     .indice-ajustes ol {

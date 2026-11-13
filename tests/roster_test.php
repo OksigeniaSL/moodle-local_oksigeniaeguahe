@@ -190,7 +190,11 @@ final class roster_test extends \advanced_testcase {
         roster::set_source($centre, 'cohort', '', '2026-27');
         roster::set_map($centre, '3.º B', '3.º de Primaria');
         roster::set_map($centre, 'Comedor', '');
-        $page = panel_renewal::context($centre, true, time(), dechex(crc32('4.º A')))['roster'];
+        // Set up in the settings of the centre; «Who goes on» only says how it is and links there.
+        $this->assertFalse(panel_renewal::context($centre, true, time())['roster']);
+        $this->assertStringContainsString('centre.php', panel_renewal::context($centre, true, time())['rosterlink']['url']);
+        $page = panel_renewal::settings_roster($centre, dechex(crc32('4.º A')));
+        $this->assertStringContainsString('volver=ajustes', $page['action']);
         $hooks = [];
         foreach ($page['rack'] as $stage) {
             foreach ($stage['grades'] as $grade) {

@@ -26,6 +26,10 @@
 
     New in this round: nowturn (with wall[came, name, style]), checkurl, checkevery, labelsurl, labelsname.
     Kept: everything of 0.15.
+    Review of 13 November 2026 (Jujol): the two moments of an act. Before its day (before), the band says who is
+    coming (families and people against the room), the list is «Who is coming», each family with «They are not
+    coming», never «Came»; what is shared comes first, beside it. On the day (door), the door as before, and what is
+    shared folds under one line. New: before, door, opens, signedsentence, signedpeople, signedpercent.
 
     Example context (json):
     {
@@ -37,28 +41,38 @@
         "tailored": false, "hasrequests": false, "requests": [], "own": false, "family": "", "familyurl": "",
         "nowturn": {"wall": [{"came": true, "name": "Leo", "style": "--reposo:-3.5deg"}]},
         "checkurl": "#", "checkevery": 30,
-        "hassignups": true, "groups": [{"title": "10:00 a 10:45", "now": true, "open": true, "count": "1 de 2 han venido",
+        "hassignups": true, "groups": [{"title": "10:00 a 10:45", "now": true, "open": true, "count": "1 de 2 han venido", "families": "2 familias apuntadas",
             "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"drawingurl": "#", "hasdrawing": false, "tag": "Leo",
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
         "posterurl": "#", "posterurla3": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
-        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "cancelled": ""
+        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "cancelled": "",
+        "before": false, "door": true, "opens": "", "signedsentence": "familias apuntadas", "signedpeople": "87 de 120 personas", "signedpercent": 72
     }
 }}
-<div class="pagina puerta{{#past}} paso{{/past}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
+<div class="pagina puerta{{#past}} paso{{/past}}{{#before}} antes{{/before}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
     <section class="banda" aria-labelledby="acto-t">
         <span class="etiqueta-b">{{band}}</span>
         <div class="banda-texto"><h1 class="acto-n" id="acto-t" tabindex="-1">{{name}}</h1>{{#detail}}<p class="detalle">{{detail}}</p>{{/detail}}</div>
         {{#counts}}
+        {{#before}}
+        <div class="cuentas-banda">
+            <p class="cuenta-grande"><b>{{households}}</b> <span>{{signedsentence}}</span></p>
+            <span class="personas">{{signedpeople}}</span>
+            <span class="barra-b" aria-hidden="true"><i style="width:{{signedpercent}}%"></i></span>
+        </div>
+        {{/before}}
+        {{^before}}
         <div class="cuentas-banda">
             <p class="cuenta-grande" aria-live="polite"><b data-vinieron>{{came}}</b> <span>{{camesentence}}</span></p>
             <span class="personas" data-personas>{{peoplesentence}}</span>
             <span class="barra-b" aria-hidden="true"><i style="width:{{percent}}%" data-barra-personas></i></span>
             <p class="por-guardar" data-por-guardar role="status" hidden></p>
         </div>
+        {{/before}}
         {{/counts}}
     </section>
     {{#howitwent}}{{> local_oksigeniaeguahe/panel_howitwent }}{{/howitwent}}
@@ -82,21 +96,24 @@
             {{^hasrequests}}<p class="secundario">{{#str}}panel_events_no_requests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
             {{/tailored}}
             {{^tailored}}
+            {{#before}}<p class="se-abre">{{opens}}</p><h2 class="quien-viene">{{#str}}panel_before_who, local_oksigeniaeguahe{{/str}}</h2>{{/before}}
             <div class="buscar-puerta">
                 <label class="buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".llegada" data-tecla="/" data-tecla-que="{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
-                {{#addurl}}<a class="boton principal en-ancho" href="{{addurl}}" data-tecla="a" data-tecla-que="{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/addurl}}
+                {{#addurl}}{{^before}}<a class="boton principal en-ancho" href="{{addurl}}" data-tecla="a" data-tecla-que="{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/before}}{{#before}}<a class="boton secundario en-ancho" href="{{addurl}}">{{{i.mas1}}}<span>{{#str}}household_new, local_oksigeniaeguahe{{/str}}</span></a>{{/before}}{{/addurl}}
             </div>
             {{#groups}}
             <details class="turno-p{{#now}} ahora-t{{/now}}"{{#open}} open{{/open}}>
-                <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos"><span data-cuenta-turno>{{count}}</span>{{{i.chev}}}</span></summary>
+                <summary>{{#title}}<span class="hora">{{title}}</span>{{/title}}{{#now}}<span class="ahora">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span>{{/now}}<span class="cuantos">{{^before}}<span data-cuenta-turno>{{count}}</span>{{/before}}{{#before}}<span>{{families}}</span>{{/before}}{{{i.chev}}}</span></summary>
                 {{#signups}}
                 <div class="llegada{{#came}} ya{{/came}}" id="s{{id}}" data-buscar="{{search}}" data-llegada="{{id}}">
                     <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l">{{#children}}<span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}</span>{{#drawingurl}}<a class="enlace su-dibujo" href="{{drawingurl}}">{{#hasdrawing}}{{#str}}panel_drawing_has, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}{{^hasdrawing}}{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}{{/hasdrawing}}</a>{{/drawingurl}}</span>{{/children}}</span><span class="personas">{{people}}</span></div>
                     {{#canact}}
+                    {{^before}}
                     <form method="post" action="{{action}}#s{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">
                         <button class="vino" type="submit" aria-pressed="{{#came}}true{{/came}}{{^came}}false{{/came}}" aria-label="{{adults}}: {{cametext}}">{{{i.check}}}<span>{{cametext}}</span></button>
                     </form>
+                    {{/before}}
                     {{^came}}<form class="quitar-inscripcion" method="post" action="{{action}}#s{{id}}">
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="unsign"><input type="hidden" name="signup" value="{{id}}">
                         <button class="enlace" type="submit">{{#str}}event_unsign, local_oksigeniaeguahe{{/str}}</button>
@@ -109,13 +126,13 @@
             {{/groups}}
             {{^hassignups}}<p class="secundario">{{#str}}panel_nobody_yet, local_oksigeniaeguahe{{/str}}</p>{{/hassignups}}
             <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
-            <button class="sonido" type="button" data-sonido aria-pressed="false" hidden>{{{i.altavoz}}}<span>{{#str}}panel_door_sound, local_oksigeniaeguahe{{/str}}</span></button>
+            {{^before}}<button class="sonido" type="button" data-sonido aria-pressed="false" hidden>{{{i.altavoz}}}<span>{{#str}}panel_door_sound, local_oksigeniaeguahe{{/str}}</span></button>{{/before}}
             {{/tailored}}
         </section>
         <aside class="compartir-acto">
             {{^own}}
-            <section class="bloque">
-                <h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>
+            <details class="bloque compartir-plegable"{{^door}} open{{/door}}>
+                <summary><h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>{{{i.chev}}}</summary>
                 <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto" dir="ltr">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
                 {{^tailored}}
                 <div class="cabeza-acciones">
@@ -125,7 +142,7 @@
                     {{#kiturl}}<a class="boton secundario pequeno" href="{{kiturl}}">{{#str}}kit_title, local_oksigeniaeguahe{{/str}}</a>{{/kiturl}}
                 </div>
                 {{/tailored}}
-            </section>
+            </details>
             {{/own}}
             {{#invite}}
             <section class="bloque invitar" id="invitar">

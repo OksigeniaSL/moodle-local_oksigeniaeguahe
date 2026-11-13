@@ -116,6 +116,7 @@
                 <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-despues">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</a></li>
+                {{#roster}}<li><a href="#padron">{{#str}}panel_roster, local_oksigeniaeguahe{{/str}}</a></li>{{/roster}}
                 <li><a href="#aj-datos">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-zona">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-redes">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</a></li>
@@ -499,4 +500,11 @@
             </div>
         </div>
     </form>
+    {{! The families already at the centre: their own forms, so after the form of the settings, in the same column. }}
+    {{#roster}}
+    <div class="ajustes ajustes-padron">
+        <span class="indice-hueco" aria-hidden="true"></span>
+        <div class="ajustes-hojas">{{> local_oksigeniaeguahe/panel_roster }}</div>
+    </div>
+    {{/roster}}
 </div>

@@ -112,6 +112,10 @@ if (data_submitted()) {
         }
         $anchor = 'n' . $child;
     }
+    // The families already at the centre are set up in the settings: their gestures go back there.
+    if (str_starts_with($do, 'roster') && optional_param('volver', '', PARAM_ALPHA) === 'ajustes') {
+        redirect(new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id], $anchor));
+    }
     redirect(new moodle_url($url, [], $anchor));
 }
 

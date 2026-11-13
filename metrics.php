@@ -45,6 +45,7 @@ $view = [
     'show' => optional_param('vista', 'llegadas', PARAM_ALPHA),
     'ensenar' => optional_param('ensenar', 0, PARAM_BOOL),
     'whole' => optional_param('entera', 0, PARAM_BOOL),
+    'sheet' => optional_param('hoja', 'campana', PARAM_ALPHA),
 ];
 $url = panel_metrics::url($centre, $view);
 $PAGE->set_context(context_system::instance());

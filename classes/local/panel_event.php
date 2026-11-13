@@ -130,6 +130,9 @@ class panel_event {
                 'count' => get_string('panel_came_count', $c, (object) ['came' => $group['came'],
                     'households' => count($group['signups'])]),
                 'hassignups' => (bool) $group['signups'],
+                // Before the day, how many are coming in it: never how many came.
+                'families' => count($group['signups']) . ' ' . get_string(count($group['signups']) === 1 ?
+                    'panel_signed_one' : 'panel_signed_households', $c),
             ];
         }
 
@@ -193,7 +196,20 @@ class panel_event {
                 $nowturn = $wall ? ['wall' => $wall] : null;
             }
         }
+        // The two moments of an act: before its day, who is coming and what to prepare; on the day, the door. «Came» is
+        // only offered from the day on (the server refuses it before, see event.php).
+        $before = !$tailored && !$family && !$today && (int) $event->timestart > $now;
         return [
+            'before' => $before,
+            'door' => !$tailored && !$family && !$before && (int) $event->timeend >= $now,
+            'opens' => $before ? get_string('panel_door_opens', $c, userdate(
+                (int) $event->timestart,
+                get_string('strftimedaydate', 'langconfig')
+            )) : '',
+            'signedsentence' => get_string($households === 1 ? 'panel_signed_one' : 'panel_signed_households', $c, $households),
+            'signedpeople' => $event->capacity ? get_string('panel_signed_people_of', $c, (object) ['people' => $people,
+                'capacity' => (int) $event->capacity]) : get_string('panel_people', $c, $people),
+            'signedpercent' => $event->capacity ? min(100, (int) round(100 * $people / (int) $event->capacity)) : 0,
             'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]))->out(false),
                 'name' => get_string('tab_events', $c)],
             'band' => $band,

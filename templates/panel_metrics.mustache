@@ -33,9 +33,19 @@
     key of the rail, the ledger as a sum that adds up with its stamp, the reasons drawn as parts of those who left, and
     the change between years (history.rows.delta). The new keys are optional: without them the chart is drawn as before.
 
+    Review of 13 November 2026 (Jujol): three sheets instead of one page of twenty phone screens, as the tabs of a
+    binder under the head: the campaign (answers, how far, where from, week by week, places and when each campaign
+    started), the school year (the ledger and the roll year by year) and the families (what they like most and the
+    channels month by month). Each is a link (?hoja=); only its blocks are worked out. The filters of campaign, course
+    and comparison go with the campaign; the families keep the campaign; the school year needs none. The downloads, on
+    every sheet. New: sheets, sheetcampaign, sheetyear, sheetfamilies, weeks.events[].end.
+
     Example context (json):
     {
         "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
+        "sheets": [{"key": "campana", "name": "La campaña", "what": "Respuestas, hasta dónde llegan, por dónde, semana a semana y plazas", "url": "#", "current": true},
+            {"key": "curso", "name": "El curso escolar", "what": "Las cuentas del curso y los alumnos año a año", "url": "#", "current": false}],
+        "sheetcampaign": true, "sheetyear": false, "sheetfamilies": false,
         "head": {"title": "96 familias esta campaña", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "action": false},
         "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "", "exports": {"families": {"excel": "#a", "csv": "#b"}, "figures": {"excel": "#c", "csv": "#d"} },
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
@@ -66,12 +76,16 @@
 }}
 <div class="pagina pagina-cifras{{#ensenar}} en-lamina{{/ensenar}}" data-cifras>
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <nav class="hojas-cifras" aria-label="{{#str}}panel_sheets, local_oksigeniaeguahe{{/str}}">
+        {{#sheets}}<a class="hoja-cifras" href="{{url}}"{{#current}} aria-current="page"{{/current}}><b>{{name}}</b><span>{{what}}</span></a>{{/sheets}}
+    </nav>
+    {{^sheetyear}}
     <div class="cifras-barra">
         <nav class="filtros-cifras" aria-label="{{#str}}panel_which_numbers, local_oksigeniaeguahe{{/str}}">
             {{#filters}}
             <div class="filtro-grupo"><span class="rotulo-p" id="fc-campana">{{#str}}panel_campaign, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-campana">{{#campaigns}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/campaigns}}</span></div>
-            <div class="filtro-grupo"><span class="rotulo-p" id="fc-curso">{{#str}}panel_course, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-curso">{{#courses}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/courses}}</span></div>
-            <div class="filtro-grupo"><span class="rotulo-p" id="fc-comparar">{{#str}}panel_compare, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-comparar">{{#compare}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/compare}}</span></div>
+            {{#sheetcampaign}}<div class="filtro-grupo"><span class="rotulo-p" id="fc-curso">{{#str}}panel_course, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-curso">{{#courses}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/courses}}</span></div>
+            <div class="filtro-grupo"><span class="rotulo-p" id="fc-comparar">{{#str}}panel_compare, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-comparar">{{#compare}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/compare}}</span></div>{{/sheetcampaign}}
             {{/filters}}
         </nav>
         <div class="cifras-mandos">
@@ -79,6 +93,7 @@
             <a class="enlace" href="{{importurl}}">{{{i.subir}}}{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a>
         </div>
     </div>
+    {{/sheetyear}}
     <div class="cifras" data-cifras-cuerpo>
         {{#response}}
         <section class="lamina grafico grafico-respuesta" aria-labelledby="c-resp" id="primera-respuesta">
@@ -179,7 +194,7 @@
                     {{#xticks}}<span class="{{#start}}inicio{{/start}}{{#end}}final{{/end}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/xticks}}
                 </div>
                 <div class="semanas-actos" aria-hidden="true">
-                    {{#events}}{{#label}}<span class="acto-sello{{#ahead}} por-venir{{/ahead}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/label}}{{/events}}
+                    {{#events}}{{#label}}<span class="acto-sello{{#ahead}} por-venir{{/ahead}}{{#end}} al-final{{/end}}" style="inset-inline-start: {{p}}%">{{label}}</span>{{/label}}{{/events}}
                 </div>
             </div>
             <p class="def">{{def}}</p>
@@ -266,7 +281,7 @@
             </form>
         </details>
         {{/starts}}
-        <p class="nota-importado def">{{importnote}} <a href="{{importurl}}">{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>
+        {{#sheetcampaign}}<p class="nota-importado def">{{importnote}} <a href="{{importurl}}">{{#str}}panel_import_past, local_oksigeniaeguahe{{/str}}</a></p>{{/sheetcampaign}}
         {{#exports}}
         <section class="descargas" aria-labelledby="descargas-t">
             <p class="descargas-t" id="descargas-t">{{#str}}export_take, local_oksigeniaeguahe{{/str}}</p>

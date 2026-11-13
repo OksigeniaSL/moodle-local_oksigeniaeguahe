@@ -182,7 +182,9 @@ class panel_renewal {
             ] : false,
             'groups' => $groups,
             'hasgroups' => (bool) $groups,
-            'roster' => roster::available() ? self::roster($centre, $picked) : false,
+            // The families already at the centre are set up in the settings (Jujol, 13 November 2026): here, one line.
+            'roster' => false,
+            'rosterlink' => roster::available() ? self::roster_link($centre) : false,
             'canact' => $canact,
             'action' => $action,
             'sesskey' => sesskey(),
@@ -196,9 +198,10 @@ class panel_renewal {
      *
      * @param \stdClass $centre
      * @param string $picked The id of the value lifted to be hung; empty, none.
+     * @param bool $settings Drawn in the settings of the centre: its links go back there.
      * @return array
      */
-    protected static function roster(\stdClass $centre, string $picked = ''): array {
+    protected static function roster(\stdClass $centre, string $picked = '', bool $settings = false): array {
         $c = self::C;
         $source = roster::source($centre);
         ['userids' => $userids, 'nameless' => $nameless, 'count' => $count, 'groups' => $groups] = roster::students();
@@ -256,7 +259,8 @@ class panel_renewal {
         }
         $overview = roster::overview($centre);
         $guesses = 0;
-        $base = new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centre->id]);
+        $base = $settings ? new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]) :
+            new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centre->id]);
         // The courses of the system as the hooks of a rack, a row for each stage; what cannot be placed in one, apart.
         $rack = [];
         foreach ($offers as $plain => $offer) {
@@ -323,6 +327,40 @@ class panel_renewal {
             'families' => $brought['families'], 'children' => $brought['children'],
             'day' => userdate($brought['time'], get_string('strftimedatetimeshort', 'langconfig'))]) : '';
         return $out;
+    }
+
+    /**
+     * The families already at the centre, as the settings of the centre draw them: the rack with its forms, which post
+     * to renewal.php and come back to the settings.
+     *
+     * @param \stdClass $centre
+     * @param string $picked The id of the value lifted to be hung; empty, none.
+     * @return array
+     */
+    public static function settings_roster(\stdClass $centre, string $picked = ''): array {
+        return self::roster($centre, $picked, true) + [
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centre->id, 'volver' => 'ajustes']))
+                ->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * The line of «Who goes on» about the families already at the centre: how many have their course, or that they are
+     * still to be brought, and the way to the settings where they are set up.
+     *
+     * @param \stdClass $centre
+     * @return array text, url, todo
+     */
+    protected static function roster_link(\stdClass $centre): array {
+        $c = self::C;
+        $url = (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id], 'padron'))->out(false);
+        if (!roster::source($centre)) {
+            return ['text' => get_string('panel_roster_todo', $c), 'url' => $url, 'todo' => true];
+        }
+        $overview = roster::overview($centre);
+        return ['text' => get_string('panel_roster_placed', $c, (object) ['placed' => $overview['placed'],
+            'students' => $overview['students']]), 'url' => $url, 'todo' => !$overview['placed']];
     }
 
     /**

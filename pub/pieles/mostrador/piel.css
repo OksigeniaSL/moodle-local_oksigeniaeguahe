@@ -1502,6 +1502,15 @@ body.piel-mostrador::after {
 [dir="rtl"] .piel-mostrador .acto-sello {
     transform: translateX(50%) rotate(3deg);
 }
+
+/* Near the right edge, hanging to the left of its mark (Jujol, 13 November 2026). */
+.piel-mostrador .acto-sello.al-final {
+    transform: translateX(-100%) rotate(-3deg);
+}
+
+[dir="rtl"] .piel-mostrador .acto-sello.al-final {
+    transform: translateX(100%) rotate(3deg);
+}
 /* The school year in a ledger: pale ruled paper, the red double line before the column of figures */
 .piel-mostrador .grafico-saldo {
     background-color: var(--libro-papel);

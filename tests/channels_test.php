@@ -99,7 +99,9 @@ final class channels_test extends \advanced_testcase {
 
         // The sheet in Cifras, for the campaign under way.
         $this->assertSame(get_string('panel_ct_title', 'local_oksigeniaeguahe'), $context['title']);
-        $this->assertNotFalse(panel_metrics::context($centre, [], true, $now)['channelstime']);
+        $this->assertNotFalse(panel_metrics::context($centre, ['sheet' => 'familias'], true, $now)['channelstime']);
+        // Only the sheet shown is worked out.
+        $this->assertFalse(panel_metrics::context($centre, [], true, $now)['channelstime']);
     }
 
     /**
