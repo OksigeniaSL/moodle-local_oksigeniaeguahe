@@ -29,6 +29,9 @@ class guide {
     /** @var string[] The guides there are. */
     const KINDS = ['perro'];
 
+    /** @var float How wide the guide stands on a miniature, as a part of its width (.guia-mapa in pub/eguahe.css). */
+    const WIDE = 0.14;
+
     /**
      * The guide of a centre, or '' without one.
      *
@@ -57,8 +60,8 @@ class guide {
      * its path of class «ruta» (the recipe of the miniatures keeps it, and it always ends at the door of the place).
      *
      * @param string $svg
-     * @return array x, y, endx, endy, up (whether its first stretch goes up) and marks (the labels and the pin, which
-     *     the bubble never covers: x, y, w, h); empty when the picture has no way.
+     * @return array x, y, endx, endy, up (whether its first stretch goes up), ratio (width over height) and marks (the
+     *     labels and the pin, which the bubble never covers: x, y, w, h); empty when the picture has no way.
      */
     public static function read_way(string $svg): array {
         if (!preg_match('/viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/', $svg, $box)) {
@@ -75,7 +78,8 @@ class guide {
         }
         $part = fn($v, $of) => round(min(1, max(0, (float) $v / $of)), 4);
         return ['x' => $part($n[0], $w), 'y' => $part($n[1], $h), 'endx' => $part($n[count($n) - 2], $w),
-            'endy' => $part($n[count($n) - 1], $h), 'up' => (float) $n[3] < (float) $n[1], 'marks' => self::marks($svg, $w, $h)];
+            'endy' => $part($n[count($n) - 1], $h), 'up' => (float) $n[3] < (float) $n[1], 'ratio' => round($w / $h, 4),
+            'marks' => self::marks($svg, $w, $h)];
     }
 
     /**
@@ -170,9 +174,20 @@ class guide {
     protected static function spot(array $way, string $suffix): string {
         // It walks to the right; when the way goes to the left, it turns round.
         $flip = $way['endx'] < $way['x'] ? -1 : 1;
-        $rise = !empty($way['up']) ? '-4%' : '-100%';
-        return '--x' . $suffix . ':' . round($way['x'] * 100, 2) . '%;--y' . $suffix . ':' . round($way['y'] * 100, 2) .
-            '%;--giro' . $suffix . ':' . $flip . ';--alto' . $suffix . ':' . $rise . ';';
+        // Its height as a part of the picture: it is square and 14 % as wide as the picture (.guia-mapa).
+        $tall = self::WIDE * (float) ($way['ratio'] ?? 1.6);
+        $top = !empty($way['up']) ? $way['y'] - 0.04 * $tall : $way['y'] - $tall;
+        $x = $way['x'];
+        if ($top + $tall > 0.98) {
+            // Below the entrance it would go out of the picture: it goes up, aside from where the way goes.
+            $top = 0.98 - $tall;
+            $x -= $flip * self::WIDE * 0.75;
+        }
+        $top = max(0, $top);
+        $x = min(1 - self::WIDE / 2, max(self::WIDE / 2, $x));
+        $rise = round(($top - $way['y']) / $tall * 100, 1);
+        return '--x' . $suffix . ':' . round($x * 100, 2) . '%;--y' . $suffix . ':' . round($way['y'] * 100, 2) .
+            '%;--giro' . $suffix . ':' . $flip . ';--alto' . $suffix . ':' . $rise . '%;';
     }
 
     /**

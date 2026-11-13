@@ -89,4 +89,23 @@ final class guide_test extends \advanced_testcase {
         centres::update($id, (object) ['guide' => 'no']);
         $this->assertSame('', guide::of(centres::get($id)));
     }
+
+    /**
+     * An entrance at the very bottom of the picture: the guide does not go out of it, it goes up and aside.
+     */
+    public function test_stays_inside(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'guide' => 'perro']);
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_oksigeniaeguahe', 'filearea' => 'miniature', 'itemid' => $id, 'filepath' => '/',
+            'filename' => 'abajo.svg'], '<svg viewBox="0 0 1600 1000"><path class="ruta" d="M800 900 820 800 600 500"/></svg>');
+        centres::update($id, (object) ['guide' => 'perro']);
+        $style = guide::on_map(centres::get($id), 'miniature', false, 'es')['style'];
+        preg_match('/--x:([\d.]+)%;--y:([\d.]+)%;--giro:(-?1);--alto:(-?[\d.]+)%/', $style, $m);
+        [$x, $y, $giro, $rise] = [(float) $m[1], (float) $m[2], (int) $m[3], (float) $m[4]];
+        $tall = 22.4;
+        $this->assertSame(-1, $giro);
+        $this->assertLessThanOrEqual(98.01, $y + $rise / 100 * $tall + $tall, 'Its feet stay inside the picture.');
+        $this->assertGreaterThan(50, $x, 'Aside, away from where the way goes.');
+    }
 }
