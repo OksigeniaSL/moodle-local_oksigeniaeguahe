@@ -503,6 +503,12 @@ class renewal {
             $household = households::get($householdid, (int) $centre->id);
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $token = households::new_link($household, 'renewal');
+            try {
+                // On the phone of the adults with an account too, where they answer it in the app.
+                appnotices::renewal_asked($household, $centre);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: notice of the renewal not sent: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
             if (familymail::send('renewal', $household, $centre, null, $lang, $token)) {
                 $DB->insert_record(households::CONTACTS, (object) ['centreid' => $centre->id, 'householdid' => $householdid,
                     'direction' => 'out', 'channel' => 'email', 'body' => get_string(

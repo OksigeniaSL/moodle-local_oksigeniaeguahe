@@ -27,8 +27,11 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class atycards {
-    /** @var int How long a link from the app opens the page of the family. */
+    /** @var int How long a link from a card of the app opens the page of the family. */
     const LASTS = DAYSECS;
+
+    /** @var int The longest a link from the app lasts: that of a notice, which may be read days later (appnotices). */
+    const LONGEST = 7 * DAYSECS;
 
     /** @var int The most rows of a card, as Aty shows them. */
     const ROWS = 5;
@@ -135,7 +138,7 @@ class atycards {
                 $rows[] = ['title' => $s('aty_renewal', (object) ['name' => $name, 'year' => s((string) $centre->renewalyear)]),
                     'detail' => $s('aty_renewal_detail'), 'urgent' => true, 'actionlabel' => $s('aty_answer'),
                     'method' => 'mobile_renewal_view', 'args' => ['h' => (int) $household->id],
-                    'pagetitle' => $s('pub_renewal_title', (string) $centre->renewalyear)] +
+                    'pagetitle' => $s('app_renewal_title')] +
                     ((int) ($centre->renewaluntil ?? 0) ? ['date' => (int) $centre->renewaluntil - 1, 'kind' => 'due'] : []);
             }
         }
@@ -170,10 +173,11 @@ class atycards {
      * @param int $userid
      * @param string $anchor
      * @param int $now
+     * @param int $lasts How long it opens the page.
      * @return \moodle_url
      */
-    public static function url(\stdClass $household, int $userid, string $anchor, int $now): \moodle_url {
-        $until = $now + self::LASTS;
+    public static function url(\stdClass $household, int $userid, string $anchor, int $now, int $lasts = self::LASTS): \moodle_url {
+        $until = $now + min($lasts, self::LONGEST);
         return new \moodle_url('/local/oksigeniaeguahe/app.php', ['h' => $household->id, 'u' => $userid, 't' => $until,
             'a' => $anchor, 's' => share::signature('app:' . $until, (int) $household->id, $userid)]);
     }
@@ -189,6 +193,7 @@ class atycards {
      * @return bool
      */
     public static function valid(int $householdid, int $userid, int $until, string $signature, int $now): bool {
-        return $until >= $now && $until <= $now + self::LASTS && share::signed('app:' . $until, $householdid, $userid, $signature);
+        $ontime = $until >= $now && $until <= $now + self::LONGEST;
+        return $ontime && share::signed('app:' . $until, $householdid, $userid, $signature);
     }
 }

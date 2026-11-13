@@ -27,6 +27,12 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['app_renewal_none'] = 'لا يوجد ما تجيبون عنه الآن.';
 $string['app_renewal_title'] = 'هل تواصلون العام المقبل؟';
+$string['appnotice_renewal_subject'] = 'هل تواصلون في {$a}؟';
+$string['appnotice_renewal_text'] = 'تريد المدرسة أن تعرف من سيواصل العام المقبل. تكفي لمسة واحدة.';
+$string['appnotice_replied_subject'] = 'وصلكم ردّ';
+$string['appnotice_replied_text'] = 'ردّت عليكم المدرسة بالبريد الإلكتروني. تجدون الرد أيضًا في صفحتكم.';
+$string['appnotice_visit_subject'] = 'زيارتكم غدًا';
+$string['appnotice_visit_text'] = '{$a->event}، غدًا الساعة {$a->hour}. كل ما يخص الزيارة في صفحتكم.';
 $string['apprenewal_notyours'] = 'هذه العائلة ليست لهذا الحساب.';
 $string['aty_answer'] = 'أجيبوا';
 $string['aty_birthday'] = 'عيد ميلاد سعيد يا {$a}!';

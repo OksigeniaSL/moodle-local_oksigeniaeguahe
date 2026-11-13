@@ -271,6 +271,13 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
             }
             households::answered($household, (int) $USER->id, 'email', $body);
+            try {
+                // And on the phone of the adults of the family with an account, that they have it.
+                \local_oksigeniaeguahe\local\appnotices::replied($household, $centre);
+            } catch (\Throwable $e) {
+                // The answer went: a notice that fails changes nothing of it.
+                debugging('Eguahe: notice of the answer not sent: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
             $aftersend();
             redirect($url, get_string('reply_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;

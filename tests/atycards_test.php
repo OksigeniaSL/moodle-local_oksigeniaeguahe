@@ -84,7 +84,8 @@ final class atycards_test extends \advanced_testcase {
         $this->assertTrue(atycards::valid($h, $u, $t, $s, $now));
         $this->assertFalse(atycards::valid($h, $u, $t, $s, $t + 1), 'Past its day.');
         $this->assertFalse(atycards::valid($h + 1, $u, $t, $s, $now));
-        $this->assertFalse(atycards::valid($h, $u, $t + 60, $s, $now));
+        $this->assertFalse(atycards::valid($h, $u, $t + 60, $s, $now), 'Signed for its own day only.');
+        $this->assertFalse(atycards::valid($h, $u, $now + 8 * DAYSECS, $s, $now), 'Never more than a week.');
 
         // Answered, the question goes.
         renewal::answer(centres::get($id), households::get((int) $household->id, $id), $child, 'stay', '', '', 0, $now);
@@ -172,5 +173,44 @@ final class atycards_test extends \advanced_testcase {
         $this->setUser($other);
         $this->expectException(\moodle_exception::class);
         \local_oksigeniaeguahe\external\renewal_answer::execute((int) $household->id, $child, 'stay');
+    }
+
+    /**
+     * The notices to the phone: to each account of an adult of the family, with the link to their page; none to whom
+     * is not of it.
+     */
+    public function test_notices(): void {
+        global $DB;
+        $api = '\\local_oksigeniafamily\\api';
+        if (!class_exists($api) || !method_exists($api, 'adult_users_of_family')) {
+            $this->markTestSkipped('The site has no common family record that says the accounts of a family.');
+        }
+        $this->resetAfterTest();
+        $this->preventResetByRollback();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $household = households::get(households::create($id, (object) ['lang' => 'es']), $id);
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->create_user();
+        $familyid = $api::create_family('eguahe', 'eguahe:' . $household->id);
+        $api::add_adult($familyid, ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'userid' => (int) $user->id]);
+        $this->assertSame([(int) $user->id], \local_oksigeniaeguahe\local\appnotices::users_of($household));
+
+        $sink = $this->redirectMessages();
+        $this->assertSame(1, \local_oksigeniaeguahe\local\appnotices::replied($household, $centre));
+        $centre->renewalyear = '2027-28';
+        $this->assertSame(1, \local_oksigeniaeguahe\local\appnotices::renewal_asked($household, $centre));
+        $messages = $sink->get_messages();
+        $sink->close();
+        $this->assertCount(2, $messages);
+        $this->assertSame((int) $user->id, (int) $messages[0]->useridto);
+        $this->assertSame('replied', $messages[0]->eventtype);
+        $this->assertSame('Les han contestado', $messages[0]->subject);
+        $this->assertSame('¿Siguen en 2027-28?', $messages[1]->subject);
+        $link = new \moodle_url($messages[1]->contexturl);
+        $this->assertSame('rematricula', $link->get_param('a'));
+        [$until, $signature] = [(int) $link->get_param('t'), (string) $link->get_param('s')];
+        $this->assertTrue(atycards::valid((int) $household->id, (int) $user->id, $until, $signature, time()));
+        $this->assertGreaterThan(time() + 6 * DAYSECS, (int) $link->get_param('t'), 'A notice may be read days later.');
     }
 }
