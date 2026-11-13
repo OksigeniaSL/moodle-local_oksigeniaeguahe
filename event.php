@@ -27,6 +27,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_event;
@@ -76,6 +77,27 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'cancel') {
+    // The act is called off: every family signed up is told, and nothing more goes out for it.
+    centres::require_act((int) $centre->id);
+    $told = events::cancel($event, $centre, (int) $USER->id, optional_param('message', '', PARAM_TEXT), time());
+    redirect(
+        new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]),
+        get_string('event_cancelled_done', $c, $told),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+    );
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'unsign') {
+    // A family is not coming after all, as it told a person.
+    centres::require_act((int) $centre->id);
+    $signup = $DB->get_record(events::SIGNUPS, ['id' => required_param('signup', PARAM_INT), 'eventid' => $event->id]);
+    $household = $signup ? households::get((int) $signup->householdid, (int) $centre->id) : null;
+    if ($household) {
+        events::unsign($event, $household, get_string('event_unsigned_team', $c, format_string($event->name)), false);
+    }
+    redirect(new moodle_url($url, [], 'puerta'));
 }
 if (data_submitted() && confirm_sesskey()) {
     centres::require_act((int) $centre->id);

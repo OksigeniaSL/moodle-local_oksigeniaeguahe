@@ -44,7 +44,7 @@
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
         "posterurl": "#", "posterurla3": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
-        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#"
+        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "cancelled": ""
     }
 }}
 <div class="pagina puerta{{#past}} paso{{/past}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
@@ -97,6 +97,10 @@
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="signup" value="{{id}}"><input type="hidden" name="came" value="{{^came}}1{{/came}}{{#came}}0{{/came}}">
                         <button class="vino" type="submit" aria-pressed="{{#came}}true{{/came}}{{^came}}false{{/came}}" aria-label="{{adults}}: {{cametext}}">{{{i.check}}}<span>{{cametext}}</span></button>
                     </form>
+                    {{^came}}<form class="quitar-inscripcion" method="post" action="{{action}}#s{{id}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="unsign"><input type="hidden" name="signup" value="{{id}}">
+                        <button class="enlace" type="submit">{{#str}}event_unsign, local_oksigeniaeguahe{{/str}}</button>
+                    </form>{{/came}}
                     {{/canact}}
                 </div>
                 {{/signups}}
@@ -148,6 +152,18 @@
                     <div class="fila-s"><span>{{#str}}panel_signup, local_oksigeniaeguahe{{/str}}</span><b>{{#open}}{{#str}}panel_open, local_oksigeniaeguahe{{/str}}{{/open}}{{^open}}{{#str}}panel_closed, local_oksigeniaeguahe{{/str}}{{/open}}</b></div>
                 </div>
                 {{#editurl}}<div><a class="boton secundario pequeno" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change_event, local_oksigeniaeguahe{{/str}}</a></div>{{/editurl}}
+                {{#cancelled}}<p class="secundario">{{cancelled}}</p>{{/cancelled}}
+                {{#cancel}}
+                <details class="anular-acto">
+                    <summary class="enlace">{{#str}}event_cancel, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cancel">
+                        <p>{{#str}}event_cancel_help, local_oksigeniaeguahe{{/str}}</p>
+                        <div class="campo"><label for="anular-mensaje">{{#str}}event_cancel_message, local_oksigeniaeguahe{{/str}}</label><textarea id="anular-mensaje" name="message" rows="3" maxlength="2000"></textarea></div>
+                        <button class="boton secundario pequeno" type="submit">{{#str}}event_cancel_do, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+                {{/cancel}}
             </section>
         </aside>
     </div>

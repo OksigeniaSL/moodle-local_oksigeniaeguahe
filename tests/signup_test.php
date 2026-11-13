@@ -160,6 +160,40 @@ final class signup_test extends \advanced_testcase {
     }
 
     /**
+     * A form anyone can fill that matches a family by its phone: the address it brings is not kept (the family's mail
+     * would go there), the team gets a note, no permission is taken back and the name used at home stays.
+     */
+    public function test_known_family_by_phone(): void {
+        global $DB;
+        $first = $this->data(['consents' => ['email' => 0, 'whatsapp' => 1, 'phone' => 1]]);
+        $first['adults'][0]['email'] = '';
+        [$family] = signup::save($first, $this->event, $this->centre, 'es');
+        $this->assertSame('', households::recipient($family), 'The family left no email.');
+
+        // Someone who knows their phone: their own email in the first adult, the phone of the family in a second one.
+        $other = $this->data(['consents' => ['email' => 1, 'whatsapp' => 0, 'phone' => 0]]);
+        $other['adults'][0] = ['firstname' => 'Otra', 'lastname' => 'Persona', 'email' => 'otra@example.com', 'phone' => ''];
+        $other['adults'][1] = ['firstname' => 'Lucas', 'lastname' => '', 'email' => '', 'phone' => '600 111 222'];
+        $other['children'][0]['tagname'] = 'Otro nombre';
+        [$same, , , $existed] = signup::save($other, $this->event, $this->centre, 'es');
+        $this->assertTrue($existed);
+        $this->assertEquals($family->id, $same->id);
+        $this->assertFalse($DB->record_exists(households::ADULTS, ['email' => 'otra@example.com']), 'Never kept.');
+        $this->assertSame('', households::recipient($same), 'Nothing goes to that address.');
+        $notes = $DB->get_fieldset_select(
+            households::CONTACTS,
+            'body',
+            'householdid = ? AND direction = ?',
+            [$family->id, 'note']
+        );
+        $this->assertStringContainsString('otra@example.com', implode(' ', $notes));
+        $permissions = households::permissions((int) $family->id);
+        $this->assertTrue(in_array(true, array_column($permissions, 'whatsapp'), true), 'No permission taken back.');
+        $this->assertSame('Dani', $DB->get_field(households::CHILDREN, 'tagname', ['householdid' => $family->id,
+            'firstname' => 'Daniel']));
+    }
+
+    /**
      * What is missing or wrong, by field; and an event without room.
      */
     public function test_check(): void {

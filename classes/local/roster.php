@@ -445,7 +445,32 @@ class roster {
         $values = self::values($centre, $userids);
         $maps = self::maps($centre);
         $brought = $DB->get_records_menu(self::T, ['centreid' => $centre->id], '', 'familyid, householdid');
+        // The families that came into the common record from Eguahe, by the centre of their household: one of another
+        // centre of the site is never brought here, even if a course of both is called the same.
+        $from = [];
         foreach ($families as $familyid => $family) {
+            if (
+                ($family->source ?? '') === family::SOURCE && preg_match(
+                    '/^' . family::SOURCE . ':(\d+)$/',
+                    (string) ($family->sourcekey ?? ''),
+                    $m
+                )
+            ) {
+                $from[$familyid] = (int) $m[1];
+            }
+        }
+        $centreof = [];
+        if ($from) {
+            [$in, $params] = $DB->get_in_or_equal(array_values(array_unique($from)));
+            $centreof = $DB->get_records_select_menu(households::T, "id $in", $params, '', 'id, centreid');
+        }
+        foreach ($families as $familyid => $family) {
+            if (
+                isset($from[$familyid]) && isset($centreof[$from[$familyid]]) &&
+                    (int) $centreof[$from[$familyid]] !== (int) $centre->id
+            ) {
+                continue;
+            }
             $placed = [];
             foreach ($family->children as $child) {
                 $offer = self::named($child) ? self::place(self::of($child, $values), $maps, $offers) : null;
@@ -469,7 +494,7 @@ class roster {
                     $id = households::add_child($household, trim((string) $child->firstname), (int) $offer->id);
                     $DB->update_record(households::CHILDREN, (object) ['id' => $id, 'offerid' => $offer->id,
                         'stage' => 'enrolled', 'stagetime' => $now, 'familychild' => (int) $child->childid,
-                        'timemodified' => $now]);
+                        'roster' => $now, 'timemodified' => $now]);
                     $done['children']++;
                 } else if ((int) $mine->offerid !== (int) $offer->id && empty($mine->lefttime) && self::later($mine, $offer)) {
                     $DB->update_record(households::CHILDREN, (object) ['id' => $mine->id, 'offerid' => $offer->id,
@@ -581,5 +606,20 @@ class roster {
     public static function erased(\stdClass $household): void {
         global $DB;
         $DB->set_field(self::T, 'householdid', 0, ['householdid' => $household->id]);
+        // A family of the campaign that enrolled is in the common record too (its own key, or the family a person said it
+        // is): it is kept as erased, so that the roll never brings it back.
+        $familyid = (int) ($household->familylink ?? 0);
+        if ($familyid <= 0 && family::available()) {
+            $api = family::API;
+            try {
+                $familyid = (int) $api::family_by_key(family::SOURCE, family::key('h', (int) $household->id));
+            } catch (\Throwable $e) {
+                $familyid = 0;
+            }
+        }
+        if ($familyid > 0 && !$DB->record_exists(self::T, ['centreid' => $household->centreid, 'familyid' => $familyid])) {
+            $DB->insert_record(self::T, (object) ['centreid' => $household->centreid, 'familyid' => $familyid,
+                'householdid' => 0, 'timecreated' => time(), 'timemodified' => time()]);
+        }
     }
 }

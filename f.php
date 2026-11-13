@@ -29,6 +29,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\ages;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\drawings;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\hobbies;
@@ -147,6 +148,15 @@ if ($action === 'download') {
         '.json"');
     echo json_encode(households::export($household), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     die();
+}
+
+if ($action === 'cantcome' && data_submitted() && confirm_sesskey()) {
+    // Not coming after all: the sign-up goes, and the centre reads it in their history.
+    $event = $DB->get_record(events::T, ['id' => required_param('acto', PARAM_INT), 'centreid' => $centre->id]);
+    if ($event) {
+        events::unsign($event, $household, publiclang::str('pub_cantcome_note', $lang, format_string($event->name)), true);
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'lang' => $lang]));
 }
 
 if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {

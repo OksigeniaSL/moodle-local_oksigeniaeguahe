@@ -174,6 +174,8 @@
         <FIELD NAME="leftnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A line from whoever heard it, to read"/>
         <FIELD NAME="familychild" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The child in the common family record (local_oksigeniafamily) once enrolled; 0, none"/>
         <FIELD NAME="familygone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the common family record said this child left, for a person to confirm; 0, it did not"/>
+        <FIELD NAME="roster" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came from the roll of the centre (the common family record), already a student; 0, it came through Eguahe"/>
+        <FIELD NAME="startyear" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" COMMENT="The school year it started at the centre, once enrolled through Eguahe: what is only for new children (the story, the eve, the first day) is for that year"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -183,6 +185,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="offerstage" UNIQUE="false" FIELDS="centreid, offerid, stage"/>
+        <INDEX NAME="familychild" UNIQUE="false" FIELDS="familychild"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_event" COMMENT="An open day or a visit of a centre, with its public link and its capacity">
@@ -206,6 +209,7 @@
         <FIELD NAME="survey" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The survey How it went the families who came answer on their page; 0, only the open question"/>
         <FIELD NAME="outcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the centre does with what the families told, a line the families who answered read"/>
         <FIELD NAME="kit" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The kit for the networks: the short link of each network and the texts written for them, JSON"/>
+        <FIELD NAME="cancelled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the centre called it off; 0, it goes ahead"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -215,6 +219,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="token" UNIQUE="true" FIELDS="token"/>
+        <INDEX NAME="centrestart" UNIQUE="false" FIELDS="centreid, timestart"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_slot" COMMENT="A turn of an event (a visit by appointment, a morning in groups): its hours and its capacity">
@@ -251,6 +256,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="eventhousehold" UNIQUE="true" FIELDS="eventid, householdid"/>
+        <INDEX NAME="reminded" UNIQUE="false" FIELDS="reminded"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_contact" COMMENT="What a household and the centre said to each other, and the notes of the team: the history of the household">
@@ -273,6 +279,8 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="centretime" UNIQUE="false" FIELDS="centreid, timecreated"/>
+        <INDEX NAME="centredetail" UNIQUE="false" FIELDS="centreid, detail"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_consent" COMMENT="Each permission given or withdrawn by an adult to be contacted on a channel, never changed: the history is the proof">

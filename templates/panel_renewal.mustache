@@ -36,7 +36,7 @@
             "date": {"id": "rm-hasta", "first": "rm-hastad", "form": false, "child": false, "invalid": false, "labelled": false,
                 "arialabel": "Último día para contestar", "describedby": false, "mirror": false, "value": "2027-03-15",
                 "parts": [{"key": "d", "id": "rm-hastad", "name": "untild", "label": "Día", "value": "15", "size": 2, "months": false}]},
-            "tell": "Escribir a las 2 familias que no han contestado", "told": ""},
+            "tell": "Escribir a las 2 familias que no han contestado", "told": "", "sending": ""},
         "roster": {"students": "Alumnos en Family: 312", "nameless": "Sin cuenta de Moodle: 24.",
             "kinds": [{"key": "cohort", "arg": "", "label": "En las cohortes", "pressed": true}], "kind": "cohort", "arg": "",
             "years": [{"year": "2026-27", "label": "Curso 2026-27", "pressed": true}], "year": "2026-27", "noyear": false, "nooffer": "",
@@ -52,7 +52,7 @@
                 "url": "#"}],
             "picked": {"id": "b2", "value": "3.º B", "count": "Alumnos: 22"}, "dropurl": "/local/oksigeniaeguahe/renewal.php?c=1"},
         "hasgroups": true, "canact": true, "action": "/local/oksigeniaeguahe/renewal.php?c=1", "sesskey": "abc",
-        "groups": [{"offerid": 7, "title": "Infantil 3 años", "next": "Pasan a Infantil 4 años", "count": "1 de 2 siguen", "leave": 1,
+        "groups": [{"offerid": 7, "title": "Infantil 3 años", "next": "Pasan a Infantil 4 años", "count": "1 de 2 siguen", "leave": 1, "listed": true, "listurl": "",
             "rows": [{"id": 4, "kind": "leave", "tag": "Leo", "adults": "Marta Ruiz", "url": "#", "said": "Lo dijo la familia el 3/12/26: no sigue.",
                 "note": "", "search": "leo", "answers": [{"key": "stay", "label": "Sigue", "pressed": false},
                 {"key": "leave", "label": "No sigue", "pressed": true}, {"key": "unsure", "label": "No lo saben", "pressed": false}]}]}]
@@ -88,6 +88,7 @@
             <div class="pd-texto">
                 <p class="pd-dia"><b>{{until}}</b> <span>{{since}}</span></p>
                 {{#told}}<p class="secundario">{{told}}</p>{{/told}}
+                {{#sending}}<p class="secundario" role="status">{{sending}}</p>{{/sending}}
                 {{#canact}}
                 <div class="pd-acciones">
                     {{#tell}}
@@ -216,6 +217,7 @@
         <details class="turno-p" open id="curso{{offerid}}">
             <summary><span class="hora">{{title}}</span><span class="sigue-riel" aria-hidden="true">{{#rows}}<i class="peg-{{kind}}"></i>{{/rows}}</span><span class="cuantos"><span>{{count}}</span>{{{i.chev}}}</span></summary>
             <p class="secundario quien-sigue-pasan">{{next}}</p>
+            {{^listed}}<p class="quien-sigue-lista"><a class="enlace" href="{{listurl}}">{{#str}}panel_renewal_list_course, local_oksigeniaeguahe{{/str}}</a></p>{{/listed}}
             {{#rows}}
             <div class="empieza sigue-{{kind}}" id="n{{id}}" data-buscar="{{search}}">
                 <div class="quien"><b><a href="{{url}}">{{adults}}</a></b><span class="ninos-l"><span class="nino"><span class="etq etq-puerta" translate="no" dir="auto">{{tag}}</span>{{#answers}}{{#pressed}}<span class="sello-sigue sello-{{key}}">{{label}}</span>{{/pressed}}{{/answers}}<span class="curso">{{said}}</span></span></span>{{#note}}<span class="sigue-nota" dir="auto">{{note}}</span>{{/note}}</div>

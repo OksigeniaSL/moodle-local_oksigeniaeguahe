@@ -90,7 +90,7 @@ class events {
                                      LEFT JOIN {local_oksigeniaeguahe_signup} s ON s.eventid = e.id
                                          WHERE e.centreid = :centreid
                                       GROUP BY e.id, e.centreid, e.kind, e.name, e.place, e.timestart, e.timeend, e.capacity,
-                                               e.token, e.open, e.timecreated, e.timemodified
+                                               e.token, e.open, e.cancelled, e.timecreated, e.timemodified
                                       ORDER BY e.timestart DESC', ['centreid' => $centreid]);
         $now = time();
         $next = array_filter($events, fn($e) => $e->timeend >= $now);
@@ -135,9 +135,13 @@ class events {
             $row->hosts = $hosts ? implode(',', array_slice($hosts, 0, 8)) : null;
         }
         if (!empty($data->id)) {
-            self::get((int) $data->id, $centreid) ?? throw new \moodle_exception('invalidrecord', 'error');
+            $was = self::get((int) $data->id, $centreid) ?? throw new \moodle_exception('invalidrecord', 'error');
             $row->id = (int) $data->id;
             $DB->update_record(self::T, $row);
+            // Another day or hour: the reminder of the day before goes again, for the new day.
+            if ((int) $was->timestart !== (int) $row->timestart) {
+                $DB->set_field(self::SIGNUPS, 'reminded', 0, ['eventid' => $row->id, 'slotid' => 0]);
+            }
         } else {
             $row->token = self::new_token();
             $row->timecreated = $row->timemodified;
@@ -194,7 +198,12 @@ class events {
                 'capacity' => max(0, (int) ($slot->capacity ?? 0))];
             if ($id) {
                 $row->id = $id;
+                $before = (int) $DB->get_field(self::SLOTS, 'timestart', ['id' => $id]);
                 $DB->update_record(self::SLOTS, $row);
+                if ($before !== (int) $row->timestart) {
+                    // The turn moved: its families are reminded again, for the new hour.
+                    $DB->set_field(self::SIGNUPS, 'reminded', 0, ['slotid' => $id]);
+                }
             } else {
                 $DB->insert_record(self::SLOTS, $row);
             }
@@ -283,8 +292,10 @@ class events {
         $people = max(1, min(20, $people));
         $current = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid]);
         if ($current) {
-            $DB->update_record(self::SIGNUPS, (object) ['id' => $current->id, 'people' => $people,
-                'slotid' => $slotid ?: (int) $current->slotid]);
+            $slot = $slotid ?: (int) $current->slotid;
+            // Another turn: the reminder goes again, for its hour.
+            $DB->update_record(self::SIGNUPS, (object) (['id' => $current->id, 'people' => $people, 'slotid' => $slot] +
+                ($slot !== (int) $current->slotid ? ['reminded' => 0] : [])));
             return (int) $current->id;
         }
         return (int) $DB->insert_record(self::SIGNUPS, (object) ['centreid' => $event->centreid,
@@ -318,11 +329,92 @@ class events {
         if (!$signups) {
             return [];
         }
-        $households = households::inbox($event->centreid, false, 0, true);
+        // Only the families signed up, never every family of the centre.
+        $households = households::some((int) $event->centreid, array_map(fn($s) => (int) $s->householdid, $signups));
         foreach ($signups as $signup) {
             $signup->household = $households[$signup->householdid] ?? null;
         }
         return array_filter($signups, fn($s) => $s->household !== null);
+    }
+
+    /**
+     * The centre calls an act off: each family signed up is told (by email, if it lets the centre write so), a line stays
+     * in its history, and its sign-up goes, so that no reminder and no thanks go out. The act stays, called off and
+     * closed.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param int $userid Who calls it off.
+     * @param string $message What the team adds for the families, if anything.
+     * @param int $now
+     * @return int How many families were told by email.
+     */
+    public static function cancel(\stdClass $event, \stdClass $centre, int $userid, string $message, int $now): int {
+        global $DB;
+        $message = \core_text::substr(trim($message), 0, 2000);
+        $told = 0;
+        foreach ($DB->get_records(self::SIGNUPS, ['eventid' => $event->id]) as $row) {
+            $household = households::get((int) $row->householdid, (int) $centre->id);
+            if (!$household) {
+                continue;
+            }
+            $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
+            $signup = familymail::signup($household, (int) $event->id);
+            $sent = $signup && familymail::may_email($household) && familymail::send(
+                'cancelled',
+                $household,
+                $centre,
+                $signup,
+                $lang,
+                households::new_link($household, 'cancelled'),
+                null,
+                $message
+            );
+            if ($sent) {
+                $told++;
+                households::told($household, $userid, 'email', get_string(
+                    'event_cancelled_line',
+                    'local_oksigeniaeguahe',
+                    format_string($event->name)
+                ) . ($message !== '' ? "\n\n" . $message : ''), true);
+            } else {
+                // No email for this family: the team reads it on its record and tells them some other way.
+                households::note($household, $userid, get_string(
+                    'event_cancelled_unreached',
+                    'local_oksigeniaeguahe',
+                    format_string($event->name)
+                ));
+            }
+            $DB->delete_records(self::SIGNUPS, ['id' => $row->id]);
+        }
+        $DB->update_record(self::T, (object) ['id' => $event->id, 'cancelled' => $now, 'open' => 0, 'timemodified' => $now]);
+        // Out of the centre's channel too, also what was already posted.
+        channel::sync(self::get((int) $event->id, (int) $centre->id), $now);
+        return $told;
+    }
+
+    /**
+     * A family is not coming to an act after all: its sign-up goes, and a line stays in its history.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @param string $line What stays in its history.
+     * @param bool $awaits Whether it waits for a person (the family said it).
+     * @return bool
+     */
+    public static function unsign(\stdClass $event, \stdClass $household, string $line, bool $awaits): bool {
+        global $DB;
+        $row = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id]);
+        if (!$row) {
+            return false;
+        }
+        $DB->delete_records(self::SIGNUPS, ['id' => $row->id]);
+        if ($awaits) {
+            households::received($household, lists::PAGE, $line, true);
+        } else {
+            households::note($household, 0, $line);
+        }
+        return true;
     }
 
     /**

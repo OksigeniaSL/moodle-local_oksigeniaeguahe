@@ -43,8 +43,11 @@ class metrics {
     /** @var int Days after the start of a school year that still count as starting it. */
     const STARTDAYS = 15;
 
-    /** @var int A family that enrols a child within this time of its first contact came from that campaign. */
-    const ENROLWINDOW = 2 * YEARSECS;
+    /**
+     * @var int A family that enrols a child within this time of its first contact came from that campaign: a year and a
+     * season, so that the same enrolment never counts for two campaigns in a row.
+     */
+    const ENROLWINDOW = YEARSECS + 92 * DAYSECS;
 
     /**
      * The households of an imported campaign, each with what it did. A household is enrolled when the file said so, or
@@ -76,10 +79,39 @@ class metrics {
             $households[$row->household] = $h;
         }
         $rows->close();
-        // When each student first appears at the centre, and the students of each family.
-        $first = $DB->get_records_sql_menu("SELECT student, MIN(timein) FROM {" . self::STUDENTS . "}
-                                             WHERE centreid = :centreid AND movement <> 'leave' AND timein > 0
-                                          GROUP BY student", ['centreid' => $import->centreid]);
+        // When each student came into the centre, and the students of each family. A new one («join») says it; on the rolls,
+        // the first school year a student is on. Those on the oldest roll imported were there already: when they came is
+        // not known, so they never count as an enrolment of a campaign.
+        $oldest = (string) $DB->get_field_sql(
+            "SELECT MIN(schoolyear) FROM {" . self::STUDENTS . "} WHERE centreid = :centreid AND movement = 'roll'",
+            ['centreid' => $import->centreid]
+        );
+        $first = [];
+        $rows = $DB->get_recordset_select(
+            self::STUDENTS,
+            "centreid = :centreid AND movement <> 'leave' AND timein > 0",
+            ['centreid' => $import->centreid],
+            '',
+            'id, student, schoolyear, timein, movement'
+        );
+        $joined = [];
+        foreach ($rows as $row) {
+            if ($row->movement === 'join') {
+                $joined[$row->student] = min($joined[$row->student] ?? PHP_INT_MAX, (int) $row->timein);
+            } else if ((string) $row->schoolyear !== $oldest) {
+                $first[$row->student] = min($first[$row->student] ?? PHP_INT_MAX, (int) $row->timein);
+            } else {
+                $first[$row->student] = 0;
+            }
+        }
+        $rows->close();
+        foreach ($first as $student => $when) {
+            // On the oldest roll: unknown; a later roll gives when, unless it was there on the oldest one.
+            if ($when === 0) {
+                unset($first[$student]);
+            }
+        }
+        $first = $joined + $first;
         if (!$first) {
             return $households;
         }

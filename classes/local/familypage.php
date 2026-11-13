@@ -193,6 +193,10 @@ class familypage {
                 'people' => publiclang::count('pub_people_one', 'pub_people_count', (int) $s->people, $lang),
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
+                // Not coming after all: one touch, and the centre knows.
+                'cantcome' => ['action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token,
+                    'lang' => $lang]))->out(false), 'sesskey' => sesskey(), 'eventid' => (int) $s->eventid,
+                    'label' => publiclang::str('pub_cantcome', $lang)],
             ];
         };
         $year = '';

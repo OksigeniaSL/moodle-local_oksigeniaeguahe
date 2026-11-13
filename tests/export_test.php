@@ -66,4 +66,15 @@ final class export_test extends \advanced_testcase {
         }
         $this->assertSame(array_keys(export::figure_columns()), array_keys($figures[0]));
     }
+
+    /**
+     * A name written by a family never becomes a formula in the sheet; a phone stays as it is.
+     */
+    public function test_no_formulas(): void {
+        $this->assertSame("'=HYPERLINK(\"https://x.example\")", export::cell('=HYPERLINK("https://x.example")'));
+        $this->assertSame("'+cmd", export::cell('+cmd'));
+        $this->assertSame("'@SUM(A1)", export::cell('@SUM(A1)'));
+        $this->assertSame('+34600123456', export::cell('+34600123456'));
+        $this->assertSame('Ana', export::cell('Ana'));
+    }
 }

@@ -30,8 +30,8 @@ namespace local_oksigeniaeguahe\local;
  */
 class familymail {
     /** @var string[] The kinds of mail. */
-    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'thanks', 'openinvite',
-        'renewal'];
+    const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'cancelled', 'thanks',
+        'openinvite', 'renewal'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -303,6 +303,25 @@ class familymail {
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'nota' => $str('mail_note_reply'),
             ];
+        } else if ($kind === 'cancelled') {
+            // The centre called the act off: said plainly, with whatever the team added, and the way to write back.
+            $a = (object) ['event' => format_string($signup->eventname),
+                'when' => publicpage::date_parts((int) $signup->timestart, $lang)['long']];
+            $lead = $str('mail_cancelled_lead', $a);
+            $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
+            $context['titular'] = $str('mail_cancelled_titular');
+            $context += [
+                'asunto' => $str('mail_cancelled_subject', $a),
+                'preencabezado' => $lead,
+                'entradilla' => s($lead) . ($paragraphs ? '<br><br>' . implode('<br><br>', array_map(
+                    fn($p) => nl2br(s($p), false),
+                    $paragraphs
+                )) : ''),
+                'entradilla_texto' => $lead . ($paragraphs ? "\n\n" . implode("\n\n", $paragraphs) : ''),
+                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                    'url_texto' => $pageurl] : null,
+                'nota' => $str('mail_note_reply'),
+            ];
         } else if ($kind === 'thanks') {
             // After the visit: thanks, and the one open question; or, if the centre turned it on, the survey, which asks
             // it first. Never both waiting.
@@ -475,10 +494,8 @@ class familymail {
             // The same notice on the phones the family joined with, when the site has Marandu.
             messaging::notify($kind, $household, $centre, $signup, $lang, $text);
         }
-        $email = (string) $to;
-        foreach ($to === null ? households::full($household)->adults : [] as $adult) {
-            $email = $email ?: (string) $adult->email;
-        }
+        // To whoever let the centre write by email, never to an address someone else added.
+        $email = $to === null ? households::recipient($household) : (string) $to;
         if ($email === '') {
             return false;
         }

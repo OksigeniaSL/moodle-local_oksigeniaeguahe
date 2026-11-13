@@ -119,11 +119,12 @@ class namevoice_service {
         $sql = "SELECT c.*, h.lang AS householdlang, h.centreid AS householdcentre
                   FROM {" . households::CHILDREN . "} c
                   JOIN {" . households::T . "} h ON h.id = c.householdid
-                 WHERE c.stage = :stage AND (c.lefttime IS NULL OR c.lefttime = 0)
+                 WHERE c.stage = :stage AND (c.lefttime IS NULL OR c.lefttime = 0) AND c.roster = 0
               ORDER BY c.stagetime DESC, c.id DESC";
         $out = [];
         $centres = [];
         $offers = [];
+        $gives = [];
         foreach ($DB->get_records_sql($sql, ['stage' => 'enrolled']) as $child) {
             $lang = (string) $child->householdlang;
             $centreid = (int) $child->householdcentre;
@@ -155,7 +156,9 @@ class namevoice_service {
             $offers[$child->offerid] = $offers[$child->offerid] ??
                 $DB->get_record(centres::OFFERS, ['id' => $child->offerid, 'centreid' => $centreid]);
             $offer = $offers[$child->offerid];
-            if (!$offer || !story::offer_gives($offer, $centreid)) {
+            // Whether its course gives the story, once per course; and only the year it started.
+            $gives[$child->offerid] = $gives[$child->offerid] ?? ($offer && story::offer_gives($offer, $centreid));
+            if (!$gives[$child->offerid] || !story::is_new($child, $offer)) {
                 continue;
             }
             // Until the story is over for its course.

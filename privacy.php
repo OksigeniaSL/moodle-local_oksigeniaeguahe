@@ -26,7 +26,10 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Read by families, who have no account.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\ai;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\messaging;
+use local_oksigeniaeguahe\local\namevoice_service;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 
@@ -47,9 +50,24 @@ if (!$centre) {
 $lang = publiclang::choose($centre);
 $a = (object) ['centre' => format_string($centre->controller ?: $centre->name), 'months' => (int) $centre->retention,
     'contact' => s((string) $centre->rightscontact), 'dpo' => s((string) $centre->dpocontact)];
+// What each centre has turned on, said as it is: the artificial intelligence of the team, WhatsApp and Telegram, the
+// voices of the story.
+$aion = ai::ready($centre);
+$extra = [
+    'whom' => array_filter([
+        $aion ? publiclang::str('privacy_whom_ai', $lang) : '',
+        messaging::mode($centre) !== 'off' ? publiclang::str('privacy_whom_messaging', $lang) : '',
+        namevoice_service::settings() ? publiclang::str('privacy_whom_voices', $lang) : '',
+    ]),
+    'ai' => $aion && ai::name($centre) !== '' ? [publiclang::str('privacy_ai_provider', $lang, format_string(ai::name($centre)))] :
+        [],
+];
 $sections = [];
-foreach (['who', 'why', 'what', 'basis', 'whom', 'keep', 'rights', 'ai'] as $part) {
-    $text = publiclang::str('privacy_' . $part, $lang, $a);
+foreach (['who', 'why', 'what', 'basis', 'whom', 'keep', 'measure', 'rights', 'ai'] as $part) {
+    $text = publiclang::str('privacy_' . $part . ($part === 'ai' && $aion ? '_on' : ''), $lang, $a);
+    foreach ($extra[$part] ?? [] as $more) {
+        $text .= ' ' . $more;
+    }
     if ($part === 'who' && $a->dpo !== '') {
         $text .= ' ' . publiclang::str('privacy_who_dpo', $lang, $a);
     }

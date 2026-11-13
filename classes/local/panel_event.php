@@ -243,6 +243,13 @@ class panel_event {
             'open' => $event->open && $event->timeend >= $now,
             'editurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id,
                 'id' => $event->id]))->out(false) : '',
+            // Calling it off, before it happens: the families are told and nothing more goes out for it.
+            'cancel' => $canact && !(int) ($event->cancelled ?? 0) && (int) $event->timeend >= $now,
+            'cancelled' => (int) ($event->cancelled ?? 0) ? get_string(
+                'event_cancelled_on',
+                $c,
+                userdate((int) $event->cancelled, get_string('strftimedate', 'langconfig'))
+            ) : '',
             'howitwent' => self::howitwent($event, $centre, $canact, $now),
             // Over: on a phone, the band no longer stays on top of the door.
             'past' => (int) $event->timeend < $now,

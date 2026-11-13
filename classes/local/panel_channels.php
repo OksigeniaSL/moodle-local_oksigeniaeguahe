@@ -49,9 +49,10 @@ class panel_channels {
      *
      * @param \stdClass $centre
      * @param int $now
+     * @param array|null $live The families of the campaign under way, when the caller has them already.
      * @return array|false
      */
-    public static function context(\stdClass $centre, int $now) {
+    public static function context(\stdClass $centre, int $now, ?array $live = null) {
         $c = self::C;
         $bounds = self::bounds($now);
         $months = [];
@@ -61,8 +62,8 @@ class panel_channels {
         }
         $voices = [];
         foreach (self::VOICES as $voice) {
-            $events = $voice === 'know' ? self::know($centre, $bounds) : ($voice === 'arrive' ? self::arrive($centre, $bounds) :
-                self::talk($centre, $bounds));
+            $events = $voice === 'know' ? self::know($centre, $bounds) : ($voice === 'arrive' ?
+                self::arrive($centre, $bounds, $live) : self::talk($centre, $bounds));
             $built = self::voice($voice, $events, $bounds, $months);
             if ($built) {
                 $voices[] = $built;
@@ -165,12 +166,13 @@ class panel_channels {
      *
      * @param \stdClass $centre
      * @param int[] $bounds
+     * @param array|null $live The families of the campaign under way, if already counted.
      * @return array[]
      */
-    protected static function arrive(\stdClass $centre, array $bounds): array {
+    protected static function arrive(\stdClass $centre, array $bounds, ?array $live = null): array {
         $out = [];
-        $campaign = panel_metrics::campaigns($centre)['live'];
-        foreach (panel_metrics::families($centre, $campaign) as $f) {
+        $live = $live ?? panel_metrics::families($centre, panel_metrics::campaigns($centre)['live']);
+        foreach ($live as $f) {
             if ($f['first'] >= $bounds[0] && $f['first'] < $bounds[24]) {
                 $name = (string) $f['voices']['first'];
                 $out[] = ['key' => \core_text::strtolower($name), 'name' => $name, 'group' => '', 'time' => $f['first']];
@@ -306,7 +308,7 @@ class panel_channels {
             $bykind[$kind][$ch]['clicked'] = ($bykind[$kind][$ch]['clicked'] ?? 0) + (int) $row['clicked'];
         }
         // The mails, as Eguahe counts them: what went, and the mails with something pressed inside.
-        $rows = $DB->get_records_select(
+        $rows = $DB->get_recordset_select(
             seen::T,
             'centreid = ? AND timecreated >= ? AND timecreated < ? AND (kind = ? OR (via IS NOT NULL AND kind <> ?))',
             [$centre->id, $from, $to, 'mailsent', 'story'],
@@ -321,6 +323,7 @@ class panel_channels {
                 $pressed[$row->via][$row->householdid] = true;
             }
         }
+        $rows->close();
         foreach ($pressed as $kind => $households) {
             $bykind[$kind]['email']['clicked'] = count($households);
         }

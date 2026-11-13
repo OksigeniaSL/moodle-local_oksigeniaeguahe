@@ -205,9 +205,17 @@ class households {
      * @param string $firstname
      * @param int $offerid 0 while not known.
      * @param string $tagname The name used at home, for the label; empty for the first name.
+     * @param bool $keep Whether what the child already has stays: someone who is not the family (an anonymous form that
+     *     matched it) never changes the name used at home.
      * @return int
      */
-    public static function add_child(\stdClass $household, string $firstname, int $offerid, string $tagname = ''): int {
+    public static function add_child(
+        \stdClass $household,
+        string $firstname,
+        int $offerid,
+        string $tagname = '',
+        bool $keep = false
+    ): int {
         global $DB;
         $firstname = self::short($firstname, 100) ?? '';
         $tagname = self::short($tagname, 100);
@@ -215,8 +223,14 @@ class households {
             if (\core_text::strtolower($child->firstname) === \core_text::strtolower($firstname)) {
                 if (!$child->offerid && $offerid) {
                     $DB->set_field(self::CHILDREN, 'offerid', $offerid, ['id' => $child->id]);
+                } else if ($offerid && (int) $child->offerid !== $offerid && $child->stage !== 'enrolled') {
+                    // Asking again, for another course or another school year: the way starts again for it. A child
+                    // closed (no place last year) is open once more.
+                    $DB->update_record(self::CHILDREN, (object) ['id' => $child->id, 'offerid' => $offerid,
+                        'stage' => $child->stage === 'closed' ? 'inquiry' : $child->stage, 'closedreason' => null,
+                        'stagetime' => $child->stage === 'closed' ? time() : $child->stagetime, 'timemodified' => time()]);
                 }
-                if ($tagname !== null) {
+                if ($tagname !== null && (!$keep || trim((string) $child->tagname) === '')) {
                     $DB->set_field(self::CHILDREN, 'tagname', $tagname, ['id' => $child->id]);
                 }
                 return (int) $child->id;
@@ -360,12 +374,17 @@ class households {
      * @param int $userid
      * @param string $channel
      * @param string $body
+     * @param bool $sent Whether it went to many at once: it does not count as being in touch.
      */
-    public static function told(\stdClass $household, int $userid, string $channel, string $body): void {
+    public static function told(\stdClass $household, int $userid, string $channel, string $body, bool $sent = false): void {
         global $DB;
         $time = time();
         self::contact($household, 'out', $channel, $body, $userid, $time);
-        $DB->update_record(self::T, (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time]);
+        // What the centre sends to many at once (an invitation) does not count as being in touch: it does not keep the
+        // data of a family that never answers any longer.
+        if (!$sent) {
+            $DB->update_record(self::T, (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time]);
+        }
     }
 
     /**
@@ -413,6 +432,64 @@ class households {
             'userid' => $userid,
             'timecreated' => $time,
         ]);
+    }
+
+    /**
+     * Whom the emails of a household go to: the first adult with an email whose last word on email was yes; else the
+     * first adult with an email. Emails only get into a household through the family itself or the team.
+     *
+     * @param \stdClass $household
+     * @return string The address; empty, none.
+     */
+    public static function recipient(\stdClass $household): string {
+        $permissions = self::permissions((int) $household->id);
+        $first = '';
+        foreach (self::full($household)->adults as $adult) {
+            $email = trim((string) $adult->email);
+            if ($email === '') {
+                continue;
+            }
+            if (!empty($permissions[$adult->id]['email'])) {
+                return $email;
+            }
+            $first = $first ?: $email;
+        }
+        return $first;
+    }
+
+    /**
+     * The households of a centre whose last word on email, for some adult with an address, was yes.
+     *
+     * @param int $centreid
+     * @return array household id => true
+     */
+    public static function emailable(int $centreid): array {
+        global $DB;
+        $last = [];
+        $rows = $DB->get_recordset_select(
+            self::CONSENTS,
+            'centreid = ? AND channel = ?',
+            [$centreid, 'email'],
+            'timecreated ASC, id ASC',
+            'id, householdid, adultid, granted'
+        );
+        foreach ($rows as $row) {
+            $last[(int) $row->adultid] = [(int) $row->householdid, (bool) $row->granted];
+        }
+        $rows->close();
+        $withemail = array_flip(array_map('intval', $DB->get_fieldset_select(
+            self::ADULTS,
+            'id',
+            "centreid = ? AND email IS NOT NULL AND email <> ''",
+            [$centreid]
+        )));
+        $out = [];
+        foreach ($last as $adultid => [$householdid, $granted]) {
+            if ($granted && isset($withemail[$adultid])) {
+                $out[$householdid] = true;
+            }
+        }
+        return $out;
     }
 
     /**
@@ -491,6 +568,11 @@ class households {
         ]);
         // Enrolled, the child passes to the common family record of the centre; taken back, it leaves it.
         if ($stage === 'enrolled' && $was !== 'enrolled' && ($household = self::get((int) $child->householdid, 0))) {
+            // The school year it starts: what is only for new children (the story, the eve, the first day) is for it.
+            $year = (string) $DB->get_field(centres::OFFERS, 'schoolyear', ['id' => (int) ($child->offerid ?? 0)]);
+            if ($year !== '' && trim((string) ($child->startyear ?? '')) === '') {
+                $DB->set_field(self::CHILDREN, 'startyear', $year, ['id' => $child->id]);
+            }
             family::enrol($household, $child);
         } else if ($was === 'enrolled' && $stage !== 'enrolled') {
             family::leave($child);
@@ -699,8 +781,16 @@ class households {
                 'stage' => $child->stage, 'firstchannel' => $household->firstchannel, 'month' => $month,
                 'timecreated' => time()]);
         }
-        // Brought from the roll of the centre: never brought back.
+        // Brought from the roll of the centre (or in it since it enrolled): never brought back.
         roster::erased($household);
+        // Its phones, unjoined in Marandu: nobody answers any more for a family that is gone.
+        if (class_exists('\\local_oksigeniamarandu\\api') && method_exists('\\local_oksigeniamarandu\\api', 'unlink')) {
+            try {
+                \local_oksigeniamarandu\api::unlink('local_oksigeniaeguahe', (int) $household->id);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: Marandu did not unlink household ' . $household->id . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
                 forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T] as $table
@@ -731,8 +821,11 @@ class households {
             $sql = 'SELECT h.* FROM {' . self::T . '} h
                      WHERE h.centreid = :centreid AND h.lastcontact < :limit
                        AND NOT EXISTS (SELECT 1 FROM {' . self::CHILDREN . '} c
-                                        WHERE c.householdid = h.id AND c.stage = :enrolled)';
-            $expired += $DB->get_records_sql($sql, ['centreid' => $centre->id, 'limit' => $limit, 'enrolled' => 'enrolled']);
+                                        WHERE c.householdid = h.id AND c.stage = :enrolled
+                                              AND (c.lefttime IS NULL OR c.lefttime = 0 OR c.lefttime >= :limit2))';
+            // Kept while a child studies at the centre; once the last one left, as long again as any other family.
+            $expired += $DB->get_records_sql($sql, ['centreid' => $centre->id, 'limit' => $limit, 'limit2' => $limit,
+                'enrolled' => 'enrolled']);
         }
         return $expired;
     }
@@ -753,7 +846,47 @@ class households {
         $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ($roster ? '' :
             ' AND (roster = 0 OR waitingsince > 0)'));
         $order = 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC';
-        $list = $DB->get_records_select(self::T, $where, ['centreid' => $centreid], $order, '*', 0, $limit);
+        return self::with_people($centreid, $DB->get_records_select(
+            self::T,
+            $where,
+            ['centreid' => $centreid],
+            $order,
+            '*',
+            0,
+            $limit
+        ));
+    }
+
+    /**
+     * Some households of a centre, by id, with their adults and children: the families signed up for an act, without
+     * loading every family of a big centre.
+     *
+     * @param int $centreid
+     * @param int[] $ids
+     * @return \stdClass[]
+     */
+    public static function some(int $centreid, array $ids): array {
+        global $DB;
+        if (!$ids) {
+            return [];
+        }
+        [$in, $params] = $DB->get_in_or_equal(array_values(array_unique($ids)), SQL_PARAMS_NAMED);
+        return self::with_people($centreid, $DB->get_records_select(
+            self::T,
+            "centreid = :centreid AND id $in",
+            ['centreid' => $centreid] + $params
+        ));
+    }
+
+    /**
+     * Hangs their adults and children (with their offer) from some households.
+     *
+     * @param int $centreid
+     * @param \stdClass[] $list Households by id.
+     * @return \stdClass[]
+     */
+    protected static function with_people(int $centreid, array $list): array {
+        global $DB;
         if (!$list) {
             return [];
         }
@@ -823,7 +956,8 @@ class households {
     }
 
     /**
-     * How each offer of a centre is going: children at each stage, without the families already of the centre.
+     * How each offer of a centre is going: children at each stage of the families of the campaign; enrolled, all who
+     * have not left, of any family.
      *
      * @param int $centreid
      * @return array Offer id => [stage => count].
@@ -831,11 +965,16 @@ class households {
     public static function offer_counts(int $centreid): array {
         global $DB;
         $counts = [];
-        // Families already of the centre do not count in the campaign.
+        // A place is taken by every child enrolled who has not left, wherever the family came from (the campaign, the
+        // roll of the centre, a brother or sister); one who left frees it. The rest of the way, only the families of
+        // the campaign.
         $rows = $DB->get_recordset_sql('SELECT c.offerid, c.stage, COUNT(1) AS n
                                           FROM {' . self::CHILDREN . '} c JOIN {' . self::T . '} h ON h.id = c.householdid
-                                         WHERE c.centreid = :centreid AND h.incentre = 0
-                                      GROUP BY c.offerid, c.stage', ['centreid' => $centreid]);
+                                         WHERE c.centreid = :centreid
+                                               AND ((c.stage = :enrolled AND COALESCE(c.lefttime, 0) = 0)
+                                                    OR (c.stage <> :enrolled2 AND h.incentre = 0))
+                                      GROUP BY c.offerid, c.stage', ['centreid' => $centreid, 'enrolled' => 'enrolled',
+            'enrolled2' => 'enrolled']);
         foreach ($rows as $row) {
             $counts[$row->offerid][$row->stage] = (int) $row->n;
         }

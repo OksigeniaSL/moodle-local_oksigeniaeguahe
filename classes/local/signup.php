@@ -224,19 +224,43 @@ class signup {
         }
         $household = households::get($householdid, $centre->id);
         households::complete($household, $about);
+        // A form anyone can fill matched a family the centre already has: it never brings it an address of its own (the
+        // family's mail would go there), never takes back a permission, and never changes what its children already
+        // have. A new address waits in a note for the team, which adds it if it is theirs.
+        $known = array_map(fn($e) => \core_text::strtolower($e), $before);
+        $unverified = [];
         foreach ($adults as $i => $adult) {
+            if ($existed && (string) $adult['email'] !== '' && !in_array(\core_text::strtolower($adult['email']), $known, true)) {
+                $unverified[] = trim($adult['firstname'] . ' ' . ($adult['lastname'] ?? '')) . ' <' . $adult['email'] . '>';
+                $adult['email'] = null;
+            }
             $adultid = households::add_adult($household, (object) $adult);
             // The permissions are asked of whoever fills the form, the first adult.
             if ($i === 0) {
                 foreach ($data['consents'] as $consentchannel => $granted) {
-                    households::consent($household, $adultid, $consentchannel, (bool) $granted, 'form', $lang);
+                    if (!$existed || $granted) {
+                        households::consent($household, $adultid, $consentchannel, (bool) $granted, 'form', $lang);
+                    }
                 }
             }
         }
+        if ($unverified) {
+            households::note($household, 0, get_string(
+                'signup_unverified_email',
+                'local_oksigeniaeguahe',
+                implode(', ', $unverified)
+            ));
+        }
         foreach ($data['children'] as $child) {
             if ($child['firstname'] !== '') {
-                $childid = households::add_child($household, $child['firstname'], (int) $child['offerid'], $child['tagname'] ?? '');
-                if (($child['birthdate'] ?? '') !== '') {
+                $childid = households::add_child(
+                    $household,
+                    $child['firstname'],
+                    (int) $child['offerid'],
+                    $child['tagname'] ?? '',
+                    $existed
+                );
+                if (($child['birthdate'] ?? '') !== '' && (!$existed || !self::has_birthdate($childid))) {
                     households::set_birthdate($household, $childid, $child['birthdate']);
                 }
                 if (($child['latinname'] ?? '') !== '') {
@@ -295,6 +319,17 @@ class signup {
         $token = households::new_link($household);
         $transaction->allow_commit();
         return [$household, $token, $before, $existed];
+    }
+
+    /**
+     * Whether a child already has a date of birth.
+     *
+     * @param int $childid
+     * @return bool
+     */
+    protected static function has_birthdate(int $childid): bool {
+        global $DB;
+        return trim((string) $DB->get_field(households::CHILDREN, 'birthdate', ['id' => $childid])) !== '';
     }
 
     /**

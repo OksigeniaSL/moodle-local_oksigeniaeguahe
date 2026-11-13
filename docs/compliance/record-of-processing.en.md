@@ -1,45 +1,41 @@
 # Record of processing activities: admissions
 
 An entry for the record of processing activities of the centre, for its data protection officer to review and
-complete. The centre fills in the brackets. It describes Oksigenia Eguahe 0.1: without artificial intelligence and
-without messaging channels, which are added to this entry when the centre turns them on.
+complete. The centre fills in the brackets. It matches Oksigenia Eguahe 0.63. The pieces a centre can turn on or off
+(the team's artificial intelligence, WhatsApp and Telegram, the voices of the story, the roll of families) are marked:
+if the centre does not use them, they come out of this entry. The page "How we handle your data" that families read
+already says only what the centre has turned on.
 
 | Field | Content |
 |---|---|
-| Activity | Answering the families who ask for information or a place, visits and open days, and following the admission |
-| Controller | [Legal name of the centre], [address], [email for exercising rights] |
+| Activity | Looking after the families who ask for information or a place, visits and open days, following each admission up to enrolment, and accompanying the families of the centre in what touches admissions: the first day, re-enrolment for the next school year, and brothers and sisters who will come later |
+| Controller | [Legal name of the centre], [address], [email to exercise rights] |
 | Data protection officer | [Name or service and email, if the centre has one] |
-| Processor | [Whoever hosts and maintains the Moodle site of the centre], under a processing agreement |
-| Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each request until enrolment or its closing; and knowing, only in aggregate numbers, how the campaign is going. If the centre imports past campaigns, its joins and leaves or its enrolment to analyse them, they go in pseudonymised and only for the numbers: the file is read as it comes; on the way in, names, notes, health data, passwords, addresses and documents are removed; of the date of birth only the year stays; emails, phones, student codes and the child's name become a key encrypted with a secret of the centre (HMAC-SHA256), which only serves to recognise the same family or student in another file; and the file is not kept |
-| Legal basis | The family's own request (pre-contractual steps), to answer it and organise the visit; consent, to write to them on each channel they tick (email, WhatsApp, phone), which they can withdraw |
-| Data subjects | The adults of the families who contact the centre; the minors who would study there |
-| Data | Of adults: first name, surname, phone, email, language, municipality (if given), how they heard of the centre (if given), the days and part of the day that suit them for a visit (if they ask for a tailored one), what they write to the centre, their answers to the centre's own questions in its forms (whatever the centre decides to ask), where they came from (the form, the place it was shared from and, if they come from an ad, its campaign) and their permissions by channel, with their date. Of minors: first name, the name used at home (if given) and the course asked for. Eguahe asks for no special categories by itself; if a form of the centre asks for them, the centre notes it here |
-| Automated decisions | None. No family is scored or ranked |
-| Recipients | Nobody outside the centre, unless the law requires it. The processor, on behalf of the centre |
-| International transfers | None [if hosting is in the EU] |
-| Erasure | After [24] months without activity (set per centre), automatically every night. Families erase their data whenever they want from their page. If there is an enrolment, the data passes to the record of families of the centre |
-| Security measures | Access only for the admissions team of the centre, by Moodle user and capability; each centre sees only its families; the private link of each family kept only as a hash (SHA-256) and renewable; what comes from a tool of the centre (Google, a sheet, another tool) only when signed with the key of that entry, and of what was erased only a hash without the family stays, so that sending it again does not bring it back; public pages without trackers, third parties or indexing; anti-spam without third parties (ALTCHA); [encrypted backups of the site, as its hosting provides] |
-| Rights | From the family's page: download and erase their data. In writing to [email]: access, rectification, restriction and objection. A complaint to the data protection authority |
+| Processor | [Whoever hosts and maintains the centre's Moodle], under a processing contract |
+| Purposes | Answering families; organising visits and open days, with their capacity and attendance; following each application up to enrolment or its closing; preparing the first day of new pupils (the story with their name, the day before, the day after); asking the families of the centre whether their children carry on next year; and knowing, with aggregated figures, how the campaign is going, where families come from and what they find useful on their page. If the centre imports earlier campaigns, its joiners and leavers or its enrolment to analyse them, they come in pseudonymised and only for the figures: names, notes, health data, passwords, addresses and documents are erased on entry; of the date of birth only the year is kept; emails, phones, student codes and the child's name become a key hashed with a secret of the centre (HMAC-SHA256), which only serves to recognise the same family or student in another file; and the file is not kept |
+| Legal basis | The family's own request (pre-contractual measures) to answer it, organise the visit and follow its admission; the relationship with the centre, for enrolled families (first day and re-enrolment); consent, to write to them by each channel they tick (email, WhatsApp, Telegram, phone), which they can withdraw; and the centre's legitimate interest for aggregated figures and the measurement of its own page, with no profiles and no ratings |
+| Data subjects | The adults of the families who contact the centre and those of families already enrolled; the minors who would study or study there and their brothers and sisters who would come later |
+| Data | **Of the adults:** first name, surname, phone, email, language, municipality (if they say), how they heard of the centre and, if it was through another family, the name they give of it (if they say), the days and part of the day that suit them for a visit (if they ask for one of their own), what they write to the centre, the answers to the centre's own questions in its forms and surveys (whatever the centre decides to ask), what they like to do in their free time (if they say), whether they offer to tell another family how it went, where they came from (the form, the place where it was shared and, from an advert, its campaign), the permissions per channel with their date, and their answer to whether their children carry on next year, with the reason if they do not. **Of the minors:** first name, the name used at home (if given) and, for the voice to read it, its spelling in Latin letters when the name is in another script; the course asked for or attended; the date of birth (if given); the drawing the family or the team upload (if they do), with its strokes; and, if they leave the centre, when and a reason from a short list. **Of brothers and sisters who would come later:** first name and year of birth. **What the page counts:** when they open it, how far they get and what they touch; in emails, which links are clicked, never whether they are opened; at most 400 a day per family, with no third-party cookies. Eguahe does not ask for special categories of data by itself; if a form of the centre asks for them, the centre notes it here |
+| Automated decisions | None. No family is scored or ranked, and nothing is predicted about a particular family; the enrolment forecast is always aggregated. The signs that a family may not carry on are facts with their date (has not answered, said they are not carrying on), read by a person |
+| Recipients | None outside the centre, unless required by law. The processor, on behalf of the centre. If the centre turns them on: **the team's AI**, the provider the centre sets up in Moodle with its own key ([provider]), which receives the text of the messages without emails, phones or links to prepare drafts and summaries; what Moodle keeps of each request is emptied as soon as the answer arrives. **WhatsApp and Telegram**: Meta or Telegram, for the notices of families who join from their page. **The voices of the story**: Oksigenia's voice service, which receives only the child's home name (no surname, nothing else) to record its reading. **The forwarded admissions mailbox**: the inbound mail service that carries it to Eguahe (Cloudflare), which keeps nothing and leaves attachments out |
+| International transfers | None [if hosting is in the EU], except those of the recipients the centre turns on that process data outside the European Economic Area: [the AI provider, Meta, Telegram, Cloudflare, as the case may be] |
+| Erasure period | [24] months without activity (adjustable per centre). While a child studies at the centre, the family is kept; when the last one leaves, another [24] months without activity. Erasure runs automatically every night. Families ask for it whenever they want from their page, which also lets them download their data. Erasing a family takes with it its children, brothers and sisters, drawings, answers, what its page counted and its link to WhatsApp or Telegram; if it was in the centre's common record of families, it is never brought back. If there is an enrolment and the centre uses the common record of families, the data also passes there |
+| Security measures | Access only for the centre's admissions team, by Moodle user and permission; each centre sees only its families; each family's private link kept only as a fingerprint (SHA-256) and renewable; what comes in through a tool of the centre (Google, a sheet, another tool), only signed with that entry's key; from the mailbox, the sender copied in the body of a forwarded email only counts if whoever forwards it belongs to the centre; a known family who signs up again does not see its data at that moment, and a new email it writes stays as a note for the team, without entering its record; of what was erased only a fingerprint without the family is left, so that sending it again does not bring it back; spreadsheet exports never let a text be read as a formula; emails signed with the site's DKIM key; public pages without third-party trackers and not indexed; anti-spam without third parties (ALTCHA); [encrypted backups of the site, according to its hosting] |
+| Rights | From the family's page: download their data and erase it. In writing to [email]: access, rectification, restriction and objection. A complaint to the data protection authority |
 
-## When this entry has to change
+## When this entry needs reviewing
 
-Before the centre turns on any of these, the data protection officer updates this entry and the information to
-families (the first layer of the form and the page «How we treat your data»):
-
-- **The artificial intelligence of the team** (drafts and summaries): add as processor the AI provider the centre sets
-  up with its own key; the international transfers, if the provider processes the data outside the European Economic
-  Area; and the impact assessment. What is sent to it goes without names, phones or emails.
-- **WhatsApp or Telegram**: add Meta or Telegram as recipients of the messages, their international transfers and the
-  permission by channel, which the family gives when signing up or writing.
-- **The entries** (from 0.9.0): the forms made in Eguahe, Google forms and sheets, the contacts of Meta ads and any
-  other tool connected. Add each source and what each form asks for. Whoever comes through a form of others (Google,
-  Meta) has not seen the first layer: the email of receipt and their page show it, and the permission by channel is
-  only noted if that form asked for it; without it, they are only answered about what they asked.
-  **The forwarded mailbox of admissions** goes through the inbound email service that takes it to Eguahe (with the
-  Worker of `email-worker/`, Cloudflare): add it as processor of the transit, which keeps nothing, and its international
-  transfers. Attachments do not come in.
-- **The people of the team who welcome the families** (from 0.6.0): their name, photo, what they do and a line of
-  theirs appear on the pages of the families signed up. It is a processing of staff data, apart from this one: with the
-  permission of each person to use their image, which they withdraw by leaving «Who welcomes the families».
-- **Importing what already happened** (campaigns, joins and leaves, lists of students): add the sources the centre
-  imports (its forms, its adverts, its office) and how long it keeps the imports, which are removed by hand.
+- **When a marked piece is turned on** (the team's AI, WhatsApp or Telegram, the voices of the story): add its
+  recipient, its transfers and, for the AI, the impact assessment if the officer asks for it.
+- **The entries**: the forms made in Eguahe, Google forms, the contacts from Meta adverts and any other connected tool.
+  Add each source and what each form asks. Whoever comes through someone else's form (Google, Meta) has not seen the
+  first layer: the "received" email and their page show it, and the permission per channel is only noted if that form
+  asked for it; without it, they are only answered about what they asked.
+- **The roll of families** (since 0.61.0): if the centre brings its families from the common record of families to ask
+  them about re-enrolment, they come in as "already of the centre", with the permission to write by email the centre
+  already had; add that source.
+- **The team members who receive families** (since 0.6.0): their name, photo, what they do and a sentence of theirs
+  appear on the pages of the families signed up. It is processing of staff data, separate from this one: with each
+  person's permission to use their image, which they can withdraw by taking themselves off "Who receives the families".
+- **Importing what already happened** (campaigns, joiners and leavers, lists of pupils): add the sources the centre
+  imports (its forms, its adverts, its office) and how long it keeps imports, which are removed by hand.

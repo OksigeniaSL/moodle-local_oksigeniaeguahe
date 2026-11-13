@@ -1120,5 +1120,55 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026115300, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026115500) {
+        // The review of 13 November: children of the roll and the school year each child started; acts called off;
+        // indexes for big centres; and what Moodle kept of the texts sent to the AI, emptied.
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $fields = [
+            new xmldb_field('roster', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'familygone'),
+            new xmldb_field('startyear', XMLDB_TYPE_CHAR, '9', null, null, null, null, 'roster'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $index = new xmldb_index('familychild', XMLDB_INDEX_NOTUNIQUE, ['familychild']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        // The children brought from the roll, and the school year of those enrolled through Eguahe.
+        $DB->execute('UPDATE {local_oksigeniaeguahe_child}
+                         SET roster = (SELECT h.roster FROM {local_oksigeniaeguahe_household} h WHERE h.id = householdid)
+                       WHERE familychild > 0 AND householdid IN (SELECT id FROM {local_oksigeniaeguahe_household}
+                                                                  WHERE roster > 0)');
+        $DB->execute("UPDATE {local_oksigeniaeguahe_child}
+                         SET startyear = (SELECT o.schoolyear FROM {local_oksigeniaeguahe_offer} o WHERE o.id = offerid)
+                       WHERE stage = 'enrolled' AND roster = 0 AND offerid > 0");
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('cancelled', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'kit');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $index = new xmldb_index('centrestart', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'timestart']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_signup');
+        $index = new xmldb_index('reminded', XMLDB_INDEX_NOTUNIQUE, ['reminded']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_contact');
+        foreach (['centretime' => ['centreid', 'timecreated'], 'centredetail' => ['centreid', 'detail']] as $name => $columns) {
+            $index = new xmldb_index($name, XMLDB_INDEX_NOTUNIQUE, $columns);
+            if (!$dbman->index_exists($table, $index)) {
+                $dbman->add_index($table, $index);
+            }
+        }
+        \local_oksigeniaeguahe\local\ai::forget_all();
+        upgrade_plugin_savepoint(true, 2026115500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

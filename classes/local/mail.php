@@ -110,7 +110,12 @@ class mail {
             $mail->addReplyTo($centre->email, $mail->FromName);
         }
         $mail->addAddress($email);
-        $mail->Subject = str_replace(["\r", "\n"], ' ', $subject);
+        // The prefix of the subject and the headers the site puts on all its mail, as Moodle does.
+        $prefix = trim((string) ($CFG->emailsubjectprefix ?? ''));
+        $mail->Subject = str_replace(["\r", "\n"], ' ', ($prefix !== '' ? $prefix . ' ' : '') . $subject);
+        foreach (array_filter(array_map('trim', explode("\n", (string) ($CFG->emailheaders ?? '')))) as $header) {
+            $mail->addCustomHeader($header);
+        }
         $mail->MessageID = generate_email_messageid();
         $mail->isHTML(true);
         $mail->Encoding = 'quoted-printable';
@@ -122,6 +127,18 @@ class mail {
                 continue;
             }
             $mail->addStringEmbeddedImage($image['data'], $image['cid'], $image['name'], 'base64', $image['mime']);
+        }
+        // Signed with the DKIM key of the site, as Moodle signs its own: without it, a site that signs its mail sends this
+        // one unsigned, and it may end in spam.
+        if (!empty($CFG->emaildkimselector)) {
+            $domain = substr((string) strrchr($mail->From, '@'), 1);
+            $pempath = "{$CFG->dataroot}/dkim/{$domain}/{$CFG->emaildkimselector}.private";
+            if ($domain !== '' && file_exists($pempath)) {
+                $mail->DKIM_domain = $domain;
+                $mail->DKIM_private = $pempath;
+                $mail->DKIM_selector = $CFG->emaildkimselector;
+                $mail->DKIM_identity = $mail->From;
+            }
         }
         return (bool) $mail->send();
     }

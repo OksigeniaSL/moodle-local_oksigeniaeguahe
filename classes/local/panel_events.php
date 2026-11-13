@@ -208,6 +208,7 @@ class panel_events {
             'percent' => $event->capacity ? min(100, (int) round(100 * $event->people / $event->capacity)) : 0,
             'hasbar' => !$past && $event->capacity > 0,
             'closed' => !$event->open,
+            'cancelled' => (bool) (int) ($event->cancelled ?? 0),
         ];
     }
 

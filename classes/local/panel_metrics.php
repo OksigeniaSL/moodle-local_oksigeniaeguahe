@@ -84,19 +84,35 @@ class panel_metrics {
     }
 
     /**
-     * The families of the campaign under way in Eguahe, those already of the centre apart.
+     * The families of the campaign under way in Eguahe, those already of the centre apart: those who came since it
+     * started (as the centre wrote it; if not, the last twelve months), and those who came earlier for a course of the
+     * latest school year offered. A campaign ends where the next one starts.
      *
      * @param \stdClass $centre
+     * @param int $now
      * @return array
      */
-    protected static function live(\stdClass $centre): array {
+    protected static function live(\stdClass $centre, int $now = 0): array {
         global $DB;
         $c = self::C;
         $id = ['centreid' => $centre->id];
         $offers = $DB->get_records_menu(centres::OFFERS, $id, '', 'id, name');
+        $year = (string) $DB->get_field_sql(
+            'SELECT MAX(schoolyear) FROM {' . centres::OFFERS . '} WHERE centreid = ?',
+            [$centre->id]
+        );
+        $since = (int) ($centre->campaignstart ?? 0) ?: (new \DateTimeImmutable('@' . ($now ?: time())))->modify('-12 months')
+            ->getTimestamp();
         $out = [];
         $firsts = [];
-        foreach ($DB->get_records_select(households::T, 'centreid = :centreid AND incentre = 0', $id) as $h) {
+        $where = 'centreid = :centreid AND incentre = 0 AND (timecreated >= :since OR id IN (
+                      SELECT ch.householdid FROM {' . households::CHILDREN . '} ch
+                        JOIN {' . centres::OFFERS . '} o ON o.id = ch.offerid
+                       WHERE ch.centreid = :centreid2 AND o.schoolyear = :year))';
+        foreach (
+            $DB->get_records_select(households::T, $where, $id + ['since' => $since, 'centreid2' => $centre->id,
+                'year' => $year]) as $h
+        ) {
             $said = $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
                 'other'), $c) : '';
             // On a network, which one: each one is its own row, the little used too.
@@ -108,7 +124,8 @@ class panel_metrics {
                 'voices' => ['first' => '', 'last' => '', 'said' => $said]];
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'centreid = :centreid', $id, 'id ASC') as $child) {
-            if (!isset($out[$child->householdid])) {
+            // A child brought from the roll was already at the centre: never part of a campaign.
+            if (!isset($out[$child->householdid]) || (int) ($child->roster ?? 0)) {
                 continue;
             }
             $f = &$out[$child->householdid];
@@ -345,7 +362,11 @@ class panel_metrics {
             // What they like most: what the families do with what Eguahe gives them, and who they are.
             'likes' => panel_likes::context($centre, $campaign, $mine, $now),
             // The channels compared in time, the whole year round: for the campaign under way and every course.
-            'channelstime' => $campaign['import'] || $course !== '' ? false : panel_channels::context($centre, $now),
+            'channelstime' => $campaign['import'] || $course !== '' ? false : panel_channels::context(
+                $centre,
+                $now,
+                $campaign['key'] === $campaigns['live']['key'] ? $families : null
+            ),
         ];
         $context['spendaction'] = $url([])->out(false);
         $year = $course === '' ? self::year($centre) : null;

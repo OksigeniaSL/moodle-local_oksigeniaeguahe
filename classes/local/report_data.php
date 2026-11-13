@@ -97,7 +97,8 @@ class report_data {
         $response = self::response($id, $from, $end);
         $responsebefore = self::response($id, $from - max($length, 4 * WEEKSECS), $from);
         $cifras = panel_metrics::context($centre, ['campaign' => 'live', 'compare' => 1], false, $now);
-        $channels = panel_channels::context($centre, $now);
+        // The channels in time are already in Cifras: not counted twice.
+        $channels = $cifras['channelstime'] ?? panel_channels::context($centre, $now);
         $period = self::period($kind, $from, $to);
         $data = [
             'kind' => $kind,
@@ -200,7 +201,7 @@ class report_data {
         );
         $enrolled = $DB->count_records_select(
             households::CHILDREN,
-            "centreid = ? AND stage = 'enrolled' AND stagetime >= ? AND stagetime < ?",
+            "centreid = ? AND stage = 'enrolled' AND roster = 0 AND stagetime >= ? AND stagetime < ?",
             [$centreid, $from, $to]
         );
         $left = $DB->count_records_select(households::CHILDREN, 'centreid = ? AND lefttime >= ? AND lefttime < ?', [$centreid,

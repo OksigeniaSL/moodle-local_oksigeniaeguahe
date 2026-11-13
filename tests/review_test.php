@@ -1,0 +1,203 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_oksigeniaeguahe;
+
+use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\renewal;
+use local_oksigeniaeguahe\local\siblings;
+
+/**
+ * What the deep review of November 2026 found and fixed: calling an act off, a family that cannot come, the reminder
+ * after a change of day, the places taken, a brother or sister who never goes back, and how long a family that left is
+ * kept. Example data.
+ *
+ * @package    local_oksigeniaeguahe
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \local_oksigeniaeguahe\local\events
+ */
+#[\PHPUnit\Framework\Attributes\CoversClass(events::class)]
+final class review_test extends \advanced_testcase {
+    /** @var \stdClass */
+    protected $centre;
+
+    /**
+     * A centre with example data.
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+        $this->centre = centres::get(centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es',
+            'country' => 'ES', 'email' => 'secretaria@example.com']));
+    }
+
+    /**
+     * A household with an adult who lets the centre write by email, or not.
+     *
+     * @param string $email
+     * @param bool $mail
+     * @return \stdClass
+     */
+    protected function household(string $email, bool $mail = true): \stdClass {
+        $id = households::create((int) $this->centre->id, (object) ['lang' => 'es', 'firstchannel' => 'web']);
+        $household = households::get($id, (int) $this->centre->id);
+        $adultid = households::add_adult($household, (object) ['firstname' => 'Marta', 'lastname' => 'Ruiz',
+            'email' => $email]);
+        households::consent($household, $adultid, 'email', $mail, 'form', 'es');
+        return $household;
+    }
+
+    /**
+     * An open day of the centre, two weeks ahead.
+     *
+     * @return \stdClass
+     */
+    protected function act(): \stdClass {
+        $id = events::save((int) $this->centre->id, (object) ['kind' => 'open_day', 'name' => 'Jornada de ejemplo',
+            'timestart' => time() + 14 * DAYSECS, 'timeend' => time() + 14 * DAYSECS + 3 * HOURSECS, 'capacity' => 0,
+            'open' => 1]);
+        return events::get($id, (int) $this->centre->id);
+    }
+
+    /**
+     * Calling an act off tells by email who lets the centre write so, leaves a note for the others, takes every sign-up
+     * away (so no reminder and no thanks goes) and closes the act.
+     */
+    public function test_cancel(): void {
+        global $DB;
+        unset_config('noemailever');
+        $sink = $this->redirectEmails();
+        $act = $this->act();
+        $mail = $this->household('marta@example.com');
+        $nomail = $this->household('pablo@example.com', false);
+        events::sign_up($act, (int) $mail->id, 2);
+        events::sign_up($act, (int) $nomail->id, 3);
+        $told = events::cancel($act, $this->centre, 0, 'Lo pasamos a enero.', time());
+        $this->assertSame(1, $told);
+        $this->assertSame(1, $sink->count());
+        $this->assertStringContainsString('Jornada de ejemplo', $sink->get_messages()[0]->subject);
+        $this->assertSame(0, $DB->count_records(events::SIGNUPS, ['eventid' => $act->id]));
+        $after = events::get((int) $act->id, (int) $this->centre->id);
+        $this->assertSame(0, (int) $after->open);
+        $this->assertGreaterThan(0, (int) $after->cancelled);
+        $this->assertTrue($DB->record_exists(households::CONTACTS, ['householdid' => $nomail->id, 'direction' => 'note']));
+        $sink->close();
+    }
+
+    /**
+     * A family that cannot come after all: its sign-up goes, and it waits for a person.
+     */
+    public function test_cant_come(): void {
+        global $DB;
+        $act = $this->act();
+        $household = $this->household('marta@example.com');
+        events::sign_up($act, (int) $household->id, 2);
+        $this->assertTrue(events::unsign($act, $household, 'Al final no podemos ir.', true));
+        $this->assertFalse($DB->record_exists(events::SIGNUPS, ['eventid' => $act->id, 'householdid' => $household->id]));
+        $this->assertGreaterThan(0, (int) households::get((int) $household->id, (int) $this->centre->id)->waitingsince);
+        $this->assertFalse(events::unsign($act, $household, 'Otra vez.', true));
+    }
+
+    /**
+     * Another day for the act, or another turn for a family: the reminder of the day before goes again.
+     */
+    public function test_reminder_again(): void {
+        global $DB;
+        $act = $this->act();
+        $household = $this->household('marta@example.com');
+        $id = events::sign_up($act, (int) $household->id, 2);
+        $DB->set_field(events::SIGNUPS, 'reminded', time(), ['id' => $id]);
+        events::save((int) $this->centre->id, (object) ['id' => $act->id, 'kind' => 'open_day', 'name' => $act->name,
+            'timestart' => $act->timestart, 'timeend' => $act->timeend, 'capacity' => 0, 'open' => 1]);
+        $this->assertGreaterThan(0, (int) $DB->get_field(events::SIGNUPS, 'reminded', ['id' => $id]), 'Same day: no.');
+        events::save((int) $this->centre->id, (object) ['id' => $act->id, 'kind' => 'open_day', 'name' => $act->name,
+            'timestart' => $act->timestart + DAYSECS, 'timeend' => $act->timeend + DAYSECS, 'capacity' => 0, 'open' => 1]);
+        $this->assertSame(0, (int) $DB->get_field(events::SIGNUPS, 'reminded', ['id' => $id]));
+    }
+
+    /**
+     * A place is taken by every child enrolled who has not left, from a family of the campaign or of the centre.
+     */
+    public function test_places(): void {
+        global $DB;
+        $offer = centres::save_offer((int) $this->centre->id, (object) ['schoolyear' => '2027-28', 'name' => '1.º de Primaria',
+            'places' => 25, 'active' => 1]);
+        $campaign = $this->household('marta@example.com');
+        $ofcentre = $this->household('pablo@example.com');
+        $DB->set_field(households::T, 'incentre', 1, ['id' => $ofcentre->id]);
+        foreach ([[$campaign, 'Leo', 0], [$ofcentre, 'Vera', 0], [$ofcentre, 'Hugo', time()]] as [$household, $name, $left]) {
+            $childid = households::add_child($household, $name, $offer);
+            $DB->update_record(households::CHILDREN, (object) ['id' => $childid, 'stage' => 'enrolled', 'lefttime' => $left]);
+        }
+        $this->assertSame(2, households::offer_counts((int) $this->centre->id)[$offer]['enrolled']);
+    }
+
+    /**
+     * Confirming a brother or sister never takes back a child of that name who is already enrolled: Mateo, whose turn
+     * it is, was enrolled by the team already.
+     */
+    public function test_sibling_never_back(): void {
+        global $DB;
+        $now = make_timestamp(2026, 11, 8, 12);
+        $offer = centres::save_offer((int) $this->centre->id, (object) ['schoolyear' => '2027-28',
+            'name' => 'Infantil 3 años', 'places' => 25, 'active' => 1, 'sortorder' => 0]);
+        $DB->update_record(centres::T, (object) ['id' => $this->centre->id, 'siblingage' => 3,
+            'campaignstart' => make_timestamp(2026, 10, 1)]);
+        $centre = centres::get((int) $this->centre->id);
+        $household = $this->household('marta@example.com');
+        $childid = households::add_child($household, 'Mateo', $offer);
+        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'enrolled');
+        $mateo = siblings::add($household, 'Mateo', 2024, 'team', $now);
+        $this->assertTrue(siblings::confirm($household, $centre, $mateo, $now));
+        $this->assertSame('enrolled', $DB->get_field(households::CHILDREN, 'stage', ['id' => $childid]));
+    }
+
+    /**
+     * A family whose child left is kept as long as any other from the day it left; one still studying is kept.
+     */
+    public function test_left_family_expires(): void {
+        global $DB;
+        $DB->set_field('local_oksigeniaeguahe_centre', 'retention', 24, ['id' => $this->centre->id]);
+        $long = time() - 30 * 30 * DAYSECS;
+        $studying = $this->household('marta@example.com');
+        $left = $this->household('pablo@example.com');
+        $leftnow = $this->household('ana@example.com');
+        foreach ([[$studying, 0], [$left, $long], [$leftnow, time()]] as [$household, $when]) {
+            $childid = households::add_child($household, 'Niño', 0);
+            $DB->update_record(households::CHILDREN, (object) ['id' => $childid, 'stage' => 'enrolled', 'lefttime' => $when]);
+            $DB->set_field(households::T, 'lastcontact', $long, ['id' => $household->id]);
+        }
+        $expired = array_keys(households::expired(time()));
+        $this->assertSame([(int) $left->id], array_map('intval', $expired));
+    }
+
+    /**
+     * Who to tell of the re-enrolment, in bulk: the families that let the centre write by email, by their last word.
+     */
+    public function test_emailable(): void {
+        $yes = $this->household('marta@example.com');
+        $no = $this->household('pablo@example.com', false);
+        $changed = $this->household('ana@example.com');
+        $adult = reset(households::full($changed)->adults);
+        households::consent($changed, (int) $adult->id, 'email', false, 'family', 'es');
+        $this->assertSame([(int) $yes->id], array_keys(households::emailable((int) $this->centre->id)));
+        $this->assertNotContains((int) $no->id, array_keys(households::emailable((int) $this->centre->id)));
+        $this->assertSame([], renewal::to_tell($this->centre));
+    }
+}

@@ -219,12 +219,29 @@ class panel_inbox {
      */
     protected static function starting(\stdClass $centre, int $now): array {
         global $DB;
-        $ids = $DB->get_fieldset_select(
+        // Only the families with a new child whose first day (or the time of its story) is near: in a big centre,
+        // looking at every enrolled family on each visit to the inbox takes too long.
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
+        $near = [];
+        foreach ($offers as $offer) {
+            $first = firstdays::of($offer, $centre);
+            $usual = $first ? 0 : firstdays::usual($offer, $offers, $centre);
+            $near[$offer->id] = $first ? ($now >= $first - story::BEFORE && $now < $first + 4 * DAYSECS) :
+                ($now < $usual + story::AFTER && story::offer_gives($offer, (int) $centre->id));
+        }
+        $kids = $DB->get_records_select(
             households::CHILDREN,
-            'DISTINCT householdid',
-            "centreid = ? AND stage = 'enrolled' AND lefttime = 0",
-            [$centre->id]
+            "centreid = ? AND stage = 'enrolled' AND lefttime = 0 AND roster = 0",
+            [$centre->id],
+            '',
+            'id, householdid, offerid, roster, startyear'
         );
+        $ids = [];
+        foreach ($kids as $kid) {
+            if (!empty($near[$kid->offerid]) && story::is_new($kid, $offers[$kid->offerid] ?? null)) {
+                $ids[(int) $kid->householdid] = (int) $kid->householdid;
+            }
+        }
         $out = [];
         foreach ($ids as $id) {
             $household = households::get((int) $id, (int) $centre->id);
@@ -245,13 +262,22 @@ class panel_inbox {
      */
     protected static function birthdays(\stdClass $centre, int $now): array {
         global $DB;
-        $ids = $DB->get_fieldset_select(
+        $kids = $DB->get_records_select(
             households::CHILDREN,
-            'DISTINCT householdid',
             "centreid = ? AND stage IN ('enrolled', '" . implode("', '", birthdays::DECIDING) . "') AND lefttime = 0
                 AND birthdate IS NOT NULL",
-            [$centre->id]
+            [$centre->id],
+            '',
+            'id, householdid, birthdate'
         );
+        // Only those whose birthday is yesterday, today or tomorrow: the rest has nothing to propose today.
+        $days = array_map(fn($d) => userdate($now + $d * DAYSECS, '%m-%d'), [-1, 0, 1]);
+        $ids = [];
+        foreach ($kids as $kid) {
+            if (in_array(substr((string) $kid->birthdate, 5, 5), $days, true)) {
+                $ids[(int) $kid->householdid] = (int) $kid->householdid;
+            }
+        }
         $out = [];
         foreach ($ids as $id) {
             $household = households::get((int) $id, (int) $centre->id);

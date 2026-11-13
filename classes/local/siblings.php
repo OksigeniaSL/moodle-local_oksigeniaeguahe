@@ -271,7 +271,11 @@ class siblings {
         }
         $DB->set_field(self::T, 'confirmed', $now, ['id' => $sibling->id]);
         $childid = households::add_child($household, (string) $sibling->firstname, 0);
-        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $childid]), 'application');
+        $child = $DB->get_record(households::CHILDREN, ['id' => $childid]);
+        // A child of that name already further on (enrolled, admitted) never goes back; a closed one asks again.
+        if ($child->stage === 'closed' || lists::further((string) $child->stage, 'application')) {
+            households::set_stage($child, 'application');
+        }
         $lang = in_array($centre->lang, lists::LANGS, true) ? $centre->lang : 'es';
         $a = (object) ['name' => $sibling->firstname, 'year' => self::year_label($centre, self::turn_year($centre, $sibling))];
         households::received($household, lists::PAGE, publiclang::str('pub_sibling_confirm_note', $lang, $a), true, $now);

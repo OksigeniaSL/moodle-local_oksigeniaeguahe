@@ -29,6 +29,10 @@ class inbound {
     /** @var string Senders that are machines, not families: the notices of the forms of a web. */
     const MACHINES = '/^(no-?reply|do-?not-?reply|wordpress|mailer|notifications?|forms?|webmaster|bounce|postmaster)\b/i';
 
+    /** @var string[] Domains anyone can have an address in: never trusted as a whole. */
+    const OPEN_DOMAINS = ['gmail.com', 'googlemail.com', 'hotmail.com', 'hotmail.es', 'outlook.com', 'outlook.es', 'live.com',
+        'yahoo.com', 'yahoo.es', 'icloud.com', 'me.com', 'proton.me', 'protonmail.com', 'gmx.com', 'aol.com', 'msn.com'];
+
     /** @var string The line that opens a message forwarded by hand. */
     const FORWARDED = '/(forwarded message|mensaje reenviado|mensagem encaminhada|original message|mensaje original|' .
         'mensagem original|^\s*-{3,}\s*$)/imu';
@@ -57,15 +61,19 @@ class inbound {
      * What came in an email, as the answers of a form: the fields of a web form, who wrote, and the rest as text.
      *
      * @param array $mail As parse() gives it.
+     * @param string[]|null $trusted The addresses whose mail may speak for someone else (the team of the centre and its
+     *     own address): only a message they forward, or a web form they send, says who wrote in its text. Null, all (the
+     *     tests and what came before).
      * @return array question => answer
      */
-    public static function answers(array $mail): array {
+    public static function answers(array $mail, ?array $trusted = null): array {
         $answers = [];
         $rest = [];
         $text = $mail['text'];
+        $vouched = $trusted === null || self::vouched($mail, $trusted);
         // A message forwarded by hand: the first who wrote, and what they wrote.
         $sender = [$mail['from'], $mail['name']];
-        if (preg_match(self::FORWARDED, $text, $m, PREG_OFFSET_CAPTURE)) {
+        if ($vouched && preg_match(self::FORWARDED, $text, $m, PREG_OFFSET_CAPTURE)) {
             $after = substr($text, $m[0][1]);
             if (preg_match('/^\s*(?:de|from|von|da)\s*:\s*(.+)$/imu', $after, $who)) {
                 $sender = self::address($who[1]);
@@ -90,6 +98,14 @@ class inbound {
                 $rest[] = $line;
             }
         }
+        if (!$vouched) {
+            // Anyone can write anything in the text of an email: the address of the family is the one that sent it.
+            foreach (array_keys($answers) as $question) {
+                if (recognise::header_role((string) $question) === 'email') {
+                    unset($answers[$question]);
+                }
+            }
+        }
         $roles = array_map([recognise::class, 'header_role'], array_keys($answers));
         if (!in_array('email', $roles, true) && $sender[0] !== '' && !preg_match(self::MACHINES, $sender[0])) {
             $answers['Email'] = $sender[0];
@@ -103,6 +119,19 @@ class inbound {
             $answers['Mensaje del correo'] = \core_text::substr($message, 0, 4000);
         }
         return $answers;
+    }
+
+    /**
+     * Whether the mail comes from someone who may speak for a family: the team, the address of the centre or its domain.
+     *
+     * @param array $mail As parse() gives it.
+     * @param string[] $trusted Addresses, and domains starting with «@».
+     * @return bool
+     */
+    public static function vouched(array $mail, array $trusted): bool {
+        $from = strtolower((string) $mail['from']);
+        $at = strrpos($from, '@');
+        return $from !== '' && (in_array($from, $trusted, true) || ($at !== false && in_array(substr($from, $at), $trusted, true)));
     }
 
     /**

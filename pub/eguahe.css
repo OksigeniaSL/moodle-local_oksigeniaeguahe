@@ -4878,3 +4878,9 @@ button.enlace span {
 .conocidos-caras .persona-lleva {
     margin: 0;
 }
+
+/* Not coming after all: a quiet link beside the others of the visit. */
+.banda .no-podemos {
+    display: inline;
+    margin: 0;
+}

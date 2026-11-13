@@ -59,10 +59,19 @@ class export {
         $c = self::C;
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d') : '';
+        $keys = array_keys(self::family_columns());
         $rows = [];
+        // The adults and children of every family at once: one query each, not one per family.
+        $adultsof = [];
+        foreach ($DB->get_recordset_select(households::ADULTS, 'centreid = ?', [$centre->id], 'id ASC') as $adult) {
+            $adultsof[(int) $adult->householdid][] = $adult;
+        }
+        $childrenof = [];
+        foreach ($DB->get_recordset_select(households::CHILDREN, 'centreid = ?', [$centre->id], 'id ASC') as $child) {
+            $childrenof[(int) $child->householdid][] = $child;
+        }
         foreach ($DB->get_records(households::T, ['centreid' => $centre->id], 'timecreated DESC, id DESC') as $household) {
-            $full = households::full($household);
-            $adults = array_values($full->adults);
+            $adults = $adultsof[(int) $household->id] ?? [];
             $channel = (string) $household->firstchannel;
             $family = [
                 'family' => implode('; ', array_map(fn($a) => trim($a->firstname . ' ' . $a->lastname), $adults)),
@@ -80,7 +89,7 @@ class export {
                 'moving' => !empty($household->moving) ? get_string('yes') : '',
                 'waiting' => $date((int) $household->waitingsince),
             ];
-            $children = array_values($full->children) ?: [null];
+            $children = $childrenof[(int) $household->id] ?? [null];
             foreach ($children as $child) {
                 $offer = $child ? ($offers[$child->offerid] ?? null) : null;
                 $row = $family + [
@@ -91,13 +100,22 @@ class export {
                     'stage' => $child ? get_string('stage_' . $child->stage, $c) : '',
                     'since' => $child ? $date((int) $child->stagetime) : '',
                 ];
-                $rows[] = array_map(fn($k) => (string) $row[$k], array_combine(
-                    array_keys(self::family_columns()),
-                    array_keys(self::family_columns())
-                ));
+                $rows[] = array_map(fn($k) => self::cell((string) $row[$k]), array_combine($keys, $keys));
             }
         }
         return $rows;
+    }
+
+    /**
+     * A cell as text, never as a formula: a name written by a family that starts with «=» would become one in the sheet
+     * and could read the other rows.
+     *
+     * @param string $value
+     * @return string
+     */
+    public static function cell(string $value): string {
+        // A phone (+34 600…) stays as it is; «=», «@», a tab, or «+» and «-» before anything but a number, do not.
+        return preg_match('/^([=@\t\r]|[+\-][^0-9\s(])/', $value) ? "'" . $value : $value;
     }
 
     /**
@@ -127,7 +145,7 @@ class export {
         foreach (panel_metrics::campaigns($centre) as $campaign) {
             foreach (panel_metrics::families($centre, $campaign) as $family) {
                 $step = (int) ($family['step'] ?? 1);
-                $rows[] = [
+                $rows[] = array_map([self::class, 'cell'], [
                     'campaign' => (string) $campaign['name'],
                     'arrived' => $date((int) ($family['first'] ?? 0)),
                     'course' => (string) ($family['coursename'] ?? $family['course'] ?? ''),
@@ -138,7 +156,7 @@ class export {
                     'last' => (string) ($family['voices']['last'] ?? ''),
                     'heard' => (string) ($family['voices']['said'] ?? ''),
                     'moving' => !empty($family['moving']) ? get_string('yes') : '',
-                ];
+                ]);
             }
         }
         return $rows;

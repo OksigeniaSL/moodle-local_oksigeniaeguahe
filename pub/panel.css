@@ -13608,3 +13608,33 @@ details.aj-plegado > summary h2::after {
 .hoja-calculo-cifras .hoja-calculo-papel i:nth-child(odd) {
     width: 85%;
 }
+
+/* 11.6 Calling an act off, a family that is not coming, a course listed on its own (review of November 2026). */
+.llegada .quitar-inscripcion {
+    grid-column: 2;
+    justify-self: end;
+    margin: 0;
+}
+
+.llegada .quitar-inscripcion .enlace {
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+.anular-acto {
+    margin-top: 12px;
+}
+
+.anular-acto form {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.anular-acto textarea {
+    width: 100%;
+}
+
+.quien-sigue-lista {
+    margin: 6px 16px 12px;
+}

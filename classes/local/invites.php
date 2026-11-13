@@ -139,7 +139,7 @@ class invites {
             }
             $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id,
                 'householdid' => $household->id, 'userid' => $userid, 'timecreated' => $now]);
-            households::told($household, $userid, 'email', $note);
+            households::told($household, $userid, 'email', $note, true);
             $sent++;
         }
         return $sent;

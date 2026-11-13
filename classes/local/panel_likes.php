@@ -65,10 +65,9 @@ class panel_likes {
             $mine,
             fn($f) => !$f['closed']
         ))));
-        $rows = seen::of($ids);
-        $c4 = self::count_rows($rows);
+        $c4 = self::count_rows(seen::each($ids));
         $opened = count($c4['opens']);
-        $start = (int) ($campaign['start'] ?: ($rows ? $rows[0]->timecreated : 0));
+        $start = (int) ($campaign['start'] ?: $c4['first']);
         $day = get_string('strftimedate', 'langconfig');
         $cut = $start ? get_string('panel_likes_cut', $c, (object) ['from' => userdate($start, $day),
             'to' => userdate($now, $day)]) : get_string('panel_likes_cut_today', $c, userdate($now, $day));
@@ -121,15 +120,16 @@ class panel_likes {
     /**
      * What was noted, by household and by thing.
      *
-     * @param \stdClass[] $rows
+     * @param iterable $rows \stdClass rows of seen, in any order.
      * @return array opens (household => times), days (household => days), parts (part => households), touches (what =>
      *               [times, households]), sent (kind => mails) and clicks (kind => [times, households]).
      */
-    protected static function count_rows(array $rows): array {
+    protected static function count_rows(iterable $rows): array {
         $out = ['opens' => [], 'days' => [], 'parts' => [], 'touches' => [], 'sent' => [], 'clicks' => [], 'story' => [],
-            'storypage' => []];
+            'storypage' => [], 'first' => 0];
         foreach ($rows as $row) {
             $h = (int) $row->householdid;
+            $out['first'] = $out['first'] ? min($out['first'], (int) $row->timecreated) : (int) $row->timecreated;
             if ($row->kind === 'open') {
                 $out['opens'][$h] = ($out['opens'][$h] ?? 0) + 1;
                 $out['days'][$h][seen::day((int) $row->timecreated)] = true;

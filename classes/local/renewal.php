@@ -175,12 +175,15 @@ class renewal {
         }
         $params = ['centreid' => $centre->id, 'stage' => 'enrolled'] + ($householdid ? ['householdid' => $householdid] : []);
         $out = [];
+        // The age of each course once, not once per child: a big centre has thousands.
+        $ages = [];
         foreach ($DB->get_records(households::CHILDREN, $params, 'id ASC') as $child) {
             $offer = $offers[$child->offerid] ?? null;
             if (!empty($child->lefttime) || !$offer || (string) $offer->schoolyear !== $before) {
                 continue;
             }
-            $age = grades::age((string) $offer->name, $centre);
+            $age = $ages[$offer->id] = array_key_exists($offer->id, $ages) ? $ages[$offer->id] :
+                grades::age((string) $offer->name, $centre);
             if ($age !== null && isset($next[$age + 1])) {
                 $out[(int) $child->id] = [$child, $offer, $next[$age + 1]];
             }
@@ -448,19 +451,18 @@ class renewal {
             return [];
         }
         $answers = self::answers($centre);
+        // Who was written to already, and who lets the centre write by email: two queries, not three per child.
+        $told = array_flip(array_map('intval', $DB->get_fieldset_select(
+            households::CONTACTS,
+            'DISTINCT householdid',
+            'centreid = ? AND detail = ?',
+            [$centre->id, self::TOLD . $year]
+        )));
+        $emailable = households::emailable((int) $centre->id);
         $out = [];
         foreach (self::children($centre) as $childid => [$child]) {
             $householdid = (int) $child->householdid;
-            if (
-                isset($answers[$childid]) || isset($out[$householdid]) || $DB->record_exists(
-                    households::CONTACTS,
-                    ['householdid' => $householdid, 'detail' => self::TOLD . $year]
-                )
-            ) {
-                continue;
-            }
-            $household = households::get($householdid, (int) $centre->id);
-            if ($household && familymail::may_email($household)) {
+            if (!isset($answers[$childid]) && !isset($told[$householdid]) && isset($emailable[$householdid])) {
                 $out[$householdid] = $householdid;
             }
         }
@@ -494,7 +496,7 @@ class renewal {
                         'local_oksigeniaeguahe',
                         $year
                     ), 'detail' => self::TOLD . $year, 'userid' => $userid, 'timecreated' => $now]);
-                $DB->update_record(households::T, (object) ['id' => $householdid, 'lastcontact' => $now, 'timemodified' => $now]);
+                // Sent to many at once: it does not keep the data of a family that never answers any longer.
                 $sent++;
             }
         }

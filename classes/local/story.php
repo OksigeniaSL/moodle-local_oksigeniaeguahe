@@ -108,6 +108,22 @@ class story {
     }
 
     /**
+     * Whether a child is new in its course: it came through Eguahe (not from the roll of the centre) and this is the
+     * school year it started. The story, the eve and the day after are only for them, never again the next year.
+     *
+     * @param \stdClass $child
+     * @param \stdClass|null $offer Its course.
+     * @return bool
+     */
+    public static function is_new(\stdClass $child, ?\stdClass $offer): bool {
+        if ((int) ($child->roster ?? 0) || !$offer) {
+            return false;
+        }
+        $start = trim((string) ($child->startyear ?? ''));
+        return $start === '' || $start === (string) $offer->schoolyear;
+    }
+
+    /**
      * The children of a household who have their story now: enrolled, not gone, in a course that gives it, in the time
      * around the first day of their course (firstdays::of(); without one, from when they enrol); and only in a
      * language the story is written in.
@@ -128,11 +144,15 @@ class story {
         foreach (households::full($household)->children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $gives = $offer && self::offer_gives($offer, (int) $centre->id);
-            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || !$gives) {
+            if ($child->stage !== 'enrolled' || !empty($child->lefttime) || !$gives || !self::is_new($child, $offer)) {
                 continue;
             }
-            $first = firstdays::of($offer, $centre);
-            if (!$first || ($now >= $first - self::BEFORE && $now <= $first + self::AFTER)) {
+            // Without its own first day, around when the course usually starts; never for good.
+            $first = firstdays::of($offer, $centre) ?: firstdays::usual($offer, $offers, $centre);
+            if (
+                !$first || ($now >= $first - self::BEFORE && $now <= $first + self::AFTER) ||
+                (!firstdays::of($offer, $centre) && $now < $first)
+            ) {
                 $out[$child->id] = $child;
             }
         }
@@ -153,9 +173,10 @@ class story {
      */
     public static function step(\stdClass $household, \stdClass $centre, int $now): ?array {
         global $DB;
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $kids = array_filter(
             households::full($household)->children,
-            fn($c) => $c->stage === 'enrolled' && empty($c->lefttime)
+            fn($c) => $c->stage === 'enrolled' && empty($c->lefttime) && self::is_new($c, $offers[$c->offerid] ?? null)
         );
         if (!$kids) {
             return null;
@@ -165,7 +186,6 @@ class story {
             'householdid = ? AND direction = ? AND timecreated >= ?',
             [$household->id, 'out', $since]
         );
-        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $firsts = [];
         foreach ($kids as $kid) {
             $firsts[$kid->id] = firstdays::of($offers[$kid->offerid] ?? null, $centre);

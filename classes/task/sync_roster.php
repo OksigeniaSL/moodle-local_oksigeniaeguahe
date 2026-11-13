@@ -46,7 +46,11 @@ class sync_roster extends \core\task\scheduled_task {
         }
         foreach (centres::all() as $centre) {
             if (roster::source($centre)) {
-                roster::sync($centre, time());
+                try {
+                    roster::sync($centre, time());
+                } catch (\Throwable $e) {
+                    mtrace('Eguahe: the roll of centre ' . $centre->id . ' failed: ' . $e->getMessage());
+                }
             }
         }
     }

@@ -97,4 +97,18 @@ final class inbound_test extends \advanced_testcase {
         $this->assertArrayNotHasKey('Nombre y apellidos', $answers);
         $this->assertSame('¿Hay comedor?', $answers['Mensaje']);
     }
+
+    /**
+     * Anyone can write anything in the text of an email: a forwarded message or the fields of a form say who wrote only
+     * when the team, the address of the centre or its own domain send it.
+     */
+    public function test_trusted_senders(): void {
+        $raw = "From: Alguien <alguien@example.net>\r\nSubject: Plaza\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n" .
+            "Hola\r\n---------- Forwarded message ---------\r\nFrom: Marta Ruiz <marta@example.com>\r\n\r\n" .
+            "Email: marta@example.com\r\nQueremos plaza.\r\n";
+        $mail = inbound::parse($raw);
+        $this->assertSame('alguien@example.net', inbound::answers($mail, ['secretaria@colegio.example'])['Email']);
+        $this->assertSame('marta@example.com', inbound::answers($mail, ['alguien@example.net'])['Email']);
+        $this->assertSame('marta@example.com', inbound::answers($mail, ['@example.net'])['Email'], 'Its own domain.');
+    }
 }

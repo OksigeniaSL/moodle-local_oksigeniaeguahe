@@ -249,6 +249,7 @@ class entries {
      * @param string $externalid The identifier the source gives (a response, a lead), if any.
      * @param int|null $time When it was sent, if the source says so.
      * @param bool $past Whether it is something sent before the entry was connected.
+     * @param bool $byphone Whether a phone may find a family the centre already has (not from an email anyone could write).
      * @return array [household or null when there is nobody to answer, whether it is new, the token of its page or null]
      */
     public static function receive(
@@ -256,7 +257,8 @@ class entries {
         array $answers,
         string $externalid = '',
         ?int $time = null,
-        bool $past = false
+        bool $past = false,
+        bool $byphone = true
     ): array {
         global $DB;
         $centre = centres::get((int) $entry->centreid);
@@ -283,7 +285,7 @@ class entries {
         }
 
         $transaction = $DB->start_delegated_transaction();
-        $householdid = households::find((int) $centre->id, $read->email, $read->phone);
+        $householdid = households::find((int) $centre->id, $read->email, $byphone ? $read->phone : null);
         $about = (object) (['lang' => $centre->lang ?: 'es', 'firstchannel' => self::channel($entry),
             'heardfrom' => $read->heardfrom, 'incentre' => $read->incentre] + $read->place);
         $householdid = $householdid ?? households::create((int) $centre->id, $about);
@@ -713,7 +715,30 @@ class entries {
      */
     public static function from_email(\stdClass $entry, string $raw, bool $past = false): array {
         $mail = inbound::parse($raw);
-        return self::receive($entry, inbound::answers($mail), $mail['messageid'], $mail['time'] ?: null, $past);
+        // Only the team and the address of the centre may forward a family's message, or send the notice of a form.
+        $centre = centres::get((int) $entry->centreid);
+        $trusted = array_values(array_filter(array_map(
+            fn($u) => strtolower(trim((string) $u->email)),
+            centres::members((int) $entry->centreid)
+        )));
+        if ($centre && trim((string) $centre->email) !== '') {
+            // Its address, and its own domain (the notices of the forms of its web), unless anyone can have one there.
+            $own = strtolower(trim((string) $centre->email));
+            $trusted[] = $own;
+            $domain = substr($own, (int) strrpos($own, '@'));
+            if (!in_array(ltrim($domain, '@'), inbound::OPEN_DOMAINS, true)) {
+                $trusted[] = $domain;
+            }
+        }
+        // From anyone else, a phone written in the text never finds a family the centre already has.
+        return self::receive(
+            $entry,
+            inbound::answers($mail, $trusted),
+            $mail['messageid'],
+            $mail['time'] ?: null,
+            $past,
+            inbound::vouched($mail, $trusted)
+        );
     }
 
     /**

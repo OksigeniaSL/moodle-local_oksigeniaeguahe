@@ -68,7 +68,10 @@ if (data_submitted()) {
     } else if ($do === 'noend' && $year !== '') {
         renewal::set($centre, $year, (int) $centre->renewalfrom, 0);
     } else if ($do === 'tell' && renewal::open($centre, $now)) {
-        renewal::tell($centre, (int) $USER->id, $now);
+        // Hundreds of mails do not fit in a page: they go in the background, and the page counts them as they go.
+        $task = new \local_oksigeniaeguahe\task\tell_renewal();
+        $task->set_custom_data(['centreid' => (int) $centre->id, 'userid' => (int) $USER->id]);
+        \core\task\manager::queue_adhoc_task($task, true);
     } else if (in_array($do, ['rosterkind', 'rosteryear', 'rosteroff'], true)) {
         // The families already at the centre: where the course of each student comes from, and the school year now.
         $source = roster::source($centre);
@@ -117,5 +120,11 @@ panel::output(
     'inbox',
     get_string('panel_renewal', $c),
     'panel_renewal',
-    panel_renewal::context($centre, centres::can_act((int) $USER->id), time(), optional_param('cohorte', '', PARAM_ALPHANUM))
+    panel_renewal::context(
+        $centre,
+        centres::can_act((int) $USER->id),
+        time(),
+        optional_param('cohorte', '', PARAM_ALPHANUM),
+        optional_param('curso', 0, PARAM_INT)
+    )
 );

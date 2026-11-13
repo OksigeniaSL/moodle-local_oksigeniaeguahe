@@ -180,6 +180,31 @@ class seen {
     }
 
     /**
+     * Everything noted of some households, one row at a time, without holding it all in memory: for a centre with
+     * thousands of families. The order is by family block, not by time.
+     *
+     * @param int[] $householdids
+     * @return \Generator \stdClass rows.
+     */
+    public static function each(array $householdids): \Generator {
+        global $DB;
+        foreach (array_chunk(array_values($householdids), 1000) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk);
+            $rows = $DB->get_recordset_select(
+                self::T,
+                'householdid ' . $in,
+                $params,
+                '',
+                'id, householdid, kind, what, via, timecreated'
+            );
+            foreach ($rows as $row) {
+                yield $row;
+            }
+            $rows->close();
+        }
+    }
+
+    /**
      * What was noted of a family, added up, for its file: how many times it opened its page and on how many days, the
      * last time, how far down it went, what it touches most and what it pressed in the mails.
      *

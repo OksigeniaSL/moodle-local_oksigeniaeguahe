@@ -278,6 +278,7 @@
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
             {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
             {{#share}}<span class="pasar"><button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/share}}
+            {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
         </div>
     </div>
     {{/first}}
@@ -285,6 +286,7 @@
     <div class="otra">
         <div><b>{{name}}</b><span>{{long}} · {{hours}}</span></div>
         <a class="enlace" href="{{ics}}" aria-label="{{addlabel}}">{{{i.cal}}}</a>
+        {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
     </div>
     {{/others}}
 </section>

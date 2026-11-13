@@ -128,12 +128,64 @@ class ai {
         if (!$manager) {
             throw new \moodle_exception('report_ai_missing', 'local_oksigeniaeguahe');
         }
+        $since = time();
         $action = new \core_ai\aiactions\generate_text(\context_system::instance()->id, $userid, $prompt);
         $response = $manager->process_action($action);
+        // Moodle keeps what was asked and what came back with each action, for ever; Eguahe has no need of it, and it
+        // carries the names and messages of families: emptied at once, the tokens and the time stay for the reports.
+        self::forget($userid, $since);
         if (!$response->get_success()) {
             throw new \moodle_exception('report_ai_error', 'local_oksigeniaeguahe', '', s($response->get_errormessage()));
         }
         return (string) ($response->get_response_data()['generatedcontent'] ?? '');
+    }
+
+    /** @var string[] How the texts Eguahe sends begin, to find the ones Moodle kept before they were emptied at once. */
+    const PROMPTS = ['You help a person of the admissions team', 'A family wrote this to the admissions team',
+        'You help the admissions team of a school'];
+
+    /**
+     * Empties what Moodle kept of the text actions just made for someone: what was asked and what came back.
+     *
+     * @param int $userid
+     * @param int $since
+     */
+    public static function forget(int $userid, int $since): void {
+        global $DB;
+        try {
+            $ids = $DB->get_fieldset_select(
+                'ai_action_register',
+                'actionid',
+                'actionname = :name AND userid = :userid AND contextid = :contextid AND timecreated >= :since',
+                ['name' => 'generate_text', 'userid' => $userid, 'contextid' => \context_system::instance()->id,
+                    'since' => $since - 1]
+            );
+            foreach ($ids as $id) {
+                $DB->update_record('ai_action_generate_text', (object) ['id' => $id, 'prompt' => null,
+                    'generatedcontent' => null]);
+            }
+        } catch (\dml_exception $e) {
+            // A Moodle without these tables keeps nothing.
+            return;
+        }
+    }
+
+    /**
+     * Empties everything Moodle kept of the texts Eguahe sent before it emptied them at once.
+     */
+    public static function forget_all(): void {
+        global $DB;
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('ai_action_generate_text')) {
+            return;
+        }
+        foreach (self::PROMPTS as $start) {
+            $DB->execute(
+                'UPDATE {ai_action_generate_text} SET prompt = NULL, generatedcontent = NULL WHERE ' .
+                    $DB->sql_like('prompt', ':start'),
+                ['start' => $DB->sql_like_escape($start) . '%']
+            );
+        }
     }
 
     /**

@@ -49,7 +49,12 @@ class make_reports extends \core\task\scheduled_task {
         foreach ($DB->get_fieldset_select(centres::T, 'id', '1 = 1') as $id) {
             $centre = centres::get((int) $id);
             foreach ($centre ? reports::due($centre, $now) : [] as [$kind, $from, $to]) {
-                reports::make($centre, $kind, $from, $to, $now);
+                try {
+                    reports::make($centre, $kind, $from, $to, $now);
+                } catch (\Throwable $e) {
+                    // One centre that fails does not leave the others without their report.
+                    mtrace('Eguahe: the report of centre ' . $id . ' failed: ' . $e->getMessage());
+                }
                 mtrace('Eguahe: ' . $kind . ' report of centre ' . $id . ' made.');
             }
         }

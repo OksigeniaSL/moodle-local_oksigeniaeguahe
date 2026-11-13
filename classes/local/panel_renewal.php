@@ -28,6 +28,9 @@ class panel_renewal {
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
+    /** @var int Above how many children the page lists one course at a time. */
+    const LIST = 400;
+
     /** @var string[] The order of the rows of a course: who does not go on, who does not know, who said nothing, who goes on. */
     const ORDER = ['leave', 'unsure', 'none', 'stay'];
 
@@ -38,9 +41,17 @@ class panel_renewal {
      * @param bool $canact
      * @param int $now
      * @param string $picked The value of the roll lifted to be hung, by its id; empty, none.
+     * @param int $course The course whose children are listed, when there are too many to list them all.
      * @return array
      */
-    public static function context(\stdClass $centre, bool $canact, int $now, string $picked = ''): array {
+    public static function context(
+        \stdClass $centre,
+        bool $canact,
+        int $now,
+        string $picked = '',
+        int $course = 0
+    ): array {
+        global $DB;
         $c = self::C;
         $centreid = (int) $centre->id;
         $year = trim((string) ($centre->renewalyear ?? ''));
@@ -49,15 +60,34 @@ class panel_renewal {
         $short = get_string('strftimedateshort', 'langconfig');
         $courses = $year !== '' ? renewal::by_course($centre) : [];
         $totals = array_fill_keys(self::ORDER, 0);
+        // The adults of every family at once, for the line under each child: one query, not one per family.
         $households = [];
+        foreach (
+            $DB->get_recordset_select(
+                households::ADULTS,
+                'centreid = ?',
+                [$centreid],
+                'id ASC',
+                'id, householdid, firstname, lastname'
+            ) as $adult
+        ) {
+            $households[(int) $adult->householdid][] = $adult;
+        }
+        $many = array_sum(array_map(fn($g) => count($g['stay']) + count($g['leave']) + count($g['unsure']) +
+            count($g['none']), $courses)) > self::LIST;
         $groups = [];
-        foreach ($courses as $course) {
+        foreach ($courses as $group) {
+            $listed = !$many || (int) $group['offer']->id === $course;
             $rows = [];
+            $all = 0;
             foreach (self::ORDER as $kind) {
-                foreach ($course[$kind] as [$child, $householdid, $row]) {
+                foreach ($group[$kind] as [$child, $householdid, $row]) {
                     $totals[$kind]++;
-                    $households[$householdid] = $households[$householdid] ?? self::household($householdid, $centreid);
-                    $adults = $households[$householdid];
+                    $all++;
+                    if (!$listed) {
+                        continue;
+                    }
+                    $adults = panel::adults_line($households[$householdid] ?? []);
                     $said = '';
                     if ($row) {
                         $who = (int) $row->userid ? \core_user::get_user((int) $row->userid) : null;
@@ -81,19 +111,28 @@ class panel_renewal {
                     ];
                 }
             }
-            $stay = count($course['stay']);
+            $stay = count($group['stay']);
             $groups[] = [
-                'offerid' => (int) $course['offer']->id,
-                'title' => format_string($course['offer']->name),
-                'next' => get_string('panel_renewal_next', $c, format_string($course['next']->name)),
-                'count' => get_string('panel_renewal_count', $c, (object) ['stay' => $stay, 'all' => count($rows)]),
-                'leave' => count($course['leave']),
+                'offerid' => (int) $group['offer']->id,
+                'title' => format_string($group['offer']->name),
+                'next' => get_string('panel_renewal_next', $c, format_string($group['next']->name)),
+                'count' => get_string('panel_renewal_count', $c, (object) ['stay' => $stay, 'all' => $all]),
+                'leave' => count($group['leave']),
                 'rows' => $rows,
+                // In a big centre, a course at a time: the others with their numbers and the way to list them.
+                'listed' => $listed,
+                'listurl' => $listed ? '' : (new \moodle_url('/local/oksigeniaeguahe/renewal.php', ['c' => $centreid,
+                    'curso' => (int) $group['offer']->id], 'curso' . (int) $group['offer']->id))->out(false),
             ];
         }
         $asked = array_sum($totals);
         $told = renewal::told($centre);
         $totell = $year !== '' ? count(renewal::to_tell($centre)) : 0;
+        // The mails waiting to go, in the background.
+        $sending = false;
+        foreach (\core\task\manager::get_adhoc_tasks('\\local_oksigeniaeguahe\\task\\tell_renewal') as $task) {
+            $sending = $sending || (int) ($task->get_custom_data()->centreid ?? 0) === $centreid;
+        }
         $answered = $asked - $totals['none'];
         // The state of the question: never asked, asking now (or soon), or asked and closed.
         $until = (int) ($centre->renewaluntil ?? 0);
@@ -136,9 +175,10 @@ class panel_renewal {
                 'date' => ['labelled' => false, 'arialabel' => get_string('panel_renewal_until_label', $c)] +
                     panel::date_input('until', $until ? userdate($untilday, '%Y-%m-%d') : '', $centre, 'rm-hasta'),
                 'hasend' => (bool) $until,
-                'tell' => $totell ? get_string('panel_renewal_tell', $c, $totell) : '',
+                'tell' => $totell && !$sending ? get_string('panel_renewal_tell', $c, $totell) : '',
                 'told' => $told['count'] ? get_string('panel_renewal_told', $c, (object) ['count' => $told['count'],
                     'day' => userdate($told['time'], $day)]) : '',
+                'sending' => $sending ? get_string('panel_renewal_sending', $c) : '',
             ] : false,
             'groups' => $groups,
             'hasgroups' => (bool) $groups,
@@ -283,18 +323,6 @@ class panel_renewal {
             'families' => $brought['families'], 'children' => $brought['children'],
             'day' => userdate($brought['time'], get_string('strftimedatetimeshort', 'langconfig'))]) : '';
         return $out;
-    }
-
-    /**
-     * The adults of a family, in a line.
-     *
-     * @param int $householdid
-     * @param int $centreid
-     * @return string
-     */
-    protected static function household(int $householdid, int $centreid): string {
-        $household = households::get($householdid, $centreid);
-        return $household ? panel::adults_line(households::full($household)->adults) : '';
     }
 
     /**
