@@ -13303,19 +13303,20 @@ button.padron-pomo-no::after {
     padding-inline: 10px;
 }
 
-/* The help of a field is said when it is being used, not under every field at once. */
+/* The help of a field is always in its place, quiet, and lights up while the field is used. If it came and went, what is
+   under it would move when the field loses the focus, and a «Save» pressed then would get its click outside. */
 .con-ayuda .ayuda,
 .aj-elige-fila .ayuda,
 .aj-util .ayuda,
 .aj-persona-nueva .ayuda {
-    display: none;
+    opacity: .7;
 }
 
 .con-ayuda:focus-within .ayuda,
 .aj-elige-fila:focus-within .ayuda,
 .aj-util:focus-within .ayuda,
 .aj-persona-nueva:focus-within .ayuda {
-    display: block;
+    opacity: 1;
 }
 
 /* A blank to write in: on the paper itself, with its dotted line, as long as what it holds. */
@@ -14750,4 +14751,95 @@ details.aj-plegado > summary h2::after {
 /* Cifras: the courses of the year without places, in one line with the way to put them (Jujol, piece 8). */
 .sin-plazas {
     margin: 4px 0 0;
+}
+
+/* The file: what the family asked since the last answer, each ticked as the answer speaks of it (review of November
+   2026). Open, a dashed slip; answered, its line drawn and its circle inked. */
+.preguntaron {
+    display: grid;
+    gap: 6px;
+}
+
+.preguntaron .rotulo-p {
+    margin: 0;
+}
+
+.pr-cuenta {
+    font-weight: 500;
+}
+
+.preguntaron ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.preguntaron li,
+.pr-pregunta {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+}
+
+.pr-pregunta {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1.5px dashed var(--eg-linea);
+    border-radius: 10px;
+    background: var(--eg-papel);
+    color: var(--eg-tinta);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pr-pregunta:hover {
+    border-color: var(--eg-acento);
+}
+
+.pr-marca {
+    flex: 0 0 16px;
+    height: 16px;
+    border: 1.5px solid var(--eg-tinta-2);
+    border-radius: 50%;
+    transform: translateY(2px);
+}
+
+.preguntaron .hecha .pr-pregunta {
+    border-style: solid;
+    border-color: var(--eg-acento);
+    color: var(--eg-tinta-2);
+}
+
+.preguntaron .hecha .pr-marca {
+    border-color: var(--eg-acento);
+    background: var(--eg-acento);
+    box-shadow: inset 0 0 0 3px var(--eg-papel);
+}
+
+.preguntaron .ayuda {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* The file: an email that looks mistyped or cannot receive mail, under it, before anyone writes to it. */
+.correo-dudoso {
+    display: block;
+    margin: 2px 0 4px;
+    padding-inline-start: 26px;
+    font-size: 0.8125rem;
+    color: var(--eg-error);
+}
+
+/* Entries: the last test that came through one, as a small stamp of ink under its kind. */
+.probada {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    color: var(--eg-acento);
 }

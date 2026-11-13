@@ -48,6 +48,13 @@ $definitions = [
         'simpledata' => true,
         'ttl' => 3600,
     ],
+    // Whether the domain of an email receives mail (emailcheck::reachable()), asked to the DNS once a day per domain.
+    'maildomains' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 86400,
+    ],
     // The first-day labels as PNG, by name, colour and scale: the same always give the same bytes.
     'stickers' => [
         'mode' => cache_store::MODE_APPLICATION,

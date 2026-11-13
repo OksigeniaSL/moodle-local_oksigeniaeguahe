@@ -530,6 +530,80 @@
 
         // Sending: the button says so, and does not send twice.
         var form = document.getElementById('eg-form');
+        // An email whose domain looks like a slip of a common one (gmial.com): «Did you mean…?», and one tap uses it.
+        var domains = form && form.getAttribute('data-dominios') ? form.getAttribute('data-dominios').split(' ') : [];
+        var distance = function(a, b) {
+            var row = [];
+            for (var j = 0; j <= b.length; j++) {
+                row[j] = j;
+            }
+            for (var i = 1; i <= a.length; i++) {
+                var prev = row[0];
+                row[0] = i;
+                for (var k = 1; k <= b.length; k++) {
+                    var keep = row[k];
+                    row[k] = Math.min(row[k] + 1, row[k - 1] + 1, prev + (a[i - 1] === b[k - 1] ? 0 : 1));
+                    prev = keep;
+                }
+            }
+            return row[b.length];
+        };
+        var meant = function(email) {
+            var at = email.lastIndexOf('@');
+            var domain = at === -1 ? '' : email.slice(at + 1).trim().toLowerCase();
+            if (!domain || domains.indexOf(domain) !== -1) {
+                return '';
+            }
+            var best = '';
+            var least = Infinity;
+            domains.forEach(function(known) {
+                var d = distance(domain, known);
+                if (d < least) {
+                    least = d;
+                    best = known;
+                }
+            });
+            return least > 0 && least <= (domain.length < 8 ? 1 : 2) ? email.slice(0, at) + '@' + best : '';
+        };
+        all('input[type="email"]', form || document.createElement('div')).forEach(function(input) {
+            if (!domains.length) {
+                return;
+            }
+            var note = document.createElement('p');
+            note.className = 'quisieron';
+            note.hidden = true;
+            note.setAttribute('aria-live', 'polite');
+            input.parentNode.insertBefore(note, input.nextSibling);
+            var check = function() {
+                var better = meant(input.value);
+                note.textContent = '';
+                note.hidden = !better;
+                if (!better) {
+                    return;
+                }
+                var words = form.getAttribute('data-quisieron').split('{$a}');
+                var shown = document.createElement('bdi');
+                shown.dir = 'ltr';
+                shown.textContent = better;
+                note.appendChild(document.createTextNode(words[0] || ''));
+                note.appendChild(shown);
+                note.appendChild(document.createTextNode(words[1] || ''));
+                var use = document.createElement('button');
+                use.type = 'button';
+                use.className = 'quisieron-usar';
+                use.textContent = form.getAttribute('data-usar');
+                use.addEventListener('click', function() {
+                    input.value = better;
+                    check();
+                    input.focus();
+                });
+                note.appendChild(document.createTextNode(' '));
+                note.appendChild(use);
+            };
+            input.addEventListener('change', check);
+            input.addEventListener('blur', check);
+            check();
+        });
         if (form) {
             form.addEventListener('submit', function(e) {
                 var submit = form.querySelector('button[type="submit"]');

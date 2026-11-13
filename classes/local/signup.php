@@ -112,6 +112,9 @@ class signup {
         foreach ($data['adults'] as $i => $adult) {
             if ($adult['email'] !== '' && households::email($adult['email']) === null) {
                 $errors["a{$i}email"] = publiclang::str('pub_err_email', $lang);
+            } else if ($adult['email'] !== '' && !emailcheck::reachable($adult['email'])) {
+                // A domain that cannot receive mail: what goes after the @ is mistyped.
+                $errors["a{$i}email"] = publiclang::str('pub_err_email_domain', $lang);
             }
             if ($adult['phone'] !== '' && phone::normalise($adult['phone'], $centre->country) === null) {
                 $errors["a{$i}phone"] = publiclang::str('pub_err_phone', $lang);

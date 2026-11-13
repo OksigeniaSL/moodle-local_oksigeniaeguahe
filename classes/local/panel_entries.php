@@ -72,7 +72,14 @@ class panel_entries {
                     (int) $entry->lastreceived,
                     $now
                 )) : '',
-                'missing' => !$n && $entry->kind !== 'form' ? get_string('panel_missing_' . $entry->kind, $c) : '',
+                // What is missing to start, until something comes through it or a test says it works.
+                'missing' => !$n && $entry->kind !== 'form' && !(int) ($entry->testedat ?? 0) ?
+                    get_string('panel_missing_' . $entry->kind, $c) : '',
+                // The last test that came through it: something sent with the test email.
+                'tested' => (int) ($entry->testedat ?? 0) ? get_string('panel_entry_tested', $c, panel::when_words(
+                    (int) $entry->testedat,
+                    $now
+                )) : false,
                 'sites' => $sites,
                 'hassites' => (bool) $sites,
             ];
@@ -99,6 +106,7 @@ class panel_entries {
                 'v' => round($told / max(1, $most, $told), 3),
                 'last' => '',
                 'missing' => '',
+                'tested' => false,
                 'sites' => [],
                 'hassites' => false,
             ];
@@ -150,6 +158,7 @@ class panel_entries {
             'notused' => $canact ? $notused : [],
             'hasnotused' => $canact && $notused,
             'def' => get_string('panel_entries_def', $c),
+            'testmail' => entries::TESTMAIL,
             'kinds' => $kinds,
             'templates' => $canact ? array_map(fn($t) => ['value' => $t, 'name' => get_string('tpl_' . $t, $c),
                 'help' => get_string('panel_tpl_' . $t . '_help', $c)], [...array_keys(surveys::TEMPLATES), surveys::KIND]) : [],

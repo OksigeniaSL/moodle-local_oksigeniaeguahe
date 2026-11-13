@@ -41,6 +41,9 @@ class entries {
     /** @var int Something that comes in later than this after it happened does not wait for an answer. */
     const PASTDAYS = 7;
 
+    /** @var string The email of a test: whatever comes through an entry with it only says the entry works. */
+    const TESTMAIL = 'prueba@eguahe.test';
+
     /** @var string[] What a question may be, for the team to correct it, in this order. */
     const ROLES = ['firstname', 'surname', 'fullname', 'email', 'phone', 'childname', 'grade', 'notes', 'municipality',
         'declared', 'consent', 'incentre', 'date', 'platform', 'campaign', 'adset', 'ad', 'form', 'ids', 'ignore'];
@@ -269,6 +272,11 @@ class entries {
         self::note_questions($entry, $questions);
         self::note_examples($entry, $answers);
         $read = self::read($entry, $centre, $answers);
+        if (self::is_test($read->email)) {
+            // A test: the entry works, and nobody comes in.
+            self::tested($entry);
+            return [null, false, null];
+        }
         $time = $time ?: ($read->time ?: time());
         $externalid = $externalid !== '' ? $externalid : $read->externalid;
         if ($read->email === null && $read->phone === null && $read->firstname === '') {
@@ -313,6 +321,27 @@ class entries {
         $token = households::new_link($household, 'entry');
         $transaction->allow_commit();
         return [households::get($householdid, (int) $centre->id), true, $token];
+    }
+
+    /**
+     * Whether an email is the one of a test.
+     *
+     * @param string|null $email
+     * @return bool
+     */
+    public static function is_test(?string $email): bool {
+        return \core_text::strtolower(trim((string) $email)) === self::TESTMAIL;
+    }
+
+    /**
+     * A test came through an entry: it works. No family is kept and nothing is counted.
+     *
+     * @param \stdClass $entry
+     */
+    public static function tested(\stdClass $entry): void {
+        global $DB;
+        $entry->testedat = time();
+        $DB->set_field(self::T, 'testedat', $entry->testedat, ['id' => $entry->id]);
     }
 
     /**
@@ -714,6 +743,11 @@ class entries {
      * @return array As receive() gives it.
      */
     public static function from_email(\stdClass $entry, string $raw, bool $past = false): array {
+        if (stripos($raw, self::TESTMAIL) !== false) {
+            // A test sent to the mailbox of the centre: the whole way works, and nobody comes in.
+            self::tested($entry);
+            return [null, false, null];
+        }
         $mail = inbound::parse($raw);
         // Only the team and the address of the centre may forward a family's message, or send the notice of a form.
         $centre = centres::get((int) $entry->centreid);

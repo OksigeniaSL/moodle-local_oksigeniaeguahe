@@ -1211,5 +1211,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026115900, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026116000) {
+        // When a test last came through each entry («Try the entries»).
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $field = new xmldb_field('testedat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'lastreceived');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026116000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

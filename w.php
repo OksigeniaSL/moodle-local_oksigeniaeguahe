@@ -80,6 +80,17 @@ if (data_submitted() && !$preview) {
         $errors = signup::check($data, $event, $centre, $lang);
     }
     $lock = null;
+    if (!$errors && array_filter($data['adults'], fn($a) => entries::is_test($a['email']))) {
+        // A test of the form, from the website of the centre or its link: it works, and no family is kept.
+        entries::tested($entry);
+        publicpage::message(
+            $centre,
+            $lang,
+            publiclang::str('pub_test_title', $lang),
+            publiclang::str('pub_test_text', $lang),
+            $url
+        );
+    }
     if (!$errors) {
         // The room again, now under the lock of the act: two families sending at once never take its last place twice.
         $lock = events::lock($event);

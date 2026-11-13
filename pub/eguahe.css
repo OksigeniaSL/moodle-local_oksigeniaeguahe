@@ -5154,3 +5154,26 @@ button.enlace span {
     font-size: 0.9375rem;
     font-weight: 600;
 }
+
+/* An email that looks like a slip of a common one: what they surely meant, under it, and one tap to use it. */
+.quisieron {
+    margin: 6px 0 0;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.quisieron bdi {
+    font-weight: 700;
+}
+
+.quisieron-usar {
+    min-height: 32px;
+    padding: 2px 10px;
+    border: 1.5px solid currentcolor;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}

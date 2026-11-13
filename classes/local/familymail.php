@@ -165,15 +165,21 @@ class familymail {
                 'ancho_fila' => 240 * count($row)];
         }
         // Who receives them: the faces, round, for the short list; the portraits for the invitation.
+        $faceof = function (\stdClass $h, string $bytes) use ($embed): array {
+            $face = $bytes !== '' ? sticker::crop($bytes, 56, 56) : '';
+            return ['nombre' => $h->name, 'papel' => $h->role, 'iniciales' => $h->initials,
+                'cara' => $face !== '' ? $embed($face, 'cara-' . $h->memberid . '.jpg', 'image/jpeg') : ''];
+        };
+        $bytesof = function (\stdClass $h): string {
+            $file = centres::host_photo_file((int) $h->memberid);
+            return $file && sticker::available() ? $file->get_content() : '';
+        };
         $faces = [];
         $portraits = [];
         foreach ($hosts as $h) {
-            $file = centres::host_photo_file((int) $h->memberid);
-            $bytes = $file && sticker::available() ? $file->get_content() : '';
-            $face = $bytes !== '' ? sticker::crop($bytes, 56, 56) : '';
+            $bytes = $bytesof($h);
             $portrait = $bytes !== '' ? sticker::crop($bytes, 248, 310) : '';
-            $faces[] = ['nombre' => $h->name, 'papel' => $h->role, 'iniciales' => $h->initials,
-                'cara' => $face !== '' ? $embed($face, 'cara-' . $h->memberid . '.jpg', 'image/jpeg') : ''];
+            $faces[] = $faceof($h, $bytes);
             $portraits[] = ['nombre' => $h->name, 'papel' => $h->role, 'dice' => $h->says ? '«' . $h->says . '»' : '',
                 'foto' => $portrait !== '' ? $embed($portrait, 'retrato-' . $h->memberid . '.jpg', 'image/jpeg') : '',
                 'iniciales' => $h->initials];
@@ -297,17 +303,25 @@ class familymail {
             // A family that wrote through a form or an entry: it was received, and a person will answer.
             // The thanks go to whoever wrote, never to the child: no label under the heading.
             $days = publiclang::count('pub_reply_day', 'pub_reply_days', max(1, (int) ($centre->replydays ?? 2)), $lang);
+            // Who will answer, with their face: the person who attends them, or those who usually answer; with nobody
+            // to name, «a person of the centre».
+            $answer = centres::answerers($centre, $household);
+            $one = count($answer) === 1;
+            $received = $one ? $str('mail_received_lead_host', (object) ['host' => $answer[0]->first, 'days' => $days]) :
+                $str('mail_received_lead', $days);
             $context['titular'] = $str('mail_received_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_received_subject'),
-                'preencabezado' => $str('mail_received_lead', $days),
-                'entradilla' => s($str('mail_received_lead', $days)),
-                'entradilla_texto' => $str('mail_received_lead', $days),
+                'preencabezado' => $received,
+                'entradilla' => s($received),
+                'entradilla_texto' => $received,
                 'aviso' => ['titulo' => $str('mail_saved_title_received'), 'texto' => $str('mail_saved_text')],
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
+                'anfitriones_breve' => $answer ? ['titulo' => $str($one ? 'mail_received_who' : 'mail_received_who_many'),
+                    'personas' => array_map(fn($h) => $faceof($h, $bytesof($h)), $answer)] : null,
                 'nota' => $str('mail_note_confirm'),
             ];
         } else if ($kind === 'reply') {

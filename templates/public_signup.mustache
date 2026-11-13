@@ -51,7 +51,7 @@
             "type": "text", "autocomplete": "given-name", "inputmode": "", "error": "", "invalid": false}]}],
         "canaddadult": true, "pub_another_adult": "Añadir a otro adulto",
         "isform": false, "kicker": "Jornada de puertas abiertas", "headline": "Vengan a conocernos", "formlead": "",
-        "formside": "", "fields": [], "hasfields": false, "askplace": true, "askheard": true, "askmessage": true,
+        "formside": "", "emaildomains": "gmail.com hotmail.com", "emailmaybe": "¿Quisieron decir {$a}?", "emailuse": "Sí, usar ese", "fields": [], "hasfields": false, "askplace": true, "askheard": true, "askmessage": true,
         "askincentre": false, "askpeople": true, "hasmore": true, "preview": false, "previewnote": "",
         "tailored": false, "days": [], "periods": [], "pub_when_suits": "¿Cuándo les viene bien?", "pub_when_suits_hint": "",
         "pub_tailored_title": "Cuando les venga bien", "pub_tailored_lead": "",
@@ -142,7 +142,7 @@
         {{/hashosts}}
     </aside>
 
-    <form id="eg-form" method="post" action="{{action}}" novalidate>
+    <form id="eg-form" method="post" action="{{action}}" novalidate data-dominios="{{emaildomains}}" data-quisieron="{{emailmaybe}}" data-usar="{{emailuse}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}">
         {{#haserrors}}
         <div class="resumen" role="alert" tabindex="-1" id="resumen">

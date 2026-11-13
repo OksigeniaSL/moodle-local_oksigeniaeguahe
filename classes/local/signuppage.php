@@ -165,7 +165,9 @@ class signuppage {
             $errorlist[] = ['field' => $name === 'channels' ? 'channels' : ($name === 'altcha' ? 'altcha' : $name),
                 'message' => $message];
         }
-        $hosts = centres::hosts((int) $centre->id, array_filter(array_map('intval', explode(',', (string) $event->hosts))));
+        // Who receives them at the act; on a form, who will answer what they write.
+        $hosts = $event->kind === 'form' ? centres::answerers($centre) :
+            centres::hosts((int) $centre->id, array_filter(array_map('intval', explode(',', (string) $event->hosts))));
         $firsts = array_map(fn($h) => $h->first, $hosts);
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
         $municipality = (string) $data['municipality'];
@@ -209,6 +211,10 @@ class signuppage {
             'formlead' => $isform && trim((string) ($form->lead ?? '')) !== '' ? format_string($form->lead) :
                 publiclang::str('pub_form_lead', $lang),
             'formside' => publiclang::str('pub_form_side', $lang),
+            // A slip in the domain of an email, pointed out as they write it.
+            'emaildomains' => implode(' ', emailcheck::DOMAINS),
+            'emailmaybe' => publiclang::str('pub_email_maybe', $lang),
+            'emailuse' => publiclang::str('pub_email_use', $lang),
             'fields' => $fields,
             'hasfields' => (bool) $fields,
             'askplace' => in_array('place', $blocks, true),
@@ -266,7 +272,7 @@ class signuppage {
             'hashosts' => (bool) $hosts,
             'hosts' => familypage::hosts($hosts),
             'willreceive' => $hosts ? publiclang::str(
-                count($hosts) > 1 ? 'pub_will_receive_many' : 'pub_will_receive_one',
+                ($event->kind === 'form' ? 'pub_will_answer' : 'pub_will_receive') . (count($hosts) > 1 ? '_many' : '_one'),
                 $lang,
                 familypage::join($firsts, $lang)
             ) : '',

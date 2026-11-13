@@ -115,6 +115,8 @@
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
     <form class="ajustes" method="post" action="{{action}}" enctype="multipart/form-data" novalidate data-ajustes>
         <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{! Enter in a field presses the first button of the form: this one, which only saves, and never a gesture after it. }}
+        <button class="oculto" type="submit" name="guardar" value="1" tabindex="-1" aria-hidden="true">{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button>
         <nav class="indice-ajustes" aria-label="{{#str}}panel_settings_index, local_oksigeniaeguahe{{/str}}">
             <p class="indice-t">{{#str}}panel_settings_daily, local_oksigeniaeguahe{{/str}}</p>
             <ol>

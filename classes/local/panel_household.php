@@ -129,6 +129,10 @@ class panel_household {
             'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
                 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
             'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
+        $asked = $canact && $household->waitingsince > 0 ? array_map(
+            fn($q) => ['text' => $q['text'], 'words' => implode('|', $q['words'])],
+            questions::asked($contacts)
+        ) : [];
         $owner = attend::owner($household, (int) $USER->id);
         $open = attend::open_promise((int) $household->id);
         $untold = self::untold($full, $offers);
@@ -163,6 +167,9 @@ class panel_household {
             'waiting' => $household->waitingsince > 0,
             'me' => panel::person($USER),
             'composer' => $composer,
+            // What the family asked since the last answer, to see the answer says it all; while it waits.
+            'asked' => $asked,
+            'hasasked' => (bool) $asked,
             // The AI of the team (household_ai): a draft to read and change, and where the family is in two sentences of
             // facts; only when the centre has it on.
             'ai' => ai::ready($centre) ? ['summary' => trim((string) ($household->aisummary ?? '')),
@@ -935,17 +942,19 @@ class panel_household {
             $granted = $permissions[$adult->id] ?? [];
             $ways = [];
             if ((string) $adult->email !== '') {
+                // A mistyped email or one that cannot receive mail, said before anyone writes to it: better to call.
                 $ways[] = ['icon' => panel::icon('correo'), 'text' => get_string(!empty($granted['email']) ? 'panel_by_email' :
-                    'panel_email_nopermission', $c), 'value' => $adult->email, 'href' => 'mailto:' . $adult->email];
+                    'panel_email_nopermission', $c), 'value' => $adult->email, 'href' => 'mailto:' . $adult->email,
+                    'warning' => emailcheck::warning((string) $adult->email) ?: false];
             }
             if ((string) $adult->phone !== '') {
                 $tel = 'tel:' . preg_replace('/[^0-9+]/', '', (string) $adult->phone);
                 if (!empty($granted['whatsapp'])) {
                     $ways[] = ['icon' => panel::icon('whatsapp'), 'text' => get_string($joined ? 'panel_by_mobile_joined' :
-                        'panel_by_mobile', $c), 'value' => $adult->phone, 'href' => $tel];
+                        'panel_by_mobile', $c), 'value' => $adult->phone, 'href' => $tel, 'warning' => false];
                 }
                 $ways[] = ['icon' => panel::icon('telefono'), 'text' => get_string(!empty($granted['phone']) ? 'panel_calls' :
-                    'panel_phone_nopermission', $c), 'value' => $adult->phone, 'href' => $tel];
+                    'panel_phone_nopermission', $c), 'value' => $adult->phone, 'href' => $tel, 'warning' => false];
             }
             // What they like doing, as they told it on their page.
             $words = isset($likes[$adult->id]) ? hobbies::words($likes[$adult->id]) : '';

@@ -33,6 +33,8 @@
     section of its own beside the proposal, which climbs to the right column from 1280 px, and its stamp has a place of
     its own in the head of the pad (turno-cab), never over the text. Below 1000 px the grid is one column, in this order;
     where the stamp does not fit beside the title, it goes under it.
+    Review of November 2026: asked and hasasked, what the family asked since the last answer, above what is said; each
+    question with the first letters of its words (words, split by |), which the script finds in the draft to tick it.
     Review of 13 November 2026 (Jujol): the conversation is the head of what to do, so the last message is right over
     the pad that answers it (on a wide screen, the proposal climbs to the left column, beside them; on a phone it goes
     first, then the conversation and the pad, then the wall); and each action has its own paper: the pad answers (by the way chosen, the number beside
@@ -60,6 +62,8 @@
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
         "ai": {"summary": "Leo, de 3 años, para Infantil 3 años 2027-28. Vinieron a la jornada y preguntan por el comedor.",
             "when": "hace 2 días", "name": "Claude", "drafted": false},
+        "hasasked": true, "asked": [{"text": "¿Hay comedor en Infantil?", "words": "comed|infan"},
+            {"text": "Quería saber a qué hora entran", "words": "hora|entra"}],
         "composer": {"button": "Mandarlo por WhatsApp", "notes": [], "greeting": "Hola, Marta y Daniel: ",
             "draft": {"who": "Lucía", "when": "hoy a las 10:31", "text": "Hola, Marta y Daniel: sí, hay comedor."},
             "hassuggestions": true, "suggestions": [{"id": "s1", "title": "Comedor en Infantil", "uses": "14 veces", "text": "Hola, Marta y Daniel: sí."}],
@@ -79,7 +83,7 @@
                 "answers": [{"key": "stay", "label": "Sigue", "pressed": false}, {"key": "leave", "label": "No sigue", "pressed": true}],
                 "reasons": [{"key": "moved", "label": "Cambio de ciudad", "pressed": true}]}]},
         "hassigns": true, "signs": [{"line": "Leo no sigue en 2027-28 (cambio de ciudad): lo dijeron el 3/12/26."}],
-        "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@example.com", "href": "mailto:marta@example.com"}], "likes": "Le gusta: cocina y juegos de mesa."}],
+        "adults": [{"name": "Marta Ruiz", "hasways": true, "ways": [{"icon": "", "text": "Por correo", "value": "marta@gmial.com", "href": "mailto:marta@gmial.com", "warning": "Este correo parece mal escrito: ¿marta@gmail.com? Mejor confirmarlo por teléfono antes de escribir."}], "likes": "Le gusta: cocina y juegos de mesa."}],
         "seen": {"facts": ["Han abierto su página 4 veces; la última, el martes."]},
         "lang": "Hablan español.", "editurl": "#", "hasabout": true,
         "hasanswers": true, "answers": [{"label": "¿Tienen hermanos en el centro?", "value": "No"}], "aftervisits": [],
@@ -242,6 +246,13 @@
                             {{#ways}}{{^disabled}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}</label>{{#tel}}<a class="llamar" href="{{href}}" dir="ltr">{{#str}}panel_call_number, local_oksigeniaeguahe, {{text}}{{/str}}</a>{{/tel}}{{/disabled}}{{/ways}}
                         </div>
                         {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
+                        {{#hasasked}}
+                        <div class="preguntaron" data-preguntaron>
+                            <p class="rotulo-p" id="pr-t">{{#str}}panel_asked, local_oksigeniaeguahe{{/str}} <span class="pr-cuenta" data-cuenta aria-live="polite"></span></p>
+                            <ul aria-labelledby="pr-t">{{#asked}}<li data-palabras="{{words}}"><span class="pr-marca" aria-hidden="true"></span><q dir="auto">{{text}}</q></li>{{/asked}}</ul>
+                            <p class="ayuda" data-pr-ayuda hidden>{{#str}}panel_asked_help, local_oksigeniaeguahe{{/str}}</p>
+                        </div>
+                        {{/hasasked}}
                         <div class="campo{{#ai}}{{#drafted}} ia-escrito{{/drafted}}{{/ai}}"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label>{{#ai}}{{#drafted}}<p class="ia-nota" id="ia-nota"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_drafted, local_oksigeniaeguahe{{/str}}</span></p>{{/drafted}}{{/ai}}<textarea id="borrador"{{#ai}}{{#drafted}} aria-describedby="ia-nota"{{/drafted}}{{/ai}} name="body" rows="7" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
                         {{#ai}}<button class="ia-borrador" type="submit" name="ia" value="1" formaction="{{action}}#contestar"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#drafted}}{{#str}}panel_ai_draft_again, local_oksigeniaeguahe{{/str}}{{/drafted}}{{^drafted}}{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}{{/drafted}}</span></button>{{/ai}}
                                 <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
@@ -405,7 +416,7 @@
                 <div class="adultos">
                     {{#adults}}
                     <div class="adulto"><b>{{name}}</b>
-                        {{#ways}}<span class="linea-c">{{{icon}}}<span>{{text}} · <a href="{{href}}" dir="ltr">{{value}}</a></span></span>{{/ways}}
+                        {{#ways}}<span class="linea-c">{{{icon}}}<span>{{text}} · <a href="{{href}}" dir="ltr">{{value}}</a></span></span>{{#warning}}<span class="correo-dudoso">{{.}}</span>{{/warning}}{{/ways}}
                         {{^hasways}}<span class="secundario">{{#str}}panel_no_contact, local_oksigeniaeguahe{{/str}}</span>{{/hasways}}
                         {{#likes}}<span class="le-gusta">{{.}}</span>{{/likes}}
                     </div>

@@ -393,6 +393,51 @@ class centres {
     }
 
     /**
+     * Who will answer what a family writes, as families see them (hosts()): the person who attends that family; if
+     * nobody does, those who have been answering the families of the centre lately, the most first; with no answers
+     * yet, the only person the centre shows, if it shows one. Nobody away; never a guess among many.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass|null $household
+     * @param int $now
+     * @return array As hosts(), up to three.
+     */
+    public static function answerers(\stdClass $centre, ?\stdClass $household = null, int $now = 0): array {
+        global $DB;
+        $now = $now ?: time();
+        $hosts = self::hosts((int) $centre->id);
+        $away = $DB->get_records_select_menu(
+            self::MEMBERS,
+            'centreid = :centreid AND awayuntil > :now',
+            ['centreid' => $centre->id, 'now' => $now],
+            '',
+            'userid, awayuntil'
+        );
+        $hosts = array_values(array_filter($hosts, fn($h) => empty($away[$h->userid])));
+        $byuser = [];
+        foreach ($hosts as $h) {
+            $byuser[$h->userid] = $h;
+        }
+        $owner = (int) ($household->ownerid ?? 0);
+        if ($owner && isset($byuser[$owner])) {
+            return [$byuser[$owner]];
+        }
+        $lately = $DB->get_records_sql_menu(
+            "SELECT userid, COUNT(1) AS n
+               FROM {" . households::CONTACTS . "}
+              WHERE centreid = :centreid AND direction = 'out' AND userid > 0 AND timecreated > :since
+           GROUP BY userid
+           ORDER BY COUNT(1) DESC, userid ASC",
+            ['centreid' => $centre->id, 'since' => $now - 90 * DAYSECS]
+        );
+        $answered = array_values(array_filter(array_map(fn($u) => $byuser[$u] ?? null, array_keys($lately))));
+        if ($answered) {
+            return array_slice($answered, 0, 3);
+        }
+        return count($hosts) === 1 && !$lately ? $hosts : [];
+    }
+
+    /**
      * The file of the logo of the centre, for the mail and the poster.
      *
      * @param int $centreid

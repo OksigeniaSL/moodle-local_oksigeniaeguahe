@@ -22,18 +22,19 @@
     places it is shared from, or what is missing to start. The name is the link, stretched to the row.
 
     New in this round: kindname, icon, open, statetext, n, broughttext, hasn, v, hassites. Kept: name, last, missing,
-    sites, url.
+    sites, url. Review of November 2026: tested, when a test last came through it (false if never).
 
     Example context (json):
     {"i": {"der": ""}, "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
         "n": 23, "broughttext": "23 familias", "hasn": true, "v": 0.6, "last": "la última, ayer a las 21:14", "missing": "",
-        "sites": ["Instagram"], "hassites": true, "url": "#"}
+        "tested": "Probada hace 2 minutos: llegó bien", "sites": ["Instagram"], "hassites": true, "url": "#"}
 }}
 <div class="entrada-fila{{^open}} cerrada{{/open}}">
     <span class="tipo-entrada" aria-hidden="true">{{{icon}}}</span>
     <span class="que">
         <a class="nombres" href="{{url}}">{{name}}</a>
         <span class="secundario">{{kindname}} · <span class="estado-entrada">{{statetext}}</span></span>
+        {{#tested}}<span class="probada">{{.}}</span>{{/tested}}
         {{#hassites}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/hassites}}
         {{#missing}}<span class="falta">{{missing}}</span>{{/missing}}
     </span>

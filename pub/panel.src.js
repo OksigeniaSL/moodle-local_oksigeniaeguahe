@@ -235,6 +235,8 @@
         var area = one('[data-redactor] textarea[name="body"]', root);
         if (area) {
             area.value = text;
+            // Whatever listens to what is written (what they asked, who is writing) hears it too.
+            area.dispatchEvent(new Event('input', {bubbles: true}));
             area.focus();
             area.setSelectionRange(text.length, text.length);
             area.scrollIntoView({block: 'nearest'});
@@ -263,6 +265,57 @@
                 });
                 setText(root, button.getAttribute('data-texto'));
             });
+        });
+        // What they asked: each question ticks itself when the draft speaks of it, and a tap ticks or unticks it by hand.
+        all('[data-preguntaron]', root).forEach(function(box) {
+            var form = box.closest('form');
+            var area = form && one('textarea[name="body"]', form);
+            var items = all('li[data-palabras]', box);
+            if (!area || !items.length) {
+                return;
+            }
+            var normal = function(s) {
+                s = (s || '').toLowerCase();
+                return s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f\u0610-\u061a\u064b-\u065f\u0670]/g, '') : s;
+            };
+            var count = one('[data-cuenta]', box);
+            var update = function() {
+                var text = normal(area.value);
+                var done = 0;
+                items.forEach(function(li) {
+                    var words = li.getAttribute('data-palabras').split('|').filter(Boolean);
+                    var hits = words.filter(function(w) {
+                        return text.indexOf(w) !== -1;
+                    }).length;
+                    var hand = li.getAttribute('data-a-mano');
+                    var yes = hand ? hand === 'si' : words.length > 0 && hits >= Math.ceil(words.length / 2);
+                    one('button', li).setAttribute('aria-pressed', yes ? 'true' : 'false');
+                    li.classList.toggle('hecha', yes);
+                    done += yes ? 1 : 0;
+                });
+                if (count) {
+                    count.textContent = say('panel_js_asked_count', {done: done, all: items.length});
+                }
+            };
+            items.forEach(function(li) {
+                var button = doc.createElement('button');
+                button.type = 'button';
+                button.className = 'pr-pregunta';
+                while (li.firstChild) {
+                    button.appendChild(li.firstChild);
+                }
+                li.appendChild(button);
+                on(button, 'click', function() {
+                    li.setAttribute('data-a-mano', button.getAttribute('aria-pressed') === 'true' ? 'no' : 'si');
+                    update();
+                });
+            });
+            var help = one('[data-pr-ayuda]', box);
+            if (help) {
+                help.hidden = false;
+            }
+            on(area, 'input', update);
+            update();
         });
         all('[data-propuesta]', root).forEach(function(link) {
             on(link, 'click', function(e) {

@@ -33,7 +33,7 @@
         "groups": [{"key": "formularios", "title": "Los formularios del centro", "sub": "Hechos en Eguahe.",
             "rows": [{"url": "#", "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
                 "n": 41, "broughttext": "41 familias", "hasn": true, "last": "la última, ayer a las 21:14", "sites": ["Instagram"], "hassites": true, "missing": "", "v": 1}]}],
-        "firsttime": false, "hasnotused": false, "notused": [], "def": "Una llegada es una familia que entra por esa entrada.",
+        "firsttime": false, "hasnotused": false, "notused": [], "def": "Una llegada es una familia que entra por esa entrada.", "testmail": "prueba@eguahe.test",
         "canact": true, "action": "#", "sesskey": "abc",
         "kinds": [{"value": "form", "name": "Formulario", "help": "Hecho en Eguahe.", "icon": "", "checked": true}],
         "templates": [{"value": "howitwent", "name": "Cómo fue la jornada", "help": "La encuesta de después."}]
@@ -61,6 +61,7 @@
         </section>
         {{/hasnotused}}
         <p class="def">{{def}}</p>
+        <p class="def">{{#str}}panel_entries_test, local_oksigeniaeguahe, {{testmail}}{{/str}}</p>
         {{#canact}}
         <details class="apartado nueva-entrada" id="nueva">
             <summary><h2>{{#str}}panel_new_entry, local_oksigeniaeguahe{{/str}}</h2></summary>
