@@ -182,8 +182,7 @@ class publicpage {
             'langname' => $current,
             'langlabel' => publiclang::str('pub_language', $lang),
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
-            'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id ?? 0,
-                'idioma' => $lang]))->out(false),
+            'privacyurl' => self::privacy_url($centre, $lang)->out(false),
             'privacy' => publiclang::str('pub_privacy_link', $lang),
             'credit' => self::$seal ?? self::credit($lang),
         ]);
@@ -585,6 +584,20 @@ display: grid; }
             }
         }
         return $out;
+    }
+
+    /**
+     * The page of how a centre treats the data of the families, signed: without its signature the number of a centre
+     * opens nothing, so nobody can go through the centres of a site one by one.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return \moodle_url
+     */
+    public static function privacy_url(\stdClass $centre, string $lang): \moodle_url {
+        $id = (int) ($centre->id ?? 0);
+        return new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $id,
+            'k' => share::signature('privacy', 0, $id), 'idioma' => $lang]);
     }
 
     /**

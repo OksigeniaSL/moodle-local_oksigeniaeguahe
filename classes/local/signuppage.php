@@ -299,8 +299,7 @@ class signuppage {
             'channels' => $channels,
             'channelerror' => $errors['channels'] ?? '',
             'info' => self::first_layer($centre, $lang),
-            'privacyurl' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
-                'idioma' => $lang]))->out(false),
+            'privacyurl' => publicpage::privacy_url($centre, $lang)->out(false),
             'haserrors' => (bool) $errors,
             'errortitle' => count($errors) === 1 ? publiclang::str('pub_errors_one', $lang) :
                 publiclang::str('pub_errors_many', $lang, count($errors)),

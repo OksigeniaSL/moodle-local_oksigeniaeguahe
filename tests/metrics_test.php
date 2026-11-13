@@ -19,6 +19,7 @@ namespace local_oksigeniaeguahe;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\metrics;
+use local_oksigeniaeguahe\local\panel_metrics;
 
 /**
  * What already happened: importing it pseudonymised, and the numbers that come out of it.
@@ -147,5 +148,30 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
         $this->assertSame(30, $matrix['1.º de ESO']['2025-26']);
         $this->assertSame(3, $matrix['1.º de ESO']['2026-27']);
         $this->assertSame(55, $totals['2025-26']);
+    }
+
+    /**
+     * A school year with new students shows its ledger, and the sum adds up: the roll of the first day already holds the
+     * new ones, so the ledger starts from those who were already of the centre.
+     */
+    public function test_ledger_with_new_students(): void {
+        global $DB;
+        $centreid = $this->centre();
+        imports::import($centreid, 'students', '2026-27', 's.csv', self::STUDENTS, 2);
+        // Two of the first day were new at the centre.
+        $row = $DB->get_record('local_oksigeniaeguahe_student', ['centreid' => $centreid, 'student' => 'ALU_aaaaaa1111',
+            'movement' => 'roll']);
+        foreach (['ALU_aaaaaa1111', 'ALU_cccccc3333'] as $student) {
+            $DB->insert_record('local_oksigeniaeguahe_student', (object) (['student' => $student, 'movement' => 'join',
+                'otherschool' => ''] + (array) $row));
+        }
+        $t = metrics::movements($centreid, '2026-27')['totals'];
+        $this->assertSame(['start' => 4, 'new' => 2, 'joins' => 1, 'leaves' => 2, 'now' => 3, 'net' => 1], $t);
+        $year = panel_metrics::context(centres::get($centreid), ['sheet' => 'curso'], true)['year'];
+        $this->assertNotFalse($year);
+        $this->assertSame(2, $year['start']);
+        $this->assertSame(3, $year['end']);
+        $this->assertSame('+1', $year['net']);
+        $this->assertSame(['new', 'joins', 'leaves'], array_column($year['rows'], 'key'));
     }
 }

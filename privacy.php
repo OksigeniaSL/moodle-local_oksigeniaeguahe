@@ -32,11 +32,14 @@ use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\namevoice_service;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\share;
 
 $centreid = optional_param('c', 0, PARAM_INT);
-$url = new moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centreid]);
+// Signed, so the number of a centre alone opens nothing: nobody goes through the centres of a site one by one.
+$signature = optional_param('k', '', PARAM_ALPHANUM);
+$url = new moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centreid, 'k' => $signature]);
 publicpage::setup($url);
-$centre = centres::get($centreid);
+$centre = share::signed('privacy', 0, $centreid, $signature) ? centres::get($centreid) : null;
 if (!$centre) {
     $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
     publicpage::message(

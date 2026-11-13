@@ -1753,7 +1753,8 @@ $string['panel_ledger_line_leaves'] = '{$a} students left during the year or at 
 $string['panel_ledger_line_new'] = '{$a} new students started on the first day of the year.';
 $string['panel_ledger_more'] = 'more';
 $string['panel_ledger_new'] = 'were new';
-$string['panel_ledger_rest'] = 'It started with {$a->start} and ended with {$a->end}: {$a->net} {$a->more}. The sum adds up: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest'] = 'It started with {$a->start} and ended with {$a->end}: {$a->net} {$a->more}. The sum adds up: {$a->start} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest_new'] = '{$a->start} were already at the school and it ended with {$a->end}: {$a->net} {$a->more}. The sum adds up: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
 $string['panel_ledger_squares'] = 'Adds up';
 $string['panel_ledger_title'] = 'The school year {$a}, as a ledger';
 $string['panel_left_note'] = 'left a note for the team';
@@ -2350,6 +2351,7 @@ $string['panel_stamp_came'] = 'Came';
 $string['panel_start_it'] = 'Start';
 $string['panel_start_made'] = 'Start from one already made';
 $string['panel_start_made_sub'] = 'With its questions in the four languages; then they change like in any other.';
+$string['panel_started_already'] = 'Already at the school';
 $string['panel_started_def'] = 'The team marks it on the first day of school, in «The first day».';
 $string['panel_started_on'] = 'Started on {$a}';
 $string['panel_started_sentence'] = 'Of the {$a->enrolled} children enrolled for {$a->year}, {$a->started} have started.';

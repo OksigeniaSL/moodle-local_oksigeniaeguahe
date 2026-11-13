@@ -251,8 +251,7 @@ class familymail {
             'pie' => [
                 'porque' => $str($why, $kind === 'renewal' ? $from : $to),
                 'datos_texto' => $str('pub_privacy_link'),
-                'datos_url' => (new \moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centre->id,
-                    'idioma' => $lang]))->out(false),
+                'datos_url' => publicpage::privacy_url($centre, $lang)->out(false),
                 'firma' => $credit ? $str('mail_credit', $creditlink) : '',
                 'firma_texto' => $credit ? $str('mail_credit', $credit['text']) . ': ' . $credit['url'] : '',
             ],

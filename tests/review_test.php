@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\renewal;
+use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
 
@@ -329,5 +330,18 @@ final class review_test extends \advanced_testcase {
         $this->assertNull($centre->applyhow);
         $this->assertSame('https://example.com/admision', $centre->applyurl);
         $this->assertEquals(0, $centre->applyfrom);
+    }
+
+    /**
+     * The page of how a centre treats the data opens only with its signature: the number of a centre alone is not
+     * enough, so nobody goes through the centres of a site one by one.
+     */
+    public function test_privacy_signed(): void {
+        $url = publicpage::privacy_url($this->centre, 'es');
+        $id = (int) $this->centre->id;
+        $this->assertSame($id, (int) $url->get_param('c'));
+        $this->assertTrue(share::signed('privacy', 0, $id, (string) $url->get_param('k')));
+        $this->assertFalse(share::signed('privacy', 0, $id + 1, (string) $url->get_param('k')));
+        $this->assertFalse(share::signed('privacy', 0, $id, ''));
     }
 }

@@ -1753,7 +1753,8 @@ $string['panel_ledger_line_leaves'] = '{$a} alunos saíram durante o ano ou no f
 $string['panel_ledger_line_new'] = 'Começaram {$a} alunos novos no primeiro dia do ano.';
 $string['panel_ledger_more'] = 'a mais';
 $string['panel_ledger_new'] = 'estrearam-se';
-$string['panel_ledger_rest'] = 'Começou com {$a->start} e acabou com {$a->end}: {$a->net} {$a->more}. A conta bate certo: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest'] = 'Começou com {$a->start} e acabou com {$a->end}: {$a->net} {$a->more}. A conta bate certo: {$a->start} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest_new'] = 'Já eram da escola {$a->start} e acabou com {$a->end}: {$a->net} {$a->more}. A conta bate certo: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
 $string['panel_ledger_squares'] = 'Bate certo';
 $string['panel_ledger_title'] = 'O ano letivo {$a}, como um livro de contas';
 $string['panel_left_note'] = 'deixou uma nota para a equipa';
@@ -2350,6 +2351,7 @@ $string['panel_stamp_came'] = 'Chegou';
 $string['panel_start_it'] = 'Começar';
 $string['panel_start_made'] = 'Começar com um já feito';
 $string['panel_start_made_sub'] = 'Com as perguntas nas quatro línguas; depois alteram-se como em qualquer outro.';
+$string['panel_started_already'] = 'Já eram da escola';
 $string['panel_started_def'] = 'Marca-o a equipa no primeiro dia de aulas, em «O primeiro dia».';
 $string['panel_started_on'] = 'Começou a {$a}';
 $string['panel_started_sentence'] = 'Das {$a->enrolled} crianças matriculadas para {$a->year}, começaram {$a->started}.';

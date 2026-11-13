@@ -1753,7 +1753,8 @@ $string['panel_ledger_line_leaves'] = '{$a} alumnos se fueron durante el curso o
 $string['panel_ledger_line_new'] = 'Empezaron {$a} alumnos nuevos el primer día del curso.';
 $string['panel_ledger_more'] = 'más';
 $string['panel_ledger_new'] = 'se estrenaron';
-$string['panel_ledger_rest'] = 'Empezó con {$a->start} y acabó con {$a->end}: {$a->net} {$a->more}. La cuenta cuadra: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest'] = 'Empezó con {$a->start} y acabó con {$a->end}: {$a->net} {$a->more}. La cuenta cuadra: {$a->start} + {$a->joins} − {$a->leaves} = {$a->end}.';
+$string['panel_ledger_rest_new'] = 'Ya eran del centro {$a->start} y acabó con {$a->end}: {$a->net} {$a->more}. La cuenta cuadra: {$a->start} + {$a->new} + {$a->joins} − {$a->leaves} = {$a->end}.';
 $string['panel_ledger_squares'] = 'Cuadra';
 $string['panel_ledger_title'] = 'El curso {$a}, como un libro de cuentas';
 $string['panel_left_note'] = 'dejó una nota para el equipo';
@@ -2350,6 +2351,7 @@ $string['panel_stamp_came'] = 'Llegó';
 $string['panel_start_it'] = 'Empezar';
 $string['panel_start_made'] = 'Empezar con uno hecho';
 $string['panel_start_made_sub'] = 'Con sus preguntas en los cuatro idiomas; luego se cambian como en cualquier otro.';
+$string['panel_started_already'] = 'Ya eran del centro';
 $string['panel_started_def'] = 'Lo marca el equipo el primer día de clase, en «El primer día».';
 $string['panel_started_on'] = 'Empezó el {$a}';
 $string['panel_started_sentence'] = 'De los {$a->enrolled} niños matriculados para {$a->year}, han empezado {$a->started}.';

@@ -1127,7 +1127,14 @@ class panel_metrics {
         $schoolyear = (string) reset($years);
         $m = metrics::movements((int) $centre->id, $schoolyear);
         $t = $m['totals'];
-        if ($t['start'] === null || $t['now'] === null || $t['start'] + $t['new'] + $t['joins'] - $t['leaves'] !== $t['now']) {
+        if ($t['start'] === null || $t['now'] === null) {
+            return null;
+        }
+        // The roll of the first day already holds the new students: the ledger starts from those who were already of the
+        // centre and adds the new ones on their own line, or, with no new ones written, starts from the whole roll.
+        $new = (int) $t['new'];
+        $base = (int) $t['start'] - $new;
+        if ($base < 0 || $base + $new + $t['joins'] - $t['leaves'] !== $t['now']) {
             return null;
         }
         // One scale for all: the zero of the track is at 30 %, so those who left fit in the 30 % on its left.
@@ -1135,18 +1142,23 @@ class panel_metrics {
         $rows = [];
         foreach (['new' => false, 'joins' => false, 'leaves' => true] as $key => $out) {
             $n = (int) $t[$key];
+            if ($key === 'new' && !$n) {
+                continue;
+            }
             $rows[] = ['key' => $key, 'sign' => ($out ? '−' : '+') . $n, 'name' => get_string('panel_ledger_' . $key, $c),
                 'n' => $n, 'v' => round($n / $most, 4), 'out' => $out, 'line' => get_string('panel_ledger_line_' . $key, $c, $n)];
         }
         $net = (int) $t['net'];
         return [
             'title' => get_string('panel_ledger_title', $c, $schoolyear),
-            'start' => $t['start'],
+            'start' => $base,
+            'startlabel' => get_string($new ? 'panel_started_already' : 'panel_started_with', $c),
             'end' => $t['now'],
             'net' => ($net >= 0 ? '+' : '−') . abs($net),
             'rows' => $rows,
             'reasons' => array_map(fn($r) => ['name' => $r['reason'], 'n' => $r['n'] ?? $r['count'] ?? 0], $m['reasons']),
-            'rest' => get_string('panel_ledger_rest', $c, (object) ['start' => $t['start'], 'end' => $t['now'],
+            'rest' => get_string($new ? 'panel_ledger_rest_new' : 'panel_ledger_rest', $c, (object) ['start' => $base,
+                'end' => $t['now'],
                 'new' => $t['new'], 'joins' => $t['joins'], 'leaves' => $t['leaves'], 'net' => abs($net),
                 'more' => get_string($net >= 0 ? 'panel_ledger_more' : 'panel_ledger_fewer', $c)]),
             'def' => get_string('panel_ledger_def', $c),
