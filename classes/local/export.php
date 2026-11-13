@@ -58,7 +58,7 @@ class export {
         global $DB;
         $c = self::C;
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
-        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d') : '';
+        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d', 99, false) : '';
         $keys = array_keys(self::family_columns());
         $rows = [];
         // The adults and children of every family at once: one query each, not one per family.
@@ -140,7 +140,7 @@ class export {
     public static function figures(\stdClass $centre): array {
         $c = self::C;
         $steps = [1 => 'inquiry', 2 => 'visit', 3 => 'application', 4 => 'admitted', 5 => 'enrolled'];
-        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d') : '';
+        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d', 99, false) : '';
         $rows = [];
         foreach (panel_metrics::campaigns($centre) as $campaign) {
             foreach (panel_metrics::families($centre, $campaign) as $family) {

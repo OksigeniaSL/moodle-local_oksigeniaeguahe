@@ -80,7 +80,7 @@
     </div>
     {{/picked}}
     {{#hasloose}}
-    <div class="padron-bandeja" aria-labelledby="padron-sueltas">
+    <div class="padron-bandeja" role="group" aria-labelledby="padron-sueltas">
         <p class="padron-etiqueta" id="padron-sueltas">{{#str}}panel_roster_loose, local_oksigeniaeguahe{{/str}}</p>
         <ul class="padron-tags">{{#loose}}<li><a class="padron-tag{{#picked}} padron-tag-alzada{{/picked}}" href="{{url}}" id="pv{{id}}"><b dir="auto">{{value}}</b><span>{{count}}</span></a></li>{{/loose}}</ul>
     </div>

@@ -48,6 +48,10 @@
         <FIELD NAME="rosteryear" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" COMMENT="The school year the students of the centre are in now, whose courses they are placed in"/>
         <FIELD NAME="firstday" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day of the next school year, for the story of the children who start; 0, not written"/>
         <FIELD NAME="namephrase" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The name of the centre as it is said in a sentence, with its article if it has one"/>
+        <FIELD NAME="applyhow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How a family asks for a place, as the centre writes it, for the page of each family after its visit"/>
+        <FIELD NAME="applyurl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where a place is asked for, when it is on a website"/>
+        <FIELD NAME="applyfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day a place can be asked for; 0, not written"/>
+        <FIELD NAME="applyuntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last day a place can be asked for; 0, not written"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

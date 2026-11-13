@@ -122,6 +122,8 @@ final class visits_test extends \advanced_testcase {
         $page = familypage::context($household, $this->centre, 'es', $second, false);
         $this->assertTrue($page['hasnext']);
         $this->assertSame('Visita con Lucía', $page['first']['name']);
+        // The visit is the one thing of now, in its band, right under the greeting.
+        $this->assertTrue($page['nowband']['band']['isvisit']);
 
         // Its guide sees it among the visits to come.
         $mine = visits::mine((int) $this->centre->id, (int) $this->guide->id);

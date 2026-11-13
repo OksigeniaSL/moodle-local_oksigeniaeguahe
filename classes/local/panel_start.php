@@ -90,14 +90,14 @@ class panel_start {
                 'missing' => !$first,
                 'check' => $kind === 'check',
                 'asked' => $kind !== '',
-                'value' => $first ? userdate($first, '%Y-%m-%d') : '',
+                'value' => $first ? userdate($first, '%Y-%m-%d', 99, false) : '',
                 'date' => ['labelled' => false, 'arialabel' => get_string(
                     'panel_firstday_course_label',
                     $c,
                     format_string($offer->name)
                 )] + panel::date_input(
                     'day',
-                    $first ? userdate($first, '%Y-%m-%d') : '',
+                    $first ? userdate($first, '%Y-%m-%d', 99, false) : '',
                     $centre,
                     'pd-' . (int) $offer->id
                 ),

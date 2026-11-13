@@ -158,6 +158,17 @@ class centres {
             $phrase = trim((string) $data->namephrase);
             $row->namephrase = $phrase === '' ? null : \core_text::substr($phrase, 0, 255);
         }
+        if (isset($data->applyhow)) {
+            // How a family asks for a place, where and when: what its page says after the visit.
+            $row->applyhow = trim((string) $data->applyhow) ?: null;
+            $url = trim((string) ($data->applyurl ?? ''));
+            $row->applyurl = $url !== '' && preg_match('#^https?://#i', $url) ? \core_text::substr($url, 0, 255) : null;
+            $row->applyfrom = max(0, (int) ($data->applyfrom ?? 0));
+            $row->applyuntil = max(0, (int) ($data->applyuntil ?? 0));
+            if ($row->applyfrom && $row->applyuntil && $row->applyuntil < $row->applyfrom) {
+                [$row->applyfrom, $row->applyuntil] = [$row->applyuntil, $row->applyfrom];
+            }
+        }
         if (isset($data->channelauto)) {
             // The moments of each open act that go by themselves to the channel of Telegram.
             $row->channelauto = channel::auto_value(is_array($data->channelauto) ? $data->channelauto :

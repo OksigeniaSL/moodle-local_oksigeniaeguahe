@@ -53,8 +53,16 @@
             text.appendChild(span);
         });
     };
+    // Inside something folded the name is not measured (Chrome can fall over measuring it there): it is, when it opens.
+    var folded = function(node) {
+        return Boolean(node.closest && node.closest('details:not([open])'));
+    };
+
     var fit = function(scope) {
         all('svg.colgante text.mano, svg.sello-etiqueta text.mano', scope).forEach(function(text) {
+            if (folded(text)) {
+                return;
+            }
             // Only the drawing the svg shows: Chrome measures the hidden ones too, Firefox gives them no length.
             var drawing = text.closest ? text.closest('.mochila') : null;
             if (drawing && window.getComputedStyle(drawing).display === 'none') {
@@ -209,6 +217,9 @@
     // The name on the label of the story's card: smaller until it fits the line of the label.
     var fitStory = function() {
         all('svg.etiqueta-cuento text').forEach(function(text) {
+            if (folded(text)) {
+                return;
+            }
             var room = parseFloat(text.getAttribute('data-w')) || 27;
             text.setAttribute('font-size', '13.5');
             var k = text.textContent ? Math.min(1, room / text.getComputedTextLength()) : 1;
@@ -216,9 +227,27 @@
         });
     };
 
+    // Coming back to something folded under «Also on your page» (after answering in it): opened, and in sight.
+    var openFolded = function() {
+        var id = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : '';
+        var target = id ? document.getElementById(id) : null;
+        var fold = target && target.closest ? target.closest('details.otra-cosa') : null;
+        if (fold && !fold.open) {
+            fold.open = true;
+            target.scrollIntoView();
+        }
+    };
+
     var ready = function() {
         fit();
         fitStory();
+        document.addEventListener('toggle', function(e) {
+            if (e.target.open) {
+                fit(e.target);
+                fitStory();
+            }
+        }, true);
+        openFolded();
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(fitStory);
         }

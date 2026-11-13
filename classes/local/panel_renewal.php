@@ -173,7 +173,7 @@ class panel_renewal {
                     get_string('panel_renewal_no_end', $c),
                 'leaf' => $until ? panel::leaf($untilday) : false,
                 'date' => ['labelled' => false, 'arialabel' => get_string('panel_renewal_until_label', $c)] +
-                    panel::date_input('until', $until ? userdate($untilday, '%Y-%m-%d') : '', $centre, 'rm-hasta'),
+                    panel::date_input('until', $until ? userdate($untilday, '%Y-%m-%d', 99, false) : '', $centre, 'rm-hasta'),
                 'hasend' => (bool) $until,
                 'tell' => $totell && !$sending ? get_string('panel_renewal_tell', $c, $totell) : '',
                 'told' => $told['count'] ? get_string('panel_renewal_told', $c, (object) ['count' => $told['count'],

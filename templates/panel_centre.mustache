@@ -44,6 +44,8 @@
     * handover (options), handoverplace, handoverhow, siblingages (options), invitegone
     * firstday (Y-m-d), firstdaydate (public_date), firstdayleaf (weekday, day, month) or false, namephrase,
       namephraseexample
+    * apply - how a family asks for a place: how, url, written, fromdate and untildate (public_date), fromleaf and
+      untilleaf (weekday, day, month) or false
     * controller, rights, dpo, retentions (options: value, name, selected)
     * municipalities, areaplaces (names), networks, networklist (names)
     * oferta - the offer (see panel_offer_card), or false without a school system
@@ -91,6 +93,16 @@
             "size": 2, "months": false}]},
         "firstdayleaf": {"weekday": "mié", "day": "08", "month": "sep"}, "namephrase": "",
         "namephraseexample": "el Colegio de ejemplo",
+        "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true,
+            "fromdate": {"id": "c-desde", "first": "c-desded", "form": false, "child": false, "invalid": false,
+            "labelled": true, "arialabel": false, "describedby": "c-pedir-a", "mirror": false, "value": "2027-03-01",
+            "parts": [{"key": "d", "id": "c-desded", "name": "applyfromd", "label": "Día", "value": "1", "size": 2,
+            "months": false}]},
+            "untildate": {"id": "c-hasta", "first": "c-hastad", "form": false, "child": false, "invalid": false,
+            "labelled": true, "arialabel": false, "describedby": "c-pedir-a", "mirror": false, "value": "",
+            "parts": [{"key": "d", "id": "c-hastad", "name": "applyuntild", "label": "Día", "value": "", "size": 2,
+            "months": false}]},
+            "fromleaf": {"weekday": "lun", "day": "01", "month": "mar"}, "untilleaf": false},
         "skins": [{"value": "", "name": "La que va con su oferta", "help": "Hoy, el mostrador.", "checked": true, "auto": true, "img": "",
             "imgdark": "", "id": "piel-auto", "soon": false}],
         "skinproposal": "Su oferta va de los 3 a los 16 años.",
@@ -339,6 +351,36 @@
                     <div class="aj-guardar aj-sin-js"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-pais" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
                 </div>
             </details>
+
+            {{! ===== How a family asks for a place: the two days on their leaves, how, and where ===== }}
+            {{#apply}}
+            <details class="apartado aj-plegado" id="aj-pedir">
+                <summary><h2 id="aj-pedir-t">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura">{{#fromleaf}}<span>{{#str}}panel_read_apply_from, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/fromleaf}}{{#untilleaf}}<span>{{#str}}panel_read_apply_until, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/untilleaf}}{{^written}}<span>{{#str}}panel_read_apply_none, local_oksigeniaeguahe{{/str}}</span>{{/written}}</span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda aj-pedir-ayuda" id="c-pedir-a">{{#str}}panel_apply_help, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="aj-dos aj-pedir-dias">
+                        <div class="aj-primer">
+                            <span class="hoja-cal aj-primer-hoja{{^fromleaf}} aj-primer-sin{{/fromleaf}}" aria-hidden="true">{{#fromleaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/fromleaf}}{{^fromleaf}}<b>?</b>{{/fromleaf}}</span>
+                            <div class="aj-primer-texto"><label id="c-desde-l" for="{{fromdate.first}}">{{#str}}panel_apply_from, local_oksigeniaeguahe{{/str}}</label>{{#fromdate}}{{> local_oksigeniaeguahe/public_date }}{{/fromdate}}</div>
+                        </div>
+                        <div class="aj-primer">
+                            <span class="hoja-cal aj-primer-hoja{{^untilleaf}} aj-primer-sin{{/untilleaf}}" aria-hidden="true">{{#untilleaf}}<small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span>{{/untilleaf}}{{^untilleaf}}<b>?</b>{{/untilleaf}}</span>
+                            <div class="aj-primer-texto"><label id="c-hasta-l" for="{{untildate.first}}">{{#str}}panel_apply_until, local_oksigeniaeguahe{{/str}}</label>{{#untildate}}{{> local_oksigeniaeguahe/public_date }}{{/untildate}}</div>
+                        </div>
+                    </div>
+                    <div class="aj-frase">
+                        <label for="c-pedir">{{#str}}panel_apply_how, local_oksigeniaeguahe{{/str}}</label>
+                        <textarea class="aj-cuaderno" id="c-pedir" name="applyhow" rows="3" placeholder="{{#str}}panel_apply_how_example, local_oksigeniaeguahe{{/str}}">{{how}}</textarea>
+                    </div>
+                    <div class="aj-frase">
+                        <label for="c-pedir-web">{{#str}}panel_apply_url, local_oksigeniaeguahe{{/str}}</label>
+                        <input class="aj-hueco aj-hueco-web" id="c-pedir-web" name="applyurl" type="url" value="{{url}}" placeholder="https://" size="40" dir="ltr" autocomplete="off">
+                    </div>
+                    <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-pedir" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
+            </details>
+            {{/apply}}
 
             {{! ===== After enrolling: who carries them, the first day, the name in a sentence, the siblings ===== }}
             <details class="apartado aj-plegado" id="aj-despues">

@@ -21,6 +21,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
@@ -293,5 +294,40 @@ final class review_test extends \advanced_testcase {
         foreach ($pages as $page) {
             $this->assertFileExists($CFG->dirroot . $page);
         }
+    }
+
+    /**
+     * A day from the 1st to the 9th keeps its day in the fields of a date: userdate() takes the zero away from %d, and
+     * the fields came out empty, so saving the settings lost the first day.
+     */
+    public function test_day_keeps_its_zero(): void {
+        $time = make_timestamp(2027, 9, 7);
+        $this->assertSame('2027-09-07', userdate($time, '%Y-%m-%d', 99, false));
+        foreach ([userdate($time, '%Y-%m-%d'), '2027-09-07'] as $value) {
+            $date = publicpage::date_input('firstday', $value, 'es', $this->centre);
+            $this->assertSame('2027-09-07', $date['value']);
+            $this->assertSame(['d' => '07', 'm' => '09', 'y' => '2027'], array_column($date['parts'], 'value', 'key'));
+        }
+    }
+
+    /**
+     * How a family asks for a place: only a web address is kept as where, and two days written the wrong way round are
+     * turned.
+     */
+    public function test_apply_days(): void {
+        $from = make_timestamp(2027, 3, 1);
+        $until = make_timestamp(2027, 3, 20);
+        centres::update((int) $this->centre->id, (object) ['applyhow' => ' En secretaría. ', 'applyurl' => 'javascript:alert(1)',
+            'applyfrom' => $until, 'applyuntil' => $from]);
+        $centre = centres::get((int) $this->centre->id);
+        $this->assertSame('En secretaría.', $centre->applyhow);
+        $this->assertNull($centre->applyurl);
+        $this->assertEquals($from, $centre->applyfrom);
+        $this->assertEquals($until, $centre->applyuntil);
+        centres::update((int) $this->centre->id, (object) ['applyhow' => '', 'applyurl' => 'https://example.com/admision']);
+        $centre = centres::get((int) $this->centre->id);
+        $this->assertNull($centre->applyhow);
+        $this->assertSame('https://example.com/admision', $centre->applyurl);
+        $this->assertEquals(0, $centre->applyfrom);
     }
 }

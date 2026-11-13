@@ -87,3 +87,53 @@
 .sala-familia .tarjeta-dibujo.baja {
     transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.7s ease-in;
 }
+
+/* On a wide screen the hall goes beside the greeting, as a window onto their place, so that the greeting and the one
+   thing of now are in the first screen (Jujol); on a phone, above it, as before. The window has the proportion of the
+   frame of the family (1366 × 838): escena.js fits the whole frame in its height. */
+@media (min-width: 960px) {
+    .sala-lista .familia-arriba.con-sala {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        --eg-hueco-sala: clamp(32px, 3.5vw, 64px);
+        column-gap: var(--eg-hueco-sala);
+        align-items: start;
+        background: radial-gradient(ellipse 70% 90% at 30% 30%, var(--eg-luz), transparent 70%), var(--c-pared);
+    }
+
+    .sala-lista .familia-arriba.con-sala > .pared {
+        grid-row: 1;
+        grid-column: 1;
+        background: none;
+        overflow: visible;
+    }
+
+    .sala-lista .familia-arriba.con-sala > .sala-familia {
+        grid-row: 1;
+        grid-column: 2;
+        height: auto;
+        aspect-ratio: 1366 / 838;
+        margin: 36px var(--g) 36px 0;
+        border-radius: 22px;
+        box-shadow: 0 1px 0 var(--eg-linea), 0 26px 48px -30px rgba(58, 42, 30, 0.6);
+    }
+
+    .sala-lista .pared.con-sala .saludo-arriba,
+    .sala-lista .pared.con-sala .bajo-riel {
+        padding-inline-end: 0;
+    }
+
+    .sala-lista .pared.con-sala .titular {
+        --eg-titular-sala: clamp(2.75rem, 4.6vw, 5rem);
+        font-size: var(--eg-titular-sala);
+    }
+
+    .sala-lista .pared.con-sala .heroe-ancho .bajo-riel {
+        padding-top: 18px;
+        padding-bottom: 40px;
+    }
+
+    .sala-lista .pared.con-sala .heroe-ancho .entradilla {
+        font-size: 1.25rem;
+    }
+}

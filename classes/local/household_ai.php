@@ -90,12 +90,13 @@ class household_ai {
                 continue;
             }
             $thread[] = ['from' => ['in' => 'family', 'out' => 'centre', 'note' => 'note of the team'][$contact->direction] ??
-                'centre', 'when' => userdate((int) $contact->timecreated, '%Y-%m-%d'), 'text' => $body];
+                'centre', 'when' => userdate((int) $contact->timecreated, '%Y-%m-%d', 99, false), 'text' => $body];
         }
         $acts = [];
         foreach (events::for_centre((int) $centre->id) as $event) {
             if ((int) $event->timestart > $now && !empty($event->open) && empty($event->tailored)) {
-                $acts[] = ['act' => format_string($event->name), 'when' => userdate((int) $event->timestart, '%Y-%m-%d %H:%M'),
+                $acts[] = ['act' => format_string($event->name),
+                    'when' => userdate((int) $event->timestart, '%Y-%m-%d %H:%M', 99, false),
                     'where' => format_string((string) $event->place)];
             }
         }

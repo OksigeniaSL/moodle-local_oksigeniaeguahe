@@ -340,7 +340,7 @@ class metrics {
         $hasroll = (bool) array_filter($students, fn($s) => $s['roll']);
         // The start of the year is the day most students joined.
         $days = array_count_values(array_map(
-            fn($s) => userdate($s['timein'], '%Y-%m-%d'),
+            fn($s) => userdate($s['timein'], '%Y-%m-%d', 99, false),
             array_filter($students, fn($s) => $s['timein'] > 0)
         ));
         arsort($days);

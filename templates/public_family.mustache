@@ -18,52 +18,43 @@
     @template local_oksigeniaeguahe/public_family
 
     The page of a family, theirs, from the link they got. The heading is the name the family uses at home, written by
-    hand, as on the label of the backpack on its hook. Then their visit, in a band of the colour of the centre, with
-    the calendar; the people who will receive them, with their face; and what they told us, with their data to take or
-    to erase. After the visit, the label on the backpack is stuck down, as it was at the door, and one open question
-    waits on the wall, «What were you left to ask?», as a note on lined paper; or, if the centre turned it on for that
-    visit, the survey «How did it go?» in the band: who reads it, with their faces, then a sheet with the label of each
-    child stuck in its corner (beside it, large, on a wide screen), the open question first and the words of each scale, each answer kept when it is touched; when
-    the last one is answered, the thanks with the name used at home, written by hand. And what the centre does with what
-    they told, under the thanks, as a note of the centre. Once a child is enrolled, the last moment, and the page stays
-    still: «That is it» and where the child has their place, who carries them from now on (a person with their face, or
-    a place on the colour of the centre) and how the centre writes to them, the one question before the first day, the
-    offer to tell another family how it went as a sentence with a yes, and the thanks of whoever received them.
+    hand, as on the label of the backpack on its hook; with the living hall, the hall goes beside it on a wide screen,
+    as a window, and above it on a phone. Under the heading, one thing of now (familypage::arrange(), drawn by
+    public_thing): their visit in the band of the centre's colour, with the calendar; once they came, how to ask for a
+    place, in the same band; whether each child goes on next school year while some is not answered; «How did it go?»;
+    a birthday; the story of the first day; the one open question… The rest goes under «Also on your page», each in a
+    line that says what it is and how it stands, and opens where it is. Then the people who will receive them, with
+    their face, when the centre says who; and what they told us, with their data, folded, to take or to erase. Once a
+    child is enrolled, «That is it» and who carries them from now on (a person with their face, or a place on the colour
+    of the centre), how the centre writes to them and the thanks of whoever received them, under the heading.
 
     Example context (json):
     {
-        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": "", "send": ""},
+        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "down": "", "send": "", "chev": ""},
         "greeting": "Los esperamos,", "names": "Leo",
         "pegs": {"count": 1, "live": false, "came": false, "pegs": [{"index": 0, "name": "Leo", "style": "", "arrive": true,
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "hasnext": true, "bandlabel": "Su visita", "wallask": false, "outcome": false, "hall": false, "settled": false, "quiet": false, "turns": [], "siblingoffers": [],
-        "renewal": {"title": "El curso que viene, 2027-28", "lead": "Para preparar el curso, el centro necesita saber quién sigue.",
-            "action": "https://example.com/local/oksigeniaeguahe/f.php?k=abc", "sesskey": "abc",
-            "children": [{"id": 7, "state": "leave", "nextcourse": "1.º de Primaria · 2027-28",
-            "peg": {"index": 0, "name": "Leo", "style": "--reposo:-3.5deg", "object": "mochila", "arriving": false, "stuck": true,
-            "hidden": false}, "question": "¿Sigue Leo en 2027-28? Le toca 1.º de Primaria.",
-                "options": [{"key": "stay", "label": "Sí, sigue", "pressed": false},
-                    {"key": "leave", "label": "No sigue", "pressed": true}, {"key": "unsure", "label": "Aún no lo sabemos",
-                    "pressed": false}], "done": "Apuntado. Gracias por decírnoslo con tiempo.",
-                "why": {"label": "¿Por qué, si quieren contarlo?", "reasons": [{"key": "moved", "label": "Nos mudamos",
-                    "pressed": true}, {"key": "other", "label": "Otro motivo", "pressed": false}]},
-                "note": {"label": "Algo más que quieran contarnos", "value": "", "save": "Contárselo"} }]},
+        "bandlabel": "Su visita", "outcome": false, "hall": false, "settled": false, "quiet": false,
+        "nowcard": false, "nowband": {"band": {"isvisit": true}, "turn": false, "renewal": false, "survey": false,
+            "birthday": false, "story": false, "ask": false, "sibling": false, "volunteer": false, "ambassador": false,
+            "fold": false, "kicker": "", "title": "", "state": ""},
+        "hasmore": true, "moretitle": "También en su página", "whocomes": "Quién vendría",
+        "more": [{"band": false, "turn": false, "renewal": false, "survey": false, "birthday": false, "ask": false,
+            "sibling": false, "volunteer": false, "ambassador": false, "fold": false, "kicker": "", "title": "", "state": "",
+            "story": {"url": "https://example.com/f.php?action=cuento", "name": "Leo", "open": "Abrir el cuento",
+            "kicker": "Un cuento para Leo", "title": "Tu primer día", "lead": "Para leerlo juntos en casa."} }],
         "hassiblings": false, "siblings": [], "siblingstitle": "",
-        "howitwent": {"label": "¿Cómo fue?", "lead": "Son 4 preguntas, y todas si quieren.",
-            "reads": "Lo lee el equipo que los recibió.", "ask": false, "fields": [], "autosave": true, "saved": "",
-            "done": "", "farewell": "Gracias por contárnoslo,", "changeline": "Pueden cambiar cualquier respuesta hasta el 21 de noviembre.",
-            "savetext": "Guardar", "savedtext": "Guardado", "action": "#", "sesskey": "abc"},
         "first": {"share": false, "weekday": "Sábado", "daymonth": "21 de noviembre", "name": "Jornada de puertas abiertas",
             "hours": "De 10:00 a 13:00", "turn": false, "place": "Entrada principal", "people": "Para 3 personas",
             "ics": "#"},
-        "pub_your_turn": "su turno", "pub_add_calendar": "Añadir a mi calendario", "mapurl": "#",
+        "pub_your_turn": "su turno", "pub_add_calendar": "Añadir al calendario", "mapurl": "#",
         "pub_how_get": "Cómo llegar", "others": [], "pub_band_next": "Lo siguiente", "bandnext": "Lo siguiente", "nextline": "",
         "novisit": "", "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000",
-        "writeus": "Escribirnos", "pub_receives": "Quién los recibe", "pub_receives_sub": "Son las personas…",
+        "writeus": "Escribirnos", "receivestitle": "Quién los recibe", "receivessub": "Son las personas…",
         "hashosts": true, "hosts": [{"name": "Lucía Medina", "role": "Tutora", "says": "Les enseño la clase.",
-            "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.", "receivespending": "",
+            "photo": "", "initials": "LM"}], "pub_receives_team": "Los recibe el equipo.",
         "pub_told": "Lo que nos contaron", "pub_who_comes": "Quién vendría", "hasanswers": false, "answers": [], "hasjoin": false, "joinlinks": [], "joined": false,
         "jointitle": "", "joinlead": "", "joinedline": "",
         "answerstitle": "",
@@ -79,13 +70,9 @@
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
-        "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar nuestros datos",
-        "pub_data_erase": "Borrar nuestros datos", "downloadurl": "#", "eraseurl": "#",
+        "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar sus datos",
+        "pub_data_erase": "Borrar sus datos", "downloadurl": "#", "eraseurl": "#",
         "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
-        "stories": [{"url": "https://example.com/f.php?action=cuento", "name": "Leo", "open": "Abrir el cuento",
-            "kicker": "Un cuento para Leo", "title": "Tu primer día", "lead": "Para leerlo juntos en casa."}],
-        "birthdays": [{"kicker": "Su cumpleaños", "title": "¡Feliz cumpleaños, Leo!", "isseal": false, "button": "Ver su vídeo",
-            "lead": "Su clase le ha preparado un vídeo con su nombre, para verlo juntos y guardarlo.", "data": "[]"}],
         "hobbies": {"title": "En su tiempo libre", "lead": "Si quieren contárnoslo.", "othertext": "Otra cosa",
             "otherexample": "Por ejemplo, el parchís", "savetext": "Guardar", "savedtext": "Guardado", "saved": false,
             "action": "https://example.com/f.php?action=hobbies", "sesskey": "abc", "tellus": "Contárnoslo",
@@ -95,6 +82,7 @@
     }
 }}
 {{#measure}}<span class="mide" data-mide="{{url}}" data-sesskey="{{sesskey}}" data-de="{{de}}" hidden></span>{{/measure}}
+<div class="familia-arriba{{#hall}} con-sala{{/hall}}">
 {{#hall}}
 <div class="sala-familia" data-vestibulo data-escena="{{json}}" data-base="{{base}}" aria-hidden="true"><div class="sala"></div></div>
 {{/hall}}
@@ -114,34 +102,6 @@
             </div>
             {{/new}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span dir="auto">{{text}}</span></p>{{/outcome}}
-            {{#stories}}
-            <a class="cuento-tarjeta" href="{{url}}">
-                <span class="cuento-portada" aria-hidden="true">
-                    <svg class="etiqueta-cuento" viewBox="-25 -18 50 36" focusable="false">
-                        <path class="banda" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
-                        <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
-                        <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z" opacity=".75"/>
-                        <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
-                        <text class="mano-cuento" x="-3" y="5" text-anchor="middle" font-size="13.5" data-w="27">{{name}}</text>
-                    </svg>
-                </span>
-                <span class="cuento-que"><span class="cuento-etiqueta" dir="auto">{{kicker}}</span><b>{{title}}</b><span>{{lead}}</span><span class="cuento-abrir">{{open}}</span></span>
-            </a>
-            {{/stories}}
-            {{#birthdays}}
-            <div class="cumple-tarjeta">
-                {{#isseal}}<img class="cumple-sello" alt="" hidden data-cumple-sello="{{data}}">{{/isseal}}
-                <span class="cuento-que"><span class="cuento-etiqueta">{{kicker}}</span><b dir="auto">{{title}}</b><span>{{lead}}</span>
-                {{^isseal}}<button class="boton principal" type="button" data-cumple="{{data}}" hidden>{{button}}</button>{{/isseal}}</span>
-            </div>
-            {{/birthdays}}
-            {{#turns}}
-            <form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
-                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">
-                <p><b>{{title}}</b> <span>{{text}}</span></p>
-                <button class="boton principal" type="submit">{{yes}}</button>
-            </form>
-            {{/turns}}
             {{#settled}}
             <div class="quien-lleva">
                 {{#person}}
@@ -155,195 +115,40 @@
                 {{#team}}<p class="etiqueta-lleva">{{team}}</p>{{/team}}
                 {{#how}}<p class="por-donde" dir="auto">{{how}}</p>{{/how}}
             </div>
-            {{/settled}}
-            {{#renewal}}
-            <section class="rematricula" id="rematricula" aria-labelledby="rematricula-t" data-parte="renewal">
-                <h2 class="rematricula-titulo" id="rematricula-t">{{title}}</h2>
-                <p class="rematricula-entrada">{{lead}}</p>
-                {{#children}}
-                <form class="rematricula-nino rematricula-{{state}}" method="post" action="{{action}}" id="rematricula-{{id}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="nino" value="{{id}}">
-                    <div class="rematricula-percha" aria-hidden="true">
-                        <span class="rematricula-riel"></span><span class="rematricula-gancho"></span>
-                        {{#peg}}<span class="rematricula-colgante">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/peg}}
-                        <span class="rematricula-curso">{{nextcourse}}</span>
-                    </div>
-                    <div class="rematricula-texto">
-                    <p class="rematricula-pregunta" id="rematricula-p{{id}}" dir="auto">{{question}}</p>
-                    <div class="rematricula-botones" role="group" aria-labelledby="rematricula-p{{id}}">
-                        {{#options}}<button class="eleccion" type="submit" name="respuesta" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/options}}
-                    </div>
-                    {{#done}}<p class="rematricula-hecho" role="status"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
-                    {{#why}}
-                    <div class="rematricula-porque" role="group" aria-labelledby="rematricula-w{{id}}">
-                        <p class="rematricula-etiqueta" id="rematricula-w{{id}}">{{label}}</p>
-                        {{#reasons}}<button class="ficha-boton" type="submit" name="motivo" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/reasons}}
-                    </div>
-                    {{/why}}
-                    {{#note}}
-                    <details class="rematricula-mas"{{#value}} open{{/value}}>
-                        <summary>{{label}}</summary>
-                        <div class="campo rematricula-nota"><label class="oculto" for="rematricula-nota-{{id}}">{{label}}</label>
-                        <textarea id="rematricula-nota-{{id}}" name="nota" rows="2" maxlength="1000" dir="auto">{{value}}</textarea></div>
-                        <button class="boton secundario" type="submit">{{save}}</button>
-                    </details>
-                    {{/note}}
-                    </div>
-                </form>
-                {{/children}}
-            </section>
-            {{/renewal}}
-            {{#wallask}}
-            <form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
-                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">
-                {{> local_oksigeniaeguahe/public_ask }}
-            </form>
-            {{/wallask}}
-            {{#siblingoffers}}
-            {{#question}}
-            <form class="ofrecimiento" id="avisar-{{id}}" method="post" action="{{action}}">
-                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingnotify"><input type="hidden" name="hermano" value="{{id}}">
-                <p>{{question}}</p>
-                <button class="boton secundario" type="submit">{{yes}}</button>
-            </form>
-            {{/question}}
-            {{#done}}<p class="ofrecimiento hecho" id="avisar-{{id}}"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
-            {{/siblingoffers}}
-            {{#settled}}
-            {{#volunteer}}
-            <form class="ofrecimiento" id="ofrecimiento" method="post" action="{{action}}">
-                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="volunteer">
-                <p>{{question}}</p>
-                <button class="boton secundario" type="submit">{{yes}}</button>
-            </form>
-            {{/volunteer}}
-            {{#volunteered}}<p class="ofrecimiento hecho" id="ofrecimiento"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{volunteered}}</span></p>{{/volunteered}}
-            {{#ambassador}}
-            <div class="embajadora" id="embajadora">
-                <h3>{{title}}</h3>
-                {{#came}}
-                <div class="embajadora-llegaron">
-                    {{#hasbackpacks}}<div class="embajadora-riel" aria-hidden="true">{{#backpacks}}<span class="embajadora-percha">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/backpacks}}</div>{{/hasbackpacks}}
-                    <p>{{came}}</p>
-                </div>
-                {{/came}}
-                <p>{{text}}</p>
-                <div class="embajadora-pasar">
-                {{#card}}
-                <div class="invitacion-tarjeta">
-                    <span class="invitacion-sello" aria-hidden="true">{{#logo}}<img src="{{logo}}" alt="">{{/logo}}{{^logo}}<span>{{initials}}</span>{{/logo}}</span>
-                    <p class="invitacion-de">{{{from}}}</p>
-                    <p class="invitacion-titulo" dir="auto">{{invites}}</p>
-                </div>
-                {{/card}}
-                {{#share}}
-                <div class="embajadora-acciones">
-                <p class="compartir-fila"><span class="pasar"><button class="boton principal" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_family">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span></p>
-                <div class="campo embajadora-enlace"><label for="embajadora-enlace">{{linklabel}}</label><input id="embajadora-enlace" type="text" readonly value="{{url}}" dir="ltr"></div>
-                </div>
-                {{/share}}
-                </div>
-                {{#sign}}
-                <details class="embajadora-firma"{{#open}} open{{/open}}>
-                    <summary><span>{{label}}</span>{{{i.chev}}}</summary>
-                    <form class="hoja-casa" method="post" action="{{action}}">
-                        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitesign">
-                        <div class="campo"><label class="oculto" for="embajadora-firma">{{label}}</label><input id="embajadora-firma" type="text" name="firma" maxlength="100" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" dir="auto" aria-describedby="embajadora-firma-ayuda"><p class="ayuda-campo" id="embajadora-firma-ayuda">{{help}}</p></div>
-                        <button class="boton secundario" type="submit">{{save}}</button>
-                    </form>
-                </details>
-                {{/sign}}
-            </div>
-            {{/ambassador}}
             {{#thanks}}
             <p class="gracias-firmadas"><span class="texto-gracias">{{text}}</span>{{#hashost}}<span class="firma">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span>{{who}}</span></span>{{/hashost}}</p>
             {{/thanks}}
             {{/settled}}
+            {{#nowcard}}<div class="ahora">{{> local_oksigeniaeguahe/public_thing }}</div>{{/nowcard}}
         </div>
     </div>
 </section>
+</div>
+{{#nowband}}{{> local_oksigeniaeguahe/public_thing }}{{/nowband}}
 
-{{#hasnext}}
-<section class="banda" aria-label="{{bandlabel}}" data-parte="visit">
-    <p class="etiqueta">{{bandlabel}}</p>
-    {{#first}}
-    <p class="cuando"><span>{{weekday}}</span><span>{{daymonth}}</span></p>
-    <div class="detalles">
-        <b>{{name}}</b>
-        <span>{{hours}}{{#turn}} · {{pub_your_turn}}{{/turn}}</span>
-        {{#place}}<span>{{place}}</span>{{/place}}
-        {{#arrive}}<span class="llegar" dir="auto">{{arrive}}</span>{{/arrive}}
-        <span>{{people}}</span>
-        <div class="acciones">
-            <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
-            {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
-            {{#share}}<span class="pasar"><button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/share}}
-            {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
-        </div>
-    </div>
-    {{/first}}
-    {{#others}}
-    <div class="otra">
-        <div><b>{{name}}</b><span>{{long}} · {{hours}}</span></div>
-        <a class="enlace" href="{{ics}}" aria-label="{{addlabel}}">{{{i.cal}}}</a>
-        {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
-    </div>
-    {{/others}}
-</section>
-{{/hasnext}}
-{{#howitwent}}
-<section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t" data-parte="visit">
-    <div class="cabeza-encuesta">
-        <h2 class="titulo-encuesta" id="como-fue-t">{{label}}</h2>
-        <p class="siguiente">{{lead}}</p>
-        {{#reads}}
-        <p class="lo-lee">
-            {{#hashosts}}<span class="caras-lee" aria-hidden="true">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini">{{initials}}</span>{{/photo}}{{/hosts}}</span>{{/hashosts}}
-            <span>{{reads}}</span>
-        </p>
-        {{/reads}}
-        {{#saved}}<p class="guardado-todo" role="status">{{saved}}</p>{{/saved}}
-        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
-    </div>
-    <form class="hoja-encuesta" method="post" action="{{action}}" data-encuesta data-guardado-texto="{{savedtext}}">
-        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="survey">
-        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
-        {{#ask}}{{> local_oksigeniaeguahe/public_ask }}{{/ask}}
-        <div class="preguntas-encuesta">
-            {{> local_oksigeniaeguahe/public_questions }}
-        </div>
-        <div class="despedida" data-despedida{{^done}} hidden{{/done}}>
-            <p class="gracias">{{farewell}}{{#names}} <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</p>
-            {{#changeline}}<p class="cambiar">{{changeline}}</p>{{/changeline}}
-        </div>
-        <div class="acciones guardar-encuesta"><button class="boton secundario" type="submit">{{savetext}}</button></div>
-    </form>
-</section>
-{{/howitwent}}
-{{^howitwent}}
-{{^hasnext}}
-{{^quiet}}
-<section class="banda" aria-label="{{bandnext}}" data-parte="visit">
-    <p class="etiqueta">{{bandnext}}</p>
-    <p class="siguiente">{{nextline}}</p>
-    <div class="detalles">
-        <p>{{novisit}}</p>
-        <div class="acciones">
-            {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
-        </div>
+{{#hasmore}}
+<section class="seccion tambien" aria-labelledby="tambien-t">
+    <h2 id="tambien-t">{{moretitle}}</h2>
+    <div class="tambien-cosas">
+        {{#more}}
+        {{#fold}}
+        <details class="otra-cosa">
+            <summary><span class="otra-cosa-que">{{#kicker}}<span class="otra-cosa-antes" dir="auto">{{kicker}}</span>{{/kicker}}<b dir="auto">{{title}}</b>{{#state}}<span class="otra-cosa-estado" dir="auto">{{state}}</span>{{/state}}</span>{{{i.chev}}}</summary>
+            <div class="otra-cosa-dentro">{{> local_oksigeniaeguahe/public_thing }}</div>
+        </details>
+        {{/fold}}
+        {{^fold}}<div class="otra-cosa suelta">{{> local_oksigeniaeguahe/public_thing }}</div>{{/fold}}
+        {{/more}}
     </div>
 </section>
-{{/quiet}}
-{{/hasnext}}
-{{/howitwent}}
+{{/hasmore}}
 
 {{^quiet}}
 {{#hashosts}}
 <section class="seccion dos-col" data-parte="hosts">
     <div class="cabeza">
-        <h2>{{pub_receives}}</h2>
-        <p class="sub">{{pub_receives_sub}}</p>
+        <h2>{{receivestitle}}</h2>
+        <p class="sub">{{receivessub}}</p>
     </div>
     <div class="personas">
         {{#hosts}}
@@ -358,12 +163,6 @@
     </div>
 </section>
 {{/hashosts}}
-{{^hashosts}}
-<section class="seccion" data-parte="hosts">
-    <h2>{{pub_receives}}</h2>
-    <p class="equipo">{{#receivespending}}{{receivespending}}{{/receivespending}}{{^receivespending}}{{pub_receives_team}}{{/receivespending}}</p>
-</section>
-{{/hashosts}}
 {{/quiet}}
 
 <section class="seccion" data-parte="told">
@@ -371,7 +170,7 @@
     <div class="lo-contado">
         {{#haschildren}}
         <div>
-            <h3 id="quien-vendria">{{pub_who_comes}}</h3>
+            <h3 id="quien-vendria">{{whocomes}}</h3>
             <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#birthline}}<br>{{birthline}}{{/birthline}}{{#home}}{{#saved}}<br><span class="casa-guardado" role="status">{{saved}}</span>{{/saved}}<details class="en-casa"><summary class="enlace">{{open}}</summary><form class="hoja-casa" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="nino" value="{{id}}"><div class="campo"><label for="casa-{{id}}">{{label}}</label><input id="casa-{{id}}" name="casa" value="{{value}}" maxlength="100" autocomplete="off" dir="auto" aria-describedby="casa-{{id}}-ayuda"><p class="ayuda-campo" id="casa-{{id}}-ayuda">{{hint}}</p></div>{{#latin}}<div class="campo"><label for="latina-{{id}}">{{label}}</label><input id="latina-{{id}}" name="latina" value="{{value}}" maxlength="100" dir="ltr" lang="en" autocomplete="off" aria-describedby="latina-{{id}}-ayuda"><p class="ayuda-campo" id="latina-{{id}}-ayuda">{{hint}}</p></div>{{/latin}}<div class="campo"><label id="cumple-{{id}}-l" for="{{birthdate.first}}">{{birthlabel}}</label>{{#birthdate}}{{> local_oksigeniaeguahe/public_date }}{{/birthdate}}<p class="ayuda-campo" id="cumple-{{id}}-ayuda">{{birthhint}}</p></div><button class="boton secundario" type="submit">{{save}}</button></form></details>{{/home}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{#drawingsend}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a>{{/drawingsend}}{{#drawingshare}}<span class="pasar"><button class="enlace mandar-dibujo" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#video}} data-video="{{.}}"{{/video}} data-toca="share_drawing">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/drawingshare}}</dd></div>{{/children}}</dl>
             {{#hassiblings}}<h3>{{siblingstitle}}</h3><dl>{{#siblings}}<div><dt>{{name}}</dt><dd>{{line}}</dd></div>{{/siblings}}</dl>{{/hassiblings}}
         </div>
@@ -433,13 +232,12 @@
             <dl>{{#answers}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/answers}}</dl>
         </div>
         {{/hasanswers}}
-        <div data-parte="data">
-            <h3>{{pub_data}}</h3>
-            <p class="muted">{{pub_data_hint}}</p>
+        <details class="sus-datos" data-parte="data">
+            <summary><h3>{{pub_data}}</h3><span class="muted">{{pub_data_hint}}</span>{{{i.chev}}}</summary>
             <div class="acciones datos">
                 <a class="boton secundario" href="{{downloadurl}}">{{{i.down}}}{{pub_data_download}}</a>
-                <a class="boton rojo" href="{{eraseurl}}">{{pub_data_erase}}</a>
+                <a class="enlace borrar-datos" href="{{eraseurl}}">{{pub_data_erase}}</a>
             </div>
-        </div>
+        </details>
     </div>
 </section>

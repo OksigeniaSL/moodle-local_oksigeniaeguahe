@@ -1,0 +1,273 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_thing
+
+    One thing on the page of a family (familypage::arrange()): the one of now, at the head of the page, or one of the
+    rest under «Also on your page». Exactly one of its kinds is there:
+    * band - the band of the centre's colour: the visit (isvisit), the day they will be offered (ispending), how to ask
+      for a place once they came (isapply) or how to write with no visit yet (isnext); the visit and its words come
+      from the page (first, others, bandlabel…).
+    * turn - a brother or sister whose turn has come: a place kept with one touch.
+    * renewal - whether each child goes on next school year.
+    * survey - «How did it go?», with the open question first.
+    * birthday, story - the cards of a birthday and of the story of the first day.
+    * ask - the one open question (after the visit, before or after the first day, or once gone).
+    * sibling - telling them when it is the turn of a brother or sister.
+    * volunteer - telling another family how it went: the question with its yes (ask), or the thanks (done).
+    * ambassador - the invitation of an ambassador family.
+
+    Example context (json):
+    {
+        "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "send": "", "chev": ""},
+        "band": false, "turn": false, "survey": false, "birthday": false, "ask": false, "sibling": false,
+        "volunteer": false, "ambassador": false,
+        "story": {"url": "#", "name": "Leo", "open": "Abrir el cuento", "kicker": "Un cuento para Leo",
+            "title": "Tu primer día", "lead": "Para leerlo juntos en casa."},
+        "renewal": false, "fold": false, "kicker": "", "title": "", "state": ""
+    }
+}}
+{{#band}}
+{{#isvisit}}
+<section class="banda" aria-label="{{bandlabel}}" data-parte="visit">
+    <p class="etiqueta">{{bandlabel}}</p>
+    {{#first}}
+    <p class="cuando"><span>{{weekday}}</span><span>{{daymonth}}</span></p>
+    <div class="detalles">
+        <b>{{name}}</b>
+        <span>{{hours}}{{#turn}} · {{pub_your_turn}}{{/turn}}</span>
+        {{#place}}<span>{{place}}</span>{{/place}}
+        {{#arrive}}<span class="llegar" dir="auto">{{arrive}}</span>{{/arrive}}
+        <span>{{people}}</span>
+        <div class="acciones">
+            <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
+            {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
+            {{#share}}<span class="pasar"><button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/share}}
+            {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
+        </div>
+    </div>
+    {{/first}}
+    {{#others}}
+    <div class="otra">
+        <div><b>{{name}}</b><span>{{long}} · {{hours}}</span></div>
+        <a class="enlace" href="{{ics}}" aria-label="{{addlabel}}">{{{i.cal}}}</a>
+        {{#cantcome}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
+    </div>
+    {{/others}}
+</section>
+{{/isvisit}}
+{{#isapply}}
+<section class="banda banda-plaza" id="pedir-plaza" aria-labelledby="pedir-plaza-t" data-parte="visit">
+    <p class="etiqueta" id="pedir-plaza-t">{{label}}</p>
+    {{#when}}<p class="cuando"><span>{{line}}</span>{{#day}}<span>{{day}}</span>{{/day}}</p>{{/when}}
+    {{#next}}<p class="siguiente">{{next}}</p>{{/next}}
+    <div class="detalles">
+        {{#year}}<b>{{year}}</b>{{/year}}
+        {{#how}}<p class="como-se-pide" dir="auto">{{how}}</p>{{/how}}
+        <p class="ayuda-banda">{{help}}</p>
+        <div class="acciones">
+            {{#go}}<a class="boton inverso" href="{{url}}" rel="noopener noreferrer" data-toca="apply">{{label}}</a>{{/go}}
+            {{#email}}<a class="{{#go}}enlace{{/go}}{{^go}}boton inverso{{/go}}" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+    </div>
+</section>
+{{/isapply}}
+{{#ispending}}
+<section class="banda" aria-label="{{bandlabel}}" data-parte="visit">
+    <p class="etiqueta">{{bandlabel}}</p>
+    <p class="siguiente">{{nextline}}</p>
+    <div class="detalles">
+        <p>{{novisit}}</p>
+        <div class="acciones">
+            {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+    </div>
+</section>
+{{/ispending}}
+{{#isnext}}
+<section class="banda" aria-label="{{bandnext}}" data-parte="visit">
+    <p class="etiqueta">{{bandnext}}</p>
+    <p class="siguiente">{{nextline}}</p>
+    <div class="detalles">
+        <p>{{novisit}}</p>
+        <div class="acciones">
+            {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+    </div>
+</section>
+{{/isnext}}
+{{/band}}
+{{#turn}}
+<form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">
+    <p><b>{{title}}</b> <span>{{text}}</span></p>
+    <button class="boton principal" type="submit">{{yes}}</button>
+</form>
+{{/turn}}
+{{#renewal}}
+<section class="rematricula" id="rematricula" aria-labelledby="rematricula-t" data-parte="renewal">
+    <h2 class="rematricula-titulo" id="rematricula-t">{{title}}</h2>
+    <p class="rematricula-entrada">{{lead}}</p>
+    {{#children}}
+    <form class="rematricula-nino rematricula-{{state}}" method="post" action="{{action}}" id="rematricula-{{id}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="renewal"><input type="hidden" name="nino" value="{{id}}">
+        <div class="rematricula-percha" aria-hidden="true">
+            <span class="rematricula-riel"></span><span class="rematricula-gancho"></span>
+            {{#peg}}<span class="rematricula-colgante">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/peg}}
+            <span class="rematricula-curso">{{nextcourse}}</span>
+        </div>
+        <div class="rematricula-texto">
+        <p class="rematricula-pregunta" id="rematricula-p{{id}}" dir="auto">{{question}}</p>
+        <div class="rematricula-botones" role="group" aria-labelledby="rematricula-p{{id}}">
+            {{#options}}<button class="eleccion" type="submit" name="respuesta" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/options}}
+        </div>
+        {{#done}}<p class="rematricula-hecho" role="status"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+        {{#why}}
+        <div class="rematricula-porque" role="group" aria-labelledby="rematricula-w{{id}}">
+            <p class="rematricula-etiqueta" id="rematricula-w{{id}}">{{label}}</p>
+            {{#reasons}}<button class="ficha-boton" type="submit" name="motivo" value="{{key}}" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{label}}</button>{{/reasons}}
+        </div>
+        {{/why}}
+        {{#note}}
+        <details class="rematricula-mas"{{#value}} open{{/value}}>
+            <summary>{{label}}</summary>
+            <div class="campo rematricula-nota"><label class="oculto" for="rematricula-nota-{{id}}">{{label}}</label>
+            <textarea id="rematricula-nota-{{id}}" name="nota" rows="3" maxlength="1000" dir="auto">{{value}}</textarea></div>
+            <button class="boton secundario" type="submit">{{save}}</button>
+        </details>
+        {{/note}}
+        </div>
+    </form>
+    {{/children}}
+</section>
+{{/renewal}}
+{{#survey}}
+<section class="banda banda-encuesta" id="como-fue" aria-labelledby="como-fue-t" data-parte="visit">
+    <div class="cabeza-encuesta">
+        <h2 class="titulo-encuesta" id="como-fue-t">{{label}}</h2>
+        <p class="siguiente">{{lead}}</p>
+        {{#reads}}
+        <p class="lo-lee">
+            {{#hashosts}}<span class="caras-lee" aria-hidden="true">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini">{{initials}}</span>{{/photo}}{{/hosts}}</span>{{/hashosts}}
+            <span>{{reads}}</span>
+        </p>
+        {{/reads}}
+        {{#saved}}<p class="guardado-todo" role="status">{{saved}}</p>{{/saved}}
+        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
+    </div>
+    <form class="hoja-encuesta" method="post" action="{{action}}" data-encuesta data-guardado-texto="{{savedtext}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="survey">
+        {{#pegs}}{{> local_oksigeniaeguahe/public_tags }}{{/pegs}}
+        {{#ask}}{{> local_oksigeniaeguahe/public_ask }}{{/ask}}
+        <div class="preguntas-encuesta">
+            {{> local_oksigeniaeguahe/public_questions }}
+        </div>
+        <div class="despedida" data-despedida{{^done}} hidden{{/done}}>
+            <p class="gracias">{{farewell}}{{#names}} <span class="mano-titular" translate="no" dir="auto">{{names}}</span>{{/names}}</p>
+            {{#changeline}}<p class="cambiar">{{changeline}}</p>{{/changeline}}
+        </div>
+        <div class="acciones guardar-encuesta"><button class="boton secundario" type="submit">{{savetext}}</button></div>
+    </form>
+</section>
+{{/survey}}
+{{#birthday}}
+<div class="cumple-tarjeta">
+    {{#isseal}}<img class="cumple-sello" alt="" hidden data-cumple-sello="{{data}}">{{/isseal}}
+    <span class="cuento-que"><span class="cuento-etiqueta">{{kicker}}</span><b dir="auto">{{title}}</b><span>{{lead}}</span>
+    {{^isseal}}<button class="boton principal" type="button" data-cumple="{{data}}" hidden>{{button}}</button>{{/isseal}}</span>
+</div>
+{{/birthday}}
+{{#story}}
+<a class="cuento-tarjeta" href="{{url}}">
+    <span class="cuento-portada" aria-hidden="true">
+        <svg class="etiqueta-cuento" viewBox="-25 -18 50 36" focusable="false">
+            <path class="banda" d="M-23 -12 Q-23 -16 -19 -16 L19 -16 Q23 -16 23 -12 L23 8 L15 16 L-19 16 Q-23 16 -23 12 Z"/>
+            <path class="papel" d="M-20.6 -6.2 L20.6 -6.2 L20.6 7 L13.8 13.8 L-18.6 13.8 Q-20.6 13.8 -20.6 11.8 Z"/>
+            <path class="renglon" d="M-15 6.2 L9 6.2 L9 7.9 L-15 7.9 Z" opacity=".75"/>
+            <path class="pico" d="M23 8 L15 16 L15 8 Z"/>
+            <text class="mano-cuento" x="-3" y="5" text-anchor="middle" font-size="13.5" data-w="27">{{name}}</text>
+        </svg>
+    </span>
+    <span class="cuento-que"><span class="cuento-etiqueta" dir="auto">{{kicker}}</span><b>{{title}}</b><span>{{lead}}</span><span class="cuento-abrir">{{open}}</span></span>
+</a>
+{{/story}}
+{{#ask}}
+<form class="hoja-pregunta" method="post" action="{{action}}" data-preguntar>
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="{{do}}">
+    {{> local_oksigeniaeguahe/public_ask }}
+</form>
+{{/ask}}
+{{#sibling}}
+{{#question}}
+<form class="ofrecimiento" id="avisar-{{id}}" method="post" action="{{action}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingnotify"><input type="hidden" name="hermano" value="{{id}}">
+    <p>{{question}}</p>
+    <button class="boton secundario" type="submit">{{yes}}</button>
+</form>
+{{/question}}
+{{#done}}<p class="ofrecimiento hecho" id="avisar-{{id}}"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+{{/sibling}}
+{{#volunteer}}
+{{#ask}}
+<form class="ofrecimiento" id="ofrecimiento" method="post" action="{{action}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="volunteer">
+    <p>{{question}}</p>
+    <button class="boton secundario" type="submit">{{yes}}</button>
+</form>
+{{/ask}}
+{{#done}}<p class="ofrecimiento hecho" id="ofrecimiento"><span class="marca-hecho" aria-hidden="true">{{{i.check}}}</span><span>{{done}}</span></p>{{/done}}
+{{/volunteer}}
+{{#ambassador}}
+<div class="embajadora" id="embajadora">
+    <h3>{{title}}</h3>
+    {{#came}}
+    <div class="embajadora-llegaron">
+        {{#hasbackpacks}}<div class="embajadora-riel" aria-hidden="true">{{#backpacks}}<span class="embajadora-percha">{{> local_oksigeniaeguahe/panel_hanging }}</span>{{/backpacks}}</div>{{/hasbackpacks}}
+        <p>{{came}}</p>
+    </div>
+    {{/came}}
+    <p>{{text}}</p>
+    <div class="embajadora-pasar">
+    {{#card}}
+    <div class="invitacion-tarjeta">
+        <span class="invitacion-sello" aria-hidden="true">{{#logo}}<img src="{{logo}}" alt="">{{/logo}}{{^logo}}<span>{{initials}}</span>{{/logo}}</span>
+        <p class="invitacion-de">{{{from}}}</p>
+        <p class="invitacion-titulo" dir="auto">{{invites}}</p>
+    </div>
+    {{/card}}
+    {{#share}}
+    <div class="embajadora-acciones">
+    <p class="compartir-fila"><span class="pasar"><button class="boton principal" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_family">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span></p>
+    <div class="campo embajadora-enlace"><label for="embajadora-enlace">{{linklabel}}</label><input id="embajadora-enlace" type="text" readonly value="{{url}}" dir="ltr"></div>
+    </div>
+    {{/share}}
+    </div>
+    {{#sign}}
+    <details class="embajadora-firma"{{#open}} open{{/open}}>
+        <summary><span>{{label}}</span>{{{i.chev}}}</summary>
+        <form class="hoja-casa" method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitesign">
+            <div class="campo"><label class="oculto" for="embajadora-firma">{{label}}</label><input id="embajadora-firma" type="text" name="firma" maxlength="100" value="{{value}}" placeholder="{{placeholder}}" autocomplete="off" dir="auto" aria-describedby="embajadora-firma-ayuda"><p class="ayuda-campo" id="embajadora-firma-ayuda">{{help}}</p></div>
+            <button class="boton secundario" type="submit">{{save}}</button>
+        </form>
+    </details>
+    {{/sign}}
+</div>
+{{/ambassador}}

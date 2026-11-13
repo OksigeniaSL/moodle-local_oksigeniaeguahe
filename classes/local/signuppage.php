@@ -145,7 +145,7 @@ class signuppage {
         $slots = [];
         $all = empty($event->tailored) ? events::slots((int) $event->id) : [];
         // Turns of one day show their hours; turns of several days, their dates too. Past turns are not shown.
-        $days = array_unique(array_map(fn($t) => userdate((int) $t->timestart, '%Y%m%d'), $all));
+        $days = array_unique(array_map(fn($t) => userdate((int) $t->timestart, '%Y%m%d', 99, false), $all));
         foreach ($all as $slot) {
             if ($slot->timeend < time()) {
                 continue;

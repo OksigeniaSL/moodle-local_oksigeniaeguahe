@@ -54,7 +54,7 @@ class send_reminders extends \core\task\scheduled_task {
         if ((int) userdate($now, '%H') < self::FROMHOUR) {
             return;
         }
-        $tomorrow = userdate($now + DAYSECS, '%Y%m%d');
+        $tomorrow = userdate($now + DAYSECS, '%Y%m%d', 99, false);
         $rows = $DB->get_records_sql(
             'SELECT s.id, s.householdid, s.eventid, COALESCE(t.timestart, e.timestart) AS timestart
                                         FROM {local_oksigeniaeguahe_signup} s
@@ -65,7 +65,7 @@ class send_reminders extends \core\task\scheduled_task {
             ['now' => $now, 'limit' => $now + 2 * DAYSECS]
         );
         foreach ($rows as $row) {
-            if (userdate((int) $row->timestart, '%Y%m%d') !== $tomorrow) {
+            if (userdate((int) $row->timestart, '%Y%m%d', 99, false) !== $tomorrow) {
                 continue;
             }
             $DB->set_field('local_oksigeniaeguahe_signup', 'reminded', $now, ['id' => $row->id]);

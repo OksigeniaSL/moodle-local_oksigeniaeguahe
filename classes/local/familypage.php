@@ -276,7 +276,7 @@ class familypage {
         $adults = [];
         foreach ($full->adults as $adult) {
             $adults[] = ['name' => trim($adult->firstname . ' ' . $adult->lastname),
-                'reach' => array_values(array_filter([(string) $adult->phone, (string) $adult->email]))];
+                'reach' => array_values(array_filter([phone::display((string) $adult->phone), (string) $adult->email]))];
         }
         // The ways they allowed and gave the means for: WhatsApp or a call without a phone is no way.
         $means = ['email' => false, 'whatsapp' => false, 'phone' => false];
@@ -322,7 +322,9 @@ class familypage {
             );
             $surveyform = null;
         } else if ($issettled) {
-            $ask = self::settled_ask($household, $centre, $hosts, $lang, $token, $by, $flags);
+            // The question «before the first day» only until it comes: after it, it says nothing.
+            $ask = self::before_first_day($children, $offers, $centre, $now) ?
+                self::settled_ask($household, $centre, $hosts, $lang, $token, $by, $flags) : false;
             $surveyform = null;
         } else if ($isgone) {
             $ask = self::settled_ask(
@@ -374,31 +376,72 @@ class familypage {
         }
         // Once they came, the label stuck down, as the team left it at the door.
         $came = !$upcoming && ((bool) $attended || $issettled || $isgone || $isroster);
+        $renewal = $isgone ? false : self::renewal_context($household, $centre, $lang, $token, $now);
+        $settled = $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false;
+        if ($settled && $renewal && in_array('leave', array_column($renewal['children'], 'state'), true)) {
+            // A family that says a child does not go on is not asked to tell others how good it was.
+            $settled = ['volunteer' => false, 'volunteered' => '', 'ambassador' => false] + $settled;
+        }
+        // The band of the centre's colour says what comes next: the visit, the day they will be offered, how to ask for
+        // a place once they came, or, with no visit yet, how to write. Never on the quiet page.
+        $band = false;
+        if ($upcoming) {
+            $band = ['isvisit' => true];
+        } else if ($pending) {
+            $band = ['ispending' => true];
+        } else if (!$issettled && !$isgone && !$isroster && $attended) {
+            $band = ['isapply' => true] + self::apply_context($centre, $year, $lang, $now);
+        } else if (!$issettled && !$isgone && !$isroster) {
+            $band = ['isnext' => true];
+        }
+        $survey = $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) : false;
+        $stories = self::stories($household, $centre, $lang, $token, $now);
+        $birthdays = $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now);
+        // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
+        [$current, $more] = self::arrange([
+            'turns' => $turns,
+            'band' => $band,
+            'renewal' => $renewal,
+            'survey' => $survey,
+            'birthdays' => $birthdays,
+            'firstday' => $first ? $ask : false,
+            'stories' => $stories,
+            'ask' => !$first && !$survey ? $ask : false,
+            'siblings' => $offerlater,
+            'settled' => $settled,
+        ], $upcoming ? $visitrow($upcoming[0]) : null, $lang);
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'hassiblings' => (bool) $siblingrows,
             'siblings' => $siblingrows,
             'siblingstitle' => publiclang::str('pub_siblings_later', $lang),
+            // Each thing on its own too, as it was before they were arranged (the template reads nowband, nowcard and more).
             'turns' => $turns,
             'siblingoffers' => $offerlater,
+            'renewal' => $renewal,
+            'wallask' => $survey ? false : $ask,
+            'howitwent' => $survey,
+            'stories' => $stories,
+            'birthdays' => $birthdays,
+            'hasnext' => (bool) $upcoming,
+            'nowband' => $current && $current['band'] ? $current : false,
+            'nowcard' => $current && !$current['band'] ? $current : false,
+            'more' => $more,
+            'hasmore' => (bool) $more,
+            'moretitle' => publiclang::str('pub_more_title', $lang),
             'greeting' => $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
                 ($isroster ? 'pub_roster' : $greeting)) . ($tags ? '' : '_nochild'), $lang),
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
             'quiet' => $issettled || $isgone || $isroster,
             'pegs' => publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
-            'settled' => $issettled ? self::settled_context($household, $full, $centre, $hosts, $lang, $token) : false,
-            'renewal' => $isgone ? false : self::renewal_context($household, $centre, $lang, $token, $now),
+            'settled' => $settled,
             'lead' => $lead,
             'new' => $new,
             'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
             'savedline' => publiclang::str('pub_done_keep', $lang),
             'emailed' => $new && $emailed ? publiclang::str('pub_done_emailed', $lang) : '',
-            'hasnext' => (bool) $upcoming,
             // The living hall: their hooks wait with their names, and once they came their backpacks hang.
             'hall' => $hall,
-            'wallask' => $surveyform ? false : $ask,
-            'howitwent' => $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) :
-                false,
             'outcome' => !$issettled && !$isgone && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),
                 'text' => $outcome] : false,
             'bandlabel' => publiclang::str(count($upcoming) > 1 ? 'pub_band_visits' : 'pub_band_visit', $lang),
@@ -412,8 +455,10 @@ class familypage {
             'novisit' => $pending ? publiclang::str('pub_pending_line', $lang, visits::suits($pending, $lang)) :
                 publiclang::str($attended ? 'pub_novisit_after' : 'pub_novisit', $lang),
             'bandnext' => publiclang::str($pending ? 'pub_band_visit' : 'pub_band_next', $lang),
-            'receivespending' => $pending ? publiclang::str('pub_receives_pending', $lang) : '',
             'hashosts' => (bool) $hosts,
+            // Before the visit, who will receive them; after it, who did.
+            'receivestitle' => publiclang::str($upcoming || !$attended ? 'pub_receives' : 'pub_received', $lang),
+            'receivessub' => publiclang::str($upcoming || !$attended ? 'pub_receives_sub' : 'pub_received_sub', $lang),
             'hosts' => self::hosts($hosts),
             'hasjoin' => (bool) $joinlinks,
             'joinlinks' => $joinlinks,
@@ -425,20 +470,168 @@ class familypage {
             'hasanswers' => (bool) $answers,
             'answerstitle' => publiclang::str('pub_answers', $lang),
             'haschildren' => (bool) $childrows,
+            // Once they have their place, the children are at the centre, no longer who would come.
+            'whocomes' => publiclang::str($enrolled ? 'pub_who_is_here' : 'pub_who_comes', $lang),
             'children' => $childrows,
             'adults' => $adults,
             'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'idioma' => $lang]),
-            // The story «Your first day» of each child who starts, to read at home the days before.
-            'stories' => self::stories($household, $centre, $lang, $token, $now),
-            'birthdays' => $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now),
             // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.
             'hobbies' => $isgone ? false : self::hobbies_context($household, $full, $lang, $token, $flags),
             // The page counts what is done on it, once it is in sight; not when someone of the team looks at it.
             'measure' => seen::from_team($centre) ? false : ['url' => $link(['action' => 'seen']), 'sesskey' => sesskey(),
                 'de' => seen::via((string) ($flags['de'] ?? ''))],
         ];
+    }
+
+    /**
+     * What goes where on the page: the one thing of now, at its head, and the rest under «Also on your page», each in
+     * a line that opens (or, when it is a line already, as it is). Of now, in this order: the turn of a brother or
+     * sister, the visit (or the day they will be offered), whether each child goes on while some is not answered, how
+     * to ask for a place while it can be asked, «How did it go?», a birthday, «How was the first day?», the story of
+     * the first day, the open question, how to ask for a place before or after its days, how to write with no visit
+     * yet, next year already answered, and what is offered to an enrolled family.
+     *
+     * @param array $p turns, band, renewal, survey, birthdays, firstday, stories, ask, siblings and settled, as context()
+     *     builds them; each false or empty when it is not there.
+     * @param array|null $visit The row of the next visit, for its line.
+     * @param string $lang
+     * @return array [the thing of now or null, the rest]
+     */
+    protected static function arrange(array $p, ?array $visit, string $lang): array {
+        $s = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $list = [];
+        $add = function (int $rank, string $kind, $context, array $line = []) use (&$list): void {
+            $thing = ['band' => false, 'turn' => false, 'renewal' => false, 'survey' => false, 'birthday' => false,
+                'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false];
+            $list[] = [$rank, count($list), [$kind => $context] + $thing + ['fold' => (bool) $line,
+                'kicker' => $line['kicker'] ?? '', 'title' => $line['title'] ?? '', 'state' => $line['state'] ?? '']];
+        };
+        foreach ($p['turns'] as $turn) {
+            $add(10, 'turn', $turn);
+        }
+        $band = $p['band'];
+        if ($band && !empty($band['isvisit']) && $visit) {
+            $add(20, 'band', $band, ['kicker' => $s('pub_band_visit'), 'title' => $visit['long'],
+                'state' => $visit['name'] . ' · ' . $visit['hours']]);
+        } else if ($band && !empty($band['ispending'])) {
+            $add(30, 'band', $band, ['kicker' => $s('pub_band_visit'), 'title' => $s('pub_pending_title')]);
+        } else if ($band && !empty($band['isapply'])) {
+            $add($band['open'] ? 50 : 110, 'band', $band, ['kicker' => $s('pub_band_apply'), 'title' => $band['summary'],
+                'state' => $band['year']]);
+        } else if ($band) {
+            $add(120, 'band', $band, ['kicker' => $s('pub_band_next'), 'title' => $s('pub_novisit')]);
+        }
+        if ($p['renewal']) {
+            $states = array_column($p['renewal']['children'], 'state');
+            $answer = fn($c) => $s('pub_more_renewal_' . $c['state'], $c['peg']['name']);
+            $answers = array_map($answer, $p['renewal']['children']);
+            $add(in_array('none', $states, true) ? 40 : 130, 'renewal', $p['renewal'], ['title' => $p['renewal']['title'],
+                'state' => implode(' · ', $answers)]);
+        }
+        if ($p['survey']) {
+            $add($p['survey']['done'] ? 125 : 60, 'survey', $p['survey'], ['kicker' => $s('pub_more_survey_kicker'),
+                'title' => $p['survey']['label'], 'state' => $p['survey']['done'] ?: $p['survey']['lead']]);
+        }
+        foreach ($p['birthdays'] as $birthday) {
+            $add(70, 'birthday', $birthday);
+        }
+        if ($p['firstday']) {
+            $add(80, 'ask', $p['firstday'], ['title' => $p['firstday']['title'], 'state' => $p['firstday']['help']]);
+        }
+        foreach ($p['stories'] as $story) {
+            $add(90, 'story', $story);
+        }
+        if ($p['ask']) {
+            $add(100, 'ask', $p['ask'], ['title' => $p['ask']['title'], 'state' => $p['ask']['sent'] ?: $p['ask']['help']]);
+        }
+        foreach ($p['siblings'] as $sibling) {
+            $add(140, 'sibling', $sibling);
+        }
+        $settled = $p['settled'];
+        if ($settled && $settled['ambassador']) {
+            $add(145, 'ambassador', $settled['ambassador'], ['title' => $settled['ambassador']['title'],
+                'state' => $settled['ambassador']['came'] ?: $settled['ambassador']['text']]);
+        }
+        if ($settled && ($settled['volunteer'] || $settled['volunteered'])) {
+            $add(150, 'volunteer', ['ask' => $settled['volunteer'], 'done' => $settled['volunteered']]);
+        }
+        usort($list, fn($a, $b) => [$a[0], $a[1]] <=> [$b[0], $b[1]]);
+        $things = array_column($list, 2);
+        $now = array_shift($things);
+        if ($now) {
+            $now['fold'] = false;
+        }
+        return [$now, $things];
+    }
+
+    /**
+     * How to ask for a place, once they came, as the centre wrote it: until which day (or from which, or that the days
+     * are over), for which school year, how and where, and that they can write. Without the words of the centre, what
+     * the page always said: they will be told when it opens.
+     *
+     * @param \stdClass $centre
+     * @param string $year The school year of their children, or ''.
+     * @param string $lang
+     * @param int $now
+     * @return array open (it can be asked now), when (line and day), year, how, go (url, label), help, next, summary
+     */
+    protected static function apply_context(\stdClass $centre, string $year, string $lang, int $now): array {
+        $s = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $day = fn(int $time) => publicpage::date_parts($time, $lang)['daymonth'];
+        $from = (int) ($centre->applyfrom ?? 0);
+        $until = (int) ($centre->applyuntil ?? 0);
+        $how = trim((string) ($centre->applyhow ?? ''));
+        $url = trim((string) ($centre->applyurl ?? ''));
+        $written = $how !== '' || $from || $until;
+        $over = $until && $now >= $until + DAYSECS;
+        $later = !$over && $from && $now < $from;
+        $when = false;
+        if ($over) {
+            $when = ['line' => $s('pub_apply_over_line'), 'day' => $day($until)];
+        } else if ($later) {
+            $when = ['line' => $s('pub_apply_from_line'), 'day' => $day($from)];
+        } else if ($until) {
+            $when = ['line' => $s('pub_apply_until_line'), 'day' => $day($until)];
+        } else if ($from) {
+            $when = ['line' => $s('pub_apply_open_line'), 'day' => ''];
+        }
+        $next = $year !== '' ? $s('pub_next_year', s($year)) : $s('pub_next_noyear');
+        return [
+            'open' => $written && !$over && !$later,
+            'when' => $when,
+            'year' => $year !== '' ? $s('pub_apply_year', s($year)) : '',
+            'how' => $how,
+            'go' => $url !== '' && !$over ? ['url' => $url, 'label' => $s('pub_apply_go')] : false,
+            'help' => $s($over ? 'pub_apply_over_help' : 'pub_apply_help'),
+            'next' => $written ? '' : $next,
+            'label' => $s('pub_band_apply'),
+            'summary' => $when ? trim($when['line'] . ' ' . $when['day']) : ($written ? $s('pub_apply_how') : $next),
+        ];
+    }
+
+    /**
+     * Whether a child with a place has not started yet, or its first day is not known: until then, «before the first
+     * day» means something.
+     *
+     * @param \stdClass[] $children
+     * @param \stdClass[] $offers The courses of the centre.
+     * @param \stdClass $centre
+     * @param int $now
+     * @return bool
+     */
+    protected static function before_first_day(array $children, array $offers, \stdClass $centre, int $now): bool {
+        foreach ($children as $child) {
+            if (($child->stage ?? '') !== 'enrolled' || !empty($child->lefttime)) {
+                continue;
+            }
+            $first = firstdays::of($offers[$child->offerid] ?? null, $centre);
+            if (!$first || $now < $first) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

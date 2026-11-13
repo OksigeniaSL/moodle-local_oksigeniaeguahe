@@ -483,8 +483,9 @@ display: grid; }
             $sent[$key] = $list ? '' : trim(optional_param($name . $key, '', PARAM_RAW_TRIMMED));
         }
         // What they wrote, when it came back with an error; else the date kept.
-        $have = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m) ? ['y' => $m[1], 'm' => $m[2], 'd' => $m[3]] :
-            ['d' => '', 'm' => '', 'y' => ''];
+        // A day without its zero (userdate() takes it away from %d) is still that day.
+        $have = preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $value, $m) ? ['y' => $m[1], 'm' => sprintf('%02d', $m[2]),
+            'd' => sprintf('%02d', $m[3])] : ['d' => '', 'm' => '', 'y' => ''];
         $values = implode('', $sent) !== '' ? $sent : $have;
         $parts = [];
         $months = self::month_names($lang, (string) ($centre->country ?? ''));
@@ -502,7 +503,7 @@ display: grid; }
         return ['id' => $id, 'first' => $parts[0]['id'], 'parts' => $parts, 'form' => false, 'child' => false,
             'invalid' => false, 'describedby' => false, 'labelled' => true, 'arialabel' => false,
             // A copy without a name for the scripts that read the whole date (the preview of an act); not sent.
-            'mirror' => false, 'value' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : ''];
+            'mirror' => false, 'value' => $have['y'] !== '' ? $have['y'] . '-' . $have['m'] . '-' . $have['d'] : ''];
     }
 
     /**

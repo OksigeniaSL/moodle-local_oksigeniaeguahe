@@ -41,7 +41,7 @@ $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/oksigeniaeguahe/export.php', ['c' => $centreid]));
 
 $name = clean_filename(format_string($centre->name) . ' - ' . get_string('export_' . $what, 'local_oksigeniaeguahe') . ' - ' .
-    userdate(time(), '%Y-%m-%d'));
+    userdate(time(), '%Y-%m-%d', 99, false));
 $columns = $what === 'families' ? export::family_columns() : export::figure_columns();
 $rows = $what === 'families' ? export::families($centre) : export::figures($centre);
 \core\dataformat::download_data($name, $format, array_values($columns), new ArrayIterator(array_map('array_values', $rows)));

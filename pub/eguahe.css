@@ -4884,3 +4884,273 @@ button.enlace span {
     display: inline;
     margin: 0;
 }
+
+/* ---------- One thing of now, and the rest under «Also on your page» (Jujol) ----------
+   Under the heading, the one thing that matters now (familypage::arrange()); a card goes on the wall, a band right after
+   it. The rest, below: each a slip that says what it is and how it stands, and opens where it is. */
+.ahora {
+    display: grid;
+    gap: 18px;
+}
+
+.ahora > .cuento-tarjeta {
+    margin-top: 0;
+}
+
+.tambien {
+    padding-bottom: 0;
+}
+
+.tambien-cosas {
+    display: grid;
+    gap: 12px;
+    align-items: start;
+}
+
+@media (min-width: 960px) {
+    .tambien-cosas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .tambien-cosas > .otra-cosa[open] {
+        grid-column: 1 / -1;
+    }
+}
+
+.otra-cosa {
+    border-radius: var(--radio);
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 14px 28px -18px var(--eg-sombra);
+}
+
+.otra-cosa > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 14px 18px;
+    border-radius: var(--radio);
+    cursor: pointer;
+    list-style: none;
+}
+
+.otra-cosa > summary::-webkit-details-marker {
+    display: none;
+}
+
+.otra-cosa > summary:focus-visible {
+    outline: 3px solid var(--c-acento-vivo);
+    outline-offset: 2px;
+}
+
+.otra-cosa > summary > svg {
+    width: 22px;
+    height: 22px;
+    color: var(--c-acento-texto);
+    transition: transform 0.2s ease;
+}
+
+.otra-cosa[open] > summary > svg {
+    transform: rotate(180deg);
+}
+
+.otra-cosa-que {
+    display: grid;
+    gap: 2px;
+}
+
+.otra-cosa-antes {
+    color: var(--c-acento-texto);
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.05;
+}
+
+.otra-cosa-que b {
+    font-size: 1.125rem;
+    font-weight: 720;
+    line-height: 1.3;
+}
+
+.otra-cosa-estado {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.otra-cosa-dentro {
+    padding: 0 18px 18px;
+}
+
+/* Opened, what is inside keeps its drawing: the band, rounded, at the width of the slip; next school year without a
+   second card around it, and its title is the line above. */
+.otra-cosa-dentro > .banda {
+    border-radius: 14px;
+    padding: 26px 22px 28px;
+}
+
+.otra-cosa-dentro > .rematricula {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.otra-cosa-dentro .rematricula-titulo {
+    display: none;
+}
+
+.otra-cosa.suelta {
+    background: transparent;
+    box-shadow: none;
+}
+
+.otra-cosa.suelta > .cuento-tarjeta,
+.otra-cosa.suelta > .cumple-tarjeta {
+    margin-top: 0;
+}
+
+@media (min-width: 960px) {
+    .otra-cosa-dentro > .banda {
+        padding: 36px 40px 40px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .otra-cosa > summary > svg {
+        transition: none;
+    }
+}
+
+/* The band of now, right under the greeting: the day at the top, so that it is in the first screen. */
+@media (min-width: 960px) {
+    .familia-arriba + .banda {
+        align-items: start;
+        padding-top: 44px;
+    }
+}
+
+/* How to ask for a place, in the band once they came: the words of the centre, and one line for what is doubtful. */
+.banda .como-se-pide {
+    margin: 4px 0 0;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+.banda .ayuda-banda {
+    margin: 6px 0 0;
+    opacity: 0.86;
+}
+
+/* The reason chosen of a child that does not go on: filled, as the answer above it. */
+.rematricula .ficha-boton[aria-pressed="true"] {
+    border-color: var(--c-acento);
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    box-shadow: none;
+}
+
+/* On a phone the card of next school year takes the width: what hangs, small, beside the question, and the answers,
+   the reasons and the note under both. */
+@media (max-width: 559px) {
+    .rematricula-nino {
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 10px 12px;
+    }
+
+    .rematricula-texto {
+        display: contents;
+    }
+
+    .rematricula-pregunta {
+        grid-column: 2;
+        align-self: center;
+    }
+
+    .rematricula-texto > :not(.rematricula-pregunta) {
+        grid-column: 1 / -1;
+    }
+
+    .rematricula-percha {
+        height: 104px;
+    }
+
+    .rematricula-riel {
+        top: 12px;
+    }
+
+    .rematricula-gancho {
+        top: 8px;
+    }
+
+    .rematricula-colgante {
+        top: 18px;
+        width: 50px;
+        margin-left: -25px;
+    }
+
+    .rematricula-curso {
+        display: none;
+    }
+
+    .rematricula-leave .rematricula-colgante {
+        transform: translateY(30px) rotate(-12deg);
+    }
+
+    .rematricula-none .rematricula-colgante {
+        transform: translateX(14px) translateY(20px);
+    }
+
+    .rematricula-botones {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-self: stretch;
+        border-radius: 22px;
+    }
+
+    .rematricula-botones .eleccion:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Their data, folded: what it is in a line, and inside, taking it and, quieter, erasing it (it asks again before). */
+.sus-datos > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 12px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.sus-datos > summary::-webkit-details-marker {
+    display: none;
+}
+
+.sus-datos > summary > h3 {
+    grid-column: 1 / -1;
+}
+
+.sus-datos > summary > .muted {
+    grid-column: 1;
+}
+
+.sus-datos > summary > svg {
+    grid-column: 2;
+    grid-row: 2;
+    width: 20px;
+    height: 20px;
+    color: var(--c-acento-texto);
+    transition: transform 0.2s ease;
+}
+
+.sus-datos[open] > summary > svg {
+    transform: rotate(180deg);
+}
+
+.lo-contado .borrar-datos {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    font-weight: 600;
+}

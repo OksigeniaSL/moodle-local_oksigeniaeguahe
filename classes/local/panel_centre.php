@@ -133,9 +133,9 @@ class panel_centre {
             'handoverhow' => (string) ($centre->handoverhow ?? ''),
             'invitegone' => !empty($centre->invitegone),
             // For the story «Your first day»: when the school year starts, and the name of the centre as it is said in a sentence.
-            'firstday' => !empty($centre->firstday) ? userdate((int) $centre->firstday, '%Y-%m-%d') : '',
+            'firstday' => !empty($centre->firstday) ? userdate((int) $centre->firstday, '%Y-%m-%d', 99, false) : '',
             'firstdaydate' => ['describedby' => 'c-primer-a'] + panel::date_input('firstday', !empty($centre->firstday) ?
-                userdate((int) $centre->firstday, '%Y-%m-%d') : '', $centre, 'c-primer'),
+                userdate((int) $centre->firstday, '%Y-%m-%d', 99, false) : '', $centre, 'c-primer'),
             'namephrase' => (string) ($centre->namephrase ?? ''),
             'namephraseexample' => get_string('panel_namephrase_example', $c, format_string($centre->name)),
             'siblingages' => array_map(fn($n) => ['value' => $n, 'name' => $n ? get_string('panel_siblingage_n', $c, $n) :
@@ -156,6 +156,8 @@ class panel_centre {
             'areaplaces' => array_values(centres::municipalities($centre)),
             'networklist' => array_values(centres::networks($centre)),
             'firstdayleaf' => !empty($centre->firstday) ? panel::leaf((int) $centre->firstday) : false,
+            // How a family asks for a place, where and between which days: what its page says after the visit.
+            'apply' => self::apply_settings($centre),
             // The offer of one school year as the shelves of its stages, each course a card (Jujol).
             'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
@@ -585,6 +587,28 @@ class panel_centre {
     }
 
     /**
+     * How a family asks for a place, for the card of the settings: the words of the centre, where (a website, if it is
+     * one) and the two days, each with its leaf of the calendar.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    protected static function apply_settings(\stdClass $centre): array {
+        $day = fn(string $field) => !empty($centre->$field) ? userdate((int) $centre->$field, '%Y-%m-%d', 99, false) : '';
+        $leaf = fn(string $field) => !empty($centre->$field) ? panel::leaf((int) $centre->$field) : false;
+        $until = panel::date_input('applyuntil', $day('applyuntil'), $centre, 'c-hasta');
+        return [
+            'how' => (string) ($centre->applyhow ?? ''),
+            'url' => (string) ($centre->applyurl ?? ''),
+            'fromdate' => ['describedby' => 'c-pedir-a'] + panel::date_input('applyfrom', $day('applyfrom'), $centre, 'c-desde'),
+            'untildate' => ['describedby' => 'c-pedir-a'] + $until,
+            'fromleaf' => $leaf('applyfrom'),
+            'untilleaf' => $leaf('applyuntil'),
+            'written' => trim((string) ($centre->applyhow ?? '')) !== '',
+        ];
+    }
+
+    /**
      * A day written in a date field, at its start where the centre lives; 0 without one.
      *
      * @param string $value Y-m-d.
@@ -725,6 +749,10 @@ class panel_centre {
             'invitegone' => optional_param('invitegone', 0, PARAM_BOOL),
             'firstday' => self::date(publicpage::date_param('firstday')),
             'namephrase' => optional_param('namephrase', '', PARAM_TEXT),
+            'applyhow' => optional_param('applyhow', '', PARAM_TEXT),
+            'applyurl' => optional_param('applyurl', '', PARAM_URL),
+            'applyfrom' => self::date(publicpage::date_param('applyfrom')),
+            'applyuntil' => self::date(publicpage::date_param('applyuntil')),
         ];
         // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
         if ($data->email !== '' && !validate_email($data->email)) {

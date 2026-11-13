@@ -123,6 +123,13 @@ final class settled_test extends \advanced_testcase {
         $this->assertStringContainsString('Lucía', $page['wallask']['button']);
         $this->assertFalse($page['howitwent']);
         $this->assertSame('Sí, con gusto', $page['settled']['volunteer']['yes']);
+        // Enrolled, no band; the offer is one of the things of the page, never two.
+        $this->assertFalse($page['nowband']);
+        $things = array_merge([$page['nowcard']], $page['more']);
+        $this->assertSame(['Sí, con gusto'], array_values(array_filter(array_map(
+            fn($thing) => $thing['volunteer']['ask']['yes'] ?? null,
+            $things
+        ))));
 
         // They ask: it waits for an answer, and the page says it was passed on.
         $this->assertTrue(settled::ask($household, '¿Qué llevan el primer día?'));
