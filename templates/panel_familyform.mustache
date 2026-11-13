@@ -24,6 +24,12 @@
     propose a visit now». The Moodle form behind it checks and saves; this page only draws it.
 
     New in this round: dupurl, children[].emptybag, offersinfo. Kept: everything of 0.15.
+    Review of 13 November 2026 (Jujol): gestures instead of form fields where the answer is chosen, not written. The
+    names, the mobile and the email are written on lines; the course is a chip of the courses of the campaign, each with
+    its free places (other school years folded); how they came, a chip; the act, the leaf of its day; the people who
+    come, «−» and «+»; «Ha venido», a stamp; «Espera respuesta», the permissions and «Ya es familia del centro», lamps;
+    how they heard of the centre and their language, chips. Every control keeps its name, so the Moodle form behind
+    reads the same values. New: children[].offergroups, eventleaves, peoplecount.
 
     Example context (json):
     {
@@ -38,9 +44,14 @@
                 "date": {"id": "childbirth0", "first": "childbirth0d", "form": false, "child": false, "invalid": false,
                 "labelled": true, "arialabel": false, "describedby": false, "mirror": false, "value": "",
                 "parts": [{"key": "d", "id": "childbirth0d", "name": "childbirth0d", "label": "Día", "value": "", "size": 2, "months": false}]} },
-            "offers": [{"value": 0, "name": "Sin decir", "selected": true}]}],
+            "offers": [{"value": 0, "name": "Sin decir", "selected": true}],
+            "offergroups": [{"year": "2027-28", "campaign": true, "offers": [{"value": 0, "name": "Sin curso todavía", "free": "", "selected": true, "id": "o00"},
+                {"value": 1, "name": "Infantil 3 años", "free": "19 libres", "selected": false, "id": "o01"}]}]}],
         "offersinfo": [{"value": 1, "free": "19 libres de 25", "next": "la próxima jornada, el sábado 21", "rail": ""}],
-        "channels": [{"value": "phone", "name": "Teléfono", "selected": true}], "hasevents": false, "events": [],
+        "channels": [{"value": "phone", "name": "Teléfono", "selected": true}], "hasevents": true, "events": [],
+        "eventleaves": [{"value": 0, "name": "A ninguna", "leaf": false, "selected": true},
+            {"value": 3, "name": "Jornada de puertas abiertas", "leaf": {"weekday": "sáb", "day": "21", "month": "nov"}, "hour": "10:00", "selected": false}],
+        "peoplecount": [{"value": 1, "selected": true, "prev": 1, "next": 2}, {"value": 2, "selected": false, "prev": 1, "next": 2}],
         "came": false, "people": "1", "body": "", "awaits": true, "places": [], "placeother": {"name": "municipalityother",
         "value": "", "error": ""}, "heard": [], "incentre": false, "langs": [], "consents": [{"name": "consentemail",
         "label": "Correo", "checked": false}]
@@ -70,12 +81,18 @@
                 <summary>{{#str}}form_child, local_oksigeniaeguahe, {{number}}{{/str}}</summary>
                 <input type="hidden" name="childid{{i}}" value="{{id}}">
                 <div class="hijo-campos">
-                    <div class="rejilla-2">
+                    <div class="rejilla-2 ap-lineas">
                         {{#name}}<div class="campo"><label for="{{name}}">{{#str}}form_childname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off" data-nombre-hijo="{{i}}"></div>{{/name}}
                         {{#tag}}<div class="campo"><label for="{{name}}">{{#str}}form_tagname, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off" data-etiqueta-hijo="{{i}}"><span class="ayuda">{{#str}}panel_ff_tag_help, local_oksigeniaeguahe{{/str}}</span></div>{{/tag}}
                         {{#birth}}<div class="campo"><label id="{{name}}-l" for="{{date.first}}">{{#str}}form_birthdate, local_oksigeniaeguahe{{/str}}</label>{{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}{{#error}}<span class="error">{{error}}</span>{{/error}}<span class="ayuda">{{#str}}panel_ff_birth_help, local_oksigeniaeguahe{{/str}}</span></div>{{/birth}}
-                        <div class="campo ancho"><label for="{{offername}}">{{#str}}offer, local_oksigeniaeguahe{{/str}}</label><select id="{{offername}}" name="{{offername}}" data-curso-hijo="{{i}}">{{#offers}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/offers}}</select>
-                            <div class="plazas-mini" data-plazas-mini="{{i}}" aria-live="polite"></div></div>
+                        <fieldset class="campo ancho ap-cursos" data-curso-hijo="{{i}}">
+                            <legend>{{#str}}offer, local_oksigeniaeguahe{{/str}}</legend>
+                            {{#offergroups}}
+                            {{#campaign}}<div class="ap-fichas">{{#offers}}<input class="oculto" type="radio" name="{{offername}}" id="{{offername}}-{{id}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="{{offername}}-{{id}}"><b>{{name}}</b>{{#free}}<small>{{free}}</small>{{/free}}</label>{{/offers}}</div>{{/campaign}}
+                            {{^campaign}}<details class="ap-otro-curso"><summary>{{#str}}panel_ff_course_other, local_oksigeniaeguahe, {{year}}{{/str}}</summary><div class="ap-fichas">{{#offers}}<input class="oculto" type="radio" name="{{offername}}" id="{{offername}}-{{id}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="{{offername}}-{{id}}"><b>{{name}}</b>{{#free}}<small>{{free}}</small>{{/free}}</label>{{/offers}}</div></details>{{/campaign}}
+                            {{/offergroups}}
+                            <div class="plazas-mini" data-plazas-mini="{{i}}" aria-live="polite"></div>
+                        </fieldset>
                     </div>
                     <div class="etiqueta-viva" aria-hidden="true" data-etiqueta-viva="{{i}}">{{#emptybag}}{{> local_oksigeniaeguahe/panel_hanging }}{{/emptybag}}</div>
                 </div>
@@ -87,16 +104,22 @@
         {{#isnew}}
         <section class="apartado paso-llamada" aria-labelledby="ap-3">
             <header><span class="num-paso" aria-hidden="true">3</span><h2 id="ap-3">{{#str}}form_how, local_oksigeniaeguahe{{/str}}</h2></header>
-            <div class="rejilla-2">
-                <div class="campo"><label for="channel">{{#str}}channel, local_oksigeniaeguahe{{/str}}</label><select id="channel" name="channel">{{#channels}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/channels}}</select></div>
-                {{#hasevents}}
-                <div class="campo"><label for="eventid">{{#str}}form_event, local_oksigeniaeguahe{{/str}}</label><select id="eventid" name="eventid">{{#events}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/events}}</select></div>
-                <div class="campo"><label for="people">{{#str}}form_people, local_oksigeniaeguahe{{/str}}</label><input id="people" name="people" value="{{people}}" type="number" min="1" inputmode="numeric"></div>
-                <label class="casilla"><input type="hidden" name="came" value="0"><input type="checkbox" name="came" value="1"{{#came}} checked{{/came}}> {{#str}}form_came, local_oksigeniaeguahe{{/str}}</label>
-                {{/hasevents}}
-                <div class="campo ancho"><label for="body">{{#str}}form_said, local_oksigeniaeguahe{{/str}}</label><textarea id="body" name="body" rows="3">{{body}}</textarea></div>
-                <label class="casilla ancho"><input type="hidden" name="awaits" value="0"><input type="checkbox" name="awaits" value="1"{{#awaits}} checked{{/awaits}}> {{#str}}form_awaits, local_oksigeniaeguahe{{/str}}</label>
+            <fieldset class="ap-grupo"><legend>{{#str}}channel, local_oksigeniaeguahe{{/str}}</legend>
+                <div class="ap-fichas">{{#channels}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="canal-{{value}}"><b>{{name}}</b></label>{{/channels}}</div>
+            </fieldset>
+            {{#hasevents}}
+            <fieldset class="ap-grupo"><legend>{{#str}}form_event, local_oksigeniaeguahe{{/str}}</legend>
+                <div class="ap-hojas">{{#eventleaves}}<input class="oculto" type="radio" name="eventid" id="acto-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-hoja{{^leaf}} ap-hoja-nada{{/leaf}}" for="acto-{{value}}">{{#leaf}}<span class="hoja-cal" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}<span class="ap-hoja-que"><b>{{name}}</b>{{#hour}}<small>{{hour}}</small>{{/hour}}</span></label>{{/eventleaves}}</div>
+            </fieldset>
+            <div class="ap-fila">
+                <fieldset class="ap-grupo ap-contador"><legend>{{#str}}panel_ff_people, local_oksigeniaeguahe{{/str}}</legend>
+                    {{#peoplecount}}<input class="oculto" type="radio" name="people" id="gente-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><span class="ap-cuenta"><label class="ap-signo" for="gente-{{prev}}" aria-hidden="true">−</label><b>{{value}}</b><label class="ap-signo" for="gente-{{next}}" aria-hidden="true">+</label></span>{{/peoplecount}}
+                </fieldset>
+                <label class="ap-sello"><input type="hidden" name="came" value="0"><input class="oculto" type="checkbox" name="came" value="1"{{#came}} checked{{/came}}><span>{{#str}}panel_ff_came, local_oksigeniaeguahe{{/str}}</span></label>
             </div>
+            {{/hasevents}}
+            <div class="campo ap-papel"><label for="body">{{#str}}form_said, local_oksigeniaeguahe{{/str}}</label><textarea id="body" name="body" rows="3">{{body}}</textarea></div>
+            <label class="ap-luz"><input type="hidden" name="awaits" value="0"><input class="oculto" type="checkbox" name="awaits" value="1"{{#awaits}} checked{{/awaits}}><span class="ap-bombilla" aria-hidden="true"></span><span>{{#str}}form_awaits, local_oksigeniaeguahe{{/str}}</span></label>
         </section>
         {{/isnew}}
 
@@ -105,10 +128,14 @@
             <div class="rejilla-2">
                 <div class="campo"><label for="municipality">{{#str}}panel_locality, local_oksigeniaeguahe{{/str}}</label><select id="municipality" name="municipality">{{#places}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/places}}</select></div>
                 {{#placeother}}<div class="campo"><label for="{{name}}">{{#str}}form_place_other, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}"></div>{{/placeother}}
-                <div class="campo"><label for="heardfrom">{{#str}}heardfrom, local_oksigeniaeguahe{{/str}}</label><select id="heardfrom" name="heardfrom" data-cual-red="social">{{#heard}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/heard}}</select></div>
+                <fieldset class="ap-grupo ancho" data-cual-red="social"><legend>{{#str}}heardfrom, local_oksigeniaeguahe{{/str}}</legend>
+                    <div class="ap-fichas">{{#heard}}<input class="oculto" type="radio" name="heardfrom" id="oyo-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="oyo-{{value}}"><b>{{name}}</b></label>{{/heard}}</div>
+                </fieldset>
                 {{#heardnet}}<div class="campo cual-red"{{^heardnetshown}} hidden{{/heardnetshown}}><label for="{{name}}">{{#str}}heardnet, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" list="redes" maxlength="60" autocomplete="off"><datalist id="redes">{{#networks}}<option value="{{name}}"></option>{{/networks}}</datalist></div>{{/heardnet}}
-                <div class="campo"><label for="lang">{{#str}}form_lang, local_oksigeniaeguahe{{/str}}</label><select id="lang" name="lang">{{#langs}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/langs}}</select></div>
-                <label class="casilla ancho"><input type="hidden" name="incentre" value="0"><input type="checkbox" name="incentre" value="1"{{#incentre}} checked{{/incentre}}> {{#str}}incentre, local_oksigeniaeguahe{{/str}}</label>
+                <fieldset class="ap-grupo ancho"><legend>{{#str}}form_lang, local_oksigeniaeguahe{{/str}}</legend>
+                    <div class="ap-fichas">{{#langs}}<input class="oculto" type="radio" name="lang" id="idioma-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><label class="ap-ficha" for="idioma-{{value}}"><b>{{name}}</b></label>{{/langs}}</div>
+                </fieldset>
+                <label class="ap-luz ancho"><input type="hidden" name="incentre" value="0"><input class="oculto" type="checkbox" name="incentre" value="1"{{#incentre}} checked{{/incentre}}><span class="ap-bombilla" aria-hidden="true"></span><span>{{#str}}incentre, local_oksigeniaeguahe{{/str}}</span></label>
             </div>
         </details>
 
@@ -116,11 +143,11 @@
         <section class="apartado paso-llamada" aria-labelledby="ap-5">
             <header><span class="num-paso" aria-hidden="true">5</span><h2 id="ap-5">{{#str}}permissions, local_oksigeniaeguahe{{/str}}</h2></header>
             <p class="secundario">{{#str}}form_consent_help, local_oksigeniaeguahe{{/str}}</p>
-            <div class="casillas">{{#consents}}<label class="casilla"><input type="hidden" name="{{name}}" value="0"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}> {{label}}</label>{{/consents}}</div>
+            <div class="ap-luces">{{#consents}}<label class="ap-luz"><input type="hidden" name="{{name}}" value="0"><input class="oculto" type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}><span class="ap-bombilla" aria-hidden="true"></span><span>{{label}}</span></label>{{/consents}}</div>
         </section>
         {{/isnew}}
 
-        <div class="acciones guardar-pie">
+        <div class="acciones guardar-pie ap-pie">
             {{#isnew}}
             <button class="boton principal" type="submit" name="submitbutton" value="1">{{#str}}panel_ff_save, local_oksigeniaeguahe{{/str}}</button>
             <button class="boton secundario" type="submit" name="answernow" value="1">{{#str}}panel_ff_save_answer, local_oksigeniaeguahe{{/str}}</button>

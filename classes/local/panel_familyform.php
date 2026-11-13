@@ -63,6 +63,38 @@ class panel_familyform {
 
         $children = [];
         $offers = household_form::offer_options($centre);
+        // The courses as chips: those of the campaign first, each with its free places; the other school years folded.
+        $counts = households::offer_counts((int) $centre->id);
+        $free = function (\stdClass $offer) use ($counts, $c): string {
+            $total = (int) $offer->places;
+            $free = max(0, $total - (int) ($counts[$offer->id]['enrolled'] ?? 0));
+            return $total ? get_string($free === 1 ? 'panel_ff_free_one' : 'panel_ff_free', $c, $free) : '';
+        };
+        $byyear = [];
+        foreach (centres::offers((int) $centre->id, true) as $offer) {
+            $byyear[(string) $offer->schoolyear][] = $offer;
+        }
+        $campaign = panel_inbox::campaign_school_year($centre, array_keys($byyear), time());
+        $groups = function (int $i, string $chosen) use ($byyear, $campaign, $free, $c): array {
+            $chip = fn(int $value, string $name, string $free) => ['value' => $value, 'name' => $name, 'free' => $free,
+                'selected' => (string) $value === ($chosen === '' ? '0' : $chosen), 'id' => 'o' . $value];
+            $out = [['year' => s($campaign), 'campaign' => true,
+                'offers' => [$chip(0, get_string('offer_unknown', $c), '')]]];
+            foreach ($byyear[$campaign] ?? [] as $offer) {
+                $out[0]['offers'][] = $chip((int) $offer->id, format_string($offer->name), $free($offer));
+            }
+            foreach ($byyear as $year => $list) {
+                if ((string) $year === $campaign) {
+                    continue;
+                }
+                $group = ['year' => s($year), 'campaign' => false, 'offers' => []];
+                foreach ($list as $offer) {
+                    $group['offers'][] = $chip((int) $offer->id, format_string($offer->name), '');
+                }
+                $out[] = $group;
+            }
+            return $out;
+        };
         for ($i = 0; $i < household_form::CHILDREN; $i++) {
             $name = $field("childname{$i}");
             $children[] = [
@@ -76,6 +108,7 @@ class panel_familyform {
                     'date' => ['invalid' => $field("childbirth{$i}")['error'] !== ''] +
                         panel::date_input("childbirth{$i}", (string) $value("childbirth{$i}"), $centre)],
                 'offers' => $options($offers, $value("offerid{$i}")),
+                'offergroups' => $groups($i, $value("offerid{$i}")),
                 'offername' => "offerid{$i}",
                 'emptybag' => panel::hanging($i, '', '', $centre),
                 'open' => $i === 0 || $name['value'] !== '',
@@ -120,6 +153,8 @@ class panel_familyform {
             'adults' => $adults,
             'channels' => $options(lists::options(lists::HAND_CHANNELS, 'channel_'), $value('channel')),
             'events' => $options(household_form::event_options($centre), $value('eventid') ?: '0'),
+            'eventleaves' => self::event_leaves($centre, $value('eventid') ?: '0'),
+            'peoplecount' => self::counter((int) ($value('people') !== '' ? $value('people') : 1), events::MAXPEOPLE),
             'hasevents' => count(household_form::event_options($centre)) > 1,
             'came' => !empty($values['came']),
             'people' => $value('people') !== '' ? $value('people') : '1',
@@ -140,6 +175,43 @@ class panel_familyform {
                 '',
             'offersinfo' => self::offers_info($centre),
         ];
+    }
+
+    /**
+     * The acts a family can be written down for, as leaves of their day; «None» first.
+     *
+     * @param \stdClass $centre
+     * @param string $chosen
+     * @return array value, name, leaf, hour, selected
+     */
+    public static function event_leaves(\stdClass $centre, string $chosen): array {
+        $out = [['value' => 0, 'name' => get_string('form_noevent', self::C), 'leaf' => false, 'hour' => '',
+            'selected' => $chosen === '0']];
+        foreach (events::for_centre((int) $centre->id) as $event) {
+            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
+                $out[] = ['value' => (int) $event->id, 'name' => format_string($event->name),
+                    'leaf' => panel::leaf((int) $event->timestart),
+                    'hour' => userdate((int) $event->timestart, get_string('strftimetime', 'langconfig')),
+                    'selected' => (string) $event->id === $chosen];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * A counter without JavaScript: one radio per number, each face with its «−» and «+» pointing to the radios beside.
+     *
+     * @param int $value
+     * @param int $max
+     * @return array value, selected, prev, next
+     */
+    public static function counter(int $value, int $max): array {
+        $value = max(1, min($max, $value));
+        $out = [];
+        for ($n = 1; $n <= $max; $n++) {
+            $out[] = ['value' => $n, 'selected' => $n === $value, 'prev' => max(1, $n - 1), 'next' => min($max, $n + 1)];
+        }
+        return $out;
     }
 
     /**

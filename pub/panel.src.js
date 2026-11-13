@@ -958,10 +958,12 @@
                 label(input.getAttribute('data-etiqueta-hijo') || input.getAttribute('data-nombre-hijo'));
             });
         });
+        // The course of each child: a select, or its chips (a group of radios).
         all('[data-curso-hijo]', form).forEach(function(select) {
             var slot = one('[data-plazas-mini="' + select.getAttribute('data-curso-hijo') + '"]', form);
             var update = function() {
-                var source = one('[data-plazas-de="' + select.value + '"]', form);
+                var chosen = select.tagName === 'SELECT' ? select : one('input:checked', select);
+                var source = one('[data-plazas-de="' + (chosen ? chosen.value : '') + '"]', form);
                 slot.innerHTML = '';
                 if (source) {
                     slot.appendChild(source.cloneNode(true));
@@ -2675,14 +2677,16 @@
 
     // How they heard of the centre: on a network, which one; the field only when it is a network, or already written.
     all('[data-cual-red]').forEach(function(select) {
-        var form = select.form || doc;
+        var form = select.form || select.closest('form') || doc;
         var which = one('.cual-red', form);
         if (!which) {
             return;
         }
         var shown = function() {
             var input = one('input', which);
-            which.hidden = select.value !== select.getAttribute('data-cual-red') && !(input && input.value);
+            // A select, or its chips (a group of radios).
+            var chosen = select.tagName === 'SELECT' ? select : one('input:checked', select);
+            which.hidden = (chosen ? chosen.value : '') !== select.getAttribute('data-cual-red') && !(input && input.value);
         };
         on(select, 'change', shown);
         shown();

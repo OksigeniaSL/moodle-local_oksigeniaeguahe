@@ -26,7 +26,7 @@
         "email": {"name": "email0", "value": "", "error": ""} }
 }}
 <input type="hidden" name="adultid{{i}}" value="{{id}}">
-<div class="rejilla-2">
+<div class="rejilla-2 ap-lineas">
     {{#firstname}}<div class="campo"><label for="{{name}}">{{#str}}firstname{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"{{#required}} required{{/required}}{{#error}} aria-invalid="true" aria-describedby="{{name}}-e"{{/error}}>{{#error}}<span class="error" id="{{name}}-e">{{error}}</span>{{/error}}</div>{{/firstname}}
     {{#lastname}}<div class="campo"><label for="{{name}}">{{#str}}lastname{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" autocomplete="off"></div>{{/lastname}}
     {{#phone}}<div class="campo"><label for="{{name}}">{{#str}}panel_ff_mobile, local_oksigeniaeguahe{{/str}}</label><input id="{{name}}" name="{{name}}" value="{{value}}" type="tel" inputmode="tel" dir="ltr" autocomplete="off" data-movil{{#error}} aria-invalid="true" aria-describedby="{{name}}-e"{{/error}}>{{#error}}<span class="error" id="{{name}}-e">{{error}}</span>{{/error}}</div>{{/phone}}

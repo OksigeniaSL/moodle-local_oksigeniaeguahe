@@ -3429,6 +3429,293 @@ input:focus-visible + .ficha-canal {
     background: var(--piel-fondo);
 }
 
+/* ---------- Writing down a family with gestures (Jujol, 13 November 2026) ---------- */
+/* What is written goes on lines, as on a card at the desk; what is chosen is a chip, a leaf, a counter, a stamp or a
+   lamp. Every control is an input with its name, so the form behind reads the same values. */
+.ap-lineas .campo input:not([type="hidden"]) {
+    min-height: 44px;
+    padding: 6px 2px 4px;
+    border: 0;
+    border-bottom: 2px dashed var(--eg-borde);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.ap-lineas .campo input:not([type="hidden"]):focus {
+    border-bottom-style: solid;
+    border-bottom-color: var(--eg-acento);
+    outline: none;
+}
+
+.ap-cursos,
+.ap-grupo {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.ap-cursos > legend,
+.ap-grupo > legend {
+    margin-bottom: 8px;
+    padding: 0;
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+/* The radios and checkboxes behind the faces: hidden in the corner of their group, so a chip at the end of a line
+   never pushes the page sideways. */
+.ap-fichas,
+.ap-hojas,
+.ap-contador,
+.ap-luz,
+.ap-sello {
+    position: relative;
+}
+
+.ap-fichas > .oculto,
+.ap-hojas > .oculto,
+.ap-contador > .oculto,
+.ap-luz > .oculto,
+.ap-sello > .oculto {
+    top: 0;
+    left: 0;
+}
+
+/* Chips: a radio and its face. */
+.ap-fichas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ap-ficha {
+    display: inline-grid;
+    align-content: center;
+    min-height: 44px;
+    padding: 4px 14px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.ap-ficha b {
+    font-weight: 650;
+}
+
+.ap-ficha small {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+input:checked + .ap-ficha {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+input:checked + .ap-ficha small {
+    color: inherit;
+    opacity: 0.85;
+}
+
+input:focus-visible + .ap-ficha,
+input:focus-visible + .ap-hoja,
+input:focus-visible + .ap-cuenta,
+input:focus-visible + .ap-bombilla,
+input:focus-visible + span {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.ap-otro-curso {
+    margin-top: 10px;
+}
+
+.ap-otro-curso > summary {
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.ap-otro-curso > summary::-webkit-details-marker {
+    display: none;
+}
+
+.ap-otro-curso[open] > summary {
+    margin-bottom: 8px;
+}
+
+.paso-llamada > .ap-grupo + .ap-grupo,
+.paso-llamada > .ap-grupo + .ap-fila,
+.paso-llamada > .ap-fila + .ap-papel,
+.paso-llamada > .ap-grupo + .ap-papel {
+    margin-top: 16px;
+}
+
+/* The act: the leaf of its day, «None» a blank one. */
+.ap-hojas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ap-hoja {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 60px;
+    padding: 6px 14px 6px 6px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+    cursor: pointer;
+}
+
+.ap-hoja-nada {
+    padding-inline-start: 14px;
+}
+
+.ap-hoja-que {
+    display: grid;
+    line-height: 1.25;
+}
+
+.ap-hoja-que small {
+    color: var(--eg-tinta-2);
+}
+
+input:checked + .ap-hoja {
+    border-color: var(--eg-accion);
+    box-shadow: inset 0 0 0 1.5px var(--eg-accion);
+    background: var(--eg-acento-suave);
+}
+
+/* How many come: «−», the number, «+»; only the face of the checked radio shows. */
+.ap-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px 28px;
+}
+
+.ap-contador .ap-cuenta {
+    display: none;
+    align-items: center;
+    gap: 12px;
+}
+
+.ap-contador input:checked + .ap-cuenta {
+    display: inline-flex;
+}
+
+.ap-cuenta b {
+    min-width: 2ch;
+    font-size: 1.75rem;
+    font-weight: 780;
+    text-align: center;
+}
+
+.ap-signo {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 50%;
+    background: var(--eg-superficie);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* «Ha venido»: a stamp, pale until pressed. */
+.ap-sello span {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 2.5px dashed var(--eg-borde);
+    border-radius: 8px;
+    color: var(--eg-tinta-2);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transform: rotate(-2deg);
+}
+
+.ap-sello input:checked + span {
+    border-style: solid;
+    border-color: var(--eg-sello);
+    color: var(--eg-sello);
+}
+
+/* What they said: a slip of paper. */
+.ap-papel textarea {
+    border: 0;
+    border-top: 2px dashed var(--eg-borde);
+    border-radius: 2px 2px 10px 10px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea), 0 10px 16px -14px rgba(0, 0, 0, 0.4);
+}
+
+/* A lamp: «Espera respuesta», the permissions, «Ya es familia del centro». */
+.ap-luces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ap-luz {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    margin-top: 12px;
+    padding: 4px 16px 4px 8px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 22px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+    cursor: pointer;
+    justify-self: start;
+}
+
+.ap-luces .ap-luz {
+    margin-top: 0;
+}
+
+.ap-bombilla {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+}
+
+.ap-luz input:checked + .ap-bombilla {
+    background: radial-gradient(circle at 40% 35%, #fff4cf, #f0b43c 62%, #d99418);
+    box-shadow: 0 0 10px 2px rgba(240, 180, 60, 0.5);
+}
+
+.ap-luz input:checked ~ span:last-child {
+    color: var(--eg-tinta);
+}
+
 @media (min-width: 720px) {
     .hijo-campos {
         grid-template-columns: minmax(0, 1fr) 96px;
@@ -9846,6 +10133,37 @@ html.modo-lamina {
 
     body.con-abajo .guardar-pie {
         bottom: calc(64px + var(--seguro-abajo));
+    }
+
+    /* Writing down a family on a phone: the footer is one line (the main button), not half the screen. */
+    .ap-pie {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 10px;
+        padding-block: 8px calc(8px + var(--seguro-abajo));
+    }
+
+    .ap-pie .boton {
+        min-width: 0;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    .ap-pie .boton.principal {
+        flex: 1 1 0;
+    }
+
+    .ap-pie .boton.secundario {
+        flex: 1 1 0;
+        min-height: 44px;
+        padding-inline: 10px;
+        font-size: 0.875rem;
+    }
+
+    /* «Cancelar» is the way back at the head of the page. */
+    .ap-pie .boton.terciario {
+        display: none;
     }
 }
 
