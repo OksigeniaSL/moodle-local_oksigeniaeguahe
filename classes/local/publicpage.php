@@ -601,6 +601,8 @@ display: grid; }
             'phone' => $phone,
             'tel' => preg_replace('/[^\d+]/', '', $phone),
             'writeus' => publiclang::str('pub_write_us', $lang),
+            // Whether «write to us» leads somewhere: without an email or a phone of the centre, it is not said.
+            'canwrite' => trim((string) ($centre->email ?? '')) !== '' || $phone !== '',
         ];
     }
 }

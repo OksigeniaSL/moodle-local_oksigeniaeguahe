@@ -21,7 +21,8 @@
     rest under «Also on your page». Exactly one of its kinds is there:
     * band - the band of the centre's colour: the visit (isvisit), the day they will be offered (ispending), how to ask
       for a place once they came (isapply) or how to write with no visit yet (isnext); the visit and its words come
-      from the page (first, others, bandlabel…).
+      from the page (first, others, bandlabel…), and so do the email and phone of the centre, with canwrite when there
+      is one of them (else «write to us» is not said).
     * turn - a brother or sister whose turn has come: a place kept with one touch.
     * renewal - whether each child goes on next school year.
     * survey - «How did it go?», with the open question first.
@@ -78,7 +79,7 @@
     <div class="detalles">
         {{#year}}<b>{{year}}</b>{{/year}}
         {{#how}}<p class="como-se-pide" dir="auto">{{how}}</p>{{/how}}
-        <p class="ayuda-banda">{{help}}</p>
+        {{#canwrite}}<p class="ayuda-banda">{{help}}</p>{{/canwrite}}
         <div class="acciones">
             {{#go}}<a class="boton inverso" href="{{url}}" rel="noopener noreferrer" data-toca="apply">{{label}}</a>{{/go}}
             {{#email}}<a class="{{#go}}enlace{{/go}}{{^go}}boton inverso{{/go}}" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
