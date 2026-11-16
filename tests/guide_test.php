@@ -66,10 +66,13 @@ final class guide_test extends \advanced_testcase {
         $this->assertStringContainsString('/pub/guia/perro-senala-256.webp', $map['img']['src']);
         $this->assertStringContainsString('perro-senala-512.webp 2x', $map['img']['srcset']);
         $this->assertSame('', $map['avoid'], 'This miniature has no labels.');
-        $marks = guide::read_way(self::SVG . '<rect x="558" y="579.4" width="229.6" height="73"/>' .
-            '<g transform="translate(726.9 304.0) scale(5.80)"><path d="M0 0"/></g>')['marks'];
-        $this->assertCount(2, $marks, 'A label and the pin.');
+        $svg = self::SVG . '<rect x="558" y="579.4" width="229.6" height="73"/>' .
+            '<g transform="translate(726.9 304.0) scale(5.80)"><path d="M0 0"/></g>' .
+            '<circle cx="871.0" cy="636.8" r="11.5"/><circle r="11.5" cy="706.5" cx="1160.1"/><circle cx="795" cy="741" r="6.8"/>';
+        $marks = guide::read_way($svg)['marks'];
+        $this->assertCount(3, $marks, 'A label, the dot of a line (not the one at the entrance, nor a small ring) and the pin.');
         $this->assertEqualsWithDelta(0.345, $marks[0][0], 0.001);
+        $this->assertEqualsWithDelta((1160.1 - 11.5) / 1600, $marks[1][0], 0.001);
 
         // By the greeting: the words of Eguahe, or those of the centre.
         $this->assertSame(get_string('pub_guide_hello', 'local_oksigeniaeguahe'), guide::hello($centre, 'en')['bubble']);
@@ -107,5 +110,29 @@ final class guide_test extends \advanced_testcase {
         $this->assertSame(-1, $giro);
         $this->assertLessThanOrEqual(98.01, $y + $rise / 100 * $tall + $tall, 'Its feet stay inside the picture.');
         $this->assertGreaterThan(50, $x, 'Aside, away from where the way goes.');
+    }
+
+    /**
+     * A label just below the entrance, where the guide would stand: it stands a step aside, away from where the way goes,
+     * and covers no label.
+     */
+    public function test_never_on_a_label(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'guide' => 'perro']);
+        get_file_storage()->create_file_from_string(['contextid' => \context_system::instance()->id,
+            'component' => 'local_oksigeniaeguahe', 'filearea' => 'miniature', 'itemid' => $id, 'filepath' => '/',
+            'filename' => 'etiqueta.svg'], '<svg viewBox="0 0 1600 1000"><rect x="760" y="640" width="230" height="73" rx="13"/>' .
+            '<path class="ruta" d="M800 600 900 450 1100 300"/></svg>');
+        $style = guide::on_map(centres::get($id), 'miniature', false, 'es')['style'];
+        preg_match('/--x:([\d.]+)%;--y:([\d.]+)%;--giro:(-?1);--alto:(-?[\d.]+)%/', $style, $m);
+        [$x, $y, $giro, $rise] = [(float) $m[1] / 100, (float) $m[2] / 100, (int) $m[3], (float) $m[4]];
+        $this->assertSame(1, $giro, 'The way goes to the right.');
+        $this->assertLessThan(0.5, $x, 'A step to the left of the entrance, away from where the way goes.');
+        $tall = guide::WIDE * 1.6;
+        $top = $y + $rise / 100 * $tall;
+        // The figure, as uncovered() measures it, and the label with the margin marks() gives it.
+        [$l, $t, $r, $b] = [$x - guide::WIDE * 0.38, $top + $tall * 0.12, $x + guide::WIDE * 0.38, $top + $tall * 0.98];
+        [$ml, $mt, $mr, $mb] = [754 / 1600, 634 / 1000, 996 / 1600, 719 / 1000];
+        $this->assertTrue($r <= $ml || $l >= $mr || $b <= $mt || $t >= $mb, 'It covers no label.');
     }
 }

@@ -61,7 +61,8 @@ class guide {
      *
      * @param string $svg
      * @return array x, y, endx, endy, up (whether its first stretch goes up), ratio (width over height) and marks (the
-     *     labels and the pin, which the bubble never covers: x, y, w, h); empty when the picture has no way.
+     *     labels, the dots their lines point at and the pin, which neither the guide nor its bubble covers: x, y, w, h);
+     *     empty when the picture has no way.
      */
     public static function read_way(string $svg): array {
         if (!preg_match('/viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/', $svg, $box)) {
@@ -79,19 +80,22 @@ class guide {
         $part = fn($v, $of) => round(min(1, max(0, (float) $v / $of)), 4);
         return ['x' => $part($n[0], $w), 'y' => $part($n[1], $h), 'endx' => $part($n[count($n) - 2], $w),
             'endy' => $part($n[count($n) - 1], $h), 'up' => (float) $n[3] < (float) $n[1], 'ratio' => round($w / $h, 4),
-            'marks' => self::marks($svg, $w, $h)];
+            'marks' => self::marks($svg, $w, $h, (float) $n[0], (float) $n[1])];
     }
 
     /**
-     * The labels of a miniature (its rectangles) and its pin (a group moved and scaled, as the recipe draws it), as
-     * boxes in parts of the picture, a little bigger than they are.
+     * The labels of a miniature (its rectangles), the dots their lines point at (its bigger circles, but the one at the
+     * entrance, where the guide waits) and its pin (a group moved and scaled, as the recipe draws it), as boxes in parts
+     * of the picture; the labels, a little bigger than they are.
      *
      * @param string $svg
      * @param float $w Width of the picture.
      * @param float $h Height of the picture.
+     * @param float $startx Where the way starts.
+     * @param float $starty
      * @return array[] x, y, w, h.
      */
-    protected static function marks(string $svg, float $w, float $h): array {
+    protected static function marks(string $svg, float $w, float $h, float $startx, float $starty): array {
         $boxes = [];
         $pad = 6;
         preg_match_all('/<rect\b[^>]*>/', $svg, $rects);
@@ -102,6 +106,17 @@ class guide {
             }
             if ($at['x'] !== null && $at['y'] !== null && $at['width'] && $at['height'] && $at['width'] < $w * 0.6) {
                 $boxes[] = [$at['x'] - $pad, $at['y'] - $pad, $at['width'] + 2 * $pad, $at['height'] + 2 * $pad];
+            }
+        }
+        preg_match_all('/<circle\b[^>]*>/', $svg, $dots);
+        foreach ($dots[0] as $dot) {
+            $at = [];
+            foreach (['cx', 'cy', 'r'] as $k) {
+                $at[$k] = preg_match('/\s' . $k . '="(-?[\d.]+)"/', $dot, $m) ? (float) $m[1] : null;
+            }
+            [$x, $y, $r] = [$at['cx'], $at['cy'], $at['r']];
+            if ($x !== null && $y !== null && $r >= 8 && $r < $w * 0.05 && hypot($x - $startx, $y - $starty) > $r) {
+                $boxes[] = [$x - $r, $y - $r, 2 * $r, 2 * $r];
             }
         }
         $pin = '/<g\b[^>]*transform="translate\((-?[\d.]+)[ ,]+(-?[\d.]+)\)\s*scale\(([\d.]+)\)"/';
@@ -183,11 +198,43 @@ class guide {
             $top = 0.98 - $tall;
             $x -= $flip * self::WIDE * 0.75;
         }
-        $top = max(0, $top);
-        $x = min(1 - self::WIDE / 2, max(self::WIDE / 2, $x));
+        [$x, $top] = self::uncovered($way['marks'] ?? [], $x, $top, $tall, $flip);
         $rise = round(($top - $way['y']) / $tall * 100, 1);
         return '--x' . $suffix . ':' . round($x * 100, 2) . '%;--y' . $suffix . ':' . round($way['y'] * 100, 2) .
             '%;--giro' . $suffix . ':' . $flip . ';--alto' . $suffix . ':' . $rise . '%;';
+    }
+
+    /**
+     * Where near the entrance the guide covers no label and not the pin: where it stands, if that covers none; if not, a
+     * step aside, first away from where the way goes, then each time a little further; and if every place covers
+     * something, the one that covers least. Always inside the picture.
+     *
+     * @param array[] $marks read_way() marks: x, y, w, h.
+     * @param float $x Its middle, as a part of the width.
+     * @param float $top Its top, as a part of the height.
+     * @param float $tall Its height, as a part of the height.
+     * @param int $flip 1 when the way goes to the right, -1 to the left.
+     * @return float[] x and top.
+     */
+    protected static function uncovered(array $marks, float $x, float $top, float $tall, int $flip): array {
+        $best = null;
+        foreach ([0, -0.75, 0.75, -1, 1, -1.5, 1.5] as $step) {
+            $cx = min(1 - self::WIDE / 2, max(self::WIDE / 2, $x + $step * $flip * self::WIDE));
+            $ct = min(0.98 - $tall, max(0, $top));
+            // The figure, not its square: the picture has some air around it.
+            [$l, $t, $w, $h] = [$cx - self::WIDE * 0.38, $ct + $tall * 0.12, self::WIDE * 0.76, $tall * 0.86];
+            $cover = 0.0;
+            foreach ($marks as [$mx, $my, $mw, $mh]) {
+                $cover += max(0, min($l + $w, $mx + $mw) - max($l, $mx)) * max(0, min($t + $h, $my + $mh) - max($t, $my));
+            }
+            if ($best === null || $cover < $best[2] - 1e-9) {
+                $best = [$cx, $ct, $cover];
+            }
+            if ($cover <= 0) {
+                break;
+            }
+        }
+        return [$best[0], $best[1]];
     }
 
     /**
