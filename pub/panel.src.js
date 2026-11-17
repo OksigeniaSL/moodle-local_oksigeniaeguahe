@@ -2589,6 +2589,186 @@
         }
     }
 
+    // ---- «How is it done?»: the sheet of the bar answers while someone types, from the same page as the guide
+    // (howto.php?ajax=1). Enter goes to the first answer; sent with nothing found, the question is kept to improve the
+    // guide. Without the script, the button is a link to the guide.
+    var howto = one('#como');
+    var howtoOpeners = all('[data-como]');
+    if (howto && howtoOpeners.length && window.fetch) {
+        var howtoForm = one('[data-como-form]', howto);
+        var howtoField = one('#como-q', howto);
+        var howtoOut = one('[data-como-respuestas]', howto);
+        var howtoTimer = null;
+        var howtoAsked = 0;
+        var howtoFirst = null;
+        var howtoBack = null;
+        var howtoDraw = function(data) {
+            howtoOut.innerHTML = '';
+            howtoFirst = null;
+            if (data.answers && data.answers.length) {
+                var list = doc.createElement('ul');
+                list.className = 'como-lista';
+                data.answers.forEach(function(a) {
+                    var item = doc.createElement('li');
+                    var li = doc.createElement('div');
+                    li.className = 'como-r' + (a.setting ? ' como-ajuste' : '');
+                    item.appendChild(li);
+                    var kind = doc.createElement('span');
+                    kind.className = 'como-tipo';
+                    kind.textContent = a.kind;
+                    var title = doc.createElement('a');
+                    title.className = 'como-titulo';
+                    title.href = a.url;
+                    title.textContent = a.text;
+                    li.appendChild(kind);
+                    li.appendChild(title);
+                    if (a.value) {
+                        var value = doc.createElement('span');
+                        value.className = 'como-valor';
+                        value.textContent = say('panel_howto_now') + ': ' + a.value;
+                        li.appendChild(value);
+                    }
+                    var sub = doc.createElement('p');
+                    sub.className = 'como-sub' + (a.wait ? ' como-espera' : '');
+                    sub.textContent = a.sub;
+                    li.appendChild(sub);
+                    var go = doc.createElement('a');
+                    go.className = 'boton secundario pequeno';
+                    go.href = a.url;
+                    go.tabIndex = -1;
+                    go.setAttribute('aria-hidden', 'true');
+                    go.textContent = a.go;
+                    li.appendChild(go);
+                    list.appendChild(item);
+                    howtoFirst = howtoFirst || a.url;
+                });
+                howtoOut.appendChild(list);
+            } else if (data.none) {
+                var none = doc.createElement('p');
+                none.className = 'como-nada';
+                none.textContent = data.none;
+                howtoOut.appendChild(none);
+            }
+            // Nothing found and the centre's AI on: a person asks it, never the typing; it answers from the guide only.
+            if (data.ask && data.ask.url) {
+                var askBox = doc.createElement('p');
+                askBox.className = 'como-ia-pedir';
+                var askButton = doc.createElement('button');
+                askButton.type = 'button';
+                askButton.className = 'boton secundario';
+                askButton.textContent = data.ask.label;
+                askBox.appendChild(askButton);
+                howtoOut.appendChild(askBox);
+                on(askButton, 'click', function() {
+                    askButton.disabled = true;
+                    askButton.textContent = say('panel_js_howto_wait');
+                    var n = howtoAsked;
+                    fetch(data.ask.url + '&ajax=1', {credentials: 'same-origin', headers: {Accept: 'application/json'}})
+                        .then(function(r) {
+                            return r.ok ? r.json() : null;
+                        }).then(function(ai) {
+                            if (n !== howtoAsked) {
+                                return;
+                            }
+                            askBox.remove();
+                            var box = doc.createElement('div');
+                            box.className = 'como-ia';
+                            var text = doc.createElement('p');
+                            text.className = ai && ai.aitext ? 'como-ia-texto' : 'como-nada';
+                            text.textContent = ai ? (ai.aitext || ai.none) : '';
+                            box.appendChild(text);
+                            if (ai && ai.aitext) {
+                                var by = doc.createElement('p');
+                                by.className = 'como-ia-por';
+                                by.textContent = ai.by;
+                                box.appendChild(by);
+                            }
+                            howtoOut.appendChild(box);
+                            if (ai && ai.answers && ai.answers.length) {
+                                var keep = howtoOut.innerHTML;
+                                howtoDraw({answers: ai.answers});
+                                howtoOut.insertAdjacentHTML('afterbegin', keep);
+                            }
+                        }).catch(function() {
+                            askButton.disabled = false;
+                        });
+                });
+            }
+        };
+        var howtoAsk = function(sent) {
+            var q = howtoField.value.trim();
+            var n = ++howtoAsked;
+            if (!q) {
+                howtoOut.innerHTML = '';
+                howtoFirst = null;
+                return;
+            }
+            var url = howtoForm.getAttribute('action') + (howtoForm.getAttribute('action').indexOf('?') === -1 ? '?' : '&') +
+                'ajax=1&q=' + encodeURIComponent(q) + (sent ? '&sent=1' : '');
+            fetch(url, {credentials: 'same-origin', headers: {Accept: 'application/json'}}).then(function(r) {
+                return r.ok ? r.json() : null;
+            }).then(function(data) {
+                // An answer that comes late (an older question) is not drawn over a newer one.
+                if (data && n === howtoAsked) {
+                    howtoDraw(data);
+                }
+            }).catch(function() {
+                return null;
+            });
+        };
+        var howtoClose = function() {
+            howto.hidden = true;
+            if (howtoBack) {
+                howtoBack.focus();
+            }
+        };
+        howtoOpeners.forEach(function(opener) {
+            on(opener, 'click', function(e) {
+                e.preventDefault();
+                howtoBack = opener;
+                var more = opener.closest('details');
+                if (more) {
+                    more.open = false;
+                }
+                howto.hidden = false;
+                howtoField.focus();
+                howtoField.select();
+            });
+        });
+        var howtoHere = one('[data-como-aqui]', howto);
+        on(howtoField, 'input', function() {
+            // Before anything is typed, the most common in this section; then, what is found.
+            if (howtoHere) {
+                howtoHere.hidden = howtoField.value.trim() !== '';
+            }
+            window.clearTimeout(howtoTimer);
+            howtoTimer = window.setTimeout(function() {
+                howtoAsk(false);
+            }, 220);
+        });
+        on(howtoForm, 'submit', function(e) {
+            e.preventDefault();
+            if (howtoFirst) {
+                window.location.href = howtoFirst;
+            } else {
+                window.clearTimeout(howtoTimer);
+                howtoAsk(true);
+            }
+        });
+        on(one('[data-cerrar-como]', howto), 'click', howtoClose);
+        on(howto, 'click', function(e) {
+            if (e.target === howto) {
+                howtoClose();
+            }
+        });
+        on(howto, 'keydown', function(e) {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                howtoClose();
+            }
+        });
+    }
+
     // ---- Keys (DESIGN 3.1): none sends or erases, none acts while a field has the focus. «?» lists them.
     var sheetKeys = one('#teclas');
     var keyButton = one('[data-abrir-teclas]');

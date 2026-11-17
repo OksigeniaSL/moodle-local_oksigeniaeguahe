@@ -1,0 +1,72 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_howto
+
+    «How it is done» (howto.php): a search of the team's tasks on top, with what it found when someone asked (each a
+    task or a setting, its first step or what it waits for, its value now for a setting, and where to go; when nothing
+    is found and the centre has its AI on, asking it, and its answer from the guide), and then the
+    whole guide by groups, as the bar of the panel, each task with its steps. Without the script it is what the button
+    of the bar opens.
+
+    Example context (json):
+    {
+        "head": {"title": "Cómo se hace", "sub": "Todo lo que se hace en Eguahe, paso a paso, y dónde.", "back": false,
+            "ante": "", "what": false, "action": false},
+        "action": "#", "centreid": 1, "q": "cartel", "asked": true, "hasfound": true, "none": "", "ask": false,
+        "aitext": "", "aianswers": [], "aiby": "Lo ha escrito la IA del centro, solo con esta guía.", "ainone": "",
+        "found": [{"key": "poster", "setting": false, "kind": "Tarea", "text": "Imprimir el cartel con su QR",
+            "value": "", "sub": "Abrir el acto.", "wait": false, "url": "#", "go": "Ir", "help": false}],
+        "groups": [{"key": "events", "name": "Jornadas y visitas", "icon": "", "tasks": [{"key": "poster",
+            "text": "Imprimir el cartel con su QR", "steps": [{"step": "Abrir el acto."}], "url": "#", "go": "Ir",
+            "help": false, "setting": false, "value": ""}]}]
+    }
+}}
+<div class="pagina pagina-como">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <form class="como-busca" action="{{action}}" method="get" role="search">
+        <input type="hidden" name="c" value="{{centreid}}">
+        <label for="como-pagina-q">{{#str}}howto_field, local_oksigeniaeguahe{{/str}}</label>
+        <span class="como-campo"><input id="como-pagina-q" type="search" name="q" value="{{q}}" placeholder="{{#str}}howto_placeholder, local_oksigeniaeguahe{{/str}}" autocomplete="off" spellcheck="false"><button class="boton principal" type="submit">{{#str}}howto_search, local_oksigeniaeguahe{{/str}}</button></span>
+    </form>
+    {{#asked}}
+    <section class="como-encontrado" aria-labelledby="como-encontrado-t">
+        <h2 id="como-encontrado-t">{{#str}}howto_found, local_oksigeniaeguahe{{/str}}</h2>
+        {{#hasfound}}<ul class="como-lista">{{#found}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}</li>{{/found}}</ul>{{/hasfound}}
+        {{^hasfound}}<p class="como-nada">{{none}}</p>{{/hasfound}}
+        {{#ask}}<p class="como-ia-pedir"><a class="boton secundario" href="{{url}}">{{label}}</a></p>{{/ask}}
+        {{#aitext}}<div class="como-ia"><p class="como-ia-texto">{{aitext}}</p><p class="como-ia-por">{{aiby}}</p>
+            {{#aianswers.0}}<ul class="como-lista">{{#aianswers}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}</li>{{/aianswers}}</ul>{{/aianswers.0}}</div>{{/aitext}}
+        {{#ainone}}<p class="como-nada">{{ainone}}</p>{{/ainone}}
+    </section>
+    {{/asked}}
+    {{#groups}}
+    <section class="como-grupo" id="como-{{key}}" aria-labelledby="como-{{key}}-t">
+        <h2 id="como-{{key}}-t">{{{icon}}}{{name}}</h2>
+        <div class="como-tareas">
+            {{#tasks}}
+            <article class="como-tarea" id="como-tarea-{{key}}">
+                <h3>{{text}}</h3>
+                <ol>{{#steps}}<li>{{step}}</li>{{/steps}}</ol>
+                {{#value}}<p class="como-valor">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}: {{value}}</p>{{/value}}
+                <a class="boton secundario pequeno" href="{{url}}">{{go}}</a>
+            </article>
+            {{/tasks}}
+        </div>
+    </section>
+    {{/groups}}
+</div>

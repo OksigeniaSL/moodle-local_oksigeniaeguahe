@@ -381,6 +381,12 @@ class panel {
             'hasnotices' => (bool) $notices,
             'footnote' => '',
             'sesskey' => sesskey(),
+            'howtourl' => (new \moodle_url('/local/oksigeniaeguahe/howto.php', ['c' => $centre->id]))->out(false),
+            'howtohere' => howto::here($section, $centre, has_capability(
+                'local/oksigeniaeguahe:manage',
+                \context_system::instance()
+            )),
+            'centreid' => (int) $centre->id,
             'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
             'untildate' => self::date_input('until', '', $centre, 'fuera-hasta'),
             'away' => ($until = attend::away_until((int) $centre->id, (int) $USER->id)) ? get_string(
@@ -439,7 +445,8 @@ class panel {
                 $out[$key] = get_string($key, self::C);
             }
         }
-        foreach (['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one'] as $key) {
+        $keys = ['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now'];
+        foreach ($keys as $key) {
             $out[$key] = get_string($key, self::C);
         }
         return $out;
