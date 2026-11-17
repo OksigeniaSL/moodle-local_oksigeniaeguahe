@@ -97,6 +97,7 @@
     --eg-mochila-luz: #fbf5ec;
     --eg-coral: #cf6450;
     --eg-sello: #6a3f78;
+    --eg-barra: rgba(106, 63, 120, 0.45);
     --eg-rango: #cfa9c8;
     /* Moodle's own variables, rewritten inside the panel for the Moodle pieces that live in it */
     --bs-body-bg: var(--eg-papel);
@@ -181,6 +182,7 @@
         --eg-mochila-luz: #171413;
         --eg-coral: #f0947b;
         --eg-sello: #d9b6e3;
+        --eg-barra: rgba(217, 182, 227, 0.35);
         --eg-rango: #6f4f6a;
         --bs-focus-ring-color: rgba(205, 184, 202, 0.35);
         color-scheme: dark;
@@ -218,6 +220,7 @@
     --eg-mochila-luz: #171413;
     --eg-coral: #f0947b;
     --eg-sello: #d9b6e3;
+    --eg-barra: rgba(217, 182, 227, 0.35);
     --eg-rango: #6f4f6a;
     --bs-focus-ring-color: rgba(205, 184, 202, 0.35);
     color-scheme: dark;
@@ -16350,4 +16353,11 @@ a.como-talon:focus-visible {
     .of-balda {
         grid-template-columns: minmax(0, 1fr);
     }
+}
+
+/* The scrollbar, thin and in Eguahe's aubergine, never the browser's grey (Enrique, 17-11: like his other projects).
+   It is inherited, so the inner scrolls take it too. */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--eg-barra) transparent;
 }

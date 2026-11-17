@@ -93,6 +93,7 @@
     --eg-error: #b3261e;
     --eg-error-suave: #fbeae7;
     --eg-maqueta: #6f5e6e;
+    --eg-barra: rgba(106, 63, 120, 0.45);
     --eg-trama: rgba(95, 84, 89, 0.08);
     /* The centre: written by the server from its one colour (defaults, overwritten by the script) */
     --c-acento: #1f5a4e;
@@ -133,6 +134,7 @@
         --eg-error: #f2a9a2;
         --eg-error-suave: #3a201d;
         --eg-maqueta: #bba9b8;
+        --eg-barra: rgba(217, 182, 227, 0.35);
         --eg-trama: rgba(187, 176, 170, 0.07);
         color-scheme: dark;
     }
@@ -156,6 +158,7 @@
     --eg-error: #f2a9a2;
     --eg-error-suave: #3a201d;
     --eg-maqueta: #bba9b8;
+    --eg-barra: rgba(217, 182, 227, 0.35);
     --eg-trama: rgba(187, 176, 170, 0.07);
     color-scheme: dark;
 }
@@ -5659,4 +5662,11 @@ button.enlace span {
     gap: 6px;
     margin: 0;
     padding-inline-start: 1.25em;
+}
+
+/* The scrollbar, thin and in Eguahe's aubergine, never the browser's grey (Enrique, 17-11: like his other projects).
+   It is inherited, so the inner scrolls take it too. */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--eg-barra) transparent;
 }

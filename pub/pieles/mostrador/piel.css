@@ -549,9 +549,22 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .lista[data-densidad="lista"] .fila {
+    /* The hour keeps its distance from the red margin of the ledger (Enrique, 17-11: «muy pegada la línea»). */
+    padding-inline-start: 24px;
     background: none;
     box-shadow: none;
     border-bottom-color: var(--pauta);
+}
+
+/* With a family's record open beside it, the days sit above their rows: the margin has no column to mark, so it goes. */
+@media (min-width: 1180px) {
+    .piel-mostrador .mostrador.con-hoja .lista[data-densidad="lista"] {
+        background: var(--ruido), var(--papel-b);
+    }
+
+    .piel-mostrador .mostrador.con-hoja .lista[data-densidad="lista"] .fila {
+        padding-inline-start: 10px;
+    }
 }
 
 .piel-mostrador .lista[data-densidad="lista"] .fila:hover {
@@ -565,6 +578,10 @@ body.piel-mostrador::after {
 @media (max-width: 719px) {
     .piel-mostrador .lista[data-densidad="lista"] {
         background: var(--ruido), var(--papel-b);
+    }
+
+    .piel-mostrador .lista[data-densidad="lista"] .fila {
+        padding-inline-start: 10px;
     }
 
     .piel-mostrador .lista[data-densidad="fichas"] .fila {
