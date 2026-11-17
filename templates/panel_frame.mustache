@@ -54,7 +54,7 @@
     {{#hascentres}}
     <details class="menu-barra centros">
         <summary class="centro-sel" aria-label="{{#str}}panel_centre_change, local_oksigeniaeguahe, {{centre}}{{/str}}" title="{{centre}}">
-            {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
+            {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true" data-iniciales="{{initials}}"></span>{{/logo}}
             <span class="nombre">{{centre}}</span>{{{i.chev}}}
         </summary>
         <div class="menu">{{#centres}}<a href="{{url}}">{{name}}</a>{{/centres}}</div>
@@ -62,7 +62,7 @@
     {{/hascentres}}
     {{^hascentres}}
     <a class="centro-sel" href="{{homeurl}}" title="{{centre}}">
-        {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
+        {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true" data-iniciales="{{initials}}"></span>{{/logo}}
         <span class="nombre">{{centre}}</span>
     </a>
     {{/hascentres}}
@@ -72,9 +72,9 @@
     <a class="mando-como" href="{{howtourl}}" data-como data-tecla="g" data-tecla-que="{{#str}}howto_button, local_oksigeniaeguahe{{/str}}" title="{{#str}}howto_button, local_oksigeniaeguahe{{/str}}">{{{i.pregunta}}}<span class="largo">{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</span></a>
     <button class="mando-teclas" type="button" data-abrir-teclas hidden aria-label="{{#str}}panel_keys, local_oksigeniaeguahe{{/str}}">{{{i.teclado}}}</button>
     <details class="menu-barra derecha yo">
-        <summary aria-label="{{me.name}}">
-            {{#me.picture}}<img class="avatar" src="{{me.picture}}" alt="" width="36" height="36">{{/me.picture}}{{^me.picture}}<span class="avatar" aria-hidden="true">{{me.initials}}</span>{{/me.picture}}
-            <span class="nombre">{{me.first}}</span>
+        <summary>
+            {{#me.picture}}<img class="avatar" src="{{me.picture}}" alt="" width="36" height="36">{{/me.picture}}{{^me.picture}}<span class="avatar" aria-hidden="true" data-iniciales="{{me.initials}}"></span>{{/me.picture}}
+            <span class="nombre" aria-hidden="true">{{me.first}}</span><span class="oculto">{{me.name}}</span>
         </summary>
         <div class="menu">
             <a href="{{moodleurl}}">{{{i.fuera}}}{{#str}}panel_to_moodle, local_oksigeniaeguahe{{/str}}</a>

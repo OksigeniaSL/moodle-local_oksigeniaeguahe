@@ -65,6 +65,16 @@ class lists {
     const RTL = ['ar'];
 
     /**
+     * A language of Moodle as the lang attribute of HTML wants it: «pt_br» is «pt-BR».
+     *
+     * @param string $lang
+     * @return string
+     */
+    public static function html_lang(string $lang): string {
+        return $lang === 'pt_br' ? 'pt-BR' : str_replace('_', '-', $lang);
+    }
+
+    /**
      * The direction a language is written in, for the dir attribute.
      *
      * @param string $lang

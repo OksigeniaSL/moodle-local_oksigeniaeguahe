@@ -47,7 +47,7 @@
             <details class="apartado plegado paso-puente"{{#open}} open{{/open}}>
                 <summary><h2>{{title}}</h2></summary>
                 <ol class="pasos-numerados">{{#steps}}<li>{{.}}</li>{{/steps}}</ol>
-                <div class="guion"><pre dir="ltr" tabindex="0" aria-label="{{title}}"><code>{{script}}</code></pre>
+                <div class="guion" role="region" aria-label="{{title}}"><pre dir="ltr" tabindex="0"><code>{{script}}</code></pre>
                     <button class="boton secundario pequeno" type="button" data-copiar="{{script}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_script, local_oksigeniaeguahe{{/str}}</button></div>
             </details>
             {{/places}}
@@ -99,7 +99,7 @@
                 <div class="campo"><label for="hook-url">{{#str}}panel_the_door, local_oksigeniaeguahe{{/str}}</label><input id="hook-url" readonly value="{{url}}" dir="ltr" spellcheck="false"></div>
                 <div class="campo"><label for="hook-clave">{{#str}}entry_key, local_oksigeniaeguahe{{/str}}</label><span class="clave-fila"><input id="hook-clave" type="password" readonly value="{{key}}" dir="ltr" spellcheck="false" data-clave><button class="boton terciario pequeno" type="button" data-ver-clave="hook-clave" aria-pressed="false" hidden>{{{i.ojo}}}{{#str}}panel_show_key, local_oksigeniaeguahe{{/str}}</button></span></div>
                 <p class="def">{{signhelp}}</p>
-                <div class="guion"><pre dir="ltr" tabindex="0" aria-label="{{#str}}panel_example_body, local_oksigeniaeguahe{{/str}}"><code>{{example}}</code></pre></div>
+                <div class="guion" role="region" aria-label="{{#str}}panel_example_body, local_oksigeniaeguahe{{/str}}"><pre dir="ltr" tabindex="0"><code>{{example}}</code></pre></div>
             </section>
             {{/ishook}}
         </div>

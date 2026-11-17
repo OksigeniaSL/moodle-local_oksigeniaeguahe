@@ -5073,8 +5073,10 @@ input:focus-visible + .pastilla-r {
     font-size: 0.75rem;
 }
 
-.anfitrion > input:not(:checked) ~ .anfitrion-cara {
+/* Who does not receive, paler: the photo only, so that initials keep their contrast. */
+.anfitrion > input:not(:checked) ~ .anfitrion-cara img {
     opacity: 0.55;
+    filter: grayscale(1);
 }
 
 .preguntas-acto {
@@ -16223,4 +16225,10 @@ a.como-talon:focus-visible {
 .como-guias .enlace:focus-visible {
     color: var(--eg-tinta);
     box-shadow: inset 0 0 0 2px var(--eg-acento);
+}
+
+/* The initials of the person in the bar are drawn, not written: the name a screen reader says is the hidden full name. */
+.avatar[data-iniciales]::before,
+.monograma[data-iniciales]::before {
+    content: attr(data-iniciales);
 }

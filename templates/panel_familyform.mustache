@@ -113,7 +113,7 @@
             </fieldset>
             <div class="ap-fila">
                 <fieldset class="ap-grupo ap-contador"><legend>{{#str}}panel_ff_people, local_oksigeniaeguahe{{/str}}</legend>
-                    {{#peoplecount}}<input class="oculto" type="radio" name="people" id="gente-{{value}}" value="{{value}}"{{#selected}} checked{{/selected}}><span class="ap-cuenta"><label class="ap-signo" for="gente-{{prev}}" aria-hidden="true">−</label><b>{{value}}</b><label class="ap-signo" for="gente-{{next}}" aria-hidden="true">+</label></span>{{/peoplecount}}
+                    {{#peoplecount}}<input class="oculto" type="radio" name="people" id="gente-{{value}}" value="{{value}}" aria-label="{{value}}"{{#selected}} checked{{/selected}}><span class="ap-cuenta"><label class="ap-signo" for="gente-{{prev}}">−</label><b>{{value}}</b><label class="ap-signo" for="gente-{{next}}">+</label></span>{{/peoplecount}}
                 </fieldset>
                 <label class="ap-sello"><input type="hidden" name="came" value="0"><input class="oculto" type="checkbox" name="came" value="1"{{#came}} checked{{/came}}><span>{{#str}}panel_ff_came, local_oksigeniaeguahe{{/str}}</span></label>
             </div>

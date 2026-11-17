@@ -1073,6 +1073,10 @@
         };
         line.setAttribute('aria-live', 'polite');
         stops.forEach(function(stop) {
+            // Items that are buttons make their list a group of buttons: a list holds only its items.
+            if (stop.parentNode && /^(OL|UL)$/.test(stop.parentNode.tagName)) {
+                stop.parentNode.setAttribute('role', 'group');
+            }
             stop.tabIndex = 0;
             stop.setAttribute('role', 'button');
             stop.setAttribute('aria-pressed', 'false');
@@ -1184,6 +1188,8 @@
         }).pop() || cols[0];
         cols.forEach(function(c) {
             c.tabIndex = c === current ? 0 : -1;
+            // A span names itself only with a role: each week is a picture of its numbers.
+            c.setAttribute('role', 'img');
             c.setAttribute('aria-label', c.getAttribute('data-dato'));
         });
         var shown = null;
@@ -1282,7 +1288,8 @@
                 if (mark.classList.contains('col-semana')) {
                     return;
                 }
-                if (!mark.hasAttribute('tabindex')) {
+                // What is hidden from screen readers (its table says the same) takes no focus either: only the mouse.
+                if (!mark.hasAttribute('tabindex') && !mark.closest('[aria-hidden="true"]')) {
                     mark.tabIndex = 0;
                 }
                 if (lists.indexOf(mark.parentNode) < 0) {
@@ -1389,6 +1396,9 @@
             }
         };
         all('[data-canal-elige]', root).forEach(function(row) {
+            if (row.parentNode && /^(OL|UL)$/.test(row.parentNode.tagName)) {
+                row.parentNode.setAttribute('role', 'group');
+            }
             row.setAttribute('role', 'button');
             row.setAttribute('aria-pressed', 'false');
             var pick = function() {

@@ -34,7 +34,7 @@
         "head": {"title": "Pidan información", "ante": "Formulario · abierto", "sub": "Lo que ven las familias.", "back": {"url": "#", "name": "Entradas"},
             "action": {"url": "#compartir", "anchor": false, "name": "Compartir", "icon": ""} },
         "url": "#", "action": "#", "sesskey": "abc", "saved": "",
-        "langs": [{"code": "es", "name": "Español", "missing": "", "url": "#", "current": true}], "langnote": "Escribes en español.",
+        "langs": [{"code": "es", "htmllang": "es", "name": "Español", "missing": "", "url": "#", "current": true}], "langnote": "Escribes en español.",
         "blocks": [{"i": 0, "name": "¿Dónde viven?", "checked": true, "fixed": false}],
         "fields": [{"id": 21, "n": 1, "label": "¿Necesitan comedor?", "typename": "Sí o no", "required": false, "condition": "", "missing": "",
             "first": true, "last": true, "open": false, "editurl": "#", "editor": null}],
@@ -53,7 +53,7 @@
         <div class="editor-col">
             <nav class="idiomas" aria-label="{{#str}}panel_writing_in, local_oksigeniaeguahe{{/str}}">
                 <span class="rotulo-p">{{{i.globo}}}{{#str}}panel_writing_in, local_oksigeniaeguahe{{/str}}</span>
-                <span class="segmentos">{{#langs}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}} lang="{{code}}">{{name}}{{#missing}} <span class="falta-idioma">· {{missing}}</span>{{/missing}}</a>{{/langs}}</span>
+                <span class="segmentos">{{#langs}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}} lang="{{htmllang}}">{{name}}{{#missing}} <span class="falta-idioma">· {{missing}}</span>{{/missing}}</a>{{/langs}}</span>
                 <span class="def">{{langnote}}</span>
             </nav>
             {{^issurvey}}

@@ -34,7 +34,7 @@
             "questions": [{"value": 0, "name": "Sale siempre", "selected": false}, {"value": 21, "name": "¿Necesitan comedor?", "selected": true}],
             "answers": [{"value": "Sí", "name": "Sí", "selected": true}], "hasanswers": true},
         "canpoint": true, "missing": "Falta en inglés",
-        "otherlangs": [{"code": "en", "name": "English", "label": "", "help": "", "original": "¿Qué días?", "originalhelp": "", "missing": true}],
+        "otherlangs": [{"code": "en", "htmllang": "en", "name": "English", "label": "", "help": "", "original": "¿Qué días?", "originalhelp": "", "missing": true}],
         "duplicateurl": "#", "deleteurl": "#"
     }
 }}
@@ -61,7 +61,7 @@
     <details class="otros-idiomas"{{#missing}} open{{/missing}}>
         <summary>{{{i.globo}}}{{#str}}field_otherlangs, local_oksigeniaeguahe{{/str}}{{#missing}} <span class="falta">· {{missing}}</span>{{/missing}}</summary>
         {{#otherlangs}}
-        <div class="idioma-campos" lang="{{code}}">
+        <div class="idioma-campos" lang="{{htmllang}}">
             <span class="rotulo-p">{{name}}</span>
             <div class="campo"><label for="{{prefix}}-{{code}}">{{#str}}field_label, local_oksigeniaeguahe{{/str}}</label><input id="{{prefix}}-{{code}}" name="label_{{code}}" value="{{label}}"{{#missing}} aria-describedby="{{prefix}}-{{code}}-o"{{/missing}}>{{#missing}}<span class="original" id="{{prefix}}-{{code}}-o" lang="es">{{original}}</span>{{/missing}}</div>
         </div>

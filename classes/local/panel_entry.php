@@ -75,7 +75,7 @@ class panel_entry {
         $langs = [];
         foreach (lists::LANG_NAMES as $code => $name) {
             $missing = count(array_filter($all, fn($f) => $f->type !== 'section' && !self::has_label($f, $code)));
-            $langs[] = ['code' => $code, 'name' => $name, 'current' => $code === $lang,
+            $langs[] = ['code' => $code, 'htmllang' => lists::html_lang($code), 'name' => $name, 'current' => $code === $lang,
                 'missing' => $missing ? get_string('panel_lang_missing', $c, $missing) : '',
                 'url' => self::url($entry, $code, $open)->out(false)];
         }
@@ -225,7 +225,8 @@ class panel_entry {
                 continue;
             }
             $label = trim((string) ($raw[$code]['label'] ?? ''));
-            $otherlangs[] = ['code' => $code, 'name' => $name, 'label' => $label, 'help' => (string) ($raw[$code]['help'] ?? ''),
+            $otherlangs[] = ['code' => $code, 'htmllang' => lists::html_lang($code), 'name' => $name, 'label' => $label,
+                'help' => (string) ($raw[$code]['help'] ?? ''),
                 'original' => trim((string) ($mine['label'] ?? '')) ?: $original['label'],
                 'originalhelp' => (string) ($mine['help'] ?? ''), 'missing' => $label === ''];
         }
