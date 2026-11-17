@@ -1116,3 +1116,18 @@ html[data-mov="menos"] .cine-corriente {
     border-color: var(--cine-ambar);
     color: var(--cine-ambar);
 }
+
+/* The printed guides (Jujol, 17 November 2026): a strip of dark glass, each guide lit in it, its printer amber. */
+.piel-cinematico .como-guias {
+    border: 1px solid var(--cine-filo);
+    background: var(--cine-fondo-2);
+}
+
+.piel-cinematico .como-guias .enlace {
+    background: var(--cine-vidrio-2);
+    box-shadow: inset 0 0 0 1px var(--cine-filo-2);
+}
+
+.piel-cinematico .como-guias .enlace .ic {
+    color: var(--cine-ambar);
+}

@@ -16179,11 +16179,48 @@ a.como-talon:focus-visible {
     font-size: 0.875rem;
 }
 
-/* The printed guides, from the page of «How is it done?» (0.81.3): a line before the index, each one with its icon. */
+/* The printed guides, from the page of «How is it done?» (0.81.3; Jujol's look): a strip of paper under the question,
+   each guide a small sheet with its printer, to be taken to the office; on a phone they wrap. */
 .como-guias {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 18px;
+    gap: 10px 14px;
     align-items: center;
-    margin: 0 0 14px;
+    margin: 14px 0 0;
+    padding: 12px 18px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.como-guias b {
+    margin-inline-end: 4px;
+    font-size: 0.9375rem;
+}
+
+.como-guias .enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding-inline: 12px 16px;
+    border-radius: 10px;
+    background: var(--b-blanco, var(--eg-superficie));
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+    color: var(--eg-tinta);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.como-guias .enlace .ic {
+    width: 20px;
+    height: 20px;
+    color: var(--eg-acento);
+}
+
+.como-guias .enlace:hover,
+.como-guias .enlace:focus-visible {
+    color: var(--eg-tinta);
+    box-shadow: inset 0 0 0 2px var(--eg-acento);
 }

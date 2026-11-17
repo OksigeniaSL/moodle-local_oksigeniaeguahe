@@ -2027,3 +2027,21 @@ body.modo-lamina.piel-mostrador .barra-antes {
     -webkit-mask-image: var(--ruido-sello);
     mask-image: var(--ruido-sello);
 }
+
+/* The printed guides (Jujol, 17 November 2026): a strip of paper, each guide a small sheet laid on it. */
+.piel-mostrador .como-guias {
+    border-color: transparent;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .como-guias .enlace {
+    border-radius: 3px;
+    background: var(--b-blanco) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .como-guias .enlace:hover,
+.piel-mostrador .como-guias .enlace:focus-visible {
+    box-shadow: var(--sombra-alta);
+}
