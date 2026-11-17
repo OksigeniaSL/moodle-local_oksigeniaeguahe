@@ -33,7 +33,8 @@
             "value": "", "sub": "Abrir el acto.", "wait": false, "url": "#", "go": "Ir", "help": false}],
         "groups": [{"key": "events", "name": "Jornadas y visitas", "icon": "", "tasks": [{"key": "poster",
             "text": "Imprimir el cartel con su QR", "steps": [{"step": "Abrir el acto."}], "url": "#", "go": "Ir",
-            "help": false, "setting": false, "value": ""}]}]
+            "help": false, "setting": false, "value": ""}]}],
+        "guides": [{"name": "Abrir las admisiones", "url": "#"}, {"name": "El día a día", "url": "#"}]
     }
 }}
 <div class="pagina pagina-como">
@@ -54,6 +55,7 @@
         {{#ainone}}<p class="como-nada">{{ainone}}</p>{{/ainone}}
     </section>
     {{/asked}}
+    {{#guides.0}}<p class="como-guias"><b>{{#str}}howto_guides, local_oksigeniaeguahe{{/str}}</b> {{#guides}}<a class="enlace" href="{{url}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{name}}</a> {{/guides}}</p>{{/guides.0}}
     <nav class="como-indice" aria-label="{{#str}}howto_index, local_oksigeniaeguahe{{/str}}">
         {{#groups}}<a href="#como-{{key}}">{{{icon}}}{{name}}</a>{{/groups}}
     </nav>

@@ -16178,3 +16178,12 @@ a.como-talon:focus-visible {
     color: var(--eg-tinta-2);
     font-size: 0.875rem;
 }
+
+/* The printed guides, from the page of «How is it done?» (0.81.3): a line before the index, each one with its icon. */
+.como-guias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    margin: 0 0 14px;
+}

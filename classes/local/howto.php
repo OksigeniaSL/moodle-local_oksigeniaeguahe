@@ -678,6 +678,18 @@ final class howto {
     }
 
     /**
+     * The printed guides of Eguahe, on eguahe.com, in the language of whoever looks (English for one without its own).
+     *
+     * @return array[] name and url of each.
+     */
+    public static function guides(): array {
+        $lang = current_language();
+        $code = ['es' => 'es', 'en' => 'en', 'pt' => 'pt', 'pt_br' => 'pt-br'][$lang] ?? 'en';
+        return array_map(fn($guide) => ['name' => get_string('howto_guide_' . $guide, self::C),
+            'url' => 'https://eguahe.com/guias/guia-' . $guide . '-' . $code . '.pdf'], ['empezar', 'dia']);
+    }
+
+    /**
      * Keeps a question the finder could not answer, without anybody's data: only its words, and of them, none with a digit
      * and none that is the first name or the surname of someone of the site or of the centre's families. Who asked is not
      * kept. The most asked stay; the rest go.

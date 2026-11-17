@@ -84,4 +84,5 @@ panel::output($centre, 'inbox', get_string('howto_title', $c), 'panel_howto', [
     'aiby' => get_string('howto_ai_by', $c),
     'ainone' => $askai && !$ai ? get_string('howto_ai_none', $c) : '',
     'groups' => howto::guide($centre, $manage),
+    'guides' => howto::guides(),
 ]);
