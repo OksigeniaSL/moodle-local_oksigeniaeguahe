@@ -1308,5 +1308,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026117200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026117500) {
+        // Whoever changes the settings and the team of one centre, for a site shared by several (the hosted Eguahe).
+        $table = new xmldb_table('local_oksigeniaeguahe_member');
+        $field = new xmldb_field('admin', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'awayuntil');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026117500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

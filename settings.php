@@ -39,6 +39,28 @@ if ($hassiteconfig) {
             get_string('credit_desc', 'local_oksigeniaeguahe'),
             0
         ));
+        // A site that is only Eguahe, shared by several centres (the hosted Eguahe): its own way in, no home, dashboard or
+        // courses, and each team only in its centres.
+        $settings->add(new admin_setting_heading(
+            'local_oksigeniaeguahe/onlyeguahehdr',
+            get_string('onlyeguahehdr', 'local_oksigeniaeguahe'),
+            get_string('onlyeguahehdr_desc', 'local_oksigeniaeguahe')
+        ));
+        $only = new admin_setting_configcheckbox(
+            'local_oksigeniaeguahe/onlyeguahe',
+            get_string('onlyeguahe', 'local_oksigeniaeguahe'),
+            get_string('onlyeguahe_desc', 'local_oksigeniaeguahe'),
+            0
+        );
+        $only->set_updatedcallback('\\local_oksigeniaeguahe\\local\\onlyeguahe::settings_changed');
+        $settings->add($only);
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/onlyeguahelegal',
+            get_string('onlyeguahelegal', 'local_oksigeniaeguahe'),
+            get_string('onlyeguahelegal_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_URL
+        ));
         // The shortener of the links, set once for every plugin of Oksigenia (shortener::of_site()): empty here, the one of
         // another plugin that has it.
         $settings->add(new admin_setting_heading(

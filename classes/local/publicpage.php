@@ -36,6 +36,9 @@ class publicpage {
     /** @var array|null At the foot of a piece shared, its seal instead of the line of who makes Eguahe. */
     public static $seal = null;
 
+    /** @var array|null At the foot, a page that is not of a centre: its own legal link (url and label; an empty url, none). */
+    public static $privacy = null;
+
     /** @var string Where the line of who makes Eguahe leads. */
     const CREDITURL = 'https://oksigenia.com/';
 
@@ -193,8 +196,8 @@ class publicpage {
             'langname' => $current,
             'langlabel' => publiclang::str('pub_language', $lang),
             'address' => !empty($centre->address) ? format_string($centre->address) : '',
-            'privacyurl' => self::privacy_url($centre, $lang)->out(false),
-            'privacy' => publiclang::str('pub_privacy_link', $lang),
+            'privacyurl' => self::$privacy ? self::$privacy['url'] : self::privacy_url($centre, $lang)->out(false),
+            'privacy' => self::$privacy ? self::$privacy['label'] : publiclang::str('pub_privacy_link', $lang),
             'credit' => self::$seal ?? self::credit($lang) ?? false,
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];

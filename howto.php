@@ -37,7 +37,7 @@ $query = core_text::substr(trim(optional_param('q', '', PARAM_TEXT)), 0, 200);
 $ajax = optional_param('ajax', 0, PARAM_BOOL);
 $sent = optional_param('sent', 0, PARAM_BOOL);
 $askai = optional_param('ai', 0, PARAM_BOOL);
-$manage = has_capability('local/oksigeniaeguahe:manage', context_system::instance());
+$manage = centres::can_manage((int) $centre->id);
 $c = 'local_oksigeniaeguahe';
 
 $answers = $query !== '' ? howto::answers($query, $centre, $manage) : null;

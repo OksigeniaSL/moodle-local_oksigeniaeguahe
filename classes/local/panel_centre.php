@@ -136,6 +136,8 @@ class panel_centre {
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
             'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c), '', $centre),
             'hosts' => self::hosts($centre),
+            // In a site shared by several centres, someone new gets an account from here.
+            'newaccounts' => onlyeguahe::on(),
             'handover' => self::handovers($centre, (int) ($centre->handover ?? 0), 'panel_handover_place_option'),
             'handoverplace' => (string) ($centre->handoverplace ?? ''),
             'handoverhow' => (string) ($centre->handoverhow ?? ''),
@@ -303,7 +305,7 @@ class panel_centre {
                 'name' => $person['name'], 'first' => $person['first'],
                 'picture' => $photo ? $photo->out(false) : $person['picture'], 'initials' => $person['initials'],
                 'role' => (string) $member->rolename, 'shown' => !empty($member->public), 'phrase' => (string) $member->says,
-                'sortorder' => (int) $member->sortorder];
+                'sortorder' => (int) $member->sortorder, 'admin' => !empty($user->admin)];
         }
         usort($out, fn($a, $b) => [$a['sortorder'], $a['name']] <=> [$b['sortorder'], $b['name']]);
         return $out;
@@ -734,7 +736,7 @@ class panel_centre {
      * @return string[] What could not be done, in words.
      */
     public static function save(\stdClass $centre): array {
-        global $DB;
+        global $DB, $USER;
         $c = self::C;
         $problems = [];
         $picked = strtolower(optional_param('colour', '', PARAM_RAW_TRIMMED));
@@ -842,14 +844,34 @@ class panel_centre {
 
         // The team: who goes out, and someone more by their name or their email in Moodle.
         foreach (array_keys(array_filter(optional_param_array('removemember', [], PARAM_BOOL))) as $userid) {
-            centres::remove_member((int) $centre->id, (int) $userid);
+            if ((int) $userid !== (int) $USER->id) {
+                centres::remove_member((int) $centre->id, (int) $userid);
+            }
+        }
+        // Who changes the settings and the team, never oneself (nobody locks themselves out).
+        foreach (optional_param_array('settingsadmin', [], PARAM_BOOL) as $memberid => $admin) {
+            $userid = (int) $DB->get_field(centres::MEMBERS, 'userid', ['id' => (int) $memberid, 'centreid' => $centre->id]);
+            if ($userid && $userid !== (int) $USER->id) {
+                centres::set_admin((int) $centre->id, $userid, (bool) $admin);
+            }
         }
         $add = trim(optional_param('addmember', '', PARAM_TEXT));
         if ($add !== '') {
             $user = self::find_user($add);
+            if (!$user && onlyeguahe::on()) {
+                // A site shared by several centres: whoever is not there yet gets an account, with their password by
+                // email.
+                $user = validate_email($add) ? onlyeguahe::new_account($add, trim(optional_param('addname', '', PARAM_TEXT)))
+                    : null;
+                if ($user) {
+                    \core\notification::success(get_string('panel_person_account_made', $c, s($add)));
+                } else {
+                    $problems[] = get_string('panel_person_email_needed', $c);
+                }
+            }
             if ($user) {
                 centres::add_member((int) $centre->id, (int) $user->id);
-            } else {
+            } else if (!onlyeguahe::on()) {
                 $problems[] = get_string('panel_person_not_found', $c, s($add));
             }
         }
@@ -884,6 +906,12 @@ class panel_centre {
         global $DB, $CFG;
         $base = 'deleted = 0 AND suspended = 0 AND confirmed = 1 AND id <> :guest';
         $params = ['guest' => $CFG->siteguest];
+        if (onlyeguahe::on()) {
+            // A site shared by several centres: only by the whole email, never by a name that could be of another centre.
+            $found = $DB->get_records_select('user', $base . ' AND ' . $DB->sql_equal('email', ':email', false), $params +
+                ['email' => $what], '', 'id', 0, 2);
+            return count($found) === 1 ? reset($found) : null;
+        }
         $found = $DB->get_records_select('user', $base . ' AND (' . $DB->sql_equal('email', ':email', false) . ' OR ' .
             $DB->sql_equal('username', ':username', false) . ')', $params + ['email' => $what,
             'username' => \core_text::strtolower($what)], '', 'id', 0, 2);

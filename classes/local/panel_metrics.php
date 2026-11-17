@@ -1058,7 +1058,7 @@ class panel_metrics {
             return false;
         }
         // The way to put them, only for whoever may change the settings: Cifras is also read by who only looks.
-        $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
+        $manage = centres::can_manage((int) $centre->id);
         return [
             'text' => get_string('panel_places_unset', self::C, familypage::join($names, current_language())),
             'url' => $manage ? (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id], 'aj-oferta'))

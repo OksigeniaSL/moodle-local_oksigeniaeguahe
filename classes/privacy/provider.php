@@ -61,6 +61,7 @@ class provider implements
             'rolename' => 'privacy:metadata:member:rolename',
             'says' => 'privacy:metadata:member:says',
             'awayuntil' => 'privacy:metadata:member:awayuntil',
+            'admin' => 'privacy:metadata:member:admin',
             'timecreated' => 'privacy:metadata:member:timecreated',
         ], 'privacy:metadata:member');
         $collection->add_database_table('local_oksigeniaeguahe_household', [
@@ -211,7 +212,8 @@ class provider implements
                     'since' => \core_privacy\local\request\transform::datetime($member->timecreated),
                     'what_families_read_you_do' => $member->rolename ?? null, 'your_line' => $member->says ?? null,
                     'away_until' => (int) ($member->awayuntil ?? 0) ?
-                        \core_privacy\local\request\transform::datetime($member->awayuntil) : null];
+                        \core_privacy\local\request\transform::datetime($member->awayuntil) : null,
+                    'changes_its_settings' => \core_privacy\local\request\transform::yesno(!empty($member->admin))];
                 writer::with_context($context)->export_area_files(
                     [get_string('pluginname', 'local_oksigeniaeguahe'), 'photo'],
                     'local_oksigeniaeguahe',

@@ -76,6 +76,7 @@
         <FIELD NAME="says" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A line of this person to the families"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="awayuntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Until when this person is away: their families and promises are for everyone; 0, here"/>
+        <FIELD NAME="admin" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when this person changes the settings and the team of the centre, without seeing the other centres of the site"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

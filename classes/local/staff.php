@@ -77,7 +77,7 @@ class staff {
             'forecast' => new \moodle_url('/local/oksigeniaeguahe/forecast.php', ['c' => $centre->id]),
             'entries' => new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id]),
         ];
-        if (has_capability('local/oksigeniaeguahe:manage', \context_system::instance())) {
+        if (centres::can_manage((int) $centre->id)) {
             $tabs['settings'] = new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]);
         }
         $list = [];

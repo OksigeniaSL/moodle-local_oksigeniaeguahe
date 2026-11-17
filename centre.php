@@ -34,9 +34,10 @@ $id = optional_param('id', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
 require_login(null, false);
-require_capability('local/oksigeniaeguahe:manage', context_system::instance());
 
 if (!$id) {
+    // Only whoever manages Eguahe on the site makes centres; each centre's own people change only theirs.
+    require_capability('local/oksigeniaeguahe:manage', context_system::instance());
     // A new centre: its name, in the language of whoever makes it, with them in its team; the rest, in its settings.
     require_sesskey();
     $name = trim(required_param('name', PARAM_TEXT));
@@ -49,10 +50,7 @@ if (!$id) {
     redirect(new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id]));
 }
 
-$centre = centres::get($id);
-if (!$centre) {
-    throw new moodle_exception('invalidrecord', 'error');
-}
+$centre = centres::require_manage($id);
 $url = new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id]);
 panel::setup($url, get_string('centre_settings', $c));
 

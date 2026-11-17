@@ -30,6 +30,21 @@ $callbacks = [
         'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'primary_extend'],
     ],
     [
+        // A site that is only Eguahe: its own way in.
+        'hook' => \core\hook\after_config::class,
+        'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'after_config'],
+    ],
+    [
+        // A site that is only Eguahe: the pages of the platform lead to Eguahe.
+        'hook' => \core\hook\output\before_http_headers::class,
+        'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'before_http_headers'],
+    ],
+    [
+        // A site that is only Eguahe: the pages left of the platform without its footer.
+        'hook' => \core\hook\output\before_standard_head_html_generation::class,
+        'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'before_standard_head'],
+    ],
+    [
         // Who makes Eguahe, at the foot of the screens of the team.
         'hook' => \core\hook\output\before_footer_html_generation::class,
         'callback' => [\local_oksigeniaeguahe\hook_callbacks::class, 'before_footer'],

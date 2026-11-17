@@ -50,6 +50,6 @@
 </main>
 <footer class="pie">
     <span>{{centre}}{{#address}} · {{address}}{{/address}}</span>
-    <a href="{{privacyurl}}">{{privacy}}</a>
+    {{#privacyurl}}<a href="{{privacyurl}}">{{privacy}}</a>{{/privacyurl}}
     {{#credit}}<p class="firma{{#seal}} sello{{/seal}}"><a href="{{url}}" target="_blank" rel="noopener">{{#seal}}{{> local_oksigeniaeguahe/public_seal }}{{/seal}}<span>{{text}}</span></a></p>{{/credit}}
 </footer>

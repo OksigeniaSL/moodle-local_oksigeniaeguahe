@@ -260,7 +260,7 @@ class panel {
      */
     public static function sections(\stdClass $centre, string $current): array {
         $waiting = households::waiting_count((int) $centre->id);
-        $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
+        $manage = centres::can_manage((int) $centre->id);
         $out = [];
         foreach (self::SECTIONS as $key => [$string, $icon, $page]) {
             if ($key === 'settings' && !$manage) {
@@ -392,10 +392,7 @@ class panel {
             'footnote' => '',
             'sesskey' => sesskey(),
             'howtourl' => (new \moodle_url('/local/oksigeniaeguahe/howto.php', ['c' => $centre->id]))->out(false),
-            'howtohere' => howto::here($section, $centre, has_capability(
-                'local/oksigeniaeguahe:manage',
-                \context_system::instance()
-            )),
+            'howtohere' => howto::here($section, $centre, centres::can_manage((int) $centre->id)),
             'centreid' => (int) $centre->id,
             'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
             'untildate' => self::date_input('until', '', $centre, 'fuera-hasta'),

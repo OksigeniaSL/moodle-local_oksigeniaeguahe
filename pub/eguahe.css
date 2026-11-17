@@ -5580,3 +5580,75 @@ button.enlace span {
 .recibo .sin-importe dt::after {
     content: none;
 }
+
+/* The way in of a site that is only Eguahe: the dog at the door with its hello, and the form on the paper. The form
+   takes the width of its column; the fields keep the width of what goes in them. */
+.entrar {
+    display: grid;
+    gap: 8px;
+    padding-top: 32px;
+}
+
+.entrar-perro {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    margin: 0;
+    padding: 0 var(--g);
+}
+
+.entrar-perro img {
+    width: 96px;
+    height: auto;
+}
+
+.entrar-perro figcaption {
+    margin-bottom: 40px;
+    padding: 6px 12px;
+    border-radius: 14px 14px 14px 2px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+    font-size: 1.25rem;
+}
+
+.entrar-form {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+}
+
+.entrar-form .campo input {
+    width: 100%;
+    max-width: 24rem;
+}
+
+.entrar-error {
+    padding: 10px 14px;
+    border-inline-start: 4px solid var(--eg-error);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+}
+
+.entrar-otras {
+    display: grid;
+    gap: 8px;
+}
+
+.entrar-otras ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.entrar-otras .boton {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.entrar-sin-cuenta {
+    color: var(--eg-tinta-2);
+}

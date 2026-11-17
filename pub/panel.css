@@ -14097,6 +14097,23 @@ details.aj-plegado > summary h2::after {
     font-size: 0.875rem;
 }
 
+/* Whoever changes the settings and the team: a small stamp under their role, in the ink of the stamps. */
+.aj-persona-ajustes-sello {
+    justify-self: center;
+    padding: 1px 8px;
+    border: 1.5px solid var(--eg-sello);
+    border-radius: 4px;
+    color: var(--eg-sello);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.of-dorso .aj-persona-ajustes {
+    justify-self: start;
+}
+
 .aj-persona-frase {
     color: var(--eg-tinta);
     font-size: 1.125rem;

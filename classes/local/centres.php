@@ -384,7 +384,7 @@ class centres {
     public static function members(int $centreid): array {
         global $DB;
         $fields = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-        return $DB->get_records_sql("SELECT u.id, m.id AS memberid, u.email, $fields
+        return $DB->get_records_sql("SELECT u.id, m.id AS memberid, m.admin, u.email, $fields
                                        FROM {" . self::MEMBERS . "} m JOIN {user} u ON u.id = m.userid
                                       WHERE m.centreid = :centreid AND u.deleted = 0
                                    ORDER BY u.lastname, u.firstname", ['centreid' => $centreid]);
@@ -402,6 +402,59 @@ class centres {
             $DB->insert_record(self::MEMBERS, (object) ['centreid' => $centreid, 'userid' => $userid,
                 'timecreated' => time()]);
         }
+        onlyeguahe::join($userid);
+    }
+
+    /**
+     * Says whether a member of the team changes the settings and the team of the centre.
+     *
+     * @param int $centreid
+     * @param int $userid
+     * @param bool $admin
+     */
+    public static function set_admin(int $centreid, int $userid, bool $admin): void {
+        global $DB;
+        $DB->set_field(self::MEMBERS, 'admin', $admin ? 1 : 0, ['centreid' => $centreid, 'userid' => $userid]);
+    }
+
+    /**
+     * Whether a person changes the settings and the team of a centre: whoever manages Eguahe on the site, or a member of
+     * its team the centre made so. They see only their own centres, also in a site shared by several.
+     *
+     * @param int $centreid
+     * @param int $userid 0, the person logged in.
+     * @return bool
+     */
+    public static function can_manage(int $centreid, int $userid = 0): bool {
+        global $DB, $USER;
+        $userid = $userid ?: (int) $USER->id;
+        if (!$userid) {
+            return false;
+        }
+        if (has_capability('local/oksigeniaeguahe:manage', \context_system::instance(), $userid)) {
+            return true;
+        }
+        return $centreid && self::can_act($userid) &&
+            $DB->record_exists(self::MEMBERS, ['centreid' => $centreid, 'userid' => $userid, 'admin' => 1]);
+    }
+
+    /**
+     * Stops the page unless the person logged in changes the settings of the centre; returns it.
+     *
+     * @param int $centreid
+     * @return \stdClass
+     */
+    public static function require_manage(int $centreid): \stdClass {
+        $centre = self::require_work($centreid);
+        if (!self::can_manage($centreid)) {
+            throw new \required_capability_exception(
+                \context_system::instance(),
+                'local/oksigeniaeguahe:manage',
+                'nopermissions',
+                ''
+            );
+        }
+        return $centre;
     }
 
     /**
@@ -556,6 +609,7 @@ class centres {
             get_file_storage()->delete_area_files(\context_system::instance()->id, 'local_oksigeniaeguahe', 'hostphoto', $id);
         }
         $DB->delete_records(self::MEMBERS, ['centreid' => $centreid, 'userid' => $userid]);
+        onlyeguahe::leave($userid);
     }
 
     /**

@@ -65,7 +65,10 @@
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
-            "role": "Tutora", "shown": true, "phrase": "Soy Lucía."}],
+            "role": "Tutora", "shown": true, "phrase": "Soy Lucía.", "admin": true},
+            {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
+            "role": "Secretaría", "shown": false, "phrase": "", "admin": false}],
+        "newaccounts": true,
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "members": ", con 120 personas",
             "marandu": "", "hascoming": true,
@@ -191,6 +194,7 @@
                         </label>
                         <b class="aj-persona-n">{{name}}</b>
                         {{#role}}<span class="aj-persona-papel" dir="auto">{{role}}</span>{{/role}}
+                        {{#admin}}<span class="aj-persona-ajustes-sello">{{#str}}panel_member_admin_short, local_oksigeniaeguahe{{/str}}</span>{{/admin}}
                         {{#phrase}}<q class="aj-persona-frase mano" dir="auto">{{phrase}}</q>{{/phrase}}
                         <button class="boton principal pequeno aj-foto-guardar" type="submit" name="guardar" value="1" formaction="{{action}}#rc-{{id}}">{{{i.check}}}{{#str}}panel_photo_save, local_oksigeniaeguahe{{/str}}</button>
                         <button class="interruptor aj-persona-sale" type="submit" name="shown[{{id}}]" value="{{#shown}}0{{/shown}}{{^shown}}1{{/shown}}" formaction="{{action}}#rc-{{id}}" aria-pressed="{{#shown}}true{{/shown}}{{^shown}}false{{/shown}}"><span class="lampara" aria-hidden="true"></span><span>{{#shown}}{{#str}}panel_shown_families, local_oksigeniaeguahe{{/str}}{{/shown}}{{^shown}}{{#str}}panel_shown_not, local_oksigeniaeguahe{{/str}}{{/shown}}</span></button>
@@ -199,6 +203,7 @@
                             <div class="of-dorso">
                                 <div class="campo"><label for="cargo-{{id}}">{{#str}}panel_their_role, local_oksigeniaeguahe, {{first}}{{/str}}</label><input id="cargo-{{id}}" name="role[{{id}}]" value="{{role}}" placeholder="{{#str}}panel_role_example, local_oksigeniaeguahe{{/str}}" size="18"></div>
                                 <div class="campo"><label for="frase-{{id}}">{{#str}}panel_their_sentence, local_oksigeniaeguahe, {{first}}{{/str}}</label><textarea id="frase-{{id}}" name="phrase[{{id}}]" rows="3" placeholder="{{#str}}panel_their_sentence_example, local_oksigeniaeguahe{{/str}}">{{phrase}}</textarea></div>
+                                {{^me}}<button class="interruptor aj-persona-ajustes" type="submit" name="settingsadmin[{{id}}]" value="{{#admin}}0{{/admin}}{{^admin}}1{{/admin}}" formaction="{{action}}#rc-{{id}}" aria-pressed="{{#admin}}true{{/admin}}{{^admin}}false{{/admin}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_member_admin, local_oksigeniaeguahe{{/str}}</span></button>{{/me}}
                                 <div class="aj-dorso-pie">
                                     <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#rc-{{id}}" data-guardar>{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button>
                                     {{^me}}
@@ -216,8 +221,15 @@
                         <details class="of-mas">
                             <summary><b>{{#str}}panel_person_new, local_oksigeniaeguahe{{/str}}</b></summary>
                             <div class="of-dorso">
+                                {{^newaccounts}}
                                 <div class="campo"><label for="c-equipo">{{#str}}panel_add_person_help, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo" name="addmember" autocomplete="off" size="18"></div>
                                 <span class="ayuda">{{#str}}panel_team_help, local_oksigeniaeguahe{{/str}}</span>
+                                {{/newaccounts}}
+                                {{#newaccounts}}
+                                <div class="campo"><label for="c-equipo-n">{{#str}}panel_add_person_name, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo-n" name="addname" autocomplete="off" size="18"></div>
+                                <div class="campo"><label for="c-equipo">{{#str}}panel_add_person_email, local_oksigeniaeguahe{{/str}}</label><input id="c-equipo" name="addmember" type="email" autocomplete="off" size="18"></div>
+                                <span class="ayuda">{{#str}}panel_team_help_accounts, local_oksigeniaeguahe{{/str}}</span>
+                                {{/newaccounts}}
                                 <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-reciben">{{#str}}panel_offer_add, local_oksigeniaeguahe{{/str}}</button>
                             </div>
                         </details>

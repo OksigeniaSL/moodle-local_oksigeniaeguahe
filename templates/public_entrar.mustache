@@ -1,0 +1,66 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_entrar
+
+    The way in of a site that is only Eguahe: the dog at the door says hello, and the team comes in with its user and
+    password, or with the outside accounts the site has.
+
+    Example context (json):
+    {"heading": "Entrar en Eguahe", "lead": "Las familias de su centro les esperan.", "error": "",
+     "action": "#", "logintoken": "x", "username": "", "userlabel": "Usuario o correo", "passwordlabel": "Contraseña",
+     "go": "Entrar", "forgot": "#", "forgotlabel": "He olvidado mi contraseña", "hasproviders": true,
+     "providers": [{"url": "#", "name": "Google", "iconurl": ""}], "providersheading": "O con",
+     "noaccount": "La cuenta la da quien lleva los ajustes del centro.", "dog": "#", "dog2x": "#",
+     "hello": "¡Hola! Pasen."}
+}}
+<section class="pared corta entrar">
+    <figure class="entrar-perro">
+        <img src="{{dog}}" srcset="{{dog}} 1x, {{dog2x}} 2x" alt="" width="128" height="128">
+        <figcaption class="mano">{{hello}}</figcaption>
+    </figure>
+    <div class="mensaje">
+        <h1>{{heading}}</h1>
+        <p class="entradilla">{{lead}}</p>
+        {{#error}}<p class="entrar-error" role="alert">{{error}}</p>{{/error}}
+        <form class="entrar-form" method="post" action="{{action}}">
+            <input type="hidden" name="logintoken" value="{{logintoken}}">
+            <input type="hidden" name="anchor" value="">
+            <div class="campo">
+                <label for="e-usuario">{{userlabel}}</label>
+                <input id="e-usuario" name="username" value="{{username}}" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="campo">
+                <label for="e-clave">{{passwordlabel}}</label>
+                <input id="e-clave" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <div class="acciones">
+                <button class="boton principal" type="submit">{{go}}</button>
+                <a class="enlace" href="{{forgot}}">{{forgotlabel}}</a>
+            </div>
+        </form>
+        {{#hasproviders}}
+        <div class="entrar-otras">
+            <p>{{providersheading}}</p>
+            <ul>
+                {{#providers}}<li><a class="boton" href="{{url}}">{{#iconurl}}<img src="{{iconurl}}" alt="" width="20" height="20">{{/iconurl}}{{name}}</a></li>{{/providers}}
+            </ul>
+        </div>
+        {{/hasproviders}}
+        <p class="entrar-sin-cuenta">{{noaccount}}</p>
+    </div>
+</section>
