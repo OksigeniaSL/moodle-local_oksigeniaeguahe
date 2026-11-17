@@ -83,6 +83,27 @@
             playing.dispatchEvent(new Event('ended'));
         }
     };
+    // A voice still speaking when the person taps: it fades in 150 ms before the next step, never cut or overlapped.
+    var fadeVoice = function() {
+        var audio = playing;
+        if (!audio) {
+            return Promise.resolve();
+        }
+        var from = audio.volume;
+        var step = 0;
+        return new Promise(function(resolve) {
+            var timer = setInterval(function() {
+                step++;
+                audio.volume = Math.max(0, from * (1 - step / 6));
+                if (step >= 6) {
+                    clearInterval(timer);
+                    audio.pause();
+                    audio.dispatchEvent(new Event('ended'));
+                    resolve();
+                }
+            }, 25);
+        });
+    };
     var speak = function(index) {
         var url = voices[index];
         if (!url || muted || skipping) {
@@ -149,11 +170,30 @@
         if (typeof selector === 'function') {
             return selector(d);
         }
+        // Inside a closed part, past its summary: the panel may still lay it out, but it is not seen.
+        var folded = function(element) {
+            var fold = element.closest('details:not([open])');
+            return fold && !element.closest('summary') ? fold : null;
+        };
         // The first one that is seen: a list may have hidden rows.
         var all = d.querySelectorAll(selector);
         for (var i = 0; i < all.length; i++) {
-            if (all[i].getClientRects().length) {
+            if (all[i].getClientRects().length && !folded(all[i])) {
                 return all[i];
+            }
+        }
+        // One in a folded part is unfolded, as a person would, so that what is pointed at is seen.
+        for (var j = 0; j < all.length; j++) {
+            var fold = folded(all[j]);
+            if (!fold) {
+                continue;
+            }
+            while (fold) {
+                fold.open = true;
+                fold = fold.parentElement ? fold.parentElement.closest('details:not([open])') : null;
+            }
+            if (all[j].getClientRects().length) {
+                return all[j];
             }
         }
         return null;
@@ -189,10 +229,32 @@
     // Brings what the pointer goes to into the frame's view, without moving the page around the frame: scrollIntoView
     // also scrolls the window, and the stage and its caption would go up and down at every step.
     var bring = function(element) {
-        var x = window.pageXOffset;
-        var y = window.pageYOffset;
-        element.scrollIntoView({block: 'center'});
-        window.scrollTo(x, y);
+        var view = frame.contentWindow;
+        if (!view) {
+            return;
+        }
+        var height = view.innerHeight;
+        var r = element.getBoundingClientRect();
+        // Seen whole already: nothing moves, and nothing at the top is cut.
+        if (r.top >= 12 && r.bottom <= height - 12) {
+            return;
+        }
+        // Else the block it belongs to, whole and from its top, when it fits; a long one, with the element a third down.
+        var parts = 'section, article, header, form, li, .bloque, .lamina, .fila, .llegada';
+        var block = element.closest(parts) || element;
+        var b = block.getBoundingClientRect();
+        var by = b.height <= height - 24 && b.top <= r.top ? b.top - 12 : r.top - height / 3;
+        view.scrollBy(0, by);
+        // Nothing left cut at the top: what the top edge crosses goes out whole, or comes in whole if the element stays.
+        var top = frame.contentDocument.elementFromPoint(view.innerWidth / 2, 2);
+        var cut = top && top.closest(parts);
+        if (cut && !cut.contains(element)) {
+            var c = cut.getBoundingClientRect();
+            if (c.top < -2 && c.bottom > 2) {
+                var e = element.getBoundingClientRect();
+                view.scrollBy(0, e.bottom - c.top + 12 <= height ? c.top - 12 : c.bottom);
+            }
+        }
     };
     // The step on the strip: its number of how many, and the thread of how far it has gone.
     var mark = function(index) {
@@ -207,7 +269,11 @@
         var f = frame.getBoundingClientRect();
         var s = stage.getBoundingClientRect();
         var r = element.getBoundingClientRect();
-        return {x: f.left - s.left + r.left + r.width / 2, y: f.top - s.top + r.top + r.height / 2,
+        // Never on its words: at its left, at its middle; with no room there, under it (or over it at the bottom).
+        var left = r.left >= 26;
+        var below = r.bottom + 14 <= frame.clientHeight - 8;
+        return {x: f.left - s.left + (left ? r.left - 14 : r.left + Math.min(r.width / 2, 48)),
+            y: f.top - s.top + (left ? r.top + Math.min(r.height / 2, 18) : (below ? r.bottom + 14 : r.top - 14)),
             left: f.left - s.left + r.left, top: f.top - s.top + r.top, width: r.width, height: r.height};
     };
     var tapAt = function() {
@@ -312,7 +378,7 @@
             caption.textContent = (config.now || '') + ' ' + ((config.steps || [])[index] || '');
             mark(index);
             root.classList.add('ayuda-ahora');
-            speak(index);
+            var said = speak(index) || Promise.resolve(false);
             return wait(selector).then(function(element) {
                 bring(element);
                 return sleep(200).then(function() {
@@ -329,9 +395,11 @@
                             waiting = null;
                             ring.hidden = true;
                             root.classList.remove('ayuda-ahora');
-                            resolve(loaded ? loaded.then(function() {
-                                return sleep(400);
-                            }) : sleep(700));
+                            // What the tap did is seen for a moment before the next step speaks.
+                            var faded = fadeVoice();
+                            resolve(Promise.all([faded, loaded || null]).then(function() {
+                                return sleep(800);
+                            }));
                         }, {once: true});
                         waiting = element;
                         try {
@@ -339,10 +407,17 @@
                         } catch (e) {
                             // A button that cannot take the focus is still tapped by the mouse.
                         }
-                        if (config.auto || skipping) {
-                            setTimeout(function() {
-                                element.click();
-                            }, skipping ? 0 : 1200);
+                        if (skipping) {
+                            element.click();
+                        } else if (config.auto) {
+                            // As someone who listened: when the voice has said what to tap, and a breath.
+                            said.then(function() {
+                                return sleep(400);
+                            }).then(function() {
+                                if (waiting === element) {
+                                    element.click();
+                                }
+                            });
                         }
                     });
                 });
