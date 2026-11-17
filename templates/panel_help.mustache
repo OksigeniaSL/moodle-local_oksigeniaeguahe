@@ -17,36 +17,55 @@
 {{!
     @template local_oksigeniaeguahe/panel_help
 
-    A guided help (help.php): the real screen of the practice centre in a frame, the pointer and the ring over it, the
-    caption of each step under it, and the buttons to start, skip to the end, hear the voice and the music; at the end,
-    again or the whole guide. The engine reads its configuration from data-ayuda (no script in the page).
+    A guided help (help.php), in Jujol's design: under its tab «Practice centre», a print on the desk whose picture is
+    the real screen of the practice centre, with the pointer and the ring over it, and whose margin below carries the
+    step, its caption and the buttons (voice, music, skip to the end). Before «Start», the first screen waits still behind a card with how many steps it has; at the end, the
+    stamp «Seen», again or the whole guide. The engine reads its configuration from data-ayuda (no script in the page).
 
     Example context (json):
     {
+        "i": {"altavoz": "", "musica": "", "der": ""},
         "head": {"title": "Cómo funciona: la bandeja", "sub": "En un centro de práctica: no sale nada.", "back": false,
             "ante": "", "what": false, "action": false},
-        "config": "{}", "hasvoice": false, "hasmusic": false, "howtourl": "#", "scripts": []
+        "config": "{}", "stepcount": 6, "hasvoice": false, "hasmusic": false, "howtourl": "#", "scripts": []
     }
 }}
 <div class="pagina pagina-ayuda" id="eg-ayuda" data-ayuda="{{config}}">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <div class="ayuda-escena eg-esperando" id="eg-ayuda-escena">
-        <iframe class="ayuda-marco" id="eg-ayuda-marco" title="{{#str}}help_frame, local_oksigeniaeguahe{{/str}}" src="about:blank"></iframe>
-        <span class="ayuda-dedo" id="eg-ayuda-dedo" aria-hidden="true"></span>
-        <span class="ayuda-anillo" id="eg-ayuda-anillo" aria-hidden="true" hidden></span>
-        <div class="ayuda-empezar" id="eg-ayuda-empezar">
-            <button class="boton principal" type="button" id="eg-ayuda-ir">{{#str}}help_start, local_oksigeniaeguahe{{/str}}</button>
+    <div class="ayuda" id="eg-ayuda-unidad">
+        <span class="ayuda-pestana">{{#str}}help_practice, local_oksigeniaeguahe{{/str}}</span>
+        <div class="ayuda-lamina">
+        <div class="ayuda-escena eg-esperando" id="eg-ayuda-escena">
+            <iframe class="ayuda-marco" id="eg-ayuda-marco" title="{{#str}}help_frame, local_oksigeniaeguahe{{/str}}" src="about:blank"></iframe>
+            <span class="ayuda-dedo" id="eg-ayuda-dedo" aria-hidden="true"></span>
+            <span class="ayuda-anillo" id="eg-ayuda-anillo" aria-hidden="true" hidden></span>
+            <div class="ayuda-empezar" id="eg-ayuda-empezar">
+                <div class="ayuda-cartel">
+                    <button class="ayuda-ir" type="button" id="eg-ayuda-ir"><span class="ayuda-play" aria-hidden="true"></span><span>{{#str}}help_start, local_oksigeniaeguahe{{/str}}</span></button>
+                    <p class="ayuda-cuantos">{{#str}}help_steps, local_oksigeniaeguahe, {{stepcount}}{{/str}}</p>
+                </div>
+            </div>
+            <div class="ayuda-hecho" id="eg-ayuda-hecho" hidden>
+                <div class="ayuda-cartel">
+                    <span class="ayuda-sello">{{#str}}help_seen, local_oksigeniaeguahe{{/str}}</span>
+                    <p class="ayuda-hecho-t">{{#str}}help_done, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="ayuda-hecho-botones">
+                        <button class="boton secundario" type="button" id="eg-ayuda-otra">{{#str}}help_again, local_oksigeniaeguahe{{/str}}</button>
+                        <a class="boton principal" href="{{howtourl}}">{{#str}}howto_all, local_oksigeniaeguahe{{/str}}</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="ayuda-hecho" id="eg-ayuda-hecho" hidden>
-            <button class="boton principal" type="button" id="eg-ayuda-otra">{{#str}}help_again, local_oksigeniaeguahe{{/str}}</button>
-            <a class="boton secundario" href="{{howtourl}}">{{#str}}howto_all, local_oksigeniaeguahe{{/str}}</a>
+        <div class="ayuda-pie">
+            <span class="ayuda-paso" id="eg-ayuda-paso" aria-hidden="true"></span>
+            <p class="ayuda-texto" id="eg-ayuda-texto" aria-live="polite"></p>
+            <div class="ayuda-mandos">
+                {{#hasvoice}}<button class="ayuda-mando" type="button" id="eg-ayuda-voz" aria-pressed="true">{{{i.altavoz}}}<span>{{#str}}help_voice, local_oksigeniaeguahe{{/str}}</span></button>{{/hasvoice}}
+                {{#hasmusic}}<button class="ayuda-mando" type="button" id="eg-ayuda-musica" aria-pressed="true">{{{i.musica}}}<span>{{#str}}help_music, local_oksigeniaeguahe{{/str}}</span></button>{{/hasmusic}}
+                <button class="ayuda-mando ayuda-saltar" type="button" id="eg-ayuda-saltar"><span>{{#str}}help_skip, local_oksigeniaeguahe{{/str}}</span>{{{i.der}}}</button>
+            </div>
         </div>
-    </div>
-    <p class="ayuda-texto" id="eg-ayuda-texto" aria-live="polite"></p>
-    <div class="ayuda-mandos">
-        <button class="boton terciario pequeno" type="button" id="eg-ayuda-saltar">{{#str}}help_skip, local_oksigeniaeguahe{{/str}}</button>
-        {{#hasvoice}}<button class="boton terciario pequeno" type="button" id="eg-ayuda-voz" aria-pressed="true">{{#str}}help_voice, local_oksigeniaeguahe{{/str}}</button>{{/hasvoice}}
-        {{#hasmusic}}<button class="boton terciario pequeno" type="button" id="eg-ayuda-musica" aria-pressed="true">{{#str}}help_music, local_oksigeniaeguahe{{/str}}</button>{{/hasmusic}}
+        </div>
     </div>
     {{#scripts}}<script src="{{src}}" defer></script>{{/scripts}}
 </div>

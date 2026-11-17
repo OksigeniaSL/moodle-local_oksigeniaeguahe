@@ -161,8 +161,8 @@ class panel_inbox {
             ]),
             // To open admissions, while something is missing: six steps, each stamped when done (Jujol). Most are in the
             // settings, so only for whoever may change them.
-            'opening' => $canact && has_capability('local/oksigeniaeguahe:manage', \context_system::instance()) ?
-                self::opening($centre) : false,
+            'opening' => $canact && empty($centre->practice) &&
+                has_capability('local/oksigeniaeguahe:manage', \context_system::instance()) ? self::opening($centre) : false,
             'fresh' => $fresh,
             'showtools' => !$fresh,
             'all' => $all,

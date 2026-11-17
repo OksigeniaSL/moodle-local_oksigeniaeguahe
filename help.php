@@ -68,6 +68,7 @@ panel::output($centre, 'inbox', $title, 'panel_help', [
             'event' => get_string('help_text_event', $c),
         ],
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    'stepcount' => count(helps::steps($piece)),
     'hasvoice' => (bool) $sound['voices'],
     'hasmusic' => $sound['music'] !== '',
     'howtourl' => (new moodle_url('/local/oksigeniaeguahe/howto.php', ['c' => $centre->id]))->out(false),

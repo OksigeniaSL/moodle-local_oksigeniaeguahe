@@ -15689,8 +15689,10 @@ a.como-talon:focus-visible {
     }
 }
 
-/* 11.8 The guided helps (0.79.0): the stage with the real screen of the practice centre, the pointer, the ring, the
-   caption and the buttons; and the practice centre itself, which only lives inside it, without its bar. */
+/* 11.8 The guided helps (0.79.0; Jujol's design, 17 November 2026). The practice centre is a print on the desk, under
+   its tab: its picture is the real screen, where the pointer moves; its margin below carries the step, its caption and
+   the buttons. Before «Start», the first screen waits still behind a card; at the end, the stamp «Seen». The practice
+   centre itself only lives inside the frame, without its bar. */
 .en-ayuda .barra,
 .en-ayuda .pie-producto,
 .en-ayuda .abajo,
@@ -15698,67 +15700,200 @@ a.como-talon:focus-visible {
     display: none;
 }
 
+/* «See it step by step», wherever it is offered: a small play button before its words. */
+.ver-ayuda,
+.como-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ver-ayuda {
+    margin-top: 8px;
+}
+
+.ver-ayuda::before,
+.como-ver::before {
+    content: '';
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ayuda-dedo, var(--eg-coral)) url(ayuda/reproducir-claro.svg) center / 11px no-repeat;
+}
+
+.ver-ayuda:hover,
+.como-ver:hover {
+    color: var(--eg-tinta);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.como-lista > li {
+    flex-direction: column;
+}
+
+.como-lista .como-ver {
+    align-self: flex-start;
+    margin: 8px 0 0 6px;
+    font-size: 0.875rem;
+}
+
+.como-tarea {
+    grid-template-areas: "tipo talon" "titulo talon" "sub talon" "valor talon" "ver talon";
+}
+
+.como-tarea .como-ver {
+    grid-area: ver;
+    justify-self: start;
+    margin: 10px 0 0;
+    font-size: 0.875rem;
+}
+
+/* The print: its tab, the stage (the frame, the pointer, the ring, the cards before and after) and its margin. */
+.ayuda {
+    --ayuda-dedo: var(--eg-coral);
+    display: grid;
+    justify-items: start;
+    margin-top: 6px;
+}
+
+.ayuda-pestana {
+    position: relative;
+    z-index: 1;
+    padding: 7px 16px 6px;
+    border-radius: 10px 10px 0 0;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ayuda-lamina {
+    justify-self: stretch;
+    overflow: hidden;
+    border: 1px solid var(--eg-linea);
+    border-radius: 0 var(--piel-radio) var(--piel-radio) var(--piel-radio);
+    background: var(--piel-hoja);
+    box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.5);
+}
+
 .ayuda-escena {
     position: relative;
-    border: 1px solid var(--eg-linea);
-    border-radius: var(--piel-radio, 14px);
+    height: calc(100vh - 180px);
+    min-height: 420px;
+    max-height: 860px;
     overflow: hidden;
-    background: var(--eg-superficie);
-    box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.45);
+    background: var(--eg-hundido);
 }
 
 .ayuda-marco {
     display: block;
     width: 100%;
-    height: 72vh;
-    max-height: 760px;
+    height: 100%;
     border: 0;
+    background: var(--eg-papel);
 }
 
+/* Before «Start»: the first screen, still, behind its card. */
+.eg-esperando .ayuda-marco {
+    pointer-events: none;
+}
+
+/* The pointer: a fingertip in coral with its white edge; a tap, a wave that opens. */
 .ayuda-dedo {
     position: absolute;
     left: 0;
     top: 0;
     z-index: 3;
-    width: 26px;
-    height: 26px;
-    margin: -13px 0 0 -13px;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
     border-radius: 50%;
-    background: rgba(240, 148, 123, 0.55);
-    box-shadow: 0 0 0 3px #fff, 0 4px 14px rgba(0, 0, 0, 0.35);
+    background: var(--ayuda-dedo);
+    box-shadow: 0 0 0 3px #fff, 0 6px 16px rgba(0, 0, 0, 0.35);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.24, 1), opacity 0.3s;
+    transition: transform 0.7s var(--curva-papel), opacity 0.3s;
+}
+
+.ayuda-dedo::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 3px solid var(--ayuda-dedo);
+    border-radius: 50%;
+    opacity: 0;
 }
 
 .ayuda-dedo-on {
-    opacity: 1;
+    opacity: 0.94;
 }
 
-.ayuda-dedo-toca {
-    transform-origin: center;
-    box-shadow: 0 0 0 3px #fff, 0 0 0 10px rgba(240, 148, 123, 0.35);
+.ayuda-dedo-toca::after {
+    animation: ayuda-onda 0.25s ease-out;
 }
 
+@keyframes ayuda-onda {
+    from {
+        opacity: 0.85;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(2.6);
+    }
+}
+
+/* «Now, try it»: a ring round the button, the rest a little darker, and a second ring that breathes. */
 .ayuda-anillo {
     position: absolute;
     z-index: 3;
-    border: 4px solid #f0947b;
+    border: 3px solid var(--ayuda-dedo);
     border-radius: 14px;
-    box-shadow: 0 0 0 9999px rgba(20, 12, 14, 0.25), 0 0 22px rgba(240, 148, 123, 0.7);
+    box-shadow: 0 0 0 9999px rgba(20, 12, 14, 0.3);
     pointer-events: none;
 }
 
+.ayuda-anillo[hidden] {
+    display: none;
+}
+
+.ayuda-anillo::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+    border: 3px solid var(--ayuda-dedo);
+    border-radius: 20px;
+    opacity: 0.55;
+    animation: ayuda-respira 1.4s ease-in-out infinite;
+}
+
+@keyframes ayuda-respira {
+    50% {
+        opacity: 0;
+        transform: scale(1.03);
+    }
+}
+
+/* The cards over the stage: before «Start» and at the end. */
 .ayuda-empezar,
 .ayuda-hecho {
     position: absolute;
     inset: 0;
     z-index: 4;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
-    background: rgba(20, 12, 14, 0.35);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(20, 12, 14, 0.42);
 }
 
 .ayuda-empezar[hidden],
@@ -15766,45 +15901,262 @@ a.como-talon:focus-visible {
     display: none;
 }
 
+.ayuda-cartel {
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    min-width: 240px;
+    padding: 30px 40px 26px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    color: var(--eg-tinta);
+    text-align: center;
+    box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.55);
+}
+
+.ayuda-ir {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 14px;
+    background: none;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 1.5rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ayuda-ir:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 4px;
+}
+
+.ayuda-play {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--eg-accion);
+    box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.55);
+    transition: transform var(--dur-1);
+}
+
+.ayuda-play::before {
+    content: '';
+    width: 0;
+    height: 0;
+    margin-left: 7px;
+    border-style: solid;
+    border-width: 15px 0 15px 25px;
+    border-color: transparent transparent transparent var(--eg-sobre-accion);
+}
+
+.ayuda-ir:hover .ayuda-play {
+    transform: scale(1.05);
+}
+
+.ayuda-cuantos,
+.ayuda-hecho-t {
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+}
+
+.ayuda-hecho-t {
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+}
+
+.ayuda-sello {
+    padding: 6px 18px 5px;
+    border: 3px solid var(--eg-sello);
+    border-radius: 8px;
+    color: var(--eg-sello);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+}
+
+.ayuda-hecho-botones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* The margin of the print: the step (of how many), the thread of how far it has gone, the caption and the buttons. */
+.ayuda-pie {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.4em minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 16px;
+    min-height: 78px;
+    padding: 12px 16px 12px 18px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.ayuda-pie::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: -1px;
+    height: 3px;
+    background: var(--ayuda-dedo);
+    transform: scaleX(var(--ayuda-avance, 0));
+    transform-origin: left;
+    transition: transform 0.5s var(--curva-papel);
+}
+
+[dir="rtl"] .ayuda-pie::before {
+    transform-origin: right;
+}
+
+.ayuda-paso {
+    color: var(--eg-tinta-2);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .ayuda-texto {
-    min-height: 3.2em;
-    margin: 14px 0 6px;
+    display: flex;
+    align-items: center;
+    min-height: 2.9em;
+    margin: 0;
+    color: var(--eg-tinta);
     font-size: 1.125rem;
     line-height: 1.45;
-    color: var(--eg-tinta);
+}
+
+/* «Now, try it»: the caption in bold, the step in coral. */
+.ayuda-ahora .ayuda-texto {
+    font-weight: 750;
+}
+
+.ayuda-ahora .ayuda-paso {
+    color: var(--ayuda-dedo);
 }
 
 .ayuda-mandos {
     display: flex;
-    gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
 }
 
-.ayuda-mandos button[aria-pressed="false"] {
-    opacity: 0.6;
-}
-
-/* «See it step by step», beside a slip (a link cannot hold another): under it in a list, under the steps in the guide. */
-.como-lista > li {
-    flex-direction: column;
-}
-
-.como-ver {
-    align-self: flex-start;
-    margin: 6px 0 0 4px;
+.ayuda-mando {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 13px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 999px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
     font-size: 0.875rem;
-    font-weight: 650;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
 }
 
-.como-tarea .como-ver {
-    grid-column: 1;
-    justify-self: start;
-    margin: 10px 0 0;
+.ayuda-mando[hidden] {
+    display: none;
+}
+
+.ayuda-mando .ic {
+    width: 18px;
+    height: 18px;
+}
+
+/* Off: the word struck through and the border dashed, as a crossed-out line. */
+.ayuda-mando[aria-pressed="false"] {
+    border-style: dashed;
+    background: none;
+    color: var(--eg-tinta-2);
+}
+
+.ayuda-mando[aria-pressed="false"] span {
+    text-decoration: line-through;
+}
+
+.ayuda-mando[aria-pressed="false"] .ic {
+    opacity: 0.5;
+}
+
+.ayuda-saltar {
+    border-color: transparent;
+    background: none;
+}
+
+/* On a phone, the print and its margin above the bar at the bottom: the stage a little lower, and the three buttons in
+   one row under the caption. */
+@media (max-width: 719px) {
+    .ayuda-escena {
+        height: calc(100vh - 340px);
+        min-height: 340px;
+        max-height: 640px;
+    }
+
+    .ayuda-pie {
+        grid-template-columns: 3em minmax(0, 1fr);
+        padding: 12px 14px;
+    }
+
+    .ayuda-mandos {
+        grid-column: 1 / -1;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+
+    .ayuda-mando {
+        padding: 0 11px;
+    }
+
+    .ayuda-saltar {
+        margin-inline-start: auto;
+        padding-inline-end: 4px;
+    }
+
+    .ayuda-texto {
+        font-size: 1rem;
+    }
+
+    .ayuda-cartel {
+        padding: 20px 22px;
+    }
+
+    .ayuda-play {
+        width: 60px;
+        height: 60px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .ayuda-dedo {
+    .ayuda-dedo,
+    .ayuda-pie::before,
+    .ayuda-play {
         transition: none;
+    }
+
+    .ayuda-dedo-toca::after,
+    .ayuda-anillo::after {
+        animation: none;
+    }
+}
+
+@media print {
+    .pagina-ayuda .ayuda {
+        display: none;
     }
 }
 

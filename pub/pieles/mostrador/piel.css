@@ -1965,3 +1965,65 @@ body.modo-lamina.piel-mostrador .barra-antes {
     box-shadow: inset 0 0 0 1.5px var(--tinta-azul);
     color: var(--tinta-azul);
 }
+/* ---------- The guided helps (Jujol, 17 November 2026): the practice centre is a print laid on the desk, under its kraft
+   tab, its margin the paper where the caption is written and the step in blue ink by hand; the cards, sheets of the
+   desk; at the end, the inked stamp «Seen». ---------- */
+.piel-mostrador .ayuda-pestana {
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+    box-shadow: inset 0 -6px 8px -6px rgba(80, 50, 20, 0.35), 0 -1px 3px rgba(60, 35, 20, 0.2);
+}
+
+.piel-mostrador .ayuda-lamina {
+    padding: 10px 10px 0;
+    border: 0;
+    border-radius: 0 4px 4px 4px;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .ayuda-escena {
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(var(--eg-tinta-rgb), 0.12);
+}
+
+.piel-mostrador .ayuda-pie {
+    border-top: 0;
+}
+
+.piel-mostrador .ayuda-paso {
+    color: var(--tinta-azul);
+    font-family: var(--piel-mano);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.piel-mostrador .ayuda-ahora .ayuda-paso {
+    color: var(--ayuda-dedo);
+}
+
+.piel-mostrador .ayuda-cartel {
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-alta);
+    transform: rotate(-0.6deg);
+}
+
+.piel-mostrador .ayuda-mando {
+    background: var(--papel-b-2);
+    border-color: rgba(var(--eg-tinta-rgb), 0.14);
+}
+
+.piel-mostrador .ayuda-mando[aria-pressed="false"],
+.piel-mostrador .ayuda-saltar {
+    background: none;
+}
+
+.piel-mostrador .ayuda-saltar {
+    border-color: transparent;
+}
+
+.piel-mostrador .ayuda-sello {
+    opacity: 0.9;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+}

@@ -71,6 +71,7 @@ class panel {
             '<circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>', 2],
         'rama' => ['<path d="M6 4v8a4 4 0 0 0 4 4h8"/><path d="M15 13l3 3-3 3"/>', 2],
         'info' => ['<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.01"/>', 2.2],
+        'musica' => ['<path d="M9 17.5V6l10-2v11.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>', 2],
         'pregunta' => ['<path d="M5.5 4.5h13a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H11l-4.5 3.5v-3.5h-1a2 2 0 0 1-2-2V6.5a2 2 0 0 1 ' .
             '2-2z"/><path d="M9.8 8.9a2.3 2.3 0 1 1 3.1 2.2c-.6.2-.9.7-.9 1.3v.3M12 14.9v.01"/>', 2],
         'qr' => ['<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/>' .
@@ -561,7 +562,8 @@ class panel {
      * @return string
      */
     public static function hour(int $time): string {
-        return ltrim(userdate($time, get_string('strftimetime', 'langconfig')), '0 ');
+        // So «09:30» reads «9:30», and «00:15» reads «0:15», never «:15».
+        return (string) preg_replace('/^0(\d)/', '$1', trim(userdate($time, get_string('strftimetime', 'langconfig'))));
     }
 
     /**

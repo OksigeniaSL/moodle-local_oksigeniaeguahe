@@ -1048,3 +1048,71 @@ html[data-mov="menos"] .cine-corriente {
     box-shadow: inset 0 0 0 1.5px var(--cine-filo-2);
     color: var(--cine-ambar);
 }
+/* ---------- The guided helps (Jujol, 17 November 2026): the print as a pane of dark glass with its amber tab; the
+   pointer, the ring and the thread in the amber of the counter; the cards, glass lit from within. ---------- */
+.piel-cinematico .ayuda {
+    --ayuda-dedo: var(--cine-ambar);
+}
+
+.piel-cinematico .ver-ayuda::before,
+.piel-cinematico .como-ver::before {
+    background: var(--cine-ambar) url(reproducir.svg) center / 11px no-repeat;
+}
+
+.piel-cinematico .ayuda-pestana {
+    border: 1px solid var(--cine-filo-2);
+    border-bottom: 0;
+    background: var(--cine-vidrio-2);
+    color: var(--cine-ambar);
+}
+
+.piel-cinematico .ayuda-lamina {
+    border: 1px solid var(--cine-filo-2);
+    background: var(--cine-fondo-2);
+    box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9), 0 0 60px -30px rgba(255, 176, 102, 0.25);
+}
+
+.piel-cinematico .ayuda-pie {
+    border-top-color: var(--cine-filo);
+}
+
+.piel-cinematico .ayuda-paso {
+    color: var(--cine-ambar);
+}
+
+.piel-cinematico .ayuda-dedo {
+    box-shadow: 0 0 0 3px #1a1216, 0 0 18px rgba(255, 201, 138, 0.6);
+}
+
+.piel-cinematico .ayuda-cartel {
+    border: 1px solid var(--cine-filo-2);
+    background: var(--cine-vidrio-2);
+}
+
+.piel-cinematico .ayuda-play {
+    background: var(--cine-ambar);
+    box-shadow: 0 0 40px -6px rgba(255, 176, 102, 0.6);
+}
+
+.piel-cinematico .ayuda-play::before {
+    border-left-color: #1a1216;
+}
+
+.piel-cinematico .ayuda-mando {
+    border-color: var(--cine-filo-2);
+    background: var(--cine-vidrio);
+}
+
+.piel-cinematico .ayuda-mando[aria-pressed="false"],
+.piel-cinematico .ayuda-saltar {
+    background: none;
+}
+
+.piel-cinematico .ayuda-saltar {
+    border-color: transparent;
+}
+
+.piel-cinematico .ayuda-sello {
+    border-color: var(--cine-ambar);
+    color: var(--cine-ambar);
+}

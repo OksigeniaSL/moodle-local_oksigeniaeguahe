@@ -101,10 +101,12 @@ final class practice {
             $offers[] = centres::save_offer($id, (object) ['schoolyear' => self::school_year($now), 'name' => $str($key),
                 'places' => $places, 'active' => 1, 'sortorder' => $i]);
         }
-        // An open day all of today, so that its door works at any hour, and another in two weeks.
-        $today = make_timestamp((int) date('Y', $now), (int) date('n', $now), (int) date('j', $now), 0, 0);
+        // An open day of today, from nine to nine as a real one, but always under way when the helps open its door; and
+        // another in two weeks.
+        $today = usergetmidnight($now);
         $door = events::get(events::save($id, (object) ['kind' => 'openday', 'name' => $str('practice_openday'),
-            'place' => $str('practice_place'), 'timestart' => $today + MINSECS, 'timeend' => $today + DAYSECS - MINSECS,
+            'place' => $str('practice_place'), 'timestart' => max($today + MINSECS, min($today + 9 * HOURSECS, $now - HOURSECS)),
+            'timeend' => max($today + 21 * HOURSECS, (int) ceil(($now + 2 * HOURSECS) / HOURSECS) * HOURSECS),
             'capacity' => 80, 'open' => 1]), $id);
         $later = $today + 14 * DAYSECS + 10 * HOURSECS;
         events::save($id, (object) ['kind' => 'openday', 'name' => $str('practice_openday'), 'place' => $str('practice_place'),

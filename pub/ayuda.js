@@ -42,6 +42,8 @@
     var start = document.getElementById('eg-ayuda-empezar');
     var done = document.getElementById('eg-ayuda-hecho');
     var skipButton = document.getElementById('eg-ayuda-saltar');
+    var unit = document.getElementById('eg-ayuda-unidad');
+    var stepOut = document.getElementById('eg-ayuda-paso');
     var piece = (window.EgAyudaPiezas || {})[config.piece];
     if (!frame || !piece) {
         return;
@@ -184,6 +186,22 @@
             look();
         });
     };
+    // Brings what the pointer goes to into the frame's view, without moving the page around the frame: scrollIntoView
+    // also scrolls the window, and the stage and its caption would go up and down at every step.
+    var bring = function(element) {
+        var x = window.pageXOffset;
+        var y = window.pageYOffset;
+        element.scrollIntoView({block: 'center'});
+        window.scrollTo(x, y);
+    };
+    // The step on the strip: its number of how many, and the thread of how far it has gone.
+    var mark = function(index) {
+        var all = (config.steps || []).length;
+        if (stepOut && all) {
+            stepOut.textContent = (index + 1) + ' / ' + all;
+            root.style.setProperty('--ayuda-avance', String((index + 1) / all));
+        }
+    };
     // Where an element of the frame is, in the stage.
     var place = function(element) {
         var f = frame.getBoundingClientRect();
@@ -203,6 +221,7 @@
         say: function(index) {
             var text = (config.steps || [])[index] || '';
             caption.textContent = text;
+            mark(index);
             // Time to read it: about a word every quarter of a second, never less than two seconds. With a voice, until
             // it has finished, and a breath.
             var reading = sleep(Math.max(2200, text.split(/\s+/).length * 270));
@@ -214,7 +233,7 @@
         point: function(selector) {
             return wait(selector).then(function(element) {
                 // In the middle, not at an edge: a sticky header would cover it there.
-                element.scrollIntoView({block: 'center'});
+                bring(element);
                 return sleep(reduced ? 50 : 200).then(function() {
                     var at = place(element);
                     pointer.style.transform = 'translate(' + Math.round(at.x) + 'px, ' + Math.round(at.y) + 'px)';
@@ -291,9 +310,11 @@
         // «Try it»: a ring round the button, and nothing moves until it is tapped. A tap that loads a page is waited for.
         you: function(index, selector, loads) {
             caption.textContent = (config.now || '') + ' ' + ((config.steps || [])[index] || '');
+            mark(index);
+            root.classList.add('ayuda-ahora');
             speak(index);
             return wait(selector).then(function(element) {
-                element.scrollIntoView({block: 'center'});
+                bring(element);
                 return sleep(200).then(function() {
                     var at = place(element);
                     ring.style.left = (at.left - 8) + 'px';
@@ -307,6 +328,7 @@
                         element.addEventListener('click', function() {
                             waiting = null;
                             ring.hidden = true;
+                            root.classList.remove('ayuda-ahora');
                             resolve(loaded ? loaded.then(function() {
                                 return sleep(400);
                             }) : sleep(700));
@@ -331,13 +353,16 @@
         }
     };
 
+    // The first screen loads with the page and waits still behind «Start», so that what the help is about is seen from
+    // the first moment; «Start» runs on it. After a stop or at the end, the page comes back whole.
+    var loaded = new Promise(function(resolve) {
+        frame.addEventListener('load', function() {
+            resolve();
+        }, {once: true});
+    });
+    frame.src = config.frame;
     var load = function() {
-        return new Promise(function(resolve) {
-            frame.addEventListener('load', function() {
-                resolve();
-            }, {once: true});
-            frame.src = config.frame;
-        });
+        return loaded;
     };
 
     var run = function() {
@@ -354,6 +379,10 @@
         start.hidden = true;
         done.hidden = true;
         stage.classList.remove('eg-esperando');
+        // The stage and its strip, whole on the screen, while the help plays.
+        if (unit) {
+            window.scrollTo(0, Math.max(0, unit.getBoundingClientRect().top + window.pageYOffset - 12));
+        }
         skipping = false;
         skipButton.hidden = false;
         playMusic();
@@ -373,6 +402,7 @@
             window.console.warn('eguahe help:', error.message);
             caption.textContent = config.stuck || error.message;
             ring.hidden = true;
+            root.classList.remove('ayuda-ahora');
             pointer.classList.remove('ayuda-dedo-on');
             start.hidden = false;
             fadeMusic();
