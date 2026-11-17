@@ -9731,6 +9731,12 @@ html.modo-lamina {
     .prevision > details {
         grid-column: 1 / -1;
     }
+
+    /* Without the reach of the centre (no data of the area yet), the courses take the whole width instead of leaving
+       the right column empty (Jujol, 17 November 2026). */
+    .prevision > section:only-of-type {
+        grid-column: 1 / -1;
+    }
 }
 /* ==================== 11.8 The settings of the centre ==================== */
 .ajustes {
