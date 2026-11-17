@@ -2791,6 +2791,7 @@ $string['panel_tales_help'] = 'Na sua página, cada família abre as histórias 
 $string['panel_tales_none'] = 'Nenhuma';
 $string['panel_team_help'] = 'Quem recebe as famílias. Precisam também da autorização do Eguahe no Moodle.';
 $string['panel_team_note'] = 'Nota para a equipa';
+$string['panel_tel_check'] = 'Não parece um número completo: falta algum algarismo ou o indicativo do país?';
 $string['panel_thanks_done'] = 'Feito';
 $string['panel_thanks_help'] = 'É uma sugestão: as duas famílias não ficam ligadas no Eguahe. Agradecer, e como, fica ao critério da equipa.';
 $string['panel_thanks_sentence'] = 'Agradecer a {$a}';

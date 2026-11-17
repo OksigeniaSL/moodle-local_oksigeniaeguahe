@@ -456,7 +456,7 @@ class panel {
             }
         }
         $keys = ['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now',
-            'help_see'];
+            'help_see', 'panel_tel_check'];
         foreach ($keys as $key) {
             $out[$key] = get_string($key, self::C);
         }

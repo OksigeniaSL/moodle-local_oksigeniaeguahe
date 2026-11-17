@@ -2928,4 +2928,97 @@
         on(select, 'change', shown);
         shown();
     });
+
+    // A phone, read as phone::normalise reads it and written in groups as phone::display writes it, when it is left; a
+    // word under it when it does not look like a whole number. Saving still decides: this only helps to see it.
+    var telGroups = function(raw, data) {
+        var region = data.region || null;
+        var codes = data.codes || [];
+        var text = raw.trim();
+        if (!text) {
+            return '';
+        }
+        var plus = text.charAt(0) === '+';
+        var digits = text.replace(/\D+/g, '');
+        var abroad = region && region.international ? new RegExp('^(?:' + region.international + ')') : null;
+        var m = !plus && abroad ? digits.match(abroad) : null;
+        if (m) {
+            plus = true;
+            digits = digits.slice(m[0].length);
+        } else if (!plus && !region && digits.indexOf('00') === 0) {
+            plus = true;
+            digits = digits.slice(2);
+        }
+        if (!plus) {
+            if (!region) {
+                return null;
+            }
+            if (region.national && digits.indexOf(region.national) === 0) {
+                digits = digits.slice(region.national.length);
+            }
+            digits = region.code + digits;
+        }
+        if (digits.length < 8 || digits.length > 15 || digits.charAt(0) === '0') {
+            return null;
+        }
+        var code = '';
+        [3, 2, 1].some(function(length) {
+            if (codes.indexOf(digits.slice(0, length)) !== -1) {
+                code = digits.slice(0, length);
+                return true;
+            }
+            return false;
+        });
+        var rest = digits.slice(code.length);
+        var n = rest.length;
+        var groups = [];
+        if (n % 3 === 2) {
+            groups.push(rest.slice(0, 2));
+            rest = rest.slice(2);
+        }
+        var tail = n % 3 === 1 && rest.length >= 4 ? rest.slice(-4) : '';
+        if (tail) {
+            rest = rest.slice(0, -4);
+        }
+        for (var i = 0; i < rest.length; i += 3) {
+            groups.push(rest.slice(i, i + 3));
+        }
+        if (tail) {
+            groups.push(tail);
+        }
+        return '+' + (code ? code + ' ' : '') + groups.join(' ');
+    };
+    all('input[type="tel"]').forEach(function(input) {
+        var holder = input.hasAttribute('data-tel') ? input : input.closest('[data-tel]');
+        var data = null;
+        try {
+            data = holder ? JSON.parse(holder.getAttribute('data-tel')) : null;
+        } catch (e) {
+            data = null;
+        }
+        if (!data || !data.codes) {
+            return;
+        }
+        var note = null;
+        on(input, 'change', function() {
+            var grouped = telGroups(input.value, data);
+            if (grouped === null) {
+                if (!note) {
+                    note = doc.createElement('span');
+                    note.className = 'aviso-tel';
+                    note.id = (input.id || 'tel') + '-aviso';
+                    note.textContent = say('panel_tel_check');
+                    input.insertAdjacentElement('afterend', note);
+                    input.setAttribute('aria-describedby', ((input.getAttribute('aria-describedby') || '') + ' ' + note.id).trim());
+                }
+                return;
+            }
+            input.value = grouped;
+            if (note) {
+                input.setAttribute('aria-describedby', (input.getAttribute('aria-describedby') || '').replace(note.id, '').trim());
+                note.parentNode.removeChild(note);
+                note = null;
+            }
+        });
+    });
 })();

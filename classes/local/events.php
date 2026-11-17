@@ -183,7 +183,7 @@ class events {
      * them. With turns, the event goes from the first to the end of the last.
      *
      * @param \stdClass $event
-     * @param array $slots Each [id, timestart, timeend, capacity]; id 0 for a new one, timestart 0 to remove it.
+     * @param array $slots Each with id, timestart, timeend and capacity; id 0 for a new one, timestart 0 to remove it.
      */
     public static function save_slots(\stdClass $event, array $slots): void {
         global $DB;

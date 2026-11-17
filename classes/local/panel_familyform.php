@@ -138,6 +138,8 @@ class panel_familyform {
                 'checked' => !empty($values['consent' . $channel])];
         }
         return [
+            // To write each mobile in groups when it is left, and say when it looks short.
+            'tel' => phone::for_page((string) ($centre->country ?? '')),
             'head' => panel::head([
                 'back' => ['url' => $back->out(false), 'name' => $isnew ? get_string('tab_inbox', $c) :
                     panel::adults_line(households::full($household)->adults)],

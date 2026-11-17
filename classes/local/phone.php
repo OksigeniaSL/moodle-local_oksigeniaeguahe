@@ -52,6 +52,19 @@ class phone {
     }
 
     /**
+     * What the page needs to read a number as it is typed and write it in groups, as display() does: the numbering of the
+     * country of the centre and every country code, as JSON for a data attribute.
+     *
+     * @param string|null $country
+     * @return string
+     */
+    public static function for_page(?string $country): string {
+        $region = $country ? self::region($country) : null;
+        $codes = array_values(array_unique(array_map(fn($r) => (string) ($r['code'] ?? ''), self::$regions ?? [])));
+        return json_encode(['region' => $region, 'codes' => $codes], JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
      * The number in E.164, or null when it cannot be told.
      *
      * @param string $raw As typed.

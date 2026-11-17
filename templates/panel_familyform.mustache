@@ -35,7 +35,7 @@
     {
         "head": {"title": "Anotar a una familia", "sub": "", "back": {"url": "#", "name": "Bandeja"}, "ante": "", "action": false},
         "i": {"atras": "", "info": ""}, "action": "#", "sesskey": "abc", "marker": "_qf__form", "centreid": 1, "id": 0, "isnew": true,
-        "haserrors": false, "backurl": "#", "dupurl": "#",
+        "haserrors": false, "backurl": "#", "dupurl": "#", "tel": "{}",
         "adults": [{"i": 0, "id": 0, "open": true, "required": true,
             "firstname": {"name": "firstname0", "value": "", "error": ""}, "lastname": {"name": "lastname0", "value": "", "error": ""},
             "phone": {"name": "phone0", "value": "", "error": ""}, "email": {"name": "email0", "value": "", "error": ""} }],
@@ -59,7 +59,7 @@
 }}
 <div class="pagina apuntar">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <form class="formulario-panel tablilla" method="post" action="{{action}}" novalidate data-apuntar{{#dupurl}} data-duplicados="{{dupurl}}"{{/dupurl}}>
+    <form class="formulario-panel tablilla" method="post" action="{{action}}" novalidate data-apuntar{{#dupurl}} data-duplicados="{{dupurl}}"{{/dupurl}} data-tel="{{tel}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}">
         <input type="hidden" name="{{marker}}" value="1">
         <input type="hidden" name="c" value="{{centreid}}">

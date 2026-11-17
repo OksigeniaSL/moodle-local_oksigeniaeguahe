@@ -15818,3 +15818,11 @@ a.como-talon:focus-visible {
     font-weight: 500;
     white-space: nowrap;
 }
+
+/* A phone that does not look whole, said under it while it is written (0.80.0). */
+.aviso-tel {
+    display: block;
+    margin-top: 4px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}

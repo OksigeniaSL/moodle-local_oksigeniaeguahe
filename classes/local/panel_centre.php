@@ -108,6 +108,7 @@ class panel_centre {
             'systems' => self::systems($centre),
             'address' => (string) $centre->address,
             'phone' => (string) $centre->phone,
+            'tel' => phone::for_page((string) ($centre->country ?? '')),
             'email' => (string) $centre->email,
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
