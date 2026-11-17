@@ -58,6 +58,7 @@
         <FIELD NAME="guide" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The guide on the pages of the families (guide::KINDS), or null for none"/>
         <FIELD NAME="guidewhere" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the guide takes families on the miniature, as the centre writes it"/>
         <FIELD NAME="guidehello" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What the guide says by the greeting, as the centre writes it; empty, the words of Eguahe"/>
+        <FIELD NAME="practice" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for the practice centre of the guided helps: in no list, and nothing it does leaves the site"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

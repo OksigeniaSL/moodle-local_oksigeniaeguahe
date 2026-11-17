@@ -123,7 +123,7 @@ class kit {
      */
     public static function links(\stdClass $event, \stdClass $centre): array {
         $kit = self::kept($event);
-        $shortener = shortener::of_site();
+        $shortener = !empty($centre->practice) ? null : shortener::of_site();
         $changed = false;
         $out = [];
         foreach (centres::networks($centre) as $name) {

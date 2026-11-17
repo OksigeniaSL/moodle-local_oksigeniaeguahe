@@ -146,7 +146,7 @@ class messaging {
         string $lang,
         string $text = ''
     ): int {
-        if (!isset(self::NOTICES[$kind]) || !self::joined($household, $centre)) {
+        if (!isset(self::NOTICES[$kind]) || !empty($centre->practice) || !self::joined($household, $centre)) {
             return 0;
         }
         // The notice goes whole in one language (Marandu 0.26.0): the family's, if the site has it, else the site's;
@@ -197,7 +197,7 @@ class messaging {
      * @return string|null The channel it went by, or null if it could not go.
      */
     public static function reply(\stdClass $household, \stdClass $centre, string $text): ?string {
-        if (!self::joined($household, $centre)) {
+        if (!empty($centre->practice) || !self::joined($household, $centre)) {
             return null;
         }
         $lang = $household->lang ?: $centre->lang;

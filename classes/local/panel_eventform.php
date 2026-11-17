@@ -572,6 +572,7 @@ class panel_eventform {
                         $c
                     )),
                 'back' => $back,
+                'help' => $isnew ? helps::link('newevent', $centre) : false,
             ]),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id] +
                 ($isnew ? ['new' => 1] : ['id' => $values['id']])))->out(false),

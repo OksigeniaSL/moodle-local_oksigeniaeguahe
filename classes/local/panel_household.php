@@ -146,6 +146,7 @@ class panel_household {
                 'sub' => implode(' · ', array_filter($origin)),
                 'action' => $canact ? ['url' => '#contestar', 'anchor' => true, 'name' => get_string('panel_answer', $c),
                     'icon' => panel::icon('enviado')] : null,
+                'help' => helps::link('answer', $centre),
             ]),
             'url' => $url->out(false),
             'inboxurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),

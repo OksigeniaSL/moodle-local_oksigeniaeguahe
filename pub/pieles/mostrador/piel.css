@@ -70,6 +70,7 @@ body.piel-mostrador::after {
         --kraft-2: #523e29;
         --kraft-tinta: #f0dcc0;
         --nota: #3a3122;
+        --como-nota: #5a4828;
         --pauta: rgba(170, 190, 225, 0.14);
         --margen: rgba(230, 130, 120, 0.34);
         --cuadricula: rgba(170, 190, 225, 0.07);
@@ -139,6 +140,7 @@ body.piel-mostrador::after {
     --kraft-2: #523e29;
     --kraft-tinta: #f0dcc0;
     --nota: #3a3122;
+    --como-nota: #5a4828;
     --pauta: rgba(170, 190, 225, 0.14);
     --margen: rgba(230, 130, 120, 0.34);
     --cuadricula: rgba(170, 190, 225, 0.07);
@@ -1940,10 +1942,12 @@ body.modo-lamina.piel-mostrador .barra-antes {
     border-bottom-color: rgba(70, 110, 170, 0.45);
 }
 
+/* At night the yellow pad of the guide stays yellow, as under the lamp: the night's --nota is the brown of the paper,
+   and inside a slip it read as a dark box. */
 .piel-mostrador .como-sub.como-espera,
 .piel-mostrador .como-nada,
 .piel-mostrador .como-ia {
-    background: var(--nota) var(--ruido);
+    background: var(--como-nota, var(--nota)) var(--ruido);
     box-shadow: 0 1px 1px rgba(60, 35, 20, 0.16), 0 4px 7px -4px rgba(60, 35, 20, 0.3);
 }
 

@@ -202,6 +202,9 @@ class channel {
      * @param int|null $now
      */
     public static function sync(\stdClass $event, ?int $now = null): void {
+        if (centres::is_practice((int) $event->centreid)) {
+            return;
+        }
         $now = $now ?? time();
         if (!self::ready()) {
             return;

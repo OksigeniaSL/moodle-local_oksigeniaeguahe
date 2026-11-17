@@ -90,6 +90,10 @@ class mail {
         if (!validate_email($email)) {
             return false;
         }
+        if (!empty($centre->practice)) {
+            // The practice centre of the guided helps: as sent, and nothing leaves.
+            return true;
+        }
         if (!empty($CFG->noemailever)) {
             // A site that sends no mail: as Moodle does, it counts as done.
             return true;

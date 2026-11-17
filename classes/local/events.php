@@ -593,7 +593,7 @@ class events {
         if (!empty($event->shorturl)) {
             return $event->shorturl;
         }
-        $shortener = shortener::of_site();
+        $shortener = centres::is_practice((int) $event->centreid) ? null : shortener::of_site();
         if (!$shortener) {
             return null;
         }

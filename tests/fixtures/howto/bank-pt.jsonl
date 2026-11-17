@@ -1,0 +1,167 @@
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "pedidos de informação ainda por responder", "need": "waiting"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "leads sem resposta", "need": "waiting"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "quem está à espera que lhe respondamos", "need": "waiting"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "ver os pais que ainda nao foram atendidos", "need": "waiting"}
+{"lang": "pt", "region": "BR", "persona": "dona de um curso de inglês", "q": "fila de pendentes", "need": "waiting"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "responder a um encarregado de educação", "need": "answer"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "como respondo a mensagem de uma mãe interessada", "need": "answer"}
+{"lang": "pt", "region": "PT", "persona": "coordenador de admissões de um colégio", "q": "enviar resposta ao email de uma família que perguntou pelas propinas", "need": "answer"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "retornar o contato de um lead", "need": "answer"}
+{"lang": "pt", "region": "PT", "persona": "dona de uma escola de línguas", "q": "responder pelo whatsapp a uma mãe que pediu informações sobre o horário", "need": "answer"}
+{"lang": "pt", "region": "PT", "persona": "auxiliar de ação educativa", "q": "ligou uma mãe a perguntar por vaga, onde é que a registo", "need": "addfamily"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "cadastrar familia que veio na recepção sem agendar", "need": "addfamily"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "incluir lead manualmente", "need": "addfamily"}
+{"lang": "pt", "region": "PT", "persona": "coordenadora de admissões de uma universidade", "q": "ficar responsável por uma família", "need": "attend"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "passar o lead pra mim", "need": "attend"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "lembrete pra ligar pra familia na sexta", "need": "promise"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "prometi enviar o regulamento a uns pais na segunda, onde aponto isso com a data", "need": "promise"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "modelos de resposta", "need": "saved"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "guardar um texto que envio sempre para nao ter de o escrever de novo", "need": "saved"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "gerar resposta com inteligencia artificial", "need": "aidraft"}
+{"lang": "pt", "region": "PT", "persona": "coordenador de admissões de um colégio", "q": "rascunho feito pela IA", "need": "aidraft"}
+{"lang": "pt", "region": "PT", "persona": "coordenadora de admissões de uma universidade", "q": "vou de férias duas semanas, quem fica com as minhas famílias?", "need": "away"}
+{"lang": "pt", "region": "BR", "persona": "secretário de uma escola técnica", "q": "ausência temporária, quem responde por mim", "need": "away"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "mudar status do aluno p/ matriculado", "need": "stage"}
+{"lang": "pt", "region": "PT", "persona": "coordenadora de admissões de uma universidade", "q": "avançar a candidatura para a fase seguinte", "need": "stage"}
+{"lang": "pt", "region": "BR", "persona": "dono de um cursinho pré-vestibular", "q": "mover no funil", "need": "stage"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "turma cheia, deixar a criança como suplente", "need": "waitlist"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "fila de espera da creche", "need": "waitlist"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "marcar lead como perdido", "need": "close"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "a família desistiu, arquivar", "need": "close"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "familia matriculou em outra escola, encerrar o atendimento", "need": "close"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "anular a matrícula de um aluno que mudou de cidade", "need": "left"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "transferência de aluno que saiu da escola", "need": "left"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "registar a saída de um aluno a meio do ano", "need": "left"}
+{"lang": "pt", "region": "BR", "persona": "professora de educação infantil", "q": "irmao mais novo que vai entrar daqui a dois anos", "need": "sibling"}
+{"lang": "pt", "region": "PT", "persona": "educadora de infância", "q": "a família tem um bebé que entra mais tarde, quero deixá-lo registado", "need": "sibling"}
+{"lang": "pt", "region": "PT", "persona": "coordenador de admissões de um colégio", "q": "marcar uma visita só para uma família", "need": "tailored"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "agendar vizita individual fora do dia do evento", "need": "tailored"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "programa de indicação de pais", "need": "ambassador"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "famílias que recomendam a escola a outras", "need": "ambassador"}
+{"lang": "pt", "region": "PT", "persona": "educador de infância", "q": "imprimir autocolantes com o nome dos filhos de uma família", "need": "familylabels"}
+{"lang": "pt", "region": "BR", "persona": "professora de educação infantil", "q": "etiquetas com nome das crianças de um mesmo responsável", "need": "familylabels"}
+{"lang": "pt", "region": "BR", "persona": "professor de educação infantil", "q": "subir foto do desenho que a criança fez na visita", "need": "drawing"}
+{"lang": "pt", "region": "PT", "persona": "educadora de infância", "q": "carregar o desenho que um menino fez", "need": "drawing"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "o link da página da família deixou de funcionar", "need": "newlink"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "reenviar link de acesso pro responsavel", "need": "newlink"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "apagar dados da família lgpd", "need": "erase"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "pedido de eliminação de dados ao abrigo do RGPD", "need": "erase"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "agendar open school", "need": "newevent"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "criar um dia aberto", "need": "newevent"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "nova sessão de apresentação para pais do 1.º ciclo", "need": "newevent"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "cadastrar tour pela escola", "need": "newevent"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "adiar a visita de sábado", "need": "changeevent"}
+{"lang": "pt", "region": "BR", "persona": "secretário de uma escola técnica", "q": "cancelar evento por causa da chuva", "need": "changeevent"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "fazer checkin dos pais no evento", "need": "door"}
+{"lang": "pt", "region": "PT", "persona": "auxiliar de ação educativa", "q": "marcar quem chegou ao dia aberto", "need": "door"}
+{"lang": "pt", "region": "BR", "persona": "porteiro de um colégio", "q": "lista de presença na portaria no dia da visita", "need": "door"}
+{"lang": "pt", "region": "PT", "persona": "educador de infância", "q": "registar as entradas à porta no próprio dia, pelo telemóvel", "need": "door"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "cartaz com qr code", "need": "poster"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "imprimir o cartaz para afixar na entrada", "need": "poster"}
+{"lang": "pt", "region": "PT", "persona": "educadora de infância", "q": "etiquetas para as mochilas das crianças que vêm ao dia aberto", "need": "eventlabels"}
+{"lang": "pt", "region": "BR", "persona": "professor de educação infantil", "q": "imprimir crachas das crianças do evento", "need": "eventlabels"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "divulgar o evento no instagram", "need": "kit"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "publicações para as redes sociais do dia aberto", "need": "kit"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "link de inscrição pra mandar no grupo de whatsapp", "need": "share"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "copiar a ligação para as inscrições", "need": "share"}
+{"lang": "pt", "region": "BR", "persona": "dona de um curso de inglês", "q": "compartilhar formulario de inscriçao", "need": "share"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "convidar os interessados para a festa de natal", "need": "openinvite"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "mandar convite da festa junina pros leads", "need": "openinvite"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "pesquisa de satisfação do evento", "need": "results"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "o que acharam os pais da visita", "need": "results"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "criar formulario de captação", "need": "form"}
+{"lang": "pt", "region": "PT", "persona": "dono de um centro de explicações", "q": "fazer um formulário de pedido de informações com as nossas perguntas", "need": "form"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "incorporar formulário no site", "need": "embed"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "inserir o formulário na página da escola em wordpress", "need": "embed"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "qr code diferente para cada panfleto", "need": "sites"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "saber de que anúncio vieram, com links diferentes", "need": "sites"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "importar leads do facebook", "need": "meta"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "descarregar os contactos dos anúncios do instagram", "need": "meta"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "integrar google forms", "need": "google"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "respostas de um formulário google", "need": "google"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "receber os emails da secretaria aqui dentro", "need": "mailbox"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "encaminhar o correio de admissões", "need": "mailbox"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "fazer inscrição teste", "need": "testentries"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "testar se o formulário funciona sem contar nas estatísticas", "need": "testentries"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "funil de matrículas", "need": "metrics"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "quantas inscrições temos este ano", "need": "metrics"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "taxa de conversão de leads", "need": "metrics"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "estatísticas das candidaturas", "need": "metrics"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "como esta a captação", "need": "metrics"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "custo por aluno captado", "need": "cost"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "quanto gastamos em publicidade por cada aluno novo", "need": "cost"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "relatório semanal", "need": "report"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "resumo do ano letivo da captação", "need": "report"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "mostrar os números no telão da reunião", "need": "bigscreen"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "projetar os dados no conselho pedagógico", "need": "bigscreen"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "exportar planilha de familias", "need": "export"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "descarregar a lista em excel", "need": "export"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "previsão de alunos para os próximos anos", "need": "forecast"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "projecao de matriculas com taxa de natalidade", "need": "forecast"}
+{"lang": "pt", "region": "BR", "persona": "secretário de uma escola técnica", "q": "importar dados da captação do ano passado", "need": "import"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "carregar o ficheiro da campanha anterior", "need": "import"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "rematricula", "need": "renewal"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "renovação de matrícula para o próximo ano letivo", "need": "renewal"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "saber quem vai continuar ano que vem", "need": "renewal"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "perguntar aos encarregados se o filho continua", "need": "renewal"}
+{"lang": "pt", "region": "PT", "persona": "educadora de infância", "q": "data de início das aulas do pré-escolar", "need": "firstday"}
+{"lang": "pt", "region": "BR", "persona": "professora de educação infantil", "q": "primeiro dia de aula de cada turma", "need": "firstday"}
+{"lang": "pt", "region": "BR", "persona": "professor de educação infantil", "q": "a criança ja começou a frequentar, atualizar", "need": "started"}
+{"lang": "pt", "region": "PT", "persona": "educador de infância", "q": "o menino já entrou na escola, assinalar", "need": "started"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "sincronizar alunos atuais do sistema de gestão", "need": "roster"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "puxar os alunos já matriculados do programa de gestão", "need": "roster"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "alterar o número de vagas do pré-escolar", "need": "set:offer"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "adicionar serie nova com vagas", "need": "set:offer"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "quem aparece recebendo as famílias", "need": "set:hosts"}
+{"lang": "pt", "region": "PT", "persona": "coordenador de admissões de um colégio", "q": "foto da pessoa que recebe os pais", "need": "set:hosts"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "dar acesso a uma colega", "need": "set:team"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "adicionar usuario na equipe de captação", "need": "set:team"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "conectar whatsapp", "need": "set:messaging"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "ativar telegram", "need": "set:messaging"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "trocar logo da escola", "need": "set:look"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "cores da escola", "need": "set:look"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "alterar a morada e o telefone", "need": "set:contact"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "endereço e como chegar", "need": "set:contact"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "prazo de resposta que aparece pros pais", "need": "set:replydays"}
+{"lang": "pt", "region": "PT", "persona": "coordenadora de admissões de uma universidade", "q": "quantos dias demoramos a responder", "need": "set:replydays"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "mapa ilustrado da escola", "need": "set:miniature"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "subir a maquete desenhada da escola", "need": "set:miniature"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "tirar o cachorrinho", "need": "set:guide"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "mudar o que diz o cãozinho", "need": "set:guide"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "mudar a língua e o sistema de ensino", "need": "set:country"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "configurar pais", "need": "set:country"}
+{"lang": "pt", "region": "BR", "persona": "coordenadora de admissões de uma faculdade", "q": "como se candidatar a vaga, onde coloco isso", "need": "set:apply"}
+{"lang": "pt", "region": "PT", "persona": "coordenador de admissões de um colégio", "q": "prazo de candidaturas e link", "need": "set:apply"}
+{"lang": "pt", "region": "BR", "persona": "dona de um curso de inglês", "q": "valor da mensalidade", "need": "set:costs"}
+{"lang": "pt", "region": "PT", "persona": "dono de um centro de explicações", "q": "propinas e preços", "need": "set:costs"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "o que acontece depois da matrícula", "need": "set:after"}
+{"lang": "pt", "region": "BR", "persona": "coordenador de captação de um colégio", "q": "quem acompanha a família depois de matriculada", "need": "set:after"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "por quanto tempo os dados ficam guardados", "need": "set:retention"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "prazo de conservação dos dados", "need": "set:retention"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "concelhos à volta da escola", "need": "set:zone"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "bairros da região da escola", "need": "set:zone"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "colocar o instagram da escola", "need": "set:networks"}
+{"lang": "pt", "region": "PT", "persona": "responsável de marketing de um colégio privado", "q": "redes socias da escola", "need": "set:networks"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "mudar o aspeto do painel", "need": "set:skin"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "trocar o tema da tela da equipe", "need": "set:skin"}
+{"lang": "pt", "region": "BR", "persona": "diretora de uma escola de educação infantil", "q": "o que as familias podem compartilhar", "need": "set:sharing"}
+{"lang": "pt", "region": "PT", "persona": "diretora de um jardim de infância", "q": "impedir que os pais partilhem o vídeo", "need": "set:sharing"}
+{"lang": "pt", "region": "PT", "persona": "administrador de sistemas de um agrupamento de escolas", "q": "desligar a inteligência artificial", "need": "set:ai"}
+{"lang": "pt", "region": "BR", "persona": "administradora de TI de uma rede de escolas", "q": "ativar IA", "need": "set:ai"}
+{"lang": "pt", "region": "PT", "persona": "secretária de uma escola básica", "q": "família Silva Santos", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "(11) 98765-4321", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "auxiliar de ação educativa", "q": "5.º ano", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "professora de educação infantil", "q": "trocar minha senha", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "professor de educação infantil", "q": "lançar notas", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "educador de infância", "q": "sumários das aulas", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "secretário de uma escola técnica", "q": "horário das aulas", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "dono de um cursinho pré-vestibular", "q": "boleto da mensalidade", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "coordenadora de admissões de uma universidade", "q": "faltas dos alunos", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "professora de educação infantil", "q": "fazer chamada na sala de aula", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "auxiliar de ação educativa", "q": "ementa da cantina", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "diretor de um colégio", "q": "folha de pagamento", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "secretário de uma escola profissional", "q": "+351 912 345 678", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "diretor de um colégio", "q": "pauta de avaliação", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "secretária escolar", "q": "maternal II", "need": "none"}
+{"lang": "pt", "region": "PT", "persona": "educadora de infância", "q": "horario da turma do 2.º ano", "need": "none"}
+{"lang": "pt", "region": "BR", "persona": "gerente de marketing de uma faculdade", "q": "nota fiscal", "need": "none"}

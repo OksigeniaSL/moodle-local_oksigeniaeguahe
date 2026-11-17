@@ -2635,6 +2635,14 @@
                     }
                     var stub = span(slip, 'como-talon', a.go);
                     span(stub, 'como-flecha').setAttribute('aria-hidden', 'true');
+                    // Its guided help, beside the slip: a link cannot hold another.
+                    if (a.help) {
+                        var see = doc.createElement('a');
+                        see.className = 'como-ver';
+                        see.href = a.help;
+                        see.textContent = say('help_see');
+                        item.appendChild(see);
+                    }
                     list.appendChild(item);
                     howtoFirst = howtoFirst || a.url;
                 });

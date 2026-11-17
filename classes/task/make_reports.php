@@ -46,7 +46,7 @@ class make_reports extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
         $now = self::$testnow ?? time();
-        foreach ($DB->get_fieldset_select(centres::T, 'id', '1 = 1') as $id) {
+        foreach ($DB->get_fieldset_select(centres::T, 'id', 'practice = 0') as $id) {
             $centre = centres::get((int) $id);
             foreach ($centre ? reports::due($centre, $now) : [] as [$kind, $from, $to]) {
                 try {

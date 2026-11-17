@@ -1,0 +1,167 @@
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "which enquiries haven't had a reply yet", "need": "waiting"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "unanswered inquiries", "need": "waiting"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "who's still waiting to hear back from us", "need": "waiting"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "parents still waiting on the office to get back to them", "need": "waiting"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "pending parent querys list", "need": "waiting"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "reply to a parent's email about the open morning", "need": "answer"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "how do I respond to a family that asked about tuition", "need": "answer"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "write back to a family", "need": "answer"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "respond to an enquirey from a parent", "need": "answer"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "how to send reply to parent query kindly guide", "need": "answer"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "a mam rang looking for a place in junior infants, where do I put her details", "need": "addfamily"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "parent popped into the office asking about prep, add them in", "need": "addfamily"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "walk in parent enquiry manual entry", "need": "addfamily"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "assign a famly to myself", "need": "attend"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "make me the point of contact for this family", "need": "attend"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "remind me to ring a family back on friday", "need": "promise"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "folow up task with a due date", "need": "promise"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "canned responses", "need": "saved"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "save templete for replies", "need": "saved"}
+{"lang": "en", "region": "GB", "persona": "marketing manager at an independent school", "q": "let the AI draft my reply", "need": "aidraft"}
+{"lang": "en", "region": "IN", "persona": "marketing head at a coaching institute", "q": "auto generate reply using ai", "need": "aidraft"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "I'm off on leave next week, who looks after my families", "need": "away"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "out of office", "need": "away"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "change application status to enrolled", "need": "stage"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "move a pupil forward in the admissions pipeline", "need": "stage"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "update admission status of student", "need": "stage"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "first year is full, keep a child on the list in case a place comes up", "need": "waitlist"}
+{"lang": "en", "region": "US", "persona": "principal of a preschool", "q": "waitlist a student for kindergarten", "need": "waitlist"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "mark lead as lost", "need": "close"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "family went with another school, close off there enquiry", "need": "close"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "archive a family that decided against us", "need": "close"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "pupil leaving the school after christmas, record it", "need": "left"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "student withdrawl from school", "need": "left"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "TC issued, student left school, how to update", "need": "left"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "younger sibbling for a future intake", "need": "sibling"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "family has a baby who'll start in 2029, note it down somewhere", "need": "sibling"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "schedule a privite tour", "need": "tailored"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "family can't make the open evening, book them in for a one-to-one visit another day", "need": "tailored"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "parent ambassador program", "need": "ambassador"}
+{"lang": "en", "region": "IN", "persona": "marketing head at a coaching institute", "q": "parent referral programme", "need": "ambassador"}
+{"lang": "en", "region": "GB", "persona": "reception teacher", "q": "print name stickers for one family's kids", "need": "familylabels"}
+{"lang": "en", "region": "AU", "persona": "kinder teacher", "q": "labels for the two kids in the same family", "need": "familylabels"}
+{"lang": "en", "region": "IE", "persona": "junior infants teacher", "q": "upload a picture a child drew when they visited", "need": "drawing"}
+{"lang": "en", "region": "US", "persona": "pre-K teacher", "q": "scan a kid's artwork", "need": "drawing"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "family says their link doesn't work anymore", "need": "newlink"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "resend page link to parent", "need": "newlink"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "GDPR request to delete a family", "need": "erase"}
+{"lang": "en", "region": "AU", "persona": "ICT coordinator at a secondary college", "q": "permanently remove a family's info", "need": "erase"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "set up an open house", "need": "newevent"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "create an open morning for year 7", "need": "newevent"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "new school tour date", "need": "newevent"}
+{"lang": "en", "region": "IN", "persona": "principal of an international school", "q": "schedule campus tour for nursery admisions", "need": "newevent"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "postpone the open day because of the snow", "need": "changeevent"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "cancel tomorrows tour", "need": "changeevent"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "check in families at the open house", "need": "door"}
+{"lang": "en", "region": "IE", "persona": "caretaker at a community school", "q": "tick off who's arrived on the open evening", "need": "door"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "sign-in at the door", "need": "door"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "mark attendence of parents at campus visit", "need": "door"}
+{"lang": "en", "region": "GB", "persona": "marketing manager at an independent school", "q": "print poster with qr code", "need": "poster"}
+{"lang": "en", "region": "US", "persona": "custodian at a K-12 school", "q": "flyer with a QR to hang in the lobby", "need": "poster"}
+{"lang": "en", "region": "AU", "persona": "kinder teacher", "q": "name tags for all the kids comming to the open day", "need": "eventlabels"}
+{"lang": "en", "region": "IE", "persona": "junior infants teacher", "q": "print bag tags for everyone booked in for saturday", "need": "eventlabels"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "post the open house on instagram", "need": "kit"}
+{"lang": "en", "region": "AU", "persona": "marketing coordinator at a private school", "q": "social media posts for open day", "need": "kit"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "copy the registration link", "need": "share"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "text parents the signup link", "need": "share"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "share admision link on whatsapp group", "need": "share"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "invite prospective families to the christmas concert", "need": "openinvite"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "send an invite for the summer fair to interested parents", "need": "openinvite"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "open house feedback survey results", "need": "results"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "what did parents think of the open day", "need": "results"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "create enquiry form with custom feilds", "need": "form"}
+{"lang": "en", "region": "AU", "persona": "owner of a language school", "q": "build our own form for people wanting info", "need": "form"}
+{"lang": "en", "region": "US", "persona": "IT administrator for a school district", "q": "embed form on our website", "need": "embed"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "add the form to our wordpress site", "need": "embed"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "different QR codes for each flyer location", "need": "sites"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "track which advert or newsletter families came from", "need": "sites"}
+{"lang": "en", "region": "GB", "persona": "marketing manager at an independent school", "q": "pull leads from facebook ads", "need": "meta"}
+{"lang": "en", "region": "AU", "persona": "marketing coordinator at a private school", "q": "get leads from instagram ads into the system", "need": "meta"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "google form data import", "need": "google"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "link our google form responses", "need": "google"}
+{"lang": "en", "region": "US", "persona": "IT administrator for a school district", "q": "forward admissions inbox", "need": "mailbox"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "make emails to admissions@ come in automatically", "need": "mailbox"}
+{"lang": "en", "region": "AU", "persona": "owner of a language school", "q": "check the sign up form works before going live", "need": "testentries"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "submit dummy enquiry for testing", "need": "testentries"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "admissions funnel", "need": "metrics"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "how many enquiries this year compared to last", "need": "metrics"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "enrolment numbers so far", "need": "metrics"}
+{"lang": "en", "region": "IN", "persona": "principal of an international school", "q": "admission statistics dashbord", "need": "metrics"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "conversion rate from open evening to enrolment", "need": "metrics"}
+{"lang": "en", "region": "AU", "persona": "marketing coordinator at a private school", "q": "cost per enrolment from ads", "need": "cost"}
+{"lang": "en", "region": "GB", "persona": "marketing manager at an independent school", "q": "how much are we spending to get each new pupil", "need": "cost"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "weekly admissions summary", "need": "report"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "end of year enrolments report", "need": "report"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "present the figures at the governors meeting", "need": "bigscreen"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "full screen numbers for the staff meeting", "need": "bigscreen"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "export families to excel", "need": "export"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "dowload list in csv", "need": "export"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "projected intake for the next three years", "need": "forecast"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "how many junior infants might we get in 2028 and 2029", "need": "forecast"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "bring in old data from the previous intake", "need": "import"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "upload last year enquiry excel", "need": "import"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "re-enrollment", "need": "renewal"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "ask parents whether they're staying on next september", "need": "renewal"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "returning studnets for next year", "need": "renewal"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "who is continuing next academic session", "need": "renewal"}
+{"lang": "en", "region": "GB", "persona": "reception teacher", "q": "set the start date for reception", "need": "firstday"}
+{"lang": "en", "region": "IE", "persona": "junior infants teacher", "q": "when do the junior infants start, where do I put the date", "need": "firstday"}
+{"lang": "en", "region": "AU", "persona": "kinder teacher", "q": "child has now started kinder, tick them off", "need": "started"}
+{"lang": "en", "region": "US", "persona": "pre-K teacher", "q": "kid began classes today, update it", "need": "started"}
+{"lang": "en", "region": "US", "persona": "IT administrator for a school district", "q": "sync current students from SIS", "need": "roster"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "import current families from SIMS", "need": "roster"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "change the number of places in year 7", "need": "set:offer"}
+{"lang": "en", "region": "IN", "persona": "principal of an international school", "q": "add class and no. of seats", "need": "set:offer"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "who greets families on their page", "need": "set:hosts"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "photo of the person who welcomes parents", "need": "set:hosts"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "give a colleague acess", "need": "set:team"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "add new user in admission team", "need": "set:team"}
+{"lang": "en", "region": "US", "persona": "IT administrator for a school district", "q": "connect whatsapp", "need": "set:messaging"}
+{"lang": "en", "region": "AU", "persona": "marketing coordinator at a private school", "q": "turn on telegram", "need": "set:messaging"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "upload school logo", "need": "set:look"}
+{"lang": "en", "region": "AU", "persona": "marketing coordinator at a private school", "q": "change brand colours", "need": "set:look"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "update school adress and phone", "need": "set:contact"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "directions to campus", "need": "set:contact"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "how many days we tell families it takes to reply", "need": "set:replydays"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "response time families see", "need": "set:replydays"}
+{"lang": "en", "region": "GB", "persona": "marketing manager at an independent school", "q": "ilustrated map of the school", "need": "set:miniature"}
+{"lang": "en", "region": "IN", "persona": "marketing head at a coaching institute", "q": "upload drawn campus map", "need": "set:miniature"}
+{"lang": "en", "region": "US", "persona": "principal of a preschool", "q": "turn off the dog", "need": "set:guide"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "change what the puppy says", "need": "set:guide"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "change language and curriculum", "need": "set:country"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "select country and board", "need": "set:country"}
+{"lang": "en", "region": "AU", "persona": "enrolments officer at a TAFE college", "q": "application deadine and how to apply link", "need": "set:apply"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "where do I set up the application process", "need": "set:apply"}
+{"lang": "en", "region": "US", "persona": "owner of a test-prep center", "q": "add tuition fees", "need": "set:costs"}
+{"lang": "en", "region": "IN", "persona": "owner of a coaching institute", "q": "fee structure", "need": "set:costs"}
+{"lang": "en", "region": "GB", "persona": "admissions officer at a secondary school", "q": "what happens after a pupil is enrolled", "need": "set:after"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "once a child is enrolled, who takes over the family from admissions", "need": "set:after"}
+{"lang": "en", "region": "GB", "persona": "network manager at a multi-academy trust", "q": "data retention period", "need": "set:retention"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "how long do we keep enquiry data", "need": "set:retention"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "catchment area", "need": "set:zone"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "suburbs around the school", "need": "set:zone"}
+{"lang": "en", "region": "US", "persona": "enrollment marketing manager at a university", "q": "add our instagram account", "need": "set:networks"}
+{"lang": "en", "region": "IN", "persona": "marketing head at a coaching institute", "q": "school social media links", "need": "set:networks"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "different theme for the admissions screen", "need": "set:skin"}
+{"lang": "en", "region": "US", "persona": "IT administrator for a school district", "q": "swich panel design", "need": "set:skin"}
+{"lang": "en", "region": "GB", "persona": "headteacher of a nursery school", "q": "stop families sharing the video", "need": "set:sharing"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "what parents can share", "need": "set:sharing"}
+{"lang": "en", "region": "IN", "persona": "IT admin at a university", "q": "disable AI feature", "need": "set:ai"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "use our own claude api key", "need": "set:ai"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "Mrs Patel", "need": "none"}
+{"lang": "en", "region": "GB", "persona": "school secretary at a primary school", "q": "07700 900123", "need": "none"}
+{"lang": "en", "region": "IE", "persona": "deputy principal of a secondary school", "q": "2nd years", "need": "none"}
+{"lang": "en", "region": "US", "persona": "front office secretary at an elementary school", "q": "reset my pasword", "need": "none"}
+{"lang": "en", "region": "US", "persona": "pre-K teacher", "q": "enter grades", "need": "none"}
+{"lang": "en", "region": "GB", "persona": "reception teacher", "q": "class timetable", "need": "none"}
+{"lang": "en", "region": "US", "persona": "director of admissions at a private K-12 school", "q": "Johnson family", "need": "none"}
+{"lang": "en", "region": "US", "persona": "principal of a preschool", "q": "payroll", "need": "none"}
+{"lang": "en", "region": "AU", "persona": "school office manager", "q": "bus routes", "need": "none"}
+{"lang": "en", "region": "AU", "persona": "principal of a primary school", "q": "parent teacher interview schedule", "need": "none"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "fee reciept print", "need": "none"}
+{"lang": "en", "region": "IN", "persona": "front desk executive at a play school", "q": "+91 98765 43210", "need": "none"}
+{"lang": "en", "region": "IE", "persona": "school secretary at a national school", "q": "take the roll in class", "need": "none"}
+{"lang": "en", "region": "IE", "persona": "junior infants teacher", "q": "junior infants", "need": "none"}
+{"lang": "en", "region": "IE", "persona": "caretaker at a community school", "q": "book the sports hall", "need": "none"}
+{"lang": "en", "region": "IN", "persona": "admission in-charge at a CBSE school", "q": "Std 5", "need": "none"}
+{"lang": "en", "region": "US", "persona": "custodian at a K-12 school", "q": "lunch menu", "need": "none"}

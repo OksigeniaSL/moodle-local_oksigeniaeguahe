@@ -111,6 +111,7 @@ class provider implements
             \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
             'privacy:metadata:preference:density'
         );
+        $collection->add_user_preference('local_oksigeniaeguahe_helpskin', 'privacy:metadata:preference:helpskin');
         return $collection;
     }
 
@@ -127,6 +128,15 @@ class provider implements
                 \local_oksigeniaeguahe\local\panel_inbox::DENSITY,
                 $density,
                 get_string('privacy:metadata:preference:density', 'local_oksigeniaeguahe')
+            );
+        }
+        $skin = get_user_preferences('local_oksigeniaeguahe_helpskin', null, $userid);
+        if ($skin !== null) {
+            writer::export_user_preference(
+                'local_oksigeniaeguahe',
+                'local_oksigeniaeguahe_helpskin',
+                $skin,
+                get_string('privacy:metadata:preference:helpskin', 'local_oksigeniaeguahe')
             );
         }
     }

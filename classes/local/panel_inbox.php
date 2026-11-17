@@ -152,6 +152,7 @@ class panel_inbox {
             'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,
+                'help' => helps::link('inbox', $centre),
                 'action' => $canact ? ['url' => (new \moodle_url(
                     '/local/oksigeniaeguahe/edit.php',
                     ['c' => $centreid]

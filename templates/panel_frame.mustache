@@ -53,7 +53,7 @@
     <span class="separa" aria-hidden="true"></span>
     {{#hascentres}}
     <details class="menu-barra centros">
-        <summary class="centro-sel" aria-label="{{#str}}panel_centre_change, local_oksigeniaeguahe, {{centre}}{{/str}}">
+        <summary class="centro-sel" aria-label="{{#str}}panel_centre_change, local_oksigeniaeguahe, {{centre}}{{/str}}" title="{{centre}}">
             {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
             <span class="nombre">{{centre}}</span>{{{i.chev}}}
         </summary>
@@ -61,7 +61,7 @@
     </details>
     {{/hascentres}}
     {{^hascentres}}
-    <a class="centro-sel" href="{{homeurl}}">
+    <a class="centro-sel" href="{{homeurl}}" title="{{centre}}">
         {{#logo}}<img class="emblema" src="{{logo}}" alt="" width="30" height="30">{{/logo}}{{^logo}}<span class="emblema monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
         <span class="nombre">{{centre}}</span>
     </a>

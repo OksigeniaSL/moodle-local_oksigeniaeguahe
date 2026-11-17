@@ -66,6 +66,9 @@ class appnotices {
      */
     public static function send(\stdClass $household, \stdClass $centre, string $name, string $key, $a, string $anchor): int {
         $sent = 0;
+        if (!empty($centre->practice)) {
+            return $sent;
+        }
         foreach (self::users_of($household) as $userid) {
             $user = \core_user::get_user($userid);
             if (!$user || !empty($user->suspended) || !empty($user->deleted)) {

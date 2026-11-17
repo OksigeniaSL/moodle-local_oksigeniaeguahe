@@ -224,6 +224,13 @@ class panel {
      * @return string One of SKINS.
      */
     public static function skin(\stdClass $centre): string {
+        // The practice centre of the guided helps wears the skin of the centre the help was opened from.
+        if (!empty($centre->practice)) {
+            $asked = (string) get_user_preferences('local_oksigeniaeguahe_helpskin', '');
+            if (in_array($asked, self::SKINS, true)) {
+                return $asked;
+            }
+        }
         $chosen = (string) ($centre->skin ?? '');
         return in_array($chosen, self::SKINS, true) ? $chosen : self::proposed_skin((int) $centre->id);
     }
@@ -427,6 +434,7 @@ class panel {
 <script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
 <body class="panel ' . $page . ' ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') .
+            (!empty($centre->practice) ? ' en-ayuda' : '') .
             '">
 ' . $top . $body . $bottom . '
 </body>
@@ -447,7 +455,8 @@ class panel {
                 $out[$key] = get_string($key, self::C);
             }
         }
-        $keys = ['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now'];
+        $keys = ['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now',
+            'help_see'];
         foreach ($keys as $key) {
             $out[$key] = get_string($key, self::C);
         }
@@ -471,12 +480,13 @@ class panel {
      * page around it. Empty is false, never null: an older Mustache (Moodle 4.5) looks a null up in the page around it,
      * and would draw its «action» as a button.
      *
-     * @param array $head title and, if any, back, ante, sub, what («What is this?») and action.
+     * @param array $head title and, if any, back, ante, sub, what («What is this?»), action and help (its guided help).
      * @return array
      */
     public static function head(array $head): array {
         $head = array_map(fn($v) => $v ?? false, $head);
-        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'what' => false, 'action' => false];
+        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'what' => false, 'action' => false,
+            'help' => false];
     }
 
     /**

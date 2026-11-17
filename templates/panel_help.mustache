@@ -1,0 +1,52 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_help
+
+    A guided help (help.php): the real screen of the practice centre in a frame, the pointer and the ring over it, the
+    caption of each step under it, and the buttons to start, skip to the end, hear the voice and the music; at the end,
+    again or the whole guide. The engine reads its configuration from data-ayuda (no script in the page).
+
+    Example context (json):
+    {
+        "head": {"title": "Cómo funciona: la bandeja", "sub": "En un centro de práctica: no sale nada.", "back": false,
+            "ante": "", "what": false, "action": false},
+        "config": "{}", "hasvoice": false, "hasmusic": false, "howtourl": "#", "scripts": []
+    }
+}}
+<div class="pagina pagina-ayuda" id="eg-ayuda" data-ayuda="{{config}}">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="ayuda-escena eg-esperando" id="eg-ayuda-escena">
+        <iframe class="ayuda-marco" id="eg-ayuda-marco" title="{{#str}}help_frame, local_oksigeniaeguahe{{/str}}" src="about:blank"></iframe>
+        <span class="ayuda-dedo" id="eg-ayuda-dedo" aria-hidden="true"></span>
+        <span class="ayuda-anillo" id="eg-ayuda-anillo" aria-hidden="true" hidden></span>
+        <div class="ayuda-empezar" id="eg-ayuda-empezar">
+            <button class="boton principal" type="button" id="eg-ayuda-ir">{{#str}}help_start, local_oksigeniaeguahe{{/str}}</button>
+        </div>
+        <div class="ayuda-hecho" id="eg-ayuda-hecho" hidden>
+            <button class="boton principal" type="button" id="eg-ayuda-otra">{{#str}}help_again, local_oksigeniaeguahe{{/str}}</button>
+            <a class="boton secundario" href="{{howtourl}}">{{#str}}howto_all, local_oksigeniaeguahe{{/str}}</a>
+        </div>
+    </div>
+    <p class="ayuda-texto" id="eg-ayuda-texto" aria-live="polite"></p>
+    <div class="ayuda-mandos">
+        <button class="boton terciario pequeno" type="button" id="eg-ayuda-saltar">{{#str}}help_skip, local_oksigeniaeguahe{{/str}}</button>
+        {{#hasvoice}}<button class="boton terciario pequeno" type="button" id="eg-ayuda-voz" aria-pressed="true">{{#str}}help_voice, local_oksigeniaeguahe{{/str}}</button>{{/hasvoice}}
+        {{#hasmusic}}<button class="boton terciario pequeno" type="button" id="eg-ayuda-musica" aria-pressed="true">{{#str}}help_music, local_oksigeniaeguahe{{/str}}</button>{{/hasmusic}}
+    </div>
+    {{#scripts}}<script src="{{src}}" defer></script>{{/scripts}}
+</div>

@@ -1298,5 +1298,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026117003, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026117200) {
+        // The practice centre of the guided helps.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('practice', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026117200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

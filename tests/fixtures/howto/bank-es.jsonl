@@ -1,0 +1,167 @@
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "qué familias están pendientes de que alguien les conteste", "need": "waiting"}
+{"lang": "es", "region": "MX", "persona": "coordinador de admisiones de un colegio", "q": "ver leads sin respuesta", "need": "waiting"}
+{"lang": "es", "region": "AR", "persona": "directora de una escuela infantil", "q": "donde veo los papas que todavia estan esperando que les respondan", "need": "waiting"}
+{"lang": "es", "region": "CL", "persona": "coordinadora de admisiones de una universidad", "q": "apoderados que escribieron y nadie les ha contestado aún", "need": "waiting"}
+{"lang": "es", "region": "CR", "persona": "dueño de una academia de refuerzo", "q": "bandeja de pendientes por contestar", "need": "waiting"}
+{"lang": "es", "region": "ES", "persona": "secretario de un instituto de FP", "q": "responder a unos padres que preguntaron por el comedor", "need": "answer"}
+{"lang": "es", "region": "MX", "persona": "secretaria de un colegio", "q": "¿cómo le contesto el correo a una mamá interesada?", "need": "answer"}
+{"lang": "es", "region": "PE", "persona": "coordinadora de admisiones de una universidad", "q": "responderle a un interesado", "need": "answer"}
+{"lang": "es", "region": "CO", "persona": "director de un colegio", "q": "tengo que escribirle a la familia que pidió información la semana pasada y mandarle los horarios, ¿desde dónde se hace eso sin usar mi correo personal?", "need": "answer"}
+{"lang": "es", "region": "AR", "persona": "dueña de una escuela de idiomas", "q": "contestarle por whatsapp a una mamá que consultó", "need": "answer"}
+{"lang": "es", "region": "ES", "persona": "conserje de un colegio", "q": "ha llamado una señora preguntando por plaza para su hijo, ¿dónde la apunto?", "need": "addfamily"}
+{"lang": "es", "region": "MX", "persona": "secretaria de un colegio", "q": "registrar a unos papas que llegaron a recepcion sin cita", "need": "addfamily"}
+{"lang": "es", "region": "AR", "persona": "coordinador de admisiones de un colegio", "q": "decime cómo cargo a una familia que vino a preguntar a la secretaría", "need": "addfamily"}
+{"lang": "es", "region": "PE", "persona": "coordinador de admisiones de un colegio", "q": "asignarme una familia para hacerle el seguimiento yo", "need": "attend"}
+{"lang": "es", "region": "CL", "persona": "secretaria de un colegio", "q": "que esta familia quede a mi cargo y no le conteste otro", "need": "attend"}
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "le dije a una madre que la llamaba el jueves, ¿cómo lo dejo apuntado para que no se me pase?", "need": "promise"}
+{"lang": "es", "region": "CO", "persona": "coordinadora de admisiones de una universidad", "q": "agendar un seguimiento con fecha", "need": "promise"}
+{"lang": "es", "region": "MX", "persona": "coordinador de admisiones de un colegio", "q": "plantillas de repuesta", "need": "saved"}
+{"lang": "es", "region": "CR", "persona": "secretario de un instituto de FP", "q": "guardar un texto que siempre mando igual para no escribirlo cada vez", "need": "saved"}
+{"lang": "es", "region": "ES", "persona": "jefa de marketing de una universidad privada", "q": "que la inteligencia artificial me redacte la contestacion", "need": "aidraft"}
+{"lang": "es", "region": "CO", "persona": "coordinadora de admisiones de una universidad", "q": "generar respuesta automatica con IA", "need": "aidraft"}
+{"lang": "es", "region": "CO", "persona": "coordinador de admisiones de un colegio", "q": "me voy de vacaciones quince días, ¿quién atiende a mis familias mientras tanto?", "need": "away"}
+{"lang": "es", "region": "CR", "persona": "secretario de un instituto de FP", "q": "fuera de oficina", "need": "away"}
+{"lang": "es", "region": "ES", "persona": "coordinador de admisiones de un colegio", "q": "cambiar el estado de una solicitud a matriculado", "need": "stage"}
+{"lang": "es", "region": "CL", "persona": "secretaria de un colegio", "q": "avanzar a un postulante a la siguiente etapa", "need": "stage"}
+{"lang": "es", "region": "MX", "persona": "dueña de una escuela de idiomas", "q": "mover al alumno a la siguiente fase del embudo", "need": "stage"}
+{"lang": "es", "region": "ES", "persona": "directora de una escuela infantil", "q": "no quedan plazas en 2 años, dejar al niño apuntado por si se libera una", "need": "waitlist"}
+{"lang": "es", "region": "PE", "persona": "secretario de un instituto de FP", "q": "lista d espera de vacantes", "need": "waitlist"}
+{"lang": "es", "region": "ES", "persona": "coordinador de admisiones de un colegio", "q": "marcar una familia como perdida, al final se van a otro cole", "need": "close"}
+{"lang": "es", "region": "MX", "persona": "jefe de marketing de un colegio", "q": "descartar un prospecto que ya no está interesado", "need": "close"}
+{"lang": "es", "region": "PE", "persona": "secretaria de un colegio", "q": "el papá dijo que ya matriculó en otro colegio, cómo lo saco de la lista", "need": "close"}
+{"lang": "es", "region": "CR", "persona": "secretaria de un colegio", "q": "dar de baja a un estudiante que se pasa a otra provincia", "need": "left"}
+{"lang": "es", "region": "AR", "persona": "director de un colegio", "q": "un nene dejo el colegio a mitad de año, donde lo registro", "need": "left"}
+{"lang": "es", "region": "CL", "persona": "coordinador de admisiones de un colegio", "q": "retiro de alumno", "need": "left"}
+{"lang": "es", "region": "CL", "persona": "profesora de infantil", "q": "la familia tiene una guagua que entraría en dos años más, ¿se puede dejar anotada ya?", "need": "sibling"}
+{"lang": "es", "region": "CO", "persona": "secretaria de un colegio", "q": "registrar el hermanito menor para mas adelante", "need": "sibling"}
+{"lang": "es", "region": "ES", "persona": "coordinadora de admisiones de una universidad", "q": "una familia no puede venir a la jornada y quiero darle cita para enseñarle el colegio otro día", "need": "tailored"}
+{"lang": "es", "region": "CR", "persona": "dueño de una academia de refuerzo", "q": "agendar un tour privado por la escuela", "need": "tailored"}
+{"lang": "es", "region": "PE", "persona": "jefe de marketing de un colegio", "q": "padres que recomiendan el colegio a otros", "need": "ambassador"}
+{"lang": "es", "region": "CL", "persona": "coordinadora de admisiones de una universidad", "q": "programa de referidos con apoderados", "need": "ambassador"}
+{"lang": "es", "region": "ES", "persona": "profesor de infantil", "q": "imprimir las pegatinas con el nombre de los dos hermanos de una familia", "need": "familylabels"}
+{"lang": "es", "region": "AR", "persona": "secretaria de un colegio", "q": "etiquetas de una sola familia", "need": "familylabels"}
+{"lang": "es", "region": "CR", "persona": "profesora de infantil", "q": "un chiquito pintó algo en la visita y quiero subirlo", "need": "drawing"}
+{"lang": "es", "region": "MX", "persona": "profesor de infantil", "q": "subir foto del dibujito que hizo el niño", "need": "drawing"}
+{"lang": "es", "region": "PE", "persona": "secretario de un instituto de FP", "q": "a una familia no le funciona el link de su página", "need": "newlink"}
+{"lang": "es", "region": "CR", "persona": "secretaria de un colegio", "q": "reenviar el link a los papás porque lo perdieron", "need": "newlink"}
+{"lang": "es", "region": "CR", "persona": "administrador del sistema de un grupo de colegios", "q": "una familia pide que borremos todos sus datos por la ley de protección de datos", "need": "erase"}
+{"lang": "es", "region": "CO", "persona": "administradora del sistema de una universidad", "q": "eliminar informacion de un aspirante", "need": "erase"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "montar la jornada de puertas abiertas del sábado", "need": "newevent"}
+{"lang": "es", "region": "MX", "persona": "jefa de marketing de una universidad privada", "q": "programar un open house", "need": "newevent"}
+{"lang": "es", "region": "AR", "persona": "coordinador de admisiones de un colegio", "q": "armar una visita guiada para las familias interesadas", "need": "newevent"}
+{"lang": "es", "region": "PE", "persona": "secretaria de un colegio", "q": "nueva charla informatiba para padres de inicial", "need": "newevent"}
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "cancelar la vista del jueves porque hay huelga", "need": "changeevent"}
+{"lang": "es", "region": "CL", "persona": "director de un colegio", "q": "cambiar la hora del recorrido del sábado", "need": "changeevent"}
+{"lang": "es", "region": "ES", "persona": "conserje de un colegio", "q": "marcar quien ha llegado a la jornada", "need": "door"}
+{"lang": "es", "region": "MX", "persona": "secretario de un instituto de FP", "q": "hacer check in de los papás en el open house", "need": "door"}
+{"lang": "es", "region": "CO", "persona": "profesora de infantil", "q": "tomar asistencia el día de la visita", "need": "door"}
+{"lang": "es", "region": "CR", "persona": "portero de un colegio", "q": "el día de la visita, en el portón, ¿cómo voy marcando con el celular a los que van entrando?", "need": "door"}
+{"lang": "es", "region": "CL", "persona": "jefa de marketing de una universidad privada", "q": "afiche para la entrada con el codigo qr", "need": "poster"}
+{"lang": "es", "region": "AR", "persona": "dueño de una academia de refuerzo", "q": "imprimir afiche con QR", "need": "poster"}
+{"lang": "es", "region": "ES", "persona": "profesor de infantil", "q": "etiquetas de las mochilas de todos los niños que vienen el sábado", "need": "eventlabels"}
+{"lang": "es", "region": "MX", "persona": "profesora de infantil", "q": "imprimir gafetes para los niños del open house", "need": "eventlabels"}
+{"lang": "es", "region": "PE", "persona": "jefe de marketing de un colegio", "q": "publicar la charla en instagram y facebook", "need": "kit"}
+{"lang": "es", "region": "CO", "persona": "jefa de marketing de una universidad privada", "q": "textos e imagenes para anunciar el evento en redes", "need": "kit"}
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "mandar por whatsapp el enlace para que se inscriban", "need": "share"}
+{"lang": "es", "region": "PE", "persona": "coordinador de admisiones de un colegio", "q": "link de inscripcion para pasarle a los papas", "need": "share"}
+{"lang": "es", "region": "AR", "persona": "secretario de un instituto de FP", "q": "pasar el link para anotarse a la jornada por el grupo de padres", "need": "share"}
+{"lang": "es", "region": "CO", "persona": "directora de una escuela infantil", "q": "invitar a los aspirantes al bazar del colegio", "need": "openinvite"}
+{"lang": "es", "region": "MX", "persona": "jefe de marketing de un colegio", "q": "mandar invitación de la kermés a los prospectos", "need": "openinvite"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "qué les pareció la jornada a las familias", "need": "results"}
+{"lang": "es", "region": "CL", "persona": "coordinadora de admisiones de una universidad", "q": "resultados de la encuesta despues de la visita", "need": "results"}
+{"lang": "es", "region": "CR", "persona": "jefa de marketing de una universidad privada", "q": "crear un formulario de contacto para pedir informacion", "need": "form"}
+{"lang": "es", "region": "AR", "persona": "dueña de una escuela de idiomas", "q": "armar un formulario con preguntas nuestras para los que quieren info", "need": "form"}
+{"lang": "es", "region": "CL", "persona": "administrador del sistema de un grupo de colegios", "q": "insertar el formulario en wordpress", "need": "embed"}
+{"lang": "es", "region": "MX", "persona": "jefa de marketing de una universidad privada", "q": "iframe para poner el formulario en nuestra página", "need": "embed"}
+{"lang": "es", "region": "ES", "persona": "jefe de marketing de un colegio", "q": "un qr distinto para el folleto y otro para la valla publicitaria", "need": "sites"}
+{"lang": "es", "region": "CO", "persona": "jefa de marketing de una universidad privada", "q": "utm por cada anuncio para saber de dónde llegan", "need": "sites"}
+{"lang": "es", "region": "CL", "persona": "jefa de marketing de una universidad privada", "q": "bajar los leads de facebook ads", "need": "meta"}
+{"lang": "es", "region": "AR", "persona": "jefe de marketing de un colegio", "q": "importar contactos de la campaña de instagram", "need": "meta"}
+{"lang": "es", "region": "ES", "persona": "secretario de un instituto de FP", "q": "tengo un google forms y quiero que las respuestas entren aqui", "need": "google"}
+{"lang": "es", "region": "MX", "persona": "coordinadora de admisiones de una universidad", "q": "conectar formulario de google", "need": "google"}
+{"lang": "es", "region": "PE", "persona": "administradora del sistema de una universidad", "q": "que los correos que llegan a admision@ entren solos", "need": "mailbox"}
+{"lang": "es", "region": "CL", "persona": "secretario de un instituto de FP", "q": "reenviar el mail de informaciones al sistema", "need": "mailbox"}
+{"lang": "es", "region": "CR", "persona": "administrador del sistema de un grupo de colegios", "q": "hacer una inscripción de prueba que no cuente en las cifras", "need": "testentries"}
+{"lang": "es", "region": "PE", "persona": "jefa de marketing de una universidad privada", "q": "comprobar que el formulario funciona antes de publicarlo", "need": "testentries"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "cuántas solicitudes llevamos este año", "need": "metrics"}
+{"lang": "es", "region": "MX", "persona": "directora de una escuela infantil", "q": "estadísticas de inscripciones", "need": "metrics"}
+{"lang": "es", "region": "AR", "persona": "jefe de marketing de un colegio", "q": "embudo de conversión de leads a matrícula", "need": "metrics"}
+{"lang": "es", "region": "CO", "persona": "coordinador de admisiones de un colegio", "q": "como vamos en la campaña de matriculas", "need": "metrics"}
+{"lang": "es", "region": "CR", "persona": "dueña de una escuela de idiomas", "q": "dashboard", "need": "metrics"}
+{"lang": "es", "region": "CL", "persona": "jefe de marketing de un colegio", "q": "cuánto nos cuesta en publicidad cada matrícula", "need": "cost"}
+{"lang": "es", "region": "MX", "persona": "dueño de una academia de refuerzo", "q": "costo de adquisición por alumno", "need": "cost"}
+{"lang": "es", "region": "CL", "persona": "directora de una escuela infantil", "q": "el resumen de la semana para la dirección", "need": "report"}
+{"lang": "es", "region": "CO", "persona": "director de un colegio", "q": "informe anual de admisiones", "need": "report"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "proyectar los números en el claustro", "need": "bigscreen"}
+{"lang": "es", "region": "AR", "persona": "directora de una escuela infantil", "q": "poner los datos en el proyector para la reunión de directivos", "need": "bigscreen"}
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "esportar el listado de familias a exel", "need": "export"}
+{"lang": "es", "region": "CL", "persona": "secretario de un instituto de FP", "q": "descargar planilla con los postulantes", "need": "export"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "previcion de alumnos para dentro de tres años", "need": "forecast"}
+{"lang": "es", "region": "PE", "persona": "directora de una escuela infantil", "q": "proyección de matrícula según la natalidad", "need": "forecast"}
+{"lang": "es", "region": "CO", "persona": "secretario de un instituto de FP", "q": "subir el excel de las matrículas del año pasado", "need": "import"}
+{"lang": "es", "region": "MX", "persona": "coordinadora de admisiones de una universidad", "q": "cargar datos históricos de inscripciones anteriores", "need": "import"}
+{"lang": "es", "region": "ES", "persona": "secretaria de un colegio", "q": "preguntar a las familias si siguen el año que viene", "need": "renewal"}
+{"lang": "es", "region": "MX", "persona": "secretario de un instituto de FP", "q": "reinscripción", "need": "renewal"}
+{"lang": "es", "region": "AR", "persona": "director de un colegio", "q": "como hago la reinscripcion de los que ya estan", "need": "renewal"}
+{"lang": "es", "region": "CL", "persona": "coordinadora de admisiones de una universidad", "q": "confirmar continuidad de los alumnos para el próximo año", "need": "renewal"}
+{"lang": "es", "region": "PE", "persona": "profesora de infantil", "q": "cuándo empiezan los de inicial de 3 años, dónde se pone la fecha", "need": "firstday"}
+{"lang": "es", "region": "CO", "persona": "secretaria de un colegio", "q": "fecha de inicio de clases por grado", "need": "firstday"}
+{"lang": "es", "region": "ES", "persona": "profesor de infantil", "q": "el niño ya ha empezado el cole, marcarlo", "need": "started"}
+{"lang": "es", "region": "AR", "persona": "profesora de infantil", "q": "registrar que el nene ya arrancó sala de 3", "need": "started"}
+{"lang": "es", "region": "ES", "persona": "administrador del sistema de un grupo de colegios", "q": "cargar las familias que ya tenemos en el colegio desde el programa de gestión", "need": "roster"}
+{"lang": "es", "region": "MX", "persona": "administradora del sistema de una universidad", "q": "sincronizar alumnos actuales", "need": "roster"}
+{"lang": "es", "region": "ES", "persona": "directora de una escuela infantil", "q": "cambiar el número de plazas de 3 años", "need": "set:offer"}
+{"lang": "es", "region": "AR", "persona": "dueño de una academia de refuerzo", "q": "agregar un curso nuevo con sus vacantes", "need": "set:offer"}
+{"lang": "es", "region": "CR", "persona": "director de un colegio", "q": "quien sale en la pagina de las familias como la persona que las recibe", "need": "set:hosts"}
+{"lang": "es", "region": "MX", "persona": "coordinadora de admisiones de una universidad", "q": "poner la foto de la persona que recibe a los papás", "need": "set:hosts"}
+{"lang": "es", "region": "PE", "persona": "administradora del sistema de una universidad", "q": "dar acceso a una compañera nueva de secretaría", "need": "set:team"}
+{"lang": "es", "region": "CO", "persona": "administrador del sistema de un grupo de colegios", "q": "agregar usuario al equipo de admisiones", "need": "set:team"}
+{"lang": "es", "region": "PE", "persona": "administrador del sistema de un grupo de colegios", "q": "conectar whatsapp", "need": "set:messaging"}
+{"lang": "es", "region": "AR", "persona": "jefa de marketing de una universidad privada", "q": "activar telegram para las familias", "need": "set:messaging"}
+{"lang": "es", "region": "ES", "persona": "jefe de marketing de un colegio", "q": "cambiar el logo", "need": "set:look"}
+{"lang": "es", "region": "CL", "persona": "jefa de marketing de una universidad privada", "q": "colores del colegio en las paginas", "need": "set:look"}
+{"lang": "es", "region": "CR", "persona": "secretaria de un colegio", "q": "cambiar las señas y el teléfono de la escuela", "need": "set:contact"}
+{"lang": "es", "region": "MX", "persona": "secretario de un instituto de FP", "q": "indicaciones para llegar al plantel", "need": "set:contact"}
+{"lang": "es", "region": "CR", "persona": "coordinador de admisiones de un colegio", "q": "cuántos días decimos que tardamos en responder", "need": "set:replydays"}
+{"lang": "es", "region": "PE", "persona": "secretaria de un colegio", "q": "plazo de respuesta que ven los padres", "need": "set:replydays"}
+{"lang": "es", "region": "CR", "persona": "jefa de marketing de una universidad privada", "q": "subir el plano ilustrado del colegio", "need": "set:miniature"}
+{"lang": "es", "region": "CO", "persona": "director de un colegio", "q": "mapa dibujado del colegio para las familias", "need": "set:miniature"}
+{"lang": "es", "region": "ES", "persona": "directora de una escuela infantil", "q": "quitar el perrito", "need": "set:guide"}
+{"lang": "es", "region": "MX", "persona": "jefe de marketing de un colegio", "q": "cambiar lo que dice la mascota al saludar", "need": "set:guide"}
+{"lang": "es", "region": "CL", "persona": "administrador del sistema de un grupo de colegios", "q": "cambiar el idioma y el sistema educativo", "need": "set:country"}
+{"lang": "es", "region": "CR", "persona": "administradora del sistema de una universidad", "q": "configurar país", "need": "set:country"}
+{"lang": "es", "region": "ES", "persona": "coordinadora de admisiones de una universidad", "q": "dónde pongo hasta qué día se puede solicitar plaza", "need": "set:apply"}
+{"lang": "es", "region": "CL", "persona": "coordinador de admisiones de un colegio", "q": "enlace al proceso de postulación oficial", "need": "set:apply"}
+{"lang": "es", "region": "AR", "persona": "dueña de una escuela de idiomas", "q": "poner los precios de la academia, la cuota y la matrícula", "need": "set:costs"}
+{"lang": "es", "region": "CO", "persona": "secretaria de un colegio", "q": "valor de la pensión y la matrícula", "need": "set:costs"}
+{"lang": "es", "region": "ES", "persona": "director de un colegio", "q": "qué pasa con la familia cuando ya está matriculada, quién la lleva desde entonces", "need": "set:after"}
+{"lang": "es", "region": "MX", "persona": "administrador del sistema de un grupo de colegios", "q": "configurar el paso a la ficha de familias después de inscribirse", "need": "set:after"}
+{"lang": "es", "region": "ES", "persona": "administradora del sistema de una universidad", "q": "cuánto tiempo se guardan los datos de los interesados que no se matriculan", "need": "set:retention"}
+{"lang": "es", "region": "AR", "persona": "administrador del sistema de un grupo de colegios", "q": "borrado automatico de datos viejos", "need": "set:retention"}
+{"lang": "es", "region": "CR", "persona": "director de un colegio", "q": "cantones alrededor del colegio", "need": "set:zone"}
+{"lang": "es", "region": "PE", "persona": "directora de una escuela infantil", "q": "zona de influencia", "need": "set:zone"}
+{"lang": "es", "region": "PE", "persona": "jefe de marketing de un colegio", "q": "poner nuestro instagram y tiktok", "need": "set:networks"}
+{"lang": "es", "region": "CO", "persona": "jefa de marketing de una universidad privada", "q": "agregar la cuenta de facebook del colegio", "need": "set:networks"}
+{"lang": "es", "region": "ES", "persona": "administrador del sistema de un grupo de colegios", "q": "cambiar la apariencia de la pantalla de trabajo", "need": "set:skin"}
+{"lang": "es", "region": "MX", "persona": "coordinadora de admisiones de una universidad", "q": "elegir otro diseño para el panel", "need": "set:skin"}
+{"lang": "es", "region": "ES", "persona": "directora de una escuela infantil", "q": "que las familias no puedan compartir el vídeo del cuento", "need": "set:sharing"}
+{"lang": "es", "region": "AR", "persona": "jefe de marketing de un colegio", "q": "qué pueden compartir las familias en redes", "need": "set:sharing"}
+{"lang": "es", "region": "CL", "persona": "administrador del sistema de un grupo de colegios", "q": "desactivar la inteligencia artificial", "need": "set:ai"}
+{"lang": "es", "region": "CR", "persona": "administradora del sistema de una universidad", "q": "activar IA con nuestra clave de claude", "need": "set:ai"}
+{"lang": "es", "region": "ES", "persona": "secretario de un instituto de FP", "q": "garcía lópez", "need": "none"}
+{"lang": "es", "region": "MX", "persona": "secretario de un instituto de FP", "q": "55 1234 5678", "need": "none"}
+{"lang": "es", "region": "ES", "persona": "conserje de un colegio", "q": "3º de primaria", "need": "none"}
+{"lang": "es", "region": "AR", "persona": "administradora del sistema de una universidad", "q": "cambiar mi contraseña de la plataforma", "need": "none"}
+{"lang": "es", "region": "ES", "persona": "profesor de infantil", "q": "poner notas de la evaluación", "need": "none"}
+{"lang": "es", "region": "CO", "persona": "profesor de infantil", "q": "horario de clases de quinto", "need": "none"}
+{"lang": "es", "region": "CL", "persona": "secretaria de un colegio", "q": "certificado de alumno regular", "need": "none"}
+{"lang": "es", "region": "PE", "persona": "director de un colegio", "q": "nóminas de los profesores", "need": "none"}
+{"lang": "es", "region": "CL", "persona": "profesor de infantil", "q": "pasar lista en clase a primera hora", "need": "none"}
+{"lang": "es", "region": "MX", "persona": "dueña de una escuela de idiomas", "q": "cobrar la colegiatura de octubre", "need": "none"}
+{"lang": "es", "region": "CR", "persona": "conserje de un colegio", "q": "menú del comedor de esta semana", "need": "none"}
+{"lang": "es", "region": "PE", "persona": "administrador del sistema de un grupo de colegios", "q": "instalar un plugin", "need": "none"}
+{"lang": "es", "region": "AR", "persona": "secretario de un instituto de FP", "q": "familia Fernández", "need": "none"}
+{"lang": "es", "region": "CO", "persona": "coordinador de admisiones de un colegio", "q": "+57 310 555 1234", "need": "none"}
+{"lang": "es", "region": "CO", "persona": "dueño de una academia de refuerzo", "q": "facturacion electronica", "need": "none"}
+{"lang": "es", "region": "CR", "persona": "directora de una escuela infantil", "q": "sétimo año", "need": "none"}
+{"lang": "es", "region": "PE", "persona": "profesora de infantil", "q": "reservar el patio para educación física", "need": "none"}

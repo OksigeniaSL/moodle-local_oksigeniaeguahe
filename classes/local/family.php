@@ -111,6 +111,9 @@ class family {
      */
     public static function confirm(\stdClass $household, int $familyid): void {
         global $DB;
+        if (centres::is_practice((int) $household->centreid)) {
+            return;
+        }
         $DB->set_field(households::T, 'familylink', $familyid > 0 ? $familyid : -1, ['id' => $household->id]);
         $household->familylink = $familyid > 0 ? $familyid : -1;
         if ($familyid <= 0) {
@@ -168,7 +171,8 @@ class family {
      */
     public static function enrol(\stdClass $household, \stdClass $child): int {
         global $DB;
-        if (!self::available()) {
+        // The families of the practice centre of the guided helps never reach the shared record.
+        if (!self::available() || centres::is_practice((int) $household->centreid)) {
             return 0;
         }
         $centre = centres::get((int) $household->centreid);

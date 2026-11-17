@@ -19,13 +19,13 @@
 
     The head of a page of the panel: the way back if it is inside another, a line before, the sentence that answers the
     question of the page (its only h1) and the line that completes it; on a page with a name of its own, «What is
-    this?», folded, with what it is in one paragraph; at the side, its one main action.
+    this?», folded, with what it is in one paragraph, and its guided help; at the side, its one main action.
 
     Example context (json):
     {"i": {"atras": ""}, "back": {"url": "#", "name": "Bandeja"}, "ante": "Espera respuesta desde el jueves",
         "title": "5 familias esperan respuesta", "sub": "La que más lleva espera desde el jueves a las 18:40.",
         "what": "Lo que llega y espera respuesta, la que más lleva primero.",
-        "action": {"url": "#", "name": "Anotar a una familia", "icon": ""} }
+        "action": {"url": "#", "name": "Anotar a una familia", "icon": ""}, "help": "#" }
 }}
 {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
 <div class="cabeza">
@@ -34,6 +34,7 @@
         <h1 class="titular" id="titular" tabindex="-1">{{title}}</h1>
         {{#sub}}<p class="sub" data-sub>{{sub}}</p>{{/sub}}
         {{#what}}<details class="que-es"><summary>{{#str}}panel_isthis, local_oksigeniaeguahe{{/str}}</summary><p>{{what}}</p></details>{{/what}}
+        {{#help}}<a class="ver-ayuda" href="{{help}}">{{#str}}help_see, local_oksigeniaeguahe{{/str}}</a>{{/help}}
     </div>
     {{#action}}<div class="cabeza-acciones"><a class="boton principal" href="{{url}}"{{#anchor}} data-ancla="1"{{/anchor}} data-tecla="{{#anchor}}r{{/anchor}}{{^anchor}}a{{/anchor}}" data-tecla-que="{{name}}">{{{icon}}}{{name}}</a></div>{{/action}}
 </div>

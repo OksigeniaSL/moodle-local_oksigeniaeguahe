@@ -250,7 +250,23 @@ class centres {
      */
     public static function all(): array {
         global $DB;
-        return $DB->get_records(self::T, null, 'name ASC, id ASC');
+        // The practice centre of the guided helps is in no list and in no task.
+        return $DB->get_records(self::T, ['practice' => 0], 'name ASC, id ASC');
+    }
+
+    /**
+     * Whether a centre is the practice centre of the guided helps: in no list, and nothing it does leaves the site.
+     *
+     * @param int $centreid
+     * @return bool
+     */
+    public static function is_practice(int $centreid): bool {
+        global $DB;
+        static $known = [];
+        if (!array_key_exists($centreid, $known)) {
+            $known[$centreid] = (bool) $DB->get_field(self::T, 'practice', ['id' => $centreid]);
+        }
+        return $known[$centreid];
     }
 
     /**
@@ -280,7 +296,9 @@ class centres {
      * @return bool
      */
     public static function can_work(int $centreid, int $userid): bool {
-        return array_key_exists($centreid, self::for_user($userid));
+        $mine = self::for_user($userid);
+        // The practice centre, for whoever works for any centre: it is where the guided helps happen.
+        return array_key_exists($centreid, $mine) || ($mine && self::is_practice($centreid));
     }
 
     /**

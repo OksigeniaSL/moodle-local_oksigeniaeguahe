@@ -46,7 +46,7 @@
     {{#asked}}
     <section class="como-encontrado" aria-labelledby="como-encontrado-t">
         <h2 id="como-encontrado-t">{{#str}}howto_found, local_oksigeniaeguahe{{/str}}</h2>
-        {{#hasfound}}<ul class="como-lista">{{#found}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}</li>{{/found}}</ul>{{/hasfound}}
+        {{#hasfound}}<ul class="como-lista">{{#found}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}{{#help}}<a class="como-ver" href="{{help}}">{{#str}}help_see, local_oksigeniaeguahe{{/str}}<span class="oculto"> · {{text}}</span></a>{{/help}}</li>{{/found}}</ul>{{/hasfound}}
         {{^hasfound}}<p class="como-nada">{{none}}</p>{{/hasfound}}
         {{#ask}}<p class="como-ia-pedir"><a class="boton secundario" href="{{url}}">{{label}}</a></p>{{/ask}}
         {{#aitext}}<div class="como-ia"><p class="como-ia-texto">{{aitext}}</p><p class="como-ia-por">{{aiby}}</p>
@@ -67,6 +67,7 @@
                 <h3>{{text}}</h3>
                 <ol>{{#steps}}<li>{{step}}</li>{{/steps}}</ol>
                 {{#value}}<p class="como-valor"><span class="como-valor-l">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}</span> <span class="como-valor-v">{{value}}</span></p>{{/value}}
+                {{#help}}<a class="como-ver" href="{{help}}">{{#str}}help_see, local_oksigeniaeguahe{{/str}}<span class="oculto"> · {{text}}</span></a>{{/help}}
                 <a class="como-talon" href="{{url}}">{{go}}<span class="como-flecha" aria-hidden="true"></span><span class="oculto"> · {{text}}</span></a>
             </article>
             {{/tasks}}

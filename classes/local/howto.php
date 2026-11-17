@@ -142,7 +142,8 @@ final class howto {
 
     /** @var string[] Words of what other tools do (marks, passwords, payroll): a question with one is not for Eguahe. */
     private const OUTSIDE = ['contrasena', 'password', 'senha', 'calificaciones', 'calificacion', 'grades', 'nominas',
-        'nomina', 'payroll', 'sumarios'];
+        'nomina', 'payroll', 'sumarios', 'pasword', 'boleto', 'boletos', 'ementa', 'salario', 'salarios', 'sueldo', 'sueldos',
+        'salary', 'holerite', 'pauta', 'pautas', 'faltas', 'boletin', 'boletines', 'timetable'];
 
     /** @var string[] Words nearly every task has: they decide nothing unless the question has no other. */
     private const COMMON = ['familia', 'familias', 'family', 'families', 'familias', 'centro', 'centros', 'colegio',
@@ -393,7 +394,7 @@ final class howto {
             'steps' => array_map('trim', explode('|', get_string('howto_' . $key . '_steps', self::C))),
             'words' => get_string('howto_' . $key . '_words', self::C),
             'url' => $url . ($anchor !== '' && $anchor !== 'new' ? '#' . $anchor : ''),
-            'help' => false,
+            'help' => ($piece = helps::for_task($key)) ? helps::url($piece, (int) $centre->id) : false,
             'value' => null,
         ];
     }

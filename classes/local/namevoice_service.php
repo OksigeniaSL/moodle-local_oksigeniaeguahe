@@ -119,6 +119,7 @@ class namevoice_service {
         $sql = "SELECT c.*, h.lang AS householdlang, h.centreid AS householdcentre
                   FROM {" . households::CHILDREN . "} c
                   JOIN {" . households::T . "} h ON h.id = c.householdid
+                  JOIN {" . centres::T . "} ce ON ce.id = h.centreid AND ce.practice = 0
                  WHERE c.stage = :stage AND (c.lefttime IS NULL OR c.lefttime = 0) AND c.roster = 0
               ORDER BY c.stagetime DESC, c.id DESC";
         $out = [];
