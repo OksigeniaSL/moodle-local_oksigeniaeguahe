@@ -59,7 +59,8 @@ class panel_forecast {
         } else if ($filling) {
             $first = $filling[0];
             $title = get_string(
-                count($filling) === 1 ? 'panel_forecast_title_fills' : 'panel_forecast_title_fills_more',
+                [1 => 'panel_forecast_title_fills', 2 => 'panel_forecast_title_fills_one'][count($filling)] ??
+                    'panel_forecast_title_fills_more',
                 $c,
                 (object) ['name' => $first['name'], 'year' => $first['year'], 'more' => count($filling) - 1]
             );

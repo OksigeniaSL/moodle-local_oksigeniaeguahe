@@ -12951,7 +12951,9 @@ button.padron-pomo-no::after {
 
 .of-balda {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    /* 180 px: the usual names of a course («Infantil 3 años», «1.º de Primaria», «Nursery, age 3») on one line beside the
+       knob (Jujol, 17 November 2026). */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 12px;
     margin: 0;
     padding: 0;
@@ -12976,9 +12978,13 @@ button.padron-pomo-no::after {
 }
 
 .of-nombre {
-    padding-inline-end: 30px;
+    /* The knob takes 24 px at 10 px from the edge: the name keeps clear of it. */
+    padding-inline-end: 36px;
     font-size: 1rem;
     line-height: 1.25;
+    /* A long name in even lines, never its last word or number alone below (the validator does not know it yet). */
+    /* stylelint-disable-next-line csstree/validator */
+    text-wrap: balance;
 }
 
 /* The knob of a card: wood when the course is given, hollow when it is not. */
@@ -16312,5 +16318,13 @@ a.como-talon:focus-visible {
 
     .edades .mini-num {
         width: 4em;
+    }
+}
+
+/* The shelf of the offer below 360 px: one card a row, so that a name of one long word («Reception») does not reach the
+   knob (Jujol, 17 November 2026). From 360 px the two columns of a phone hold it. */
+@media (max-width: 359.98px) {
+    .of-balda {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
