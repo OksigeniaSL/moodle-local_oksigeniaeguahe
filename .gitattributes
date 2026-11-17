@@ -1,3 +1,4 @@
 # What stays in the repository but does not travel in the plugin's package (git archive).
 /.github export-ignore
 /.githooks export-ignore
+/provenance export-ignore
