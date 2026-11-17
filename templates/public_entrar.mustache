@@ -26,7 +26,7 @@
      "go": "Entrar", "forgot": "#", "forgotlabel": "He olvidado mi contraseña", "hasproviders": true,
      "providers": [{"url": "#", "name": "Google", "iconurl": ""}], "providersheading": "O con",
      "noaccount": "La cuenta la da quien lleva los ajustes del centro.", "dog": "#", "dog2x": "#",
-     "hello": "¡Hola! Pasen."}
+     "hello": "¡Hola! Pasen.", "demourl": "#", "demo": "Probarlo sin cuenta"}
 }}
 <section class="pared corta entrar">
     <figure class="entrar-perro">
@@ -62,5 +62,6 @@
         </div>
         {{/hasproviders}}
         <p class="entrar-sin-cuenta">{{noaccount}}</p>
+        {{#demourl}}<p><a class="boton" href="{{demourl}}">{{demo}}</a></p>{{/demourl}}
     </div>
 </section>

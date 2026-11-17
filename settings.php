@@ -54,6 +54,12 @@ if ($hassiteconfig) {
         );
         $only->set_updatedcallback('\\local_oksigeniaeguahe\\local\\onlyeguahe::settings_changed');
         $settings->add($only);
+        $settings->add(new admin_setting_configcheckbox(
+            'local_oksigeniaeguahe/demo',
+            get_string('demo', 'local_oksigeniaeguahe'),
+            get_string('demo_desc', 'local_oksigeniaeguahe'),
+            0
+        ));
         $settings->add(new admin_setting_configtext(
             'local_oksigeniaeguahe/onlyeguahelegal',
             get_string('onlyeguahelegal', 'local_oksigeniaeguahe'),

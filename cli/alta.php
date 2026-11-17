@@ -18,7 +18,7 @@
  * A new centre with its first person, who looks after its settings and its team: for whoever runs a site shared by
  * several centres. The person gets an account (or keeps the one they have) and their password by email.
  *
- * php local/oksigeniaeguahe/cli/alta.php --centre="Maple Grove" --email=head@example.org --name="Daniel Hughes" --lang=en
+ * php local/oksigeniaeguahe/cli/alta.php --centre="<name>" --email=<their email> --name="<name and surname>" --lang=en
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>

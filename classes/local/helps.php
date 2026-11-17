@@ -87,7 +87,7 @@ final class helps {
         global $DB;
         $id = (int) $practice->id;
         // The family whose question the help's text answers; once answered, the practice centre starts again.
-        $answer = (int) get_config(self::C, practice::ANSWER);
+        $answer = practice::answer($id);
         if (
             $piece === 'answer' && !$DB->record_exists_select(
                 households::T,
@@ -95,8 +95,8 @@ final class helps {
                 [$answer, $id]
             )
         ) {
-            practice::make($id, time());
-            $answer = (int) get_config(self::C, practice::ANSWER);
+            practice::make($id, time(), (int) $practice->practice);
+            $answer = practice::answer($id);
         }
         $url = match ($piece) {
             'answer' => new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $answer]),

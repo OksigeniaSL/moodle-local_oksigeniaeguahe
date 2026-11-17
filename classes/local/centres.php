@@ -293,9 +293,12 @@ class centres {
      * @return bool
      */
     public static function can_work(int $centreid, int $userid): bool {
+        global $DB;
         $mine = self::for_user($userid);
-        // The practice centre, for whoever works for any centre: it is where the guided helps happen.
-        return array_key_exists($centreid, $mine) || ($mine && self::is_practice($centreid));
+        // The practice centre of the helps, for whoever works for any centre: it is where the guided helps happen. Never
+        // the centre of a visitor, which is theirs alone, and visitors practise in their own.
+        return array_key_exists($centreid, $mine) || ($mine && !demo::is_visitor($userid) &&
+            (int) $DB->get_field(self::T, 'practice', ['id' => $centreid]) === 1);
     }
 
     /**

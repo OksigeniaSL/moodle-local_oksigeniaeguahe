@@ -81,6 +81,10 @@ $context = [
     'dog' => (new moodle_url('/local/oksigeniaeguahe/pub/guia/perro-saluda-256.webp'))->out(false),
     'dog2x' => (new moodle_url('/local/oksigeniaeguahe/pub/guia/perro-saluda-512.webp'))->out(false),
     'hello' => $str('entrar_hello'),
+    // Without an account, to try it in a centre of one's own, when the site lets.
+    'demourl' => \local_oksigeniaeguahe\local\demo::on() ?
+        (new moodle_url('/local/oksigeniaeguahe/probar.php', ['idioma' => $lang]))->out(false) : '',
+    'demo' => $str('entrar_demo'),
 ];
 // The site as the centre at the top, in the aubergine of Eguahe.
 $centre = (object) ['id' => 0, 'name' => $site, 'colour' => '#6a3f78'];

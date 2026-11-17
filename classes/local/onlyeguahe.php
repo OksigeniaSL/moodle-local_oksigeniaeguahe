@@ -31,6 +31,11 @@ final class onlyeguahe {
     /** @var string[] The pages of the platform that lead to Eguahe instead. */
     const AWAY = ['site-index', 'my-index', 'my-courses', 'course-index', 'course-index-category', 'course-search'];
 
+    /** @var string[] The pages of one's account a visitor trying Eguahe does not open: their account is passing. */
+    const VISITORAWAY = ['user-edit', 'user-editadvanced', 'user-preferences', 'user-profile', 'user-language',
+        'user-managetoken', 'user-emailupdate', 'login-change_password', 'message-index', 'message-edit',
+        'user-contentbank', 'user-files', 'user-forum', 'user-calendar', 'calendar-view', 'blog-index'];
+
     /** @var string The short name of the role every team member gets in a site that is only Eguahe. */
     const ROLE = 'eguaheteam';
 
@@ -68,6 +73,10 @@ final class onlyeguahe {
      * @return \moodle_url|null
      */
     public static function instead_of(string $pagetype): ?\moodle_url {
+        global $USER;
+        if (self::on() && in_array($pagetype, self::VISITORAWAY, true) && demo::is_visitor((int) ($USER->id ?? 0))) {
+            return new \moodle_url('/local/oksigeniaeguahe/index.php');
+        }
         if (!self::on() || !in_array($pagetype, self::AWAY, true) || self::runs_the_site()) {
             return null;
         }

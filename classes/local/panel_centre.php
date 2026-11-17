@@ -138,6 +138,7 @@ class panel_centre {
             'hosts' => self::hosts($centre),
             // In a site shared by several centres, someone new gets an account from here.
             'newaccounts' => onlyeguahe::on(),
+            'canadd' => empty($centre->practice),
             'handover' => self::handovers($centre, (int) ($centre->handover ?? 0), 'panel_handover_place_option'),
             'handoverplace' => (string) ($centre->handoverplace ?? ''),
             'handoverhow' => (string) ($centre->handoverhow ?? ''),
@@ -855,7 +856,7 @@ class panel_centre {
                 centres::set_admin((int) $centre->id, $userid, (bool) $admin);
             }
         }
-        $add = trim(optional_param('addmember', '', PARAM_TEXT));
+        $add = empty($centre->practice) ? trim(optional_param('addmember', '', PARAM_TEXT)) : '';
         if ($add !== '') {
             $user = self::find_user($add);
             if (!$user && onlyeguahe::on()) {

@@ -5652,3 +5652,11 @@ button.enlace span {
 .entrar-sin-cuenta {
     color: var(--eg-tinta-2);
 }
+
+/* What a visitor will find in a centre of their own, before trying it. */
+.probar-puntos {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-inline-start: 1.25em;
+}

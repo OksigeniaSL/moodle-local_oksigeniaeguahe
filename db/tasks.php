@@ -98,6 +98,16 @@ $tasks = [
         'dayofweek' => '*',
     ],
     [
+        // The centres of the visitors who tried Eguahe, gone after a day.
+        'classname' => '\\local_oksigeniaeguahe\\task\\tidy_demos',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\sync_roster',
         'blocking' => 0,
         'minute' => 'R',

@@ -42,7 +42,12 @@ final class practice {
      * @return \stdClass
      */
     public static function centre(int $now = 0): \stdClass {
-        global $DB;
+        global $DB, $USER;
+        // A visitor trying Eguahe practises in their own centre.
+        $mine = demo::centre_of((int) ($USER->id ?? 0));
+        if ($mine) {
+            return $mine;
+        }
         $now = $now ?: time();
         $id = (int) $DB->get_field(centres::T, 'id', ['practice' => 1], IGNORE_MULTIPLE);
         if ($id && get_config(self::C, self::MADE) === date('Y-m-d', $now)) {
@@ -71,9 +76,10 @@ final class practice {
      *
      * @param int $id 0 to create it.
      * @param int $now
+     * @param int $kind 1, the practice centre of the helps; demo::KIND, the centre of a visitor.
      * @return int Its id.
      */
-    public static function make(int $id, int $now): int {
+    public static function make(int $id, int $now, int $kind = 1): int {
         global $DB;
         $lang = current_language();
         $data = (object) [
@@ -94,7 +100,7 @@ final class practice {
         } else {
             $id = centres::create($data);
         }
-        $DB->set_field(centres::T, 'practice', 1, ['id' => $id]);
+        $DB->set_field(centres::T, 'practice', $kind, ['id' => $id]);
         $str = fn(string $key) => get_string($key, self::C);
         $offers = [];
         foreach ([['practice_offer_1', 25], ['practice_offer_2', 4], ['practice_offer_3', 6]] as $i => [$key, $places]) {
@@ -141,14 +147,54 @@ final class practice {
             }
             // The family the help «answering a family» answers: its question is the one the help's text answers.
             if ($message === 'practice_msg_1') {
-                set_config(self::ANSWER, (int) $household->id, 'local_oksigeniaeguahe');
+                set_config(self::answer_key($id), (int) $household->id, 'local_oksigeniaeguahe');
             }
         }
         return $id;
     }
 
     /**
-     * Takes away all of the practice centre but itself: every row of Eguahe with its id, and the drawings of its children.
+     * The family the help «answering a family» answers in a practice centre.
+     *
+     * @param int $id
+     * @return int
+     */
+    public static function answer(int $id): int {
+        return (int) get_config(self::C, self::answer_key($id));
+    }
+
+    /**
+     * Where that family is kept: one setting for the practice centre of the helps, one for each visitor's centre.
+     *
+     * @param int $id
+     * @return string
+     */
+    private static function answer_key(int $id): string {
+        global $DB;
+        return (int) $DB->get_field(centres::T, 'practice', ['id' => $id]) === 1 ? self::ANSWER : self::ANSWER . '_' . $id;
+    }
+
+    /**
+     * Takes away a visitor's centre, with everything in it.
+     *
+     * @param int $id
+     */
+    public static function remove(int $id): void {
+        global $DB;
+        if ((int) $DB->get_field(centres::T, 'practice', ['id' => $id]) !== demo::KIND) {
+            return;
+        }
+        foreach ($DB->get_fieldset_select(centres::MEMBERS, 'userid', 'centreid = ?', [$id]) as $userid) {
+            centres::remove_member($id, (int) $userid);
+        }
+        self::empty($id);
+        unset_config(self::answer_key($id), self::C);
+        $DB->delete_records(centres::T, ['id' => $id]);
+    }
+
+    /**
+     * Takes away all of the practice centre but itself and its team: every other row of Eguahe with its id, and the
+     * drawings of its children.
      *
      * @param int $id
      */
@@ -162,7 +208,7 @@ final class practice {
         }
         $dbman = $DB->get_manager();
         foreach ($DB->get_tables(false) as $table) {
-            if (strpos($table, 'local_oksigeniaeguahe_') !== 0 || $table === centres::T) {
+            if (strpos($table, 'local_oksigeniaeguahe_') !== 0 || $table === centres::T || $table === centres::MEMBERS) {
                 continue;
             }
             $columns = $DB->get_columns($table);

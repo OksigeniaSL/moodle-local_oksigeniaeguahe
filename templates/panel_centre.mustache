@@ -68,7 +68,7 @@
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía.", "admin": true},
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
             "role": "Secretaría", "shown": false, "phrase": "", "admin": false}],
-        "newaccounts": true,
+        "newaccounts": true, "canadd": true,
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "members": ", con 120 personas",
             "marandu": "", "hascoming": true,
@@ -217,6 +217,7 @@
                         </details>
                     </li>
                     {{/hosts}}
+                    {{#canadd}}
                     <li class="aj-persona aj-persona-nueva" id="aj-equipo">
                         <details class="of-mas">
                             <summary><b>{{#str}}panel_person_new, local_oksigeniaeguahe{{/str}}</b></summary>
@@ -234,6 +235,7 @@
                             </div>
                         </details>
                     </li>
+                    {{/canadd}}
                 </ul>
             </section>
 
