@@ -16232,3 +16232,85 @@ a.como-talon:focus-visible {
 .monograma[data-iniciales]::before {
     content: attr(data-iniciales);
 }
+
+/* 11.10 From 320 px nothing goes beyond the sides (Jujol, 17 November 2026, for the 1.0). A long address breaks where
+   it must, at any width; on a narrow phone the columns of a page keep to the screen, a button says its words on two
+   lines rather than leave the page, the two views of the inbox share the strip, the tabs of the figures say only their
+   names, and the tables of the forecast take less air. */
+.piden-enlace .secundario {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 559.98px) {
+    .bandeja,
+    .filtros,
+    .actos,
+    .grupo-actos,
+    .prevision {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .boton {
+        max-width: 100%;
+        padding-block: 6px;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .herramientas .segmentos {
+        display: flex;
+        width: 100%;
+    }
+
+    .herramientas .segmentos a,
+    .herramientas .segmentos button {
+        flex: 1 1 auto;
+        justify-content: center;
+        gap: 6px;
+        min-width: 0;
+        padding: 4px 8px;
+        font-size: 0.9375rem;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .pastilla {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .hoja-cifras {
+        min-width: 0;
+        padding: 9px 10px 8px;
+    }
+
+    .hoja-cifras b {
+        font-size: 0.9375rem;
+        line-height: 1.2;
+    }
+
+    .hoja-cifras span {
+        display: none;
+    }
+
+    .prevision .apartado {
+        padding: 18px 14px;
+    }
+
+    .prevision .tabla-panel th,
+    .prevision .tabla-panel td {
+        padding-inline: 4px;
+    }
+
+    .prevision .tabla-panel tr > :first-child {
+        padding-inline-start: 0;
+    }
+
+    .prevision .tabla-panel tr > :last-child {
+        padding-inline-end: 0;
+    }
+
+    .edades .mini-num {
+        width: 4em;
+    }
+}

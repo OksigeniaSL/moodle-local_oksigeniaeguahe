@@ -17,7 +17,9 @@
 {{!
     @template local_oksigeniaeguahe/centres
 
-    The centres of the site: each with its team and who waits for an answer, and a new one.
+    The centres of the site: each with its team and who waits for an answer, and a new one. Each centre is a row of its
+    own, its name first and its settings at the side (under it on a phone), never a table: it fits from 320 px (Jujol,
+    17 November 2026).
 
     Example context (json):
     {"hascentres": true, "newurl": "#", "sesskey": "abc",
@@ -31,24 +33,17 @@
         <button class="btn btn-primary" type="submit">{{#str}}centre_new, local_oksigeniaeguahe{{/str}}</button>
     </form>
     {{#hascentres}}
-    <table class="table eguahe-table">
-        <thead><tr>
-            <th scope="col">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</th>
-            <th scope="col" class="eguahe-num">{{#str}}centre_members, local_oksigeniaeguahe{{/str}}</th>
-            <th scope="col" class="eguahe-num">{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}}</th>
-            <th scope="col"><span class="visually-hidden">{{#str}}settings{{/str}}</span></th>
-        </tr></thead>
-        <tbody>
+    <ul class="eguahe-centres-list">
         {{#centres}}
-            <tr>
-                <th scope="row"><a href="{{url}}">{{name}}</a></th>
-                <td class="eguahe-num">{{members}}</td>
-                <td class="eguahe-num">{{waiting}}</td>
-                <td><a href="{{settingsurl}}">{{#str}}settings{{/str}}</a></td>
-            </tr>
+        <li class="eguahe-centre">
+            <div class="eguahe-centre-what">
+                <a class="eguahe-centre-name" href="{{url}}">{{name}}</a>
+                <span class="eguahe-centre-facts">{{#str}}centre_members, local_oksigeniaeguahe{{/str}} <strong>{{members}}</strong> · {{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}} <strong>{{waiting}}</strong></span>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm eguahe-centre-settings" href="{{settingsurl}}">{{#str}}settings{{/str}}<span class="visually-hidden"> · {{name}}</span></a>
+        </li>
         {{/centres}}
-        </tbody>
-    </table>
+    </ul>
     {{/hascentres}}
     {{^hascentres}}<div class="eguahe-empty"><p>{{#str}}centres_none, local_oksigeniaeguahe{{/str}}</p></div>{{/hascentres}}
 </div>
