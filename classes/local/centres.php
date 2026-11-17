@@ -262,11 +262,8 @@ class centres {
      */
     public static function is_practice(int $centreid): bool {
         global $DB;
-        static $known = [];
-        if (!array_key_exists($centreid, $known)) {
-            $known[$centreid] = (bool) $DB->get_field(self::T, 'practice', ['id' => $centreid]);
-        }
-        return $known[$centreid];
+        // Asked each time, never kept: a number kept from a centre that was deleted could answer for a new one.
+        return (bool) $DB->get_field(self::T, 'practice', ['id' => $centreid]);
     }
 
     /**

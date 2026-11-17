@@ -76,6 +76,19 @@ class kit {
     }
 
     /**
+     * Marks the kit of an act as opened: the inbox stops offering it (moments).
+     *
+     * @param \stdClass $event
+     */
+    public static function seen(\stdClass $event): void {
+        $kit = self::kept($event);
+        if (empty($kit['seen'])) {
+            $kit['seen'] = time();
+            self::keep($event, $kit);
+        }
+    }
+
+    /**
      * Keeps the kit of an act.
      *
      * @param \stdClass $event

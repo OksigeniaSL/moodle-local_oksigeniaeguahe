@@ -787,6 +787,10 @@ class panel_centre {
             'guidewhere' => optional_param('guidewhere', (string) ($centre->guidewhere ?? ''), PARAM_TEXT),
             'guidehello' => optional_param('guidehello', (string) ($centre->guidehello ?? ''), PARAM_TEXT),
         ];
+        // Someone chose who makes the common record of families: the inbox stops asking it (moments).
+        if (optional_param('familyfrom', '', PARAM_ALPHA) !== '') {
+            moments::know((int) $centre->id, 'family');
+        }
         // An email that is not one keeps the one before, and says so: the form no longer stops at it (novalidate).
         if ($data->email !== '' && !validate_email($data->email)) {
             $problems[] = get_string('panel_email_kept', $c, s($data->email));

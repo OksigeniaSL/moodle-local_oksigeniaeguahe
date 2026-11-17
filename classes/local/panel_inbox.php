@@ -220,13 +220,14 @@ class panel_inbox {
      * @return array [leaf, blank, title, text, url, link]
      */
     protected static function today(\stdClass $centre, int $now, callable $url, array $due, array $asks): array {
+        global $USER;
         $c = self::C;
         $centreid = (int) $centre->id;
         $out = [];
         foreach ($asks as $ask) {
             // A course without a day yet: its leaf blank, waiting to be written.
             $out[] = ['leaf' => $ask['leaf'], 'blank' => !$ask['leaf'], 'title' => '', 'text' => $ask['text'], 'url' => $ask['url'],
-                'link' => get_string('panel_today_look', $c)];
+                'link' => get_string('panel_today_look', $c), 'known' => false];
         }
         $notes = [
             'starting' => ['panel_story_inbox', 'panel_story_inbox_one', 'panel_story_inbox_text', 'primerdia'],
@@ -244,7 +245,15 @@ class panel_inbox {
                 'text' => get_string(count($list) === 1 ? $one : $many, $c, $a),
                 'url' => $only ? $url(['c' => $centreid]) : $url(['c' => $centreid, $param => 1]),
                 'link' => get_string($only ? 'panel_siblings_all' : ($key === 'siblings' ? 'panel_siblings_see' :
-                    'panel_story_inbox_see'), $c)];
+                    'panel_story_inbox_see'), $c), 'known' => false];
+        }
+        // Each function at its moment, with «Known» for whoever may act.
+        $canact = centres::can_act((int) $USER->id);
+        foreach (moments::due($centre, $now) as $moment) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => $moment['title'], 'text' => $moment['text'],
+                'url' => $moment['url'], 'link' => $moment['link'], 'known' => $canact ? ['key' => $moment['key'],
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
+                'sesskey' => sesskey()] : false];
         }
         return $out;
     }

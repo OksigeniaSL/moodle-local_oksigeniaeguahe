@@ -15807,3 +15807,14 @@ a.como-talon:focus-visible {
         transition: none;
     }
 }
+
+/* 11.9 Each function at its moment (0.80.0): among the notes of today, «Known» says it is not wanted. */
+.hoy-sabido {
+    margin: 0 0 0 auto;
+}
+
+.hoy-sabido .enlace {
+    color: var(--eg-tinta-2);
+    font-weight: 500;
+    white-space: nowrap;
+}

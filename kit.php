@@ -47,6 +47,7 @@ if (!kit::has($event)) {
     redirect($back);
 }
 
+kit::seen($event);
 $shape = optional_param('img', '', PARAM_ALPHA);
 if ($shape !== '') {
     $png = kit::picture($event, $centre, $shape);
