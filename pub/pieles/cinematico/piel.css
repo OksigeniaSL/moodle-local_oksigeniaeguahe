@@ -973,3 +973,78 @@ html[data-mov="menos"] body.piel-cinematico::after,
 html[data-mov="menos"] .cine-corriente {
     animation: none;
 }
+/* ---------- «How is it done?» (Jujol, 17 November 2026): the sheet as dark glass over the night, the slips lit from
+   within, the stub in the amber of the counter; the yellow pad becomes a band of amber light. ---------- */
+.piel-cinematico .mando-como {
+    background: var(--cine-vidrio);
+    box-shadow: inset 0 0 0 1px var(--cine-filo-2);
+}
+
+.piel-cinematico .como {
+    background: rgba(5, 3, 7, 0.72);
+}
+
+.piel-cinematico .como-hoja,
+.piel-cinematico .pagina-como .como-busca,
+.piel-cinematico .como-grupo {
+    --como-fondo: var(--cine-fondo-2);
+    background: var(--cine-fondo-2);
+    border: 1px solid var(--cine-filo);
+}
+
+.piel-cinematico .como-cerrar {
+    background: var(--cine-vidrio-2);
+}
+
+.piel-cinematico .como-busca input[type="search"] {
+    border-bottom-color: var(--cine-filo-2);
+}
+
+.piel-cinematico .como-busca input[type="search"]:focus {
+    border-bottom-color: var(--cine-ambar);
+    box-shadow: 0 2px 0 var(--cine-ambar), 0 10px 24px -14px var(--cine-ambar-2);
+}
+
+.piel-cinematico .como-r,
+.piel-cinematico .como-tarea {
+    border-color: var(--cine-filo);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 70%), var(--cine-vidrio-2);
+}
+
+.piel-cinematico a.como-r:hover {
+    border-color: rgba(255, 201, 138, 0.45);
+}
+
+.piel-cinematico .como-talon {
+    border-inline-start-color: var(--cine-filo-2);
+    color: var(--cine-ambar);
+}
+
+.piel-cinematico .como-ajuste .como-talon {
+    background: rgba(181, 127, 171, 0.14);
+    color: #e7c3df;
+}
+
+.piel-cinematico .como-tipo {
+    color: var(--cine-ciruela);
+}
+
+.piel-cinematico .como-sub.como-espera,
+.piel-cinematico .como-nada,
+.piel-cinematico .como-ia {
+    background: rgba(255, 201, 138, 0.1);
+    box-shadow: inset 3px 0 0 var(--cine-ambar);
+    transform: none;
+}
+
+.piel-cinematico .como-valor-v {
+    color: var(--cine-ambar);
+    border-bottom-color: var(--cine-filo-2);
+}
+
+.piel-cinematico .como-tarea ol li::before {
+    background: none;
+    box-shadow: inset 0 0 0 1.5px var(--cine-filo-2);
+    color: var(--cine-ambar);
+}

@@ -17,18 +17,19 @@
 {{!
     @template local_oksigeniaeguahe/panel_howto_answer
 
-    One answer of «How is it done?»: a task or a setting, its first step (or, marked, what it waits for), its value now
-    for a setting, and where to go; inside an item of a list. The script of the panel draws the same in the sheet of
-    the bar.
+    One answer of «How is it done?», as a slip of the desk (Jujol): a task or a setting, its first step (or, on a yellow
+    note, what it waits for), its value now for a setting written by hand, and the stub to tear, «Go» or «Change». The
+    whole slip is one link, so the hand finds it anywhere; inside an item of a list. The script of the panel draws the
+    same in the sheet of the bar (howtoDraw).
 
     Example context (json):
     {"key": "costs", "setting": true, "kind": "Ajuste", "text": "Lo que cuesta", "value": "sí",
         "sub": "En «Ajustes», «Lo que cuesta».", "wait": false, "url": "#", "go": "Cambiar", "help": false}
 }}
-<div class="como-r{{#setting}} como-ajuste{{/setting}}">
+<a class="como-r{{#setting}} como-ajuste{{/setting}}" href="{{url}}">
     <span class="como-tipo">{{kind}}</span>
-    <a class="como-titulo" href="{{url}}">{{text}}</a>
-    {{#value}}<span class="como-valor">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}: {{value}}</span>{{/value}}
-    <p class="como-sub{{#wait}} como-espera{{/wait}}">{{sub}}</p>
-    <a class="boton secundario pequeno" href="{{url}}" tabindex="-1" aria-hidden="true">{{go}}</a>
-</div>
+    <span class="como-titulo">{{text}}</span>
+    <span class="como-sub{{#wait}} como-espera{{/wait}}">{{sub}}</span>
+    {{#value}}<span class="como-valor"><span class="como-valor-l">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}</span> <span class="como-valor-v">{{value}}</span></span>{{/value}}
+    <span class="como-talon">{{go}}<span class="como-flecha" aria-hidden="true"></span></span>
+</a>

@@ -15034,162 +15034,238 @@ details.aj-plegado > summary h2::after {
     font-size: 0.8125rem;
 }
 
-/* 11.7 «How is it done?» (0.78.0): the button of the bar, its sheet and the page of the guide. Functional; Jujol draws
-   it in the three skins. */
+/* 11.7 «How is it done?» (0.78.0; Jujol's design, 17 November 2026): the button of the bar, its sheet and the page of
+   the guide. Each answer is a slip of the desk, of the family of «To open admissions»: what it is and its first step on
+   the body, and past the perforation the stub where it goes. What is asked is written on a line, not in a box. */
+/* The button: its bubble, and its words where they fit: from 1600 px, and from 900 to 1099 px, where only the current
+   section stays in the bar (with the six sections, the bar is full below 1600). On a phone it lives in «More». The
+   centre's name gives way first, never its emblem. */
 .mando-como {
     margin-inline-start: auto;
+    flex: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     min-height: 40px;
-    padding: 0 12px;
-    border-radius: 10px;
-    color: var(--eg-tinta-2);
-    font-weight: 650;
+    padding-inline: 11px 16px;
+    border-radius: 999px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
     font-size: 0.9375rem;
+    font-weight: 750;
     white-space: nowrap;
     text-decoration: none;
 }
 
+.mando-como .ic {
+    width: 22px;
+    height: 22px;
+    color: var(--eg-acento);
+}
+
 .mando-como:hover,
 .mando-como:focus-visible {
-    background: var(--eg-hundido);
     color: var(--eg-tinta);
+    box-shadow: inset 0 0 0 2px var(--eg-acento-suave);
 }
 
-.mando-como + .mando-teclas,
-.mando-como ~ .yo {
-    margin-inline-start: 0;
+.mando-como + .mando-teclas {
+    flex: none;
+    margin-inline-start: 8px;
 }
 
+.mando-como ~ .mando-teclas[hidden] + .yo {
+    margin-inline-start: 8px;
+}
+
+@media (min-width: 720px) and (max-width: 899px), (min-width: 1100px) and (max-width: 1599px) {
+    .mando-como {
+        width: 40px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .mando-como .largo {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}
+
+/* The emblem of the centre never shrinks to nothing (a second «flex» on .emblema let it); with the six sections, from
+   1100 to 1279 px, the bar keeps the mark of Eguahe and the person without their words, so that everything fits. */
+.centro-sel .emblema {
+    flex: none;
+}
+
+@media (min-width: 1100px) and (max-width: 1279px) {
+    .marca .palabra,
+    .yo .nombre {
+        display: none;
+    }
+
+    .yo > summary {
+        padding-inline-end: 3px;
+    }
+}
+
+/* The sheet comes down under the bar; the question at its head, the line to write on, and under it, before anything
+   is typed, the hint and the most common in this section. */
 .como {
     position: fixed;
     inset: 0;
     z-index: 90;
     display: grid;
-    align-items: start;
     justify-items: center;
-    padding: 10vh 16px 16px;
-    background: rgba(20, 12, 14, 0.4);
+    align-items: start;
+    padding: 76px 16px 16px;
+    background: rgba(20, 12, 14, 0.45);
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
-.como[hidden] {
+.como[hidden],
+.como-aqui[hidden] {
     display: none;
 }
 
 .como-hoja {
+    --como-fondo: var(--piel-hoja);
     width: 100%;
-    max-width: 640px;
-    max-height: 80vh;
-    overflow: auto;
-    padding: 24px;
-    border-radius: var(--piel-radio);
-    background: var(--eg-superficie);
-    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+    max-width: 780px;
     display: grid;
-    gap: 14px;
+    gap: 16px;
+    padding: 22px 26px 18px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    color: var(--eg-tinta);
+    box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.55);
+    animation: como-baja var(--dur-2) var(--curva-papel);
 }
 
-.como-hoja h2 {
+@keyframes como-baja {
+    from {
+        opacity: 0;
+        transform: translateY(-14px);
+    }
+}
+
+.como-cab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.como-cab h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.625rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
 }
 
+.como-cerrar {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    cursor: pointer;
+}
+
+/* What is written goes on a line, as on the paper of the desk. */
 .como-busca input[type="search"] {
     width: 100%;
-    min-height: 48px;
-    padding: 10px 14px;
-    border: 1px solid var(--eg-linea);
-    border-radius: 12px;
-    background: var(--eg-papel, var(--eg-superficie));
+    min-width: 0;
+    padding: 8px 0 6px;
+    border: 0;
+    border-bottom: 2px solid var(--eg-borde);
+    border-radius: 0;
+    background: none;
     color: var(--eg-tinta);
     font: inherit;
-    font-size: 1.0625rem;
+    font-size: 1.375rem;
+    font-weight: 650;
+    outline: none;
 }
 
-.como-campo {
-    display: flex;
-    gap: 10px;
-    margin-top: 6px;
+.como-busca input[type="search"]:focus {
+    border-bottom-color: var(--eg-acento);
+    box-shadow: 0 2px 0 var(--eg-acento);
 }
 
-.como-lista {
-    list-style: none;
+/* Without the browser's blue cross: Esc closes the sheet, and what was written is selected when it opens again. */
+.como-busca input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+}
+
+.como-busca input[type="search"]::placeholder {
+    color: var(--eg-tinta-2);
+    font-weight: 500;
+    opacity: 0.75;
+}
+
+.como-aqui,
+.como-respuestas {
+    display: grid;
+    gap: 12px;
+}
+
+.como-respuestas:empty {
+    display: none;
+}
+
+.como-pista {
     margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 10px;
+    color: var(--eg-tinta-2);
+    line-height: 1.5;
 }
 
-.como-r {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 2px 14px;
-    padding: 12px 14px;
-    border: 1px solid var(--eg-linea);
-    border-radius: 12px;
-    background: var(--eg-superficie);
-}
-
-.como-tipo {
-    grid-column: 1;
+.como-aqui-t,
+.como-encontrado h2 {
+    margin: 4px 0 -4px;
     color: var(--eg-tinta-2);
     font-size: 0.75rem;
-    font-weight: 750;
+    font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.como-titulo {
-    grid-column: 1;
-    color: var(--eg-tinta);
-    font-weight: 750;
-    text-decoration: none;
-}
-
-.como-titulo:hover {
-    text-decoration: underline;
-}
-
-.como-valor {
-    grid-column: 1;
-    color: var(--eg-tinta-2);
-    font-size: 0.875rem;
-}
-
-.como-sub {
-    grid-column: 1;
-    margin: 2px 0 0;
-    color: var(--eg-tinta-2);
-    font-size: 0.875rem;
-}
-
-.como-espera {
-    color: var(--eg-aviso, var(--eg-tinta));
-    font-weight: 650;
-}
-
-.como-r .boton {
-    grid-column: 2;
-    grid-row: 1 / span 4;
-    align-self: center;
-}
-
-.como-nada {
-    margin: 0;
-    color: var(--eg-tinta-2);
-}
-
 .como-pie {
     margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.como-pie .enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+/* Nothing found: a note that says so, and under it, if the centre's AI is on, asking it; its answer, on the same note. */
+.como-nada,
+.como-ia {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--nota, var(--eg-acento-suave));
+    line-height: 1.5;
 }
 
 .como-ia {
     display: grid;
     gap: 6px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    background: var(--eg-hundido);
 }
 
 .como-ia-texto {
@@ -15207,66 +15283,390 @@ details.aj-plegado > summary h2::after {
     margin: 0;
 }
 
-.pagina-como .como-busca {
-    margin: 0 0 24px;
-}
-
-.como-encontrado,
-.como-grupo {
-    margin: 0 0 28px;
-}
-
-.como-encontrado h2,
-.como-grupo h2 {
-    margin: 0 0 12px;
-    font-size: 1.25rem;
-}
-
+/* A slip: one link (in the sheet and in what the page found) or a card whose stub is the link (the tasks of the
+   page, whose steps are a list). */
+.como-lista,
 .como-tareas {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.como-lista > li {
+    display: flex;
+}
+
+.como-r,
+.como-tarea {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "tipo talon" "titulo talon" "sub talon" "valor talon";
+    align-content: start;
+    overflow: hidden;
+    padding-block: 14px;
+    padding-inline: 18px 0;
+    border: 1px solid var(--eg-linea);
+    border-radius: 12px;
+    background: var(--b-blanco, var(--eg-superficie));
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+a.como-r:hover {
+    color: var(--eg-tinta);
+    border-color: var(--eg-acento);
+}
+
+a.como-r:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.como-tipo {
+    grid-area: tipo;
+    margin-bottom: 3px;
+    color: var(--eg-acento);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.como-titulo,
+.como-tarea h3 {
+    grid-area: titulo;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 750;
+    line-height: 1.3;
+}
+
+.como-sub {
+    grid-area: sub;
+    margin-block-start: 4px;
+    margin-inline-end: 16px;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+/* «Before, …»: what is missing first, on a yellow note stuck on the slip. */
+.como-sub.como-espera {
+    justify-self: start;
+    margin-block-start: 8px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    background: var(--nota, var(--eg-acento-suave));
+    color: var(--eg-tinta);
+}
+
+/* A setting's value now, written by hand on its line. */
+.como-valor {
+    grid-area: valor;
+    justify-self: start;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 8px;
+    margin-block: 8px 0;
+    margin-inline-end: 16px;
+}
+
+.como-valor-l {
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.como-valor-v {
+    padding: 0 4px;
+    border-bottom: 1px solid var(--eg-linea);
+    color: var(--tinta-azul, var(--eg-acento));
+    font-family: var(--piel-mano);
+    font-size: 1.3125rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.como-talon {
+    grid-area: talon;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-block: -14px;
+    margin-inline-start: 14px;
+    padding-inline: 18px 16px;
+    border-inline-start: 2px dashed var(--eg-linea);
+    color: var(--eg-accion);
+    font-weight: 800;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.como-flecha {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-inline-start: 7px;
+    border: solid currentColor;
+    border-width: 2px 2px 0 0;
+    transform: rotate(45deg);
+}
+
+[dir="rtl"] .como-flecha {
+    transform: rotate(-135deg);
+}
+
+/* The two bites of the perforation, in the colour of what lies under the slip. */
+.como-talon::before,
+.como-talon::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: -10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--como-fondo, var(--eg-papel));
+}
+
+.como-talon::before {
+    top: -10px;
+}
+
+.como-talon::after {
+    bottom: -10px;
+}
+
+a.como-r:hover .como-talon,
+a.como-talon:hover {
+    background: var(--eg-acento-suave);
+}
+
+a.como-talon:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: -3px;
+}
+
+.como-ajuste .como-talon {
+    background: var(--eg-hundido);
+}
+
+/* ---------- The page of the guide ---------- */
+.pagina-como .como-busca,
+.como-grupo {
+    --como-fondo: var(--piel-hoja);
+    display: grid;
+    gap: 12px;
+    padding: 20px 22px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.pagina-como .como-busca label {
+    font-size: 1.375rem;
+    font-weight: 800;
+}
+
+.como-campo {
+    display: flex;
+    align-items: center;
     gap: 12px;
 }
 
-.como-tarea {
-    display: grid;
-    align-content: start;
-    gap: 8px;
-    padding: 14px 16px;
-    border: 1px solid var(--eg-linea);
-    border-radius: 12px;
-    background: var(--eg-superficie);
+.como-campo .boton {
+    flex: none;
 }
 
-.como-tarea h3 {
-    margin: 0;
-    font-size: 1rem;
+.como-encontrado {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.como-indice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 26px 0 4px;
+}
+
+.como-indice a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding-inline: 12px 16px;
+    border-radius: 999px;
+    background: var(--piel-hoja);
+    box-shadow: var(--piel-hoja-sombra);
+    color: var(--eg-tinta);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.como-indice .ic {
+    width: 20px;
+    height: 20px;
+    color: var(--eg-acento);
+}
+
+.como-grupo {
+    margin-top: 22px;
+    scroll-margin-top: 16px;
+}
+
+.como-grupo h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 1.375rem;
+}
+
+.como-grupo h2 .ic {
+    width: 26px;
+    height: 26px;
+    color: var(--eg-acento);
+}
+
+.como-tarea {
+    scroll-margin-top: 16px;
 }
 
 .como-tarea ol {
-    margin: 0;
-    padding-inline-start: 20px;
-    color: var(--eg-tinta-2);
+    grid-area: sub;
+    display: grid;
+    gap: 6px;
+    margin-block: 8px 0;
+    margin-inline: 0 16px;
+    padding: 0;
+    list-style: none;
+    counter-reset: paso;
+}
+
+.como-tarea ol li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 10px;
     font-size: 0.9375rem;
+    line-height: 1.45;
+    counter-increment: paso;
 }
 
-.como-tarea .boton {
-    justify-self: start;
+.como-tarea ol li::before {
+    content: counter(paso);
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 800;
 }
 
-@media (max-width: 1500px) {
-    .mando-como {
-        padding: 0;
-        width: 40px;
-        justify-content: center;
+@media (min-width: 900px) {
+    .como-encontrado .como-lista {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .mando-como .largo {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
+    .como-tareas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1600px) {
+    .como-tareas {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* ---------- On a phone: the question first in «More», and the sheet the whole screen ---------- */
+@media (max-width: 719px) {
+    .mando-como {
+        /* stylelint-disable-next-line declaration-no-important */
+        display: none !important;
+    }
+
+    .hoja-mas .mas-como {
+        margin-bottom: 4px;
+        border-bottom: 1px solid var(--eg-linea);
+        border-radius: 10px 10px 0 0;
+    }
+
+    .hoja-mas .mas-como .ic {
+        color: var(--eg-acento);
+    }
+
+    .como {
+        padding: 0;
+        align-items: stretch;
+        background: var(--piel-hoja);
+    }
+
+    .como-hoja {
+        max-width: none;
+        min-height: 100%;
+        align-content: start;
+        padding: 16px 16px calc(20px + var(--seguro-abajo));
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .como-cab h2 {
+        font-size: 1.375rem;
+    }
+
+    .como-busca input[type="search"] {
+        font-size: 1.25rem;
+    }
+
+    .como-r,
+    .como-tarea {
+        padding-inline-start: 14px;
+    }
+
+    .como-talon {
+        margin-inline-start: 10px;
+        padding-inline: 12px 10px;
+    }
+
+    .pagina-como .como-busca,
+    .como-grupo {
+        padding: 16px;
+    }
+
+    /* The button goes under the line. */
+    .como-campo {
+        flex-wrap: wrap;
+    }
+
+    .pagina-como .como-busca input[type="search"] {
+        font-size: 1.125rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .como-hoja {
+        animation: none;
+    }
+}
+
+@media print {
+    .mando-como,
+    .como,
+    .pagina-como .como-busca,
+    .como-indice,
+    .como-talon {
+        display: none;
     }
 }

@@ -20,8 +20,8 @@
     «How it is done» (howto.php): a search of the team's tasks on top, with what it found when someone asked (each a
     task or a setting, its first step or what it waits for, its value now for a setting, and where to go; when nothing
     is found and the centre has its AI on, asking it, and its answer from the guide), and then the
-    whole guide by groups, as the bar of the panel, each task with its steps. Without the script it is what the button
-    of the bar opens.
+    whole guide by groups, as the bar of the panel, with their index, each task a slip with its steps (here the stub is
+    the link: a list of steps cannot go inside one). Without the script it is what the button of the bar opens.
 
     Example context (json):
     {
@@ -54,16 +54,20 @@
         {{#ainone}}<p class="como-nada">{{ainone}}</p>{{/ainone}}
     </section>
     {{/asked}}
+    <nav class="como-indice" aria-label="{{#str}}howto_index, local_oksigeniaeguahe{{/str}}">
+        {{#groups}}<a href="#como-{{key}}">{{{icon}}}{{name}}</a>{{/groups}}
+    </nav>
     {{#groups}}
     <section class="como-grupo" id="como-{{key}}" aria-labelledby="como-{{key}}-t">
         <h2 id="como-{{key}}-t">{{{icon}}}{{name}}</h2>
         <div class="como-tareas">
             {{#tasks}}
-            <article class="como-tarea" id="como-tarea-{{key}}">
+            <article class="como-tarea{{#setting}} como-ajuste{{/setting}}" id="como-tarea-{{key}}">
+                {{#setting}}<span class="como-tipo">{{#str}}howto_kind_setting, local_oksigeniaeguahe{{/str}}</span>{{/setting}}
                 <h3>{{text}}</h3>
                 <ol>{{#steps}}<li>{{step}}</li>{{/steps}}</ol>
-                {{#value}}<p class="como-valor">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}: {{value}}</p>{{/value}}
-                <a class="boton secundario pequeno" href="{{url}}">{{go}}</a>
+                {{#value}}<p class="como-valor"><span class="como-valor-l">{{#str}}panel_howto_now, local_oksigeniaeguahe{{/str}}</span> <span class="como-valor-v">{{value}}</span></p>{{/value}}
+                <a class="como-talon" href="{{url}}">{{go}}<span class="como-flecha" aria-hidden="true"></span><span class="oculto"> · {{text}}</span></a>
             </article>
             {{/tasks}}
         </div>

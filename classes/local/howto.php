@@ -73,6 +73,7 @@ final class howto {
         'mailbox' => ['entries', 'entries.php', ''],
         'testentries' => ['entries', 'entries.php', ''],
         'metrics' => ['metrics', 'metrics.php', ''],
+        'places' => ['metrics', 'metrics.php', 'plazas'],
         'cost' => ['metrics', 'metrics.php', ''],
         'report' => ['metrics', 'report.php', ''],
         'bigscreen' => ['metrics', 'metrics.php', ''],
@@ -117,6 +118,9 @@ final class howto {
     /** @var string[] Tasks that need a family first. */
     private const NEED_FAMILY = ['answer', 'attend', 'promise', 'saved', 'aidraft', 'stage', 'waitlist', 'close', 'left',
         'sibling', 'tailored', 'ambassador', 'familylabels', 'drawing', 'newlink', 'erase'];
+
+    /** @var string[] The words of two letters that say what is asked (the AI, a QR code); the rest are too short to tell. */
+    private const SHORT = ['ia', 'ai', 'qr'];
 
     /** @var string[] Words that say nothing about the task. */
     private const QUIET = ['como', 'hago', 'hacer', 'puedo', 'para', 'una', 'uno', 'unos', 'unas', 'los', 'las', 'del',
@@ -225,7 +229,8 @@ final class howto {
      */
     private static function words(string $query): array {
         $all = preg_split('/[^\p{L}\p{N}]+/u', questions::normal($query)) ?: [];
-        return array_values(array_filter($all, fn($w) => \core_text::strlen($w) >= 3 && !in_array($w, self::QUIET, true)));
+        return array_values(array_filter($all, fn($w) => (\core_text::strlen($w) >= 3 || in_array($w, self::SHORT, true))
+            && !in_array($w, self::QUIET, true)));
     }
 
     /**
@@ -658,6 +663,10 @@ final class howto {
      * @return bool
      */
     private static function in(string $word, array $theirs): bool {
+        // A word of two letters is only itself: «ai» is not the beginning of «aim».
+        if (\core_text::strlen($word) < 3) {
+            return in_array($word, $theirs, true);
+        }
         $stem = \core_text::substr($word, 0, 5);
         foreach ($theirs as $their) {
             if ($their !== '' && (str_starts_with($their, $word) || str_starts_with($their, $stem))) {

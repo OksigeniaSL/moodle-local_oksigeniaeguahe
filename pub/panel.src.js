@@ -2608,37 +2608,33 @@
             if (data.answers && data.answers.length) {
                 var list = doc.createElement('ul');
                 list.className = 'como-lista';
+                // Each answer, a slip of the desk as panel_howto_answer draws it: one link, its stub past the perforation.
+                var span = function(parent, className, text) {
+                    var el = doc.createElement('span');
+                    el.className = className;
+                    if (text) {
+                        el.textContent = text;
+                    }
+                    parent.appendChild(el);
+                    return el;
+                };
                 data.answers.forEach(function(a) {
                     var item = doc.createElement('li');
-                    var li = doc.createElement('div');
-                    li.className = 'como-r' + (a.setting ? ' como-ajuste' : '');
-                    item.appendChild(li);
-                    var kind = doc.createElement('span');
-                    kind.className = 'como-tipo';
-                    kind.textContent = a.kind;
-                    var title = doc.createElement('a');
-                    title.className = 'como-titulo';
-                    title.href = a.url;
-                    title.textContent = a.text;
-                    li.appendChild(kind);
-                    li.appendChild(title);
+                    var slip = doc.createElement('a');
+                    slip.className = 'como-r' + (a.setting ? ' como-ajuste' : '');
+                    slip.href = a.url;
+                    item.appendChild(slip);
+                    span(slip, 'como-tipo', a.kind);
+                    span(slip, 'como-titulo', a.text);
+                    span(slip, 'como-sub' + (a.wait ? ' como-espera' : ''), a.sub);
                     if (a.value) {
-                        var value = doc.createElement('span');
-                        value.className = 'como-valor';
-                        value.textContent = say('panel_howto_now') + ': ' + a.value;
-                        li.appendChild(value);
+                        var value = span(slip, 'como-valor');
+                        span(value, 'como-valor-l', say('panel_howto_now'));
+                        value.appendChild(doc.createTextNode(' '));
+                        span(value, 'como-valor-v', a.value);
                     }
-                    var sub = doc.createElement('p');
-                    sub.className = 'como-sub' + (a.wait ? ' como-espera' : '');
-                    sub.textContent = a.sub;
-                    li.appendChild(sub);
-                    var go = doc.createElement('a');
-                    go.className = 'boton secundario pequeno';
-                    go.href = a.url;
-                    go.tabIndex = -1;
-                    go.setAttribute('aria-hidden', 'true');
-                    go.textContent = a.go;
-                    li.appendChild(go);
+                    var stub = span(slip, 'como-talon', a.go);
+                    span(stub, 'como-flecha').setAttribute('aria-hidden', 'true');
                     list.appendChild(item);
                     howtoFirst = howtoFirst || a.url;
                 });

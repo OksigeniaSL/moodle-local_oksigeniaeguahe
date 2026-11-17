@@ -22,8 +22,9 @@
     Eguahe and, on a demo site, that the data is an example; on a phone, the bar at the bottom, except at the door of an
     event; and the sheet of keys, filled by the script from the data-tecla of the page.
 
-    With howtourl and centreid, «How is it done?»: the button of the bar (and in «More» on a phone) opens its sheet,
-    which the script fills while someone types; without the script, the page of the guide.
+    With howtourl and centreid, «How is it done?»: the button of the bar (its bubble; first in «More» on a phone) opens
+    its sheet, the question written on a line, with a hint and the most common in this section before anything is
+    typed; the script fills it while someone types; without the script, the page of the guide (Jujol's design).
 
     New in this round: footnote (optional line at the foot, for demo sites) and jsstrings (the strings of the
     script, as JSON: every panel_js_* string, and panel_came_at, panel_came_button, panel_came_count, inbox_waiting,
@@ -31,7 +32,7 @@
 
     Example context (json):
     {
-        "i": {"chev": "", "fuera": "", "mas": "", "salir": "", "teclado": "", "cerrar": "", "buscar": ""}, "homeurl": "#",
+        "i": {"chev": "", "fuera": "", "mas": "", "salir": "", "teclado": "", "cerrar": "", "buscar": "", "pregunta": "", "hoja": ""}, "homeurl": "#",
         "centre": "Colegio de ejemplo", "initials": "C", "logo": "", "hascentres": false, "centres": [],
         "sections": [{"key": "inbox", "name": "Bandeja", "url": "#", "short": "Bandeja", "icon": "", "current": true, "count": 5}],
         "phone": [{"key": "inbox", "name": "Bandeja", "url": "#", "short": "Bandeja", "icon": "", "current": true, "count": 5}],
@@ -68,7 +69,7 @@
     <nav class="secciones" aria-label="{{#str}}panel_sections, local_oksigeniaeguahe{{/str}}">
         {{#sections}}<a href="{{url}}"{{#current}} aria-current="page"{{/current}}>{{name}}{{#count}} <span class="cuenta" data-cuenta-bandeja>{{count}}</span>{{/count}}</a>{{/sections}}
     </nav>
-    <a class="mando-como" href="{{howtourl}}" data-como data-tecla="g" data-tecla-que="{{#str}}howto_button, local_oksigeniaeguahe{{/str}}">{{{i.buscar}}}<span class="largo">{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</span></a>
+    <a class="mando-como" href="{{howtourl}}" data-como data-tecla="g" data-tecla-que="{{#str}}howto_button, local_oksigeniaeguahe{{/str}}" title="{{#str}}howto_button, local_oksigeniaeguahe{{/str}}">{{{i.pregunta}}}<span class="largo">{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</span></a>
     <button class="mando-teclas" type="button" data-abrir-teclas hidden aria-label="{{#str}}panel_keys, local_oksigeniaeguahe{{/str}}">{{{i.teclado}}}</button>
     <details class="menu-barra derecha yo">
         <summary aria-label="{{me.name}}">
@@ -106,8 +107,8 @@
     <details class="mas">
         <summary{{#morecurrent}} aria-current="page"{{/morecurrent}}>{{{i.mas}}}<span>{{#str}}panel_more, local_oksigeniaeguahe{{/str}}</span></summary>
         <nav class="hoja-mas" aria-label="{{#str}}panel_more_sections, local_oksigeniaeguahe{{/str}}">
+            <a class="mas-como" href="{{howtourl}}" data-como>{{{i.pregunta}}}{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</a>
             {{#more}}<a href="{{url}}"{{#current}} aria-current="page"{{/current}}>{{{icon}}}{{name}}</a>{{/more}}
-            <a href="{{howtourl}}" data-como>{{{i.buscar}}}{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</a>
             <a href="{{moodleurl}}">{{{i.fuera}}}{{#str}}panel_back_moodle, local_oksigeniaeguahe{{/str}}</a>
         </nav>
     </details>
@@ -116,16 +117,21 @@
 {{#jsstrings}}<div hidden id="eg-textos" data-textos="{{jsstrings}}"></div>{{/jsstrings}}
 <div class="como" id="como" role="dialog" aria-modal="true" aria-labelledby="como-t" hidden>
     <div class="como-hoja">
-        <h2 id="como-t">{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</h2>
+        <div class="como-cab">
+            <h2 id="como-t">{{#str}}howto_button, local_oksigeniaeguahe{{/str}}</h2>
+            <button class="como-cerrar" type="button" data-cerrar-como aria-label="{{#str}}panel_close_sheet, local_oksigeniaeguahe{{/str}}">{{{i.cerrar}}}</button>
+        </div>
         <form class="como-busca" action="{{howtourl}}" method="get" role="search" data-como-form>
             <input type="hidden" name="c" value="{{centreid}}">
             <label class="oculto" for="como-q">{{#str}}howto_field, local_oksigeniaeguahe{{/str}}</label>
-            <input id="como-q" type="search" name="q" placeholder="{{#str}}howto_placeholder, local_oksigeniaeguahe{{/str}}" autocomplete="off" spellcheck="false">
+            <input id="como-q" type="search" name="q" placeholder="{{#str}}howto_placeholder, local_oksigeniaeguahe{{/str}}" autocomplete="off" spellcheck="false" aria-describedby="como-pista">
         </form>
-        {{#howtohere.has}}<div class="como-aqui" data-como-aqui><p class="como-aqui-t">{{howtohere.label}}</p><ul class="como-lista">{{#howtohere.answers}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}</li>{{/howtohere.answers}}</ul></div>{{/howtohere.has}}
+        <div class="como-aqui" data-como-aqui>
+            <p class="como-pista" id="como-pista">{{#str}}howto_hint, local_oksigeniaeguahe{{/str}}</p>
+            {{#howtohere.has}}<p class="como-aqui-t">{{howtohere.label}}</p><ul class="como-lista">{{#howtohere.answers}}<li>{{> local_oksigeniaeguahe/panel_howto_answer }}</li>{{/howtohere.answers}}</ul>{{/howtohere.has}}
+        </div>
         <div class="como-respuestas" data-como-respuestas aria-live="polite"></div>
-        <p class="como-pie"><a href="{{howtourl}}">{{#str}}howto_all, local_oksigeniaeguahe{{/str}}</a></p>
-        <button class="boton secundario pequeno" type="button" data-cerrar-como>{{{i.cerrar}}}{{#str}}panel_close_sheet, local_oksigeniaeguahe{{/str}}</button>
+        <p class="como-pie"><a class="enlace" href="{{howtourl}}">{{{i.hoja}}}{{#str}}howto_all, local_oksigeniaeguahe{{/str}}</a></p>
     </div>
 </div>
 <div class="teclas" id="teclas" role="dialog" aria-labelledby="teclas-t" hidden>

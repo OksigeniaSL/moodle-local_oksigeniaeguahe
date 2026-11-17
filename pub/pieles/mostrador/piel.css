@@ -1866,3 +1866,98 @@ body.modo-lamina.piel-mostrador .barra-antes {
         mask-image: none;
     }
 }
+/* ---------- «How is it done?» (Jujol, 17 November 2026): a sheet of the desk with its slips. The button is a paper
+   label in the bar; the sheet comes down over the dimmed desk; what is written goes on a ruled line; each answer is a
+   slip with its stub (a setting's stub in kraft, as the archive of Ajustes); «Before, …», nothing found and the AI's
+   answer on the yellow pad; a setting's value written by hand in blue ink. ---------- */
+.piel-mostrador .mando-como {
+    align-self: center;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .como {
+    background: rgba(40, 22, 10, 0.5);
+}
+
+.piel-mostrador .como-hoja,
+.piel-mostrador .pagina-como .como-busca,
+.piel-mostrador .como-grupo {
+    --como-fondo: var(--papel-b);
+    background: var(--papel-b) var(--ruido);
+    border-color: transparent;
+}
+
+.piel-mostrador .como-hoja {
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .pagina-como .como-busca,
+.piel-mostrador .como-grupo,
+.piel-mostrador .como-indice a {
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador .como-indice a {
+    background: var(--papel-b) var(--ruido);
+}
+
+.piel-mostrador .como-cerrar {
+    background: var(--papel-b-2);
+}
+
+.piel-mostrador .como-busca input[type="search"] {
+    border-bottom-color: rgba(70, 110, 170, 0.5);
+}
+
+.piel-mostrador .como-busca input[type="search"]:focus {
+    border-bottom-color: var(--tinta-azul);
+    box-shadow: 0 2px 0 var(--tinta-azul);
+}
+
+.piel-mostrador .como-r,
+.piel-mostrador .como-tarea {
+    border-color: transparent;
+    border-radius: 4px;
+    background: var(--b-blanco) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
+.piel-mostrador a.como-r:hover {
+    box-shadow: var(--sombra-alta);
+}
+
+.piel-mostrador .como-talon {
+    border-inline-start-color: rgba(var(--eg-tinta-rgb), 0.22);
+}
+
+.piel-mostrador .como-ajuste .como-talon {
+    background: var(--kraft) var(--ruido);
+    color: var(--kraft-tinta);
+}
+
+.piel-mostrador .como-valor-v {
+    border-bottom-color: rgba(70, 110, 170, 0.45);
+}
+
+.piel-mostrador .como-sub.como-espera,
+.piel-mostrador .como-nada,
+.piel-mostrador .como-ia {
+    background: var(--nota) var(--ruido);
+    box-shadow: 0 1px 1px rgba(60, 35, 20, 0.16), 0 4px 7px -4px rgba(60, 35, 20, 0.3);
+}
+
+.piel-mostrador .como-sub.como-espera {
+    transform: rotate(-0.6deg);
+}
+
+.piel-mostrador .como-nada,
+.piel-mostrador .como-ia {
+    border-radius: 3px;
+}
+
+.piel-mostrador .como-tarea ol li::before {
+    background: none;
+    box-shadow: inset 0 0 0 1.5px var(--tinta-azul);
+    color: var(--tinta-azul);
+}
