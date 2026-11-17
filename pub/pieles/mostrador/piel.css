@@ -403,15 +403,19 @@ body.piel-mostrador::after {
 .piel-mostrador .lista[data-densidad="fichas"] .fila {
     padding: 12px 118px 14px 16px;
     border-radius: 4px;
+    /* The red line and the ruling stop before the corner of the date stamp: no line runs across it (Enrique, 17-11). */
     background:
-        linear-gradient(to bottom, transparent 39px, var(--margen) 39px, var(--margen) 41px, transparent 41px),
-        repeating-linear-gradient(to bottom, transparent 0 25px, var(--pauta) 25px 26px) 0 41px / 100% 100% no-repeat,
+        linear-gradient(to bottom, transparent 39px, var(--margen) 39px, var(--margen) 41px, transparent 41px) 0 0 /
+        calc(100% - 112px) 100% no-repeat,
+        repeating-linear-gradient(to bottom, transparent 0 25px, var(--pauta) 25px 26px) 0 41px /
+        calc(100% - 112px) 100% no-repeat,
         var(--ruido),
         var(--papel-b);
 }
 
 [dir="rtl"] .piel-mostrador .lista[data-densidad="fichas"] .fila {
     padding: 12px 16px 14px 118px;
+    background-position: 112px 0, 112px 41px, 0 0;
 }
 
 .piel-mostrador .lista[data-densidad="fichas"] .fila + .fila {
@@ -565,6 +569,8 @@ body.piel-mostrador::after {
 
     .piel-mostrador .lista[data-densidad="fichas"] .fila {
         padding: 10px 14px 12px;
+        background-position: 0 0, 0 41px, 0 0;
+        background-size: 100% 100%, 100% 100%, auto;
     }
 
     .piel-mostrador .lista[data-densidad="fichas"] .fila .lleva {

@@ -90,7 +90,8 @@ final class practice {
             'retention' => 1,
             'address' => get_string('practice_address', self::C),
             'phone' => '+34 900 000 000',
-            'email' => 'admisiones@eguahe.invalid',
+            // A domain reserved for examples, that receives nothing: whatever a person tries, nothing arrives anywhere.
+            'email' => 'admisiones@example.com',
             'replydays' => 2,
             'guide' => 'perro',
         ];
@@ -130,9 +131,11 @@ final class practice {
         foreach ($families as $n => [$adult, $children, $channel, $message, $hoursago, $what]) {
             $household = households::get(households::create($id, (object) ['lang' => $data->lang, 'firstchannel' => $channel,
                 'heardfrom' => 'search']), $id);
-            // An address that can receive nothing: whatever a person tries, nothing leaves.
+            // An address of the domain reserved for examples, as a family writes it: nothing leaves a practice centre,
+            // and nothing would arrive anywhere.
+            $local = \core_text::strtolower(\core_text::specialtoascii($adult[0] . '.' . strtok($adult[1], ' ')));
             $adultid = households::add_adult($household, (object) ['firstname' => $adult[0], 'lastname' => $adult[1],
-                'email' => 'familia' . ($n + 1) . '@eguahe.invalid']);
+                'email' => preg_replace('/[^a-z.]+/', '', $local) . '@example.com']);
             households::consent($household, $adultid, 'email', true, 'form', $data->lang);
             foreach ($children as [$name, $offer]) {
                 households::add_child($household, $name, $offers[$offer]);

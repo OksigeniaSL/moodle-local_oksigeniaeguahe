@@ -1026,6 +1026,8 @@ class panel_household {
         $permissions = households::permissions((int) $full->id);
         $likes = hobbies::of((int) $full->id);
         $out = [];
+        // A practice centre writes to nobody: its made-up addresses are not checked.
+        $check = !centres::is_practice((int) $full->centreid);
         foreach ($full->adults as $adult) {
             $granted = $permissions[$adult->id] ?? [];
             $ways = [];
@@ -1033,7 +1035,7 @@ class panel_household {
                 // A mistyped email or one that cannot receive mail, said before anyone writes to it: better to call.
                 $ways[] = ['icon' => panel::icon('correo'), 'text' => get_string(!empty($granted['email']) ? 'panel_by_email' :
                     'panel_email_nopermission', $c), 'value' => $adult->email, 'href' => 'mailto:' . $adult->email,
-                    'warning' => emailcheck::warning((string) $adult->email) ?: false];
+                    'warning' => $check ? (emailcheck::warning((string) $adult->email) ?: false) : false];
             }
             if ((string) $adult->phone !== '') {
                 $tel = 'tel:' . preg_replace('/[^0-9+]/', '', (string) $adult->phone);
