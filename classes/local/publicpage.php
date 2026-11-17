@@ -223,6 +223,7 @@ class publicpage {
 <title>' . s($title) . ' · ' . s($name) . '</title>
 ' . self::$head . '<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
+<link rel="stylesheet" href="' . $base . 'riel-lectura.css?v=' . $version . '">
 <style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
 @media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>
 <noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden],
@@ -230,6 +231,7 @@ class publicpage {
 display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 ' . $vivo . '<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
+<script src="' . $base . 'riel-lectura.js?v=' . $version . '" defer></script>
 ' . $cropper . $skin . '</head>
 <body' . (self::$embedded ? ' class="incrustado"' : '') . '>
 ' . $top . $body . $bottom . '

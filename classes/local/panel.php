@@ -424,11 +424,13 @@ class panel {
 <title>' . s($title) . ' · ' . s($name) . '</title>
 <link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'panel.css?v=' . $version . '">
+<link rel="stylesheet" href="' . $base . 'riel-lectura.css?v=' . $version . '">
 ' . $skincss . '<style>:root { ' . $vars(publicpage::centre_vars($colour, $skin === 'cinematico')) . ' }
 @media (prefers-color-scheme: dark) { :root:not([data-bs-theme]) { ' . $vars(publicpage::centre_vars($colour, true)) . ' } }
 :root[data-bs-theme="dark"] { ' . $vars(publicpage::centre_vars($colour, true)) . ' }</style>
 <script src="' . $base . 'panel.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
+<script src="' . $base . 'riel-lectura.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
 <body class="panel ' . $page . ' ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') .

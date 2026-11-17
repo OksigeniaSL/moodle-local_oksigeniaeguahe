@@ -1,0 +1,141 @@
+/* Eguahe's scrollbar, the reading rail (Jujol, 17 November 2026; Enrique: «La barra de scroll la suelo personalizar»).
+   On a wide screen it takes the place of the browser's: a strip of wall along the right edge with the wooden rail of the
+   coat rack, a knob for each section of the page and Eguahe's little backpack hanging from it, which comes down with the
+   reading. It is pressed and dragged like a scrollbar, a knob takes you to its section and, while the pointer is on it,
+   says its name on the coral tag. Colours from the page's own variables, so it follows light and dark and each skin.
+   Without JavaScript nothing changes: the thin aubergine scrollbar stays. After the ruler of oksigenia.com and the
+   bookmark of Ayvurenda. */
+.riel-lectura {
+    display: none;
+}
+
+@media (min-width: 1000px) {
+    html.tiene-riel body {
+        padding-inline-end: 34px;
+    }
+
+    html.tiene-riel {
+        scrollbar-width: none;
+    }
+
+    html.tiene-riel::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+
+    .riel-lectura:not([hidden]) {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        display: block;
+        width: 34px;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+        border-inline-start: 1px solid var(--eg-linea, rgba(60, 40, 30, 0.14));
+        background: var(--eg-papel, #fbf7f1);
+        box-shadow: -6px 0 14px -10px var(--eg-sombra, rgba(60, 40, 30, 0.35));
+    }
+
+    .riel-lectura.arrastrando {
+        cursor: grabbing;
+    }
+}
+
+/* The rail: a wooden rod, lit from the left, with its two ends. */
+.riel-lectura-vara {
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 13px;
+    width: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--eg-madera-luz, #d2a57c), var(--eg-madera, #bc8759) 55%, var(--eg-madera-sombra, #8e5e3a));
+    box-shadow: 1px 0 2px rgba(0, 0, 0, 0.18);
+}
+
+/* A knob for each section of the page (its h2 headings); the one of the section in view, ringed in coral. */
+.riel-lectura-pomo {
+    position: absolute;
+    left: 9px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, var(--eg-madera-luz, #d2a57c), var(--eg-madera, #bc8759) 55%, var(--eg-madera-sombra, #8e5e3a));
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.riel-lectura-pomo:hover {
+    transform: scale(1.25);
+}
+
+.riel-lectura-pomo.ahora {
+    box-shadow: 0 0 0 3px var(--eg-coral, #d9644d), 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* The little backpack of the brand, hanging by its loop where the reading is; it swings a little as it goes. */
+.riel-lectura-mochila {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    width: 30px;
+    height: 30px;
+    transform-origin: 15px 3px;
+    pointer-events: none;
+    filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.28));
+    will-change: transform;
+}
+
+/* The name of a section, on the coral tag of the brand, beside its knob while the pointer is on it or while dragging. */
+.riel-lectura-nombre {
+    position: absolute;
+    right: calc(100% + 10px);
+    margin-top: -16px;
+    padding: 3px;
+    border-radius: 6px;
+    background: var(--eg-coral, #d9644d);
+    box-shadow: 0 6px 14px -6px rgba(40, 25, 15, 0.45);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(6px) rotate(-2deg);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    pointer-events: none;
+}
+
+.riel-lectura-nombre span {
+    display: block;
+    padding: 0 12px;
+    border-radius: 4px;
+    background: #fffaf2;
+    color: #2b2226;
+    font: 700 1.25rem/1.4 "Eg Mano", "Caveat", cursive;
+}
+
+.riel-lectura-nombre.visible {
+    opacity: 1;
+    transform: rotate(-2deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .riel-lectura-pomo,
+    .riel-lectura-nombre {
+        transition: none;
+    }
+}
+
+@media print {
+    .riel-lectura:not([hidden]) {
+        display: none;
+    }
+
+    html.tiene-riel body {
+        padding-inline-end: 0;
+    }
+}
