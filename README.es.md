@@ -1,12 +1,15 @@
-# Admisiones para Moodle (Oksigenia Eguahe)
+# CRM de admisiones para Moodle (Oksigenia Eguahe)
 
 [![Licencia: GPLv3](https://img.shields.io/badge/license-GPLv3+-blue.svg)](LICENSE)
 ![Moodle](https://img.shields.io/badge/Moodle-4.5%E2%80%935.3-orange)
-![Estado](https://img.shields.io/badge/status-alpha-red)
+![Versión](https://img.shields.io/badge/version-0.x-yellow)
 [![Patrocinio](https://img.shields.io/badge/sponsor-Oksigenia-00d4ff)](https://oksigenia.com/es/open-source#sponsor)
 
-**Oksigenia Eguahe** es la puerta de entrada de un colegio, una academia o un centro de formación, dentro de su sitio
-Moodle™ o como servicio alojado. Las familias que piden información o plaza las reciben personas, y el equipo ve de un
+**Oksigenia Eguahe** es un CRM de admisiones para cualquier colegio, instituto, centro de FP, academia o universidad:
+las solicitudes de cualquier canal, las visitas y las jornadas de puertas abiertas, el camino hasta la matrícula y la
+rematrícula, y la previsión de los próximos cursos. Funciona dentro del sitio Moodle™ del centro o alojado por
+Oksigenia, una instalación por centro, en [eguahe.com](https://eguahe.com) (todo incluido en todos los planes, desde 49 €
+al mes; se prueba sin cuenta). Las familias que piden información o plaza las reciben personas, y el equipo ve de un
 vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y cómo va la campaña. *Eguahe* viene de
 *eguahẽ porã*, «bienvenido» en guaraní.
 
@@ -14,7 +17,9 @@ vistazo qué hogares esperan respuesta, cuántas plazas le quedan a cada curso y
 
 ## Estado
 
-**Alfa.** Todavía no es para sitios en producción.
+**Versión 0.x.** Alojado por Oksigenia, está listo para usarse: [eguahe.com](https://eguahe.com). Como plugin para
+tu propio sitio Moodle, la 1.0 y el directorio de plugins de Moodle llegan después de su primera campaña entera en un
+centro.
 
 ## Qué hace
 
