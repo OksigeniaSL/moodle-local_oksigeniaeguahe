@@ -262,7 +262,9 @@ class panel_metrics {
         if (!$counts) {
             return '';
         }
-        arsort($counts);
+        // The most said first; those who said nothing, at the end.
+        $untold = get_string('panel_measured_ai_untold', $c);
+        uksort($counts, fn($a, $b) => [$a === $untold, -$counts[$a], $a] <=> [$b === $untold, -$counts[$b], $b]);
         $parts = [];
         foreach ($counts as $said => $n) {
             $parts[] = $said . ' (' . $n . ')';
