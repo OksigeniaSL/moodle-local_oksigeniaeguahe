@@ -1318,5 +1318,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026117500, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026117700) {
+        // The student who comes on their own: who signs up at each centre, and the households where the student writes.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('whoapplies', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'family', 'practice');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('self', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'moving');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026117700, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -52,6 +52,10 @@ publicpage::setup($url);
 
 $household = households::by_link($token);
 $centre = $household ? centres::get((int) $household->centreid) : null;
+if ($household) {
+    // A student who comes on their own reads their page as one person.
+    publiclang::speak_to($household);
+}
 if (!$household || !$centre) {
     $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
     publicpage::message(

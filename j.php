@@ -99,7 +99,9 @@ if (!$event->open || $event->timeend < time()) {
     );
 }
 
-$data = signup::read();
+$data = signup::read($centre);
+// A student signing up for themselves is spoken to as one person from here on (what is wrong, the wall afterwards).
+publiclang::$self = !empty($data['self']);
 $data['answers'] = forms::read((int) $event->formid);
 $errors = [];
 if (data_submitted()) {

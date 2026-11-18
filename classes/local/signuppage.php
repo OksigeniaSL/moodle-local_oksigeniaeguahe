@@ -33,7 +33,8 @@ class signuppage {
         'pub_more', 'pub_people', 'pub_where', 'pub_where_choose', 'pub_where_other', 'pub_where_moving', 'pub_heardfrom',
         'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_privacy_link', 'pub_info_more',
         'pub_submit', 'pub_sending', 'pub_no_place', 'pub_when_suits', 'pub_when_suits_hint', 'pub_tailored_title',
-        'pub_tailored_lead'];
+        'pub_tailored_lead', 'pub_for_whom', 'pub_for_child', 'pub_for_me', 'pub_you_self', 'pub_you_self_hint',
+        'pub_submit_self', 'pub_sending_self'];
 
     /**
      * The context of the template public_signup.
@@ -115,8 +116,11 @@ class signuppage {
                 'latin' => $lang === 'ar' ? ['value' => $child['latinname'] ?? ''] : false,
                 'birtherror' => $errors["c{$i}birth"] ?? '',
                 'tagplaceholder' => preg_split('/\s+/', $child['firstname'])[0] ?? '',
-                'courselabel' => $label !== '' ? publiclang::str('pub_course_for', $lang, $label) :
-                    publiclang::str('pub_course_for_none', $lang),
+                // A student signing up for themselves is asked what they would like to study.
+                'courselabel' => !empty($data['self']) ? publiclang::str('pub_course_self', $lang) :
+                    ($label !== '' ? publiclang::str('pub_course_for', $lang, $label) :
+                    publiclang::str('pub_course_for_none', $lang)),
+                'courseself' => publiclang::str('pub_course_self', $lang),
                 'coursewith' => publiclang::str('pub_course_for', $lang, '{name}'),
                 'coursewithout' => publiclang::str('pub_course_for_none', $lang),
                 'offererror' => $errors["c{$i}offer"] ?? '',
@@ -257,6 +261,13 @@ class signuppage {
             'pegs' => publicpage::pegs($labels, false, $shownchildren) + ['live' => true],
             'children' => $children,
             'canaddchild' => $shownchildren < count($children),
+            // Who signs up (centres::WHOAPPLIES): the family, the student, or either, who chooses here.
+            'choose' => ($centre->whoapplies ?? 'family') === 'both',
+            'selfonly' => ($centre->whoapplies ?? 'family') === 'student',
+            'selfmode' => !empty($data['self']),
+            'para' => !empty($data['self']) ? 'yo' : 'familia',
+            'parafamiliaurl' => (new \moodle_url($url, ['idioma' => $lang, 'para' => 'familia']))->out(false) . '#para',
+            'parayourl' => (new \moodle_url($url, ['idioma' => $lang, 'para' => 'yo']))->out(false) . '#para',
             'singlechild' => $shownchildren === 1,
             'courselegend' => $children[0]['courselabel'],
             'courselegendmany' => publiclang::str('pub_who_comes', $lang),

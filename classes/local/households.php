@@ -115,6 +115,7 @@ class households {
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
             'incentre' => empty($data->incentre) ? 0 : 1,
             'moving' => empty($data->moving) ? 0 : 1,
+            'self' => empty($data->self) ? 0 : 1,
             'waitingsince' => 0,
             'lastcontact' => $now,
             'timecreated' => $now,

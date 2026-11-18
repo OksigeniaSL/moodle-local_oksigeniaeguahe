@@ -1888,12 +1888,14 @@ legend .opc {
     place-items: center;
 }
 
-.ficha[aria-pressed="true"] {
+.ficha[aria-pressed="true"],
+.ficha[aria-current="true"] {
     border-color: var(--c-acento-texto);
     background: var(--c-acento-suave);
 }
 
-.ficha[aria-pressed="true"] .marca {
+.ficha[aria-pressed="true"] .marca,
+.ficha[aria-current="true"] .marca {
     background: var(--c-acento-vivo);
     border-color: var(--c-acento-vivo);
     color: var(--c-sobre-vivo);
@@ -5669,4 +5671,21 @@ button.enlace span {
 html {
     scrollbar-width: thin;
     scrollbar-color: var(--eg-barra) transparent;
+}
+
+/* A student signing up for themselves («Para mí»): no rows for children, other adults or brothers and sisters. */
+[data-para="yo"] .para-familia,
+[data-para="yo"] .para-familia[hidden] {
+    display: none;
+}
+
+.para-quien .fichas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.para-quien a.ficha {
+    color: inherit;
+    text-decoration: none;
 }

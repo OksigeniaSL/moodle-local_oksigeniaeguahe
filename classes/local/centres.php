@@ -30,6 +30,9 @@ class centres {
     /** @var string[] The pictures of the miniature of a centre: the way in, the same for phones, and where to park. */
     const MINIATURES = ['miniature', 'miniaturenarrow', 'miniatureparking'];
 
+    /** @var string[] Who signs up at a centre: a family for its children, the student for themselves, or either. */
+    const WHOAPPLIES = ['family', 'student', 'both'];
+
     /** @var string */
     const T = 'local_oksigeniaeguahe_centre';
 
@@ -142,6 +145,10 @@ class centres {
         }
         if (isset($data->skin)) {
             $row->skin = in_array($data->skin, panel::SKINS, true) ? $data->skin : null;
+        }
+        if (isset($data->whoapplies)) {
+            // Who signs up: a family for its children, the student for themselves, or either.
+            $row->whoapplies = in_array($data->whoapplies, self::WHOAPPLIES, true) ? $data->whoapplies : 'family';
         }
         if (isset($data->handover)) {
             // Who carries the families once enrolled: a person of the team, else a place; and how the centre writes

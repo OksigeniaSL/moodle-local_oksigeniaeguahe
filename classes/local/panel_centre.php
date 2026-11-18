@@ -170,6 +170,12 @@ class panel_centre {
             // How a family asks for a place, where and between which days: what its page says after the visit.
             'apply' => self::apply_settings($centre),
             'costs' => costs::settings($centre),
+            // Who signs up here: a family for its children, the student for themselves, or either (they choose).
+            'whoapplies' => [
+                'read' => get_string('panel_whoapplies_' . ($centre->whoapplies ?? 'family'), $c),
+                'modes' => array_map(fn($w) => ['value' => $w, 'name' => get_string('panel_whoapplies_' . $w, $c),
+                    'pressed' => $w === ($centre->whoapplies ?? 'family')], centres::WHOAPPLIES),
+            ],
             // Who puts an enrolled family in the common record, when the site has it.
             'familyfrom' => family::available() ? self::family_from($centre) : [],
             'hasfamilyfrom' => family::available(),
@@ -786,6 +792,7 @@ class panel_centre {
             'applyuntil' => self::date(publicpage::date_param('applyuntil')),
             'costs' => optional_param('costs', '', PARAM_TEXT),
             'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
+            'whoapplies' => optional_param('whoapplies', (string) ($centre->whoapplies ?? 'family'), PARAM_ALPHA),
             'familyfrom' => optional_param('familyfrom', (string) ($centre->familyfrom ?? 'eguahe'), PARAM_ALPHA),
             'guide' => optional_param('guide', (string) ($centre->guide ?? ''), PARAM_ALPHA),
             'guidewhere' => optional_param('guidewhere', (string) ($centre->guidewhere ?? ''), PARAM_TEXT),

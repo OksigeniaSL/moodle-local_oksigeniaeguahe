@@ -69,6 +69,8 @@
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
             "role": "Secretaría", "shown": false, "phrase": "", "admin": false}],
         "newaccounts": true, "canadd": true,
+        "whoapplies": {"read": "Una familia, para sus hijos", "modes": [{"value": "family", "name": "Una familia", "pressed": true},
+            {"value": "student", "name": "El propio alumno", "pressed": false}]},
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "members": ", con 120 personas",
             "marandu": "", "hascoming": true,
@@ -445,6 +447,18 @@
                 </div>
             </details>
             {{/apply}}
+
+            {{! ===== Who signs up: a family for its children, the student for themselves, or either ===== }}
+            <details class="apartado aj-plegado" id="aj-quien">
+                <summary><h2 id="aj-quien-t">{{#str}}panel_whoapplies_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{whoapplies.read}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda">{{#str}}panel_whoapplies_help, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="aj-modos" role="group" aria-labelledby="aj-quien-t">
+                        {{#whoapplies.modes}}<button class="aj-modo" type="submit" name="whoapplies" value="{{value}}" formaction="{{action}}#aj-quien" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/whoapplies.modes}}
+                    </div>
+                </div>
+            </details>
 
             {{! ===== What it costs: a line per thing, and when families see it ===== }}
             {{#costs}}

@@ -98,6 +98,8 @@ class familymail {
         string $text = ''
     ): array {
         global $CFG, $DB;
+        // A student who comes on their own is written to as one person.
+        publiclang::speak_to($household);
         $images = [];
         $embed = function (string $data, string $name, string $mime) use (&$images): string {
             $cid = 'eg' . count($images) . '-' . substr(sha1($data), 0, 12);

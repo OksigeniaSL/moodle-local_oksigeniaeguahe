@@ -114,6 +114,10 @@ class panel_household {
         if (!empty($household->incentre)) {
             $origin[] = get_string('panel_incentre', $c);
         }
+        if (!empty($household->self)) {
+            // A student who comes on their own: the team writes to them, not to a family.
+            $origin[] = get_string('panel_self', $c);
+        }
 
         $joined = messaging::joined($household, $centre);
         $mode = messaging::mode($centre);
@@ -659,7 +663,7 @@ class panel_household {
             'day' => $step['first'] ? userdate($step['first'], get_string('strftimedate', 'langconfig')) : ''];
         $why = 'panel_story_' . $step['step'] . ($step['step'] === 'story' && !$step['first'] ? '_why_nodate' : '_why');
         $text = $step['step'] === 'story' ? get_string('panel_story_story_message', $c, $a) :
-            self::firstday_text($step, $centre, $names);
+            self::firstday_text($step + ['self' => !empty($household->self)], $centre, $names);
         return [
             'sentence' => get_string('panel_story_' . $step['step'], $c),
             'why' => get_string($why, $c, $a),
@@ -691,10 +695,16 @@ class panel_household {
         $c = self::C;
         $offers = centres::offers((int) $centre->id);
         $sm = get_string_manager();
-        $say = function (string $key, array $kids) use ($c, $names, $sm): string {
+        $self = !empty($step['self']);
+        $say = function (string $key, array $kids) use ($c, $names, $sm, $self): string {
             $key .= count($kids) > 1 ? '_many' : '';
+            // A student who comes on their own reads it about themselves.
+            if ($self && $sm->string_exists($key . '_self', $c)) {
+                return get_string($key . '_self', $c, $names($kids));
+            }
             return $sm->string_exists($key, $c) ? get_string($key, $c, $names($kids)) : '';
         };
+        $own = fn(string $key) => get_string($self && $sm->string_exists($key . '_self', $c) ? $key . '_self' : $key, $c);
         $parts = [];
         if ($step['step'] === 'eve') {
             // Three tones on the eve: the youngest, the children, and the older ones (or a course of no known age).
@@ -712,7 +722,7 @@ class panel_household {
             if ($step['stories']) {
                 $parts[] = $say('panel_story_eve_story', $step['stories']);
             }
-            $parts[] = get_string('panel_story_eve_close', $c);
+            $parts[] = $own('panel_story_eve_close');
         } else {
             // The day after, each step its own; without a course, as the youngest; of no known age, the plain tone.
             $band = fn(string $s) => match ($s) {
@@ -720,12 +730,12 @@ class panel_household {
                 ages::UNKNOWN => 'r5',
                 default => $s,
             };
-            $parts[] = get_string('panel_story_after_open', $c);
+            $parts[] = $own('panel_story_after_open');
             foreach (ages::groups($step['children'], $offers, $centre, $band) as [$key, $kids]) {
                 $line = $say('panel_story_after_' . $key, $kids);
                 $parts[] = $line !== '' ? $line : $say('panel_story_after_r5', $kids);
             }
-            $parts[] = get_string('panel_story_after_close', $c);
+            $parts[] = $own('panel_story_after_close');
         }
         return implode(' ', array_filter($parts, fn($p) => $p !== ''));
     }

@@ -85,6 +85,19 @@ class publiclang {
         return null;
     }
 
+    /** @var bool Whether the page or the mail speaks to a student who comes on their own (household.self). */
+    public static $self = false;
+
+    /**
+     * Speaks, from now on in this request, as a page or a mail of this household: to one student who comes on their own,
+     * or to a family.
+     *
+     * @param \stdClass $household
+     */
+    public static function speak_to(\stdClass $household): void {
+        self::$self = !empty($household->self);
+    }
+
     /**
      * A string of the plugin in a language.
      *
@@ -95,6 +108,10 @@ class publiclang {
      */
     public static function str(string $id, string $lang, $a = null): string {
         $manager = get_string_manager();
+        // A student who comes on their own is spoken to as one person: the string's «_self» variant, where it has one.
+        if (self::$self && substr($id, -5) !== '_self' && $manager->string_exists($id . '_self', self::C)) {
+            $id .= '_self';
+        }
         if ($a !== null && lists::dir($lang) === 'rtl') {
             // Written from right to left: each thing put into the sentence (a name, a school year, a phone) keeps its
             // own direction, so «2027-28» or «Colegio Los Almendros (Getafe)» do not turn round inside it.

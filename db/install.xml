@@ -59,6 +59,7 @@
         <FIELD NAME="guidewhere" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the guide takes families on the miniature, as the centre writes it"/>
         <FIELD NAME="guidehello" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What the guide says by the greeting, as the centre writes it; empty, the words of Eguahe"/>
         <FIELD NAME="practice" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 for the practice centre of the guided helps: in no list, and nothing it does leaves the site"/>
+        <FIELD NAME="whoapplies" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="family" SEQUENCE="false" COMMENT="Who signs up: family (a family for its children), student (the student, for themselves) or both"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -119,6 +120,7 @@
         <FIELD NAME="municipality" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Official code of the municipality, when known"/>
         <FIELD NAME="municipalityname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="moving" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the family lives outside the area and is moving to it"/>
+        <FIELD NAME="self" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the student is the adult who writes, who comes on their own: spoken to as one person"/>
         <FIELD NAME="ownerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who attends the family; 0, nobody yet"/>
         <FIELD NAME="heardfrom" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="How the household heard of the centre, as they said it (a closed list)"/>
         <FIELD NAME="firstchannel" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="other" SEQUENCE="false" COMMENT="Where the first contact came from"/>

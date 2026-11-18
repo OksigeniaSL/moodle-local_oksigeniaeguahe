@@ -417,7 +417,16 @@
                 return !el.hidden;
             });
         };
+        // A student signing up for themselves («Para mí»): their own name on the label, and the rows of a family hidden.
+        var selfMode = function() {
+            var mark = document.querySelector('[data-para]');
+            return !!mark && mark.getAttribute('data-para') === 'yo';
+        };
         var labelName = function(i) {
+            if (selfMode() && String(i) === '0') {
+                var me = document.getElementById('a0first');
+                return me ? me.value.trim().split(/\s+/)[0] : '';
+            }
             var tag = document.getElementById('c' + i + 'tag');
             var name = document.getElementById('c' + i + 'name');
             var written = tag ? tag.value.trim() : '';
@@ -461,8 +470,9 @@
             }
             var courseLabel = document.querySelector('[data-course-label="' + i + '"]');
             if (courseLabel) {
-                courseLabel.textContent = now ? courseLabel.getAttribute('data-with').replace('{name}', now) :
-                    courseLabel.getAttribute('data-without');
+                courseLabel.textContent = selfMode() && courseLabel.getAttribute('data-self') ?
+                    courseLabel.getAttribute('data-self') :
+                    (now ? courseLabel.getAttribute('data-with').replace('{name}', now) : courseLabel.getAttribute('data-without'));
             }
             // The course that fits the year of birth (the year it starts less its age), while they have not chosen one
             // themselves; they can always choose another.
@@ -484,8 +494,11 @@
             var i = e.target.getAttribute('data-child');
             if (i !== null) {
                 update(i);
+            } else if (e.target.id === 'a0first' && selfMode()) {
+                update(0);
             }
         });
+
         // A course chosen by hand is theirs: the date no longer moves it.
         document.addEventListener('change', function(e) {
             if (/^c\d+offer$/.test(e.target.id || '')) {

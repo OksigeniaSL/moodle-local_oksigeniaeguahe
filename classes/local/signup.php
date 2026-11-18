@@ -38,11 +38,12 @@ class signup {
     const ADULTS = 2;
 
     /**
-     * What the form sent, cleaned, without checking it yet.
+     * What the form sent, cleaned, without checking it yet; a student's own sign-up already as the plugin reads it.
      *
+     * @param \stdClass|null $centre The centre of the form: who signs up there.
      * @return array
      */
-    public static function read(): array {
+    public static function read(?\stdClass $centre = null): array {
         $adults = [];
         for ($i = 0; $i < self::ADULTS; $i++) {
             $adults[] = [
@@ -74,7 +75,7 @@ class signup {
         foreach (lists::CONSENT_CHANNELS as $channel) {
             $consents[$channel] = optional_param('consent' . $channel, 0, PARAM_BOOL) ? 1 : 0;
         }
-        return [
+        $data = [
             'adults' => $adults,
             'children' => $children,
             'siblings' => $siblings,
@@ -91,7 +92,51 @@ class signup {
             'altcha' => optional_param('altcha', '', PARAM_RAW_TRIMMED),
             'days' => array_keys(array_filter(optional_param_array('day', [], PARAM_BOOL))),
             'periods' => array_keys(array_filter(optional_param_array('period', [], PARAM_BOOL))),
+            'self' => false,
         ];
+        // The student who signs up for themselves: they are the adult and the one who would study.
+        return $centre && self::for_self($centre, optional_param('para', '', PARAM_ALPHA)) ? self::as_self($data) : $data;
+    }
+
+    /**
+     * Whether a sign-up is the student's own, who comes on their own: always at a centre where students sign up, and at
+     * one where either may when they say so («Para mí»).
+     *
+     * @param \stdClass $centre
+     * @param string $para What the form said: «yo» for the student, anything else for a family.
+     * @return bool
+     */
+    public static function for_self(\stdClass $centre, string $para): bool {
+        $who = (string) ($centre->whoapplies ?? 'family');
+        return $who === 'student' || ($who === 'both' && $para === 'yo');
+    }
+
+    /**
+     * A sign-up of a student who comes on their own, as the rest of the plugin reads a family: they are its adult and
+     * its only child, with the course they chose; nobody else comes in it.
+     *
+     * @param array $data From read().
+     * @return array
+     */
+    public static function as_self(array $data): array {
+        $me = $data['adults'][0];
+        $course = (int) ($data['children'][0]['offerid'] ?? 0);
+        foreach ($data['adults'] as $i => $adult) {
+            if ($i) {
+                $data['adults'][$i] = array_map(fn() => '', $adult);
+            }
+        }
+        foreach ($data['children'] as $i => $child) {
+            $data['children'][$i] = ['firstname' => '', 'tagname' => '', 'birthdate' => '', 'latinname' => '',
+                'offerid' => 0];
+        }
+        $data['children'][0]['firstname'] = $me['firstname'];
+        $data['children'][0]['offerid'] = $course;
+        foreach ($data['siblings'] as $i => $sibling) {
+            $data['siblings'][$i] = ['firstname' => '', 'birthyear' => 0];
+        }
+        $data['self'] = true;
+        return $data;
     }
 
     /**
@@ -135,7 +180,7 @@ class signup {
             $any = $any || $child['firstname'] !== '';
         }
         // At an event that is not about admissions (a party, a talk), who would study is not asked for.
-        if (!$any && $event->kind !== 'other') {
+        if (!$any && $event->kind !== 'other' && empty($data['self'])) {
             $errors['c0name'] = publiclang::str('pub_err_child', $lang);
         }
         // The questions of the form of the centre, if it has one.
@@ -252,7 +297,7 @@ class signup {
             'heardwho' => $data['heardwho'] ?? '',
             'heardnet' => ($data['heardfrom'] ?? '') === 'social' ?
                 centres::network($centre, (string) ($data['heardnet'] ?? '')) : '',
-            'incentre' => ($data['incentre'] ?? '') === 'yes'] + $place);
+            'incentre' => ($data['incentre'] ?? '') === 'yes', 'self' => !empty($data['self'])] + $place);
         $existed = $householdid !== null;
         $before = [];
         if ($existed) {
