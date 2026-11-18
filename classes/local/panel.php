@@ -390,6 +390,7 @@ class panel {
             'notices' => $notices,
             'hasnotices' => (bool) $notices,
             'footnote' => '',
+            'demo' => demo::is_visitor((int) $USER->id) ? ['plans' => demo::plans_url($lang) ?? false] : false,
             'sesskey' => sesskey(),
             'howtourl' => (new \moodle_url('/local/oksigeniaeguahe/howto.php', ['c' => $centre->id]))->out(false),
             'howtohere' => howto::here($section, $centre, centres::can_manage((int) $centre->id)),
@@ -434,7 +435,7 @@ class panel {
 <script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
 ' . $skinjs . '</head>
 <body class="panel ' . $page . ' ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') .
-            (!empty($centre->practice) ? ' en-ayuda' : '') .
+            (!empty($centre->practice) && (int) $centre->practice !== demo::KIND ? ' en-ayuda' : '') .
             '">
 ' . $top . $body . $bottom . '
 </body>

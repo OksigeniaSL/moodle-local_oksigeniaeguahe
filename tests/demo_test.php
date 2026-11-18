@@ -92,4 +92,21 @@ final class demo_test extends \advanced_testcase {
         $this->assertFalse(demo::allowed_from('192.0.2.10'));
         $this->assertTrue(demo::allowed_from('192.0.2.11'));
     }
+
+    /**
+     * Where a visitor sees the plans: eguahe.com in their language, the site's own page, or nowhere.
+     */
+    public function test_plans(): void {
+        $this->resetAfterTest();
+        set_config('demoplans', demo::PLANS, 'local_oksigeniaeguahe');
+        $this->assertSame('https://eguahe.com/#precio', demo::plans_url('es'));
+        $this->assertSame('https://eguahe.com/en/#precio', demo::plans_url('en'));
+        $this->assertSame('https://eguahe.com/pt/#precio', demo::plans_url('pt'));
+        $this->assertSame('https://eguahe.com/pt-br/#precio', demo::plans_url('pt_br'));
+        $this->assertSame('https://eguahe.com/#precio', demo::plans_url('ar'));
+        set_config('demoplans', 'https://example.com/plans', 'local_oksigeniaeguahe');
+        $this->assertSame('https://example.com/plans', demo::plans_url('en'));
+        set_config('demoplans', '', 'local_oksigeniaeguahe');
+        $this->assertNull(demo::plans_url('en'));
+    }
 }

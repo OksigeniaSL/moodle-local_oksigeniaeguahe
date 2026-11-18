@@ -26,6 +26,9 @@
     its sheet, the question written on a line, with a hint and the most common in this section before anything is
     typed; the script fills it while someone types; without the script, the page of the guide (Jujol's design).
 
+    With demo (someone trying Eguahe without an account), the strip under the bar that says the centre is only an example,
+    with plans (the page of the plans, or false) as «See the plans and sign up», in a tab of its own.
+
     New in this round: footnote (optional line at the foot, for demo sites) and jsstrings (the strings of the
     script, as JSON: every panel_js_* string, and panel_came_at, panel_came_button, panel_came_count, inbox_waiting,
     inbox_waiting_one).
@@ -44,7 +47,7 @@
             "invalid": false, "labelled": true, "arialabel": false, "describedby": false, "mirror": false, "value": "",
             "parts": [{"key": "d", "id": "fuera-hastad", "name": "untild", "label": "Día", "value": "", "size": 2, "months": false}]}, "sesskey": "abc", "howtourl": "#", "centreid": 1, "howtohere": {"label": "Lo más común en «Bandeja»", "has": true, "none": "", "ask": false,
             "answers": [{"key": "answer", "setting": false, "kind": "Tarea", "text": "Contestar a una familia", "value": "",
-            "sub": "En la bandeja, abrir la ficha de la familia.", "wait": false, "url": "#", "go": "Ir", "help": false}]}, "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "jsstrings": "{}"
+            "sub": "En la bandeja, abrir la ficha de la familia.", "wait": false, "url": "#", "go": "Ir", "help": false}]}, "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "demo": {"plans": "#"}, "jsstrings": "{}"
     }
 }}
 <a class="saltar" href="#main">{{#str}}panel_skip, local_oksigeniaeguahe{{/str}}</a>
@@ -89,6 +92,12 @@
         </div>
     </details>
 </header>
+{{#demo}}
+<aside class="demo-tira" aria-label="{{#str}}demo_strip_label, local_oksigeniaeguahe{{/str}}">
+    <p>{{#str}}demo_strip, local_oksigeniaeguahe{{/str}}</p>
+    {{#plans}}<a class="boton principal pequeno" href="{{plans}}" target="_blank" rel="noopener">{{#str}}demo_strip_go, local_oksigeniaeguahe{{/str}}</a>{{/plans}}
+</aside>
+{{/demo}}
 {{#hasnotices}}
 <div class="avisos" role="status">
     {{#notices}}<p class="aviso-suave{{#error}} error{{/error}}">{{{text}}}</p>{{/notices}}

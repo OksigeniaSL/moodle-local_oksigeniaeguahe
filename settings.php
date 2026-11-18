@@ -61,6 +61,13 @@ if ($hassiteconfig) {
             0
         ));
         $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/demoplans',
+            get_string('demoplans', 'local_oksigeniaeguahe'),
+            get_string('demoplans_desc', 'local_oksigeniaeguahe'),
+            \local_oksigeniaeguahe\local\demo::PLANS,
+            PARAM_RAW_TRIMMED
+        ));
+        $settings->add(new admin_setting_configtext(
             'local_oksigeniaeguahe/onlyeguahelegal',
             get_string('onlyeguahelegal', 'local_oksigeniaeguahe'),
             get_string('onlyeguahelegal_desc', 'local_oksigeniaeguahe'),

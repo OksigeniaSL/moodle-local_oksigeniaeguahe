@@ -686,6 +686,27 @@ main {
     color: var(--eg-error);
 }
 
+/* Someone trying Eguahe: the centre is an example, and where to get it for their own (0.84.1). */
+.demo-tira {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: 12px var(--g) 0;
+    padding: 10px 12px 10px 16px;
+    border: 1px dashed var(--eg-borde);
+    border-radius: 12px;
+    background: var(--eg-papel);
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.demo-tira p {
+    margin: 0;
+    flex: 1 1 280px;
+}
+
 .pie-producto {
     display: flex;
     flex-wrap: wrap;

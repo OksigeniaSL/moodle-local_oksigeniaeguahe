@@ -44,6 +44,9 @@ final class demo {
     /** @var string The preference that marks a passing account, with its centre. */
     const PREF = 'local_oksigeniaeguahe_demo';
 
+    /** @var string Where a visitor sees the plans and gets Eguahe, unless the site says otherwise ({idioma}: its folder). */
+    const PLANS = 'https://eguahe.com/{idioma}#precio';
+
     /**
      * Whether the site lets visitors try Eguahe without an account.
      *
@@ -76,6 +79,27 @@ final class demo {
      */
     public static function is_visitor(int $userid): bool {
         return $userid && (int) get_user_preferences(self::PREF, 0, $userid) > 0;
+    }
+
+    /**
+     * The page of the plans for a visitor, in their language: the site's own address (demoplans) or eguahe.com's, with
+     * {idioma} as the folder of the language there (nothing in Spanish, en/, pt/ or pt-br/). Null when the site has none.
+     *
+     * @param string $lang
+     * @return string|null
+     */
+    public static function plans_url(string $lang): ?string {
+        $url = get_config(self::C, 'demoplans');
+        $url = trim($url === false ? self::PLANS : (string) $url);
+        if ($url === '') {
+            return null;
+        }
+        if ($lang === 'pt_br') {
+            $folder = 'pt-br/';
+        } else {
+            $folder = in_array(substr($lang, 0, 2), ['en', 'pt'], true) ? substr($lang, 0, 2) . '/' : '';
+        }
+        return str_replace('{idioma}', $folder, $url);
     }
 
     /**
