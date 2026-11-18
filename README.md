@@ -8,8 +8,7 @@
 **Oksigenia Eguahe** is an admissions CRM for any school, college, academy or university: enquiries from every
 channel, visits and open days, the way to enrolment and re-enrolment, and the forecast of the coming years. Oksigenia
 sets it up and runs it for each school, one installation per school: see [eguahe.com](https://eguahe.com) (every
-feature in every plan, from €49 a month; try it without an account). The
-families who ask for information or a place are received by people, and the team sees at a glance which households are
+feature in every plan, from €49 a month; try it without an account). The families who ask for information or a place are received by people, and the team sees at a glance which households are
 waiting for an answer, how many places each course still has, and how the campaign is going. *Eguahe* comes from
 *eguahẽ porã*, "welcome" in Guarani.
 
