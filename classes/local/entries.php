@@ -671,6 +671,17 @@ class entries {
     }
 
     /**
+     * The line the centre puts on every page of its web: where each visit first came from (a link with utm, a search
+     * engine, an AI assistant) goes on to the links and the forms of Eguahe there (pub/embed.js, arrival).
+     *
+     * @return string
+     */
+    public static function site_code(): string {
+        global $CFG;
+        return '<script src="' . $CFG->wwwroot . '/local/oksigeniaeguahe/pub/embed.js" async></script>';
+    }
+
+    /**
      * The script the centre pastes in its Google form or sheet: it sends each answer, signed, as it comes.
      *
      * @param \stdClass $entry

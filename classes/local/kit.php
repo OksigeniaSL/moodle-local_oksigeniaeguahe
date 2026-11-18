@@ -141,11 +141,14 @@ class kit {
         $out = [];
         foreach (centres::networks($centre) as $name) {
             $key = self::network_key($name);
-            $long = (new \moodle_url(events::url($event), ['d' => $key]))->out(false);
+            // Each network its own destination, with its utm: measured where the family arrived from, and one short link
+            // for each (the shortener gives the same one to the same destination).
+            $long = (new \moodle_url(events::url($event), ['d' => $key, 'utm_source' => $key, 'utm_medium' => 'social',
+                'utm_campaign' => 'acto-' . (int) $event->id]))->out(false);
             if (!isset($kit['links'][$key]) && $shortener) {
                 $title = get_string('short_title', self::C, (object) ['centre' => format_string($centre->name),
                     'event' => format_string($event->name) . ' · ' . $name]);
-                $link = $shortener->link($long, $title, false, '');
+                $link = events::shorten($shortener, $long, $title);
                 if ($link) {
                     $kit['links'][$key] = \core_text::substr($link['short'], 0, 255);
                     $changed = true;

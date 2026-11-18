@@ -93,6 +93,8 @@ class signup {
             'days' => array_keys(array_filter(optional_param_array('day', [], PARAM_BOOL))),
             'periods' => array_keys(array_filter(optional_param_array('period', [], PARAM_BOOL))),
             'self' => false,
+            // Where it arrived from, measured, carried in the form from its first page.
+            'arrival' => arrival::read(),
         ];
         // The student who signs up for themselves: they are the adult and the one who would study.
         return $centre && self::for_self($centre, optional_param('para', '', PARAM_ALPHA)) ? self::as_self($data) : $data;
@@ -297,7 +299,8 @@ class signup {
             'heardwho' => $data['heardwho'] ?? '',
             'heardnet' => ($data['heardfrom'] ?? '') === 'social' ?
                 centres::network($centre, (string) ($data['heardnet'] ?? '')) : '',
-            'incentre' => ($data['incentre'] ?? '') === 'yes', 'self' => !empty($data['self'])] + $place);
+            'incentre' => ($data['incentre'] ?? '') === 'yes', 'self' => !empty($data['self']),
+            'arrival' => $data['arrival'] ?? null] + $place);
         $existed = $householdid !== null;
         $before = [];
         if ($existed) {

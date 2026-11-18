@@ -46,7 +46,7 @@ class lists {
     const HAND_CHANNELS = ['phone', 'walkin', 'email', 'whatsapp', 'telegram', 'openday', 'other'];
 
     /** @var string[] How a household heard of the centre, as it says it: discovery, never the last click. */
-    const HEARD_FROM = ['family', 'centrefamilies', 'social', 'search', 'ad', 'press', 'passingby', 'fair', 'other'];
+    const HEARD_FROM = ['family', 'centrefamilies', 'social', 'search', 'ai', 'ad', 'press', 'passingby', 'fair', 'other'];
 
     /** @var string[] The networks offered when a centre has not written its own: only a start, each centre changes them. */
     const NETWORKS = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'WhatsApp', 'Telegram'];

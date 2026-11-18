@@ -366,7 +366,8 @@ class panel_entry {
         foreach (forms::origins($entry) as $key => $name) {
             $sites[] = $site((string) $name, (string) $key, false);
         }
-        return ['sites' => $sites, 'embed' => entries::embed_code($entry, format_string($entry->title ?: $entry->name))];
+        return ['sites' => $sites, 'embed' => entries::embed_code($entry, format_string($entry->title ?: $entry->name)),
+            'sitecode' => entries::site_code()];
     }
 
     /**

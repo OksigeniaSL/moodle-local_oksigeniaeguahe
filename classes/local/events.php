@@ -589,6 +589,7 @@ class events {
      * @return string|null
      */
     public static function short_url(\stdClass $event): ?string {
+        // The short link is asked once and kept; an address the shortener refused for good waits 30 days.
         global $DB;
         if (!empty($event->shorturl)) {
             return $event->shorturl;
@@ -600,12 +601,8 @@ class events {
         $centre = centres::get((int) $event->centreid);
         $title = get_string('short_title', 'local_oksigeniaeguahe', (object) ['centre' => $centre ? format_string($centre->name) :
             '', 'event' => format_string($event->name)]);
-        $link = $shortener->link(
-            self::url($event)->out(false),
-            $title,
-            true,
-            'visita-' . userdate((int) $event->timestart, '%d%m')
-        );
+        $link = self::shorten($shortener, self::url($event)->out(false), $title, true, 'visita-' .
+            userdate((int) $event->timestart, '%d%m'));
         if (!$link) {
             return null;
         }
@@ -613,6 +610,36 @@ class events {
         $DB->set_field(self::T, 'shorturl', $event->shorturl, ['id' => $event->id]);
         self::keep_qr($event, $link['qrsvg']);
         return $event->shorturl;
+    }
+
+    /**
+     * A short link of the shortener, unless it refused that address for good in the last 30 days: then it is not asked
+     * again (its limit is shared by every plugin of Oksigenia), and the long address is used.
+     *
+     * @param shortener $shortener
+     * @param string $url
+     * @param string $title
+     * @param bool $patient
+     * @param string $keyword
+     * @return array|null As shortener::link() gives it.
+     */
+    public static function shorten(
+        shortener $shortener,
+        string $url,
+        string $title = '',
+        bool $patient = false,
+        string $keyword = ''
+    ): ?array {
+        $cache = \cache::make('local_oksigeniaeguahe', 'shortrefused');
+        $key = sha1($url);
+        if ($cache->get($key)) {
+            return null;
+        }
+        $link = $shortener->link($url, $title, $patient, $keyword);
+        if (!$link && $shortener->is_final()) {
+            $cache->set($key, time());
+        }
+        return $link;
     }
 
     /**
@@ -628,7 +655,7 @@ class events {
         }
         if (!isset($event->shortqr)) {
             $shortener = shortener::of_site();
-            $link = $shortener ? $shortener->link(self::url($event)->out(false)) : null;
+            $link = $shortener ? self::shorten($shortener, self::url($event)->out(false)) : null;
             if ($link) {
                 self::keep_qr($event, $link['qrsvg']);
             }

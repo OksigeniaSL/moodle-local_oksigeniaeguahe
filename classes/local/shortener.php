@@ -39,6 +39,19 @@ class shortener {
     /** @var int How many times to try again then: a minute in all, what a limit per minute needs. */
     const RETRIES = 5;
 
+    /** @var string[] What the shortener answers when asking again would get the same: a destination it never takes (out
+     *     of its domains, or not an address), its limit of links reached, an address that is not this program's or does
+     *     not exist (an update answered 404, said «error:notfound» here). A
+     *     plugin that sees one of these does not ask again for that destination for a long while. */
+    const FINAL = ['error:domain', 'error:nourl', 'error:max', 'error:notyours', 'error:notfound'];
+
+    /** @var string The code of the last answer: '' when it went well or there was no answer; «inactive» when an update
+     *     was kept but left the address paused or expired. */
+    protected string $code = '';
+
+    /** @var int Seconds the last answer asked to wait (its Retry-After), or 0. */
+    protected int $retryafter = 0;
+
     /** @var string Address of its API (yourls-api.php). */
     protected string $api;
 
@@ -137,7 +150,8 @@ class shortener {
         }
         $answer = $this->call($fields);
         for ($try = 0; $patient && ($answer['code'] ?? '') === 'error:limit' && $try < self::RETRIES; $try++) {
-            sleep(self::$wait);
+            // As long as it asked (its Retry-After), a minute at most; none in the tests.
+            sleep(self::$wait ? max(1, min(60, $this->retryafter ?: self::$wait)) : 0);
             $answer = $this->call($fields);
         }
         return self::link_of($answer);
@@ -177,12 +191,48 @@ class shortener {
      * @param string $short The short address (or its name).
      * @param string $url The new long address.
      * @param string $title What it is.
-     * @return bool Whether it changed.
+     * @return bool Whether it changed and opens: false when the shortener refused (not this program's any more, 403
+     *     «error:notyours»; gone, 404) or kept it paused or expired («active»: false), when the short address no longer
+     *     takes anyone to the new long one.
      */
     public function update(string $short, string $url, string $title = ''): bool {
         $answer = $this->call(['action' => 'update', 'shorturl' => $short, 'url' => $url,
             'title' => \core_text::substr($title, 0, 200)]);
-        return str_starts_with((string) ($answer['message'] ?? ''), 'success');
+        if (!str_starts_with((string) ($answer['message'] ?? ''), 'success')) {
+            // An address that does not exist is answered with a message and a 404, not with a code: said as one.
+            $notfound = (int) ($answer['statusCode'] ?? 0) === 404
+                || str_contains(strtolower((string) ($answer['message'] ?? '')), 'not found');
+            if ($this->code === '' && $notfound) {
+                $this->code = 'error:notfound';
+            }
+            return false;
+        }
+        if (($answer['active'] ?? true) === false) {
+            $this->code = 'inactive';
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Why the last call did not give what was asked: the code the shortener answered («error:limit», «error:domain»,
+     * «error:notyours»…), «inactive» for an update left paused, or '' when it went well or there was no answer (the
+     * shortener was down or too slow: worth asking again later).
+     *
+     * @return string
+     */
+    public function last_code(): string {
+        return $this->code;
+    }
+
+    /**
+     * Whether the last refusal is for good: asking again for the same destination would get the same (see FINAL), so a
+     * plugin keeps from asking for it for a long while instead of spending the limit that all of them share.
+     *
+     * @return bool
+     */
+    public function is_final(): bool {
+        return in_array($this->code, self::FINAL, true);
     }
 
     /**
@@ -196,7 +246,10 @@ class shortener {
         require_once($CFG->libdir . '/filelib.php');
         $curl = new \curl(['ignoresecurity' => false]);
         $curl->setopt(['CURLOPT_TIMEOUT' => self::TIMEOUT, 'CURLOPT_CONNECTTIMEOUT' => self::TIMEOUT]);
+        self::cap($curl, 64 * 1024);
         $curl->setHeader(['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']);
+        $this->code = '';
+        $this->retryafter = 0;
         try {
             $body = $curl->post($this->api, http_build_query($fields + ['signature' => $this->key, 'format' => 'json'], '', '&'));
         } catch (\Throwable $error) {
@@ -204,6 +257,31 @@ class shortener {
             return [];
         }
         $answer = json_decode((string) $body, true);
-        return is_array($answer) ? $answer : [];
+        $answer = is_array($answer) ? $answer : [];
+        // An address already there for the same destination («error:url» with its short address) went well too.
+        $fine = ($answer['status'] ?? '') === 'success' || (($answer['code'] ?? '') === 'error:url' && !empty($answer['shorturl']));
+        $this->code = $fine ? '' : (string) ($answer['code'] ?? '');
+        foreach ((array) $curl->getResponse() as $name => $value) {
+            if (strtolower((string) $name) === 'retry-after' && is_numeric(trim((string) $value))) {
+                $this->retryafter = (int) trim((string) $value);
+            }
+        }
+        return $answer;
+    }
+
+    /**
+     * What a service outside may send back, at most: the download stops there, whether it says its size or not, and it
+     * is not taken round more than two redirections.
+     *
+     * @param \curl $curl The request.
+     * @param int $bytes The most it may send.
+     */
+    public static function cap(\curl $curl, int $bytes): void {
+        $curl->setopt([
+            'CURLOPT_MAXFILESIZE' => $bytes,
+            'CURLOPT_MAXREDIRS' => 2,
+            'CURLOPT_NOPROGRESS' => false,
+            'CURLOPT_PROGRESSFUNCTION' => fn($handle, $total, $now) => $now > $bytes ? 1 : 0,
+        ]);
     }
 }

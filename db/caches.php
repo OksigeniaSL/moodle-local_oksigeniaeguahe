@@ -69,4 +69,12 @@ $definitions = [
         'staticacceleration' => true,
         'staticaccelerationsize' => 20,
     ],
+    // The addresses the shortener refused for good (shortener::is_final()): not asked for again for 30 days, so as not
+    // to spend the limit all the plugins of Oksigenia share.
+    'shortrefused' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 30 * DAYSECS,
+    ],
 ];

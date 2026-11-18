@@ -312,6 +312,11 @@ class signuppage {
             'lejosmoving' => publiclang::str('pub_where_moving_label', $lang),
             'municipalityother' => $data['municipalityother'],
             'heard' => $heard,
+            // Where it arrived from, measured, kept in the form until it is sent (arrival::read()).
+            'arrival' => array_map(
+                fn($k) => ['key' => $k, 'value' => (string) ($data['arrival'][$k] ?? '')],
+                array_keys(arrival::FIELDS)
+            ),
             'message' => $data['message'],
             'channels' => $channels,
             'channelerror' => $errors['channels'] ?? '',

@@ -571,6 +571,11 @@ class panel_inbox {
             if (!empty($household->moving)) {
                 $via .= ' · ' . get_string('panel_moving', $c);
             }
+            // Where it arrived from, measured, when it was: «desde chatgpt.com».
+            $measured = arrival::of($household)[0];
+            if ($measured !== '') {
+                $via .= ' · ' . get_string('panel_from_short', $c, $measured);
+            }
             $children = [];
             $search = [];
             $courses = [];

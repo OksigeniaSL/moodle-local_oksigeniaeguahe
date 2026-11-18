@@ -41,7 +41,7 @@ class export {
         $out = [];
         foreach (
             ['family', 'emails', 'phones', 'child', 'home', 'birth', 'course', 'stage', 'since', 'arrived', 'channel',
-                'heard', 'place', 'moving', 'waiting'] as $key
+                'heard', 'measured', 'place', 'moving', 'waiting'] as $key
         ) {
             $out[$key] = get_string('export_col_' . $key, self::C);
         }
@@ -85,6 +85,7 @@ class export {
                     lists::HEARD_FROM,
                     true
                 ) ? $household->heardfrom : 'other'), $c) : '',
+                'measured' => arrival::of($household)[0],
                 'place' => trim((string) ($household->municipalityname ?? '')),
                 'moving' => !empty($household->moving) ? get_string('yes') : '',
                 'waiting' => $date((int) $household->waitingsince),
@@ -125,7 +126,9 @@ class export {
      */
     public static function figure_columns(): array {
         $out = [];
-        foreach (['campaign', 'arrived', 'course', 'reached', 'enrolled', 'first', 'last', 'heard', 'moving'] as $key) {
+        foreach (
+            ['campaign', 'arrived', 'course', 'reached', 'enrolled', 'first', 'last', 'heard', 'measured', 'moving'] as $key
+        ) {
             $out[$key] = get_string('export_fig_' . $key, self::C);
         }
         return $out;
@@ -155,6 +158,7 @@ class export {
                     'first' => (string) ($family['voices']['first'] ?? ''),
                     'last' => (string) ($family['voices']['last'] ?? ''),
                     'heard' => (string) ($family['voices']['said'] ?? ''),
+                    'measured' => (string) ($family['voices']['measured'] ?? ''),
                     'moving' => !empty($family['moving']) ? get_string('yes') : '',
                 ]);
             }

@@ -98,13 +98,14 @@ class households {
      * Creates a household.
      *
      * @param int $centreid
-     * @param \stdClass $data lang, firstchannel and, if known, municipality, municipalityname and heardfrom.
+     * @param \stdClass $data lang, firstchannel and, if known, municipality, municipalityname, heardfrom and arrival
+     *     (where it arrived from, measured: arrival::read()).
      * @return int
      */
     public static function create(int $centreid, \stdClass $data): int {
         global $DB;
         $now = time();
-        return (int) $DB->insert_record(self::T, (object) [
+        return (int) $DB->insert_record(self::T, (object) ([
             'centreid' => $centreid,
             'lang' => in_array($data->lang ?? '', lists::LANGS, true) ? $data->lang : 'en',
             'municipality' => self::short($data->municipality ?? null, 20),
@@ -117,10 +118,11 @@ class households {
             'moving' => empty($data->moving) ? 0 : 1,
             'self' => empty($data->self) ? 0 : 1,
             'waitingsince' => 0,
+        ] + arrival::fields($data->arrival ?? null) + [
             'lastcontact' => $now,
             'timecreated' => $now,
             'timemodified' => $now,
-        ]);
+        ]));
     }
 
     /**
@@ -139,6 +141,13 @@ class households {
         }
         if (empty($household->heardfrom) && in_array($data->heardfrom ?? '', lists::HEARD_FROM, true)) {
             $changes['heardfrom'] = $data->heardfrom;
+        }
+        // Where it arrived from, measured: the first time anything was, never written over.
+        if (arrival::of($household)[0] === '') {
+            $measured = array_filter(arrival::fields($data->arrival ?? null), fn($v) => $v !== null);
+            if (isset($measured['arrivalsource']) || isset($measured['arrivalref'])) {
+                $changes += $measured;
+            }
         }
         // Which family of the centre told them, if they say so: only a name to thank them, never a link.
         if (empty($household->heardwho) && ($data->heardfrom ?? '') === 'centrefamilies' && !empty($data->heardwho)) {
@@ -693,6 +702,8 @@ class households {
                 'language' => $full->lang,
                 'municipality' => $full->municipalityname,
                 'heard_from' => $full->heardfrom,
+                'arrived_from' => array_filter(['source' => $full->arrivalsource ?? null, 'medium' => $full->arrivalmedium ?? null,
+                    'campaign' => $full->arrivalcampaign ?? null, 'site' => $full->arrivalref ?? null]) ?: null,
                 'family_that_told_them' => $full->heardwho ?? null,
                 'network' => $full->heardnet ?? null,
                 'first_channel' => $full->firstchannel,

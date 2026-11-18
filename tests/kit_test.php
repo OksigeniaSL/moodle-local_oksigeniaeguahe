@@ -65,6 +65,9 @@ final class kit_test extends \advanced_testcase {
         $links = kit::links($event, $centre);
         $this->assertSame(['instagram', 'xtwitter'], array_column($links, 'key'));
         $this->assertSame('instagram', (new \moodle_url($links[0]['url']))->get_param('d'));
+        // Each network its own utm, so that where the family arrived from is measured.
+        $this->assertSame('instagram', (new \moodle_url($links[0]['url']))->get_param('utm_source'));
+        $this->assertSame('social', (new \moodle_url($links[0]['url']))->get_param('utm_medium'));
         $this->assertSame('Instagram', kit::network_of($centre, 'instagram'));
         $this->assertSame('', kit::network_of($centre, 'cuento'));
     }

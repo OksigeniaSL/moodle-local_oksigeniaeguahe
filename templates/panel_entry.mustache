@@ -42,7 +42,7 @@
         "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "hassentence": true, "fixed": "",
             "questions": [], "blocks": [], "button": "Inscribirnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
         "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "n": "", "qr": "", "general": true}],
-            "embed": "<iframe></iframe>"},
+            "embed": "<iframe></iframe>", "sitecode": "<script></script>"},
         "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
         "erasequestion": "¿Borramos este formulario?"
     }
@@ -117,6 +117,8 @@
                 </form>
                 <div class="campo codigo-web"><label for="codigo-web">{{{i.codigo}}}{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-web" readonly rows="4" spellcheck="false" dir="ltr">{{embed}}</textarea><span class="ayuda">{{#str}}panel_embed_help, local_oksigeniaeguahe{{/str}}</span>
                     <button class="boton terciario pequeno" type="button" data-copiar="{{embed}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                <div class="campo codigo-web"><label for="codigo-sitio">{{{i.codigo}}}{{#str}}entry_site_code, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-sitio" readonly rows="2" spellcheck="false" dir="ltr">{{sitecode}}</textarea><span class="ayuda">{{#str}}entry_site_code_help, local_oksigeniaeguahe{{/str}}</span>
+                    <button class="boton terciario pequeno" type="button" data-copiar="{{sitecode}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
             </section>
             {{/share}}
             {{#settings}}

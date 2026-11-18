@@ -111,6 +111,18 @@ class panel_household {
         if (!empty($household->moving)) {
             $origin[] = get_string('panel_moving', $c);
         }
+        // What they said and what was measured, together: people mistake where they heard of a centre.
+        if (!empty($household->heardfrom)) {
+            $origin[] = get_string('panel_said', $c, get_string('heard_' . (in_array(
+                $household->heardfrom,
+                lists::HEARD_FROM,
+                true
+            ) ? $household->heardfrom : 'other'), $c));
+        }
+        [$measured, $byai] = arrival::of($household);
+        if ($measured !== '') {
+            $origin[] = get_string($byai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $measured);
+        }
         if (!empty($household->incentre)) {
             $origin[] = get_string('panel_incentre', $c);
         }

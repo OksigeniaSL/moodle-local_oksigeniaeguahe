@@ -1333,5 +1333,22 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026117700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026117900) {
+        // Where each household arrived from, measured the first time, beside what it says: an AI assistant among them.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $fields = [
+            new xmldb_field('arrivalsource', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'whyothertime'),
+            new xmldb_field('arrivalmedium', XMLDB_TYPE_CHAR, '30', null, null, null, null, 'arrivalsource'),
+            new xmldb_field('arrivalcampaign', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'arrivalmedium'),
+            new xmldb_field('arrivalref', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'arrivalcampaign'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026117900, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

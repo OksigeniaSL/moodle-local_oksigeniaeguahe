@@ -216,6 +216,7 @@ $string['firstday_video'] = 'فيديو';
 $string['firstday_volume'] = 'مستوى الصوت';
 $string['firstday_volume_value'] = '{n}%';
 $string['heard_ad'] = 'إعلان';
+$string['heard_ai'] = 'مساعد ذكاء اصطناعي (ChatGPT وGemini…)';
 $string['heard_centrefamilies'] = 'أسر طلابنا';
 $string['heard_fair'] = 'معرض أو فعالية';
 $string['heard_family'] = 'العائلة أو الأصدقاء';

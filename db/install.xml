@@ -139,6 +139,10 @@
         <FIELD NAME="aisummarytime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the summary was written"/>
         <FIELD NAME="whyother" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Why it chose another centre, if it said: the reasons it marked (whyother::REASONS), comma-separated"/>
         <FIELD NAME="whyothertime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it said why it chose another centre"/>
+        <FIELD NAME="arrivalsource" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: the utm_source it arrived with"/>
+        <FIELD NAME="arrivalmedium" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: its utm_medium"/>
+        <FIELD NAME="arrivalcampaign" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: its utm_campaign"/>
+        <FIELD NAME="arrivalref" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: the site it came from, by its domain"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

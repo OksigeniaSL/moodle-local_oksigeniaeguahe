@@ -65,7 +65,7 @@
         "pub_where_moving": "Nos mudamos a la zona", "otherselected": false, "movingselected": false,
         "lejoshidden": true, "lejoslabel": "¿Dónde viven?", "lejosother": "¿Dónde viven?",
         "lejosmoving": "¿Desde dónde vienen?", "municipalityother": "",
-        "pub_heardfrom": "¿Cómo nos conocieron?", "heard": [{"value": "family", "name": "Familia o amigos",
+        "pub_heardfrom": "¿Cómo nos conocieron?", "arrival": [{"key": "src", "value": "chatgpt.com"}, {"key": "ref", "value": ""}], "heard": [{"value": "family", "name": "Familia o amigos",
             "selected": false}],
         "pub_message": "¿Quieren contarnos o preguntarnos algo?", "pub_message_hint": "Les contestará una persona.",
         "message": "", "pub_channels": "¿Cómo les escribimos?", "pub_channels_hint": "Solo sobre esta visita.",
@@ -149,6 +149,8 @@
 
     <form id="eg-form" method="post" action="{{action}}" novalidate data-dominios="{{emaildomains}}" data-quisieron="{{emailmaybe}}" data-usar="{{emailuse}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="llegadasent" value="1">
+        {{#arrival}}<input type="hidden" name="llegada{{key}}" value="{{value}}">{{/arrival}}
         {{#haserrors}}
         <div class="resumen" role="alert" tabindex="-1" id="resumen">
             <b>{{errortitle}}</b>
