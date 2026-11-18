@@ -129,7 +129,7 @@ class panel_metrics {
             $out[$h->id] = ['id' => (int) $h->id, 'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
                 'enrolledat' => 0, 'course' => '', 'coursename' => '', 'moving' => !empty($h->moving),
                 'voices' => ['first' => '', 'last' => '', 'said' => $said,
-                    'measured' => $measured !== '' ? arrival::group($measured) : '']];
+                    'measured' => $measured !== '' ? arrival::label($measured) : '']];
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'centreid = :centreid', $id, 'id ASC') as $child) {
             // A child brought from the roll was already at the centre: never part of a campaign.
@@ -237,39 +237,35 @@ class panel_metrics {
      */
     protected static function measured_import(string $source): string {
         $source = arrival::clean($source, 100, 'src');
-        return $source !== '' ? arrival::group($source) : '';
+        return $source !== '' ? arrival::label($source) : '';
     }
 
     /**
-     * What the families measured as arriving from an AI assistant said, each answer with how many said it: people
-     * mistake where they heard of a centre. Empty when none arrived from one.
+     * What the families measured as arriving from an AI assistant said, each answer with how many said it, the most
+     * said first and those who said nothing at the end: people mistake where they heard of a centre.
      *
      * @param array $open The families of the campaign, still open.
-     * @return string A sentence to follow another, with its space in front.
+     * @return array Of name, n and untold.
      */
-    protected static function ai_said(array $open): string {
+    protected static function ai_said(array $open): array {
         $c = self::C;
         $group = get_string('arrival_ai_group', $c);
+        $untold = get_string('panel_measured_ai_untold', $c);
         $counts = [];
         foreach ($open as $f) {
             if (($f['voices']['measured'] ?? '') !== $group) {
                 continue;
             }
             $said = trim((string) ($f['voices']['said'] ?? ''));
-            $said = $said !== '' ? $said : get_string('panel_measured_ai_untold', $c);
+            $said = $said !== '' ? $said : $untold;
             $counts[$said] = ($counts[$said] ?? 0) + 1;
         }
-        if (!$counts) {
-            return '';
-        }
-        // The most said first; those who said nothing, at the end.
-        $untold = get_string('panel_measured_ai_untold', $c);
         uksort($counts, fn($a, $b) => [$a === $untold, -$counts[$a], $a] <=> [$b === $untold, -$counts[$b], $b]);
-        $parts = [];
+        $out = [];
         foreach ($counts as $said => $n) {
-            $parts[] = $said . ' (' . $n . ')';
+            $out[] = ['name' => $said, 'n' => $n, 'untold' => $said === $untold];
         }
-        return ' ' . get_string('panel_measured_ai', $c, implode(', ', $parts));
+        return $out;
     }
 
     /**
@@ -695,13 +691,21 @@ class panel_metrics {
                 ($voice === 'last' ? get_string('panel_last_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 get_string('panel_first_line', $c, (object) ['n' => $row['n'], 'name' => $name, 'enrolled' => $row['enrolled'],
                 'frac' => self::fraction($row['enrolled'], $row['n']), 'cost' => $cost])));
+            // In the row of the AI assistants, what those families said, each with how many (Jujol).
+            $aisaid = $measured && $name === get_string('arrival_ai_group', $c) ? self::ai_said($open) : [];
+            if ($aisaid) {
+                $line .= ' ' . get_string('panel_measured_ai', $c, implode(', ', array_map(
+                    fn($s) => $s['name'] . ' (' . $s['n'] . ')',
+                    $aisaid
+                )));
+            }
             // Inside each bar, from its base, the families of the channel that were enrolled; never for what they said.
             $en = $said ? 0 : $row['enrolled'];
             $out[] = ['key' => $row['key'], 'name' => $name, 'n' => $row['n'], 'v' => round($row['n'] / max(1, $most), 4),
                 'en' => $en, 'ev' => $en ? round($en / max(1, $most), 4) : false,
                 'declared' => $said, 'hasparts' => $voice === 'first',
                 'enrolled' => get_string($row['enrolled'] === 1 ? 'panel_enrolled_one' : 'panel_enrolled_n', $c, $row['enrolled']),
-                'cost' => $measured ? '' : $cost, 'line' => $line];
+                'cost' => $measured ? '' : $cost, 'line' => $line, 'hassaid' => (bool) $aisaid, 'said' => $aisaid];
         }
         $told = count($names);
         $top = $out[0] ?? null;
@@ -713,9 +717,6 @@ class panel_metrics {
             ) : get_string($voice === 'last' ?
             'panel_last_rest' : 'panel_first_rest', $c, (object) ['name' => $top['name'], 'n' => $top['n'],
             'total' => count($open)])));
-        if ($measured) {
-            $rest .= self::ai_said($open);
-        }
         $spendrows = [];
         if (!$declared) {
             foreach (self::spend_keys($centre, $campaign, $mine) as $key => $name) {

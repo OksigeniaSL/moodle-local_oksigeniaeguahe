@@ -71,6 +71,15 @@ final class arrival_test extends \advanced_testcase {
         $this->assertSame(['colegio.example.com', false], arrival::of((object) ['arrivalref' => 'colegio.example.com']));
         $this->assertSame(get_string('arrival_ai_group', 'local_oksigeniaeguahe'), arrival::group('perplexity.ai'));
         $this->assertSame('instagram', arrival::group('instagram'));
+        // In the lists of Numbers, by their own name.
+        foreach (
+            ['instagram' => 'Instagram', 'l.instagram.com' => 'Instagram', 'ig' => 'Instagram',
+                'lm.facebook.com' => 'Facebook', 'google.es' => 'Google', 'www.google.co.uk' => 'Google', 't.co' => 'X',
+                'cartel' => 'Cartel', 'colegio.example.com' => 'Colegio.example.com'] as $raw => $name
+        ) {
+            $this->assertSame($name, arrival::label($raw), $raw);
+        }
+        $this->assertSame(get_string('arrival_ai_group', 'local_oksigeniaeguahe'), arrival::label('chatgpt.com'));
     }
 
     /**

@@ -109,4 +109,89 @@ class api {
         }
         return $out;
     }
+
+    /**
+     * The visits of today, for a screen at the door of a centre where visitors wait (Hechauka, «La visita de hoy»): an
+     * hour before, «Today Ana welcomes you», with her face and her role; on a touch, how long it lasts and where it goes.
+     * Visits made for one family and the open days with their turns; never a name of a family nor anything of theirs,
+     * only how many signed up and how many came.
+     *
+     * @param int|null $centreid One centre, or every one of the site.
+     * @param int|null $now
+     * @return array A list, by when they start, each with centreid, centre, colour, lang, id, kind, tailored (made for one
+     *     family), name, place, timestart, timeend, minutes, turns (timestart, timeend, minutes), hosts (name, first,
+     *     role, says, photo: its URL, photofile: its stored_file, for screens that keep their own), signed (people),
+     *     came (households that came), where (how far the guide goes with them, as the centre wrote it), miniature (the
+     *     URL of the centre's drawn plan, or null) and miniaturefile (its stored_file, or null).
+     */
+    public static function visits_today(?int $centreid = null, ?int $now = null): array {
+        global $DB;
+        $now = $now ?? time();
+        $centres = centres::all();
+        if ($centreid !== null) {
+            $centres = isset($centres[$centreid]) ? [$centreid => $centres[$centreid]] : [];
+        }
+        // The practice centre of the helps and the centres of visitors to the demo are not real centres.
+        $centres = array_filter($centres, fn($c) => empty($c->practice));
+        if (!$centres) {
+            return [];
+        }
+        $midnight = usergetmidnight($now);
+        [$in, $params] = $DB->get_in_or_equal(array_keys($centres), SQL_PARAMS_NAMED);
+        $events = $DB->get_records_select(
+            events::T,
+            "centreid $in AND cancelled = 0 AND kind IN ('openday', 'visit') AND timestart < :end AND timeend > :start",
+            $params + ['start' => $midnight, 'end' => $midnight + DAYSECS],
+            'timestart ASC, id ASC'
+        );
+        $context = \context_system::instance()->id;
+        $out = [];
+        foreach ($events as $event) {
+            $centre = $centres[(int) $event->centreid];
+            $hosts = [];
+            $ids = array_filter(array_map('intval', explode(',', (string) $event->hosts)));
+            foreach (centres::hosts((int) $centre->id, $ids) as $host) {
+                $hosts[] = ['name' => $host->name, 'first' => $host->first, 'role' => $host->role, 'says' => $host->says,
+                    'photo' => $host->photo ? $host->photo->out(false) : null,
+                    'photofile' => centres::host_photo_file((int) $host->memberid)];
+            }
+            $turns = [];
+            foreach (events::slots((int) $event->id) as $slot) {
+                $turns[] = ['timestart' => (int) $slot->timestart, 'timeend' => (int) $slot->timeend,
+                    'minutes' => (int) round(((int) $slot->timeend - (int) $slot->timestart) / MINSECS)];
+            }
+            $where = trim((string) ($centre->guidewhere ?? ''));
+            $files = get_file_storage()->get_area_files(
+                $context,
+                'local_oksigeniaeguahe',
+                'miniature',
+                (int) $centre->id,
+                'filename',
+                false
+            );
+            $miniature = centres::miniature((int) $centre->id);
+            $out[] = [
+                'centreid' => (int) $centre->id,
+                'centre' => format_string($centre->name, true, ['escape' => false]),
+                'colour' => (string) ($centre->colour ?? ''),
+                'lang' => (string) ($centre->lang ?? 'es'),
+                'id' => (int) $event->id,
+                'kind' => (string) $event->kind,
+                'tailored' => !empty($event->tailored),
+                'name' => format_string($event->name, true, ['escape' => false]),
+                'place' => format_string((string) $event->place, true, ['escape' => false]),
+                'timestart' => (int) $event->timestart,
+                'timeend' => (int) $event->timeend,
+                'minutes' => (int) round(((int) $event->timeend - (int) $event->timestart) / MINSECS),
+                'turns' => $turns,
+                'hosts' => $hosts,
+                'signed' => events::people((int) $event->id),
+                'came' => (int) $DB->count_records_select(events::SIGNUPS, 'eventid = ? AND attended > 0', [$event->id]),
+                'where' => $where !== '' ? format_string($where, true, ['escape' => false]) : '',
+                'miniature' => $miniature ? $miniature->out(false) : null,
+                'miniaturefile' => reset($files) ?: null,
+            ];
+        }
+        return $out;
+    }
 }

@@ -39,6 +39,14 @@ class arrival {
     const AI_NAMES = ['chatgpt', 'openai', 'perplexity', 'copilot', 'gemini', 'claude', 'deepseek', 'grok', 'mistral',
         'meta.ai', 'kimi', 'qwen'];
 
+    /** @var array Known sites and sources by their own name, for the lists of Numbers: what a utm_source or a domain may
+     *     say => how it is written. */
+    const NAMES = ['instagram' => 'Instagram', 'ig' => 'Instagram', 'facebook' => 'Facebook', 'fb' => 'Facebook',
+        'meta' => 'Meta', 'google' => 'Google', 'bing' => 'Bing', 'yahoo' => 'Yahoo', 'duckduckgo' => 'DuckDuckGo',
+        'ecosia' => 'Ecosia', 'youtube' => 'YouTube', 'tiktok' => 'TikTok', 'whatsapp' => 'WhatsApp', 'wa.me' => 'WhatsApp',
+        'telegram' => 'Telegram', 't.me' => 'Telegram', 'twitter' => 'X', 'x' => 'X', 'x.com' => 'X', 't.co' => 'X',
+        'linkedin' => 'LinkedIn', 'lnkd.in' => 'LinkedIn', 'pinterest' => 'Pinterest', 'threads' => 'Threads'];
+
     /** @var array The fields of the form that carry it from the first page to the sending, with their lengths. */
     const FIELDS = ['src' => 100, 'med' => 30, 'cmp' => 255, 'ref' => 100];
 
@@ -166,6 +174,38 @@ class arrival {
         $site = trim((string) ($household->arrivalref ?? ''));
         $what = $source !== '' ? $source : $site;
         return [$what, $what !== '' && (self::is_ai($source) || self::is_ai($site))];
+    }
+
+    /**
+     * A source or a site by its own name, for the lists of Numbers: AI assistants together, the known ones as they are
+     * written («instagram.com», «l.facebook.com» or «ig» say Instagram and Facebook), anything else with its capital.
+     *
+     * @param string $what A utm_source or a domain.
+     * @return string
+     */
+    public static function label(string $what): string {
+        $what = trim($what);
+        if ($what === '' || self::is_ai($what)) {
+            return $what === '' ? '' : get_string('arrival_ai_group', 'local_oksigeniaeguahe');
+        }
+        $plain = \core_text::strtolower($what);
+        // As it came; then the site without its subdomain of links (l., lm., m., www.); then its name without its
+        // ending (google.es, google.co.uk), for names of three letters or more.
+        $host = preg_replace('/^(l|lm|m|www|web|mobile)\./', '', $plain);
+        $parts = explode('.', $host);
+        $base = count($parts) > 1 ? $parts[count($parts) - 2] : $parts[0];
+        if (count($parts) > 2 && in_array($base, ['co', 'com'], true)) {
+            $base = $parts[count($parts) - 3];
+        }
+        foreach ([$plain, $host] as $key) {
+            if (isset(self::NAMES[$key])) {
+                return self::NAMES[$key];
+            }
+        }
+        if (strlen($base) >= 3 && isset(self::NAMES[$base])) {
+            return self::NAMES[$base];
+        }
+        return \core_text::strtoupper(\core_text::substr($what, 0, 1)) . \core_text::substr($what, 1);
     }
 
     /**

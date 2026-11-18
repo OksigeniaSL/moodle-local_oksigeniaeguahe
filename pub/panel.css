@@ -16382,3 +16382,311 @@ html {
     scrollbar-width: thin;
     scrollbar-color: var(--eg-barra) transparent;
 }
+
+/* ==================== Lo medido, beside what they said (Jujol, 18 November 2026, for Eguahe 0.85.1) ====================
+   Where a family arrived from, measured on arrival, next to what it says it heard of the centre by: people mistake it,
+   so the two go together and neither corrects the other. One language in four places: what they said is theirs (in the
+   paper skin, by hand on a note); what was measured is printed (a ticket with the site); an AI assistant gets a stamp of
+   its own, «Asistente de IA» or, small, «desde IA», which is not the mark of Eguahe's own AI (.ia-marca, an icon). No
+   colour judges: the stamp is the ink of the other stamps. Chrome 93 and Firefox 98: no :has, no color-mix.
+   This part goes in pub/panel.css: the head, after section «.cabeza»; the inbox, after «.meta»; Cifras, after «Where
+   they came from»; the entry, after «.codigo-web». The paper and the cinema go in their skins. */
+
+/* ---------- The stamp of an AI assistant (every place) ---------- */
+.sello-ia {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    padding: 1px 7px;
+    border: 1.5px solid var(--eg-sello);
+    border-radius: 5px;
+    color: var(--eg-sello);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.45;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sello-ia-corto {
+    padding: 0 5px;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    word-spacing: 0.2em;
+}
+
+/* ---------- 1. The head of a family: «They told us» and «Arrived from», together ---------- */
+.origen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 10px 0 2px;
+}
+
+.origen p {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    margin: 0;
+}
+
+.origen-que {
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.origen-valor {
+    font-weight: 650;
+}
+
+.origen-dicho .origen-valor {
+    font-style: italic;
+}
+
+.origen-medido .origen-valor {
+    overflow-wrap: anywhere;
+}
+
+/* ---------- 2. The inbox: the stamp first, so a long line cut short still says it ---------- */
+.meta .sello-ia {
+    margin-inline-end: 2px;
+}
+
+.lista[data-densidad="lista"] .meta .sello-ia {
+    display: inline-flex;
+    margin-inline-end: 6px;
+    vertical-align: 1px;
+}
+
+/* ---------- 3. Cifras, «Por dónde llegaron»: four voices in two pairs, and what the AI families said ---------- */
+/* The four voices, in two pairs that mean something: how they wrote (first and last contact) and how they heard of the
+   centre (what they told us and what was measured). Never a voice alone on a second row. */
+.grafico-canales .voces {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grafico-canales .voces a {
+    justify-content: center;
+    min-height: 40px;
+    padding: 6px 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+}
+
+/* An odd voice out (three of them) takes the whole row. */
+.grafico-canales .voces a:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+/* Across the whole width there is room for the four in a row. */
+.grafico-canales.ancha .voces {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grafico-canales.ancha .voces a:last-child:nth-child(odd) {
+    grid-column: auto;
+}
+
+/* The row of the AI assistants (its name already says it, so no stamp here): under its bar, what those families told
+   us, each answer a note with how many, and those who did not say, last. */
+.canal-fila.con-dijeron {
+    grid-template-areas: "nombre pista" ". mas" ". dijeron";
+}
+
+/* On a phone the row is name and count, then the bar, then the rest (panel.css, under 720 px): the notes go last. */
+@media (max-width: 719px) {
+    .canal-fila.con-dijeron {
+        grid-template-areas: "nombre n" "pista pista" "mas mas" "dijeron dijeron";
+    }
+}
+
+.canal-dijeron {
+    grid-area: dijeron;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin: 4px 0 2px;
+    font-size: 0.8125rem;
+}
+
+.canal-dijeron-que {
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+}
+
+.nota-dicha {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    font-style: italic;
+}
+
+.nota-dicha b {
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Those who did not say: last, in pencil. */
+.nota-dicha.sin-decir {
+    border: 1px dashed var(--eg-borde);
+    background: transparent;
+    color: var(--eg-tinta-2);
+}
+
+/* ---------- 4. The entry: the two codes for the centre's web, each with a drawing of where it goes ---------- */
+/* One under the other, each the whole width: code reads badly in a narrow box. */
+.codigos-web {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.codigos-titulo {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 0;
+    font-size: 1rem;
+}
+
+.codigos-web .codigo-web {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "dibujo que" "codigo codigo" "ayuda ayuda" "boton boton";
+    gap: 8px 12px;
+    align-content: start;
+    padding: 14px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+}
+
+.codigos-web .codigo-web > label {
+    grid-area: que;
+    align-self: center;
+    font-weight: 750;
+    line-height: 1.25;
+}
+
+.codigos-web .codigo-web textarea {
+    grid-area: codigo;
+}
+
+.codigos-web .codigo-una textarea {
+    min-height: calc(7.5em + 18px);
+}
+
+/* One line of code: two rows are enough. */
+.codigos-web .codigo-todas textarea {
+    min-height: calc(3em + 18px);
+}
+
+.codigos-web .codigo-web .ayuda {
+    grid-area: ayuda;
+}
+
+.codigos-web .codigo-web .boton {
+    grid-area: boton;
+}
+
+/* The drawing: one page with the form in it; or every page, each with its head marked, where the line goes. */
+.codigo-dibujo {
+    grid-area: dibujo;
+    position: relative;
+    display: block;
+    width: 62px;
+    height: 50px;
+}
+
+.codigo-dibujo i {
+    position: absolute;
+    display: block;
+    width: 40px;
+    height: 46px;
+    border: 2px solid var(--eg-tinta-2);
+    border-radius: 4px;
+    background: var(--eg-superficie);
+}
+
+.codigo-dibujo i::before {
+    content: '';
+    position: absolute;
+    inset: 4px 4px auto;
+    height: 5px;
+    border-radius: 2px;
+    background: var(--eg-linea);
+}
+
+.codigo-dibujo.en-una i {
+    inset-inline-start: 11px;
+    top: 2px;
+}
+
+/* The form, the one thing on that page. */
+.codigo-dibujo.en-una i::after {
+    content: '';
+    position: absolute;
+    inset: 14px 6px 6px;
+    border-radius: 3px;
+    background: var(--eg-acento);
+}
+
+.codigo-dibujo.en-todas i:nth-child(1) {
+    inset-inline-start: 0;
+    top: 0;
+}
+
+.codigo-dibujo.en-todas i:nth-child(2) {
+    inset-inline-start: 10px;
+    top: 2px;
+}
+
+.codigo-dibujo.en-todas i:nth-child(3) {
+    inset-inline-start: 20px;
+    top: 4px;
+}
+
+/* The head of every page, where the line goes. */
+.codigo-dibujo.en-todas i::before {
+    height: 8px;
+    background: var(--eg-acento);
+}
+
+@media (forced-colors: active) {
+    .sello-ia,
+    .nota-dicha.sin-decir {
+        /* stylelint-disable-next-line csstree/validator */
+        border-color: CanvasText;
+        /* stylelint-disable-next-line csstree/validator */
+        color: CanvasText;
+    }
+
+    .codigo-dibujo i,
+    .codigo-dibujo.en-una i::after,
+    .codigo-dibujo.en-todas i::before {
+        /* stylelint-disable-next-line csstree/validator */
+        border-color: CanvasText;
+        /* stylelint-disable-next-line csstree/validator */
+        background: Canvas;
+    }
+
+    .codigo-dibujo.en-una i::after,
+    .codigo-dibujo.en-todas i::before {
+        /* stylelint-disable-next-line csstree/validator */
+        background: Highlight;
+    }
+}

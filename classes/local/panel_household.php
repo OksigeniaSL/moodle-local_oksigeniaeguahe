@@ -111,18 +111,6 @@ class panel_household {
         if (!empty($household->moving)) {
             $origin[] = get_string('panel_moving', $c);
         }
-        // What they said and what was measured, together: people mistake where they heard of a centre.
-        if (!empty($household->heardfrom)) {
-            $origin[] = get_string('panel_said', $c, get_string('heard_' . (in_array(
-                $household->heardfrom,
-                lists::HEARD_FROM,
-                true
-            ) ? $household->heardfrom : 'other'), $c));
-        }
-        [$measured, $byai] = arrival::of($household);
-        if ($measured !== '') {
-            $origin[] = get_string($byai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $measured);
-        }
         if (!empty($household->incentre)) {
             $origin[] = get_string('panel_incentre', $c);
         }
@@ -160,6 +148,7 @@ class panel_household {
                 'ante' => $ante,
                 'title' => panel::adults_line($full->adults),
                 'sub' => implode(' · ', array_filter($origin)),
+                'origen' => self::origen($household),
                 'action' => $canact ? ['url' => '#contestar', 'anchor' => true, 'name' => get_string('panel_answer', $c),
                     'icon' => panel::icon('enviado')] : null,
                 'help' => helps::link('answer', $centre),
@@ -865,6 +854,36 @@ class panel_household {
             }
         }
         return $out;
+    }
+
+    /**
+     * What they said about how they heard of the centre and where they were measured to arrive from, side by side under
+     * the head (Jujol, panel_origen): people mistake where they heard of a centre, so neither corrects the other.
+     *
+     * @param \stdClass $household
+     * @return array|false said, site, ai and text (the whole sentence, for a reader); false with neither.
+     */
+    protected static function origen(\stdClass $household) {
+        $c = self::C;
+        $said = !empty($household->heardfrom) ? get_string('heard_' . (in_array(
+            $household->heardfrom,
+            lists::HEARD_FROM,
+            true
+        ) ? $household->heardfrom : 'other'), $c) : '';
+        [$site, $ai] = arrival::of($household);
+        if ($said === '' && $site === '') {
+            return false;
+        }
+        $parts = [];
+        if ($said !== '') {
+            $parts[] = get_string('panel_said', $c, $said);
+        }
+        if ($site !== '') {
+            $parts[] = get_string($ai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $site);
+        }
+        $text = implode('; ', $parts) . '.';
+        return ['said' => $said, 'site' => $site, 'ai' => $ai,
+            'text' => \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1)];
     }
 
     /**

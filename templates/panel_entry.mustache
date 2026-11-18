@@ -115,10 +115,13 @@
                     <div class="campo"><label for="sitio-nuevo">{{#str}}entry_origin_add, local_oksigeniaeguahe{{/str}}</label><input id="sitio-nuevo" name="name" placeholder="{{#str}}entry_origin_placeholder, local_oksigeniaeguahe{{/str}}"></div>
                     <button class="boton secundario" type="submit">{{{i.mas1}}}{{#str}}panel_add, local_oksigeniaeguahe{{/str}}</button>
                 </form>
-                <div class="campo codigo-web"><label for="codigo-web">{{{i.codigo}}}{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-web" readonly rows="4" spellcheck="false" dir="ltr">{{embed}}</textarea><span class="ayuda">{{#str}}panel_embed_help, local_oksigeniaeguahe{{/str}}</span>
-                    <button class="boton terciario pequeno" type="button" data-copiar="{{embed}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
-                <div class="campo codigo-web"><label for="codigo-sitio">{{{i.codigo}}}{{#str}}entry_site_code, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-sitio" readonly rows="2" spellcheck="false" dir="ltr">{{sitecode}}</textarea><span class="ayuda">{{#str}}entry_site_code_help, local_oksigeniaeguahe{{/str}}</span>
-                    <button class="boton terciario pequeno" type="button" data-copiar="{{sitecode}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                <div class="codigos-web" role="group" aria-labelledby="codigos-t">
+                    <h3 class="codigos-titulo" id="codigos-t">{{{i.codigo}}}{{#str}}entry_embed, local_oksigeniaeguahe{{/str}}</h3>
+                    <div class="campo codigo-web codigo-una"><span class="codigo-dibujo en-una" aria-hidden="true"><i></i></span><label for="codigo-web">{{#str}}entry_embed_one, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-web" readonly rows="4" spellcheck="false" dir="ltr">{{embed}}</textarea><span class="ayuda">{{#str}}panel_embed_help, local_oksigeniaeguahe{{/str}}</span>
+                        <button class="boton terciario pequeno" type="button" data-copiar="{{embed}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                    <div class="campo codigo-web codigo-todas"><span class="codigo-dibujo en-todas" aria-hidden="true"><i></i><i></i><i></i></span><label for="codigo-sitio">{{#str}}entry_site_code, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-sitio" readonly rows="2" spellcheck="false" dir="ltr">{{sitecode}}</textarea><span class="ayuda">{{#str}}entry_site_code_help, local_oksigeniaeguahe{{/str}}</span>
+                        <button class="boton terciario pequeno" type="button" data-copiar="{{sitecode}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                </div>
             </section>
             {{/share}}
             {{#settings}}

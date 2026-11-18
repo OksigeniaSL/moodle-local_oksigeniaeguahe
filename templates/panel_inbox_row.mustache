@@ -22,12 +22,14 @@
     name (the only link, stretched over the row), each child by the name of its label with its course and stage, how
     and when they wrote last, who looks after them (a small face), who is writing to them now, and the promise that is
     due, with «Done» at hand for anyone. The stamp repeats the date for the eye of the skin and is hidden from readers.
+    Before how they wrote, the stamp «desde IA» when it arrived from an AI assistant, so that a line cut short still
+    says it (the whole sentence is for readers).
     A visit of today says who receives them.
 
     Example context (json):
     {"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
         "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
-        "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}], "via": "Por WhatsApp, el viernes a las 9:02",
+        "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}], "via": "Por WhatsApp, el viernes a las 9:02", "fromai": "Llegó desde chatgpt.com, un asistente de IA",
         "asks": "Pregunta por el comedor de Infantil",
         "viaicon": "", "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
         "typing": null, "visit": null, "courses": "i3", "stages": "inquiry", "search": "marta leo",
@@ -39,7 +41,7 @@
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}</a>
         <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
         {{#asks}}<span class="pide"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span class="oculto">{{#str}}panel_ai_reads, local_oksigeniaeguahe{{/str}}: </span><span dir="auto">{{asks}}</span></span>{{/asks}}
-        <span class="meta">{{{viaicon}}}<span>{{via}}</span></span>
+        <span class="meta">{{#fromai}}<span class="sello-ia sello-ia-corto" aria-hidden="true">{{#str}}panel_ai_stamp_short, local_oksigeniaeguahe{{/str}}</span><span class="oculto">{{fromai}}. </span>{{/fromai}}{{{viaicon}}}<span>{{via}}</span></span>
         {{#visit}}<span class="visita-hoy">{{text}}</span>{{/visit}}
         {{#typing}}<span class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/typing}}
     </div>

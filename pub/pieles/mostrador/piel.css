@@ -2068,3 +2068,139 @@ body.modo-lamina.piel-mostrador .barra-antes {
 .piel-mostrador .como-guias .enlace:focus-visible {
     box-shadow: var(--sombra-alta);
 }
+
+/* ---------- Lo medido on the paper desk (Jujol, 18 November 2026, Eguahe 0.85.1). Goes in pub/pieles/mostrador/piel.css,
+   after «.sello-fecha». What they told us is written by hand on a small note (what they remember); what was measured is
+   printed on a ticket with its torn stub (what the link said); an AI assistant is stamped in the ink of the other
+   stamps, turned and worn like them. Each carries a datum: no decoration. ---------- */
+.piel-mostrador .sello-ia {
+    border-width: 2px;
+    border-radius: 6px;
+    padding: 1px 8px;
+    transform: rotate(-4deg);
+    opacity: 0.9;
+    -webkit-mask-image: var(--ruido-sello);
+    mask-image: var(--ruido-sello);
+}
+
+.piel-mostrador .sello-ia-corto {
+    border-width: 1.5px;
+    padding: 0 5px;
+    transform: rotate(-3deg);
+}
+
+/* The head of a family */
+.piel-mostrador .origen {
+    gap: 12px 18px;
+    margin-top: 12px;
+}
+
+.piel-mostrador .origen-dicho {
+    padding: 4px 12px 6px;
+    background: var(--ruido), var(--nota);
+    box-shadow: 0 1px 1px rgba(60, 35, 20, 0.12), 0 5px 8px -5px rgba(60, 35, 20, 0.34);
+    transform: rotate(-1.2deg);
+}
+
+.piel-mostrador .origen-dicho .origen-valor {
+    font-family: var(--piel-mano);
+    font-size: 1.375rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.piel-mostrador .origen-medido {
+    position: relative;
+    padding: 5px 14px 6px 20px;
+    background: var(--b-blanco);
+    box-shadow: 0 1px 1px rgba(60, 35, 20, 0.12), 0 5px 8px -5px rgba(60, 35, 20, 0.34);
+}
+
+/* The stub, torn along a line of holes. */
+.piel-mostrador .origen-medido::before {
+    content: '';
+    position: absolute;
+    inset-block: 4px;
+    inset-inline-start: 7px;
+    width: 3px;
+    background: radial-gradient(circle, var(--eg-linea) 1.2px, transparent 1.6px) 0 0 / 3px 6px repeat-y;
+}
+
+.piel-mostrador .origen-medido .origen-valor {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.piel-mostrador .origen-medido .sello-ia {
+    margin-inline-start: 4px;
+}
+
+/* Cifras: what the AI families told us, by hand on small notes */
+.piel-mostrador .nota-dicha {
+    padding: 2px 9px 3px;
+    border-radius: 2px;
+    background: var(--ruido), var(--nota);
+    box-shadow: 0 1px 1px rgba(60, 35, 20, 0.12), 0 3px 5px -3px rgba(60, 35, 20, 0.3);
+    font-style: normal;
+}
+
+.piel-mostrador .nota-dicha span {
+    font-family: var(--piel-mano);
+    font-size: 1.1875rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.piel-mostrador .nota-dicha:nth-child(odd) {
+    transform: rotate(-1deg);
+}
+
+.piel-mostrador .nota-dicha:nth-child(even) {
+    transform: rotate(0.8deg);
+}
+
+.piel-mostrador .nota-dicha.sin-decir {
+    border: 1px dashed var(--eg-borde);
+    background: transparent;
+    box-shadow: none;
+}
+
+.piel-mostrador .nota-dicha.sin-decir span {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* The entry: each code on its own sheet, the code itself on a strip of white paper */
+.piel-mostrador .codigos-web .codigo-web {
+    border: 0;
+    border-radius: 3px;
+    background: var(--ruido), var(--papel-b-2);
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+}
+
+.piel-mostrador .codigos-web .codigo-web textarea {
+    background: var(--b-blanco);
+}
+
+.piel-mostrador .codigo-dibujo i {
+    background: var(--b-blanco);
+    box-shadow: 0 1px 1px rgba(60, 35, 20, 0.12), 0 3px 4px -3px rgba(60, 35, 20, 0.3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .piel-mostrador .origen-dicho,
+    .piel-mostrador .origen-medido {
+        transition: transform var(--dur-1, 0.2s) ease;
+    }
+}
+
+@media (forced-colors: active) {
+    .piel-mostrador .sello-ia {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}

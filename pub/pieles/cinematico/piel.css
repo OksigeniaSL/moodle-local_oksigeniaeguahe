@@ -1131,3 +1131,82 @@ html[data-mov="menos"] .cine-corriente {
 .piel-cinematico .como-guias .enlace .ic {
     color: var(--cine-ambar);
 }
+
+/* ---------- Lo medido in the cinema (Jujol, 18 November 2026, Eguahe 0.85.1). Goes in pub/pieles/cinematico/piel.css.
+   No paper here: what they told us is a line of warm light in italic, what was measured a pane of glass with its site,
+   and the AI assistant the amber stamp of the counter. Nothing turns and nothing has a texture. ---------- */
+.piel-cinematico .sello-ia,
+.piel-cinematico .sello-ia-corto {
+    transform: none;
+    opacity: 1;
+    -webkit-mask-image: none;
+    mask-image: none;
+    border-color: var(--cine-ambar);
+    color: var(--cine-ambar);
+}
+
+.piel-cinematico .origen-dicho,
+.piel-cinematico .origen-medido {
+    padding: 4px 12px;
+    border: 1px solid var(--cine-filo-2);
+    border-radius: 10px;
+    background: var(--cine-vidrio-2);
+    box-shadow: none;
+    transform: none;
+}
+
+.piel-cinematico .origen-medido::before {
+    content: none;
+}
+
+.piel-cinematico .origen-dicho .origen-valor {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--cine-ambar);
+}
+
+.piel-cinematico .origen-medido .origen-valor {
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+.piel-cinematico .nota-dicha,
+.piel-cinematico .nota-dicha:nth-child(odd),
+.piel-cinematico .nota-dicha:nth-child(even) {
+    border: 1px solid var(--cine-filo-2);
+    border-radius: 8px;
+    background: var(--cine-vidrio-2);
+    box-shadow: none;
+    transform: none;
+}
+
+.piel-cinematico .nota-dicha span {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.piel-cinematico .nota-dicha.sin-decir {
+    border-style: dashed;
+    background: transparent;
+}
+
+.piel-cinematico .codigos-web .codigo-web {
+    border: 1px solid var(--cine-filo-2);
+    border-radius: 14px;
+    background: var(--cine-vidrio-2);
+    box-shadow: none;
+}
+
+.piel-cinematico .codigo-dibujo i {
+    border-color: var(--cine-filo-2);
+    background: var(--cine-vidrio);
+    box-shadow: none;
+}
+
+.piel-cinematico .codigo-dibujo.en-una i::after,
+.piel-cinematico .codigo-dibujo.en-todas i::before {
+    background: var(--cine-ambar);
+}

@@ -481,13 +481,14 @@ class panel {
      * page around it. Empty is false, never null: an older Mustache (Moodle 4.5) looks a null up in the page around it,
      * and would draw its «action» as a button.
      *
-     * @param array $head title and, if any, back, ante, sub, what («What is this?»), action and help (its guided help).
+     * @param array $head title and, if any, back, ante, sub, origen (what a family said and where it arrived from), what
+     *     («What is this?»), action and help (its guided help).
      * @return array
      */
     public static function head(array $head): array {
         $head = array_map(fn($v) => $v ?? false, $head);
-        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'what' => false, 'action' => false,
-            'help' => false];
+        return $head + ['back' => false, 'ante' => '', 'title' => '', 'sub' => '', 'origen' => false, 'what' => false,
+            'action' => false, 'help' => false];
     }
 
     /**

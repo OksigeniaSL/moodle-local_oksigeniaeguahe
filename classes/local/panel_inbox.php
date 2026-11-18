@@ -571,11 +571,13 @@ class panel_inbox {
             if (!empty($household->moving)) {
                 $via .= ' · ' . get_string('panel_moving', $c);
             }
-            // Where it arrived from, measured, when it was: «desde chatgpt.com».
-            $measured = arrival::of($household)[0];
-            if ($measured !== '') {
+            // Where it arrived from, measured: an AI assistant with its stamp, first (Jujol); anything else, «desde
+            // instagram.com» at the end of the line.
+            [$measured, $fromai] = arrival::of($household);
+            if ($measured !== '' && !$fromai) {
                 $via .= ' · ' . get_string('panel_from_short', $c, $measured);
             }
+            $aiwords = $fromai ? get_string('panel_arrived_ai', $c, $measured) : '';
             $children = [];
             $search = [];
             $courses = [];
@@ -604,6 +606,8 @@ class panel_inbox {
                 'adults' => panel::adults_line($household->adults),
                 'children' => $children,
                 'via' => $via,
+                'fromai' => $fromai ? \core_text::strtoupper(\core_text::substr($aiwords, 0, 1)) .
+                    \core_text::substr($aiwords, 1) : false,
                 // What their last message asks, in a line, when the AI of the centre read it (household_ai).
                 'asks' => $waiting && $info['said'] ? trim((string) ($info['said']->asks ?? '')) : '',
                 'viaicon' => panel::channel_icon($channel),

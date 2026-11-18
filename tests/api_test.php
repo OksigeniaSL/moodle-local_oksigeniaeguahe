@@ -76,4 +76,49 @@ final class api_test extends \advanced_testcase {
         $this->assertCount(2, $second['turns']);
         $this->assertSame([], api::open_acts($id + 100, $now));
     }
+
+    /**
+     * The visits of today for the screen at the door: the open day and a visit made for one family, with who welcomes
+     * them, how long and how many came; never tomorrow, a cancelled one, nor anything of a family.
+     */
+    public function test_visits_today(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        centres::update($id, (object) ['guide' => 'perro', 'guidewhere' => 'Hasta Secretaría']);
+        $ana = $this->getDataGenerator()->create_user(['firstname' => 'Ana', 'lastname' => 'Rivero']);
+        centres::add_member($id, $ana->id);
+        $memberid = (int) $DB->get_field(centres::MEMBERS, 'id', ['centreid' => $id, 'userid' => $ana->id]);
+        $DB->update_record(centres::MEMBERS, (object) ['id' => $memberid, 'public' => 1, 'rolename' => 'Secretaría']);
+        $now = usergetmidnight(time()) + 10 * HOURSECS;
+        $act = fn(string $kind, int $from, int $minutes, array $more = []) => events::save($id, (object) ($more + [
+            'kind' => $kind, 'name' => 'Acto ' . $from, 'place' => 'Entrada', 'timestart' => $now + $from,
+            'timeend' => $now + $from + $minutes * MINSECS, 'capacity' => 40, 'open' => 1, 'hosts' => (string) $memberid]));
+        $openday = $act('openday', -HOURSECS, 180);
+        $visit = $act('visit', 2 * HOURSECS, 45, ['tailored' => 1]);
+        $act('openday', DAYSECS, 60);
+        $cancelled = $act('visit', 3 * HOURSECS, 30);
+        $DB->set_field(events::T, 'cancelled', 1, ['id' => $cancelled]);
+        $family = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $signup = events::sign_up(events::get($openday, $id), (int) $family->id, 3);
+        events::attend(events::get($openday, $id), $signup, true, $now);
+
+        $visits = api::visits_today($id, $now);
+        $this->assertSame([$openday, $visit], array_column($visits, 'id'));
+        [$day, $one] = $visits;
+        $this->assertSame(180, $day['minutes']);
+        $this->assertSame(1, $day['came']);
+        $this->assertSame(3, $day['signed']);
+        $this->assertSame('Ana', $day['hosts'][0]['first']);
+        $this->assertSame('Secretaría', $day['hosts'][0]['role']);
+        $this->assertSame('Hasta Secretaría', $day['where']);
+        $this->assertTrue($one['tailored']);
+        $this->assertSame(45, $one['minutes']);
+        $this->assertSame(0, $one['came']);
+        // Nothing of a family: no name, no household, no link of theirs.
+        $this->assertArrayNotHasKey('householdid', $one);
+        $this->assertStringNotContainsString('f.php', json_encode($visits));
+        $this->assertSame([], api::visits_today($id + 100, $now));
+    }
 }

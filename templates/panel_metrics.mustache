@@ -60,7 +60,7 @@
                 "parts": [{"canal": "web", "v": 0.3, "n": 34, "line": "34 por la web."}]}]},
         "channels": {"voices": [{"key": "first", "name": "Primer contacto", "def": "", "url": "#", "current": true}], "def": "", "rest": "", "foot": "", "declared": false,
             "hasenrolled": true, "ancha": false,
-            "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "en": 8, "ev": 0.2353, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": ""}],
+            "rows": [{"key": "web", "name": "Formulario de la web", "n": 34, "v": 1, "en": 8, "ev": 0.2353, "declared": false, "hasparts": true, "enrolled": "8 matriculadas", "cost": "sin coste", "line": "", "hassaid": false, "said": []}],
             "spend": [{"key": "cartel", "name": "Cartel", "value": "85,00"}], "canspend": true, "currency": "€"},
         "weeks": {"views": [{"name": "Llegadas", "url": "#", "current": true}], "compare": true, "grid": [{"p": 100, "label": 0}],
             "xticks": [{"p": 0, "label": "Semana 1", "start": true, "end": false}], "events": [{"p": 27, "label": "Jornada", "ahead": false}],
@@ -158,11 +158,12 @@
             {{#hasenrolled}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-llegaron"></span>{{#str}}panel_far_name_inquiry, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_far_name_enrolled, local_oksigeniaeguahe{{/str}}</span></p>{{/hasenrolled}}
             <ul class="canales{{#declared}} dichos{{/declared}}">
                 {{#rows}}
-                <li class="canal-fila{{#declared}} declarado{{/declared}}" data-dato="{{line}}"{{#hasparts}} data-canal-elige="{{key}}"{{/hasparts}} id="can-{{key}}" style="--v: {{v}}">
+                <li class="canal-fila{{#declared}} declarado{{/declared}}{{#hassaid}} con-dijeron{{/hassaid}}" data-dato="{{line}}"{{#hasparts}} data-canal-elige="{{key}}"{{/hasparts}} id="can-{{key}}" style="--v: {{v}}">
                     <span class="canal-nombre">{{name}}</span>
                     <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="can-b-{{key}}"></i>{{#ev}}<i class="barra-matricula" style="--v: {{ev}}" id="can-m-{{key}}"></i>{{/ev}}</span>
                     <b class="barra-n" id="can-n-{{key}}">{{n}}</b>
                     {{^declared}}<span class="canal-mas"><span>{{enrolled}}</span><span class="coste">{{cost}}</span></span>{{/declared}}
+                    {{#hassaid}}<p class="canal-dijeron"><span class="canal-dijeron-que">{{#str}}panel_measured_said, local_oksigeniaeguahe{{/str}}</span>{{#said}}<span class="nota-dicha{{#untold}} sin-decir{{/untold}}"><span dir="auto">{{name}}</span> <b>{{n}}</b></span>{{/said}}</p>{{/hassaid}}
                 </li>
                 {{/rows}}
             </ul>
