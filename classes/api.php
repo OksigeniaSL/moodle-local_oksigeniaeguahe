@@ -113,8 +113,9 @@ class api {
     /**
      * The visits of today, for a screen at the door of a centre where visitors wait (Hechauka, «La visita de hoy»): an
      * hour before, «Today Ana welcomes you», with her face and her role; on a touch, how long it lasts and where it goes.
-     * Visits made for one family and the open days with their turns; never a name of a family nor anything of theirs,
-     * only how many signed up and how many came.
+     * Visits made for one family and the open days with their turns; never the act where families ask for a visit of
+     * their own (it has no hour, only the time to ask), a name of a family nor anything of theirs, only how many signed
+     * up and how many came.
      *
      * @param int|null $centreid One centre, or every one of the site.
      * @param int|null $now
@@ -140,7 +141,8 @@ class api {
         [$in, $params] = $DB->get_in_or_equal(array_keys($centres), SQL_PARAMS_NAMED);
         $events = $DB->get_records_select(
             events::T,
-            "centreid $in AND cancelled = 0 AND kind IN ('openday', 'visit') AND timestart < :end AND timeend > :start",
+            "centreid $in AND cancelled = 0 AND kind IN ('openday', 'visit') AND timestart < :end AND timeend > :start
+             AND (tailored = 0 OR householdid > 0)",
             $params + ['start' => $midnight, 'end' => $midnight + DAYSECS],
             'timestart ASC, id ASC'
         );
@@ -177,7 +179,7 @@ class api {
                 'lang' => (string) ($centre->lang ?? 'es'),
                 'id' => (int) $event->id,
                 'kind' => (string) $event->kind,
-                'tailored' => !empty($event->tailored),
+                'tailored' => !empty($event->householdid),
                 'name' => format_string($event->name, true, ['escape' => false]),
                 'place' => format_string((string) $event->place, true, ['escape' => false]),
                 'timestart' => (int) $event->timestart,

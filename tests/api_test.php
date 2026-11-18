@@ -96,11 +96,14 @@ final class api_test extends \advanced_testcase {
             'kind' => $kind, 'name' => 'Acto ' . $from, 'place' => 'Entrada', 'timestart' => $now + $from,
             'timeend' => $now + $from + $minutes * MINSECS, 'capacity' => 40, 'open' => 1, 'hosts' => (string) $memberid]));
         $openday = $act('openday', -HOURSECS, 180);
-        $visit = $act('visit', 2 * HOURSECS, 45, ['tailored' => 1]);
+        // The act where families ask for a visit of their own has no hour, only the time to ask: never on the screen.
+        $act('visit', 2 * HOURSECS, 90 * 24 * 60, ['tailored' => 1]);
+        $visit = $act('visit', 2 * HOURSECS, 45);
         $act('openday', DAYSECS, 60);
         $cancelled = $act('visit', 3 * HOURSECS, 30);
         $DB->set_field(events::T, 'cancelled', 1, ['id' => $cancelled]);
         $family = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $DB->set_field(events::T, 'householdid', $family->id, ['id' => $visit]);
         $signup = events::sign_up(events::get($openday, $id), (int) $family->id, 3);
         events::attend(events::get($openday, $id), $signup, true, $now);
 
