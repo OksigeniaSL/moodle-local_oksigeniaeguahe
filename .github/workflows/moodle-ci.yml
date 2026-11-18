@@ -37,11 +37,12 @@ jobs:
           b502='{"moodle-branch":"MOODLE_502_STABLE","php":"8.3","node":"22"}'
           high='{"moodle-branch":"MOODLE_503_STABLE","php":"8.3","node":"22","pg":"17"}'
           next='{"moodle-branch":"main","php":"8.4","node":"22","pg":"17","experimental":true}'
-          # Every push: the oldest, one in the middle and the newest. A tag or a run by hand: every branch supported.
+          # Every push: the oldest and the newest (the repository is private since 18-11-2026, and its minutes count).
+          # A tag or a run by hand: every branch supported.
           if [[ "$GITHUB_REF" == refs/tags/* || "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
             echo "include=[$low,$b500,$b501,$b502,$high,$next]" >> "$GITHUB_OUTPUT"
           else
-            echo "include=[$low,$b502,$high]" >> "$GITHUB_OUTPUT"
+            echo "include=[$low,$high]" >> "$GITHUB_OUTPUT"
           fi
 
   test:
