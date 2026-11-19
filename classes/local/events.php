@@ -681,6 +681,25 @@ class events {
     }
 
     /**
+     * How many times a short link was opened, as the shortener counts it (people, not robots nor previews), kept with
+     * when it was asked and asked again at most once a day: its limit is shared by every plugin of the site.
+     *
+     * @param array|null $kept What was kept: clicks and at.
+     * @param string $short The short address.
+     * @param bool $ask Whether it may be asked now, when what was kept is a day old.
+     * @return array|null clicks and at, or null when not known.
+     */
+    public static function clicks(?array $kept, string $short, bool $ask = true): ?array {
+        $fresh = $kept && isset($kept['at']) && (int) $kept['at'] > time() - DAYSECS;
+        if ($fresh || !$ask || $short === '') {
+            return $kept ?: null;
+        }
+        $shortener = shortener::of_site();
+        $stats = $shortener && $shortener->owns($short) ? $shortener->clicks($short) : null;
+        return $stats ? ['clicks' => (int) $stats['clicks'], 'at' => time()] : ($kept ?: null);
+    }
+
+    /**
      * The QR the shortener draws for one of its links, in the common style: its SVG, or '' when it gives none or it is
      * not a picture.
      *

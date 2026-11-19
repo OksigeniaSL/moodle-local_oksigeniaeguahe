@@ -366,6 +366,8 @@ class panel_entry {
             return ['key' => $key, 'name' => $general ? get_string('entry_origin_none', $c) : $name,
                 'short' => preg_replace('#^https?://#', '', $url), 'url' => $url,
                 'n' => $n ? get_string($n === 1 ? 'panel_brought_one' : 'panel_brought', $c, $n) : '',
+                'opened' => $link['opened'] !== null ? get_string($link['opened'] === 1 ? 'panel_link_opened_one' :
+                    'panel_link_opened', $c, $link['opened']) : '',
                 'qr' => $link['qr'], 'general' => $general];
         };
         $sites = [$site('', '', true)];

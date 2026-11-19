@@ -41,7 +41,7 @@
         "newfield": {"types": [{"value": "yesno", "name": "Sí o no", "selected": true}]},
         "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "hassentence": true, "fixed": "",
             "questions": [], "blocks": [], "button": "Inscribirnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
-        "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "n": "", "qr": "", "general": true}],
+        "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "opened": "Abierto 42 veces", "n": "", "qr": "", "general": true}],
             "embed": "<iframe></iframe>", "sitecode": "<script></script>"},
         "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
         "erasequestion": "¿Borramos este formulario?"
@@ -105,7 +105,7 @@
                     {{#sites}}
                     <li class="sitio">
                         <span class="qr">{{{qr}}}</span>
-                        <span class="sitio-que"><b>{{name}}</b><a class="corto" href="{{url}}" dir="ltr">{{short}}</a>{{#n}}<span class="secundario">{{.}}</span>{{/n}}</span>
+                        <span class="sitio-que"><b>{{name}}</b><a class="corto" href="{{url}}" dir="ltr">{{short}}</a>{{#opened}}<span class="secundario">{{.}}</span>{{/opened}}{{#n}}<span class="secundario">{{.}}</span>{{/n}}</span>
                         <span class="sitio-mandos"><button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy, local_oksigeniaeguahe{{/str}}</button>{{^general}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="key" value="{{key}}"><button class="boton terciario pequeno" type="submit" name="action" value="removeorigin">{{{i.borrar}}}<span class="oculto">{{name}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</button></form>{{/general}}</span>
                     </li>
                     {{/sites}}

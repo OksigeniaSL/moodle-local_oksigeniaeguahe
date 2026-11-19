@@ -215,6 +215,24 @@ class shortener {
     }
 
     /**
+     * How many times a short link of this program was opened (`url-stats`, as in YOURLS; nur.click since 18-11-2026): all
+     * the visits and those of the last 30 days, and whether it is active. Null when the shortener does not give it or the
+     * link is not of this program. It spends of the limit every plugin shares: ask rarely and keep what it says.
+     *
+     * @param string $short The short address or its name.
+     * @return array|null clicks, month (null when not given) and active.
+     */
+    public function clicks(string $short): ?array {
+        $answer = $this->call(['action' => 'url-stats', 'shorturl' => $short]);
+        $link = $answer['link'] ?? null;
+        if (!str_starts_with((string) ($answer['message'] ?? ''), 'success') || !is_array($link) || !isset($link['clicks'])) {
+            return null;
+        }
+        return ['clicks' => (int) $link['clicks'], 'month' => isset($link['clicks_month']) ? (int) $link['clicks_month'] : null,
+            'active' => ($link['active'] ?? true) !== false];
+    }
+
+    /**
      * Why the last call did not give what was asked: the code the shortener answered («error:limit», «error:domain»,
      * «error:notyours»…), «inactive» for an update left paused, or '' when it went well or there was no answer (the
      * shortener was down or too slow: worth asking again later).

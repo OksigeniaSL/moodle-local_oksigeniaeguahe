@@ -42,7 +42,7 @@
                 "labelled": false, "arialabel": "Día y hora", "describedby": false, "mirror": false, "value": "2026-11-07",
                 "parts": [{"key": "d", "id": "kit-at-telld", "name": "atd", "label": "Día", "value": "7", "size": 2, "months": false}]} } }],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "none": "", "moments": []},
-        "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig"}],
+        "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig", "opened": ""}],
         "pictures": [{"name": "Cuadrada", "size": "1080 × 1080", "url": "#", "download": "#", "w": 1080, "h": 1080}],
         "posterurl": "#", "post": "El sábado abrimos las puertas.", "forward": "Te paso esto.",
         "shots": [{"n": 1, "shot": "La puerta de entrada", "seconds": "4 s", "onscreen": "Sábado 21"}], "total": "20 s",
@@ -119,7 +119,7 @@
     <section class="apartado kit-enlaces" aria-labelledby="kit-enlaces-t">
         <h2 id="kit-enlaces-t">{{#str}}kit_links, local_oksigeniaeguahe{{/str}}</h2>
         <p class="def">{{#str}}kit_links_help, local_oksigeniaeguahe{{/str}}</p>
-        <ul class="kit-redes">{{#links}}<li><b>{{name}}</b> <span class="enlace-corto" translate="no">{{url}}</span> <button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></li>{{/links}}</ul>
+        <ul class="kit-redes">{{#links}}<li><b>{{name}}</b> <span class="enlace-corto" translate="no">{{url}}</span>{{#opened}} <span class="secundario">{{.}}</span>{{/opened}} <button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></li>{{/links}}</ul>
     </section>
     <section class="apartado kit-guion" aria-labelledby="kit-guion-t">
         <h2 id="kit-guion-t">{{#str}}kit_script, local_oksigeniaeguahe{{/str}}</h2>

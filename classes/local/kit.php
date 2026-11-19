@@ -154,7 +154,22 @@ class kit {
                     $changed = true;
                 }
             }
-            $out[] = ['name' => $name, 'key' => $key, 'url' => $kit['links'][$key] ?? $long];
+            // How many times its short link was opened, asked at most once a day.
+            $opened = null;
+            if (isset($kit['links'][$key])) {
+                $before = $kit['clicks'][$key] ?? null;
+                $opened = events::clicks(is_array($before) ? $before : null, $kit['links'][$key]);
+                if ($opened && $opened !== $before) {
+                    $kit['clicks'][$key] = $opened;
+                    $changed = true;
+                }
+            }
+            $out[] = ['name' => $name, 'key' => $key, 'url' => $kit['links'][$key] ?? $long,
+                'opened' => $opened ? get_string(
+                    (int) $opened['clicks'] === 1 ? 'panel_link_opened_one' : 'panel_link_opened',
+                    self::C,
+                    (int) $opened['clicks']
+                ) : ''];
         }
         if ($changed) {
             self::keep($event, $kit);

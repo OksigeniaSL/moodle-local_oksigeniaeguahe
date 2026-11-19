@@ -664,7 +664,8 @@ class entries {
      * @param \stdClass $entry
      * @param string $key The key of the place, or '' for the general link.
      * @param bool $ask Whether a short link not made yet may be asked for now.
-     * @return array url (the link to share), long (the address behind it) and qr (HTML: a picture of the QR).
+     * @return array url (the link to share), long (the address behind it), opened (how many times its short link was
+     *     opened, or null) and qr (HTML: a picture of the QR).
      */
     public static function site_link(\stdClass $entry, string $key, bool $ask = true): array {
         global $DB;
@@ -691,9 +692,21 @@ class entries {
         }
         $url = $kept[$index]['short'] ?? $long;
         $svg = (string) ($kept[$index]['qr'] ?? '');
+        // How many times its short link was opened, asked at most once a day.
+        $opened = null;
+        if (isset($kept[$index]['short'])) {
+            $before = $kept[$index]['clicks'] ?? null;
+            $opened = events::clicks(is_array($before) ? $before : null, $kept[$index]['short'], $ask);
+            if ($opened && $opened !== $before) {
+                $kept[$index]['clicks'] = $opened;
+                $entry->shortlinks = json_encode($kept);
+                $DB->set_field(self::T, 'shortlinks', $entry->shortlinks, ['id' => $entry->id]);
+            }
+        }
         return [
             'url' => $url,
             'long' => $long,
+            'opened' => $opened ? (int) $opened['clicks'] : null,
             // A picture: nothing in it runs.
             'qr' => $svg !== '' ? \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' . base64_encode($svg),
                 'alt' => '']) : events::qr_of($url),
