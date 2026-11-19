@@ -354,13 +354,19 @@ class panel_entry {
                                                 FROM {' . households::CONTACTS . '}
                                                WHERE entryid = ? AND direction = ?
                                             GROUP BY COALESCE(detail, \'\')', [$entry->id, 'in']);
-        $site = function (string $name, string $key, bool $general) use ($entry, $brought, $c): array {
-            $url = (new \moodle_url(entries::form_url($entry), $key !== '' ? ['d' => $key] : []))->out(false);
+        // Each place its own link, with its utm, short and with its QR where the site has a shortener (a few asked for
+        // each time the page opens, the rest the next time).
+        $asked = 0;
+        $site = function (string $name, string $key, bool $general) use ($entry, $brought, $c, &$asked): array {
+            $kept = json_decode((string) ($entry->shortlinks ?? ''), true) ?: [];
+            $ask = isset($kept[$key !== '' ? $key : '_']) || $asked++ < 4;
+            $link = entries::site_link($entry, $key, $ask);
+            $url = $link['url'];
             $n = (int) ($brought[$general ? '' : $name] ?? 0);
             return ['key' => $key, 'name' => $general ? get_string('entry_origin_none', $c) : $name,
                 'short' => preg_replace('#^https?://#', '', $url), 'url' => $url,
                 'n' => $n ? get_string($n === 1 ? 'panel_brought_one' : 'panel_brought', $c, $n) : '',
-                'qr' => events::qr_of($url), 'general' => $general];
+                'qr' => $link['qr'], 'general' => $general];
         };
         $sites = [$site('', '', true)];
         foreach (forms::origins($entry) as $key => $name) {

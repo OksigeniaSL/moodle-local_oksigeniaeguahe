@@ -671,7 +671,24 @@ class events {
      * @param string $address Where the shortener draws it, or ''.
      */
     protected static function keep_qr(\stdClass $event, string $address): void {
-        global $CFG, $DB;
+        global $DB;
+        $svg = self::fetch_qr($address);
+        if ($address !== '' && $svg === '') {
+            return;
+        }
+        $DB->set_field(self::T, 'shortqr', $svg, ['id' => $event->id]);
+        $event->shortqr = $svg;
+    }
+
+    /**
+     * The QR the shortener draws for one of its links, in the common style: its SVG, or '' when it gives none or it is
+     * not a picture.
+     *
+     * @param string $address The address of the QR, as the shortener gave it (qrsvg).
+     * @return string
+     */
+    public static function fetch_qr(string $address): string {
+        global $CFG;
         $svg = '';
         if ($address !== '') {
             require_once($CFG->libdir . '/filelib.php');
@@ -682,7 +699,7 @@ class events {
             try {
                 $svg = (string) $curl->get($url);
             } catch (\Throwable $error) {
-                return;
+                return '';
             }
             $info = $curl->get_info();
             $code = is_array($info) && isset($info['http_code']) ? (int) $info['http_code'] : 200;
@@ -691,11 +708,10 @@ class events {
                 $code !== 200 || $curl->get_errno() || strlen($svg) > self::QRMOST || strpos($svg, '<svg') === false ||
                 (strpos($start, '<svg') !== 0 && strpos($start, '<?xml') !== 0)
             ) {
-                return;
+                return '';
             }
         }
-        $DB->set_field(self::T, 'shortqr', $svg, ['id' => $event->id]);
-        $event->shortqr = $svg;
+        return $svg;
     }
 
     /**

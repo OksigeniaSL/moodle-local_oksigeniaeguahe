@@ -657,6 +657,50 @@ class entries {
     }
 
     /**
+     * The link of a form for one place it is shared from, with its utm (so where a family came from is measured) and,
+     * where the site has a shortener, short and with the QR it draws, asked once and kept. A place without its own key
+     * is the general link. Without a shortener, the long address and a QR drawn here.
+     *
+     * @param \stdClass $entry
+     * @param string $key The key of the place, or '' for the general link.
+     * @param bool $ask Whether a short link not made yet may be asked for now.
+     * @return array url (the link to share), long (the address behind it) and qr (HTML: a picture of the QR).
+     */
+    public static function site_link(\stdClass $entry, string $key, bool $ask = true): array {
+        global $DB;
+        $long = (new \moodle_url(self::form_url($entry), ($key !== '' ? ['d' => $key] : []) + [
+            'utm_source' => $key !== '' ? $key : 'enlace', 'utm_medium' => 'formulario',
+            'utm_campaign' => 'formulario-' . (int) $entry->id]))->out(false);
+        $kept = json_decode((string) ($entry->shortlinks ?? ''), true) ?: [];
+        $index = $key !== '' ? $key : '_';
+        if (!isset($kept[$index]) && $ask && !centres::is_practice((int) $entry->centreid)) {
+            $shortener = shortener::of_site();
+            $centre = centres::get((int) $entry->centreid);
+            $link = $shortener ? events::shorten($shortener, $long, get_string(
+                'short_title',
+                'local_oksigeniaeguahe',
+                (object) ['centre' => $centre ? format_string($centre->name) : '', 'event' => format_string($entry->name) .
+                ($key !== '' ? ' · ' . format_string((string) (forms::origins($entry)[$key] ?? $key)) : '')]
+            )) : null;
+            if ($link) {
+                $kept[$index] = ['short' => \core_text::substr($link['short'], 0, 255),
+                    'qr' => events::fetch_qr((string) ($link['qrsvg'] ?? ''))];
+                $entry->shortlinks = json_encode($kept);
+                $DB->set_field(self::T, 'shortlinks', $entry->shortlinks, ['id' => $entry->id]);
+            }
+        }
+        $url = $kept[$index]['short'] ?? $long;
+        $svg = (string) ($kept[$index]['qr'] ?? '');
+        return [
+            'url' => $url,
+            'long' => $long,
+            // A picture: nothing in it runs.
+            'qr' => $svg !== '' ? \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' . base64_encode($svg),
+                'alt' => '']) : events::qr_of($url),
+        ];
+    }
+
+    /**
      * What the centre pastes in its web to have the form inside it.
      *
      * @param \stdClass $entry

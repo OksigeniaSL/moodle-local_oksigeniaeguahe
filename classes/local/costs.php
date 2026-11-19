@@ -37,6 +37,13 @@ class costs {
      */
     public static function rows(\stdClass $centre): array {
         $rows = [];
+        // First, what each stage is, when the centre says it («Bachillerato: privada»).
+        $notes = centres::stage_notes($centre);
+        foreach (grades::stages($centre) as $stage) {
+            if (($notes[$stage['from']] ?? '') !== '') {
+                $rows[] = ['what' => $stage['name'], 'amount' => $notes[$stage['from']]];
+            }
+        }
         foreach (preg_split('/\R/u', trim((string) ($centre->costs ?? ''))) as $line) {
             $line = trim($line);
             if ($line === '') {
@@ -87,8 +94,13 @@ class costs {
     public static function settings(\stdClass $centre): array {
         $when = in_array($centre->costswhen ?? '', self::WHEN, true) ? $centre->costswhen : 'after';
         $rows = self::rows($centre);
+        $notes = centres::stage_notes($centre);
         return [
             'text' => (string) ($centre->costs ?? ''),
+            // A word beside each stage of the centre's system, for the families.
+            'stages' => array_map(fn($s) => ['from' => (int) $s['from'], 'name' => $s['name'],
+                'note' => (string) ($notes[$s['from']] ?? '')], grades::stages($centre)),
+            'hasstages' => (bool) grades::stages($centre),
             'written' => (bool) $rows,
             'read' => $rows ? get_string('panel_costs_read_' . $when, 'local_oksigeniaeguahe', count($rows)) :
                 get_string('panel_costs_read_none', 'local_oksigeniaeguahe'),

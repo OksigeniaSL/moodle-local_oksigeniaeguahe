@@ -318,7 +318,10 @@ class grades {
                 continue;
             }
             $key = $offer->schoolyear . '|' . str_pad((string) $stage['from'], 3, '0', STR_PAD_LEFT);
-            $groups[$key] = $groups[$key] ?? ['label' => $stage['name'] . ' · ' . $offer->schoolyear, 'offers' => []];
+            // The word the centre gives the stage, for the families («concertada», «privada»).
+            $note = (string) (centres::stage_notes($centre)[$stage['from']] ?? '');
+            $groups[$key] = $groups[$key] ?? ['label' => $stage['name'] . ($note !== '' ? ' (' . $note . ')' : '') . ' · ' .
+                $offer->schoolyear, 'offers' => []];
             $offer->age = $age;
             $groups[$key]['offers'][] = $offer;
         }

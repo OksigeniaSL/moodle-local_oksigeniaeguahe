@@ -794,6 +794,7 @@ class panel_centre {
             'applyfrom' => self::date(publicpage::date_param('applyfrom')),
             'applyuntil' => self::date(publicpage::date_param('applyuntil')),
             'costs' => optional_param('costs', '', PARAM_TEXT),
+            'stagenotes' => optional_param_array('stagenote', null, PARAM_TEXT),
             'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
             'whoapplies' => optional_param('whoapplies', (string) ($centre->whoapplies ?? 'family'), PARAM_ALPHA),
             'familyfrom' => optional_param('familyfrom', (string) ($centre->familyfrom ?? 'eguahe'), PARAM_ALPHA),

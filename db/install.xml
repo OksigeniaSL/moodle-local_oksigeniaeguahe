@@ -55,6 +55,7 @@
         <FIELD NAME="applyafter" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 when how to ask for a place is offered once a family came; 0, only when the team sends it"/>
         <FIELD NAME="costs" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it all costs, as the centre writes it: a line per thing, «what: how much»"/>
         <FIELD NAME="costswhen" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="after" SEQUENCE="false" COMMENT="When families see what it costs: start, after the visit, or never"/>
+        <FIELD NAME="stagenotes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A word families read beside each stage («concertada», «privada»), by the age it starts at: JSON"/>
         <FIELD NAME="familyfrom" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="eguahe" SEQUENCE="false" COMMENT="Who puts an enrolled family in the common family record: eguahe, or records (the management system of the centre loads it, and a person joins it)"/>
         <FIELD NAME="guide" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The guide on the pages of the families (guide::KINDS), or null for none"/>
         <FIELD NAME="guidewhere" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the guide takes families on the miniature, as the centre writes it"/>
@@ -568,6 +569,7 @@
         <FIELD NAME="lead" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A form: what it says beside it"/>
         <FIELD NAME="blocks" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A form: the common questions it asks besides who and how: place, heard, incentre, message"/>
         <FIELD NAME="origins" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A form: the places it is shared from, each with its link: JSON"/>
+        <FIELD NAME="shortlinks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of each place the form is shared from, and its QR, by the key of the place"/>
         <FIELD NAME="roles" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What each question is, when the team said it: JSON"/>
         <FIELD NAME="questions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The questions seen, as they come: JSON"/>
         <FIELD NAME="examples" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The last answer that came to each question of a bridge, by question; never what says who someone is or how to reach them"/>

@@ -186,6 +186,17 @@ class centres {
                 [$row->applyfrom, $row->applyuntil] = [$row->applyuntil, $row->applyfrom];
             }
         }
+        if (isset($data->stagenotes) && is_array($data->stagenotes)) {
+            // A word beside each stage, by the age it starts at, as families read it («concertada», «privada»).
+            $notes = [];
+            foreach ($data->stagenotes as $from => $note) {
+                $note = \core_text::substr(trim(clean_param((string) $note, PARAM_TEXT)), 0, 60);
+                if ($note !== '' && is_numeric($from)) {
+                    $notes[(int) $from] = $note;
+                }
+            }
+            $row->stagenotes = $notes ? json_encode($notes, JSON_UNESCAPED_UNICODE) : null;
+        }
         if (isset($data->applyafter)) {
             // Whether how to ask for a place is also offered once a family came, or only when the team sends it.
             $row->applyafter = empty($data->applyafter) ? 0 : 1;
@@ -644,6 +655,17 @@ class centres {
             }
         }
         return $list;
+    }
+
+    /**
+     * The word families read beside each stage of a centre, by the age it starts at.
+     *
+     * @param \stdClass|null $centre
+     * @return array age => word
+     */
+    public static function stage_notes(?\stdClass $centre): array {
+        $notes = json_decode((string) ($centre->stagenotes ?? ''), true);
+        return is_array($notes) ? $notes : [];
     }
 
     /**

@@ -99,7 +99,7 @@
         "firstdayleaf": {"weekday": "mié", "day": "08", "month": "sep"}, "namephrase": "",
         "namephraseexample": "el Colegio de ejemplo",
         "hasfamilyfrom": true, "familyfrom": [{"value": "eguahe", "name": "La crea Eguahe", "help": "Al matricular.", "pressed": true}],
-        "costs": {"text": "Cuota mensual: 320 €", "written": true, "read": "Después de la visita · 1 línea",
+        "costs": {"text": "Cuota mensual: 320 €", "stages": [{"from": 16, "name": "Bachillerato", "note": "privada"}], "hasstages": true, "written": true, "read": "Después de la visita · 1 línea",
             "whens": [{"value": "after", "name": "Después de la visita", "pressed": true}]},
         "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true, "after": true,
             "fromdate": {"id": "c-desde", "first": "c-desded", "form": false, "child": false, "invalid": false,
@@ -475,6 +475,13 @@
                         <label for="c-cuesta">{{#str}}panel_costs_lines, local_oksigeniaeguahe{{/str}}</label>
                         <textarea class="aj-cuaderno" id="c-cuesta" name="costs" rows="5" aria-describedby="c-cuesta-a" placeholder="{{#str}}panel_costs_example, local_oksigeniaeguahe{{/str}}">{{text}}</textarea>
                     </div>
+                    {{#hasstages}}
+                    <fieldset class="aj-frase aj-etapas">
+                        <legend>{{#str}}panel_stage_notes, local_oksigeniaeguahe{{/str}}</legend>
+                        <p class="ayuda" id="c-etapas-a">{{#str}}panel_stage_notes_help, local_oksigeniaeguahe{{/str}}</p>
+                        {{#stages}}<div class="aj-etapa"><label for="c-etapa-{{from}}">{{name}}</label><input class="aj-hueco" id="c-etapa-{{from}}" name="stagenote[{{from}}]" type="text" value="{{note}}" size="20" maxlength="60" aria-describedby="c-etapas-a" placeholder="{{#str}}panel_stage_notes_example, local_oksigeniaeguahe{{/str}}"></div>{{/stages}}
+                    </fieldset>
+                    {{/hasstages}}
                     <div class="aj-modos" role="group" aria-labelledby="c-cuando-t">
                         <p class="rotulo-p" id="c-cuando-t">{{#str}}panel_costs_when, local_oksigeniaeguahe{{/str}}</p>
                         {{#whens}}<button class="aj-modo" type="submit" name="costswhen" value="{{value}}" formaction="{{action}}#aj-cuesta" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/whens}}

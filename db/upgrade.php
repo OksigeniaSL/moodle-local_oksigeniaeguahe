@@ -1365,5 +1365,25 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026118000, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026118100) {
+        // The short link of each place a form is shared from, with its utm and its QR.
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $field = new xmldb_field('shortlinks', XMLDB_TYPE_TEXT, null, null, null, null, null, 'origins');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026118100, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026118101) {
+        // A word families read beside each stage, such as whether it is publicly funded.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('stagenotes', XMLDB_TYPE_TEXT, null, null, null, null, null, 'costswhen');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026118101, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
