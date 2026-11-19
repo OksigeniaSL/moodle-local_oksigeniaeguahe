@@ -133,6 +133,13 @@ class panel_household {
             'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
                 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
             'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
+        // The answer is as tall as what is written in it, with room to write: a message come written is read whole.
+        $written = (string) $composer['greeting'];
+        $lines = 0;
+        foreach (preg_split('/\R/u', $written) as $paragraph) {
+            $lines += max(1, (int) ceil(\core_text::strlen($paragraph) / 60));
+        }
+        $composer['rows'] = min(24, max(7, $lines + 2));
         $asked = $canact && $household->waitingsince > 0 ? array_map(
             fn($q) => ['text' => $q['text'], 'words' => implode('|', $q['words'])],
             questions::asked($contacts)
@@ -826,7 +833,8 @@ class panel_household {
      * @param \stdClass $household
      * @param \stdClass $full
      * @param \stdClass $centre
-     * @return array|false url and sent (when it was last sent, in words, or '').
+     * @return array|false url, inside (until when, while there is time, or '') and sent (when it was last sent, in
+     *     words, or '').
      */
     protected static function apply_send(\stdClass $household, \stdClass $full, \stdClass $centre) {
         if (trim((string) ($centre->applyhow ?? '')) === '' && trim((string) ($centre->applyurl ?? '')) === '') {
@@ -841,7 +849,15 @@ class panel_household {
             return false;
         }
         $sent = (int) ($household->applysent ?? 0);
+        // Inside the envelope, until when, while there is still time.
+        $until = (int) ($centre->applyuntil ?? 0);
+        $inside = $until && time() < $until + DAYSECS ? get_string(
+            'panel_apply_msg_until',
+            self::C,
+            userdate($until, get_string('strftimedate', 'langconfig'))
+        ) : '';
         return [
+            'inside' => $inside,
             'url' => (new \moodle_url(
                 '/local/oksigeniaeguahe/household.php',
                 ['id' => $household->id, 'matricula' => 1],

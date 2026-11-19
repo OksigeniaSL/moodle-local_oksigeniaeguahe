@@ -1210,3 +1210,44 @@ html[data-mov="menos"] .cine-corriente {
 .piel-cinematico .codigo-dibujo.en-todas i::before {
     background: var(--cine-ambar);
 }
+
+/* ---------- How to ask for a place in the cinema (Jujol, 19 November 2026, Eguahe 0.86.0). Goes in
+   pub/pieles/cinematico/piel.css. Glass and amber, nothing turned and no textures: the envelope drawn in light lines,
+   the stamp and the postmark in amber. ---------- */
+.piel-mostrador.piel-cinematico .sobre-dibujo {
+    transform: none;
+    filter: none;
+}
+
+.piel-mostrador.piel-cinematico .sobre-plaza:hover .sobre-dibujo,
+.piel-mostrador.piel-cinematico .sobre-plaza:focus-visible .sobre-dibujo {
+    transform: translateY(-2px);
+}
+
+.piel-mostrador.piel-cinematico .sobre-papel {
+    fill: var(--cine-vidrio-2);
+    stroke: var(--cine-filo-2);
+    stroke-width: 1.2;
+}
+
+.piel-mostrador.piel-cinematico .sobre-renglon {
+    stroke: var(--cine-filo-2);
+    opacity: 1;
+}
+
+.piel-mostrador.piel-cinematico .sobre-sello {
+    fill: none;
+    stroke: var(--cine-ambar);
+    stroke-width: 1.1;
+    stroke-dasharray: none;
+}
+
+.piel-mostrador.piel-cinematico .sobre-sello-dibujo {
+    fill: var(--cine-ambar);
+    opacity: 0.3;
+}
+
+.piel-mostrador.piel-cinematico .sobre-matasellos {
+    stroke: var(--cine-ambar);
+    opacity: 1;
+}

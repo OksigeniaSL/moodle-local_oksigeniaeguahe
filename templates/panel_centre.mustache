@@ -422,7 +422,7 @@
             {{#apply}}
             <details class="apartado aj-plegado" id="aj-pedir">
                 <summary><h2 id="aj-pedir-t">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura">{{#fromleaf}}<span>{{#str}}panel_read_apply_from, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/fromleaf}}{{#untilleaf}}<span>{{#str}}panel_read_apply_until, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/untilleaf}}{{^written}}<span>{{#str}}panel_read_apply_none, local_oksigeniaeguahe{{/str}}</span>{{/written}}</span></summary>
+                    <span class="aj-lectura">{{#fromleaf}}<span>{{#str}}panel_read_apply_from, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/fromleaf}}{{#untilleaf}}<span>{{#str}}panel_read_apply_until, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/untilleaf}}{{^written}}<span>{{#str}}panel_read_apply_none, local_oksigeniaeguahe{{/str}}</span>{{/written}}{{#written}}{{^after}}<span>{{#str}}panel_read_apply_sent, local_oksigeniaeguahe{{/str}}</span>{{/after}}{{/written}}</span></summary>
                 <div class="aj-cuerpo">
                     <p class="ayuda aj-pedir-ayuda" id="c-pedir-a">{{#str}}panel_apply_help, local_oksigeniaeguahe{{/str}}</p>
                     <div class="aj-dos aj-pedir-dias">
@@ -443,9 +443,15 @@
                         <label for="c-pedir-web">{{#str}}panel_apply_url, local_oksigeniaeguahe{{/str}}</label>
                         <input class="aj-hueco aj-hueco-web" id="c-pedir-web" name="applyurl" type="url" value="{{url}}" placeholder="https://" size="40" dir="ltr" autocomplete="off">
                     </div>
-                    <div class="aj-frase aj-pedir-tras">
-                        <button class="interruptor" type="submit" name="applyafter" value="{{#after}}0{{/after}}{{^after}}1{{/after}}" formaction="{{action}}#aj-pedir" aria-pressed="{{#after}}true{{/after}}{{^after}}false{{/after}}" aria-describedby="c-pedir-tras-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_apply_after, local_oksigeniaeguahe{{/str}}</span></button>
-                        <span class="ayuda" id="c-pedir-tras-a">{{#str}}panel_apply_after_help, local_oksigeniaeguahe{{/str}}</span>
+                    {{! When the families see it: after the visit (and when sent), or only when someone sends it from their file.
+                        Two choices with their lamps, like «Cuándo lo ven las familias» of «Lo que cuesta». }}
+                    <div class="aj-frase aj-pedir-cuando">
+                        <p class="aj-pedir-cuando-t" id="c-pedir-cuando-t">{{#str}}panel_apply_when, local_oksigeniaeguahe{{/str}}</p>
+                        <div class="aj-modos" role="group" aria-labelledby="c-pedir-cuando-t" aria-describedby="c-pedir-cuando-a">
+                            <button class="aj-modo" type="submit" name="applyafter" value="1" formaction="{{action}}#aj-pedir" aria-pressed="{{#after}}true{{/after}}{{^after}}false{{/after}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}panel_apply_when_after, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}panel_apply_when_after_text, local_oksigeniaeguahe{{/str}}</span></button>
+                            <button class="aj-modo" type="submit" name="applyafter" value="0" formaction="{{action}}#aj-pedir" aria-pressed="{{^after}}true{{/after}}{{#after}}false{{/after}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}panel_apply_when_sent, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}panel_apply_when_sent_text, local_oksigeniaeguahe{{/str}}</span></button>
+                        </div>
+                        <p class="ayuda" id="c-pedir-cuando-a">{{#str}}panel_apply_when_help, local_oksigeniaeguahe{{/str}}</p>
                     </div>
                     <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-pedir" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
                 </div>

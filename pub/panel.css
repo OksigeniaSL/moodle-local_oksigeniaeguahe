@@ -16465,36 +16465,6 @@ html {
 }
 
 /* ---------- 3. Cifras, «Por dónde llegaron»: four voices in two pairs, and what the AI families said ---------- */
-/* The four voices, in two pairs that mean something: how they wrote (first and last contact) and how they heard of the
-   centre (what they told us and what was measured). Never a voice alone on a second row. */
-.grafico-canales .voces {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.grafico-canales .voces a {
-    justify-content: center;
-    min-height: 40px;
-    padding: 6px 10px;
-    line-height: 1.15;
-    text-align: center;
-    white-space: normal;
-}
-
-/* An odd voice out (three of them) takes the whole row. */
-.grafico-canales .voces a:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-}
-
-/* Across the whole width there is room for the four in a row. */
-.grafico-canales.ancha .voces {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.grafico-canales.ancha .voces a:last-child:nth-child(odd) {
-    grid-column: auto;
-}
-
 /* The row of the AI assistants (its name already says it, so no stamp here): under its bar, what those families told
    us, each answer a note with how many, and those who did not say, last. */
 .canal-fila.con-dijeron {
@@ -16688,5 +16658,273 @@ html {
     .codigo-dibujo.en-todas i::before {
         /* stylelint-disable-next-line csstree/validator */
         background: Highlight;
+    }
+}
+
+/* ---------- Asking for a place (Jujol, 19 November 2026, Eguahe 0.86.0 and 0.87.0). Goes in pub/panel.css:
+   1. after «.hijo .datos» and the children wall (the envelope of the file);
+   2. after «.aj-modo[aria-pressed="true"]» (the two choices of «Cómo se pide plaza» and the words of each stage);
+   3. in place of the voices of block 3 of «lo medido» (Cifras, «Por dónde llegaron»), from «.grafico-canales .voces»
+      to «.grafico-canales.ancha .voces a:last-child:nth-child(odd)». ---------- */
+
+/* ---------- 1. The file: how to ask for a place, an envelope under the children ---------- */
+/* The envelope lies under the children, as wide as a backpack, so its words line up with theirs. The drawing says
+   nothing the link does not: written, the stamp in the centre's colour; sent, the postmark over the stamp. */
+.sobre-plaza {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 16px;
+    padding-block: 4px;
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+.sobre-plaza:focus-visible {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+.sobre-dibujo {
+    width: 84px;
+    height: auto;
+    overflow: visible;
+    transition: transform var(--dur-1) ease;
+}
+
+.sobre-papel {
+    fill: var(--eg-superficie);
+    stroke: var(--eg-borde);
+    stroke-width: 1.5;
+}
+
+.sobre-renglon {
+    fill: none;
+    stroke: var(--eg-borde);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}
+
+/* The stamp: its edge notched by the envelope's own colour; inside, the centre's colour. */
+.sobre-sello {
+    fill: var(--eg-superficie);
+    stroke: var(--eg-borde);
+    stroke-width: 1.2;
+}
+
+.sobre-sello-dibujo {
+    fill: var(--c-acento-vivo, var(--eg-acento));
+}
+
+.sobre-matasellos {
+    display: none;
+    fill: none;
+    stroke: var(--eg-sello);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.85;
+}
+
+.sobre-plaza.mandado .sobre-matasellos {
+    display: inline;
+}
+
+.sobre-texto {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sobre-texto b {
+    color: var(--eg-acento);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+}
+
+.sobre-dentro,
+.sobre-cuando {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.sobre-plaza:hover .sobre-dibujo,
+.sobre-plaza:focus-visible .sobre-dibujo {
+    transform: translateY(-2px);
+}
+
+/* The labels, under the envelope, a little apart from it. */
+.sobre-plaza + .etiquetas-enlace {
+    margin-top: 10px;
+}
+
+@media (forced-colors: active) {
+    .sobre-papel,
+    .sobre-sello {
+        /* stylelint-disable-next-line csstree/validator */
+        fill: Canvas;
+        /* stylelint-disable-next-line csstree/validator */
+        stroke: CanvasText;
+    }
+
+    .sobre-renglon,
+    .sobre-matasellos {
+        /* stylelint-disable-next-line csstree/validator */
+        stroke: CanvasText;
+    }
+
+    .sobre-sello-dibujo {
+        /* stylelint-disable-next-line csstree/validator */
+        fill: Highlight;
+    }
+
+    .sobre-texto b {
+        /* stylelint-disable-next-line csstree/validator */
+        color: LinkText;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sobre-dibujo {
+        transition: none;
+    }
+}
+
+/* ---------- 2. Settings ---------- */
+/* «Cómo se pide plaza»: when the families see it, two choices with their lamps (as in «Lo que cuesta»), each saying
+   what it does; under them, that it can always be sent from the file. */
+.aj-pedir-cuando-t {
+    margin: 0;
+    font-weight: 650;
+}
+
+.aj-pedir-cuando > .ayuda {
+    margin: 0;
+}
+
+/* The label of the choices of «Lo que cuesta» and of «Datos de las familias» lives inside their grid: a row of its own,
+   not a cell beside them, and it reads like the other labels of its card (as «Cuándo lo ven las familias» above). */
+.aj-modos > .rotulo-p {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--eg-tinta);
+    font-size: inherit;
+    font-weight: 650;
+}
+
+/* «Lo que es cada etapa»: each stage a line of the receipt the families read, the word where the amount goes, on the
+   dotted line between them. */
+.aj-etapas {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.aj-etapas > legend {
+    float: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    font-weight: 650;
+    line-height: inherit;
+}
+
+.aj-etapas > .ayuda {
+    margin: 0 0 2px;
+}
+
+.aj-etapa {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.aj-etapa > label {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.aj-etapas .aj-etapa > .aj-hueco {
+    flex: 1 1 9rem;
+    width: auto;
+    min-width: 7rem;
+    min-height: 36px;
+    border-bottom: 2px dotted var(--eg-borde);
+    text-align: end;
+}
+
+.aj-etapas .aj-etapa > .aj-hueco:focus {
+    border-bottom: 2px solid var(--eg-acento);
+}
+
+/* ---------- 3. Cifras, «Por dónde llegaron»: five voices ---------- */
+/* How they wrote, two (first and last contact), on the first row; how they heard of the centre, three (what they told
+   us, what was measured and its campaign), on the second. Four would be two pairs; three, the last one on its own row.
+   Never a voice alone that means nothing. */
+.grafico-canales .voces {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.grafico-canales .voces a {
+    grid-column: span 3;
+    justify-content: center;
+    min-height: 40px;
+    padding: 6px 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+}
+
+.grafico-canales .voces a:first-child:nth-last-child(5) ~ a:nth-child(n+3) {
+    grid-column: span 2;
+}
+
+.grafico-canales .voces a:first-child:nth-last-child(3) ~ a:last-child {
+    grid-column: 1 / -1;
+}
+
+/* On a phone, a third of the tray is narrow: less padding, so «Lo que nos dijeron» takes two lines and not three. */
+@media (max-width: 480px) {
+    .grafico-canales .voces a {
+        padding-inline: 4px;
+    }
+}
+
+/* Across the whole width (on a screen wide enough for it), all in one row, the two groups apart with a thin line. */
+@media (min-width: 900px) {
+    .grafico-canales.ancha .voces {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .grafico-canales.ancha .voces a {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .grafico-canales.ancha .voces a:first-child:nth-last-child(5) ~ a:nth-child(3) {
+        position: relative;
+        margin-inline-start: 13px;
+    }
+
+    .grafico-canales.ancha .voces a:first-child:nth-last-child(5) ~ a:nth-child(3)::before {
+        content: "";
+        position: absolute;
+        inset-block: 9px;
+        inset-inline-start: -8px;
+        width: 1.5px;
+        border-radius: 1px;
+        background: var(--eg-linea);
     }
 }
