@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\grades;
 use local_oksigeniaeguahe\local\households;
 
 /**
@@ -92,6 +93,24 @@ final class centres_test extends \advanced_testcase {
         $this->assertEquals($household->id, households::find($one, null, '+34600111222'));
         $this->assertNull(households::find($two, null, '+34600111222'));
         $this->assertNull(households::get($household->id, $two));
+    }
+
+    /**
+     * A new centre takes the country of the site, so its school systems and its stages are there from the start; one
+     * given its country keeps it, and a site without one leaves it to the centre.
+     */
+    public function test_site_country(): void {
+        $this->resetAfterTest();
+        set_config('country', '');
+        $none = centres::get(centres::create((object) ['name' => 'Academia sin país', 'lang' => 'es']));
+        $this->assertEmpty($none->country);
+        $this->assertSame([], grades::stages($none));
+        set_config('country', 'ES');
+        $site = centres::get(centres::create((object) ['name' => 'Colegio del sitio', 'lang' => 'es']));
+        $this->assertSame('ES', $site->country);
+        $this->assertNotEmpty(grades::stages($site));
+        $own = centres::get(centres::create((object) ['name' => 'Escola própria', 'lang' => 'pt', 'country' => 'PT']));
+        $this->assertSame('PT', $own->country);
     }
 
     /**

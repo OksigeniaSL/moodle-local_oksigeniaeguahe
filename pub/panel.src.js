@@ -2344,7 +2344,19 @@
     // like every other gesture of the page, with the «Save» of its card (so it comes back to that card). Without
     // JavaScript, that «Save» is there to press.
     var settingsForm = one('[data-ajustes]');
+    // A link to a folded card of the settings opens it, whether it points at the card or at something inside it.
+    var openTarget = function() {
+        var id = window.location.hash.slice(1);
+        var target = id ? document.getElementById(id) : null;
+        var card = target && target.closest('details.aj-plegado');
+        if (card && !card.open) {
+            card.open = true;
+            target.scrollIntoView();
+        }
+    };
     if (settingsForm) {
+        openTarget();
+        on(window, 'hashchange', openTarget);
         all('[data-envio-solo]', settingsForm).forEach(function(field) {
             on(field, 'change', function() {
                 if (field.type === 'file' && !(field.files && field.files.length)) {

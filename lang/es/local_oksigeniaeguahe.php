@@ -2883,6 +2883,7 @@ $string['panel_spend_missing_one'] = 'Un canal sin gasto anotado. Con su gasto a
 $string['panel_stage_notes'] = 'Lo que es cada etapa';
 $string['panel_stage_notes_example'] = 'Por ejemplo: concertada';
 $string['panel_stage_notes_help'] = 'Una palabra para las familias, si hace falta: «concertada», «privada»… Sale junto al nombre de la etapa en el formulario y al principio de «Lo que cuesta».';
+$string['panel_stage_notes_nosystem'] = 'Lo que es cada etapa: las etapas salen cuando el centro tiene su país o su sistema educativo, en';
 $string['panel_stage_place'] = 'Plaza';
 $string['panel_stamp_came'] = 'Llegó';
 $string['panel_start_it'] = 'Empezar';

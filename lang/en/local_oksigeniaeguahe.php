@@ -2883,6 +2883,7 @@ $string['panel_spend_missing_one'] = 'One channel without spend noted. Note it i
 $string['panel_stage_notes'] = 'What each stage is';
 $string['panel_stage_notes_example'] = 'For example: private';
 $string['panel_stage_notes_help'] = 'A word for the families, if needed: «state-funded», «private»… It goes beside the name of the stage in the form and at the start of «What it costs».';
+$string['panel_stage_notes_nosystem'] = 'What each stage is: the stages show once the centre has its country or its school system, in';
 $string['panel_stage_place'] = 'Place';
 $string['panel_stamp_came'] = 'Came';
 $string['panel_start_it'] = 'Start';

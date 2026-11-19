@@ -60,8 +60,12 @@ class centres {
      * @return int
      */
     public static function create(\stdClass $data): int {
-        global $DB;
+        global $CFG, $DB;
         $now = time();
+        if (!property_exists($data, 'country') && !empty($CFG->country)) {
+            $data = clone $data;
+            $data->country = $CFG->country;
+        }
         $row = self::clean($data);
         $row->timecreated = $now;
         $row->timemodified = $now;

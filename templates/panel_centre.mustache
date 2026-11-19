@@ -488,6 +488,9 @@
                         {{#stages}}<div class="aj-etapa"><label for="c-etapa-{{from}}">{{name}}</label><input class="aj-hueco" id="c-etapa-{{from}}" name="stagenote[{{from}}]" type="text" value="{{note}}" size="20" maxlength="60" aria-describedby="c-etapas-a" placeholder="{{#str}}panel_stage_notes_example, local_oksigeniaeguahe{{/str}}"></div>{{/stages}}
                     </fieldset>
                     {{/hasstages}}
+                    {{^hasstages}}
+                    <p class="ayuda aj-etapas-sin">{{#str}}panel_stage_notes_nosystem, local_oksigeniaeguahe{{/str}} <a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a>.</p>
+                    {{/hasstages}}
                     <div class="aj-modos" role="group" aria-labelledby="c-cuando-t">
                         <p class="rotulo-p" id="c-cuando-t">{{#str}}panel_costs_when, local_oksigeniaeguahe{{/str}}</p>
                         {{#whens}}<button class="aj-modo" type="submit" name="costswhen" value="{{value}}" formaction="{{action}}#aj-cuesta" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/whens}}
