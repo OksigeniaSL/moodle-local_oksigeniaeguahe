@@ -82,6 +82,10 @@ if (optional_param('despedida', 0, PARAM_BOOL) && $canact && $prefill === '') {
     $farewell = panel_household::context($household, $centre, true)['proposal'];
     $prefill = $farewell ? $farewell['text'] : '';
 }
+if (optional_param('matricula', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // How to ask for a place, when the family is ready: the message comes written in the answer, and a person sends it.
+    $prefill = panel_household::apply_text($household, households::full($household), $centre);
+}
 if (optional_param('eligieron', 0, PARAM_BOOL) && $canact && $prefill === '') {
     // The goodbye to a family that chose another centre, without the script: the message comes written in the answer.
     $proposal = panel_household::chose_proposal($household, households::full($household), time());
@@ -138,8 +142,14 @@ if ($action && data_submitted() && confirm_sesskey()) {
     $channel = ['mobile' => 'whatsapp'][$channel] ?? $channel;
     $channel = in_array($channel, lists::HAND_CHANNELS, true) ? $channel : 'other';
     // After answering: what comes next, promised with its day, and the answer kept as one of always if asked.
-    $aftersend = function () use ($household, $body) {
+    $aftersend = function () use ($household, $body, $centre) {
         global $USER;
+        // What was sent says how to ask for a place (the centre's address or its words): it is written down as sent.
+        $how = trim(strtok((string) ($centre->applyhow ?? ''), "\n") ?: '');
+        $url = trim((string) ($centre->applyurl ?? ''));
+        if ($body !== '' && (($url !== '' && strpos($body, $url) !== false) || ($how !== '' && strpos($body, $how) !== false))) {
+            households::apply_sent($household);
+        }
         $day = publicpage::date_param('nextday');
         $when = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) ? make_timestamp(
             (int) $d[1],

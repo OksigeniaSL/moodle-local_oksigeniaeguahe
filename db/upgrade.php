@@ -1350,5 +1350,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026117900, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026118000) {
+        // How to ask for a place, sent by the team when a family is ready; and whether it is also offered after a visit.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('applyafter', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'applyuntil');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('applysent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'arrivalref');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026118000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

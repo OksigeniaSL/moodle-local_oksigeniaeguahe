@@ -126,6 +126,32 @@ class households {
     }
 
     /**
+     * The team sent them how to ask for a place: from now, their page shows it, also at a centre that does not offer it
+     * after the visit.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     */
+    public static function apply_sent(\stdClass $household, int $now = 0): void {
+        global $DB;
+        $household->applysent = $now ?: time();
+        $DB->set_field(self::T, 'applysent', $household->applysent, ['id' => $household->id]);
+    }
+
+    /**
+     * Whether a family is offered how to ask for a place: when the team sent it, or once it came, at a centre that
+     * offers it after the visit.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param bool $came
+     * @return bool
+     */
+    public static function offered_apply(\stdClass $household, \stdClass $centre, bool $came): bool {
+        return !empty($household->applysent) || ($came && (int) ($centre->applyafter ?? 1) === 1);
+    }
+
+    /**
      * Fills in what a household had not said yet (where it lives, how it heard of the centre), never overwriting it.
      *
      * @param \stdClass $household

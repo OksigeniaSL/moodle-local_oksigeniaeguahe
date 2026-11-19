@@ -76,7 +76,7 @@
                     "tel": {"text": "+34 600 333 444", "href": "tel:+34600333444"} }]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
+        "noproposal": "", "applysend": false, "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
         "renewal": {"title": "El curso que viene, 2027-28", "canact": true, "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "pageurl": "#",
             "rows": [{"id": 3, "tag": "Leo", "next": "Le toca 2.º de Primaria", "said": "Lo dijo la familia el 3/12/26: no sigue (cambio de ciudad).",
                 "note": "Se mudan a otra isla.", "hasreasons": true,
@@ -409,6 +409,7 @@
                 {{/canact}}
             </div>
             {{/siblings}}
+            {{#applysend}}<p class="etiquetas-enlace mandar-plaza"><a class="enlace" href="{{url}}">{{{i.enviado}}}{{#str}}panel_apply_send, local_oksigeniaeguahe{{/str}}</a>{{#sent}} <span class="ayuda">{{sent}}</span>{{/sent}}</p>{{/applysend}}
             {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
         </section>
         <div class="col col-lado">

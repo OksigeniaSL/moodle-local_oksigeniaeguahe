@@ -401,7 +401,9 @@ class familymail {
             $apply = familypage::apply_context($centre, $year, $lang, time());
             $applytext = trim(($apply['when'] ? trim($apply['when']['line'] . ' ' . $apply['when']['day']) . '. ' : '') .
                 $apply['how']);
-            $applysection = $applytext !== '' && $apply['next'] === '' ? [
+            // Only where the centre offers it after the visit, or the team already sent it.
+            $offered = households::offered_apply($household, $centre, true);
+            $applysection = $offered && $applytext !== '' && $apply['next'] === '' ? [
                 'titulo' => $apply['label'],
                 'texto' => ($apply['when'] ? '<strong>' . s(trim($apply['when']['line'] . ' ' . $apply['when']['day'])) .
                     '.</strong> ' : '') . nl2br(s($apply['how']), false),

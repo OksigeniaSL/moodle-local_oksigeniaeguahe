@@ -101,7 +101,7 @@
         "hasfamilyfrom": true, "familyfrom": [{"value": "eguahe", "name": "La crea Eguahe", "help": "Al matricular.", "pressed": true}],
         "costs": {"text": "Cuota mensual: 320 €", "written": true, "read": "Después de la visita · 1 línea",
             "whens": [{"value": "after", "name": "Después de la visita", "pressed": true}]},
-        "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true,
+        "apply": {"how": "La solicitud se entrega en secretaría, de 9:00 a 13:00.", "url": "", "written": true, "after": true,
             "fromdate": {"id": "c-desde", "first": "c-desded", "form": false, "child": false, "invalid": false,
             "labelled": true, "arialabel": false, "describedby": "c-pedir-a", "mirror": false, "value": "2027-03-01",
             "parts": [{"key": "d", "id": "c-desded", "name": "applyfromd", "label": "Día", "value": "1", "size": 2,
@@ -442,6 +442,10 @@
                     <div class="aj-frase">
                         <label for="c-pedir-web">{{#str}}panel_apply_url, local_oksigeniaeguahe{{/str}}</label>
                         <input class="aj-hueco aj-hueco-web" id="c-pedir-web" name="applyurl" type="url" value="{{url}}" placeholder="https://" size="40" dir="ltr" autocomplete="off">
+                    </div>
+                    <div class="aj-frase aj-pedir-tras">
+                        <button class="interruptor" type="submit" name="applyafter" value="{{#after}}0{{/after}}{{^after}}1{{/after}}" formaction="{{action}}#aj-pedir" aria-pressed="{{#after}}true{{/after}}{{^after}}false{{/after}}" aria-describedby="c-pedir-tras-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_apply_after, local_oksigeniaeguahe{{/str}}</span></button>
+                        <span class="ayuda" id="c-pedir-tras-a">{{#str}}panel_apply_after_help, local_oksigeniaeguahe{{/str}}</span>
                     </div>
                     <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-pedir" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
                 </div>

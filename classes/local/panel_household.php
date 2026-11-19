@@ -190,6 +190,7 @@ class panel_household {
             'hassigns' => (bool) $signs,
             'siblings' => self::siblings($household, $centre, $canact, $now),
             'thanks' => $canact ? self::thanks($household, $full) : false,
+            'applysend' => $canact ? self::apply_send($household, $full, $centre) : false,
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
                 'household' => $household->id]))->out(false) : '',
             'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',
@@ -816,6 +817,75 @@ class panel_household {
     public static function greeting(\stdClass $full): string {
         $names = array_values(array_filter(array_map(fn($a) => trim((string) $a->firstname), $full->adults)));
         return $names ? get_string('panel_greeting', self::C, self::list_words($names)) . ' ' : '';
+    }
+
+    /**
+     * «Send them how to ask for a place», for a family still on its way, when the centre wrote how: it puts the message,
+     * written, in the answer, and a person sends it (household.php?matricula=1). Once sent, when.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @return array|false url and sent (when it was last sent, in words, or '').
+     */
+    protected static function apply_send(\stdClass $household, \stdClass $full, \stdClass $centre) {
+        if (trim((string) ($centre->applyhow ?? '')) === '' && trim((string) ($centre->applyurl ?? '')) === '') {
+            return false;
+        }
+        $onway = !$full->children || array_filter($full->children, fn($k) => in_array(
+            (string) $k->stage,
+            ['inquiry', 'visit', 'application', 'waitlist'],
+            true
+        ));
+        if (!$onway) {
+            return false;
+        }
+        $sent = (int) ($household->applysent ?? 0);
+        return [
+            'url' => (new \moodle_url(
+                '/local/oksigeniaeguahe/household.php',
+                ['id' => $household->id, 'matricula' => 1],
+                'borrador'
+            ))->out(false),
+            'sent' => $sent ? get_string('panel_apply_sent', self::C, userdate($sent, get_string('strftimedate', 'langconfig'))) :
+                '',
+        ];
+    }
+
+    /**
+     * How to ask for a place, written to the family as the centre wrote it: for whom, how, until when and where. A person
+     * reads it, changes it if it needs to and sends it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function apply_text(\stdClass $household, \stdClass $full, \stdClass $centre): string {
+        $c = self::C;
+        $open = array_filter($full->children, fn($k) => in_array((string) $k->stage, ['inquiry', 'visit', 'application',
+            'waitlist'], true));
+        $parts = [!empty($household->self) ? get_string('panel_apply_msg_self', $c) : get_string(
+            'panel_apply_msg_family',
+            $c,
+            self::list_words(array_map(fn($k) => panel::tag($k), $open ?: $full->children))
+        )];
+        $how = trim((string) ($centre->applyhow ?? ''));
+        if ($how !== '') {
+            $parts[] = $how;
+        }
+        if (!empty($centre->applyuntil)) {
+            $parts[] = get_string('panel_apply_msg_until', $c, userdate(
+                (int) $centre->applyuntil,
+                get_string('strftimedate', 'langconfig')
+            ));
+        }
+        $url = trim((string) ($centre->applyurl ?? ''));
+        if ($url !== '') {
+            $parts[] = get_string('panel_apply_msg_url', $c, $url);
+        }
+        $parts[] = get_string('panel_apply_msg_end', $c);
+        return self::greeting($full) . implode("\n\n", $parts);
     }
 
     /**

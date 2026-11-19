@@ -642,6 +642,8 @@ class panel_centre {
             'fromleaf' => $leaf('applyfrom'),
             'untilleaf' => $leaf('applyuntil'),
             'written' => trim((string) ($centre->applyhow ?? '')) !== '',
+            // Offered after the visit too, or only when someone sends it from the family's file.
+            'after' => (int) ($centre->applyafter ?? 1) === 1,
         ];
     }
 
@@ -768,6 +770,7 @@ class panel_centre {
             'replydays' => optional_param('replydays', (int) ($centre->replydays ?? 2), PARAM_INT),
             'library' => optional_param('library', (string) ($centre->library ?? ''), PARAM_ALPHANUMEXT),
             'logoplate' => optional_param('logoplate', 0, PARAM_BOOL),
+            'applyafter' => optional_param('applyafter', (int) ($centre->applyafter ?? 1), PARAM_BOOL),
             'controller' => optional_param('controller', '', PARAM_TEXT),
             'rightscontact' => optional_param('rightscontact', '', PARAM_TEXT),
             'dpocontact' => optional_param('dpocontact', '', PARAM_TEXT),

@@ -397,8 +397,12 @@ class familypage {
             $band = ['isvisit' => true];
         } else if ($pending) {
             $band = ['ispending' => true];
-        } else if (!$issettled && !$isgone && !$isroster && $attended) {
+        } else if (!$issettled && !$isgone && !$isroster && households::offered_apply($household, $centre, (bool) $attended)) {
+            // How to ask for a place: once they came, or when the team sent it to them (households::offered_apply()).
             $band = ['isapply' => true] + self::apply_context($centre, $year, $lang, $now);
+        } else if (!$issettled && !$isgone && !$isroster && $attended) {
+            // They came, and the team will send them how to ask for a place when it is time: their page waits.
+            $band = false;
         } else if (!$issettled && !$isgone && !$isroster) {
             $band = ['isnext' => true];
         }

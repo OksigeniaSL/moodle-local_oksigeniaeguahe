@@ -186,6 +186,10 @@ class centres {
                 [$row->applyfrom, $row->applyuntil] = [$row->applyuntil, $row->applyfrom];
             }
         }
+        if (isset($data->applyafter)) {
+            // Whether how to ask for a place is also offered once a family came, or only when the team sends it.
+            $row->applyafter = empty($data->applyafter) ? 0 : 1;
+        }
         if (isset($data->guide)) {
             // The guide on the pages of the families, and what it says, as the centre writes it.
             $row->guide = in_array($data->guide, guide::KINDS, true) ? $data->guide : null;

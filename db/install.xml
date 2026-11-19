@@ -52,6 +52,7 @@
         <FIELD NAME="applyurl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where a place is asked for, when it is on a website"/>
         <FIELD NAME="applyfrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The first day a place can be asked for; 0, not written"/>
         <FIELD NAME="applyuntil" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last day a place can be asked for; 0, not written"/>
+        <FIELD NAME="applyafter" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 when how to ask for a place is offered once a family came; 0, only when the team sends it"/>
         <FIELD NAME="costs" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it all costs, as the centre writes it: a line per thing, «what: how much»"/>
         <FIELD NAME="costswhen" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="after" SEQUENCE="false" COMMENT="When families see what it costs: start, after the visit, or never"/>
         <FIELD NAME="familyfrom" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="eguahe" SEQUENCE="false" COMMENT="Who puts an enrolled family in the common family record: eguahe, or records (the management system of the centre loads it, and a person joins it)"/>
@@ -143,6 +144,7 @@
         <FIELD NAME="arrivalmedium" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: its utm_medium"/>
         <FIELD NAME="arrivalcampaign" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: its utm_campaign"/>
         <FIELD NAME="arrivalref" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: the site it came from, by its domain"/>
+        <FIELD NAME="applysent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team last sent them how to ask for a place; 0, never"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
