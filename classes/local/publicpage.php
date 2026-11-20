@@ -217,7 +217,11 @@ class publicpage {
             'centre' => $name,
             'initials' => $initials,
             'logo' => $logo ? $logo->out(false) : '',
-            'logoplate' => !empty($centre->logoplate),
+            // At night: the logo for dark backgrounds when the centre gave one; else the logo on its light plate when
+            // it would get lost (Jujol), or when the centre says so.
+            'logodark' => !empty($centre->id) && ($dark = centres::logo_dark((int) $centre->id)) ? $dark->out(false) : '',
+            'logoplate' => !empty($centre->logoplate) || (!empty($centre->id) && !centres::logo_dark((int) $centre->id) &&
+                centres::logo_needs_plate((int) $centre->id)),
             // The colours of the brand of the centre, as a stripe above everything; in the dark, a colour that would
             // be lost is lightened until it shows (Jujol).
             'brand' => !empty($centre->id) ? array_map(

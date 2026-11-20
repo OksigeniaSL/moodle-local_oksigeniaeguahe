@@ -268,6 +268,29 @@ textarea {
     display: none;
 }
 
+/* The logo for dark backgrounds, when the centre gave one, takes the place of the other at night */
+.placa .logo .logo-noche {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .placa .logo.con-oscuro .logo-dia {
+        display: none;
+    }
+
+    :root:not([data-theme="light"]) .placa .logo.con-oscuro .logo-noche {
+        display: block;
+    }
+}
+
+:root[data-theme="dark"] .placa .logo.con-oscuro .logo-dia {
+    display: none;
+}
+
+:root[data-theme="dark"] .placa .logo.con-oscuro .logo-noche {
+    display: block;
+}
+
 @media (max-width: 599px) {
     .idioma-largo {
         display: none;
@@ -277,10 +300,9 @@ textarea {
         display: inline;
     }
 
-    .placa {
-        flex-direction: column;
+    /* The initials or the logo at the left and the name beside them, in up to two lines; the language at the first */
+    .cabecera {
         align-items: flex-start;
-        gap: 4px;
     }
 }
 

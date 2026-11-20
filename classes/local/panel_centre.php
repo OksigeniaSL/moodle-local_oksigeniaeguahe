@@ -127,6 +127,7 @@ class panel_centre {
                 'name' => $l['tales'] ? $l['name'] : get_string('panel_tales_empty', self::C, $l['name']),
                 'selected' => $l['slug'] === (string) ($centre->library ?? '')], $libraries)),
             'logo' => $logo ? $logo->out(false) : '',
+            'logodark' => ($dark = centres::logo_dark((int) $centre->id)) ? $dark->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
             // The miniature of the centre: its plan with the way in, the same for phones, and where to park.
             'miniatures' => self::miniatures((int) $centre->id),
@@ -841,6 +842,12 @@ class panel_centre {
             }
         }
         if (!self::keep_picture('logo', null, 'logo', (int) $centre->id, self::LOGOS)) {
+            $problems[] = get_string('panel_logo_not_taken', $c);
+        }
+        // The logo for dark backgrounds, if the centre has one; or taken away.
+        if (optional_param('droplogodark', 0, PARAM_BOOL)) {
+            get_file_storage()->delete_area_files(\context_system::instance()->id, self::C, 'logodark', (int) $centre->id);
+        } else if (!self::keep_picture('logodark', null, 'logodark', (int) $centre->id, self::LOGOS)) {
             $problems[] = get_string('panel_logo_not_taken', $c);
         }
 

@@ -623,13 +623,14 @@ class centres {
      * The file of the logo of the centre, for the mail and the poster.
      *
      * @param int $centreid
+     * @param string $area logo, or logodark for its version for dark backgrounds.
      * @return \stored_file|null
      */
-    public static function logo_file(int $centreid): ?\stored_file {
+    public static function logo_file(int $centreid, string $area = 'logo'): ?\stored_file {
         $files = get_file_storage()->get_area_files(
             \context_system::instance()->id,
             'local_oksigeniaeguahe',
-            'logo',
+            $area,
             $centreid,
             'filename',
             false
@@ -784,6 +785,78 @@ class centres {
         }
         $size = @getimagesizefromstring($content);
         return $size && $size[1] > 0 ? $size[0] / $size[1] : null;
+    }
+
+    /**
+     * The logo of a centre for dark backgrounds, when it gave one.
+     *
+     * @param int $centreid
+     * @return \moodle_url|null
+     */
+    public static function logo_dark(int $centreid): ?\moodle_url {
+        $file = self::logo_file($centreid, 'logodark');
+        return $file ? \moodle_url::make_pluginfile_url(
+            $file->get_contextid(),
+            'local_oksigeniaeguahe',
+            'logodark',
+            $centreid,
+            '/',
+            $file->get_filename(),
+            false
+        ) : null;
+    }
+
+    /**
+     * Whether the logo of a centre gets lost on a dark page (Jujol): when more than a third of what it shows does not
+     * stand out 3 to 1 against the paper of the night. Then, at night, it goes on its light plate.
+     *
+     * @param int $centreid
+     * @return bool
+     */
+    public static function logo_needs_plate(int $centreid): bool {
+        static $known = [];
+        $file = self::logo_file($centreid);
+        if (!$file) {
+            return false;
+        }
+        $hash = $file->get_contenthash();
+        if (isset($known[$hash])) {
+            return $known[$hash];
+        }
+        $light = function (int $r, int $g, int $b): float {
+            $c = array_map(fn($v) => ($v /= 255) <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4, [$r, $g, $b]);
+            return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
+        };
+        // The paper of the pages at night, #171413.
+        $ground = $light(0x17, 0x14, 0x13);
+        $lost = fn(int $r, int $g, int $b) => ($light($r, $g, $b) + 0.05) / ($ground + 0.05) < 3;
+        $content = $file->get_content();
+        $seen = 0;
+        $dark = 0;
+        if (preg_match('/<svg\b/i', $content)) {
+            // Each fill or stroke written in the drawing counts once.
+            preg_match_all('/(?:fill|stroke)\s*[:=]\s*["\']?\s*#([0-9a-f]{6}|[0-9a-f]{3})\b/i', $content, $m);
+            foreach ($m[1] as $hex) {
+                $hex = strlen($hex) === 3 ? $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2] : $hex;
+                $seen++;
+                $dark += $lost(hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))) ? 1 : 0;
+            }
+        } else if (function_exists('imagecreatefromstring') && ($image = @imagecreatefromstring($content))) {
+            // A sample of the pixels that show (not transparent).
+            $w = imagesx($image);
+            $h = imagesy($image);
+            for ($y = 0; $y < $h; $y += max(1, intdiv($h, 40))) {
+                for ($x = 0; $x < $w; $x += max(1, intdiv($w, 40))) {
+                    $c = imagecolorsforindex($image, imagecolorat($image, $x, $y));
+                    if ($c['alpha'] > 100) {
+                        continue;
+                    }
+                    $seen++;
+                    $dark += $lost($c['red'], $c['green'], $c['blue']) ? 1 : 0;
+                }
+            }
+        }
+        return $known[$hash] = $seen > 0 && $dark / $seen > 0.3;
     }
 
     /**

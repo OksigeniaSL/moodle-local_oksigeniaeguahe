@@ -63,7 +63,7 @@
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
         "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
-        "hastales": false, "libraries": [], "logo": "", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hastales": false, "libraries": [], "logo": "", "logodark": "", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía.", "admin": true},
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
@@ -315,6 +315,12 @@
                             <label class="aj-placa-logo" for="c-logo">{{#logo}}<img src="{{logo}}" alt="" width="48" height="48">{{/logo}}{{^logo}}<span aria-hidden="true">{{initial}}</span>{{/logo}}</label>
                             <span class="aj-util-texto"><b>{{#str}}centre_logo, local_oksigeniaeguahe{{/str}}</b><label class="enlace" for="c-logo">{{#logo}}{{#str}}panel_logo_other, local_oksigeniaeguahe{{/str}}{{/logo}}{{^logo}}{{#str}}panel_logo_choose, local_oksigeniaeguahe{{/str}}{{/logo}}</label></span>
                             <button class="boton principal pequeno aj-foto-guardar" type="submit" name="guardar" value="1" formaction="{{action}}#aj-aspecto">{{{i.check}}}{{#str}}panel_photo_save, local_oksigeniaeguahe{{/str}}</button>
+                        </div>
+                        <div class="aj-util">
+                            <input class="archivo-oculto" id="c-logo-oscuro" type="file" name="logodark" accept="image/png,image/svg+xml,image/webp,image/jpeg" required data-envio-solo>
+                            <label class="aj-placa-logo aj-placa-oscura" for="c-logo-oscuro">{{#logodark}}<img src="{{logodark}}" alt="" width="48" height="48">{{/logodark}}{{^logodark}}<span aria-hidden="true">{{initial}}</span>{{/logodark}}</label>
+                            <span class="aj-util-texto"><b>{{#str}}centre_logodark, local_oksigeniaeguahe{{/str}}</b><label class="enlace" for="c-logo-oscuro">{{#logodark}}{{#str}}panel_logo_other, local_oksigeniaeguahe{{/str}}{{/logodark}}{{^logodark}}{{#str}}panel_logo_choose, local_oksigeniaeguahe{{/str}}{{/logodark}}</label>{{#logodark}}<button class="enlace" type="submit" name="droplogodark" value="1" formaction="{{action}}#aj-aspecto">{{#str}}panel_logodark_drop, local_oksigeniaeguahe{{/str}}</button>{{/logodark}}</span>
+                            <span class="ayuda">{{#str}}centre_logodark_help, local_oksigeniaeguahe{{/str}}</span>
                         </div>
                         <div class="aj-util">
                             <input type="hidden" name="logoplate" value="{{#logoplate}}1{{/logoplate}}{{^logoplate}}0{{/logoplate}}">

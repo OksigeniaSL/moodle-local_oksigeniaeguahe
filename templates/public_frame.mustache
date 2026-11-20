@@ -27,7 +27,7 @@
         "i": {"globe": "", "chev": "", "check": ""}, "centre": "Colegio de ejemplo", "initials": "CE", "logo": "",
         "brand": [{"light": "#1f5a4e", "dark": "#5fa08f"}, {"light": "#e8a33d", "dark": "#e8a33d"}], "namevisible": true,
         "langcode": "ES",
-        "logoplate": false, "langlabel": "Idioma", "langname": "Español",
+        "logodark": "", "logoplate": false, "langlabel": "Idioma", "langname": "Español",
         "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#",
             "current": false, "code": "en"}],
         "address": "Calle de ejemplo 1", "privacyurl": "#", "privacy": "Cómo tratamos sus datos",
@@ -37,7 +37,7 @@
 {{#brand.0}}<div class="franja-marca" aria-hidden="true">{{#brand}}<span style="--claro: {{light}}; --oscuro: {{dark}}"></span>{{/brand}}</div>{{/brand.0}}
 <header class="cabecera">
     <span class="placa">
-        {{#logo}}<span class="logo{{#logoplate}} plato-oscuro{{/logoplate}}"><img src="{{logo}}" alt="" height="40"></span>{{/logo}}
+        {{#logo}}<span class="logo{{#logoplate}} plato-oscuro{{/logoplate}}{{#logodark}} con-oscuro{{/logodark}}"><img class="logo-dia" src="{{logo}}" alt="" height="40">{{#logodark}}<img class="logo-noche" src="{{logodark}}" alt="" height="40">{{/logodark}}</span>{{/logo}}
         {{^logo}}<span class="monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
         <span class="nombre{{^namevisible}} oculto{{/namevisible}}">{{centre}}</span>
     </span>
