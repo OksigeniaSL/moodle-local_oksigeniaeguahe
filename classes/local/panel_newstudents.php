@@ -214,10 +214,13 @@ class panel_newstudents {
             if ($key === 'sibling' && !$o['hasroll']) {
                 continue;
             }
-            $rows[] = ['key' => $key, 'name' => get_string('panel_new_group_' . $key, $c),
+            // An empty shelf is not drawn (its number, in the sentences, still says what it is).
+            if ($g[$key]) {
+                $rows[] = ['key' => $key, 'name' => get_string('panel_new_group_' . $key, $c),
                 'sub' => get_string('panel_new_group_' . $key . '_sub', $c), 'n' => $g[$key], 'pct' => $pct($g[$key], $total),
                 'pctnew' => '', 'centre' => true, 'explain' => 'ex-' . $key, 'courses' => $courses($o['groups'][$key]['grades']),
                 'bags' => $bags($key, $g[$key]), 'hasparts' => false, 'parts' => []];
+            }
             self::define(
                 'ex-' . $key,
                 self::one('panel_ex_' . $key . '_t', (int) $g[$key], (object) ['n' => $g[$key],
@@ -516,6 +519,7 @@ class panel_newstudents {
                 centres::money($centre, ((float) ($spend ?? 0) + $allh * $value) / $students)
             ) : '',
             'autohours' => array_map(fn($a) => ['h' => $a['h'], 'hl' => self::hours($a['h']), 'name' => $a['name']], $auto),
+            'hasauto' => (bool) $auto,
             'written' => $writtenrows, 'tasks' => $canact ? $tasks : [], 'hastasks' => $canact && $tasks, 'canwrite' => $canact,
             'saveurl' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id]))->out(false),
             'sesskey' => sesskey(),

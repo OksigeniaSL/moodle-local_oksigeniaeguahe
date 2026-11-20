@@ -60,7 +60,8 @@ final class chatpanel_test extends \advanced_testcase {
         $found = chatpanel::find(2, 'ANA@example.com', '');
         $this->assertCount(1, $found['families']);
         $this->assertSame('asking', $found['families'][0]['kind']);
-        $this->assertStringContainsString('Lucía', $found['families'][0]['children'][0]['text']);
+        $this->assertSame('Lucía', $found['families'][0]['children'][0]['name']);
+        $this->assertSame([true, false, false, false, false], array_column($found['families'][0]['children'][0]['track'], 'here'));
         $this->assertCount(1, chatpanel::find(2, '', '+34 600111222')['families'], 'The same phone, written another way.');
         $this->assertTrue(chatpanel::find(2, 'otra@example.com', '+34600999888')['nobody']);
 
@@ -68,6 +69,13 @@ final class chatpanel_test extends \advanced_testcase {
         $brother = households::add_child($household, 'Pablo', $offer);
         $DB->set_field(households::CHILDREN, 'stage', 'enrolled', ['id' => $brother]);
         $this->assertSame('both', chatpanel::find(2, 'ana@example.com', '')['families'][0]['kind']);
+
+        // A waiting list is a pause after the application; how long, in short.
+        $wait = chatpanel::child('Leo', 'Infantil 3 años', 'waitlist', false);
+        $this->assertSame([true, true, true, false, false], array_column($wait['track'], 'done'));
+        $this->assertSame([false, false, false, true, false], array_column($wait['track'], 'pause'));
+        $this->assertSame(get_string('chat_span_days', 'local_oksigeniaeguahe', 7), chatpanel::span(7 * DAYSECS + 60));
+        $this->assertSame(get_string('chat_span_hour', 'local_oksigeniaeguahe', 1), chatpanel::span(HOURSECS));
 
         // Nobody outside the team.
         $user = $this->getDataGenerator()->create_user();

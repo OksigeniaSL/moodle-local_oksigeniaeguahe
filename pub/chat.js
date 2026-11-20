@@ -45,7 +45,8 @@
     var ask = function(contact) {
         var email = (contact && contact.email) || '';
         var phone = (contact && contact.phone_number) || '';
-        var key = email + '|' + phone;
+        var name = (contact && contact.name) || '';
+        var key = email + '|' + phone + '|' + name;
         if (key === last) {
             return;
         }
@@ -55,12 +56,20 @@
             return;
         }
         out.setAttribute('aria-busy', 'true');
-        say(root.getAttribute('data-loading'));
+        // While it looks: the shape of a card in grey, not a sentence.
+        var shape = root.querySelector('[data-chat-cargando]');
+        if (shape && shape.content) {
+            out.innerHTML = '';
+            out.appendChild(shape.content.cloneNode(true));
+        } else {
+            say(root.getAttribute('data-loading'));
+        }
         var body = new FormData();
         body.append('action', 'find');
         body.append('sesskey', root.getAttribute('data-sesskey'));
         body.append('email', email);
         body.append('phone', phone);
+        body.append('name', name);
         fetch(root.getAttribute('data-url'), {method: 'POST', body: body, credentials: 'same-origin'})
             .then(function(r) {
                 return r.json();

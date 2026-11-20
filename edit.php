@@ -89,6 +89,12 @@ if ($household) {
         }
     }
     $form->set_data($defaults);
+} else if (optional_param('fromchat', 0, PARAM_BOOL) && confirm_sesskey()) {
+    // A family nobody knew, from a conversation of the chat of the centre: its name, phone and email already written.
+    [$first, $last] = array_pad(preg_split('/\s+/', trim(optional_param('chatname', '', PARAM_TEXT)), 2), 2, '');
+    $form->set_data(['c' => $centre->id, 'firstname0' => $first, 'lastname0' => $last,
+        'phone0' => optional_param('chatphone', '', PARAM_RAW_TRIMMED),
+        'email0' => optional_param('chatemail', '', PARAM_RAW_TRIMMED)]);
 }
 
 if ($form->is_cancelled()) {

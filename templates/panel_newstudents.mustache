@@ -152,7 +152,8 @@
                         <summary>{{#str}}panel_new_hours_open, local_oksigeniaeguahe{{/str}}</summary>
                         <div class="an-parte-cuerpo">
                             <p class="an-parte-t">{{#str}}panel_new_hours_auto, local_oksigeniaeguahe{{/str}}</p>
-                            <ul class="an-horas-solas">{{#autohours}}<li data-horas="{{h}}"><b>{{hl}}</b><span>{{name}}</span></li>{{/autohours}}</ul>
+                            {{#hasauto}}<ul class="an-horas-solas">{{#autohours}}<li data-horas="{{h}}"><b>{{hl}}</b><span>{{name}}</span></li>{{/autohours}}</ul>{{/hasauto}}
+                            {{^hasauto}}<p class="an-horas-nada">{{#str}}panel_new_hours_auto_none, local_oksigeniaeguahe{{/str}}</p>{{/hasauto}}
                             <p class="an-parte-t">{{#str}}panel_new_hours_written, local_oksigeniaeguahe{{/str}}</p>
                             <ul class="an-horas-centro" data-horas-lista>
                                 {{#written}}<li class="an-hora" data-horas="{{h}}" data-tarea="{{task}}"><span class="an-hora-que">{{name}}</span><span class="an-paso">{{#canwrite}}<button type="button" class="an-menos-h" data-paso="-1" aria-label="{{#str}}panel_new_hour_less, local_oksigeniaeguahe{{/str}} {{name}}">−</button>{{/canwrite}}<b aria-live="polite">{{hl}}</b>{{#canwrite}}<button type="button" class="an-mas-h" data-paso="1" aria-label="{{#str}}panel_new_hour_more, local_oksigeniaeguahe{{/str}} {{name}}">+</button>{{/canwrite}}</span></li>{{/written}}

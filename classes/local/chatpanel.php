@@ -69,9 +69,10 @@ class chatpanel {
      * @param int $userid
      * @param string $email
      * @param string $phone
+     * @param string $name The name the chat knows, to note a family nobody knew.
      * @return array The context of chat_family.
      */
-    public static function find(int $userid, string $email, string $phone): array {
+    public static function find(int $userid, string $email, string $phone, string $name = ''): array {
         global $DB;
         $email = \core_text::strtolower(trim($email));
         $email = validate_email($email) ? $email : '';
@@ -125,7 +126,7 @@ class chatpanel {
                 if (!$household) {
                     continue;
                 }
-                $families[] = self::household($centre, $household, count($centres) > 1, $userid);
+                $families[] = self::household($centre, $household, count($centres) > 1, $userid) + ['centreid' => $cid];
                 if ((int) ($household->familylink ?? 0) > 0) {
                     $linked[(int) $household->familylink] = true;
                 }
@@ -139,8 +140,41 @@ class chatpanel {
             }
         }
         $school = self::school($email, array_keys($phones), $linked);
+        // Where a family nobody knew is noted: the centre of this person with the latest family that wrote.
         $first = reset($centres);
+        if (count($centres) > 1) {
+            [$in, $inparams] = $DB->get_in_or_equal(array_map(fn($c) => (int) $c->id, $centres), SQL_PARAMS_NAMED);
+            $latest = $DB->get_records_sql_menu('SELECT centreid, MAX(lastcontact) AS last FROM {' . households::T . '}
+                                                  WHERE centreid ' . $in . ' GROUP BY centreid', $inparams);
+            arsort($latest);
+            foreach (array_keys($latest) as $cid) {
+                foreach ($centres as $centre) {
+                    if ((int) $centre->id === (int) $cid) {
+                        $first = $centre;
+                        break 2;
+                    }
+                }
+            }
+        }
+        // Two households or more of one centre with this contact: it may be the same family, joined from its file.
+        $same = false;
+        foreach (array_count_values(array_column($families, 'centreid')) as $cid => $n) {
+            if ($n > 1 && !$same) {
+                $one = array_values(array_filter($families, fn($f) => $f['centreid'] === $cid))[0];
+                $same = ['n' => $n, 'url' => (new \moodle_url(
+                    '/local/oksigeniaeguahe/household.php',
+                    ['id' => $one['id']],
+                    'misma-familia'
+                ))->out(false)];
+            }
+        }
+        $name = trim(clean_param($name, PARAM_TEXT));
+        // The phone as people read it («+34 699 00 00 00»), when it is a number.
+        $tel = $phone !== '' && $first ? phone::normalise($phone, (string) ($first->country ?? '')) : null;
+        $shown = $tel ? phone::display($tel) : ($phone !== '' ? $phone : false);
         return [
+            'contact' => ['name' => $name, 'phone' => $shown, 'email' => $email !== '' ? $email : false],
+            'same' => $same,
             'families' => $families,
             'hasfamilies' => (bool) $families,
             'school' => $school,
@@ -150,6 +184,7 @@ class chatpanel {
                 '/local/oksigeniaeguahe/edit.php',
                 ['c' => $first->id]
             ))->out(false) : false,
+            'sesskey' => sesskey(),
         ];
     }
 
@@ -175,49 +210,95 @@ class chatpanel {
             $name = familypage::label_name($child) ?: get_string('chat_child_noname', $c);
             $course = isset($offers[$child->offerid]) ? format_string($offers[$child->offerid]) :
                 get_string('panel_nocourse', $c);
-            if ($child->stage === 'enrolled' && !empty($child->lefttime)) {
-                $text = get_string('chat_child_left', $c, $name);
-            } else if ($child->stage === 'enrolled') {
+            $children[] = self::child($name, $course, (string) $child->stage, !empty($child->lefttime));
+            if ($child->stage === 'enrolled' && empty($child->lefttime)) {
                 $incentre = true;
-                $text = get_string('chat_child_enrolled', $c, (object) ['name' => $name, 'course' => $course]);
-            } else if ($child->stage === 'closed') {
-                $text = get_string('chat_child_asking', $c, (object) ['name' => $name, 'course' => $course,
-                    'stage' => self::lower(get_string('stage_closed', $c))]);
-            } else {
+            } else if (!in_array($child->stage, ['enrolled', 'closed'], true)) {
                 $asking = true;
-                $text = get_string('chat_child_asking', $c, (object) ['name' => $name, 'course' => $course,
-                    'stage' => self::lower(get_string('stage_' . $child->stage, $c))]);
             }
-            $children[] = ['text' => $text];
         }
         $kind = $asking && $incentre ? 'both' : ($incentre ? 'centre' : 'asking');
-        $next = null;
+        $next = false;
         foreach ($full->signups as $signup) {
-            if ((int) $signup->timestart > $now && empty($signup->attended)) {
-                $next = get_string('chat_next', $c, (object) ['event' => format_string($signup->eventname),
-                    'when' => userdate((int) $signup->timestart, get_string('strftimedaydatetime', 'langconfig'))]);
+            $start = (int) $signup->timestart;
+            if ($start > $now && empty($signup->attended)) {
+                $next = ['weekday' => rtrim(userdate($start, '%a'), '.'), 'day' => userdate($start, '%d', 99, false),
+                    'month' => rtrim(userdate($start, '%b'), '.'), 'event' => format_string($signup->eventname),
+                    'when' => self::upper(userdate($start, '%A')) . ', ' . panel::hour($start)];
                 break;
             }
+        }
+        $waiting = false;
+        if ($since = (int) $household->waitingsince) {
+            $replydays = max(1, (int) ($centre->replydays ?? 2));
+            $waiting = ['short' => self::span($now - $since), 'long' => get_string('chat_since', $c, panel::when_words($since, $now)),
+                'level' => $now - $since > $replydays * DAYSECS ? 'tarde' : 'atiempo'];
         }
         $owner = (int) ($household->ownerid ?? 0) ? $DB->get_record('user', ['id' => $household->ownerid, 'deleted' => 0]) :
             null;
         return [
+            'id' => (int) $household->id,
             'title' => panel::adults_line($full->adults) ?: get_string('chat_family_noname', $c),
             'centre' => $withcentre ? format_string($centre->name) : false,
             'kind' => $kind,
             'kindname' => get_string('chat_kind_' . $kind, $c),
             'children' => $children,
             'haschildren' => (bool) $children,
-            'waiting' => (int) $household->waitingsince ? get_string(
-                'chat_waiting',
-                $c,
-                panel::when_words((int) $household->waitingsince, $now)
-            ) : false,
-            'owner' => $owner ? get_string((int) $owner->id === $userid ? 'chat_owner_you' : 'chat_owner', $c, fullname($owner)) :
-                false,
-            'next' => $next ?? false,
+            'waiting' => $waiting,
+            'owner' => $owner ? ['name' => fullname($owner), 'you' => (int) $owner->id === $userid,
+                'initials' => \core_text::strtoupper(\core_text::substr(trim($owner->firstname), 0, 1) .
+                    \core_text::substr(trim($owner->lastname), 0, 1))] : false,
+            'noowner' => !$owner,
+            'next' => $next,
             'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
         ];
+    }
+
+    /**
+     * A child as the chat shows it: a backpack, full when at the centre and drawn when asking, with the five steps of the
+     * way and the one it is at; a waiting list is a pause after the application.
+     *
+     * @param string $name
+     * @param string $course
+     * @param string $stage
+     * @param bool $left
+     * @return array
+     */
+    public static function child(string $name, string $course, string $stage, bool $left): array {
+        $c = self::C;
+        if ($stage === 'enrolled') {
+            return ['name' => $name, 'course' => $course, 'state' => $left ? 'left' : 'enrolled',
+                'stagename' => get_string($left ? 'chat_left' : 'chat_enrolled_in', $c), 'hastrack' => false, 'track' => [],
+                'tracklabel' => ''];
+        }
+        if ($stage === 'closed') {
+            return ['name' => $name, 'course' => $course, 'state' => 'closed', 'stagename' => get_string('stage_closed', $c),
+                'hastrack' => false, 'track' => [], 'tracklabel' => ''];
+        }
+        $wait = $stage === 'waitlist';
+        $here = $wait ? 3 : max(0, (int) array_search($stage, panel_household::PATH, true));
+        $stagename = get_string($wait ? 'chat_waitlist' : 'stage_' . $stage, $c);
+        $track = [];
+        foreach (panel_household::PATH as $i => $step) {
+            $track[] = ['name' => get_string($wait && $i === 3 ? 'chat_waitlist_step' : 'chat_step_' . $step, $c),
+                'done' => $i < $here, 'here' => $i === $here && !$wait, 'pause' => $wait && $i === 3];
+        }
+        return ['name' => $name, 'course' => $course, 'state' => $wait ? 'waitlist' : 'asking', 'stagename' => $stagename,
+            'hastrack' => true, 'track' => $track,
+            'tracklabel' => get_string('chat_track_label', $c, (object) ['name' => $name, 'stage' => self::lower($stagename)])];
+    }
+
+    /**
+     * How long, in short: «15 minutos», «2 horas», «7 días».
+     *
+     * @param int $seconds
+     * @return string
+     */
+    public static function span(int $seconds): string {
+        $minutes = max(1, intdiv($seconds, MINSECS));
+        [$n, $unit] = $minutes < 60 ? [$minutes, 'minute'] : ($minutes < 1440 ? [intdiv($minutes, 60), 'hour'] :
+            [intdiv($minutes, 1440), 'day']);
+        return get_string('chat_span_' . $unit . ($n === 1 ? '' : 's'), self::C, $n);
     }
 
     /**
@@ -255,8 +336,7 @@ class chatpanel {
                 if ($name === '' && $group === '') {
                     continue;
                 }
-                $children[] = ['text' => $group !== '' ? get_string('chat_school_child', self::C, (object) [
-                    'name' => $name !== '' ? $name : get_string('chat_child_noname', self::C), 'group' => $group]) : $name];
+                $children[] = ['name' => $name !== '' ? $name : get_string('chat_child_noname', self::C), 'group' => $group];
             }
             $out[] = ['children' => $children, 'haschildren' => (bool) $children];
         }
@@ -299,6 +379,7 @@ class chatpanel {
             'url' => (new \moodle_url('/local/oksigeniaeguahe/chat.php'))->out(false),
             'sesskey' => $in ? sesskey() : '',
             'origins' => json_encode(self::origins()),
+            'logo' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
         ];
         self::headers();
         echo '<!DOCTYPE html>
@@ -319,6 +400,16 @@ class chatpanel {
 ' . $OUTPUT->render_from_template('local_oksigeniaeguahe/chat_panel', $context) . '
 </body>
 </html>';
+    }
+
+    /**
+     * A word that opens a line: its first letter capital.
+     *
+     * @param string $text
+     * @return string
+     */
+    protected static function upper(string $text): string {
+        return \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1);
     }
 
     /**

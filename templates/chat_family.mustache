@@ -17,39 +17,103 @@
 {{!
     @template local_oksigeniaeguahe/chat_family
 
-    Who writes in the chat, among the families of the centre (chatpanel::find()): each household of Eguahe with
-    whether it asks for a place, is a family of the centre or both, its children, how long it waits, who attends it,
-    its next visit and its whole file; the families of the common record Eguahe does not have yet, with their children
-    and groups; or that nobody was found, with a way to note a new family.
+    Who writes in the chat, among the families of the centre (chatpanel::find()). Design of Jujol, 20 November 2026.
+
+    One card per household of Eguahe. Its seal says what it is, by its shape and not only its colour: asks for a
+    place (outlined), a family of the centre (filled) or both (half and half). Each child is a backpack, the mark of
+    Eguahe: filled if at the centre, drawn if asking for a place, and then the five steps of the way under it, with the
+    one it is at lit (a waiting list is a pause between the application and the place). Under the children, how long
+    they have waited, in its colour when it passes what the centre promises, and who attends them; then the next visit
+    as a leaf of a calendar; at the foot, the whole file. When one contact has two households, a line above says they may
+    be the same family and leads to joining them. The families of the common record go in a card of their own; when
+    nobody knows the contact, its name and phone, and «Anotar una familia nueva», a form that opens the page of noting a
+    family apart with them already written (sent in the body, never in an address).
 
     Example context (json):
-    {"families": [{"title": "Ana Ruiz y Pedro Gil", "centre": false, "kind": "both", "kindname": "Del centro y pide plaza",
-     "children": [{"text": "Lucía: Infantil 3 años, visita hecha"}], "haschildren": true,
-     "waiting": "Espera respuesta desde hoy a las 10:15", "owner": "La atiende Marta Pérez", "next": false, "url": "#"}],
-     "hasfamilies": true, "school": [], "hasschool": false, "nobody": false, "newurl": false}
+    {"contact": {"name": "Marta Suárez", "phone": "+34 659 04 07 53"},
+     "same": {"n": 2, "url": "#"},
+     "families": [{"title": "Marta Suárez", "centre": false, "kind": "asking", "kindname": "Pide plaza",
+        "children": [{"name": "Leo", "course": "Infantil 3 años", "state": "asking", "stagename": "Consulta", "hastrack": true,
+            "tracklabel": "Por dónde va Leo: consulta",
+            "track": [{"name": "Consulta", "done": false, "here": true, "pause": false}, {"name": "Visita", "done": false, "here": false, "pause": false}] }],
+        "haschildren": true,
+        "waiting": {"short": "7 días", "long": "desde el 13 de noviembre a las 6:55", "level": "tarde"},
+        "owner": {"name": "Elena Díaz", "initials": "ED", "you": false}, "noowner": false,
+        "next": {"day": "21", "month": "nov", "weekday": "sáb", "event": "Jornada de puertas abiertas", "when": "Sábado, 10:00"},
+        "url": "#"}],
+     "hasfamilies": true, "school": [], "hasschool": false, "nobody": false, "newurl": false, "sesskey": "x"}
 }}
+<svg class="chat-dibujos" width="0" height="0" aria-hidden="true" focusable="false">
+    <symbol id="ch-mochila" viewBox="0 0 16 18"><path d="M5.6 4.1V3.3C5.6 1.9 6.6 1 8 1s2.4.9 2.4 2.3v.8" style="fill: none; stroke: var(--m-linea); stroke-width: 1.4; stroke-linecap: round"/><path d="M2.6 8.2c0-2.5 1.9-4.2 4.3-4.2h2.2c2.4 0 4.3 1.7 4.3 4.2v7c0 .8-.6 1.4-1.4 1.4H4c-.8 0-1.4-.6-1.4-1.4z" style="fill: var(--m-relleno); stroke: var(--m-linea); stroke-width: 1.4; stroke-linejoin: round; stroke-dasharray: var(--m-trazo, none)"/><path d="M4.6 10.4h6.8v2H4.6z" style="fill: var(--m-banda)"/></symbol>
+    <symbol id="ch-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" style="fill: none; stroke: currentColor; stroke-width: 1.8"/><path d="M12 7.5V12l3 2" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"/></symbol>
+    <symbol id="ch-fuera" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round"/></symbol>
+    <symbol id="ch-dos" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.4" style="fill: none; stroke: currentColor; stroke-width: 1.8"/><path d="M2.8 19.5c1-3.4 3.4-5.2 6.2-5.2s5.2 1.8 6.2 5.2" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"/><circle cx="16.8" cy="9.5" r="2.7" style="fill: none; stroke: currentColor; stroke-width: 1.8"/><path d="M16.4 14.4c2.4.2 4.1 1.8 4.8 4.6" style="fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round"/></symbol>
+</svg>
+{{#same}}
+<p class="chat-dos">
+    <svg class="chat-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ch-dos"/></svg>
+    <span>{{#str}}chat_same, local_oksigeniaeguahe, {{n}}{{/str}} <a class="enlace" href="{{url}}" target="_blank" rel="noopener">{{#str}}chat_same_join, local_oksigeniaeguahe{{/str}}</a></span>
+</p>
+{{/same}}
 {{#families}}
 <article class="chat-hogar chat-{{kind}}">
-    <p class="chat-sello">{{kindname}}</p>
+    <p class="chat-sello chat-sello-{{kind}}"><i aria-hidden="true"></i>{{kindname}}</p>
     <h2 class="chat-nombre">{{title}}</h2>
     {{#centre}}<p class="chat-centro">{{.}}</p>{{/centre}}
-    {{#haschildren}}<ul class="chat-hijos">{{#children}}<li>{{text}}</li>{{/children}}</ul>{{/haschildren}}
-    {{#waiting}}<p class="chat-espera">{{.}}</p>{{/waiting}}
-    {{#owner}}<p class="chat-dato">{{.}}</p>{{/owner}}
-    {{#next}}<p class="chat-dato">{{.}}</p>{{/next}}
-    <p><a class="boton secundario" href="{{url}}" target="_blank" rel="noopener">{{#str}}chat_open, local_oksigeniaeguahe{{/str}}</a></p>
+    {{#haschildren}}
+    <ul class="chat-hijos">
+        {{#children}}
+        <li class="chat-hijo chat-hijo-{{state}}">
+            <svg class="chat-mochila" viewBox="0 0 16 18" aria-hidden="true" focusable="false"><use href="#ch-mochila"/></svg>
+            <div class="chat-hijo-texto">
+                <p class="chat-hijo-nombre"><b>{{name}}</b> <span>{{course}}</span></p>
+                {{#hastrack}}
+                <ol class="chat-pasos" aria-label="{{tracklabel}}">{{#track}}<li class="{{#done}}hecho{{/done}}{{#here}} aqui{{/here}}{{#pause}} pausa{{/pause}}"><i aria-hidden="true"></i><span>{{name}}</span></li>{{/track}}</ol>
+                {{/hastrack}}
+                {{^hastrack}}<p class="chat-paso">{{stagename}}</p>{{/hastrack}}
+            </div>
+        </li>
+        {{/children}}
+    </ul>
+    {{/haschildren}}
+    <div class="chat-datos">
+        {{#waiting}}<p class="chat-espera chat-espera-{{level}}"><svg class="chat-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ch-reloj"/></svg><span><b>{{#str}}chat_waits, local_oksigeniaeguahe, {{short}}{{/str}}</b><small>{{long}}</small></span></p>{{/waiting}}
+        {{#owner}}<p class="chat-atiende"><span class="chat-inicial{{#you}} tu{{/you}}" aria-hidden="true">{{initials}}</span><span>{{#you}}{{#str}}chat_owner_you, local_oksigeniaeguahe{{/str}}{{/you}}{{^you}}{{#str}}chat_owner, local_oksigeniaeguahe, {{name}}{{/str}}{{/you}}</span></p>{{/owner}}
+        {{#noowner}}<p class="chat-atiende chat-atiende-nadie"><span class="chat-inicial" aria-hidden="true"></span><span>{{#str}}chat_owner_nobody, local_oksigeniaeguahe{{/str}}</span></p>{{/noowner}}
+    </div>
+    {{#next}}
+    <div class="chat-visita">
+        <span class="chat-hoja" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><small>{{month}}</small></span>
+        <p><small>{{#str}}chat_next_title, local_oksigeniaeguahe{{/str}}</small><b>{{event}}</b><span>{{when}}</span></p>
+    </div>
+    {{/next}}
+    <a class="chat-abrir" href="{{url}}" target="_blank" rel="noopener">{{#str}}chat_open, local_oksigeniaeguahe{{/str}}<svg class="chat-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ch-fuera"/></svg></a>
 </article>
 {{/families}}
 {{#school}}
-<article class="chat-hogar chat-centre">
-    <p class="chat-sello">{{#str}}chat_kind_centre, local_oksigeniaeguahe{{/str}}</p>
-    <p class="chat-dato">{{#str}}chat_school_note, local_oksigeniaeguahe{{/str}}</p>
-    {{#haschildren}}<ul class="chat-hijos">{{#children}}<li>{{text}}</li>{{/children}}</ul>{{/haschildren}}
+<article class="chat-hogar chat-comun">
+    <p class="chat-sello chat-sello-centre"><i aria-hidden="true"></i>{{#str}}chat_kind_common, local_oksigeniaeguahe{{/str}}</p>
+    <p class="chat-centro">{{#str}}chat_school_note, local_oksigeniaeguahe{{/str}}</p>
+    {{#haschildren}}
+    <ul class="chat-hijos">
+        {{#children}}<li class="chat-hijo chat-hijo-enrolled"><svg class="chat-mochila" viewBox="0 0 16 18" aria-hidden="true" focusable="false"><use href="#ch-mochila"/></svg><div class="chat-hijo-texto"><p class="chat-hijo-nombre"><b>{{name}}</b> <span>{{group}}</span></p></div></li>{{/children}}
+    </ul>
+    {{/haschildren}}
 </article>
 {{/school}}
 {{#nobody}}
-<div class="chat-aviso">
-    <p>{{#str}}chat_nobody, local_oksigeniaeguahe{{/str}}</p>
-    {{#newurl}}<p><a class="boton secundario" href="{{.}}" target="_blank" rel="noopener">{{#str}}chat_nobody_new, local_oksigeniaeguahe{{/str}}</a></p>{{/newurl}}
+<div class="chat-nadie">
+    <svg class="chat-mochila chat-mochila-grande" viewBox="0 0 16 18" aria-hidden="true" focusable="false"><use href="#ch-mochila"/></svg>
+    <h2 class="chat-nombre">{{#str}}chat_nobody_title, local_oksigeniaeguahe{{/str}}</h2>
+    {{#contact}}<p class="chat-contacto"><b>{{name}}</b>{{#phone}}<span>{{.}}</span>{{/phone}}{{#email}}<span>{{.}}</span>{{/email}}</p>{{/contact}}
+    <p class="chat-aviso">{{#str}}chat_nobody, local_oksigeniaeguahe{{/str}}</p>
+    {{#newurl}}
+    <form class="chat-anotar-hoja" method="post" action="{{.}}" target="_blank">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="fromchat" value="1">
+        {{#contact}}<input type="hidden" name="chatname" value="{{name}}"><input type="hidden" name="chatphone" value="{{phone}}"><input type="hidden" name="chatemail" value="{{email}}">{{/contact}}
+        <button class="boton principal chat-anotar" type="submit">{{#str}}chat_nobody_new, local_oksigeniaeguahe{{/str}}</button>
+    </form>
+    <p class="chat-nota">{{#str}}chat_nobody_help, local_oksigeniaeguahe{{/str}}</p>
+    {{/newurl}}
 </div>
 {{/nobody}}

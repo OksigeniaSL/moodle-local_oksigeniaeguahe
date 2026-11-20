@@ -18292,61 +18292,562 @@ html {
     white-space: nowrap;
 }
 
-/* 11.6 The family beside a conversation of the chat of the centre (chat.php): a narrow column in the side of the chat. */
+/* ---------- 11.6 The family beside a conversation of the chat of the centre (chat.php). Design of Jujol, 20 November
+   2026: it replaces the section of the same name in pub/panel.css. A column of some 360 px in the side of the chat,
+   light or dark as the chat says (data-bs-theme). ----------
+   Who writes, at a glance: what the family is (its seal, by its shape), each child as a backpack (the mark of
+   Eguahe) with the five steps of its way, how long they have waited and who attends them, the next visit as a leaf of
+   a calendar, and the whole file at the foot. */
+
 .pl-chat {
-    background: var(--eg-papel);
+    background: var(--c-pared, var(--eg-papel));
+}
+
+.chat-dibujos {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
 }
 
 .chat-familia {
-    padding: 12px 14px 24px;
+    padding: 10px 12px 24px;
     font-size: 0.9375rem;
+    line-height: 1.4;
 }
 
-.chat-marca {
-    margin: 0 0 10px;
+.chat-cabeza {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 2px 12px;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    color: var(--eg-tinta-2);
+}
+
+.chat-cabeza img {
+    flex: none;
+    border-radius: 6px;
+}
+
+.chat-ico {
+    flex: none;
+    width: 16px;
+    height: 16px;
 }
 
 .chat-aviso {
+    margin: 0;
     color: var(--eg-tinta-2);
 }
 
+.chat-suelto {
+    padding: 4px 2px;
+}
+
+/* ---------- A card per household ---------- */
 .chat-hogar {
-    margin: 0 0 14px;
-    padding: 12px 14px;
+    display: grid;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 12px 14px 10px;
     border: 1px solid var(--eg-linea);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--eg-superficie);
 }
 
+/* The seal: outlined if it asks for a place, filled if a family of the centre, half and half if both. */
 .chat-sello {
-    display: inline-block;
-    margin: 0 0 6px;
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-self: start;
+    margin: 0;
+    padding: 2px 10px 2px 6px;
     border-radius: 999px;
     font-size: 0.8125rem;
-    font-weight: 700;
-    background: var(--eg-acento-suave);
-    color: var(--eg-acento);
+    font-weight: 750;
+    border: 1.5px solid var(--c-acento-vivo, var(--eg-acento));
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.chat-sello i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+}
+
+.chat-sello-centre {
+    background: var(--c-acento-vivo, var(--eg-acento));
+    border-color: transparent;
+    color: var(--c-sobre-vivo, #fff);
+}
+
+.chat-sello-centre i {
+    background: currentColor;
+}
+
+.chat-sello-both i {
+    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
 }
 
 .chat-nombre {
-    margin: 0 0 4px;
+    margin: -4px 0 0;
     font-size: 1.0625rem;
+    font-weight: 750;
     line-height: 1.3;
 }
 
-.chat-centro,
-.chat-dato {
-    margin: 0 0 4px;
+.chat-centro {
+    margin: -8px 0 0;
+    font-size: 0.8125rem;
     color: var(--eg-tinta-2);
 }
 
-.chat-espera {
-    margin: 0 0 4px;
-    font-weight: 700;
+/* ---------- The children: a backpack each ---------- */
+.chat-hijos {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.chat-hijos {
-    margin: 6px 0 8px;
-    padding-left: 18px;
+.chat-hijo {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.chat-hijo:first-child {
+    border-top: 0;
+    padding-top: 2px;
+}
+
+.chat-mochila {
+    width: 22px;
+    height: 25px;
+    margin-top: 1px;
+    overflow: visible;
+    --m-relleno: var(--mochila);
+    --m-linea: var(--mochila-sombra);
+    --m-banda: var(--mochila-luz);
+}
+
+/* Asking for a place: only the drawing, as it is not at the centre yet. */
+.chat-hijo-asking .chat-mochila,
+.chat-hijo-waitlist .chat-mochila {
+    --m-relleno: transparent;
+    --m-linea: var(--mochila);
+    --m-banda: transparent;
+    --m-trazo: 2.2 1.6;
+}
+
+.chat-hijo-left .chat-mochila,
+.chat-hijo-closed .chat-mochila {
+    --m-relleno: transparent;
+    --m-linea: var(--eg-tinta-2);
+    --m-banda: transparent;
+    opacity: 0.6;
+}
+
+.chat-hijo-nombre {
+    margin: 0;
+    line-height: 1.3;
+}
+
+.chat-hijo-nombre b {
+    font-weight: 750;
+}
+
+.chat-hijo-nombre span {
+    color: var(--eg-tinta-2);
+}
+
+.chat-paso {
+    margin: 2px 0 0;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* The five steps of the way: a dot each on a line, the one it is at in the colour of the centre, its name under it. */
+.chat-pasos {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chat-pasos li {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    min-width: 0;
+}
+
+.chat-pasos li::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    inset-inline-end: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--eg-linea);
+}
+
+.chat-pasos li:first-child::before {
+    display: none;
+}
+
+.chat-pasos li.hecho::before,
+.chat-pasos li.aqui::before {
+    background: var(--c-acento-vivo, var(--eg-acento));
+}
+
+.chat-pasos i {
+    position: relative;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--eg-linea);
+    background: var(--eg-superficie);
+}
+
+.chat-pasos li.hecho i {
+    border-color: var(--c-acento-vivo, var(--eg-acento));
+    background: var(--c-acento-vivo, var(--eg-acento));
+}
+
+.chat-pasos li.aqui i {
+    border-color: var(--c-acento-vivo, var(--eg-acento));
+    box-shadow: 0 0 0 3px var(--c-acento-suave, var(--eg-acento-suave));
+    background: var(--c-acento-vivo, var(--eg-acento));
+}
+
+/* A waiting list: a pause, not a step done. */
+.chat-pasos li.pausa i {
+    border-style: dashed;
+    background: var(--eg-superficie);
+}
+
+.chat-pasos span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.6875rem;
+    color: var(--eg-tinta-2);
+}
+
+.chat-pasos li.aqui span {
+    font-weight: 750;
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+/* ---------- How long they wait, who attends them ---------- */
+.chat-datos {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.chat-espera,
+.chat-atiende {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.chat-espera .chat-ico {
+    width: 22px;
+    height: 22px;
+    color: var(--eg-tinta-2);
+}
+
+.chat-espera span {
+    display: grid;
+    line-height: 1.25;
+}
+
+.chat-espera b {
+    font-weight: 750;
+}
+
+.chat-espera small {
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* Past what the centre promises: in the colour of what is late. */
+.chat-espera-tarde .chat-ico,
+.chat-espera-tarde b {
+    color: var(--eg-error, #b3261e);
+}
+
+.chat-inicial {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    background: var(--c-acento-suave, var(--eg-acento-suave));
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.chat-inicial.tu {
+    background: var(--c-acento-vivo, var(--eg-acento));
+    color: var(--c-sobre-vivo, #fff);
+}
+
+.chat-atiende-nadie .chat-inicial {
+    background: none;
+    border: 1.5px dashed var(--eg-tinta-2);
+}
+
+.chat-atiende-nadie {
+    color: var(--eg-tinta-2);
+}
+
+/* ---------- The next visit, as a leaf of a calendar ---------- */
+.chat-visita {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--c-acento-suave, var(--eg-acento-suave));
+}
+
+.chat-hoja {
+    display: grid;
+    justify-items: center;
+    flex: none;
+    width: 44px;
+    padding-bottom: 3px;
+    overflow: hidden;
+    border-radius: 7px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 0 var(--eg-linea);
+    line-height: 1.1;
+}
+
+.chat-hoja small:first-child {
+    width: 100%;
+    padding: 1px 0;
+    text-align: center;
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: var(--c-acento-vivo, var(--eg-acento));
+    color: var(--c-sobre-vivo, #fff);
+}
+
+.chat-hoja b {
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.chat-hoja small:last-child {
+    font-size: 0.6875rem;
+    color: var(--eg-tinta-2);
+}
+
+.chat-visita p {
+    display: grid;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.chat-visita p small {
+    font-size: 0.75rem;
+    font-weight: 750;
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.chat-visita p span {
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* ---------- The whole file, at the foot ---------- */
+.chat-abrir {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 -14px -10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--eg-linea);
+    border-radius: 0 0 12px 12px;
+    font-weight: 750;
+    color: var(--c-acento-texto, var(--eg-acento));
+    text-decoration: none;
+}
+
+.chat-abrir:hover {
+    background: var(--c-acento-suave, var(--eg-acento-suave));
+}
+
+.chat-abrir:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: -3px;
+}
+
+/* ---------- Two households for one contact ---------- */
+.chat-dos {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 0 0 12px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--c-acento-vivo, var(--eg-acento));
+    font-size: 0.875rem;
+}
+
+.chat-dos .chat-ico {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+/* ---------- Nobody knows this contact; not signed in ---------- */
+.chat-nadie,
+.chat-entrar {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    padding: 14px;
+    border: 1.5px dashed var(--eg-linea);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+}
+
+.chat-mochila-grande {
+    width: 34px;
+    height: 38px;
+    --m-relleno: transparent;
+    --m-linea: var(--mochila);
+    --m-banda: transparent;
+    --m-trazo: 2.2 1.6;
+}
+
+.chat-nadie .chat-nombre,
+.chat-entrar .chat-nombre {
+    margin: 0;
+}
+
+.chat-contacto {
+    display: grid;
+    margin: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--eg-hundido);
+    line-height: 1.35;
+}
+
+.chat-contacto span {
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+    overflow-wrap: anywhere;
+}
+
+.chat-anotar {
+    justify-self: stretch;
+    text-align: center;
+}
+
+.chat-nota {
+    margin: -2px 0 0;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+.chat-entrar-botones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 4px 0 0;
+}
+
+/* ---------- While it looks: the shape of a card, in grey ---------- */
+.chat-cargando {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 12px;
+    background: var(--eg-superficie);
+}
+
+.chat-cargando i {
+    display: block;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--eg-hundido);
+    animation: chat-luz 1.4s ease-in-out infinite;
+}
+
+.chat-cargando i:nth-child(1) {
+    width: 34%;
+    height: 18px;
+    border-radius: 999px;
+}
+
+.chat-cargando i:nth-child(2) {
+    width: 62%;
+    height: 16px;
+}
+
+.chat-cargando i:nth-child(3),
+.chat-cargando i:nth-child(4) {
+    width: 88%;
+}
+
+.chat-cargando i:nth-child(5) {
+    width: 46%;
+}
+
+@keyframes chat-luz {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-cargando i {
+        animation: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .chat-mochila,
+    .chat-mochila-grande {
+        --m-linea: CanvasText;
+    }
+
+    .chat-pasos li.aqui i,
+    .chat-pasos li.hecho i {
+        background: Highlight;
+    }
+}
+
+/* No hours counted by Eguahe yet: one quiet line under its title. */
+.an-horas-nada {
+    margin: 0 0 12px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
 }
