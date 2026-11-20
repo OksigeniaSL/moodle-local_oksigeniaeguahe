@@ -63,7 +63,7 @@
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
         "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
-        "hastales": false, "libraries": [], "logo": "", "logodark": "", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía.", "admin": true},
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
@@ -329,6 +329,8 @@
                         </div>
                     </div>
                     <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
+                    {{#logopngs}}<span hidden data-logo-png data-src="{{src}}" data-aspect="{{aspect}}" data-which="{{which}}"></span>{{/logopngs}}
+                    {{#logopngs.0}}<script src="{{logopngscript}}" defer></script>{{/logopngs.0}}
                     <div class="aj-frase con-ayuda">
                         <label for="c-bienvenida">{{#str}}centre_welcome, local_oksigeniaeguahe{{/str}}</label>
                         <span class="aj-cita"><input class="aj-hueco" id="c-bienvenida" name="welcome" value="{{welcome}}" aria-describedby="c-bienvenida-a"></span>

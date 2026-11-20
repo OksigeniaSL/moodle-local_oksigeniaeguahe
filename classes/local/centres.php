@@ -763,10 +763,11 @@ class centres {
      * the pixels of a PNG, JPEG or WebP.
      *
      * @param int $centreid
+     * @param string $area logo, or logodark.
      * @return float|null Width divided by height; null without a logo or when it cannot be read.
      */
-    public static function logo_aspect(int $centreid): ?float {
-        $file = self::logo_file($centreid);
+    public static function logo_aspect(int $centreid, string $area = 'logo'): ?float {
+        $file = self::logo_file($centreid, $area);
         if (!$file) {
             return null;
         }
@@ -785,6 +786,23 @@ class centres {
         }
         $size = @getimagesizefromstring($content);
         return $size && $size[1] > 0 ? $size[0] / $size[1] : null;
+    }
+
+    /**
+     * The logo of a centre as a picture the server can draw (PNG, JPEG, WebP): the logo itself, or the PNG copy the
+     * browser made of it when it is an SVG. For the images that are shared and the emails.
+     *
+     * @param int $centreid
+     * @param bool $dark The logo for dark backgrounds.
+     * @return \stored_file|null
+     */
+    public static function logo_raster(int $centreid, bool $dark = false): ?\stored_file {
+        $file = self::logo_file($centreid, $dark ? 'logodark' : 'logo');
+        if (!$file) {
+            return null;
+        }
+        return strpos((string) $file->get_mimetype(), 'svg') === false ? $file :
+            self::logo_file($centreid, $dark ? 'logodarkpng' : 'logopng');
     }
 
     /**

@@ -128,6 +128,12 @@ class panel_centre {
                 'selected' => $l['slug'] === (string) ($centre->library ?? '')], $libraries)),
             'logo' => $logo ? $logo->out(false) : '',
             'logodark' => ($dark = centres::logo_dark((int) $centre->id)) ? $dark->out(false) : '',
+            // The logos drawn in SVG still without their PNG copy: the browser makes it (pub/logo-png.js).
+            'logopngs' => self::logo_pngs((int) $centre->id),
+            'logopngscript' => (new \moodle_url('/local/oksigeniaeguahe/pub/logo-png.js', ['v' => (int) get_config(
+                self::C,
+                'version'
+            )]))->out(false),
             'logoplate' => !empty($centre->logoplate),
             // The miniature of the centre: its plan with the way in, the same for phones, and where to park.
             'miniatures' => self::miniatures((int) $centre->id),
@@ -841,8 +847,21 @@ class panel_centre {
                 $problems[] = get_string('panel_miniature_not_taken', $c);
             }
         }
+        $newlogo = (int) ($_FILES['logo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK;
         if (!self::keep_picture('logo', null, 'logo', (int) $centre->id, self::LOGOS)) {
             $problems[] = get_string('panel_logo_not_taken', $c);
+        } else if ($newlogo) {
+            // A new logo: its PNG copy is made again, the next time the settings are opened.
+            get_file_storage()->delete_area_files(\context_system::instance()->id, self::C, 'logopng', (int) $centre->id);
+        }
+        if (
+            (int) ($_FILES['logodark']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK || optional_param(
+                'droplogodark',
+                0,
+                PARAM_BOOL
+            )
+        ) {
+            get_file_storage()->delete_area_files(\context_system::instance()->id, self::C, 'logodarkpng', (int) $centre->id);
         }
         // The logo for dark backgrounds, if the centre has one; or taken away.
         if (optional_param('droplogodark', 0, PARAM_BOOL)) {
@@ -965,6 +984,52 @@ class panel_centre {
                 'title' => get_string('panel_' . $area, self::C), 'help' => get_string('panel_' . $area . '_help', self::C)];
         }
         return $out;
+    }
+
+    /**
+     * The logos of a centre drawn in SVG that have no PNG copy yet, for the browser to make it.
+     *
+     * @param int $centreid
+     * @return array List of src, aspect and which (light or dark).
+     */
+    protected static function logo_pngs(int $centreid): array {
+        $out = [];
+        foreach (
+            ['light' => [false, centres::logo($centreid)], 'dark' => [true, centres::logo_dark($centreid)]] as $which => [$dark, $url]
+        ) {
+            $file = centres::logo_file($centreid, $dark ? 'logodark' : 'logo');
+            if ($file && $url && strpos((string) $file->get_mimetype(), 'svg') !== false && !centres::logo_raster($centreid, $dark)) {
+                $out[] = ['src' => $url->out(false), 'aspect' => round(centres::logo_aspect($centreid, $dark ? 'logodark' : 'logo') ??
+                    1, 4), 'which' => $which];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Keeps the PNG copy of a logo in SVG that the browser made: a PNG, at most 2400 px wide and 2 MB.
+     *
+     * @param \stdClass $centre
+     * @param string $which light or dark.
+     * @return bool
+     */
+    public static function keep_png(\stdClass $centre, string $which): bool {
+        $sent = $_FILES['png'] ?? null;
+        if (!$sent || (int) ($sent['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || (int) $sent['size'] > 2 * 1024 * 1024) {
+            return false;
+        }
+        $content = (string) file_get_contents((string) $sent['tmp_name']);
+        $size = @getimagesizefromstring($content);
+        if (!$size || $size[2] !== IMAGETYPE_PNG || $size[0] > 2400 || $size[1] > 2400) {
+            return false;
+        }
+        $area = $which === 'dark' ? 'logodarkpng' : 'logopng';
+        $fs = get_file_storage();
+        $context = \context_system::instance()->id;
+        $fs->delete_area_files($context, self::C, $area, (int) $centre->id);
+        $fs->create_file_from_string(['contextid' => $context, 'component' => self::C, 'filearea' => $area,
+            'itemid' => (int) $centre->id, 'filepath' => '/', 'filename' => 'logo.png'], $content);
+        return true;
     }
 
     /**

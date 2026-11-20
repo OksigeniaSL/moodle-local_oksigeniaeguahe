@@ -54,6 +54,15 @@ $centre = centres::require_manage($id);
 $url = new moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id]);
 panel::setup($url, get_string('centre_settings', $c));
 
+// The PNG copy of a logo drawn in SVG, made by the browser that opened the settings (pub/logo-png.js).
+$which = optional_param('logopng', '', PARAM_ALPHA);
+if ($which !== '' && data_submitted()) {
+    require_sesskey();
+    @header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => panel_centre::keep_png($centre, $which)]);
+    die();
+}
+
 if (data_submitted()) {
     require_sesskey();
     $problems = panel_centre::save($centre);

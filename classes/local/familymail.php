@@ -141,8 +141,8 @@ class familymail {
 
         // The centre: its logo on its own plate, and its name.
         $plate = ['', 0, 0];
-        $logo = centres::logo_file((int) $centre->id);
-        if ($logo && sticker::available() && strpos($logo->get_mimetype(), 'svg') === false) {
+        $logo = centres::logo_raster((int) $centre->id);
+        if ($logo && sticker::available()) {
             $made = sticker::plate($logo->get_content());
             if ($made) {
                 $plate = [$embed($made[0], 'logo.png', 'image/png'), $made[1], $made[2]];

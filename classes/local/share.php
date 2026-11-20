@@ -886,7 +886,7 @@ class share {
      */
     protected static function identity($im, \stdClass $centre, array $vars, int $cx, int $cy, int $size, int $room = 1040): void {
         $name = format_string($centre->name);
-        $file = !empty($centre->id) ? centres::logo_file((int) $centre->id) : null;
+        $file = !empty($centre->id) ? centres::logo_raster((int) $centre->id) : null;
         $logo = $file ? @imagecreatefromstring($file->get_content()) : false;
         $lw = $logo ? (int) round(imagesx($logo) * $size / max(1, imagesy($logo))) : $size;
         if ($logo && $lw > 4 * $size) {

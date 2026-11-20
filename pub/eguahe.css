@@ -1081,21 +1081,22 @@ textarea {
 }
 
 /* The stripe of the brand of the centre on the top edge of the band of the visit, between the wall and the band */
+/* Always on paper, never stuck to a surface of colour: two pixels of the wall between it and the band (Jujol) */
 .con-marca .banda[data-parte="visit"] {
-    background-image: var(--marca-franja);
+    background-image: var(--marca-franja), linear-gradient(var(--c-pared), var(--c-pared));
     background-repeat: no-repeat;
-    background-size: 100% 6px;
+    background-size: 100% 6px, 100% 8px;
     background-position: top;
 }
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .con-marca .banda[data-parte="visit"] {
-        background-image: var(--marca-franja-oscura);
+        background-image: var(--marca-franja-oscura), linear-gradient(var(--c-pared), var(--c-pared));
     }
 }
 
 :root[data-theme="dark"] .con-marca .banda[data-parte="visit"] {
-    background-image: var(--marca-franja-oscura);
+    background-image: var(--marca-franja-oscura), linear-gradient(var(--c-pared), var(--c-pared));
 }
 
 .banda a {
