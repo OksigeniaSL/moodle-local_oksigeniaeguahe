@@ -1080,6 +1080,24 @@ textarea {
     gap: 22px;
 }
 
+/* The stripe of the brand of the centre on the top edge of the band of the visit, between the wall and the band */
+.con-marca .banda[data-parte="visit"] {
+    background-image: var(--marca-franja);
+    background-repeat: no-repeat;
+    background-size: 100% 6px;
+    background-position: top;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .con-marca .banda[data-parte="visit"] {
+        background-image: var(--marca-franja-oscura);
+    }
+}
+
+:root[data-theme="dark"] .con-marca .banda[data-parte="visit"] {
+    background-image: var(--marca-franja-oscura);
+}
+
 .banda a {
     color: var(--c-sobre-acento);
 }

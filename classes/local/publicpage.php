@@ -145,6 +145,31 @@ class publicpage {
     }
 
     /**
+     * The attributes of the body of a page of a family: embedded or not, and the stripe of the brand of the centre, which
+     * the band of the visit carries on its top edge (Jujol), by day and at night.
+     *
+     * @param \stdClass $centre
+     * @return string
+     */
+    protected static function body_attributes(\stdClass $centre): string {
+        $classes = self::$embedded ? ['incrustado'] : [];
+        $brand = !empty($centre->id) ? centres::brand($centre) : [];
+        $style = '';
+        if ($brand) {
+            $classes[] = 'con-marca';
+            $stops = fn(array $colours) => 'linear-gradient(90deg, ' . implode(', ', array_map(
+                fn($hex, $i) => $hex . ' ' .
+                round($i * 100 / count($colours), 2) . '% ' . round(($i + 1) * 100 / count($colours), 2) . '%',
+                $colours,
+                array_keys($colours)
+            )) . ')';
+            $style = ' style="--marca-franja: ' . $stops($brand) . '; --marca-franja-oscura: ' .
+                $stops(array_map([self::class, 'on_dark'], $brand)) . ';"';
+        }
+        return ($classes ? ' class="' . implode(' ', $classes) . '"' : '') . $style;
+    }
+
+    /**
      * A colour of the brand on the dark page: lightened, mixing it with white, until it stands out 3 to 1 against it.
      *
      * @param string $hex
@@ -272,7 +297,7 @@ display: grid; }
 ' . $vivo . '<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'riel-lectura.js?v=' . $version . '" defer></script>
 ' . $cropper . $skin . '</head>
-<body' . (self::$embedded ? ' class="incrustado"' : '') . '>
+<body' . self::body_attributes($centre) . '>
 ' . $top . $body . $bottom . '
 </body>
 </html>';

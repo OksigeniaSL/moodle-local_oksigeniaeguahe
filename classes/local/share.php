@@ -631,6 +631,21 @@ class share {
             self::label($im, $name, $accent, $cx, $at([0.524, 0.5, 0.5]), 0.9 * $f, 0);
             self::identity($im, $centre, $vars, $cx, $at([0.917, 0.86, 0.72]), $px(50), $w - 2 * $px(80));
         }
+        // The stripe of the brand of the centre on the top edge, its colours side by side: 8 px on 1200 (Jujol).
+        $brand = centres::brand($centre);
+        if ($brand) {
+            $stripe = max(4, (int) round($w * 8 / 1200));
+            foreach ($brand as $i => $hex) {
+                imagefilledrectangle(
+                    $im,
+                    (int) round($i * $w / count($brand)),
+                    0,
+                    (int) round(($i + 1) * $w / count($brand)) - 1,
+                    $stripe - 1,
+                    self::ink($im, $hex)
+                );
+            }
+        }
         ob_start();
         imagepng($im, null, 9);
         imagedestroy($im);
