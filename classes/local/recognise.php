@@ -47,6 +47,7 @@ class recognise {
         'birthplace' => ['lugar de nacimiento', 'place of birth', 'naturalidade', 'nacionalidad', 'nationality',
             'pais de (origen|nacimiento)'],
         'otherschool' => ['centro (del que|de) proce', 'centro de (origen|procedencia|destino)', 'procedencia',
+            'que asiste actualmente', '(guarderia|escuela infantil|centro de infantil).*(asiste|va)\\b',
             'colegio anterior', 'centro anterior', 'previous school', 'escola anterior', 'nombre del centro',
             'centro al que va', '^destino$', 'nuevo centro', '^centro$', '^colegio$', '^escuela$', '^school$',
             '^escola$'],

@@ -810,6 +810,8 @@ class centres {
      */
     public static function save_offer(int $centreid, \stdClass $data): int {
         global $DB;
+        // The names of the grades are read again with the offer as it is now.
+        grades::reset();
         $row = (object) [
             'centreid' => $centreid,
             'schoolyear' => \core_text::substr(trim((string) $data->schoolyear), 0, 9),

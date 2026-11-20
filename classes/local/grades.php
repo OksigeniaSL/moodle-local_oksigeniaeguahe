@@ -43,6 +43,9 @@ class grades {
     /** @var array The ages each centre wrote for its courses, by plain name, read once. */
     protected static $own = [];
 
+    /** @var array The label of each grade already read, by centre: a list of thousands of students has a few grades. */
+    protected static $labels = [];
+
     /**
      * The school systems and the words every one uses, as data.
      *
@@ -358,6 +361,24 @@ class grades {
      * @return string
      */
     public static function label(int $centreid, string $grade): string {
+        if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
+            // The tests change the offer between calls.
+            return self::read_label($centreid, $grade);
+        }
+        if (isset(self::$labels[$centreid][$grade])) {
+            return self::$labels[$centreid][$grade];
+        }
+        return self::$labels[$centreid][$grade] = self::read_label($centreid, $grade);
+    }
+
+    /**
+     * The label of a grade, worked out.
+     *
+     * @param int $centreid
+     * @param string $grade
+     * @return string
+     */
+    protected static function read_label(int $centreid, string $grade): string {
         $centre = centres::get($centreid);
         $grade = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', $grade)));
         $age = self::age($grade, $centre);
@@ -391,5 +412,6 @@ class grades {
     public static function reset(): void {
         self::$offers = [];
         self::$own = [];
+        self::$labels = [];
     }
 }

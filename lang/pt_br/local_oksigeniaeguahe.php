@@ -726,6 +726,7 @@ $string['heard_family'] = 'Família ou amigos';
 $string['heard_other'] = 'De outra forma';
 $string['heard_passingby'] = 'Passando em frente';
 $string['heard_press'] = 'Imprensa, rádio ou televisão';
+$string['heard_referral'] = 'Indicação de uma creche ou de outra escola';
 $string['heard_search'] = 'Pesquisando na internet';
 $string['heard_social'] = 'Redes sociais';
 $string['heardfrom'] = 'Como conheceu o centro';

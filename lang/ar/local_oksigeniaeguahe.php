@@ -227,6 +227,7 @@ $string['heard_family'] = 'العائلة أو الأصدقاء';
 $string['heard_other'] = 'بطريقة أخرى';
 $string['heard_passingby'] = 'المرور من أمام المبنى';
 $string['heard_press'] = 'الصحافة أو الإذاعة أو التلفزيون';
+$string['heard_referral'] = 'توصية من حضانة أو مدرسة أخرى';
 $string['heard_search'] = 'البحث على الإنترنت';
 $string['heard_social'] = 'وسائل التواصل الاجتماعي';
 $string['hobby_art'] = 'الرسم';

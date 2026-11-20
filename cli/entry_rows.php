@@ -32,10 +32,11 @@ require_once($CFG->libdir . '/clilib.php');
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\sheets;
 
 [$options, $unrecognised] = cli_get_params(
-    ['entry' => 0, 'file' => '', 'tab' => '', 'event' => 0, 'dry-run' => false, 'help' => false],
+    ['entry' => 0, 'file' => '', 'tab' => '', 'event' => 0, 'heard' => '', 'dry-run' => false, 'help' => false],
     ['h' => 'help', 'n' => 'dry-run']
 );
 if ($unrecognised) {
@@ -49,6 +50,8 @@ Options:
   --file=PATH     A CSV, XLSX or ODS file; the first row with names of columns is the header.
   --tab=NAME      In a book, the sheet to read (the first with families, if not said).
   --event=ID      Also sign them up for this act of the centre, without any reminder or message.
+  --heard=WHAT    How they all heard of the centre, when the sheet is of one way only (referral: another centre, such
+                  as a nursery, recommended it; its name, from the column of the school they come from).
   -n, --dry-run   Read and count everything, and keep nothing.
   -h, --help      This help.
 
@@ -68,6 +71,10 @@ if ($options['event']) {
     if (!$event) {
         cli_error('No act ' . (int) $options['event'] . ' in the centre of the entry');
     }
+}
+$heard = (string) $options['heard'];
+if ($heard !== '' && !in_array($heard, lists::HEARD_FROM, true)) {
+    cli_error('--heard is one of: ' . implode(', ', lists::HEARD_FROM));
 }
 $path = (string) $options['file'];
 if (!is_readable($path)) {
@@ -99,6 +106,12 @@ foreach ($rows as $row) {
     $counts[$household ? ($new ? 'new' : 'already') : 'nobody']++;
     foreach (entries::$noted as $kind => $n) {
         $noted[$kind] = ($noted[$kind] ?? 0) + $n;
+    }
+    if ($household && $heard !== '' && empty($household->heardfrom)) {
+        // How they heard of the centre, the same for the whole sheet; who recommended them, from their row.
+        $school = (string) (entries::$lastread->otherschool ?? '');
+        $DB->update_record(households::T, (object) ['id' => $household->id, 'heardfrom' => $heard,
+            'heardnet' => in_array($heard, ['social', 'referral'], true) && $school !== '' ? $school : null]);
     }
     if ($household) {
         $households[(int) $household->id] = $household;

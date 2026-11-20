@@ -150,9 +150,10 @@ class panel_channels {
         foreach ($rows as $h) {
             $heard = in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom : 'other';
             $net = trim((string) ($h->heardnet ?? ''));
-            if ($heard === 'social' && $net !== '') {
-                $out[] = ['key' => 'social:' . \core_text::strtolower($net), 'name' => $net,
-                    'group' => get_string('heard_social', $c), 'time' => (int) $h->timecreated];
+            if (in_array($heard, ['social', 'referral'], true) && $net !== '') {
+                // Each network, and each centre that recommends them, its own row.
+                $out[] = ['key' => $heard . ':' . \core_text::strtolower($net), 'name' => $net,
+                    'group' => get_string('heard_' . $heard, $c), 'time' => (int) $h->timecreated];
             } else {
                 $out[] = ['key' => $heard, 'name' => get_string('heard_' . $heard, $c), 'group' => '',
                     'time' => (int) $h->timecreated];

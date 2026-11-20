@@ -112,7 +112,8 @@ class households {
             'municipalityname' => self::short($data->municipalityname ?? null, 255),
             'heardfrom' => in_array($data->heardfrom ?? '', lists::HEARD_FROM, true) ? $data->heardfrom : null,
             'heardwho' => ($data->heardfrom ?? '') === 'centrefamilies' ? self::short($data->heardwho ?? null, 255) : null,
-            'heardnet' => ($data->heardfrom ?? '') === 'social' ? self::short($data->heardnet ?? null, 60) : null,
+            'heardnet' => in_array($data->heardfrom ?? '', ['social', 'referral'], true) ? self::short($data->heardnet ?? null, 60) :
+                null,
             'firstchannel' => in_array($data->firstchannel ?? '', lists::CHANNELS, true) ? $data->firstchannel : 'other',
             'incentre' => empty($data->incentre) ? 0 : 1,
             'moving' => empty($data->moving) ? 0 : 1,
@@ -179,8 +180,11 @@ class households {
         if (empty($household->heardwho) && ($data->heardfrom ?? '') === 'centrefamilies' && !empty($data->heardwho)) {
             $changes['heardwho'] = self::short($data->heardwho, 255);
         }
-        // Which network, when it was one: what the family named, as the centre writes it.
-        if (empty($household->heardnet) && ($data->heardfrom ?? $household->heardfrom) === 'social' && !empty($data->heardnet)) {
+        // Which network, when it was one, or which centre recommended them: as it was written.
+        if (
+            empty($household->heardnet) && in_array($data->heardfrom ?? $household->heardfrom, ['social', 'referral'], true) &&
+            !empty($data->heardnet)
+        ) {
             $changes['heardnet'] = self::short($data->heardnet, 60);
         }
         // A family that says it is already of the centre is, from then on.

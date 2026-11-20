@@ -82,12 +82,8 @@ class panel_newstudents {
         $now = $now ?: time();
         $centreid = (int) $centre->id;
         self::$explain = [];
-        $years = [];
-        foreach (metrics::school_years($centreid) as $year) {
-            if (metrics::origins($centreid, (string) $year)['total'] > 0) {
-                $years[] = (string) $year;
-            }
-        }
+        // The school years with new students: those whose lists say someone joined, without working them all out.
+        $years = metrics::years_with_joins($centreid);
         if (!$years) {
             return null;
         }

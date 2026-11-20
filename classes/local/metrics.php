@@ -432,6 +432,37 @@ class metrics {
     }
 
     /**
+     * The school years whose lists say someone joined the centre, the latest first.
+     *
+     * @param int $centreid
+     * @return string[]
+     */
+    public static function years_with_joins(int $centreid): array {
+        global $DB;
+        $joined = array_flip(array_map('strval', $DB->get_fieldset_sql(
+            "SELECT DISTINCT schoolyear FROM {" . self::STUDENTS . "} WHERE centreid = :centreid AND movement = 'join'",
+            ['centreid' => $centreid]
+        )));
+        return array_values(array_filter(array_map('strval', self::school_years($centreid)), fn($y) => isset($joined[$y])));
+    }
+
+    /**
+     * Where the new students of a school year come from, worked out once per request.
+     *
+     * @param int $centreid
+     * @param string $schoolyear
+     * @return array As origins_of() gives it.
+     */
+    public static function origins(int $centreid, string $schoolyear): array {
+        static $done = [];
+        if (defined('PHPUNIT_TEST') && PHPUNIT_TEST) {
+            // The tests change the lists between calls.
+            return self::origins_of($centreid, $schoolyear);
+        }
+        return $done[$centreid . '|' . $schoolyear] ??= self::origins_of($centreid, $schoolyear);
+    }
+
+    /**
      * Where the new students of a school year come from, by their keys and never by a name: already at the centre the
      * year before (an inner step, such as from its nursery), brothers and sisters of students who were already there,
      * new families (and of these, the ones that left their contact before in an ad, in another campaign or act, or in
@@ -443,7 +474,7 @@ class metrics {
      * @return array total, hasroll, groups (inner, sibling, newfamily, unknown: n and by grade), newby (ad, campaign, none),
      *     kinds (student => group) and homes (student => household keys).
      */
-    public static function origins(int $centreid, string $schoolyear): array {
+    protected static function origins_of(int $centreid, string $schoolyear): array {
         global $DB;
         $new = $roll = $grade = $homes = $before = [];
         $rows = $DB->get_recordset_select(

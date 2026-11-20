@@ -284,7 +284,8 @@ class entries {
         self::note_examples($entry, $answers);
         $read = self::read($entry, $centre, $answers);
         self::$lastread = $read;
-        if (self::is_test($read->email)) {
+        if (self::is_test($read->email) || self::is_team($centre, $read)) {
+            // A test, or a person of the team trying it: the entry works, and nobody comes in.
             // A test: the entry works, and nobody comes in.
             self::tested($entry);
             return [null, false, null];
@@ -401,6 +402,43 @@ class entries {
     }
 
     /**
+     * Whether whoever writes is a person of the team of the centre, trying a form or a sheet: by the email of their
+     * account or the phones of their profile.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $read What read() made of the answers.
+     * @return bool
+     */
+    public static function is_team(\stdClass $centre, \stdClass $read): bool {
+        global $DB;
+        static $known = [];
+        $id = (int) $centre->id;
+        if (!isset($known[$id]) || (defined('PHPUNIT_TEST') && PHPUNIT_TEST)) {
+            $known[$id] = [];
+            $members = centres::members($id);
+            if ($members) {
+                [$in, $params] = $DB->get_in_or_equal(array_keys($members));
+                foreach ($DB->get_records_select('user', "id $in", $params, '', 'id, email, phone1, phone2') as $user) {
+                    foreach (
+                        [households::email($user->email), phone::normalise((string) $user->phone1, $centre->country ?? null),
+                            phone::normalise((string) $user->phone2, $centre->country ?? null)] as $key
+                    ) {
+                        if ($key) {
+                            $known[$id][$key] = true;
+                        }
+                    }
+                }
+            }
+        }
+        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+            if (($adult->email && isset($known[$id][$adult->email])) || ($adult->phone && isset($known[$id][$adult->phone]))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * A test came through an entry: it works. No family is kept and nothing is counted.
      *
      * @param \stdClass $entry
@@ -440,7 +478,7 @@ class entries {
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
             'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
-            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0];
+            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0, 'otherschool' => ''];
         $detail = [];
         $people = [];
         $grades = [];
@@ -554,6 +592,12 @@ class entries {
                     break;
                 case 'hour':
                     $r->hour = $r->hour ?: $value;
+                    break;
+                case 'otherschool':
+                    // The school or nursery they come from: kept in their words, and the name of who recommended them
+                    // when the centre says so.
+                    $r->otherschool = $r->otherschool ?: \core_text::substr($value, 0, 60);
+                    $r->lines[] = $line;
                     break;
                 case 'people':
                     // How many will come to the act, for its sign-up.

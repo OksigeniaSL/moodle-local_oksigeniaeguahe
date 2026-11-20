@@ -132,6 +132,21 @@ final class teamnotes_test extends \advanced_testcase {
         $this->assertSame('600111999', $rows[0]['Teléfono de contacto (2)']);
         $twice = entries::read($entry, centres::get($cid), $rows[0]);
         $this->assertSame(['+34600111000', '+34600111999'], array_column($twice->adults, 'phone'));
+        // A person of the team trying the form: no family comes in.
+        $mary->email = 'mary@example.com';
+        $DB->set_field('user', 'email', 'mary@example.com', ['id' => $mary->id]);
+        [$nobody] = entries::receive(
+            $entry,
+            ['Nombre y apellidos' => 'Mary Medina', 'Correo' => 'mary@example.com'],
+            '',
+            null,
+            true
+        );
+        $this->assertNull($nobody);
+        // The nursery they come from, kept to say who recommended them.
+        $nursery = entries::read($entry, centres::get($cid), ['Nombre y apellidos' => 'Eva Díaz', 'Teléfono' => '600777666',
+            'Guardería o centro de infantil que asiste actualmente.' => 'Escuela infantil Los Pinos']);
+        $this->assertSame('Escuela infantil Los Pinos', $nursery->otherschool);
         // The old export of Meta writes its date the American way: «11/6/26» is the 6th of November.
         [$old] = entries::receive($entry, ['id' => '123', 'created_time' => '11/6/26', 'platform' => 'fb',
             'Nombre y apellidos' => 'Rosa León', 'Teléfono' => '600999888'], '', null, true);

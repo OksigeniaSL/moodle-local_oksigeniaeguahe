@@ -121,7 +121,8 @@ class panel_metrics {
             $said = $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
                 'other'), $c) : '';
             // On a network, which one: each one is its own row, the little used too.
-            $said .= $said !== '' && $h->heardfrom === 'social' && trim((string) ($h->heardnet ?? '')) !== '' ?
+            $said .= $said !== '' && in_array($h->heardfrom, ['social', 'referral'], true) &&
+                trim((string) ($h->heardnet ?? '')) !== '' ?
                 ' · ' . trim($h->heardnet) : '';
             $firsts[$h->id] = (string) $h->firstchannel;
             // What was measured when it arrived: the site or the source, AI assistants together.
