@@ -114,7 +114,7 @@ if (data_submitted() && confirm_sesskey()) {
 if ($poster) {
     // The poster to print, as a whole page of its own: A4, or A3 with the same sheet scaled.
     @header('Content-Type: text/html; charset=utf-8');
-    echo poster::html($event, $centre, optional_param('paper', 'A4', PARAM_ALPHANUM));
+    echo poster::html($event, $centre, optional_param('paper', 'A4', PARAM_ALPHANUM), optional_param('door', 0, PARAM_BOOL));
     die();
 }
 

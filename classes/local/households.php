@@ -272,6 +272,25 @@ class households {
                 return (int) $child->id;
             }
         }
+        // A child without a name (a contact of an ad, a row of a sheet) and the same child named later are one: the
+        // one asking for the same course, or for none yet.
+        foreach ($DB->get_records(self::CHILDREN, ['householdid' => $household->id], 'id ASC') as $child) {
+            $unnamed = trim((string) $child->firstname) === '' || $firstname === '';
+            $samecourse = !$offerid || !$child->offerid || (int) $child->offerid === $offerid;
+            if ($unnamed && $samecourse) {
+                $changes = ['id' => $child->id, 'timemodified' => time()];
+                if ($firstname !== '' && trim((string) $child->firstname) === '') {
+                    $changes['firstname'] = $firstname;
+                }
+                if ($offerid && !$child->offerid) {
+                    $changes['offerid'] = $offerid;
+                }
+                if (count($changes) > 2) {
+                    $DB->update_record(self::CHILDREN, (object) $changes);
+                }
+                return (int) $child->id;
+            }
+        }
         $now = time();
         return (int) $DB->insert_record(self::CHILDREN, (object) [
             'centreid' => $household->centreid,
@@ -872,6 +891,7 @@ class households {
             'b' => $household->id]);
         $DB->delete_records(lookalike::LOG, ['householdid' => $household->id]);
         $DB->delete_records(listmatch::T, ['householdid' => $household->id]);
+        $DB->delete_records(teamnotes::T, ['householdid' => $household->id]);
         // What came through an entry stays only as a key without the family, so that sending the old answers again does
         // not bring it back.
         $DB->set_field(entries::ARRIVALS, 'householdid', 0, ['householdid' => $household->id]);

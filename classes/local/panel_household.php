@@ -1314,7 +1314,7 @@ class panel_household {
             $out[] = panel::leaf((int) $signup->timestart) + [
                 'name' => format_string($signup->eventname),
                 'hour' => panel::hour((int) $signup->timestart),
-                'people' => get_string('panel_people', self::C, (int) $signup->people),
+                'people' => get_string((int) $signup->people === 1 ? 'panel_people_one' : 'panel_people', self::C, (int) $signup->people),
                 'came' => (bool) $signup->attended,
             ];
         }

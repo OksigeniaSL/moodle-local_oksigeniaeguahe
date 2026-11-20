@@ -89,6 +89,20 @@ class phone {
             $plus = true;
             $digits = substr($digits, 2);
         }
+        if (!$plus && $region) {
+            // Written with the country code but without its «+» («34600333444»): when the number is too long to be
+            // a national one and what follows the code has the length of one, it already was international.
+            $lengths = $region['lengths'] ?? [];
+            $code = (string) $region['code'];
+            $national = $region['national'] !== '' && strpos($digits, $region['national']) === 0 ?
+                substr($digits, strlen($region['national'])) : $digits;
+            if (
+                $lengths && !in_array(strlen($national), $lengths, true) && strpos($digits, $code) === 0 &&
+                in_array(strlen($digits) - strlen($code), $lengths, true)
+            ) {
+                $plus = true;
+            }
+        }
         if (!$plus) {
             if (!$region) {
                 return null;

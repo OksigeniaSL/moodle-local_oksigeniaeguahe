@@ -751,6 +751,45 @@ class events {
     }
 
     /**
+     * The door of an act: the link where families sign in when they arrive (on its day, «Ha venido» on their own), short
+     * and with the QR the shortener draws when there is one, asked once and kept.
+     *
+     * @param \stdClass $event
+     * @param string $lang The language of the page it opens.
+     * @return array [the link to show, the QR as markup to put in a page]
+     */
+    public static function door(\stdClass $event, string $lang): array {
+        global $DB;
+        $long = (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
+            'pk' => share::signature('puesto', 0, (int) $event->id), 'idioma' => $lang]))->out(false);
+        if (empty($event->doorurl)) {
+            $shortener = centres::is_practice((int) $event->centreid) ? null : shortener::of_site();
+            $centre = centres::get((int) $event->centreid);
+            $link = $shortener ? self::shorten(
+                $shortener,
+                $long,
+                get_string(
+                    'short_title_door',
+                    'local_oksigeniaeguahe',
+                    (object) ['centre' => $centre ? format_string($centre->name) : '', 'event' => format_string($event->name)]
+                ),
+                true,
+                'puerta-' . userdate((int) $event->timestart, '%d%m')
+            ) : null;
+            if ($link) {
+                $event->doorurl = \core_text::substr($link['short'], 0, 255);
+                $svg = self::fetch_qr((string) ($link['qrsvg'] ?? ''));
+                $event->doorqr = $svg;
+                $DB->update_record(self::T, (object) ['id' => $event->id, 'doorurl' => $event->doorurl, 'doorqr' => $svg]);
+            }
+        }
+        $shown = !empty($event->doorurl) ? $event->doorurl : $long;
+        $qr = !empty($event->doorqr) ? \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' .
+            base64_encode($event->doorqr), 'alt' => '']) : self::qr_of($shown);
+        return [$shown, $qr];
+    }
+
+    /**
      * The QR of any link, to put inside a page.
      *
      * @param string $url

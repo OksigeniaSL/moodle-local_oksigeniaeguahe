@@ -6,12 +6,14 @@
 //   3. To send also the answers the form already has, choose «eguaheSendAll» and press Run.
 {{/form}}
 {{#sheet}}
-// Sends each new row of this sheet to the inbox of the centre, every ten minutes.
+// Sends each new row of this sheet to the inbox of the centre, every ten minutes, and every night all the rows again,
+// so that what the team writes later in a row (a second call, the day of the visit) arrives too. Nothing comes in twice.
 //   1. In the sheet, menu Extensions › Apps Script. Replace what is there with all of this, and save.
-//   2. If the rows are not in the first tab, write its name below, between the quotes.
+//   2. If the rows are not in the first tab, write the names of their tabs below, between quotes and separated by
+//      commas: ['Publi', 'Visitas'].
 //   3. Choose «eguaheInstall» and press Run, once. Google asks for permission the first time.
 //   4. To send also the rows the sheet already has, choose «eguaheSendAll» and press Run.
-const EGUAHE_TAB = '';
+const EGUAHE_TABS = [];
 {{/sheet}}
 // The key below signs what is sent: whoever has it can send families to the centre. Do not share it.
 const EGUAHE_URL = {{{url}}};
@@ -58,28 +60,39 @@ function eguaheItem_(response, past) {
 
 function eguaheInstall() {
   ScriptApp.getProjectTriggers().forEach(function (trigger) {
-    if (trigger.getHandlerFunction() === 'eguaheCheck') {
+    if (['eguaheCheck', 'eguaheNightly'].indexOf(trigger.getHandlerFunction()) !== -1) {
       ScriptApp.deleteTrigger(trigger);
     }
   });
   ScriptApp.newTrigger('eguaheCheck').timeBased().everyMinutes(10).create();
+  ScriptApp.newTrigger('eguaheNightly').timeBased().atHour(2).everyDays(1).create();
   // From now on, only the rows that arrive.
-  PropertiesService.getScriptProperties().setProperty('eguaheRows', String(eguaheTab_().getLastRow()));
+  eguaheTabs_().forEach(function (tab) {
+    PropertiesService.getScriptProperties().setProperty('eguaheRows:' + tab.getName(), String(tab.getLastRow()));
+  });
 }
 
 function eguaheCheck() {
-  const done = Number(PropertiesService.getScriptProperties().getProperty('eguaheRows') || '1');
-  if (eguaheTab_().getLastRow() > done) {
-    eguaheRows_(done + 1, false);
-  }
+  eguaheTabs_().forEach(function (tab) {
+    const done = Number(PropertiesService.getScriptProperties().getProperty('eguaheRows:' + tab.getName()) || '1');
+    if (tab.getLastRow() > done) {
+      eguaheRows_(tab, done + 1, false);
+    }
+  });
+}
+
+function eguaheNightly() {
+  eguaheTabs_().forEach(function (tab) {
+    eguaheRows_(tab, 2, true);
+  });
 }
 
 function eguaheSendAll() {
-  eguaheRows_(2, true);
+  eguaheNightly();
 }
 
-function eguaheRows_(from, past) {
-  const values = eguaheTab_().getDataRange().getDisplayValues();
+function eguaheRows_(tab, from, past) {
+  const values = tab.getDataRange().getDisplayValues();
   const head = values[0];
   let items = [];
   for (let r = Math.max(from, 2) - 1; r < values.length; r++) {
@@ -100,12 +113,13 @@ function eguaheRows_(from, past) {
   if (items.length) {
     eguahePost_(items);
   }
-  PropertiesService.getScriptProperties().setProperty('eguaheRows', String(values.length));
+  PropertiesService.getScriptProperties().setProperty('eguaheRows:' + tab.getName(), String(values.length));
 }
 
-function eguaheTab_() {
+function eguaheTabs_() {
   const book = SpreadsheetApp.getActiveSpreadsheet();
-  return EGUAHE_TAB ? book.getSheetByName(EGUAHE_TAB) : book.getSheets()[0];
+  return EGUAHE_TABS.length ? EGUAHE_TABS.map(function (name) { return book.getSheetByName(name); })
+    .filter(function (tab) { return tab; }) : [book.getSheets()[0]];
 }
 {{/sheet}}
 

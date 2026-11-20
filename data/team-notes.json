@@ -1,0 +1,181 @@
+{
+  "about": "What the team writes by hand in a sheet of families (a follow-up column, the answer of a call, an observation), read as gestures of the family. Each pattern is a regular expression on the text in lower case and without accents; the first that matches takes its words, so the ones that say no go before. Words of several languages live together: a sheet of any country is read the same.",
+  "ignore": "^(created|creado|creada|nuevo|nueva|new|complete|completed|completo|completa|novo|nova|-|_|\\.)$",
+  "yes": "^(si|yes|sim|true|verdadero|verdadeiro|1|x|ok|hecho|done|feito|enviado|enviada|sent)$",
+  "no": "^(no|nao|false|falso|0)$",
+  "columns": [
+    {
+      "header": "fecha.*llamad|llamad.*fecha|call date|date of (the )?call|data.*ligac",
+      "date": "contacted:phone"
+    },
+    {
+      "header": "asistencia|asistio|^vino$|attend|comparec|presenca",
+      "yes": "attended",
+      "no": "absent"
+    },
+    {
+      "header": "enviad|informacion|info sent|info enviada",
+      "yes": "infosent",
+      "no": ""
+    },
+    {
+      "header": "^whats ?app$|^wasap$|^wsp$",
+      "yes": "contacted:whatsapp",
+      "no": "nowhatsapp"
+    }
+  ],
+  "words": [
+    {
+      "re": "\\b(no|sin|nao|sem) (tiene |tienen |usa |usan |hay |tem )?(wasap|whatsapp|whats|wsp)\\b|without whatsapp",
+      "gesture": "nowhatsapp"
+    },
+    {
+      "re": "(telefono|numero|n[o.]?) (equivocad|erron|incorrect|errad)\\w*|(el |the )?(numero|n[o.]?|number) no existe|numero inexistente|wrong number|numero errado",
+      "gesture": "wrongnumber"
+    },
+    {
+      "re": "se equivoc\\w*|por error|by mistake|por engano",
+      "gesture": "closed:other"
+    },
+    {
+      "re": "no (contesta|contestan|contesto|contestaron|coge|cogen|cogio|cogieron|responde|responden|respondio|respondieron)\\b|contestador|buzon( de voz)?|(me|nos|le) colg\\w*|colgaron|colgo\\b|cort\\w* (la )?llamada|rechaz\\w* (la )?llamada|apagado|fuera de cobertura|sin respuesta|no answer|voicemail|hung up|nao atende\\w*|caixa postal|desligou",
+      "gesture": "noanswer"
+    },
+    {
+      "re": "(cancel|anul)\\w* (la |su )?(cita|visita)|cancel\\w* (the )?(visit|appointment)|desmarc\\w*",
+      "gesture": "cancelled"
+    },
+    {
+      "re": "no (vino|vinieron|ha venido|han venido|se present\\w*|asisti\\w*|acudi\\w*)\\b|did not (come|attend)|no show|nao (veio|compareceu)",
+      "gesture": "absent"
+    },
+    {
+      "re": "invitad[oa]s? (a|al|para) [^.;]*|invited to [^.;]*|convidad[oa]s? (a|para) [^.;]*",
+      "gesture": "invited"
+    },
+    {
+      "re": "enviad[oa]s?(\\(s\\))? (un |el |los )?(wasap|whatsapp|wsp|mensaje|mensajes)[^.;]*|(wasap|whatsapp|wsp) enviado[^.;]*|whatsapp sent[^.;]*|mandad[oa] (por )?(wasap|whatsapp)[^.;]*",
+      "gesture": "contacted:whatsapp"
+    },
+    {
+      "re": "(enviad|mandad)[oa]s? (la |el )?(info|dossier|folleto)\\w*|(info\\w*|dossier) (enviad|mandad)\\w*|se le (envio|mando) (la )?info\\w*|info sent|informacao enviada",
+      "gesture": "infosent"
+    },
+    {
+      "re": "(enviad|mandad)[oa]s? (un |el )?(correo|e-?mail|mail)[^.;]*|(correo|e-?mail|mail) (enviad|mandad)\\w*|email sent",
+      "gesture": "contacted:email"
+    },
+    {
+      "re": "((viene|vienen|vendra|vendran|ira|iran|inscrit\\w*|apuntad\\w*|coming) (a |en |al |to )?(la |las |el )?)?(\\bppaa\\b|puertas abiertas|jornada de puertas|open ?day|portas abertas)[^.;,]*",
+      "gesture": "openday"
+    },
+    {
+      "re": "\\b(los|las|la|le|les|lo) (llamara|llamaran|contactara|contactaran|llama)\\b[^.;]*|volver a llamar[^.;]*|^(re)?llamar\\b[^.;]*|\\bllamar (por|el|la|de nuevo|mas tarde|manana|otra vez|en)\\b[^.;]*|call (back|again)[^.;]*|ligar (de novo|mais tarde|depois)[^.;]*",
+      "gesture": "callback"
+    },
+    {
+      "re": "(nos |me )?(llamara|llamaran|devolvera la llamada|devolveran la llamada)\\b[^.;]*|will call (us )?back|vai ligar|vao ligar",
+      "gesture": "familycalls"
+    },
+    {
+      "re": "hermanos? (en el|del|en la|de la) (cole|colegio|centro|escuela)|hermanas? (en el|del|en la|de la) (cole|colegio|centro|escuela)|esta en (el )?(cole|colegio)\\b|ya (es|son) (del|de la|alumn)\\w*|(sibling|brother|sister) (at|in) (the )?(school|centre)|irmaos? na escola",
+      "gesture": "incentre"
+    },
+    {
+      "re": "no nos (eligieron|eligio|escogieron)|(eligio|eligieron|escogio|escogieron|se va|se van|se queda|se quedan|matricul\\w*) (a |en |con |por )?otro (colegio|centro)|chose another school|outra escola",
+      "gesture": "closed:othercentre"
+    },
+    {
+      "re": "no (tenemos|hay|queda|quedan) (hueco|plaza|plazas|sitio)|sin (hueco|plaza|plazas)|no places?\\b|sem vaga",
+      "gesture": "stage:waitlist"
+    },
+    {
+      "re": "(es|son|muy|demasiado) caro|no (lo |les )?(pueden|puede) pagar|too expensive|muito caro",
+      "gesture": "closed:cost"
+    },
+    {
+      "re": "se (muda|mudan|mudaron|trasladan)\\b|mudanza|moving (away|out)|vai mudar",
+      "gesture": "closed:moved"
+    },
+    {
+      "re": "no (le |les )?interesa\\w*|ya no (quiere|quieren|les interesa)|descartad\\w*|desist\\w*|not interested|sem interesse|nao tem interesse",
+      "gesture": "closed:other"
+    },
+    {
+      "re": "lista de espera|waiting list|wait list",
+      "gesture": "stage:waitlist"
+    },
+    {
+      "re": "\\badmitid[oa]s?\\b|tiene plaza|plaza (concedida|asignada|confirmada)|\\badmitted\\b|vaga (concedida|confirmada)",
+      "gesture": "stage:admitted"
+    },
+    {
+      "re": "formalizad[oa]|solicitud (entregada|presentada|hecha|formalizada|enviada)|ha (solicitado|pedido) plaza|preinscri\\w*|application (sent|submitted|received)|solicitou vaga",
+      "gesture": "stage:application"
+    },
+    {
+      "re": "\\b(vino|vinieron|ha venido|han venido|asistio|asistieron|visito|visitaron|came|attended|veio|vieram)\\b",
+      "gesture": "attended"
+    },
+    {
+      "re": "\\b(wasap|whatsapp|wsp)\\b",
+      "gesture": "contacted:whatsapp"
+    },
+    {
+      "re": "\\b(llamad[oa]|llame|llamo|llamamos|hablad[oa]|hable|hablo|hablamos|contactad[oa]|contactamos|contacted|called|spoke|falei|ligamos|ligado)\\b",
+      "gesture": "contacted:other"
+    }
+  ],
+  "channels": [
+    {
+      "re": "telefon|llamada|\\bphone\\b|\\bcall\\b|ligacao",
+      "channel": "phone"
+    },
+    {
+      "re": "correo|e-?mail|\\bmail\\b",
+      "channel": "email"
+    },
+    {
+      "re": "whats|wasap|\\bwsp\\b",
+      "channel": "whatsapp"
+    },
+    {
+      "re": "telegram",
+      "channel": "telegram"
+    },
+    {
+      "re": "presencial|en persona|in person|walk|secretaria|pessoalmente",
+      "channel": "walkin"
+    },
+    {
+      "re": "\\bppaa\\b|puertas abiertas|open ?day|jornada|portas abertas",
+      "channel": "openday"
+    },
+    {
+      "re": "publi|rrss|redes|instagram|facebook|\\bmeta\\b|anuncio|\\bads?\\b",
+      "channel": "meta"
+    },
+    {
+      "re": "formulario|\\bweb\\b|pagina|website|\\bform\\b",
+      "channel": "webform"
+    }
+  ],
+  "heard": [
+    {
+      "re": "por (los |otros )?padres|otras familias|boca a boca|recomend\\w*|word of mouth|other families|outras familias",
+      "heard": "centrefamilies"
+    },
+    {
+      "re": "publi|anuncio|\\bads?\\b|anuncios",
+      "heard": "ad"
+    },
+    {
+      "re": "rrss|redes|instagram|facebook|tiktok",
+      "heard": "social"
+    },
+    {
+      "re": "google|buscador|internet|search",
+      "heard": "search"
+    }
+  ]
+}

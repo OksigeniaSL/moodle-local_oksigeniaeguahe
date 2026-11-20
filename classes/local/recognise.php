@@ -50,6 +50,13 @@ class recognise {
             'colegio anterior', 'centro anterior', 'previous school', 'escola anterior', 'nombre del centro',
             'centro al que va', '^destino$', 'nuevo centro', '^centro$', '^colegio$', '^escuela$', '^school$',
             '^escola$'],
+        'staff' => ['atendid[oa]s? por', 'atencion telefonica', 'quien (le |la |los |les )?atiende', 'attended by',
+            'handled by', 'atendimento', 'atendid[oa] por'],
+        'team' => ['^priority$', '^prioridad$', 'lead status', '^estado', '^status$', '^respuesta', '^resultado',
+            'fecha (de )?llamada', '^llamada', '^asistencia', '^asistio', '^enviad', 'informacion enviada', '^seguimiento',
+            'follow ?up', 'attendance', '^call (result|date)', '^resposta'],
+        'hour' => ['^hora$', '^hour$', '^time$', '^hora de (la )?(cita|visita)', '^horario$'],
+        'channel' => ['^canal$', '^canal de', '^channel$', 'medio de contacto', 'via de (entrada|contacto)'],
         'notes' => ['observ', 'obsev', 'comentario', '\bnotas?\b', 'anotacion', 'mensaje', 'message', 'comment',
             'duda', 'pregunta', 'cuentanos', '^cuales$', 'otros datos'],
         'email' => ['e ?mail', 'correo', 'endereco eletronico'],
@@ -80,7 +87,6 @@ class recognise {
         'ad' => ['^ad name$', '^anuncio$'],
         'form' => ['form name', '^formulario$', '^form$'],
         'ids' => ['^id$', '^ad id$', 'adset id', 'campaign id', 'form id', 'lead id', '^#$', '^codigo$', '^code$'],
-        'status' => ['lead status', '^estado$', '^status$'],
         'visit' => ['(momento|dia|fecha|hora) elegid', 'visita', '\bvisit'],
         'children' => ['cuantos hijos', 'numero de hijos', 'how many children', 'quantos filhos'],
         'declared' => ['como nos (conocio|conociste|conocisteis|has conocido)', 'how did you hear',
@@ -107,7 +113,7 @@ class recognise {
 
     /** @var string[] Roles removed without being read. */
     const REMOVED = ['health', 'secret', 'birthplace', 'notes', 'address', 'document', 'consent', 'guardianname',
-        'institutional'];
+        'institutional', 'team', 'staff', 'hour'];
 
     /** @var array Roles kept for the numbers, by kind of list; any other is left out. */
     const USED = [

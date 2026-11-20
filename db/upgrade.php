@@ -1491,5 +1491,33 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026118600, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119000) {
+        // What was taken from a sheet the team keeps, so that sending it again adds only what is new.
+        $table = new xmldb_table('local_oksigeniaeguahe_teamnote');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('mark', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, '-');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_key('householdid', XMLDB_KEY_FOREIGN, ['householdid'], 'local_oksigeniaeguahe_household', ['id']);
+        $table->add_index('householdmark', XMLDB_INDEX_NOTUNIQUE, ['householdid', 'mark']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        // The short link of the door of an act, where families sign in when they arrive, and its QR.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('doorurl', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'shortqr');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('doorqr', XMLDB_TYPE_TEXT, null, null, null, null, null, 'doorurl');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026119000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

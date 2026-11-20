@@ -387,7 +387,8 @@ class imports {
                     'household' => $household,
                     'student' => array_filter($skeys) ? $keys->token('student', $skeys) : null,
                     'timecontact' => $date,
-                    'channel' => self::CHANNELS[$v('channel')] ?? $channel,
+                    'channel' => self::CHANNELS[$v('channel')] ?? ($v('channel') !== '' ? teamnotes::channel($v('channel')) : null) ??
+                        $channel,
                     'sourcedetail' => $short($v('form') ?: $plan['label'], 255),
                     'kind' => $contactkind,
                     'graderequested' => $grade === '' ? null : $short(grades::label($centreid, $grade), 100),

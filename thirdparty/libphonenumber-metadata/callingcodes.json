@@ -4,1227 +4,2337 @@
   "AC": {
    "code": "247",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    6
+   ]
   },
   "AD": {
    "code": "376",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    8,
+    9
+   ]
   },
   "AE": {
    "code": "971",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "AF": {
    "code": "93",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "AG": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "AI": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "AL": {
    "code": "355",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9
+   ]
   },
   "AM": {
    "code": "374",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "AO": {
    "code": "244",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "AR": {
    "code": "54",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10,
+    11
+   ]
   },
   "AS": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "AT": {
    "code": "43",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
   },
   "AU": {
    "code": "61",
    "national": "0",
-   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12
+   ]
   },
   "AW": {
    "code": "297",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "AX": {
    "code": "358",
    "national": "0",
-   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))"
+   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "AZ": {
    "code": "994",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "BA": {
    "code": "387",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "BB": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "BD": {
    "code": "880",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "BE": {
    "code": "32",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "BF": {
    "code": "226",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "BG": {
    "code": "359",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    12
+   ]
   },
   "BH": {
    "code": "973",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "BI": {
    "code": "257",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "BJ": {
    "code": "229",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10
+   ]
   },
   "BL": {
    "code": "590",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "BM": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "BN": {
    "code": "673",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "BO": {
    "code": "591",
    "national": "0",
-   "international": "00(?:1\\d)?"
+   "international": "00(?:1\\d)?",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "BQ": {
    "code": "599",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "BR": {
    "code": "55",
    "national": "0",
-   "international": "00(?:1[245]|2[1-35]|31|4[13]|[56]5|99)"
+   "international": "00(?:1[245]|2[1-35]|31|4[13]|[56]5|99)",
+   "lengths": [
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "BS": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "BT": {
    "code": "975",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "BW": {
    "code": "267",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    10
+   ]
   },
   "BY": {
    "code": "375",
    "national": "8",
-   "international": "810"
+   "international": "810",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "BZ": {
    "code": "501",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    11
+   ]
   },
   "CA": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    7,
+    10
+   ]
   },
   "CC": {
    "code": "61",
    "national": "0",
-   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    12
+   ]
   },
   "CD": {
    "code": "243",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "CF": {
    "code": "236",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "CG": {
    "code": "242",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "CH": {
    "code": "41",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9,
+    12
+   ]
   },
   "CI": {
    "code": "225",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10
+   ]
   },
   "CK": {
    "code": "682",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5
+   ]
   },
   "CL": {
    "code": "56",
    "national": "",
-   "international": "(?:0|1(?:1[0-69]|2[02-5]|5[13-58]|69|7[0167]|8[018]))0"
+   "international": "(?:0|1(?:1[0-69]|2[02-5]|5[13-58]|69|7[0167]|8[018]))0",
+   "lengths": [
+    9,
+    10,
+    11
+   ]
   },
   "CM": {
    "code": "237",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "CN": {
    "code": "86",
    "national": "0",
-   "international": "00|1(?:[12]\\d|79)\\d\\d00"
+   "international": "00|1(?:[12]\\d|79)\\d\\d00",
+   "lengths": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "CO": {
    "code": "57",
    "national": "0",
-   "international": "00(?:4(?:[14]4|56)|[579])"
+   "international": "00(?:4(?:[14]4|56)|[579])",
+   "lengths": [
+    8,
+    10,
+    11
+   ]
   },
   "CR": {
    "code": "506",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    10
+   ]
   },
   "CU": {
    "code": "53",
    "national": "0",
-   "international": "119"
+   "international": "119",
+   "lengths": [
+    6,
+    7,
+    8,
+    10
+   ]
   },
   "CV": {
    "code": "238",
    "national": "",
-   "international": "0"
+   "international": "0",
+   "lengths": [
+    7
+   ]
   },
   "CW": {
    "code": "599",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "CX": {
    "code": "61",
    "national": "0",
-   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011"
+   "international": "001[14-689]|14(?:1[14]|34|4[17]|[56]6|7[47]|88)0011",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    12
+   ]
   },
   "CY": {
    "code": "357",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "CZ": {
    "code": "420",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "DE": {
    "code": "49",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
   },
   "DJ": {
    "code": "253",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "DK": {
    "code": "45",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "DM": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "DO": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "DZ": {
    "code": "213",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "EC": {
    "code": "593",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "EE": {
    "code": "372",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    10
+   ]
   },
   "EG": {
    "code": "20",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "EH": {
    "code": "212",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "ER": {
    "code": "291",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "ES": {
    "code": "34",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "ET": {
    "code": "251",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "FI": {
    "code": "358",
    "national": "0",
-   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))"
+   "international": "00|99(?:[01469]|5(?:[14]1|3[23]|5[59]|77|88|9[09]))",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "FJ": {
    "code": "679",
    "national": "",
-   "international": "0(?:0|52)"
+   "international": "0(?:0|52)",
+   "lengths": [
+    7,
+    11
+   ]
   },
   "FK": {
    "code": "500",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5
+   ]
   },
   "FM": {
    "code": "691",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "FO": {
    "code": "298",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6
+   ]
   },
   "FR": {
    "code": "33",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "GA": {
    "code": "241",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "GB": {
    "code": "44",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9,
+    10
+   ]
   },
   "GD": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "GE": {
    "code": "995",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "GF": {
    "code": "594",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "GG": {
    "code": "44",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9,
+    10
+   ]
   },
   "GH": {
    "code": "233",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "GI": {
    "code": "350",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "GL": {
    "code": "299",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6
+   ]
   },
   "GM": {
    "code": "220",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9
+   ]
   },
   "GN": {
    "code": "224",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "GP": {
    "code": "590",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "GQ": {
    "code": "240",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "GR": {
    "code": "30",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10,
+    11,
+    12
+   ]
   },
   "GT": {
    "code": "502",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    11
+   ]
   },
   "GU": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "GW": {
    "code": "245",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9
+   ]
   },
   "GY": {
    "code": "592",
    "national": "",
-   "international": "001"
+   "international": "001",
+   "lengths": [
+    7
+   ]
   },
   "HK": {
    "code": "852",
    "national": "",
-   "international": "00(?:30|5[09]|[126-9]?)"
+   "international": "00(?:30|5[09]|[126-9]?)",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    11
+   ]
   },
   "HN": {
    "code": "504",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    11
+   ]
   },
   "HR": {
    "code": "385",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9
+   ]
   },
   "HT": {
    "code": "509",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "HU": {
    "code": "36",
    "national": "06",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "ID": {
    "code": "62",
    "national": "0",
-   "international": "00[89]"
+   "international": "00[89]",
+   "lengths": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ]
   },
   "IE": {
    "code": "353",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "IL": {
    "code": "972",
    "national": "0",
-   "international": "0(?:0|1(?:05|[2-9]))"
+   "international": "0(?:0|1(?:05|[2-9]))",
+   "lengths": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "IM": {
    "code": "44",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10
+   ]
   },
   "IN": {
    "code": "91",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
   },
   "IO": {
    "code": "246",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "IQ": {
    "code": "964",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "IR": {
    "code": "98",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5,
+    6,
+    7,
+    10
+   ]
   },
   "IS": {
    "code": "354",
    "national": "",
-   "international": "00|1(?:0(?:01|[12]0)|100)"
+   "international": "00|1(?:0(?:01|[12]0)|100)",
+   "lengths": [
+    7,
+    9
+   ]
   },
   "IT": {
    "code": "39",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "JE": {
    "code": "44",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10
+   ]
   },
   "JM": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "JO": {
    "code": "962",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "JP": {
    "code": "81",
    "national": "0",
-   "international": "010"
+   "international": "010",
+   "lengths": [
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ]
   },
   "KE": {
    "code": "254",
    "national": "0",
-   "international": "000"
+   "international": "000",
+   "lengths": [
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "KG": {
    "code": "996",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9,
+    10
+   ]
   },
   "KH": {
    "code": "855",
    "national": "0",
-   "international": "00[14-9]"
+   "international": "00[14-9]",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "KI": {
    "code": "686",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    8
+   ]
   },
   "KM": {
    "code": "269",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "KN": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "KP": {
    "code": "850",
    "national": "0",
-   "international": "00|99"
+   "international": "00|99",
+   "lengths": [
+    8,
+    10
+   ]
   },
   "KR": {
    "code": "82",
    "national": "0",
-   "international": "00(?:[125689]|3(?:[46]5|91)|7(?:00|27|3|55|6[126]))"
+   "international": "00(?:[125689]|3(?:[46]5|91)|7(?:00|27|3|55|6[126]))",
+   "lengths": [
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
   },
   "KW": {
    "code": "965",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "KY": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "KZ": {
    "code": "7",
    "national": "8",
-   "international": "810"
+   "international": "810",
+   "lengths": [
+    10,
+    14
+   ]
   },
   "LA": {
    "code": "856",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "LB": {
    "code": "961",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "LC": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "LI": {
    "code": "423",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9
+   ]
   },
   "LK": {
    "code": "94",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "LR": {
    "code": "231",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9
+   ]
   },
   "LS": {
    "code": "266",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "LT": {
    "code": "370",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "LU": {
    "code": "352",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "LV": {
    "code": "371",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "LY": {
    "code": "218",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "MA": {
    "code": "212",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "MC": {
    "code": "377",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "MD": {
    "code": "373",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "ME": {
    "code": "382",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "MF": {
    "code": "590",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "MG": {
    "code": "261",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "MH": {
    "code": "692",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    7
+   ]
   },
   "MK": {
    "code": "389",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "ML": {
    "code": "223",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "MM": {
    "code": "95",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "MN": {
    "code": "976",
    "national": "0",
-   "international": "001"
+   "international": "001",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "MO": {
    "code": "853",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "MP": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "MQ": {
    "code": "596",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "MR": {
    "code": "222",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "MS": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "MT": {
    "code": "356",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "MU": {
    "code": "230",
    "national": "",
-   "international": "0(?:0|[24-7]0|3[03])"
+   "international": "0(?:0|[24-7]0|3[03])",
+   "lengths": [
+    7,
+    8,
+    10
+   ]
   },
   "MV": {
    "code": "960",
    "national": "",
-   "international": "0(?:0|19)"
+   "international": "0(?:0|19)",
+   "lengths": [
+    7,
+    10
+   ]
   },
   "MW": {
    "code": "265",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9
+   ]
   },
   "MX": {
    "code": "52",
    "national": "",
-   "international": "0[09]"
+   "international": "0[09]",
+   "lengths": [
+    10
+   ]
   },
   "MY": {
    "code": "60",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "MZ": {
    "code": "258",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "NA": {
    "code": "264",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "NC": {
    "code": "687",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6
+   ]
   },
   "NE": {
    "code": "227",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "NF": {
    "code": "672",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6
+   ]
   },
   "NG": {
    "code": "234",
    "national": "0",
-   "international": "009"
+   "international": "009",
+   "lengths": [
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
   },
   "NI": {
    "code": "505",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "NL": {
    "code": "31",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "NO": {
    "code": "47",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    8
+   ]
   },
   "NP": {
    "code": "977",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    10,
+    11
+   ]
   },
   "NR": {
    "code": "674",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "NU": {
    "code": "683",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    7
+   ]
   },
   "NZ": {
    "code": "64",
    "national": "0",
-   "international": "0(?:0|161)"
+   "international": "0(?:0|161)",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "OM": {
    "code": "968",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9
+   ]
   },
   "PA": {
    "code": "507",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    10,
+    11
+   ]
   },
   "PE": {
    "code": "51",
    "national": "0",
-   "international": "00|19(?:1[124]|77|90)00"
+   "international": "00|19(?:1[124]|77|90)00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "PF": {
    "code": "689",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    8,
+    9
+   ]
   },
   "PG": {
    "code": "675",
    "national": "",
-   "international": "00|140[1-3]"
+   "international": "00|140[1-3]",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "PH": {
    "code": "63",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
   },
   "PK": {
    "code": "92",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "PL": {
    "code": "48",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "PM": {
    "code": "508",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    9
+   ]
   },
   "PR": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "PS": {
    "code": "970",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10
+   ]
   },
   "PT": {
    "code": "351",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "PW": {
    "code": "680",
    "national": "",
-   "international": "01[12]"
+   "international": "01[12]",
+   "lengths": [
+    7
+   ]
   },
   "PY": {
    "code": "595",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "QA": {
    "code": "974",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9,
+    11
+   ]
   },
   "RE": {
    "code": "262",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "RO": {
    "code": "40",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    9
+   ]
   },
   "RS": {
    "code": "381",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "RU": {
    "code": "7",
    "national": "8",
-   "international": "810"
+   "international": "810",
+   "lengths": [
+    10,
+    14
+   ]
   },
   "RW": {
    "code": "250",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "SA": {
    "code": "966",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9,
+    10
+   ]
   },
   "SB": {
    "code": "677",
    "national": "",
-   "international": "0[01]"
+   "international": "0[01]",
+   "lengths": [
+    5,
+    7
+   ]
   },
   "SC": {
    "code": "248",
    "national": "",
-   "international": "010|0[0-2]"
+   "international": "010|0[0-2]",
+   "lengths": [
+    7
+   ]
   },
   "SD": {
    "code": "249",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "SE": {
    "code": "46",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    12
+   ]
   },
   "SG": {
    "code": "65",
    "national": "",
-   "international": "0[0-3]\\d"
+   "international": "0[0-3]\\d",
+   "lengths": [
+    8,
+    10,
+    11
+   ]
   },
   "SH": {
    "code": "290",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5
+   ]
   },
   "SI": {
    "code": "386",
    "national": "0",
-   "international": "00|10(?:22|66|88|99)"
+   "international": "00|10(?:22|66|88|99)",
+   "lengths": [
+    5,
+    6,
+    7,
+    8
+   ]
   },
   "SJ": {
    "code": "47",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    8
+   ]
   },
   "SK": {
    "code": "421",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    9
+   ]
   },
   "SL": {
    "code": "232",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "SM": {
    "code": "378",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    10
+   ]
   },
   "SN": {
    "code": "221",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "SO": {
    "code": "252",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9
+   ]
   },
   "SR": {
    "code": "597",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7
+   ]
   },
   "SS": {
    "code": "211",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "ST": {
    "code": "239",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7
+   ]
   },
   "SV": {
    "code": "503",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    11
+   ]
   },
   "SX": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "SY": {
    "code": "963",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "SZ": {
    "code": "268",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9
+   ]
   },
   "TA": {
    "code": "290",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4
+   ]
   },
   "TC": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "TD": {
    "code": "235",
    "national": "",
-   "international": "00|16"
+   "international": "00|16",
+   "lengths": [
+    8
+   ]
   },
   "TG": {
    "code": "228",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "TH": {
    "code": "66",
    "national": "0",
-   "international": "00[1-9]"
+   "international": "00[1-9]",
+   "lengths": [
+    8,
+    9,
+    10,
+    13
+   ]
   },
   "TJ": {
    "code": "992",
    "national": "",
-   "international": "810"
+   "international": "810",
+   "lengths": [
+    9
+   ]
   },
   "TK": {
    "code": "690",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    4,
+    5,
+    6,
+    7
+   ]
   },
   "TL": {
    "code": "670",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8
+   ]
   },
   "TM": {
    "code": "993",
    "national": "8",
-   "international": "810"
+   "international": "810",
+   "lengths": [
+    8
+   ]
   },
   "TN": {
    "code": "216",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8
+   ]
   },
   "TO": {
    "code": "676",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    7
+   ]
   },
   "TR": {
    "code": "90",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    10,
+    12,
+    13
+   ]
   },
   "TT": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "TV": {
    "code": "688",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    6,
+    7
+   ]
   },
   "TW": {
    "code": "886",
    "national": "0",
-   "international": "0(?:0[25-79]|19)"
+   "international": "0(?:0[25-79]|19)",
+   "lengths": [
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
   },
   "TZ": {
    "code": "255",
    "national": "0",
-   "international": "00[056]"
+   "international": "00[056]",
+   "lengths": [
+    9
+   ]
   },
   "UA": {
    "code": "380",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9,
+    10
+   ]
   },
   "UG": {
    "code": "256",
    "national": "0",
-   "international": "00[057]"
+   "international": "00[057]",
+   "lengths": [
+    9
+   ]
   },
   "US": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "UY": {
    "code": "598",
    "national": "0",
-   "international": "0(?:0|1[3-9]\\d)"
+   "international": "0(?:0|1[3-9]\\d)",
+   "lengths": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
   },
   "UZ": {
    "code": "998",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "VA": {
    "code": "39",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "VC": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "VE": {
    "code": "58",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    10
+   ]
   },
   "VG": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "VI": {
    "code": "1",
    "national": "1",
-   "international": "011"
+   "international": "011",
+   "lengths": [
+    10
+   ]
   },
   "VN": {
    "code": "84",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "VU": {
    "code": "678",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    7
+   ]
   },
   "WF": {
    "code": "681",
    "national": "",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    6,
+    9
+   ]
   },
   "WS": {
    "code": "685",
    "national": "",
-   "international": "0"
+   "international": "0",
+   "lengths": [
+    5,
+    6,
+    7,
+    10
+   ]
   },
   "XK": {
    "code": "383",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
   },
   "YE": {
    "code": "967",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    8,
+    9
+   ]
   },
   "YT": {
    "code": "262",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "ZA": {
    "code": "27",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
   },
   "ZM": {
    "code": "260",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    9
+   ]
   },
   "ZW": {
    "code": "263",
    "national": "0",
-   "international": "00"
+   "international": "00",
+   "lengths": [
+    7,
+    9,
+    10
+   ]
   }
  }
 }

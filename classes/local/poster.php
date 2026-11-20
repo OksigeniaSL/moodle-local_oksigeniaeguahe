@@ -27,17 +27,18 @@ namespace local_oksigeniaeguahe\local;
  */
 class poster {
     /** @var array Paper => scale of the sheet of A4. */
-    const PAPERS = ['A4' => '1', 'A3' => '1.41421'];
+    const PAPERS = ['A4' => '1', 'A3' => '1.41421', 'A5' => '0.70711'];
 
     /**
      * The poster, as a whole page to print.
      *
      * @param \stdClass $event
      * @param \stdClass $centre
-     * @param string $paper A4 or A3.
+     * @param string $paper A4, A3 or A5.
+     * @param bool $door The poster of the door, on the day: families sign in when they arrive, and they are here.
      * @return string
      */
-    public static function html(\stdClass $event, \stdClass $centre, string $paper = 'A4'): string {
+    public static function html(\stdClass $event, \stdClass $centre, string $paper = 'A4', bool $door = false): string {
         global $CFG;
         $paper = isset(self::PAPERS[$paper]) ? $paper : 'A4';
         $lang = $centre->lang ?: 'es';
@@ -46,8 +47,14 @@ class poster {
         $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
         $v = publicpage::centre_vars($centre->colour ?: '#2f5d62', false);
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
-        $short = events::short_url($event);
+        if ($door) {
+            [$doorlink, $doorqr] = events::door($event, $lang);
+            $short = strlen($doorlink) <= 40 ? $doorlink : null;
+        } else {
+            $short = events::short_url($event);
+        }
         $shown = $short ? preg_replace('#^https?://#', '', $short) : '';
+        $words = $door ? 'poster_door_' : 'poster_';
         $logo = centres::logo((int) $centre->id);
         $phone = trim((string) ($centre->phone ?? ''));
         return documents::render('poster.html', [
@@ -60,20 +67,20 @@ class poster {
             'centro' => ['nombre' => format_string($centre->name), 'logo' => $logo ? $logo->out(false) : '',
                 'nombre_visible' => true],
             'acto' => format_string($event->name),
-            'titular' => str_replace('|', ' ', $str('poster_title')),
-            'titular_html' => $lines($str('poster_title')),
-            'pregunta_html' => $lines($str('poster_question')),
-            'pregunta_sub' => $str('poster_question_sub'),
+            'titular' => str_replace('|', ' ', $str($words . 'title')),
+            'titular_html' => $lines($str($words . 'title')),
+            'pregunta_html' => $lines($str($words . 'question')),
+            'pregunta_sub' => $str($words . 'question_sub'),
             'fecha' => $ucfirst($parts['long']),
             'hora' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'lugar' => implode(' · ', array_filter([$event->place ? format_string($event->place) : '',
                 (string) ($centre->address ?? '')])),
-            'llamada' => $str('poster_call'),
-            'como' => $str('poster_how'),
+            'llamada' => $str($words . 'call'),
+            'como' => $str($words . 'how'),
             'url_corta' => $shown,
-            'telefono_texto' => $phone !== '' ? $str('poster_phone', $phone) : '',
-            'qr_svg' => events::qr_svg($event),
-            'qr_alt' => $str('poster_qr', $shown ?: format_string($event->name)),
+            'telefono_texto' => $phone !== '' && !$door ? $str('poster_phone', $phone) : '',
+            'qr_svg' => $door ? $doorqr : events::qr_svg($event),
+            'qr_alt' => $str($words . 'qr', $shown ?: format_string($event->name)),
             'firma' => publicpage::credit($lang)['text'] ?? '',
         ]);
     }

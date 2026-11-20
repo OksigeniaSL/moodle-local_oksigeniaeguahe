@@ -105,7 +105,7 @@ class panel_event {
                 'id' => (int) $signup->id,
                 'adults' => panel::adults_line($signup->household->adults),
                 'children' => $children,
-                'people' => get_string('panel_people', $c, (int) $signup->people),
+                'people' => get_string((int) $signup->people === 1 ? 'panel_people_one' : 'panel_people', $c, (int) $signup->people),
                 'came' => $arrived,
                 'cametext' => $arrived ? get_string('panel_came_at', $c, panel::hour((int) $signup->attended)) :
                     get_string('panel_came_button', $c),
@@ -252,6 +252,10 @@ class panel_event {
             // For the computers of the centre at the act: the form again after each family, never their page.
             'deskurl' => !$tailored && !$family ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
                 'pk' => share::signature('puesto', 0, (int) $event->id)]))->out(false) : '',
+            // The poster of the door, for the day: families sign in with their phone when they arrive.
+            'doorposter' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1]))->out(false) : '',
+            'doorpostera5' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1, 'paper' => 'A5']))
+                ->out(false) : '',
             // The kit for the networks, for an act open to all and still to come.
             'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
                 ->out(false) : false,

@@ -46,16 +46,21 @@ class entries {
 
     /** @var string[] What a question may be, for the team to correct it, in this order. */
     const ROLES = ['firstname', 'surname', 'fullname', 'email', 'phone', 'childname', 'grade', 'notes', 'municipality',
-        'declared', 'consent', 'incentre', 'date', 'platform', 'campaign', 'adset', 'ad', 'form', 'ids', 'ignore'];
+        'declared', 'consent', 'incentre', 'date', 'hour', 'channel', 'team', 'staff', 'platform', 'campaign', 'adset', 'ad',
+        'form', 'ids', 'ignore'];
 
     /** @var string[] What says who someone is or how to reach them: never kept as an example of a question. */
-    const PERSONAL = ['firstname', 'surname', 'fullname', 'guardianname', 'email', 'phone', 'childname', 'notes', 'ids'];
+    const PERSONAL = ['firstname', 'surname', 'fullname', 'guardianname', 'email', 'phone', 'childname', 'notes', 'ids',
+        'team', 'staff'];
 
     /** @var string[] The platforms of Meta, as the column of an export of its ads says them once read. */
     const META_PLATFORMS = ['Instagram', 'Facebook', 'Audience Network', 'Messenger', 'WhatsApp'];
 
-    /** @var string[] What is not kept: the state of a lead in the tool it came from, and what the team said to leave. */
-    const DROPPED = ['status', 'organic', 'ignore'];
+    /** @var string[] What is not kept: whether a lead was organic, and what the team said to leave. */
+    const DROPPED = ['organic', 'ignore'];
+
+    /** @var array What the team wrote, as teamnotes::apply() counted it, for the last row received. */
+    public static $noted = [];
 
     /**
      * A new entry of a centre, with its public name and its key.
@@ -280,7 +285,9 @@ class entries {
             self::tested($entry);
             return [null, false, null];
         }
-        $time = $time ?: ($read->time ?: time());
+        // A day given to come is not when they first wrote: never later than now, and before the visit.
+        $time = $time ?: ($read->appointment ? min($read->appointment, time()) - MINSECS :
+            ($read->time ? min($read->time, time()) : time()));
         $externalid = $externalid !== '' ? $externalid : $read->externalid;
         if ($read->email === null && $read->phone === null && $read->firstname === '') {
             // Nobody to answer: nothing comes in.
@@ -289,36 +296,53 @@ class entries {
         $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid :
             implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->time]));
         $arrived = $DB->get_record(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key]);
+        self::$noted = [];
         if ($arrived) {
-            // It came before; if the family erased its data since, it stays erased.
+            // It came before; if the family erased its data since, it stays erased. What the team wrote since in the
+            // same row (a second call, the day of the visit) comes in, once.
             $household = $arrived->householdid ? households::get((int) $arrived->householdid, (int) $entry->centreid) : null;
+            if ($household && ($read->team || $read->staff || $read->appointment)) {
+                $transaction = $DB->start_delegated_transaction();
+                self::people($household, $read, $byphone);
+                self::$noted = teamnotes::apply($household, (array) $read);
+                $transaction->allow_commit();
+                $household = households::get((int) $household->id, (int) $entry->centreid);
+            }
             return [$household, false, null];
         }
 
         // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
-        // comes through a sheet the ads fill.
+        // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
         $arrival = self::ad_arrival($entry, $read);
-        $channel = $arrival !== null ? 'meta' : self::channel($entry);
+        $channel = $arrival !== null ? 'meta' : ($read->channel ?? ($read->teamsheet ? 'other' : self::channel($entry)));
         $transaction = $DB->start_delegated_transaction();
-        $householdid = households::find((int) $centre->id, $read->email, $byphone ? $read->phone : null);
+        $householdid = null;
+        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+            $householdid = $householdid ?? households::find((int) $centre->id, $adult->email, $byphone ? $adult->phone : null);
+        }
         $about = (object) (['lang' => $centre->lang ?: 'es', 'firstchannel' => $channel,
             'heardfrom' => $read->heardfrom, 'incentre' => $read->incentre, 'arrival' => $arrival] + $read->place);
-        $householdid = $householdid ?? households::create((int) $centre->id, $about);
+        if ($householdid === null) {
+            $householdid = households::create((int) $centre->id, $about);
+            if ($time < time()) {
+                // Something sent before: the family is from when it first wrote, not from today.
+                $DB->update_record(households::T, (object) ['id' => $householdid, 'timecreated' => $time]);
+            }
+        }
         $household = households::get($householdid, (int) $centre->id);
         households::complete($household, $about);
-        $adultid = households::add_adult($household, (object) ['firstname' => $read->firstname,
-            'lastname' => $read->lastname, 'email' => $read->email, 'phone' => $read->phone]);
-        foreach ($read->consents as $channel) {
-            households::consent($household, $adultid, $channel, true, 'entry', $household->lang);
-        }
-        if ($read->child !== '' || $read->offerid) {
-            households::add_child($household, $read->child, $read->offerid);
+        $adultid = self::people($household, $read, $byphone);
+        foreach ($read->consents as $consent) {
+            households::consent($household, $adultid, $consent, true, 'entry', $household->lang);
         }
         $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) .
             ($read->lines ? "\n\n" . implode("\n", $read->lines) : ''));
         // Something from long ago is kept, but does not wait for an answer.
         $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
         households::received($household, $channel, $body, $awaits, $time, (int) $entry->id, $read->detail);
+        if ($read->team || $read->staff || $read->appointment) {
+            self::$noted = teamnotes::apply($household, (array) $read);
+        }
         $DB->insert_record(self::ARRIVALS, (object) ['centreid' => $centre->id, 'entryid' => $entry->id,
             'externalid' => $key, 'householdid' => $household->id, 'timecreated' => time()]);
         $DB->execute(
@@ -328,6 +352,38 @@ class entries {
         $token = households::new_link($household, 'entry');
         $transaction->allow_commit();
         return [households::get($householdid, (int) $centre->id), true, $token];
+    }
+
+    /**
+     * The adults and the children of a row, in a household: the ones it has are kept, and a child without a name
+     * becomes the one the row names.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $read What read() made of the row.
+     * @param bool $byphone
+     * @return int The first adult.
+     */
+    protected static function people(\stdClass $household, \stdClass $read, bool $byphone): int {
+        $first = 0;
+        foreach (
+            $read->adults ?: [(object) ['firstname' => $read->firstname, 'lastname' => $read->lastname,
+                'email' => $read->email, 'phone' => $read->phone]] as $adult
+        ) {
+            if ($adult->firstname === '' && $adult->email === null && $adult->phone === null) {
+                continue;
+            }
+            $id = households::add_adult($household, $adult);
+            $first = $first ?: $id;
+        }
+        foreach (
+            $read->children ?: ($read->child !== '' || $read->offerid ? [[$read->child, $read->offerid]] : []) as [$name, $offerid]
+        ) {
+            households::add_child($household, $name, (int) $offerid);
+        }
+        if ($read->incentre && !$household->incentre) {
+            households::complete($household, (object) ['incentre' => 1]);
+        }
+        return $first;
     }
 
     /**
@@ -365,7 +421,9 @@ class entries {
     }
 
     /**
-     * Reads the answers into a family: who writes, how to answer them, the child, what it said and where it came from.
+     * Reads the answers into a family: who writes, how to answer them, the children, what it said and where it came
+     * from. A sheet the team keeps (with a column of who attended them or what was done) gives also what the team wrote:
+     * its observations are the team's, never the family's words.
      *
      * @param \stdClass $entry
      * @param \stdClass $centre
@@ -376,39 +434,65 @@ class entries {
         $roles = self::roles($entry, array_map('strval', array_keys($answers)));
         $r = (object) ['firstname' => '', 'lastname' => '', 'fullname' => '', 'email' => null, 'phone' => null,
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
-            'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => []];
+            'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
+            'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
+            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false];
         $detail = [];
+        $people = [];
+        $grades = [];
+        $names = [];
+        $schoolyear = '';
         $yes = fn(string $v) => (bool) preg_match('/^(s[ií]|yes|sim|true|1|x|acepto|de acuerdo|ok|agree|concordo|✓)/iu', $v);
+        // A sheet the team keeps: what it wrote is the team's.
+        $teamsheet = (bool) array_intersect(['team', 'staff'], array_values(array_filter($roles)));
+        $r->teamsheet = $teamsheet;
+        $clean = [];
         foreach ($answers as $question => $value) {
             $value = trim(preg_replace('/\s+/u', ' ', clean_param(is_array($value) ? implode(', ', $value) :
                 (string) $value, PARAM_TEXT)));
-            if ($value === '') {
-                continue;
+            if ($value !== '') {
+                $clean[$question] = $value;
             }
+        }
+        $dates = array_filter(array_map(
+            fn($q) => ($roles[$q] ?? null) === 'date' ? $clean[$q] : null,
+            array_map('strval', array_keys($clean))
+        ));
+        $r->monthfirst = recognise::monthfirst(
+            array_values($dates),
+            (string) ($centre->country ?? ''),
+            (string) ($centre->lang ?? 'en')
+        );
+        foreach ($clean as $question => $value) {
             $role = $roles[$question] ?? null;
             $line = \core_text::substr(trim((string) $question), 0, 120) . ': ' . \core_text::substr($value, 0, 1000);
+            // The second tutor, the second phone: the number in the name of the column says whose it is.
+            $who = preg_match('/(\d)\D*$/', recognise::plain((string) $question), $m) ? max(1, (int) $m[1]) : 1;
             switch ($role) {
                 case 'email':
                     $email = households::email($value);
-                    if ($email && $r->email === null) {
-                        $r->email = $email;
-                    } else if (!$email) {
+                    if ($email) {
+                        $people[$who]['email'] = $people[$who]['email'] ?? $email;
+                    } else {
                         $r->lines[] = $line;
                     }
                     break;
                 case 'phone':
                     $phone = phone::normalise(preg_replace('/^p:/i', '', $value), $centre->country ?? null);
-                    if ($phone && $r->phone === null) {
-                        $r->phone = $phone;
-                    } else if (!$phone) {
+                    if ($phone && !preg_match('/\p{L}{3,}/u', $value)) {
+                        $people[$who]['phone'] = $people[$who]['phone'] ?? $phone;
+                    } else if (preg_match('/\p{L}/u', $value) && ($teamsheet || preg_match('/whats|wasap/i', $question))) {
+                        // «WhatsApp: Enviado» is something the team did, not a number.
+                        $r->team[] = [(string) $question, $value, 'team'];
+                    } else {
                         $r->lines[] = $line;
                     }
                     break;
                 case 'firstname':
-                    $r->firstname = $r->firstname ?: \core_text::substr($value, 0, 100);
+                    $people[$who]['firstname'] = $people[$who]['firstname'] ?? \core_text::substr($value, 0, 100);
                     break;
                 case 'surname':
-                    $r->lastname = $r->lastname ?: \core_text::substr($value, 0, 100);
+                    $people[$who]['lastname'] = $people[$who]['lastname'] ?? \core_text::substr($value, 0, 100);
                     break;
                 case 'fullname':
                 case 'guardianname':
@@ -416,22 +500,55 @@ class entries {
                         // Who writes («Madre», «Padre»), not a name.
                         $r->lines[] = $line;
                     } else {
-                        $r->fullname = $r->fullname ?: $value;
+                        $people[$who]['fullname'] = $people[$who]['fullname'] ?? $value;
                     }
                     break;
                 case 'childname':
-                    $r->child = $r->child ?: $value;
+                    foreach (preg_split('/\s*(?:,|;|\s+y\s+|\s+e\s+|\s+and\s+)\s*/u', $value) as $name) {
+                        if (trim($name) !== '') {
+                            $names[] = trim($name);
+                        }
+                    }
                     break;
                 case 'grade':
-                    $offerid = self::offer((int) $centre->id, $value);
-                    if ($offerid && !$r->offerid) {
-                        $r->offerid = $offerid;
-                    } else {
-                        $r->lines[] = $line;
+                    $year = recognise::schoolyear($value) ?? (preg_match('/^\d{4}\s*[-\/]\s*\d{2,4}$/', $value) ?
+                        $value : null);
+                    if ($year !== null) {
+                        $schoolyear = $schoolyear ?: (string) $year;
+                        break;
+                    }
+                    foreach (preg_split('/\s*[,;]\s*/u', $value) as $grade) {
+                        if (trim($grade) !== '') {
+                            $grades[] = [trim($grade), $line];
+                        }
                     }
                     break;
                 case 'notes':
-                    $r->lines[] = $value;
+                    if ($teamsheet) {
+                        $r->team[] = [(string) $question, $value, 'notes'];
+                    } else {
+                        $r->lines[] = $value;
+                    }
+                    break;
+                case 'team':
+                    $r->team[] = [(string) $question, $value, 'team'];
+                    break;
+                case 'staff':
+                    foreach (preg_split('/\s*(?:,|;|\/|\s+y\s+)\s*/u', $value) as $name) {
+                        if (trim($name) !== '' && !in_array(trim($name), $r->staff, true)) {
+                            $r->staff[] = trim($name);
+                        }
+                    }
+                    break;
+                case 'hour':
+                    $r->hour = $r->hour ?: $value;
+                    break;
+                case 'channel':
+                    $channel = teamnotes::channel($value);
+                    $heard = teamnotes::heard($value);
+                    $r->channel = $r->channel ?? $channel;
+                    $r->heardfrom = $r->heardfrom ?? $heard;
+                    $r->team[] = [(string) $question, $value, $channel || $heard ? 'channelknown' : 'channel'];
                     break;
                 case 'municipality':
                     $r->place = self::place($centre, $value);
@@ -458,7 +575,9 @@ class entries {
                     $r->incentre = $yes($value) ? 1 : 0;
                     break;
                 case 'date':
-                    $r->time = $r->time ?: (int) (strtotime($value) ?: recognise::date($value));
+                    // «6/07/2026» is the 6th of July where days go first: never read the American way by mistake.
+                    $r->time = $r->time ?: (int) (preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}#', $value) ?
+                        recognise::date($value, $r->monthfirst) : (strtotime($value) ?: recognise::date($value)));
                     break;
                 case 'platform':
                     // Meta writes its short names in its exports; a connector may write the whole ones.
@@ -486,12 +605,52 @@ class entries {
                     $r->lines[] = $line;
             }
         }
-        if ($r->firstname === '' && $r->fullname !== '') {
-            $words = preg_split('/\s+/u', $r->fullname);
-            $r->firstname = \core_text::substr(array_shift($words), 0, 100);
-            $r->lastname = $r->lastname ?: \core_text::substr(implode(' ', $words), 0, 100);
+        // The adults, the first one first.
+        ksort($people);
+        foreach ($people as $person) {
+            $first = (string) ($person['firstname'] ?? '');
+            $last = (string) ($person['lastname'] ?? '');
+            if ($first === '' && !empty($person['fullname'])) {
+                $words = preg_split('/\s+/u', $person['fullname']);
+                $first = \core_text::substr(array_shift($words), 0, 100);
+                $last = $last !== '' ? $last : \core_text::substr(implode(' ', $words), 0, 100);
+            }
+            if ($first === '' && empty($person['email']) && empty($person['phone'])) {
+                continue;
+            }
+            $r->adults[] = (object) ['firstname' => $first, 'lastname' => $last, 'email' => $person['email'] ?? null,
+                'phone' => $person['phone'] ?? null];
         }
-        $r->child = self::child_name($r->child, $r->lastname);
+        if ($r->adults) {
+            $one = $r->adults[0];
+            [$r->firstname, $r->lastname, $r->email, $r->phone] = [$one->firstname, $one->lastname, $one->email, $one->phone];
+            $r->fullname = trim($one->firstname . ' ' . $one->lastname);
+        }
+        // The children: each course asked, with the name written in the same place, in order.
+        $years = array_values(array_unique(array_map(fn($o) => (string) $o->schoolyear, centres::offers(
+            (int) $centre->id,
+            true
+        ))));
+        $year = $schoolyear !== '' ? (recognise::schoolyear($schoolyear) ?? $schoolyear) :
+            panel_inbox::campaign_school_year($centre, $years, time());
+        foreach ($grades as $i => [$grade, $line]) {
+            $offerid = self::offer((int) $centre->id, $grade, $year);
+            if (!$offerid) {
+                $r->lines[] = $line . ($schoolyear !== '' ? ' (' . $schoolyear . ')' : '');
+            }
+            $r->children[] = [self::child_name($names[$i] ?? '', $r->lastname), $offerid];
+        }
+        foreach (array_slice($names, count($grades)) as $name) {
+            $r->children[] = [self::child_name($name, $r->lastname), 0];
+        }
+        $r->children = array_values(array_filter($r->children, fn($c) => $c[0] !== '' || $c[1]));
+        if ($r->children) {
+            [$r->child, $r->offerid] = $r->children[0];
+        }
+        // A day with its hour, in a sheet the team keeps, is the visit they were given.
+        if ($r->hour !== '' && $r->time) {
+            $r->appointment = teamnotes::at($r->time, $r->hour);
+        }
         $r->detail = implode(' · ', array_filter([$detail['platform'] ?? '', $detail['campaign'] ?? '',
             $detail['adset'] ?? '', $detail['ad'] ?? '', $detail['form'] ?? '']));
         $r->ads = $detail;
@@ -537,16 +696,24 @@ class entries {
      *
      * @param int $centreid
      * @param string $value
+     * @param string $schoolyear Only in this school year, when the answer or the campaign says it.
      * @return int 0 if none is clear.
      */
-    public static function offer(int $centreid, string $value): int {
+    public static function offer(int $centreid, string $value, string $schoolyear = ''): int {
         $want = grades::plain($value);
+        // «infantil_3-6» is a whole stage, not a course: nothing to choose.
+        if (preg_match('/(?<!\d)(\d{1,2})\s*(?:-|–|a|to)\s*(\d{1,2})(?!\d)/u', $value, $m) && (int) $m[2] > (int) $m[1] + 1) {
+            return 0;
+        }
         $centre = centres::get($centreid);
         $age = grades::age($value, $centre);
         $found = [];
         $sameage = [];
         // Latest school year first.
         foreach (centres::offers($centreid, true) as $offer) {
+            if ($schoolyear !== '' && (string) $offer->schoolyear !== $schoolyear) {
+                continue;
+            }
             $name = grades::plain((string) $offer->name);
             if ($name === $want) {
                 return (int) $offer->id;

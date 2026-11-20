@@ -229,6 +229,8 @@
         <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
         <FIELD NAME="shorturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the public sign-up, for the poster, its QR and the texts"/>
         <FIELD NAME="shortqr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The QR the shortener draws for the short link, as SVG; empty when it draws none, null while not asked"/>
+        <FIELD NAME="doorurl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the door of the act, where families sign in when they arrive"/>
+        <FIELD NAME="doorqr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The QR the shortener draws for the door, as SVG; empty when it draws none"/>
         <FIELD NAME="tailored" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when families ask for a visit saying when it suits them, and the team proposes the day"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The family of a visit of its own, proposed by the team; 0 for an event open to all"/>
         <FIELD NAME="formid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A form of the centre whose questions its sign-up asks too"/>
@@ -951,6 +953,23 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="line" UNIQUE="true" FIELDS="centreid, scope, scopeid, task"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_teamnote" COMMENT="What was taken from a sheet the team keeps for a household (a call, a visit, an observation), so that sending the sheet again adds only what is new">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="mark" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="-" SEQUENCE="false" COMMENT="The hash of the column, the value and what was read from it"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="householdmark" UNIQUE="false" FIELDS="householdid, mark"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_listmatch" COMMENT="What the list of the centre said of a family of Eguahe, once per student and school year: a child enrolled, a family of the centre, or a question for a person">

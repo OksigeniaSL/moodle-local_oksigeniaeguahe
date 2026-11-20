@@ -40,7 +40,7 @@ class lookalike {
     /** @var string[] What a household has that goes with it as a whole, by its householdid, when two are put together. */
     const MOVED = [households::CONSENTS, households::CONTACTS, households::LINKS, visits::REQUESTS, forms::ANSWERS,
         attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, entries::ARRIVALS, roster::T, events::T,
-        renewal::T, listmatch::T];
+        renewal::T, listmatch::T, teamnotes::T];
 
     /** @var int Two families asking for the same course look alike only if they came within this time of each other. */
     const NEAR = 180 * DAYSECS;
