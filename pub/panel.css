@@ -11637,7 +11637,7 @@ a.quien-cita:focus-visible {
 }
 
 .padron-tag-no {
-    opacity: 0.75;
+    color: var(--eg-tinta-2);
 }
 
 .padron-si {
@@ -12916,8 +12916,9 @@ button.padron-pomo-no::after {
     box-shadow: inset 0 0 0 2px var(--eg-acento), 0 12px 20px -12px rgba(58, 42, 30, 0.55);
 }
 
-.of-ano:not([aria-current="page"]):not(.of-ano-nuevo) {
-    opacity: 0.75;
+.of-ano:not([aria-current="page"]):not(.of-ano-nuevo),
+.of-ano:not([aria-current="page"]):not(.of-ano-nuevo) b {
+    color: var(--eg-tinta-2);
 }
 
 .of-ano-nuevo {
@@ -18891,4 +18892,24 @@ html {
     margin: 0 0 12px;
     color: var(--eg-tinta-2);
     font-size: 0.875rem;
+}
+
+/* ---------- The filters of the inbox on a phone (Jujol, 20 November 2026) ----------
+   Each pill in one line, on a strip that slides inside its card and fades at its right edge; never names broken into
+   three lines in a round pill, nor a strip that goes over the edge of its card onto the desk. */
+@media (max-width: 719px) {
+    .filtros .pastillas {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin-inline: 0;
+        padding-inline: 0 28px;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+    }
+
+    .filtros .pastilla {
+        flex: none;
+        max-width: none;
+        white-space: nowrap;
+    }
 }
