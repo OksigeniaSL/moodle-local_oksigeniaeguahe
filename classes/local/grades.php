@@ -380,7 +380,7 @@ class grades {
         $usual = self::usual($grade, $age, $centre);
         $years = self::any(self::data()['generic']['years'] ?? []);
         if ($usual === null && $years !== '' && preg_match('/\b(' . $years . ')\b/', self::plain($grade))) {
-            $usual = get_string('grade_age', 'local_oksigeniaeguahe', $age);
+            $usual = get_string($age === 1 ? 'grade_age_one' : 'grade_age', 'local_oksigeniaeguahe', $age);
         }
         return $usual ?? \core_text::substr($grade, 0, 100);
     }

@@ -31,6 +31,22 @@ class panel_newstudents {
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
+    /** @var int Families or students a conclusion needs behind it: with fewer, a percentage misleads. */
+    const MIN = 10;
+
+    /**
+     * A string with a number in it, in the singular when the number is one (its key ending in _one, if there is one).
+     *
+     * @param string $key
+     * @param int $n
+     * @param mixed $a
+     * @return string
+     */
+    protected static function one(string $key, int $n, $a): string {
+        $one = $n === 1 && get_string_manager()->string_exists($key . '_one', self::C);
+        return get_string($one ? $key . '_one' : $key, self::C, $a);
+    }
+
     /** @var string The hours of the team written by the centre, by campaign or act and task. */
     const HOURS = 'local_oksigeniaeguahe_hours';
 
@@ -88,25 +104,25 @@ class panel_newstudents {
         $adstudents = (int) $o['newby']['ad'];
         $origins = self::origins($o, $year, $url);
         $truth = $contacts ? [
-            'seems' => get_string('panel_new_seems_text', $c, (object) [
+            'seems' => self::glue(get_string('panel_new_seems_text', $c, (object) [
                 'contacts' => self::button('ex-contacts-all', self::num($contacts)),
-                'total' => self::button('ex-total', (string) $total)]),
-            'is' => get_string('panel_new_is_text', $c, (object) ['centre' => self::button('ex-centre', (string) $centren),
+                'total' => self::button('ex-total', (string) $total)])),
+            'is' => self::glue(get_string('panel_new_is_text', $c, (object) ['centre' => self::button('ex-centre', (string) $centren),
                 'inner' => self::button('ex-inner', (string) $g['inner']),
                 'sibling' => self::button('ex-sibling', (string) $g['sibling']),
                 'fresh' => self::button('ex-newfamily', (string) $g['newfamily']),
-                'ad' => self::button('ex-ad', (string) $adstudents), 'total' => $total]),
+                'ad' => self::button('ex-ad', (string) $adstudents), 'total' => $total])),
         ] : false;
         self::define(
             'ex-total',
-            get_string('panel_ex_total_t', $c, $total),
+            self::one('panel_ex_total_t', $total, $total),
             get_string('panel_ex_total_w', $c, $year),
             get_string('panel_ex_total_h', $c),
             get_string('panel_ex_total_c', $c)
         );
         self::define(
             'ex-centre',
-            get_string('panel_ex_centre_t', $c, $centren),
+            self::one('panel_ex_centre_t', $centren, $centren),
             get_string(
                 'panel_ex_centre_w',
                 $c,
@@ -118,10 +134,10 @@ class panel_newstudents {
         if ($contacts) {
             self::define(
                 'ex-contacts-all',
-                get_string('panel_ex_contacts_all_t', $c, self::num($contacts)),
+                self::one('panel_ex_contacts_all_t', $contacts, self::num($contacts)),
                 get_string('panel_ex_contacts_all_w', $c, (object) ['year' => $year, 'n' => count($ads)]),
                 get_string('panel_ex_contacts_all_h', $c),
-                get_string('panel_ex_contacts_all_c', $c, $contactscentre)
+                self::one('panel_ex_contacts_all_c', $contactscentre, $contactscentre)
             );
         }
         $newstudents = [
@@ -152,8 +168,9 @@ class panel_newstudents {
         $leaves = $moves ? (int) $moves['leaves'] : 0;
         return [
             'newstudents' => $newstudents,
-            'title' => get_string('panel_new_title', $c, (object) ['n' => $total, 'joins' => $joins, 'leaves' => $leaves,
-                'year' => $year]),
+            'title' => get_string('panel_new_title', $c, (object) ['n' => self::one('panel_new_title_students', $total, $total),
+                'joins' => self::one('panel_new_title_joins', $joins, $joins),
+                'leaves' => self::one('panel_new_title_leaves', $leaves, $leaves), 'year' => $year]),
             'years' => array_map(
                 fn($y) => ['name' => $y, 'url' => $url(['year' => $y])->out(false), 'current' => $y === $year],
                 $years
@@ -203,7 +220,7 @@ class panel_newstudents {
                 'bags' => $bags($key, $g[$key]), 'hasparts' => false, 'parts' => []];
             self::define(
                 'ex-' . $key,
-                get_string('panel_ex_' . $key . '_t', $c, (object) ['n' => $g[$key],
+                self::one('panel_ex_' . $key . '_t', (int) $g[$key], (object) ['n' => $g[$key],
                 'pct' => $both('(' . $pct($g[$key], $total) . ')', '')]),
                 get_string('panel_ex_' . $key . '_w', $c),
                 get_string('panel_ex_' . $key . '_h', $c),
@@ -221,7 +238,7 @@ class panel_newstudents {
             $partbags = array_merge($partbags, $bags($by, $n));
             self::define(
                 'ex-' . $by,
-                get_string('panel_ex_' . $by . '_t', $c, (object) ['n' => $n,
+                self::one('panel_ex_' . $by . '_t', $n, (object) ['n' => $n,
                 'pct' => $both('(' . get_string('panel_new_of_all', $c, $pct($n, $total)) . ')', '(' . $pct($n, $fresh) . ')')]),
                 get_string('panel_ex_' . $by . '_w', $c),
                 get_string('panel_ex_' . $by . '_h', $c),
@@ -235,7 +252,7 @@ class panel_newstudents {
             'parts' => $parts];
         self::define(
             'ex-newfamily',
-            get_string('panel_ex_newfamily_t', $c, (object) ['n' => $g['newfamily'],
+            self::one('panel_ex_newfamily_t', (int) $g['newfamily'], (object) ['n' => $g['newfamily'],
             'pct' => $both('(' . $pct($g['newfamily'], $total) . ')', '(' . $pct($g['newfamily'], $fresh) . ')')]),
             get_string('panel_ex_newfamily_w', $c),
             get_string('panel_ex_newfamily_h', $c),
@@ -322,7 +339,7 @@ class panel_newstudents {
         foreach (self::acts($centreid, $from, $to) as $act) {
             $auto = [];
             if ($act['hosthours'] > 0) {
-                $auto[] = ['h' => $act['hosthours'], 'name' => get_string('panel_new_auto_act', $c, (object) [
+                $auto[] = ['h' => $act['hosthours'], 'name' => self::one('panel_new_auto_act', (int) $act['hosts'], (object) [
                     'hours' => self::hours($act['length']), 'people' => $act['hosts']])];
             }
             $out[] = self::card(
@@ -421,11 +438,7 @@ class panel_newstudents {
             get_string('panel_ex_ad_contacts_w', $c, format_string($label));
         self::define(
             $id2('contacts'),
-            get_string(
-                $act ? 'panel_ex_act_contacts_t' : 'panel_ex_ad_contacts_t',
-                $c,
-                self::num($contacts)
-            ),
+            self::one($act ? 'panel_ex_act_contacts_t' : 'panel_ex_ad_contacts_t', (int) $contacts, self::num($contacts)),
             $what,
             get_string($act ? 'panel_ex_act_contacts_h' : 'panel_ex_ad_contacts_h', $c),
             get_string($act ? 'panel_ex_act_contacts_c' : 'panel_ex_ad_contacts_c', $c)
@@ -446,7 +459,7 @@ class panel_newstudents {
         );
         self::define(
             $id2('centre'),
-            get_string('panel_ex_card_centre_t', $c, $centrefams),
+            self::one('panel_ex_card_centre_t', (int) $centrefams, $centrefams),
             get_string('panel_ex_card_centre_w', $c),
             get_string('panel_ex_card_centre_h', $c),
             get_string('panel_ex_card_centre_c', $c) . ' ' .
@@ -454,7 +467,7 @@ class panel_newstudents {
         );
         self::define(
             $id2('in'),
-            $both(get_string('panel_ex_in_all_t', $c, $allin), get_string('panel_ex_in_new_t', $c, $newin)),
+            $both(self::one('panel_ex_in_all_t', (int) $allin, $allin), self::one('panel_ex_in_new_t', (int) $newin, $newin)),
             $both(get_string('panel_ex_in_all_w', $c, $centrein), get_string('panel_ex_in_new_w', $c)),
             get_string('panel_ex_in_h', $c),
             get_string('panel_ex_in_c', $c)
@@ -480,12 +493,12 @@ class panel_newstudents {
             'newcontacts' => self::num($newcontacts), 'allin' => $allin, 'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
             'allsentence' => get_string(
-                $all['per'] === null ? 'panel_new_hundred_all_less' : 'panel_new_hundred_all',
+                'panel_new_hundred_all' . (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : '')),
                 $c,
                 (object) ['n' => '<b>' . $perall . '</b>', 'k' => $allin, 'of' => self::num($contacts)]
             ),
             'newsentence' => get_string(
-                $new['per'] === null ? 'panel_new_hundred_new_less' : 'panel_new_hundred_new',
+                'panel_new_hundred_new' . (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : '')),
                 $c,
                 (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
             ),
@@ -695,16 +708,21 @@ class panel_newstudents {
         $diff = $leaves - $bleaves;
         $topname = $top ? $top['name'] : '';
         $topn = $top ? $top['leaves'] : 0;
+        $stagetext = $topname !== '' && $topn ? ' ' . get_string(
+            $done ? 'panel_new_trend_stage_done' : 'panel_new_trend_stage',
+            $c,
+            (object) ['stage' => $topname, 'n' => $topn]
+        ) : '';
         self::define(
             'ex-m-joins',
-            get_string('panel_ex_joins_t', $c, $joins),
+            self::one('panel_ex_joins_t', $joins, $joins),
             get_string('panel_ex_joins_w', $c),
             get_string('panel_ex_joins_h', $c),
             get_string('panel_ex_joins_c', $c)
         );
         self::define(
             'ex-m-leaves',
-            get_string('panel_ex_leaves_t', $c, $leaves),
+            self::one('panel_ex_leaves_t', $leaves, $leaves),
             get_string('panel_ex_leaves_w', $c),
             get_string('panel_ex_joins_h', $c),
             $before['bymonth'] ? get_string('panel_ex_leaves_c', $c, $bleaves) : ''
@@ -713,10 +731,9 @@ class panel_newstudents {
             'cut' => $done ? get_string('panel_new_moves_cut_done', $c, $year) : get_string('panel_new_moves_cut', $c),
             'joins' => $joins, 'leaves' => $leaves, 'exjoins' => 'ex-m-joins', 'exleaves' => 'ex-m-leaves',
             'bleaves' => $bleaves, 'hasbefore' => (bool) $before['bymonth'], 'topstage' => $topname, 'topn' => $topn,
-            'trend' => $done ? get_string('panel_new_trend_done', $c, (object) ['joins' => $joins, 'leaves' => $leaves,
-                'stage' => $topname, 'n' => $topn]) : ($before['bymonth'] ? get_string($diff > 0 ? 'panel_new_trend_more' :
-                'panel_new_trend_less', $c, (object) ['leaves' => $leaves, 'diff' => abs($diff), 'before' => $bleaves,
-                'stage' => $topname, 'n' => $topn]) : ''),
+            'trend' => $done ? get_string('panel_new_trend_done', $c, (object) ['joins' => $joins, 'leaves' => $leaves]) .
+                $stagetext : ($before['bymonth'] ? get_string('panel_new_trend_' . ($diff > 0 ? 'more' : ($diff < 0 ? 'less' :
+                'same')), $c, (object) ['leaves' => $leaves, 'diff' => abs($diff), 'before' => $bleaves]) . $stagetext : ''),
             'months' => $months, 'stages' => $stagerows, 'lists' => $lists, 'def' => get_string('panel_new_moves_def', $c),
         ];
     }
@@ -742,10 +759,10 @@ class panel_newstudents {
             $newin = (int) $sumk($ads, 'newin');
             $base = (int) ($sumk($ads, 'contactsn') - $sumk($ads, 'centre'));
             $per = $base ? 100 * $newin / $base : 0;
-            if ($base && ($per < 5 || $per >= 10)) {
+            if ($base >= self::MIN && ($per < 5 || $per >= 10)) {
                 $items[] = $kind($per < 5 ? 'flojo' : 'fuerte') + ['anchor' => 'publicidad',
-                    'text' => get_string($per < 5 ? 'panel_new_c_ads' : 'panel_new_c_ads_good', $c, (object) [
-                        'n' => '<b>' . ($per < 1 ? get_string('panel_new_less_than_one', $c) : round($per)) . '</b>']),
+                    'text' => get_string($per >= 10 ? 'panel_new_c_ads_good' : ('panel_new_c_ads' . ($newin === 0 ? '_none' :
+                        ($per < 1 ? '_less' : (round($per) == 1 ? '_one' : '')))), $c, (object) ['n' => '<b>' . round($per) . '</b>']),
                     'why' => get_string('panel_new_c_ads_why', $c, (object) ['k' => $newin, 'of' => self::num($base),
                         'money' => centres::money($centre, $sumk($ads, 'moneyn')), 'hours' => self::hours($sumk($ads, 'hoursn'))])];
             }
@@ -753,7 +770,7 @@ class panel_newstudents {
         foreach ($acts as $act) {
             $base = (int) $act['contactsn'] - (int) $act['centre'];
             $per = $base ? 100 * (int) $act['newin'] / $base : 0;
-            if ($base && $per >= 10) {
+            if ($base >= self::MIN && $per >= 10) {
                 $items[] = $kind('fuerte') + ['anchor' => 'publicidad', 'text' => get_string('panel_new_c_act', $c, (object) [
                     'act' => $act['label'], 'n' => '<b>' . round($per) . '</b>']), 'why' => get_string(
                         'panel_new_c_act_why',
@@ -764,12 +781,15 @@ class panel_newstudents {
         }
         $g = array_map(fn($x) => (int) $x['n'], $o['groups']);
         $centren = $g['inner'] + $g['sibling'];
-        if ($o['total'] && $centren * 2 > $o['total']) {
+        if ($o['total'] >= self::MIN && $centren * 2 > $o['total']) {
             $items[] = $kind('fuerte') + ['anchor' => 'de-donde', 'text' => get_string('panel_new_c_inside', $c, (object) [
                 'n' => '<b>' . get_string('panel_new_x_of_y', $c, (object) ['x' => $centren, 'y' => $o['total']]) . '</b>']),
                 'why' => get_string('panel_new_c_inside_why', $c, (object) ['inner' => $g['inner'], 'sibling' => $g['sibling']])];
         }
-        if ($moves && $moves['hasbefore'] && $moves['leaves'] !== $moves['bleaves']) {
+        if (
+            $moves && $moves['hasbefore'] && $moves['leaves'] !== $moves['bleaves'] &&
+            max($moves['leaves'], $moves['bleaves']) >= self::MIN
+        ) {
             $items[] = $kind('tendencia') + ['anchor' => 'altas-y-bajas', 'text' => get_string($moves['leaves'] > $moves['bleaves'] ?
                 'panel_new_c_leaves_more' : 'panel_new_c_leaves_less', $c, (object) ['n' => '<b>' . $moves['leaves'] . '</b>',
                 'before' => $moves['bleaves']]), 'why' => $moves['topstage'] !== '' ? get_string(
@@ -915,6 +935,20 @@ class panel_newstudents {
      */
     protected static function num(int $n): string {
         return format_float($n, 0, true, true);
+    }
+
+    /**
+     * Keeps the punctuation right after a number with it, so a «)» or a «;» never goes alone to the next line.
+     *
+     * @param string $html
+     * @return string
+     */
+    protected static function glue(string $html): string {
+        return preg_replace(
+            '~(<button type="button" class="an-toque"[^>]*>[^<]*</button>)([).,;:»]+)~u',
+            '<span class="an-junto">$1$2</span>',
+            $html
+        );
     }
 
     /**

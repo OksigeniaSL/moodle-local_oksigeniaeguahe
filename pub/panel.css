@@ -18286,3 +18286,8 @@ html {
         text-decoration-color: LinkText;
     }
 }
+
+/* A number and the punctuation right after it, together on one line. */
+.an-junto {
+    white-space: nowrap;
+}
