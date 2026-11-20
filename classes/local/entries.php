@@ -51,6 +51,9 @@ class entries {
     /** @var string[] What says who someone is or how to reach them: never kept as an example of a question. */
     const PERSONAL = ['firstname', 'surname', 'fullname', 'guardianname', 'email', 'phone', 'childname', 'notes', 'ids'];
 
+    /** @var string[] The platforms of Meta, as the column of an export of its ads says them once read. */
+    const META_PLATFORMS = ['Instagram', 'Facebook', 'Audience Network', 'Messenger', 'WhatsApp'];
+
     /** @var string[] What is not kept: the state of a lead in the tool it came from, and what the team said to leave. */
     const DROPPED = ['status', 'organic', 'ignore'];
 
@@ -292,10 +295,14 @@ class entries {
             return [$household, false, null];
         }
 
+        // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
+        // comes through a sheet the ads fill.
+        $arrival = self::ad_arrival($entry, $read);
+        $channel = $arrival !== null ? 'meta' : self::channel($entry);
         $transaction = $DB->start_delegated_transaction();
         $householdid = households::find((int) $centre->id, $read->email, $byphone ? $read->phone : null);
-        $about = (object) (['lang' => $centre->lang ?: 'es', 'firstchannel' => self::channel($entry),
-            'heardfrom' => $read->heardfrom, 'incentre' => $read->incentre] + $read->place);
+        $about = (object) (['lang' => $centre->lang ?: 'es', 'firstchannel' => $channel,
+            'heardfrom' => $read->heardfrom, 'incentre' => $read->incentre, 'arrival' => $arrival] + $read->place);
         $householdid = $householdid ?? households::create((int) $centre->id, $about);
         $household = households::get($householdid, (int) $centre->id);
         households::complete($household, $about);
@@ -311,7 +318,7 @@ class entries {
             ($read->lines ? "\n\n" . implode("\n", $read->lines) : ''));
         // Something from long ago is kept, but does not wait for an answer.
         $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
-        households::received($household, self::channel($entry), $body, $awaits, $time, (int) $entry->id, $read->detail);
+        households::received($household, $channel, $body, $awaits, $time, (int) $entry->id, $read->detail);
         $DB->insert_record(self::ARRIVALS, (object) ['centreid' => $centre->id, 'entryid' => $entry->id,
             'externalid' => $key, 'householdid' => $household->id, 'timecreated' => time()]);
         $DB->execute(
@@ -369,7 +376,7 @@ class entries {
         $roles = self::roles($entry, array_map('strval', array_keys($answers)));
         $r = (object) ['firstname' => '', 'lastname' => '', 'fullname' => '', 'email' => null, 'phone' => null,
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
-            'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => ''];
+            'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => []];
         $detail = [];
         $yes = fn(string $v) => (bool) preg_match('/^(s[ií]|yes|sim|true|1|x|acepto|de acuerdo|ok|agree|concordo|✓)/iu', $v);
         foreach ($answers as $question => $value) {
@@ -464,7 +471,10 @@ class entries {
                     $detail[$role] = $value;
                     break;
                 case 'ids':
-                    $r->externalid = $r->externalid ?: $value;
+                    // The identifier of the contact itself wins over those of its ad, set, campaign or form.
+                    if ($r->externalid === '' || in_array(recognise::plain((string) $question), ['id', 'lead id'], true)) {
+                        $r->externalid = $value;
+                    }
                     break;
                 default:
                     if ($role !== null && in_array($role, self::DROPPED, true)) {
@@ -481,8 +491,26 @@ class entries {
         $r->child = self::child_name($r->child, $r->lastname);
         $r->detail = implode(' · ', array_filter([$detail['platform'] ?? '', $detail['campaign'] ?? '',
             $detail['adset'] ?? '', $detail['ad'] ?? '', $detail['form'] ?? '']));
+        $r->ads = $detail;
         $r->consents = array_values(array_unique($r->consents));
         return $r;
+    }
+
+    /**
+     * Where a contact of a Meta ad arrived from, measured by Meta itself: its platform as the source and its campaign,
+     * whether it comes in the export of the ads or through a sheet they fill. Nothing for anything else.
+     *
+     * @param \stdClass $entry
+     * @param \stdClass $read What read() made of the answers.
+     * @return array|null src, med, cmp and ref, as arrival::read() gives them; null when it is not a contact of an ad.
+     */
+    public static function ad_arrival(\stdClass $entry, \stdClass $read): ?array {
+        $platform = (string) ($read->ads['platform'] ?? '');
+        if (!in_array($platform, self::META_PLATFORMS, true) && $entry->kind !== 'meta') {
+            return null;
+        }
+        return ['src' => $platform !== '' ? $platform : 'meta', 'med' => 'paid',
+            'cmp' => (string) ($read->ads['campaign'] ?? ''), 'ref' => ''];
     }
 
     /**

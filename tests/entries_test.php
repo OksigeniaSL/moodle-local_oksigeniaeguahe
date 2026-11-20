@@ -251,6 +251,47 @@ final class entries_test extends \advanced_testcase {
         $this->assertSame('meta', $contact->channel);
         $this->assertSame('Instagram · Captación 27/28 · Anuncio jornada', $contact->detail);
         $this->assertSame('+34600333444', $DB->get_field(households::ADULTS, 'phone', ['firstname' => 'Sara']));
+        // Where they arrived from, measured: the platform and the campaign of the ad.
+        $luis = households::get((int) $contact->householdid, (int) $this->centre->id);
+        $this->assertSame(['instagram', 'paid', 'Captación 27/28'], [$luis->arrivalsource, $luis->arrivalmedium,
+            $luis->arrivalcampaign]);
+        $sara = $DB->get_field(households::ADULTS, 'householdid', ['firstname' => 'Sara']);
+        $this->assertSame('facebook', $DB->get_field(households::T, 'arrivalsource', ['id' => $sara]));
+    }
+
+    /**
+     * The contacts of Meta ads that its connector writes in a Google sheet: they count as Meta, with their platform and
+     * campaign, each once by the identifier of the contact, even when the ids of the ad and the form come first.
+     */
+    public function test_meta_through_sheet(): void {
+        global $DB;
+        $entry = entries::get(entries::create((int) $this->centre->id, 'google', 'Anuncios de Meta'), (int) $this->centre->id);
+        $row = fn(string $id, string $ad, string $email) => ['ad_id' => '120200', 'form_id' => '880011', 'id' => $id,
+            'created_time' => '2026-11-18T09:30:00+00:00', 'ad_name' => $ad, 'adset_name' => 'Familias 20 km',
+            'campaign_name' => 'Jornada noviembre', 'form_name' => 'Pide tu visita', 'is_organic' => 'false',
+            'platform' => 'ig', 'full_name' => 'Iván Castro León', 'email' => $email, 'phone_number' => '',
+            'Comentario de secretaría' => 'Llamado el lunes'];
+        [$household, $new] = entries::receive($entry, $row('l:901', 'Vídeo patio', 'ivan@example.com'));
+        $this->assertTrue($new);
+        $full = households::get((int) $household->id, (int) $this->centre->id);
+        $this->assertSame('meta', $full->firstchannel);
+        $this->assertSame(['instagram', 'paid', 'Jornada noviembre'], [$full->arrivalsource, $full->arrivalmedium,
+            $full->arrivalcampaign]);
+        $contact = $DB->get_record(households::CONTACTS, ['householdid' => $household->id]);
+        $this->assertSame('meta', $contact->channel);
+        $this->assertSame('Instagram · Jornada noviembre · Familias 20 km · Vídeo patio · Pide tu visita', $contact->detail);
+        $this->assertStringContainsString('Llamado el lunes', $contact->body, 'What the team wrote in the sheet stays.');
+        // Another contact of the same ad and form is another family, not the same one.
+        [$other, $new2] = entries::receive($entry, $row('l:902', 'Vídeo patio', 'rosa@example.com'));
+        $this->assertTrue($new2);
+        $this->assertNotSame((int) $household->id, (int) $other->id);
+        // The same contact sent again with all the sheet: nothing new.
+        [, $again] = entries::receive($entry, $row('l:901', 'Vídeo patio', 'ivan@example.com'), '', null, true);
+        $this->assertFalse($again);
+        // A sheet that is not of ads still counts as a Google form, with nothing measured.
+        [$plain] = entries::receive($entry, ['Nombre' => 'Elena', 'Email' => 'elena@example.com']);
+        $this->assertSame('googleforms', households::get((int) $plain->id, (int) $this->centre->id)->firstchannel);
+        $this->assertNull(households::get((int) $plain->id, (int) $this->centre->id)->arrivalsource);
     }
 
     /**
