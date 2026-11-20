@@ -867,6 +867,10 @@ class households {
         }
         // The visits of its own go with the family.
         $DB->delete_records(events::T, ['householdid' => $household->id]);
+        // And what a person said of it and another family.
+        $DB->delete_records_select(lookalike::T, 'householda = :a OR householdb = :b', ['a' => $household->id,
+            'b' => $household->id]);
+        $DB->delete_records(lookalike::LOG, ['householdid' => $household->id]);
         // What came through an entry stays only as a key without the family, so that sending the old answers again does
         // not bring it back.
         $DB->set_field(entries::ARRIVALS, 'householdid', 0, ['householdid' => $household->id]);

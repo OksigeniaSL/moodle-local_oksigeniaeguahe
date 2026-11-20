@@ -12160,6 +12160,52 @@ button.padron-pomo-no::after {
     font-weight: 600;
 }
 
+/* The same family written down twice: the hint, the two answers, and putting them together with what it does. */
+.misma-familia details {
+    margin: 0 8px 6px 0;
+}
+
+.misma-familia details form {
+    margin: 8px 0;
+}
+
+/* Separating two families joined by mistake: who and what goes, in groups. */
+.separar form {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.separar fieldset {
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 6px;
+}
+
+.separar legend {
+    padding: 0 4px;
+    font-weight: 600;
+}
+
+.separar .casilla,
+.separar .eleccion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 4px 0;
+}
+
+/* The link for the computers of the centre at the act. */
+.puesto-acto {
+    margin-top: 10px;
+}
+
+.puesto-acto p {
+    margin: 4px 0 0;
+}
+
 /* The families that left, last in the list. */
 .dia-sefueron {
     margin-top: 10px;

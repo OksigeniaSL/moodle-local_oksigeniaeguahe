@@ -1288,6 +1288,14 @@
                 window.parent.postMessage({eguahe: 'top'}, '*');
             }
         }
+
+        // A computer of the centre at the act: after a while, the form again, empty, for the next family.
+        var desk = document.querySelector('[data-puesto-volver]');
+        if (desk) {
+            window.setTimeout(function() {
+                window.location.replace(desk.href);
+            }, 45000);
+        }
     };
 
     if (document.readyState === 'loading') {

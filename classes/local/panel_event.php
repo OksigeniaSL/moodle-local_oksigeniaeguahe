@@ -249,6 +249,9 @@ class panel_event {
             'link' => events::short_url($event) ?? events::url($event)->out(false),
             'posterurl' => (new \moodle_url($url, ['poster' => 1]))->out(false),
             'posterurla3' => (new \moodle_url($url, ['poster' => 1, 'paper' => 'A3']))->out(false),
+            // For the computers of the centre at the act: the form again after each family, never their page.
+            'deskurl' => !$tailored && !$family ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
+                'pk' => share::signature('puesto', 0, (int) $event->id)]))->out(false) : '',
             // The kit for the networks, for an act open to all and still to come.
             'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
                 ->out(false) : false,

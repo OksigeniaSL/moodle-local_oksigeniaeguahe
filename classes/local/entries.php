@@ -461,8 +461,11 @@ class entries {
                     $r->time = $r->time ?: (int) (strtotime($value) ?: recognise::date($value));
                     break;
                 case 'platform':
+                    // Meta writes its short names in its exports; a connector may write the whole ones.
                     $detail['platform'] = ['ig' => 'Instagram', 'fb' => 'Facebook', 'an' => 'Audience Network',
-                        'msg' => 'Messenger', 'wa' => 'WhatsApp'][strtolower($value)] ?? $value;
+                        'msg' => 'Messenger', 'wa' => 'WhatsApp', 'instagram' => 'Instagram', 'facebook' => 'Facebook',
+                        'audience network' => 'Audience Network', 'audience_network' => 'Audience Network',
+                        'messenger' => 'Messenger', 'whatsapp' => 'WhatsApp'][strtolower($value)] ?? $value;
                     break;
                 case 'campaign':
                 case 'adset':

@@ -33,6 +33,8 @@
     * expect - pub_known_expect («Los esperamos»)
     * hashosts, hosts (name, role, photo, initials), receives - who receives them, as on the page of a family
     * email, phone, tel, writeus - as public_message
+    * desk - at a computer of the centre at the act (j.php with pk): next (the empty form again) and nexttext, or absent;
+      it comes back by itself after a while (pub/eguahe.js), and the ways to write to the centre are not offered there
 
     Example context (json):
     {
@@ -47,7 +49,8 @@
             "place": "Entrada principal"},
         "expect": "Los esperamos", "hashosts": true, "receives": "Quién los recibe",
         "hosts": [{"name": "Lucía Medina", "role": "Tutora", "photo": "", "initials": "LM"}],
-        "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos"
+        "email": "admisiones@example.com", "phone": "+34 900 000 000", "tel": "+34900000000", "writeus": "Escribirnos",
+        "desk": {"next": "#", "nexttext": "Siguiente familia"}
     }
 }}
 {{#hall}}
@@ -66,10 +69,17 @@
                 <span class="icono">{{{i.mail}}}</span>
                 <p>{{text}}</p>
             </div>
+            {{#desk}}
+            <div class="acciones puesto">
+                <a class="boton primario" href="{{next}}" data-puesto-volver>{{nexttext}}</a>
+            </div>
+            {{/desk}}
+            {{^desk}}
             <div class="acciones">
                 {{#email}}<a class="boton secundario" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
                 {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
             </div>
+            {{/desk}}
         </div>
     </div>
 </section>

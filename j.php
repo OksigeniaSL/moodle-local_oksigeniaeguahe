@@ -55,6 +55,14 @@ if (!$event || !$centre) {
         $url
     );
 }
+// A computer of the centre at the act (its office, the door), opened from the page of the act by the team: after each
+// family the form comes back empty, and never the page of a family, which the next one would see. On the day of the act,
+// whoever signs up there has come.
+$desk = optional_param('pk', '', PARAM_ALPHANUM);
+$desk = $desk !== '' && hash_equals(share::signature('puesto', 0, (int) $event->id), $desk);
+if ($desk) {
+    $url->param('pk', share::signature('puesto', 0, (int) $event->id));
+}
 // From the invitation to an open act in a mail: the family that pressed it, counted.
 $invited = optional_param('k', '', PARAM_ALPHANUMEXT);
 $from = households::by_link($invited);
@@ -123,6 +131,7 @@ if (data_submitted()) {
     }
     if (!$errors) {
         $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
+        $origin = $desk ? publiclang::str('desk_origin', (string) $centre->lang) : $origin;
         $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
         if ($lock) {
@@ -150,6 +159,27 @@ if (data_submitted()) {
             $sent = false;
         } finally {
             ob_end_clean();
+        }
+        if ($desk) {
+            $signup = empty($event->tailored) ? familymail::signup($household, (int) $event->id) : null;
+            $signupid = (int) $DB->get_field(events::SIGNUPS, 'id', ['eventid' => $event->id, 'householdid' => $household->id]);
+            if ($signupid && userdate((int) $event->timestart, '%Y-%m-%d', 99, false) === userdate(time(), '%Y-%m-%d', 99, false)) {
+                // Signing up at the act, on its day: they are here.
+                events::attend($event, $signupid, true);
+            }
+            // What they wrote and their visit, and the form again for the next family; never their page.
+            publicpage::output(
+                $centre,
+                $lang,
+                publiclang::str('desk_done_title', $lang),
+                'public_known',
+                ['text' => publiclang::str('desk_note', $lang), 'desk' => [
+                    'next' => (new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
+                        'pk' => share::signature('puesto', 0, (int) $event->id), 'idioma' => $lang]))->out(false),
+                    'nexttext' => publiclang::str('desk_next', $lang),
+                ]] + knownpage::context($centre, $lang, $data['children'], $signup, $to !== ''),
+                $url
+            );
         }
         if ($existed) {
             // The wall with what they just wrote and their visit; never their page (public_known).
@@ -182,11 +212,13 @@ if (share::act_open($event)) {
 if ($sharer) {
     publicpage::$seal = share::seal('acto', $lang);
 }
-publicpage::output(
-    $centre,
-    $lang,
-    format_string($event->name),
-    'public_signup',
-    signuppage::context($event, $centre, $lang, $data, $errors, $url),
-    $url
-);
+$context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
+if ($desk) {
+    // A computer many families use: the browser does not offer what the one before wrote.
+    foreach ($context['adults'] ?? [] as $i => $adult) {
+        foreach ($adult['fields'] ?? [] as $j => $field) {
+            $context['adults'][$i]['fields'][$j]['autocomplete'] = 'off';
+        }
+    }
+}
+publicpage::output($centre, $lang, format_string($event->name), 'public_signup', $context, $url);

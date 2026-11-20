@@ -191,6 +191,10 @@ class panel_household {
             // A brother or sister whose turn it is: who speaks is the proposal, with its why and the message written.
             'proposal' => $canact ? self::proposal($household, $full, $centre, $now) : false,
             'family' => self::family($household, $full, $canact),
+            // The same family written down twice (the mother on one side, the father on the other), for a person to say.
+            'lookalike' => lookalike::context($household, $canact),
+            // Two families joined by mistake, separated again by a person.
+            'split' => lookalike::split_context($household, $full, $canact),
             'leave' => self::leave($household, $full, $canact),
             'renewal' => self::renewal($household, $centre, $canact, $now),
             'signs' => $signs,

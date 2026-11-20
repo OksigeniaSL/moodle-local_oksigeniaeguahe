@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
@@ -209,6 +210,46 @@ if ($action && data_submitted() && confirm_sesskey()) {
         case 'familynot':
             family::confirm($household, -1);
             redirect(new moodle_url($url, [], 'familia-centro'));
+            break;
+        case 'merge':
+            // A person says it is the same family written down twice: both go together in the older one.
+            $other = households::get(required_param('other', PARAM_INT), (int) $centre->id);
+            if (!$other || !array_key_exists((int) $other->id, lookalike::of($household))) {
+                redirect(new moodle_url($url, [], 'misma-familia'));
+            }
+            $kept = lookalike::merge($household, $other, (int) $USER->id);
+            redirect(
+                new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $kept->id]),
+                get_string('lookalike_merged', $c),
+                null,
+                \core\output\notification::NOTIFY_SUCCESS
+            );
+            break;
+        case 'notsame':
+            // Two different families: it is not asked again.
+            lookalike::distinct((int) $centre->id, (int) $household->id, required_param('other', PARAM_INT), (int) $USER->id);
+            redirect(new moodle_url($url, [], 'misma-familia'));
+            break;
+        case 'split':
+            // Two families joined by mistake: the adults, children, sign-ups and lines chosen go to a new one.
+            $choice = [
+                'adults' => optional_param_array('adults', [], PARAM_INT),
+                'children' => optional_param_array('children', [], PARAM_ALPHA),
+                'signups' => optional_param_array('signups', [], PARAM_ALPHA),
+                'contacts' => optional_param_array('contacts', [], PARAM_INT),
+                'log' => optional_param('log', 0, PARAM_INT),
+            ];
+            try {
+                $new = lookalike::split($household, $choice, (int) $USER->id);
+            } catch (\moodle_exception $e) {
+                redirect(new moodle_url($url, [], 'separar'), $e->getMessage(), null, \core\output\notification::NOTIFY_ERROR);
+            }
+            redirect(
+                new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $new->id]),
+                get_string('lookalike_split_done', $c),
+                null,
+                \core\output\notification::NOTIFY_SUCCESS
+            );
             break;
         case 'familystill':
             // The common record said they left; a person says they are still here.

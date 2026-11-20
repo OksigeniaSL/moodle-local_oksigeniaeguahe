@@ -76,7 +76,7 @@
                     "tel": {"text": "+34 600 333 444", "href": "tel:+34600333444"} }]},
         "proposal": {"sentence": "Proponerles el jueves 12 a las 17:30 con Lucía", "why": "pidieron tardes y Lucía está libre",
             "button": "Proponer y mandar", "url": "#", "text": "Hola, Marta y Daniel: el jueves 12 a las 17:30."},
-        "noproposal": "", "applysend": {"url": "#", "inside": "El plazo acaba el 15 de marzo de 2027.", "sent": ""}, "labelsurl": "", "siblings": false, "thanks": false, "family": false, "leave": false,
+        "noproposal": "", "applysend": {"url": "#", "inside": "El plazo acaba el 15 de marzo de 2027.", "sent": ""}, "labelsurl": "", "siblings": false, "thanks": false, "family": false, "split": {"adults": [{"id": 1, "name": "Ana López", "contact": "ana@example.com", "checked": false}, {"id": 2, "name": "Juan Pérez", "contact": "juan@example.com", "checked": true}], "children": [{"id": 5, "name": "Lucía", "options": [{"value": "stay", "label": "Se queda", "selected": false}, {"value": "go", "label": "Se va", "selected": false}, {"value": "both", "label": "En las dos", "selected": true}]}], "haschildren": true, "signups": [{"eventid": 3, "name": "Jornada · 21/11/26", "options": [{"value": "stay", "label": "Se queda", "selected": false}, {"value": "go", "label": "Se va", "selected": true}, {"value": "both", "label": "En las dos", "selected": false}]}], "hassignups": true, "lines": [{"id": 9, "checked": true, "when": "18/11/26, 10:04", "text": "¿Hay comedor?"}], "haslines": true, "fromlog": "Viene de juntar esta ficha con la de Juan Pérez el 20 de noviembre de 2026: está marcado lo que era suyo.", "logid": 4, "nolog": false, "action": "#", "sesskey": "x"}, "lookalike": {"others": [{"id": 12, "line": "Ana López, inscrita desde el 18/11/26", "reason": "Las dos piden Infantil 3 años para Lucía.", "url": "#", "what": "Se juntan en una sola ficha, la de Ana López, que es la más antigua."}], "canact": true, "action": "#", "sesskey": "x"}, "leave": false,
         "renewal": {"title": "El curso que viene, 2027-28", "canact": true, "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "pageurl": "#",
             "rows": [{"id": 3, "tag": "Leo", "next": "Le toca 2.º de Primaria", "said": "Lo dijo la familia el 3/12/26: no sigue (cambio de ciudad).",
                 "note": "Se mudan a otra isla.", "hasreasons": true,
@@ -337,6 +337,26 @@
                 {{#in}}<p class="secundario">{{in}}</p>{{/in}}
             </div>
             {{/family}}
+            {{#lookalike}}
+            <div class="familia-centro misma-familia" id="misma-familia">
+                <p><b>{{#str}}lookalike_title, local_oksigeniaeguahe{{/str}}</b></p>
+                {{#others}}
+                <p><a href="{{url}}">{{line}}</a><br><span class="secundario">{{reason}}</span></p>
+                {{#canact}}
+                <details class="en-linea">
+                    <summary class="boton secundario pequeno">{{#str}}lookalike_same, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        <p>{{what}}</p>
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="other" value="{{id}}">
+                        <button class="boton primario pequeno" type="submit" name="action" value="merge">{{#str}}lookalike_do_merge, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+                <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="other" value="{{id}}"><button class="enlace" type="submit" name="action" value="notsame">{{#str}}lookalike_not, local_oksigeniaeguahe{{/str}}</button></form>
+                {{/canact}}
+                {{/others}}
+            </div>
+            {{/lookalike}}
             {{#leave}}
             <div class="se-van" id="se-van">
                 {{#familysays}}
@@ -493,6 +513,41 @@
                     {{#mergeurl}}<a class="boton terciario pequeno" href="{{mergeurl}}">{{{i.fundir}}}{{#str}}panel_merge, local_oksigeniaeguahe{{/str}}</a>{{/mergeurl}}
                 </div>
                 <p class="secundario">{{#str}}panel_their_data_help, local_oksigeniaeguahe{{/str}}</p>
+                {{#split}}
+                <details class="confirmar separar" id="separar">
+                    <summary class="boton terciario pequeno">{{#str}}lookalike_split, local_oksigeniaeguahe{{/str}}</summary>
+                    <form method="post" action="{{action}}">
+                        {{#fromlog}}<p>{{fromlog}}</p>{{/fromlog}}
+                        {{#nolog}}<p class="secundario">{{#str}}lookalike_split_links, local_oksigeniaeguahe{{/str}}</p>{{/nolog}}
+                        <input type="hidden" name="sesskey" value="{{sesskey}}">
+                        <input type="hidden" name="log" value="{{logid}}">
+                        <fieldset>
+                            <legend>{{#str}}lookalike_split_adults, local_oksigeniaeguahe{{/str}}</legend>
+                            {{#adults}}<label class="casilla"><input type="checkbox" name="adults[]" value="{{id}}"{{#checked}} checked{{/checked}}> {{name}}{{#contact}} · {{contact}}{{/contact}}</label>{{/adults}}
+                        </fieldset>
+                        {{#haschildren}}
+                        <fieldset>
+                            <legend>{{#str}}lookalike_split_children, local_oksigeniaeguahe{{/str}}</legend>
+                            {{#children}}<label class="eleccion">{{name}} <select name="children[{{id}}]">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/options}}</select></label>{{/children}}
+                        </fieldset>
+                        {{/haschildren}}
+                        {{#hassignups}}
+                        <fieldset>
+                            <legend>{{#str}}lookalike_split_signups, local_oksigeniaeguahe{{/str}}</legend>
+                            {{#signups}}<label class="eleccion">{{name}} <select name="signups[{{eventid}}]">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/options}}</select></label>{{/signups}}
+                        </fieldset>
+                        {{/hassignups}}
+                        {{#haslines}}
+                        <fieldset>
+                            <legend>{{#str}}lookalike_split_lines, local_oksigeniaeguahe{{/str}}</legend>
+                            {{#lines}}<label class="casilla"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span class="secundario">{{when}}</span> {{text}}</label>{{/lines}}
+                        </fieldset>
+                        {{/haslines}}
+                        <button class="boton primario pequeno" type="submit" name="action" value="split">{{#str}}lookalike_split_do, local_oksigeniaeguahe{{/str}}</button>
+                        <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}erase_no, local_oksigeniaeguahe{{/str}}</button>
+                    </form>
+                </details>
+                {{/split}}
                 <details class="confirmar">
                     <summary class="boton rojo pequeno">{{{i.borrar}}}{{#str}}panel_erase, local_oksigeniaeguahe{{/str}}</summary>
                     <form method="post" action="{{action}}">

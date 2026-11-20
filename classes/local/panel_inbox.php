@@ -247,6 +247,16 @@ class panel_inbox {
                 'link' => get_string($only ? 'panel_siblings_all' : ($key === 'siblings' ? 'panel_siblings_see' :
                     'panel_story_inbox_see'), $c), 'known' => false];
         }
+        // The same family written down twice, from the families of the last half year: a person says if it is.
+        $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);
+        if ($twice) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('lookalike_inbox_title', $c),
+                'text' => count($twice) === 1 ? get_string('lookalike_inbox_one', $c) :
+                    get_string('lookalike_inbox_many', $c, count($twice)),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $twice[0][0]], 'misma-familia'))
+                    ->out(false),
+                'link' => get_string('lookalike_inbox_see', $c), 'known' => false];
+        }
         // Each function at its moment, with «Known» for whoever may act.
         $canact = centres::can_act((int) $USER->id);
         foreach (moments::due($centre, $now) as $moment) {
