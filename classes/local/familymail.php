@@ -64,16 +64,24 @@ class familymail {
     }
 
     /**
-     * The colours of the centre for the mail, light and dark.
+     * The colours of the centre for the mail, light and dark; with its brand, its paper, its wall and its titles, as on
+     * its pages (Jujol).
      *
      * @param string $colour
+     * @param string[] $brand centres::brand()
      * @return array
      */
-    protected static function colours(string $colour): array {
-        $map = fn(array $v) => ['acento' => $v['--c-acento'], 'sobre_acento' => $v['--c-sobre-acento'],
-            'acento_texto' => $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'], 'sobre_vivo' => $v['--c-sobre-vivo'],
-            'pared' => $v['--c-pared']];
-        return $map(publicpage::centre_vars($colour, false)) + ['oscuro' => $map(publicpage::centre_vars($colour, true))];
+    protected static function colours(string $colour, array $brand = []): array {
+        $map = function (bool $dark) use ($colour, $brand): array {
+            $v = publicpage::centre_vars($colour, $dark);
+            $m = $brand ? publicpage::brand_vars($brand, $colour, $dark) : null;
+            return ['acento' => $v['--c-acento'], 'sobre_acento' => $v['--c-sobre-acento'],
+                'acento_texto' => $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'], 'sobre_vivo' => $v['--c-sobre-vivo'],
+                'pared' => $m ? $m['--m-pared'] : $v['--c-pared'],
+                'papel' => $m ? $m['--m-papel'] : ($dark ? '#171413' : '#FBF7F1'),
+                'titulo' => $m ? $m['--m-titulo'] : ($dark ? '#F3ECE6' : '#2B2226')];
+        };
+        return $map(false) + ['oscuro' => $map(true)];
     }
 
     /**
@@ -111,7 +119,7 @@ class familymail {
         $credit = publicpage::credit($lang);
         $creditlink = $credit ? \html_writer::link($credit['url'], s($credit['text']), ['class' => 'eg-enlace',
             'style' => 'color:#5F5459; text-decoration:underline;']) : '';
-        $colour = $centre->colour ?: '#2f5d62';
+        $colour = centres::colour($centre);
         $full = households::full($household);
         $tags = array_values(array_filter(
             array_map([familypage::class, 'label_name'], array_values($full->children)),
@@ -240,7 +248,7 @@ class familymail {
             'dir' => lists::dir($lang),
             'fin' => lists::dir($lang) === 'rtl' ? 'left' : 'right',
             'fuente_url' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/fonts/schibsted-grotesk.woff2',
-            'c' => self::colours($colour),
+            'c' => self::colours($colour, centres::brand($centre)),
             'franja' => centres::brand($centre),
             'centro' => [
                 'nombre' => format_string($centre->name),

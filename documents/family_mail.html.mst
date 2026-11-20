@@ -40,10 +40,11 @@ u + #body a { color: inherit; text-decoration: none; }
   .eg-col { padding-left: 6px !important; padding-right: 6px !important; }
 }
 @media (prefers-color-scheme: dark) {
-  .eg-papel { background-color: #171413 !important; }
+  .eg-papel { background-color: {{c.oscuro.papel}} !important; }
   .eg-pared { background-color: {{c.oscuro.pared}} !important; }
   .eg-sup { background-color: #211D1B !important; border-color: #36302D !important; }
   .eg-tinta { color: #F3ECE6 !important; }
+  .eg-titulo { color: {{c.oscuro.titulo}} !important; }
   .eg-tinta-2 { color: #BBB0AA !important; }
   .eg-enlace { color: {{c.oscuro.acento_texto}} !important; }
   .eg-linea { border-color: #36302D !important; }
@@ -52,19 +53,20 @@ u + #body a { color: inherit; text-decoration: none; }
   .eg-marca { background-color: {{c.oscuro.vivo}} !important; color: {{c.oscuro.sobre_vivo}} !important; }
 }
 /* Outlook.com and the Outlook apps, which add these attributes when they darken a message */
-[data-ogsb] .eg-papel { background-color: #171413 !important; }
+[data-ogsb] .eg-papel { background-color: {{c.oscuro.papel}} !important; }
 [data-ogsb] .eg-pared { background-color: {{c.oscuro.pared}} !important; }
 [data-ogsb] .eg-sup { background-color: #211D1B !important; }
 [data-ogsc] .eg-tinta { color: #F3ECE6 !important; }
+[data-ogsc] .eg-titulo { color: {{c.oscuro.titulo}} !important; }
 [data-ogsc] .eg-tinta-2 { color: #BBB0AA !important; }
 [data-ogsc] .eg-enlace { color: {{c.oscuro.acento_texto}} !important; }
 [data-ogsb] .eg-boton-td { background-color: {{c.oscuro.vivo}} !important; }
 [data-ogsc] .eg-boton-a { color: {{c.oscuro.sobre_vivo}} !important; }
 </style>
 </head>
-<body id="body" class="eg-papel" dir="{{dir}}" style="margin:0; padding:0; background-color:#FBF7F1; word-spacing:normal;">
+<body id="body" class="eg-papel" dir="{{dir}}" style="margin:0; padding:0; background-color:{{c.papel}}; word-spacing:normal;">
 <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">{{preencabezado}}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="eg-papel" bgcolor="#FBF7F1" style="width:100%; background-color:#FBF7F1;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="eg-papel" bgcolor="{{c.papel}}" style="width:100%; background-color:{{c.papel}};">
 <tr><td align="center" style="padding:0;">
 <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
 <table role="presentation" width="600" dir="{{dir}}" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px; margin:0 auto; font-family:'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
@@ -89,7 +91,7 @@ u + #body a { color: inherit; text-decoration: none; }
 
 <!-- The headline and the child's sticker: «Los esperamos,» and the name, handwritten on the sticker -->
 <tr><td class="eg-pared eg-pad" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:36px 40px 0;">
-  <h1 class="eg-tinta eg-h1" style="margin:0; font-size:46px; line-height:48px; font-weight:800; letter-spacing:-1.2px; color:#2B2226;">{{titular}}{{^etiquetas_filas}} {{nombres}}{{/etiquetas_filas}}</h1>
+  <h1 class="eg-tinta eg-titulo eg-h1" style="margin:0; font-size:46px; line-height:48px; font-weight:800; letter-spacing:-1.2px; color:{{c.titulo}};">{{titular}}{{^etiquetas_filas}} {{nombres}}{{/etiquetas_filas}}</h1>
 </td></tr>
 <tr><td class="eg-pared eg-pad-etq" bgcolor="{{c.pared}}" style="background-color:{{c.pared}}; padding:4px 24px 0;">
   {{#etiquetas_filas}}
@@ -142,7 +144,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <!-- Who receives them, with their faces (the invitation) -->
 {{#anfitriones}}
 <tr><td class="eg-pad" style="padding:44px 40px 0;">
-  <h2 class="eg-tinta eg-h2" style="margin:0; font-size:30px; line-height:34px; font-weight:800; letter-spacing:-0.6px; color:#2B2226;">{{titulo}}</h2>
+  <h2 class="eg-tinta eg-titulo eg-h2" style="margin:0; font-size:30px; line-height:34px; font-weight:800; letter-spacing:-0.6px; color:{{c.titulo}};">{{titulo}}</h2>
   <p class="eg-tinta-2" style="margin:8px 0 0; font-size:16px; line-height:24px; color:#5F5459;">{{sub}}</p>
 </td></tr>
 {{#filas}}
@@ -165,7 +167,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <!-- Who receives them, short (the confirmation and the reminder) -->
 {{#anfitriones_breve}}
 <tr><td class="eg-pad" style="padding:40px 40px 0;">
-  <h2 class="eg-tinta" style="margin:0 0 6px; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:#2B2226;">{{titulo}}</h2>
+  <h2 class="eg-tinta eg-titulo" style="margin:0 0 6px; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:{{c.titulo}};">{{titulo}}</h2>
   {{#personas}}
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
     <td style="vertical-align:middle; padding-right:14px;">{{#cara}}<img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;">{{/cara}}{{^cara}}<div class="eg-sup" style="width:56px; height:56px; border-radius:28px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:18px; line-height:56px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/cara}}</td>
@@ -178,7 +180,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <!-- Free sections: how to get there, can't come, the note about places -->
 {{#secciones}}
 <tr><td class="eg-pad" style="padding:40px 40px 0;">
-  <h2 class="eg-tinta" style="margin:0; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:#2B2226;">{{titulo}}</h2>
+  <h2 class="eg-tinta eg-titulo" style="margin:0; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:{{c.titulo}};">{{titulo}}</h2>
   <p class="eg-tinta" style="margin:8px 0 0; font-size:17px; line-height:26px; color:#2B2226;">{{{texto}}}</p>
   {{#enlace}}<p style="margin:10px 0 0; font-size:17px; line-height:26px; font-weight:700;"><a class="eg-enlace" href="{{url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{texto}}</a></p>{{/enlace}}
 </td></tr>
@@ -200,6 +202,11 @@ u + #body a { color: inherit; text-decoration: none; }
     {{#muestra_pie}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{muestra_pie}}</p>{{/muestra_pie}}
   </td></tr></table>
 </td></tr>
+
+{{#franja.0}}
+<!-- The stripe of the brand below everything too, as the signs of the centre close (Jujol) -->
+<tr><td style="padding:0; font-size:0; line-height:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>{{#franja}}<td height="6" bgcolor="{{.}}" style="height:6px; background-color:{{.}}; font-size:0; line-height:0;">&nbsp;</td>{{/franja}}</tr></table></td></tr>
+{{/franja.0}}
 
 </table>
 <!--[if mso]></td></tr></table><![endif]-->

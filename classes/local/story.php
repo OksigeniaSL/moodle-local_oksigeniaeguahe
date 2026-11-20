@@ -457,7 +457,7 @@ class story {
         foreach (self::FRAME as $key) {
             $frame[$key] = $fill($words[$key]);
         }
-        $colour = $centre->colour ?: '#2f5d62';
+        $colour = centres::colour($centre);
         $logo = centres::logo((int) $centre->id);
         // The drawing draws itself with its strokes; without them, no script for it. In Arabic, the voice is asked first.
         // The story as a video to keep, made in the page when asked (video.js, with the sheet of ../dibujo-video.js).
@@ -503,7 +503,7 @@ class story {
      */
     protected static function video_data(\stdClass $centre, array $words, string $name, string $lang, string $share): array {
         global $CFG;
-        $colour = $centre->colour ?: '#2f5d62';
+        $colour = centres::colour($centre);
         $vars = publicpage::centre_vars($colour, false);
         $s = fn(string $id) => publiclang::str('share_video_' . $id, $lang);
         return [

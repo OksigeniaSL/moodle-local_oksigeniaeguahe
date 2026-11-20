@@ -554,7 +554,7 @@ class share {
             return '';
         }
         [$w, $h] = $size;
-        $accent = (string) ($centre->colour ?: '#2f5d62');
+        $accent = centres::colour($centre);
         $vars = publicpage::centre_vars($accent, false);
         $im = imagecreatetruecolor($w, $h);
         imagealphablending($im, true);

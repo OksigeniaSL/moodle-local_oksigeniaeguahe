@@ -164,25 +164,121 @@ class publicpage {
                 array_keys($colours)
             )) . ')';
             $style = ' style="--marca-franja: ' . $stops($brand) . '; --marca-franja-oscura: ' .
-                $stops(array_map([self::class, 'on_dark'], $brand)) . ';"';
+                $stops(self::brand_on_dark($centre)) . ';"';
         }
         return ($classes ? ' class="' . implode(' ', $classes) . '"' : '') . $style;
+    }
+
+    /**
+     * The colours of the brand of the centre at night, each lightened until it shows on the dark paper of its brand.
+     *
+     * @param \stdClass $centre
+     * @return string[]
+     */
+    public static function brand_on_dark(\stdClass $centre): array {
+        $brand = centres::brand($centre);
+        if (!$brand) {
+            return [];
+        }
+        $paper = self::brand_vars($brand, centres::colour($centre), true)['--m-papel'];
+        return array_map(fn($code) => self::on_dark($code, $paper), $brand);
+    }
+
+    /**
+     * The brand of the centre, whole, on the pages of its families (Jujol): every colour the page needs, from the
+     * colours of the brand and the colour of the centre, for light or dark. By day, the white of its own signs and the
+     * wall in a tint of its colour; at night, a dark of its own (near black with a little of its colour), never the
+     * brown of Eguahe. The titles in the darkest colour of the brand that reads (else the colour of the centre darkened
+     * until it reads), the accent in the next one, the line in the first that holds as a line, and a pale colour only as
+     * the tint behind the date and in the stripe. Every colour that carries words reads on every ground it can fall on:
+     * 4.5:1, the titles at night 7:1; a line, 3:1.
+     *
+     * @param string[] $brand centres::brand(), in the order the centre gave it.
+     * @param string $main #rrggbb The colour of the centre (centres::colour()).
+     * @param bool $dark
+     * @return array Variable => value.
+     */
+    public static function brand_vars(array $brand, string $main, bool $dark): array {
+        $main = strtoupper($main);
+        $onwhite = fn(string $c) => self::contrast($c, '#FFFFFF');
+        // The roles, as on the poster (poster::brand()).
+        $reads = array_values(array_filter($brand, fn($c) => $onwhite($c) >= 4.5));
+        usort($reads, fn($a, $b) => $onwhite($b) <=> $onwhite($a));
+        $title = $reads[0] ?? null;
+        $others = fn(float $min) => array_values(array_filter($brand, fn($c) => $c !== $title && $onwhite($c) >= $min));
+        $accent = $others(4.5)[0] ?? $title;
+        $line = $others(3)[0] ?? $accent;
+        $pale = array_values(array_filter($brand, fn($c) => $onwhite($c) < 3))[0] ?? null;
+        // The grounds.
+        $vivid = $dark ? self::towards($main, '#FFFFFF', '#211D1B', 3) : $main;
+        $paper = $dark ? self::mix('#131316', $vivid, 0.08) : '#FFFFFF';
+        $wall = $dark ? self::mix('#18181C', $vivid, 0.13) : self::mix('#FFFFFF', $main, 0.09);
+        $surface = $dark ? self::mix('#1D1D21', $vivid, 0.1) : '#FFFFFF';
+        // Behind the date, by day: a tint of the first pale colour (the one that never carries words gets its place);
+        // without one, of the colour of the centre. At night a pale yellow or gold turns to mud: a tint of the centre.
+        $fill = $dark ? self::mix($surface, $vivid, 0.16) : self::mix('#FFFFFF', $pale ?? $main, $pale ? 0.3 : 0.09);
+        // A colour that has to read on every ground it can fall on.
+        $readable = function (string $c, float $min) use ($dark, $paper, $wall, $surface, $fill): string {
+            foreach ([$paper, $wall, $surface, $fill] as $ground) {
+                $c = self::towards($c, $dark ? '#FFFFFF' : '#000000', $ground, $min);
+            }
+            return $c;
+        };
+        $base = $title ?? $main;
+        $titlecolour = $readable($base, $dark ? 7 : 4.5);
+        $rule = $readable($line ?? $base, 3);
+        // What stays light at night (the card of the invitation, on the paper of the labels) keeps the colours of the day.
+        $day = $dark ? self::brand_vars($brand, $main, false) : null;
+        return [
+            '--m-titulo-dia' => self::towards($day ? $day['--m-titulo'] : $titlecolour, '#000000', '#F5EEE5', 4.5),
+            '--m-raya-dia' => self::towards($day ? $day['--m-raya'] : $rule, '#000000', '#F5EEE5', 3),
+            '--m-papel' => $paper,
+            '--m-pared' => $wall,
+            '--m-superficie' => $surface,
+            '--m-hundido' => $dark ? self::mix('#0F0F12', $vivid, 0.07) : self::mix('#FFFFFF', $main, 0.045),
+            '--m-linea' => $dark ? self::mix($paper, $vivid, 0.22) : self::mix('#FFFFFF', $main, 0.15),
+            '--m-borde' => $readable($dark ? self::mix('#7A7A82', $vivid, 0.2) : self::mix('#8C8C94', $main, 0.2), 3),
+            '--m-tinta' => $dark ? self::mix('#F1F1F3', $titlecolour, 0.1) : self::mix('#1E1E22', $titlecolour, 0.2),
+            '--m-tinta-2' => $readable($dark ? self::mix('#B2B2B9', $titlecolour, 0.15) :
+                self::mix('#56565E', $titlecolour, 0.2), 4.5),
+            '--m-titulo' => $titlecolour,
+            '--m-acento' => $readable($accent ?? $base, 4.5),
+            '--m-raya' => $rule,
+            '--m-relleno' => $fill,
+            '--m-luz' => $dark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.75)',
+        ];
+    }
+
+    /**
+     * A word of one letter never ends a line in a title («Vengan a / conocernos»): in the h1, h2 and legend of a page,
+     * it is tied to the next word, as on the poster.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function no_lone_letters(string $html): string {
+        return preg_replace_callback('#<(h1|h2|legend)\b[^>]*>.*?</\1>#su', fn($m) => preg_replace_callback(
+            '#>([^<]+)<#u',
+            fn($t) => '>' . preg_replace('/(^|\s)([aeouy])\s+(?=\S)/iu', '$1$2' . "\u{00A0}", $t[1]) . '<',
+            $m[0]
+        ), $html) ?? $html;
     }
 
     /**
      * A colour of the brand on the dark page: lightened, mixing it with white, until it stands out 3 to 1 against it.
      *
      * @param string $hex
+     * @param string $paper #rrggbb The dark paper it falls on.
      * @return string
      */
-    public static function on_dark(string $hex): string {
+    public static function on_dark(string $hex, string $paper = '#171413'): string {
         $light = function (string $h): float {
             $c = array_map(fn($x) => hexdec($x) / 255, str_split(substr($h, 1), 2));
             $c = array_map(fn($v) => $v <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4, $c);
             return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
         };
         // The paper of the pages at night.
-        $ground = $light('#171413');
+        $ground = $light($paper);
         for ($t = 0.0; $t <= 1.0; $t += 0.05) {
             $mixed = '#' . implode('', array_map(
                 fn($x) => sprintf('%02x', round(hexdec($x) + (255 - hexdec($x)) * $t)),
@@ -223,8 +319,10 @@ class publicpage {
             $skin = '<link rel="stylesheet" href="' . $base . 'pieles/vestibulo/familia.css?v=' . $version . '">' . "\n";
             $skin .= '<script src="' . $base . 'pieles/vestibulo/escena.js?v=' . $version . '" defer></script>' . "\n";
         }
-        $colour = $centre->colour ?: '#2f5d62';
+        $colour = centres::colour($centre);
+        $brand = !empty($centre->id) ? centres::brand($centre) : [];
         $logo = !empty($centre->id) ? centres::logo((int) $centre->id) : null;
+        $aspect = $logo ? (centres::logo_aspect((int) $centre->id) ?? 1) : 1;
         $name = format_string($centre->name);
         $initials = self::initials($name);
         $langs = publiclang::switcher($lang, $url);
@@ -232,11 +330,11 @@ class publicpage {
         foreach ($langs as $item) {
             $current = $item['current'] ? $item['name'] : $current;
         }
-        $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + [
+        $body = self::no_lone_letters($OUTPUT->render_from_template('local_oksigeniaeguahe/' . $template, $context + [
             'base' => $base,
             'version' => $version,
             'i' => self::icons(),
-        ]);
+        ]));
         $header = $OUTPUT->render_from_template('local_oksigeniaeguahe/public_frame', [
             'i' => self::icons(),
             'centre' => $name,
@@ -249,12 +347,17 @@ class publicpage {
                 centres::logo_needs_plate((int) $centre->id)),
             // The colours of the brand of the centre, as a stripe above everything; in the dark, a colour that would
             // be lost is lightened until it shows (Jujol).
-            'brand' => !empty($centre->id) ? array_map(
-                fn($code) => ['light' => $code, 'dark' => self::on_dark($code)],
-                centres::brand($centre)
+            'brand' => $brand ? array_map(
+                fn($code, $night) => ['light' => $code, 'dark' => $night],
+                $brand,
+                self::brand_on_dark($centre)
             ) : [],
             // A long logo already says the name of the centre: the name beside it is not repeated (Jujol).
-            'namevisible' => !$logo || (centres::logo_aspect((int) $centre->id) ?? 1) < 2.2,
+            'namevisible' => !$logo || $aspect < 2.2,
+            // With its brand, the logo measured by its area, as on the poster: a long one and a square one weigh the
+            // same (Jujol).
+            'logoheight' => $brand && $logo ? (int) round(min(64, sqrt(11000 / $aspect))) : false,
+            'logoheightphone' => $brand && $logo ? (int) round(min(46, sqrt(5200 / $aspect))) : false,
             'langcode' => \core_text::strtoupper(substr(str_replace('_', '-', $lang), 0, 2)),
             'langs' => $langs,
             'langname' => $current,
@@ -266,6 +369,9 @@ class publicpage {
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
+        // The colours of the centre and, when it wrote its brand, the whole brand (Jujol), by day and at night.
+        $light = self::centre_vars($colour, false) + ($brand ? self::brand_vars($brand, $colour, false) : []);
+        $dark = self::centre_vars($colour, true) + ($brand ? self::brand_vars($brand, $colour, true) : []);
         self::headers();
         // The page of a family: the drawing that draws itself, under each child and on the table, before what plays it.
         // And the video of a drawing, to keep it (it loads its MP4 muxer only when asked).
@@ -288,8 +394,8 @@ class publicpage {
 ' . self::$head . '<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <link rel="stylesheet" href="' . $base . 'riel-lectura.css?v=' . $version . '">
-<style>:root { ' . $vars(self::centre_vars($colour, false)) . ' }
-@media (prefers-color-scheme: dark) { :root { ' . $vars(self::centre_vars($colour, true)) . ' } }</style>
+<style>:root { ' . $vars($light) . ' }
+@media (prefers-color-scheme: dark) { :root { ' . $vars($dark) . ' } }</style>
 <noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden],
 .quien-cuenta[hidden] {
 display: grid; }

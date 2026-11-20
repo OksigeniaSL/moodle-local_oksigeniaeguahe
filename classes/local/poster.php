@@ -52,7 +52,7 @@ class poster {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $lines = fn(string $text) => implode('<br>', array_map('s', explode('|', $text)));
         $ucfirst = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
-        $v = publicpage::centre_vars($centre->colour ?: '#2f5d62', false);
+        $v = publicpage::centre_vars(centres::colour($centre), false);
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
         if ($door) {
             [$doorlink, $doorqr] = events::door($event, $lang, $where);

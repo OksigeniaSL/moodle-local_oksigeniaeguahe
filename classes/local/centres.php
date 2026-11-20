@@ -952,6 +952,28 @@ class centres {
     }
 
     /**
+     * The colour of the centre on what its families see (its pages, its emails, its images): the one it chose, unless it
+     * wrote its brand and that colour is not in it; then the first of its brand that reads on white, or else the first
+     * (Jujol: a teal centre with a burgundy brand would show teal buttons under burgundy titles).
+     *
+     * @param \stdClass $centre
+     * @return string #rrggbb
+     */
+    public static function colour(\stdClass $centre): string {
+        $chosen = strtolower((string) ($centre->colour ?? '')) ?: '#2f5d62';
+        $brand = self::brand($centre);
+        if (!$brand || in_array($chosen, $brand, true)) {
+            return $chosen;
+        }
+        foreach ($brand as $code) {
+            if (publicpage::contrast($code, '#ffffff') >= 4.5) {
+                return $code;
+            }
+        }
+        return $brand[0];
+    }
+
+    /**
      * Saves an offer: new when it has no id.
      *
      * @param int $centreid

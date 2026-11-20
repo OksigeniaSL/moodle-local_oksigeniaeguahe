@@ -5772,3 +5772,172 @@ html {
     color: inherit;
     text-decoration: none;
 }
+
+/* ---------- The brand of the centre, whole (Jujol, 20 November 2026) ----------
+   When the centre wrote its colours (body.con-marca), its pages are its own: the white of its signs by day and a dark
+   of its own at night, the wall in a tint of its colour, the titles in its colour with the line of its signs under
+   them, its logo larger and its stripe above and below. Eguahe keeps what is its gesture: the rail of wood, the hook,
+   the backpack, the label written by hand, the type and the voice.
+   Every --m-* is written by the server (publicpage::brand_vars()), for light and dark; nothing is mixed here. */
+.con-marca {
+    --eg-papel: var(--m-papel);
+    --eg-superficie: var(--m-superficie);
+    --eg-hundido: var(--m-hundido);
+    --eg-linea: var(--m-linea);
+    --eg-borde: var(--m-borde);
+    --eg-tinta: var(--m-tinta);
+    --eg-tinta-2: var(--m-tinta-2);
+    --eg-luz: var(--m-luz);
+    --c-pared: var(--m-pared);
+}
+
+/* The logo on the paper, as on its signs, and measured by its area: a long one and a square one weigh the same */
+.con-marca .cabecera {
+    background: var(--eg-papel);
+    padding-top: 18px;
+    padding-bottom: 18px;
+}
+
+.con-marca .placa .logo img {
+    height: var(--logo-alto, 56px);
+}
+
+.con-marca .monograma {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    font-size: 1.15rem;
+}
+
+.con-marca .placa .nombre {
+    font-size: 1.25rem;
+    font-weight: 750;
+    letter-spacing: -0.015em;
+    color: var(--m-titulo);
+}
+
+/* At night, the light plate of a logo that would get lost: white, as the paper of its signs */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .con-marca .placa .logo.plato-oscuro {
+        background: #fff;
+    }
+}
+
+:root[data-theme="dark"] .con-marca .placa .logo.plato-oscuro {
+    background: #fff;
+}
+
+@media (max-width: 599px) {
+    .con-marca .cabecera {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+    .con-marca .placa .logo img {
+        height: var(--logo-alto-movil, 40px);
+    }
+
+    .con-marca .monograma {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+
+    .con-marca .placa .nombre {
+        font-size: 1.0625rem;
+    }
+}
+
+/* The stripe below everything too, as its signs close */
+.con-marca::after {
+    content: '';
+    display: block;
+    height: 8px;
+    background: var(--marca-franja);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .con-marca::after {
+        background: var(--marca-franja-oscura);
+    }
+}
+
+:root[data-theme="dark"] .con-marca::after {
+    background: var(--marca-franja-oscura);
+}
+
+/* The wall: the line above the title in the accent of the brand, the title in its colour and its line under it */
+.con-marca .antetitulo {
+    color: var(--m-acento);
+    font-size: 0.8125rem;
+    font-weight: 750;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.con-marca main h1,
+.con-marca legend,
+.con-marca main h2 {
+    color: var(--m-titulo);
+}
+
+.con-marca legend .opc {
+    color: var(--eg-tinta-2);
+}
+
+.con-marca main h1::after {
+    content: '';
+    display: block;
+    width: 96px;
+    height: 6px;
+    margin-top: 22px;
+    border-radius: 3px;
+    background: var(--m-raya);
+}
+
+@media (max-width: 599px) {
+    .con-marca main h1::after {
+        width: 72px;
+        height: 5px;
+        margin-top: 16px;
+    }
+}
+
+/* The card of the invitation is paper of the labels, light also at night: its title in the colours of the day */
+.con-marca .invitacion-titulo {
+    color: var(--m-titulo-dia);
+}
+
+.con-marca .invitacion-titulo::after {
+    background: var(--m-raya-dia);
+}
+
+/* The day of the act, on a panel in the tint of the brand: the name of the day in the accent, the date in the colour
+   of the titles, the hour in ink */
+.con-marca .resumen-acto {
+    padding: 26px 28px 28px;
+    border-radius: var(--radio);
+    background: var(--m-relleno);
+}
+
+.con-marca .resumen-acto .cuando {
+    color: var(--m-titulo);
+}
+
+@media (min-width: 960px) {
+    /* «21 de noviembre» in one line inside the panel */
+    .con-marca .resumen-acto .cuando {
+        /* stylelint-disable-next-line csstree/validator */
+        font-size: clamp(1.9rem, 3.1vw, 2.75rem);
+    }
+}
+
+.con-marca .resumen-acto .cuando span {
+    color: var(--m-acento);
+}
+
+/* On the solid band of the visit everything stays on the colour of the centre */
+.con-marca .banda h2,
+.con-marca .banda legend {
+    color: inherit;
+}
