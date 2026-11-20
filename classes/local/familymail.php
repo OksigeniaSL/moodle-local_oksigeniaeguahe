@@ -79,7 +79,9 @@ class familymail {
                 'acento_texto' => $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'], 'sobre_vivo' => $v['--c-sobre-vivo'],
                 'pared' => $m ? $m['--m-pared'] : $v['--c-pared'],
                 'papel' => $m ? $m['--m-papel'] : ($dark ? '#171413' : '#FBF7F1'),
-                'titulo' => $m ? $m['--m-titulo'] : ($dark ? '#F3ECE6' : '#2B2226')];
+                'titulo' => $m ? $m['--m-titulo'] : ($dark ? '#F3ECE6' : '#2B2226'),
+                'sup' => $m ? $m['--m-superficie'] : ($dark ? '#211D1B' : '#FFFFFF'),
+                'linea' => $m ? $m['--m-linea'] : ($dark ? '#36302D' : '#E7DED3')];
         };
         return $map(false) + ['oscuro' => $map(true)];
     }
@@ -249,7 +251,13 @@ class familymail {
             'fin' => lists::dir($lang) === 'rtl' ? 'left' : 'right',
             'fuente_url' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/fonts/schibsted-grotesk.woff2',
             'c' => self::colours($colour, centres::brand($centre)),
-            'franja' => centres::brand($centre),
+            // The stripe of the brand; at night each colour lightened until it shows on the dark paper of the brand.
+            'franja' => array_map(
+                fn($code, $night, $n) => ['claro' => $code, 'oscuro' => $night, 'n' => $n],
+                centres::brand($centre),
+                publicpage::brand_on_dark($centre),
+                array_keys(centres::brand($centre))
+            ),
             'centro' => [
                 'nombre' => format_string($centre->name),
                 'placa' => $plate[0],
