@@ -1163,19 +1163,32 @@ body.piel-mostrador::after {
     background: var(--papel-b-2);
 }
 
+/* What is not used yet, and what can be started from one already made: blank index cards on the desk, with a dashed
+   edge and the ink of the paper, readable on any wood and on the paper of a section */
 .piel-mostrador .sin-usar-fila {
-    border-color: rgba(246, 234, 216, 0.6);
-    background: rgba(255, 253, 247, 0.12);
-    color: #fffaf0;
+    border-color: var(--eg-borde);
+    border-radius: 4px;
+    background: var(--ruido), var(--papel-b);
+    color: var(--eg-tinta);
+    box-shadow: var(--sombra-papel);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
 }
 
 .piel-mostrador .sin-usar-fila .secundario,
 .piel-mostrador .sin-usar-fila .ic {
-    color: #f0e2cc;
+    color: var(--eg-tinta-2);
 }
 
 .piel-mostrador .sin-usar-fila .enlace {
-    color: #fffaf0;
+    color: var(--eg-tinta);
+}
+
+.piel-mostrador .sin-usar-fila:hover,
+.piel-mostrador .sin-usar-fila:focus-visible {
+    border-style: solid;
+    box-shadow: var(--sombra-alta);
 }
 
 .piel-mostrador .entradas > .def {

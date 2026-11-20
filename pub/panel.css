@@ -5284,6 +5284,20 @@ input:focus-visible + .pastilla-r {
     color: var(--eg-tinta-2);
 }
 
+/* The ones already made start with a button: a whole row, as the links above it */
+.hechas-lista {
+    display: grid;
+    gap: 10px;
+}
+
+button.sin-usar-fila {
+    width: 100%;
+    background: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
 .sin-usar-fila .que {
     display: grid;
     gap: 2px;
