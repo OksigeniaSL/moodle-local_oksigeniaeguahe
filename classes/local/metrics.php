@@ -531,55 +531,73 @@ class metrics {
     }
 
     /**
-     * What the ads brought in a school year: for each imported campaign whose contacts came from ads, its families, how
-     * many were already of the centre, the new students of new families that came out of it, what it cost and what each
-     * of those students cost. It is the most that can be put down to the ad: leaving a contact in it does not prove the
-     * ad brought them.
+     * What the ads brought in a school year: for each imported campaign whose contacts came from ads (in a time, when
+     * given), its families, how many were already of the centre, how many of those enrolled a child this year, how many
+     * new families enrolled one, the new students of new families that came out of it, what it cost and what each of
+     * those students cost. It is the most that can be put down to the ad: leaving a contact in it does not prove the ad
+     * brought them.
      *
      * @param int $centreid
      * @param array $origins As origins() gives them for the school year.
-     * @return array[] label, families, centre, students, spend (or null) and each (or null), the most students first.
+     * @param int $from Only campaigns with a contact from this time; 0, any.
+     * @param int $to And before this one; 0, any.
+     * @return array[] id, label, families, centre, centrein, newin, students, spend (or null), each (or null), first and
+     *     last (when the contacts came), the most students first.
      */
-    public static function publicity(int $centreid, array $origins): array {
+    public static function publicity(int $centreid, array $origins, int $from = 0, int $to = 0): array {
         global $DB;
         $byhome = [];
+        $anynew = [];
         foreach ($origins['homes'] as $student => $homes) {
-            if (($origins['kinds'][$student] ?? '') !== 'newfamily') {
-                continue;
-            }
             foreach ($homes as $home) {
-                $byhome[$home][$student] = true;
+                $anynew[$home] = true;
+                if (($origins['kinds'][$student] ?? '') === 'newfamily') {
+                    $byhome[$home][$student] = true;
+                }
             }
         }
         $out = [];
         foreach ($DB->get_records(imports::T, ['centreid' => $centreid, 'kind' => 'contacts'], 'id ASC') as $import) {
             $homes = [];
             $fromads = false;
+            $first = 0;
+            $last = 0;
             $rows = $DB->get_recordset_select(
                 self::CONTACTS,
                 'importid = :id',
                 ['id' => $import->id],
                 '',
-                'id, household, channel'
+                'id, household, channel, timecontact'
             );
             foreach ($rows as $row) {
                 $homes[$row->household] = true;
                 $fromads = $fromads || $row->channel === 'meta';
+                $first = $first ? min($first, (int) $row->timecontact) : (int) $row->timecontact;
+                $last = max($last, (int) $row->timecontact);
             }
             $rows->close();
-            if (!$fromads) {
+            if (!$fromads || ($from && $last < $from) || ($to && $first >= $to)) {
                 continue;
             }
             $students = [];
+            $centrein = 0;
+            $newin = 0;
             foreach (array_keys($homes) as $home) {
-                $students += $byhome[$home] ?? [];
+                if (isset($origins['centre'][$home])) {
+                    $centrein += isset($anynew[$home]) ? 1 : 0;
+                } else if (!empty($byhome[$home])) {
+                    $newin++;
+                    $students += $byhome[$home];
+                }
             }
             $spend = self::spend($centreid, (string) $import->label);
             $channels = array_filter($spend, fn($k) => substr($k, -1) === '|', ARRAY_FILTER_USE_KEY);
-            $cost = $channels ? array_sum($channels) : null;
-            $out[] = ['label' => (string) $import->label, 'families' => count($homes),
-                'centre' => count(array_intersect_key($homes, $origins['centre'])), 'students' => count($students),
-                'spend' => $cost, 'each' => $cost !== null && $students ? round($cost / count($students), 2) : null];
+            $cost = $channels ? (float) array_sum($channels) : null;
+            $out[] = ['id' => (int) $import->id, 'label' => (string) $import->label, 'families' => count($homes),
+                'centre' => count(array_intersect_key($homes, $origins['centre'])), 'centrein' => $centrein, 'newin' => $newin,
+                'students' => count($students), 'spend' => $cost,
+                'each' => $cost !== null && $students ? round($cost / count($students), 2) : null, 'first' => $first,
+                'last' => $last];
         }
         usort($out, fn($a, $b) => [$b['students'], $b['families']] <=> [$a['students'], $a['families']]);
         return $out;

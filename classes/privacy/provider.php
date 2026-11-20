@@ -47,7 +47,8 @@ class provider implements
 
     /** @var array Other columns that name a person of the team: table => column. */
     const OTHERS = ['local_oksigeniaeguahe_promise' => 'doneby', 'local_oksigeniaeguahe_household' => 'ownerid',
-        'local_oksigeniaeguahe_notsame' => 'userid', 'local_oksigeniaeguahe_mergelog' => 'userid'];
+        'local_oksigeniaeguahe_notsame' => 'userid', 'local_oksigeniaeguahe_mergelog' => 'userid',
+        'local_oksigeniaeguahe_hours' => 'userid'];
 
     /**
      * What is kept about users.
@@ -105,6 +106,10 @@ class provider implements
             'userid' => 'privacy:metadata:report:userid',
             'timecreated' => 'privacy:metadata:report:timecreated',
         ], 'privacy:metadata:report');
+        $collection->add_database_table('local_oksigeniaeguahe_hours', [
+            'userid' => 'privacy:metadata:hours:userid',
+            'timemodified' => 'privacy:metadata:hours:timemodified',
+        ], 'privacy:metadata:hours');
         $collection->add_database_table('local_oksigeniaeguahe_mergelog', [
             'data' => 'privacy:metadata:mergelog:data',
             'userid' => 'privacy:metadata:mergelog:userid',

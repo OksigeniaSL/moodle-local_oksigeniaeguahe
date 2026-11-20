@@ -16975,50 +16975,1314 @@ html {
     }
 }
 
-/* Where the new students come from: each group with its number and its bar, the courses below, and the new families
-   split by what they left before; then what the ads brought, in sentences. */
-.origen-filas,
-.origen-partes {
-    margin: 12px 0 0;
+/* ---------- 11.6 The sheet «Los alumnos nuevos» (Jujol, 21 November 2026). Goes in pub/panel.css, after «11.5 The
+   numbers»: it uses its tokens (--cf-serie, --cf-serie-medio, --cf-serie-suave, the pencil). ----------
+   What really happened with the new students of a school year: what seems and what is, one backpack per student, and
+   what each ad brought. Every number is a button, with a dotted line under it as in a glossary; touched, pointed or
+   focused, the box at its side says what it is, how it is counted and what to keep in mind. The switch hides those who
+   were already of the centre: both versions of each changing figure are in the page (.con and .sin). */
+
+.an-dibujos {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.alumnos-nuevos {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
+/* The sheet takes the whole width of the numbers, whatever their grid. */
+.cifras > .alumnos-nuevos {
+    grid-column: 1 / -1;
+}
+
+/* One sheet under another, whatever the numbers' own rules give them (the years ask for three columns). */
+.alumnos-nuevos > * {
+    grid-column: 1 / -1;
+}
+
+/* The two versions of each figure: with or without those who were already of the centre. */
+.alumnos-nuevos .sin,
+.alumnos-nuevos.sin-centro .con {
+    display: none;
+}
+
+.alumnos-nuevos.sin-centro .sin {
+    display: revert;
+}
+
+.alumnos-nuevos.sin-centro .an-plegado.sin {
+    display: block;
+}
+
+/* A number that can be touched: ink, with a dotted line under it. */
+.an-toque {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.an-frase .an-toque,
+.an-toque > b {
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--cf-lapiz-fuerte);
+}
+
+.an-toque:hover > b,
+.an-frase .an-toque:hover,
+.an-toque.senalado > b,
+.an-frase .an-toque.senalado {
+    text-decoration-color: var(--cf-serie);
+    text-decoration-style: solid;
+}
+
+.an-toque:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* The body of each sheet: what is drawn, and the box at its side (under it, when narrow). */
+.an-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+@media (min-width: 1000px) {
+    .an-cuerpo {
+        grid-template-columns: minmax(0, 1fr) 21rem;
+        gap: 28px;
+    }
+}
+
+/* The box: what a number is, how it is counted and what to keep in mind. At rest, how to use it. */
+.an-explica {
+    position: sticky;
+    top: 16px;
+    min-height: 7.5rem;
+    padding: 14px 16px;
+    border-radius: var(--piel-radio, 12px);
+    border: 1px solid var(--piel-hoja-borde, var(--eg-linea));
+    border-inline-start: 4px solid var(--cf-lapiz);
+    background: var(--eg-hundido);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    transition: border-color var(--dur-1, 0.15s) ease;
+}
+
+.an-explica.dato-vivo {
+    border-inline-start-color: var(--cf-serie);
+}
+
+.an-explica p {
+    margin: 0 0 8px;
+}
+
+.an-explica p:last-child {
+    margin-bottom: 0;
+}
+
+.an-reposo {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    color: var(--eg-tinta-2);
+}
+
+.an-toca {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+}
+
+.an-explica-t {
+    font-size: 1.0625rem;
+    font-weight: 750;
+    line-height: 1.3;
+    color: var(--eg-tinta);
+}
+
+.an-explica b,
+.an-def dd b {
+    font-weight: 700;
+    color: var(--eg-tinta);
+}
+
+.an-ojo {
+    padding-top: 8px;
+    border-top: 1px dashed var(--cf-lapiz);
+}
+
+/* The big sentence of each sheet */
+.an-heroe {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 12px;
+    margin: 0 0 18px;
+}
+
+.an-heroe b {
+    font-size: var(--t-cifra, 2.75rem);
+    font-weight: 780;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--cf-serie);
+}
+
+.an-heroe > span {
+    font-size: 1.125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* ---------- 0. What comes out of the numbers ---------- */
+/* Strengths, weak points and trends, each with its own mark (a shape, not only a colour): a strength in aubergine, a
+   weak point in ochre, a trend in ink. What the centre's AI reads goes in a dashed frame with its tag. */
+.an-concs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.origen-fila,
-.origen-parte {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 3.5em minmax(0, 40%);
-    gap: 4px 14px;
-    align-items: center;
-    margin: 0 0 10px;
+@media (min-width: 900px) {
+    .an-concs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-.origen-n {
-    text-align: end;
+.an-conc {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--piel-radio, 12px);
+    border: 1px solid var(--piel-hoja-borde, var(--eg-linea));
+    background: var(--eg-hundido);
+}
+
+.an-conc-marca {
+    width: 26px;
+    height: 26px;
+    margin-top: 2px;
+    --an-sobre: var(--piel-hoja, #fff);
+}
+
+.an-conc-fuerte .an-conc-marca {
+    fill: var(--cf-serie);
+}
+
+.an-conc-flojo .an-conc-marca {
+    fill: var(--cf-sale);
+}
+
+.an-conc-tendencia .an-conc-marca {
+    fill: var(--eg-tinta);
+}
+
+.an-conc-ia {
+    background: transparent;
+    border: 1.5px dashed var(--cf-lapiz-fuerte);
+}
+
+.an-conc-tipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin: 0 0 2px;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    color: var(--eg-tinta-2);
+}
+
+.an-ia {
+    font-weight: 600;
+    color: var(--cf-lapiz-texto);
+}
+
+.an-ia::before {
+    content: '· ';
+}
+
+.an-conc-frase {
+    margin: 0 0 6px;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    color: var(--eg-tinta);
+}
+
+.an-conc-frase b {
+    font-weight: 780;
+}
+
+.an-conc-fuerte .an-conc-frase b {
+    color: var(--cf-serie);
+}
+
+.an-conc-flojo .an-conc-frase b {
+    color: var(--cf-sale);
+}
+
+.an-conc-porque {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-conc-porque .enlace {
+    white-space: nowrap;
+}
+
+/* ---------- 1. What it seems and what really happens ---------- */
+.an-pares {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 700px) {
+    .an-pares {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.an-parece,
+.an-pasa {
+    padding: 16px 18px;
+    border-radius: var(--piel-radio, 12px);
+}
+
+/* What seems, in pencil: the raw numbers. */
+.an-parece {
+    border: 1.5px dashed var(--cf-lapiz-fuerte);
+    color: var(--eg-tinta-2);
+}
+
+/* What really happens, in ink, with the aubergine of what comes in. */
+.an-pasa {
+    border: 1.5px solid var(--cf-serie);
+    background: var(--cf-serie-suave);
+}
+
+.an-rotulo {
+    margin: 0 0 6px;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    letter-spacing: 0.02em;
+    color: var(--eg-tinta-2);
+}
+
+.an-pasa .an-rotulo {
+    color: var(--cf-serie);
+}
+
+.an-frase {
+    margin: 0;
+    font-size: 1.1875rem;
+    line-height: 1.5;
+}
+
+.an-parece .an-frase .an-toque {
+    color: var(--eg-tinta-2);
+}
+
+.an-pasa .an-frase {
+    color: var(--eg-tinta);
+}
+
+.an-pasa .an-frase .an-toque {
+    font-weight: 750;
+}
+
+/* ---------- 2. Where the new students come from: one backpack each ---------- */
+.an-baldas {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Each group, a shelf: its number and name at the left, its backpacks standing on a line at the right. */
+.an-balda {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px 18px;
+    padding: 10px 0 12px;
+    border-bottom: 1px solid var(--eg-linea);
+    transition: opacity var(--dur-1, 0.15s) ease;
+}
+
+@media (min-width: 760px) {
+    .an-balda {
+        grid-template-columns: 15.5rem minmax(0, 1fr);
+    }
+
+    .an-cursos,
+    .an-partes {
+        grid-column: 2;
+    }
+}
+
+.an-balda-que {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0 10px;
+    align-items: baseline;
+}
+
+.an-n {
+    font-size: 1.75rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.an-nombre {
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.an-nombre small {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--eg-tinta-2);
+}
+
+.an-pct {
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--eg-tinta-2);
     font-variant-numeric: tabular-nums;
 }
 
-.origen-cursos,
-.origen-partes {
-    grid-column: 1 / -1;
+.an-mochilas {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-end;
+    gap: 3px 2px;
+    min-height: 26px;
+    padding-bottom: 3px;
+    border-bottom: 2px solid var(--cf-lapiz);
 }
 
-.origen-partes {
+/* The backpack: drawn once (#an-mochila), each kind its fill and its line. */
+.an-mochila {
+    flex: none;
+    width: 18px;
+    height: 21px;
+    overflow: visible;
+    --m-relleno: var(--cf-serie);
+    --m-linea: var(--cf-serie);
+    --m-banda: rgba(255, 255, 255, 0.5);
+    transition: opacity var(--dur-1, 0.15s) ease, transform var(--dur-1, 0.15s) ease;
+}
+
+/* The drawing inside <use> takes these properties (selectors do not reach it). */
+
+/* Those who were already of the centre, in pencil: the drawing alone, or shaded for brothers and sisters. */
+.m-inner {
+    --m-relleno: transparent;
+    --m-linea: var(--cf-lapiz-fuerte);
+    --m-banda: var(--cf-lapiz);
+}
+
+.m-sibling {
+    --m-relleno: var(--cf-lapiz);
+    --m-linea: var(--cf-lapiz-fuerte);
+    --m-banda: transparent;
+}
+
+/* New families, in aubergine: by an ad, strong; by another campaign or an act, middle; by nothing measured, soft. */
+.m-ad {
+    --m-relleno: var(--cf-serie);
+}
+
+.m-campaign {
+    --m-relleno: var(--cf-serie-medio);
+}
+
+.m-none {
+    --m-relleno: var(--cf-serie-suave);
+    --m-banda: transparent;
+}
+
+.m-unknown {
+    --m-relleno: transparent;
+    --m-linea: var(--cf-lapiz-fuerte);
+    --m-banda: transparent;
+    --m-trazo: 2 1.6;
+}
+
+.an-cursos {
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-partes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
     margin: 4px 0 0;
-    padding-inline-start: 18px;
-    border-inline-start: 2px solid var(--eg-linea);
+    padding: 0;
+    list-style: none;
 }
 
-.origen-parte {
-    margin-bottom: 6px;
-    font-size: .95em;
+.an-parte {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9375rem;
 }
 
-.grafico-origen h3 {
-    margin: 20px 0 6px;
+.an-parte .an-mochila {
+    width: 15px;
+    height: 17px;
 }
 
-.anuncios-trajeron li {
-    margin: 0 0 6px;
+/* Pointing at a group or a part: the rest steps back. */
+.an-origen.con-senal .an-balda:not(.senalada) {
+    opacity: var(--cf-tenue, 0.45);
 }
 
+.an-origen[data-marca] .an-balda.senalada .an-mochilas .an-mochila:not(.senalada) {
+    opacity: 0.25;
+}
+
+.an-mochilas .an-mochila.senalada {
+    transform: translateY(-2px);
+}
+
+.an-plegado {
+    margin: 12px 0 0;
+    color: var(--eg-tinta-2);
+}
+
+/* The tables of this sheet are wider than a phone: they scroll inside their fold. */
+.alumnos-nuevos .tabla-gemela {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.tabla-panel tr.parte th {
+    padding-inline-start: 1.5em;
+    font-weight: 400;
+}
+
+/* ---------- 3. What the ads brought ---------- */
+.an-campanas {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.an-campana {
+    display: grid;
+    gap: 12px;
+    padding: 14px 16px 16px;
+    border: 1px solid var(--piel-hoja-borde, var(--eg-linea));
+    border-radius: var(--piel-radio, 12px);
+    background: var(--piel-hoja, var(--eg-superficie));
+}
+
+.an-campana-cab {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 12px;
+    margin: 0;
+}
+
+.an-campana-cab b {
+    font-size: 1.125rem;
+    font-weight: 750;
+}
+
+.an-campana-cab span {
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+/* The way from the contacts to the enrolled: three steps, an arrow between them. */
+.an-camino {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.an-camino > li {
+    display: flex;
+    align-items: center;
+}
+
+.an-camino > li + li::before {
+    content: '';
+    width: 26px;
+    height: 2px;
+    margin-inline: 8px;
+    background: var(--cf-lapiz-fuerte);
+    -webkit-mask: linear-gradient(90deg, #000 60%, transparent 60%) 0 0 / 6px 2px repeat-x;
+    mask: linear-gradient(90deg, #000 60%, transparent 60%) 0 0 / 6px 2px repeat-x;
+}
+
+.an-camino .an-toque {
+    display: grid;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.an-camino .an-toque b {
+    font-size: 1.5rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.an-camino .an-toque > span {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--eg-tinta-2);
+}
+
+/* Those who were already of the centre: with them, a note of the way; without them, they are taken away. */
+.an-resta .an-toque {
+    background: none;
+    border: 1.5px dashed var(--cf-lapiz-fuerte);
+}
+
+.an-resta .an-toque b {
+    color: var(--eg-tinta-2);
+}
+
+.an-llegan .an-toque {
+    background: var(--cf-serie-suave);
+    box-shadow: inset 0 0 0 1.5px var(--cf-serie);
+}
+
+.an-llegan .an-toque b {
+    color: var(--cf-serie);
+}
+
+/* Out of every hundred: ten by ten dots, what came in filled. */
+.an-cien {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 18px;
+}
+
+.an-puntos {
+    display: grid;
+    grid-template-columns: repeat(10, 9px);
+    gap: 3px;
+    flex: none;
+}
+
+.alumnos-nuevos.sin-centro .an-puntos.sin {
+    display: grid;
+}
+
+.an-puntos i {
+    display: block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.2px var(--cf-lapiz);
+}
+
+.an-puntos i.p-n {
+    background: var(--cf-serie);
+    box-shadow: none;
+}
+
+.an-puntos i.p-c {
+    background: var(--cf-lapiz-fuerte);
+    box-shadow: none;
+}
+
+.an-puntos i.p-m {
+    background: linear-gradient(90deg, var(--cf-serie) 50%, transparent 50%);
+    box-shadow: inset 0 0 0 1.2px var(--cf-serie);
+}
+
+.an-cien-frase {
+    flex: 1 1 14rem;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
+.an-cien-frase b {
+    font-size: 1.25rem;
+    color: var(--cf-serie);
+}
+
+.an-coste {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 12px;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.an-coste .an-toque b {
+    font-size: 1.125rem;
+    font-weight: 750;
+}
+
+.an-coste > span {
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+/* An act (an open day) beside the ads: what makes families enrol is bringing them to the centre. */
+.an-campana-cab .an-sello-acto {
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1.5px solid var(--cf-serie);
+    color: var(--cf-serie);
+    font-size: 0.75rem;
+    font-weight: 750;
+}
+
+/* Money and the team's hours, side by side and never mixed: hours stay in hours; their money, only with a value per
+   hour, in pencil and with «≈». */
+.an-cuesta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.an-cuesta > div {
+    min-width: 0;
+}
+
+.an-cuesta dt {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    color: var(--eg-tinta-2);
+}
+
+.an-cuesta dd {
+    display: grid;
+    margin: 2px 0 0;
+}
+
+.an-cuesta dd .an-toque b {
+    font-size: 1.25rem;
+    font-weight: 780;
+    letter-spacing: -0.01em;
+}
+
+.an-cuesta-horas dd .an-toque b {
+    color: var(--eg-tinta);
+}
+
+.an-cuesta small {
+    font-size: 0.8125rem;
+    color: var(--cf-lapiz-texto);
+}
+
+@media (max-width: 560px) {
+    .an-cuesta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .an-cuesta-alumno {
+        grid-column: 1 / -1;
+    }
+}
+
+/* The hours of the team: what Eguahe counts by itself, the lines the centre writes with − and +, and what an hour is
+   worth. Each gesture saves itself. */
+.an-campana .an-parte {
+    display: block;
+}
+
+.an-campana .an-parte > summary {
+    display: list-item;
+}
+
+.an-parte > summary {
+    cursor: pointer;
+    font-weight: 650;
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+}
+
+.an-parte-cuerpo {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.an-parte-t {
+    margin: 4px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    color: var(--eg-tinta-2);
+}
+
+.an-horas-solas,
+.an-horas-centro {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.an-horas-solas li {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+    gap: 10px;
+    font-size: 0.9375rem;
+}
+
+.an-horas-solas b {
+    text-align: end;
+}
+
+.an-hora {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--cf-lapiz);
+}
+
+.an-paso {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+}
+
+.an-paso button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--eg-linea);
+    background: var(--piel-hoja, var(--eg-superficie));
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 750;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.an-paso button:hover {
+    border-color: var(--eg-acento);
+}
+
+.an-paso b {
+    min-width: 3.6rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.an-tareas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 0;
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-valor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    margin: 6px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--eg-linea);
+    font-size: 0.9375rem;
+}
+
+.an-valor small {
+    flex-basis: 100%;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-guardado {
+    min-height: 1.2em;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+/* ---------- 4. Joins and leaves during the year ---------- */
+/* Month by month, those who joined grow up from the line in aubergine and those who left grow down in ochre (the
+   only ochre of the numbers: what leaves); the year before, at the same month, in pencil behind them. The months to
+   come keep only the pencil: what usually happens then. */
+.an-al-dia {
+    margin: -6px 0 6px;
+    font-size: 0.875rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-heroe-doble {
+    align-items: center;
+    gap: 6px 26px;
+}
+
+.an-heroe-doble .an-toque {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.an-heroe-doble .an-toque > span {
+    font-size: 1.125rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-heroe .an-mas {
+    color: var(--cf-serie);
+}
+
+.an-heroe .an-menos {
+    color: var(--cf-sale);
+}
+
+.an-tendencia {
+    flex: 1 1 18rem;
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+    color: var(--eg-tinta);
+}
+
+.an-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0 0 8px;
+    font-size: 0.8125rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-leyenda .clave {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.an-k {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.an-k-mas {
+    background: var(--cf-serie);
+}
+
+.an-k-menos {
+    background: var(--cf-sale);
+}
+
+.an-k-antes {
+    box-shadow: inset 0 0 0 1.5px var(--cf-lapiz-fuerte);
+}
+
+.an-meses {
+    --alto: 76px;
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+}
+
+.an-mes-toque {
+    display: grid;
+    grid-template-rows: calc(var(--alto) + 18px) calc(var(--alto) + 18px) auto;
+    width: 100%;
+    border-radius: 8px;
+}
+
+.an-mes-toque:hover,
+.an-mes-toque.senalado {
+    background: var(--eg-hundido);
+}
+
+.an-mes-mas,
+.an-mes-menos {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.an-mes-mas {
+    align-items: flex-end;
+    border-bottom: 1.5px solid var(--eg-tinta-2);
+}
+
+.an-mes-menos {
+    align-items: flex-start;
+}
+
+.an-mes-mas .an-barra,
+.an-mes-menos .an-barra,
+.an-mes-mas .an-fantasma,
+.an-mes-menos .an-fantasma {
+    position: absolute;
+    inset-inline: 22%;
+    border-radius: 3px;
+}
+
+.an-mes-mas .an-barra {
+    bottom: 0;
+    height: calc(var(--a) * var(--alto));
+    background: var(--cf-serie);
+    border-radius: 3px 3px 0 0;
+}
+
+.an-mes-menos .an-barra {
+    top: 0;
+    height: calc(var(--b) * var(--alto));
+    background: var(--cf-sale);
+    border-radius: 0 0 3px 3px;
+}
+
+.an-mes-mas .an-fantasma {
+    bottom: 0;
+    inset-inline: 14%;
+    height: calc(var(--ga) * var(--alto));
+    box-shadow: inset 0 0 0 1.5px var(--cf-lapiz-fuerte);
+    border-radius: 3px 3px 0 0;
+}
+
+.an-mes-menos .an-fantasma {
+    top: 0;
+    inset-inline: 14%;
+    height: calc(var(--gb) * var(--alto));
+    box-shadow: inset 0 0 0 1.5px var(--cf-lapiz-fuerte);
+    border-radius: 0 0 3px 3px;
+}
+
+/* The number sits just beyond its bar. */
+.an-mes-mas b,
+.an-mes-menos b {
+    position: absolute;
+    inset-inline: 0;
+    font-size: 0.8125rem;
+    font-weight: 750;
+    text-align: center;
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.an-mes-mas b {
+    bottom: calc(max(var(--a), var(--ga)) * var(--alto) + 2px);
+}
+
+.an-mes-menos b {
+    top: calc(max(var(--b), var(--gb)) * var(--alto) + 2px);
+}
+
+.an-mes-n {
+    padding-top: 4px;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    text-align: center;
+    color: var(--eg-tinta-2);
+}
+
+.an-mes.ahora .an-mes-n {
+    color: var(--eg-tinta);
+    font-weight: 750;
+}
+
+.an-mes.futuro .an-mes-mas b,
+.an-mes.futuro .an-mes-menos b {
+    color: var(--cf-lapiz-texto);
+    font-weight: 500;
+}
+
+.an-mes.futuro .an-mes-mas {
+    border-bottom-style: dashed;
+}
+
+.an-h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 750;
+}
+
+/* By stage: those who joined to the left of the name's column, those who left to the right. */
+.an-etapas {
+    display: grid;
+    gap: 2px;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+}
+
+.an-etapa {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 8px;
+}
+
+.an-etapa:hover,
+.an-etapa.senalado {
+    background: var(--eg-hundido);
+}
+
+.an-etapa-n {
+    font-weight: 650;
+}
+
+.an-par {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.an-par-mas {
+    justify-content: flex-end;
+}
+
+.an-par i {
+    display: block;
+    height: 12px;
+    width: calc(var(--v) * 100%);
+    min-width: 2px;
+    border-radius: 3px;
+}
+
+.an-par-mas i {
+    background: var(--cf-serie);
+}
+
+.an-par-menos i {
+    background: var(--cf-sale);
+}
+
+.an-par b {
+    flex: none;
+    min-width: 2.2em;
+    font-size: 0.9375rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+}
+
+.an-par-mas b {
+    text-align: end;
+}
+
+/* Why they leave, where they go, where those who join come from. */
+.an-porque {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px 28px;
+}
+
+@media (min-width: 760px) {
+    .an-porque {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.an-lista ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.an-lista-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 10px;
+    font-size: 0.9375rem;
+}
+
+.an-lista-fila i {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: block;
+    height: 5px;
+    width: calc(var(--v) * 100%);
+    border-radius: 3px;
+    background: var(--cf-serie);
+}
+
+.an-lista-fila.sale i {
+    background: var(--cf-sale);
+}
+
+.an-lista-fila b {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+    .an-meses {
+        --alto: 56px;
+        gap: 1px;
+    }
+
+    .an-mes-n {
+        font-size: 0.6875rem;
+    }
+
+    .an-mes-mas b,
+    .an-mes-menos b {
+        font-size: 0.75rem;
+    }
+
+    .an-etapa {
+        grid-template-columns: 6.5rem minmax(0, 1fr) minmax(0, 1fr);
+        gap: 6px;
+        padding-inline: 4px;
+    }
+}
+
+/* ---------- How each number is counted: the same texts as the box, all together ---------- */
+.an-defs {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px 28px;
+    margin: 0;
+}
+
+@media (min-width: 900px) {
+    .an-defs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.an-def dt {
+    font-weight: 750;
+    margin-bottom: 4px;
+}
+
+.an-def dd {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--eg-tinta-2);
+}
+
+.an-def dd p {
+    margin: 0 0 4px;
+}
+
+.an-def:target {
+    outline: 3px solid var(--cf-serie);
+    outline-offset: 6px;
+    border-radius: 4px;
+}
+
+/* On a phone: the box under what is drawn, and the shelves one under the other. */
+@media (max-width: 999.98px) {
+    .an-explica {
+        position: static;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .an-frase {
+        font-size: 1.0625rem;
+    }
+
+    .an-camino > li + li::before {
+        width: 14px;
+        margin-inline: 5px;
+    }
+
+    .an-camino .an-toque {
+        padding: 6px 9px;
+    }
+
+    .an-puntos {
+        grid-template-columns: repeat(10, 8px);
+        gap: 2.5px;
+    }
+
+    .an-puntos i {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .an-mochila,
+    .an-balda,
+    .an-explica {
+        transition: none;
+    }
+}
+
+@media (forced-colors: active) {
+    .an-mochila {
+        --m-linea: CanvasText;
+    }
+
+    .m-ad,
+    .m-campaign {
+        --m-relleno: Highlight;
+    }
+
+    .an-puntos i.p-n,
+    .an-puntos i.p-c {
+        background: Highlight;
+    }
+
+    .an-toque > b,
+    .an-frase .an-toque {
+        /* stylelint-disable-next-line csstree/validator */
+        text-decoration-color: LinkText;
+    }
+}

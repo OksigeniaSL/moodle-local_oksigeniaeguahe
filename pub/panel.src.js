@@ -1534,9 +1534,271 @@
             keys[3].hidden = true;
         }
     };
+
+    // «Quién entra y quién sale» (Jujol, 21 November 2026). Every number of the sheet is a button (.an-toque, data-explica
+    // = the id of its definition in «Cómo se cuenta cada cifra»): pointed at, it fills the box of its sheet while the
+    // pointer stays; touched or focused, it stays. Pointing at a shelf or a part lights its backpacks. The switch «Con o
+    // sin los que ya eran del centro» only swaps the class .sin-centro, the pill and the address: both versions are in
+    // the page.
+    var countSwitch = false;
+    var initNewStudents = function(root) {
+        var sheet = one('[data-alumnos-nuevos]', root);
+        if (!sheet || sheet.eguaheListo) {
+            return;
+        }
+        sheet.eguaheListo = true;
+        var fill = function(box, id) {
+            var def = id && doc.getElementById(id);
+            if (!box.eguaheReposo) {
+                box.eguaheReposo = box.innerHTML;
+            }
+            if (!def) {
+                box.innerHTML = box.eguaheReposo;
+                box.classList.remove('dato-vivo');
+                return;
+            }
+            box.innerHTML = '<p class="an-explica-t">' + def.querySelector('dt').innerHTML + '</p>' +
+                def.querySelector('dd').innerHTML;
+            box.classList.add('dato-vivo');
+        };
+        var light = function(section, button) {
+            all('.senalado, .senalada', section).forEach(function(m) {
+                m.classList.remove('senalado', 'senalada');
+            });
+            section.classList.remove('con-senal');
+            section.removeAttribute('data-marca');
+            if (!button) {
+                return;
+            }
+            button.classList.add('senalado');
+            var shelf = button.closest('.an-balda');
+            if (shelf) {
+                section.classList.add('con-senal');
+                shelf.classList.add('senalada');
+                var kind = button.getAttribute('data-marca');
+                if (button.classList.contains('an-parte')) {
+                    section.setAttribute('data-marca', kind);
+                    all('.an-mochilas .m-' + kind, shelf).forEach(function(m) {
+                        m.classList.add('senalada');
+                    });
+                }
+            }
+        };
+        var show = function(button, keep) {
+            var section = button.closest('.lamina');
+            var box = section && one('[data-explica-caja]', section);
+            if (!box) {
+                return;
+            }
+            if (keep) {
+                section.eguaheElegido = button;
+            }
+            fill(box, button.getAttribute('data-explica'));
+            light(section, button);
+        };
+        var back = function(section) {
+            var chosen = section.eguaheElegido;
+            var box = one('[data-explica-caja]', section);
+            if (!box) {
+                return;
+            }
+            fill(box, chosen ? chosen.getAttribute('data-explica') : null);
+            light(section, chosen || null);
+        };
+        all('.an-toque', sheet).forEach(function(button) {
+            on(button, 'click', function() {
+                show(button, true);
+            });
+            on(button, 'focus', function() {
+                show(button, true);
+            });
+            on(button, 'mouseenter', function() {
+                if (fine.matches) {
+                    show(button, false);
+                }
+            });
+            on(button, 'mouseleave', function() {
+                if (fine.matches) {
+                    back(button.closest('.lamina'));
+                }
+            });
+        });
+        all('.an-mochilas', sheet).forEach(function(bags) {
+            var button = one('.an-balda-que', bags.parentNode);
+            if (!button) {
+                return;
+            }
+            on(bags, 'mouseenter', function() {
+                if (fine.matches) {
+                    show(button, false);
+                }
+            });
+            on(bags, 'mouseleave', function() {
+                if (fine.matches) {
+                    back(button.closest('.lamina'));
+                }
+            });
+            on(bags, 'click', function() {
+                show(button, true);
+            });
+        });
+        if (countSwitch) {
+            return;
+        }
+        countSwitch = true;
+        on(doc, 'click', function(e) {
+            var link = e.target.closest && e.target.closest('a[data-cuenta]');
+            var current = one('[data-alumnos-nuevos]');
+            if (!link || !current || e.ctrlKey || e.metaKey || e.shiftKey) {
+                return;
+            }
+            e.preventDefault();
+            var withcentre = link.getAttribute('data-cuenta') === 'con';
+            current.classList.toggle('sin-centro', !withcentre);
+            all('a[data-cuenta]').forEach(function(pill) {
+                if ((pill.getAttribute('data-cuenta') === 'con') === withcentre) {
+                    pill.setAttribute('aria-current', 'true');
+                } else {
+                    pill.removeAttribute('aria-current');
+                }
+            });
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(window.history.state, '', link.href);
+            }
+            all('.lamina', current).forEach(function(section) {
+                if (section.eguaheElegido) {
+                    back(section);
+                }
+            });
+        });
+    };
+
+    // The hours of the team of a campaign or an act: − and + on each line the centre writes, a task added from its chip,
+    // and what an hour is worth, one for the whole centre. Each gesture saves itself, and the hours, the money and «por
+    // alumno nuevo» above are worked out again.
+    var initHours = function(root) {
+        var lang = doc.documentElement.lang || 'es';
+        var number = function(n, digits) {
+            try {
+                return n.toLocaleString(lang, {maximumFractionDigits: digits});
+            } catch (e) {
+                return String(n);
+            }
+        };
+        var hours = function(h) {
+            return say('panel_js_hours_n', number(Math.round(h * 10) / 10, 1));
+        };
+        all('[data-parte-horas]', root).forEach(function(sheet) {
+            if (sheet.eguaheListo) {
+                return;
+            }
+            sheet.eguaheListo = true;
+            var card = sheet.closest('.an-campana');
+            var students = Number(sheet.getAttribute('data-alumnos')) || 0;
+            var money = Number(sheet.getAttribute('data-dinero')) || 0;
+            var currency = sheet.getAttribute('data-moneda') || '';
+            var said = one('[data-guardado]', sheet);
+            var valueEl = one('[data-valor-hora]', sheet);
+            var euros = function(n) {
+                try {
+                    return currency ? n.toLocaleString(lang, {style: 'currency', currency: currency, maximumFractionDigits: 0}) :
+                        number(Math.round(n), 0);
+                } catch (e) {
+                    return number(Math.round(n), 0);
+                }
+            };
+            var save = function(fields) {
+                var body = new FormData();
+                body.append('sesskey', sheet.getAttribute('data-sesskey'));
+                Object.keys(fields).forEach(function(k) {
+                    body.append(k, fields[k]);
+                });
+                ask(sheet.getAttribute('data-guardar'), {method: 'POST', body: body}).then(function() {
+                    said.textContent = say('panel_js_saved');
+                    window.clearTimeout(said.eguaheT);
+                    said.eguaheT = window.setTimeout(function() {
+                        said.textContent = '';
+                    }, 1600);
+                }).catch(function() {
+                    said.textContent = '';
+                });
+            };
+            var sum = function() {
+                var h = 0;
+                all('[data-horas]', sheet).forEach(function(row) {
+                    h += Number(row.getAttribute('data-horas')) || 0;
+                });
+                var value = Number(valueEl.getAttribute('data-valor-hora')) || 0;
+                one('[data-horas-total]', card).textContent = hours(h);
+                one('[data-horas-dinero]', card).textContent = value ? say('panel_js_hours_money',
+                    {money: euros(h * value), value: euros(value)}) : say('panel_js_hours_novalue');
+                if (students) {
+                    one('[data-horas-alumno]', card).textContent = say('panel_js_hours_each',
+                        {money: money ? euros(money / students) : '—', hours: hours(h / students)});
+                    one('[data-horas-alumno-dinero]', card).textContent = value ?
+                        say('panel_js_hours_with', euros((money + h * value) / students)) : '';
+                }
+            };
+            sheet.eguaheSuma = sum;
+            on(sheet, 'click', function(e) {
+                var step = e.target.closest('[data-paso]');
+                if (step) {
+                    var row = step.closest('[data-horas]');
+                    var h = Math.max(0, (Number(row.getAttribute('data-horas')) || 0) + Number(step.getAttribute('data-paso')));
+                    row.setAttribute('data-horas', h);
+                    one('b', row).textContent = hours(h);
+                    sum();
+                    save({action: 'hours', scope: sheet.getAttribute('data-ambito'), id: sheet.getAttribute('data-id'),
+                        task: row.getAttribute('data-tarea'), hours: h});
+                    return;
+                }
+                var task = e.target.closest('[data-tarea]');
+                if (task && task.classList.contains('an-tarea')) {
+                    var key = task.getAttribute('data-tarea');
+                    var name = task.getAttribute('data-nombre') || key;
+                    var li = doc.createElement('li');
+                    li.className = 'an-hora';
+                    li.setAttribute('data-horas', '1');
+                    li.setAttribute('data-tarea', key);
+                    li.innerHTML = '<span class="an-hora-que"></span><span class="an-paso"><button type="button" ' +
+                        'class="an-menos-h" data-paso="-1">−</button><b aria-live="polite"></b><button type="button" ' +
+                        'class="an-mas-h" data-paso="1">+</button></span>';
+                    one('.an-hora-que', li).textContent = name;
+                    one('b', li).textContent = hours(1);
+                    one('[data-paso="-1"]', li).setAttribute('aria-label', say('panel_js_hours_less', name));
+                    one('[data-paso="1"]', li).setAttribute('aria-label', say('panel_js_hours_more', name));
+                    one('[data-horas-lista]', sheet).appendChild(li);
+                    task.remove();
+                    sum();
+                    save({action: 'hours', scope: sheet.getAttribute('data-ambito'), id: sheet.getAttribute('data-id'),
+                        task: key, hours: 1});
+                    one('[data-paso="1"]', li).focus();
+                    return;
+                }
+                var v = e.target.closest('[data-valor]');
+                if (v) {
+                    var value = Math.max(0, (Number(valueEl.getAttribute('data-valor-hora')) || 0) +
+                        Number(v.getAttribute('data-valor')));
+                    all('[data-valor-hora]').forEach(function(el) {
+                        el.setAttribute('data-valor-hora', value);
+                        el.textContent = value ? euros(value) : say('panel_js_hours_value_none');
+                    });
+                    all('[data-parte-horas]').forEach(function(other) {
+                        if (other.eguaheSuma) {
+                            other.eguaheSuma();
+                        }
+                    });
+                    save({action: 'hourvalue', value: value});
+                }
+            });
+        });
+    };
+
     if (numbers) {
         keyOfRail(numbers);
         initCharts(numbers);
+        initNewStudents(numbers);
+        initHours(numbers);
         all('.grafico', numbers).forEach(function(chart) {
             arm(chart, 0.2);
         });
@@ -1587,6 +1849,8 @@
                 chosenChannel = '';
                 keyOfRail(cuerpoCifras());
                 initCharts(cuerpoCifras());
+                initNewStudents(cuerpoCifras());
+                initHours(cuerpoCifras());
                 window.history.replaceState(window.history.state, '', url);
                 if (still() || !Element.prototype.animate) {
                     return;

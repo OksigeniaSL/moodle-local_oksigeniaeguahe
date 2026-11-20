@@ -555,7 +555,7 @@ final class panel_test extends \advanced_testcase {
             get_string('panel_places_free_of', 'local_oksigeniaeguahe', (object) ['free' => 24, 'places' => 25]),
             $context['places'][0]['free']
         );
-        $this->assertFalse($context['hasyear']);
+        $this->assertFalse($context['newstudents']);
         $this->assertCount(1, $context['starts']['rows']);
 
         // The date it started, written: the weeks count from it.

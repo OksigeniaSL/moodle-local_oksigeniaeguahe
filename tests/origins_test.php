@@ -18,6 +18,7 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\metrics;
+use local_oksigeniaeguahe\local\panel_newstudents;
 
 /**
  * Where the new students of a school year come from, and what the ads brought.
@@ -86,7 +87,34 @@ final class origins_test extends \advanced_testcase {
 
         $p = metrics::publicity($cid, $o);
         $this->assertCount(1, $p);
-        $this->assertSame(['label' => 'Captación', 'families' => 3, 'centre' => 1, 'students' => 1, 'spend' => 300.0,
-            'each' => 300.0], $p[0]);
+        $this->assertSame(['label' => 'Captación', 'families' => 3, 'centre' => 1, 'centrein' => 1, 'newin' => 1, 'students' => 1,
+            'spend' => 300.0, 'each' => 300.0], array_intersect_key($p[0], array_flip(['label', 'families', 'centre', 'centrein',
+            'newin', 'students', 'spend', 'each'])));
+        // Out of its time, a campaign is left out.
+        $this->assertSame([], metrics::publicity($cid, $o, strtotime('2026-06-01'), strtotime('2027-01-01')));
+
+        // The sheet: a hundred dots, the hours written, and the whole context with its definitions.
+        $this->assertSame(5, panel_newstudents::dots(1, 4, 100)['per']);
+        $this->assertNull(panel_newstudents::dots(1, 0, 400)['per'], 'Under one in a hundred.');
+        panel_newstudents::set_hours($cid, 'import', $ads, 'agency', 3.5, 2);
+        panel_newstudents::set_hours($cid, 'import', $ads, 'agency', 4, 2);
+        panel_newstudents::set_hours($cid, 'import', 999999, 'agency', 4, 2);
+        $this->assertSame(['agency' => 4.0], panel_newstudents::written($cid)['import'][$ads]);
+        $centre = centres::get($cid);
+        $url = fn(array $v) => new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $cid]);
+        $ctx = panel_newstudents::context($centre, '2026-27', true, $url, true, strtotime('2026-11-20'));
+        $this->assertSame('2026-27', $ctx['year']);
+        $ns = $ctx['newstudents'];
+        $this->assertSame(['inner', 'sibling', 'newfamily', 'unknown'], array_column($ns['origins']['rows'], 'key'));
+        $card = $ns['ads']['campaigns'][0];
+        $this->assertSame(['agency'], array_column($card['written'], 'task'));
+        $ids = array_column($ns['explain'], 'id');
+        foreach (
+            ['ex-total', 'ex-centre', 'ex-inner', 'ex-sibling', 'ex-newfamily', 'ex-ad', 'ex-none', 'ex-unknown',
+                $card['ex']['contacts'], $card['ex']['per'], $card['ex']['hours']] as $id
+        ) {
+            $this->assertContains($id, $ids);
+        }
+        $this->assertNotEmpty($ns['truth']['is']);
     }
 }

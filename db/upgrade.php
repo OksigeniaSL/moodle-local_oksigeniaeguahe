@@ -1442,5 +1442,30 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026118400, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026118500) {
+        // The hours of the team a centre writes for a campaign or an act, and what an hour is worth.
+        $table = new xmldb_table('local_oksigeniaeguahe_hours');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('scope', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'import');
+        $table->add_field('scopeid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('task', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, 'other');
+        $table->add_field('hours', XMLDB_TYPE_NUMBER, '10, 1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('line', XMLDB_INDEX_UNIQUE, ['centreid', 'scope', 'scopeid', 'task']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('hourvalue', XMLDB_TYPE_NUMBER, '10, 2', null, XMLDB_NOTNULL, null, '0', 'metricsfor');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026118500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

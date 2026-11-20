@@ -167,7 +167,7 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
         }
         $t = metrics::movements($centreid, '2026-27')['totals'];
         $this->assertSame(['start' => 4, 'new' => 2, 'joins' => 1, 'leaves' => 2, 'now' => 3, 'net' => 1], $t);
-        $year = panel_metrics::context(centres::get($centreid), ['sheet' => 'curso'], true)['year'];
+        $year = panel_metrics::context(centres::get($centreid), ['sheet' => 'curso'], true)['newstudents']['year'];
         $this->assertNotFalse($year);
         $this->assertSame(2, $year['start']);
         $this->assertSame(3, $year['end']);

@@ -65,6 +65,7 @@
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="metricsfor" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="team" SEQUENCE="false" COMMENT="Who sees Cifras, the reports and the forecast: team, the whole team; heads, only those who change the settings and those who only look"/>
+        <FIELD NAME="hourvalue" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="2" COMMENT="What an hour of the team is worth for the numbers; 0, shown only in hours"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -932,6 +933,25 @@
         <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
         <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
       </KEYS>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_hours" COMMENT="The hours of the team a centre writes for a campaign of ads or an act, by task: meetings, social networks, Saturdays, the phone">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scope" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="import" SEQUENCE="false" COMMENT="import, a campaign imported; event, an act"/>
+        <FIELD NAME="scopeid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="task" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="other" SEQUENCE="false" COMMENT="One of the usual tasks by its key, or as the centre wrote it"/>
+        <FIELD NAME="hours" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="1"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who wrote it last"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="line" UNIQUE="true" FIELDS="centreid, scope, scopeid, task"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

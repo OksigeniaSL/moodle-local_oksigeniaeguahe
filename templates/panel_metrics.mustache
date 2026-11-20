@@ -40,6 +40,12 @@
     and comparison go with the campaign; the families keep the campaign; the school year needs none. The downloads, on
     every sheet. New: sheets, sheetcampaign, sheetyear, sheetfamilies, weeks.events[].end.
 
+    21 November 2026 (Jujol): a fourth sheet, «Los alumnos nuevos» (sheetnew, panel_newstudents), where «¿De dónde salen
+    los alumnos nuevos?» and «Lo que trajo la publicidad» move from the school year, with its filters: the school year
+    (filters.years) and the switch «Con o sin los que ya eran del centro» (filters.count, links with data-cuenta).
+    The sheet of the school year becomes that one, «Quién entra y quién sale» (same ?hoja=curso): its ledger and its
+    years move into panel_newstudents, after the joins and leaves month by month, and sheetyear is no longer used.
+
     Example context (json):
     {
         "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
@@ -87,7 +93,9 @@
     <div class="cifras-barra">
         <nav class="filtros-cifras" aria-label="{{#str}}panel_which_numbers, local_oksigeniaeguahe{{/str}}">
             {{#filters}}
-            <div class="filtro-grupo"><span class="rotulo-p" id="fc-campana">{{#str}}panel_campaign, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-campana">{{#campaigns}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/campaigns}}</span></div>
+            {{#sheetnew}}<div class="filtro-grupo"><span class="rotulo-p" id="fc-ano">{{#str}}panel_new_school_year, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-ano">{{#years}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/years}}</span></div>
+            <div class="filtro-grupo"><span class="rotulo-p" id="fc-cuenta">{{#str}}panel_new_count, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-cuenta">{{#count}}<a class="pastilla" href="{{url}}" data-cuenta="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/count}}</span></div>{{/sheetnew}}
+            {{^sheetnew}}<div class="filtro-grupo"><span class="rotulo-p" id="fc-campana">{{#str}}panel_campaign, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-campana">{{#campaigns}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/campaigns}}</span></div>{{/sheetnew}}
             {{#sheetcampaign}}<div class="filtro-grupo"><span class="rotulo-p" id="fc-curso">{{#str}}panel_course, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-curso">{{#courses}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/courses}}</span></div>
             <div class="filtro-grupo"><span class="rotulo-p" id="fc-comparar">{{#str}}panel_compare, local_oksigeniaeguahe{{/str}}</span><span class="pastillas" role="group" aria-labelledby="fc-comparar">{{#compare}}<a class="pastilla" href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/compare}}</span></div>{{/sheetcampaign}}
             {{/filters}}
@@ -99,6 +107,7 @@
     </div>
     {{/sheetyear}}
     <div class="cifras" data-cifras-cuerpo>
+        {{#newstudents}}{{> local_oksigeniaeguahe/panel_newstudents }}{{/newstudents}}
         {{#response}}
         <section class="lamina grafico grafico-respuesta" aria-labelledby="c-resp" id="primera-respuesta">
             <h2 id="c-resp">{{#str}}panel_first_answer, local_oksigeniaeguahe{{/str}}</h2>
@@ -248,74 +257,6 @@
             <p class="def">{{placesdef}}</p>
         </section>
         {{/hasplaces}}
-        {{#hasyear}}{{#year}}
-        <section class="lamina grafico grafico-saldo{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sal" id="saldo" data-grafico>
-            <h2 id="c-sal">{{title}}</h2>
-            <p class="corte">{{cut}}</p>
-            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
-            <div class="libro">
-                <p class="libro-extremo libro-inicio"><span>{{startlabel}}</span><b>{{start}}</b></p>
-                <ul class="libro-filas">
-                    {{#rows}}
-                    <li class="libro-fila{{#out}} sale{{/out}}" data-dato="{{line}}" id="sal-{{key}}">
-                        <span class="libro-que">{{name}}</span>
-                        <b class="libro-n">{{sign}}</b>
-                        <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="sal-b-{{key}}"></i></span>
-                    </li>
-                    {{/rows}}
-                </ul>
-                <p class="libro-extremo libro-final"><span>{{#str}}panel_ended_with, local_oksigeniaeguahe{{/str}}</span><b>{{end}}</b><span class="libro-neto">{{net}}</span></p>
-                <p class="sello-cuadra" aria-hidden="true">{{#str}}panel_ledger_squares, local_oksigeniaeguahe{{/str}}</p>
-            </div>
-            <details class="motivos" id="motivos"><summary>{{#str}}panel_why_they_left, local_oksigeniaeguahe{{/str}}</summary>
-                <ul class="lista-simple motivos-lista" style="--total: {{#rows}}{{#out}}{{n}}{{/out}}{{/rows}}">{{#reasons}}<li class="fila-s motivo" style="--n: {{n}}"><span>{{name}}</span><i class="motivo-barra" aria-hidden="true"></i><b>{{n}}</b></li>{{/reasons}}</ul>
-            </details>
-            <p class="def">{{def}}</p>
-        </section>
-        {{/year}}{{/hasyear}}
-        {{#hashistory}}{{#history}}
-        <section class="lamina grafico grafico-anos{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-anos" id="anos" data-grafico>
-            <h2 id="c-anos">{{#str}}panel_roll_by_year, local_oksigeniaeguahe{{/str}}</h2>
-            <p class="corte">{{cut}}</p>
-            <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
-            <div class="columnas-caja">
-                <ol class="columnas">
-                    {{#rows}}<li class="columna{{#last}} ultima{{/last}}" data-dato="{{line}}" style="--v: {{v}}" id="anos-{{year}}"><b>{{n}}</b>{{#delta}}<span class="col-delta" aria-hidden="true">{{delta}}</span>{{/delta}}<span class="col-pista" aria-hidden="true"><i id="anos-b-{{year}}"></i></span><span class="col-ano">{{year}}</span></li>{{/rows}}
-                </ol>
-            </div>
-            <p class="def">{{def}}</p>
-        </section>
-        {{/history}}{{/hashistory}}
-        {{#origins}}
-        <section class="lamina grafico grafico-origen ancha" aria-labelledby="c-origen" id="origen">
-            <h2 id="c-origen">{{#str}}panel_origins_title, local_oksigeniaeguahe{{/str}}</h2>
-            <p class="corte">{{cut}}</p>
-            <ul class="origen-filas">
-                {{#rows}}
-                <li class="origen-fila origen-{{key}}" style="--v: {{v}}">
-                    <span class="origen-que">{{name}}</span>
-                    <b class="origen-n">{{n}}</b>
-                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato"></i></span>
-                    {{#courses}}<span class="origen-cursos secundario">{{courses}}</span>{{/courses}}
-                    {{#hasparts}}
-                    <ul class="origen-partes">
-                        {{#parts}}<li class="origen-parte" style="--v: {{v}}"><span class="origen-que">{{name}}</span><b class="origen-n">{{n}}</b><span class="barra-pista" aria-hidden="true"><i class="barra-dato"></i></span></li>{{/parts}}
-                    </ul>
-                    {{/hasparts}}
-                </li>
-                {{/rows}}
-            </ul>
-            {{#nosiblings}}<p class="secundario">{{#str}}panel_origins_noroll, local_oksigeniaeguahe{{/str}}</p>{{/nosiblings}}
-            <p class="def">{{#str}}panel_origins_def, local_oksigeniaeguahe{{/str}}</p>
-            {{#hasads}}
-            <h3>{{#str}}panel_ads_title, local_oksigeniaeguahe{{/str}}</h3>
-            <ul class="lista-simple anuncios-trajeron">
-                {{#ads}}<li><b>{{label}}</b>: {{families}} {{students}} {{spend}}{{#each}} {{each}}{{/each}}</li>{{/ads}}
-            </ul>
-            <p class="def">{{#str}}panel_ads_def, local_oksigeniaeguahe{{/str}}</p>
-            {{/hasads}}
-        </section>
-        {{/origins}}
         {{#yearempty}}
         <section class="lamina ancha curso-vacio" aria-labelledby="c-vacio">
             <h2 id="c-vacio">{{#str}}panel_sheet_year, local_oksigeniaeguahe{{/str}}</h2>

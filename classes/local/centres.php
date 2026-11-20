@@ -154,6 +154,10 @@ class centres {
         if (isset($data->skin)) {
             $row->skin = in_array($data->skin, panel::SKINS, true) ? $data->skin : null;
         }
+        if (isset($data->hourvalue)) {
+            // What an hour of the team is worth for the numbers; 0 shows them only in hours.
+            $row->hourvalue = max(0, min(10000, round((float) $data->hourvalue, 2)));
+        }
         if (isset($data->metricsfor)) {
             // Who sees Cifras and the reports.
             $row->metricsfor = in_array($data->metricsfor, self::METRICSFOR, true) ? $data->metricsfor : 'team';

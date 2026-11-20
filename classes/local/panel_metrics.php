@@ -353,9 +353,8 @@ class panel_metrics {
         $on = fn(string $key) => $sheet === $key;
         $sheets = [];
         foreach (self::SHEETS as $key) {
-            $name = ['campana' => 'campaign', 'curso' => 'year', 'familias' => 'families'][$key];
-            $sheets[] = ['key' => $key, 'name' => get_string('panel_sheet_' . $name, $c),
-                'what' => get_string('panel_sheet_' . $name . '_what', $c),
+            $name = ['campana' => 'panel_sheet_campaign', 'curso' => 'panel_new_sheet', 'familias' => 'panel_sheet_families'][$key];
+            $sheets[] = ['key' => $key, 'name' => get_string($name, $c), 'what' => get_string($name . '_what', $c),
                 // The school year is the whole centre: its sheet leaves the course aside.
                 'url' => $url(['sheet' => $key] + ($key === 'curso' ? ['course' => ''] : []))->out(false),
                 'current' => $on($key)];
@@ -447,29 +446,34 @@ class panel_metrics {
             ),
         ];
         $context['spendaction'] = $url([])->out(false);
-        $year = $course === '' && $on('curso') ? self::year($centre) : null;
-        $history = $course === '' && $on('curso') ? self::history($centre) : null;
         // A chart without its partner in the row takes the whole row.
         foreach ([['reach', 'response'], ['channels', 'weeks'], ['weeks', 'channels']] as [$chart, $partner]) {
             if ($context[$chart]) {
                 $context[$chart]['ancha'] = !$context[$partner];
             }
         }
-        if ($year) {
-            $year['ancha'] = !$history;
+        // The sheet «Quién entra y quién sale» (Jujol): the new students, what the ads and the acts brought, the joins and
+        // leaves, the ledger and the years; with nothing to count yet, how to bring it.
+        $new = $on('curso') ? panel_newstudents::context(
+            $centre,
+            (string) ($view['year'] ?? ''),
+            (bool) ($view['withcentre'] ?? 1),
+            $url,
+            $canact,
+            $now
+        ) : null;
+        $context['sheetnew'] = (bool) $new;
+        $context['newstudents'] = $new ? $new['newstudents'] : false;
+        $context['filters']['years'] = $new ? $new['years'] : [];
+        $context['filters']['count'] = $new ? $new['count'] : [];
+        if ($new) {
+            $context['head']['title'] = $new['title'];
+            $context['head']['sub'] = get_string('panel_new_sub', $c);
         }
-        if ($history) {
-            $history['ancha'] = !$year;
-        }
-        // The sheet of the school year with nothing to count yet: it comes from what is imported from the program of the
-        // centre, and says so with the way to import it.
-        $context['yearempty'] = $on('curso') && !$year && !$history;
-        // Where the new students come from, and what the ads brought.
-        $origins = $course === '' && $on('curso') ? self::origins($centre) : null;
-        $context['yearempty'] = $context['yearempty'] && !$origins;
-        $context['origins'] = $origins ?: false;
-        return $context + ['hasyear' => (bool) $year, 'year' => $year ?: false, 'hashistory' => (bool) $history,
-            'history' => $history ?: false];
+        $context['yearempty'] = $on('curso') && !$new;
+        // The bar of filters: the school year and the switch on this sheet; nothing while it has nothing to count.
+        $context['sheetyear'] = $on('curso') && !$new;
+        return $context;
     }
 
     /**
@@ -481,7 +485,8 @@ class panel_metrics {
      */
     public static function url(\stdClass $centre, array $view): \moodle_url {
         $params = ['c' => $centre->id];
-        $names = ['campaign' => 'campana', 'course' => 'curso', 'voice' => 'voz', 'show' => 'vista', 'sheet' => 'hoja'];
+        $names = ['campaign' => 'campana', 'course' => 'curso', 'voice' => 'voz', 'show' => 'vista', 'sheet' => 'hoja',
+            'year' => 'anio'];
         foreach ($names as $key => $name) {
             if (
                 !empty($view[$key]) && !($key === 'campaign' && $view[$key] === 'live') && !($key === 'voice' &&
@@ -493,6 +498,9 @@ class panel_metrics {
         }
         if (isset($view['compare']) && !$view['compare']) {
             $params['comparar'] = 0;
+        }
+        if (isset($view['withcentre']) && !$view['withcentre']) {
+            $params['centro'] = 0;
         }
         if (!empty($view['whole'])) {
             $params['entera'] = 1;
@@ -1278,98 +1286,20 @@ class panel_metrics {
     }
 
     /**
-     * Where the new students of the last school year with new students come from, in words: already at the centre the
-     * year before, brothers and sisters of its students, new families (and of these, by an ad, by another campaign or
-     * act, or by nothing counted), and those whose family left no contact. Then what the ads brought, with its cost.
-     *
-     * @param \stdClass $centre
-     * @return array|null
-     */
-    protected static function origins(\stdClass $centre): ?array {
-        $c = self::C;
-        $centreid = (int) $centre->id;
-        foreach (metrics::school_years($centreid) as $schoolyear) {
-            $o = metrics::origins($centreid, (string) $schoolyear);
-            if ($o['total'] > 0) {
-                break;
-            }
-        }
-        if (empty($o['total'])) {
-            return null;
-        }
-        $total = (int) $o['total'];
-        $pct = fn(int $n) => round($n / max(1, $total), 4);
-        $courses = function (array $grades) use ($c): string {
-            arsort($grades);
-            $parts = [];
-            foreach (array_slice($grades, 0, 3, true) as $name => $n) {
-                $parts[] = ($name !== '' ? $name : get_string('metrics_nograde', $c)) . ' ' . $n;
-            }
-            return implode(' · ', $parts);
-        };
-        $rows = [];
-        foreach (['inner', 'sibling', 'newfamily', 'unknown'] as $key) {
-            $g = $o['groups'][$key];
-            if ($key === 'sibling' && !$o['hasroll']) {
-                continue;
-            }
-            if (!$g['n'] && $key !== 'newfamily') {
-                continue;
-            }
-            $row = ['key' => $key, 'name' => get_string('panel_origin_' . $key, $c), 'n' => $g['n'], 'v' => $pct($g['n']),
-                'courses' => $courses($g['grades']), 'parts' => [], 'hasparts' => false];
-            if ($key === 'newfamily') {
-                $parts = [];
-                foreach ($o['newby'] as $by => $n) {
-                    if ($n) {
-                        $parts[] = ['key' => $by, 'name' => get_string('panel_origin_by_' . $by, $c), 'n' => $n, 'v' => $pct($n)];
-                    }
-                }
-                $row['parts'] = $parts;
-                $row['hasparts'] = (bool) $parts;
-            }
-            $rows[] = $row;
-        }
-        $ads = [];
-        foreach (metrics::publicity($centreid, $o) as $p) {
-            $ads[] = [
-                'label' => format_string($p['label']),
-                'families' => get_string('panel_ads_families', $c, (object) ['n' => $p['families'], 'centre' => $p['centre']]),
-                'students' => get_string(
-                    $p['students'] === 1 ? 'panel_ads_students_one' :
-                        ($p['students'] === 0 ? 'panel_ads_students_none' : 'panel_ads_students'),
-                    $c,
-                    $p['students']
-                ),
-                'spend' => $p['spend'] !== null ?
-                    get_string('panel_ads_spend', $c, centres::money($centre, (float) $p['spend'], 2)) :
-                    get_string('panel_ads_nospend', $c),
-                'each' => $p['each'] !== null ? get_string('panel_ads_each', $c, centres::money($centre, (float) $p['each'])) : '',
-            ];
-        }
-        return [
-            'cut' => get_string('panel_origins_cut', $c, (object) ['year' => $schoolyear, 'n' => $total]),
-            'rows' => $rows,
-            'nosiblings' => !$o['hasroll'],
-            'ads' => $ads,
-            'hasads' => (bool) $ads,
-        ];
-    }
-
-    /**
      * The last school year as a ledger: it started with, some were new, some came during it, some left, it ended with.
      * Drawn only when the sum adds up.
      *
      * @param \stdClass $centre
+     * @param string $schoolyear '' for the last one.
      * @return array|null
      */
-    protected static function year(\stdClass $centre): ?array {
+    public static function year(\stdClass $centre, string $schoolyear = ''): ?array {
         $c = self::C;
         $years = metrics::school_years((int) $centre->id);
         if (!$years) {
             return null;
         }
-        $schoolyear = (string) reset($years);
+        $schoolyear = in_array($schoolyear, $years, true) ? $schoolyear : (string) reset($years);
         $m = metrics::movements((int) $centre->id, $schoolyear);
         $t = $m['totals'];
         if ($t['start'] === null || $t['now'] === null) {
@@ -1416,7 +1346,7 @@ class panel_metrics {
      * @param \stdClass $centre
      * @return array|null
      */
-    protected static function history(\stdClass $centre): ?array {
+    public static function history(\stdClass $centre): ?array {
         $c = self::C;
         [$years, , , $totals] = metrics::history((int) $centre->id);
         if (!$years) {

@@ -28,6 +28,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_metrics;
+use local_oksigeniaeguahe\local\panel_newstudents;
 use local_oksigeniaeguahe\local\publicpage;
 
 require_login(null, false);
@@ -46,6 +47,9 @@ $view = [
     'ensenar' => optional_param('ensenar', 0, PARAM_BOOL),
     'whole' => optional_param('entera', 0, PARAM_BOOL),
     'sheet' => optional_param('hoja', 'campana', PARAM_ALPHA),
+    'year' => preg_match('/^\d{4}(-\d{2})?$/', optional_param('anio', '', PARAM_RAW_TRIMMED)) ?
+        optional_param('anio', '', PARAM_RAW_TRIMMED) : '',
+    'withcentre' => optional_param('centro', 1, PARAM_BOOL),
 ];
 $url = panel_metrics::url($centre, $view);
 $PAGE->set_context(context_system::instance());
@@ -63,6 +67,24 @@ if ($action !== '') {
         // Each start in three fields; a day that does not read is left as it was.
         $starts = publicpage::date_params('start') ?: optional_param_array('start', [], PARAM_RAW_TRIMMED);
         panel_metrics::save_starts($centre, array_filter($starts, fn($d) => $d !== 'invalid'));
+    } else if ($action === 'hours') {
+        // The hours of a task of a campaign or an act, written by the centre, one gesture at a time.
+        panel_newstudents::set_hours(
+            (int) $centre->id,
+            optional_param('scope', '', PARAM_ALPHA),
+            optional_param('id', 0, PARAM_INT),
+            optional_param('task', '', PARAM_TEXT),
+            (float) optional_param('hours', 0, PARAM_FLOAT),
+            (int) $USER->id
+        );
+    } else if ($action === 'hourvalue') {
+        // What an hour of the team is worth, one for the whole centre.
+        centres::update((int) $centre->id, (object) ['hourvalue' => (float) optional_param('value', 0, PARAM_FLOAT)]);
+    }
+    if (in_array($action, ['hours', 'hourvalue'], true)) {
+        @header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => true]);
+        die();
     }
     redirect($url, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }

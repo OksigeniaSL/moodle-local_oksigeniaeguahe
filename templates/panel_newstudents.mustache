@@ -1,0 +1,284 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_newstudents
+
+    The sheet «Los alumnos nuevos» of the numbers (Jujol, 21 November 2026): what really happened with the new
+    students of a school year, so that the head of a centre is not fooled by raw numbers. Three sheets:
+    - what it seems and what really happens, in two sentences side by side;
+    - where the new students come from, one backpack per student: in pencil those who were already of the centre
+      (an inner step, or a brother or sister), in aubergine those of new families, by what they left before;
+    - what each ad brought: the way from the families who left their contact to those who enrolled, a hundred dots
+      for «out of every hundred», and what each new student cost at most.
+    Above all, what comes out of the numbers: strengths, weak points and trends in sentences, each with its number and
+    its why, from fixed rules or from the centre's AI reading when it is on (marked). Each campaign and each act says
+    its money and the hours of the team side by side, never added up unless the centre gives a value to an hour (then
+    in pencil, «≈»); «Las horas del equipo» opens what Eguahe counts by itself and the lines the centre writes, with − and +,
+    saved at each gesture.
+    Every number is a button: touched, pointed or focused, the box at its side says what it is, how it is counted and
+    what to keep in mind; the same texts, all together, in «Cómo se cuenta cada cifra», which also reads without the
+    script. The switch «Con o sin los que ya eran del centro» is two links (?centro=0); both versions of every changing
+    figure are in the page (spans .con and .sin), so the script only swaps a class and the URL.
+
+    Example context (json):
+    {
+        "withcentre": true,
+        "truth": {"seems": "500 familias dejaron su contacto en un anuncio y hay 40 alumnos nuevos.", "is": "25 de los 40 ya eran del centro."},
+        "origins": {"cut": "Curso 2026-27", "heroall": "15 de 40", "heronew": "8 de 15", "heroalltext": "son de familias nuevas", "heronewtext": "habían dejado antes su contacto en un anuncio",
+            "rows": [{"key": "inner", "name": "Ya estaban en el centro", "sub": "Pasan de su guardería o de otra etapa", "n": 15, "pct": "38 %", "pctnew": "", "centre": true, "explain": "ex-inner", "courses": "Infantil 3 años 12", "bags": [{"k": "inner"}], "hasparts": false, "parts": []}],
+            "fold": "25 ya eran del centro y no cuentan aquí.", "unfoldurl": "#", "table": [{"name": "Ya estaban en el centro", "n": 15, "pct": "38 %"}]},
+        "ads": {"heroall": "8 de 40", "heronew": "8 de 15", "heroalltext": "alumnos nuevos, como mucho, salieron de los anuncios", "heronewtext": "alumnos de familias nuevas, como mucho, salieron de los anuncios",
+            "campaigns": [{"key": "otono", "label": "Anuncios de otoño", "when": "De septiembre a noviembre", "contacts": 320, "centre": 20, "newcontacts": 300,
+                "allin": 16, "newin": 6, "allper": 5, "newper": 2, "alldots": [{"k": "n"}], "newdots": [{"k": "n"}], "allsentence": "", "newsentence": "",
+                "each": "207 €", "cost": "Costó 1.240 €.", "students": 6, "ex": {"contacts": "ex-a1", "centre": "ex-a2", "in": "ex-a3", "per": "ex-a4", "each": "ex-a5"} }],
+            "table": []},
+        "explain": [{"id": "ex-inner", "title": "15 ya estaban en el centro", "what": "", "how": "", "careful": ""}]
+    }
+}}
+<div class="alumnos-nuevos{{^withcentre}} sin-centro{{/withcentre}}" data-alumnos-nuevos>
+    <svg class="an-dibujos" width="0" height="0" aria-hidden="true" focusable="false">
+        <symbol id="an-mochila" viewBox="0 0 16 18"><path d="M5.6 4.1V3.3C5.6 1.9 6.6 1 8 1s2.4.9 2.4 2.3v.8" style="fill: none; stroke: var(--m-linea); stroke-width: 1.4; stroke-linecap: round"/><path d="M2.6 8.2c0-2.5 1.9-4.2 4.3-4.2h2.2c2.4 0 4.3 1.7 4.3 4.2v7c0 .8-.6 1.4-1.4 1.4H4c-.8 0-1.4-.6-1.4-1.4z" style="fill: var(--m-relleno); stroke: var(--m-linea); stroke-width: 1.4; stroke-linejoin: round; stroke-dasharray: var(--m-trazo, none)"/><path d="M4.6 10.4h6.8v2H4.6z" style="fill: var(--m-banda)"/></symbol>
+        <symbol id="an-fuerte" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5"/><path d="M7 13.5l3.2 3.2L17.5 9" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round"/></symbol>
+        <symbol id="an-flojo" viewBox="0 0 24 24"><path d="M12 2.2l10.2 18.3H1.8z"/><path d="M12 9v5.2M12 17.4v.1" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.4; stroke-linecap: round"/></symbol>
+        <symbol id="an-tendencia" viewBox="0 0 24 24"><rect x="1.5" y="1.5" width="21" height="21" rx="5"/><path d="M6 16.5l4.5-4.5 3 3L18 9.5M13.8 9.5H18v4.2" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round"/></symbol>
+        <symbol id="an-toca" viewBox="0 0 24 24"><path d="M9 11.5V5.2a1.6 1.6 0 0 1 3.2 0V11l.2-1.6a1.6 1.6 0 0 1 3.1.5l-.1 1.6.1-.8a1.6 1.6 0 0 1 3.1.6l-.2 2.3c-.4 3.8-2.6 6.4-6 6.4-2.5 0-4.2-1.3-5.4-3.5L5.4 13a1.5 1.5 0 0 1 2.4-1.7z"/></symbol>
+    </svg>
+
+    {{#conclusions}}
+    <section class="lamina an-conclusiones ancha" aria-labelledby="an-conc-t" id="conclusiones">
+        <h2 id="an-conc-t">{{#str}}panel_new_conclusions_title, local_oksigeniaeguahe{{/str}}</h2>
+        <ul class="an-concs">
+            {{#items}}
+            <li class="an-conc an-conc-{{kind}}{{#ai}} an-conc-ia{{/ai}}">
+                <svg class="an-conc-marca" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#an-{{kind}}"/></svg>
+                <div>
+                    <p class="an-conc-tipo">{{kindname}}{{#ai}}<span class="an-ia">{{#str}}panel_new_ai_reads, local_oksigeniaeguahe{{/str}}</span>{{/ai}}</p>
+                    <p class="an-conc-frase">{{{text}}}</p>
+                    <p class="an-conc-porque"><b>{{#str}}panel_new_why, local_oksigeniaeguahe{{/str}}</b> {{why}} <a class="enlace" href="#{{anchor}}">{{#str}}panel_new_see, local_oksigeniaeguahe{{/str}}</a></p>
+                </div>
+            </li>
+            {{/items}}
+        </ul>
+        <p class="def">{{def}}</p>
+    </section>
+    {{/conclusions}}
+
+    {{#truth}}
+    <section class="lamina an-verdad ancha" aria-labelledby="an-verdad-t" id="lo-que-pasa">
+        <h2 id="an-verdad-t">{{#str}}panel_new_truth_title, local_oksigeniaeguahe{{/str}}</h2>
+        <div class="an-cuerpo">
+            <div class="an-pares">
+                <div class="an-parece"><p class="an-rotulo">{{#str}}panel_new_seems, local_oksigeniaeguahe{{/str}}</p><p class="an-frase">{{{seems}}}</p></div>
+                <div class="an-pasa"><p class="an-rotulo">{{#str}}panel_new_is, local_oksigeniaeguahe{{/str}}</p><p class="an-frase">{{{is}}}</p></div>
+            </div>
+            <aside class="an-explica" data-explica-caja aria-live="polite"><p class="an-reposo"><svg class="an-toca" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#an-toca"/></svg>{{#str}}panel_new_touch, local_oksigeniaeguahe{{/str}}</p></aside>
+        </div>
+    </section>
+    {{/truth}}
+
+    {{#origins}}
+    <section class="lamina an-origen ancha" aria-labelledby="an-origen-t" id="de-donde" data-an-grafico>
+        <h2 id="an-origen-t">{{#str}}panel_origins_title, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="an-heroe"><b><span class="con">{{heroall}}</span><span class="sin">{{heronew}}</span></b><span><span class="con">{{heroalltext}}</span><span class="sin">{{heronewtext}}</span></span></p>
+        <div class="an-cuerpo">
+            <ul class="an-baldas">
+                {{#rows}}
+                <li class="an-balda an-{{key}}{{#centre}} del-centro{{/centre}}" data-balda="{{key}}">
+                    <button type="button" class="an-toque an-balda-que" data-explica="{{explain}}" data-marca="{{key}}">
+                        <b class="an-n">{{n}}</b>
+                        <span class="an-nombre">{{name}}{{#sub}}<small>{{sub}}</small>{{/sub}}</span>
+                        <span class="an-pct"><span class="con">{{pct}}</span><span class="sin">{{pctnew}}</span></span>
+                    </button>
+                    <span class="an-mochilas" aria-hidden="true">{{#bags}}<svg class="an-mochila m-{{k}}" viewBox="0 0 16 18" focusable="false"><use href="#an-mochila"/></svg>{{/bags}}</span>
+                    {{#courses}}<span class="an-cursos">{{courses}}</span>{{/courses}}
+                    {{#hasparts}}
+                    <ul class="an-partes">
+                        {{#parts}}<li><button type="button" class="an-toque an-parte" data-explica="{{explain}}" data-marca="{{key}}"><svg class="an-mochila m-{{key}}" viewBox="0 0 16 18" aria-hidden="true" focusable="false"><use href="#an-mochila"/></svg><b>{{n}}</b> {{name}}</button></li>{{/parts}}
+                    </ul>
+                    {{/hasparts}}
+                </li>
+                {{/rows}}
+            </ul>
+            <aside class="an-explica" data-explica-caja aria-live="polite"><p class="an-reposo"><svg class="an-toca" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#an-toca"/></svg>{{#str}}panel_new_touch, local_oksigeniaeguahe{{/str}}</p></aside>
+        </div>
+        {{#nosiblings}}<p class="secundario an-sin-lista">{{#str}}panel_origins_noroll, local_oksigeniaeguahe{{/str}}</p>{{/nosiblings}}
+        <p class="an-plegado sin">{{fold}} <a class="enlace" href="{{unfoldurl}}" data-cuenta="con">{{#str}}panel_new_count_them, local_oksigeniaeguahe{{/str}}</a></p>
+        <details class="tabla-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+            <table class="tabla-panel"><thead><tr><th scope="col">{{cut}}</th><th scope="col">{{#str}}panel_new_students, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_share, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+            <tbody>{{#table}}<tr{{#part}} class="parte"{{/part}}><th scope="row">{{name}}</th><td>{{n}}</td><td>{{pct}}</td></tr>{{/table}}</tbody></table>
+        </details>
+    </section>
+    {{/origins}}
+
+    {{#ads}}
+    <section class="lamina an-anuncios ancha" aria-labelledby="an-anuncios-t" id="publicidad">
+        <h2 id="an-anuncios-t">{{#str}}panel_new_brought_title, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="an-heroe"><b><span class="con">{{heroall}}</span><span class="sin">{{heronew}}</span></b><span><span class="con">{{heroalltext}}</span><span class="sin">{{heronewtext}}</span></span></p>
+        <div class="an-cuerpo">
+            <ol class="an-campanas">
+                {{#campaigns}}
+                <li class="an-campana{{#act}} an-acto{{/act}}">
+                    <p class="an-campana-cab"><b>{{label}}</b><span>{{when}}</span>{{#act}}<span class="an-sello-acto">{{#str}}panel_new_act, local_oksigeniaeguahe{{/str}}</span>{{/act}}</p>
+                    <ol class="an-camino">
+                        <li><button type="button" class="an-toque" data-explica="{{ex.contacts}}"><b>{{contacts}}</b><span>{{steplabel}}</span></button></li>
+                        <li class="an-resta"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
+                        <li class="an-llegan"><button type="button" class="an-toque" data-explica="{{ex.in}}"><b><span class="con">{{allin}}</span><span class="sin">{{newin}}</span></b><span><span class="con">{{#str}}panel_new_enrolled_all, local_oksigeniaeguahe{{/str}}</span><span class="sin">{{#str}}panel_new_enrolled_new, local_oksigeniaeguahe{{/str}}</span></span></button></li>
+                    </ol>
+                    <div class="an-cien">
+                        <span class="an-puntos con" aria-hidden="true">{{#alldots}}<i class="p-{{k}}"></i>{{/alldots}}</span>
+                        <span class="an-puntos sin" aria-hidden="true">{{#newdots}}<i class="p-{{k}}"></i>{{/newdots}}</span>
+                        <button type="button" class="an-toque an-cien-frase" data-explica="{{ex.per}}"><span class="con">{{{allsentence}}}</span><span class="sin">{{{newsentence}}}</span></button>
+                    </div>
+                    <dl class="an-cuesta">
+                        <div class="an-cuesta-dinero"><dt>{{#str}}panel_new_money, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.money}}"><b>{{money}}</b></button><small>{{moneywhat}}</small></dd></div>
+                        <div class="an-cuesta-horas"><dt>{{#str}}panel_new_hours, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.hours}}"><b data-horas-total>{{hours}}</b></button><small data-horas-dinero>{{hoursmoney}}</small></dd></div>
+                        <div class="an-cuesta-alumno"><dt>{{#str}}panel_new_each_student_cap, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.each}}"><b data-horas-alumno>{{each}}</b></button><small data-horas-alumno-dinero>{{eachmoney}}</small></dd></div>
+                    </dl>
+                    <details class="an-parte" data-parte-horas data-alumnos="{{students}}" data-dinero="{{moneyn}}" data-guardar="{{saveurl}}" data-sesskey="{{sesskey}}" data-ambito="{{scope}}" data-id="{{scopeid}}" data-moneda="{{currency}}"{{#open}} open{{/open}}>
+                        <summary>{{#str}}panel_new_hours_open, local_oksigeniaeguahe{{/str}}</summary>
+                        <div class="an-parte-cuerpo">
+                            <p class="an-parte-t">{{#str}}panel_new_hours_auto, local_oksigeniaeguahe{{/str}}</p>
+                            <ul class="an-horas-solas">{{#autohours}}<li data-horas="{{h}}"><b>{{hl}}</b><span>{{name}}</span></li>{{/autohours}}</ul>
+                            <p class="an-parte-t">{{#str}}panel_new_hours_written, local_oksigeniaeguahe{{/str}}</p>
+                            <ul class="an-horas-centro" data-horas-lista>
+                                {{#written}}<li class="an-hora" data-horas="{{h}}" data-tarea="{{task}}"><span class="an-hora-que">{{name}}</span><span class="an-paso">{{#canwrite}}<button type="button" class="an-menos-h" data-paso="-1" aria-label="{{#str}}panel_new_hour_less, local_oksigeniaeguahe{{/str}} {{name}}">−</button>{{/canwrite}}<b aria-live="polite">{{hl}}</b>{{#canwrite}}<button type="button" class="an-mas-h" data-paso="1" aria-label="{{#str}}panel_new_hour_more, local_oksigeniaeguahe{{/str}} {{name}}">+</button>{{/canwrite}}</span></li>{{/written}}
+                            </ul>
+                            {{#hastasks}}<p class="an-tareas"><span>{{#str}}panel_new_hours_add, local_oksigeniaeguahe{{/str}}</span>{{#tasks}}<button type="button" class="pastilla an-tarea" data-tarea="{{task}}" data-nombre="{{name}}">+ {{name}}</button>{{/tasks}}</p>{{/hastasks}}
+                            <p class="an-valor"><span>{{#str}}panel_new_hour_value, local_oksigeniaeguahe{{/str}}</span><span class="an-paso">{{#canwrite}}<button type="button" data-valor="-1" aria-label="{{#str}}panel_new_hour_value_less, local_oksigeniaeguahe{{/str}}">−</button>{{/canwrite}}<b data-valor-hora="{{value}}">{{valuel}}</b>{{#canwrite}}<button type="button" data-valor="1" aria-label="{{#str}}panel_new_hour_value_more, local_oksigeniaeguahe{{/str}}">+</button>{{/canwrite}}</span><small>{{#str}}panel_new_hour_value_help, local_oksigeniaeguahe{{/str}}</small></p>
+                            <p class="an-guardado" data-guardado aria-live="polite"></p>
+                        </div>
+                    </details>
+                </li>
+                {{/campaigns}}
+            </ol>
+            <aside class="an-explica" data-explica-caja aria-live="polite"><p class="an-reposo"><svg class="an-toca" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#an-toca"/></svg>{{#str}}panel_new_touch, local_oksigeniaeguahe{{/str}}</p></aside>
+        </div>
+        <p class="def">{{#str}}panel_ads_def, local_oksigeniaeguahe{{/str}}</p>
+        <details class="tabla-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+            <table class="tabla-panel"><thead><tr><th scope="col">{{#str}}panel_new_campaign, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_left_contact_short, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_were_centre_short, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_enrolled_short, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_per_hundred, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_each_short, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+            <tbody>{{#campaigns}}<tr><th scope="row">{{label}}</th><td>{{contacts}}</td><td>{{centre}}</td><td><span class="con">{{allin}}</span><span class="sin">{{newin}}</span></td><td><span class="con">{{allper}}</span><span class="sin">{{newper}}</span></td><td>{{each}}</td></tr>{{/campaigns}}</tbody></table>
+        </details>
+    </section>
+    {{/ads}}
+
+    {{#moves}}
+    <section class="lamina an-mueve ancha" aria-labelledby="an-mueve-t" id="altas-y-bajas">
+        <h2 id="an-mueve-t">{{#str}}panel_new_moves_title, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="an-al-dia">{{cut}}</p>
+        <div class="an-heroe an-heroe-doble">
+            <button type="button" class="an-toque" data-explica="{{exjoins}}"><b class="an-mas">+{{joins}}</b><span>{{#str}}panel_new_joins, local_oksigeniaeguahe{{/str}}</span></button>
+            <button type="button" class="an-toque" data-explica="{{exleaves}}"><b class="an-menos">−{{leaves}}</b><span>{{#str}}panel_new_leaves, local_oksigeniaeguahe{{/str}}</span></button>
+            <p class="an-tendencia">{{trend}}</p>
+        </div>
+        <div class="an-cuerpo">
+            <div class="an-mueve-dibujo">
+                <p class="leyenda an-leyenda" aria-hidden="true"><span class="clave"><i class="an-k an-k-mas"></i>{{#str}}panel_new_joins, local_oksigeniaeguahe{{/str}}</span><span class="clave"><i class="an-k an-k-menos"></i>{{#str}}panel_new_leaves, local_oksigeniaeguahe{{/str}}</span><span class="clave clave-lapiz"><i class="an-k an-k-antes"></i>{{#str}}panel_new_last_year, local_oksigeniaeguahe{{/str}}</span></p>
+                <ol class="an-meses">
+                    {{#months}}
+                    <li class="an-mes{{#future}} futuro{{/future}}{{#current}} ahora{{/current}}" style="--a: {{av}}; --b: {{bv}}; --ga: {{gav}}; --gb: {{gbv}}">
+                        <button type="button" class="an-toque an-mes-toque" data-explica="{{explain}}">
+                            <span class="an-mes-mas"><i class="an-fantasma" aria-hidden="true"></i><i class="an-barra" aria-hidden="true"></i><b>{{joinsn}}</b></span>
+                            <span class="an-mes-menos"><i class="an-fantasma" aria-hidden="true"></i><i class="an-barra" aria-hidden="true"></i><b>{{leavesn}}</b></span>
+                            <span class="an-mes-n">{{name}}</span>
+                        </button>
+                    </li>
+                    {{/months}}
+                </ol>
+                <h3 class="an-h3">{{#str}}panel_new_where, local_oksigeniaeguahe{{/str}}</h3>
+                <ul class="an-etapas">
+                    {{#stages}}
+                    <li><button type="button" class="an-toque an-etapa" data-explica="{{explain}}">
+                        <span class="an-etapa-n">{{name}}</span>
+                        <span class="an-par an-par-mas"><b>{{#joins}}+{{joins}}{{/joins}}{{^joins}}0{{/joins}}</b><i style="--v: {{av}}" aria-hidden="true"></i></span>
+                        <span class="an-par an-par-menos"><i style="--v: {{bv}}" aria-hidden="true"></i><b>{{#leaves}}−{{leaves}}{{/leaves}}{{^leaves}}0{{/leaves}}</b></span>
+                    </button></li>
+                    {{/stages}}
+                </ul>
+                <div class="an-porque">
+                    {{#lists}}
+                    <div class="an-lista">
+                        <h3 class="an-h3">{{title}}</h3>
+                        <ul>{{#rows}}<li class="an-lista-fila{{#out}} sale{{/out}}" style="--v: {{v}}"><span>{{name}}</span><i aria-hidden="true"></i><b>{{n}}</b></li>{{/rows}}</ul>
+                    </div>
+                    {{/lists}}
+                </div>
+            </div>
+            <aside class="an-explica" data-explica-caja aria-live="polite"><p class="an-reposo"><svg class="an-toca" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#an-toca"/></svg>{{#str}}panel_new_touch, local_oksigeniaeguahe{{/str}}</p></aside>
+        </div>
+        <p class="def">{{def}}</p>
+        <details class="tabla-gemela"><summary>{{#str}}panel_as_table, local_oksigeniaeguahe{{/str}}</summary>
+            <table class="tabla-panel"><thead><tr><th scope="col">{{#str}}panel_new_month, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_joins_cap, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_leaves_cap, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}panel_new_last_year, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+            <tbody>{{#months}}<tr><th scope="row">{{fullname}}</th><td>{{joinsn}}</td><td>{{leavesn}}</td><td>{{before}}</td></tr>{{/months}}</tbody></table>
+        </details>
+    </section>
+    {{/moves}}
+
+    {{#hasyear}}{{#year}}
+    <section class="lamina grafico grafico-saldo{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-sal" id="saldo" data-grafico>
+        <h2 id="c-sal">{{title}}</h2>
+        <p class="corte">{{cut}}</p>
+        <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+        <div class="libro">
+            <p class="libro-extremo libro-inicio"><span>{{startlabel}}</span><b>{{start}}</b></p>
+            <ul class="libro-filas">
+                {{#rows}}
+                <li class="libro-fila{{#out}} sale{{/out}}" data-dato="{{line}}" id="sal-{{key}}">
+                    <span class="libro-que">{{name}}</span>
+                    <b class="libro-n">{{sign}}</b>
+                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato" style="--v: {{v}}" id="sal-b-{{key}}"></i></span>
+                </li>
+                {{/rows}}
+            </ul>
+            <p class="libro-extremo libro-final"><span>{{#str}}panel_ended_with, local_oksigeniaeguahe{{/str}}</span><b>{{end}}</b><span class="libro-neto">{{net}}</span></p>
+            <p class="sello-cuadra" aria-hidden="true">{{#str}}panel_ledger_squares, local_oksigeniaeguahe{{/str}}</p>
+        </div>
+        <details class="motivos" id="motivos"><summary>{{#str}}panel_why_they_left, local_oksigeniaeguahe{{/str}}</summary>
+            <ul class="lista-simple motivos-lista" style="--total: {{#rows}}{{#out}}{{n}}{{/out}}{{/rows}}">{{#reasons}}<li class="fila-s motivo" style="--n: {{n}}"><span>{{name}}</span><i class="motivo-barra" aria-hidden="true"></i><b>{{n}}</b></li>{{/reasons}}</ul>
+        </details>
+        <p class="def">{{def}}</p>
+    </section>
+    {{/year}}{{/hasyear}}
+    {{#hashistory}}{{#history}}
+    <section class="lamina grafico grafico-anos{{#ancha}} ancha{{/ancha}}" aria-labelledby="c-anos" id="anos" data-grafico>
+        <h2 id="c-anos">{{#str}}panel_roll_by_year, local_oksigeniaeguahe{{/str}}</h2>
+        <p class="corte">{{cut}}</p>
+        <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
+        <div class="columnas-caja">
+            <ol class="columnas">
+                {{#rows}}<li class="columna{{#last}} ultima{{/last}}" data-dato="{{line}}" style="--v: {{v}}" id="anos-{{year}}"><b>{{n}}</b>{{#delta}}<span class="col-delta" aria-hidden="true">{{delta}}</span>{{/delta}}<span class="col-pista" aria-hidden="true"><i id="anos-b-{{year}}"></i></span><span class="col-ano">{{year}}</span></li>{{/rows}}
+            </ol>
+        </div>
+        <p class="def">{{def}}</p>
+    </section>
+    {{/history}}{{/hashistory}}
+
+    <details class="apartado plegado an-glosario" id="como-se-cuenta">
+        <summary><h2>{{#str}}panel_new_how_counted, local_oksigeniaeguahe{{/str}}</h2></summary>
+        <dl class="an-defs">
+            {{#explain}}
+            <div class="an-def" id="{{id}}">
+                <dt>{{{title}}}</dt>
+                <dd>
+                    <p><b>{{#str}}panel_new_what_is, local_oksigeniaeguahe{{/str}}</b> {{{what}}}</p>
+                    <p><b>{{#str}}panel_new_how, local_oksigeniaeguahe{{/str}}</b> {{{how}}}</p>
+                    {{#careful}}<p class="an-ojo"><b>{{#str}}panel_new_careful, local_oksigeniaeguahe{{/str}}</b> {{{careful}}}</p>{{/careful}}
+                </dd>
+            </div>
+            {{/explain}}
+        </dl>
+    </details>
+</div>
