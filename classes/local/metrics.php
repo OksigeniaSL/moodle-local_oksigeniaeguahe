@@ -555,8 +555,13 @@ class metrics {
         foreach ($DB->get_records(imports::T, ['centreid' => $centreid, 'kind' => 'contacts'], 'id ASC') as $import) {
             $homes = [];
             $fromads = false;
-            $rows = $DB->get_recordset_select(self::CONTACTS, 'importid = :id', ['id' => $import->id], '',
-                'id, household, channel');
+            $rows = $DB->get_recordset_select(
+                self::CONTACTS,
+                'importid = :id',
+                ['id' => $import->id],
+                '',
+                'id, household, channel'
+            );
             foreach ($rows as $row) {
                 $homes[$row->household] = true;
                 $fromads = $fromads || $row->channel === 'meta';
