@@ -82,6 +82,7 @@
     --eg-chapita: #fff;
     --eg-chapita-tinta: #2b2226;
     --eg-error: #b3261e;
+    --eg-sobre-error: #fff;
     --eg-error-suave: #fbeae7;
     --eg-sombra: rgba(70, 45, 30, 0.16);
     /* The panel's own */
@@ -168,6 +169,7 @@
         --eg-gancho-luz: #ead0b2;
         --eg-chapita: #f5eee5;
         --eg-error: #f2a9a2;
+        --eg-sobre-error: #2b2226;
         --eg-error-suave: #3a201d;
         --eg-sombra: rgba(0, 0, 0, 0.45);
         --eg-accion: #f3ece6;
@@ -206,6 +208,7 @@
     --eg-gancho-luz: #ead0b2;
     --eg-chapita: #f5eee5;
     --eg-error: #f2a9a2;
+    --eg-sobre-error: #2b2226;
     --eg-error-suave: #3a201d;
     --eg-sombra: rgba(0, 0, 0, 0.45);
     --eg-accion: #f3ece6;
@@ -908,7 +911,7 @@ main {
 
 .boton.peligro {
     background: var(--eg-error);
-    color: #fff;
+    color: var(--eg-sobre-error, #fff);
 }
 
 .boton[aria-disabled="true"],
@@ -1321,7 +1324,6 @@ input[data-hora]:focus,
 
 .gustos-acto .pastilla b {
     font-variant-numeric: tabular-nums;
-    opacity: 0.75;
 }
 
 .vista {
@@ -3832,8 +3834,11 @@ input:checked + .ap-hoja {
     font-size: 1.25rem;
 }
 
-.dia-s.pasado {
-    opacity: 0.6;
+.dia-s.pasado,
+.dia-s.pasado .dia-s-nombre b,
+.dia-s.pasado .dia-s-nombre small,
+.dia-s.pasado .nada {
+    color: var(--eg-tinta-2);
 }
 
 .dia-s.vacio .nada {
@@ -9321,7 +9326,9 @@ html.modo-lamina {
 }
 
 .inf-consejo-que a {
-    color: var(--inf-serie);
+    color: var(--eg-tinta);
+    text-decoration-color: var(--inf-serie);
+    text-decoration-thickness: 2px;
 }
 
 .inf-consejo-porque {
@@ -11870,7 +11877,7 @@ button.padron-pomo-no::after {
 }
 
 .hoja-ano:disabled {
-    opacity: 0.5;
+    opacity: 0.7;
     cursor: default;
 }
 
@@ -13120,7 +13127,7 @@ button.padron-pomo-no::after {
 }
 
 .of-paso:disabled {
-    opacity: 0.35;
+    opacity: 0.55;
     cursor: default;
 }
 

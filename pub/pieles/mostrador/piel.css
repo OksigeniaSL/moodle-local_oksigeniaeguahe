@@ -833,7 +833,10 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .tablilla .guardar-pie .boton.terciario {
-    color: #fff6e6;
+    border-radius: 3px;
+    background: var(--papel-b);
+    color: var(--eg-tinta);
+    box-shadow: var(--sombra-papel);
 }
 
 .piel-mostrador .tablilla .guardar-pie {
@@ -2256,4 +2259,24 @@ body.modo-lamina.piel-mostrador .barra-antes {
     .piel-mostrador .sobre-plaza:focus-visible .sobre-dibujo {
         transform: rotate(-3deg);
     }
+}
+
+/* ---------- What is written straight on the wood reads (Jujol's review of contrast, 20 November 2026) ----------
+   The grey ink is for paper: on the wood, light by day and dark at night, a line in grey got lost (2.4 to 3.1:1). Every
+   text that sits on the wood itself takes the main ink of the desk, which reads on its lightest grain. */
+.piel-mostrador .aj-tramo-t,
+.piel-mostrador .indice-t,
+.piel-mostrador .descargas-t,
+.piel-mostrador .hoy-t,
+.piel-mostrador .llegadas .se-abre,
+.piel-mostrador .llegadas p.secundario,
+.piel-mostrador .llegadas .sonido:not([aria-pressed="true"]),
+.piel-mostrador .editor-col .idiomas .rotulo-p,
+.piel-mostrador .editor-col .idiomas .def {
+    color: var(--eg-tinta);
+}
+
+.piel-mostrador .pd-otra form .enlace {
+    color: var(--eg-tinta);
+    text-decoration: underline;
 }

@@ -58,6 +58,7 @@ html body.panel.piel-mostrador.piel-cinematico {
     --eg-chapita: #fff8ee;
     --eg-chapita-tinta: #1a1216;
     --eg-error: #f2a9a2;
+    --eg-sobre-error: #2b2226;
     --eg-error-suave: #3a1f22;
     --eg-sombra: rgba(0, 0, 0, 0.55);
     --eg-accion: #ffc98a;
@@ -1250,4 +1251,10 @@ html[data-mov="menos"] .cine-corriente {
 .piel-mostrador.piel-cinematico .sobre-matasellos {
     stroke: var(--cine-ambar);
     opacity: 1;
+}
+
+/* ---------- What was before, in pencil that reads on the dark (Jujol's review of contrast, 20 November 2026) ---------- */
+html body.panel.piel-mostrador.piel-cinematico .pagina-cifras,
+html body.panel.piel-mostrador.piel-cinematico .como-fue {
+    --cf-lapiz-texto: #9a94a3;
 }

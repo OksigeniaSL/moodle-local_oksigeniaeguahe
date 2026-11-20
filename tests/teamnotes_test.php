@@ -153,4 +153,13 @@ final class teamnotes_test extends \advanced_testcase {
         $this->assertSame('2026-11-06', userdate((int) $old->timecreated, '%Y-%m-%d', 99, false));
         $this->assertSame(2, $DB->count_records(households::CHILDREN, ['householdid' => $household->id]));
     }
+
+    /**
+     * What says who someone is is never shown as it came: each of those kinds of column has its example in words.
+     */
+    public function test_examples_of_personal_roles(): void {
+        foreach (entries::PERSONAL as $role) {
+            $this->assertTrue(get_string_manager()->string_exists('panel_example_' . $role, 'local_oksigeniaeguahe'), $role);
+        }
+    }
 }
