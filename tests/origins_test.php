@@ -116,5 +116,18 @@ final class origins_test extends \advanced_testcase {
             $this->assertContains($id, $ids);
         }
         $this->assertNotEmpty($ns['truth']['is']);
+
+        // Ads that took families to the website: their contacts came by its form, and money was spent on them.
+        $web = $import('contacts', 'Puertas abiertas (web)');
+        $DB->insert_record('local_oksigeniaeguahe_pastcontact', (object) ['centreid' => $cid, 'importid' => $web,
+            'household' => 'HO_family004', 'timecontact' => strtotime('2026-02-05'), 'channel' => 'webform',
+            'kind' => 'visit_booked', 'children' => 1, 'enrolled' => 0, 'timeenrolled' => 0, 'incentre' => 0, 'birthyear' => 0]);
+        $o = metrics::origins($cid, '2026-27');
+        $this->assertSame(['ad' => 1, 'campaign' => 1, 'none' => 0], $o['newby'], 'Without money, another campaign.');
+        $this->assertCount(1, metrics::publicity($cid, $o));
+        metrics::set_spend($cid, 'Puertas abiertas (web)', 'meta', '', 99.48, 2);
+        $o = metrics::origins($cid, '2026-27');
+        $this->assertSame(['ad' => 2, 'campaign' => 0, 'none' => 0], $o['newby']);
+        $this->assertSame(['Captación', 'Puertas abiertas (web)'], array_column(metrics::publicity($cid, $o), 'label'));
     }
 }

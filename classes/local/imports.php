@@ -292,6 +292,31 @@ class imports {
     }
 
     /**
+     * The emails and phones in more than half of the rows of a list: the centre's own (the account that books the
+     * visits, the switchboard), never a family's. They are not keys, or every family of the list would become one.
+     *
+     * @param array $rows
+     * @param array $columns
+     * @return array Key => rows it is in.
+     */
+    public static function shared_keys(array $rows, array $columns): array {
+        if (count($rows) < 5) {
+            return [];
+        }
+        $seen = [];
+        foreach ($rows as $row) {
+            $keys = array_unique(array_filter(array_merge(
+                array_map([pseudonym::class, 'email'], self::values($row, $columns, 'email')),
+                array_map([pseudonym::class, 'phone'], self::values($row, $columns, 'phone'))
+            )));
+            foreach ($keys as $key) {
+                $seen[$key] = ($seen[$key] ?? 0) + 1;
+            }
+        }
+        return array_filter($seen, fn($n) => $n * 2 > count($rows));
+    }
+
+    /**
      * The rows of a sheet as rows of its table, with keys instead of people.
      *
      * @param int $centreid
@@ -318,6 +343,7 @@ class imports {
                 }
             }
         }
+        $shared = self::shared_keys($plan['rows'], $columns);
         // The order of the dates of each column, from all its values at once: a sheet from one country is all one way.
         $centre = centres::get($centreid);
         $monthfirst = [];
@@ -335,10 +361,10 @@ class imports {
                 \core_text::substr($value, 0, $len);
             $birth = recognise::date($v('birthdate'), $monthfirst['birthdate']);
             $birthyear = $birth ? (int) date('Y', $birth) : 0;
-            $hkeys = array_merge(
+            $hkeys = array_values(array_filter(array_merge(
                 array_map([pseudonym::class, 'email'], self::values($row, $columns, 'email')),
                 array_map([pseudonym::class, 'phone'], self::values($row, $columns, 'phone'))
-            );
+            ), fn($k) => $k !== null && !isset($shared[$k])));
             if ($kind === 'contacts') {
                 $date = recognise::date($v('date'), $monthfirst['date']);
                 if (!$date) {

@@ -224,6 +224,32 @@ final class import_test extends \advanced_testcase {
     }
 
     /**
+     * Visits booked through a tool that writes the centre's own email in every row: that email is not a family's, and
+     * each booking stays its own family, recognised by its phone.
+     */
+    public function test_shared_key_is_not_a_family(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $centreid = centres::create((object) ['name' => 'Colegio de ejemplo']);
+        $rows = [['Marca temporal', 'Dirección de correo electrónico', 'Teléfono de contacto', 'Momento elegido para la visita']];
+        foreach (range(1, 6) as $i) {
+            $rows[] = ["2025-10-0{$i} 10:00:00", 'secretaria@example.com', '60000010' . $i, "2025-10-1{$i}"];
+        }
+        $path = $this->xlsx(['Reservas' => $rows]);
+        $sheets = imports::preview($path, 'Visitas.xlsx');
+        $this->assertSame('contacts', $sheets[0]['kind']);
+        imports::import_file($centreid, $path, 'Visitas.xlsx', [0 => ['kind' => 'contacts']], 2);
+        $this->assertSame(6, (int) $DB->count_records_sql('SELECT COUNT(DISTINCT household) FROM {local_oksigeniaeguahe_pastcontact}
+            WHERE centreid = ?', [$centreid]));
+        $this->assertSame(['visit_booked'], array_values(array_unique($DB->get_fieldset_select(
+            'local_oksigeniaeguahe_pastcontact',
+            'kind',
+            'centreid = ?',
+            [$centreid]
+        ))));
+    }
+
+    /**
      * Courses named in many ways are one, by the age they start at.
      */
     public function test_grades(): void {

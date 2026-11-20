@@ -483,7 +483,15 @@ class metrics {
                 $centre[$home] = true;
             }
         }
-        // What each family left before in a campaign: an ad, or another campaign or act.
+        // What each family left before in a campaign: an ad (a contact from ads, or in a campaign with money spent on
+        // it, like ads that took families to the website), or another campaign or act.
+        $paid = [];
+        foreach ($DB->get_records(imports::T, ['centreid' => $centreid, 'kind' => 'contacts'], '', 'id, label') as $import) {
+            $spend = self::spend($centreid, (string) $import->label);
+            if (array_filter($spend, fn($k) => substr($k, -1) === '|', ARRAY_FILTER_USE_KEY)) {
+                $paid[$import->id] = true;
+            }
+        }
         $ads = [];
         $other = [];
         $contacts = $DB->get_recordset_select(
@@ -491,10 +499,10 @@ class metrics {
             'centreid = :centreid',
             ['centreid' => $centreid],
             '',
-            'id, household, channel'
+            'id, household, channel, importid'
         );
         foreach ($contacts as $row) {
-            if ($row->channel === 'meta') {
+            if ($row->channel === 'meta' || isset($paid[$row->importid])) {
                 $ads[$row->household] = true;
             } else {
                 $other[$row->household] = true;
@@ -576,7 +584,10 @@ class metrics {
                 $last = max($last, (int) $row->timecontact);
             }
             $rows->close();
-            if (!$fromads || ($from && $last < $from) || ($to && $first >= $to)) {
+            // Publicity: contacts from ads, or a campaign with money spent on it (ads that took families to the website).
+            $spend = self::spend($centreid, (string) $import->label);
+            $channels = array_filter($spend, fn($k) => substr($k, -1) === '|', ARRAY_FILTER_USE_KEY);
+            if ((!$fromads && !$channels) || ($from && $last < $from) || ($to && $first >= $to)) {
                 continue;
             }
             $students = [];
@@ -590,8 +601,6 @@ class metrics {
                     $students += $byhome[$home];
                 }
             }
-            $spend = self::spend($centreid, (string) $import->label);
-            $channels = array_filter($spend, fn($k) => substr($k, -1) === '|', ARRAY_FILTER_USE_KEY);
             $cost = $channels ? (float) array_sum($channels) : null;
             $out[] = ['id' => (int) $import->id, 'label' => (string) $import->label, 'families' => count($homes),
                 'centre' => count(array_intersect_key($homes, $origins['centre'])), 'centrein' => $centrein, 'newin' => $newin,

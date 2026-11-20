@@ -186,6 +186,19 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
             $alerts[] = ['text' => get_string($due === 1 ? 'work_promised_one' : 'work_promised', $c, $due),
                 'url' => $url->out(false), 'level' => 'urgent'] + ($days ? ['due' => min($days)] : []);
         }
+        // Families waiting longer than the centre promises to answer: none is left in a dead end.
+        $replydays = max(1, (int) ($centre->replydays ?? 2));
+        $stuck = $DB->get_record_sql(
+            'SELECT COUNT(1) AS n, MIN(waitingsince) AS oldest FROM {local_oksigeniaeguahe_household}
+              WHERE centreid = :centreid AND waitingsince > 0 AND waitingsince < :limit',
+            ['centreid' => $id, 'limit' => $now - $replydays * DAYSECS]
+        );
+        if ($stuck && (int) $stuck->n) {
+            $n = (int) $stuck->n;
+            $alerts[] = ['text' => get_string($n === 1 ? 'work_stuck_one' : 'work_stuck', $c, (object) ['n' => $n,
+                'days' => get_string($replydays === 1 ? 'work_stuck_days_one' : 'work_stuck_days', $c, $replydays)]),
+                'url' => $url->out(false), 'level' => 'urgent', 'due' => (int) $stuck->oldest + $replydays * DAYSECS];
+        }
         if ($today) {
             $alerts[] = ['text' => get_string($today === 1 ? 'work_today_one' : 'work_today', $c, $today),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $id]))->out(false), 'level' => 'today'];

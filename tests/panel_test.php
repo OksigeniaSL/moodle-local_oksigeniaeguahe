@@ -588,6 +588,15 @@ final class panel_test extends \advanced_testcase {
         ), $cards[0]['status']);
         $this->assertSame('', local_oksigeniaeguahe_work_week($centreid, time() + 30 * DAYSECS), 'A quiet week says nothing.');
         $this->assertSame([], $cards[0]['alerts']);
+
+        // Waiting longer than the centre promises (two days by default): an alert, none left in a dead end.
+        global $DB;
+        $DB->set_field(households::T, 'waitingsince', time() - 3 * DAYSECS, ['id' => $household->id]);
+        $alerts = local_oksigeniaeguahe_oksigenia_work(2)[0]['alerts'];
+        $this->assertCount(1, $alerts);
+        $this->assertSame('urgent', $alerts[0]['level']);
+        $this->assertSame(get_string('work_stuck_one', 'local_oksigeniaeguahe', (object) ['n' => 1,
+            'days' => get_string('work_stuck_days', 'local_oksigeniaeguahe', 2)]), $alerts[0]['text']);
     }
 
     /**
