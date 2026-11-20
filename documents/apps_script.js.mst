@@ -93,7 +93,13 @@ function eguaheSendAll() {
 
 function eguaheRows_(tab, from, past) {
   const values = tab.getDataRange().getDisplayValues();
-  const head = values[0];
+  // A name that comes twice keeps both: the second one is «… (2)».
+  const seen = {};
+  const head = values[0].map(function (question) {
+    const name = String(question).trim();
+    seen[name] = (seen[name] || 0) + 1;
+    return name !== '' && seen[name] > 1 ? name + ' (' + seen[name] + ')' : name;
+  });
   let items = [];
   for (let r = Math.max(from, 2) - 1; r < values.length; r++) {
     const answers = {};

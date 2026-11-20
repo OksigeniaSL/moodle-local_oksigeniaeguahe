@@ -112,6 +112,26 @@ final class teamnotes_test extends \advanced_testcase {
             'platform' => 'ig', 'campaign_name' => 'Captación', 'Nombre y apellidos' => 'Lucía Ramos',
             'Teléfono' => '34600111222', 'selecciona_una_opción' => 'infantil_3-6', 'Priority' => 'Wasap'], '', null, true);
         $this->assertSame((int) $household->id, (int) $same->id);
+        // A form of Google: the child by «…se llama:», whoever comes with them as the second adult, how many will come.
+        $read = entries::read($entry, centres::get($cid), ['Marca temporal' => '9/11/2026 10:43:26',
+            'Nombre y apellidos del padre, madre o tutor' => 'Andrea Suárez', 'Teléfono de contacto' => '600555444',
+            'El que esperamos sea nuestro futuro alumno del colegio se llama:' => 'Martín',
+            '¿Cuántas personas asistirán?' => '3', 'Nombre de la persona que les acompaña' => 'Jorge Díaz',
+            'Teléfono de la persona que les acompaña' => '600555333']);
+        $this->assertSame('Martín', $read->child);
+        $this->assertSame(3, $read->people);
+        $this->assertSame(['Andrea', 'Jorge'], array_column($read->adults, 'firstname'));
+        $this->assertSame('+34600555333', $read->adults[1]->phone);
+        $this->assertSame('2026-11-09', userdate($read->time, '%Y-%m-%d', 99, false));
+        // The same name of a column twice: the second one is of whoever comes with them.
+        [$rows] = entries::rows_of([['name' => 'Hoja', 'rows' => [
+            ['Nombre y apellidos del padre, madre o tutor', 'Teléfono de contacto', 'Nombre de una de las personas que les acompañan',
+                'Teléfono de contacto'],
+            ['Ana Gil', '600111000', 'Luis Gil', '600111999'],
+        ]]]);
+        $this->assertSame('600111999', $rows[0]['Teléfono de contacto (2)']);
+        $twice = entries::read($entry, centres::get($cid), $rows[0]);
+        $this->assertSame(['+34600111000', '+34600111999'], array_column($twice->adults, 'phone'));
         // The old export of Meta writes its date the American way: «11/6/26» is the 6th of November.
         [$old] = entries::receive($entry, ['id' => '123', 'created_time' => '11/6/26', 'platform' => 'fb',
             'Nombre y apellidos' => 'Rosa León', 'Teléfono' => '600999888'], '', null, true);

@@ -92,6 +92,7 @@ cli_writeln('What each column is: ' . implode(' | ', $seen));
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'signedup' => 0];
 $noted = [];
 $households = [];
+$people = [];
 $transaction = $DB->start_delegated_transaction();
 foreach ($rows as $row) {
     [$household, $new] = entries::receive($entry, $row, '', null, true);
@@ -101,17 +102,24 @@ foreach ($rows as $row) {
     }
     if ($household) {
         $households[(int) $household->id] = $household;
+        $people[(int) $household->id] = max($people[(int) $household->id] ?? 1, (int) (entries::$lastread->people ?? 0));
     }
 }
 if ($event) {
     $now = time();
     foreach ($households as $household) {
-        if ($DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id])) {
+        $was = $DB->get_record(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id]);
+        if ($was) {
+            // Signed up before: how many will come, the larger of what each sheet says.
+            if ($people[$household->id] > (int) $was->people) {
+                $DB->set_field(events::SIGNUPS, 'people', $people[$household->id], ['id' => $was->id]);
+            }
             continue;
         }
         // Signed up as the team: the reminder of the day before counts as looked at, so nothing is sent.
         $DB->insert_record(events::SIGNUPS, (object) ['centreid' => $entry->centreid, 'eventid' => $event->id,
-            'householdid' => $household->id, 'slotid' => 0, 'people' => 1, 'reminded' => $now, 'attended' => 0,
+            'householdid' => $household->id, 'slotid' => 0, 'people' => $people[$household->id], 'reminded' => $now,
+            'attended' => 0,
             'thanked' => 0, 'timecreated' => $now]);
         households::note($household, 0, get_string('cli_signedup', 'local_oksigeniaeguahe', format_string($event->name)));
         $counts['signedup']++;

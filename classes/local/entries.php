@@ -62,6 +62,9 @@ class entries {
     /** @var array What the team wrote, as teamnotes::apply() counted it, for the last row received. */
     public static $noted = [];
 
+    /** @var \stdClass|null What read() made of the last row received. */
+    public static $lastread = null;
+
     /**
      * A new entry of a centre, with its public name and its key.
      *
@@ -280,6 +283,7 @@ class entries {
         self::note_questions($entry, $questions);
         self::note_examples($entry, $answers);
         $read = self::read($entry, $centre, $answers);
+        self::$lastread = $read;
         if (self::is_test($read->email)) {
             // A test: the entry works, and nobody comes in.
             self::tested($entry);
@@ -436,7 +440,7 @@ class entries {
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
             'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
-            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false];
+            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0];
         $detail = [];
         $people = [];
         $grades = [];
@@ -466,21 +470,29 @@ class entries {
         foreach ($clean as $question => $value) {
             $role = $roles[$question] ?? null;
             $line = \core_text::substr(trim((string) $question), 0, 120) . ': ' . \core_text::substr($value, 0, 1000);
-            // The second tutor, the second phone: the number in the name of the column says whose it is.
-            $who = preg_match('/(\d)\D*$/', recognise::plain((string) $question), $m) ? max(1, (int) $m[1]) : 1;
+            // The second tutor, the second phone: the number in the name of the column says whose it is; whoever comes
+            // with them is the second adult.
+            $plainq = recognise::plain((string) $question);
+            $who = preg_match('/(\d)\D*$/', $plainq, $m) ? max(1, (int) $m[1]) :
+                (preg_match('/acompan|accompan|companion/', $plainq) ? 2 : 1);
             switch ($role) {
                 case 'email':
                     $email = households::email($value);
-                    if ($email) {
-                        $people[$who]['email'] = $people[$who]['email'] ?? $email;
-                    } else {
+                    if ($email && !isset($people[$who]['email'])) {
+                        $people[$who]['email'] = $email;
+                    } else if (!$email || $people[$who]['email'] !== $email) {
+                        // Not an email, or a second one for the same person: kept as it was written, never lost.
                         $r->lines[] = $line;
                     }
                     break;
                 case 'phone':
                     $phone = phone::normalise(preg_replace('/^p:/i', '', $value), $centre->country ?? null);
-                    if ($phone && !preg_match('/\p{L}{3,}/u', $value)) {
-                        $people[$who]['phone'] = $people[$who]['phone'] ?? $phone;
+                    if ($phone && !preg_match('/\p{L}{3,}/u', $value) && !isset($people[$who]['phone'])) {
+                        $people[$who]['phone'] = $phone;
+                    } else if ($phone && !preg_match('/\p{L}{3,}/u', $value)) {
+                        if ($people[$who]['phone'] !== $phone) {
+                            $r->lines[] = $line;
+                        }
                     } else if (preg_match('/\p{L}/u', $value) && ($teamsheet || preg_match('/whats|wasap/i', $question))) {
                         // «WhatsApp: Enviado» is something the team did, not a number.
                         $r->team[] = [(string) $question, $value, 'team'];
@@ -542,6 +554,14 @@ class entries {
                     break;
                 case 'hour':
                     $r->hour = $r->hour ?: $value;
+                    break;
+                case 'people':
+                    // How many will come to the act, for its sign-up.
+                    if (preg_match('/\d+/', $value, $m)) {
+                        $r->people = max(1, min(10, (int) $m[0]));
+                    } else {
+                        $r->lines[] = $line;
+                    }
                     break;
                 case 'channel':
                     $channel = teamnotes::channel($value);
@@ -985,19 +1005,28 @@ class entries {
                 if (!array_intersect(['email', 'phone', 'fullname', 'firstname'], $roles)) {
                     continue;
                 }
+                // A name that comes twice («Teléfono de contacto» of the family and of who comes with them) keeps both:
+                // the second one is «… (2)», which says it is of the second person.
+                $names = [];
+                $seen = [];
+                foreach ($row as $i => $header) {
+                    $name = trim((string) $header);
+                    $seen[$name] = ($seen[$name] ?? 0) + 1;
+                    $names[$i] = $name !== '' && $seen[$name] > 1 ? $name . ' (' . $seen[$name] . ')' : $name;
+                }
                 $out = [];
                 foreach (array_slice($sheet['rows'], $at + 1) as $values) {
                     $item = [];
-                    foreach ($row as $i => $header) {
-                        if (trim((string) $header) !== '' && isset($values[$i]) && trim((string) $values[$i]) !== '') {
-                            $item[(string) $header] = (string) $values[$i];
+                    foreach ($names as $i => $header) {
+                        if ($header !== '' && isset($values[$i]) && trim((string) $values[$i]) !== '') {
+                            $item[$header] = (string) $values[$i];
                         }
                     }
                     if ($item) {
                         $out[] = $item;
                     }
                 }
-                return [$out, array_values(array_filter(array_map('strval', $row), fn($h) => trim($h) !== ''))];
+                return [$out, array_values(array_filter($names, fn($h) => $h !== ''))];
             }
         }
         return [[], []];
