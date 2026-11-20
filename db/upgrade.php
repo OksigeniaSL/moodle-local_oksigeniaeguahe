@@ -1529,5 +1529,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119100, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119203) {
+        // A centre can want the pages and mails of its families always light, whatever their phone says.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('familylight', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'brandcolours');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026119203, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

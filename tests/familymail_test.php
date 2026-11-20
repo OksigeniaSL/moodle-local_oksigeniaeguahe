@@ -147,6 +147,13 @@ final class familymail_test extends \advanced_testcase {
             $this->assertCount(2, array_filter($images, fn($i) => $i['mime'] === 'image/png'));
             $this->assertStringContainsString('alt="e Íñigo"', $html);
         }
+        $this->assertStringContainsString('@media (prefers-color-scheme: dark)', $html);
+        // A centre that wants what its families see always light: no dark for the mail clients that follow the phone.
+        $light = clone $this->centre;
+        $light->familylight = 1;
+        [, $lighthtml] = familymail::build('confirmation', $household, $light, $signup, 'es', $token);
+        $this->assertStringContainsString('<meta name="color-scheme" content="light">', $lighthtml);
+        $this->assertStringNotContainsString('@media (prefers-color-scheme: dark)', $lighthtml);
         $sink = $this->redirectEmails();
         $this->assertTrue(familymail::send('confirmation', $household, $this->centre, $signup, 'es', $token));
         $messages = $sink->get_messages();

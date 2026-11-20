@@ -372,6 +372,8 @@ class publicpage {
         // The colours of the centre and, when it wrote its brand, the whole brand (Jujol), by day and at night.
         $light = self::centre_vars($colour, false) + ($brand ? self::brand_vars($brand, $colour, false) : []);
         $dark = self::centre_vars($colour, true) + ($brand ? self::brand_vars($brand, $colour, true) : []);
+        // A centre can want the pages of its families always light, whatever the phone of each family says.
+        $onlylight = !empty($centre->familylight);
         self::headers();
         // The page of a family: the drawing that draws itself, under each child and on the table, before what plays it.
         // And the video of a drawing, to keep it (it loads its MP4 muxer only when asked).
@@ -382,20 +384,21 @@ class publicpage {
         $cropper = $template === 'public_drawing' ?
             '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
         echo '<!DOCTYPE html>
-<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '" dir="' . lists::dir($lang) . '">
+<html lang="' . s(str_replace('_', '-', $lang === 'pt_br' ? 'pt-BR' : $lang)) . '" dir="' . lists::dir($lang) . '"' .
+            ($onlylight ? ' data-theme="light"' : '') . '>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="' . ($onlylight ? 'light' : 'light dark') . '">
 <meta name="theme-color" content="' . s($colour) . '">
 <title>' . s($title) . ' · ' . s($name) . '</title>
 ' . self::$head . '<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <link rel="stylesheet" href="' . $base . 'riel-lectura.css?v=' . $version . '">
-<style>:root { ' . $vars($light) . ' }
-@media (prefers-color-scheme: dark) { :root { ' . $vars($dark) . ' } }</style>
+<style>:root { ' . $vars($light) . ' }' . ($onlylight ? '' : '
+@media (prefers-color-scheme: dark) { :root { ' . $vars($dark) . ' } }') . '</style>
 <noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden],
 .quien-cuenta[hidden] {
 display: grid; }

@@ -251,6 +251,8 @@ class familymail {
             'fin' => lists::dir($lang) === 'rtl' ? 'left' : 'right',
             'fuente_url' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/fonts/schibsted-grotesk.woff2',
             'c' => self::colours($colour, centres::brand($centre)),
+            // The centre wants its pages and mails always light, whatever the phone of the family says.
+            'soloclaro' => !empty($centre->familylight),
             // The stripe of the brand; at night each colour lightened until it shows on the dark paper of the brand.
             'franja' => array_map(
                 fn($code, $night, $n) => ['claro' => $code, 'oscuro' => $night, 'n' => $n],

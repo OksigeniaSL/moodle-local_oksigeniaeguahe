@@ -135,6 +135,7 @@ class panel_centre {
                 'version'
             )]))->out(false),
             'logoplate' => !empty($centre->logoplate),
+            'familylight' => !empty($centre->familylight),
             // The miniature of the centre: its plan with the way in, the same for phones, and where to park.
             'miniatures' => self::miniatures((int) $centre->id),
             'hasminiature' => centres::miniature((int) $centre->id) !== null,
@@ -785,6 +786,7 @@ class panel_centre {
             'replydays' => optional_param('replydays', (int) ($centre->replydays ?? 2), PARAM_INT),
             'library' => optional_param('library', (string) ($centre->library ?? ''), PARAM_ALPHANUMEXT),
             'logoplate' => optional_param('logoplate', 0, PARAM_BOOL),
+            'familylight' => optional_param('familylight', (int) ($centre->familylight ?? 0), PARAM_BOOL),
             'applyafter' => optional_param('applyafter', (int) ($centre->applyafter ?? 1), PARAM_BOOL),
             'controller' => optional_param('controller', '', PARAM_TEXT),
             'rightscontact' => optional_param('rightscontact', '', PARAM_TEXT),

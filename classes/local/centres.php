@@ -151,6 +151,10 @@ class centres {
             $row->replydays = in_array((int) $data->replydays, panel_centre::REPLYDAYS, true) ? (int) $data->replydays : 2;
         }
         $row->logoplate = empty($data->logoplate) ? 0 : 1;
+        if (isset($data->familylight)) {
+            // The pages and mails of its families always light, whatever the phone of each family says.
+            $row->familylight = empty($data->familylight) ? 0 : 1;
+        }
         if (isset($data->messaging) && in_array($data->messaging, messaging::MODES, true)) {
             $row->messaging = $data->messaging;
         }

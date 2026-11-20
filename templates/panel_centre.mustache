@@ -63,7 +63,7 @@
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
         "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
-        "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
+        "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
             "role": "Tutora", "shown": true, "phrase": "Soy Lucía.", "admin": true},
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
@@ -326,6 +326,11 @@
                             <input type="hidden" name="logoplate" value="{{#logoplate}}1{{/logoplate}}{{^logoplate}}0{{/logoplate}}">
                             <button class="interruptor" type="submit" name="logoplate" value="{{#logoplate}}0{{/logoplate}}{{^logoplate}}1{{/logoplate}}" formaction="{{action}}#aj-aspecto" aria-pressed="{{#logoplate}}true{{/logoplate}}{{^logoplate}}false{{/logoplate}}" aria-describedby="c-placa-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_logoplate_short, local_oksigeniaeguahe{{/str}}</span></button>
                             <span class="ayuda" id="c-placa-a">{{#str}}centre_logoplate_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                        <div class="aj-util">
+                            <input type="hidden" name="familylight" value="{{#familylight}}1{{/familylight}}{{^familylight}}0{{/familylight}}">
+                            <button class="interruptor" type="submit" name="familylight" value="{{#familylight}}0{{/familylight}}{{^familylight}}1{{/familylight}}" formaction="{{action}}#aj-aspecto" aria-pressed="{{#familylight}}true{{/familylight}}{{^familylight}}false{{/familylight}}" aria-describedby="c-claras-a"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_familylight_short, local_oksigeniaeguahe{{/str}}</span></button>
+                            <span class="ayuda" id="c-claras-a">{{#str}}panel_familylight_help, local_oksigeniaeguahe{{/str}}</span>
                         </div>
                     </div>
                     <p class="linea-dato frase-color" data-frase-color aria-live="polite">{{colourguard}}</p>
