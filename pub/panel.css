@@ -13408,20 +13408,21 @@ button.padron-pomo-no::after {
     padding-inline: 10px;
 }
 
-/* The help of a field is always in its place, quiet, and lights up while the field is used. If it came and went, what is
-   under it would move when the field loses the focus, and a «Save» pressed then would get its click outside. */
+/* The help of a field is always in its place, quiet in the grey ink, and in the main ink while the field is used. If
+   it came and went, what is under it would move when the field loses the focus, and a «Save» pressed then would get its
+   click outside. Never faded with opacity: on the wood it stopped reading (Jujol). */
 .con-ayuda .ayuda,
 .aj-elige-fila .ayuda,
 .aj-util .ayuda,
 .aj-persona-nueva .ayuda {
-    opacity: .7;
+    color: var(--eg-tinta-2);
 }
 
 .con-ayuda:focus-within .ayuda,
 .aj-elige-fila:focus-within .ayuda,
 .aj-util:focus-within .ayuda,
 .aj-persona-nueva:focus-within .ayuda {
-    opacity: 1;
+    color: var(--eg-tinta);
 }
 
 /* A blank to write in: on the paper itself, with its dotted line, as long as what it holds. */

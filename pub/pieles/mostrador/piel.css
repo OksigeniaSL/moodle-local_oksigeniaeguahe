@@ -2272,11 +2272,13 @@ body.modo-lamina.piel-mostrador .barra-antes {
 .piel-mostrador .llegadas p.secundario,
 .piel-mostrador .llegadas .sonido:not([aria-pressed="true"]),
 .piel-mostrador .editor-col .idiomas .rotulo-p,
-.piel-mostrador .editor-col .idiomas .def {
+.piel-mostrador .editor-col .idiomas .def,
+.piel-mostrador .pd-texto .pd-dia span {
     color: var(--eg-tinta);
 }
 
-.piel-mostrador .pd-otra form .enlace {
+.piel-mostrador .pd-otra form .enlace,
+.piel-mostrador .pd-acciones form .enlace {
     color: var(--eg-tinta);
     text-decoration: underline;
 }
