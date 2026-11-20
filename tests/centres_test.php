@@ -82,6 +82,38 @@ final class centres_test extends \advanced_testcase {
     }
 
     /**
+     * Cifras for the whole team, or only for its management: whoever changes the settings and whoever only looks.
+     */
+    public function test_metrics_for(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $centreid = centres::create((object) ['name' => 'Uno']);
+        $system = \context_system::instance();
+        $users = [];
+        foreach (['view', 'work', 'head'] as $who) {
+            $user = $this->getDataGenerator()->create_user();
+            $role = $this->getDataGenerator()->create_role();
+            assign_capability('local/oksigeniaeguahe:' . ($who === 'view' ? 'view' : 'work'), CAP_ALLOW, $role, $system);
+            role_assign($role, $user->id, $system);
+            centres::add_member($centreid, $user->id);
+            $users[$who] = (int) $user->id;
+        }
+        $DB->set_field(centres::MEMBERS, 'admin', 1, ['centreid' => $centreid, 'userid' => $users['head']]);
+        $outsider = (int) $this->getDataGenerator()->create_user()->id;
+        $sees = fn() => array_map(
+            fn($id) => centres::can_see_metrics(centres::get($centreid), $id),
+            $users + ['outsider' => $outsider]
+        );
+        $this->assertSame(['view' => true, 'work' => true, 'head' => true, 'outsider' => false], $sees());
+        centres::update($centreid, (object) ['metricsfor' => 'heads']);
+        $this->assertSame('heads', centres::get($centreid)->metricsfor);
+        $this->assertSame(['view' => true, 'work' => false, 'head' => true, 'outsider' => false], $sees());
+        $this->setUser($users['work']);
+        $this->expectException(\required_capability_exception::class);
+        centres::require_metrics($centreid);
+    }
+
+    /**
      * A family is found again only in its own centre.
      */
     public function test_find_by_centre(): void {

@@ -33,6 +33,10 @@ class centres {
     /** @var string[] Who signs up at a centre: a family for its children, the student for themselves, or either. */
     const WHOAPPLIES = ['family', 'student', 'both'];
 
+    /** @var string[] Who sees Cifras and the reports: the whole team, or only those who change the settings and those who
+     *     only look (its management). */
+    const METRICSFOR = ['team', 'heads'];
+
     /** @var string */
     const T = 'local_oksigeniaeguahe_centre';
 
@@ -149,6 +153,10 @@ class centres {
         }
         if (isset($data->skin)) {
             $row->skin = in_array($data->skin, panel::SKINS, true) ? $data->skin : null;
+        }
+        if (isset($data->metricsfor)) {
+            // Who sees Cifras and the reports.
+            $row->metricsfor = in_array($data->metricsfor, self::METRICSFOR, true) ? $data->metricsfor : 'team';
         }
         if (isset($data->whoapplies)) {
             // Who signs up: a family for its children, the student for themselves, or either.
@@ -465,6 +473,47 @@ class centres {
         }
         return $centreid && self::can_act($userid) &&
             $DB->record_exists(self::MEMBERS, ['centreid' => $centreid, 'userid' => $userid, 'admin' => 1]);
+    }
+
+    /**
+     * Whether a person sees Cifras, the reports and the forecast of a centre: the whole team, or, when the centre says so,
+     * only those who change its settings and those who only look (its management).
+     *
+     * @param \stdClass $centre
+     * @param int $userid
+     * @return bool
+     */
+    public static function can_see_metrics(\stdClass $centre, int $userid = 0): bool {
+        global $USER;
+        $userid = $userid ?: (int) $USER->id;
+        if (!self::can_work((int) $centre->id, $userid)) {
+            return false;
+        }
+        if (($centre->metricsfor ?? 'team') !== 'heads' || self::can_manage((int) $centre->id, $userid)) {
+            return true;
+        }
+        return !self::can_act($userid) &&
+            has_capability('local/oksigeniaeguahe:view', \context_system::instance(), $userid);
+    }
+
+    /**
+     * Stops the page unless the person logged in sees Cifras of the centre; returns it.
+     *
+     * @param int $centreid
+     * @return \stdClass
+     */
+    public static function require_metrics(int $centreid): \stdClass {
+        global $USER;
+        $centre = self::require_work($centreid);
+        if (!self::can_see_metrics($centre, (int) $USER->id)) {
+            throw new \required_capability_exception(
+                \context_system::instance(),
+                'local/oksigeniaeguahe:manage',
+                'nopermissions',
+                ''
+            );
+        }
+        return $centre;
     }
 
     /**

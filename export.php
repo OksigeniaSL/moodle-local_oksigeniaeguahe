@@ -35,7 +35,7 @@ $what = optional_param('what', 'figures', PARAM_ALPHA) === 'families' ? 'familie
 $format = optional_param('format', 'excel', PARAM_ALPHA);
 $format = in_array($format, export::FORMATS, true) ? $format : 'excel';
 // The families carry who they are and how to reach them: only whoever works with them; the figures, whoever sees the centre.
-$centre = $what === 'families' ? centres::require_act($centreid) : centres::require_work($centreid);
+$centre = $what === 'families' ? centres::require_act($centreid) : centres::require_metrics($centreid);
 require_sesskey();
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/oksigeniaeguahe/export.php', ['c' => $centreid]));

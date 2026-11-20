@@ -64,6 +64,7 @@
         <FIELD NAME="whoapplies" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="family" SEQUENCE="false" COMMENT="Who signs up: family (a family for its children), student (the student, for themselves) or both"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="metricsfor" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="team" SEQUENCE="false" COMMENT="Who sees Cifras, the reports and the forecast: team, the whole team; heads, only those who change the settings and those who only look"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

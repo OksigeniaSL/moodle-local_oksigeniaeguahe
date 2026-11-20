@@ -36,7 +36,7 @@ require_login(null, false);
 $centreid = required_param('c', PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
-$centre = centres::require_work($centreid);
+$centre = centres::require_metrics($centreid);
 $canact = centres::can_act((int) $USER->id);
 $url = new moodle_url('/local/oksigeniaeguahe/forecast.php', ['c' => $centre->id]);
 $PAGE->set_context(context_system::instance());

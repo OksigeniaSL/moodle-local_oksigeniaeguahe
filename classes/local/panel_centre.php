@@ -171,6 +171,11 @@ class panel_centre {
             'apply' => self::apply_settings($centre),
             'costs' => costs::settings($centre),
             // Who signs up here: a family for its children, the student for themselves, or either (they choose).
+            'metricsfor' => [
+                'read' => get_string('panel_metricsfor_' . ($centre->metricsfor ?? 'team'), $c),
+                'modes' => array_map(fn($w) => ['value' => $w, 'name' => get_string('panel_metricsfor_' . $w, $c),
+                    'pressed' => $w === ($centre->metricsfor ?? 'team')], centres::METRICSFOR),
+            ],
             'whoapplies' => [
                 'read' => get_string('panel_whoapplies_' . ($centre->whoapplies ?? 'family'), $c),
                 'modes' => array_map(fn($w) => ['value' => $w, 'name' => get_string('panel_whoapplies_' . $w, $c),
@@ -797,6 +802,7 @@ class panel_centre {
             'stagenotes' => optional_param_array('stagenote', null, PARAM_TEXT),
             'costswhen' => optional_param('costswhen', (string) ($centre->costswhen ?? 'after'), PARAM_ALPHA),
             'whoapplies' => optional_param('whoapplies', (string) ($centre->whoapplies ?? 'family'), PARAM_ALPHA),
+            'metricsfor' => optional_param('metricsfor', (string) ($centre->metricsfor ?? 'team'), PARAM_ALPHA),
             'familyfrom' => optional_param('familyfrom', (string) ($centre->familyfrom ?? 'eguahe'), PARAM_ALPHA),
             'guide' => optional_param('guide', (string) ($centre->guide ?? ''), PARAM_ALPHA),
             'guidewhere' => optional_param('guidewhere', (string) ($centre->guidewhere ?? ''), PARAM_TEXT),

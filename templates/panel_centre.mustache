@@ -69,6 +69,7 @@
             {"id": 2, "userid": 6, "me": false, "name": "Pablo Ruiz", "first": "Pablo", "picture": "", "initials": "PR",
             "role": "Secretaría", "shown": false, "phrase": "", "admin": false}],
         "newaccounts": true, "canadd": true,
+        "metricsfor": {"read": "Solo la dirección", "modes": [{"value": "team", "name": "Todo el equipo", "pressed": false}, {"value": "heads", "name": "Solo la dirección", "pressed": true}]},
         "whoapplies": {"read": "Una familia, para sus hijos", "modes": [{"value": "family", "name": "Una familia", "pressed": true},
             {"value": "student", "name": "El propio alumno", "pressed": false}]},
         "hasmessaging": true, "messaging": [{"value": "off", "name": "No usarlos", "help": "Todo por correo.", "checked": true}],
@@ -466,6 +467,18 @@
                     <p class="ayuda">{{#str}}panel_whoapplies_help, local_oksigeniaeguahe{{/str}}</p>
                     <div class="aj-modos" role="group" aria-labelledby="aj-quien-t">
                         {{#whoapplies.modes}}<button class="aj-modo" type="submit" name="whoapplies" value="{{value}}" formaction="{{action}}#aj-quien" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/whoapplies.modes}}
+                    </div>
+                </div>
+            </details>
+
+            {{! ===== Who sees Cifras: the whole team, or only its management ===== }}
+            <details class="apartado aj-plegado" id="aj-cifras">
+                <summary><h2 id="aj-cifras-t">{{#str}}panel_metricsfor_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{metricsfor.read}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda">{{#str}}panel_metricsfor_help, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="aj-modos" role="group" aria-labelledby="aj-cifras-t">
+                        {{#metricsfor.modes}}<button class="aj-modo" type="submit" name="metricsfor" value="{{value}}" formaction="{{action}}#aj-cifras" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/metricsfor.modes}}
                     </div>
                 </div>
             </details>

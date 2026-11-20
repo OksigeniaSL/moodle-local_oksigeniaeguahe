@@ -261,9 +261,10 @@ class panel {
     public static function sections(\stdClass $centre, string $current): array {
         $waiting = households::waiting_count((int) $centre->id);
         $manage = centres::can_manage((int) $centre->id);
+        $numbers = centres::can_see_metrics($centre);
         $out = [];
         foreach (self::SECTIONS as $key => [$string, $icon, $page]) {
-            if ($key === 'settings' && !$manage) {
+            if (($key === 'settings' && !$manage) || (in_array($key, ['metrics', 'forecast'], true) && !$numbers)) {
                 continue;
             }
             $out[] = [
