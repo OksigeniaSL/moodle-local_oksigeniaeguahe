@@ -19,6 +19,7 @@ namespace local_oksigeniaeguahe;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\guide;
+use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\share;
 
@@ -193,6 +194,104 @@ class api {
                 'miniature' => $miniature ? $miniature->out(false) : null,
                 'miniaturefile' => reset($files) ?: null,
             ];
+        }
+        return $out;
+    }
+    /**
+     * The families a person of the team may start a conversation with, by name: for the conversations of Marandu,
+     * which already find the families of the common record and the contacts of the chat, and not the ones that only
+     * ask for a place. Each word written starts a word of the name of an adult or a child of the family, without
+     * accents. Only the centres of that person (never the practice ones), only families that came through Eguahe (the
+     * ones from the roll are in the common record), and only adults with a phone.
+     *
+     * @param int $userid
+     * @param string $query
+     * @param int $limit
+     * @return array A list of name, phone (E.164) and line (what the family is: who it asks a place for, and the course).
+     */
+    public static function chat_candidates(int $userid, string $query, int $limit): array {
+        global $DB;
+        $plain = fn(string $text) => trim(preg_replace('/[^a-z0-9]+/', ' ', \core_text::strtolower(
+            (string) \core_text::specialtoascii($text)
+        )));
+        $words = array_values(array_filter(explode(' ', $plain($query))));
+        $centres = array_filter(centres::for_user($userid), fn($c) => !centres::is_practice((int) $c->id));
+        if (!$words || !$centres || $limit < 1) {
+            return [];
+        }
+        [$in, $params] = $DB->get_in_or_equal(array_keys($centres), SQL_PARAMS_NAMED);
+        $homes = $DB->get_records_select(
+            households::T,
+            "centreid $in AND roster = 0",
+            $params,
+            'lastcontact DESC',
+            'id, centreid, incentre'
+        );
+        if (!$homes) {
+            return [];
+        }
+        $adults = [];
+        $names = [];
+        foreach (
+            $DB->get_records_select(
+                households::ADULTS,
+                "centreid $in",
+                $params,
+                'id ASC',
+                'id, householdid, firstname, lastname, phone'
+            ) as $adult
+        ) {
+            $adults[$adult->householdid][] = $adult;
+            $names[$adult->householdid][] = $adult->firstname . ' ' . $adult->lastname;
+        }
+        $children = [];
+        foreach (
+            $DB->get_records_select(
+                households::CHILDREN,
+                "centreid $in",
+                $params,
+                'id ASC',
+                'id, householdid, firstname, tagname, offerid, stage'
+            ) as $child
+        ) {
+            $children[$child->householdid][] = $child;
+            $names[$child->householdid][] = $child->firstname . ' ' . $child->tagname;
+        }
+        $offers = [];
+        foreach ($centres as $centre) {
+            foreach (centres::offers((int) $centre->id) as $offer) {
+                $offers[(int) $offer->id] = format_string($offer->name);
+            }
+        }
+        $out = [];
+        foreach ($homes as $home) {
+            $said = ' ' . $plain(implode(' ', $names[$home->id] ?? [])) . ' ';
+            foreach ($words as $word) {
+                if (strpos($said, ' ' . $word) === false) {
+                    continue 2;
+                }
+            }
+            // What the family is, in a line: who it asks a place for, with the course.
+            $asking = [];
+            foreach ($children[$home->id] ?? [] as $child) {
+                if (!in_array($child->stage, ['enrolled', 'closed'], true)) {
+                    $name = trim((string) $child->firstname) !== '' ? format_string($child->firstname) :
+                        get_string('chat_child_noname', 'local_oksigeniaeguahe');
+                    $asking[] = $name . (isset($offers[(int) $child->offerid]) ? ' (' . $offers[(int) $child->offerid] . ')' : '');
+                }
+            }
+            $line = $asking ? get_string('chat_candidate_asking', 'local_oksigeniaeguahe', implode(', ', $asking)) :
+                get_string($home->incentre ? 'chat_kind_centre' : 'chat_candidate_family', 'local_oksigeniaeguahe');
+            foreach ($adults[$home->id] ?? [] as $adult) {
+                if ((string) $adult->phone === '') {
+                    continue;
+                }
+                $out[] = ['name' => trim(format_string($adult->firstname) . ' ' . format_string((string) $adult->lastname)),
+                    'phone' => (string) $adult->phone, 'line' => $line];
+                if (count($out) >= $limit) {
+                    return $out;
+                }
+            }
         }
         return $out;
     }

@@ -124,4 +124,39 @@ final class api_test extends \advanced_testcase {
         $this->assertStringNotContainsString('f.php', json_encode($visits));
         $this->assertSame([], api::visits_today($id + 100, $now));
     }
+    /**
+     * The families that ask for a place, found by any word of the names of their adults or children, without accents,
+     * for the people of their centre only, and only adults with a phone.
+     */
+    public function test_chat_candidates(): void {
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer = centres::save_offer($cid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 0,
+            'active' => 1]);
+        $team = $this->getDataGenerator()->create_user();
+        $other = $this->getDataGenerator()->create_user();
+        $role = $this->getDataGenerator()->create_role();
+        assign_capability('local/oksigeniaeguahe:work', CAP_ALLOW, $role, \context_system::instance()->id);
+        role_assign($role, $team->id, \context_system::instance()->id);
+        role_assign($role, $other->id, \context_system::instance()->id);
+        centres::add_member($cid, (int) $team->id);
+        $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'meta']);
+        $household = households::get($id, $cid);
+        households::add_adult($household, (object) ['firstname' => 'Marta', 'lastname' => 'García López',
+            'email' => null, 'phone' => '+34600111222']);
+        households::add_adult($household, (object) ['firstname' => 'Luis', 'lastname' => 'Pérez', 'email' => 'luis@example.com',
+            'phone' => null]);
+        households::add_child($household, 'Inés', $offer);
+        $found = api::chat_candidates((int) $team->id, 'ines garcia', 10);
+        $this->assertCount(1, $found);
+        $this->assertSame('+34600111222', $found[0]['phone']);
+        $this->assertSame('Marta García López', $found[0]['name']);
+        $this->assertStringContainsString('Inés', $found[0]['line']);
+        $this->assertCount(1, api::chat_candidates((int) $team->id, 'GARC', 10));
+        $this->assertSame([], api::chat_candidates((int) $team->id, 'pedro', 10));
+        // Luis has no phone: the family is found by his name, and only who can be called comes.
+        $this->assertSame(['+34600111222'], array_column(api::chat_candidates((int) $team->id, 'luis perez', 10), 'phone'));
+        // Another person, not of the centre, finds nothing.
+        $this->assertSame([], api::chat_candidates((int) $other->id, 'ines', 10));
+    }
 }
