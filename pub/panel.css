@@ -18912,4 +18912,8 @@ html {
         max-width: none;
         white-space: nowrap;
     }
+
+    .filtros .pastillas + .pastillas {
+        margin-top: 10px;
+    }
 }
