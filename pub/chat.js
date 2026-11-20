@@ -14,8 +14,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The family beside a conversation: the chat (a dashboard app of Chatwoot) tells the page who writes, only from the
- * chats the site lets in, and the page asks Eguahe who that is. The email and the phone go in the body of a POST, never
+ * The family beside a conversation: the chat (a dashboard app of Chatwoot, or the conversations of Marandu in the site
+ * itself) tells the page who writes, only from the chats the site lets in and the site, and the page asks Eguahe who
+ * that is. The email and the phone go in the body of a POST, never
  * in an address.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>

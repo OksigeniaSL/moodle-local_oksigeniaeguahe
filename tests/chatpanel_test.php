@@ -34,11 +34,16 @@ final class chatpanel_test extends \advanced_testcase {
      * Only the chats of the setting, written well, may show the page.
      */
     public function test_origins(): void {
+        global $CFG;
         $this->resetAfterTest();
         $this->assertSame([], chatpanel::origins());
         set_config('chatorigins', "https://Chat.Example.com/\nftp://x.example.com\nhttp://localhost:8199\nhttp://example.net\n" .
             "https://chat.example.com", 'local_oksigeniaeguahe');
         $this->assertSame(['https://chat.example.com', 'http://localhost:8199'], chatpanel::origins());
+        // The pages of the site itself (the conversations of Marandu) are listened to as well.
+        $parts = parse_url($CFG->wwwroot);
+        $own = $parts['scheme'] . '://' . $parts['host'] . (!empty($parts['port']) ? ':' . $parts['port'] : '');
+        $this->assertSame(['https://chat.example.com', 'http://localhost:8199', $own], chatpanel::listened());
     }
 
     /**

@@ -20,7 +20,8 @@ namespace local_oksigeniaeguahe\local;
  * The family beside a conversation of the chat of the centre (a dashboard app of Chatwoot): when a person of the team
  * opens a conversation, the chat tells this page who writes, and the page shows whether it is a family that asks for a
  * place, a family of the centre, or both, with its children, who attends it and its next visit. Only for the team, only
- * inside the chats the site lets in, and never with anything in the address.
+ * inside the chats the site lets in or the pages of the site itself (the conversations of Marandu), and never with
+ * anything in the address.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -44,6 +45,23 @@ class chatpanel {
             if ($secure || $local) {
                 $out[] = $line;
             }
+        }
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Whose word the page takes on who writes: the chats of the setting and the site itself, whose own pages (the
+     * conversations of Marandu) may also hold it, as frame-ancestors 'self' already lets them.
+     *
+     * @return string[] Origins.
+     */
+    public static function listened(): array {
+        global $CFG;
+        $out = self::origins();
+        $parts = parse_url((string) $CFG->wwwroot);
+        if (!empty($parts['scheme']) && !empty($parts['host'])) {
+            $out[] = \core_text::strtolower($parts['scheme'] . '://' . $parts['host']) .
+                (!empty($parts['port']) ? ':' . (int) $parts['port'] : '');
         }
         return array_values(array_unique($out));
     }
@@ -378,7 +396,7 @@ class chatpanel {
             'loginurl' => (new \moodle_url('/login/index.php'))->out(false),
             'url' => (new \moodle_url('/local/oksigeniaeguahe/chat.php'))->out(false),
             'sesskey' => $in ? sesskey() : '',
-            'origins' => json_encode(self::origins()),
+            'origins' => json_encode(self::listened()),
             'logo' => $CFG->wwwroot . '/local/oksigeniaeguahe/pix/icon.svg',
         ];
         self::headers();
