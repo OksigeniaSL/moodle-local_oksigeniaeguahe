@@ -581,7 +581,10 @@ class share {
                 $cx,
                 (int) ($top / 2) + ($tall ? $px(30) : 0),
                 $px($wide ? 64 : ($tall ? 92 : 72)),
-                $w - 2 * $px(80)
+                $w - 2 * $px(80),
+                // The logo by its area: 45,000 on the card of 1,200 × 630 and 100,000 on the square of 1,080 (Jujol).
+                $wide ? 45000 * ($w / 1200) ** 2 : 100000 * ($w / 1080) ** 2,
+                (int) round(0.55 * $top)
             );
             $text = $vars['--c-sobre-acento'] === '#FFFFFF' ? '#FFFFFF' : '#1A1614';
             // The Arabic face has no middle dot: there, the Arabic comma.
@@ -883,8 +886,20 @@ class share {
      * @param int $cy The middle of the line.
      * @param int $size The height of the logo; the name goes at about two thirds of it.
      * @param int $room How wide the whole line may be.
+     * @param float $area When given, the logo by its area in square pixels, as on the poster.
+     * @param int $maxh With the area, the highest the logo may be.
      */
-    protected static function identity($im, \stdClass $centre, array $vars, int $cx, int $cy, int $size, int $room = 1040): void {
+    protected static function identity(
+        $im,
+        \stdClass $centre,
+        array $vars,
+        int $cx,
+        int $cy,
+        int $size,
+        int $room = 1040,
+        float $area = 0,
+        int $maxh = 0
+    ): void {
         $name = format_string($centre->name);
         $file = !empty($centre->id) ? centres::logo_raster((int) $centre->id) : null;
         $logo = $file ? @imagecreatefromstring($file->get_content()) : false;
@@ -893,10 +908,19 @@ class share {
             $lw = 4 * $size;
         }
         $lh = $logo ? (int) round(imagesy($logo) * $lw / max(1, imagesx($logo))) : $size;
+        if ($logo && $area > 0) {
+            // The logo by its area, as on the poster (Jujol): a square one and a long one weigh the same, never more
+            // than the room of the wall.
+            $aspect = imagesx($logo) / max(1, imagesy($logo));
+            $lh = (int) round(min($maxh ?: PHP_INT_MAX, sqrt($area / $aspect)));
+            $lw = (int) round($lh * $aspect);
+        }
         if ($logo && imagesx($logo) > 2.2 * imagesy($logo)) {
             // A logotype already says the name: it goes alone, a little larger.
-            $lh = (int) round($size * 1.2);
-            $lw = min((int) round($room * 0.6), (int) round(imagesx($logo) * $lh / imagesy($logo)));
+            if ($area <= 0) {
+                $lh = (int) round($size * 1.2);
+            }
+            $lw = min((int) round($room * ($area > 0 ? 0.9 : 0.6)), (int) round(imagesx($logo) * $lh / imagesy($logo)));
             $lh = (int) round(imagesy($logo) * $lw / imagesx($logo));
             imagecopyresampled(
                 $im,
