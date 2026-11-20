@@ -245,6 +245,7 @@ $string['desk_note'] = 'If you left an email, the confirmation with the link to 
 $string['desk_open'] = 'Open for the school’s computers';
 $string['desk_open_help'] = 'For the computers of the office or the entrance: after each family the form comes back empty, never their page, and on the day of the event whoever signs up there is marked as having come.';
 $string['desk_origin'] = 'School computer, at the event';
+$string['door_origin'] = 'QR code at the event ({$a})';
 $string['entrar_demo'] = 'Try it without an account';
 $string['entrar_error1'] = 'This browser does not keep the cookies of the site, and without them nobody can sign in.';
 $string['entrar_error2'] = 'The username has a character that is not allowed.';

@@ -36,9 +36,16 @@ class poster {
      * @param \stdClass $centre
      * @param string $paper A4, A3 or A5.
      * @param bool $door The poster of the door, on the day: families sign in when they arrive, and they are here.
+     * @param string $where Where the poster of the door is put (puerta, mesa…): each place has its own link.
      * @return string
      */
-    public static function html(\stdClass $event, \stdClass $centre, string $paper = 'A4', bool $door = false): string {
+    public static function html(
+        \stdClass $event,
+        \stdClass $centre,
+        string $paper = 'A4',
+        bool $door = false,
+        string $where = 'puerta'
+    ): string {
         global $CFG;
         $paper = isset(self::PAPERS[$paper]) ? $paper : 'A4';
         $lang = $centre->lang ?: 'es';
@@ -48,7 +55,7 @@ class poster {
         $v = publicpage::centre_vars($centre->colour ?: '#2f5d62', false);
         $parts = publicpage::date_parts((int) $event->timestart, $lang);
         if ($door) {
-            [$doorlink, $doorqr] = events::door($event, $lang);
+            [$doorlink, $doorqr] = events::door($event, $lang, $where);
             $short = strlen($doorlink) <= 40 ? $doorlink : null;
         } else {
             $short = events::short_url($event);

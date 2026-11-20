@@ -245,6 +245,7 @@ $string['desk_note'] = 'Se deixaram um email, recebem lá a confirmação com a 
 $string['desk_open'] = 'Abrir para os computadores da escola';
 $string['desk_open_help'] = 'Para os computadores da secretaria ou da entrada: depois de cada família o formulário volta vazio, nunca a página dela, e no dia do evento quem se inscreve ali fica marcado como tendo vindo.';
 $string['desk_origin'] = 'Computador da escola, no evento';
+$string['door_origin'] = 'Código QR no evento ({$a})';
 $string['entrar_demo'] = 'Experimentar sem conta';
 $string['entrar_error1'] = 'Este navegador não guarda os cookies do site e, sem eles, não é possível entrar.';
 $string['entrar_error2'] = 'O utilizador tem um carácter que não é aceite.';

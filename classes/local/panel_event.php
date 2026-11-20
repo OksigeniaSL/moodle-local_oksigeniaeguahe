@@ -254,8 +254,8 @@ class panel_event {
                 'pk' => share::signature('puesto', 0, (int) $event->id)]))->out(false) : '',
             // The poster of the door, for the day: families sign in with their phone when they arrive.
             'doorposter' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1]))->out(false) : '',
-            'doorpostera5' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1, 'paper' => 'A5']))
-                ->out(false) : '',
+            'doorpostera5' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1, 'paper' => 'A5',
+                'qr' => 'mesa']))->out(false) : '',
             // The kit for the networks, for an act open to all and still to come.
             'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
                 ->out(false) : false,

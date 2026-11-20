@@ -63,6 +63,16 @@ $desk = $desk !== '' && hash_equals(share::signature('puesto', 0, (int) $event->
 if ($desk) {
     $url->param('pk', share::signature('puesto', 0, (int) $event->id));
 }
+// The QR of the act at the act itself (its door, its tables), on the phone of each family: as at the computers of the
+// centre, whoever signs up there on its day has come; it says where they found it, and the screen is theirs.
+$where = $desk ? substr(
+    preg_replace('/[^a-z0-9-]/', '', core_text::strtolower(optional_param('qr', '', PARAM_ALPHANUMEXT))),
+    0,
+    30
+) : '';
+if ($where !== '') {
+    $url->param('qr', $where);
+}
 // From the invitation to an open act in a mail: the family that pressed it, counted.
 $invited = optional_param('k', '', PARAM_ALPHANUMEXT);
 $from = households::by_link($invited);
@@ -131,7 +141,8 @@ if (data_submitted()) {
     }
     if (!$errors) {
         $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
-        $origin = $desk ? publiclang::str('desk_origin', (string) $centre->lang) : $origin;
+        $origin = $desk ? ($where !== '' ? publiclang::str('door_origin', (string) $centre->lang, $where) :
+            publiclang::str('desk_origin', (string) $centre->lang)) : $origin;
         $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
         [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
         if ($lock) {
@@ -173,7 +184,7 @@ if (data_submitted()) {
                 $lang,
                 publiclang::str('desk_done_title', $lang),
                 'public_known',
-                ['text' => publiclang::str('desk_note', $lang), 'desk' => [
+                ['text' => publiclang::str('desk_note', $lang), 'desk' => $where !== '' ? false : [
                     'next' => (new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
                         'pk' => share::signature('puesto', 0, (int) $event->id), 'idioma' => $lang]))->out(false),
                     'nexttext' => publiclang::str('desk_next', $lang),

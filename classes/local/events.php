@@ -751,41 +751,46 @@ class events {
     }
 
     /**
-     * The door of an act: the link where families sign in when they arrive (on its day, «Ha venido» on their own), short
-     * and with the QR the shortener draws when there is one, asked once and kept.
+     * The door of an act: the link where families sign in with their phone when they arrive (on its day, «Ha venido»
+     * on their own), one for each place it is put (the door, the tables), so the numbers say where they found it.
+     * Short and with the QR the shortener draws when there is one, asked once and kept.
      *
      * @param \stdClass $event
      * @param string $lang The language of the page it opens.
+     * @param string $where Where the poster is: puerta, mesa…
      * @return array [the link to show, the QR as markup to put in a page]
      */
-    public static function door(\stdClass $event, string $lang): array {
+    public static function door(\stdClass $event, string $lang, string $where = 'puerta'): array {
         global $DB;
+        $where = substr(preg_replace('/[^a-z0-9-]/', '', \core_text::strtolower($where)), 0, 30) ?: 'puerta';
         $long = (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
-            'pk' => share::signature('puesto', 0, (int) $event->id), 'idioma' => $lang]))->out(false);
-        if (empty($event->doorurl)) {
+            'pk' => share::signature('puesto', 0, (int) $event->id), 'qr' => $where, 'idioma' => $lang]))->out(false);
+        // Kept by place: {"puerta": "https://…", "mesa": "https://…"}, and their QR the same way.
+        $links = json_decode((string) ($event->doorurl ?? ''), true) ?: [];
+        $qrs = json_decode((string) ($event->doorqr ?? ''), true) ?: [];
+        if (!isset($links[$where])) {
             $shortener = centres::is_practice((int) $event->centreid) ? null : shortener::of_site();
             $centre = centres::get((int) $event->centreid);
-            $link = $shortener ? self::shorten(
-                $shortener,
-                $long,
-                get_string(
-                    'short_title_door',
-                    'local_oksigeniaeguahe',
-                    (object) ['centre' => $centre ? format_string($centre->name) : '', 'event' => format_string($event->name)]
-                ),
-                true,
-                'puerta-' . userdate((int) $event->timestart, '%d%m')
-            ) : null;
+            $link = $shortener ? self::shorten($shortener, $long, get_string(
+                'short_title_door',
+                'local_oksigeniaeguahe',
+                (object) ['centre' => $centre ? format_string($centre->name) : '', 'event' => format_string($event->name)]
+            ) .
+                ' · ' . $where, true, $where . '-' . userdate((int) $event->timestart, '%d%m')) : null;
             if ($link) {
-                $event->doorurl = \core_text::substr($link['short'], 0, 255);
-                $svg = self::fetch_qr((string) ($link['qrsvg'] ?? ''));
-                $event->doorqr = $svg;
-                $DB->update_record(self::T, (object) ['id' => $event->id, 'doorurl' => $event->doorurl, 'doorqr' => $svg]);
+                $links[$where] = (string) $link['short'];
+                $qrs[$where] = self::fetch_qr((string) ($link['qrsvg'] ?? ''));
+                $event->doorurl = json_encode($links, JSON_UNESCAPED_SLASHES);
+                $event->doorqr = json_encode($qrs, JSON_UNESCAPED_SLASHES);
+                if (\core_text::strlen($event->doorurl) <= 255) {
+                    $DB->update_record(self::T, (object) ['id' => $event->id, 'doorurl' => $event->doorurl,
+                        'doorqr' => $event->doorqr]);
+                }
             }
         }
-        $shown = !empty($event->doorurl) ? $event->doorurl : $long;
-        $qr = !empty($event->doorqr) ? \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' .
-            base64_encode($event->doorqr), 'alt' => '']) : self::qr_of($shown);
+        $shown = $links[$where] ?? $long;
+        $qr = !empty($qrs[$where]) ? \html_writer::empty_tag('img', ['src' => 'data:image/svg+xml;base64,' .
+            base64_encode($qrs[$where]), 'alt' => '']) : self::qr_of($shown);
         return [$shown, $qr];
     }
 

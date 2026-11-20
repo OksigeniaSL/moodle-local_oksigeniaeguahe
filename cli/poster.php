@@ -33,7 +33,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\poster;
 
 [$options, $unrecognised] = cli_get_params(
-    ['event' => 0, 'paper' => 'A4', 'door' => false, 'help' => false],
+    ['event' => 0, 'paper' => 'A4', 'door' => false, 'where' => 'puerta', 'help' => false],
     ['h' => 'help']
 );
 if ($unrecognised) {
@@ -46,10 +46,11 @@ Options:
   --event=ID      The act.
   --paper=A4      A4, A3 or A5.
   --door          The poster of the door: families sign in with their phone when they arrive.
+  --where=puerta  With --door, where it is put (puerta, mesa…): each place has its own link, and the numbers say it.
   -h, --help      This help.
 
 Example:
-  php local/oksigeniaeguahe/cli/poster.php --event=1 --door --paper=A5 > puerta-a5.html
+  php local/oksigeniaeguahe/cli/poster.php --event=1 --door --where=mesa --paper=A5 > mesa-a5.html
 ";
     exit(0);
 }
@@ -58,4 +59,4 @@ $centre = $event ? centres::get((int) $event->centreid) : null;
 if (!$event || !$centre) {
     cli_error('No act ' . (int) $options['event']);
 }
-echo poster::html($event, $centre, strtoupper((string) $options['paper']), (bool) $options['door']);
+echo poster::html($event, $centre, strtoupper((string) $options['paper']), (bool) $options['door'], (string) $options['where']);
