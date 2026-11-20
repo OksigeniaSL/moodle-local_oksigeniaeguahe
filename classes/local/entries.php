@@ -575,9 +575,11 @@ class entries {
                     $r->incentre = $yes($value) ? 1 : 0;
                     break;
                 case 'date':
-                    // «6/07/2026» is the 6th of July where days go first: never read the American way by mistake.
+                    // «6/07/2026» is the 6th of July where days go first: never read the American way by mistake. The
+                    // export of the ads of Meta writes its own column the American way in any country («11/6/26»).
+                    $first = $r->monthfirst || recognise::plain((string) $question) === 'created time';
                     $r->time = $r->time ?: (int) (preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}#', $value) ?
-                        recognise::date($value, $r->monthfirst) : (strtotime($value) ?: recognise::date($value)));
+                        recognise::date($value, $first) : (strtotime($value) ?: recognise::date($value)));
                     break;
                 case 'platform':
                     // Meta writes its short names in its exports; a connector may write the whole ones.

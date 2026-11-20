@@ -112,6 +112,10 @@ final class teamnotes_test extends \advanced_testcase {
             'platform' => 'ig', 'campaign_name' => 'Captación', 'Nombre y apellidos' => 'Lucía Ramos',
             'Teléfono' => '34600111222', 'selecciona_una_opción' => 'infantil_3-6', 'Priority' => 'Wasap'], '', null, true);
         $this->assertSame((int) $household->id, (int) $same->id);
+        // The old export of Meta writes its date the American way: «11/6/26» is the 6th of November.
+        [$old] = entries::receive($entry, ['id' => '123', 'created_time' => '11/6/26', 'platform' => 'fb',
+            'Nombre y apellidos' => 'Rosa León', 'Teléfono' => '600999888'], '', null, true);
+        $this->assertSame('2026-11-06', userdate((int) $old->timecreated, '%Y-%m-%d', 99, false));
         $this->assertSame(2, $DB->count_records(households::CHILDREN, ['householdid' => $household->id]));
     }
 }
