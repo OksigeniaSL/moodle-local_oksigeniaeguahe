@@ -76,7 +76,8 @@ class familymail {
             $v = publicpage::centre_vars($colour, $dark);
             $m = $brand ? publicpage::brand_vars($brand, $colour, $dark) : null;
             return ['acento' => $v['--c-acento'], 'sobre_acento' => $v['--c-sobre-acento'],
-                'acento_texto' => $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'], 'sobre_vivo' => $v['--c-sobre-vivo'],
+                'acento_texto' => $m ? $m['--m-enlace'] : $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'],
+                'sobre_vivo' => $v['--c-sobre-vivo'],
                 'pared' => $m ? $m['--m-pared'] : $v['--c-pared'],
                 'papel' => $m ? $m['--m-papel'] : ($dark ? '#171413' : '#FBF7F1'),
                 'titulo' => $m ? $m['--m-titulo'] : ($dark ? '#F3ECE6' : '#2B2226'),

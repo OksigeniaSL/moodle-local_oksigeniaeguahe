@@ -176,15 +176,23 @@ final class centres_test extends \advanced_testcase {
         ) {
             foreach ([false, true] as $dark) {
                 $v = publicpage::brand_vars($brand, $brand[0], $dark);
-                foreach (['--m-papel', '--m-pared', '--m-superficie', '--m-relleno'] as $ground) {
+                // At night the card of the date keeps its colours of the day, as a sticker.
+                $grounds = $dark ? ['--m-papel', '--m-pared', '--m-superficie'] :
+                    ['--m-papel', '--m-pared', '--m-superficie', '--m-relleno'];
+                foreach ($grounds as $ground) {
                     $this->assertGreaterThanOrEqual($dark ? 7 : 4.5, publicpage::contrast($v['--m-titulo'], $v[$ground]));
                     $this->assertGreaterThanOrEqual(4.5, publicpage::contrast($v['--m-acento'], $v[$ground]));
                     $this->assertGreaterThanOrEqual(4.5, publicpage::contrast($v['--m-tinta-2'], $v[$ground]));
+                    $this->assertGreaterThanOrEqual(4.5, publicpage::contrast($v['--m-enlace'], $v[$ground]));
                     $this->assertGreaterThanOrEqual(3, publicpage::contrast($v['--m-raya'], $v[$ground]));
                 }
-                // The white of its signs by day; a dark of its own at night.
+                foreach (['--m-tarjeta-titulo', '--m-tarjeta-acento', '--m-tarjeta-tinta-2'] as $words) {
+                    $this->assertGreaterThanOrEqual(4.5, publicpage::contrast($v[$words], $v['--m-relleno']));
+                }
+                // The white of its signs by day; at night, the wall in the colour of the centre with white on it.
                 if ($dark) {
-                    $this->assertGreaterThan(15, publicpage::contrast($v['--m-papel'], '#FFFFFF'));
+                    $this->assertGreaterThanOrEqual(7, publicpage::contrast('#FFFFFF', $v['--m-pared']));
+                    $this->assertGreaterThan(12, publicpage::contrast($v['--m-papel'], '#FFFFFF'));
                 } else {
                     $this->assertSame('#FFFFFF', $v['--m-papel']);
                 }

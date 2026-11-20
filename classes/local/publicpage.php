@@ -185,13 +185,19 @@ class publicpage {
     }
 
     /**
-     * The brand of the centre, whole, on the pages of its families (Jujol): every colour the page needs, from the
-     * colours of the brand and the colour of the centre, for light or dark. By day, the white of its own signs and the
-     * wall in a tint of its colour; at night, a dark of its own (near black with a little of its colour), never the
-     * brown of Eguahe. The titles in the darkest colour of the brand that reads (else the colour of the centre darkened
-     * until it reads), the accent in the next one, the line in the first that holds as a line, and a pale colour only as
-     * the tint behind the date and in the stripe. Every colour that carries words reads on every ground it can fall on:
-     * 4.5:1, the titles at night 7:1; a line, 3:1.
+     * The brand of the centre, whole, on the pages of its families: every colour the page needs, from the colours of
+     * the brand and the colour of the centre, for light or dark.
+     *
+     * By day: the white of its signs, the wall in a tint of its colour, the titles in the darkest colour of the brand
+     * that reads, the accent and the line in the next ones, a pale colour only as the tint behind the date.
+     *
+     * At night the brand has to be seen, not guessed (Enrique: «No veo yo la marca del colegio»): the wall is the colour
+     * of the centre itself, deepened until white reads on it at 7:1; the paper below, a dark with a good part of that
+     * colour; the titles in white; the line above the title and the rule under it in the colour of the brand that stands
+     * out most on those grounds (the yellow of Nuryana, the gold of Montesol); and the card of the date keeps its colours
+     * of the day, like a sticker. The header stays on the dark paper, where a logo for dark backgrounds was drawn to go.
+     *
+     * Every colour that carries words reads on every ground it can fall on: 4.5:1, the titles at night 7:1; a line, 3:1.
      *
      * @param string[] $brand centres::brand(), in the order the centre gave it.
      * @param string $main #rrggbb The colour of the centre (centres::colour()).
@@ -209,44 +215,81 @@ class publicpage {
         $accent = $others(4.5)[0] ?? $title;
         $line = $others(3)[0] ?? $accent;
         $pale = array_values(array_filter($brand, fn($c) => $onwhite($c) < 3))[0] ?? null;
-        // The grounds.
-        $vivid = $dark ? self::towards($main, '#FFFFFF', '#211D1B', 3) : $main;
-        $paper = $dark ? self::mix('#131316', $vivid, 0.08) : '#FFFFFF';
-        $wall = $dark ? self::mix('#18181C', $vivid, 0.13) : self::mix('#FFFFFF', $main, 0.09);
-        $surface = $dark ? self::mix('#1D1D21', $vivid, 0.1) : '#FFFFFF';
-        // Behind the date, by day: a tint of the first pale colour (the one that never carries words gets its place);
-        // without one, of the colour of the centre. At night a pale yellow or gold turns to mud: a tint of the centre.
-        $fill = $dark ? self::mix($surface, $vivid, 0.16) : self::mix('#FFFFFF', $pale ?? $main, $pale ? 0.3 : 0.09);
-        // A colour that has to read on every ground it can fall on.
-        $readable = function (string $c, float $min) use ($dark, $paper, $wall, $surface, $fill): string {
-            foreach ([$paper, $wall, $surface, $fill] as $ground) {
-                $c = self::towards($c, $dark ? '#FFFFFF' : '#000000', $ground, $min);
+        // A colour moved towards black (by day) or white (at night) until it reads on every ground given.
+        $readable = function (string $c, float $min, array $grounds, string $target): string {
+            foreach ($grounds as $ground) {
+                $c = self::towards($c, $target, $ground, $min);
             }
             return $c;
         };
+
+        // By day.
+        $paper = '#FFFFFF';
+        $wall = self::mix('#FFFFFF', $main, 0.09);
+        $fill = self::mix('#FFFFFF', $pale ?? $main, $pale ? 0.3 : 0.09);
+        $grounds = [$paper, $wall, $paper, $fill];
         $base = $title ?? $main;
-        $titlecolour = $readable($base, $dark ? 7 : 4.5);
-        $rule = $readable($line ?? $base, 3);
-        // What stays light at night (the card of the invitation, on the paper of the labels) keeps the colours of the day.
-        $day = $dark ? self::brand_vars($brand, $main, false) : null;
-        return [
-            '--m-titulo-dia' => self::towards($day ? $day['--m-titulo'] : $titlecolour, '#000000', '#F5EEE5', 4.5),
-            '--m-raya-dia' => self::towards($day ? $day['--m-raya'] : $rule, '#000000', '#F5EEE5', 3),
+        $titlecolour = $readable($base, 4.5, $grounds, '#000000');
+        $accentcolour = $readable($accent ?? $base, 4.5, $grounds, '#000000');
+        $rule = $readable($line ?? $base, 3, $grounds, '#000000');
+        $ink = self::mix('#1E1E22', $titlecolour, 0.2);
+        $ink2 = $readable(self::mix('#56565E', $titlecolour, 0.2), 4.5, $grounds, '#000000');
+        $day = [
+            // What stays light at night: the card of the invitation, on the paper of the labels (#F5EEE5 at night).
+            '--m-titulo-dia' => self::towards($titlecolour, '#000000', '#F5EEE5', 4.5),
+            '--m-raya-dia' => self::towards($rule, '#000000', '#F5EEE5', 3),
+            '--m-papel' => $paper,
+            '--m-pared' => $wall,
+            '--m-superficie' => '#FFFFFF',
+            '--m-hundido' => self::mix('#FFFFFF', $main, 0.045),
+            '--m-linea' => self::mix('#FFFFFF', $main, 0.15),
+            '--m-borde' => $readable(self::mix('#8C8C94', $main, 0.2), 3, $grounds, '#000000'),
+            '--m-tinta' => $ink,
+            '--m-tinta-2' => $ink2,
+            '--m-titulo' => $titlecolour,
+            '--m-acento' => $accentcolour,
+            '--m-raya' => $rule,
+            '--m-relleno' => $fill,
+            // The links and the small actions, in the colour of the centre, reading on every ground.
+            '--m-enlace' => $readable($main, 4.5, $grounds, '#000000'),
+            // The card of the date: the same by day and at night.
+            '--m-tarjeta-titulo' => $titlecolour,
+            '--m-tarjeta-acento' => $accentcolour,
+            '--m-tarjeta-tinta' => $ink,
+            '--m-tarjeta-tinta-2' => $ink2,
+            '--m-luz' => 'rgba(255, 255, 255, 0.75)',
+        ];
+        if (!$dark) {
+            return $day;
+        }
+
+        // At night.
+        $deep = self::towards($main, '#000000', '#FFFFFF', 7);
+        $wall = self::mix($deep, '#000000', 0.2);
+        $paper = self::mix('#0B0B0F', $deep, 0.22);
+        $surface = self::mix('#14141A', $deep, 0.3);
+        $grounds = [$paper, $wall, $surface];
+        $readsall = fn(string $c, float $min) => count(array_filter($grounds, fn($g) => self::contrast($c, $g) >= $min)) ===
+            count($grounds);
+        // The accent: the first colour of the brand, other than the main one, that reads on every dark ground as it is;
+        // else the accent of the day, lightened until it reads.
+        $own = array_values(array_filter($brand, fn($c) => strtoupper($c) !== $main && $readsall($c, 4.5)))[0] ?? null;
+        $nightaccent = $own ? strtoupper($own) : $readable($accentcolour, 4.5, $grounds, '#FFFFFF');
+        return array_merge($day, [
             '--m-papel' => $paper,
             '--m-pared' => $wall,
             '--m-superficie' => $surface,
-            '--m-hundido' => $dark ? self::mix('#0F0F12', $vivid, 0.07) : self::mix('#FFFFFF', $main, 0.045),
-            '--m-linea' => $dark ? self::mix($paper, $vivid, 0.22) : self::mix('#FFFFFF', $main, 0.15),
-            '--m-borde' => $readable($dark ? self::mix('#7A7A82', $vivid, 0.2) : self::mix('#8C8C94', $main, 0.2), 3),
-            '--m-tinta' => $dark ? self::mix('#F1F1F3', $titlecolour, 0.1) : self::mix('#1E1E22', $titlecolour, 0.2),
-            '--m-tinta-2' => $readable($dark ? self::mix('#B2B2B9', $titlecolour, 0.15) :
-                self::mix('#56565E', $titlecolour, 0.2), 4.5),
-            '--m-titulo' => $titlecolour,
-            '--m-acento' => $readable($accent ?? $base, 4.5),
-            '--m-raya' => $rule,
-            '--m-relleno' => $fill,
-            '--m-luz' => $dark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.75)',
-        ];
+            '--m-hundido' => self::mix('#08080B', $deep, 0.2),
+            '--m-linea' => self::mix($paper, '#FFFFFF', 0.14),
+            '--m-borde' => $readable(self::mix('#8A8A94', $deep, 0.25), 3, $grounds, '#FFFFFF'),
+            '--m-tinta' => self::mix('#F3F3F5', $deep, 0.06),
+            '--m-tinta-2' => $readable(self::mix('#B8B8C0', $deep, 0.12), 4.5, $grounds, '#FFFFFF'),
+            '--m-titulo' => $readable(self::mix('#FFFFFF', $deep, 0.06), 7, $grounds, '#FFFFFF'),
+            '--m-acento' => $nightaccent,
+            '--m-raya' => $nightaccent,
+            '--m-enlace' => $readable(self::towards($main, '#FFFFFF', $paper, 3), 4.5, $grounds, '#FFFFFF'),
+            '--m-luz' => 'rgba(255, 255, 255, 0.05)',
+        ]);
     }
 
     /**

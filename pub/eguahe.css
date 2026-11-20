@@ -5789,6 +5789,7 @@ html {
     --eg-tinta-2: var(--m-tinta-2);
     --eg-luz: var(--m-luz);
     --c-pared: var(--m-pared);
+    --c-acento-texto: var(--m-enlace);
 }
 
 /* The logo on the paper, as on its signs, and measured by its area: a long one and a square one weigh the same */
@@ -5915,13 +5916,18 @@ html {
 /* The day of the act, on a panel in the tint of the brand: the name of the day in the accent, the date in the colour
    of the titles, the hour in ink */
 .con-marca .resumen-acto {
+    /* A sticker: by day and at night, the same colours of the day (the yellow of Nuryana also at night) */
+    --eg-tinta: var(--m-tarjeta-tinta);
+    --eg-tinta-2: var(--m-tarjeta-tinta-2);
+    --c-acento-texto: var(--m-tarjeta-titulo);
     padding: 26px 28px 28px;
     border-radius: var(--radio);
     background: var(--m-relleno);
+    color: var(--eg-tinta);
 }
 
 .con-marca .resumen-acto .cuando {
-    color: var(--m-titulo);
+    color: var(--m-tarjeta-titulo);
 }
 
 @media (min-width: 960px) {
@@ -5933,7 +5939,7 @@ html {
 }
 
 .con-marca .resumen-acto .cuando span {
-    color: var(--m-acento);
+    color: var(--m-tarjeta-acento);
 }
 
 /* On the solid band of the visit everything stays on the colour of the centre */
