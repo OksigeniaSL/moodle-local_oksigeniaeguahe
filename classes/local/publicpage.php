@@ -192,6 +192,8 @@ class publicpage {
             'initials' => $initials,
             'logo' => $logo ? $logo->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
+            // The colours of the brand of the centre, as a stripe above everything.
+            'brand' => !empty($centre->id) ? centres::brand($centre) : [],
             'langs' => $langs,
             'langname' => $current,
             'langlabel' => publiclang::str('pub_language', $lang),

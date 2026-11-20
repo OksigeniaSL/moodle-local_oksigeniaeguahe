@@ -25,6 +25,7 @@
     Example context (json):
     {
         "i": {"globe": "", "chev": "", "check": ""}, "centre": "Colegio de ejemplo", "initials": "CE", "logo": "",
+        "brand": ["#1f5a4e", "#e8a33d"],
         "logoplate": false, "langlabel": "Idioma", "langname": "Español",
         "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#",
             "current": false, "code": "en"}],
@@ -32,6 +33,7 @@
         "credit": {"text": "Eguahe, de Oksigenia", "url": "https://eguahe.com/?de=dibujo", "seal": true}
     }
 }}
+{{#brand.0}}<div class="franja-marca" aria-hidden="true">{{#brand}}<span style="background: {{.}}"></span>{{/brand}}</div>{{/brand.0}}
 <header class="cabecera">
     <span class="placa">
         {{#logo}}<span class="logo{{#logoplate}} plato-oscuro{{/logoplate}}"><img src="{{logo}}" alt="" height="40"></span>{{/logo}}

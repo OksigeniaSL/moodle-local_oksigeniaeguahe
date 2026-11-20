@@ -1519,5 +1519,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119000, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119100) {
+        // The colours of the brand of a centre, for its posters and the pages of its families.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('brandcolours', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'colour');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026119100, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -57,7 +57,7 @@
             "telefono": "", "plano": "", "globo": "", "persona": "", "cerrar": ""},
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
         "action": "/local/oksigeniaeguahe/centre.php?id=1", "sesskey": "abc",
-        "name": "Colegio de ejemplo", "colour": "#1f5a4e", "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
+        "name": "Colegio de ejemplo", "colour": "#1f5a4e", "brandcolours": "", "brand": [], "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
@@ -304,6 +304,11 @@
                         <div class="aj-util">
                             <label class="aj-bote" for="c-color"><input id="c-color" type="color" name="colour" value="{{colour}}" data-color-centro><span class="oculto">{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</span></label>
                             <span class="aj-util-texto"><b>{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</b><input class="aj-hueco aj-hex" name="colourhex" value="{{colour}}" size="8" aria-label="{{#str}}panel_colour_code, local_oksigeniaeguahe{{/str}}" data-color-hex dir="ltr" spellcheck="false"></span>
+                        </div>
+                        <div class="aj-util aj-marca">
+                            <span class="aj-marca-botes" aria-hidden="true">{{#brand}}<span style="background: {{code}}"></span>{{/brand}}{{^brand}}<span></span><span></span>{{/brand}}</span>
+                            <span class="aj-util-texto"><b><label for="c-marca">{{#str}}centre_brand, local_oksigeniaeguahe{{/str}}</label></b><input class="aj-hueco aj-hex" id="c-marca" name="brandcolours" value="{{brandcolours}}" size="34" aria-describedby="c-marca-a" dir="ltr" spellcheck="false" placeholder="#1f5a4e #e8a33d #3b6fb6"></span>
+                            <span class="ayuda" id="c-marca-a">{{#str}}centre_brand_help, local_oksigeniaeguahe{{/str}}</span>
                         </div>
                         <div class="aj-util">
                             <input class="archivo-oculto" id="c-logo" type="file" name="logo" accept="image/png,image/svg+xml,image/webp,image/jpeg" required data-envio-solo>

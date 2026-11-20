@@ -115,6 +115,9 @@ class centres {
         $row->system = $system === 'none' || isset(grades::data()['systems'][$system]) ? $system : null;
         $colour = strtolower(trim((string) ($data->colour ?? '')));
         $row->colour = preg_match('/^#[0-9a-f]{6}$/', $colour) ? $colour : null;
+        if (property_exists($data, 'brandcolours')) {
+            $row->brandcolours = implode(' ', self::brand_colours((string) $data->brandcolours)) ?: null;
+        }
         foreach (['controller', 'rightscontact', 'dpocontact'] as $field) {
             $value = trim((string) ($data->$field ?? ''));
             $row->$field = $value === '' ? null : \core_text::substr($value, 0, 255);
@@ -799,6 +802,35 @@ class centres {
             $params['active'] = 1;
         }
         return $DB->get_records(self::OFFERS, $params, 'schoolyear DESC, sortorder ASC, id ASC');
+    }
+
+    /**
+     * The colours of the brand of a centre, as it wrote them: up to four codes («#164281 #067e36», «164281, 067e36»),
+     * the same one once.
+     *
+     * @param string $value
+     * @return string[] Codes such as #164281.
+     */
+    public static function brand_colours(string $value): array {
+        preg_match_all('/#?\b([0-9a-f]{6}|[0-9a-f]{3})\b/i', $value, $m);
+        $out = [];
+        foreach ($m[1] as $code) {
+            $code = strtolower(strlen($code) === 3 ? $code[0] . $code[0] . $code[1] . $code[1] . $code[2] . $code[2] : $code);
+            $out['#' . $code] = true;
+        }
+        return array_slice(array_keys($out), 0, 4);
+    }
+
+    /**
+     * The brand of a centre for its posters and the pages of its families: its colours, the first one its own colour
+     * when it wrote none.
+     *
+     * @param \stdClass $centre
+     * @return string[] Two to four codes, or none when the centre has not written its brand.
+     */
+    public static function brand(\stdClass $centre): array {
+        $colours = self::brand_colours((string) ($centre->brandcolours ?? ''));
+        return count($colours) >= 2 ? $colours : [];
     }
 
     /**

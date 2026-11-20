@@ -13687,6 +13687,25 @@ details.aj-plegado > summary h2::after {
     flex-basis: 100%;
 }
 
+/* The colours of the brand: a pot for each one, side by side */
+.aj-marca-botes {
+    display: flex;
+    flex: none;
+    gap: 3px;
+}
+
+.aj-marca-botes span {
+    width: 20px;
+    height: 48px;
+    border-radius: 10px;
+    background: var(--eg-superficie);
+    box-shadow: 0 0 0 1.5px var(--eg-linea);
+}
+
+.aj-marca .aj-hueco {
+    max-width: 100%;
+}
+
 .aj-bote {
     position: relative;
     flex: none;

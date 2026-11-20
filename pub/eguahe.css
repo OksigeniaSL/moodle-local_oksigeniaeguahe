@@ -242,6 +242,16 @@ textarea {
     color: var(--eg-tinta-2);
 }
 
+/* The stripe of the brand of the centre, when it has one: its colours, side by side, above everything */
+.franja-marca {
+    display: flex;
+    height: 8px;
+}
+
+.franja-marca span {
+    flex: 1;
+}
+
 .cabecera {
     display: flex;
     align-items: center;

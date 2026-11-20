@@ -16,6 +16,7 @@
         <FIELD NAME="shareinvite" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether what a family shares invites whoever receives it to know the centre"/>
         <FIELD NAME="shareentry" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The form the invitation leads to; 0, the first one active"/>
         <FIELD NAME="colour" TYPE="char" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="Main colour of the centre for its public pages, #rrggbb"/>
+        <FIELD NAME="brandcolours" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The colours of the brand of the centre, up to four codes separated by spaces, for its posters and the pages of its families"/>
         <FIELD NAME="controller" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Who is responsible for the data of the families: the legal name of the centre"/>
         <FIELD NAME="rightscontact" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where families exercise their rights: an address or an email"/>
         <FIELD NAME="dpocontact" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The data protection officer, if the centre has one"/>

@@ -77,6 +77,7 @@ class poster {
             'titular' => str_replace('|', ' ', $str($words . 'title')),
             'titular_html' => $lines($str($words . 'title')),
             'pregunta_html' => $lines($str($words . 'question')),
+            'pregunta' => str_replace('|', ' ', $str($words . 'question')),
             'pregunta_sub' => $str($words . 'question_sub'),
             'fecha' => $ucfirst($parts['long']),
             'hora' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
@@ -89,6 +90,41 @@ class poster {
             'qr_svg' => $door ? $doorqr : events::qr_svg($event),
             'qr_alt' => $str($words . 'qr', $shown ?: format_string($event->name)),
             'firma' => publicpage::credit($lang)['text'] ?? '',
+            'marca' => self::brand($centre),
         ]);
+    }
+
+    /**
+     * The colours of the brand of the centre for its poster: the darkest for the words, the first one that reads on white
+     * for what stands out, and each one for a stripe, a line or a card. False when the centre has not written its brand.
+     *
+     * @param \stdClass $centre
+     * @return array|false
+     */
+    public static function brand(\stdClass $centre) {
+        $brand = centres::brand($centre);
+        if (!$brand) {
+            return false;
+        }
+        $light = function (string $hex): float {
+            $c = array_map(fn($x) => hexdec($x) / 255, str_split(substr($hex, 1), 2));
+            $c = array_map(fn($v) => $v <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4, $c);
+            return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
+        };
+        $sorted = $brand;
+        usort($sorted, fn($a, $b) => $light($a) <=> $light($b));
+        $ink = $light($sorted[0]) < 0.12 ? $sorted[0] : '#2b2226';
+        // What stands out must read on white, as text does (4.5 to 1).
+        $readable = array_values(array_filter($brand, fn($hex) => $hex !== $ink && 1.05 / ($light($hex) + 0.05) >= 4.5));
+        $at = fn(int $i) => $brand[$i % count($brand)];
+        return [
+            'tinta' => $ink,
+            'acento' => $readable[0] ?? $ink,
+            'raya' => $at(1),
+            'c1' => $at(0),
+            'c2' => $at(1),
+            'c4' => $at(3),
+            'franja' => $brand,
+        ];
     }
 }
