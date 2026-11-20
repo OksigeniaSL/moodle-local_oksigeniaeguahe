@@ -1422,5 +1422,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026118201, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026118301) {
+        // A list of a school year that holds only a part of the centre (its nursery, one stage).
+        $table = new xmldb_table('local_oksigeniaeguahe_import');
+        $field = new xmldb_field('partial', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'campaignstart');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026118301, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

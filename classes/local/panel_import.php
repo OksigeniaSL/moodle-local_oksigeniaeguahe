@@ -108,6 +108,9 @@ class panel_import {
                     'selected' => $k === $kind], array_merge(recognise::KINDS, ['none'])),
                 'label' => $preview->labels[$sheet['index']] ?? $sheet['label'],
                 'schoolyear' => $preview->years[$sheet['index']] ?? (string) $sheet['schoolyear'],
+                // A list of a year with only a part of the centre (its nursery): known to be there, not the whole list.
+                'isroll' => $kind === 'roll',
+                'part' => !empty($preview->parts[$sheet['index']]),
                 'kept' => $list($sheet['kept']),
                 'keys' => $list($sheet['keys']),
                 'removed' => $list($sheet['removed']),

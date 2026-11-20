@@ -83,13 +83,14 @@ class metrics {
         // the first school year a student is on. Those on the oldest roll imported were there already: when they came is
         // not known, so they never count as an enrolment of a campaign.
         $oldest = (string) $DB->get_field_sql(
-            "SELECT MIN(schoolyear) FROM {" . self::STUDENTS . "} WHERE centreid = :centreid AND movement = 'roll'",
+            "SELECT MIN(schoolyear) FROM {" . self::STUDENTS . "} WHERE centreid = :centreid AND movement = 'roll'
+                AND " . imports::NOTPARTIAL,
             ['centreid' => $import->centreid]
         );
         $first = [];
         $rows = $DB->get_recordset_select(
             self::STUDENTS,
-            "centreid = :centreid AND movement <> 'leave' AND timein > 0",
+            "centreid = :centreid AND movement <> 'leave' AND timein > 0 AND " . imports::NOTPARTIAL,
             ['centreid' => $import->centreid],
             '',
             'id, student, schoolyear, timein, movement'
@@ -311,7 +312,14 @@ class metrics {
     public static function movements(int $centreid, string $schoolyear): array {
         global $DB;
         $students = [];
-        foreach ($DB->get_records(self::STUDENTS, ['centreid' => $centreid, 'schoolyear' => $schoolyear], 'id ASC') as $r) {
+        // A list with only a part of the centre (its nursery) is not the whole list of the year: it does not count here.
+        $rows = $DB->get_records_select(
+            self::STUDENTS,
+            'centreid = :centreid AND schoolyear = :year AND ' . imports::NOTPARTIAL,
+            ['centreid' => $centreid, 'year' => $schoolyear],
+            'id ASC'
+        );
+        foreach ($rows as $r) {
             $s = $students[$r->student] ?? ['roll' => false, 'new' => false, 'left' => false, 'timein' => 0,
                 'timeout' => 0, 'grade' => '', 'municipality' => null, 'locality' => '', 'reason' => '', 'from' => '',
                 'to' => ''];
@@ -421,6 +429,155 @@ class metrics {
         return ['schoolyear' => $schoolyear, 'start' => $start, 'hasroll' => $hasroll, 'totals' => $totals,
             'bygrade' => array_values($bygrade), 'bymonth' => array_values($bymonth), 'reasons' => $reasonlist,
             'places' => array_values($places), 'from' => $schools['from'], 'to' => $schools['to']];
+    }
+
+    /**
+     * Where the new students of a school year come from, by their keys and never by a name: already at the centre the
+     * year before (an inner step, such as from its nursery), brothers and sisters of students who were already there,
+     * new families (and of these, the ones that left their contact before in an ad, in another campaign or act, or in
+     * nothing counted), and those whose family left no contact to tell. Brothers and sisters need the whole list of the
+     * year; without it they are not told apart.
+     *
+     * @param int $centreid
+     * @param string $schoolyear
+     * @return array total, hasroll, groups (inner, sibling, newfamily, unknown: n and by grade), newby (ad, campaign, none),
+     *     kinds (student => group) and homes (student => household keys).
+     */
+    public static function origins(int $centreid, string $schoolyear): array {
+        global $DB;
+        $new = $roll = $grade = $homes = $before = [];
+        $rows = $DB->get_recordset_select(
+            self::STUDENTS,
+            "centreid = :centreid AND movement <> 'leave'",
+            ['centreid' => $centreid],
+            '',
+            'id, student, household, movement, grade, schoolyear, importid'
+        );
+        $partial = array_flip($DB->get_fieldset_select(imports::T, 'id', 'centreid = ? AND partial = 1', [$centreid]));
+        $whole = false;
+        foreach ($rows as $row) {
+            if ((string) $row->schoolyear === $schoolyear) {
+                if ($row->movement === 'join') {
+                    $new[$row->student] = true;
+                } else if ($row->movement === 'roll') {
+                    $roll[$row->student] = true;
+                    $whole = $whole || !isset($partial[$row->importid]);
+                }
+                if ((string) $row->grade !== '' && ($row->movement === 'roll' || !isset($grade[$row->student]))) {
+                    $grade[$row->student] = (string) $row->grade;
+                }
+            } else if (strcmp((string) $row->schoolyear, $schoolyear) < 0) {
+                $before[$row->student] = true;
+            }
+            if ($row->household) {
+                $homes[$row->student][$row->household] = true;
+            }
+        }
+        $rows->close();
+        $inner = array_intersect_key($new, $before);
+        // Families with a child already at the centre this year: on the list and not new, or new by an inner step.
+        $there = array_diff_key($roll, $new) + $inner;
+        $centre = [];
+        foreach (array_keys($there) as $student) {
+            foreach (array_keys($homes[$student] ?? []) as $home) {
+                $centre[$home] = true;
+            }
+        }
+        // What each family left before in a campaign: an ad, or another campaign or act.
+        $ads = [];
+        $other = [];
+        $contacts = $DB->get_recordset_select(
+            self::CONTACTS,
+            'centreid = :centreid',
+            ['centreid' => $centreid],
+            '',
+            'id, household, channel'
+        );
+        foreach ($contacts as $row) {
+            if ($row->channel === 'meta') {
+                $ads[$row->household] = true;
+            } else {
+                $other[$row->household] = true;
+            }
+        }
+        $contacts->close();
+        $groups = [];
+        foreach (['inner', 'sibling', 'newfamily', 'unknown'] as $key) {
+            $groups[$key] = ['n' => 0, 'grades' => []];
+        }
+        $newby = ['ad' => 0, 'campaign' => 0, 'none' => 0];
+        $kinds = [];
+        foreach (array_keys($new) as $student) {
+            $mine = array_keys($homes[$student] ?? []);
+            if (isset($inner[$student])) {
+                $kind = 'inner';
+            } else if (!$mine) {
+                $kind = 'unknown';
+            } else if (array_intersect_key(array_flip($mine), $centre)) {
+                $kind = 'sibling';
+            } else {
+                $kind = 'newfamily';
+                $by = array_intersect_key(array_flip($mine), $ads) ? 'ad' :
+                    (array_intersect_key(array_flip($mine), $other) ? 'campaign' : 'none');
+                $newby[$by]++;
+            }
+            $kinds[$student] = $kind;
+            $groups[$kind]['n']++;
+            $label = isset($grade[$student]) ? grades::label($centreid, $grade[$student]) : '';
+            $groups[$kind]['grades'][$label] = ($groups[$kind]['grades'][$label] ?? 0) + 1;
+        }
+        return ['total' => count($new), 'hasroll' => $whole, 'groups' => $groups, 'newby' => $newby,
+            'kinds' => $kinds, 'homes' => array_map('array_keys', array_intersect_key($homes, $new)), 'centre' => $centre];
+    }
+
+    /**
+     * What the ads brought in a school year: for each imported campaign whose contacts came from ads, its families, how
+     * many were already of the centre, the new students of new families that came out of it, what it cost and what each
+     * of those students cost. It is the most that can be put down to the ad: leaving a contact in it does not prove the
+     * ad brought them.
+     *
+     * @param int $centreid
+     * @param array $origins As origins() gives them for the school year.
+     * @return array[] label, families, centre, students, spend (or null) and each (or null), the most students first.
+     */
+    public static function publicity(int $centreid, array $origins): array {
+        global $DB;
+        $byhome = [];
+        foreach ($origins['homes'] as $student => $homes) {
+            if (($origins['kinds'][$student] ?? '') !== 'newfamily') {
+                continue;
+            }
+            foreach ($homes as $home) {
+                $byhome[$home][$student] = true;
+            }
+        }
+        $out = [];
+        foreach ($DB->get_records(imports::T, ['centreid' => $centreid, 'kind' => 'contacts'], 'id ASC') as $import) {
+            $homes = [];
+            $fromads = false;
+            $rows = $DB->get_recordset_select(self::CONTACTS, 'importid = :id', ['id' => $import->id], '',
+                'id, household, channel');
+            foreach ($rows as $row) {
+                $homes[$row->household] = true;
+                $fromads = $fromads || $row->channel === 'meta';
+            }
+            $rows->close();
+            if (!$fromads) {
+                continue;
+            }
+            $students = [];
+            foreach (array_keys($homes) as $home) {
+                $students += $byhome[$home] ?? [];
+            }
+            $spend = self::spend($centreid, (string) $import->label);
+            $channels = array_filter($spend, fn($k) => substr($k, -1) === '|', ARRAY_FILTER_USE_KEY);
+            $cost = $channels ? array_sum($channels) : null;
+            $out[] = ['label' => (string) $import->label, 'families' => count($homes),
+                'centre' => count(array_intersect_key($homes, $origins['centre'])), 'students' => count($students),
+                'spend' => $cost, 'each' => $cost !== null && $students ? round($cost / count($students), 2) : null];
+        }
+        usort($out, fn($a, $b) => [$b['students'], $b['families']] <=> [$a['students'], $a['families']]);
+        return $out;
     }
 
     /**

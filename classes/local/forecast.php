@@ -263,8 +263,11 @@ class forecast {
     public static function reach(\stdClass $centre): array {
         global $DB;
         // The last school year the centre has the whole list of.
-        $year = $DB->get_field_sql("SELECT MAX(schoolyear) FROM {" . metrics::STUDENTS . "}
-                                     WHERE centreid = :centreid AND movement = 'roll'", ['centreid' => $centre->id]);
+        $year = $DB->get_field_sql(
+            "SELECT MAX(schoolyear) FROM {" . metrics::STUDENTS . "}
+                                     WHERE centreid = :centreid AND movement = 'roll' AND " . imports::NOTPARTIAL,
+            ['centreid' => $centre->id]
+        );
         if (!$year) {
             return [];
         }

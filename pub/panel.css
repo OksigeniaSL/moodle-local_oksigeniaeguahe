@@ -16974,3 +16974,51 @@ html {
         background: var(--eg-linea);
     }
 }
+
+/* Where the new students come from: each group with its number and its bar, the courses below, and the new families
+   split by what they left before; then what the ads brought, in sentences. */
+.origen-filas,
+.origen-partes {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.origen-fila,
+.origen-parte {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.5em minmax(0, 40%);
+    gap: 4px 14px;
+    align-items: center;
+    margin: 0 0 10px;
+}
+
+.origen-n {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.origen-cursos,
+.origen-partes {
+    grid-column: 1 / -1;
+}
+
+.origen-partes {
+    margin: 4px 0 0;
+    padding-inline-start: 18px;
+    border-inline-start: 2px solid var(--eg-linea);
+}
+
+.origen-parte {
+    margin-bottom: 6px;
+    font-size: .95em;
+}
+
+.grafico-origen h3 {
+    margin: 20px 0 6px;
+}
+
+.anuncios-trajeron li {
+    margin: 0 0 6px;
+}
+

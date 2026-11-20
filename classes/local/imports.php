@@ -49,6 +49,9 @@ class imports {
     /** @var string A token of the format of Eguahe. */
     const TOKEN = '/^[A-Z]{2,6}_[0-9A-Za-z]{6,32}$/';
 
+    /** @var string Imported rows that are on a list holding only a part of the centre, to leave out of whole-list counts. */
+    const NOTPARTIAL = 'importid NOT IN (SELECT id FROM {local_oksigeniaeguahe_import} WHERE partial = 1)';
+
     /**
      * The imports of a centre, the newest first.
      *
@@ -119,7 +122,8 @@ class imports {
      * @param int $centreid
      * @param string $path
      * @param string $filename
-     * @param array $choices Sheet index => [kind, label, schoolyear]; a sheet left out, or with kind «none», is not read.
+     * @param array $choices Sheet index => [kind, label, schoolyear and, for a list of a year, partial when it holds only
+     *     a part of the centre]; a sheet left out, or with kind «none», is not read.
      * @param int $userid
      * @return array [imports made, rows imported, rows left out]
      */
@@ -145,7 +149,8 @@ class imports {
             $importid = (int) $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'kind' => $choice['kind'],
                 'label' => \core_text::substr(trim((string) $choice['label']) ?: $plan['label'], 0, 100),
                 'filename' => \core_text::substr($filename, 0, 255), 'sheet' => \core_text::substr($plan['name'], 0, 100),
-                'rowcount' => count($records), 'userid' => $userid, 'timecreated' => time()]);
+                'rowcount' => count($records), 'userid' => $userid, 'timecreated' => time(),
+                'partial' => $choice['kind'] === 'roll' && !empty($choice['partial']) ? 1 : 0]);
             foreach ($records as $record) {
                 $record->centreid = $centreid;
                 $record->importid = $importid;

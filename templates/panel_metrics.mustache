@@ -45,7 +45,7 @@
         "i": {"ensenar": "", "subir": "", "atras": "", "der": "", "cerrar": ""},
         "sheets": [{"key": "campana", "name": "La campaña", "what": "Respuestas, hasta dónde llegan, por dónde, semana a semana y plazas", "url": "#", "current": true},
             {"key": "curso", "name": "El curso escolar", "what": "Las cuentas del curso y los alumnos año a año", "url": "#", "current": false}],
-        "sheetcampaign": true, "sheetyear": false, "sheetfamilies": false, "yearempty": false,
+        "sheetcampaign": true, "sheetyear": false, "sheetfamilies": false, "yearempty": false, "origins": {"cut": "Curso 2026-27 · 185 alumnos nuevos", "rows": [{"key": "sibling", "name": "Hermanos de alumnos del centro", "n": 37, "v": 0.2, "courses": "Infantil 3 años 32", "parts": [], "hasparts": false}, {"key": "newfamily", "name": "Familias nuevas", "n": 121, "v": 0.654, "courses": "Infantil 3 años 60", "parts": [{"key": "ad", "name": "Dejaron antes su contacto en un anuncio", "n": 33, "v": 0.178}], "hasparts": true}], "nosiblings": false, "ads": [{"label": "Captación 26/27", "families": "526 familias dejaron su contacto; 33 ya eran del centro.", "students": "27 alumnos nuevos de familias nuevas salieron de ellas.", "spend": "Costó 1.694,76 €.", "each": "Sale a 63 € por alumno."}], "hasads": true},
         "head": {"title": "96 familias esta campaña", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "action": false},
         "ensenar": false, "ensenarurl": "#", "cut": "Datos a las 10:52 de hoy", "importurl": "#", "importnote": "", "exports": {"families": {"excel": "#a", "csv": "#b"}, "figures": {"excel": "#c", "csv": "#d"} },
         "filters": {"campaigns": [{"name": "Esta campaña", "url": "#", "current": true}], "courses": [{"name": "Todos", "key": "", "url": "#", "current": true}],
@@ -286,6 +286,36 @@
             <p class="def">{{def}}</p>
         </section>
         {{/history}}{{/hashistory}}
+        {{#origins}}
+        <section class="lamina grafico grafico-origen ancha" aria-labelledby="c-origen" id="origen">
+            <h2 id="c-origen">{{#str}}panel_origins_title, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="corte">{{cut}}</p>
+            <ul class="origen-filas">
+                {{#rows}}
+                <li class="origen-fila origen-{{key}}" style="--v: {{v}}">
+                    <span class="origen-que">{{name}}</span>
+                    <b class="origen-n">{{n}}</b>
+                    <span class="barra-pista" aria-hidden="true"><i class="barra-dato"></i></span>
+                    {{#courses}}<span class="origen-cursos secundario">{{courses}}</span>{{/courses}}
+                    {{#hasparts}}
+                    <ul class="origen-partes">
+                        {{#parts}}<li class="origen-parte" style="--v: {{v}}"><span class="origen-que">{{name}}</span><b class="origen-n">{{n}}</b><span class="barra-pista" aria-hidden="true"><i class="barra-dato"></i></span></li>{{/parts}}
+                    </ul>
+                    {{/hasparts}}
+                </li>
+                {{/rows}}
+            </ul>
+            {{#nosiblings}}<p class="secundario">{{#str}}panel_origins_noroll, local_oksigeniaeguahe{{/str}}</p>{{/nosiblings}}
+            <p class="def">{{#str}}panel_origins_def, local_oksigeniaeguahe{{/str}}</p>
+            {{#hasads}}
+            <h3>{{#str}}panel_ads_title, local_oksigeniaeguahe{{/str}}</h3>
+            <ul class="lista-simple anuncios-trajeron">
+                {{#ads}}<li><b>{{label}}</b>: {{families}} {{students}} {{spend}}{{#each}} {{each}}{{/each}}</li>{{/ads}}
+            </ul>
+            <p class="def">{{#str}}panel_ads_def, local_oksigeniaeguahe{{/str}}</p>
+            {{/hasads}}
+        </section>
+        {{/origins}}
         {{#yearempty}}
         <section class="lamina ancha curso-vacio" aria-labelledby="c-vacio">
             <h2 id="c-vacio">{{#str}}panel_sheet_year, local_oksigeniaeguahe{{/str}}</h2>

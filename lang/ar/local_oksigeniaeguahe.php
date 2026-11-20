@@ -221,6 +221,7 @@ $string['firstday_volume_value'] = '{n}%';
 $string['heard_ad'] = 'إعلان';
 $string['heard_ai'] = 'مساعد ذكاء اصطناعي (ChatGPT وGemini…)';
 $string['heard_centrefamilies'] = 'أسر طلابنا';
+$string['heard_centremessage'] = 'رسالة من المدرسة';
 $string['heard_fair'] = 'معرض أو فعالية';
 $string['heard_family'] = 'العائلة أو الأصدقاء';
 $string['heard_other'] = 'بطريقة أخرى';

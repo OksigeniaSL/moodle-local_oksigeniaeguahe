@@ -590,6 +590,7 @@ class entries {
     public static function heard(string $value): string {
         $plain = recognise::plain($value);
         $words = [
+            'centremessage' => '(mensaje|circular|comunicado|correo|aviso) del (centro|cole|colegio|escuela)',
             'centrefamilies' => 'familias? del (centro|cole)|ya (somos|estamos)|hermanos? en el',
             'social' => 'redes|instagram|facebook|tiktok|social|youtube',
             'search' => 'google|internet|busca|search|web|pagina',

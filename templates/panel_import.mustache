@@ -58,7 +58,8 @@
             <div class="rejilla-3">
                 <div class="campo"><label for="tipo-{{index}}">{{#str}}panel_what_it_is, local_oksigeniaeguahe{{/str}}</label><select id="tipo-{{index}}" name="kind[{{index}}]" data-volver-a-mirar{{#health}} disabled{{/health}}>{{#kinds}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/kinds}}</select></div>
                 {{^none}}<div class="campo"><label for="rot-{{index}}">{{#str}}panel_import_label, local_oksigeniaeguahe{{/str}}</label><input id="rot-{{index}}" name="label[{{index}}]" value="{{label}}"></div>
-                <div class="campo"><label for="curso-{{index}}">{{#str}}panel_school_year, local_oksigeniaeguahe{{/str}}</label><input id="curso-{{index}}" name="schoolyear[{{index}}]" value="{{schoolyear}}"></div>{{/none}}
+                <div class="campo"><label for="curso-{{index}}">{{#str}}panel_school_year, local_oksigeniaeguahe{{/str}}</label><input id="curso-{{index}}" name="schoolyear[{{index}}]" value="{{schoolyear}}"></div>
+                {{#isroll}}<label class="casilla"><input type="checkbox" name="part[{{index}}]" value="1"{{#part}} checked{{/part}}> {{#str}}panel_import_part, local_oksigeniaeguahe{{/str}}</label>{{/isroll}}{{/none}}
             </div>
             <div class="columnas-destino">
                 <div class="destino queda"><h3>{{#str}}panel_cols_kept, local_oksigeniaeguahe{{/str}}</h3>{{#haskept}}<ul>{{#kept}}<li>{{c}}</li>{{/kept}}</ul>{{/haskept}}{{^haskept}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/haskept}}</div>

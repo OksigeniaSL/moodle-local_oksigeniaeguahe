@@ -464,6 +464,10 @@ class panel_metrics {
         // The sheet of the school year with nothing to count yet: it comes from what is imported from the program of the
         // centre, and says so with the way to import it.
         $context['yearempty'] = $on('curso') && !$year && !$history;
+        // Where the new students come from, and what the ads brought.
+        $origins = $course === '' && $on('curso') ? self::origins($centre) : null;
+        $context['yearempty'] = $context['yearempty'] && !$origins;
+        $context['origins'] = $origins ?: false;
         return $context + ['hasyear' => (bool) $year, 'year' => $year ?: false, 'hashistory' => (bool) $history,
             'history' => $history ?: false];
     }
@@ -1271,6 +1275,85 @@ class panel_metrics {
         }
         $key = $told === 1 ? 'panel_referred_sentence_one' : 'panel_referred_sentence';
         return ['text' => get_string($key, self::C, (object) ['n' => count($rows), 'told' => $told, 'year' => $year])];
+    }
+
+    /**
+     * Where the new students of the last school year with new students come from, in words: already at the centre the
+     * year before, brothers and sisters of its students, new families (and of these, by an ad, by another campaign or
+     * act, or by nothing counted), and those whose family left no contact. Then what the ads brought, with its cost.
+     *
+     * @param \stdClass $centre
+     * @return array|null
+     */
+    protected static function origins(\stdClass $centre): ?array {
+        $c = self::C;
+        $centreid = (int) $centre->id;
+        foreach (metrics::school_years($centreid) as $schoolyear) {
+            $o = metrics::origins($centreid, (string) $schoolyear);
+            if ($o['total'] > 0) {
+                break;
+            }
+        }
+        if (empty($o['total'])) {
+            return null;
+        }
+        $total = (int) $o['total'];
+        $pct = fn(int $n) => round($n / max(1, $total), 4);
+        $courses = function (array $grades) use ($c): string {
+            arsort($grades);
+            $parts = [];
+            foreach (array_slice($grades, 0, 3, true) as $name => $n) {
+                $parts[] = ($name !== '' ? $name : get_string('metrics_nograde', $c)) . ' ' . $n;
+            }
+            return implode(' · ', $parts);
+        };
+        $rows = [];
+        foreach (['inner', 'sibling', 'newfamily', 'unknown'] as $key) {
+            $g = $o['groups'][$key];
+            if ($key === 'sibling' && !$o['hasroll']) {
+                continue;
+            }
+            if (!$g['n'] && $key !== 'newfamily') {
+                continue;
+            }
+            $row = ['key' => $key, 'name' => get_string('panel_origin_' . $key, $c), 'n' => $g['n'], 'v' => $pct($g['n']),
+                'courses' => $courses($g['grades']), 'parts' => [], 'hasparts' => false];
+            if ($key === 'newfamily') {
+                $parts = [];
+                foreach ($o['newby'] as $by => $n) {
+                    if ($n) {
+                        $parts[] = ['key' => $by, 'name' => get_string('panel_origin_by_' . $by, $c), 'n' => $n, 'v' => $pct($n)];
+                    }
+                }
+                $row['parts'] = $parts;
+                $row['hasparts'] = (bool) $parts;
+            }
+            $rows[] = $row;
+        }
+        $ads = [];
+        foreach (metrics::publicity($centreid, $o) as $p) {
+            $ads[] = [
+                'label' => format_string($p['label']),
+                'families' => get_string('panel_ads_families', $c, (object) ['n' => $p['families'], 'centre' => $p['centre']]),
+                'students' => get_string(
+                    $p['students'] === 1 ? 'panel_ads_students_one' :
+                        ($p['students'] === 0 ? 'panel_ads_students_none' : 'panel_ads_students'),
+                    $c,
+                    $p['students']
+                ),
+                'spend' => $p['spend'] !== null ?
+                    get_string('panel_ads_spend', $c, centres::money($centre, (float) $p['spend'], 2)) :
+                    get_string('panel_ads_nospend', $c),
+                'each' => $p['each'] !== null ? get_string('panel_ads_each', $c, centres::money($centre, (float) $p['each'])) : '',
+            ];
+        }
+        return [
+            'cut' => get_string('panel_origins_cut', $c, (object) ['year' => $schoolyear, 'n' => $total]),
+            'rows' => $rows,
+            'nosiblings' => !$o['hasroll'],
+            'ads' => $ads,
+            'hasads' => (bool) $ads,
+        ];
     }
 
     /**

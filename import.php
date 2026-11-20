@@ -78,12 +78,14 @@ switch ($action) {
         $kinds = optional_param_array('kind', [], PARAM_ALPHA);
         $labels = optional_param_array('label', [], PARAM_TEXT);
         $years = optional_param_array('schoolyear', [], PARAM_TEXT);
+        $parts = optional_param_array('part', [], PARAM_BOOL);
         $choices = [];
         foreach ($kinds as $i => $kind) {
             if (in_array($kind, recognise::KINDS, true)) {
                 $year = trim((string) ($years[$i] ?? ''));
                 $choices[(int) $i] = ['kind' => $kind, 'label' => (string) ($labels[$i] ?? ''),
-                    'schoolyear' => recognise::schoolyear($year) ?? (preg_match('/^\d{4}$/', $year) ? $year : null)];
+                    'schoolyear' => recognise::schoolyear($year) ?? (preg_match('/^\d{4}$/', $year) ? $year : null),
+                    'partial' => !empty($parts[$i])];
             }
         }
         $path = $file->copy_content_to_temp('local_oksigeniaeguahe');
@@ -117,7 +119,8 @@ if ($file) {
     $preview = (object) ['filename' => $file->get_filename(), 'path' => $path, 'draft' => $draft,
         'kinds' => $again ? optional_param_array('kind', [], PARAM_ALPHA) : [],
         'labels' => $again ? optional_param_array('label', [], PARAM_TEXT) : [],
-        'years' => $again ? optional_param_array('schoolyear', [], PARAM_TEXT) : []];
+        'years' => $again ? optional_param_array('schoolyear', [], PARAM_TEXT) : [],
+        'parts' => $again ? optional_param_array('part', [], PARAM_BOOL) : []];
 }
 try {
     $context = panel_import::context($centre, $preview);
