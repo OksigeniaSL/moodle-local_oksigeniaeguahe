@@ -91,19 +91,25 @@ class poster {
             'qr_alt' => $str($words . 'qr', $shown ?: format_string($event->name)),
             'firma' => publicpage::credit($lang)['text'] ?? '',
             'marca' => self::brand($centre),
+            // The logo by its area, not its width: a square one and a long one weigh the same on the sheet (Jujol).
+            'logoalto' => ($aspect = centres::logo_aspect((int) $centre->id)) ? (int) round(min(190, sqrt(62000 / $aspect))) : 150,
+            // A word of one letter never ends a line («VENGAN / A CONOCERNOS»).
+            'titular_marca' => preg_replace('/(^|\s)([aeouy])\s/iu', '$1$2' . "\u{00A0}", str_replace('|', ' ', $str($words . 'title'))),
         ]);
     }
 
     /**
-     * The colours of the brand of the centre for its poster: the darkest for the words, the first one that reads on white
-     * for what stands out, and each one for a stripe, a line or a card. False when the centre has not written its brand.
+     * The colours of the brand of the centre for its poster, by their roles (Jujol): the title in the darkest that reads
+     * on white, the accent in the next one that reads, the line in the first that holds as a thin line, a tint of the
+     * first pale one behind the code, and every colour in the stripe. A pale colour never carries words nor a thin line.
+     * False when the centre has not written its brand.
      *
      * @param \stdClass $centre
      * @return array|false
      */
     public static function brand(\stdClass $centre) {
-        $brand = centres::brand($centre);
-        if (!$brand) {
+        $colours = centres::brand($centre);
+        if (!$colours) {
             return false;
         }
         $light = function (string $hex): float {
@@ -111,20 +117,23 @@ class poster {
             $c = array_map(fn($v) => $v <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4, $c);
             return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
         };
-        $sorted = $brand;
-        usort($sorted, fn($a, $b) => $light($a) <=> $light($b));
-        $ink = $light($sorted[0]) < 0.12 ? $sorted[0] : '#2b2226';
-        // What stands out must read on white, as text does (4.5 to 1).
-        $readable = array_values(array_filter($brand, fn($hex) => $hex !== $ink && 1.05 / ($light($hex) + 0.05) >= 4.5));
-        $at = fn(int $i) => $brand[$i % count($brand)];
+        $onwhite = fn(string $hex) => 1.05 / ($light($hex) + 0.05);
+        // A colour mixed with white: the share of the colour that is left.
+        $mix = fn(string $hex, float $t) => '#' . implode('', array_map(fn($x) => sprintf('%02x', round(255 - (255 - hexdec($x)) *
+            $t)), str_split(substr($hex, 1), 2)));
+        $reads = array_values(array_filter($colours, fn($c) => $onwhite($c) >= 4.5));
+        usort($reads, fn($a, $b) => $light($a) <=> $light($b));
+        $title = $reads[0] ?? '#2b2226';
+        $accent = array_values(array_filter($colours, fn($c) => $c !== $title && $onwhite($c) >= 4.5))[0] ?? $title;
+        $line = array_values(array_filter($colours, fn($c) => $c !== $title && $onwhite($c) >= 3))[0] ?? $accent;
+        $pale = array_values(array_filter($colours, fn($c) => $onwhite($c) < 3))[0] ?? null;
         return [
-            'tinta' => $ink,
-            'acento' => $readable[0] ?? $ink,
-            'raya' => $at(1),
-            'c1' => $at(0),
-            'c2' => $at(1),
-            'c4' => $at(3),
-            'franja' => $brand,
+            'titulo' => $title,
+            'acento' => $accent,
+            'linea' => $line,
+            'lineasuave' => $mix($line, 0.28),
+            'relleno' => $pale ? $mix($pale, 0.3) : $mix($colours[0], 0.09),
+            'franja' => $colours,
         ];
     }
 }

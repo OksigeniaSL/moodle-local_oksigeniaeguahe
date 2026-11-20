@@ -25,7 +25,8 @@
     Example context (json):
     {
         "i": {"globe": "", "chev": "", "check": ""}, "centre": "Colegio de ejemplo", "initials": "CE", "logo": "",
-        "brand": ["#1f5a4e", "#e8a33d"],
+        "brand": [{"light": "#1f5a4e", "dark": "#5fa08f"}, {"light": "#e8a33d", "dark": "#e8a33d"}], "namevisible": true,
+        "langcode": "ES",
         "logoplate": false, "langlabel": "Idioma", "langname": "Español",
         "langs": [{"name": "Español", "url": "#", "current": true, "code": "es"}, {"name": "English", "url": "#",
             "current": false, "code": "en"}],
@@ -33,15 +34,15 @@
         "credit": {"text": "Eguahe, de Oksigenia", "url": "https://eguahe.com/?de=dibujo", "seal": true}
     }
 }}
-{{#brand.0}}<div class="franja-marca" aria-hidden="true">{{#brand}}<span style="background: {{.}}"></span>{{/brand}}</div>{{/brand.0}}
+{{#brand.0}}<div class="franja-marca" aria-hidden="true">{{#brand}}<span style="--claro: {{light}}; --oscuro: {{dark}}"></span>{{/brand}}</div>{{/brand.0}}
 <header class="cabecera">
     <span class="placa">
         {{#logo}}<span class="logo{{#logoplate}} plato-oscuro{{/logoplate}}"><img src="{{logo}}" alt="" height="40"></span>{{/logo}}
         {{^logo}}<span class="monograma" aria-hidden="true">{{initials}}</span>{{/logo}}
-        <span class="nombre">{{centre}}</span>
+        <span class="nombre{{^namevisible}} oculto{{/namevisible}}">{{centre}}</span>
     </span>
     <details class="idioma">
-        <summary aria-label="{{langlabel}}: {{langname}}">{{{i.globe}}}<span>{{langname}}</span>{{{i.chev}}}</summary>
+        <summary aria-label="{{langlabel}}: {{langname}}">{{{i.globe}}}<span class="idioma-largo">{{langname}}</span><span class="idioma-corto" aria-hidden="true">{{langcode}}</span>{{{i.chev}}}</summary>
         <ul>
             {{#langs}}<li><a href="{{url}}" hreflang="{{code}}" lang="{{code}}" data-toca="language"{{#current}} aria-current="true"{{/current}}>{{name}}{{#current}}{{{i.check}}}{{/current}}</a></li>{{/langs}}
         </ul>

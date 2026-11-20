@@ -250,6 +250,38 @@ textarea {
 
 .franja-marca span {
     flex: 1;
+    background: var(--claro);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .franja-marca span {
+        background: var(--oscuro);
+    }
+}
+
+:root[data-theme="dark"] .franja-marca span {
+    background: var(--oscuro);
+}
+
+/* The language, in a word on wide screens and in its code on a phone; a name shown goes on its own line, under the logo */
+.idioma-corto {
+    display: none;
+}
+
+@media (max-width: 599px) {
+    .idioma-largo {
+        display: none;
+    }
+
+    .idioma-corto {
+        display: inline;
+    }
+
+    .placa {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
 }
 
 .cabecera {

@@ -758,6 +758,35 @@ class centres {
     }
 
     /**
+     * How wide the logo of a centre is for its height, from the picture itself: the viewBox or the size of an SVG, or
+     * the pixels of a PNG, JPEG or WebP.
+     *
+     * @param int $centreid
+     * @return float|null Width divided by height; null without a logo or when it cannot be read.
+     */
+    public static function logo_aspect(int $centreid): ?float {
+        $file = self::logo_file($centreid);
+        if (!$file) {
+            return null;
+        }
+        $content = $file->get_content();
+        if (preg_match('/<svg\b[^>]*>/i', $content, $tag)) {
+            if (preg_match('/viewBox\s*=\s*["\']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i', $tag[0], $m) && (float) $m[2] > 0) {
+                return (float) $m[1] / (float) $m[2];
+            }
+            if (
+                preg_match('/\bwidth\s*=\s*["\']([\d.]+)/i', $tag[0], $w) && preg_match('/\bheight\s*=\s*["\']([\d.]+)/i', $tag[0], $h) &&
+                    (float) $h[1] > 0
+            ) {
+                return (float) $w[1] / (float) $h[1];
+            }
+            return null;
+        }
+        $size = @getimagesizefromstring($content);
+        return $size && $size[1] > 0 ? $size[0] / $size[1] : null;
+    }
+
+    /**
      * The logo of the centre, if it has one.
      *
      * @param int $centreid
@@ -822,15 +851,13 @@ class centres {
     }
 
     /**
-     * The brand of a centre for its posters and the pages of its families: its colours, the first one its own colour
-     * when it wrote none.
+     * The brand of a centre for its posters and the pages of its families: its colours, in the order it gave them.
      *
      * @param \stdClass $centre
-     * @return string[] Two to four codes, or none when the centre has not written its brand.
+     * @return string[] One to four codes, or none when the centre has not written its brand.
      */
     public static function brand(\stdClass $centre): array {
-        $colours = self::brand_colours((string) ($centre->brandcolours ?? ''));
-        return count($colours) >= 2 ? $colours : [];
+        return self::brand_colours((string) ($centre->brandcolours ?? ''));
     }
 
     /**

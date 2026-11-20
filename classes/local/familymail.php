@@ -241,6 +241,7 @@ class familymail {
             'fin' => lists::dir($lang) === 'rtl' ? 'left' : 'right',
             'fuente_url' => $CFG->wwwroot . '/local/oksigeniaeguahe/pub/fonts/schibsted-grotesk.woff2',
             'c' => self::colours($colour),
+            'franja' => centres::brand($centre),
             'centro' => [
                 'nombre' => format_string($centre->name),
                 'placa' => $plate[0],

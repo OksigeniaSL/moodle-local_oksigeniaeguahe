@@ -145,6 +145,32 @@ class publicpage {
     }
 
     /**
+     * A colour of the brand on the dark page: lightened, mixing it with white, until it stands out 3 to 1 against it.
+     *
+     * @param string $hex
+     * @return string
+     */
+    public static function on_dark(string $hex): string {
+        $light = function (string $h): float {
+            $c = array_map(fn($x) => hexdec($x) / 255, str_split(substr($h, 1), 2));
+            $c = array_map(fn($v) => $v <= 0.03928 ? $v / 12.92 : (($v + 0.055) / 1.055) ** 2.4, $c);
+            return 0.2126 * $c[0] + 0.7152 * $c[1] + 0.0722 * $c[2];
+        };
+        // The paper of the pages at night.
+        $ground = $light('#171413');
+        for ($t = 0.0; $t <= 1.0; $t += 0.05) {
+            $mixed = '#' . implode('', array_map(
+                fn($x) => sprintf('%02x', round(hexdec($x) + (255 - hexdec($x)) * $t)),
+                str_split(substr($hex, 1), 2)
+            ));
+            if (($light($mixed) + 0.05) / ($ground + 0.05) >= 3) {
+                return $mixed;
+            }
+        }
+        return '#ffffff';
+    }
+
+    /**
      * Prints the whole page and stops: the centre at the top with its language menu, the page, and at the foot the
      * centre and how it treats the data. The colours of the centre become variables here, for light and dark.
      *
@@ -192,8 +218,15 @@ class publicpage {
             'initials' => $initials,
             'logo' => $logo ? $logo->out(false) : '',
             'logoplate' => !empty($centre->logoplate),
-            // The colours of the brand of the centre, as a stripe above everything.
-            'brand' => !empty($centre->id) ? centres::brand($centre) : [],
+            // The colours of the brand of the centre, as a stripe above everything; in the dark, a colour that would
+            // be lost is lightened until it shows (Jujol).
+            'brand' => !empty($centre->id) ? array_map(
+                fn($code) => ['light' => $code, 'dark' => self::on_dark($code)],
+                centres::brand($centre)
+            ) : [],
+            // A long logo already says the name of the centre: the name beside it is not repeated (Jujol).
+            'namevisible' => !$logo || (centres::logo_aspect((int) $centre->id) ?? 1) < 2.2,
+            'langcode' => \core_text::strtoupper(substr(str_replace('_', '-', $lang), 0, 2)),
             'langs' => $langs,
             'langname' => $current,
             'langlabel' => publiclang::str('pub_language', $lang),

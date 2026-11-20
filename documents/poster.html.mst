@@ -62,61 +62,60 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
 .banda .url { margin-top: 14px; font-size: 25px; font-weight: 750; letter-spacing: -.005em; }
 .banda .tel { margin-top: 6px; font-size: 18px; }
 
-/* The brand of the centre (its colours and its logo, as in its own signs): white, its stripe above and below, its logo
-   large, the title in its darkest colour and two cards edged in its colours */
+/* The brand of the centre (its colours and its logo, as in its own signs), with its colours by their roles (Jujol): white,
+   its stripe above and below, its logo by its area, the title in its darkest colour that reads, the day between two thin
+   lines and the code on a tinted panel */
 .hoja.marca { background: #FFFFFF; }
 .marca .franja { display: flex; height: 16px; flex: none; }
 .marca .franja span { flex: 1; }
-.marca .cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 10px 0 14px; }
-.marca .logo-grande { display: flex; justify-content: center; align-items: center; padding: 0 53px; }
-.marca .logo-grande img { display: block; max-height: 136px; max-width: 560px; width: auto; height: auto; }
-.marca .logo-grande .nombre { font-size: 40px; font-weight: 790; color: var(--m-tinta); text-align: center; }
-.marca .titulo { margin: 0 53px; text-align: center; font-size: 76px; line-height: 1; font-weight: 800; letter-spacing: -.01em; text-transform: uppercase; color: var(--m-tinta); }
-.marca .raya { display: block; width: 92px; height: 6px; margin: -8px auto 0; border-radius: 3px; background: var(--m-raya); }
-.marca .lema { margin: -6px 70px 0; text-align: center; text-wrap: balance; font-size: 23px; line-height: 1.35; font-style: italic; color: var(--m-acento); }
-.marca .tarjeta { margin: 0 53px; padding: 28px 34px 30px; border: 4px solid var(--m-borde); border-radius: 26px; }
-.marca .tarjeta-dia { --m-borde: var(--m-c2); }
-.marca .tarjeta-qr { --m-borde: var(--m-c4); display: flex; align-items: center; gap: 30px; }
-.marca .tarjeta h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--m-tinta); }
-.marca .tarjeta h2::after { content: ''; display: block; width: 64px; height: 5px; margin-top: 10px; border-radius: 3px; background: var(--m-raya); }
-.marca .tarjeta .fecha { margin: 18px 0 0; font-size: 50px; line-height: 1; font-weight: 800; letter-spacing: -.02em; color: var(--m-tinta); }
-.marca .tarjeta .hora { margin: 10px 0 0; font-size: 28px; font-weight: 700; color: var(--m-acento); }
-.marca .tarjeta .lugar { margin: 6px 0 0; font-size: 21px; color: var(--tinta-2); }
-.marca .tarjeta-qr .qr { width: 230px; height: 230px; padding: 12px; border: 3px solid var(--m-c1); border-radius: 18px; }
-.marca .tarjeta-qr p { margin: 0; }
-.marca .tarjeta-qr .llamada { text-wrap: balance; font-size: 33px; line-height: 1.05; font-weight: 800; letter-spacing: -.015em; color: var(--m-tinta); }
-.marca .tarjeta-qr .como { margin-top: 10px; font-size: 19px; line-height: 1.4; color: var(--tinta); }
-.marca .tarjeta-qr .url { margin-top: 12px; font-size: 25px; font-weight: 800; color: var(--m-acento); }
-.marca .tarjeta-qr .tel { margin-top: 6px; font-size: 18px; color: var(--tinta-2); }
-.marca .firma { margin: 0 53px 10px; text-align: right; font-size: 11px; color: var(--tinta-2); }
+.marca .cuerpo { flex: 1; display: flex; flex-direction: column; padding: 46px 53px 0; }
+.marca .logo-grande { display: flex; justify-content: center; align-items: center; min-height: 150px; }
+.marca .logo-grande img { display: block; width: auto; max-width: 560px; }
+.marca .logo-grande .nombre { font-size: 46px; line-height: 1.05; font-weight: 800; letter-spacing: -.02em; text-align: center; text-wrap: balance; color: var(--m-titulo); }
+.marca .titulo { margin: 38px 0 0; text-align: center; text-wrap: balance; font-size: 78px; line-height: .98; font-weight: 800; letter-spacing: -.012em; text-transform: uppercase; color: var(--m-titulo); }
+.marca .raya { display: block; width: 96px; height: 6px; margin: 26px auto 0; border-radius: 3px; background: var(--m-linea); }
+.marca .lema { margin: 22px 0 0; text-align: center; text-wrap: balance; font-size: 24px; line-height: 1.35; font-style: italic; color: var(--m-acento); }
+.marca .dia-marca { margin: 46px 0 0; padding: 26px 0 28px; text-align: center; border-block: 2px solid var(--m-linea-suave); }
+.marca .dia-marca h2 { margin: 0; font-size: 19px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: var(--m-acento); }
+.marca .dia-marca .fecha { margin: 14px 0 0; font-size: 56px; line-height: 1; font-weight: 800; letter-spacing: -.025em; color: var(--m-titulo); }
+.marca .dia-marca .hora { margin: 12px 0 0; font-size: 28px; font-weight: 700; color: var(--tinta); }
+.marca .dia-marca .lugar { margin: 6px 0 0; font-size: 21px; color: var(--tinta-2); }
+.marca .qr-caja { margin: 40px 0 0; display: flex; align-items: center; gap: 32px; padding: 26px 30px; border-radius: 24px; background: var(--m-relleno); }
+.marca .qr-caja .qr { flex: none; width: 214px; height: 214px; padding: 14px; border-radius: 14px; background: #FFFFFF; }
+.marca .qr-caja p { margin: 0; }
+.marca .qr-caja .llamada { font-size: 34px; line-height: 1.05; font-weight: 800; letter-spacing: -.015em; text-wrap: balance; color: var(--m-titulo); }
+.marca .qr-caja .como { margin-top: 12px; font-size: 19px; line-height: 1.4; color: var(--tinta); }
+.marca .qr-caja .url { margin-top: 12px; font-size: 25px; font-weight: 800; color: var(--m-acento); }
+.marca .qr-caja .tel { margin-top: 6px; font-size: 18px; color: var(--tinta-2); }
+.marca .firma { margin: auto 0 0; padding: 18px 0 12px; text-align: right; font-size: 11px; color: var(--tinta-2); }
 </style>
 </head>
 <body>
-<div class="pliego">{{#marca}}<div class="hoja marca" style="--m-tinta: {{tinta}}; --m-acento: {{acento}}; --m-raya: {{raya}}; --m-c1: {{c1}}; --m-c2: {{c2}}; --m-c4: {{c4}};">
+<div class="pliego">{{#marca}}<div class="hoja marca" style="--m-titulo: {{titulo}}; --m-acento: {{acento}}; --m-linea: {{linea}}; --m-linea-suave: {{lineasuave}}; --m-relleno: {{relleno}};">
   {{#muestra}}<span class="muestra">{{muestra}}</span>{{/muestra}}
   <div class="franja" aria-hidden="true">{{#franja}}<span style="background: {{.}}"></span>{{/franja}}</div>
   <div class="cuerpo">
-  <header class="logo-grande">{{#centro.logo}}<img src="{{centro.logo}}" alt="{{centro.nombre}}">{{/centro.logo}}{{^centro.logo}}<span class="nombre">{{centro.nombre}}</span>{{/centro.logo}}</header>
-  <h1 class="titulo">{{titular}}</h1>
-  <span class="raya" aria-hidden="true"></span>
-  <p class="lema">{{pregunta}} {{pregunta_sub}}</p>
-  <section class="tarjeta tarjeta-dia">
-    <h2>{{acto}}</h2>
-    <p class="fecha">{{fecha}}</p>
-    <p class="hora">{{hora}}</p>
-    {{#lugar}}<p class="lugar">{{lugar}}</p>{{/lugar}}
-  </section>
-  <section class="tarjeta tarjeta-qr">
-    <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
-    <div>
-      <p class="llamada">{{llamada}}</p>
-      <p class="como">{{como}}</p>
-      {{#url_corta}}<p class="url">{{url_corta}}</p>{{/url_corta}}
-      {{#telefono_texto}}<p class="tel">{{telefono_texto}}</p>{{/telefono_texto}}
-    </div>
-  </section>
+    <header class="logo-grande">{{#centro.logo}}<img src="{{centro.logo}}" alt="{{centro.nombre}}" style="height: {{logoalto}}px">{{/centro.logo}}{{^centro.logo}}<span class="nombre">{{centro.nombre}}</span>{{/centro.logo}}</header>
+    <h1 class="titulo">{{titular_marca}}</h1>
+    <span class="raya" aria-hidden="true"></span>
+    <p class="lema">{{pregunta}} {{pregunta_sub}}</p>
+    <section class="dia-marca">
+      <h2>{{acto}}</h2>
+      <p class="fecha">{{fecha}}</p>
+      <p class="hora">{{hora}}</p>
+      {{#lugar}}<p class="lugar">{{lugar}}</p>{{/lugar}}
+    </section>
+    <section class="qr-caja">
+      <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
+      <div>
+        <p class="llamada">{{llamada}}</p>
+        <p class="como">{{como}}</p>
+        {{#url_corta}}<p class="url">{{url_corta}}</p>{{/url_corta}}
+        {{#telefono_texto}}<p class="tel">{{telefono_texto}}</p>{{/telefono_texto}}
+      </div>
+    </section>
+    {{#firma}}<p class="firma">{{firma}}</p>{{/firma}}
   </div>
-  {{#firma}}<p class="firma">{{firma}}</p>{{/firma}}
   <div class="franja" aria-hidden="true">{{#franja}}<span style="background: {{.}}"></span>{{/franja}}</div>
 </div>{{/marca}}{{^marca}}<div class="hoja">
   {{#muestra}}<span class="muestra">{{muestra}}</span>{{/muestra}}
