@@ -31,6 +31,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\listmatch;
 use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
@@ -224,6 +225,11 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 null,
                 \core\output\notification::NOTIFY_SUCCESS
             );
+            break;
+        case 'listchild':
+            // Which child the list of the centre enrolled, said by a person.
+            listmatch::choose($household, required_param('fila', PARAM_INT), optional_param('nino', 0, PARAM_INT));
+            redirect(new moodle_url($url, [], 'segun-lista'));
             break;
         case 'notsame':
             // Two different families: it is not asked again.

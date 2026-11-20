@@ -1467,5 +1467,29 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026118500, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026118600) {
+        // What the list of the centre said of a family of Eguahe: a child enrolled, a family of the centre, or a question.
+        $table = new xmldb_table('local_oksigeniaeguahe_listmatch');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('schoolyear', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, '-');
+        $table->add_field('student', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, '-');
+        $table->add_field('kind', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'ask');
+        $table->add_field('grade', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_field('timein', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('childid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('done', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_key('householdid', XMLDB_KEY_FOREIGN, ['householdid'], 'local_oksigeniaeguahe_household', ['id']);
+        $table->add_index('centreyear', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'schoolyear']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026118600, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

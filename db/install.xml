@@ -953,5 +953,28 @@
         <INDEX NAME="line" UNIQUE="true" FIELDS="centreid, scope, scopeid, task"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_listmatch" COMMENT="What the list of the centre said of a family of Eguahe, once per student and school year: a child enrolled, a family of the centre, or a question for a person">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="schoolyear" TYPE="char" LENGTH="9" NOTNULL="true" DEFAULT="-" SEQUENCE="false"/>
+        <FIELD NAME="student" TYPE="char" LENGTH="40" NOTNULL="true" DEFAULT="-" SEQUENCE="false" COMMENT="The token of the student in the imported lists, never a name"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="ask" SEQUENCE="false" COMMENT="enrolled, incentre, ask or none"/>
+        <FIELD NAME="grade" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timein" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="childid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="done" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was settled; 0, a person has to say"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centreyear" UNIQUE="false" FIELDS="centreid, schoolyear"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

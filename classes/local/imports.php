@@ -160,6 +160,14 @@ class imports {
             $total += count($records);
         }
         $transaction->allow_commit();
+        // A list of the year came in: the families of Eguahe that enrolled a child, or that have one at the centre.
+        if ($made && array_intersect(array_column($choices, 'kind'), ['roll', 'joins'])) {
+            try {
+                listmatch::detect(centres::get($centreid), time());
+            } catch (\Throwable $e) {
+                debugging('Eguahe: the list was not crossed with the families: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
         return [$made, $total, $skipped];
     }
 

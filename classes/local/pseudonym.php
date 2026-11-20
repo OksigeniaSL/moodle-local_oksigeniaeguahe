@@ -123,6 +123,28 @@ class pseudonym {
     }
 
     /**
+     * The tokens these keys already point to, without making any: to find a family of Eguahe in what was imported.
+     *
+     * @param string $kind household or student.
+     * @param array $keys Keys from email(), phone(), name(), code(); nulls are skipped.
+     * @return string[]
+     */
+    public function find(string $kind, array $keys): array {
+        global $DB;
+        $hashes = array_values(array_unique(array_map(fn($k) => $this->hash($kind, $k), array_filter($keys))));
+        if (!$hashes) {
+            return [];
+        }
+        [$in, $params] = $DB->get_in_or_equal($hashes, SQL_PARAMS_NAMED);
+        return array_values(array_unique($DB->get_fieldset_select(
+            self::T,
+            'token',
+            "centreid = :centreid AND kind = :kind AND keyhash $in",
+            $params + ['centreid' => $this->centreid, 'kind' => $kind]
+        )));
+    }
+
+    /**
      * The token of the family or the student these keys point to: an existing one, a new one, or several made one.
      *
      * @param string $kind household or student.
