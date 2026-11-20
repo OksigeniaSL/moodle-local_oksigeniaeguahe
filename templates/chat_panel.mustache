@@ -1,0 +1,39 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/chat_panel
+
+    The page the chat of the centre shows beside a conversation (chatpanel::page()). Without a session in this browser,
+    a way to come in, opened apart (the page of entering is never inside another page); with it, the place where the
+    family appears when the chat says who writes (pub/chat.js, which asks chat.php and puts chat_family here).
+
+    Example context (json):
+    {"in": true, "team": true, "loginurl": "#", "url": "#", "sesskey": "x", "origins": "[]"}
+}}
+<main class="chat-familia" data-chat data-url="{{url}}" data-sesskey="{{sesskey}}" data-origins="{{origins}}" data-loading="{{#str}}chat_loading, local_oksigeniaeguahe{{/str}}" data-failed="{{#str}}chat_failed, local_oksigeniaeguahe{{/str}}" data-none="{{#str}}chat_waiting_contact, local_oksigeniaeguahe{{/str}}">
+    <p class="rotulo-p chat-marca">{{#str}}chat_title, local_oksigeniaeguahe{{/str}}</p>
+    {{^in}}
+    <div class="chat-aviso">
+        <p>{{#str}}chat_login, local_oksigeniaeguahe{{/str}}</p>
+        <p><a class="boton" href="{{loginurl}}" target="_blank" rel="noopener">{{#str}}chat_login_button, local_oksigeniaeguahe{{/str}}</a> <a class="enlace" href="{{url}}">{{#str}}chat_login_done, local_oksigeniaeguahe{{/str}}</a></p>
+    </div>
+    {{/in}}
+    {{#in}}
+    {{^team}}<p class="chat-aviso">{{#str}}chat_noteam, local_oksigeniaeguahe{{/str}}</p>{{/team}}
+    {{#team}}<div class="chat-salida" data-chat-out aria-live="polite"><p class="chat-aviso">{{#str}}chat_waiting_contact, local_oksigeniaeguahe{{/str}}</p></div>{{/team}}
+    {{/in}}
+</main>

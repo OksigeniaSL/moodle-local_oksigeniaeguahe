@@ -18291,3 +18291,62 @@ html {
 .an-junto {
     white-space: nowrap;
 }
+
+/* 11.6 The family beside a conversation of the chat of the centre (chat.php): a narrow column in the side of the chat. */
+.pl-chat {
+    background: var(--eg-papel);
+}
+
+.chat-familia {
+    padding: 12px 14px 24px;
+    font-size: 0.9375rem;
+}
+
+.chat-marca {
+    margin: 0 0 10px;
+}
+
+.chat-aviso {
+    color: var(--eg-tinta-2);
+}
+
+.chat-hogar {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 10px;
+    background: var(--eg-superficie);
+}
+
+.chat-sello {
+    display: inline-block;
+    margin: 0 0 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+}
+
+.chat-nombre {
+    margin: 0 0 4px;
+    font-size: 1.0625rem;
+    line-height: 1.3;
+}
+
+.chat-centro,
+.chat-dato {
+    margin: 0 0 4px;
+    color: var(--eg-tinta-2);
+}
+
+.chat-espera {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.chat-hijos {
+    margin: 6px 0 8px;
+    padding-left: 18px;
+}

@@ -74,6 +74,14 @@ if ($hassiteconfig) {
             '',
             PARAM_URL
         ));
+        // The chats of the centre that show the family beside a conversation (chat.php, a dashboard app of Chatwoot).
+        $settings->add(new admin_setting_configtextarea(
+            'local_oksigeniaeguahe/chatorigins',
+            get_string('chatorigins', 'local_oksigeniaeguahe'),
+            get_string('chatorigins_desc', 'local_oksigeniaeguahe', (new moodle_url('/local/oksigeniaeguahe/chat.php'))->out(false)),
+            '',
+            PARAM_RAW_TRIMMED
+        ));
         // The shortener of the links, set once for every plugin of Oksigenia (shortener::of_site()): empty here, the one of
         // another plugin that has it.
         $settings->add(new admin_setting_heading(
