@@ -1236,8 +1236,11 @@ class panel_household {
                     $c
                 )] : false,
                 'alumnimaybe' => $said === alumni::MAYBE ? alumni::words($row) : false,
-                'alumniask' => $said !== alumni::YES && $said !== alumni::MAYBE ?
-                    get_string($someone ? 'alumni_mark_who' : 'alumni_mark', $c) : false];
+                // A note said someone of the family: each adult asks if it was them, with the mortarboard.
+                'alumniwho' => $someone && $said !== alumni::YES && $said !== alumni::MAYBE ?
+                    get_string('alumni_who', $c, $adult->firstname) : false,
+                'alumniask' => !$someone && $said !== alumni::YES && $said !== alumni::MAYBE ?
+                    get_string('alumni_mark', $c) : false];
         }
         return $out;
     }

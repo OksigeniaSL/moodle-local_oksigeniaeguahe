@@ -1298,6 +1298,16 @@
 
         // Their contact data: each line keeps itself as it is left, «✓ Guardado» in its card; another person, once it has
         // a name and a phone or an email, is kept and the page comes back with them in it. Without the script, «Guardar».
+        // Ticking «Estudió en el centro» opens the year they finished, if they remember it.
+        Array.prototype.forEach.call(document.querySelectorAll('[data-alumni]'), function(box) {
+            box.addEventListener('change', function() {
+                var card = box.closest ? box.closest('.persona-datos') : null;
+                var year = card ? card.querySelector('[data-promocion]') : null;
+                if (year) {
+                    year.hidden = !box.checked;
+                }
+            });
+        });
         var contacts = document.querySelector('[data-datos]');
         if (contacts && window.fetch && window.FormData) {
             contacts.classList.add('al-tocar');

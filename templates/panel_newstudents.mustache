@@ -51,7 +51,7 @@
 }}
 <div class="alumnos-nuevos{{^withcentre}} sin-centro{{/withcentre}}" data-alumnos-nuevos>
     <svg class="an-dibujos" width="0" height="0" aria-hidden="true" focusable="false">
-        <symbol id="an-mochila" viewBox="0 0 16 18"><path d="M5.6 4.1V3.3C5.6 1.9 6.6 1 8 1s2.4.9 2.4 2.3v.8" style="fill: none; stroke: var(--m-linea); stroke-width: 1.4; stroke-linecap: round"/><path d="M2.6 8.2c0-2.5 1.9-4.2 4.3-4.2h2.2c2.4 0 4.3 1.7 4.3 4.2v7c0 .8-.6 1.4-1.4 1.4H4c-.8 0-1.4-.6-1.4-1.4z" style="fill: var(--m-relleno); stroke: var(--m-linea); stroke-width: 1.4; stroke-linejoin: round; stroke-dasharray: var(--m-trazo, none)"/><path d="M4.6 10.4h6.8v2H4.6z" style="fill: var(--m-banda)"/></symbol>
+        <symbol id="an-birrete" viewBox="0 0 24 24"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z" style="fill: var(--eg-tinta); stroke: var(--eg-tinta); stroke-width: 1.5; stroke-linejoin: round"/><path d="M21.5 9.5v5" style="fill: none; stroke: var(--eg-tinta); stroke-width: 1.8; stroke-linecap: round"/></symbol><symbol id="an-mochila" viewBox="0 0 16 18"><path d="M5.6 4.1V3.3C5.6 1.9 6.6 1 8 1s2.4.9 2.4 2.3v.8" style="fill: none; stroke: var(--m-linea); stroke-width: 1.4; stroke-linecap: round"/><path d="M2.6 8.2c0-2.5 1.9-4.2 4.3-4.2h2.2c2.4 0 4.3 1.7 4.3 4.2v7c0 .8-.6 1.4-1.4 1.4H4c-.8 0-1.4-.6-1.4-1.4z" style="fill: var(--m-relleno); stroke: var(--m-linea); stroke-width: 1.4; stroke-linejoin: round; stroke-dasharray: var(--m-trazo, none)"/><path d="M4.6 10.4h6.8v2H4.6z" style="fill: var(--m-banda)"/></symbol>
         <symbol id="an-fuerte" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5"/><path d="M7 13.5l3.2 3.2L17.5 9" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round"/></symbol>
         <symbol id="an-flojo" viewBox="0 0 24 24"><path d="M12 2.2l10.2 18.3H1.8z"/><path d="M12 9v5.2M12 17.4v.1" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.4; stroke-linecap: round"/></symbol>
         <symbol id="an-tendencia" viewBox="0 0 24 24"><rect x="1.5" y="1.5" width="21" height="21" rx="5"/><path d="M6 16.5l4.5-4.5 3 3L18 9.5M13.8 9.5H18v4.2" style="fill: none; stroke: var(--an-sobre, #fff); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round"/></symbol>
@@ -103,7 +103,7 @@
                         <span class="an-nombre">{{name}}{{#sub}}<small>{{sub}}</small>{{/sub}}</span>
                         <span class="an-pct"><span class="con">{{pct}}</span><span class="sin">{{pctnew}}</span></span>
                     </button>
-                    <span class="an-mochilas" aria-hidden="true">{{#bags}}<svg class="an-mochila m-{{k}}" viewBox="0 0 16 18" focusable="false"><use href="#an-mochila"/></svg>{{/bags}}</span>
+                    <span class="an-mochilas" aria-hidden="true">{{#bags}}{{#alumni}}<span class="an-antigua"><svg class="an-mochila m-{{k}}" viewBox="0 0 16 18" focusable="false"><use href="#an-mochila"/></svg><svg class="an-birrete-mini" viewBox="0 0 24 24" focusable="false"><use href="#an-birrete"/></svg></span>{{/alumni}}{{^alumni}}<svg class="an-mochila m-{{k}}" viewBox="0 0 16 18" focusable="false"><use href="#an-mochila"/></svg>{{/alumni}}{{/bags}}</span>
                     {{#courses}}<span class="an-cursos">{{courses}}</span>{{/courses}}
                     {{#hasparts}}
                     <ul class="an-partes">

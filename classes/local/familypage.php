@@ -66,7 +66,9 @@ class familypage {
         $lang = $lang !== '' ? $lang : ((string) ($full->lang ?? '') ?: 'es');
         foreach ($full->adults as $adult) {
             $phone = (string) $adult->phone !== '' ? phone::display((string) $adult->phone) : '';
-            $studied = (int) ($said[(int) $adult->id]->said ?? -1) === alumni::YES ? publiclang::str('pub_alumni', $lang) : '';
+            $row = $said[(int) $adult->id] ?? null;
+            $studied = $row && (int) $row->said === alumni::YES ? ((string) $row->year !== '' ?
+                publiclang::str('pub_alumni_with_year', $lang, (string) $row->year) : publiclang::str('pub_alumni', $lang)) : '';
             $out[] = ['id' => (int) $adult->id, 'name' => trim($adult->firstname . ' ' . $adult->lastname),
                 'reach' => array_values(array_filter([$phone, (string) $adult->email, $studied])), 'phone' => $phone,
                 'email' => (string) $adult->email, 'alumni' => $studied !== ''];
@@ -104,10 +106,14 @@ class familypage {
             'savedline' => $str('pub_hobbies_saved'),
             // Whether each one studied at the centre, as one more line of their card.
             'alumnilabel' => $str('pub_alumni'),
+            'alumniyearlabel' => $str('pub_alumni_year'),
+            'alumniyearhint' => $str('pub_alumni_year_hint'),
             'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
                 'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
                 phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email,
-                'alumni' => (int) ($said[(int) $a->id]->said ?? -1) === alumni::YES], array_values($full->adults)),
+                'alumni' => (int) ($said[(int) $a->id]->said ?? -1) === alumni::YES,
+                'alumniyear' => (int) ($said[(int) $a->id]->said ?? -1) === alumni::YES ?
+                    (string) ($said[(int) $a->id]->year ?? '') : ''], array_values($full->adults)),
         ];
     }
 

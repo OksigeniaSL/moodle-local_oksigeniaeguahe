@@ -716,23 +716,24 @@ class panel_centre {
         $word = get_string('skin_' . $proposed, $c);
         $word = \core_text::strtolower(\core_text::substr($word, 0, 1)) . \core_text::substr($word, 1);
         // The picture of a skin, by day and by night when it has one.
-        $picture = function (string $skin) use ($CFG): array {
+        $picture = function (string $skin, string $name = 'muestra') use ($CFG): array {
             $dir = '/local/oksigeniaeguahe/pub/pieles/' . $skin . '/';
-            $url = fn(string $name) => is_readable($CFG->dirroot . $dir . $name) ? (new \moodle_url($dir . $name))->out(false) : '';
-            return [$url('muestra.webp'), $url('muestra-noche.webp')];
+            $url = fn(string $file) => is_readable($CFG->dirroot . $dir . $file) ? (new \moodle_url($dir . $file))->out(false) : '';
+            return [$url($name . '.webp'), $url($name . '-noche.webp')];
         };
-        // The one that goes with the offer shows the skin it proposes today.
-        [$img, $dark] = $picture($proposed);
+        // The one that goes with the offer: the three in a fan, the one it proposes today in front (Jujol).
+        [$img, $dark] = $picture($proposed, 'abanico');
         $out = [['value' => '', 'name' => get_string('centre_skin_auto', $c, $word),
             'help' => get_string('panel_skin_auto_help', $c), 'checked' => $chosen === '', 'auto' => true, 'img' => $img,
-            'imgdark' => $dark, 'id' => 'piel-auto', 'soon' => false]];
+            'imgdark' => $dark, 'id' => 'piel-auto', 'soon' => false, 'fan' => true]];
         foreach (panel::SKINS as $skin) {
             $dir = '/local/oksigeniaeguahe/pub/pieles/' . $skin . '/';
             $ready = is_readable($CFG->dirroot . $dir . 'piel.css');
             [$img, $dark] = $picture($skin);
             $out[] = ['value' => $skin, 'name' => get_string('skin_' . $skin, $c),
                 'help' => get_string($ready ? 'panel_skin_' . $skin . '_help' : 'panel_skin_soon', $c),
-                'checked' => $chosen === $skin, 'auto' => false, 'img' => $img, 'imgdark' => $dark, 'id' => 'piel-' . $skin,
+                'checked' => $chosen === $skin, 'auto' => false, 'fan' => false, 'img' => $img, 'imgdark' => $dark,
+                'id' => 'piel-' . $skin,
                 'soon' => !$ready];
         }
         return $out;

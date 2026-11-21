@@ -375,7 +375,8 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         }
         $was = (int) ($said[(int) $adult->id]->said ?? -1);
         if (optional_param('a' . $adult->id . '_alumni', 0, PARAM_BOOL)) {
-            $saved = alumni::set($household, (int) $adult->id, alumni::YES, 'family') || $saved;
+            $year = alumni::year(optional_param('a' . $adult->id . '_alumniyear', '', PARAM_TEXT));
+            $saved = alumni::set($household, (int) $adult->id, alumni::YES, 'family', 0, $year) || $saved;
         } else if ($was === alumni::YES) {
             $saved = alumni::set($household, (int) $adult->id, alumni::NO, 'family') || $saved;
         }

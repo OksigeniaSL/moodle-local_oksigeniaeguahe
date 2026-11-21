@@ -578,6 +578,9 @@ class panel_inbox {
         global $DB;
         $c = self::C;
         $latest = households::latest(array_keys($list));
+        // The families of former students, with their mortarboard by the name.
+        $first = reset($list);
+        $alumni = $first ? alumni::families((int) $first->centreid) : [];
         $rows = [];
         foreach ($list as $household) {
             $info = $latest[$household->id] ?? ['last' => null, 'said' => null, 'answer' => null];
@@ -627,6 +630,7 @@ class panel_inbox {
                 'stamp' => ['top' => get_string($waiting ? 'panel_stamp_came' : 'panel_answered', $c),
                     'day' => rtrim(userdate($moment, '%a %d'), '.'), 'hour' => panel::hour($moment)],
                 'adults' => panel::adults_line($household->adults),
+                'alumni' => isset($alumni[(int) $household->id]),
                 'children' => $children,
                 'via' => $via,
                 'fromai' => $fromai ? \core_text::strtoupper(\core_text::substr($aiwords, 0, 1)) .

@@ -640,7 +640,7 @@
                     <div class="pieles" role="group" aria-labelledby="aj-panel-t">
                         {{#skins}}
                         <button class="piel-opcion{{#auto}}{{^img}} auto{{/img}}{{/auto}}" type="submit" name="skin" value="{{value}}" formaction="{{action}}#aj-panel" aria-pressed="{{#checked}}true{{/checked}}{{^checked}}false{{/checked}}"{{#soon}} disabled{{/soon}}>
-                            {{#img}}<span class="piel-muestra"><img class="dia" src="{{img}}" alt="" width="480" height="300" loading="lazy">{{#imgdark}}<img class="noche" src="{{imgdark}}" alt="" width="480" height="300" loading="lazy">{{/imgdark}}</span>{{/img}}
+                            {{#img}}<span class="piel-muestra{{#fan}} abanico{{/fan}}"><img class="dia" src="{{img}}" alt="" width="480" height="300" loading="lazy">{{#imgdark}}<img class="noche" src="{{imgdark}}" alt="" width="480" height="300" loading="lazy">{{/imgdark}}</span>{{/img}}
                             <span class="lampara" aria-hidden="true"></span>
                             <span class="piel-texto"><b>{{name}}</b><span class="secundario">{{help}}</span></span>
                         </button>

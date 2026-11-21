@@ -19071,3 +19071,46 @@ html {
 .estudio-familia {
     margin: 0 0 10px;
 }
+
+/* A family of former students, in its row of the inbox: a small mortarboard after the names */
+.birrete-fila {
+    display: inline-block;
+    vertical-align: -2px;
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.birrete-fila .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.estudio-aqui.es-quien {
+    color: var(--eg-tinta-2);
+}
+
+/* The backpack of a new student of a family of former students: a small mortarboard on it */
+.an-antigua {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+}
+
+.an-birrete-mini {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 13px;
+    height: 13px;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+/* The one that goes with the offer: the three skins in a fan, on the card itself */
+.piel-muestra.abanico {
+    background: none;
+    overflow: visible;
+}
+
+.piel-opcion[aria-pressed="true"] .piel-muestra.abanico {
+    box-shadow: none;
+}

@@ -204,7 +204,12 @@ class panel_newstudents {
             }
             return implode(' · ', $out);
         };
-        $bags = fn(string $k, int $n) => array_fill(0, max(0, $n), ['k' => $k]);
+        // One backpack per student; those of families of former students, first, with their mortarboard.
+        $studied = (array) ($o['alumni']['by'] ?? []);
+        $bags = fn(string $k, int $n) => $n > 0 ? array_map(
+            fn($i) => ['k' => $k, 'alumni' => $i < (int) ($studied[$k] ?? 0)],
+            range(0, $n - 1)
+        ) : [];
         $rows = [];
         foreach (['inner', 'sibling'] as $key) {
             if ($key === 'sibling' && !$o['hasroll']) {

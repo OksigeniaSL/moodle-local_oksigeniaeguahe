@@ -6710,3 +6710,17 @@ html {
 .fichas-sueltas {
     margin-top: 10px;
 }
+
+.persona-datos .campo-promocion {
+    clear: both;
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 8px;
+}
+
+.persona-datos .campo-promocion input {
+    max-width: 10em;
+}
+
+.persona-datos .campo-promocion[hidden] {
+    display: none;
+}

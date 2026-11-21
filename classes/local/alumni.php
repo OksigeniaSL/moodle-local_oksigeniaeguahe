@@ -186,7 +186,7 @@ class alumni {
             $lang = (string) ($centre->lang ?? '') ?: current_language();
             $name = self::adult_name((int) $household->id, $adultid, $lang);
             $key = 'alumni_noted_' . ($source === 'list' ? 'list' : ($source === 'family' ? 'family' : 'team')) . '_' .
-                ($said === self::YES ? 'yes' : 'no') . ($source === 'list' && (string) $record['year'] !== '' ? '_year' : '');
+                ($said === self::YES ? 'yes' : 'no') . ($said === self::YES && (string) $record['year'] !== '' ? '_year' : '');
             households::note($household, $userid, get_string_manager()->get_string(
                 $key,
                 self::C,

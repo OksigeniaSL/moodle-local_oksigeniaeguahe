@@ -546,6 +546,7 @@ class metrics {
         }
         $newby = ['ad' => 0, 'campaign' => 0, 'none' => 0];
         $kinds = [];
+        $partof = [];
         foreach (array_keys($new) as $student) {
             $mine = array_keys($homes[$student] ?? []);
             if (isset($inner[$student])) {
@@ -559,6 +560,7 @@ class metrics {
                 $by = array_intersect_key(array_flip($mine), $ads) ? 'ad' :
                     (array_intersect_key(array_flip($mine), $other) ? 'campaign' : 'none');
                 $newby[$by]++;
+                $partof[$student] = $by;
             }
             $kinds[$student] = $kind;
             $groups[$kind]['n']++;
@@ -567,13 +569,16 @@ class metrics {
         }
         // The new students whose family has a mother, a father or someone who studied at the centre, as far as it is known.
         $known = alumni::known($centreid);
-        $alumni = ['n' => 0, 'fresh' => 0, 'known' => $known];
+        $alumni = ['n' => 0, 'fresh' => 0, 'known' => $known, 'by' => []];
         if ($known) {
             $tokens = alumni::tokens($centreid);
             foreach (array_keys($new) as $student) {
                 if (array_intersect_key($homes[$student] ?? [], $tokens)) {
                     $alumni['n']++;
                     $alumni['fresh'] += in_array($kinds[$student], ['newfamily', 'unknown'], true) ? 1 : 0;
+                    // By shelf, to put their mortarboard on their backpacks: inner, sibling, or the part of new families.
+                    $shelf = $kinds[$student] === 'newfamily' ? $partof[$student] : $kinds[$student];
+                    $alumni['by'][$shelf] = ($alumni['by'][$shelf] ?? 0) + 1;
                 }
             }
         }
