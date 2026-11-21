@@ -207,8 +207,10 @@ final class seen_test extends \advanced_testcase {
         $event = events::get($eventid, (int) $centre->id);
         $this->assertCount(3, invites::eligible($event));
         $sink = $this->redirectEmails();
-        $this->assertSame(2, invites::send($event, $centre, (int) get_admin()->id, time(), 'boardgames'));
-        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time()), 'Then the rest.');
+        $all = array_keys(invites::eligible($event));
+        $some = \local_oksigeniaeguahe\local\hobbies::households_with($all, ['boardgames']);
+        $this->assertSame(2, invites::send($event, $centre, (int) get_admin()->id, time(), $some));
+        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time(), $all), 'Then the rest.');
         $sink->close();
     }
 

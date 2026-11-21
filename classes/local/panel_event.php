@@ -433,7 +433,9 @@ class panel_event {
             return false;
         }
         $c = self::C;
-        $eligible = array_keys(invites::eligible($event));
+        $centre = centres::get((int) $event->centreid);
+        $all = invites::eligible($event);
+        $eligible = array_keys($all);
         $can = count($eligible);
         $done = invites::count((int) $event->id);
         // What goes with the act: the families where an adult said they like it, to invite only them if it fits.
@@ -448,8 +450,33 @@ class panel_event {
         }
         $some = $hobby !== '' ? $by[$hobby] : 0;
         $a = (object) ['n' => $some, 'of' => $can, 'what' => \core_text::strtolower($hobby !== '' ? hobbies::name($hobby) : '')];
+        // By the way each family chose: how many by email and by phone, what WhatsApp costs, and who approves it.
+        $emails = count(array_filter($all, fn($h) => $h->reachemail));
+        $phones = array_keys(array_filter($all, fn($h) => $h->reachphone));
+        $quote = $canact && $centre ? invites::quote($centre, $phones) : null;
+        $cost = '';
+        if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
+            $cost = get_string((int) $quote['whatsapp'] === 1 ? 'panel_invite_cost_one' : 'panel_invite_cost', $c, (object) [
+                'n' => (int) $quote['whatsapp'], 'cost' => self::money(
+                    $centre,
+                    (float) ($quote['cost'] ?? 0),
+                    (string) ($quote['currency'] ?? '')
+                )]);
+        }
+        $state = invites::state(invites::last_bulk((int) $event->id));
         return [
             'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
+            'ways' => $phones ? get_string('panel_invite_ways', $c, (object) ['email' => $emails, 'phone' => count($phones)]) : '',
+            'cost' => $cost,
+            'approval' => $quote && !empty($quote['approval']) ? get_string('panel_invite_approval', $c, implode(
+                ' · ',
+                array_map('strval', (array) ($quote['approvers'] ?? []))
+            )) : '',
+            // What Marandu says of the last send by phone, in its own words: waiting, approved, turned down and why.
+            'said' => $state ? (string) ($state['said'] ?? '') : '',
+            'withdraw' => $state && ($state['status'] ?? '') === 'pending' && $canact ? ['bulk' => invites::last_bulk(
+                (int) $event->id
+            )] : false,
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
             'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
@@ -464,5 +491,21 @@ class panel_event {
                 $a
             ) : '',
         ];
+    }
+
+    /**
+     * An amount in the currency Marandu counts in, as the language of the centre writes it, with its cents.
+     *
+     * @param \stdClass $centre
+     * @param float $amount
+     * @param string $currency
+     * @return string
+     */
+    protected static function money(\stdClass $centre, float $amount, string $currency): string {
+        if ($currency === '' || !class_exists('\NumberFormatter')) {
+            return centres::money($centre, $amount, 2);
+        }
+        $format = new \NumberFormatter(centres::locale($centre), \NumberFormatter::CURRENCY);
+        return (string) $format->formatCurrency($amount, $currency);
     }
 }

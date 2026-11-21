@@ -91,6 +91,9 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
         'visit_changed' => ['examples' => ['Los Almendros School', 'Saturday 21 November, from 11:00 to 13:00, in the hall'],
             'perweek' => 0.05],
         'visit_thanks' => ['examples' => ['Los Almendros School', 'Lucía Medina'], 'perweek' => 0.2],
+        // The invitation to an open act, sent to many with its approval: it counts as marketing.
+        'act_invitation' => ['examples' => ['Los Almendros School', 'Spring festival', 'Saturday 14 March, 11:00'],
+            'perweek' => 0.05],
     ];
 }
 
@@ -265,4 +268,16 @@ function local_oksigeniaeguahe_oksigeniaaty_home_cards(int $userid): array {
  */
 function local_oksigeniaeguahe_marandu_optout(int $itemid, string $channel, bool $out, string $source = '', int $time = 0): void {
     \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out);
+}
+
+/**
+ * Oksigenia Marandu says someone approved or turned down a send to many of admissions (an invitation by phone): approved,
+ * each family gets its line; turned down or taken back, those families can be invited again.
+ *
+ * @param int $id The send.
+ * @param string $status queued, rejected or cancelled.
+ * @param int $userid Who decided.
+ */
+function local_oksigeniaeguahe_marandu_bulk_decided(int $id, string $status, int $userid): void {
+    \local_oksigeniaeguahe\local\invites::decided($id, $status, $userid);
 }

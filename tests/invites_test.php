@@ -91,9 +91,15 @@ final class invites_test extends \advanced_testcase {
         $this->assertStringContainsString('Inscribirse', $mail[2]);
 
         $sink = $this->redirectEmails();
-        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time()));
+        $ids = array_keys(invites::eligible($event));
+        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time(), $ids));
         $this->assertCount(1, $sink->get_messages());
-        $this->assertSame(0, invites::send($event, $centre, (int) get_admin()->id, time()), 'Once per act.');
+        $this->assertSame(0, invites::send($event, $centre, (int) get_admin()->id, time(), $ids), 'Once per act.');
+        // Through the page: the mails go in the background, none by phone without Marandu.
+        $this->assertSame(
+            ['email' => 0, 'phone' => 0, 'status' => '', 'said' => ''],
+            invites::queue($event, $centre, (int) get_admin()->id, time())
+        );
         $this->assertSame(1, invites::count($eventid));
         $this->assertContains(
             get_string('invite_note', 'local_oksigeniaeguahe', 'Festival de Infantil'),

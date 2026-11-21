@@ -1129,7 +1129,7 @@ class centres {
      * @param \stdClass $centre
      * @return string
      */
-    protected static function locale(\stdClass $centre): string {
+    public static function locale(\stdClass $centre): string {
         $parts = explode('_', current_language());
         $region = strtoupper($parts[1] ?? (string) ($centre->country ?? ''));
         return $parts[0] . ($region !== '' ? '_' . $region : '');

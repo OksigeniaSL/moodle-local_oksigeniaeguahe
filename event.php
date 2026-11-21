@@ -72,12 +72,28 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     centres::require_act((int) $centre->id);
     // Hundreds of mails do not fit in a page: they go in the background.
     $sent = invites::queue($event, $centre, (int) $USER->id, time(), optional_param('gusto', '', PARAM_ALPHA));
+    $lines = [];
+    if ($sent['email']) {
+        $lines[] = get_string($sent['email'] === 1 ? 'panel_invite_going_one' : 'panel_invite_going', $c, $sent['email']);
+    }
+    if ($sent['phone']) {
+        $lines[] = $sent['said'] !== '' ? $sent['said'] : get_string('panel_invite_going_phone', $c, $sent['phone']);
+    }
     redirect(
         new moodle_url($url, [], 'invitar'),
-        get_string($sent === 1 ? 'panel_invite_going_one' : 'panel_invite_going', $c, $sent),
+        implode(' ', $lines),
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'withdraw') {
+    // A send by phone still waiting for approval, taken back: its families can be invited again.
+    centres::require_act((int) $centre->id);
+    $bulk = required_param('bulk', PARAM_INT);
+    if ($bulk === invites::last_bulk((int) $event->id)) {
+        invites::withdraw($bulk, (int) $USER->id);
+    }
+    redirect(new moodle_url($url, [], 'invitar'));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'cancel') {
     // The act is called off: every family signed up is told, and nothing more goes out for it.

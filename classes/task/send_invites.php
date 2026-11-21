@@ -37,7 +37,7 @@ class send_invites extends \core\task\adhoc_task {
         $centre = centres::get((int) ($data->centreid ?? 0));
         $event = $centre ? events::get((int) ($data->eventid ?? 0), (int) $centre->id) : null;
         if ($event) {
-            invites::send($event, $centre, (int) ($data->userid ?? 0), time(), (string) ($data->hobby ?? ''));
+            invites::send($event, $centre, (int) ($data->userid ?? 0), time(), array_map('intval', (array) ($data->ids ?? [])));
         }
     }
 }

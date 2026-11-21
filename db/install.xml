@@ -760,6 +760,8 @@
         <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who sent the invitations"/>
+        <FIELD NAME="channel" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="email, phone (WhatsApp or Telegram, through Marandu) or both; empty, email"/>
+        <FIELD NAME="bulkid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The send to many of Marandu that carries it by phone, with its approval"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

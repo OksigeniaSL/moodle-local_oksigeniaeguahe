@@ -1566,5 +1566,21 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119301, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119400) {
+        // The invitation to an open act by the way each family chose: email, or the phone through Marandu, which waits
+        // for its approval when it costs.
+        $table = new xmldb_table('local_oksigeniaeguahe_invite');
+        $fields = [
+            new xmldb_field('channel', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'userid'),
+            new xmldb_field('bulkid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'channel'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026119400, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

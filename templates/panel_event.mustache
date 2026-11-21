@@ -155,7 +155,10 @@
             <section class="bloque invitar" id="invitar">
                 <h2>{{#str}}panel_invite_title, local_oksigeniaeguahe{{/str}}</h2>
                 <p>{{text}}</p>
+                {{#ways}}<p class="secundario">{{ways}}</p>{{/ways}}
+                {{#cost}}<p class="secundario">{{cost}}{{#approval}} {{approval}}{{/approval}}</p>{{/cost}}
                 {{#done}}<p class="secundario">{{done}}</p>{{/done}}
+                {{#said}}<p class="aviso-suave invitar-estado" role="status">{{{i.info}}}<span>{{said}}</span>{{#withdraw}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="withdraw"><input type="hidden" name="bulk" value="{{bulk}}"><button class="enlace" type="submit">{{#str}}panel_invite_withdraw, local_oksigeniaeguahe{{/str}}</button></form>{{/withdraw}}</p>{{/said}}
                 {{#haslikes}}
                 <p class="secundario">{{#str}}panel_invite_likes, local_oksigeniaeguahe{{/str}}</p>
                 <ul class="gustos-acto">{{#likes}}<li><a class="pastilla{{#current}} actual{{/current}}" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}} <b>{{n}}</b></a></li>{{/likes}}</ul>
