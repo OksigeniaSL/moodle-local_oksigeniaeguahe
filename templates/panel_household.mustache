@@ -475,6 +475,7 @@
             <section class="apartado" id="quien-escribe">
                 <header><h2>{{#str}}panel_who_writes, local_oksigeniaeguahe{{/str}}</h2>{{#canact}}<a class="enlace" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/canact}}</header>
                 <div class="adultos">
+                    {{#alumnifamily}}<p class="estudio-aqui estudio-familia">{{{i.birrete}}}<span>{{.}}</span></p>{{/alumnifamily}}
                     {{#adults}}
                     <div class="adulto"><b>{{name}}</b>
                         {{#ways}}<span class="linea-c">{{{icon}}}<span>{{text}} · <a href="{{href}}" dir="ltr">{{value}}</a></span></span>{{#warning}}<span class="correo-dudoso">{{.}}</span>{{/warning}}{{/ways}}
@@ -482,10 +483,9 @@
                         {{#likes}}<span class="le-gusta">{{.}}</span>{{/likes}}
                         {{#alumni}}<span class="estudio-aqui">{{{i.birrete}}}<span>{{text}} <span class="secundario">· {{from}}</span></span>{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="alumni"><input type="hidden" name="adulto" value="{{adultid}}"><input type="hidden" name="dijo" value="no"><button class="enlace" type="submit">{{#str}}alumni_not_so, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}</span>{{/alumni}}
                         {{#alumnimaybe}}<span class="estudio-aqui es-pregunta">{{{i.birrete}}}<span>{{.}}</span>{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="alumni"><input type="hidden" name="adulto" value="{{adultid}}"><button class="enlace" type="submit" name="dijo" value="si">{{#str}}alumni_is_them, local_oksigeniaeguahe{{/str}}</button> · <button class="enlace" type="submit" name="dijo" value="no">{{#str}}alumni_not_them, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}</span>{{/alumnimaybe}}
-                        {{#alumniask}}{{#canact}}<form class="en-linea estudio-marcar" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="alumni"><input type="hidden" name="adulto" value="{{adultid}}"><input type="hidden" name="dijo" value="si"><button class="enlace secundario" type="submit">{{#str}}alumni_mark, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}{{/alumniask}}
+                        {{#alumniask}}{{#canact}}<form class="en-linea estudio-marcar" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="alumni"><input type="hidden" name="adulto" value="{{adultid}}"><input type="hidden" name="dijo" value="si"><button class="enlace secundario" type="submit">{{alumniask}}</button></form>{{/canact}}{{/alumniask}}
                     </div>
                     {{/adults}}
-                    {{#alumnifamily}}<p class="estudio-aqui">{{{i.birrete}}}<span>{{.}}</span></p>{{/alumnifamily}}
                     <p class="secundario">{{lang}}</p>
                 </div>
                 {{#writeby}}

@@ -42,6 +42,7 @@ $string['alumni_invite_some'] = '{$a->n} das {$a->of} são famílias de antigos 
 $string['alumni_invite_some_one'] = 'Uma das {$a->of} é família de antigos alunos.';
 $string['alumni_is_them'] = 'Sim, é esta pessoa';
 $string['alumni_mark'] = 'Anotar que estudou na escola';
+$string['alumni_mark_who'] = 'Foi esta pessoa';
 $string['alumni_maybe'] = 'Estudou na escola? O nome parece-se com um da lista de antigos alunos';
 $string['alumni_maybe_year'] = 'Estudou na escola? O nome parece-se com um da lista de antigos alunos (curso de {$a})';
 $string['alumni_no'] = 'Não estudou na escola';

@@ -1198,6 +1198,8 @@ class panel_household {
         $permissions = households::permissions((int) $full->id);
         $likes = hobbies::of((int) $full->id);
         $studied = alumni::of((int) $full->id);
+        // A note says someone of the family studied at the centre: the button asks who.
+        $someone = (int) ($studied[0]->said ?? -1) === alumni::YES;
         $out = [];
         // A practice centre writes to nobody: its made-up addresses are not checked.
         $check = !centres::is_practice((int) $full->centreid);
@@ -1214,10 +1216,12 @@ class panel_household {
                 $tel = 'tel:' . preg_replace('/[^0-9+]/', '', (string) $adult->phone);
                 if (!empty($granted['whatsapp'])) {
                     $ways[] = ['icon' => panel::icon('whatsapp'), 'text' => get_string($joined ? 'panel_by_mobile_joined' :
-                        'panel_by_mobile', $c), 'value' => $adult->phone, 'href' => $tel, 'warning' => false];
+                        'panel_by_mobile', $c), 'value' => phone::display((string) $adult->phone), 'href' => $tel,
+                        'warning' => false];
                 }
                 $ways[] = ['icon' => panel::icon('telefono'), 'text' => get_string(!empty($granted['phone']) ? 'panel_calls' :
-                    'panel_phone_nopermission', $c), 'value' => $adult->phone, 'href' => $tel, 'warning' => false];
+                    'panel_phone_nopermission', $c), 'value' => phone::display((string) $adult->phone), 'href' => $tel,
+                    'warning' => false];
             }
             // What they like doing, as they told it on their page.
             $words = isset($likes[$adult->id]) ? hobbies::words($likes[$adult->id]) : '';
@@ -1232,7 +1236,8 @@ class panel_household {
                     $c
                 )] : false,
                 'alumnimaybe' => $said === alumni::MAYBE ? alumni::words($row) : false,
-                'alumniask' => $said !== alumni::YES && $said !== alumni::MAYBE];
+                'alumniask' => $said !== alumni::YES && $said !== alumni::MAYBE ?
+                    get_string($someone ? 'alumni_mark_who' : 'alumni_mark', $c) : false];
         }
         return $out;
     }

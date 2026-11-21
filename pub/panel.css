@@ -18994,22 +18994,28 @@ html {
     color: var(--eg-tinta-2);
 }
 
-/* Whether an adult studied at the centre: a fact with a mortarboard, the question of the list, or the way to write it */
+/* Whether an adult studied at the centre: a fact with a mortarboard, the question of the list, or the way to write it.
+   The mortarboard in its column, the words beside it and the buttons under the words. */
 .estudio-aqui {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 6px;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: start;
+    gap: 4px 8px;
     margin: 4px 0 0;
     color: var(--eg-tinta);
     font-size: 0.9375rem;
+    line-height: 1.4;
 }
 
 .estudio-aqui > .ic {
     width: 18px;
     height: 18px;
-    flex: none;
+    margin-top: 1px;
     color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.estudio-aqui > form {
+    grid-column: 2;
 }
 
 .estudio-aqui.es-pregunta {
@@ -19046,4 +19052,22 @@ html {
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.an-antiguos .an-toque {
+    font-weight: 700;
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--cf-lapiz-fuerte);
+}
+
+.an-antiguos .an-toque:hover,
+.an-antiguos .an-toque.senalado {
+    text-decoration-color: var(--cf-serie);
+    text-decoration-style: solid;
+}
+
+.estudio-familia {
+    margin: 0 0 10px;
 }
