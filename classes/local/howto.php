@@ -57,6 +57,13 @@ final class howto {
         'newlink' => ['inbox', 'index.php', ''],
         'erase' => ['inbox', 'index.php', ''],
         'code' => ['inbox', 'index.php', ''],
+        'samefamily' => ['inbox', 'index.php', ''],
+        'applysend' => ['inbox', 'index.php', ''],
+        'alumni' => ['inbox', 'index.php', ''],
+        'writeby' => ['inbox', 'index.php', ''],
+        'chatfamily' => ['inbox', 'index.php', ''],
+        'desk' => ['events', 'events.php', ''],
+        'hours' => ['metrics', 'metrics.php', ''],
         'newevent' => ['events', 'events.php', 'new'],
         'changeevent' => ['events', 'events.php', ''],
         'door' => ['events', 'events.php', ''],
@@ -108,6 +115,8 @@ final class howto {
         'skin' => 'aj-panel',
         'sharing' => 'aj-compartir',
         'ai' => 'aj-ia',
+        'brand' => 'aj-aspecto',
+        'metricsfor' => 'aj-cifras',
     ];
 
     /** @var string[] Tasks that need the AI of the centre on: the answer says so. */
@@ -439,6 +448,7 @@ final class howto {
             'retention' => (int) ($centre->retention ?? 0) ? $str('howto_value_months', (int) $centre->retention) : null,
             'messaging' => $str('centre_messaging_' . (in_array($centre->messaging ?? '', ['notices', 'conversation'], true) ?
                 $centre->messaging : 'off')),
+            'metricsfor' => $str('panel_metricsfor_' . (($centre->metricsfor ?? '') === 'heads' ? 'heads' : 'team')),
             default => null,
         };
     }

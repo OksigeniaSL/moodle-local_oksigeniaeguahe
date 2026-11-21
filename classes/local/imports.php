@@ -164,9 +164,10 @@ class imports {
             $total += $choice['kind'] === 'alumni' ? count(array_filter($records, fn($r) => $r->exact)) : count($records);
         }
         $transaction->allow_commit();
-        // A list of former students came in: every adult of the centre is looked for in it.
+        // A list of former students came in: every adult of the centre is looked for in it, in the background (a big
+        // centre and a long list take longer than a page).
         if ($made && in_array('alumni', array_column($choices, 'kind'), true)) {
-            alumni::match_centre($centreid);
+            \local_oksigeniaeguahe\task\match_alumni::queue($centreid);
         }
         // A list of the year came in: the families of Eguahe that enrolled a child, or that have one at the centre.
         if ($made && array_intersect(array_column($choices, 'kind'), ['roll', 'joins'])) {

@@ -325,6 +325,16 @@ class entries {
             return [$household, false, null];
         }
 
+        // A family that erased its data does not come back with an old row (a sheet sent again, a phone corrected):
+        // only what it sent after erasing comes in.
+        $contacts = [];
+        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+            $contacts[] = (string) ($adult->email ?? '');
+            $contacts[] = (string) ($adult->phone ?? '');
+        }
+        if (households::erased_before((int) $centre->id, array_filter($contacts), (int) ($read->time ?: 0))) {
+            return [null, false, null];
+        }
         // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
         // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
         $arrival = self::ad_arrival($entry, $read);

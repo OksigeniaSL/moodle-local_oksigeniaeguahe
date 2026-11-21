@@ -27,6 +27,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class households {
+    /** @var string The emails and phones of families that erased their data, as keyed hashes. */
+    const GONE = 'local_oksigeniaeguahe_gone';
+
     /** @var string */
     const T = 'local_oksigeniaeguahe_household';
 
@@ -990,6 +993,58 @@ class households {
     }
 
     /**
+     * Keeps the emails and phones of a family that erases its data as keyed hashes of the centre, nothing else.
+     *
+     * @param \stdClass $household
+     */
+    protected static function remember_gone(\stdClass $household): void {
+        global $DB;
+        $keys = new pseudonym((int) $household->centreid);
+        $now = time();
+        foreach ($DB->get_records(self::ADULTS, ['householdid' => $household->id], '', 'id, email, phone') as $adult) {
+            foreach ([pseudonym::email((string) $adult->email), pseudonym::phone((string) $adult->phone)] as $key) {
+                if ($key !== null) {
+                    $DB->insert_record(self::GONE, (object) ['centreid' => $household->centreid,
+                        'keyhash' => $keys->keyhash('gone', $key), 'timecreated' => $now]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether some of these emails or phones belong to a family that erased its data after a moment: a row sent before
+     * it (or without its own day) is from then, and does not come back.
+     *
+     * @param int $centreid
+     * @param array $contacts Emails and phones as written.
+     * @param int $time When the row says it was sent; 0, it does not say.
+     * @return bool
+     */
+    public static function erased_before(int $centreid, array $contacts, int $time): bool {
+        global $DB;
+        $keys = new pseudonym($centreid);
+        $hashes = [];
+        foreach ($contacts as $value) {
+            foreach ([pseudonym::email((string) $value), pseudonym::phone((string) $value)] as $key) {
+                if ($key !== null) {
+                    $hashes[] = $keys->keyhash('gone', $key);
+                }
+            }
+        }
+        if (!$hashes) {
+            return false;
+        }
+        [$in, $params] = $DB->get_in_or_equal(array_values(array_unique($hashes)), SQL_PARAMS_NAMED);
+        $erased = (int) $DB->get_field_select(
+            self::GONE,
+            'MAX(timecreated)',
+            "centreid = :centreid AND keyhash $in",
+            ['centreid' => $centreid] + $params
+        );
+        return $erased > 0 && (!$time || $time <= $erased);
+    }
+
+    /**
      * Erases a household and everything about it. What is left, so the numbers of the campaign stay true, says
      * nothing about who it was: how far each child's way went, for which offer, from which channel and in which month.
      *
@@ -999,6 +1054,8 @@ class households {
         global $DB;
         $transaction = $DB->start_delegated_transaction();
         $month = date('Y-m', (int) $household->timecreated);
+        // Their emails and phones as keyed hashes only: an old row of a sheet sent again never brings them back.
+        self::remember_gone($household);
         $children = $DB->get_records(self::CHILDREN, ['householdid' => $household->id]);
         // The drawings of its children go with the family.
         foreach ($children as $child) {
@@ -1080,6 +1137,8 @@ class households {
             $limit = (new \DateTimeImmutable('@' . $now))->modify('-' . max(1, (int) $centre->retention) . ' months')
                 ->getTimestamp();
             $DB->delete_records_select(seen::T, 'centreid = ? AND timecreated < ?', [$centre->id, $limit]);
+            // The keys of families that erased their data last as long as any family of the centre would.
+            $DB->delete_records_select(self::GONE, 'centreid = ? AND timecreated < ?', [$centre->id, $limit]);
             $DB->delete_records_select(surveys::T, 'centreid = ? AND timecreated < ?', [$centre->id, $limit]);
             $DB->execute('UPDATE {' . self::T . '} SET aisummary = NULL, aisummarytime = 0
                            WHERE centreid = ? AND aisummarytime > 0 AND aisummarytime < ?', [$centre->id, $limit]);
@@ -1252,9 +1311,10 @@ class households {
      *
      * @param int $centreid
      * @param int[] $ids
+     * @param int $limit At most so many, in the order of the inbox (those waiting first); 0, all of them.
      * @return \stdClass[]
      */
-    public static function some(int $centreid, array $ids): array {
+    public static function some(int $centreid, array $ids, int $limit = 0): array {
         global $DB;
         if (!$ids) {
             return [];
@@ -1263,7 +1323,11 @@ class households {
         return self::with_people($centreid, $DB->get_records_select(
             self::T,
             "centreid = :centreid AND id $in",
-            ['centreid' => $centreid] + $params
+            ['centreid' => $centreid] + $params,
+            $limit ? 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC' : '',
+            '*',
+            0,
+            $limit
         ));
     }
 

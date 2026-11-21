@@ -260,6 +260,12 @@ class familypage {
         $ids = $visit ? array_filter(array_map('intval', explode(',', (string) ($visit->hosts ?? '')))) : [];
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
         $host = $hosts[0]->first ?? '';
+        // Named like someone of the family («Lucía» receives Lucía): the whole name, so nobody reads themselves there.
+        $same = array_filter($full->adults, fn($a) => $host !== '' &&
+            \core_text::strtolower(trim((string) $a->firstname)) === \core_text::strtolower($host));
+        if ($same) {
+            $host = $hosts[0]->name;
+        }
         $greeting = $upcoming || !$attended ? 'pub_wait' : 'pub_thanks';
         // After «Enrolled», the last moment of the page: that is it, who carries them from now on, and it stays still.
         $enrolled = settled::enrolled($children);

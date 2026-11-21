@@ -109,6 +109,9 @@ final class alumni_test extends \advanced_testcase {
         [$other, $otheradult] = $this->family($cid, 'Ana', 'García Pérez');
         $csv = "Nombre,Apellidos,Promoción\nAna,García López,2003\nLuis,Pérez Ruiz,1999\n";
         [$importid, $rows] = imports::import($cid, 'alumni', 'Antiguos alumnos', 'antiguos-alumnos.csv', $csv, 2);
+        // The look-up runs in the background (a big centre and a long list do not fit in a page), and says what it found.
+        $this->expectOutputRegex('/former students found 1, to ask 1/');
+        $this->runAdhocTasks(\local_oksigeniaeguahe\task\match_alumni::class);
         $this->assertNotEmpty($importid);
         $this->assertSame(2, $rows, 'Two former students, whatever the keys of each.');
         $this->assertSame(2, alumni::list_size($cid));

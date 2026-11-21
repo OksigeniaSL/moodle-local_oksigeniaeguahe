@@ -112,8 +112,9 @@ class panel_inbox {
                 $found = count($list);
             }
         } else if ($picked !== null) {
-            $list = households::some($centreid, $picked);
-            $found = count($list);
+            // The families a filter picks, as many as the list shows (thousands of former students in a big centre).
+            $list = households::some($centreid, $picked, $limit);
+            $found = count($picked);
         } else {
             $list = households::inbox($centreid, $waitingonly, $limit, false, $course, $stage);
             $found = households::inbox_count($centreid, $waitingonly, $course, $stage);
@@ -434,6 +435,10 @@ class panel_inbox {
         );
         // Only those whose birthday is yesterday, today or tomorrow: the rest has nothing to propose today.
         $days = array_map(fn($d) => userdate($now + $d * DAYSECS, '%m-%d'), [-1, 0, 1]);
+        // Born on 29 February: in a year without it, their birthday is on the 28th (as birthdays::in_year() says).
+        if (!checkdate(2, 29, (int) userdate($now, '%Y')) && array_intersect($days, ['02-28', '03-01'])) {
+            $days[] = '02-29';
+        }
         $ids = [];
         foreach ($kids as $kid) {
             if (in_array(substr((string) $kid->birthdate, 5, 5), $days, true)) {
@@ -441,9 +446,12 @@ class panel_inbox {
             }
         }
         $out = [];
+        // The households in one go, not one query each.
+        $homes = $ids ? $DB->get_records_list(households::T, 'id', array_values($ids)) : [];
         foreach ($ids as $id) {
-            $household = households::get((int) $id, (int) $centre->id);
-            $step = $household ? birthdays::step($household, $centre, $now) : null;
+            $household = $homes[$id] ?? null;
+            $step = $household && (int) $household->centreid === (int) $centre->id ?
+                birthdays::step($household, $centre, $now) : null;
             if ($step) {
                 $out[(int) $id] = $step['step'];
             }

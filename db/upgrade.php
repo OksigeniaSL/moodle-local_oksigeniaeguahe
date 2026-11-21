@@ -1676,5 +1676,21 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119800, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119900) {
+        // The emails and phones of families that erased their data, as keyed hashes: an old row of a sheet sent again,
+        // with a phone the team corrected, never brings them back (review of 21-11).
+        $table = new xmldb_table('local_oksigeniaeguahe_gone');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('keyhash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_index('centrekey', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'keyhash']);
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026119900, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

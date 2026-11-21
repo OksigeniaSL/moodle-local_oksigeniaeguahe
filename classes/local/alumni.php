@@ -352,18 +352,57 @@ class alumni {
         if (!$DB->record_exists(self::LIST, ['centreid' => $centreid])) {
             return $out;
         }
+        if (centres::is_practice($centreid)) {
+            return $out;
+        }
+        // In memory, once: the keys of the list and who was already said. A big centre (thousands of adults against a
+        // list of thousands) was a few queries per adult, inside the page that imports the list.
         $keys = new pseudonym($centreid);
+        $list = [];
+        $rows = $DB->get_recordset(self::LIST, ['centreid' => $centreid], 'exact DESC, id ASC', 'id, keyhash, exact, year');
+        foreach ($rows as $row) {
+            $list[$row->keyhash][] = $row;
+        }
+        $rows->close();
+        $said = [];
+        $rows = $DB->get_recordset(self::T, ['centreid' => $centreid], '', 'id, householdid, adultid');
+        foreach ($rows as $row) {
+            $said[$row->householdid . ':' . $row->adultid] = true;
+        }
+        $rows->close();
         $homes = $DB->get_records(households::T, ['centreid' => $centreid], '', 'id, centreid');
         $adults = $DB->get_recordset(households::ADULTS, ['centreid' => $centreid], '', 'id, householdid, firstname, lastname');
         foreach ($adults as $adult) {
-            if (!isset($homes[$adult->householdid])) {
+            if (!isset($homes[$adult->householdid]) || isset($said[$adult->householdid . ':' . $adult->id])) {
                 continue;
             }
-            $said = self::match($homes[$adult->householdid], $adult, $keys);
-            if ($said === self::YES) {
-                $out[0]++;
-            } else if ($said === self::MAYBE) {
-                $out[1]++;
+            $found = [];
+            foreach (self::name_keys(trim($adult->firstname . ' ' . ($adult->lastname ?? ''))) as $key => $whole) {
+                foreach ($list[$keys->keyhash(self::KIND, $key)] ?? [] as $row) {
+                    $found[] = [$row, $whole];
+                }
+            }
+            if (!$found) {
+                continue;
+            }
+            // As match() reads them: the exact ones first, then by their order on the list.
+            usort($found, fn($a, $b) => [(int) $b[0]->exact, (int) $a[0]->id] <=> [(int) $a[0]->exact, (int) $b[0]->id]);
+            $answer = null;
+            $year = '';
+            foreach ($found as [$row, $whole]) {
+                if ($whole && $row->exact) {
+                    $answer = self::YES;
+                    $year = (string) $row->year;
+                    break;
+                }
+                if ($whole xor $row->exact) {
+                    $answer = self::MAYBE;
+                    $year = $year !== '' ? $year : (string) $row->year;
+                }
+            }
+            if ($answer !== null) {
+                self::set($homes[$adult->householdid], (int) $adult->id, $answer, 'list', 0, $year);
+                $out[$answer === self::YES ? 0 : 1]++;
             }
         }
         $adults->close();
@@ -378,7 +417,7 @@ class alumni {
     public static function list_removed(int $centreid): void {
         global $DB;
         $DB->delete_records(self::T, ['centreid' => $centreid, 'source' => 'list']);
-        self::match_centre($centreid);
+        \local_oksigeniaeguahe\task\match_alumni::queue($centreid);
     }
 
     /**

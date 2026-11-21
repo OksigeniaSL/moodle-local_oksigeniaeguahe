@@ -643,6 +643,20 @@
         <INDEX NAME="fieldid" UNIQUE="false" FIELDS="fieldid"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_gone" COMMENT="Keyed hashes of the emails and phones of families that erased their data: an old row of a sheet or a bridge never brings them back">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="keyhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="HMAC of an email or a phone, with the secret of the centre"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When they erased: what was sent after it comes in"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrekey" UNIQUE="false" FIELDS="centreid, keyhash"/>
+      </INDEXES>
+    </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_arrival" COMMENT="What came in through an entry, by its own identifier, so nothing comes in twice">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
