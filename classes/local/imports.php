@@ -36,7 +36,7 @@ class imports {
     const TABLES = ['contacts' => 'local_oksigeniaeguahe_pastcontact', 'joins' => 'local_oksigeniaeguahe_student',
         'leaves' => 'local_oksigeniaeguahe_student', 'roll' => 'local_oksigeniaeguahe_student',
         'students' => 'local_oksigeniaeguahe_student', 'totals' => 'local_oksigeniaeguahe_enrolcount',
-        'population' => 'local_oksigeniaeguahe_population'];
+        'population' => 'local_oksigeniaeguahe_population', 'alumni' => 'local_oksigeniaeguahe_alumnus'];
 
     /** @var array The channels of the format of Eguahe, as Eguahe names them. */
     const CHANNELS = ['web_form' => 'webform', 'visit_booking' => 'visit', 'open_day' => 'openday',
@@ -141,7 +141,8 @@ class imports {
             }
             $plan = recognise::sheet($sheet, $filename, $choice['kind']);
             $choice += ['label' => $plan['label'], 'schoolyear' => $plan['schoolyear']];
-            [$records, $left] = self::records($centreid, $plan, $choice, $keys);
+            $flagged = [];
+            [$records, $left] = self::records($centreid, $plan, $choice, $keys, $flagged);
             $skipped += $left;
             if (!$records) {
                 continue;
@@ -149,17 +150,24 @@ class imports {
             $importid = (int) $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'kind' => $choice['kind'],
                 'label' => \core_text::substr(trim((string) $choice['label']) ?: $plan['label'], 0, 100),
                 'filename' => \core_text::substr($filename, 0, 255), 'sheet' => \core_text::substr($plan['name'], 0, 100),
-                'rowcount' => count($records), 'userid' => $userid, 'timecreated' => time(),
+                'rowcount' => $choice['kind'] === 'alumni' ? count(array_filter($records, fn($r) => $r->exact)) : count($records),
+                'userid' => $userid, 'timecreated' => time(),
                 'partial' => $choice['kind'] === 'roll' && !empty($choice['partial']) ? 1 : 0]);
             foreach ($records as $record) {
                 $record->centreid = $centreid;
                 $record->importid = $importid;
             }
             $DB->insert_records(self::TABLES[$choice['kind']], $records);
+            // The families whose column said someone of them studied at the centre.
+            alumni::from_import($centreid, $importid, $flagged);
             $made++;
-            $total += count($records);
+            $total += $choice['kind'] === 'alumni' ? count(array_filter($records, fn($r) => $r->exact)) : count($records);
         }
         $transaction->allow_commit();
+        // A list of former students came in: every adult of the centre is looked for in it.
+        if ($made && in_array('alumni', array_column($choices, 'kind'), true)) {
+            alumni::match_centre($centreid);
+        }
         // A list of the year came in: the families of Eguahe that enrolled a child, or that have one at the centre.
         if ($made && array_intersect(array_column($choices, 'kind'), ['roll', 'joins'])) {
             try {
@@ -323,9 +331,10 @@ class imports {
      * @param array $plan From recognise::sheet().
      * @param array $choice kind, label, schoolyear.
      * @param pseudonym $keys
+     * @param array $flagged The tokens of the families whose column said someone of them studied at the centre.
      * @return array [records, rows left out]
      */
-    protected static function records(int $centreid, array $plan, array $choice, pseudonym $keys): array {
+    protected static function records(int $centreid, array $plan, array $choice, pseudonym $keys, array &$flagged = []): array {
         $columns = $plan['columns'];
         $kind = $choice['kind'];
         $places = centres::municipalities(centres::get($centreid));
@@ -365,6 +374,26 @@ class imports {
                 array_map([pseudonym::class, 'email'], self::values($row, $columns, 'email')),
                 array_map([pseudonym::class, 'phone'], self::values($row, $columns, 'phone'))
             ), fn($k) => $k !== null && !isset($shared[$k])));
+            if ($kind === 'alumni') {
+                // A former student: the keys of their name and the year they left, never the name.
+                $names = array_merge(self::values($row, $columns, 'fullname'), self::values($row, $columns, 'childname'));
+                $first = implode(' ', self::values($row, $columns, 'firstname'));
+                $last = implode(' ', self::values($row, $columns, 'surname'));
+                if ($first !== '' || $last !== '') {
+                    $names[] = trim($first . ' ' . $last);
+                }
+                $year = $v('alumniyear') ?: ($v('schoolyear') ?: $v('year'));
+                $rows = [];
+                foreach (array_filter(array_map('trim', $names)) as $name) {
+                    $rows = array_merge($rows, alumni::list_rows($keys, $name, $year));
+                }
+                if (!$rows) {
+                    $skipped++;
+                    continue;
+                }
+                array_push($out, ...$rows);
+                continue;
+            }
             if ($kind === 'contacts') {
                 $date = recognise::date($v('date'), $monthfirst['date']);
                 if (!$date) {
@@ -373,6 +402,9 @@ class imports {
                 }
                 $household = preg_match(self::TOKEN, $v('householdtoken')) ? $v('householdtoken') :
                     $keys->token('household', $hkeys);
+                if (self::yes($v('alumniflag'))) {
+                    $flagged[] = $household;
+                }
                 $skeys = array_map([pseudonym::class, 'name'], self::values($row, $columns, 'childname'));
                 $platform = \core_text::strtolower($v('platform'));
                 $contactkind = in_array($v('kindcol'), self::CONTACT_KINDS, true) ? $v('kindcol') :
@@ -424,6 +456,9 @@ class imports {
                 $student = preg_match(self::TOKEN, $v('studenttoken')) ? $v('studenttoken') : $keys->token('student', $skeys);
                 $household = preg_match(self::TOKEN, $v('householdtoken')) ? $v('householdtoken') :
                     (array_filter($hkeys) ? $keys->token('household', $hkeys) : null);
+                if ($household !== null && self::yes($v('alumniflag'))) {
+                    $flagged[] = $household;
+                }
                 [$grade, $group] = grades::split_group($v('grade'));
                 $start = self::year_start($schoolyear);
                 $in = recognise::date($v('datein'), $monthfirst['datein']);
@@ -496,8 +531,12 @@ class imports {
         $import = $DB->get_record(self::T, ['id' => $importid, 'centreid' => $centreid], '*', MUST_EXIST);
         $transaction = $DB->start_delegated_transaction();
         $DB->delete_records(self::TABLES[$import->kind], ['importid' => $import->id]);
+        $DB->delete_records(alumni::T, ['importid' => $import->id]);
         $DB->delete_records(self::T, ['id' => $import->id]);
         pseudonym::clean($centreid);
         $transaction->allow_commit();
+        if ($import->kind === 'alumni') {
+            alumni::list_removed($centreid);
+        }
     }
 }

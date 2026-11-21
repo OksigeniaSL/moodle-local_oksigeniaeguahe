@@ -205,6 +205,8 @@
                         <div class="campo"><label for="a{{id}}-a">{{last}}</label><input id="a{{id}}-a" name="a{{id}}_lastname" value="{{lastname}}" maxlength="100" autocomplete="family-name" dir="auto"></div>
                         <div class="campo"><label for="a{{id}}-t">{{phone}}</label><input id="a{{id}}-t" name="a{{id}}_phone" value="{{phonevalue}}" type="tel" maxlength="30" autocomplete="tel" dir="ltr"></div>
                         <div class="campo"><label for="a{{id}}-c">{{email}}</label><input id="a{{id}}-c" name="a{{id}}_email" value="{{emailvalue}}" type="email" maxlength="100" autocomplete="email" dir="ltr"></div>
+                        <input type="hidden" name="a{{id}}_alumnishown" value="1">
+                        <label class="ficha-papel ficha-alumni"><input type="checkbox" name="a{{id}}_alumni" value="1"{{#alumni}} checked{{/alumni}}><span class="palabra">{{alumnilabel}}</span></label>
                     </fieldset>
                     {{/rows}}
                     <fieldset class="persona-datos persona-nueva">
@@ -215,6 +217,7 @@
                         <div class="campo"><label for="n-a">{{last}}</label><input id="n-a" name="n_lastname" maxlength="100" autocomplete="off" dir="auto"></div>
                         <div class="campo"><label for="n-t">{{phone}}</label><input id="n-t" name="n_phone" type="tel" maxlength="30" autocomplete="off" dir="ltr"></div>
                         <div class="campo"><label for="n-c">{{email}}</label><input id="n-c" name="n_email" type="email" maxlength="100" autocomplete="off" dir="ltr"></div>
+                        <label class="ficha-papel ficha-alumni"><input type="checkbox" name="n_alumni" value="1"><span class="palabra">{{alumnilabel}}</span></label>
                     </fieldset>
                     <button class="boton secundario" type="submit">{{save}}</button>
                 </form>

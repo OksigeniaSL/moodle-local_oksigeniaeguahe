@@ -41,7 +41,7 @@ class export {
         $out = [];
         foreach (
             ['family', 'emails', 'phones', 'child', 'home', 'birth', 'course', 'stage', 'since', 'arrived', 'channel',
-                'heard', 'measured', 'place', 'moving', 'waiting'] as $key
+                'heard', 'measured', 'place', 'moving', 'alumni', 'waiting'] as $key
         ) {
             $out[$key] = get_string('export_col_' . $key, self::C);
         }
@@ -66,6 +66,19 @@ class export {
         foreach ($DB->get_recordset_select(households::ADULTS, 'centreid = ?', [$centre->id], 'id ASC') as $adult) {
             $adultsof[(int) $adult->householdid][] = $adult;
         }
+        // Who studied at the centre, by family: their names, or «someone of the family».
+        $studied = [];
+        $studiedrows = $DB->get_recordset_select(
+            alumni::T,
+            'centreid = ? AND householdid > 0 AND said = ?',
+            [$centre->id, alumni::YES],
+            '',
+            'id, householdid, adultid'
+        );
+        foreach ($studiedrows as $r) {
+            $studied[(int) $r->householdid][] = (int) $r->adultid;
+        }
+        $studiedrows->close();
         $childrenof = [];
         foreach ($DB->get_recordset_select(households::CHILDREN, 'centreid = ?', [$centre->id], 'id ASC') as $child) {
             $childrenof[(int) $child->householdid][] = $child;
@@ -88,6 +101,14 @@ class export {
                 'measured' => arrival::of($household)[0],
                 'place' => trim((string) ($household->municipalityname ?? '')),
                 'moving' => !empty($household->moving) ? get_string('yes') : '',
+                'alumni' => implode('; ', array_unique(array_map(function ($id) use ($adults, $c) {
+                    foreach ($adults as $a) {
+                        if ((int) $a->id === $id) {
+                            return trim($a->firstname . ' ' . $a->lastname);
+                        }
+                    }
+                    return get_string('alumni_someone', $c);
+                }, $studied[(int) $household->id] ?? []))),
                 'waiting' => $date((int) $household->waitingsince),
             ];
             $children = $childrenof[(int) $household->id] ?? [null];

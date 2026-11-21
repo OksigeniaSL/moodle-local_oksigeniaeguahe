@@ -64,6 +64,9 @@ class recognise {
         'address' => ['direccion', 'domicilio', 'address', 'endereco', '\bcalle\b', 'codigo postal', '\bcp\b',
             '\bzip\b'],
         'document' => ['\bdni\b', '\bnie\b', '\bnif\b', 'pasaporte', 'passport', '\bdocumento\b', '\bcpf\b'],
+        'alumniflag' => ['^(es |son |fue |fueron |padres? |madres? |tutor(es)? )?(antigu[oa]s?|ex ?)\\s?alumn',
+            '^exalumn', '^alumni$', 'former (student|pupil)', '^(estudio|estudiaron|estudiaste) (en el|aqui)',
+            '^(e |foi |pai |mae )?(antig[oa]s?|ex ?)\\s?alun', '^(alguno|alguien) .*(estudio|alumn)'],
         'incentre' => ['son del cole', 'ya (es|son) (familia|del)', 'familia del centro', 'alumnos? del centro',
             'ya en el centro', 'hermanos? en el centro', 'already', 'existing famil'],
         'childname' => [
@@ -104,6 +107,8 @@ class recognise {
         'datein' => ['fecha (de )?alta', 'fecha de (entrada|incorporacion|matricula)', 'data de matricula',
             'start date'],
         'dateout' => ['fecha (de )?baja', 'fecha de salida', 'data de saida', 'end date', 'leave date'],
+        'alumniyear' => ['promoci', 'promoca', 'graduat', 'class of', 'egres', 'ano de (salida|fin|termino)',
+            'year (left|of leaving)'],
         'grade' => ['curso', 'nivel', 'etapa', 'grade', 'course', 'clase', 'grupo', 'turma', 'serie', '\bano\b',
             'edad', 'selecciona', 'opcion'],
         'count' => ['^total$', '^alumnos$', '^matriculados$', 'numero de alumnos', '^students$', '^n$'],
@@ -120,20 +125,21 @@ class recognise {
 
     /** @var array Roles kept for the numbers, by kind of list; any other is left out. */
     const USED = [
-        'contacts' => ['date', 'platform', 'organic', 'medium', 'campaign', 'form', 'visit', 'children', 'declared',
-            'municipality', 'grade', 'incentre', 'birthdate', 'channel', 'kindcol', 'enrolledflag', 'enrolledgrade',
+        'contacts' => ['alumniflag', 'date', 'platform', 'organic', 'medium', 'campaign', 'form', 'visit', 'children',
+            'declared', 'municipality', 'grade', 'incentre', 'birthdate', 'channel', 'kindcol', 'enrolledflag', 'enrolledgrade',
             'enrolleddate'],
-        'joins' => ['grade', 'group', 'schoolyear', 'datein', 'municipality', 'locality', 'otherschool', 'birthdate'],
+        'joins' => ['alumniflag', 'grade', 'group', 'schoolyear', 'datein', 'municipality', 'locality', 'otherschool', 'birthdate'],
         'leaves' => ['grade', 'group', 'schoolyear', 'dateout', 'reason', 'leavebool', 'municipality', 'locality',
             'otherschool', 'birthdate'],
-        'roll' => ['grade', 'group', 'schoolyear', 'datein', 'dateout', 'reason', 'municipality', 'locality', 'otherschool',
-            'birthdate'],
+        'roll' => ['alumniflag', 'grade', 'group', 'schoolyear', 'datein', 'dateout', 'reason', 'municipality', 'locality',
+            'otherschool', 'birthdate'],
         'totals' => ['schoolyear', 'grade', 'count', 'refdate'],
         'population' => ['municipality', 'year', 'people', 'agecol', 'kindcol'],
+        'alumni' => ['alumniyear', 'schoolyear', 'year'],
     ];
 
     /** @var string[] Kinds of list. */
-    const KINDS = ['contacts', 'joins', 'leaves', 'roll', 'totals', 'population'];
+    const KINDS = ['contacts', 'joins', 'leaves', 'roll', 'totals', 'population', 'alumni'];
 
     /** @var string[] Email services of people, not of institutions. */
     const WEBMAIL = ['gmail', 'googlemail', 'hotmail', 'outlook', 'live', 'msn', 'yahoo', 'ymail', 'icloud', 'me', 'mac',
@@ -465,6 +471,10 @@ class recognise {
             'grade' => fn() => $share('grade') >= 0.5,
             'studentid' => fn() => $share('bool') < 0.5 && count(array_unique($values)) >= 0.9 * count($values),
             'incentre' => fn() => $share('bool') >= 0.5,
+            'alumniflag' => fn() => count(array_filter($values, fn($v) => preg_match(
+                '/^(si|no|yes|sim|nao|x|true|false|verdadero|falso|verdadeiro|1|0|)$/',
+                grades::plain((string) $v)
+            ))) >= 0.5 * max(1, count($values)),
             'leavebool' => fn() => $share('bool') >= 0.5 || $share('text') >= 0.5,
             'organic' => fn() => $share('bool') >= 0.5 || $share('text') >= 0.5,
             'count' => fn() => $share('number') >= 0.5,
@@ -528,6 +538,14 @@ class recognise {
         if (!$person) {
             return null;
         }
+        // A list of former students: so its sheet or its file says, or it has the year they left and nothing else.
+        $said = self::plain($sheetname . ' ' . $filename);
+        if (
+            preg_match('/\b(antigu[oa]s? alumn\w*|ex ?alumn\w*|alumni|former students?|promocion\w*|egresad\w*|' .
+                'antig[oa]s? alun\w*|ex ?alun\w*)\b/', $said) || (isset($has['alumniyear']) && !$identity && !isset($has['grade']))
+        ) {
+            return 'alumni';
+        }
         if (isset($has['studenttoken']) || isset($has['datein'])) {
             return 'roll';
         }
@@ -578,6 +596,8 @@ class recognise {
                 return $value('grade') && $value('count');
             case 'population':
                 return $value('municipality') && $value('people');
+            case 'alumni':
+                return $value('firstname', 'surname', 'fullname', 'childname');
         }
         return false;
     }

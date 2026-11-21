@@ -293,6 +293,7 @@ class panel_newstudents {
                 'sibling' => $g['sibling']]),
             'unfoldurl' => $url(['withcentre' => 1])->out(false),
             'nosiblings' => !$o['hasroll'],
+            'alumni' => self::alumni_line($o, $total),
         ];
     }
 
@@ -935,6 +936,35 @@ class panel_newstudents {
      */
     protected static function num(int $n): string {
         return format_float($n, 0, true, true);
+    }
+
+    /**
+     * The new students of families of former students, when the centre knows anything of them: «De familias de antiguos
+     * alumnos: 12 de los 185 (5 de ellos, de familias nuevas para el centro)».
+     *
+     * @param array $o As metrics::origins() gives it.
+     * @param int $total
+     * @return string|false
+     */
+    protected static function alumni_line(array $o, int $total) {
+        $c = self::C;
+        $a = $o['alumni'] ?? ['known' => false];
+        if (empty($a['known']) || !$total) {
+            return false;
+        }
+        $n = (int) $a['n'];
+        self::define(
+            'ex-alumni',
+            self::one('panel_ex_alumni_t', $n, $n),
+            get_string('panel_ex_alumni_w', $c),
+            get_string('panel_ex_alumni_h', $c),
+            get_string('panel_ex_alumni_c', $c)
+        );
+        if (!$n) {
+            return get_string('panel_new_alumni_none', $c, $total);
+        }
+        return self::glue(get_string($a['fresh'] ? 'panel_new_alumni' : 'panel_new_alumni_nofresh', $c, (object) [
+            'n' => self::button('ex-alumni', (string) $n), 'total' => $total, 'fresh' => (int) $a['fresh']]));
     }
 
     /**

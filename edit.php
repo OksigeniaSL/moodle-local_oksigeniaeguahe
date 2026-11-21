@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\form\household_form;
+use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
@@ -132,6 +133,7 @@ if ($data = $form->get_data()) {
             if ($adult->id && $DB->record_exists(households::ADULTS, ['id' => $adult->id, 'householdid' => $household->id])) {
                 $adult->timemodified = $now;
                 $DB->update_record(households::ADULTS, $adult);
+                alumni::match($household, $adult);
             } else {
                 households::add_adult($household, $adult);
             }

@@ -51,6 +51,8 @@ class signup {
                 'lastname' => trim(optional_param("a{$i}last", '', PARAM_TEXT)),
                 'email' => trim(optional_param("a{$i}email", '', PARAM_RAW_TRIMMED)),
                 'phone' => trim(optional_param("a{$i}phone", '', PARAM_RAW_TRIMMED)),
+                // Whether they studied at the centre themselves, when they say so.
+                'alumni' => optional_param("a{$i}alumni", 0, PARAM_BOOL) ? '1' : '',
             ];
         }
         $children = [];
@@ -121,6 +123,7 @@ class signup {
      * @return array
      */
     public static function as_self(array $data): array {
+        $data['adults'][0]['alumni'] = '';
         $me = $data['adults'][0];
         $course = (int) ($data['children'][0]['offerid'] ?? 0);
         foreach ($data['adults'] as $i => $adult) {
@@ -323,6 +326,9 @@ class signup {
                 $adult['email'] = null;
             }
             $adultid = households::add_adult($household, (object) $adult);
+            if (!empty($adult['alumni']) && empty($data['self'])) {
+                alumni::set($household, $adultid, alumni::YES, 'family');
+            }
             // The permissions are asked of whoever fills the form, the first adult.
             if ($i === 0) {
                 foreach ($data['consents'] as $consentchannel => $granted) {

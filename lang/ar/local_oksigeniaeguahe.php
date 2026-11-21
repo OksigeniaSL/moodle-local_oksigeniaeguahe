@@ -500,6 +500,7 @@ $string['pub_after_send_host'] = 'إرسال إلى {$a}';
 $string['pub_after_sending'] = 'جارٍ الإرسال…';
 $string['pub_after_sent_host'] = 'أوصلناه إلى {$a}.';
 $string['pub_after_sent_team'] = 'أوصلناه إلى فريقنا.';
+$string['pub_alumni'] = 'درس عندنا';
 $string['pub_ambassador_came'] = 'بفضلكم، جاءت {$a} عائلات للتعرّف علينا.';
 $string['pub_ambassador_came_eleven'] = 'بفضلكم، جاءت {$a} عائلة للتعرّف علينا.';
 $string['pub_ambassador_came_one'] = 'بفضلكم، جاءت عائلة للتعرّف علينا.';

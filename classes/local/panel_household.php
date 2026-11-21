@@ -218,6 +218,9 @@ class panel_household {
             'hasabout' => (bool) $answers || (bool) $untold || (int) ($household->whyothertime ?? 0),
             'mergeurl' => '',
             'adults' => self::adults($full, $joined),
+            // A note of a sheet that says someone of the family studied at the centre, without saying who.
+            'alumnifamily' => (int) (alumni::of((int) $full->id)[0]->said ?? -1) === alumni::YES ?
+                get_string('alumni_family_sheet', $c) : false,
             'lang' => get_string('panel_speak', $c, lists::LANG_NAMES[$household->lang] ?? $household->lang),
             'editurl' => (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id,
                 'id' => $household->id]))->out(false),
@@ -1194,6 +1197,7 @@ class panel_household {
         $c = self::C;
         $permissions = households::permissions((int) $full->id);
         $likes = hobbies::of((int) $full->id);
+        $studied = alumni::of((int) $full->id);
         $out = [];
         // A practice centre writes to nobody: its made-up addresses are not checked.
         $check = !centres::is_practice((int) $full->centreid);
@@ -1217,8 +1221,18 @@ class panel_household {
             }
             // What they like doing, as they told it on their page.
             $words = isset($likes[$adult->id]) ? hobbies::words($likes[$adult->id]) : '';
+            // Whether they studied at the centre: a fact with its buttons, or the question when the list only may say it.
+            $row = $studied[(int) $adult->id] ?? null;
+            $said = $row ? (int) $row->said : -1;
             $out[] = ['name' => trim($adult->firstname . ' ' . $adult->lastname), 'ways' => $ways, 'hasways' => (bool) $ways,
-                'likes' => $words !== '' ? get_string('panel_adult_likes', $c, $words) : false];
+                'likes' => $words !== '' ? get_string('panel_adult_likes', $c, $words) : false,
+                'adultid' => (int) $adult->id,
+                'alumni' => $said === alumni::YES ? ['text' => alumni::words($row), 'from' => get_string(
+                    'alumni_from_' . $row->source,
+                    $c
+                )] : false,
+                'alumnimaybe' => $said === alumni::MAYBE ? alumni::words($row) : false,
+                'alumniask' => $said !== alumni::YES && $said !== alumni::MAYBE];
         }
         return $out;
     }

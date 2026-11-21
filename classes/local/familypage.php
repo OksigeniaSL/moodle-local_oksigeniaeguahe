@@ -57,15 +57,19 @@ class familypage {
      * Their contact data as the page lists it: each adult with its name, and its phone and email as they are read.
      *
      * @param \stdClass $full households::full()
+     * @param string $lang The language of the page; empty, the family's.
      * @return array name, reach (lines), and id, phone and email for the lines of the form.
      */
-    public static function contact_list(\stdClass $full): array {
+    public static function contact_list(\stdClass $full, string $lang = ''): array {
         $out = [];
+        $said = alumni::of((int) $full->id);
+        $lang = $lang !== '' ? $lang : ((string) ($full->lang ?? '') ?: 'es');
         foreach ($full->adults as $adult) {
             $phone = (string) $adult->phone !== '' ? phone::display((string) $adult->phone) : '';
+            $studied = (int) ($said[(int) $adult->id]->said ?? -1) === alumni::YES ? publiclang::str('pub_alumni', $lang) : '';
             $out[] = ['id' => (int) $adult->id, 'name' => trim($adult->firstname . ' ' . $adult->lastname),
-                'reach' => array_values(array_filter([$phone, (string) $adult->email])), 'phone' => $phone,
-                'email' => (string) $adult->email];
+                'reach' => array_values(array_filter([$phone, (string) $adult->email, $studied])), 'phone' => $phone,
+                'email' => (string) $adult->email, 'alumni' => $studied !== ''];
         }
         return $out;
     }
@@ -82,6 +86,7 @@ class familypage {
      */
     protected static function contacts_context(\stdClass $full, string $lang, string $token, bool $saved): array {
         $str = fn(string $id) => publiclang::str($id, $lang);
+        $said = alumni::of((int) $full->id);
         return [
             'open' => $str('pub_contacts_edit'),
             'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'datos',
@@ -97,9 +102,12 @@ class familypage {
             'newhint' => $str('pub_contacts_new_hint'),
             'save' => $str('pub_contacts_save'),
             'savedline' => $str('pub_hobbies_saved'),
+            // Whether each one studied at the centre, as one more line of their card.
+            'alumnilabel' => $str('pub_alumni'),
             'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
                 'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
-                phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email], array_values($full->adults)),
+                phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email,
+                'alumni' => (int) ($said[(int) $a->id]->said ?? -1) === alumni::YES], array_values($full->adults)),
         ];
     }
 
@@ -393,7 +401,7 @@ class familypage {
                     'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
             ];
         }
-        $adults = self::contact_list($full);
+        $adults = self::contact_list($full, $lang);
         // The ways they allowed and gave the means for: WhatsApp or a call without a phone is no way.
         $means = ['email' => false, 'whatsapp' => false, 'phone' => false];
         foreach ($full->adults as $adult) {

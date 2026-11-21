@@ -27,6 +27,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\ages;
+use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\events;
@@ -366,6 +367,25 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
     }
     $before = count(households::full($household)->adults);
     $saved = households::family_contacts($household, $centre, $rows, $new);
+    // Whether each one studied at the centre: ticked, they did; unticked after having said so, they did not.
+    $said = alumni::of((int) $household->id);
+    foreach (households::full($household)->adults as $adult) {
+        if (!optional_param('a' . $adult->id . '_alumnishown', 0, PARAM_BOOL)) {
+            continue;
+        }
+        $was = (int) ($said[(int) $adult->id]->said ?? -1);
+        if (optional_param('a' . $adult->id . '_alumni', 0, PARAM_BOOL)) {
+            $saved = alumni::set($household, (int) $adult->id, alumni::YES, 'family') || $saved;
+        } else if ($was === alumni::YES) {
+            $saved = alumni::set($household, (int) $adult->id, alumni::NO, 'family') || $saved;
+        }
+    }
+    $full = households::full($household);
+    if (optional_param('n_alumni', 0, PARAM_BOOL) && count($full->adults) > $before) {
+        // The person they just added studied at the centre too.
+        $newest = max(array_keys($full->adults));
+        alumni::set($household, (int) $newest, alumni::YES, 'family');
+    }
     $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos');
     if (optional_param('fetch', 0, PARAM_BOOL)) {
         // Each line keeps itself as it is left; another person added brings the page back with them in it.
@@ -373,9 +393,8 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         @header('Content-Type: application/json; charset=utf-8');
         @header('Cache-Control: no-store');
         // What the page lists now, to say it above and write each line as it is kept («+34 600 000 002»).
-        $full = households::full($household);
         echo json_encode(['saved' => $saved, 'added' => count($full->adults) > $before, 'url' => $back->out(false),
-            'list' => familypage::contact_list($full)]);
+            'list' => familypage::contact_list($full, $lang)]);
         die();
     }
     redirect($back);

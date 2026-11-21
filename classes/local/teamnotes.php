@@ -323,8 +323,14 @@ class teamnotes {
             $lines[] = ['', $name, [['kind' => 'by', 'time' => $time]]];
         }
         foreach ($lines as [$question, $value, $gestures]) {
+            // Someone of the family studied at the centre: said again each time the sheet comes, and never a new line
+            // for a note already written before Eguahe knew these words.
+            if (array_filter($gestures, fn($g) => $g['kind'] === 'alumni')) {
+                alumni::set($household, 0, alumni::YES, 'sheet', $userid, '', false);
+            }
+            $marked = array_values(array_filter($gestures, fn($g) => !in_array($g['kind'], ['alumni', 'notalumni'], true)));
             $mark = hash('sha256', $household->id . '|' . self::plain($question) . '|' . self::plain($value) . '|' .
-                implode(',', array_map(fn($g) => $g['kind'] . '@' . ($g['time'] ?? 0), $gestures)));
+                implode(',', array_map(fn($g) => $g['kind'] . '@' . ($g['time'] ?? 0), $marked)));
             if ($DB->record_exists(self::T, ['householdid' => $household->id, 'mark' => $mark])) {
                 $counts['already'] = ($counts['already'] ?? 0) + 1;
                 continue;
@@ -430,6 +436,11 @@ class teamnotes {
                     case 'by':
                         $what[] = $str('teamnote_by', $value);
                         $said = '';
+                        break;
+                    case 'alumni':
+                        $what[] = $str('teamnote_alumni');
+                        break;
+                    case 'notalumni':
                         break;
                 }
             }

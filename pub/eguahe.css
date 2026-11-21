@@ -6699,3 +6699,14 @@ html {
 .es-salir .enlace + .enlace {
     font-weight: 500;
 }
+
+/* Whether each one studied at the centre: one more paper chip at the foot of their card, and under the adults of the
+   sign-up */
+.persona-datos .ficha-alumni {
+    clear: both;
+    margin-top: 10px;
+}
+
+.fichas-sueltas {
+    margin-top: 10px;
+}

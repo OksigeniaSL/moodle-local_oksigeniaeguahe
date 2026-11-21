@@ -67,6 +67,8 @@ class panel {
         'abajo' => ['<path d="M12 5v14M6 13l6 6 6-6"/>', 2],
         'borrar' => ['<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>', 2],
         'lapiz' => ['<path d="M15.5 4.5l4 4L8 20H4v-4z"/>', 2],
+        'birrete' => ['<path d="M2.5 9.5L12 5l9.5 4.5L12 14z"/>' .
+            '<path d="M6.5 11.8v4c1.5 1.4 3.4 2.2 5.5 2.2s4-.8 5.5-2.2v-4M21.5 9.5v5"/>', 2],
         'agarre' => ['<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/>' .
             '<circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>', 2],
         'rama' => ['<path d="M6 4v8a4 4 0 0 0 4 4h8"/><path d="M15 13l3 3-3 3"/>', 2],

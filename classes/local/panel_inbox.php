@@ -79,7 +79,10 @@ class panel_inbox {
         // The families with a birthday to celebrate today, and only them when asked.
         $birthdays = self::birthdays($centre, $now);
         $onlybirthdays = !empty($view['birthdays']) && $birthdays;
-        $list = households::inbox(
+        // The families where someone studied at the centre, also those already of the centre, when asked.
+        $alumni = alumni::families($centreid);
+        $onlyalumni = !empty($view['alumni']) && $alumni;
+        $list = $onlyalumni ? households::some($centreid, array_keys($alumni)) : households::inbox(
             $centreid,
             !$all && !$onlysiblings && !$onlyvolunteers && !$onlystarting && !$onlybirthdays
         );
@@ -125,7 +128,7 @@ class panel_inbox {
             (string) get_user_preferences(self::DENSITY, '', $userid);
         $density = in_array($density, ['fichas', 'lista'], true) ? $density : (count($list) >= self::LEDGER ? 'lista' : 'fichas');
         $base = ['c' => $centreid] + ($all ? ['all' => 1] : []) + ($course ? ['curso' => $course] : []) +
-            ($stage ? ['etapa' => $stage] : []);
+            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         $places = self::places($centre, (string) ($view['places'] ?? ''), $now, $base);
         $next = self::next_events($centre, $now);
@@ -176,9 +179,9 @@ class panel_inbox {
             'densityurls' => ['fichas' => $url($base + ['vista' => 'fichas']), 'lista' => $url($base + ['vista' => 'lista'])],
             'checkurl' => $url(['c' => $centreid, 'check' => 1]),
             'checkevery' => self::CHECK,
-            'filters' => self::filters($centre, $base, $course, $stage, $now),
+            'filters' => self::filters($centre, $base, $course, $stage, $now, count($alumni)),
             // The filters stay folded unless one is chosen.
-            'filtering' => $course || $stage !== '',
+            'filtering' => $course || $stage !== '' || $onlyalumni,
             'today' => $today,
             'hastoday' => (bool) $today,
             'days' => $days,
@@ -246,6 +249,16 @@ class panel_inbox {
                 'url' => $only ? $url(['c' => $centreid]) : $url(['c' => $centreid, $param => 1]),
                 'link' => get_string($only ? 'panel_siblings_all' : ($key === 'siblings' ? 'panel_siblings_see' :
                     'panel_story_inbox_see'), $c), 'known' => false];
+        }
+        // A name like one of the list of former students: a person says if it is them.
+        $maybe = array_keys(alumni::maybes($centreid));
+        if ($maybe) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('alumni_inbox_title', $c),
+                'text' => count($maybe) === 1 ? get_string('alumni_inbox_one', $c) :
+                    get_string('alumni_inbox_many', $c, count($maybe)),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $maybe[0]], 'quien-escribe'))
+                    ->out(false),
+                'link' => get_string('alumni_inbox_see', $c), 'known' => false];
         }
         // The same family written down twice, from the families of the last half year: a person says if it is.
         $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);
@@ -656,9 +669,17 @@ class panel_inbox {
      * @param int $course
      * @param string $stage
      * @param int $now
+     * @param int $alumni How many families of former students the centre has.
      * @return array courses, stages
      */
-    protected static function filters(\stdClass $centre, array $base, int $course, string $stage, int $now): array {
+    protected static function filters(
+        \stdClass $centre,
+        array $base,
+        int $course,
+        string $stage,
+        int $now,
+        int $alumni = 0
+    ): array {
         $c = self::C;
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         $courses = [['name' => get_string('panel_all_courses', $c), 'key' => '',
@@ -677,7 +698,14 @@ class panel_inbox {
             $stages[] = ['name' => get_string('stage_' . $each, $c), 'key' => $each,
                 'url' => $url(['etapa' => $each] + $base), 'current' => $stage === $each];
         }
-        return ['courses' => $courses, 'stages' => $stages];
+        // The families of former students of the centre, also those already of it: links, never filtered in the page.
+        $only = !empty($base['antiguos']);
+        $families = $alumni ? [
+            ['name' => get_string('panel_all_families', $c), 'url' => $url(array_diff_key($base, ['antiguos' => 1])),
+                'current' => !$only],
+            ['name' => get_string('alumni_filter', $c, $alumni), 'url' => $url(['antiguos' => 1] + $base), 'current' => $only],
+        ] : [];
+        return ['courses' => $courses, 'stages' => $stages, 'families' => $families, 'hasfamilies' => (bool) $families];
     }
 
     /**

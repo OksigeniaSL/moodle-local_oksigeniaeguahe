@@ -80,7 +80,8 @@ class signuppage {
                 $field("a{$i}last", publiclang::str('pub_lastname', $lang), $adult['lastname'], 'text', 'family-name'),
                 $field("a{$i}phone", publiclang::str('pub_phone', $lang), $adult['phone'], 'tel', 'tel', 'tel'),
                 $field("a{$i}email", publiclang::str('pub_email', $lang), $adult['email'], 'email', 'email'),
-            ]];
+            ], 'alumni' => empty($data['self']) ? ['name' => "a{$i}alumni", 'label' => publiclang::str('pub_alumni', $lang),
+                'checked' => !empty($adult['alumni'])] : false];
         }
         // The whole offer of the centre, from the youngest to the oldest: by stage and school year, so the list reads at a
         // glance; each course with the year of birth it is for, to propose it once the date of birth is written.

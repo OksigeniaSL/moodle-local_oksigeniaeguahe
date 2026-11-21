@@ -37,6 +37,9 @@ class invites {
     /** @var string The notice of Marandu that carries the invitation to a phone. */
     const NOTICE = 'act_invitation';
 
+    /** @var string Instead of something they like: only the families of former students of the centre. */
+    const ALUMNI = 'antiguos';
+
     /**
      * Whether an act is one to invite the families to: an open act still to come and open to sign up.
      *
@@ -165,7 +168,10 @@ class invites {
             return $none;
         }
         $eligible = self::eligible($event);
-        if ($hobby !== '') {
+        if ($hobby === self::ALUMNI) {
+            // Only the families of former students of the centre.
+            $eligible = array_intersect_key($eligible, alumni::families((int) $event->centreid));
+        } else if ($hobby !== '') {
             $eligible = array_intersect_key($eligible, array_flip(hobbies::households_with(array_keys($eligible), [$hobby])));
         }
         $email = array_keys(array_filter($eligible, fn($h) => $h->reachemail));

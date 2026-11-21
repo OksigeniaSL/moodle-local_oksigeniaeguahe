@@ -18993,3 +18993,57 @@ html {
 .chat-sin-mensajes small {
     color: var(--eg-tinta-2);
 }
+
+/* Whether an adult studied at the centre: a fact with a mortarboard, the question of the list, or the way to write it */
+.estudio-aqui {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 4px 0 0;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.estudio-aqui > .ic {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    color: var(--c-acento-texto, var(--eg-acento));
+}
+
+.estudio-aqui.es-pregunta {
+    padding: 6px 10px;
+    border: 1px dashed var(--eg-linea);
+    border-radius: 10px;
+}
+
+.estudio-marcar {
+    margin-top: 2px;
+}
+
+.estudio-marcar .enlace {
+    font-size: 0.875rem;
+}
+
+/* In «Where the new students come from»: those of families of former students, in a line under the shelves */
+.an-antiguos {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 14px 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+}
+
+.an-antiguos .an-birrete {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    margin-top: 2px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}

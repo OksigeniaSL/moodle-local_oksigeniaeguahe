@@ -202,6 +202,7 @@
                     </div>
                     {{/fields}}
                 </div>
+                {{#alumni}}<div class="fichas fichas-sueltas"><label class="ficha"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label></div>{{/alumni}}
             </div>
             {{/adults}}
             {{#canaddadult}}<button type="button" class="anadir para-familia" data-add="adulto">{{{i.plus}}}{{pub_another_adult}}</button>{{/canaddadult}}

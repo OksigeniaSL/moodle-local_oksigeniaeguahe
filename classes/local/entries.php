@@ -46,8 +46,8 @@ class entries {
 
     /** @var string[] What a question may be, for the team to correct it, in this order. */
     const ROLES = ['firstname', 'surname', 'fullname', 'email', 'phone', 'childname', 'grade', 'notes', 'municipality',
-        'declared', 'consent', 'incentre', 'date', 'hour', 'channel', 'team', 'staff', 'platform', 'campaign', 'adset', 'ad',
-        'form', 'ids', 'ignore'];
+        'declared', 'consent', 'incentre', 'alumniflag', 'date', 'hour', 'channel', 'team', 'staff', 'platform', 'campaign',
+        'adset', 'ad', 'form', 'ids', 'ignore'];
 
     /** @var string[] What says who someone is or how to reach them: never kept as an example of a question. */
     const PERSONAL = ['firstname', 'surname', 'fullname', 'guardianname', 'email', 'phone', 'childname', 'notes', 'ids',
@@ -388,6 +388,10 @@ class entries {
         if ($read->incentre && !$household->incentre) {
             households::complete($household, (object) ['incentre' => 1]);
         }
+        if (!empty($read->alumni)) {
+            // 1, the family said it in its form; 2, the team wrote it in its sheet.
+            alumni::set($household, 0, alumni::YES, (int) $read->alumni === 2 ? 'sheet' : 'family', 0, '', false);
+        }
         return $first;
     }
 
@@ -476,7 +480,7 @@ class entries {
         $roles = self::roles($entry, array_map('strval', array_keys($answers)));
         $r = (object) ['firstname' => '', 'lastname' => '', 'fullname' => '', 'email' => null, 'phone' => null,
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
-            'incentre' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
+            'incentre' => 0, 'alumni' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
             'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0, 'otherschool' => ''];
         $detail = [];
@@ -637,6 +641,11 @@ class entries {
                     break;
                 case 'incentre':
                     $r->incentre = $yes($value) ? 1 : 0;
+                    break;
+                case 'alumniflag':
+                    // Whether someone of the family studied at the centre, as the form or the sheet asks it.
+                    $r->alumni = $yes($value) ? ($teamsheet ? 2 : 1) : 0;
+                    $r->lines[] = $line;
                     break;
                 case 'date':
                     // «6/07/2026» is the 6th of July where days go first: never read the American way by mistake. The

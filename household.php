@@ -25,6 +25,7 @@
 
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\household_ai;
 use local_oksigeniaeguahe\local\centres;
@@ -286,6 +287,15 @@ if ($action && data_submitted() && confirm_sesskey()) {
             // The common record said they left; a person says they are still here.
             family::still_here($household);
             redirect(new moodle_url($url, [], 'se-van'));
+            break;
+        case 'alumni':
+            // A person of the team says whether an adult studied at the centre, or answers the question of the list.
+            $adultid = required_param('adulto', PARAM_INT);
+            if (isset(households::full($household)->adults[$adultid])) {
+                $said = optional_param('dijo', '', PARAM_ALPHA);
+                alumni::set($household, $adultid, $said === 'si' ? alumni::YES : alumni::NO, 'team', (int) $USER->id);
+            }
+            redirect(new moodle_url($url, [], 'quien-escribe'));
             break;
         case 'ambassador':
             // They told a person they would gladly tell another family how it went: an ambassador, with its invitation.

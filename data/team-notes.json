@@ -22,9 +22,22 @@
       "header": "^whats ?app$|^wasap$|^wsp$",
       "yes": "contacted:whatsapp",
       "no": "nowhatsapp"
+    },
+    {
+      "header": "antigu[oa]s? alumn|ex ?-?alumn|alumni|former student|antig[oa]s? alun|ex ?-?alun",
+      "yes": "alumni",
+      "no": "notalumni"
     }
   ],
   "words": [
+    {
+      "re": "\\b(no|nao) (es|son|fue|fueron|era|eran|e|foi) (antigu[oa]s?|antig[oa]s?|ex ?-?)\\s?(alumn|alun)\\w*|\\bnot (a )?(former (student|pupil)|alumn\\w*)",
+      "gesture": "notalumni"
+    },
+    {
+      "re": "(antigu[oa]s?|antig[oa]s?|\\bex ?-?)\\s?(alumn|alun)\\w*|\\b(fue|fueron|foi) (alumn|alun)\\w*|\\b(estudio|estudiaron|estudie|estudou) (aqui|en el (cole|colegio|centro)|no colegio|na escola)\\b|former (student|pupil)s?|\\balumni\\b",
+      "gesture": "alumni"
+    },
     {
       "re": "\\b(no|sin|nao|sem) (tiene |tienen |usa |usan |hay |tem )?(wasap|whatsapp|whats|wsp)\\b|without whatsapp",
       "gesture": "nowhatsapp"

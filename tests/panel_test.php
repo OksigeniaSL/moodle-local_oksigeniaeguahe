@@ -505,7 +505,7 @@ final class panel_test extends \advanced_testcase {
         $import = panel_import::context($centre);
         $this->assertFalse($import['preview']);
         $this->assertFalse($import['hasimports']);
-        $this->assertCount(6, $import['kinds']);
+        $this->assertCount(7, $import['kinds']);
         $forecast = panel_forecast::context($centre, true);
         $this->assertSame(get_string('panel_forecast_title_nodata', 'local_oksigeniaeguahe'), $forecast['head']['title']);
         $this->assertNull($forecast['reach']);

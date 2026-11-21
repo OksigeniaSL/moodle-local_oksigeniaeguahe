@@ -162,9 +162,13 @@
                 {{#haslikes}}
                 <p class="secundario">{{#str}}panel_invite_likes, local_oksigeniaeguahe{{/str}}</p>
                 <ul class="gustos-acto">{{#likes}}<li><a class="pastilla{{#current}} actual{{/current}}" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}} <b>{{n}}</b></a></li>{{/likes}}</ul>
+                {{/haslikes}}
+                {{#alumnichip}}
+                <p class="secundario">{{#str}}alumni_invite_intro, local_oksigeniaeguahe{{/str}}</p>
+                <ul class="gustos-acto"><li><a class="pastilla{{#current}} actual{{/current}}" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{{i.birrete}}}{{name}} <b>{{n}}</b></a></li></ul>
+                {{/alumnichip}}
                 {{#some}}<p>{{some}}</p>{{/some}}
                 {{#somebutton}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invite"><input type="hidden" name="gusto" value="{{hobby}}"><button class="boton principal" type="submit">{{{i.enviado}}}{{somebutton}}</button></form>{{/somebutton}}
-                {{/haslikes}}
                 {{#button}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invite"><button class="boton secundario" type="submit">{{{i.enviado}}}{{button}}</button></form>{{/button}}
                 <p class="def">{{#str}}panel_invite_help, local_oksigeniaeguahe{{/str}}</p>
             </section>

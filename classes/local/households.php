@@ -226,7 +226,7 @@ class households {
             }
         }
         $now = time();
-        return (int) $DB->insert_record(self::ADULTS, (object) [
+        $record = (object) [
             'centreid' => $household->centreid,
             'householdid' => $household->id,
             'firstname' => self::short($adult->firstname ?? '', 100) ?? '',
@@ -235,7 +235,11 @@ class households {
             'phone' => $phone,
             'timecreated' => $now,
             'timemodified' => $now,
-        ]);
+        ];
+        $record->id = (int) $DB->insert_record(self::ADULTS, $record);
+        // Whether they are on the list of former students of the centre.
+        alumni::match($household, $record);
+        return (int) $record->id;
     }
 
     /**
@@ -537,6 +541,7 @@ class households {
             if ($differs) {
                 $DB->update_record(self::ADULTS, (object) (['id' => $adult->id, 'timemodified' => $now] + $fields));
                 $changed = true;
+                alumni::match($household, (object) (['id' => $adult->id] + $fields));
             }
         }
         $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));
@@ -914,6 +919,8 @@ class households {
         }
         // What each adult likes doing, if they told it.
         $data['likes'] = hobbies::export((int) $household->id);
+        // Who studied at the centre, as they or the team said it.
+        $data['studied_at_the_centre'] = alumni::export((int) $household->id);
         // What was counted of what they did on their page and with the mails.
         $data['what_was_counted'] = seen::export((int) $household->id);
         // A visit of its own: when they said it suits them.
@@ -965,7 +972,8 @@ class households {
         }
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
-                forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T] as $table
+                forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T,
+                alumni::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

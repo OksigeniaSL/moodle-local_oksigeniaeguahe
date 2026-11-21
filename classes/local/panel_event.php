@@ -440,7 +440,9 @@ class panel_event {
         $done = invites::count((int) $event->id);
         // What goes with the act: the families where an adult said they like it, to invite only them if it fits.
         $by = hobbies::families_by($eligible);
-        $hobby = isset($by[$hobby]) ? $hobby : '';
+        // And the families of former students of the centre, to invite only them («antiguos»).
+        $alumnin = count(array_intersect_key(alumni::families((int) $event->centreid), array_flip($eligible)));
+        $hobby = isset($by[$hobby]) || ($hobby === invites::ALUMNI && $alumnin) ? $hobby : '';
         $url = fn(string $key) => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id] +
             ($key !== '' ? ['gusto' => $key] : []), 'invitar'))->out(false);
         $chips = [];
@@ -448,8 +450,11 @@ class panel_event {
             $chips[] = ['name' => hobbies::name($key), 'n' => $n, 'url' => $url($hobby === $key ? '' : $key),
                 'current' => $hobby === $key];
         }
-        $some = $hobby !== '' ? $by[$hobby] : 0;
-        $a = (object) ['n' => $some, 'of' => $can, 'what' => \core_text::strtolower($hobby !== '' ? hobbies::name($hobby) : '')];
+        $foralumni = $hobby === invites::ALUMNI;
+        $some = $foralumni ? $alumnin : ($hobby !== '' ? $by[$hobby] : 0);
+        $a = (object) ['n' => $some, 'of' => $can, 'what' => \core_text::strtolower($hobby !== '' && !$foralumni ?
+            hobbies::name($hobby) : '')];
+        $somekey = $foralumni ? 'alumni_invite_some' : 'panel_invite_some';
         // By the way each family chose: how many by email and by phone, what WhatsApp costs, and who approves it.
         $emails = count(array_filter($all, fn($h) => $h->reachemail));
         $phones = array_keys(array_filter($all, fn($h) => $h->reachphone));
@@ -484,7 +489,9 @@ class panel_event {
             'haslikes' => (bool) $chips,
             'likes' => $chips,
             'hobby' => $hobby,
-            'some' => $hobby !== '' ? get_string($some === 1 ? 'panel_invite_some_one' : 'panel_invite_some', $c, $a) : '',
+            'some' => $hobby !== '' ? get_string($some === 1 ? $somekey . '_one' : $somekey, $c, $a) : '',
+            'alumnichip' => $alumnin ? ['name' => get_string('alumni_invite_chip', $c), 'n' => $alumnin,
+                'url' => $url($foralumni ? '' : invites::ALUMNI), 'current' => $foralumni] : false,
             'somebutton' => $hobby !== '' && $canact ? get_string(
                 $some === 1 ? 'panel_invite_send_some_one' : 'panel_invite_send_some',
                 $c,

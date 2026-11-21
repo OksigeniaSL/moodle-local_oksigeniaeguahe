@@ -40,7 +40,7 @@ class lookalike {
     /** @var string[] What a household has that goes with it as a whole, by its householdid, when two are put together. */
     const MOVED = [households::CONSENTS, households::CONTACTS, households::LINKS, visits::REQUESTS, forms::ANSWERS,
         attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, entries::ARRIVALS, roster::T, events::T,
-        renewal::T, listmatch::T, teamnotes::T];
+        renewal::T, listmatch::T, teamnotes::T, alumni::T];
 
     /** @var int Two families asking for the same course look alike only if they came within this time of each other. */
     const NEAR = 180 * DAYSECS;
@@ -291,6 +291,7 @@ class lookalike {
         foreach ($adults as $from => $to) {
             $DB->set_field(households::CONSENTS, 'adultid', $to, ['adultid' => $from]);
             $DB->set_field(hobbies::T, 'adultid', $to, ['adultid' => $from]);
+            $DB->set_field(alumni::T, 'adultid', $to, ['householdid' => $k, 'adultid' => $from]);
         }
         // What the household says of itself: the older one keeps what it has, and takes what only the other knew.
         $changes = ['id' => $k, 'timemodified' => time(),
@@ -600,6 +601,7 @@ class lookalike {
         $DB->set_field_select(households::ADULTS, 'householdid', $id, "id $in", $params);
         $DB->set_field_select(households::CONSENTS, 'householdid', $id, "adultid $in", $params);
         $DB->set_field_select(hobbies::T, 'householdid', $id, "adultid $in", $params);
+        $DB->set_field_select(alumni::T, 'householdid', $id, "adultid $in", $params);
 
         // The children: each stays, goes, or is in both families (a child written down twice, again in each).
         $same = [];
@@ -663,7 +665,7 @@ class lookalike {
             foreach ((array) ($log['tables'] ?? []) as $table => $ids) {
                 if (
                     !in_array($table, self::MOVED, true) || !$ids ||
-                        in_array($table, [households::CONSENTS, hobbies::T, households::CONTACTS, renewal::T], true)
+                        in_array($table, [households::CONSENTS, hobbies::T, households::CONTACTS, renewal::T, alumni::T], true)
                 ) {
                     continue;
                 }

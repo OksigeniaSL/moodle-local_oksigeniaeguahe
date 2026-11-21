@@ -565,8 +565,21 @@ class metrics {
             $label = isset($grade[$student]) ? grades::label($centreid, $grade[$student]) : '';
             $groups[$kind]['grades'][$label] = ($groups[$kind]['grades'][$label] ?? 0) + 1;
         }
+        // The new students whose family has a mother, a father or someone who studied at the centre, as far as it is known.
+        $known = alumni::known($centreid);
+        $alumni = ['n' => 0, 'fresh' => 0, 'known' => $known];
+        if ($known) {
+            $tokens = alumni::tokens($centreid);
+            foreach (array_keys($new) as $student) {
+                if (array_intersect_key($homes[$student] ?? [], $tokens)) {
+                    $alumni['n']++;
+                    $alumni['fresh'] += in_array($kinds[$student], ['newfamily', 'unknown'], true) ? 1 : 0;
+                }
+            }
+        }
         return ['total' => count($new), 'hasroll' => $whole, 'groups' => $groups, 'newby' => $newby,
-            'kinds' => $kinds, 'homes' => array_map('array_keys', array_intersect_key($homes, $new)), 'centre' => $centre];
+            'kinds' => $kinds, 'homes' => array_map('array_keys', array_intersect_key($homes, $new)), 'centre' => $centre,
+            'alumni' => $alumni];
     }
 
     /**

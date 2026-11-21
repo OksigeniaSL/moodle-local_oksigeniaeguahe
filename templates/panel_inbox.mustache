@@ -108,9 +108,10 @@
                 </div>
             </div>
             <details class="filtros"{{#filtering}} open{{/filtering}}>
-                <summary class="filtros-titulo"><span>{{#str}}panel_filters, local_oksigeniaeguahe{{/str}}</span><span class="filtros-ahora">{{#filters.courses}}{{#current}}{{name}}{{/current}}{{/filters.courses}} · {{#filters.stages}}{{#current}}{{name}}{{/current}}{{/filters.stages}}</span>{{{i.chev}}}</summary>
+                <summary class="filtros-titulo"><span>{{#str}}panel_filters, local_oksigeniaeguahe{{/str}}</span><span class="filtros-ahora">{{#filters.courses}}{{#current}}{{name}}{{/current}}{{/filters.courses}} · {{#filters.stages}}{{#current}}{{name}}{{/current}}{{/filters.stages}}{{#filters.hasfamilies}}{{#filters.families}}{{#current}} · {{name}}{{/current}}{{/filters.families}}{{/filters.hasfamilies}}</span>{{{i.chev}}}</summary>
                 <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_course, local_oksigeniaeguahe{{/str}}">{{#filters.courses}}<a class="pastilla" href="{{url}}" data-filtro="curso" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.courses}}</div>
                 <div class="pastillas" role="group" aria-label="{{#str}}panel_filter_stage, local_oksigeniaeguahe{{/str}}">{{#filters.stages}}<a class="pastilla" href="{{url}}" data-filtro="etapa" data-clave="{{key}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.stages}}</div>
+                {{#filters.hasfamilies}}<div class="pastillas" role="group" aria-label="{{#str}}panel_filter_families, local_oksigeniaeguahe{{/str}}">{{#filters.families}}<a class="pastilla" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.families}}</div>{{/filters.hasfamilies}}
             </details>
             {{/showtools}}
             {{#hasrows}}

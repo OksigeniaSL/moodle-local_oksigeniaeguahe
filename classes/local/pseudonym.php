@@ -123,6 +123,17 @@ class pseudonym {
     }
 
     /**
+     * The keyed hash of a key of another kind, outside the tokens: the list of former students keeps only these.
+     *
+     * @param string $kind
+     * @param string $key
+     * @return string
+     */
+    public function keyhash(string $kind, string $key): string {
+        return $this->hash($kind, $key);
+    }
+
+    /**
      * The tokens these keys already point to, without making any: to find a family of Eguahe in what was imported.
      *
      * @param string $kind household or student.
