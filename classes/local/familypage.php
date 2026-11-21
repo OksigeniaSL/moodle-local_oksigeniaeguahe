@@ -69,7 +69,8 @@ class familypage {
         $url = writeby::url($token, $lang);
         $silent = writeby::silent($household);
         $pending = [];
-        foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
+        $links = writeby::join_links($household, $centre, $now);
+        foreach ($links as $channel => $link) {
             $pending[] = ['label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str(
                 'pub_writeby_' . $channel,
                 $lang
@@ -84,8 +85,10 @@ class familypage {
                 $lang
             )['daymonth']) : '',
             'backon' => publiclang::str('pub_writeby_back_on', $lang),
+            // What reaches them, full; what they marked and have not joined yet, dashed and grey (Jujol).
             'pills' => array_map(
-                fn($c) => ['icon' => writeby::icon($c), 'label' => publiclang::str('pub_writeby_' . $c, $lang)],
+                fn($c) => ['icon' => writeby::icon($c), 'label' => publiclang::str('pub_writeby_' . $c, $lang),
+                    'missing' => isset($links[$c])],
                 $now
             ),
             'haspills' => (bool) $now,

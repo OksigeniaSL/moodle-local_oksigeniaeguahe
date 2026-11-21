@@ -6446,6 +6446,12 @@ html {
     height: 18px;
 }
 
+.escribimos-pastilla.escribimos-sin-unir {
+    background: transparent;
+    border: 1.5px dashed var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
 .escribimos-falta {
     display: flex;
     flex-wrap: wrap;
@@ -6453,6 +6459,10 @@ html {
     align-items: center;
     margin: 10px 0 0;
     color: var(--eg-tinta-2);
+}
+
+.escribimos .acciones {
+    margin-top: 10px;
 }
 
 .escribimos-falta .boton svg {
