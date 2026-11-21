@@ -364,8 +364,19 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         }
         $new[$field] = trim(optional_param('n_' . $field, '', PARAM_TEXT));
     }
-    households::family_contacts($household, $centre, $rows, $new);
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos'));
+    $before = count(households::full($household)->adults);
+    $saved = households::family_contacts($household, $centre, $rows, $new);
+    $back = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos');
+    if (optional_param('fetch', 0, PARAM_BOOL)) {
+        // Each line keeps itself as it is left; another person added brings the page back with them in it.
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('Cache-Control: no-store');
+        echo json_encode(['saved' => $saved, 'added' => count(households::full($household)->adults) > $before,
+            'url' => $back->out(false)]);
+        die();
+    }
+    redirect($back);
 }
 
 if ($action === 'homename' && data_submitted() && confirm_sesskey()) {

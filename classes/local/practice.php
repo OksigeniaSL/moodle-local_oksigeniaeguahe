@@ -112,7 +112,10 @@ final class practice {
         // another in two weeks.
         $today = usergetmidnight($now);
         $door = events::get(events::save($id, (object) ['kind' => 'openday', 'name' => $str('practice_openday'),
-            'place' => $str('practice_place'), 'timestart' => max($today + MINSECS, min($today + 9 * HOURSECS, $now - HOURSECS)),
+            'place' => $str('practice_place'), 'timestart' => min(
+                $now - MINSECS,
+                max($today + MINSECS, min($today + 9 * HOURSECS, $now - HOURSECS))
+            ),
             'timeend' => max($today + 21 * HOURSECS, (int) ceil(($now + 2 * HOURSECS) / HOURSECS) * HOURSECS),
             'capacity' => 80, 'open' => 1]), $id);
         $later = $today + 14 * DAYSECS + 10 * HOURSECS;

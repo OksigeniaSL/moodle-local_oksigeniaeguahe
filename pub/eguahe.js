@@ -1296,6 +1296,44 @@
             }
         }
 
+        // Their contact data: each line keeps itself as it is left, «✓ Guardado» in its card; another person, once it has
+        // a name and a phone or an email, is kept and the page comes back with them in it. Without the script, «Guardar».
+        var contacts = document.querySelector('[data-datos]');
+        if (contacts && window.fetch && window.FormData) {
+            contacts.classList.add('al-tocar');
+            contacts.addEventListener('change', function(e) {
+                var card = e.target.closest ? e.target.closest('.persona-datos') : null;
+                if (!card) {
+                    return;
+                }
+                var fresh = card.classList.contains('persona-nueva');
+                var val = function(name) {
+                    var input = card.querySelector('[name="' + name + '"]');
+                    return input ? input.value.trim() : '';
+                };
+                if (fresh && (!val('n_firstname') || (!val('n_phone') && !val('n_email')))) {
+                    return;
+                }
+                var data = new window.FormData(contacts);
+                data.append('fetch', '1');
+                window.fetch(contacts.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'})
+                    .then(function(r) {
+                        return r.json();
+                    }).then(function(answer) {
+                        if (answer.added && answer.url) {
+                            window.location.href = answer.url;
+                            return;
+                        }
+                        var said = card.querySelector('.guardado-linea');
+                        if (answer.saved && said) {
+                            said.textContent = '\u2713 ' + contacts.getAttribute('data-guardado-texto');
+                        }
+                    }).catch(function() {
+                        contacts.classList.remove('al-tocar');
+                    });
+            });
+        }
+
         // How they want to be written to: each box takes its look when touched; with none marked, the button says so.
         var boxes = document.querySelector('.es-casillas');
         if (boxes) {

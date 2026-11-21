@@ -194,11 +194,12 @@
             {{#saved}}<p class="casa-guardado" role="status">{{saved}}</p>{{/saved}}
             <details class="en-casa datos-contacto" id="datos"{{#savedopen}} open{{/savedopen}}>
                 <summary class="enlace">{{open}}</summary>
-                <form class="hoja-casa" method="post" action="{{action}}">
+                <form class="hoja-casa" method="post" action="{{action}}" data-datos data-guardado-texto="{{savedline}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}">
                     {{#rows}}
                     <fieldset class="persona-datos">
                         <legend>{{firstname}}</legend>
+                        <span class="guardado-linea" aria-live="polite"></span>
                         <div class="campo"><label for="a{{id}}-n">{{first}}</label><input id="a{{id}}-n" name="a{{id}}_firstname" value="{{firstname}}" maxlength="100" autocomplete="given-name" dir="auto"></div>
                         <div class="campo"><label for="a{{id}}-a">{{last}}</label><input id="a{{id}}-a" name="a{{id}}_lastname" value="{{lastname}}" maxlength="100" autocomplete="family-name" dir="auto"></div>
                         <div class="campo"><label for="a{{id}}-t">{{phone}}</label><input id="a{{id}}-t" name="a{{id}}_phone" value="{{phonevalue}}" type="tel" maxlength="30" autocomplete="tel" dir="ltr"></div>
@@ -207,6 +208,7 @@
                     {{/rows}}
                     <fieldset class="persona-datos persona-nueva">
                         <legend>{{newtitle}}</legend>
+                        <span class="guardado-linea" aria-live="polite"></span>
                         <p class="ayuda-campo">{{newhint}}</p>
                         <div class="campo"><label for="n-n">{{first}}</label><input id="n-n" name="n_firstname" maxlength="100" autocomplete="off" dir="auto"></div>
                         <div class="campo"><label for="n-a">{{last}}</label><input id="n-a" name="n_lastname" maxlength="100" autocomplete="off" dir="auto"></div>

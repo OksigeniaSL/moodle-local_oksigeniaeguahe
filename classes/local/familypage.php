@@ -79,6 +79,7 @@ class familypage {
             'newtitle' => $str('pub_contacts_new'),
             'newhint' => $str('pub_contacts_new_hint'),
             'save' => $str('pub_contacts_save'),
+            'savedline' => $str('pub_hobbies_saved'),
             'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
                 'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
                 phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email], array_values($full->adults)),

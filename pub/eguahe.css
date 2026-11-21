@@ -6518,25 +6518,161 @@ html {
     }
 }
 
-/* Their contact data, changed by themselves: each person a small group, its name as a line, not a heading */
-.persona-datos {
-    display: grid;
-    gap: 10px;
-    min-width: 0;
-    margin: 0 0 18px;
-    padding: 0;
-    border: 0;
+/* Their contact data and what they like, without the look of a form (Jujol, 21 Nov 2026). Over the markup of the
+   0.101.0: each person a small card with their name written by hand, and each datum a line written in its place, as
+   on paper; it keeps itself, as the chips of «En su tiempo libre» already do. */
+
+/* ---------- «Cambiar sus datos o añadir a otra persona» ---------- */
+.datos-contacto .hoja-casa {
+    gap: 12px;
 }
 
+.persona-datos {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 2px;
+    margin: 0;
+    padding: 12px 16px 14px;
+    border: 1px solid var(--eg-linea);
+    border-radius: var(--radio);
+    background: var(--eg-superficie);
+    box-shadow: 0 8px 18px -16px var(--eg-sombra);
+}
+
+/* The name, as on the label of the backpack and in «En su tiempo libre» */
 .persona-datos legend {
-    margin-bottom: 4px;
-    padding: 0;
-    font-size: 1rem;
-    font-weight: 700;
+    float: left;
+    width: 100%;
+    margin: 0 0 4px;
+    font-family: 'Eg Mano', 'Segoe Print', 'Bradley Hand', cursive;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.1;
     color: var(--eg-tinta);
 }
 
+/* Each datum, a line: what it is, small, on the left; the value written on a dashed rule, no box */
+.persona-datos .campo {
+    clear: both;
+    grid-template-columns: 4.5em minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0 10px;
+}
+
+.persona-datos .campo label {
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--eg-tinta-2);
+}
+
 .persona-datos .campo input {
-    width: 100%;
-    max-width: none;
+    min-height: 42px;
+    padding: 8px 0 6px;
+    border: 0;
+    border-bottom: 1.5px dashed var(--eg-borde);
+    border-radius: 0;
+    background: transparent;
+    font-size: 1.0625rem;
+}
+
+.persona-datos .campo input:focus-visible {
+    outline: 0;
+    border-bottom: 2.5px solid var(--c-acento-texto);
+}
+
+/* Another person: an empty card, dashed, waiting */
+.persona-datos.persona-nueva {
+    background: transparent;
+    border: 1.5px dashed var(--eg-borde);
+    box-shadow: none;
+}
+
+.persona-datos.persona-nueva legend {
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 750;
+    color: var(--c-acento-texto);
+}
+
+.persona-datos.persona-nueva legend::before {
+    content: '+ ';
+}
+
+.persona-datos.persona-nueva .ayuda-campo {
+    clear: both;
+    margin: 0 0 4px;
+}
+
+.guardado-linea {
+    position: absolute;
+    top: 16px;
+    inset-inline-end: 16px;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--c-acento-texto);
+}
+
+/* On a phone the line keeps what it is above it */
+@media (max-width: 599px) {
+    .persona-datos .campo {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ---------- «En su tiempo libre»: under each chip ticked, its question as a line ---------- */
+.aficion-detalles {
+    display: grid;
+    gap: 6px;
+}
+
+.aficion-detalle {
+    gap: 0;
+    padding-inline-start: 12px;
+    border-inline-start: 3px solid var(--c-acento-vivo);
+}
+
+.aficion-detalle label {
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--eg-tinta-2);
+}
+
+.otra-aficion {
+    gap: 0;
+}
+
+.otra-aficion label {
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--eg-tinta-2);
+}
+
+.otra-aficion input,
+.aficion-detalle input {
+    min-height: 40px;
+    padding: 6px 0 4px;
+    border: 0;
+    border-bottom: 1.5px dashed var(--eg-borde);
+    border-radius: 0;
+    background: transparent;
+}
+
+.otra-aficion input:focus-visible,
+.aficion-detalle input:focus-visible {
+    outline: 0;
+    border-bottom: 2.5px solid var(--c-acento-texto);
+}
+
+/* With the script each line keeps itself: «Guardar» only stays without it */
+.datos-contacto .hoja-casa.al-tocar > .boton {
+    display: none;
+}
+
+/* While they change their data, the cards say it: the list above does not show what they just changed away from */
+.lo-contado div:has(> .datos-contacto[open]) > dl {
+    display: none;
 }
