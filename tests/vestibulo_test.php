@@ -178,8 +178,8 @@ final class vestibulo_test extends \advanced_testcase {
         $this->assertSame('Mandar este en su lugar', $page['str']['save']);
         $this->assertNotSame('', $page['failed']);
         $family = familypage::context(households::get((int) $first->id, (int) $centre->id), $centre, 'es', 'clave', false);
-        $this->assertSame('Cambiar su dibujo', $family['children'][0]['drawingsendname']);
-        $this->assertSame('Mandar su dibujo', $family['children'][1]['drawingsendname']);
+        $this->assertSame('¿Nos envían otro dibujo de Leo?', $family['children'][0]['drawingsendname']);
+        $this->assertSame('¿Nos envían un dibujo hecho por Noa?', $family['children'][1]['drawingsendname']);
         $hall = vestibulo::family($centre, households::full($first), false, time(), 'clave', 'es');
         $this->assertSame('portrait', $hall['children'][0]['drawing']['orientation']);
 

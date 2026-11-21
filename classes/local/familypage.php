@@ -283,7 +283,9 @@ class familypage {
                 // Asked for while they are young; one already sent can always change.
                 'drawingsend' => !$allclosed && ($drawing || ages::young($child, $offers, $centre)) ?
                     $link(['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang]) : '',
-                'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_change' : 'pub_drawing_send', $lang),
+                // Asked as a question, with their name: «¿Nos envían un dibujo hecho por Leo?» (Enrique).
+                'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_ask_other' : 'pub_drawing_ask', $lang,
+                    $tag !== '' ? $tag : $child->firstname),
                 // Their drawing, sent to someone: that drawing alone, by its own link.
                 'drawingshare' => $drawing ? ['url' => share::drawing_url($household, $child, $lang)->out(false),
                     'label' => publiclang::str('pub_drawing_share', $lang),
