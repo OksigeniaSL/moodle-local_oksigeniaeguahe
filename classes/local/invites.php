@@ -305,14 +305,46 @@ class invites {
             return;
         }
         if ($status === 'queued') {
+            // Approved only for Telegram: the families with no Telegram joined got nothing, and can be invited again.
+            if ((self::state($bulkid)['only'] ?? '') === 'telegram') {
+                self::release_without_telegram($bulkid);
+            }
             $first = $DB->get_records(self::T, ['bulkid' => $bulkid], 'id ASC', 'id, userid', 0, 1);
-            self::told_by_phone($bulkid, (int) (reset($first)->userid ?? $userid));
+            if ($first) {
+                self::told_by_phone($bulkid, (int) (reset($first)->userid ?? $userid));
+            }
             return;
         }
         if (in_array($status, ['rejected', 'cancelled'], true)) {
             $DB->delete_records(self::T, ['bulkid' => $bulkid, 'channel' => 'phone']);
             $DB->set_field(self::T, 'channel', 'email', ['bulkid' => $bulkid, 'channel' => 'both']);
             $DB->set_field(self::T, 'bulkid', 0, ['bulkid' => $bulkid]);
+        }
+    }
+
+    /**
+     * After a send approved only for Telegram, lets go of the families it did not reach (no Telegram joined): invited by
+     * phone only, they can be invited again; by both, they keep their mail.
+     *
+     * @param int $bulkid
+     */
+    protected static function release_without_telegram(int $bulkid): void {
+        global $DB;
+        foreach ($DB->get_records(self::T, ['bulkid' => $bulkid]) as $row) {
+            $joined = [];
+            try {
+                $joined = \local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, (int) $row->householdid);
+            } catch (\Throwable $e) {
+                $joined = [];
+            }
+            if (!empty($joined['telegram']['joined'])) {
+                continue;
+            }
+            if ((string) $row->channel === 'both') {
+                $DB->update_record(self::T, (object) ['id' => $row->id, 'channel' => 'email', 'bulkid' => 0]);
+            } else {
+                $DB->delete_records(self::T, ['id' => $row->id]);
+            }
         }
     }
 
