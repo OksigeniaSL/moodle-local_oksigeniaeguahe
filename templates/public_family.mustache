@@ -70,7 +70,7 @@
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": {"title": "Cómo les escribimos", "url": "#", "silent": "", "backon": "Volver a recibirlos",
-        "pills": [{"icon": "", "label": "Correo", "missing": false}], "haspills": true, "nothing": "", "pending": [], "change": "Cambiarlo"}, "pub_data": "Sus datos",
+        "pills": [{"icon": "", "label": "Correo", "missing": false}], "others": [{"icon": "", "label": "Telegram", "url": "#"}], "haspills": true, "nothing": "", "pending": [], "change": "Cambiarlo"}, "pub_data": "Sus datos",
         "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar sus datos",
         "pub_data_erase": "Borrar sus datos", "downloadurl": "#", "eraseurl": "#",
         "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
@@ -260,7 +260,7 @@
             <div class="acciones"><a class="boton secundario" href="{{url}}" data-toca="writeby">{{backon}}</a></div>
             {{/silent}}
             {{^silent}}
-            {{#haspills}}<p class="escribimos-pastillas">{{#pills}}<span class="escribimos-pastilla{{#missing}} escribimos-sin-unir{{/missing}}">{{{icon}}}<span>{{label}}</span></span>{{/pills}}</p>{{/haspills}}
+            <p class="escribimos-pastillas">{{#pills}}<span class="escribimos-pastilla{{#missing}} escribimos-sin-unir{{/missing}}">{{{icon}}}<span>{{label}}</span></span>{{/pills}}{{#others}}<a class="escribimos-pastilla escribimos-mas" href="{{url}}" data-toca="writeby">{{{icon}}}<span>+&nbsp;{{label}}</span></a>{{/others}}</p>
             {{^haspills}}<p class="muted">{{nothing}}</p>{{/haspills}}
             {{#pending}}<p class="escribimos-falta"><span>{{label}}</span> <a class="boton secundario" href="{{url}}" target="_blank" rel="noopener noreferrer" data-toca="phone_join">{{{icon}}}{{open}}</a></p>{{/pending}}
             <div class="acciones"><a class="boton secundario" href="{{url}}" data-toca="writeby">{{change}}</a></div>

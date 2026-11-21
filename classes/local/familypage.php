@@ -142,6 +142,10 @@ class familypage {
                 $now
             ),
             'haspills' => (bool) $now,
+            // The ways the centre has and they did not mark, at sight to add with one touch: «+ Telegram» (Enrique).
+            'others' => $silent ? [] : array_values(array_map(fn($c) => ['icon' => writeby::icon($c),
+                'label' => publiclang::str('pub_writeby_' . $c, $lang), 'url' => writeby::url($token, $lang, $c, 'page')],
+                array_diff(writeby::channels($centre), $now))),
             'nothing' => publiclang::str('pub_writeby_now_nothing', $lang),
             'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),

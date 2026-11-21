@@ -6446,6 +6446,17 @@ html {
     height: 18px;
 }
 
+.escribimos-pastilla.escribimos-mas {
+    background: transparent;
+    border: 1.5px solid var(--eg-linea);
+    color: var(--c-acento-texto);
+    text-decoration: none;
+}
+
+.escribimos-pastilla.escribimos-mas:hover {
+    border-color: var(--c-acento-texto);
+}
+
 .escribimos-pastilla.escribimos-sin-unir {
     background: transparent;
     border: 1.5px dashed var(--eg-borde);
