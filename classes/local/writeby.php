@@ -272,9 +272,20 @@ class writeby {
         }
         $out = [];
         try {
+            // Once Marandu takes a greeting, WhatsApp comes written as the family would say it, with its code at the end.
+            $greets = (new \ReflectionMethod('\local_oksigeniamarandu\api', 'join_url'))->getNumberOfParameters() >= 3;
+            $code = null;
             foreach (\local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, (int) $household->id) as $ch => $info) {
-                if (in_array($ch, $phones, true) && empty($info['joined']) && !empty($info['url'])) {
-                    $out[$ch] = (string) $info['url'];
+                if (!in_array($ch, $phones, true) || !empty($info['joined']) || empty($info['url'])) {
+                    continue;
+                }
+                $out[$ch] = (string) $info['url'];
+                if ($greets && $ch === 'whatsapp') {
+                    $code = $code ?? \local_oksigeniamarandu\api::invite(messaging::COMPONENT, (int) $household->id);
+                    $out[$ch] = (string) (\local_oksigeniamarandu\api::join_url($ch, $code, self::greeting(
+                        $household,
+                        $centre
+                    )) ?: $out[$ch]);
                 }
             }
         } catch (\Throwable $e) {
@@ -282,6 +293,23 @@ class writeby {
         }
         // Marandu lists the channels in its own order: here, in ours.
         return array_filter(array_replace(array_fill_keys($phones, null), $out));
+    }
+
+    /**
+     * The greeting the family sends to join WhatsApp, in its language: «Hola, somos la familia de Leo.»; Marandu adds the
+     * code at the end. Without a name, Marandu's own.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function greeting(\stdClass $household, \stdClass $centre): string {
+        $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));
+        $tags = array_values(array_filter(array_map(
+            [familypage::class, 'label_name'],
+            array_values(households::full($household)->children)
+        ), fn($n) => $n !== ''));
+        return $tags ? publiclang::str('pub_writeby_greeting', $lang, familypage::join($tags, $lang)) : '';
     }
 
     /**
@@ -388,8 +416,8 @@ class writeby {
             );
         }
         households::note($household, $userid, $line);
-        // Marandu keeps the phones: each phone taken out stops, each one marked may be written to again. Never back to
-        // Marandu when it was Marandu that said it.
+        // Marandu keeps the phones: each phone taken out stops, each one marked may be written to again, and each chat
+        // joined hears the change with its card. Never back to Marandu when it was Marandu that said it.
         if ($source !== 'messaging') {
             $tell = $why === 'back' ? 'mail' : $source;
             if ($after === []) {
@@ -402,6 +430,9 @@ class writeby {
                         self::tell_messaging($household, !$is, $tell, $phone);
                     }
                 }
+            }
+            if ($why !== 'back') {
+                self::confirm_messaging($household, $after, $before);
             }
         }
         return true;
@@ -433,6 +464,25 @@ class writeby {
             \local_oksigeniamarandu\api::set_optout(...$args);
         } catch (\Throwable $e) {
             debugging('Eguahe: Marandu was not told the choice of a family: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
+
+    /**
+     * Marandu tells each chat joined to the household what changed («Desde ahora, por aquí», «también por aquí», «Desde
+     * ahora, por correo», «La puerta sigue abierta»), with its card; email is said here, by mail.
+     *
+     * @param \stdClass $household
+     * @param string[] $now The ways after the change.
+     * @param string[] $before The ways before it.
+     */
+    protected static function confirm_messaging(\stdClass $household, array $now, array $before): void {
+        if (!messaging::available() || !method_exists('\local_oksigeniamarandu\api', 'confirm_channel')) {
+            return;
+        }
+        try {
+            \local_oksigeniamarandu\api::confirm_channel(messaging::COMPONENT, (int) $household->id, $now, $before);
+        } catch (\Throwable $e) {
+            debugging('Eguahe: Marandu did not confirm the change to the family: ' . $e->getMessage(), DEBUG_DEVELOPER);
         }
     }
 
@@ -697,8 +747,8 @@ class writeby {
     }
 
     /**
-     * The family wrote to the centre after asking not to be written to: it accepts to be written to again by the way it
-     * wrote; the team sees it in its history and can put it back with a touch if the family asks.
+     * The family wrote to the centre after asking not to be written to (from the next day on): it accepts to be written to
+     * again by the way it wrote; the team sees it in its history and can put it back with a touch if the family asks.
      *
      * @param \stdClass $household
      * @param string $channel The channel of what it wrote.
@@ -711,7 +761,8 @@ class writeby {
             $household->writeby = $fresh->writeby ?? null;
             $household->writebytime = $fresh->writebytime ?? 0;
         }
-        if (!self::silent($household) || $time < (int) $household->writebytime) {
+        // From the day after: the «thank you» someone answers to the confirmation does not undo it (as Marandu does).
+        if (!self::silent($household) || $time < usergetmidnight((int) $household->writebytime) + DAYSECS) {
             return;
         }
         $record = $DB->get_record(households::T, ['id' => $household->id]);

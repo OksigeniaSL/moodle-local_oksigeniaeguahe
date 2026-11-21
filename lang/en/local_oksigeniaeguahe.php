@@ -4218,6 +4218,7 @@ $string['pub_writeby_done_whatsapp_join'] = 'One last step: say hello on WhatsAp
 $string['pub_writeby_done_whatsapp_join_text'] = 'The button opens WhatsApp with the message already written: you only need to send it. As soon as it reaches us, we will confirm it right there, and from then on we will write to you on WhatsApp.';
 $string['pub_writeby_email'] = 'Email';
 $string['pub_writeby_go_page'] = 'Go to your page';
+$string['pub_writeby_greeting'] = 'Hello, we are the family of {$a}. We would like you to write to us here.';
 $string['pub_writeby_heading'] = 'How should we write to you?';
 $string['pub_writeby_join_small_telegram'] = 'Your username is enough, even with your number hidden.';
 $string['pub_writeby_line_email'] = 'To your email';

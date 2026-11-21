@@ -91,7 +91,7 @@ final class writeby_test extends \advanced_testcase {
         $this->assertNull(writeby::chosen($household));
         $this->assertSame(['email'], writeby::now($household, $centre));
 
-        $this->assertTrue(writeby::set($household, 'none', 'family', 0, time() - 10));
+        $this->assertTrue(writeby::set($household, 'none', 'family', 0, time() - 2 * DAYSECS));
         $this->assertFalse(writeby::set($household, 'none', 'family'));
         $this->assertTrue(writeby::silent($household));
         $this->assertGreaterThan(0, (int) $household->writebynone);
@@ -114,7 +114,7 @@ final class writeby_test extends \advanced_testcase {
         $this->assertTrue(writeby::may_send($household, 'reply'));
         $this->assertFalse(writeby::may_send($household, 'reminder'));
 
-        // The family writes again by email: it accepts to be written to by that way.
+        // The family writes again by email, days later: it accepts to be written to by that way.
         households::received($household, 'email', 'Una pregunta', true);
         $household = households::get((int) $household->id, $this->centreid);
         $this->assertSame(['email'], writeby::chosen($household));
@@ -122,6 +122,21 @@ final class writeby_test extends \advanced_testcase {
         $this->assertTrue(familymail::send('received', $household, $centre, null, 'es', 'clave'));
         $this->assertCount(1, $sink->get_messages());
         $sink->close();
+    }
+
+    /**
+     * The «thank you» answered the same day to the confirmation does not undo it: it is answered, and the word stays.
+     */
+    public function test_same_day(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $household = $this->family();
+        writeby::set($household, [], 'family');
+        households::received($household, 'email', 'Gracias', false);
+        $household = households::get((int) $household->id, $this->centreid);
+        $this->assertTrue(writeby::silent($household));
+        $this->assertTrue(writeby::may_send($household, 'reply'));
+        $this->assertFalse(writeby::may_send($household, 'reminder'));
     }
 
     /**

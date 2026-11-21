@@ -1040,6 +1040,7 @@ $string['pub_writeby_done_whatsapp_join'] = 'خطوة أخيرة: سلّموا �
 $string['pub_writeby_done_whatsapp_join_text'] = 'يفتح الزرّ WhatsApp والرسالة مكتوبة: ما عليكم إلا إرسالها. حالما تصلنا نؤكّد لكم ذلك هناك، ومن ثمّ نراسلكم عبر WhatsApp.';
 $string['pub_writeby_email'] = 'البريد الإلكتروني';
 $string['pub_writeby_go_page'] = 'الذهاب إلى صفحتكم';
+$string['pub_writeby_greeting'] = 'مرحبًا، نحن عائلة {$a}. نودّ أن تراسلونا من هنا.';
 $string['pub_writeby_heading'] = 'كيف نراسلكم؟';
 $string['pub_writeby_join_small_telegram'] = 'يكفي اسم المستخدم، حتى لو كان رقمكم مخفيًا.';
 $string['pub_writeby_line_email'] = 'إلى بريدكم الإلكتروني';

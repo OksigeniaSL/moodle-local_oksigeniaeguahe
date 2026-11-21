@@ -4223,6 +4223,7 @@ $string['pub_writeby_done_whatsapp_join'] = 'Um último passo: deem um oi pelo W
 $string['pub_writeby_done_whatsapp_join_text'] = 'O botão abre o WhatsApp com a mensagem já escrita: é só enviar. Assim que ela chegar, confirmamos por lá mesmo, e a partir daí escrevemos pelo WhatsApp.';
 $string['pub_writeby_email'] = 'E-mail';
 $string['pub_writeby_go_page'] = 'Ir para a página de vocês';
+$string['pub_writeby_greeting'] = 'Oi, somos a família de {$a}. Queremos que vocês escrevam para a gente por aqui.';
 $string['pub_writeby_heading'] = 'Por onde escrevemos para vocês?';
 $string['pub_writeby_join_small_telegram'] = 'Basta o nome de usuário, mesmo com o número oculto.';
 $string['pub_writeby_line_email'] = 'No e-mail de vocês';
