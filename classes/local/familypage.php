@@ -54,7 +54,9 @@ class familypage {
     }
 
     /**
-     * How the family is written to, for the quiet line at the end of their page, with the way to change it.
+     * How the family is written to (Jujol): one block on their page, «Cómo les escribimos», with what they have as pills,
+     * «Change it», and for a phone marked and not joined yet its button; after «do not write to us any more», since when,
+     * and the way back.
      *
      * @param \stdClass $household
      * @param \stdClass $centre
@@ -64,14 +66,31 @@ class familypage {
      */
     protected static function writeby_strip(\stdClass $household, \stdClass $centre, string $lang, string $token): array {
         $now = writeby::now($household, $centre);
+        $url = writeby::url($token, $lang);
+        $silent = writeby::silent($household);
+        $pending = [];
+        foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
+            $pending[] = ['label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str(
+                'pub_writeby_' . $channel,
+                $lang
+            )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
+                $channel, $lang)];
+        }
         return [
             'title' => publiclang::str('pub_writeby_title', $lang),
-            'now' => writeby::silent($household) ? publiclang::str('pub_writeby_now_none', $lang) : ($now ?
-                publiclang::str('pub_writeby_now', $lang, writeby::words($now, $lang)) : publiclang::str(
-                    'pub_writeby_now_nothing',
-                    $lang
-                )),
-            'url' => writeby::url($token, $lang),
+            'url' => $url,
+            'silent' => $silent ? publiclang::str('pub_writeby_silent_line', $lang, publicpage::date_parts(
+                (int) $household->writebytime,
+                $lang
+            )['daymonth']) : '',
+            'backon' => publiclang::str('pub_writeby_back_on', $lang),
+            'pills' => array_map(
+                fn($c) => ['icon' => writeby::icon($c), 'label' => publiclang::str('pub_writeby_' . $c, $lang)],
+                $now
+            ),
+            'haspills' => (bool) $now,
+            'nothing' => publiclang::str('pub_writeby_now_nothing', $lang),
+            'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),
         ];
     }
@@ -542,11 +561,8 @@ class familypage {
             'whocomes' => publiclang::str($enrolled ? 'pub_who_is_here' : 'pub_who_comes', $lang),
             'children' => $childrows,
             'adults' => $adults,
-            // How they are written to, under their contact data, with the way to change it (one choice, kept everywhere);
-            // before they ever chose, the ways their permissions give.
-            'writeby' => self::writeby_strip($household, $centre, $lang, $token) + ['text' =>
-                writeby::chosen($household) === null && $channels ?
-                publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : ''],
+            // How they are written to, in one block where the notices on the phone were (Jujol): one word, kept everywhere.
+            'writeby' => self::writeby_strip($household, $centre, $lang, $token),
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'idioma' => $lang]),
             // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.

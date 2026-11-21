@@ -354,6 +354,28 @@
                 }
             });
         });
+        // A family that asked not to be written to: the answer and its button wait until a person says to write anyway
+        // (never a block: a warning); a call written down is never held.
+        all('[data-sin-mensajes]', root).forEach(function(box) {
+            var form = box.form;
+            var area = one('textarea[name="body"]', form);
+            var send = one('button[name="action"][value="send"]', form);
+            var hold = function() {
+                var way = one('input[name="channel"]:checked', form);
+                var held = !box.checked && (!way || way.value !== 'phone');
+                if (area) {
+                    area.disabled = held;
+                }
+                if (send) {
+                    send.disabled = held;
+                }
+            };
+            on(box, 'change', hold);
+            all('input[name="channel"]', form).forEach(function(radio) {
+                on(radio, 'change', hold);
+            });
+            hold();
+        });
         // The answer goes without leaving the page: the server answers with the file as it is now.
         all('[data-redactor]', root).forEach(function(form) {
             var by = null;

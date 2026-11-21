@@ -154,7 +154,7 @@ final class familypage_test extends \advanced_testcase {
         // Empty goes back to their first name.
         $this->assertTrue(households::set_home_name($household, $noa, ''));
         $this->assertNull($DB->get_field(households::CHILDREN, 'tagname', ['id' => $noa]));
-        $this->assertSame('Les escribimos por correo.', $page['writeby']['text']);
+        $this->assertSame(['Correo'], array_column($page['writeby']['pills'], 'label'));
         $this->assertTrue($page['hasnext']);
         antispam::$testpass = null;
     }

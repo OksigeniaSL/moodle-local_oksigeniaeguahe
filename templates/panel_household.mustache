@@ -246,6 +246,13 @@
                             {{#ways}}{{^disabled}}<input class="oculto" type="radio" name="channel" id="canal-{{value}}" value="{{value}}" data-boton="{{button}}"{{#checked}} checked{{/checked}}><label class="ficha-canal" for="canal-{{value}}">{{{icon}}}{{name}}</label>{{#tel}}<a class="llamar" href="{{href}}" dir="ltr">{{#str}}panel_call_number, local_oksigeniaeguahe, {{text}}{{/str}}</a>{{/tel}}{{/disabled}}{{/ways}}
                         </div>
                         {{#notes}}<p class="aviso-suave">{{{i.info}}}<span>{{.}}</span></p>{{/notes}}
+                        {{#writeby}}{{#warn}}
+                        <div class="aviso-escribir" role="note">
+                            <p>{{{i.info}}}<span><b>{{warn}}</b>{{#askagain}} {{askagain}}{{/askagain}}</span></p>
+                            <label class="casilla"><input type="checkbox" name="anyway" value="1" data-sin-mensajes> {{#str}}panel_writeby_anyway, local_oksigeniaeguahe{{/str}}</label>
+                            <p class="ayuda">{{#str}}panel_writeby_anyway_small, local_oksigeniaeguahe{{/str}}</p>
+                        </div>
+                        {{/warn}}{{/writeby}}
                         {{#hasasked}}
                         <div class="preguntaron" data-preguntaron>
                             <p class="rotulo-p" id="pr-t">{{#str}}panel_asked, local_oksigeniaeguahe{{/str}} <span class="pr-cuenta" data-cuenta aria-live="polite"></span></p>
@@ -262,12 +269,6 @@
                             <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off">{{#next.date}}{{> local_oksigeniaeguahe/public_date }}{{/next.date}}</div>
                         </div>
                         {{/next}}
-                        {{#writeby}}{{#warn}}
-                        <div class="aviso-escribir" role="note">
-                            <p>{{{i.info}}}<span><b>{{warn}}</b>{{#askagain}} {{askagain}}{{/askagain}}</span></p>
-                            <label class="casilla"><input type="checkbox" name="anyway" value="1"> {{#str}}panel_writeby_anyway, local_oksigeniaeguahe{{/str}}</label>
-                        </div>
-                        {{/warn}}{{/writeby}}
                         <div class="acciones">
                             <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
                         </div>

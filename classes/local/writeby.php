@@ -257,6 +257,34 @@ class writeby {
     }
 
     /**
+     * The links that join each phone they marked and have not joined yet, from Marandu's list of the household: each
+     * channel its own, with the code that says which family it is (Telegram needs no number, only the bot).
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string[] $ways The ways marked.
+     * @return array channel => url
+     */
+    public static function join_links(\stdClass $household, \stdClass $centre, array $ways): array {
+        $phones = array_values(array_intersect(self::PHONES, $ways));
+        if (!$phones || messaging::mode($centre) === 'off' || !method_exists('\local_oksigeniamarandu\api', 'item_channels')) {
+            return [];
+        }
+        $out = [];
+        try {
+            foreach (\local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, (int) $household->id) as $ch => $info) {
+                if (in_array($ch, $phones, true) && empty($info['joined']) && !empty($info['url'])) {
+                    $out[$ch] = (string) $info['url'];
+                }
+            }
+        } catch (\Throwable $e) {
+            return [];
+        }
+        // Marandu lists the channels in its own order: here, in ours.
+        return array_filter(array_replace(array_fill_keys($phones, null), $out));
+    }
+
+    /**
      * How they are written to now: what they marked or, if they never chose, their email if it may be written to and the
      * phones they joined.
      *
@@ -475,7 +503,7 @@ class writeby {
      * @param string $name
      * @return string SVG.
      */
-    protected static function icon(string $name): string {
+    public static function icon(string $name): string {
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' .
             'stroke-linejoin="round" aria-hidden="true" focusable="false">' . self::ICONS[$name] . '</svg>';
     }
@@ -534,18 +562,14 @@ class writeby {
             // The phones marked and not joined yet: one step is left, a button for each.
             $joins = [];
             $joined = self::joined_on($household, $centre);
-            [$links] = array_diff($ways, $joined) ? messaging::join($household, $centre) : [[]];
-            foreach ($links as $link) {
-                if (in_array($link['channel'], $ways, true) && !in_array($link['channel'], $joined, true)) {
-                    $query = [];
-                    parse_str((string) parse_url($link['url'], PHP_URL_QUERY), $query);
-                    $joins[] = ['url' => $link['url'], 'icon' => self::icon($link['channel']),
-                        'label' => $str('pub_writeby_open_' . $link['channel']), 'written' => (string) ($query['text'] ?? ''),
-                        'writtenlabel' => $str('pub_writeby_written'), 'qr' => events::qr_of($link['url']),
-                        'qrline' => $str('pub_writeby_qr_' . $link['channel']),
-                        // Telegram needs no number: the button opens the bot with the code of the family.
-                        'small' => $link['channel'] === 'telegram' ? $str('pub_writeby_join_small_telegram') : ''];
-                }
+            foreach (self::join_links($household, $centre, $ways) as $channel => $link) {
+                $query = [];
+                parse_str((string) parse_url($link, PHP_URL_QUERY), $query);
+                $joins[] = ['url' => $link, 'icon' => self::icon($channel), 'label' => $str('pub_writeby_open_' . $channel),
+                    'written' => (string) ($query['text'] ?? ''), 'writtenlabel' => $str('pub_writeby_written'),
+                    'qr' => events::qr_of($link), 'qrline' => $str('pub_writeby_qr_' . $channel),
+                    // Telegram needs no number: the button opens the bot with the code of the family.
+                    'small' => $channel === 'telegram' ? $str('pub_writeby_join_small_telegram') : ''];
             }
             $parts = publicpage::date_parts(time(), $lang);
             $first = $joins ? array_values(array_intersect(self::PHONES, array_diff($ways, $joined)))[0] : '';
@@ -719,7 +743,7 @@ class writeby {
         $now = self::now($household, $centre);
         $silent = $ways === [];
         $lang = current_language();
-        $day = fn(int $t) => userdate($t, get_string('strftimedayshort', 'langconfig'));
+        $day = fn(int $t) => userdate($t, get_string('strftimedateshort', 'langconfig'));
         $none = (int) ($household->writebynone ?? 0);
         $enrolled = self::enrolled_since($household);
         // The trail, with its days: when they asked not to be written to, when a child was enrolled, what they chose after.

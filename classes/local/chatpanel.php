@@ -272,7 +272,7 @@ class chatpanel {
             'nomessages' => writeby::silent($household) ? ['since' => get_string(
                 'chat_nomessages_since',
                 $c,
-                userdate((int) $household->writebytime, get_string('strftimedayshort', 'langconfig'))
+                userdate((int) $household->writebytime, get_string('strftimedateshort', 'langconfig'))
             )] : false,
             'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
         ];
