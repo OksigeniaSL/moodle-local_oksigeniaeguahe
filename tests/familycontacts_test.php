@@ -87,6 +87,6 @@ final class familycontacts_test extends \advanced_testcase {
         $told = hobbies::of((int) $household->id)[$ana];
         $this->assertSame(['sport', 'reading'], $told['keys']);
         $this->assertSame(['sport' => 'pádel'], $told['details']);
-        $this->assertSame('Deporte (pádel), Lectura', hobbies::chips($told, 'es'));
+        $this->assertSame('Deporte (pádel) y lectura', hobbies::chips($told, 'es'));
     }
 }

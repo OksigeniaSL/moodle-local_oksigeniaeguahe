@@ -107,6 +107,7 @@ class moments {
                 continue;
             }
             return ['key' => 'kit-' . $event->id, 'title' => get_string('moment_kit_title', self::C),
+                'short' => panel_inbox::short('moment_kit_title'),
                 'text' => get_string('moment_kit', self::C, (object) ['name' => format_string($event->name),
                     'day' => userdate((int) $event->timestart, get_string('strftimedaydate', 'langconfig'))]),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))->out(false),
@@ -136,6 +137,7 @@ class moments {
             return null;
         }
         return ['key' => 'family', 'title' => get_string('moment_family_title', self::C),
+            'short' => panel_inbox::short('moment_family_title'),
             'text' => get_string('moment_family', self::C),
             'url' => (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]))->out(false) . '#aj-despues',
             'link' => get_string('moment_family_link', self::C)];

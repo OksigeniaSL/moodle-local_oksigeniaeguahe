@@ -78,6 +78,24 @@ if ($action !== '') {
             (float) optional_param('hours', 0, PARAM_FLOAT),
             (int) $USER->id
         );
+    } else if ($action === 'actspend') {
+        // What an act cost: empty removes it, 0 says it cost nothing.
+        $amount = trim(optional_param('amount', '', PARAM_RAW_TRIMMED));
+        $amount = $amount === '' ? null : unformat_float(str_replace(' ', '', $amount), true);
+        if ($amount !== false) {
+            panel_newstudents::set_act_spend(
+                (int) $centre->id,
+                optional_param('id', 0, PARAM_INT),
+                $amount === null ? null : (float) $amount,
+                (int) $USER->id
+            );
+        }
+        redirect(
+            new moodle_url($url, [], 'publicidad'),
+            get_string('changessaved'),
+            null,
+            \core\output\notification::NOTIFY_SUCCESS
+        );
     } else if ($action === 'hourvalue') {
         // What an hour of the team is worth, one for the whole centre.
         centres::update((int) $centre->id, (object) ['hourvalue' => (float) optional_param('value', 0, PARAM_FLOAT)]);

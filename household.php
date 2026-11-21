@@ -272,8 +272,13 @@ if ($action && data_submitted() && confirm_sesskey()) {
             break;
         case 'split':
             // Two families joined by mistake: the adults, children, sign-ups and lines chosen go to a new one.
+            // Each adult stays or goes (adultgo[id]); a page from before sent the ones that go (adults[]).
+            $goadults = array_keys(array_filter(optional_param_array('adultgo', [], PARAM_ALPHA), fn($v) => $v === 'go'));
             $choice = [
-                'adults' => optional_param_array('adults', [], PARAM_INT),
+                'adults' => array_values(array_unique(array_merge(
+                    array_map('intval', $goadults),
+                    optional_param_array('adults', [], PARAM_INT)
+                ))),
                 'children' => optional_param_array('children', [], PARAM_ALPHA),
                 'signups' => optional_param_array('signups', [], PARAM_ALPHA),
                 'contacts' => optional_param_array('contacts', [], PARAM_INT),

@@ -146,17 +146,28 @@ class hobbies {
     public static function chips(array $told, string $lang): string {
         $words = array_map(fn($k) => self::name($k, $lang) . (($told['details'][$k] ?? '') !== '' ? ' (' .
             $told['details'][$k] . ')' : ''), $told['keys']);
-        $line = implode(lists::dir($lang) === 'rtl' ? '، ' : ', ', $words);
+        // What they wrote themselves goes last, in their words.
         $other = trim((string) ($told['other'] ?? ''));
-        if ($other === '') {
-            return $line;
+        if ($other !== '') {
+            $words[] = $other;
         }
-        // What they wrote themselves goes after the chips in their words, never dressed up as one more chip.
-        if ($line === '') {
-            return \core_text::strtoupper(\core_text::substr($other, 0, 1)) . \core_text::substr($other, 1);
+        if (!$words) {
+            return '';
         }
-        return $line . ' ' . publiclang::str('pub_hobby_also', $lang, \core_text::strtolower(\core_text::substr($other, 0, 1)) .
-            \core_text::substr($other, 1));
+        // One sentence: «Deporte, juegos de mesa, pintura y parchís», in small letters after the first.
+        $lower = fn(string $w) => \core_text::strtolower(\core_text::substr($w, 0, 1)) . \core_text::substr($w, 1);
+        $first = array_shift($words);
+        $first = \core_text::strtoupper(\core_text::substr($first, 0, 1)) . \core_text::substr($first, 1);
+        $words = array_map($lower, $words);
+        if (!$words) {
+            return $first;
+        }
+        if (lists::dir($lang) === 'rtl') {
+            return $first . '، ' . implode('، ', $words);
+        }
+        $last = array_pop($words);
+        return publiclang::str('pub_and_list', $lang, (object) ['list' => implode(', ', array_merge([$first], $words)),
+            'last' => $last]);
     }
 
     /**

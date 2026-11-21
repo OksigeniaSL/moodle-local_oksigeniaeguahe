@@ -566,12 +566,12 @@
                         <input type="hidden" name="log" value="{{logid}}">
                         <fieldset>
                             <legend>{{#str}}lookalike_split_adults, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#adults}}<label class="casilla"><input type="checkbox" name="adults[]" value="{{id}}"{{#checked}} checked{{/checked}}> {{name}}{{#contact}} · {{contact}}{{/contact}}</label>{{/adults}}
+                            {{#adults}}<div class="separar-fila" role="radiogroup" aria-label="{{name}}" data-separar-quien="{{name}}"><span class="separar-nombre">{{name}}{{#contact}} <span class="secundario">{{contact}}</span>{{/contact}}</span><span class="segmentos separar-opciones">{{#options}}<label><input class="oculto" type="radio" name="adultgo[{{id}}]" value="{{value}}"{{#selected}} checked{{/selected}}><span>{{label}}</span></label>{{/options}}</span></div>{{/adults}}
                         </fieldset>
                         {{#haschildren}}
                         <fieldset>
                             <legend>{{#str}}lookalike_split_children, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#children}}<div class="separar-fila" role="radiogroup" aria-label="{{name}}"><span class="separar-nombre">{{name}}</span><span class="segmentos separar-opciones">{{#options}}<label><input class="oculto" type="radio" name="children[{{id}}]" value="{{value}}"{{#selected}} checked{{/selected}}><span>{{label}}</span></label>{{/options}}</span></div>{{/children}}
+                            {{#children}}<div class="separar-fila" role="radiogroup" aria-label="{{name}}" data-separar-quien="{{name}}"><span class="separar-nombre">{{name}}</span><span class="segmentos separar-opciones">{{#options}}<label><input class="oculto" type="radio" name="children[{{id}}]" value="{{value}}"{{#selected}} checked{{/selected}}><span>{{label}}</span></label>{{/options}}</span></div>{{/children}}
                         </fieldset>
                         {{/haschildren}}
                         {{#hassignups}}
@@ -583,12 +583,13 @@
                         {{#haslines}}
                         <fieldset>
                             <legend>{{#str}}lookalike_split_lines, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#lines}}<label class="casilla"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span class="secundario">{{when}}</span> {{text}}</label>{{/lines}}
+                            {{#lines}}<label class="casilla separar-linea"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span><span class="secundario">{{when}}</span> {{text}}</span></label>{{/lines}}
                         </fieldset>
                         {{/haslines}}
                         {{#nolog}}<p class="secundario">{{#str}}lookalike_split_links, local_oksigeniaeguahe{{/str}}</p>{{/nolog}}
+                        <p class="separar-resumen" data-separar-resumen aria-live="polite">{{summary}}</p>
                         <div class="cabeza-acciones">
-                            <button class="boton principal pequeno" type="submit" name="action" value="split">{{#str}}lookalike_split_do, local_oksigeniaeguahe{{/str}}</button>
+                            <button class="boton principal pequeno" type="submit" name="action" value="split" data-separar-boton{{#nothinggoes}} disabled{{/nothinggoes}}>{{#str}}lookalike_split_do, local_oksigeniaeguahe{{/str}}</button>
                             <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}lookalike_split_no, local_oksigeniaeguahe{{/str}}</button>
                         </div>
                     </form>

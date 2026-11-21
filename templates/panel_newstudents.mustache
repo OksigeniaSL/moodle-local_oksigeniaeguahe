@@ -129,6 +129,7 @@
     <section class="lamina an-anuncios ancha" aria-labelledby="an-anuncios-t" id="publicidad">
         <h2 id="an-anuncios-t">{{#str}}panel_new_brought_title, local_oksigeniaeguahe{{/str}}</h2>
         <p class="an-heroe"><b><span class="con">{{heroall}}</span><span class="sin">{{heronew}}</span></b><span><span class="con">{{heroalltext}}</span><span class="sin">{{heronewtext}}</span></span></p>
+        {{#hoursnote}}<p class="def an-horas-nota">{{hoursnote}}</p>{{/hoursnote}}
         <div class="an-cuerpo">
             <ol class="an-campanas">
                 {{#campaigns}}
@@ -136,7 +137,8 @@
                     <p class="an-campana-cab"><b>{{label}}</b><span>{{when}}</span>{{#act}}<span class="an-sello-acto">{{#str}}panel_new_act, local_oksigeniaeguahe{{/str}}</span>{{/act}}</p>
                     <ol class="an-camino">
                         <li><button type="button" class="an-toque" data-explica="{{ex.contacts}}"><b>{{contacts}}</b><span>{{steplabel}}</span></button></li>
-                        <li class="an-resta"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
+                        {{#centre}}<li class="an-resta"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
+                        <li class="an-nuevas sin"><span class="an-dato"><b>{{newcontacts}}</b><span>{{#act}}{{#str}}panel_new_step_new_act, local_oksigeniaeguahe{{/str}}{{/act}}{{^act}}{{#str}}panel_new_step_new, local_oksigeniaeguahe{{/str}}{{/act}}</span></span></li>{{/centre}}
                         <li class="an-llegan"><button type="button" class="an-toque" data-explica="{{ex.in}}"><b><span class="con">{{allin}}</span><span class="sin">{{newin}}</span></b><span><span class="con">{{#str}}panel_new_enrolled_all, local_oksigeniaeguahe{{/str}}</span><span class="sin">{{#str}}panel_new_enrolled_new, local_oksigeniaeguahe{{/str}}</span></span></button></li>
                     </ol>
                     <div class="an-cien">
@@ -145,9 +147,15 @@
                         <button type="button" class="an-toque an-cien-frase" data-explica="{{ex.per}}"><span class="con">{{{allsentence}}}</span><span class="sin">{{{newsentence}}}</span></button>
                     </div>
                     <dl class="an-cuesta">
-                        <div class="an-cuesta-dinero"><dt>{{#str}}panel_new_money, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.money}}"><b>{{money}}</b></button><small>{{moneywhat}}</small></dd></div>
+                        <div class="an-cuesta-dinero"><dt>{{#str}}panel_new_money, local_oksigeniaeguahe{{/str}}</dt><dd>{{#moneynone}}<span class="an-sin-dato">{{money}}</span>{{/moneynone}}{{^moneynone}}<button type="button" class="an-toque" data-explica="{{ex.money}}"><b>{{money}}</b></button>{{/moneynone}}<small>{{moneywhat}}</small>
+                            {{#canspend}}<details class="an-anotar"><summary class="enlace">{{#moneynone}}{{#str}}panel_new_money_note, local_oksigeniaeguahe{{/str}}{{/moneynone}}{{^moneynone}}{{#str}}panel_new_money_change, local_oksigeniaeguahe{{/str}}{{/moneynone}}</summary>
+                                <form method="post" action="{{saveurl}}#publicidad"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="actspend"><input type="hidden" name="id" value="{{scopeid}}">
+                                    <label for="an-gasto-{{key}}">{{#str}}panel_new_money_what, local_oksigeniaeguahe{{/str}}</label><span class="an-anotar-fila"><input id="an-gasto-{{key}}" name="amount" value="{{moneyvalue}}" inputmode="decimal" size="8" autocomplete="off"><span>{{currency}}</span><button class="boton secundario pequeno" type="submit">{{#str}}panel_new_money_save, local_oksigeniaeguahe{{/str}}</button></span>
+                                    <small>{{#str}}panel_new_money_help, local_oksigeniaeguahe{{/str}}</small>
+                                </form>
+                            </details>{{/canspend}}</dd></div>
                         <div class="an-cuesta-horas"><dt>{{#str}}panel_new_hours, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.hours}}"><b data-horas-total>{{hours}}</b></button><small data-horas-dinero>{{hoursmoney}}</small></dd></div>
-                        <div class="an-cuesta-alumno"><dt>{{#str}}panel_new_each_student_cap, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.each}}"><b data-horas-alumno>{{each}}</b></button><small data-horas-alumno-dinero>{{eachmoney}}</small></dd></div>
+                        <div class="an-cuesta-alumno"><dt>{{#str}}panel_new_each_student_cap, local_oksigeniaeguahe{{/str}}</dt><dd><button type="button" class="an-toque" data-explica="{{ex.each}}">{{#eachnone}}<span class="an-sin-dato" data-horas-alumno>{{each}}</span>{{/eachnone}}{{^eachnone}}<b data-horas-alumno>{{each}}</b>{{/eachnone}}</button><small data-horas-alumno-dinero>{{eachmoney}}</small></dd></div>
                     </dl>
                     <details class="an-parte" data-parte-horas data-alumnos="{{students}}" data-dinero="{{moneyn}}" data-guardar="{{saveurl}}" data-sesskey="{{sesskey}}" data-ambito="{{scope}}" data-id="{{scopeid}}" data-moneda="{{currency}}"{{#open}} open{{/open}}>
                         <summary>{{#str}}panel_new_hours_open, local_oksigeniaeguahe{{/str}}</summary>

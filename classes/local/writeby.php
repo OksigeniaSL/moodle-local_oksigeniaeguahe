@@ -721,7 +721,18 @@ class writeby {
         } else {
             $context['title'] = $str('pub_writeby_pick_title');
         }
+        // The centre writes by one way only: nothing to choose among. The page says how and where, and «Yes, like that».
+        $only = count($channels) === 1 && !in_array($pressed, $channels, true) ? [
+            'value' => $channels[0],
+            'address' => $channels[0] === 'email' ? households::recipient($household) : '',
+        ] : false;
+        if ($only) {
+            $context['title'] = $str('pub_writeby_only_title_' . $channels[0]);
+            $context['nowpill'] = false;
+            $marked = $channels;
+        }
         $context['choosing'] = [
+            'only' => $only,
             'means' => $means,
             'legend' => $str('pub_writeby_boxes'),
             'boxes' => array_map(

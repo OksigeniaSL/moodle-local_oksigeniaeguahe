@@ -47,6 +47,38 @@ class panel_newstudents {
         return get_string($one ? $key . '_one' : $key, self::C, $a);
     }
 
+    /** @var string What an act cost is kept with the spending of the campaigns, under this label and its id. */
+    const ACTSPEND = 'eguahe:event:';
+
+    /**
+     * What an act cost, as the centre noted it; null when nobody noted it.
+     *
+     * @param int $centreid
+     * @param int $eventid
+     * @return float|null
+     */
+    public static function act_spend(int $centreid, int $eventid): ?float {
+        $spend = metrics::spend($centreid, self::ACTSPEND . $eventid);
+        return isset($spend['event|']) ? (float) $spend['event|'] : null;
+    }
+
+    /**
+     * Notes what an act of the centre cost: 0 says it cost nothing, and null removes what was noted.
+     *
+     * @param int $centreid
+     * @param int $eventid
+     * @param float|null $amount
+     * @param int $userid
+     */
+    public static function set_act_spend(int $centreid, int $eventid, ?float $amount, int $userid): void {
+        global $DB;
+        if (!$DB->record_exists(events::T, ['id' => $eventid, 'centreid' => $centreid])) {
+            return;
+        }
+        metrics::set_spend($centreid, self::ACTSPEND . $eventid, 'event', '', $amount === null ? null :
+            min(10000000, max(0, $amount)), $userid);
+    }
+
     /** @var string The hours of the team written by the centre, by campaign or act and task. */
     const HOURS = 'local_oksigeniaeguahe_hours';
 
@@ -146,6 +178,9 @@ class panel_newstudents {
                 'heronew' => get_string('panel_new_x_of_y', $c, (object) ['x' => $adstudents, 'y' => $g['newfamily']]),
                 'heroalltext' => get_string('panel_new_hero_ads_all', $c),
                 'heronewtext' => get_string('panel_new_hero_ads_new', $c),
+                // Where the hours come from, said once for every campaign and act, never in each.
+                'hoursnote' => get_string((float) ($centre->hourvalue ?? 0) > 0 ? 'panel_new_hours_note' :
+                    'panel_new_hours_note_novalue', $c),
                 'campaigns' => $campaigns,
             ] : false,
             'moves' => $moves ?: false,
@@ -363,7 +398,7 @@ class panel_newstudents {
                 $act['centrein'],
                 $act['newin'],
                 $act['students'],
-                null,
+                self::act_spend($centreid, (int) $act['id']),
                 $auto,
                 $written['event'][(int) $act['id']] ?? [],
                 $value,
@@ -418,8 +453,9 @@ class panel_newstudents {
         $newcontacts = max(0, $contacts - $centrefams);
         $allin = $newin + $centrein;
         $both = fn(string $con, string $sin) => '<span class="con">' . $con . '</span><span class="sin">' . $sin . '</span>';
-        $all = self::dots($newin, $centrein, $contacts);
-        $new = self::dots($newin, 0, $newcontacts);
+        // Under ten families, one dot for each family, never a hundred that read as a share.
+        $all = $contacts < self::MIN ? self::few_dots($newin, $centrein, $contacts) : self::dots($newin, $centrein, $contacts);
+        $new = $newcontacts < self::MIN ? self::few_dots($newin, 0, $newcontacts) : self::dots($newin, 0, $newcontacts);
         $less = get_string('panel_new_less_than_one', $c);
         $perall = $all['per'] === null ? $less : (string) $all['per'];
         $pernew = $new['per'] === null ? $less : (string) $new['per'];
@@ -503,26 +539,27 @@ class panel_newstudents {
             'newcontacts' => self::num($newcontacts), 'allin' => $allin, 'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
             // «Of every 100» only with ten or more behind it; an act says who came, not who left their contact.
-            'allsentence' => get_string(
-                'panel_new_hundred_all' . ($act ? '_act' : '') . ($contacts < self::MIN ? '_few' :
-                    (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : ''))),
+            'allsentence' => $contacts < self::MIN ? self::few_sentence($act, false, $allin, $contacts, $contacts) : get_string(
+                'panel_new_hundred_all' . ($act ? '_act' : '') . (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : '')),
                 $c,
                 (object) ['n' => '<b>' . $perall . '</b>', 'k' => $allin, 'of' => self::num($contacts)]
             ),
-            'newsentence' => get_string(
-                'panel_new_hundred_new' . ($act ? '_act' : '') . ($newcontacts < self::MIN ? '_few' :
-                    (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : ''))),
-                $c,
-                (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
-            ),
-            'each' => $each, 'students' => $students,
+            'newsentence' => $newcontacts < self::MIN ? self::few_sentence($act, true, $newin, $newcontacts, $contacts) :
+                get_string(
+                    'panel_new_hundred_new' . ($act ? '_act' : '') . (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : '')),
+                    $c,
+                    (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
+                ),
+            // Nothing to share out is a note, never a result.
+            'each' => $each, 'eachnone' => !$students, 'students' => $students,
+            'moneynone' => $spend === null, 'moneyvalue' => $spend === null ? '' : format_float((float) $spend, 2, true, true),
+            'canspend' => $act && $canact,
             'steplabel' => get_string($act ? 'panel_new_came' : 'panel_new_left_contact', $c),
             'money' => $money, 'moneyn' => (float) ($spend ?? 0),
             'moneywhat' => get_string($act ? 'panel_new_money_act' : 'panel_new_money_ads', $c),
             'hours' => self::hours($allh), 'hoursn' => $allh,
             'hoursmoney' => $value > 0 ? get_string('panel_js_hours_money', $c, (object) [
-                'money' => centres::money($centre, $allh * $value), 'value' => centres::money($centre, $value)]) :
-                get_string('panel_js_hours_novalue', $c),
+                'money' => centres::money($centre, $allh * $value), 'value' => centres::money($centre, $value)]) : '',
             'eachmoney' => $students && $value > 0 ? get_string(
                 'panel_js_hours_with',
                 $c,
@@ -531,7 +568,8 @@ class panel_newstudents {
             'autohours' => array_map(fn($a) => ['h' => $a['h'], 'hl' => self::hours($a['h']), 'name' => $a['name']], $auto),
             'hasauto' => (bool) $auto,
             'written' => $writtenrows, 'tasks' => $canact ? $tasks : [], 'hastasks' => $canact && $tasks, 'canwrite' => $canact,
-            'saveurl' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id]))->out(false),
+            // Back to this same sheet after noting what an act cost.
+            'saveurl' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id, 'hoja' => 'curso']))->out(false),
             'sesskey' => sesskey(),
             'value' => $value, 'valuel' => $value > 0 ? centres::money($centre, $value) : get_string('panel_js_hours_value_none', $c),
             'scope' => $scope, 'scopeid' => $id, 'currency' => centres::currency($centre),
@@ -816,6 +854,52 @@ class panel_newstudents {
                 ) : ''];
         }
         return $items ? ['items' => $items, 'def' => get_string('panel_new_conclusions_def', $c)] : false;
+    }
+
+    /**
+     * Under ten families, one dot for each: those enrolled of new families, of the centre and the rest.
+     *
+     * @param int $nnew
+     * @param int $ncentre
+     * @param int $base
+     * @return array ['list' => dots, 'per' => null]
+     */
+    public static function few_dots(int $nnew, int $ncentre, int $base): array {
+        $nnew = min($nnew, $base);
+        $ncentre = min($ncentre, $base - $nnew);
+        return ['list' => array_merge(
+            array_fill(0, $nnew, ['k' => 'n']),
+            array_fill(0, $ncentre, ['k' => 'c']),
+            array_fill(0, max(0, $base - $nnew - $ncentre), ['k' => ''])
+        ), 'per' => null];
+    }
+
+    /**
+     * Under ten families, the sentence says them as they are: «Las 4 familias nuevas que vinieron matricularon a un
+     * hijo», «De las 9 familias…, 2 matricularon a un hijo», «Las 9 ya eran del centro: ninguna familia nueva».
+     *
+     * @param bool $act Families that came to an act, or that left their contact.
+     * @param bool $new Only the new ones.
+     * @param int $k How many enrolled a child.
+     * @param int $of Of how many families.
+     * @param int $all All the families, with those of the centre.
+     * @return string
+     */
+    public static function few_sentence(bool $act, bool $new, int $k, int $of, int $all): string {
+        $c = self::C;
+        if ($of === 0) {
+            return get_string($new && $all ? ($all === 1 ? 'panel_new_few_all_centre_one' : 'panel_new_few_all_centre') :
+                'panel_new_few_nobody', $c, $all);
+        }
+        $who = get_string('panel_new_who_' . ($new ? 'new' : 'all') . ($act ? '_act' : '') . ($of === 1 ? '_one' : ''), $c);
+        $a = (object) ['who' => $who, 'of' => $of, 'k' => $k];
+        if ($of === 1) {
+            return get_string($k ? 'panel_new_few_single_yes' : 'panel_new_few_single_no', $c, $a);
+        }
+        if ($k >= $of) {
+            return get_string('panel_new_few_every', $c, $a);
+        }
+        return get_string(!$k ? 'panel_new_few_none' : ($k === 1 ? 'panel_new_few_some_one' : 'panel_new_few_some'), $c, $a);
     }
 
     /**

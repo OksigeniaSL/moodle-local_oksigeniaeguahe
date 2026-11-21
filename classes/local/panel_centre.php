@@ -85,6 +85,7 @@ class panel_centre {
         foreach (ai::providers() as $id => $provider) {
             $providers[] = ['value' => $id, 'name' => $provider, 'selected' => (int) $centre->aiprovider === $id];
         }
+        $brand = centres::brand_colours((string) ($centre->brandcolours ?? ''));
         return [
             // The families already at the centre (Jujol, 13 November 2026): set up here, once, and not in «Who goes on».
             'roster' => roster::available() ? panel_renewal::settings_roster($centre, $picked) : false,
@@ -102,9 +103,11 @@ class panel_centre {
             'brandcolours' => implode(' ', centres::brand_colours((string) ($centre->brandcolours ?? ''))),
             'brand' => array_map(fn($code) => ['code' => $code], centres::brand_colours((string) ($centre->brandcolours ?? ''))),
             'hasbrand' => (bool) centres::brand_colours((string) ($centre->brandcolours ?? '')),
+            // The stripe goes with two colours or more, as on the pages and the poster.
+            'brandstripe' => count(centres::brand_colours((string) ($centre->brandcolours ?? ''))) >= 2,
             // Four pots to pick the colours of the brand with, beside the codes (which stay for pasting a guide).
-            'brandslots' => array_map(fn($i) => ['n' => $i + 1, 'code' => centres::brand_colours((string) ($centre->brandcolours ??
-                ''))[$i] ?? '#ffffff', 'set' => isset(centres::brand_colours((string) ($centre->brandcolours ?? ''))[$i])], range(0, 3)),
+            'brandslots' => array_map(fn($i) => ['n' => $i + 1, 'code' => $brand[$i] ?? '#ffffff', 'shown' => strtoupper($brand[$i] ?? ''),
+                'set' => isset($brand[$i])], range(0, 3)),
             'lightvars' => $style(publicpage::centre_vars($colour, false)),
             'darkvars' => $style(publicpage::centre_vars($colour, true)),
             'colourguard' => self::guard($colour),
@@ -779,7 +782,8 @@ class panel_centre {
         $typed = $typed !== '' && $typed[0] !== '#' ? '#' . $typed : $typed;
         // The code written wins when it was changed by hand; else the colour picked.
         $colour = preg_match('/^#[0-9a-f]{6}$/', $typed) && $typed !== strtolower((string) $centre->colour) ? $typed : $picked;
-        $name = trim(optional_param('name', '', PARAM_TEXT));
+        // Written on the band in two lines at most, the name is still one line: no line breaks or doubled spaces.
+        $name = trim(preg_replace('/\s+/u', ' ', optional_param('name', '', PARAM_TEXT)));
         $manage = has_capability('local/oksigeniaeguahe:manage', \context_system::instance());
         $data = (object) [
             'name' => $name !== '' ? $name : $centre->name,

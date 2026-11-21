@@ -2188,9 +2188,20 @@ details[open].plegado > summary h2::after {
     font-weight: 600;
 }
 
+/* Nothing found: said on its paper, like every other row, never loose on the wood. */
 .busqueda-nada {
-    padding: 24px 0;
+    display: grid;
+    gap: 6px;
+    padding: 18px 20px;
     color: var(--eg-tinta);
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+    box-shadow: var(--piel-fila-sombra);
+}
+
+.busqueda-nada p {
+    margin: 0;
 }
 
 .pista-teclas {
@@ -2234,10 +2245,38 @@ details[open].plegado > summary h2::after {
     box-shadow: none;
 }
 
+/* In the list: the names with where they came from under them, in every row the same; the children; and the last
+   column only for what they ask, in two lines at most. Nothing cut, 16 px of air between columns. */
 .lista[data-densidad="lista"] .fila .quien {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 4px 14px;
+    grid-template-areas: "nombres hijos pide" "meta hijos pide";
+    align-items: start;
+    gap: 2px 16px;
+}
+
+.lista[data-densidad="lista"] .fila .quien > .nombres {
+    grid-area: nombres;
+}
+
+.lista[data-densidad="lista"] .fila .quien > .hijos {
+    grid-area: hijos;
+}
+
+.lista[data-densidad="lista"] .fila .quien > .pide {
+    grid-area: pide;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.lista[data-densidad="lista"] .fila .quien > .meta {
+    grid-area: meta;
+}
+
+.lista[data-densidad="lista"] .fila .quien > .visita-hoy,
+.lista[data-densidad="lista"] .fila .quien > .escribiendo {
+    grid-column: 1 / -1;
 }
 
 .lista[data-densidad="lista"] .nombres {
@@ -2251,10 +2290,8 @@ details[open].plegado > summary h2::after {
 }
 
 .lista[data-densidad="lista"] .meta {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     display: block;
+    font-size: 0.875rem;
 }
 
 .lista[data-densidad="lista"] .meta .ic {
@@ -2546,6 +2583,11 @@ details[open].plegado > summary h2::after {
 
     .mostrador.con-hoja .lista[data-densidad="lista"] .fila .quien {
         grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: none;
+    }
+
+    .mostrador.con-hoja .lista[data-densidad="lista"] .fila .quien > * {
+        grid-area: auto;
     }
 
     .hoja-lateral {
@@ -4009,6 +4051,30 @@ input:checked + .ap-hoja {
     box-shadow: var(--piel-fila-sombra);
     color: var(--eg-tinta);
     text-decoration: none;
+}
+
+/* Who came these days: the names lead to the file; the button sends how to ask for a place. */
+.medida.vino {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.medida.vino .nombres {
+    font-size: 1.0625rem;
+}
+
+.medida.vino .nombres::after {
+    content: none;
+}
+
+.medida.vino .estado {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+    .medida.vino {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .medida .quien {
@@ -10292,7 +10358,12 @@ html.modo-lamina {
 
     .lista[data-densidad="lista"] .fila .quien {
         grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: none;
         gap: 2px;
+    }
+
+    .lista[data-densidad="lista"] .fila .quien > * {
+        grid-area: auto;
     }
 
     .lista[data-densidad="lista"] .meta {
@@ -12222,16 +12293,70 @@ button.padron-pomo-no::after {
     margin-top: 8px;
 }
 
+/* Each group, a card of the same width: never boxes of a form, each of its own width. */
 .separar fieldset {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
     margin: 0;
-    padding: 8px 10px;
-    border: 1px solid var(--eg-linea);
-    border-radius: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+    box-shadow: var(--piel-fila-sombra);
 }
 
 .separar legend {
-    padding: 0 4px;
-    font-weight: 600;
+    float: left;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 0;
+    font-weight: 700;
+}
+
+.separar-fila {
+    justify-content: space-between;
+    padding: 4px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.separar legend + .separar-fila,
+.separar legend + .separar-linea {
+    border-top: 0;
+}
+
+.separar-linea {
+    align-items: flex-start;
+    padding: 6px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.separar-linea {
+    flex-wrap: nowrap;
+}
+
+.separar-linea input {
+    flex: 0 0 auto;
+    margin-top: 3px;
+}
+
+.separar-linea > span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.separar-resumen {
+    margin: 4px 0 0;
+    font-weight: 650;
+}
+
+.separar [data-separar-boton]:disabled {
+    cursor: not-allowed;
+    opacity: 1;
+    color: var(--eg-tinta-2);
+    background: var(--eg-superficie);
+    border-color: var(--eg-linea);
 }
 
 .separar .casilla,
@@ -13407,6 +13532,24 @@ button.padron-pomo-no::after {
     margin-top: 0;
 }
 
+/* Each stretch of the index on its strip of paper, never small grey on the wood (Jujol, 21-11); and the part one is in,
+   marked. */
+.indice-ajustes .indice-t {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: 8px;
+    background: var(--piel-fila);
+    box-shadow: var(--piel-fila-sombra);
+    color: var(--eg-tinta);
+}
+
+.indice-ajustes a[aria-current="location"] {
+    background: var(--piel-fila);
+    color: var(--eg-tinta);
+    box-shadow: inset 3px 0 0 var(--eg-acento), var(--piel-fila-sombra);
+}
+
 .aj-tramo-t {
     display: flex;
     align-items: center;
@@ -13782,19 +13925,43 @@ details.aj-plegado > summary h2::after {
     flex-basis: 100%;
 }
 
-/* The colours of the brand: a pot for each one, side by side */
+/* The colours of the brand: a pot for each one, its code under it, «×» to take it away and «+» for the next; the field of
+   codes behind «Paste the codes of the brand guide». Without the script, only the field. */
+.aj-util.aj-marca {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+}
+
 .aj-marca-botes {
     display: flex;
-    flex: none;
-    gap: 3px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px 14px;
+    padding: 8px 8px 0;
+}
+
+html:not(.con-botes) .aj-marca-botes {
+    display: none;
+}
+
+.aj-marca-puesto {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+
+.aj-marca-puesto.vacio {
+    display: none;
 }
 
 .aj-marca-bote {
     position: relative;
     display: block;
-    width: 22px;
+    width: 48px;
     height: 48px;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 0 1.5px var(--eg-linea);
     cursor: pointer;
@@ -13810,25 +13977,64 @@ details.aj-plegado > summary h2::after {
     cursor: pointer;
 }
 
-/* A pot without a colour yet: dashed, with its «+». */
-.aj-marca-bote.sin-color {
-    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
-    background: var(--eg-superficie);
+.aj-marca-bote:focus-within {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
 }
 
-.aj-marca-bote.sin-color input {
-    opacity: 0;
+.aj-marca-codigo {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--eg-tinta-2);
+    background: none;
 }
 
-.aj-marca-bote.sin-color::after {
-    content: "+";
+.aj-marca-quitar {
     position: absolute;
-    inset: 0;
+    top: -10px;
+    inset-inline-end: -10px;
     display: grid;
     place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--eg-linea);
+    border-radius: 50%;
+    background: var(--eg-superficie);
     color: var(--eg-tinta);
     font-weight: 800;
-    pointer-events: none;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.aj-marca-anadir {
+    width: 48px;
+    height: 48px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--eg-tinta);
+    font-size: 1.375rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.aj-marca-anadir[hidden] {
+    display: none;
+}
+
+.aj-marca-pegar {
+    display: grid;
+    gap: 6px;
+}
+
+.aj-marca-pegar > summary {
+    width: fit-content;
+    cursor: pointer;
+}
+
+.aj-marca-pegar[open] > summary {
+    margin-bottom: 6px;
 }
 
 /* The stripe of the brand on the samples of «How families see it», as the pages show it. */
@@ -13839,6 +14045,17 @@ details.aj-plegado > summary h2::after {
 
 .franja-muestra i {
     flex: 1;
+}
+
+.franja-muestra[hidden] {
+    display: none;
+}
+
+/* The name of the centre on the band, in two lines at most, as on the poster. */
+.banda-muestra textarea.aj-banda-nombre {
+    display: block;
+    resize: none;
+    overflow: hidden;
 }
 
 .aj-marca .aj-hueco {
@@ -17731,6 +17948,79 @@ html {
     color: var(--eg-tinta-2);
 }
 
+/* The new families, the step between those who were of the centre and those who enrolled (only without them). */
+.alumnos-nuevos.sin-centro .an-camino > li.an-nuevas {
+    display: flex;
+}
+
+.an-nuevas .an-dato {
+    display: grid;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.an-nuevas .an-dato b {
+    font-size: 1.5rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.an-nuevas .an-dato > span {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--eg-tinta-2);
+}
+
+/* No figure is a note, in the size of a note: never a result in big ink. */
+.an-sin-dato {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--eg-tinta-2);
+}
+
+.an-horas-nota {
+    margin: -4px 0 12px;
+}
+
+.an-anotar > summary {
+    width: fit-content;
+    margin-top: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.an-anotar form {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.an-anotar label {
+    font-size: 0.8125rem;
+    font-weight: 650;
+}
+
+.an-anotar-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+}
+
+.an-anotar-fila input {
+    width: 7em;
+    min-height: 36px;
+    padding: 4px 8px;
+    border: 1px solid var(--eg-borde);
+    border-radius: 8px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+}
+
 /* Those who were already of the centre: with them, a note of the way; without them, they are taken away. */
 .an-resta .an-toque {
     background: none;
@@ -19241,19 +19531,68 @@ html {
     display: none;
 }
 
-.hoy > summary .num {
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
+/* On a phone, folded: a card of paper with the titles of what is inside in one line and its arrow. Open, or wide, the
+   heading alone. */
+.hoy-titulos,
+.hoy-flecha {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .hoy:not([open]) > summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "rotulo flecha" "titulos flecha";
+        align-items: center;
+        gap: 2px 12px;
+        min-height: 48px;
+        padding: 10px 14px;
+        border: 1px solid var(--piel-hoja-borde);
+        border-radius: var(--piel-radio);
+        background: var(--piel-fila);
+        box-shadow: var(--piel-fila-sombra);
+    }
+
+    .hoy:not([open]) > summary .hoy-rotulo {
+        grid-area: rotulo;
+    }
+
+    .hoy:not([open]) > summary .hoy-titulos {
+        grid-area: titulos;
+        display: block;
+        overflow: hidden;
+        color: var(--eg-tinta);
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .hoy > summary .hoy-flecha {
+        grid-area: flecha;
+        display: inline-flex;
+        color: var(--eg-tinta-2);
+        transition: transform var(--dur-1) ease;
+    }
+
+    .hoy[open] > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 44px;
+    }
+
+    .hoy[open] > summary .hoy-flecha {
+        transform: rotate(180deg);
+    }
 }
 
 @media (min-width: 701px) {
     .hoy > summary {
         cursor: default;
         pointer-events: none;
-    }
-
-    .hoy > summary .num {
-        display: none;
     }
 }
 

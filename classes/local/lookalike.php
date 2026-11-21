@@ -669,7 +669,7 @@ class lookalike {
                 continue;
             }
             $full = households::full($other);
-            $who = panel::adults_line($full->adults) ?: get_string('panel_no_name', $c);
+            $who = panel::adults_line($full->adults) ?: get_string('household_noname', $c);
             $reason = $why['why'] === 'phone' ? get_string('lookalike_why_phone', $c, phone::display((string) $why['phone'])) :
                 ($why['why'] === 'birthdate' ?
                 get_string('lookalike_why_birthdate', $c, (object) ['child' => format_string($why['child']),
@@ -897,6 +897,21 @@ class lookalike {
     }
 
     /**
+     * The value chosen among some segments.
+     *
+     * @param array[] $options Each with value and selected.
+     * @return string
+     */
+    protected static function picked(array $options): string {
+        foreach ($options as $option) {
+            if (!empty($option['selected'])) {
+                return (string) $option['value'];
+            }
+        }
+        return 'stay';
+    }
+
+    /**
      * What the file of a household shows to separate it: its adults, children, sign-ups and the last lines of its
      * conversation, marked as they came when it comes from two households put together.
      *
@@ -926,8 +941,12 @@ class lookalike {
         };
         $adults = [];
         foreach ($full->adults as $adult) {
+            $goes = in_array((int) $adult->id, $goadults, true);
+            // An adult stays or goes, with the same segments as a child (never «in both»: an adult is one person).
             $adults[] = ['id' => (int) $adult->id, 'name' => trim($adult->firstname . ' ' . $adult->lastname),
-                'contact' => (string) ($adult->email ?: $adult->phone), 'checked' => in_array((int) $adult->id, $goadults, true)];
+                'contact' => (string) ($adult->email ?: $adult->phone), 'checked' => $goes,
+                'options' => array_map(fn($v) => ['value' => $v, 'label' => get_string('lookalike_split_' . $v, $c),
+                    'selected' => $v === ($goes ? 'go' : 'stay')], ['stay', 'go'])];
         }
         $children = [];
         foreach ($full->children as $child) {
@@ -958,7 +977,7 @@ class lookalike {
         );
         foreach ($rows as $row) {
             $lines[] = ['id' => (int) $row->id, 'checked' => in_array((int) $row->id, $golines, true),
-                'when' => userdate((int) $row->timecreated, get_string('strftimedatetimeshort', 'langconfig')),
+                'when' => panel::when_words((int) $row->timecreated),
                 'text' => shorten_text(trim(preg_replace('/\s+/u', ' ', (string) $row->body)), 90)];
         }
         $from = '';
@@ -967,7 +986,20 @@ class lookalike {
             $from = get_string('lookalike_split_from_log', $c, (object) ['who' => implode(', ', $names) ?: '—',
                 'date' => userdate((int) $logrow->timecreated, get_string('strftimedate', 'langconfig'))]);
         }
+        // What goes, said in one line that the script keeps up to date; with nothing going, the button waits.
+        $go = array_merge(
+            array_column(array_filter($adults, fn($a) => $a['checked']), 'name'),
+            array_column(array_filter($children, fn($ch) => self::picked($ch['options']) !== 'stay'), 'name')
+        );
+        $stay = array_merge(
+            array_column(array_filter($adults, fn($a) => !$a['checked']), 'name'),
+            array_column(array_filter($children, fn($ch) => self::picked($ch['options']) !== 'go'), 'name')
+        );
+        $summary = $go ? get_string('panel_js_split_go', $c, panel::and_list($go)) . ' ' .
+            ($stay ? get_string('panel_js_split_stay', $c, panel::and_list($stay)) : '') :
+            get_string('panel_js_split_nothing', $c);
         return ['adults' => $adults, 'children' => $children, 'haschildren' => (bool) $children, 'signups' => $signups,
+            'summary' => trim($summary), 'nothinggoes' => !$go,
             'hassignups' => (bool) $signups, 'lines' => $lines, 'haslines' => (bool) $lines, 'fromlog' => $from,
             'logid' => $logrow ? (int) $logrow->id : 0, 'nolog' => !$logrow,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),

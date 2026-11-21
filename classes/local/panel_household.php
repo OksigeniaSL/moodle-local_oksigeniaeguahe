@@ -869,7 +869,7 @@ class panel_household {
      * @return array|false url, inside (until when, while there is time, or '') and sent (when it was last sent, in
      *     words, or '').
      */
-    protected static function apply_send(\stdClass $household, \stdClass $full, \stdClass $centre) {
+    public static function apply_send(\stdClass $household, \stdClass $full, \stdClass $centre) {
         if (trim((string) ($centre->applyhow ?? '')) === '' && trim((string) ($centre->applyurl ?? '')) === '') {
             return false;
         }

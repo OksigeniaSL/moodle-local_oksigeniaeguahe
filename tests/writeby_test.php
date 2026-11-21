@@ -165,10 +165,12 @@ final class writeby_test extends \advanced_testcase {
         $this->assertSame('¿Dejamos de escribirles?', $page['title']);
         $this->assertStringContainsString('Leo', $page['none']['means']);
         $this->assertNull(writeby::chosen($household));
-        // From their page: the boxes as they are.
+        // From their page, with a centre that writes only by email: nothing to choose, how and where, and «Sí, así».
         $page = writeby::page_context($household, $centre, 'es', 'clave', '', '');
-        $this->assertSame('¿Cómo prefieren que les escribamos?', $page['title']);
-        $this->assertSame([true], array_column($page['choosing']['boxes'], 'checked'));
+        $this->assertSame('Les escribimos por correo', $page['title']);
+        $this->assertSame('email', $page['choosing']['only']['value']);
+        $this->assertNotSame('', $page['choosing']['only']['address']);
+        $this->assertSame('Sí, así', $page['choosing']['button']);
         // Pressing email in a mail, which they have: it is offered taken out.
         $page = writeby::page_context($household, $centre, 'es', 'clave', 'email', '');
         $this->assertSame('¿Dejamos de escribirles por correo?', $page['title']);

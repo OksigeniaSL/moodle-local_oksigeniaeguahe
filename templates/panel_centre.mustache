@@ -297,12 +297,12 @@
                     <div class="muestra-color">
                         <div class="muestra-tema muestra-dia" style="{{lightvars}}" data-muestra-tema="claro">
                             <span class="rotulo-p">{{#str}}panel_light, local_oksigeniaeguahe{{/str}}</span>
-                            {{#hasbrand}}<span class="franja-muestra" aria-hidden="true">{{#brand}}<i style="background: {{code}}"></i>{{/brand}}</span>{{/hasbrand}}<div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><label class="oculto" for="c-nombre">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</label><input class="aj-banda-nombre" id="c-nombre" name="name" value="{{name}}" data-vivo-centro autocomplete="off"></div>
+                            <span class="franja-muestra" aria-hidden="true"{{^brandstripe}} hidden{{/brandstripe}}>{{#brand}}<i style="background: {{code}}"></i>{{/brand}}</span><div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><label class="oculto" for="c-nombre">{{#str}}centre_name, local_oksigeniaeguahe{{/str}}</label><textarea class="aj-banda-nombre" id="c-nombre" name="name" rows="2" data-vivo-centro autocomplete="off">{{name}}</textarea></div>
                             <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
                         </div>
                         <div class="muestra-tema muestra-noche" style="{{darkvars}}" data-muestra-tema="oscuro">
                             <span class="rotulo-p">{{#str}}panel_dark, local_oksigeniaeguahe{{/str}}</span>
-                            {{#hasbrand}}<span class="franja-muestra" aria-hidden="true">{{#brand}}<i style="background: {{code}}"></i>{{/brand}}</span>{{/hasbrand}}<div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
+                            <span class="franja-muestra" aria-hidden="true"{{^brandstripe}} hidden{{/brandstripe}}>{{#brand}}<i style="background: {{code}}"></i>{{/brand}}</span><div class="banda banda-muestra"><span class="etiqueta-b">{{#str}}panel_open_day_word, local_oksigeniaeguahe{{/str}}</span><p class="acto-n" data-muestra-centro>{{name}}</p></div>
                             <div class="pared-muestra"><span class="riel"></span>{{#hanging}}{{> local_oksigeniaeguahe/panel_hanging }}{{/hanging}}<span class="etq">{{hanging.name}}</span><a href="#aj-aspecto" tabindex="-1">{{#str}}panel_a_link, local_oksigeniaeguahe{{/str}}</a></div>
                         </div>
                     </div>
@@ -311,9 +311,24 @@
                             <label class="aj-bote" for="c-color"><input id="c-color" type="color" name="colour" value="{{colour}}" data-color-centro><span class="oculto">{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</span></label>
                             <span class="aj-util-texto"><b>{{#str}}centre_colour, local_oksigeniaeguahe{{/str}}</b><input class="aj-hueco aj-hex" name="colourhex" value="{{colour}}" size="8" aria-label="{{#str}}panel_colour_code, local_oksigeniaeguahe{{/str}}" data-color-hex dir="ltr" spellcheck="false"></span>
                         </div>
+                        {{! The colours of the brand: a pot for each, with its code under it; «+» adds one, up to four, and «×» takes
+                            it away. The codes of a brand guide are pasted in the field behind «Paste the codes»; without JavaScript,
+                            that field is the way. }}
                         <div class="aj-util aj-marca">
-                            <span class="aj-marca-botes" role="group" aria-label="{{#str}}centre_brand, local_oksigeniaeguahe{{/str}}">{{#brandslots}}<label class="aj-marca-bote{{^set}} sin-color{{/set}}"><input type="color" value="{{code}}" data-marca-bote{{#set}} data-puesto="1"{{/set}}><span class="oculto">{{#str}}centre_brand_pot, local_oksigeniaeguahe, {{n}}{{/str}}</span></label>{{/brandslots}}</span>
-                            <span class="aj-util-texto"><b><label for="c-marca">{{#str}}centre_brand, local_oksigeniaeguahe{{/str}}</label></b><input class="aj-hueco aj-hex" id="c-marca" name="brandcolours" value="{{brandcolours}}" size="34" aria-describedby="c-marca-a" dir="ltr" spellcheck="false" placeholder="#1f5a4e #e8a33d #3b6fb6" data-marca-codigos></span>
+                            <b class="aj-marca-t" id="c-marca-t">{{#str}}centre_brand, local_oksigeniaeguahe{{/str}}</b>
+                            <div class="aj-marca-botes" role="group" aria-labelledby="c-marca-t" data-marca-botes>
+                                {{#brandslots}}<span class="aj-marca-puesto{{^set}} vacio{{/set}}" data-marca-puesto>
+                                    <label class="aj-marca-bote"><input type="color" value="{{code}}" data-marca-bote{{#set}} data-puesto="1"{{/set}}><span class="oculto">{{#str}}centre_brand_pot, local_oksigeniaeguahe, {{n}}{{/str}}</span></label>
+                                    <code class="aj-marca-codigo" dir="ltr" data-marca-codigo>{{shown}}</code>
+                                    <button type="button" class="aj-marca-quitar" data-marca-quitar aria-label="{{#str}}centre_brand_remove, local_oksigeniaeguahe, {{n}}{{/str}}">×</button>
+                                </span>{{/brandslots}}
+                                <button type="button" class="aj-marca-anadir" data-marca-anadir aria-label="{{#str}}centre_brand_add, local_oksigeniaeguahe{{/str}}" title="{{#str}}centre_brand_add, local_oksigeniaeguahe{{/str}}">+</button>
+                            </div>
+                            <details class="aj-marca-pegar" data-marca-pegar>
+                                <summary class="enlace">{{#str}}centre_brand_paste, local_oksigeniaeguahe{{/str}}</summary>
+                                <label class="oculto" for="c-marca">{{#str}}centre_brand, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco aj-hex" id="c-marca" name="brandcolours" value="{{brandcolours}}" size="34" aria-describedby="c-marca-p" dir="ltr" spellcheck="false" placeholder="#1f5a4e #e8a33d #3b6fb6" data-marca-codigos>
+                                <span class="ayuda" id="c-marca-p">{{#str}}centre_brand_paste_help, local_oksigeniaeguahe{{/str}}</span>
+                            </details>
                             <span class="ayuda" id="c-marca-a">{{#str}}centre_brand_help, local_oksigeniaeguahe{{/str}}</span>
                         </div>
                         <div class="aj-util">

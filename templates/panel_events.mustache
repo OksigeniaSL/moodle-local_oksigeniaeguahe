@@ -23,7 +23,7 @@
     going, and, folded, the events past with how many came.
 
     New in this round: week (title, sub, days[weekday, day, today, past, empty, items[hour, title, tag, what, who, url,
-    proposed]]) and came (who came in the last week: adults, tag, what, state, pending, url). Kept: head, ahead, hasahead, asking, hasasking, requests, hasrequests, past, haspast. With no act yet,
+    proposed]]) and came (who came in the last week: adults, tag, what, state, applyurl, pending, url). Kept: head, ahead, hasahead, asking, hasasking, requests, hasrequests, past, haspast. With no act yet,
     firsttime (text, button {url, name} or false) instead of the week and the lists.
 
     Example context (json):
@@ -42,7 +42,7 @@
         "hasrequests": true, "requests": [{"adults": "Marta Ruiz", "tag": "Leo", "suits": "Pidieron: tardes",
             "state": "Esperan que les propongas día", "pending": true, "url": "#"}],
         "came": [{"adults": "Lucas Pérez", "tag": "Daniel", "what": "Vino a Jornada de puertas abiertas · ayer",
-            "state": "Sin mandarle cómo pedir plaza", "pending": true, "url": "#"}],
+            "state": "", "applyurl": "#", "pending": true, "url": "#"}],
         "haspast": false, "past": [], "firsttime": false
     }
 }}
@@ -87,10 +87,11 @@
         <section class="grupo-actos" aria-labelledby="vinieron-t">
             <h2 id="vinieron-t">{{#str}}panel_came_title, local_oksigeniaeguahe{{/str}}</h2>
             {{#came}}
-            <a class="medida{{#pending}} pendiente{{/pending}}" href="{{url}}">
-                <span class="quien"><b>{{adults}}</b>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span></span>
-                <span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>
-            </a>
+            <div class="medida vino{{#pending}} pendiente{{/pending}}">
+                <span class="quien"><a class="nombres" href="{{url}}">{{adults}}</a>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span></span>
+                {{#applyurl}}<a class="boton secundario pequeno vino-pedir" href="{{applyurl}}">{{#str}}panel_apply_send, local_oksigeniaeguahe{{/str}}</a>{{/applyurl}}
+                {{#state}}<span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>{{/state}}
+            </div>
             {{/came}}
         </section>
         {{/came.0}}

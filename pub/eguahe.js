@@ -990,9 +990,11 @@
                     canvas.setAttribute('role', 'img');
                     canvas.setAttribute('aria-label', pic ? pic.alt : '');
                     var player = new DV.Player(canvas, photo, a, {after: 'still'});
-                    if (pic && pic.parentNode) {
-                        pic.parentNode.replaceChild(canvas, pic);
-                    }
+                    var swap = function() {
+                        if (pic && pic.parentNode) {
+                            pic.parentNode.replaceChild(canvas, pic);
+                        }
+                    };
                     var key = 'eguahe-mini-' + link.getAttribute('href');
                     var before = false;
                     try {
@@ -1002,25 +1004,35 @@
                     }
                     if (before) {
                         player.renderAt(player.total() + 1);
+                        swap();
                         return;
                     }
-                    player.renderAt(0);
+                    // The photo stays until the drawing comes into view: never a blank sheet waiting (Jujol, 21-11).
+                    // As soon as it starts to come in, the empty sheet; seen enough, it draws itself.
+                    var started = false;
                     var seen = new window.IntersectionObserver(function(entries) {
-                        if (!entries.some(function(en) {
-                            return en.isIntersecting;
-                        })) {
-                            return;
-                        }
-                        seen.disconnect();
-                        try {
-                            window.sessionStorage.setItem(key, '1');
-                        } catch (err) {
-                            // Only a convenience.
-                        }
-                        player.play();
-                        count('touch', 'drawing_seen');
-                    }, {threshold: 0.8});
-                    seen.observe(canvas);
+                        entries.forEach(function(en) {
+                            if (!en.isIntersecting) {
+                                return;
+                            }
+                            if (!started) {
+                                started = true;
+                                player.renderAt(0);
+                                swap();
+                            }
+                            if (en.intersectionRatio >= 0.8) {
+                                seen.disconnect();
+                                try {
+                                    window.sessionStorage.setItem(key, '1');
+                                } catch (err) {
+                                    // Only a convenience.
+                                }
+                                player.play();
+                                count('touch', 'drawing_seen');
+                            }
+                        });
+                    }, {threshold: [0, 0.8]});
+                    seen.observe(link);
                 }).catch(function() {
                     // The photo stays.
                 });

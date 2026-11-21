@@ -236,6 +236,9 @@ class panel_inbox {
             'today' => $today,
             'hastoday' => (bool) $today,
             'todaycount' => count($today),
+            // Folded on a phone, the fold says what is inside, never just how many.
+            'todaytitles' => implode(' · ', array_values(array_filter(array_map(fn($t) => (string) ($t['short'] ??
+                ($t['title'] ?? '')), $today)))),
             'days' => $days,
             'hasrows' => (bool) $days,
             'search' => $search,
@@ -299,7 +302,7 @@ class panel_inbox {
             }
             $a = $key === 'siblings' ? (object) ['n' => count($list),
                 'year' => siblings::year_label($centre, siblings::campaign_year($centre, $now))] : count($list);
-            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string($title, $c),
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string($title, $c), 'short' => self::short($title),
                 'text' => get_string(count($list) === 1 ? $one : $many, $c, $a),
                 'url' => $only ? $url(['c' => $centreid]) : $url(['c' => $centreid, $param => 1]),
                 'link' => get_string($only ? 'panel_siblings_all' : ($key === 'siblings' ? 'panel_siblings_see' :
@@ -309,6 +312,7 @@ class panel_inbox {
         $maybe = array_keys(alumni::maybes($centreid));
         if ($maybe) {
             $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('alumni_inbox_title', $c),
+                'short' => self::short('alumni_inbox_title'),
                 'text' => count($maybe) === 1 ? get_string('alumni_inbox_one', $c) :
                     get_string('alumni_inbox_many', $c, count($maybe)),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $maybe[0]], 'quien-escribe'))
@@ -319,6 +323,7 @@ class panel_inbox {
         $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);
         if ($twice) {
             $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('lookalike_inbox_title', $c),
+                'short' => self::short('lookalike_inbox_title'),
                 'text' => count($twice) === 1 ? get_string('lookalike_inbox_one', $c) :
                     get_string('lookalike_inbox_many', $c, count($twice)),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $twice[0][0]], 'misma-familia'))
@@ -458,6 +463,18 @@ class panel_inbox {
             }
         }
         return $out;
+    }
+
+    /**
+     * The short name of a note of «Today, also», for the fold on a phone: its own if it has one, else its title.
+     *
+     * @param string $key The string of its title.
+     * @param mixed $a
+     * @return string
+     */
+    public static function short(string $key, $a = null): string {
+        $short = get_string_manager()->string_exists($key . '_short', self::C);
+        return get_string($short ? $key . '_short' : $key, self::C, $a);
     }
 
     /**

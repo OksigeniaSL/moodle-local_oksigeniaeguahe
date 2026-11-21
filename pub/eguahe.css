@@ -6797,3 +6797,12 @@ html {
     font-style: italic;
     opacity: 1;
 }
+
+/* The centre writes by one way only: the address it writes to, big enough to check it at a glance, never looking like a
+   field to type in. */
+.es-direccion {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}

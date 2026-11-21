@@ -249,6 +249,39 @@
             }
         });
     });
+    // Splitting two families: one line says who moves to the new record and who stays, and the button waits until
+    // somebody moves.
+    var splitForm = one('#separar form');
+    if (splitForm) {
+        var andList = function(list) {
+            return list.length < 2 ? list.join('') : say('panel_js_and', {list: list.slice(0, -1).join(', '),
+                last: list[list.length - 1]});
+        };
+        on(splitForm, 'change', function() {
+            var go = [];
+            var stay = [];
+            all('[data-separar-quien]', splitForm).forEach(function(row) {
+                var picked = one('input:checked', row);
+                var value = picked ? picked.value : 'stay';
+                var name = row.getAttribute('data-separar-quien');
+                if (value !== 'stay') {
+                    go.push(name);
+                }
+                if (value !== 'go') {
+                    stay.push(name);
+                }
+            });
+            var line = one('[data-separar-resumen]', splitForm);
+            if (line) {
+                line.textContent = go.length ? say('panel_js_split_go', andList(go)) +
+                    (stay.length ? ' ' + say('panel_js_split_stay', andList(stay)) : '') : say('panel_js_split_nothing');
+            }
+            var button = one('[data-separar-boton]', splitForm);
+            if (button) {
+                button.disabled = !go.length;
+            }
+        });
+    }
     on(doc, 'click', function(e) {
         var no = e.target.closest && e.target.closest('[data-cerrar]');
         if (no && no.closest('details')) {
@@ -1814,8 +1847,9 @@
                 });
                 var value = Number(valueEl.getAttribute('data-valor-hora')) || 0;
                 one('[data-horas-total]', card).textContent = hours(h);
+                // Without a value of the hour, nothing here: the note goes once, above all the campaigns.
                 one('[data-horas-dinero]', card).textContent = value ? say('panel_js_hours_money',
-                    {money: euros(h * value), value: euros(value)}) : say('panel_js_hours_novalue');
+                    {money: euros(h * value), value: euros(value)}) : '';
                 if (students) {
                     one('[data-horas-alumno]', card).textContent = money ? say('panel_js_hours_each',
                         {money: euros(money / students), hours: hours(h / students)}) :
@@ -2602,37 +2636,104 @@
 
     // ---- The settings of the centre: the colour rewrites the band, the label and the wall, in light and dark, and a
     // sentence says what was done so that everything reads (the same sums as publicpage::centre_vars()).
-    // The pots of the brand and its codes, one and the same: a pot chosen writes its code, codes written colour the pots.
+    // The pots of the brand and its codes, one and the same: a pot chosen writes its code under it and in the field,
+    // «+» brings the next pot and opens its colour, «×» takes one away; codes pasted colour the pots. The stripes of the
+    // samples follow.
     var codes = one('[data-marca-codigos]');
     if (codes) {
-        var pots = all('[data-marca-bote]');
-        var fromPots = function() {
-            codes.value = pots.filter(function(p) {
-                return p.hasAttribute('data-puesto');
-            }).map(function(p) {
-                return p.value;
-            }).join(' ');
+        var slots = all('[data-marca-puesto]');
+        var adder = one('[data-marca-anadir]');
+        var potOf = function(slot) {
+            return one('[data-marca-bote]', slot);
         };
-        pots.forEach(function(pot) {
-            on(pot, 'input', function() {
-                pot.setAttribute('data-puesto', '1');
-                pot.parentNode.classList.remove('sin-color');
+        var stripes = function(list) {
+            all('.franja-muestra').forEach(function(stripe) {
+                stripe.innerHTML = '';
+                list.forEach(function(code) {
+                    var i = doc.createElement('i');
+                    i.style.background = code;
+                    stripe.appendChild(i);
+                });
+                stripe.hidden = list.length < 2;
+            });
+        };
+        var fromPots = function() {
+            var list = slots.filter(function(slot) {
+                return !slot.classList.contains('vacio');
+            }).map(function(slot) {
+                return potOf(slot).value;
+            });
+            codes.value = list.join(' ');
+            stripes(list);
+            if (adder) {
+                adder.hidden = list.length >= slots.length;
+            }
+        };
+        var show = function(slot, code) {
+            slot.classList.toggle('vacio', !code);
+            if (code) {
+                potOf(slot).value = code;
+                potOf(slot).setAttribute('data-puesto', '1');
+            } else {
+                potOf(slot).removeAttribute('data-puesto');
+            }
+            one('[data-marca-codigo]', slot).textContent = code ? code.toUpperCase() : '';
+        };
+        slots.forEach(function(slot) {
+            on(potOf(slot), 'input', function() {
+                show(slot, potOf(slot).value);
                 fromPots();
             });
-        });
-        on(codes, 'input', function() {
-            var found = codes.value.match(/#[0-9a-fA-F]{6}\b/g) || [];
-            pots.forEach(function(pot, i) {
-                var has = i < found.length;
-                if (has) {
-                    pot.value = found[i].toLowerCase();
-                    pot.setAttribute('data-puesto', '1');
-                } else {
-                    pot.removeAttribute('data-puesto');
-                }
-                pot.parentNode.classList.toggle('sin-color', !has);
+            on(one('[data-marca-quitar]', slot), 'click', function() {
+                show(slot, '');
+                // The pots left close up, in their order.
+                var left = slots.filter(function(s) {
+                    return !s.classList.contains('vacio');
+                }).map(function(s) {
+                    return potOf(s).value;
+                });
+                slots.forEach(function(s, k) {
+                    show(s, left[k] || '');
+                });
+                fromPots();
+                (adder && !adder.hidden ? adder : codes).focus();
             });
         });
+        if (adder) {
+            on(adder, 'click', function() {
+                var next = slots.filter(function(slot) {
+                    return slot.classList.contains('vacio');
+                })[0];
+                if (!next) {
+                    return;
+                }
+                var start = (one('[data-color-centro]') || {}).value || '#1f5a4e';
+                show(next, start);
+                fromPots();
+                try {
+                    potOf(next).focus();
+                    potOf(next).click();
+                } catch (e) {
+                    // A browser that does not open the colour from a script: the pot is there to touch.
+                }
+            });
+        }
+        on(codes, 'input', function() {
+            var found = codes.value.match(/#[0-9a-fA-F]{6}\b/g) || [];
+            slots.forEach(function(slot, k) {
+                show(slot, k < found.length ? found[k].toLowerCase() : '');
+            });
+            stripes(found.slice(0, slots.length));
+            if (adder) {
+                adder.hidden = found.length >= slots.length;
+            }
+        });
+        doc.documentElement.classList.add('con-botes');
+        if (adder) {
+            adder.hidden = slots.every(function(slot) {
+                return !slot.classList.contains('vacio');
+            });
+        }
     }
 
     var colour = one('[data-color-centro]');
@@ -2714,12 +2815,54 @@
         });
         var nameIn = one('[data-vivo-centro]');
         if (nameIn) {
+            // Two lines on the band, one line of text: Enter never breaks it.
+            on(nameIn, 'keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
             on(nameIn, 'input', function() {
                 all('[data-muestra-centro]').forEach(function(el) {
                     el.textContent = nameIn.value;
                 });
             });
         }
+    }
+
+    // ---- The index of the settings marks the part one is reading.
+    var settingsIndex = one('.indice-ajustes');
+    if (settingsIndex && 'IntersectionObserver' in window) {
+        var indexLinks = all('a[href^="#"]', settingsIndex);
+        var parts = indexLinks.map(function(a) {
+            return document.getElementById(a.getAttribute('href').slice(1));
+        });
+        var mark = function(id) {
+            indexLinks.forEach(function(a) {
+                if (a.getAttribute('href') === '#' + id) {
+                    a.setAttribute('aria-current', 'location');
+                } else {
+                    a.removeAttribute('aria-current');
+                }
+            });
+        };
+        var showing = {};
+        var reading = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                showing[entry.target.id] = entry.isIntersecting;
+            });
+            // The first part, in the order of the page, that is on the screen.
+            var first = parts.filter(function(part) {
+                return part && showing[part.id];
+            })[0];
+            if (first) {
+                mark(first.id);
+            }
+        }, {rootMargin: '-15% 0px -60% 0px'});
+        parts.forEach(function(part) {
+            if (part) {
+                reading.observe(part);
+            }
+        });
     }
 
     // ---- A link to something inside a folded part (the split of a family, inside «Their page and their data»)

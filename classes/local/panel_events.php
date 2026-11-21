@@ -120,7 +120,7 @@ class panel_events {
             'hasasking' => (bool) $asking,
             'past' => array_map(fn($e) => self::row($e, $hosts, $now), array_slice($past, 0, self::PAST)),
             'haspast' => (bool) $past,
-            'came' => $firsttime ? [] : self::came($centre, $now),
+            'came' => $firsttime ? [] : self::came($centre, $now, $canact),
         ];
     }
 
@@ -130,9 +130,10 @@ class panel_events {
      *
      * @param \stdClass $centre
      * @param int $now
+     * @param bool $canact Whether the person works for the families: then it offers to send how to ask for a place.
      * @return array[]
      */
-    public static function came(\stdClass $centre, int $now): array {
+    public static function came(\stdClass $centre, int $now, bool $canact = false): array {
         global $DB;
         $c = self::C;
         $rows = $DB->get_records_sql(
@@ -158,15 +159,18 @@ class panel_events {
             }
             $child = reset($household->children);
             $sent = (int) ($household->applysent ?? 0);
+            // What is missing, with the gesture that does it: the message written in the file, for a person to send.
+            $apply = $canact && !$sent ? panel_household::apply_send($household, $household, $centre) : false;
             $list[] = [
                 'adults' => panel::adults_line($household->adults),
                 'tag' => $child ? panel::tag($child) : '',
-                'what' => get_string('panel_came_at', $c, (object) ['act' => format_string($row->name),
+                'what' => get_string('panel_came_recent', $c, (object) ['act' => format_string($row->name),
                     'when' => panel::when_words((int) $row->attended, $now)]),
                 'state' => $sent ? get_string('panel_came_apply_sent', $c, userdate(
                     $sent,
                     get_string('strftimedaydate', 'langconfig')
-                )) : get_string('panel_came_apply_not', $c),
+                )) : '',
+                'applyurl' => $apply ? $apply['url'] : false,
                 'pending' => !$sent,
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false),
             ];

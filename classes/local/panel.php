@@ -1002,6 +1002,19 @@ class panel {
     }
 
     /**
+     * Some words in a list, as the language says it: «a, b y c».
+     *
+     * @param string[] $words
+     * @return string
+     */
+    public static function and_list(array $words): string {
+        $words = array_values(array_filter(array_map('strval', $words), fn($w) => $w !== ''));
+        $last = array_pop($words);
+        return $words ? get_string('andlist', self::C, (object) ['list' => implode(', ', $words), 'last' => $last]) :
+            (string) $last;
+    }
+
+    /**
      * The adults of a household in a line, with their first surname: «Marta Ruiz y Daniel Ortega».
      *
      * @param array $adults
