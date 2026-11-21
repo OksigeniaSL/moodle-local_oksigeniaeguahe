@@ -651,6 +651,12 @@ class writeby {
             if ($ways === []) {
                 $context['title'] = $str('pub_writeby_done_none');
                 $text = $named('pub_writeby_done_none_text');
+                // A visit still to come stays: they are expected all the same, and the page says how to call it off.
+                $visit = array_values(array_filter(households::full($household)->signups, fn($v) => (int) $v->timeend >= time()))[0] ??
+                    null;
+                if ($visit) {
+                    $text .= ' ' . $str('pub_writeby_none_visit', publicpage::date_parts((int) $visit->timestart, $lang)['long']);
+                }
             } else if (count($joins) > 1) {
                 // Both phones to join: one step for each, one under the other.
                 $context['title'] = $str('pub_writeby_done_join_many', self::words(array_diff($ways, $joined, ['email']), $lang));
@@ -695,7 +701,8 @@ class writeby {
         }
         // The boxes: what they have now, with the way pressed in a mail already changed, and what that change means.
         $marked = $now;
-        $means = $str('pub_writeby_means_pick');
+        // One way only (the centre writes by email alone): nothing to pick among, it says so.
+        $means = $str(count($channels) > 1 ? 'pub_writeby_means_pick' : 'pub_writeby_means_only');
         if (in_array($pressed, $channels, true)) {
             $off = in_array($pressed, $now, true);
             $marked = $off ? array_values(array_diff($now, [$pressed])) : array_values(array_intersect(
@@ -764,12 +771,26 @@ class writeby {
      * @param int $householdid
      * @param string $channel whatsapp or telegram.
      * @param bool $out
+     * @param string $source Where it was asked, as Marandu says it: eguahe:… when another household of admissions chose
+     *                       it on its page or file (Marandu never tells back the one that asked).
      */
-    public static function from_messaging(int $householdid, string $channel, bool $out): void {
+    public static function from_messaging(int $householdid, string $channel, bool $out, string $source = ''): void {
         global $DB;
         $household = $DB->get_record(households::T, ['id' => $householdid]);
         $centre = $household ? centres::get((int) $household->centreid) : null;
         if (!$household || !$centre || !in_array($channel, self::PHONES, true)) {
+            return;
+        }
+        if (strpos($source, 'eguahe:') === 0) {
+            // The same phone is joined to another household too, and that one chose: it is not this family's choice. Its
+            // own stays; the team reads that this phone will not take messages of admissions any more.
+            if ($out) {
+                households::note($household, 0, get_string(
+                    'writeby_elsewhere_note',
+                    'local_oksigeniaeguahe',
+                    get_string('channel_' . $channel, 'local_oksigeniaeguahe')
+                ));
+            }
             return;
         }
         $now = self::now($household, $centre);

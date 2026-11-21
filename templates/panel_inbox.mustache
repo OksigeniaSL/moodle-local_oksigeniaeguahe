@@ -49,7 +49,7 @@
         "checkurl": "#", "checkevery": 60,
         "filters": {"courses": [{"name": "Todos los cursos", "key": "", "url": "#", "current": true}],
             "stages": [{"name": "Todas las etapas", "key": "", "url": "#", "current": true}]}, "filtering": false,
-        "hastoday": true, "today": [{"leaf": {"weekday": "dom", "day": "22", "month": "nov"}, "title": "",
+        "hastoday": true, "todaycount": 1, "today": [{"leaf": {"weekday": "dom", "day": "22", "month": "nov"}, "title": "",
             "blank": false, "text": "Infantil 3 años empieza el domingo, 22 de noviembre. ¿Sigue así?", "url": "#", "link": "Mirarlo"},
             {"leaf": false, "blank": false, "title": "Cumpleaños", "text": "Una familia tiene hoy un cumpleaños que felicitar.", "url": "#", "link": "Ver solo esas"},
             {"leaf": false, "blank": false, "title": "La jornada, en redes", "text": "«Jornada de puertas abiertas» es el sábado, 21 de noviembre de 2026: su kit trae cuándo publicar, los textos y las imágenes.", "url": "#", "link": "Abrir el kit",
@@ -84,8 +84,8 @@
     <p class="novedad" data-novedad role="status" hidden></p>
     <div class="mostrador{{#hastoday}} con-hoy{{/hastoday}}" data-mostrador>
         {{#hastoday}}
-        <section class="hoy" aria-labelledby="hoy-t">
-            <h2 class="hoy-t" id="hoy-t">{{#str}}panel_today_also, local_oksigeniaeguahe{{/str}}</h2>
+        <details class="hoy" open data-hoy>
+            <summary class="hoy-t" id="hoy-t">{{#str}}panel_today_also, local_oksigeniaeguahe{{/str}} <span class="num">{{todaycount}}</span></summary>
             <ul class="hoy-notas">
                 {{#today}}<li class="hoy-nota">
                     {{#leaf}}<span class="hoja-cal" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}{{#blank}}<span class="hoja-cal pd-hoja-vacia" aria-hidden="true"></span>{{/blank}}
@@ -93,7 +93,7 @@
                     {{#known}}<form class="hoy-sabido" action="{{action}}" method="post"><input type="hidden" name="c" value="{{centreid}}"><input type="hidden" name="key" value="{{key}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="enlace" type="submit">{{#str}}moment_known, local_oksigeniaeguahe{{/str}}</button></form>{{/known}}
                 </li>{{/today}}
             </ul>
-        </section>
+        </details>
         {{/hastoday}}
         <section class="bandeja" aria-labelledby="titular">
             {{#showtools}}

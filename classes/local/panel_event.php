@@ -208,7 +208,7 @@ class panel_event {
             )) : '',
             'signedsentence' => get_string($households === 1 ? 'panel_signed_one' : 'panel_signed_households', $c, $households),
             'signedpeople' => $event->capacity ? get_string('panel_signed_people_of', $c, (object) ['people' => $people,
-                'capacity' => (int) $event->capacity]) : get_string('panel_people', $c, $people),
+                'capacity' => (int) $event->capacity]) : get_string($people === 1 ? 'panel_people_one' : 'panel_people', $c, $people),
             'signedpercent' => $event->capacity ? min(100, (int) round(100 * $people / (int) $event->capacity)) : 0,
             'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]))->out(false),
                 'name' => get_string('tab_events', $c)],
@@ -260,7 +260,11 @@ class panel_event {
             'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
                 ->out(false) : false,
             'kind' => get_string($family ? 'visit_own' : ($tailored ? 'visit_asking' : 'event_kind_' . $event->kind), $c),
-            'capacity' => $event->capacity ? get_string('panel_people', $c, (int) $event->capacity) : '',
+            'capacity' => $event->capacity ? get_string(
+                (int) $event->capacity === 1 ? 'panel_people_one' : 'panel_people',
+                $c,
+                (int) $event->capacity
+            ) : '',
             'slots' => $slots ? get_string('panel_slots', $c, count($slots)) : '',
             'questions' => $form ? format_string($form->name) : '',
             'open' => $event->open && $event->timeend >= $now,
@@ -468,6 +472,12 @@ class panel_event {
                     (string) ($quote['currency'] ?? '')
                 )]);
         }
+        // Who it goes to, by name, before it goes: all of them, never «and N more».
+        $people = households::some((int) $event->centreid, $eligible);
+        $whom = fn(array $ids) => array_values(array_filter(array_map(fn($id) => isset($people[$id]) ?
+            panel::adults_line($people[$id]->adults) : '', $ids)));
+        $someids = $foralumni ? array_keys(array_intersect_key(alumni::families((int) $event->centreid), array_flip($eligible))) :
+            ($hobby !== '' ? hobbies::households_with($eligible, [$hobby]) : []);
         $state = invites::state(invites::last_bulk((int) $event->id));
         return [
             'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
@@ -486,6 +496,8 @@ class panel_event {
             'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
             // Before it goes: to how many, by which way, and that it is once (a touch too many would mail them all).
             'confirm' => $can ? self::invite_confirm($can, $emails, count($phones)) : '',
+            'whom' => $whom($eligible),
+            'somewhom' => $whom($someids),
             'someconfirm' => $some ? self::invite_confirm($some, min($some, $emails), min($some, count($phones))) : '',
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),

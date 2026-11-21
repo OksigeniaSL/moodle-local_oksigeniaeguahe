@@ -232,6 +232,12 @@ final class panel_test extends \advanced_testcase {
         $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
         $this->assertSame(1, $door['came']);
         $this->assertTrue($door['groups'][0]['signups'][0]['came']);
+        // In the list of acts, who came these days, and that nobody sent them how to ask for a place yet.
+        $came = panel_events::came($centre, time());
+        $this->assertCount(1, $came);
+        $this->assertSame('Leo', $came[0]['tag']);
+        $this->assertTrue($came[0]['pending']);
+        $this->assertSame([], panel_events::came($centre, time() + 8 * DAYSECS), 'A week later, no longer «these days».');
         events::attend($event, $signupid, false);
         $door = panel_event::context(events::get($eventid, $centreid), $centre, true);
         $this->assertSame(0, $door['came']);

@@ -73,6 +73,18 @@ final class lookalike_test extends \advanced_testcase {
     }
 
     /**
+     * The task compares ahead and keeps the pairs, so the inbox reads them ready (find_lookalikes).
+     */
+    public function test_task_keeps_pairs(): void {
+        $mother = $this->family('Ana López', 'ana@example.com', 'Lucía', '2024-05-10');
+        $father = $this->family('Juan Pérez', 'juan@example.com', 'Lucia', '2024-05-10');
+        lookalike::forget((int) $this->centre->id);
+        (new \local_oksigeniaeguahe\task\find_lookalikes())->execute();
+        $kept = \cache::make('local_oksigeniaeguahe', 'lookalikes')->get((int) $this->centre->id);
+        $this->assertSame([[(int) $father->id, (int) $mother->id]], $kept['pairs']);
+    }
+
+    /**
      * The same child with the same birthday, or asking for the same course, looks alike; two birthdays are two children;
      * classmates already enrolled never do; and what a person said is kept.
      */
@@ -85,10 +97,13 @@ final class lookalike_test extends \advanced_testcase {
         $this->assertSame('birthdate', $found[$mother->id]['why']);
         $this->assertSame([], lookalike::of($other), 'Another birthday is another child.');
 
-        // The same course, near in time and without birthdays.
+        // The same course, near in time and without birthdays: with a surname in common; two Mateos of other families
+        // for the same course are not one.
         $one = $this->family('Eva Ruiz', 'eva@example.com', 'Mateo', '', $this->infantil);
-        $two = $this->family('Luis Gil', 'luis@example.com', 'Mateo', '', $this->infantil);
+        $two = $this->family('Luis Ruiz Gil', 'luis@example.com', 'Mateo', '', $this->infantil);
+        $three = $this->family('Ana Soto', 'soto@example.com', 'Mateo', '', $this->infantil);
         $this->assertSame('course', lookalike::of($two)[$one->id]['why']);
+        $this->assertArrayNotHasKey((int) $three->id, lookalike::of($two), 'The same course alone is not enough.');
         // Two classmates of the same name already enrolled are not one.
         $children = households::full($two)->children;
         households::set_stage(reset($children), 'enrolled');

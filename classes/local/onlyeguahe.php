@@ -111,19 +111,31 @@ final class onlyeguahe {
     }
 
     /**
-     * Gives the role of the teams to someone who joined a team, in a site that is only Eguahe.
+     * Gives the role of the teams to someone who joined a team, in a site that is only Eguahe. The role works on the whole
+     * site, so someone who was made «only looks» there (they see, and do not work) keeps it: adding them to a team never
+     * lets them write in the other centres where they only look. Whoever manages Eguahe on the site changes that.
      *
      * @param int $userid
+     * @return bool Whether they work for the families now (false: they only look).
      */
-    public static function join(int $userid): void {
+    public static function join(int $userid): bool {
         if (!self::on()) {
-            return;
+            // On a site with more than Eguahe, its administrators give the roles.
+            return true;
         }
         $context = \context_system::instance();
         $role = self::role();
-        if (!user_has_role_assignment($userid, $role, $context->id)) {
-            role_assign($role, $userid, $context->id, 'local_oksigeniaeguahe');
+        if (user_has_role_assignment($userid, $role, $context->id)) {
+            return true;
         }
+        if (
+            has_capability('local/oksigeniaeguahe:view', $context, $userid) &&
+                !has_capability('local/oksigeniaeguahe:work', $context, $userid)
+        ) {
+            return false;
+        }
+        role_assign($role, $userid, $context->id, 'local_oksigeniaeguahe');
+        return true;
     }
 
     /**

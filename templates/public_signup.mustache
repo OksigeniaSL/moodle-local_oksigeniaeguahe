@@ -83,6 +83,17 @@
     <div class="saludo-arriba">
         {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
         <h1 class="titular" id="titulo">{{headline}}</h1>
+        {{! Who signs up: at a centre where either may, the family for a child or the student for themselves. }}
+        {{#choose}}
+        <fieldset class="para-quien" id="para">
+            <legend>{{pub_for_whom}}</legend>
+            {{! Each a link: the form comes back in its own voice, to a family or to the student, without JavaScript. }}
+            <div class="fichas">
+                <a class="ficha" href="{{parafamiliaurl}}"{{^selfmode}} aria-current="true"{{/selfmode}}><span class="marca">{{{i.check}}}</span>{{pub_for_child}}</a>
+                <a class="ficha" href="{{parayourl}}"{{#selfmode}} aria-current="true"{{/selfmode}}><span class="marca">{{{i.check}}}</span>{{pub_for_me}}</a>
+            </div>
+        </fieldset>
+        {{/choose}}
     </div>
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
@@ -158,17 +169,6 @@
         </div>
         {{/haserrors}}
 
-        {{! Who signs up: at a centre where either may, the family for a child or the student for themselves. }}
-        {{#choose}}
-        <fieldset class="para-quien" id="para">
-            <legend>{{pub_for_whom}}</legend>
-            {{! Each a link: the form comes back in its own voice, to a family or to the student, without JavaScript. }}
-            <div class="fichas">
-                <a class="ficha" href="{{parafamiliaurl}}"{{^selfmode}} aria-current="true"{{/selfmode}}><span class="marca">{{{i.check}}}</span>{{pub_for_child}}</a>
-                <a class="ficha" href="{{parayourl}}"{{#selfmode}} aria-current="true"{{/selfmode}}><span class="marca">{{{i.check}}}</span>{{pub_for_me}}</a>
-            </div>
-        </fieldset>
-        {{/choose}}
         <input type="hidden" name="para" value="{{para}}">
 
         {{#hasoffers}}

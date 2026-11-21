@@ -382,7 +382,7 @@ class familypage {
                     'label' => publiclang::str('pub_drawing_share', $lang),
                     'title' => publiclang::str('pub_drawing_title', $lang, $tag !== '' ? $tag : $child->firstname),
                     'text' => publiclang::str('share_drawing_text', $lang, $tag !== '' ? $tag : $child->firstname),
-                    'copied' => publiclang::str('share_copied', $lang),
+                    'copied' => publiclang::str('share_copied_drawing', $lang),
                     // With its strokes, the drawing goes as a video to keep (pub/dibujo-video.js).
                     'video' => share::video(
                         $household,
@@ -416,7 +416,9 @@ class familypage {
                         ['value' => (string) ($child->latinname ?? ''), 'label' => publiclang::str('pub_latinname', $lang),
                         'hint' => publiclang::str('pub_latinname_hint', $lang)],
                     'save' => publiclang::str('pub_home_save', $lang),
-                    'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
+                    'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) :
+                        ((int) ($flags['drawing'] ?? 0) === (int) $child->id ? publiclang::str('pub_drawing_received', $lang) :
+                        '')],
             ];
         }
         $adults = self::contact_list($full, $lang);

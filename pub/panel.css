@@ -10634,10 +10634,9 @@ html.modo-lamina {
     margin-inline-start: -6px;
 }
 
+/* Without top or left it stays where it is written: placed at the top of the page, Tab onto it made the page jump there. */
 .archivo-oculto {
     position: absolute;
-    top: 0;
-    inset-inline-start: 0;
     width: 1px;
     height: 1px;
     opacity: 0;
@@ -12244,6 +12243,49 @@ button.padron-pomo-no::after {
     margin: 4px 0;
 }
 
+/* Splitting a family: each child and each sign-up with its three ways as a segmented row, never a select. */
+.separar-cabeza {
+    margin: 0 0 6px;
+}
+
+.separar-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    margin: 6px 0;
+}
+
+.separar-nombre {
+    min-width: 8em;
+    font-weight: 600;
+}
+
+.separar-opciones label {
+    display: inline-flex;
+}
+
+.separar-opciones label span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    color: var(--eg-tinta);
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.separar-opciones input:checked + span {
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px var(--eg-sombra);
+}
+
+.separar-opciones input:focus-visible + span {
+    outline: 2px solid currentcolor;
+    outline-offset: 2px;
+}
+
 /* The link for the computers of the centre at the act. */
 .puesto-acto {
     margin-top: 10px;
@@ -12956,6 +12998,10 @@ button.padron-pomo-no::after {
 
 .of-ano-nuevo b {
     color: var(--eg-acento);
+}
+
+.of-anos-pie {
+    margin: 18px 0 0;
 }
 
 .of-escalera {
@@ -13743,12 +13789,56 @@ details.aj-plegado > summary h2::after {
     gap: 3px;
 }
 
-.aj-marca-botes span {
-    width: 20px;
+.aj-marca-bote {
+    position: relative;
+    display: block;
+    width: 22px;
     height: 48px;
     border-radius: 10px;
-    background: var(--eg-superficie);
+    overflow: hidden;
     box-shadow: 0 0 0 1.5px var(--eg-linea);
+    cursor: pointer;
+}
+
+.aj-marca-bote input {
+    position: absolute;
+    inset: -8px;
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* A pot without a colour yet: dashed, with its «+». */
+.aj-marca-bote.sin-color {
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    background: var(--eg-superficie);
+}
+
+.aj-marca-bote.sin-color input {
+    opacity: 0;
+}
+
+.aj-marca-bote.sin-color::after {
+    content: "+";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--eg-tinta);
+    font-weight: 800;
+    pointer-events: none;
+}
+
+/* The stripe of the brand on the samples of «How families see it», as the pages show it. */
+.franja-muestra {
+    display: flex;
+    height: 6px;
+}
+
+.franja-muestra i {
+    flex: 1;
 }
 
 .aj-marca .aj-hueco {
@@ -19139,4 +19229,68 @@ html {
 
 .piel-opcion[aria-pressed="true"] .piel-muestra.abanico {
     box-shadow: none;
+}
+
+/* «Today, also» of the inbox: a fold that only folds on a phone (the script closes it there); wide, it stays open. */
+.hoy > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.hoy > summary::-webkit-details-marker {
+    display: none;
+}
+
+.hoy > summary .num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+@media (min-width: 701px) {
+    .hoy > summary {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .hoy > summary .num {
+        display: none;
+    }
+}
+
+/* Each part of the leaf looks like a place to write: a pencil line under it, and what goes there in pencil
+   (review of 21-11: empty, it did not look like a field). */
+.fecha-tres .fecha-parte input,
+.fecha-tres .fecha-parte select {
+    border-radius: 6px 6px 0 0;
+    box-shadow: inset 0 -1.5px 0 var(--eg-linea);
+}
+
+.fecha-tres .fecha-parte input::placeholder {
+    color: var(--eg-tinta-2);
+    font-style: italic;
+    opacity: 1;
+}
+
+/* Before an invitation goes, the families it goes to, by name, in a box that scrolls when they are many. */
+.invitar-quienes {
+    max-height: 13em;
+    margin: 6px 0 10px;
+    padding: 8px 12px;
+    overflow: auto;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+    columns: 16em auto;
+    column-gap: 18px;
+    list-style: none;
+}
+
+.invitar-quienes li {
+    break-inside: avoid;
+    padding: 2px 0;
+}
+
+/* The list of those invited takes the whole line of the confirm box, the two answers under it. */
+.confirmar[open] form .invitar-quienes {
+    flex-basis: 100%;
+    width: 100%;
 }

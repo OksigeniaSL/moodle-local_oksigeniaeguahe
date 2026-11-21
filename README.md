@@ -59,7 +59,7 @@ waiting for an answer, how many places each course still has, and how the campai
 
 ## Requirements
 
-Moodle 4.5 to 5.3. The public pages do not use the JavaScript of Moodle; they work on any recent phone.
+Moodle 4.5 to 5.3; what the AI of the centre does (drafts, summaries, the reading of reports, the guide's answers) needs the AI subsystem of Moodle 5.0 or later. The public pages do not use the JavaScript of Moodle; they work on any recent phone.
 
 ## Installation
 

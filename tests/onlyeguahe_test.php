@@ -76,6 +76,15 @@ final class onlyeguahe_test extends \advanced_testcase {
         // Out of every team, out of the role.
         centres::remove_member($two, (int) $other->id);
         $this->assertFalse(centres::can_act((int) $other->id));
+
+        // Someone made «only looks» on the site keeps it when another centre adds them: never writing everywhere.
+        $looks = $this->getDataGenerator()->create_user();
+        $role = create_role('Only looks', 'eguahelooks', '');
+        assign_capability('local/oksigeniaeguahe:view', CAP_ALLOW, $role, \context_system::instance()->id, true);
+        role_assign($role, (int) $looks->id, \context_system::instance()->id);
+        $this->assertFalse(centres::add_member($two, (int) $looks->id));
+        $this->assertFalse(centres::can_act((int) $looks->id));
+        $this->assertTrue(centres::add_member($two, (int) $teacher->id));
     }
 
     /**

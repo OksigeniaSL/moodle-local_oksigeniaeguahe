@@ -396,6 +396,10 @@ class chatpanel {
         if (method_exists($api, 'household')) {
             return $api::household($familyid, false) ?: null;
         }
+        if (!method_exists($api, 'each_household')) {
+            // A Family before 0.3.13 says nothing of a household by its number.
+            return null;
+        }
         foreach ($api::each_household(true, false) as $id => $household) {
             if ((int) $id === $familyid) {
                 return $household;

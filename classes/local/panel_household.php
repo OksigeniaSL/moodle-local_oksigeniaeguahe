@@ -1151,8 +1151,9 @@ class panel_household {
                     ($where !== '' ? get_string('panel_came_entry', $c, $where) : get_string('panel_came', $c, $via));
             } else if ($contact->direction === 'note') {
                 $kind = 'equipo';
-                $who = $person ? fullname($person) : get_string('panel_the_team', $c);
-                $how = get_string('panel_left_note', $c);
+                // A note of a person, for the team; one Eguahe writes by itself (what the family chose, a list) is a fact.
+                $who = $person ? fullname($person) : 'Eguahe';
+                $how = get_string($person ? 'panel_left_note' : 'panel_noted_auto', $c);
             } else {
                 $kind = $person ? 'equipo' : 'sistema';
                 $who = $person ? fullname($person) : 'Eguahe';

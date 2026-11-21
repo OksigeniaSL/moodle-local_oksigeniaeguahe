@@ -443,14 +443,15 @@ class centres {
      *
      * @param int $centreid
      * @param int $userid
+     * @return bool Whether they work for the families (false: on this site they only look).
      */
-    public static function add_member(int $centreid, int $userid): void {
+    public static function add_member(int $centreid, int $userid): bool {
         global $DB;
         if (!$DB->record_exists(self::MEMBERS, ['centreid' => $centreid, 'userid' => $userid])) {
             $DB->insert_record(self::MEMBERS, (object) ['centreid' => $centreid, 'userid' => $userid,
                 'timecreated' => time()]);
         }
-        onlyeguahe::join($userid);
+        return onlyeguahe::join($userid);
     }
 
     /**

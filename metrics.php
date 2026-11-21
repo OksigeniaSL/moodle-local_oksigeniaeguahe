@@ -49,7 +49,8 @@ $view = [
     'sheet' => optional_param('hoja', 'campana', PARAM_ALPHA),
     'year' => preg_match('/^\d{4}(-\d{2})?$/', optional_param('anio', '', PARAM_RAW_TRIMMED)) ?
         optional_param('anio', '', PARAM_RAW_TRIMMED) : '',
-    'withcentre' => optional_param('centro', 1, PARAM_BOOL),
+    // Without those already of the centre unless asked: the cards then count what the title counts, the new students.
+    'withcentre' => optional_param('centro', 0, PARAM_BOOL),
 ];
 $url = panel_metrics::url($centre, $view);
 $PAGE->set_context(context_system::instance());

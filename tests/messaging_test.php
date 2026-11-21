@@ -20,6 +20,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\messaging;
+use local_oksigeniaeguahe\local\writeby;
 
 /**
  * Telegram and WhatsApp with Oksigenia Marandu: without it nothing shows and nothing fails; with it, «notices only»
@@ -45,6 +46,7 @@ final class messaging_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
+        messaging::forget_heard();
         $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES',
             'phone' => '+34 900 000 000', 'email' => 'admisiones@example.com']);
         $this->centre = centres::get($id);
@@ -138,6 +140,59 @@ final class messaging_test extends \advanced_testcase {
         messaging::message_received($photo);
         $this->assertSame(1, $DB->count_records(households::CONTACTS, ['householdid' => $this->household->id,
             'channel' => 'whatsapp']));
+    }
+
+    /**
+     * One phone joined to two households (a grandmother of two families, here of two centres): what it writes goes only
+     * to the newest join, which Marandu hands it first; the other gets a line that it came, never its words. And a «no»
+     * chosen in the other household does not change what this one chose: the team reads it.
+     */
+    public function test_one_phone_two_households(): void {
+        global $DB;
+        if (!messaging::available()) {
+            $this->markTestSkipped('Oksigenia Marandu is not installed.');
+        }
+        $DB->set_field(centres::T, 'messaging', 'conversation', ['id' => $this->centre->id]);
+        $otherid = centres::create((object) ['name' => 'Otro colegio', 'lang' => 'es', 'country' => 'ES']);
+        $DB->set_field(centres::T, 'messaging', 'conversation', ['id' => $otherid]);
+        $other = households::get(
+            households::create($otherid, (object) ['lang' => 'es', 'firstchannel' => 'webform']),
+            $otherid
+        );
+        households::add_adult($other, (object) ['firstname' => 'Rosa', 'email' => 'rosa@example.com']);
+        $time = time();
+        foreach ([(int) $other->id, (int) $this->household->id] as $itemid) {
+            messaging::message_received(new \local_oksigeniamarandu\hook\message_received(
+                'local_oksigeniaeguahe',
+                $itemid,
+                null,
+                'whatsapp',
+                '+34600999888',
+                'text',
+                'Mañana no puede ir Iker',
+                $time,
+                'wamid.shared',
+                'Abuela'
+            ));
+        }
+        $kept = $DB->get_record(households::CONTACTS, ['householdid' => $other->id, 'direction' => 'in']);
+        $this->assertSame('Mañana no puede ir Iker', $kept->body);
+        $lines = $DB->get_records(households::CONTACTS, ['householdid' => $this->household->id]);
+        $this->assertCount(1, $lines);
+        $line = reset($lines);
+        $this->assertSame('note', $line->direction);
+        $this->assertStringNotContainsString('Iker', $line->body);
+        $this->assertStringNotContainsString('Rosa', $line->body, 'Another centre is never named.');
+        $this->assertSame(0, (int) households::get((int) $this->household->id, (int) $this->centre->id)->waitingsince);
+
+        // The other household said «not on WhatsApp»: here, only a line; what this family chose stays.
+        writeby::set(households::get((int) $this->household->id, (int) $this->centre->id), ['email', 'whatsapp'], 'family');
+        writeby::from_messaging((int) $this->household->id, 'whatsapp', true, 'eguahe:family');
+        $now = writeby::chosen(households::get((int) $this->household->id, (int) $this->centre->id));
+        $this->assertContains('whatsapp', $now);
+        $said = get_string('writeby_elsewhere_note', 'local_oksigeniaeguahe', 'WhatsApp');
+        $this->assertTrue($DB->record_exists_select(households::CONTACTS, 'householdid = ? AND ' .
+            $DB->sql_compare_text('body') . ' = ' . $DB->sql_compare_text('?'), [$this->household->id, $said]));
     }
 
     /**

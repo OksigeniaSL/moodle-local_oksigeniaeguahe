@@ -200,9 +200,10 @@ class panel_newstudents {
             arsort($grades);
             $out = [];
             foreach (array_slice($grades, 0, 3, true) as $name => $n) {
-                $out[] = ($name !== '' ? s($name) : get_string('metrics_nograde', $c)) . ' ' . $n;
+                $out[] = get_string('panel_new_course_n', $c, (object) ['course' => $name !== '' ? s($name) :
+                    get_string('metrics_nograde', $c), 'n' => $n]);
             }
-            return implode(' · ', $out);
+            return $out ? get_string('panel_new_courses_line', $c, implode(' · ', $out)) : '';
         };
         // One backpack per student; those of families of former students, first, with their mortarboard.
         $studied = (array) ($o['alumni']['by'] ?? []);
@@ -425,10 +426,14 @@ class panel_newstudents {
         $autoh = array_sum(array_column($auto, 'h'));
         $writh = array_sum($lines);
         $allh = $autoh + $writh;
-        $money = $spend !== null ? centres::money($centre, (float) $spend) : '—';
-        $each = $students ? get_string('panel_js_hours_each', $c, (object) [
-            'money' => $spend !== null ? centres::money($centre, (float) $spend / $students) : '—',
-            'hours' => self::hours($allh / $students)]) : '—';
+        $money = $spend !== null ? centres::money($centre, (float) $spend) : get_string('panel_new_money_none', $c);
+        // Per new student: money and hours, or only the hours when nothing was spent; with none, it says so.
+        $each = !$students ? get_string('panel_new_each_none', $c) : ($spend !== null ? get_string(
+            'panel_js_hours_each',
+            $c,
+            (object) ['money' => centres::money($centre, (float) $spend / $students), 'hours' => self::hours($allh / $students)]
+        ) :
+            get_string('panel_js_hours_each_nomoney', $c, self::hours($allh / $students)));
         $writtenrows = [];
         foreach ($lines as $task => $h) {
             $writtenrows[] = ['task' => $task, 'name' => self::task_name($task), 'h' => $h, 'hl' => self::hours($h)];
@@ -497,13 +502,16 @@ class panel_newstudents {
             'contacts' => self::num($contacts), 'contactsn' => $contacts, 'centre' => $centrefams,
             'newcontacts' => self::num($newcontacts), 'allin' => $allin, 'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
+            // «Of every 100» only with ten or more behind it; an act says who came, not who left their contact.
             'allsentence' => get_string(
-                'panel_new_hundred_all' . (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : '')),
+                'panel_new_hundred_all' . ($act ? '_act' : '') . ($contacts < self::MIN ? '_few' :
+                    (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : ''))),
                 $c,
                 (object) ['n' => '<b>' . $perall . '</b>', 'k' => $allin, 'of' => self::num($contacts)]
             ),
             'newsentence' => get_string(
-                'panel_new_hundred_new' . (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : '')),
+                'panel_new_hundred_new' . ($act ? '_act' : '') . ($newcontacts < self::MIN ? '_few' :
+                    (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : ''))),
                 $c,
                 (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
             ),
@@ -568,7 +576,9 @@ class panel_newstudents {
             $newin = 0;
             $students = 0;
             foreach ($homes as $home) {
-                $ofcentre = !empty($home->incentre) || !empty($home->roster) || (int) $home->familylink > 0;
+                // Of the centre by what was known of them (they said so, or came from its roll), never because the team
+                // joined their file with the common record after enrolling: that would take the new student away.
+                $ofcentre = !empty($home->incentre) || !empty($home->roster);
                 $centre += $ofcentre ? 1 : 0;
                 if (!empty($enrolled[(int) $home->id])) {
                     if ($ofcentre) {

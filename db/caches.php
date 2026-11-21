@@ -40,7 +40,7 @@ $definitions = [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => true,
         'simpledata' => true,
-        'ttl' => 600,
+        'ttl' => 1500,
     ],
     // The codes sent to each family in the last day: at most five, so a code cannot be guessed by asking for new ones.
     'codessent' => [

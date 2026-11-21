@@ -103,13 +103,18 @@ class invites {
         $phones = $centre && self::by_phone($centre);
         // Who lets the centre write by email, read once for the whole centre (one query per family does not scale).
         $allowed = households::emailable($centreid);
+        // Those whose invitation is already on its way, waiting for the task.
+        $queued = self::queued((int) $event->id);
         $out = [];
         foreach ($households as $id => $household) {
             $stages = $children[$id] ?? [];
             // A family that left the centre is left in peace, unless the centre wants it invited.
             $gone = in_array('left', $stages, true) && !in_array('enrolled', $stages, true);
             $ok = $gone ? !empty($centre->invitegone) : (!$stages || array_diff($stages, ['closed']));
-            if (isset($done[$id]) || in_array('enrolled', $stages, true) || !$ok || !writeby::may_send($household, 'openinvite')) {
+            if (
+                isset($done[$id]) || isset($queued[$id]) || in_array('enrolled', $stages, true) || !$ok ||
+                    !writeby::may_send($household, 'openinvite')
+            ) {
                 continue;
             }
             $household->reachemail = !empty($emails[$id]) && !empty($allowed[$id]) &&
@@ -154,17 +159,34 @@ class invites {
     }
 
     /**
-     * The invitation to an act, by the way of each family: the mails in the background, the phones through Marandu
-     * (now, or once approved). Each family once; the families of a send by phone that is turned down can be invited
-     * again.
+     * The families of an act whose invitation by email is queued and not sent yet: not offered again meanwhile.
+     *
+     * @param int $eventid
+     * @return array householdid => true
+     */
+    public static function queued(int $eventid): array {
+        $ids = [];
+        foreach (\core\task\manager::get_adhoc_tasks(\local_oksigeniaeguahe\task\send_invites::class) as $task) {
+            $data = $task->get_custom_data();
+            if ((int) ($data->eventid ?? 0) === $eventid) {
+                foreach ((array) ($data->ids ?? []) as $id) {
+                    $ids[(int) $id] = true;
+                }
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * Queues the invitation of an act to the families it may go to: by email in the background, by phone through
+     * Marandu (which may wait for an approval).
      *
      * @param \stdClass $event
      * @param \stdClass $centre
-     * @param int $userid Who sends it.
+     * @param int $userid
      * @param int $now
-     * @param string $hobby Only those where an adult said they like it, when it goes with the act; '' for all.
-     * @return array email (how many mails go), phone (how many families by phone), status (of the send by phone:
-     *               queued, pending or ''), said (Marandu's sentence about it).
+     * @param string $hobby Only the families that like this, or invites::ALUMNI for those of former students.
+     * @return array email, phone, status, said
      */
     public static function queue(\stdClass $event, \stdClass $centre, int $userid, int $now, string $hobby = ''): array {
         $none = ['email' => 0, 'phone' => 0, 'status' => '', 'said' => ''];

@@ -178,6 +178,10 @@ if ($action === 'drawing') {
             optional_param('quitar', 0, PARAM_BOOL) ? null : $bytes,
             optional_param('strokes', '', PARAM_RAW)
         );
+        // Back on their page, under the child, a line that says it arrived.
+        if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
+            $back->param('dibujo', (int) $child->id);
+        }
         if (optional_param('fetch', 0, PARAM_BOOL)) {
             if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
                 $note('drawing_sent');
@@ -559,6 +563,7 @@ publicpage::output(
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
         'home' => optional_param('casa', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
-        'de' => optional_param('de', '', PARAM_ALPHA), 'contacts' => optional_param('datos', 0, PARAM_BOOL)]),
+        'de' => optional_param('de', '', PARAM_ALPHA), 'contacts' => optional_param('datos', 0, PARAM_BOOL),
+        'drawing' => optional_param('dibujo', 0, PARAM_INT)]),
     $url
 );

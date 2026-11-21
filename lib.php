@@ -283,7 +283,7 @@ function local_oksigeniaeguahe_marandu_optout(
     if ($scope !== 'all' && $scope !== 'local_oksigeniaeguahe') {
         return;
     }
-    \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out);
+    \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out, $source);
 }
 
 /**

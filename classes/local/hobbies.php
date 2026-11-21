@@ -146,10 +146,17 @@ class hobbies {
     public static function chips(array $told, string $lang): string {
         $words = array_map(fn($k) => self::name($k, $lang) . (($told['details'][$k] ?? '') !== '' ? ' (' .
             $told['details'][$k] . ')' : ''), $told['keys']);
-        if (($told['other'] ?? '') !== '') {
-            $words[] = \core_text::strtoupper(\core_text::substr($told['other'], 0, 1)) . \core_text::substr($told['other'], 1);
+        $line = implode(lists::dir($lang) === 'rtl' ? '، ' : ', ', $words);
+        $other = trim((string) ($told['other'] ?? ''));
+        if ($other === '') {
+            return $line;
         }
-        return implode(lists::dir($lang) === 'rtl' ? '، ' : ', ', $words);
+        // What they wrote themselves goes after the chips in their words, never dressed up as one more chip.
+        if ($line === '') {
+            return \core_text::strtoupper(\core_text::substr($other, 0, 1)) . \core_text::substr($other, 1);
+        }
+        return $line . ' ' . publiclang::str('pub_hobby_also', $lang, \core_text::strtolower(\core_text::substr($other, 0, 1)) .
+            \core_text::substr($other, 1));
     }
 
     /**

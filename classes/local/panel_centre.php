@@ -101,6 +101,10 @@ class panel_centre {
             'colour' => $colour,
             'brandcolours' => implode(' ', centres::brand_colours((string) ($centre->brandcolours ?? ''))),
             'brand' => array_map(fn($code) => ['code' => $code], centres::brand_colours((string) ($centre->brandcolours ?? ''))),
+            'hasbrand' => (bool) centres::brand_colours((string) ($centre->brandcolours ?? '')),
+            // Four pots to pick the colours of the brand with, beside the codes (which stay for pasting a guide).
+            'brandslots' => array_map(fn($i) => ['n' => $i + 1, 'code' => centres::brand_colours((string) ($centre->brandcolours ??
+                ''))[$i] ?? '#ffffff', 'set' => isset(centres::brand_colours((string) ($centre->brandcolours ?? ''))[$i])], range(0, 3)),
             'lightvars' => $style(publicpage::centre_vars($colour, false)),
             'darkvars' => $style(publicpage::centre_vars($colour, true)),
             'colourguard' => self::guard($colour),
@@ -926,7 +930,10 @@ class panel_centre {
                 }
             }
             if ($user) {
-                centres::add_member((int) $centre->id, (int) $user->id);
+                if (!centres::add_member((int) $centre->id, (int) $user->id)) {
+                    // On this site they only look: they are in the team, and whoever manages Eguahe lets them work.
+                    \core\notification::warning(get_string('panel_person_only_looks', $c, fullname($user)));
+                }
             } else if (!onlyeguahe::on()) {
                 $problems[] = get_string('panel_person_not_found', $c, s($add));
             }

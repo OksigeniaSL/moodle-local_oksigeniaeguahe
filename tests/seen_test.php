@@ -184,7 +184,7 @@ final class seen_test extends \advanced_testcase {
 
         // On their page, the most said in the centre first, and each adult's line as the chips say it.
         $this->assertSame(['boardgames', 'sport', 'cooking', 'reading'], array_slice(hobbies::order((int) $centre->id), 0, 4));
-        $this->assertSame('Cocina, Juegos de mesa, Parchís', hobbies::chips($told[$adults[0]], 'es'));
+        $this->assertSame('Cocina, Juegos de mesa y además parchís', hobbies::chips($told[$adults[0]], 'es'));
         $page = \local_oksigeniaeguahe\local\familypage::hobbies_context($ana, households::full($ana), 'es', 'k', []);
         $this->assertSame('boardgames', $page['adults'][0]['options'][0]['key']);
         $this->assertTrue($page['adults'][0]['told']);

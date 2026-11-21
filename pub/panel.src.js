@@ -640,6 +640,20 @@
         if (h1) {
             h1.textContent = n === 1 ? say('inbox_waiting_one') : say('inbox_waiting', n);
         }
+        // The line under it says who waits longest now: asked to the server, as the page would write it.
+        var subline = one('[data-sub]');
+        if (subline && inbox && inbox.getAttribute('data-comprobar')) {
+            ask(inbox.getAttribute('data-comprobar')).then(function(r) {
+                return r.json();
+            }).then(function(data) {
+                if (typeof data.sub === 'string') {
+                    subline.textContent = data.sub;
+                }
+                return data;
+            }).catch(function() {
+                return null;
+            });
+        }
         var stamp = one('.sello-fecha', row);
         if (stamp) {
             stamp.parentNode.removeChild(stamp);
@@ -788,6 +802,12 @@
                     var title = one('h1', page);
                     if (title) {
                         one('h1#titular').textContent = title.textContent;
+                    }
+                    // And the line under it («The one waiting longest since…»), which may have changed with the list.
+                    var sub = one('[data-sub]', page);
+                    var mysub = one('[data-sub]');
+                    if (sub && mysub) {
+                        mysub.textContent = sub.textContent;
                     }
                     all('[data-cuenta-espera], [data-cuenta-bandeja]').forEach(function(c) {
                         c.textContent = data.waiting;
@@ -1797,8 +1817,9 @@
                 one('[data-horas-dinero]', card).textContent = value ? say('panel_js_hours_money',
                     {money: euros(h * value), value: euros(value)}) : say('panel_js_hours_novalue');
                 if (students) {
-                    one('[data-horas-alumno]', card).textContent = say('panel_js_hours_each',
-                        {money: money ? euros(money / students) : '—', hours: hours(h / students)});
+                    one('[data-horas-alumno]', card).textContent = money ? say('panel_js_hours_each',
+                        {money: euros(money / students), hours: hours(h / students)}) :
+                        say('panel_js_hours_each_nomoney', hours(h / students));
                     one('[data-horas-alumno-dinero]', card).textContent = value ?
                         say('panel_js_hours_with', euros((money + h * value) / students)) : '';
                 }
@@ -2581,6 +2602,39 @@
 
     // ---- The settings of the centre: the colour rewrites the band, the label and the wall, in light and dark, and a
     // sentence says what was done so that everything reads (the same sums as publicpage::centre_vars()).
+    // The pots of the brand and its codes, one and the same: a pot chosen writes its code, codes written colour the pots.
+    var codes = one('[data-marca-codigos]');
+    if (codes) {
+        var pots = all('[data-marca-bote]');
+        var fromPots = function() {
+            codes.value = pots.filter(function(p) {
+                return p.hasAttribute('data-puesto');
+            }).map(function(p) {
+                return p.value;
+            }).join(' ');
+        };
+        pots.forEach(function(pot) {
+            on(pot, 'input', function() {
+                pot.setAttribute('data-puesto', '1');
+                pot.parentNode.classList.remove('sin-color');
+                fromPots();
+            });
+        });
+        on(codes, 'input', function() {
+            var found = codes.value.match(/#[0-9a-fA-F]{6}\b/g) || [];
+            pots.forEach(function(pot, i) {
+                var has = i < found.length;
+                if (has) {
+                    pot.value = found[i].toLowerCase();
+                    pot.setAttribute('data-puesto', '1');
+                } else {
+                    pot.removeAttribute('data-puesto');
+                }
+                pot.parentNode.classList.toggle('sin-color', !has);
+            });
+        });
+    }
+
     var colour = one('[data-color-centro]');
     if (colour) {
         var hexText = one('[data-color-hex]');
@@ -2666,6 +2720,30 @@
                 });
             });
         }
+    }
+
+    // ---- A link to something inside a folded part (the split of a family, inside «Their page and their data»)
+    // opens every fold around it.
+    var openFolds = function() {
+        var id = window.location.hash.slice(1);
+        var target = id ? document.getElementById(id) : null;
+        if (!target || !target.closest('details:not([open])')) {
+            return;
+        }
+        for (var el = target; el; el = el.parentElement) {
+            if (el.tagName === 'DETAILS') {
+                el.open = true;
+            }
+        }
+        target.scrollIntoView();
+    };
+    openFolds();
+    on(window, 'hashchange', openFolds);
+
+    // ---- «Today, also» of the inbox, folded on a phone to one line with its count: the list comes first.
+    var today = one('[data-hoy]');
+    if (today && window.matchMedia && window.matchMedia('(max-width: 700px)').matches) {
+        today.open = false;
     }
 
     // ---- The settings of the centre: a photo, a logo or a choice in a select saves itself as soon as it is chosen,

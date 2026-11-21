@@ -32,7 +32,7 @@
      "boxes": [{"value": "email", "icon": "", "check": "", "label": "Correo", "line": "A su correo", "checked": true,
      "pressed": false, "tag": ""}, {"value": "whatsapp", "icon": "", "check": "", "label": "WhatsApp",
      "line": "Al teléfono", "checked": true, "pressed": true, "tag": "Nuevo"}],
-     "icon": "", "button": "Sí, así", "save": "Sí, así", "nobox": "No escribirnos más", "next": "Después nos saludan."},
+     "icon": "", "button": "Sí, así", "save": "Sí, así", "nobox": "Marquen al menos una", "next": "Después nos saludan."},
      "none": false,
      "nonebutton": {"icon": "", "label": "No escribirnos más", "ask": "¿O prefieren que no les escribamos más?",
      "small": "Su página sigue aquí."},
@@ -41,6 +41,7 @@
 {{#done}}
 <section class="pared es-hecho" aria-labelledby="titulo">
     <div class="saludo-arriba"><p class="antetitulo">{{ante}}</p><h1 class="titular" id="titulo">{{title}}</h1>{{#notnow}}<p class="es-salir"><a class="enlace" href="{{url}}">{{label}}</a> · <a class="enlace" href="{{changeurl}}">{{change}}</a></p>{{/notnow}}</div>
+    {{^hasjoins}}
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
         {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
@@ -51,6 +52,7 @@
             </div>
         </div>
     </div>
+    {{/hasjoins}}
 </section>
 <section class="es-despues">
     <div><p>{{text}}</p></div>

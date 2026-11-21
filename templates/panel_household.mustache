@@ -102,6 +102,7 @@
         <a class="boton terciario pequeno" href="{{inboxurl}}" data-cerrar-hoja>{{{i.cerrar}}}{{#str}}panel_close_sheet, local_oksigeniaeguahe{{/str}}</a>
     </div>
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#lookalike}}<p class="aviso-suave misma-familia-aviso">{{{i.info}}}<span>{{#str}}lookalike_top, local_oksigeniaeguahe{{/str}} <a class="enlace" href="#misma-familia">{{#str}}lookalike_top_see, local_oksigeniaeguahe{{/str}}</a></span></p>{{/lookalike}}
     <div class="ficha-cuerpo">
         {{#relay}}
         <div class="relevo" role="group" aria-label="{{#str}}panel_owner_label, local_oksigeniaeguahe{{/str}}">
@@ -366,7 +367,7 @@
                         <p>{{what}}</p>
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         <input type="hidden" name="other" value="{{id}}">
-                        <button class="boton primario pequeno" type="submit" name="action" value="merge">{{#str}}lookalike_do_merge, local_oksigeniaeguahe{{/str}}</button>
+                        <button class="boton principal pequeno" type="submit" name="action" value="merge">{{#str}}lookalike_do_merge, local_oksigeniaeguahe{{/str}}</button>
                     </form>
                 </details>
                 <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="other" value="{{id}}"><button class="enlace" type="submit" name="action" value="notsame">{{#str}}lookalike_not, local_oksigeniaeguahe{{/str}}</button></form>
@@ -488,6 +489,7 @@
                     </div>
                     {{/adults}}
                     <p class="secundario">{{lang}}</p>
+                    {{#split}}{{#canact}}<p class="separar-pista"><a class="enlace" href="#separar">{{#str}}lookalike_split_ask, local_oksigeniaeguahe{{/str}}</a></p>{{/canact}}{{/split}}
                 </div>
                 {{#writeby}}
                 <div class="como-escribimos{{#silent}} sin-mensajes{{/silent}}" id="como-escribimos">
@@ -554,13 +556,12 @@
                     <form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="boton terciario pequeno" type="submit" name="action" value="link">{{{i.enlace}}}{{#str}}panel_new_link, local_oksigeniaeguahe{{/str}}</button></form>
                     {{#mergeurl}}<a class="boton terciario pequeno" href="{{mergeurl}}">{{{i.fundir}}}{{#str}}panel_merge, local_oksigeniaeguahe{{/str}}</a>{{/mergeurl}}
                 </div>
-                <p class="secundario">{{#str}}panel_their_data_help, local_oksigeniaeguahe{{/str}}</p>
                 {{#split}}
                 <details class="confirmar separar" id="separar">
                     <summary class="boton terciario pequeno">{{#str}}lookalike_split, local_oksigeniaeguahe{{/str}}</summary>
                     <form method="post" action="{{action}}">
+                        <p class="separar-cabeza"><b>{{#str}}lookalike_split_head, local_oksigeniaeguahe{{/str}}</b></p>
                         {{#fromlog}}<p>{{fromlog}}</p>{{/fromlog}}
-                        {{#nolog}}<p class="secundario">{{#str}}lookalike_split_links, local_oksigeniaeguahe{{/str}}</p>{{/nolog}}
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         <input type="hidden" name="log" value="{{logid}}">
                         <fieldset>
@@ -570,13 +571,13 @@
                         {{#haschildren}}
                         <fieldset>
                             <legend>{{#str}}lookalike_split_children, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#children}}<label class="eleccion">{{name}} <select name="children[{{id}}]">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/options}}</select></label>{{/children}}
+                            {{#children}}<div class="separar-fila" role="radiogroup" aria-label="{{name}}"><span class="separar-nombre">{{name}}</span><span class="segmentos separar-opciones">{{#options}}<label><input class="oculto" type="radio" name="children[{{id}}]" value="{{value}}"{{#selected}} checked{{/selected}}><span>{{label}}</span></label>{{/options}}</span></div>{{/children}}
                         </fieldset>
                         {{/haschildren}}
                         {{#hassignups}}
                         <fieldset>
                             <legend>{{#str}}lookalike_split_signups, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#signups}}<label class="eleccion">{{name}} <select name="signups[{{eventid}}]">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{label}}</option>{{/options}}</select></label>{{/signups}}
+                            {{#signups}}<div class="separar-fila" role="radiogroup" aria-label="{{name}}"><span class="separar-nombre">{{name}}</span><span class="segmentos separar-opciones">{{#options}}<label><input class="oculto" type="radio" name="signups[{{eventid}}]" value="{{value}}"{{#selected}} checked{{/selected}}><span>{{label}}</span></label>{{/options}}</span></div>{{/signups}}
                         </fieldset>
                         {{/hassignups}}
                         {{#haslines}}
@@ -585,11 +586,15 @@
                             {{#lines}}<label class="casilla"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span class="secundario">{{when}}</span> {{text}}</label>{{/lines}}
                         </fieldset>
                         {{/haslines}}
-                        <button class="boton primario pequeno" type="submit" name="action" value="split">{{#str}}lookalike_split_do, local_oksigeniaeguahe{{/str}}</button>
-                        <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}erase_no, local_oksigeniaeguahe{{/str}}</button>
+                        {{#nolog}}<p class="secundario">{{#str}}lookalike_split_links, local_oksigeniaeguahe{{/str}}</p>{{/nolog}}
+                        <div class="cabeza-acciones">
+                            <button class="boton principal pequeno" type="submit" name="action" value="split">{{#str}}lookalike_split_do, local_oksigeniaeguahe{{/str}}</button>
+                            <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}lookalike_split_no, local_oksigeniaeguahe{{/str}}</button>
+                        </div>
                     </form>
                 </details>
                 {{/split}}
+                <p class="secundario">{{#str}}panel_their_data_help, local_oksigeniaeguahe{{/str}}</p>
                 <details class="confirmar">
                     <summary class="boton rojo pequeno">{{{i.borrar}}}{{#str}}panel_erase, local_oksigeniaeguahe{{/str}}</summary>
                     <form method="post" action="{{action}}">

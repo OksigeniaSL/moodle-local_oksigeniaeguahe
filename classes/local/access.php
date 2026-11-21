@@ -376,9 +376,11 @@ class access {
         $url = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false);
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $name = format_string($centre->name);
-        $button = '<p style="margin:18px 0;"><a href="' . s($url) . '" style="display:inline-block; padding:12px 20px; ' .
-            'border-radius:10px; background:#3d2a35; color:#ffffff; font-weight:700; text-decoration:none;">' .
-            s($str('pub_newlink_mail_open')) . '</a></p>';
+        // A button as Outlook draws one too: a cell with its colour and padding, the link inside.
+        $button = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;"><tr>' .
+            '<td bgcolor="#3d2a35" style="background:#3d2a35; border-radius:10px; mso-padding-alt:12px 20px;">' .
+            '<a href="' . s($url) . '" style="display:inline-block; padding:12px 20px; color:#ffffff; font-weight:700; ' .
+            'text-decoration:none;">' . s($str('pub_newlink_mail_open')) . '</a></td></tr></table>';
         [$html, $text] = self::letter(
             $centre,
             $lang,
@@ -598,13 +600,15 @@ class access {
             '<meta name="viewport" content="width=device-width, initial-scale=1"></head>' .
             '<body style="margin:0; padding:24px 12px; background:#f6f1ea; color:#2b2226; ' .
             'font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' .
-            '<div style="max-width:520px; margin:0 auto; background:#ffffff; border-radius:14px; border-top:6px solid ' .
-            s($colour) . '; padding:24px;">' .
+            // A table of a fixed width, as Outlook (Word) reads mails: a div with max-width fills the whole window there.
+            '<table role="presentation" align="center" width="520" cellpadding="0" cellspacing="0" border="0" ' .
+            'style="width:100%; max-width:520px; margin:0 auto;"><tr><td bgcolor="#ffffff" style="background:#ffffff; ' .
+            'border-radius:14px; border-top:6px solid ' . s($colour) . '; padding:24px;">' .
             '<p style="margin:0 0 12px; font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; ' .
             'color:#5f5459;">' . s($name) . '</p>' .
             '<p style="margin:0; font-size:17px; line-height:1.5;">' . s($lead) . '</p>' . $middlehtml .
             '<p style="margin:16px 0 0; font-size:14px; line-height:1.5; color:#5f5459;">' . s($foot) . '</p>' .
-            '</div></body></html>';
+            '</td></tr></table></body></html>';
         $text = $name . "\n\n" . $lead . "\n\n" . ($middletext !== '' ? $middletext . "\n\n" : '') . $foot . "\n";
         return [$html, $text];
     }

@@ -116,13 +116,18 @@ class lookalike {
            ORDER BY h.timecreated ASC, c.id ASC',
             $params
         );
+        $sur = self::surnames((int) $household->centreid, array_merge(
+            [(int) $household->id],
+            array_map(fn($o) => (int) $o->householdid, $others)
+        ));
         foreach ($others as $other) {
             $id = (int) $other->householdid;
             if (isset($out[$id]) || isset($apart[$id])) {
                 continue;
             }
+            $shared = (bool) array_intersect_key($sur[(int) $household->id] ?? [], $sur[$id] ?? []);
             foreach ($names[grades::plain((string) $other->firstname)] ?? [] as $child) {
-                $why = self::why($child, $other, abs((int) $household->timecreated - (int) $other->timecreated));
+                $why = self::why($child, $other, abs((int) $household->timecreated - (int) $other->timecreated), $shared);
                 if ($why !== '') {
                     $out[$id] = ['child' => (string) $child->firstname, 'why' => $why,
                         'birthdate' => trim((string) $child->birthdate)];
@@ -141,9 +146,10 @@ class lookalike {
      * @param \stdClass $one
      * @param \stdClass $other
      * @param int $apart How far apart in time their households came.
+     * @param bool $samename Whether the adults of the two households share a surname.
      * @return string birthdate, course or '' when they are not.
      */
-    public static function why(\stdClass $one, \stdClass $other, int $apart): string {
+    public static function why(\stdClass $one, \stdClass $other, int $apart, bool $samename = true): string {
         $a = trim((string) $one->birthdate);
         $b = trim((string) $other->birthdate);
         if ($a !== '' && $a === $b) {
@@ -156,7 +162,42 @@ class lookalike {
         if ($settled($one) || $settled($other)) {
             return '';
         }
-        return (int) $one->offerid && (int) $one->offerid === (int) $other->offerid && $apart <= self::NEAR ? 'course' : '';
+        // The same first name and course is not enough on its own (two Hugos for the same year are common): a surname of
+        // the adults in common too.
+        return $samename && (int) $one->offerid && (int) $one->offerid === (int) $other->offerid && $apart <= self::NEAR ?
+            'course' : '';
+    }
+
+    /**
+     * The words of the surnames of the adults of some households, without accents: to tell whether two share one.
+     *
+     * @param int $centreid
+     * @param int[] $ids
+     * @return array householdid => [word => true]
+     */
+    protected static function surnames(int $centreid, array $ids): array {
+        global $DB;
+        $out = [];
+        if (!$ids) {
+            return $out;
+        }
+        [$in, $params] = $DB->get_in_or_equal(array_values(array_unique($ids)), SQL_PARAMS_NAMED);
+        foreach (
+            $DB->get_recordset_select(
+                households::ADULTS,
+                "centreid = :centreid AND householdid $in",
+                ['centreid' => $centreid] + $params,
+                '',
+                'id, householdid, lastname'
+            ) as $adult
+        ) {
+            foreach (preg_split('/\s+/', grades::plain((string) $adult->lastname)) ?: [] as $word) {
+                if (\core_text::strlen($word) > 2) {
+                    $out[(int) $adult->householdid][$word] = true;
+                }
+            }
+        }
+        return $out;
     }
 
     /**
@@ -215,8 +256,23 @@ class lookalike {
         if (is_array($kept) && ($kept['since'] ?? 0) === intdiv($since, DAYSECS)) {
             return $kept['pairs'];
         }
+        return self::refresh($centreid, $since);
+    }
+
+    /**
+     * Compares the households of a centre now and keeps the pairs for the inbox: the task does it every ten minutes, so a
+     * large centre never makes the person who opens the inbox wait for it.
+     *
+     * @param int $centreid
+     * @param int $since The oldest household compared.
+     * @return array[] [newer householdid, older householdid], the newest first.
+     */
+    public static function refresh(int $centreid, int $since): array {
         $pairs = self::compare($centreid, $since);
-        $cache->set($centreid, ['since' => intdiv($since, DAYSECS), 'pairs' => $pairs]);
+        \cache::make('local_oksigeniaeguahe', 'lookalikes')->set(
+            $centreid,
+            ['since' => intdiv($since, DAYSECS), 'pairs' => $pairs]
+        );
         return $pairs;
     }
 
@@ -258,6 +314,7 @@ class lookalike {
             $apart[$row->householda . ':' . $row->householdb] = true;
         }
         $pairs = [];
+        $sur = self::surnames($centreid, array_map(fn($r) => (int) $r->householdid, $rows));
         foreach ($byname as $children) {
             foreach ($children as $i => $one) {
                 if ((int) $one->timecreated < $since) {
@@ -269,7 +326,8 @@ class lookalike {
                     if ($a === $b || isset($apart[$key]) || isset($pairs[$key])) {
                         continue;
                     }
-                    if (self::why($one, $other, abs((int) $one->timecreated - (int) $other->timecreated)) !== '') {
+                    $shared = (bool) array_intersect_key($sur[$a] ?? [], $sur[$b] ?? []);
+                    if (self::why($one, $other, abs((int) $one->timecreated - (int) $other->timecreated), $shared) !== '') {
                         $pairs[$key] = [$a, $b];
                     }
                 }

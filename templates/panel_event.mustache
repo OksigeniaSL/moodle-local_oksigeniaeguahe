@@ -172,6 +172,7 @@
                     <summary class="boton principal">{{{i.enviado}}}{{somebutton}}</summary>
                     <form method="post" action="{{action}}">
                         <p><b>{{someconfirm}}</b></p>
+                        <ul class="invitar-quienes">{{#somewhom}}<li>{{.}}</li>{{/somewhom}}</ul>
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invite"><input type="hidden" name="gusto" value="{{hobby}}">
                         <button class="boton principal pequeno" type="submit">{{#str}}panel_invite_yes, local_oksigeniaeguahe{{/str}}</button>
                         <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}panel_invite_notyet, local_oksigeniaeguahe{{/str}}</button>
@@ -181,6 +182,7 @@
                     <summary class="boton secundario">{{{i.enviado}}}{{button}}</summary>
                     <form method="post" action="{{action}}">
                         <p><b>{{confirm}}</b></p>
+                        <ul class="invitar-quienes">{{#whom}}<li>{{.}}</li>{{/whom}}</ul>
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invite">
                         <button class="boton principal pequeno" type="submit">{{#str}}panel_invite_yes, local_oksigeniaeguahe{{/str}}</button>
                         <button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}panel_invite_notyet, local_oksigeniaeguahe{{/str}}</button>

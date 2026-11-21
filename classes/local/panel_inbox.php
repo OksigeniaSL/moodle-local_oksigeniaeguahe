@@ -235,6 +235,7 @@ class panel_inbox {
             'filtering' => $course || $stage !== '' || $onlyalumni,
             'today' => $today,
             'hastoday' => (bool) $today,
+            'todaycount' => count($today),
             'days' => $days,
             'hasrows' => (bool) $days,
             'search' => $search,
@@ -479,8 +480,18 @@ class panel_inbox {
         );
         $latest = reset($latest);
         $household = $latest ? households::full(households::get((int) $latest->id, $centreid)) : null;
+        // The line under the title, as the page writes it: whoever waits longest, or when the last answer went.
+        $waiting = households::waiting_count($centreid);
+        $first = $waiting ? (int) $DB->get_field_select(
+            households::T,
+            'MIN(waitingsince)',
+            'centreid = ? AND waitingsince > 0',
+            [$centreid]
+        ) : 0;
         return [
-            'waiting' => households::waiting_count($centreid),
+            'waiting' => $waiting,
+            'sub' => $waiting ? get_string('panel_inbox_longest', self::C, panel::wait_words($first, time())['since']) :
+                self::last_answer($centreid, time()),
             'latest' => $household ? ['id' => (int) $household->id, 'adults' => panel::adults_line($household->adults),
                 'listurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false),
                 // For the living hall: what of theirs comes in through the door.
@@ -652,9 +663,7 @@ class panel_inbox {
             $channel = $last ? (string) $last->channel : (string) $household->firstchannel;
             $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel :
                 'other'), $c);
-            if ($last) {
-                $via .= ', ' . panel::when_words((int) $last->timecreated, $now);
-            }
+            // The day and the hour are already at the left of the row: here only how it came, never cut in the middle.
             if (!empty($household->moving)) {
                 $via .= ' · ' . get_string('panel_moving', $c);
             }

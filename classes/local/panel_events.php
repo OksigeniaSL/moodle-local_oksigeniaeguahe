@@ -32,6 +32,9 @@ class panel_events {
     /** @var int How many events past are shown. */
     const PAST = 12;
 
+    /** @var int How far back «who came these days» looks. */
+    const CAME = 7 * DAYSECS;
+
     /**
      * The context of the page.
      *
@@ -117,7 +120,58 @@ class panel_events {
             'hasasking' => (bool) $asking,
             'past' => array_map(fn($e) => self::row($e, $hosts, $now), array_slice($past, 0, self::PAST)),
             'haspast' => (bool) $past,
+            'came' => $firsttime ? [] : self::came($centre, $now),
         ];
+    }
+
+    /**
+     * The families that came in the last week, the one that came last first: who to send how to ask for a place, or to
+     * thank, without opening each act. Each says where it came, when, and whether it was sent how to ask for a place.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array[]
+     */
+    public static function came(\stdClass $centre, int $now): array {
+        global $DB;
+        $c = self::C;
+        $rows = $DB->get_records_sql(
+            'SELECT s.id, s.householdid, s.attended, e.name
+               FROM {' . households::SIGNUPS . '} s
+               JOIN {' . events::T . '} e ON e.id = s.eventid
+              WHERE s.centreid = :centreid AND s.attended >= :since AND s.attended <= :now
+           ORDER BY s.attended DESC, s.id DESC',
+            ['centreid' => (int) $centre->id, 'since' => $now - self::CAME, 'now' => $now],
+            0,
+            200
+        );
+        $last = [];
+        foreach ($rows as $row) {
+            $last[(int) $row->householdid] = $last[(int) $row->householdid] ?? $row;
+        }
+        $families = households::some((int) $centre->id, array_keys($last));
+        $list = [];
+        foreach ($last as $id => $row) {
+            $household = $families[$id] ?? null;
+            if (!$household || !empty($household->roster)) {
+                continue;
+            }
+            $child = reset($household->children);
+            $sent = (int) ($household->applysent ?? 0);
+            $list[] = [
+                'adults' => panel::adults_line($household->adults),
+                'tag' => $child ? panel::tag($child) : '',
+                'what' => get_string('panel_came_at', $c, (object) ['act' => format_string($row->name),
+                    'when' => panel::when_words((int) $row->attended, $now)]),
+                'state' => $sent ? get_string('panel_came_apply_sent', $c, userdate(
+                    $sent,
+                    get_string('strftimedaydate', 'langconfig')
+                )) : get_string('panel_came_apply_not', $c),
+                'pending' => !$sent,
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false),
+            ];
+        }
+        return $list;
     }
 
     /**

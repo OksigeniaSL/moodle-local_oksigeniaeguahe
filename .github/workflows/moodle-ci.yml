@@ -17,10 +17,15 @@ on:
   pull_request:
     paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'provenance/**']
   workflow_dispatch:
+  # Once a week, every supported branch on main: pushes only try the oldest and the newest, so a break in the middle
+  # branches (5.0, 5.1, 5.2) or in the next release shows up within the week.
+  schedule:
+    - cron: "40 4 * * 1"
 
-# A new push cancels the run of the one before it on the same branch, which nobody needs any more.
+# A new push cancels the run of the one before it on the same branch, which nobody needs any more; the weekly run goes
+# on its own and neither cancels nor is cancelled by a push.
 concurrency:
-  group: moodle-ci-${{ github.ref }}
+  group: moodle-ci-${{ github.ref }}-${{ github.event_name == 'schedule' && 'weekly' || 'run' }}
   cancel-in-progress: true
 
 jobs:
@@ -38,8 +43,8 @@ jobs:
           high='{"moodle-branch":"MOODLE_503_STABLE","php":"8.3","node":"22","pg":"17"}'
           next='{"moodle-branch":"main","php":"8.4","node":"22","pg":"17","experimental":true}'
           # Every push: the oldest and the newest (the repository is private since 18-11-2026, and its minutes count).
-          # A tag or a run by hand: every branch supported.
-          if [[ "$GITHUB_REF" == refs/tags/* || "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+          # A tag, a run by hand or the weekly run: every branch supported.
+          if [[ "$GITHUB_REF" == refs/tags/* || "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_EVENT_NAME" == schedule ]]; then
             echo "include=[$low,$b500,$b501,$b502,$high,$next]" >> "$GITHUB_OUTPUT"
           else
             echo "include=[$low,$high]" >> "$GITHUB_OUTPUT"

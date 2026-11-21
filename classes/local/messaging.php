@@ -39,6 +39,17 @@ class messaging {
         'request' => 'request_received', 'received' => 'message_received', 'reply' => 'answer_waiting',
         'change' => 'visit_changed', 'thanks' => 'visit_thanks'];
 
+    /** @var array[] The messages kept in this request, by their id: [householdid, centreid]. */
+    protected static $heard = [];
+
+    /**
+     * Forgets the messages kept in this request: Marandu hands each one to every join within a single request, so a
+     * process that lives longer (the tests, a worker) starts each message afresh.
+     */
+    public static function forget_heard(): void {
+        self::$heard = [];
+    }
+
     /**
      * Whether the site has Marandu.
      *
@@ -306,7 +317,24 @@ class messaging {
         $channel = $hook->get_channel() === 'whatsapp' ? 'whatsapp' : 'telegram';
         // Who wrote, to answer that person (Marandu 0.51.1): «+34600…» or «tg:<chat>».
         $address = method_exists($hook, 'get_address') ? (string) $hook->get_address() : '';
-        households::received($household, $channel, $text, true, $hook->get_time() ?: time(), 0, '', $address);
+        $time = $hook->get_time() ?: time();
+        // A phone joined to two households (a grandmother of two families, maybe of two centres) is heard once for each:
+        // Marandu goes from the newest join to the oldest. The message goes only to the first that keeps it; the others
+        // get a line that it came, never its words.
+        $key = sha1(($hook->get_messageid() !== '' ? $hook->get_messageid() : $address . '|' . $time . '|' . $text));
+        if (isset(self::$heard[$key])) {
+            [$otherid, $othercentre] = self::$heard[$key];
+            $other = $othercentre === (int) $household->centreid ? households::get($otherid, $othercentre) : null;
+            $words = get_string('channel_' . $channel, self::COMPONENT);
+            households::note($household, 0, $other ?
+                get_string('msg_elsewhere_same', self::COMPONENT, (object) ['channel' => $words,
+                    'family' => panel::adults_line(households::full($other)->adults)]) :
+                get_string('msg_elsewhere', self::COMPONENT, $words));
+            $hook->set_handled();
+            return;
+        }
+        households::received($household, $channel, $text, true, $time, 0, '', $address);
+        self::$heard[$key] = [(int) $household->id, (int) $household->centreid];
         $hook->set_handled();
     }
 }

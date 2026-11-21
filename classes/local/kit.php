@@ -214,7 +214,7 @@ class kit {
             'phrase' => share::phrase($centre, $lang),
             'act' => format_string($event->name),
             'day' => $when['long'],
-            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
+            'hours' => self::lower(familypage::hours((int) $event->timestart, (int) $event->timeend, $lang)),
             'place' => trim((string) ($event->place ?? '')) !== '' ? format_string($event->place) :
                 (string) ($centre->address ?? ''),
             'room' => !empty($event->capacity),
@@ -349,7 +349,17 @@ class kit {
         $lang = (string) $centre->lang;
         $when = publicpage::date_parts((int) $event->timestart, $lang);
         return share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
-            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
+            'hours' => self::lower(familypage::hours((int) $event->timestart, (int) $event->timeend, $lang)),
             'title' => format_string($event->name)], null, self::SHAPES[$shape]);
+    }
+
+    /**
+     * Inside a sentence, a phrase that starts in capitals in its own place («De 17:00 a 19:00») starts in small.
+     *
+     * @param string $text
+     * @return string
+     */
+    protected static function lower(string $text): string {
+        return \core_text::strtolower(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1);
     }
 }
