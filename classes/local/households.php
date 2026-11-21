@@ -542,6 +542,8 @@ class households {
                 $DB->update_record(self::ADULTS, (object) (['id' => $adult->id, 'timemodified' => $now] + $fields));
                 $changed = true;
                 alumni::match($household, (object) (['id' => $adult->id] + $fields));
+                // An email or a phone changed: the address there was hears it, without a link.
+                access::changed($household, $centre, $adult, $fields);
             }
         }
         $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));

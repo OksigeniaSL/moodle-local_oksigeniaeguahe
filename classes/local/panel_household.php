@@ -148,6 +148,8 @@ class panel_household {
         $open = attend::open_promise((int) $household->id);
         $untold = self::untold($full, $offers);
         $pending = visits::pending((int) $household->id);
+        // A conversation of the chat already open with them (Marandu 0.52): «Contestar» goes there, never twice.
+        $chat = $canact ? messaging::conversation_url($household, $centre) : null;
         return [
             'head' => panel::head([
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -156,8 +158,9 @@ class panel_household {
                 'title' => panel::adults_line($full->adults),
                 'sub' => implode(' · ', array_filter($origin)),
                 'origen' => self::origen($household),
-                'action' => $canact ? ['url' => '#contestar', 'anchor' => true, 'name' => get_string('panel_answer', $c),
-                    'icon' => panel::icon('enviado')] : null,
+                'action' => $canact ? ($chat ? ['url' => $chat, 'anchor' => false, 'name' => get_string('panel_answer_chat', $c),
+                    'icon' => panel::icon('whatsapp')] : ['url' => '#contestar', 'anchor' => true,
+                    'name' => get_string('panel_answer', $c), 'icon' => panel::icon('enviado')]) : null,
                 'help' => helps::link('answer', $centre),
             ]),
             'url' => $url->out(false),

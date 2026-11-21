@@ -108,6 +108,7 @@ class familypage {
             'alumnilabel' => $str('pub_alumni'),
             'alumniyearlabel' => $str('pub_alumni_year'),
             'alumniyearhint' => $str('pub_alumni_year_hint'),
+            'alumniyearnote' => $str('pub_alumni_year_note'),
             'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
                 'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
                 phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email,

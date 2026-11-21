@@ -536,6 +536,7 @@
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="linkhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="SHA-256 of the link"/>
         <FIELD NAME="reason" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="signup" SEQUENCE="false" COMMENT="signup, invitation or team"/>
+        <FIELD NAME="timeused" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was last opened, to the day; a link unused for months stops working"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -1044,6 +1045,22 @@
       <INDEXES>
         <INDEX NAME="centrekey" UNIQUE="false" FIELDS="centreid, keyhash"/>
         <INDEX NAME="importid" UNIQUE="false" FIELDS="importid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_code" COMMENT="A code of six figures sent to the family before something delicate on its page: downloading or erasing its data">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="what" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="download" SEQUENCE="false" COMMENT="download or erase"/>
+        <FIELD NAME="codehash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="The keyed hash of the code, never the code"/>
+        <FIELD NAME="tries" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="householdwhat" UNIQUE="false" FIELDS="householdid, what"/>
       </INDEXES>
     </TABLE>
   </TABLES>

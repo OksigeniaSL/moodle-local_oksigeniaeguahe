@@ -26,6 +26,7 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Families have no account: their private link lets them in.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\access;
 use local_oksigeniaeguahe\local\ages;
 use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\centres;
@@ -69,6 +70,54 @@ if (!$household || !$centre) {
     );
 }
 $lang = publiclang::choose($centre);
+// A link unused for months stops working: a new one goes to the email the centre has, never to one written here.
+$link = access::link($token);
+if ($link && access::expired($link)) {
+    $sent = $action === 'nuevoenlace' && data_submitted() && confirm_sesskey() ?
+        access::send_new_link($household, $centre, $lang) : [];
+    publicpage::output(
+        $centre,
+        $lang,
+        publiclang::str('pub_link_expired_title', $lang),
+        'public_code',
+        access::expired_context($household, $centre, $lang, $token, $sent),
+        $url
+    );
+}
+// Downloading or erasing their data asks for a code sent to their email: a link forwarded, or sent to an address that is
+// not theirs, only shows the page. The download itself goes only by a form of this page, never by a bare link.
+$download = false;
+if (in_array($action, ['download', 'erase', 'codigo'], true)) {
+    $what = $action === 'codigo' ? optional_param('para', '', PARAM_ALPHA) : $action;
+    if (!in_array($what, access::WHAT, true)) {
+        redirect(new moodle_url($url, ['idioma' => $lang]));
+    }
+    $posted = data_submitted() && confirm_sesskey();
+    $error = '';
+    $sent = access::pending((int) $household->id, $what) ? access::destinations($household, $centre, $lang) : [];
+    if ($action === 'codigo' && $posted && optional_param('enviar', 0, PARAM_BOOL)) {
+        $sent = access::send($household, $centre, $what, $lang);
+    } else if ($action === 'codigo' && $posted && optional_param('codigo', '', PARAM_RAW_TRIMMED) !== '') {
+        $error = access::check($household, $what, optional_param('codigo', '', PARAM_RAW_TRIMMED));
+        if ($error === 'ok') {
+            if ($what === 'erase') {
+                redirect(new moodle_url($url, ['action' => 'erase', 'idioma' => $lang]));
+            }
+            $download = true;
+            $error = '';
+        } else if ($error !== 'wrong') {
+            $sent = [];
+        }
+    } else if ($what === 'download' && $posted && access::proven($household, 'download')) {
+        $download = optional_param('descargar', 0, PARAM_BOOL);
+    }
+    if (!$download && !($what === 'erase' && access::proven($household, 'erase'))) {
+        $context = access::proven($household, $what) ? access::ready_context($centre, $lang, $token) :
+            access::page_context($household, $centre, $lang, $token, $what, $sent, $error);
+        publicpage::output($centre, $lang, publiclang::str('pub_code_title_' . $what, $lang), 'public_code', $context, $url);
+    }
+    $action = $download ? 'download' : 'erase';
+}
 // What the family does here is counted, never when someone of the team looks at their page.
 $note = function (string $what) use ($household, $centre): void {
     if (!seen::from_team($centre)) {
@@ -148,7 +197,7 @@ if ($action === 'drawing') {
     );
 }
 
-if ($action === 'download') {
+if ($action === 'download' && $download) {
     $note('download');
     publicpage::headers();
     @header('Content-Type: application/json; charset=utf-8');
@@ -446,7 +495,7 @@ if ($action === 'escribir') {
     );
 }
 
-if ($action === 'erase') {
+if ($action === 'erase' && access::proven($household, 'erase')) {
     if (optional_param('confirm', 0, PARAM_BOOL) && data_submitted() && confirm_sesskey()) {
         households::erase($household);
         publicpage::message(

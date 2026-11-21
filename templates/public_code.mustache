@@ -1,0 +1,64 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_code
+
+    Before something delicate on the page of a family (downloading or erasing its data): a code of six figures sent to
+    the email the centre has for them, and the box to write it. Also the page of a link that stopped working, which sends
+    a new one to that same email.
+
+    {"i": {"alert": "", "mail": "", "phone": ""}, "title": "Para descargar sus datos, un código",
+     "text": "Les mandamos un código de 6 cifras a ma•••@gmail.com.", "note": "Así sabemos que son ustedes.",
+     "error": false, "codeform": false,
+     "sendform": {"action": "#", "sesskey": "abc", "step": "codigo", "para": "download", "label": "Mandar el código",
+        "secondary": false},
+     "nowhere": false, "back": {"url": "#", "label": "Volver a su página"} }
+}}
+<section class="pared corta">
+    <div class="mensaje codigo">
+        <h1>{{title}}</h1>
+        <p class="entradilla">{{text}}</p>
+        {{#note}}<p class="codigo-nota">{{note}}</p>{{/note}}
+        {{#error}}<p class="error" role="alert">{{{i.alert}}}{{error}}</p>{{/error}}
+        {{#codeform}}
+        <form method="post" action="{{action}}" class="codigo-form">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="codigo">
+            <input type="hidden" name="para" value="{{para}}">
+            <label for="codigo">{{label}}</label>
+            <input id="codigo" name="codigo" class="codigo-cifras" inputmode="numeric" autocomplete="one-time-code" maxlength="7" required dir="ltr">
+            <button type="submit" class="boton principal">{{go}}</button>
+        </form>
+        {{/codeform}}
+        {{#sendform}}
+        <form method="post" action="{{action}}" class="acciones">
+            <input type="hidden" name="sesskey" value="{{sesskey}}">
+            <input type="hidden" name="action" value="{{step}}">
+            <input type="hidden" name="para" value="{{para}}">
+            {{#download}}<input type="hidden" name="descargar" value="1">{{/download}}{{^download}}<input type="hidden" name="enviar" value="1">{{/download}}
+            <button type="submit" class="{{#secondary}}enlace{{/secondary}}{{^secondary}}boton principal{{/secondary}}">{{label}}</button>
+        </form>
+        {{/sendform}}
+        {{#nowhere}}
+        <div class="acciones">
+            {{#email}}<a class="boton principal" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
+        </div>
+        {{/nowhere}}
+        {{#back}}<p class="codigo-volver"><a class="enlace" href="{{url}}">{{label}}</a></p>{{/back}}
+    </div>
+</section>

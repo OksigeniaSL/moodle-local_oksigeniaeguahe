@@ -94,6 +94,10 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
         // The invitation to an open act, sent to many with its approval: it counts as marketing.
         'act_invitation' => ['examples' => ['Los Almendros School', 'Spring festival', 'Saturday 14 March, 11:00'],
             'perweek' => 0.05],
+        // The code before downloading or erasing their data, asked for by the family: by Telegram for now (WhatsApp needs a
+        // template of authentication), outside the notices a day.
+        'access_code' => ['examples' => ['Los Almendros School', '482913'], 'perweek' => 0.01, 'channels' => ['telegram'],
+            'uncapped' => true],
     ];
 }
 
@@ -265,8 +269,20 @@ function local_oksigeniaeguahe_oksigeniaaty_home_cards(int $userid): array {
  * @param bool $out Whether it asked not to be written to.
  * @param string $source Where it came from, as Marandu says it.
  * @param int $time When.
+ * @param string $scope 'all', or the plugin the no was for.
  */
-function local_oksigeniaeguahe_marandu_optout(int $itemid, string $channel, bool $out, string $source = '', int $time = 0): void {
+function local_oksigeniaeguahe_marandu_optout(
+    int $itemid,
+    string $channel,
+    bool $out,
+    string $source = '',
+    int $time = 0,
+    string $scope = 'all'
+): void {
+    // A no to another plugin (the canteen, the library) is not a no to admissions (Marandu 0.51.1).
+    if ($scope !== 'all' && $scope !== 'local_oksigeniaeguahe') {
+        return;
+    }
     \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out);
 }
 

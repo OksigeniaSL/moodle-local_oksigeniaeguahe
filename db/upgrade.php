@@ -1622,5 +1622,27 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119600, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119700) {
+        // The private links stop working after months unused, and what is delicate asks for a code sent to the family.
+        $table = new xmldb_table('local_oksigeniaeguahe_link');
+        $field = new xmldb_field('timeused', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'reason');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_code');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('what', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'download');
+        $table->add_field('codehash', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('tries', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('householdwhat', XMLDB_INDEX_NOTUNIQUE, ['householdid', 'what']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026119700, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

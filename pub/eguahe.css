@@ -6717,10 +6717,56 @@ html {
     margin-top: 8px;
 }
 
+.persona-datos .campo-promocion label {
+    grid-column: 1 / -1;
+}
+
+.persona-datos .campo-promocion label small {
+    font-weight: 500;
+}
+
 .persona-datos .campo-promocion input {
     max-width: 10em;
 }
 
 .persona-datos .campo-promocion[hidden] {
     display: none;
+}
+
+/* Before downloading or erasing: the code sent to their email, written in one wide box */
+.mensaje.codigo .codigo-nota {
+    margin: 8px 0 0;
+    color: var(--eg-tinta-2);
+}
+
+.codigo-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 20px;
+    justify-items: start;
+}
+
+.codigo-form label {
+    font-weight: 650;
+}
+
+.codigo-cifras {
+    width: 9ch;
+    min-height: 56px;
+    padding: 0 14px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: var(--radio-campo);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: 700 1.75rem/1 ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: 0.18em;
+}
+
+.codigo-cifras:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.codigo-volver {
+    margin: 18px 0 0;
 }

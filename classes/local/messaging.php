@@ -191,6 +191,29 @@ class messaging {
     }
 
     /**
+     * The conversation of the chat of Marandu already open with the family, when there is one (Marandu 0.52): where to
+     * answer it, so it is never answered twice.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string|null
+     */
+    public static function conversation_url(\stdClass $household, \stdClass $centre): ?string {
+        if (
+            self::mode($centre) === 'off' || !empty($centre->practice) ||
+                !method_exists('\local_oksigeniamarandu\api', 'conversation_url')
+        ) {
+            return null;
+        }
+        try {
+            $url = \local_oksigeniamarandu\api::conversation_url(self::COMPONENT, (int) $household->id);
+            return $url ? $url->out(false) : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
      * What the team answers from the household, on the phones the family joined with: as a message when it can, or
      * as the notice with the answer inside when WhatsApp no longer allows a message.
      *
