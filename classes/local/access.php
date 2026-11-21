@@ -51,6 +51,9 @@ class access {
     /** @var int A new link is not sent again before this. */
     const NEWLINK = HOURSECS;
 
+    /** @var int How many codes a family may get in a day, for download and erase together. */
+    const DAILY = 5;
+
     /** @var int How long an email or a Telegram must have been the family's before a code goes there. */
     const TRUST = 7 * DAYSECS;
 
@@ -164,6 +167,13 @@ class access {
         if ($last && (int) $last->timecreated > $now - self::RESEND) {
             return $masked;
         }
+        if (self::too_many($household, $now)) {
+            return [];
+        }
+        $cache = \cache::make('local_oksigeniaeguahe', 'codessent');
+        $times = array_values(array_filter((array) ($cache->get((int) $household->id) ?: []), fn($t) => $t > $now - DAYSECS));
+        $times[] = $now;
+        $cache->set((int) $household->id, $times);
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $DB->delete_records(self::T, ['householdid' => $household->id, 'what' => $what]);
         $DB->insert_record(self::T, (object) ['householdid' => $household->id, 'what' => $what,
@@ -207,6 +217,19 @@ class access {
             }
         }
         return $masked;
+    }
+
+    /**
+     * Whether a family got as many codes as a day allows: then no new one goes until tomorrow.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     * @return bool
+     */
+    public static function too_many(\stdClass $household, int $now = 0): bool {
+        $now = $now ?: time();
+        $times = (array) (\cache::make('local_oksigeniaeguahe', 'codessent')->get((int) $household->id) ?: []);
+        return count(array_filter($times, fn($t) => $t > $now - DAYSECS)) >= self::DAILY;
     }
 
     /**

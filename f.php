@@ -98,7 +98,9 @@ if (in_array($action, ['download', 'erase', 'codigo'], true)) {
     $error = '';
     $sent = access::pending((int) $household->id, $what) ? access::destinations($household, $centre, $lang) : [];
     if ($action === 'codigo' && $posted && optional_param('enviar', 0, PARAM_BOOL)) {
-        $sent = access::send($household, $centre, $what, $lang);
+        // At most a few codes a day: a code is not guessed by asking for new ones.
+        $error = access::too_many($household) ? 'toomany' : '';
+        $sent = $error === '' ? access::send($household, $centre, $what, $lang) : $sent;
     } else if ($action === 'codigo' && $posted && optional_param('codigo', '', PARAM_RAW_TRIMMED) !== '') {
         $error = access::check($household, $what, optional_param('codigo', '', PARAM_RAW_TRIMMED));
         if ($error === 'ok') {

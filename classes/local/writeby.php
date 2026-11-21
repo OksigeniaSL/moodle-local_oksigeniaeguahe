@@ -746,6 +746,12 @@ class writeby {
      * @param string $lang
      */
     public static function confirm(\stdClass $household, \stdClass $centre, string $lang): void {
+        // At most one an hour: going back and forth between ways never floods their inbox with mails and new links.
+        $cache = \cache::make('local_oksigeniaeguahe', 'writebyconfirm');
+        if ((int) $cache->get((int) $household->id) > time() - HOURSECS) {
+            return;
+        }
+        $cache->set((int) $household->id, time());
         if (in_array('email', self::chosen($household) ?? [], true)) {
             familymail::send('writeby', $household, $centre, null, $lang, households::new_link($household, 'writeby'));
         }

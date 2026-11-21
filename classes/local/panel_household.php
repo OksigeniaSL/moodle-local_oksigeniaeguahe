@@ -1264,7 +1264,7 @@ class panel_household {
                 'alumni' => $said === alumni::YES ? ['text' => alumni::words($row), 'from' => get_string(
                     'alumni_from_' . $row->source,
                     $c
-                )] : false,
+                ), 'noyear' => trim((string) ($row->year ?? '')) === ''] : false,
                 'alumnimaybe' => $said === alumni::MAYBE ? alumni::words($row) : false,
                 // A note said someone of the family: each adult asks if it was them, with the mortarboard.
                 'alumniwho' => $someone && $said !== alumni::YES && $said !== alumni::MAYBE ?

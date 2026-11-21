@@ -42,6 +42,20 @@ $definitions = [
         'simpledata' => true,
         'ttl' => 600,
     ],
+    // The codes sent to each family in the last day: at most five, so a code cannot be guessed by asking for new ones.
+    'codessent' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 86400,
+    ],
+    // When each family last got the mail that confirms how they are written to: at most one an hour.
+    'writebyconfirm' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 3600,
+    ],
     'typing' => [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => true,

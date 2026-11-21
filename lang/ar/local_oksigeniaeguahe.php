@@ -584,6 +584,7 @@ $string['pub_changed_mail_email'] = 'في صفحة عائلتكم لدى {$a->ce
 $string['pub_changed_mail_foot'] = 'إن لم تكونوا أنتم، اكتبوا إلى المدرسة:';
 $string['pub_changed_mail_phone'] = 'في صفحة عائلتكم لدى {$a->centre} تم تغيير هاتف {$a->name}: أصبح الآن {$a->value}.';
 $string['pub_changed_mail_removed'] = 'لا شيء';
+$string['pub_code_toomany'] = 'أرسلنا لكم اليوم عدة رموز. استخدموا آخر رمز وصلكم، أو حاولوا غدًا؛ وإن احتجتم إليه قبل ذلك فاكتبوا إلى المدرسة.';
 $string['pub_changed_mail_subject'] = 'تغيّرت بياناتكم لدى {$a}';
 $string['pub_practice_closed_title'] = 'صفحة تجريبية';
 $string['pub_practice_closed'] = 'هذه الصفحة تابعة لمدرسة تجريبية ولا يراها إلا من يجرّبها. إذا وصلتكم من مدرسة حقيقية، فاكتبوا إليها مباشرة.';

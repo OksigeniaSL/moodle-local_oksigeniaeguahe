@@ -305,6 +305,15 @@ if ($action && data_submitted() && confirm_sesskey()) {
             }
             redirect(new moodle_url($url, [], 'quien-escribe'));
             break;
+        case 'alumniyear':
+            // The year a former student finished, as they told a person; nothing else of what was said changes.
+            $adultid = required_param('adulto', PARAM_INT);
+            $year = alumni::year(optional_param('ano', '', PARAM_TEXT));
+            if ($year !== '' && isset(households::full($household)->adults[$adultid])) {
+                alumni::set($household, $adultid, alumni::YES, 'team', (int) $USER->id, $year);
+            }
+            redirect(new moodle_url($url, [], 'quien-escribe'));
+            break;
         case 'ambassador':
             // They told a person they would gladly tell another family how it went: an ambassador, with its invitation.
             if (settled::in_centre(array_values(households::full($household)->children))) {
