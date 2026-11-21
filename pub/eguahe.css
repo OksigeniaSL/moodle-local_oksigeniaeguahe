@@ -6482,3 +6482,61 @@ html {
     background: var(--m-pared);
     color: var(--m-tinta);
 }
+
+/* The wall of the family page, wide (Jujol, 21 Nov 2026). Enrique, at about 1860 px: «¿Por qué Leo va debajo y queda
+   tanto espacio en blanco a la derecha?». */
+
+/* The name written by hand goes on the line of the greeting when it fits, as one piece: «Los esperamos, Leo». When it
+   does not (a phone, two names), it drops to the next line by itself, whole. */
+.titular .mano-titular {
+    display: inline-block;
+    margin-top: 0;
+    margin-inline-start: 0.12em;
+}
+
+@media (min-width: 960px) {
+    /* Under the rail, what the centre says is the voice of the wall: big, beside the backpack, at the height of its
+       body, and spread over the whole column; it fills the right of the wall instead of leaving it empty. */
+    .heroe-ancho {
+        align-items: center;
+    }
+
+    .heroe-ancho .bajo-riel {
+        padding-top: 24px;
+        padding-bottom: 48px;
+    }
+
+    .heroe-ancho .bajo-riel > .entradilla:first-child {
+        /* stylelint-disable-next-line csstree/validator */
+        font-size: clamp(1.75rem, 2.4vw, 2.9rem);
+        line-height: 1.22;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+        color: var(--eg-tinta);
+        /* stylelint-disable-next-line csstree/validator */
+        text-wrap: pretty;
+    }
+}
+
+/* Their contact data, changed by themselves: each person a small group, its name as a line, not a heading */
+.persona-datos {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+}
+
+.persona-datos legend {
+    margin-bottom: 4px;
+    padding: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--eg-tinta);
+}
+
+.persona-datos .campo input {
+    width: 100%;
+    max-width: none;
+}

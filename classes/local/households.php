@@ -496,6 +496,82 @@ class households {
     }
 
     /**
+     * What the family itself changes of its contact data, from its page (Enrique): the name, phone and email of each
+     * adult, and another person of the family. An adult keeps the permissions it gave; another person gets those of
+     * the ways the family is written to by. The team reads it in a line of the history.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param array $rows Adult id => [firstname, lastname, phone, email], as written.
+     * @param array $new firstname, lastname, phone, email of another person; empty fields, none.
+     * @return bool Whether something changed.
+     */
+    public static function family_contacts(\stdClass $household, \stdClass $centre, array $rows, array $new): bool {
+        global $DB;
+        $now = time();
+        $changed = false;
+        $clean = fn(array $row) => (object) [
+            'firstname' => \core_text::substr(trim((string) ($row['firstname'] ?? '')), 0, 100),
+            'lastname' => \core_text::substr(trim((string) ($row['lastname'] ?? '')), 0, 100),
+            'phone' => phone::normalise((string) ($row['phone'] ?? ''), $centre->country ?? null),
+            'email' => self::email((string) ($row['email'] ?? '')),
+        ];
+        foreach (self::full($household)->adults as $adult) {
+            if (!isset($rows[$adult->id])) {
+                continue;
+            }
+            $row = $clean($rows[$adult->id]);
+            // A name left empty keeps the one it had; a phone or an email written badly too.
+            $fields = ['firstname' => $row->firstname !== '' ? $row->firstname : $adult->firstname,
+                'lastname' => $row->lastname, 'phone' => $row->phone ?? ($rows[$adult->id]['phone'] === '' ? null : $adult->phone),
+                'email' => $row->email ?? ($rows[$adult->id]['email'] === '' ? null : $adult->email)];
+            if ($fields['phone'] === null && $fields['email'] === null) {
+                // Never without a way to reach them.
+                $fields['phone'] = $adult->phone;
+                $fields['email'] = $adult->email;
+            }
+            $differs = false;
+            foreach ($fields as $field => $value) {
+                $differs = $differs || (string) $value !== (string) $adult->$field;
+            }
+            if ($differs) {
+                $DB->update_record(self::ADULTS, (object) (['id' => $adult->id, 'timemodified' => $now] + $fields));
+                $changed = true;
+            }
+        }
+        $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));
+        $teamlang = (string) ($centre->lang ?? '') ?: current_language();
+        $other = $clean($new);
+        $added = '';
+        if ($other->firstname !== '' && ($other->phone || $other->email)) {
+            $id = self::add_adult($household, $other);
+            if ($id) {
+                // Written to as the rest of the family: the same ways, with the permission the family gives for them.
+                $ways = writeby::chosen($household);
+                $said = self::permissions((int) $household->id);
+                $has = fn(string $channel) => (bool) array_filter($said, fn($p) => !empty($p[$channel]));
+                if ($other->email && ($ways === null ? $has('email') : in_array('email', $ways, true))) {
+                    self::consent($household, $id, 'email', true, 'family', $lang);
+                }
+                if ($other->phone && ($ways === null ? $has('whatsapp') : in_array('whatsapp', $ways, true))) {
+                    self::consent($household, $id, 'whatsapp', true, 'family', $lang);
+                }
+                $added = $other->firstname;
+                $changed = true;
+            }
+        }
+        if ($changed) {
+            self::note($household, 0, get_string_manager()->get_string(
+                $added !== '' ? 'contacts_noted_added' : 'contacts_noted_changed',
+                'local_oksigeniaeguahe',
+                $added,
+                $teamlang
+            ));
+        }
+        return $changed;
+    }
+
+    /**
      * Whom the emails of a household go to: the first adult with an email whose last word on email was yes; else the
      * first adult with an email. Emails only get into a household through the family itself or the team.
      *

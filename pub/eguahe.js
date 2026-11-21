@@ -263,11 +263,18 @@
         // The line of each adult says what they marked, as they mark it.
         var sayLikes = function(box) {
             var words = all('input[type="checkbox"]', box).filter(function(input) {
+                // Which one, under each hobby marked: shown while it is marked.
+                var detail = box.querySelector('[data-de="' + input.value + '"]');
+                if (detail) {
+                    detail.hidden = !input.checked;
+                }
                 return input.checked;
             }).map(function(input) {
-                return input.parentNode.querySelector('.palabra').textContent.trim();
+                var word = input.parentNode.querySelector('.palabra').textContent.trim();
+                var which = box.querySelector('[data-de="' + input.value + '"] input');
+                return which && which.value.trim() ? word + ' (' + which.value.trim() + ')' : word;
             });
-            var own = box.querySelector('input[type="text"]');
+            var own = box.querySelector('.otra-aficion input[type="text"]');
             if (own && own.value.trim()) {
                 words.push(own.value.trim().charAt(0).toUpperCase() + own.value.trim().slice(1));
             }

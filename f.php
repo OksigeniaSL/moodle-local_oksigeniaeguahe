@@ -327,12 +327,17 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
         if ($one && $one !== (int) $adult->id) {
             continue;
         }
+        $details = [];
+        foreach (hobbies::LIST as $key) {
+            $details[$key] = optional_param('d' . $adult->id . '_' . $key, '', PARAM_TEXT);
+        }
         $saved = hobbies::save(
             $household,
             (int) $adult->id,
             optional_param_array('h' . $adult->id, [], PARAM_ALPHANUMEXT),
             optional_param('o' . $adult->id, '', PARAM_TEXT),
-            time()
+            time(),
+            $details
         ) || $saved;
     }
     if ($saved) {
@@ -346,6 +351,21 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
         die();
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'gustos' => 1], 'aficiones'));
+}
+
+if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
+    // Their contact data, changed by themselves, and another person of the family.
+    $fields = ['firstname', 'lastname', 'phone', 'email'];
+    $rows = [];
+    $new = [];
+    foreach ($fields as $field) {
+        foreach (households::full($household)->adults as $adult) {
+            $rows[(int) $adult->id][$field] = trim(optional_param('a' . $adult->id . '_' . $field, '', PARAM_TEXT));
+        }
+        $new[$field] = trim(optional_param('n_' . $field, '', PARAM_TEXT));
+    }
+    households::family_contacts($household, $centre, $rows, $new);
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos'));
 }
 
 if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
@@ -423,6 +443,6 @@ publicpage::output(
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
         'home' => optional_param('casa', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
-        'de' => optional_param('de', '', PARAM_ALPHA)]),
+        'de' => optional_param('de', '', PARAM_ALPHA), 'contacts' => optional_param('datos', 0, PARAM_BOOL)]),
     $url
 );

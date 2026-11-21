@@ -190,6 +190,33 @@
             <dl>
                 {{#adults}}<div><dt>{{name}}</dt><dd>{{#reach}}{{.}}<br>{{/reach}}</dd></div>{{/adults}}
             </dl>
+            {{#contactedit}}
+            {{#saved}}<p class="casa-guardado" role="status">{{saved}}</p>{{/saved}}
+            <details class="en-casa datos-contacto" id="datos"{{#savedopen}} open{{/savedopen}}>
+                <summary class="enlace">{{open}}</summary>
+                <form class="hoja-casa" method="post" action="{{action}}">
+                    <input type="hidden" name="sesskey" value="{{sesskey}}">
+                    {{#rows}}
+                    <fieldset class="persona-datos">
+                        <legend>{{firstname}}</legend>
+                        <div class="campo"><label for="a{{id}}-n">{{first}}</label><input id="a{{id}}-n" name="a{{id}}_firstname" value="{{firstname}}" maxlength="100" autocomplete="given-name" dir="auto"></div>
+                        <div class="campo"><label for="a{{id}}-a">{{last}}</label><input id="a{{id}}-a" name="a{{id}}_lastname" value="{{lastname}}" maxlength="100" autocomplete="family-name" dir="auto"></div>
+                        <div class="campo"><label for="a{{id}}-t">{{phone}}</label><input id="a{{id}}-t" name="a{{id}}_phone" value="{{phonevalue}}" type="tel" maxlength="30" autocomplete="tel" dir="ltr"></div>
+                        <div class="campo"><label for="a{{id}}-c">{{email}}</label><input id="a{{id}}-c" name="a{{id}}_email" value="{{emailvalue}}" type="email" maxlength="100" autocomplete="email" dir="ltr"></div>
+                    </fieldset>
+                    {{/rows}}
+                    <fieldset class="persona-datos persona-nueva">
+                        <legend>{{newtitle}}</legend>
+                        <p class="ayuda-campo">{{newhint}}</p>
+                        <div class="campo"><label for="n-n">{{first}}</label><input id="n-n" name="n_firstname" maxlength="100" autocomplete="off" dir="auto"></div>
+                        <div class="campo"><label for="n-a">{{last}}</label><input id="n-a" name="n_lastname" maxlength="100" autocomplete="off" dir="auto"></div>
+                        <div class="campo"><label for="n-t">{{phone}}</label><input id="n-t" name="n_phone" type="tel" maxlength="30" autocomplete="off" dir="ltr"></div>
+                        <div class="campo"><label for="n-c">{{email}}</label><input id="n-c" name="n_email" type="email" maxlength="100" autocomplete="off" dir="ltr"></div>
+                    </fieldset>
+                    <button class="boton secundario" type="submit">{{save}}</button>
+                </form>
+            </details>
+            {{/contactedit}}
         </div>
         {{#hobbies}}
         <div class="aficiones" id="aficiones">
@@ -204,6 +231,9 @@
                         <legend class="oculto">{{name}}</legend>
                         <div class="fichas-papel">
                             {{#options}}<label class="ficha-papel"><input type="checkbox" name="h{{adultid}}[]" value="{{key}}"{{#checked}} checked{{/checked}}><span class="palabra">{{label}}</span></label>{{/options}}
+                        </div>
+                        <div class="aficion-detalles">
+                            {{#options}}<div class="campo aficion-detalle" data-de="{{key}}"{{^checked}} hidden{{/checked}}><label for="d{{adultid}}_{{key}}">{{which}}</label><input id="d{{adultid}}_{{key}}" name="d{{adultid}}_{{key}}" type="text" value="{{detail}}" maxlength="100" placeholder="{{example}}" dir="auto"></div>{{/options}}
                         </div>
                         <div class="campo otra-aficion">
                             <label for="o{{adultid}}">{{othertext}}</label>

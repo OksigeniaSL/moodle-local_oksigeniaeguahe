@@ -43,17 +43,21 @@ class hobbies {
      * What each adult of a household told.
      *
      * @param int $householdid
-     * @return array adult id => [keys => string[], other => string]
+     * @return array adult id => [keys => string[], other => string, details => key => what exactly]
      */
     public static function of(int $householdid): array {
         global $DB;
         $out = [];
         foreach ($DB->get_records(self::T, ['householdid' => $householdid], 'id ASC') as $row) {
-            $out[$row->adultid] = $out[$row->adultid] ?? ['keys' => [], 'other' => ''];
+            $out[$row->adultid] = $out[$row->adultid] ?? ['keys' => [], 'other' => '', 'details' => []];
             if ($row->hobby === self::OTHER) {
                 $out[$row->adultid]['other'] = (string) $row->other;
             } else {
                 $out[$row->adultid]['keys'][] = $row->hobby;
+                // What exactly, for one of the list: which sport, what they read, which dance (Enrique).
+                if (trim((string) $row->other) !== '') {
+                    $out[$row->adultid]['details'][$row->hobby] = (string) $row->other;
+                }
             }
         }
         return $out;
@@ -67,9 +71,17 @@ class hobbies {
      * @param string[] $keys
      * @param string $other
      * @param int $now
+     * @param string[] $details What exactly, by key of the list: «pádel», «novela negra».
      * @return bool False when the adult is not of the household.
      */
-    public static function save(\stdClass $household, int $adultid, array $keys, string $other, int $now): bool {
+    public static function save(
+        \stdClass $household,
+        int $adultid,
+        array $keys,
+        string $other,
+        int $now,
+        array $details = []
+    ): bool {
         global $DB;
         if (!$DB->record_exists(households::ADULTS, ['id' => $adultid, 'householdid' => $household->id])) {
             return false;
@@ -81,7 +93,8 @@ class hobbies {
         $row = ['centreid' => $household->centreid, 'householdid' => $household->id, 'adultid' => $adultid,
             'timecreated' => $now];
         foreach ($keys as $key) {
-            $DB->insert_record(self::T, (object) ($row + ['hobby' => $key]));
+            $detail = \core_text::substr(trim(preg_replace('/\s+/u', ' ', (string) ($details[$key] ?? ''))), 0, 100);
+            $DB->insert_record(self::T, (object) ($row + ['hobby' => $key, 'other' => $detail !== '' ? $detail : null]));
         }
         if ($other !== '') {
             $DB->insert_record(self::T, (object) ($row + ['hobby' => self::OTHER, 'other' => $other]));
@@ -109,7 +122,8 @@ class hobbies {
      * @return string
      */
     public static function words(array $told, ?string $lang = null): string {
-        $words = array_map(fn($k) => \core_text::strtolower(self::name($k, $lang)), $told['keys']);
+        $words = array_map(fn($k) => \core_text::strtolower(self::name($k, $lang)) . (($told['details'][$k] ?? '') !== '' ?
+            ' (' . $told['details'][$k] . ')' : ''), $told['keys']);
         if (($told['other'] ?? '') !== '') {
             // What they wrote, inside the sentence: its first letter small, the rest as they wrote it.
             $words[] = \core_text::strtolower(\core_text::substr($told['other'], 0, 1)) . \core_text::substr($told['other'], 1);
@@ -130,7 +144,8 @@ class hobbies {
      * @return string
      */
     public static function chips(array $told, string $lang): string {
-        $words = array_map(fn($k) => self::name($k, $lang), $told['keys']);
+        $words = array_map(fn($k) => self::name($k, $lang) . (($told['details'][$k] ?? '') !== '' ? ' (' .
+            $told['details'][$k] . ')' : ''), $told['keys']);
         if (($told['other'] ?? '') !== '') {
             $words[] = \core_text::strtoupper(\core_text::substr($told['other'], 0, 1)) . \core_text::substr($told['other'], 1);
         }

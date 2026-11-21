@@ -54,6 +54,38 @@ class familypage {
     }
 
     /**
+     * The contact data of the family, to change it themselves, folded under it: each adult with its name, phone and
+     * email, and another person of the family.
+     *
+     * @param \stdClass $full households::full()
+     * @param string $lang
+     * @param string $token
+     * @param bool $saved Whether it was just kept.
+     * @return array
+     */
+    protected static function contacts_context(\stdClass $full, string $lang, string $token, bool $saved): array {
+        $str = fn(string $id) => publiclang::str($id, $lang);
+        return [
+            'open' => $str('pub_contacts_edit'),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'datos',
+                'idioma' => $lang]))->out(false),
+            'sesskey' => sesskey(),
+            'saved' => $saved ? $str('pub_contacts_saved') : '',
+            'savedopen' => $saved,
+            'first' => $str('pub_contacts_first'),
+            'last' => $str('pub_contacts_last'),
+            'phone' => $str('pub_contacts_phone'),
+            'email' => $str('pub_contacts_email'),
+            'newtitle' => $str('pub_contacts_new'),
+            'newhint' => $str('pub_contacts_new_hint'),
+            'save' => $str('pub_contacts_save'),
+            'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
+                'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
+                phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email], array_values($full->adults)),
+        ];
+    }
+
+    /**
      * How the family is written to (Jujol): one block on their page, «Cómo les escribimos», with what they have as pills,
      * «Change it», and for a phone marked and not joined yet its button; after «do not write to us any more», since when,
      * and the way back.
@@ -284,8 +316,11 @@ class familypage {
                 'drawingsend' => !$allclosed && ($drawing || ages::young($child, $offers, $centre)) ?
                     $link(['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang]) : '',
                 // Asked as a question, with their name: «¿Nos envían un dibujo hecho por Leo?» (Enrique).
-                'drawingsendname' => publiclang::str($drawing ? 'pub_drawing_ask_other' : 'pub_drawing_ask', $lang,
-                    $tag !== '' ? $tag : $child->firstname),
+                'drawingsendname' => publiclang::str(
+                    $drawing ? 'pub_drawing_ask_other' : 'pub_drawing_ask',
+                    $lang,
+                    $tag !== '' ? $tag : $child->firstname
+                ),
                 // Their drawing, sent to someone: that drawing alone, by its own link.
                 'drawingshare' => $drawing ? ['url' => share::drawing_url($household, $child, $lang)->out(false),
                     'label' => publiclang::str('pub_drawing_share', $lang),
@@ -566,6 +601,8 @@ class familypage {
             'whocomes' => publiclang::str($enrolled ? 'pub_who_is_here' : 'pub_who_comes', $lang),
             'children' => $childrows,
             'adults' => $adults,
+            // Their contact data, changed by themselves, and another person of the family (Enrique).
+            'contactedit' => self::contacts_context($full, $lang, $token, !empty($flags['contacts'])),
             // How they are written to, in one block where the notices on the phone were (Jujol): one word, kept everywhere.
             'writeby' => self::writeby_strip($household, $centre, $lang, $token),
             'downloadurl' => $link(['action' => 'download']),
@@ -952,13 +989,17 @@ class familypage {
         $tellus = publiclang::str('pub_hobbies_tell', $lang);
         $adults = [];
         foreach (array_values($full->adults) as $adult) {
-            $mine = $told[$adult->id] ?? ['keys' => [], 'other' => ''];
+            $mine = $told[$adult->id] ?? ['keys' => [], 'other' => '', 'details' => []];
             $said = hobbies::chips($mine, $lang);
             $adults[] = ['adultid' => (int) $adult->id, 'name' => trim((string) $adult->firstname),
                 'other' => $mine['other'], 'told' => $said !== '', 'said' => $said !== '' ? $said : $tellus,
                 'changetext' => publiclang::str('pub_hobbies_change', $lang),
                 'options' => array_map(fn($key) => ['key' => $key, 'label' => hobbies::name($key, $lang),
-                'checked' => in_array($key, $mine['keys'], true)], $order)];
+                'checked' => in_array($key, $mine['keys'], true),
+                // Which one, once marked: «¿Qué deporte?», with examples (Enrique).
+                'which' => publiclang::str('pub_hobby_which_' . $key, $lang),
+                'example' => publiclang::str('pub_hobby_example_' . $key, $lang),
+                'detail' => (string) ($mine['details'][$key] ?? '')], $order)];
         }
         return [
             'title' => publiclang::str('pub_hobbies_title', $lang),
