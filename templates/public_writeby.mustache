@@ -1,0 +1,115 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_writeby
+
+    How a family wants the centre to write to them (Jujol): by email, on WhatsApp, on Telegram, several at once, or not
+    at all. From a mail, the way pressed there is asked on the wall, and on the paper a card with how they are written to
+    now, the ways as boxes with the pressed one already changed and its one big button; beside it, «do not write to us any
+    more». «Do not write to us any more» pressed in a mail is asked with its own button, the boxes beside it. Once chosen,
+    the wall says it, and under the rail their backpacks with a note in the hand of the centre; for each phone marked and
+    not joined yet, the button that joins it, the message as it goes written and its QR on a computer.
+
+    Example context (json):
+    {"action": "#", "sesskey": "abc", "lang": "es", "ante": "Cómo les escribimos", "pageurl": "#",
+     "title": "¿Les escribimos también por WhatsApp?",
+     "nowpill": {"icon": "", "text": "Ahora: por correo"},
+     "choosing": {"means": "Les llegaría lo mismo por los dos.", "legend": "Por dónde les escribimos",
+     "boxes": [{"value": "email", "icon": "", "check": "", "label": "Correo", "line": "A su correo", "checked": true,
+     "pressed": false, "tag": ""}, {"value": "whatsapp", "icon": "", "check": "", "label": "WhatsApp",
+     "line": "Al teléfono", "checked": true, "pressed": true, "tag": "Nuevo"}],
+     "icon": "", "button": "Sí, así", "save": "Sí, así", "nobox": "No escribirnos más", "next": "Después nos saludan."},
+     "none": false,
+     "nonebutton": {"icon": "", "label": "No escribirnos más", "ask": "¿O prefieren que no les escribamos más?",
+     "small": "Su página sigue aquí."},
+     "done": false}
+}}
+{{#done}}
+<section class="pared es-hecho" aria-labelledby="titulo">
+    <div class="saludo-arriba"><p class="antetitulo">{{ante}}</p><h1 class="titular" id="titulo">{{title}}</h1></div>
+    <div class="riel" aria-hidden="true"></div>
+    <div class="heroe-ancho">
+        {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
+        <div class="bajo-riel">
+            <div class="es-nota" role="img" aria-label="{{note}}">
+                <p class="es-mano{{#pending}} es-pendiente{{/pending}}"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M9 25c4 3 7 7 10 12 6-11 12-19 21-27"/></svg><span>{{note}}</span></p>
+                <p class="es-firma">{{sign}}</p>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="es-despues">
+    <div><p>{{text}}</p></div>
+    {{#hasjoins}}
+    <div class="es-unirse">
+        {{#joins}}
+        <a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
+        {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
+        {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}
+        <p class="es-qr"><span class="es-qr-img">{{{qr}}}</span>{{qrline}}</p>
+        {{/joins}}
+    </div>
+    {{/hasjoins}}
+    {{#back}}<a class="boton secundario" href="{{url}}">{{{icon}}}{{label}}</a>{{/back}}
+</section>
+{{/done}}
+{{^done}}
+<section class="pared corta" aria-labelledby="titulo">
+    <div class="saludo-arriba"><p class="antetitulo">{{ante}}</p><h1 class="titular" id="titulo">{{title}}</h1></div>
+</section>
+<section class="es-elegir">
+    {{#none}}
+    <form method="post" action="{{action}}" class="es-carta">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="escribir">
+        <input type="hidden" name="idioma" value="{{lang}}">
+        {{#nowpill}}<p class="es-ahora">{{{icon}}}{{text}}</p>{{/nowpill}}
+        <p>{{means}}</p>
+        <button type="submit" name="nada" value="1" class="boton principal">{{{icon}}}{{button}}</button>
+    </form>
+    <div class="es-otras">
+        <p>{{other}}</p>
+        <div class="es-otras-fila"><a class="boton secundario" href="{{pickurl}}">{{pick}}</a></div>
+    </div>
+    {{/none}}
+    {{#choosing}}
+    <form method="post" action="{{action}}" class="es-carta">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="escribir">
+        <input type="hidden" name="idioma" value="{{lang}}">
+        {{#nowpill}}<p class="es-ahora">{{{icon}}}{{text}}</p>{{/nowpill}}
+        <p>{{means}}</p>
+        <fieldset class="es-casillas">
+            <legend class="oculto">{{legend}}</legend>
+            {{#boxes}}<label class="es-casilla{{#checked}} es-on{{/checked}}{{#pressed}} es-pulsada{{/pressed}}"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="es-cas-ico">{{{icon}}}</span><span class="es-cas-t"><b>{{label}}{{#tag}}<span class="es-cambia">{{tag}}</span>{{/tag}}</b><small>{{line}}</small></span><span class="es-caja" aria-hidden="true">{{{check}}}</span></label>{{/boxes}}
+        </fieldset>
+        <button type="submit" class="boton principal" data-guardar="{{save}}" data-ninguno="{{nobox}}">{{{icon}}}<span>{{button}}</span></button>
+        {{#next}}<p class="es-pequeno">{{next}}</p>{{/next}}
+    </form>
+    {{/choosing}}
+    {{#nonebutton}}
+    <form method="post" action="{{action}}" class="es-otras">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        <input type="hidden" name="action" value="escribir">
+        <input type="hidden" name="idioma" value="{{lang}}">
+        <p>{{ask}}</p>
+        <div class="es-otras-fila"><button type="submit" name="nada" value="1" class="boton secundario">{{{icon}}}{{label}}</button></div>
+        <p class="es-pequeno">{{small}}</p>
+    </form>
+    {{/nonebutton}}
+</section>
+{{/done}}

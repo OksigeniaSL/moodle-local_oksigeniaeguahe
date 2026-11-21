@@ -180,6 +180,9 @@ class panel_household {
             'waiting' => $household->waitingsince > 0,
             'me' => panel::person($USER),
             'composer' => $composer,
+            // How they want to be written to: what they chose, its trail with days and, if they asked not to be, the
+            // warning before writing (Enrique: a warning, never a block, for a person).
+            'writeby' => self::writeby_context($household, $centre, $url),
             // What the family asked since the last answer, to see the answer says it all; while it waits.
             'asked' => $asked,
             'hasasked' => (bool) $asked,
@@ -908,6 +911,39 @@ class panel_household {
         }
         $parts[] = get_string('panel_apply_msg_end', $c);
         return self::greeting($full) . implode("\n\n", $parts);
+    }
+
+    /**
+     * How the family wants to be written to, for the file: writeby::team_context() with the warning of the composer and
+     * the link that writes the question again once a child is at the centre.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param \moodle_url $url
+     * @return array
+     */
+    protected static function writeby_context(\stdClass $household, \stdClass $centre, \moodle_url $url): array {
+        $context = writeby::team_context($household, $centre, $url->out(false));
+        $context['warn'] = $context['silent'] && !$context['wrote'] ? $context['since'] : '';
+        $context['askurl'] = $context['askagain'] !== '' ? (new \moodle_url($url, ['preguntar' => 1]))->out(false) : '';
+        return $context;
+    }
+
+    /**
+     * The warm question for a family that asked, while on its way, not to be written to and now has a child at the centre:
+     * written, for a person to send; the mail carries the buttons to choose.
+     *
+     * @param \stdClass $full
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function writeby_question(\stdClass $full, \stdClass $centre): string {
+        $c = self::C;
+        $enrolled = array_filter($full->children, fn($k) => (string) $k->stage === 'enrolled' && empty($k->lefttime));
+        return self::greeting($full) . get_string('panel_writeby_ask_msg', $c, self::list_words(array_map(
+            fn($k) => panel::tag($k),
+            $enrolled ?: $full->children
+        )));
     }
 
     /**

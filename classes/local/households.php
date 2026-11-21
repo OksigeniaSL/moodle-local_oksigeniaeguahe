@@ -399,6 +399,8 @@ class households {
         global $DB;
         $time = $time ?? time();
         self::contact($household, 'in', $channel, $body, 0, $time, $entryid, $detail);
+        // Writing again after asking not to be written to lifts it, by the way they wrote (never for an old message).
+        writeby::wrote_again($household, $channel, $time);
         $changes = (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time];
         if ($awaits && !$household->waitingsince) {
             $changes->waitingsince = $time;
@@ -761,6 +763,9 @@ class households {
                 'how_your_invitation_is_signed' => $full->invitesign ?? null,
                 'why_you_chose_another_centre' => ($full->whyothertime ?? 0) ? ($full->whyother ?: '') : null,
                 'summary_for_the_team' => $full->aisummary ?? null,
+                'how_you_want_us_to_write' => ($full->writeby ?? '') !== '' ? ['way' => $full->writeby,
+                    'since' => $date((int) $full->writebytime),
+                    'last_asked_not_to' => $date((int) ($full->writebynone ?? 0))] : null,
                 'created' => $date((int) $full->timecreated),
             ],
             'adults' => [],

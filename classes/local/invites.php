@@ -88,7 +88,7 @@ class invites {
             if (isset($done[$id]) || empty($emails[$id]) || in_array('enrolled', $stages, true) || !$ok) {
                 continue;
             }
-            if (familymail::may_email($household)) {
+            if (writeby::may_send($household, 'openinvite') && familymail::may_email($household)) {
                 $out[$id] = $household;
             }
         }

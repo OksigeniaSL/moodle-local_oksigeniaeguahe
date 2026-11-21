@@ -54,6 +54,29 @@ class familypage {
     }
 
     /**
+     * How the family is written to, for the quiet line at the end of their page, with the way to change it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @return array
+     */
+    protected static function writeby_strip(\stdClass $household, \stdClass $centre, string $lang, string $token): array {
+        $now = writeby::now($household, $centre);
+        return [
+            'title' => publiclang::str('pub_writeby_title', $lang),
+            'now' => writeby::silent($household) ? publiclang::str('pub_writeby_now_none', $lang) : ($now ?
+                publiclang::str('pub_writeby_now', $lang, writeby::words($now, $lang)) : publiclang::str(
+                    'pub_writeby_now_nothing',
+                    $lang
+                )),
+            'url' => writeby::url($token, $lang),
+            'change' => publiclang::str('pub_writeby_change_link', $lang),
+        ];
+    }
+
+    /**
      * The name on the label of a child: the one used at home, else the first of the name.
      *
      * @param \stdClass $child
@@ -463,6 +486,14 @@ class familypage {
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
             'quiet' => $issettled || $isgone || $isroster || $allclosed,
             // Closed, what hung rests on the shelf, off its knob (Jujol).
+            // Asked, while on their way, not to be written to, and now with a child at the centre: asked again, warmly.
+            'writebyask' => writeby::enrolled_since($household) ? [
+                'title' => publiclang::str('pub_writeby_again_title', $lang),
+                'text' => $names !== '' ? publiclang::str('pub_writeby_again_text', $lang, $names) :
+                    publiclang::str('pub_writeby_again_text_nochild', $lang),
+                'url' => writeby::url($token, $lang),
+                'go' => publiclang::str('pub_writeby_again_go', $lang),
+            ] : false,
             'pegs' => ['resting' => $allclosed] +
                 publicpage::pegs($tags ?: [''], $new || (bool) $upcoming, null, $hanging, $came) + ['came' => $came],
             'settled' => $settled,
@@ -511,7 +542,11 @@ class familypage {
             'whocomes' => publiclang::str($enrolled ? 'pub_who_is_here' : 'pub_who_comes', $lang),
             'children' => $childrows,
             'adults' => $adults,
-            'writeby' => $channels ? publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : '',
+            // How they are written to, under their contact data, with the way to change it (one choice, kept everywhere);
+            // before they ever chose, the ways their permissions give.
+            'writeby' => self::writeby_strip($household, $centre, $lang, $token) + ['text' =>
+                writeby::chosen($household) === null && $channels ?
+                publiclang::str('pub_write_by', $lang, self::join(array_values($channels), $lang)) : ''],
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'idioma' => $lang]),
             // What they like doing, each adult their own, if they want to tell it: not on the quiet page of those who left.

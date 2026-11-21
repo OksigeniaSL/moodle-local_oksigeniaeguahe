@@ -1539,5 +1539,32 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119203, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119300) {
+        // How each family wants to be written to (email, WhatsApp, Telegram, several, or not at all), kept everywhere.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $fields = [
+            new xmldb_field('writeby', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'applysent'),
+            new xmldb_field('writebytime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'writeby'),
+            new xmldb_field('writebyfrom', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'writebytime'),
+            new xmldb_field('writebynone', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'writebyfrom'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026119300, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026119301) {
+        // Several ways at once: the list of what a family marked is longer than one word.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('writeby', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'applysent');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_precision($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026119301, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

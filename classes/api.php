@@ -207,7 +207,9 @@ class api {
      * @param int $userid
      * @param string $query
      * @param int $limit
-     * @return array A list of name, phone (E.164) and line (what the family is: who it asks a place for, and the course).
+     * @return array A list of name, phone (E.164) and line (what the family is: who it asks a place for, and the course),
+     *               with how they want to be written to: nomessages, writeby, writebytime, writebynone (the last time
+     *               they asked not to be) and enrolled (when a child was first enrolled, or 0).
      */
     public static function chat_candidates(int $userid, string $query, int $limit): array {
         global $DB;
@@ -225,7 +227,7 @@ class api {
             "centreid $in AND roster = 0",
             $params,
             'lastcontact DESC',
-            'id, centreid, incentre'
+            'id, centreid, incentre, writeby, writebytime, writebynone'
         );
         if (!$homes) {
             return [];
@@ -251,7 +253,7 @@ class api {
                 "centreid $in",
                 $params,
                 'id ASC',
-                'id, householdid, firstname, tagname, offerid, stage'
+                'id, householdid, firstname, tagname, offerid, stage, stagetime'
             ) as $child
         ) {
             $children[$child->householdid][] = $child;
@@ -286,8 +288,16 @@ class api {
                 if ((string) $adult->phone === '') {
                     continue;
                 }
+                // How they want to be written to: a family that asked not to be is said (a warning before writing, never a
+                // block), with the trail of days: when it asked, when a child was enrolled, what it chose since.
+                $enrolled = array_filter($children[$home->id] ?? [], fn($c) => $c->stage === 'enrolled');
                 $out[] = ['name' => trim(format_string($adult->firstname) . ' ' . format_string((string) $adult->lastname)),
-                    'phone' => (string) $adult->phone, 'line' => $line];
+                    'phone' => (string) $adult->phone, 'line' => $line,
+                    'nomessages' => (string) $home->writeby === 'none',
+                    'writeby' => (string) ($home->writeby ?? ''),
+                    'writebytime' => (int) $home->writebytime,
+                    'writebynone' => (int) $home->writebynone,
+                    'enrolled' => $enrolled ? (int) min(array_map(fn($c) => (int) $c->stagetime, $enrolled)) : 0];
                 if (count($out) >= $limit) {
                     return $out;
                 }

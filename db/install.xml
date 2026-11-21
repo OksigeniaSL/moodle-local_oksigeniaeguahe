@@ -150,6 +150,10 @@
         <FIELD NAME="arrivalcampaign" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: its utm_campaign"/>
         <FIELD NAME="arrivalref" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="Measured, the first time: the site it came from, by its domain"/>
         <FIELD NAME="applysent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team last sent them how to ask for a place; 0, never"/>
+        <FIELD NAME="writeby" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The ways it marked to be written to, comma-separated (email, whatsapp, telegram), or none; empty, as its permissions say"/>
+        <FIELD NAME="writebytime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it chose"/>
+        <FIELD NAME="writebyfrom" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Who changed it: family, team or messaging (the word that stops the notices on the phone)"/>
+        <FIELD NAME="writebynone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time it asked not to be written to, kept after it chooses again"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

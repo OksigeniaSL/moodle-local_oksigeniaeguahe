@@ -262,6 +262,12 @@
                             <div class="siguiente-fila"><input id="siguiente" name="next" value="{{next.value}}" placeholder="{{#str}}panel_next_example, local_oksigeniaeguahe{{/str}}" autocomplete="off">{{#next.date}}{{> local_oksigeniaeguahe/public_date }}{{/next.date}}</div>
                         </div>
                         {{/next}}
+                        {{#writeby}}{{#warn}}
+                        <div class="aviso-escribir" role="note">
+                            <p>{{{i.info}}}<span><b>{{warn}}</b>{{#askagain}} {{askagain}}{{/askagain}}</span></p>
+                            <label class="casilla"><input type="checkbox" name="anyway" value="1"> {{#str}}panel_writeby_anyway, local_oksigeniaeguahe{{/str}}</label>
+                        </div>
+                        {{/warn}}{{/writeby}}
                         <div class="acciones">
                             <button class="boton principal" type="submit" name="action" value="send" data-enviar="1">{{{i.enviado}}}<span>{{button}}</span></button>
                         </div>
@@ -477,6 +483,26 @@
                     {{/adults}}
                     <p class="secundario">{{lang}}</p>
                 </div>
+                {{#writeby}}
+                <div class="como-escribimos{{#silent}} sin-mensajes{{/silent}}" id="como-escribimos">
+                    <p class="rotulo-p">{{#str}}panel_writeby, local_oksigeniaeguahe{{/str}}</p>
+                    <p class="ce-ahora"><b>{{now}}</b>{{#pending}} <span class="secundario">{{pending}}</span>{{/pending}}{{#since}} <span class="secundario">{{since}}</span>{{/since}}</p>
+                    {{#askagain}}<p class="aviso-suave">{{{i.info}}}<span>{{askagain}} <a href="{{askurl}}#contestar">{{#str}}panel_writeby_ask_go, local_oksigeniaeguahe{{/str}}</a></span></p>{{/askagain}}
+                    {{#hastrail}}<ol class="ce-rastro">{{#trail}}<li>{{text}}</li>{{/trail}}</ol>{{/hastrail}}
+                    {{#canact}}
+                    <details class="ce-cambiar">
+                        <summary>{{#str}}panel_writeby_change, local_oksigeniaeguahe{{/str}}</summary>
+                        <form method="post" action="{{action}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <input type="hidden" name="action" value="writeby">
+                            <p class="ayuda">{{#str}}panel_writeby_change_help, local_oksigeniaeguahe{{/str}}</p>
+                            <div class="ce-opciones">{{#boxes}}<label class="casilla"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}> {{label}}</label>{{/boxes}}</div>
+                            <div class="ce-acciones"><button class="boton secundario" type="submit">{{#str}}panel_writeby_save, local_oksigeniaeguahe{{/str}}</button> <button class="enlace" type="submit" name="nada" value="1">{{#str}}panel_writeby_none_set, local_oksigeniaeguahe{{/str}}</button></div>
+                        </form>
+                    </details>
+                    {{/canact}}
+                </div>
+                {{/writeby}}
             </section>
             {{#hasabout}}
             <section class="apartado">

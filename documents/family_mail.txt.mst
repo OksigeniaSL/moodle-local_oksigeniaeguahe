@@ -62,6 +62,13 @@
 
 {{{nota}}}
 {{/nota}}
+{{#escribir}}
+
+{{{pregunta}}}
+{{#botones}}
+{{{texto}}}: {{{url_texto}}}
+{{/botones}}
+{{/escribir}}
 
 --
 {{{centro.nombre}}}

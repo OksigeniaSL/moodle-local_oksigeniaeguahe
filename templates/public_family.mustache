@@ -69,7 +69,7 @@
                 "latin": false, "birthlabel": "Fecha de nacimiento", "birthhint": "Para felicitarle en su cumpleaños."}, "birthline": "Cumple el 14 de marzo"}],
         "haschildren": true, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
-        "writeby": "Les escribimos por WhatsApp y correo.", "pub_data": "Sus datos",
+        "writeby": {"text": "Les escribimos por WhatsApp y correo.", "now": "", "url": "#", "change": "Cambiarlo"}, "pub_data": "Sus datos",
         "pub_data_hint": "Son suyos.", "pub_data_download": "Descargar sus datos",
         "pub_data_erase": "Borrar sus datos", "downloadurl": "#", "eraseurl": "#",
         "measure": {"url": "https://example.com/f.php?action=seen", "sesskey": "abc", "de": ""},
@@ -116,6 +116,13 @@
                 {{#team}}<p class="etiqueta-lleva">{{team}}</p>{{/team}}
                 {{#how}}<p class="por-donde" dir="auto">{{how}}</p>{{/how}}
             </div>
+            {{#writebyask}}
+            <div class="escribimos-de-nuevo">
+                <p class="etiqueta-lleva">{{title}}</p>
+                <p>{{text}}</p>
+                <a class="boton secundario" href="{{url}}">{{go}}</a>
+            </div>
+            {{/writebyask}}
             {{#thanks}}
             <p class="gracias-firmadas"><span class="texto-gracias">{{text}}</span>{{#hashost}}<span class="firma">{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}<span>{{who}}</span></span>{{/hashost}}</p>
             {{/thanks}}
@@ -182,7 +189,7 @@
             <dl>
                 {{#adults}}<div><dt>{{name}}</dt><dd>{{#reach}}{{.}}<br>{{/reach}}</dd></div>{{/adults}}
             </dl>
-            {{#writeby}}<p class="muted escribimos">{{writeby}}</p>{{/writeby}}
+            {{#writeby}}<p class="muted escribimos">{{#text}}{{text}}{{/text}}{{^text}}{{now}}{{/text}} <a class="enlace" href="{{url}}" data-toca="writeby">{{change}}</a></p>{{/writeby}}
         </div>
         {{#hobbies}}
         <div class="aficiones" id="aficiones">

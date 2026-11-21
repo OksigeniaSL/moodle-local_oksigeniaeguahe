@@ -66,7 +66,8 @@ class appnotices {
      */
     public static function send(\stdClass $household, \stdClass $centre, string $name, string $key, $a, string $anchor): int {
         $sent = 0;
-        if (!empty($centre->practice)) {
+        // Nothing to a family that asked not to be written to, but the notice of an answer it may get.
+        if (!empty($centre->practice) || !writeby::may_send($household, $name === 'replied' ? 'reply' : '')) {
             return $sent;
         }
         foreach (self::users_of($household) as $userid) {

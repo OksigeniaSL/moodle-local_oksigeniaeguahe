@@ -18917,3 +18917,79 @@ html {
         margin-top: 10px;
     }
 }
+
+/* ---------- How a family wants to be written to (21 November 2026): the warning before writing, never a block; the
+   choice and its trail in «Who writes»; the line of the chat. The design of Jujol replaces these when it arrives. ---------- */
+.aviso-escribir {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1.5px solid var(--eg-linea);
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.aviso-escribir p {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 0;
+}
+
+.como-escribimos {
+    display: grid;
+    gap: 6px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.como-escribimos .ce-ahora {
+    margin: 0;
+}
+
+.ce-rastro {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.ce-rastro li + li::before {
+    content: "·";
+    padding: 0 6px;
+}
+
+.ce-cambiar summary {
+    cursor: pointer;
+    color: var(--eg-tinta);
+    font-weight: 650;
+    text-decoration: underline;
+}
+
+.ce-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.chat-sin-mensajes {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+}
+
+.chat-sin-mensajes small {
+    color: var(--eg-tinta-2);
+}

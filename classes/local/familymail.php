@@ -31,7 +31,7 @@ namespace local_oksigeniaeguahe\local;
 class familymail {
     /** @var string[] The kinds of mail. */
     const KINDS = ['confirmation', 'reminder', 'invitation', 'request', 'received', 'reply', 'change', 'cancelled', 'thanks',
-        'openinvite', 'renewal'];
+        'openinvite', 'renewal', 'writeby'];
 
     /**
      * Names joined for the text of the labels, so they read as a phrase with the images off: «Leo», «y Noa». In
@@ -75,7 +75,7 @@ class familymail {
         $map = function (bool $dark) use ($colour, $brand): array {
             $v = publicpage::centre_vars($colour, $dark);
             $m = $brand ? publicpage::brand_vars($brand, $colour, $dark) : null;
-            return ['acento' => $v['--c-acento'], 'sobre_acento' => $v['--c-sobre-acento'],
+            $out = ['acento' => $v['--c-acento'], 'sobre_acento' => $v['--c-sobre-acento'],
                 'acento_texto' => $m ? $m['--m-enlace'] : $v['--c-acento-texto'], 'vivo' => $v['--c-acento-vivo'],
                 'sobre_vivo' => $v['--c-sobre-vivo'],
                 'pared' => $m ? $m['--m-pared'] : $v['--c-pared'],
@@ -83,6 +83,9 @@ class familymail {
                 'titulo' => $m ? $m['--m-titulo'] : ($dark ? '#F3ECE6' : '#2B2226'),
                 'sup' => $m ? $m['--m-superficie'] : ($dark ? '#211D1B' : '#FFFFFF'),
                 'linea' => $m ? $m['--m-linea'] : ($dark ? '#36302D' : '#E7DED3')];
+            // The fill of what is marked (the way they are written to now): pale by day, a tint of the surface at night.
+            $out['relleno'] = publicpage::mix($out['sup'], $colour, $dark ? 0.28 : 0.09);
+            return $out;
         };
         return $map(false) + ['oscuro' => $map(true)];
     }
@@ -97,6 +100,7 @@ class familymail {
      * @param string $lang
      * @param string|null $token The private link of the family, when it is known (only at the moment it is made).
      * @param string $text What a person of the team writes, for a reply.
+     * @param string|null $choose A link of the family for choosing how they are written to, when the mail has none.
      * @return array [subject, html, text, images]
      */
     public static function build(
@@ -106,7 +110,8 @@ class familymail {
         ?\stdClass $signup,
         string $lang,
         ?string $token = null,
-        string $text = ''
+        string $text = '',
+        ?string $choose = null
     ): array {
         global $CFG, $DB;
         // A student who comes on their own is written to as one person.
@@ -284,6 +289,8 @@ class familymail {
                 'firma_texto' => $credit ? $str('mail_credit', $credit['text']) . ': ' . $credit['url'] : '',
             ],
             'titular' => $str($tags ? 'pub_wait' : 'pub_wait_nochild'),
+            // How they want to be written to, at sight and in normal type: never the small print at the foot.
+            'escribir' => writeby::mail_block($household, $centre, (string) ($choose ?? $token ?? ''), $lang, $kind),
         ];
         if ($kind === 'openinvite') {
             // An open act of the centre for a family that is not of it yet: what, when and where, and how to sign up.
@@ -306,6 +313,24 @@ class familymail {
                     'texto_plano' => $str('mail_your_page_text'), 'enlace' => ['texto' => $str('mail_open_page'),
                     'url' => $pageurl, 'url_texto' => $pageurl]]] : null,
                 'nota' => $str('mail_open_note'),
+            ];
+        } else if ($kind === 'writeby') {
+            // They chose to be written to by email: said back, short and warm, in the same mail.
+            $context['titular'] = $str('mail_writeby_titular');
+            $context['etiquetas_filas'] = [];
+            $context['nombres'] = '';
+            $context['pie']['porque'] = $str('mail_writeby_why', $to);
+            $changeurl = $token ? writeby::url($token, $lang, '', $kind) : '';
+            $ways = writeby::words(writeby::chosen($household) ?: ['email'], $lang);
+            $context += [
+                'asunto' => $str('mail_writeby_subject', (object) ['ways' => $ways, 'centre' => format_string($centre->name)]),
+                'preencabezado' => $str('mail_writeby_preheader'),
+                'entradilla' => $str('mail_writeby_lead', $ways),
+                'entradilla_texto' => $str('mail_writeby_lead', $ways),
+                'secciones' => $changeurl ? [['titulo' => $str('mail_writeby_change'),
+                    'texto' => s($str('mail_writeby_change_text')), 'texto_plano' => $str('mail_writeby_change_text'),
+                    'enlace' => ['texto' => $str('mail_writeby_change_go'), 'url' => $changeurl,
+                    'url_texto' => $changeurl]]] : null,
             ];
         } else if ($kind === 'confirmation') {
             $context += [
@@ -599,16 +624,25 @@ class familymail {
         ?string $to = null,
         string $text = ''
     ): bool {
-        if ($kind !== 'reply') {
-            // The same notice on the phones the family joined with, when the site has Marandu.
-            messaging::notify($kind, $household, $centre, $signup, $lang, $text);
+        // A family that asked not to be written to gets nothing, but the answer to what it did after asking.
+        if (!writeby::may_send($household, $kind)) {
+            return false;
+        }
+        // The same notice on the phones the family joined with, when the site has Marandu and they did not take them out.
+        $phones = $kind !== 'reply' ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
+        // By email only if they marked it (or never chose); else, while no phone they marked is joined, and what they must
+        // know.
+        if (!writeby::email_ok($household, $centre, $kind)) {
+            return $phones > 0;
         }
         // To whoever let the centre write by email, never to an address someone else added.
         $email = $to === null ? households::recipient($household) : (string) $to;
         if ($email === '') {
             return false;
         }
-        [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text);
+        // Every mail carries how to choose the way they are written to, with its own link if the mail has none.
+        $choose = $token === null && $kind !== 'writeby' ? households::new_link($household, 'writeby') : null;
+        [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text, $choose);
         if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images)) {
             return false;
         }

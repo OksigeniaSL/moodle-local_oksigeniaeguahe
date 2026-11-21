@@ -268,6 +268,12 @@ class chatpanel {
                     \core_text::substr(trim($owner->lastname), 0, 1))] : false,
             'noowner' => !$owner,
             'next' => $next,
+            // A family that asked not to be written to, with its day: a warning for whoever writes, never a block.
+            'nomessages' => writeby::silent($household) ? ['since' => get_string(
+                'chat_nomessages_since',
+                $c,
+                userdate((int) $household->writebytime, get_string('strftimedayshort', 'langconfig'))
+            )] : false,
             'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
         ];
     }

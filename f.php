@@ -43,6 +43,7 @@ use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\story;
 use local_oksigeniaeguahe\local\surveys;
 use local_oksigeniaeguahe\local\whyother;
+use local_oksigeniaeguahe\local\writeby;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
 $new = optional_param('new', 0, PARAM_BOOL);
@@ -362,6 +363,34 @@ if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
         ['k' => $token, 'idioma' => $lang, 'casa' => $childid],
         'quien-vendria'
     ));
+}
+
+if ($action === 'escribir') {
+    // How they want to be written to. Opening the page changes nothing (a robot that opens the links of a mail would
+    // otherwise choose for them): it asks, and one touch saves the boxes, or «do not write to us any more».
+    if (data_submitted() && confirm_sesskey()) {
+        $ways = optional_param('nada', 0, PARAM_BOOL) ? [] : array_values(array_intersect(
+            writeby::channels($centre),
+            optional_param_array('por', [], PARAM_ALPHA)
+        ));
+        if (writeby::set($household, $ways, 'family')) {
+            $note('writeby');
+            writeby::confirm($household, $centre, $lang);
+        }
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir',
+            'hecho' => writeby::raw($ways), 'idioma' => $lang]));
+    }
+    // What was just chosen, as it is kept: «email,whatsapp» or «none».
+    $done = (string) optional_param('hecho', '', PARAM_RAW);
+    $done = preg_match('/^[a-z,]{1,40}$/', $done) ? $done : '';
+    publicpage::output(
+        $centre,
+        $lang,
+        publiclang::str('pub_writeby_title', $lang),
+        'public_writeby',
+        writeby::page_context($household, $centre, $lang, $token, optional_param('por', '', PARAM_ALPHA), $done),
+        $url
+    );
 }
 
 if ($action === 'erase') {

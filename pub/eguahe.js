@@ -1289,6 +1289,25 @@
             }
         }
 
+        // How they want to be written to: each box takes its look when touched; with none marked, the button says so.
+        var boxes = document.querySelector('.es-casillas');
+        if (boxes) {
+            var save = boxes.form ? boxes.form.querySelector('[data-guardar]') : null;
+            var label = save ? save.querySelector('span') : null;
+            var mark = function() {
+                var any = false;
+                Array.prototype.forEach.call(boxes.querySelectorAll('.es-casilla'), function(box) {
+                    var input = box.querySelector('input');
+                    box.classList.toggle('es-on', input.checked);
+                    any = any || input.checked;
+                });
+                if (label) {
+                    label.textContent = any ? save.getAttribute('data-guardar') : save.getAttribute('data-ninguno');
+                }
+            };
+            boxes.addEventListener('change', mark);
+        }
+
         // A computer of the centre at the act: after a while, the form again, empty, for the next family.
         var desk = document.querySelector('[data-puesto-volver]');
         if (desk) {

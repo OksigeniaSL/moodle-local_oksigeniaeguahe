@@ -252,3 +252,17 @@ function local_oksigeniaeguahe_oksigeniaaty_browser_pages(): array {
 function local_oksigeniaeguahe_oksigeniaaty_home_cards(int $userid): array {
     return \local_oksigeniaeguahe\local\atycards::home_cards($userid);
 }
+
+/**
+ * Oksigenia Marandu tells that a family stopped the messages of the admissions on its phone (its word, a person of the
+ * team from the chat) or that they were lifted because it wrote again: one word, kept the same here (local\writeby).
+ *
+ * @param int $itemid The household.
+ * @param string $channel whatsapp or telegram.
+ * @param bool $out Whether it asked not to be written to.
+ * @param string $source Where it came from, as Marandu says it.
+ * @param int $time When.
+ */
+function local_oksigeniaeguahe_marandu_optout(int $itemid, string $channel, bool $out, string $source = '', int $time = 0): void {
+    \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out);
+}

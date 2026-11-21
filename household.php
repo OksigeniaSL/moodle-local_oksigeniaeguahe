@@ -42,6 +42,7 @@ use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\visits;
+use local_oksigeniaeguahe\local\writeby;
 
 $id = required_param('id', PARAM_INT);
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -107,6 +108,10 @@ if (optional_param('cumple', 0, PARAM_BOOL) && $canact && $prefill === '') {
     // A birthday, without the script: the message comes written in the answer.
     $proposal = panel_household::birthday_proposal($household, households::full($household), $centre, time());
     $prefill = $proposal ? $proposal['text'] : '';
+}
+if (optional_param('preguntar', 0, PARAM_BOOL) && $canact && $prefill === '') {
+    // Asked as a family on its way not to be written to, and now of the centre: the warm question, written, for a person.
+    $prefill = panel_household::writeby_question(households::full($household), $centre);
 }
 if (optional_param('hermano', 0, PARAM_INT) && $canact && $prefill === '') {
     // The proposal of a brother or sister, without the script: the message comes written in the answer.
@@ -175,7 +180,27 @@ if ($action && data_submitted() && confirm_sesskey()) {
             }
         }
     };
+    if (in_array($action, ['reply', 'replyphone'], true) && writeby::silent($household) && !writeby::wrote_after($household)) {
+        // They asked not to be written to: a person may write anyway, once told and having said so.
+        if (!optional_param('anyway', 0, PARAM_BOOL)) {
+            redirect(
+                new moodle_url($url, [], 'contestar'),
+                get_string('panel_writeby_need_anyway', $c),
+                null,
+                \core\output\notification::NOTIFY_WARNING
+            );
+        }
+        writeby::anyway((int) $household->id);
+    }
     switch ($action) {
+        case 'writeby':
+            // What the family said by phone or in person: how to write to them, or not to.
+            writeby::set($household, optional_param('nada', 0, PARAM_BOOL) ? [] : array_values(array_intersect(
+                writeby::channels($centre),
+                optional_param_array('por', [], PARAM_ALPHA)
+            )), 'team', (int) $USER->id);
+            redirect(new moodle_url($url, [], 'como-escribimos'));
+            break;
         case 'leave':
             // They are not with us any more: why and a line; the farewell is proposed, and a person sends it.
             $reason = optional_param('reason', 'unknown', PARAM_ALPHA);
