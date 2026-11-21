@@ -1328,6 +1328,36 @@
                         if (answer.saved && said) {
                             said.textContent = '\u2713 ' + contacts.getAttribute('data-guardado-texto');
                         }
+                        // The list above says it too, and each line is written as it was kept: «+34 600 000 002».
+                        var list = document.querySelector('[data-datos-lista]');
+                        (answer.list || []).forEach(function(adult) {
+                            var phone = contacts.querySelector('[name="a' + adult.id + '_phone"]');
+                            var email = contacts.querySelector('[name="a' + adult.id + '_email"]');
+                            if (phone && document.activeElement !== phone) {
+                                phone.value = adult.phone;
+                            }
+                            if (email && document.activeElement !== email) {
+                                email.value = adult.email;
+                            }
+                        });
+                        if (list && answer.list) {
+                            list.textContent = '';
+                            answer.list.forEach(function(adult) {
+                                var row = document.createElement('div');
+                                var dt = document.createElement('dt');
+                                var dd = document.createElement('dd');
+                                dt.textContent = adult.name;
+                                adult.reach.forEach(function(line, i) {
+                                    if (i) {
+                                        dd.appendChild(document.createElement('br'));
+                                    }
+                                    dd.appendChild(document.createTextNode(line));
+                                });
+                                row.appendChild(dt);
+                                row.appendChild(dd);
+                                list.appendChild(row);
+                            });
+                        }
                     }).catch(function() {
                         contacts.classList.remove('al-tocar');
                     });

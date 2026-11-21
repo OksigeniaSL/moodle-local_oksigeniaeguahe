@@ -54,6 +54,23 @@ class familypage {
     }
 
     /**
+     * Their contact data as the page lists it: each adult with its name, and its phone and email as they are read.
+     *
+     * @param \stdClass $full households::full()
+     * @return array name, reach (lines), and id, phone and email for the lines of the form.
+     */
+    public static function contact_list(\stdClass $full): array {
+        $out = [];
+        foreach ($full->adults as $adult) {
+            $phone = (string) $adult->phone !== '' ? phone::display((string) $adult->phone) : '';
+            $out[] = ['id' => (int) $adult->id, 'name' => trim($adult->firstname . ' ' . $adult->lastname),
+                'reach' => array_values(array_filter([$phone, (string) $adult->email])), 'phone' => $phone,
+                'email' => (string) $adult->email];
+        }
+        return $out;
+    }
+
+    /**
      * The contact data of the family, to change it themselves, folded under it: each adult with its name, phone and
      * email, and another person of the family.
      *
@@ -364,11 +381,7 @@ class familypage {
                     'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) : ''],
             ];
         }
-        $adults = [];
-        foreach ($full->adults as $adult) {
-            $adults[] = ['name' => trim($adult->firstname . ' ' . $adult->lastname),
-                'reach' => array_values(array_filter([phone::display((string) $adult->phone), (string) $adult->email]))];
-        }
+        $adults = self::contact_list($full);
         // The ways they allowed and gave the means for: WhatsApp or a call without a phone is no way.
         $means = ['email' => false, 'whatsapp' => false, 'phone' => false];
         foreach ($full->adults as $adult) {

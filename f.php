@@ -372,8 +372,10 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');
         @header('Cache-Control: no-store');
-        echo json_encode(['saved' => $saved, 'added' => count(households::full($household)->adults) > $before,
-            'url' => $back->out(false)]);
+        // What the page lists now, to say it above and write each line as it is kept («+34 600 000 002»).
+        $full = households::full($household);
+        echo json_encode(['saved' => $saved, 'added' => count($full->adults) > $before, 'url' => $back->out(false),
+            'list' => familypage::contact_list($full)]);
         die();
     }
     redirect($back);

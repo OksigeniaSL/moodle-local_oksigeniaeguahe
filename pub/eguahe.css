@@ -6671,8 +6671,3 @@ html {
 .datos-contacto .hoja-casa.al-tocar > .boton {
     display: none;
 }
-
-/* While they change their data, the cards say it: the list above does not show what they just changed away from */
-.lo-contado div:has(> .datos-contacto[open]) > dl {
-    display: none;
-}
