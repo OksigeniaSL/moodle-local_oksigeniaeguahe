@@ -6682,3 +6682,20 @@ html {
 .datos-contacto .hoja-casa.al-tocar > .boton {
     display: none;
 }
+
+/* The step left to join a phone: a way out by the title, and on their page a small reminder on the wall */
+.es-salir {
+    margin: 14px 0 0;
+    font-size: 1.0625rem;
+    font-weight: 650;
+}
+
+.escribimos-recordatorio {
+    margin: 12px 0 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.es-salir .enlace + .enlace {
+    font-weight: 500;
+}

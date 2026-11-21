@@ -151,6 +151,12 @@ class familypage {
             'nothing' => publiclang::str('pub_writeby_now_nothing', $lang),
             'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),
+            // The step left, small, on the wall: «Falta unir WhatsApp y Telegram», its buttons and «Cambiarlo».
+            'reminder' => $pending ? publiclang::str('pub_writeby_reminder', $lang, writeby::words(
+                array_keys($links),
+                $lang,
+                'pub_writeby_name_'
+            )) : '',
         ];
     }
 

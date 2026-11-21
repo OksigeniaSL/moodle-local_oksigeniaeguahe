@@ -654,6 +654,9 @@ class writeby {
                 'hasjoins' => (bool) $joins,
                 'back' => $joins ? false : ['url' => $pageurl, 'icon' => self::icon('home'),
                     'label' => $str($ways ? 'pub_writeby_back' : 'pub_writeby_go_page')],
+                // With a step left, a way out at sight by the title: their page keeps the step as a small reminder.
+                'notnow' => $joins ? ['url' => $pageurl, 'label' => $str('pub_writeby_not_now'),
+                    'changeurl' => self::url($token, $lang), 'change' => $str('pub_writeby_change_link')] : false,
             ];
             return $context;
         }

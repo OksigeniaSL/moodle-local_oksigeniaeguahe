@@ -40,7 +40,7 @@
 }}
 {{#done}}
 <section class="pared es-hecho" aria-labelledby="titulo">
-    <div class="saludo-arriba"><p class="antetitulo">{{ante}}</p><h1 class="titular" id="titulo">{{title}}</h1></div>
+    <div class="saludo-arriba"><p class="antetitulo">{{ante}}</p><h1 class="titular" id="titulo">{{title}}</h1>{{#notnow}}<p class="es-salir"><a class="enlace" href="{{url}}">{{label}}</a> · <a class="enlace" href="{{changeurl}}">{{change}}</a></p>{{/notnow}}</div>
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
         {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
