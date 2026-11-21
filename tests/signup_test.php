@@ -135,15 +135,14 @@ final class signup_test extends \advanced_testcase {
     }
 
     /**
-     * The same family signs up again with its phone written another way: one household, nothing duplicated, the new
-     * child added, its question waiting, and the old link replaced.
+     * The same family signs up again with its email: one household, nothing duplicated, the new child added, its
+     * question waiting, and the old link still working.
      */
     public function test_same_family_again(): void {
         global $DB;
         [$first, $oldtoken] = signup::save($this->data(), $this->event, $this->centre, 'es');
         $again = $this->data(['message' => '¿Hay comedor?', 'people' => 4]);
-        $again['adults'][0]['email'] = '';
-        $again['adults'][0]['phone'] = '+34 600 11 12 22';
+        $again['adults'][0]['phone'] = '';
         $again['children'][1] = ['firstname' => 'Sara', 'offerid' => 0];
         [$second, $newtoken, $before, $existed] = signup::save($again, $this->event, $this->centre, 'es');
         $this->assertTrue($existed);
@@ -160,8 +159,8 @@ final class signup_test extends \advanced_testcase {
     }
 
     /**
-     * A form anyone can fill that matches a family by its phone: the address it brings is not kept (the family's mail
-     * would go there), the team gets a note, no permission is taken back and the name used at home stays.
+     * A form anyone can fill with the phone of a family the centre has (review of 21-11): it never gets into that family,
+     * nor gets its sign-ups or its mail; it is another household, and the team sees both may be the same family.
      */
     public function test_known_family_by_phone(): void {
         global $DB;
@@ -175,22 +174,17 @@ final class signup_test extends \advanced_testcase {
         $other['adults'][0] = ['firstname' => 'Otra', 'lastname' => 'Persona', 'email' => 'otra@example.com', 'phone' => ''];
         $other['adults'][1] = ['firstname' => 'Lucas', 'lastname' => '', 'email' => '', 'phone' => '600 111 222'];
         $other['children'][0]['tagname'] = 'Otro nombre';
-        [$same, , , $existed] = signup::save($other, $this->event, $this->centre, 'es');
-        $this->assertTrue($existed);
-        $this->assertEquals($family->id, $same->id);
-        $this->assertFalse($DB->record_exists(households::ADULTS, ['email' => 'otra@example.com']), 'Never kept.');
-        $this->assertSame('', households::recipient($same), 'Nothing goes to that address.');
-        $notes = $DB->get_fieldset_select(
-            households::CONTACTS,
-            'body',
-            'householdid = ? AND direction = ?',
-            [$family->id, 'note']
-        );
-        $this->assertStringContainsString('otra@example.com', implode(' ', $notes));
+        [$apart, , , $existed] = signup::save($other, $this->event, $this->centre, 'es');
+        $this->assertFalse($existed);
+        $this->assertNotEquals($family->id, $apart->id);
+        $this->assertSame('', households::recipient(households::get($family->id, $this->centre->id)), 'Nothing reaches it.');
+        $this->assertSame('Dani', $DB->get_field(households::CHILDREN, 'tagname', ['householdid' => $family->id,
+            'firstname' => 'Daniel']), 'What the family said stays.');
         $permissions = households::permissions((int) $family->id);
         $this->assertTrue(in_array(true, array_column($permissions, 'whatsapp'), true), 'No permission taken back.');
-        $this->assertSame('Dani', $DB->get_field(households::CHILDREN, 'tagname', ['householdid' => $family->id,
-            'firstname' => 'Daniel']));
+        // The team sees they may be the same family, by the phone.
+        $why = \local_oksigeniaeguahe\local\lookalike::of(households::get($apart->id, $this->centre->id));
+        $this->assertSame('phone', $why[(int) $family->id]['why'] ?? '');
     }
 
     /**

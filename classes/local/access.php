@@ -51,19 +51,29 @@ class access {
     /** @var int A new link is not sent again before this. */
     const NEWLINK = HOURSECS;
 
+    /** @var int How long an email or a Telegram must have been the family's before a code goes there. */
+    const TRUST = 7 * DAYSECS;
+
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
     /**
-     * The emails a code goes to: every adult of the family with one.
+     * The emails of the family. A code, and a new link, go only to those that were theirs before: never to one written
+     * on the page in the last week by whoever had its link, who could otherwise send the code to themselves.
      *
      * @param \stdClass $household
+     * @param bool $trusted Only those that have been theirs a week, or came from the team or the sign-up.
+     * @param int $now
      * @return string[]
      */
-    public static function emails(\stdClass $household): array {
+    public static function emails(\stdClass $household, bool $trusted = false, int $now = 0): array {
+        $now = $now ?: time();
         $out = [];
         foreach (households::full($household)->adults as $adult) {
             $email = trim((string) $adult->email);
+            if ($trusted && (int) ($adult->emailpage ?? 0) > $now - self::TRUST) {
+                continue;
+            }
             if ($email !== '' && validate_email($email)) {
                 $out[\core_text::strtolower($email)] = $email;
             }
@@ -80,7 +90,7 @@ class access {
      * @return string[]
      */
     public static function destinations(\stdClass $household, \stdClass $centre, string $lang): array {
-        $out = array_map([self::class, 'mask'], self::emails($household));
+        $out = array_map([self::class, 'mask'], self::emails($household, true));
         if (self::telegram($household, $centre)) {
             $out[] = publiclang::str('pub_code_telegram', $lang);
         }
@@ -144,8 +154,8 @@ class access {
     public static function send(\stdClass $household, \stdClass $centre, string $what, string $lang, int $now = 0): array {
         global $DB;
         $now = $now ?: time();
-        $emails = self::emails($household);
-        $telegram = self::telegram($household, $centre);
+        $emails = self::emails($household, true, $now);
+        $telegram = self::telegram($household, $centre, $now);
         if ((!$emails && !$telegram) || !in_array($what, self::WHAT, true)) {
             return [];
         }
@@ -168,7 +178,14 @@ class access {
         foreach ($emails as $email) {
             mail::send_rich($centre, $email, $subject, $html, $text);
         }
-        if (self::telegram($household, $centre)) {
+        // The team sees it in the history: if the family calls about a code, the file says why it came.
+        households::note($household, 0, get_string_manager()->get_string(
+            'code_noted_' . $what,
+            self::C,
+            implode(', ', $masked),
+            (string) ($centre->lang ?? '') ?: current_language()
+        ));
+        if ($telegram) {
             // On their Telegram too, when they joined it (Marandu): urgent, and only while it works.
             try {
                 \local_oksigeniamarandu\api::notify(
@@ -197,10 +214,23 @@ class access {
      *
      * @param \stdClass $household
      * @param \stdClass $centre
+     * @param int $now
      * @return bool
      */
-    public static function telegram(\stdClass $household, \stdClass $centre): bool {
-        return in_array('telegram', writeby::joined_on($household, $centre), true);
+    public static function telegram(\stdClass $household, \stdClass $centre, int $now = 0): bool {
+        $now = $now ?: time();
+        if (!in_array('telegram', writeby::joined_on($household, $centre), true)) {
+            return false;
+        }
+        // Every chat joined a week ago or more: whoever has the link could join their own Telegram from the page today.
+        // Marandu says when the newest chat of the channel joined (since its 0.52); without it, no code by Telegram.
+        try {
+            $channels = \local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, (int) $household->id);
+            $since = (int) ($channels['telegram']['since'] ?? 0);
+        } catch (\Throwable $e) {
+            $since = 0;
+        }
+        return $since > 0 && $since <= $now - self::TRUST;
     }
 
     /**
@@ -215,19 +245,29 @@ class access {
     public static function check(\stdClass $household, string $what, string $code, int $now = 0): string {
         global $DB, $SESSION;
         $now = $now ?: time();
-        $row = $DB->get_record(self::T, ['householdid' => $household->id, 'what' => $what], '*', IGNORE_MULTIPLE);
-        if (!$row || (int) $row->timecreated <= $now - self::TTL) {
-            return 'expired';
+        // One try at a time for a family and a code: many at once cannot pass the five.
+        $lock = \core\lock\lock_config::get_lock_factory('local_oksigeniaeguahe_code')
+            ->get_lock('code' . (int) $household->id . $what, 5);
+        if (!$lock) {
+            return 'wrong';
         }
-        if ((int) $row->tries >= self::TRIES) {
-            return 'tries';
+        try {
+            $row = $DB->get_record(self::T, ['householdid' => $household->id, 'what' => $what], '*', IGNORE_MULTIPLE);
+            if (!$row || (int) $row->timecreated <= $now - self::TTL) {
+                return 'expired';
+            }
+            if ((int) $row->tries >= self::TRIES) {
+                return 'tries';
+            }
+            $code = preg_replace('/\D/', '', $code);
+            if (!hash_equals((string) $row->codehash, self::hash((int) $household->id, $code))) {
+                $DB->set_field(self::T, 'tries', (int) $row->tries + 1, ['id' => $row->id]);
+                return (int) $row->tries + 1 >= self::TRIES ? 'tries' : 'wrong';
+            }
+            $DB->delete_records(self::T, ['id' => $row->id]);
+        } finally {
+            $lock->release();
         }
-        $code = preg_replace('/\D/', '', $code);
-        if (!hash_equals((string) $row->codehash, self::hash((int) $household->id, $code))) {
-            $DB->set_field(self::T, 'tries', (int) $row->tries + 1, ['id' => $row->id]);
-            return (int) $row->tries + 1 >= self::TRIES ? 'tries' : 'wrong';
-        }
-        $DB->delete_records(self::T, ['id' => $row->id]);
         $proofs = (array) ($SESSION->local_oksigeniaeguahe_proof ?? []);
         $proofs[(int) $household->id . ':' . $what] = $now;
         $SESSION->local_oksigeniaeguahe_proof = $proofs;
@@ -296,7 +336,7 @@ class access {
     public static function send_new_link(\stdClass $household, \stdClass $centre, string $lang, int $now = 0): array {
         global $DB;
         $now = $now ?: time();
-        $emails = self::emails($household);
+        $emails = self::emails($household, true, $now);
         if (!$emails) {
             return [];
         }
@@ -372,6 +412,36 @@ class access {
             '',
             $foot
         );
+        foreach ($emails as $email) {
+            mail::send_rich($centre, $email, $str('pub_changed_mail_subject', format_string($centre->name)), $html, $text);
+        }
+    }
+
+    /**
+     * Tells the addresses the family already had that someone was added to its data from its page, without a link: as
+     * with a changed email, so that nobody slips into a family unseen.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param \stdClass $added firstname, email and phone of the person added.
+     */
+    public static function added(\stdClass $household, \stdClass $centre, \stdClass $added): void {
+        $emails = self::emails($household, true);
+        $new = \core_text::strtolower(trim((string) ($added->email ?? '')));
+        $emails = array_values(array_filter($emails, fn($email) => \core_text::strtolower($email) !== $new));
+        if (!$emails) {
+            return;
+        }
+        $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));
+        $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $value = implode(' · ', array_filter([(string) ($added->email ?? ''),
+            !empty($added->phone) ? phone::display((string) $added->phone) : '']));
+        $contact = array_filter([(string) ($centre->email ?? ''), (string) ($centre->phone ?? '')]);
+        $foot = $contact ? $str('pub_changed_mail_foot') . ' ' . implode(' · ', $contact) :
+            rtrim($str('pub_changed_mail_foot'), ': ') . '.';
+        [$html, $text] = self::letter($centre, $lang, $str('pub_added_mail_line', (object) [
+            'name' => trim((string) $added->firstname . ' ' . (string) ($added->lastname ?? '')),
+            'value' => $value, 'centre' => format_string($centre->name)]), '', '', $foot);
         foreach ($emails as $email) {
             mail::send_rich($centre, $email, $str('pub_changed_mail_subject', format_string($centre->name)), $html, $text);
         }

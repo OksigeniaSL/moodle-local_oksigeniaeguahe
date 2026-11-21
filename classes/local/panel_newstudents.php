@@ -200,7 +200,7 @@ class panel_newstudents {
             arsort($grades);
             $out = [];
             foreach (array_slice($grades, 0, 3, true) as $name => $n) {
-                $out[] = ($name !== '' ? $name : get_string('metrics_nograde', $c)) . ' ' . $n;
+                $out[] = ($name !== '' ? s($name) : get_string('metrics_nograde', $c)) . ' ' . $n;
             }
             return implode(' · ', $out);
         };
@@ -672,7 +672,8 @@ class panel_newstudents {
             $s['joins'] += (int) $g['joins'];
             $s['leaves'] += (int) $g['leaves'];
             if ($g['joins'] || $g['leaves']) {
-                $s['detail'][] = get_string('panel_new_stage_course', $c, (object) ['course' => $g['grade'], 'joins' => $g['joins'],
+                // A course as a list wrote it: text, never markup (it goes inside a text drawn as HTML).
+                $s['detail'][] = get_string('panel_new_stage_course', $c, (object) ['course' => s($g['grade']), 'joins' => $g['joins'],
                     'leaves' => $g['leaves']]);
             }
             $stages[$name] = $s;
@@ -685,8 +686,8 @@ class panel_newstudents {
         $stagerows = [];
         foreach ($stages as $s) {
             $id = 'ex-s-' . substr(md5($s['name']), 0, 8);
-            self::define($id, get_string('panel_ex_stage_t', $c, (object) ['stage' => $s['name'], 'joins' => $s['joins'],
-                'leaves' => $s['leaves']]), get_string('panel_ex_stage_w', $c, $s['name']), get_string('panel_ex_stage_h', $c) .
+            self::define($id, get_string('panel_ex_stage_t', $c, (object) ['stage' => s($s['name']), 'joins' => $s['joins'],
+                'leaves' => $s['leaves']]), get_string('panel_ex_stage_w', $c, s($s['name'])), get_string('panel_ex_stage_h', $c) .
                 ($s['detail'] ? ' ' . implode('; ', $s['detail']) . '.' : ''), $s['leaves'] && $s['leaves'] === $maxleaves &&
                 $m['totals']['leaves'] ? get_string('panel_ex_stage_c', $c, round(100 * $s['leaves'] / $m['totals']['leaves'])) : '');
             $stagerows[] = ['name' => $s['name'], 'joins' => $s['joins'], 'leaves' => $s['leaves'],
@@ -717,7 +718,7 @@ class panel_newstudents {
         $stagetext = $topname !== '' && $topn ? ' ' . get_string(
             $done ? 'panel_new_trend_stage_done' : 'panel_new_trend_stage',
             $c,
-            (object) ['stage' => $topname, 'n' => $topn]
+            (object) ['stage' => s($topname), 'n' => $topn]
         ) : '';
         self::define(
             'ex-m-joins',

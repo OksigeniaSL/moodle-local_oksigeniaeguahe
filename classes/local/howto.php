@@ -56,6 +56,7 @@ final class howto {
         'drawing' => ['inbox', 'index.php', ''],
         'newlink' => ['inbox', 'index.php', ''],
         'erase' => ['inbox', 'index.php', ''],
+        'code' => ['inbox', 'index.php', ''],
         'newevent' => ['events', 'events.php', 'new'],
         'changeevent' => ['events', 'events.php', ''],
         'door' => ['events', 'events.php', ''],
@@ -249,7 +250,7 @@ final class howto {
         $answers = self::shape(trim($query) === '' ? [] : self::find($query, $centre, $manage), $centre, $manage);
         $ask = !$answers && trim($query) !== '' && ai::ready($centre) ? ['url' => (new \moodle_url(
             '/local/oksigeniaeguahe/howto.php',
-            ['c' => $centre->id, 'q' => $query, 'ai' => 1]
+            ['c' => $centre->id, 'q' => $query, 'ai' => 1, 'sesskey' => sesskey()]
         ))->out(false), 'label' => $str('howto_ai_ask')] : false;
         return [
             'answers' => $answers,

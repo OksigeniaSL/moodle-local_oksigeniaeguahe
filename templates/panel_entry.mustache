@@ -43,7 +43,7 @@
             "questions": [], "blocks": [], "button": "Inscribirnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
         "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "opened": "Abierto 42 veces", "n": "", "qr": "", "general": true}],
             "embed": "<iframe></iframe>", "sitecode": "<script></script>"},
-        "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true},
+        "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true, "canteam": true, "teamsheet": false},
         "erasequestion": "¿Borramos este formulario?"
     }
 }}
@@ -134,6 +134,8 @@
                     <div class="campo"><label for="f-titulo">{{#str}}entry_title, local_oksigeniaeguahe{{/str}}</label><input id="f-titulo" name="title" value="{{title}}" data-vivo-movil="titulo"></div>
                     <div class="campo"><label for="f-entradilla">{{#str}}entry_lead, local_oksigeniaeguahe{{/str}}</label><textarea id="f-entradilla" name="lead" rows="2" data-vivo-movil="entradilla">{{lead}}</textarea></div>
                     <label class="casilla"><input type="checkbox" name="acknowledge" value="1"{{#acknowledge}} checked{{/acknowledge}}><span>{{#str}}entry_acknowledge, local_oksigeniaeguahe{{/str}}</span></label>
+                    {{#canteam}}<label class="casilla"><input type="checkbox" name="teamsheet" value="1"{{#teamsheet}} checked{{/teamsheet}}><span>{{#str}}entry_teamsheet, local_oksigeniaeguahe{{/str}}</span></label>
+                    <p class="ayuda">{{#str}}entry_teamsheet_help, local_oksigeniaeguahe{{/str}}</p>{{/canteam}}
                     <label class="casilla"><input type="checkbox" name="active" value="1"{{#open}} checked{{/open}}><span>{{#str}}entry_active, local_oksigeniaeguahe{{/str}}</span></label>
                     {{/issurvey}}
                     <div class="acciones"><button class="boton principal" type="submit">{{{i.check}}}{{#str}}savechanges{{/str}}</button></div>

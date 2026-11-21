@@ -28,6 +28,9 @@ namespace local_oksigeniaeguahe\local;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class siblings {
+    /** @var array The school years offered by each centre, read once per request. */
+    protected static $offeryears = [];
+
     /** @var string */
     const T = 'local_oksigeniaeguahe_sibling';
 
@@ -120,11 +123,16 @@ class siblings {
      */
     public static function campaign_year(\stdClass $centre, int $now): int {
         global $DB;
-        // The school year of the campaign under way, as the inbox counts it, not the last one offered.
-        $years = array_values(array_unique(array_map(
-            'strval',
-            $DB->get_fieldset_select(centres::OFFERS, 'schoolyear', 'centreid = ?', [$centre->id])
-        )));
+        // The school year of the campaign under way, as the inbox counts it, not the last one offered. Read once per
+        // request and centre: the inbox asks it for every brother and sister.
+        $key = (int) $centre->id;
+        if (!isset(self::$offeryears[$key])) {
+            self::$offeryears[$key] = array_values(array_unique(array_map(
+                'strval',
+                $DB->get_fieldset_select(centres::OFFERS, 'schoolyear', 'centreid = ?', [$centre->id])
+            )));
+        }
+        $years = self::$offeryears[$key];
         $year = panel_inbox::campaign_school_year($centre, $years, $now);
         if (preg_match('/^(\d{4})/', $year, $m)) {
             return (int) $m[1];

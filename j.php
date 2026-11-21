@@ -45,6 +45,7 @@ publicpage::setup($url);
 
 $event = events::by_token($token);
 $centre = $event ? centres::get((int) $event->centreid) : null;
+publicpage::practice_gate($centre, $url);
 if (!$event || !$centre) {
     $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
     publicpage::message(
@@ -76,6 +77,12 @@ if ($where !== '') {
 // From the invitation to an open act in a mail: the family that pressed it, counted.
 $invited = optional_param('k', '', PARAM_ALPHANUMEXT);
 $from = households::by_link($invited);
+// From the invitation in a message (WhatsApp, Telegram): signed for this family and this act, it only counts.
+$invitedid = optional_param('ih', 0, PARAM_INT);
+if (!$from && $invitedid && share::signed('invited', $invitedid, (int) $event->id, optional_param('is', '', PARAM_ALPHANUM))) {
+    $from = households::get($invitedid, (int) $centre->id);
+    $invited = $from ? 'signed' : '';
+}
 if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
     seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
 }

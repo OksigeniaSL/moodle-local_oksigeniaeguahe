@@ -55,6 +55,7 @@ if (!$child) {
     );
 }
 [$household, , $centre] = $found;
+publicpage::practice_gate($centre, $url);
 
 if (optional_param('dibujo', 0, PARAM_BOOL)) {
     // The drawing of the child, for the wall of the class in the story.

@@ -34,6 +34,14 @@ $definitions = [
         'ttl' => 1500,
     ],
     // Who is writing to a family now: a beat of the composer every 20 seconds, gone after 45.
+    // The households that may be written down twice, for the inbox: a big centre takes seconds to compare them all, so
+    // they are kept a few minutes, and dropped when two are joined or said to be different.
+    'lookalikes' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => true,
+        'ttl' => 600,
+    ],
     'typing' => [
         'mode' => cache_store::MODE_APPLICATION,
         'simplekeys' => true,

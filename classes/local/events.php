@@ -404,7 +404,8 @@ class events {
             }
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $signup = familymail::signup($household, (int) $event->id);
-            $sent = $signup && familymail::may_email($household) && familymail::send(
+            // What a family must know goes whenever it has an address, also if it chose only a phone.
+            $sent = $signup && writeby::email_now($household, $centre, 'cancelled') && familymail::send(
                 'cancelled',
                 $household,
                 $centre,

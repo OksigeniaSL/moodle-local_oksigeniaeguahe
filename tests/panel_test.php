@@ -174,9 +174,12 @@ final class panel_test extends \advanced_testcase {
         $this->assertTrue($file['relay']);
         $this->assertNull($file['owner']);
         $this->assertTrue($file['hasuntold']);
-        // By email, chosen first, or by a call; the phone app only with Oksigenia Marandu, and not joined yet.
+        // By email, chosen first, or by a call; the phone app only with a channel ready in Oksigenia Marandu, and not
+        // joined yet.
         $ways = array_column($file['composer']['ways'], 'checked', 'value');
-        $this->assertSame((messaging::available() ? ['mobile' => false] : []) + ['email' => true, 'phone' => false], $ways);
+        $ready = messaging::available() &&
+            array_diff(\local_oksigeniaeguahe\local\writeby::channels(centres::get($centreid)), ['email']);
+        $this->assertSame(($ready ? ['mobile' => false] : []) + ['email' => true, 'phone' => false], $ways);
         $steps = $file['children'][0]['steps'];
         $this->assertCount(5, $steps);
         $this->assertTrue($steps[0]['here']);

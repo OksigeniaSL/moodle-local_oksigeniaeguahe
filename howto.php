@@ -36,7 +36,8 @@ $centre = centres::require_work(required_param('c', PARAM_INT));
 $query = core_text::substr(trim(optional_param('q', '', PARAM_TEXT)), 0, 200);
 $ajax = optional_param('ajax', 0, PARAM_BOOL);
 $sent = optional_param('sent', 0, PARAM_BOOL);
-$askai = optional_param('ai', 0, PARAM_BOOL);
+// A call the centre pays: only from this page (its session key) and by whoever works, never by whoever only looks.
+$askai = optional_param('ai', 0, PARAM_BOOL) && confirm_sesskey() && centres::can_act((int) $USER->id);
 $manage = centres::can_manage((int) $centre->id);
 $c = 'local_oksigeniaeguahe';
 

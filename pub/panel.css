@@ -2167,6 +2167,32 @@ details[open].plegado > summary h2::after {
     padding: 12px 0;
 }
 
+/* The search sits in a form that asks the server on Enter; in the toolbar the box stays where it was. */
+.buscar-f {
+    display: contents;
+}
+
+/* What a search found, and a list cut short: lines of the ledger, never alarms. */
+.busqueda-linea,
+.lista-cortada {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 10px 0;
+    color: var(--eg-tinta);
+}
+
+.busqueda-linea span {
+    font-weight: 600;
+}
+
+.busqueda-nada {
+    padding: 24px 0;
+    color: var(--eg-tinta);
+}
+
 .pista-teclas {
     color: var(--eg-tinta-2);
     font-size: 0.8125rem;

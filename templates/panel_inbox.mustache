@@ -54,7 +54,8 @@
             {"leaf": false, "blank": false, "title": "Cumpleaños", "text": "Una familia tiene hoy un cumpleaños que felicitar.", "url": "#", "link": "Ver solo esas"},
             {"leaf": false, "blank": false, "title": "La jornada, en redes", "text": "«Jornada de puertas abiertas» es el sábado, 21 de noviembre de 2026: su kit trae cuándo publicar, los textos y las imágenes.", "url": "#", "link": "Abrir el kit",
                 "known": {"key": "kit-4", "action": "#", "centreid": 1, "sesskey": "x"} }],
-        "hasrows": true,
+        "hasrows": true, "more": {"text": "Se ven 200 de 217: las de contacto más reciente. El buscador mira en todas.", "url": "#", "link": "Ver 17 más"},
+        "search": {"query": "", "hidden": [{"name": "c", "value": "1"}], "line": "", "clearurl": "#", "nothing": "", "everywhereurl": "#"},
         "firstday": {"url": "#", "text": "Marcar quién ha empezado"}, "renewal": {"url": "#", "text": "Han contestado 3 de 5 para 2028-29; 1 no sigue.",
             "pegs": [{"kind": "leave"}, {"kind": "unsure"}, {"kind": "stay"}, {"kind": "none"}, {"kind": "none"}]}, "topics": {"list": [{"theme": "El comedor", "texts": "3 mensajes"}], "url": "/local/oksigeniaeguahe/report.php?c=1"}, "days": [{"key": "espera2", "kind": "espera", "day": "Jueves 5", "sub": "hace 6 días", "answered": false, "count": 1,
             "rows": [{"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
@@ -101,7 +102,7 @@
                     <a href="{{waitingurl}}"{{^all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_waiting, local_oksigeniaeguahe{{/str}} <span class="num" data-cuenta-espera>{{waiting}}</span></a>
                     <a href="{{allurl}}"{{#all}} aria-current="true"{{/all}}>{{#str}}inbox_filter_all, local_oksigeniaeguahe{{/str}} <span class="num">{{total}}</span></a>
                 </div>
-                <label class="buscar"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".fila" data-tecla="/" data-tecla-que="{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
+                <form class="buscar-f" id="buscar-f" method="get" action="index.php" role="search">{{#search.hidden}}<input type="hidden" name="{{name}}" value="{{value}}">{{/search.hidden}}<label class="buscar"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" name="q" value="{{search.query}}" data-filtrar=".fila" data-tecla="/" data-tecla-que="{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off" enterkeyhint="search"></label></form>
                 <div class="vista" role="group" aria-label="{{#str}}panel_view, local_oksigeniaeguahe{{/str}}">
                     <a href="{{densityurls.fichas}}"{{#fichas}} aria-current="true"{{/fichas}} title="{{#str}}panel_view_cards, local_oksigeniaeguahe{{/str}}">{{{i.fichero}}}<span class="oculto">{{#str}}panel_view_cards, local_oksigeniaeguahe{{/str}}</span></a>
                     <a href="{{densityurls.lista}}"{{#lista}} aria-current="true"{{/lista}} title="{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}">{{{i.filas}}}<span class="oculto">{{#str}}panel_view_list, local_oksigeniaeguahe{{/str}}</span></a>
@@ -114,8 +115,9 @@
                 {{#filters.hasfamilies}}<div class="pastillas" role="group" aria-label="{{#str}}panel_filter_families, local_oksigeniaeguahe{{/str}}">{{#filters.families}}<a class="pastilla" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.families}}</div>{{/filters.hasfamilies}}
             </details>
             {{/showtools}}
+            {{#search.line}}<p class="busqueda-linea"><span>{{search.line}}</span> <a href="{{search.clearurl}}">{{#str}}panel_search_clear, local_oksigeniaeguahe{{/str}}</a></p>{{/search.line}}
             {{#hasrows}}
-            <div class="lista" id="lista" data-lista data-densidad="{{density}}">
+            <div class="lista" id="lista" data-lista data-densidad="{{density}}"{{#more}} data-lista-cortada{{/more}}>
                 {{#days}}
                 <section class="dia-g dia-{{kind}}" aria-labelledby="dia-{{key}}">
                     <h2 class="dia" id="dia-{{key}}"><b>{{day}}</b> <span>{{sub}}</span></h2>
@@ -125,9 +127,17 @@
                 </section>
                 {{/days}}
             </div>
-            <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+            {{#more}}<p class="lista-cortada secundario"><span>{{text}}</span>{{#url}} <a href="{{url}}">{{link}}</a>{{/url}}</p>{{/more}}
+            <p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}} <a href="{{search.everywhereurl}}" data-buscar-todas>{{#str}}panel_search_everywhere, local_oksigeniaeguahe{{/str}}</a></p>
             {{/hasrows}}
-            {{^hasrows}}
+            {{^hasrows}}{{#search.nothing}}
+            <div class="busqueda-nada">
+                <p><b>{{search.nothing}}</b></p>
+                {{#search.query}}<p class="secundario">{{#str}}panel_search_where, local_oksigeniaeguahe{{/str}}</p>{{/search.query}}
+                {{^all}}<p><a href="{{search.everywhereurl}}">{{#str}}panel_search_everywhere, local_oksigeniaeguahe{{/str}}</a></p>{{/all}}
+            </div>
+            {{/search.nothing}}{{/hasrows}}
+            {{^hasrows}}{{^search.nothing}}
             <div class="vacio">
                 <div class="vacio-percha" aria-hidden="true"><div class="riel-corto"></div>{{#emptybag}}{{> local_oksigeniaeguahe/panel_hanging }}{{/emptybag}}</div>
                 <h2>{{emptytitle}}</h2>
@@ -140,7 +150,7 @@
                 {{/fresh}}
                 {{^fresh}}<a class="enlace" href="{{allurl}}">{{#str}}panel_see_all, local_oksigeniaeguahe{{/str}} {{{i.der}}}</a>{{/fresh}}
             </div>
-            {{/hasrows}}
+            {{/search.nothing}}{{/hasrows}}
             {{#keyhint}}<p class="pista-teclas" data-pista-teclas>{{keyhint}}</p>{{/keyhint}}
         </section>
         <aside class="epilogo" aria-labelledby="epilogo-t" data-epilogo>

@@ -270,8 +270,14 @@ class alumni {
         if ($schoolyear !== null) {
             return $schoolyear;
         }
+        // A year that has already been, never one to come; «04» or «'98» as people say them.
+        $now = (int) date('Y');
         if (preg_match('/\b(19|20)\d{2}\b/', $value, $m)) {
-            return $m[0];
+            return (int) $m[0] >= 1930 && (int) $m[0] <= $now ? $m[0] : '';
+        }
+        if (preg_match('/^\D{0,2}(\d{2})\D{0,2}$/', $value, $m)) {
+            $year = (int) $m[1] <= $now % 100 ? 2000 + (int) $m[1] : 1900 + (int) $m[1];
+            return $year >= 1930 ? (string) $year : '';
         }
         return '';
     }

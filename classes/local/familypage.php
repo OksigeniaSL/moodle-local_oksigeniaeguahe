@@ -102,6 +102,7 @@ class familypage {
             'email' => $str('pub_contacts_email'),
             'newtitle' => $str('pub_contacts_new'),
             'newhint' => $str('pub_contacts_new_hint'),
+            'needreach' => $str('pub_contacts_need_reach'),
             'save' => $str('pub_contacts_save'),
             'savedline' => $str('pub_hobbies_saved'),
             // Whether each one studied at the centre, as one more line of their card.
@@ -109,7 +110,11 @@ class familypage {
             'alumniyearlabel' => $str('pub_alumni_year'),
             'alumniyearhint' => $str('pub_alumni_year_hint'),
             'alumniyearnote' => $str('pub_alumni_year_note'),
+            // Whom they added here can be taken out here (never the last adult, nor whom the team or the sign-up brought).
             'rows' => array_map(fn($a) => ['id' => (int) $a->id, 'firstname' => (string) $a->firstname,
+                'removable' => (int) ($a->frompage ?? 0) > 0 && count($full->adults) > 1,
+                'removelabel' => publiclang::str('pub_contacts_remove', $lang, (string) $a->firstname),
+                'removehint' => publiclang::str('pub_contacts_remove_hint', $lang),
                 'lastname' => (string) $a->lastname, 'phonevalue' => (string) $a->phone !== '' ?
                 phone::display((string) $a->phone) : '', 'emailvalue' => (string) $a->email,
                 'alumni' => (int) ($said[(int) $a->id]->said ?? -1) === alumni::YES,

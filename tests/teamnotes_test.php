@@ -83,6 +83,9 @@ final class teamnotes_test extends \advanced_testcase {
         $mary = $this->getDataGenerator()->create_user(['firstname' => 'Mary', 'lastname' => 'Medina']);
         centres::add_member($cid, (int) $mary->id);
         $entry = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        // A sheet the team keeps, as a person says in the entry (never from its headings).
+        entries::update($entry, (object) ['name' => $entry->name, 'acknowledge' => 0, 'active' => 1, 'teamsheet' => 1]);
+        $entry = entries::get((int) $entry->id, $cid);
         $row = ['Hora' => '11:00', 'FECHA' => '29/06/2026', 'Tutor 1' => 'Lucía Ramos', 'Tutor 2' => 'Pablo Ortega',
             'NOMBRE ALUMNO' => 'Hugo, Alba', 'Nivel' => '1º Inf, 2º Inf', 'CURSO' => '2027-28',
             'TELÉFONO' => '600111222', 'Teléfono 2' => '600111333', 'Canal' => 'Teléfono', 'Atención telefónica' => 'Mary',

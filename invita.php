@@ -46,6 +46,7 @@ if (!$found) {
     publicpage::message(null, $lang, publiclang::str('share_gone_title', $lang), publiclang::str('share_gone', $lang), $url);
 }
 [$household, $centre] = $found;
+publicpage::practice_gate($centre, $url);
 $lang = publiclang::choose($centre);
 // Whoever comes by here signs up saying which family invited them (j.php and w.php check the signature).
 $from = ['f' => $household->id, 'c' => $signature, 'p' => 'familia'];

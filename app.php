@@ -44,7 +44,12 @@ publicpage::setup($url);
 
 $record = $DB->get_record(households::T, ['id' => $householdid]);
 $centre = $record ? centres::get((int) $record->centreid) : null;
-if (!$record || !$centre || !atycards::valid($householdid, $userid, $until, $signature, time())) {
+publicpage::practice_gate($centre, $url);
+// Signed and in its day, and the account still of that family: one taken out of it, or given to someone else, no more.
+if (
+    !$record || !$centre || !atycards::valid($householdid, $userid, $until, $signature, time()) ||
+        !isset(atycards::households_of($userid)[$householdid])
+) {
     $lang = $record->lang ?? (publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en');
     publicpage::message(
         $centre,

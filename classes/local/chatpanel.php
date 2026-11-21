@@ -157,7 +157,9 @@ class chatpanel {
                 }
             }
         }
-        $school = self::school($email, array_keys($phones), $linked);
+        // The common record of families knows no centres: only for whoever may see it all (Family's own permission), or
+        // on a site with one real centre; never without a real centre of their own.
+        $school = $centres && self::may_see_family($userid) ? self::school($email, array_keys($phones), $linked) : [];
         // Where a family nobody knew is noted: the centre of this person with the latest family that wrote.
         $first = reset($centres);
         if (count($centres) > 1) {
@@ -326,12 +328,28 @@ class chatpanel {
     }
 
     /**
-     * The families of the common record of the centre this contact is in, and Eguahe does not have yet: by a phone
-     * verified there, or by an email. Their children by their first name and their group.
+     * Whether a person may see what the common record of families (Family) holds, which knows no centres.
+     *
+     * @param int $userid
+     * @return bool
+     */
+    protected static function may_see_family(int $userid): bool {
+        global $DB;
+        if (
+            get_capability_info('local/oksigeniafamily:manage') &&
+                has_capability('local/oksigeniafamily:manage', \context_system::instance(), $userid)
+        ) {
+            return true;
+        }
+        return $DB->count_records(centres::T, ['practice' => 0]) === 1;
+    }
+
+    /**
+     * The families of the common record with that email or phone, with their children and groups.
      *
      * @param string $email
-     * @param string[] $phones In E.164.
-     * @param array $linked Family ids already shown through a household of Eguahe.
+     * @param string[] $phones
+     * @param array $linked
      * @return array
      */
     protected static function school(string $email, array $phones, array $linked): array {

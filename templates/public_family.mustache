@@ -195,7 +195,7 @@
             {{#saved}}<p class="casa-guardado" role="status">{{saved}}</p>{{/saved}}
             <details class="en-casa datos-contacto" id="datos"{{#savedopen}} open{{/savedopen}}>
                 <summary class="enlace">{{open}}</summary>
-                <form class="hoja-casa" method="post" action="{{action}}" data-datos data-guardado-texto="{{savedline}}">
+                <form class="hoja-casa" method="post" action="{{action}}" data-datos data-guardado-texto="{{savedline}}" data-falta-texto="{{needreach}}">
                     <input type="hidden" name="sesskey" value="{{sesskey}}">
                     {{#rows}}
                     <fieldset class="persona-datos">
@@ -208,6 +208,7 @@
                         <input type="hidden" name="a{{id}}_alumnishown" value="1">
                         <label class="ficha ficha-alumni"><input type="checkbox" name="a{{id}}_alumni" value="1" data-alumni{{#alumni}} checked{{/alumni}}><span class="marca">{{{i.check}}}</span>{{alumnilabel}}</label>
                         <div class="campo campo-promocion" data-promocion{{^alumni}} hidden{{/alumni}}><label for="a{{id}}-p">{{alumniyearlabel}} <small>{{alumniyearnote}}</small></label><input id="a{{id}}-p" name="a{{id}}_alumniyear" value="{{alumniyear}}" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="{{alumniyearhint}}"></div>
+                        {{#removable}}<p class="quitar-persona"><button class="enlace" type="submit" name="quitar" value="{{id}}">{{removelabel}}</button> <small>{{removehint}}</small></p>{{/removable}}
                     </fieldset>
                     {{/rows}}
                     <fieldset class="persona-datos persona-nueva">

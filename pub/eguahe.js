@@ -1322,6 +1322,12 @@
                     return input ? input.value.trim() : '';
                 };
                 if (fresh && (!val('n_firstname') || (!val('n_phone') && !val('n_email')))) {
+                    // A name alone is not kept yet: it says what is missing.
+                    var waiting = card.querySelector('.guardado-linea');
+                    if (waiting && val('n_firstname')) {
+                        waiting.classList.add('no-guardado');
+                        waiting.textContent = contacts.getAttribute('data-falta-texto') || '';
+                    }
                     return;
                 }
                 var data = new window.FormData(contacts);
@@ -1335,8 +1341,20 @@
                             return;
                         }
                         var said = card.querySelector('.guardado-linea');
-                        if (answer.saved && said) {
-                            said.textContent = '\u2713 ' + contacts.getAttribute('data-guardado-texto');
+                        // What could not be kept says so, and never «Saved» over it.
+                        var bad = '';
+                        Object.keys(answer.bad || {}).forEach(function(name) {
+                            if (card.querySelector('[name="' + name + '"]')) {
+                                bad = answer.bad[name];
+                            }
+                        });
+                        if (said) {
+                            said.classList.toggle('no-guardado', bad !== '');
+                            if (bad) {
+                                said.textContent = bad;
+                            } else if (answer.saved) {
+                                said.textContent = '\u2713 ' + contacts.getAttribute('data-guardado-texto');
+                            }
                         }
                         // The list above says it too, and each line is written as it was kept: «+34 600 000 002».
                         var list = document.querySelector('[data-datos-lista]');
@@ -1387,7 +1405,9 @@
                     any = any || input.checked;
                 });
                 if (label) {
+                    // With nothing marked the button waits for one: «do not write to us» is never this button.
                     label.textContent = any ? save.getAttribute('data-guardar') : save.getAttribute('data-ninguno');
+                    save.disabled = !any;
                 }
             };
             boxes.addEventListener('change', mark);

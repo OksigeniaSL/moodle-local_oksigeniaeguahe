@@ -53,6 +53,7 @@ publicpage::$embedded = (bool) $embedded;
 
 $entry = entries::by_token($token);
 $centre = $entry && $entry->kind === 'form' ? centres::get((int) $entry->centreid) : null;
+publicpage::practice_gate($centre, $url);
 if (!$centre) {
     $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
     publicpage::message(

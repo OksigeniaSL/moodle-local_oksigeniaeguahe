@@ -121,6 +121,8 @@ class panel_household {
 
         $joined = messaging::joined($household, $centre);
         $mode = messaging::mode($centre);
+        // The file offers WhatsApp or Telegram only when the site has one of them ready.
+        $composermode = !array_diff(writeby::channels($centre), ['email']) ? 'off' : $mode;
         $answers = self::answers((int) $household->id);
         $email = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? '');
         $phone = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->phone, $full->adults)))[0] ?? '');
@@ -128,7 +130,7 @@ class panel_household {
         $history = self::history($full, $contacts, $people, $now);
         $old = array_slice($history, 0, max(0, count($history) - 2));
         $suggestions = attend::suggest($full);
-        $composer = self::composer($mode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
+        $composer = self::composer($composermode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
             self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
             'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
                 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
@@ -442,7 +444,23 @@ class panel_household {
         $action = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false);
         $found = [];
         foreach ($hints as $familyid => $names) {
-            $found[] = ['familyid' => $familyid, 'line' => get_string('panel_family_hint', $c, self::list_words($names))];
+            // Which family it is: its children with their group, so a grandmother shared by two families is seen.
+            $kids = [];
+            try {
+                $api = family::API;
+                foreach ($api::household((int) $familyid)->children ?? [] as $kid) {
+                    $kidname = trim((string) ($kid->firstname ?? ''));
+                    $group = trim((string) ($kid->group ?? ''));
+                    if ($kidname !== '' || $group !== '') {
+                        $kids[] = $group !== '' ? ($kidname !== '' ? $kidname . ' (' . $group . ')' : $group) : $kidname;
+                    }
+                }
+            } catch (\Throwable $e) {
+                $kids = [];
+            }
+            $found[] = ['familyid' => $familyid, 'line' => get_string('panel_family_hint', $c, self::list_words($names)),
+                'kids' => $kids ? get_string('panel_family_hint_kids', $c, implode(', ', $kids)) :
+                    get_string('panel_family_hint_nokids', $c)];
         }
         return [
             'hints' => $found,
@@ -864,13 +882,16 @@ class panel_household {
             return false;
         }
         $sent = (int) ($household->applysent ?? 0);
-        // Inside the envelope, until when, while there is still time.
+        // Inside the envelope, when it is asked for; once the time is over, the envelope is not offered.
         $until = (int) ($centre->applyuntil ?? 0);
-        $inside = $until && time() < $until + DAYSECS ? get_string(
-            'panel_apply_msg_until',
-            self::C,
-            userdate($until, get_string('strftimedate', 'langconfig'))
-        ) : '';
+        $from = (int) ($centre->applyfrom ?? 0);
+        if ($until && time() >= $until + DAYSECS) {
+            return false;
+        }
+        $day = fn(int $t) => userdate($t, get_string('strftimedate', 'langconfig'));
+        $inside = $from && $until ? get_string('panel_apply_inside_range', self::C, (object) ['from' => $day($from),
+            'until' => $day($until)]) : ($until ? get_string('panel_apply_msg_until', self::C, $day($until)) :
+            ($from ? get_string('panel_apply_inside_from', self::C, $day($from)) : ''));
         return [
             'inside' => $inside,
             'url' => (new \moodle_url(
@@ -896,11 +917,17 @@ class panel_household {
         $c = self::C;
         $open = array_filter($full->children, fn($k) => in_array((string) $k->stage, ['inquiry', 'visit', 'application',
             'waitlist'], true));
-        $parts = [!empty($household->self) ? get_string('panel_apply_msg_self', $c) : get_string(
-            'panel_apply_msg_family',
+        // Before the time opens, «they will be able to, from…»; never «they can already».
+        $from = (int) ($centre->applyfrom ?? 0);
+        $soon = $from && time() < usergetmidnight($from);
+        $kids = self::list_words(array_map(fn($k) => panel::tag($k), $open ?: $full->children));
+        $fromday = $from ? userdate($from, get_string('strftimedate', 'langconfig')) : '';
+        $parts = [!empty($household->self) ? get_string(
+            $soon ? 'panel_apply_msg_self_soon' : 'panel_apply_msg_self',
             $c,
-            self::list_words(array_map(fn($k) => panel::tag($k), $open ?: $full->children))
-        )];
+            $fromday
+        ) : get_string($soon ? 'panel_apply_msg_family_soon' : 'panel_apply_msg_family', $c, $soon ?
+            (object) ['kids' => $kids, 'from' => $fromday] : $kids)];
         $how = trim((string) ($centre->applyhow ?? ''));
         if ($how !== '') {
             $parts[] = $how;

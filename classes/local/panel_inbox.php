@@ -35,6 +35,12 @@ class panel_inbox {
     /** @var int From how many families on, the list is a ledger, one line each, unless the person chose. */
     const LEDGER = 20;
 
+    /** @var int How many families the list shows at first, and how many more each time it is asked. */
+    const PAGE = 200;
+
+    /** @var int The most families the list shows; beyond them, the search finds any. */
+    const MAXPAGE = 600;
+
     /** @var string The preference of the person: the list as cards or as a ledger. */
     const DENSITY = 'local_oksigeniaeguahe_density';
 
@@ -82,23 +88,37 @@ class panel_inbox {
         // The families where someone studied at the centre, also those already of the centre, when asked.
         $alumni = alumni::families($centreid);
         $onlyalumni = !empty($view['alumni']) && $alumni;
-        $list = $onlyalumni ? households::some($centreid, array_keys($alumni)) : households::inbox(
-            $centreid,
-            !$all && !$onlysiblings && !$onlyvolunteers && !$onlystarting && !$onlybirthdays
-        );
-        if ($onlystarting) {
-            $list = array_intersect_key($list, $starting);
+        // A filter that picks some families fetches exactly those, never the first of the list that happen to be them.
+        $picked = null;
+        foreach (
+            [$onlyalumni ? array_keys($alumni) : null, $onlystarting ? array_keys($starting) : null,
+                $onlybirthdays ? array_keys($birthdays) : null, $onlysiblings ? array_keys($due) : null,
+                $onlyvolunteers ? $DB->get_fieldset_select(households::T, 'id', 'centreid = ? AND volunteer > 0', [$centreid]) :
+                null] as $ids
+        ) {
+            if ($ids !== null) {
+                $ids = array_map('intval', $ids);
+                $picked = $picked === null ? $ids : array_values(array_intersect($picked, $ids));
+            }
         }
-        if ($onlybirthdays) {
-            $list = array_intersect_key($list, $birthdays);
+        $waitingonly = !$all && $picked === null;
+        // What the person looks for, among every family of the centre (or every one that waits), on the server.
+        $query = \core_text::substr(trim((string) ($view['query'] ?? '')), 0, 80);
+        $limit = min(self::MAXPAGE, max(self::PAGE, (int) ($view['limit'] ?? 0)));
+        if ($query !== '') {
+            [$list, $found] = households::search($centreid, $query, $waitingonly, $limit, $course, $stage);
+            if ($picked !== null) {
+                $list = array_intersect_key($list, array_flip($picked));
+                $found = count($list);
+            }
+        } else if ($picked !== null) {
+            $list = households::some($centreid, $picked);
+            $found = count($list);
+        } else {
+            $list = households::inbox($centreid, $waitingonly, $limit, false, $course, $stage);
+            $found = households::inbox_count($centreid, $waitingonly, $course, $stage);
         }
-        if ($onlysiblings) {
-            $list = array_intersect_key($list, $due);
-        }
-        if ($onlyvolunteers) {
-            // The families that offered to tell another family how it went.
-            $list = array_filter($list, fn($household) => (int) ($household->volunteer ?? 0) > 0);
-        }
+        $shown = count($list);
         $list = array_filter($list, function ($household) use ($course, $stage) {
             foreach ($course || $stage ? $household->children : [null] as $child) {
                 if (!$child || ((!$course || (int) $child->offerid === $course) && (!$stage || $child->stage === $stage))) {
@@ -128,8 +148,38 @@ class panel_inbox {
             (string) get_user_preferences(self::DENSITY, '', $userid);
         $density = in_array($density, ['fichas', 'lista'], true) ? $density : (count($list) >= self::LEDGER ? 'lista' : 'fichas');
         $base = ['c' => $centreid] + ($all ? ['all' => 1] : []) + ($course ? ['curso' => $course] : []) +
-            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []);
+            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []) + ($query !== '' ? ['q' => $query] : []);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
+        // The search, a form that asks the server (Enter); on the page, what is on the screen filters as one writes.
+        $hidden = [];
+        foreach (array_diff_key($base, ['q' => 1]) as $name => $value) {
+            $hidden[] = ['name' => $name, 'value' => (string) $value];
+        }
+        $search = [
+            'query' => $query,
+            'hidden' => $hidden,
+            'line' => $query === '' ? '' : get_string('panel_search_found' . ($waitingonly ? '_waiting' : '') .
+                ($found === 1 ? '_one' : ''), $c, (object) ['count' => $found, 'q' => $query]),
+            'clearurl' => $url(array_diff_key($base, ['q' => 1])),
+            'nothing' => $query !== '' ? ($found ? '' : get_string($waitingonly ? 'panel_search_nothing_waiting' :
+                'panel_search_nothing', $c, $query)) : (($course || $stage !== '') && !$found ? get_string(
+                    $waitingonly ? 'panel_filter_nothing_waiting' : 'panel_filter_nothing',
+                    $c
+                ) : ''),
+            // Everywhere: every family of the centre, with what is written (the page adds what is typed).
+            'everywhereurl' => $url(['all' => 1] + $base),
+        ];
+        // When the list is cut, it says so and offers more; a filter or a search on the page then asks the server.
+        $more = false;
+        if ($shown < $found) {
+            $more = ['text' => get_string(
+                $query === '' ? 'panel_inbox_cut' : 'panel_search_cut',
+                $c,
+                (object) ['shown' => $shown, 'all' => $found]
+            ),
+                'url' => $limit < self::MAXPAGE ? $url($base + ['n' => $limit + self::PAGE]) : '',
+                'link' => get_string('panel_inbox_cut_more', $c, min(self::PAGE, $found - $shown))];
+        }
         $places = self::places($centre, (string) ($view['places'] ?? ''), $now, $base);
         $next = self::next_events($centre, $now);
         // The living hall, as a window at the head of the side column: the families that wait hanging from its rail.
@@ -186,6 +236,8 @@ class panel_inbox {
             'hastoday' => (bool) $today,
             'days' => $days,
             'hasrows' => (bool) $days,
+            'search' => $search,
+            'more' => $more,
             'emptybag' => panel::hanging(0, '', '', $centre),
             'emptytitle' => get_string($fresh ? 'panel_inbox_fresh_empty' : 'panel_inbox_upto', $c),
             'emptytext' => get_string($fresh ? 'panel_inbox_fresh_text' : 'panel_inbox_upto_text', $c),
@@ -203,7 +255,8 @@ class panel_inbox {
             // Who goes on next school year: how many answered while the centre asks, or the way in to ask.
             'renewal' => panel_renewal::link($centre, time()),
             // What the families ask most, from the themes the AI of the centre read in last week's report.
-            'topics' => self::topics($centre),
+            // What families ask most comes from the weekly report: only for whoever may see the figures of the centre.
+            'topics' => centres::can_see_metrics($centre) ? self::topics($centre) : false,
             'nextevents' => $next,
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),

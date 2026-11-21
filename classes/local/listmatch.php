@@ -71,7 +71,7 @@ class listmatch {
             return [0, 0, 0];
         }
         $keys = new pseudonym($centreid);
-        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centreid], '', 'id, name');
+        $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centreid], '', 'id, name, schoolyear');
         $seen = [];
         foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'schoolyear' => $year], '', 'id, householdid, student') as $r) {
             $seen[$r->householdid . ':' . $r->student] = true;
@@ -141,9 +141,13 @@ class listmatch {
             $DB->get_records(households::CHILDREN, ['householdid' => $household->id], 'id ASC'),
             fn($k) => !in_array($k->stage, ['enrolled', 'closed'], true)
         ));
-        $fits = array_values(array_filter($open, fn($k) => $age !== null && (int) $k->offerid && isset($offers[$k->offerid]) &&
+        // Only a child that asked for a course of the year of the list: a brother or sister asking for a later year, or a
+        // child with no course asked for, is never taken for the student; with doubt, a person says.
+        $sameyear = array_values(array_filter($open, fn($k) => (int) $k->offerid && isset($offers[$k->offerid]) &&
+            (string) $offers[$k->offerid]->schoolyear === $year));
+        $fits = array_values(array_filter($sameyear, fn($k) => $age !== null &&
             grades::age((string) $offers[$k->offerid]->name, $centre) === $age));
-        $child = count($fits) === 1 ? $fits[0] : (!$fits && count($open) === 1 ? $open[0] : null);
+        $child = count($fits) === 1 ? $fits[0] : (!$fits && count($sameyear) === 1 && $age === null ? $sameyear[0] : null);
         $label = grades::label($centreid, (string) $s['grade']);
         $row = (object) ['centreid' => $centreid, 'householdid' => $household->id, 'schoolyear' => $year,
             'student' => $s['student'], 'kind' => $child ? 'enrolled' : 'ask', 'grade' => \core_text::substr($label, 0, 100),

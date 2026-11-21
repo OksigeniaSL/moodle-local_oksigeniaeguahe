@@ -89,7 +89,8 @@ $view = ['course' => optional_param('curso', 0, PARAM_INT), 'stage' => optional_
     'siblings' => optional_param('hermanos', 0, PARAM_BOOL), 'volunteers' => optional_param('voluntarias', 0, PARAM_BOOL),
     'starting' => optional_param('primerdia', 0, PARAM_BOOL), 'birthdays' => optional_param('cumple', 0, PARAM_BOOL),
     'density' => $density, 'places' => optional_param('plazas', '', PARAM_TEXT),
-    'alumni' => optional_param('antiguos', 0, PARAM_BOOL)];
+    'alumni' => optional_param('antiguos', 0, PARAM_BOOL), 'query' => optional_param('q', '', PARAM_TEXT),
+    'limit' => optional_param('n', 0, PARAM_INT)];
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));
 panel::setup($url, get_string('inbox', $c));
 panel::output($centre, 'inbox', get_string('inbox', $c), 'panel_inbox', panel_inbox::context(

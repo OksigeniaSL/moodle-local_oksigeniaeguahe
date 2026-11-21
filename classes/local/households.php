@@ -390,6 +390,9 @@ class households {
      * @param int|null $time
      * @param int $entryid The entry of the centre it came through, if any.
      * @param string $detail What the source said of itself: platform, campaign, ad.
+     * @param string $address Who wrote on WhatsApp or Telegram, as Marandu gives it.
+     * @param bool $theywrote Whether the family itself wrote it: a row of a sheet of the team, or one sent before, is
+     *     not, and never lifts a «do not write to us».
      */
     public static function received(
         \stdClass $household,
@@ -398,13 +401,17 @@ class households {
         bool $awaits,
         ?int $time = null,
         int $entryid = 0,
-        string $detail = ''
+        string $detail = '',
+        string $address = '',
+        bool $theywrote = true
     ): void {
         global $DB;
         $time = $time ?? time();
-        self::contact($household, 'in', $channel, $body, 0, $time, $entryid, $detail);
+        self::contact($household, 'in', $channel, $body, 0, $time, $entryid, $detail, $address);
         // Writing again after asking not to be written to lifts it, by the way they wrote (never for an old message).
-        writeby::wrote_again($household, $channel, $time);
+        if ($theywrote) {
+            writeby::wrote_again($household, $channel, $time);
+        }
         $changes = (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time];
         if ($awaits && !$household->waitingsince) {
             $changes->waitingsince = $time;
@@ -474,6 +481,7 @@ class households {
      * @param int $time
      * @param int $entryid
      * @param string $detail
+     * @param string $address Who wrote on WhatsApp or Telegram, as Marandu gives it.
      */
     protected static function contact(
         \stdClass $household,
@@ -483,7 +491,8 @@ class households {
         int $userid,
         int $time,
         int $entryid = 0,
-        string $detail = ''
+        string $detail = '',
+        string $address = ''
     ): void {
         global $DB;
         $DB->insert_record(self::CONTACTS, (object) [
@@ -494,6 +503,7 @@ class households {
             'body' => trim($body),
             'entryid' => $entryid,
             'detail' => $detail === '' ? null : \core_text::substr($detail, 0, 255),
+            'address' => $address === '' ? null : \core_text::substr($address, 0, 64),
             'userid' => $userid,
             'timecreated' => $time,
         ]);
@@ -539,7 +549,12 @@ class households {
                 $differs = $differs || (string) $value !== (string) $adult->$field;
             }
             if ($differs) {
-                $DB->update_record(self::ADULTS, (object) (['id' => $adult->id, 'timemodified' => $now] + $fields));
+                $record = ['id' => $adult->id, 'timemodified' => $now] + $fields;
+                // An email written here, by whoever has the link, gets no code until it has been theirs a week.
+                if ((string) $fields['email'] !== '' && (string) $fields['email'] !== (string) $adult->email) {
+                    $record['emailpage'] = $now;
+                }
+                $DB->update_record(self::ADULTS, (object) $record);
                 $changed = true;
                 alumni::match($household, (object) (['id' => $adult->id] + $fields));
                 // An email or a phone changed: the address there was hears it, without a link.
@@ -551,8 +566,14 @@ class households {
         $other = $clean($new);
         $added = '';
         if ($other->firstname !== '' && ($other->phone || $other->email)) {
+            $before = array_keys(self::full($household)->adults);
             $id = self::add_adult($household, $other);
-            if ($id) {
+            if ($id && !in_array($id, array_map('intval', $before), true)) {
+                // Added here: the page may take them out again, and their email gets no code for a week.
+                $DB->update_record(self::ADULTS, (object) ['id' => $id, 'frompage' => $now,
+                    'emailpage' => $other->email ? $now : 0]);
+                // The addresses the family already had hear it, without a link.
+                access::added($household, $centre, $other);
                 // Written to as the rest of the family: the same ways, with the permission the family gives for them.
                 $ways = writeby::chosen($household);
                 $said = self::permissions((int) $household->id);
@@ -576,6 +597,34 @@ class households {
             ));
         }
         return $changed;
+    }
+
+    /**
+     * Takes out a person the family added from its own page (a mistake, someone who is not of the family): with their
+     * permissions, hobbies and former-student line. Never one the team or the sign-up brought, nor the last adult.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $adultid
+     * @return bool Whether they were taken out.
+     */
+    public static function remove_page_adult(\stdClass $household, \stdClass $centre, int $adultid): bool {
+        global $DB;
+        $adult = $DB->get_record(self::ADULTS, ['id' => $adultid, 'householdid' => $household->id]);
+        if (!$adult || !(int) $adult->frompage || $DB->count_records(self::ADULTS, ['householdid' => $household->id]) < 2) {
+            return false;
+        }
+        $DB->delete_records(self::CONSENTS, ['householdid' => $household->id, 'adultid' => $adultid]);
+        $DB->delete_records(hobbies::T, ['householdid' => $household->id, 'adultid' => $adultid]);
+        $DB->delete_records(alumni::T, ['householdid' => $household->id, 'adultid' => $adultid]);
+        $DB->delete_records(self::ADULTS, ['id' => $adultid]);
+        self::note($household, 0, get_string_manager()->get_string(
+            'contacts_noted_removed',
+            'local_oksigeniaeguahe',
+            trim($adult->firstname . ' ' . $adult->lastname),
+            (string) ($centre->lang ?? '') ?: current_language()
+        ));
+        return true;
     }
 
     /**
@@ -975,7 +1024,7 @@ class households {
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
                 forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T,
-                alumni::T] as $table
+                alumni::T, access::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }
@@ -1048,23 +1097,153 @@ class households {
      * @param bool $waitingonly
      * @param int $limit
      * @param bool $roster Also the families brought from the roll of the centre that wait for nobody.
+     * @param int $course Only those with a child asking for this offer (its id); 0, any.
+     * @param string $stage Only those with a child at this step (of that offer, when there is one); empty, any.
      * @return \stdClass[] Households with adults and children (with the name of their offer).
      */
-    public static function inbox(int $centreid, bool $waitingonly, int $limit = 200, bool $roster = false): array {
+    public static function inbox(
+        int $centreid,
+        bool $waitingonly,
+        int $limit = 200,
+        bool $roster = false,
+        int $course = 0,
+        string $stage = ''
+    ): array {
         global $DB;
         // The families brought from the roll of the centre come in only when they wait for someone: there may be hundreds.
         $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ($roster ? '' :
             ' AND (roster = 0 OR waitingsince > 0)'));
+        $params = ['centreid' => $centreid];
+        $where .= self::children_where($centreid, $course, $stage, $params);
         $order = 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC';
         return self::with_people($centreid, $DB->get_records_select(
             self::T,
             $where,
-            ['centreid' => $centreid],
+            $params,
             $order,
             '*',
             0,
             $limit
         ));
+    }
+
+    /**
+     * The households of a centre whose people have every word of a search: names of the adults and the children, the
+     * name they are called at home, emails and phones; without minding capitals or accents. Every family of the centre,
+     * also those brought from its roll and those already answered, never only those on the screen.
+     *
+     * @param int $centreid
+     * @param string $query What the person wrote.
+     * @param bool $waitingonly Only those that wait for an answer.
+     * @param int $limit
+     * @param int $course Only those with a child asking for this offer (its id); 0, any.
+     * @param string $stage Only those with a child at this step; empty, any.
+     * @return array [households with adults and children, as inbox() gives them; how many there are in all]
+     */
+    public static function search(
+        int $centreid,
+        string $query,
+        bool $waitingonly,
+        int $limit = 200,
+        int $course = 0,
+        string $stage = ''
+    ): array {
+        global $DB;
+        [$where, $params] = self::search_where($centreid, $query);
+        if ($where === '') {
+            return [[], 0];
+        }
+        $where .= ($waitingonly ? ' AND waitingsince > 0' : '') . self::children_where($centreid, $course, $stage, $params);
+        $count = $DB->count_records_select(self::T, $where, $params);
+        if (!$count) {
+            return [[], 0];
+        }
+        $order = 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC';
+        return [self::with_people($centreid, $DB->get_records_select(self::T, $where, $params, $order, '*', 0, $limit)),
+            $count];
+    }
+
+    /**
+     * The condition of a search on the households of a centre: every word, somewhere among its people.
+     *
+     * @param int $centreid
+     * @param string $query
+     * @return array [where, params]; an empty where when there is nothing to look for
+     */
+    protected static function search_where(int $centreid, string $query): array {
+        global $DB;
+        $words = array_slice(array_values(array_filter(
+            preg_split('/\s+/u', \core_text::strtolower(trim($query))) ?: [],
+            fn($word) => $word !== ''
+        )), 0, 6);
+        if (!$words) {
+            return ['', []];
+        }
+        $where = 'centreid = :centreid';
+        $params = ['centreid' => $centreid];
+        foreach ($words as $i => $word) {
+            $like = '%' . $DB->sql_like_escape($word) . '%';
+            $adults = [];
+            foreach (['firstname', 'lastname', 'email', 'phone'] as $field) {
+                $adults[] = $DB->sql_like($field, ":a{$field}{$i}", false, false);
+                $params["a{$field}{$i}"] = $like;
+            }
+            $children = [];
+            foreach (['firstname', 'tagname', 'latinname'] as $field) {
+                $children[] = $DB->sql_like($field, ":c{$field}{$i}", false, false);
+                $params["c{$field}{$i}"] = $like;
+            }
+            $params["ac{$i}"] = $centreid;
+            $params["cc{$i}"] = $centreid;
+            $where .= " AND (id IN (SELECT householdid FROM {" . self::ADULTS . "} WHERE centreid = :ac{$i} AND (" .
+                implode(' OR ', $adults) . ")) OR id IN (SELECT householdid FROM {" . self::CHILDREN .
+                "} WHERE centreid = :cc{$i} AND (" . implode(' OR ', $children) . ')))';
+        }
+        return [$where, $params];
+    }
+
+    /**
+     * How many households the inbox can list: those that wait, or every family but those brought from the roll of the
+     * centre that wait for nobody (they come up when searched).
+     *
+     * @param int $centreid
+     * @param bool $waitingonly
+     * @param int $course As in inbox().
+     * @param string $stage As in inbox().
+     * @return int
+     */
+    public static function inbox_count(int $centreid, bool $waitingonly, int $course = 0, string $stage = ''): int {
+        global $DB;
+        $params = ['centreid' => $centreid];
+        $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ' AND (roster = 0 OR waitingsince > 0)');
+        return $DB->count_records_select(self::T, $where . self::children_where($centreid, $course, $stage, $params), $params);
+    }
+
+    /**
+     * The condition on the children of a household for the filters of the inbox: a same child with the offer and the
+     * step asked, as the page filters them.
+     *
+     * @param int $centreid
+     * @param int $course An offer id; 0, any.
+     * @param string $stage A step; empty, any.
+     * @param array $params Where its parameters are added.
+     * @return string The condition to add after the others, or nothing.
+     */
+    protected static function children_where(int $centreid, int $course, string $stage, array &$params): string {
+        if (!$course && $stage === '') {
+            return '';
+        }
+        $sql = 'centreid = :kidcentre';
+        $params['kidcentre'] = $centreid;
+        if ($course) {
+            $sql .= ' AND offerid = :kidoffer';
+            $params['kidoffer'] = $course;
+        }
+        if ($stage !== '') {
+            $sql .= ' AND stage = :kidstage';
+            $params['kidstage'] = $stage;
+        }
+        return ' AND id IN (SELECT householdid FROM {' . self::CHILDREN . '} WHERE ' . $sql . ')';
     }
 
     /**

@@ -41,6 +41,7 @@ $png = '';
 if ($piece === 'acto') {
     $event = events::by_token(optional_param('t', '', PARAM_ALPHANUM));
     $centre = $event ? centres::get((int) $event->centreid) : null;
+    publicpage::practice_gate($centre, null);
     if ($event && $centre && share::act_open($event)) {
         $lang = publiclang::choose($centre);
         $when = publicpage::date_parts((int) $event->timestart, $lang);

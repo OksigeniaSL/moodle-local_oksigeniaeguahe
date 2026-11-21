@@ -69,7 +69,7 @@ class send_thanks extends \core\task\scheduled_task {
                 continue;
             }
             $lang = $household->lang ?: $centre->lang;
-            if (!familymail::may_email($household)) {
+            if (!\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'thanks')) {
                 // Without the email allowed, only on the phones the family joined with.
                 messaging::notify('thanks', $household, $centre, $signup, $lang);
                 continue;

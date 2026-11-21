@@ -36,7 +36,8 @@ use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\sheets;
 
 [$options, $unrecognised] = cli_get_params(
-    ['entry' => 0, 'file' => '', 'tab' => '', 'event' => 0, 'heard' => '', 'dry-run' => false, 'help' => false],
+    ['entry' => 0, 'file' => '', 'tab' => '', 'event' => 0, 'heard' => '', 'teamsheet' => false, 'dry-run' => false,
+        'help' => false],
     ['h' => 'help', 'n' => 'dry-run']
 );
 if ($unrecognised) {
@@ -52,6 +53,8 @@ Options:
   --event=ID      Also sign them up for this act of the centre, without any reminder or message.
   --heard=WHAT    How they all heard of the centre, when the sheet is of one way only (referral: another centre, such
                   as a nursery, recommended it; its name, from the column of the school they come from).
+  --teamsheet     The entry is a sheet the team keeps: a phone finds the family and what the team wrote is read
+                  (it stays so for the entry; it is never deduced from the headings).
   -n, --dry-run   Read and count everything, and keep nothing.
   -h, --help      This help.
 
@@ -89,6 +92,14 @@ if ($options['tab'] !== '') {
 }
 [$rows, $headers] = entries::rows_of($sheets);
 cli_writeln('Rows: ' . count($rows) . ' · columns: ' . count($headers));
+if ($options['teamsheet'] && empty($entry->teamsheet)) {
+    // Said here once, it stays for the entry (the sheet sent again every night reads the same).
+    $DB->set_field(entries::T, 'teamsheet', 1, ['id' => $entry->id]);
+    $entry->teamsheet = 1;
+}
+if (empty($entry->teamsheet)) {
+    cli_writeln('Not a sheet of the team: a phone does not find a family and what the team wrote is not read (--teamsheet).');
+}
 $roles = entries::roles($entry, $headers);
 $seen = [];
 foreach ($roles as $header => $role) {

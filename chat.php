@@ -38,7 +38,8 @@ if (optional_param('action', '', PARAM_ALPHA) === 'find') {
         echo json_encode(['html' => '', 'error' => 'login']);
         die();
     }
-    if (!centres::for_user((int) $USER->id)) {
+    // A real centre of their own: a visitor of the demo, or the practice centre, is not one.
+    if (!array_filter(centres::for_user((int) $USER->id), fn($c) => empty($c->practice))) {
         echo json_encode(['html' => '', 'error' => 'team']);
         die();
     }

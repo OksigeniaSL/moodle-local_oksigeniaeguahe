@@ -139,7 +139,9 @@ class panel_entry {
             'phone' => self::phone($entry, $centre, $lang, $open),
             'share' => $issurvey ? false : self::share($entry),
             'settings' => ['name' => (string) $entry->name, 'title' => (string) $entry->title, 'lead' => (string) $entry->lead,
-                'acknowledge' => !empty($entry->acknowledge), 'open' => !empty($entry->active)],
+                'acknowledge' => !empty($entry->acknowledge), 'open' => !empty($entry->active),
+                // A sheet the team keeps (Google, Meta, another tool), never the forms of Eguahe anyone fills.
+                'canteam' => in_array($entry->kind, ['google', 'meta', 'hook'], true), 'teamsheet' => !empty($entry->teamsheet)],
             'erasequestion' => get_string('panel_erase_form', $c, format_string($entry->name)),
         ];
     }
@@ -437,6 +439,8 @@ class panel_entry {
             case 'settings':
                 entries::update($entry, (object) ['name' => optional_param('name', $entry->name, PARAM_TEXT),
                     'acknowledge' => optional_param('acknowledge', 0, PARAM_BOOL),
+                    'teamsheet' => in_array($entry->kind, ['google', 'meta', 'hook'], true) &&
+                        optional_param('teamsheet', 0, PARAM_BOOL),
                     'active' => $entry->kind === surveys::KIND ? 1 : optional_param('active', 0, PARAM_BOOL)]);
                 $DB->update_record(entries::T, (object) ['id' => $entry->id,
                     'title' => \core_text::substr(trim(optional_param('title', '', PARAM_TEXT)), 0, 255) ?: null,

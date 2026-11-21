@@ -166,6 +166,25 @@ class writeby {
     }
 
     /**
+     * Whether a mail of a kind goes by email now, the one door for the tasks and the acts: by the permission of an adult
+     * when the family never chose; by what it chose when it did (email still, while the phone it marked is not joined);
+     * and what a family must know (an act called off) at its address when it chose a way, even a phone.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $kind A kind of familymail.
+     * @return bool
+     */
+    public static function email_now(\stdClass $household, \stdClass $centre, string $kind): bool {
+        $chosen = self::chosen($household);
+        if (in_array($kind, self::MUSTKNOW, true) && $chosen) {
+            // A family that chose how to be written to hears what it must know at its address, also if it chose a phone.
+            return households::recipient($household) !== '';
+        }
+        return $chosen === null ? familymail::may_email($household) : self::email_ok($household, $centre, $kind);
+    }
+
+    /**
      * Whether the notice of a mail may also go to the phones of the family: not if it marked only email.
      *
      * @param \stdClass $household
@@ -326,7 +345,9 @@ class writeby {
             return $ways;
         }
         $phones = self::joined_on($household, $centre);
-        return array_values(array_merge(households::recipient($household) !== '' ? ['email'] : [], $phones));
+        // Email only when some adult allows it: having an address is not a yes.
+        return array_values(array_merge(familymail::may_email($household) && households::recipient($household) !== '' ?
+            ['email'] : [], $phones));
     }
 
     /**
@@ -396,6 +417,10 @@ class writeby {
         foreach (households::full($household)->adults as $adult) {
             foreach (['email' => trim((string) $adult->email), 'whatsapp' => trim((string) $adult->phone)] as $channel => $has) {
                 $granted = in_array($channel, $after, true);
+                // A word left on a phone («BAJA») only takes away: it never gives a way the family did not mark.
+                if ($granted && $source === 'messaging') {
+                    continue;
+                }
                 if ($has !== '' && (bool) ($said[$adult->id][$channel] ?? !$granted) !== $granted) {
                     households::consent($household, (int) $adult->id, $channel, $granted, $consent, $lang, $userid);
                 }
@@ -702,7 +727,7 @@ class writeby {
             'icon' => self::icon('check'),
             'button' => $marked ? $str('pub_writeby_save') : $str('pub_writeby_opt_none'),
             'save' => $str('pub_writeby_save'),
-            'nobox' => $str('pub_writeby_opt_none'),
+            'nobox' => $str('pub_writeby_pick_one'),
             'next' => array_diff(array_intersect($marked, self::PHONES), self::joined_on($household, $centre)) ?
                 $str('pub_writeby_next') : '',
         ];
@@ -743,7 +768,12 @@ class writeby {
         }
         $now = self::now($household, $centre);
         if ($out) {
-            self::set($household, array_values(array_diff($now, [$channel])), 'messaging');
+            $keep = array_values(array_diff($now, [$channel]));
+            if (!$keep && self::chosen($household) === null) {
+                // «Not on WhatsApp» from a family that never chose: Marandu keeps it; it is not «no messages at all».
+                return;
+            }
+            self::set($household, $keep, 'messaging');
         } else if (!in_array($channel, $now, true)) {
             self::set($household, array_merge($now, [$channel]), 'messaging', 0, 0, self::silent($household) ? 'back' : '');
         }
@@ -828,7 +858,9 @@ class writeby {
                 'pub_writeby_name_'
             )) : '',
             'silent' => $silent,
-            'since' => $silent ? get_string('panel_writeby_silent_since', $c, $day((int) $household->writebytime)) : '',
+            // Who said it: the family on its page or by message, or the team, who noted what they heard.
+            'since' => $silent ? get_string(($household->writebyfrom ?? '') === 'team' ? 'panel_writeby_silent_team' :
+                'panel_writeby_silent_since', $c, $day((int) $household->writebytime)) : '',
             'wrote' => $silent && self::wrote_after($household),
             // Asked as a family on its way, and now of the centre: the word was for the admissions; ask it again.
             'askagain' => $enrolled ? get_string('panel_writeby_askagain', $c, (object) ['none' => $day($none),
@@ -838,7 +870,9 @@ class writeby {
             'action' => $action,
             'sesskey' => sesskey(),
             'boxes' => array_map(fn($c2) => ['value' => $c2, 'label' => get_string('panel_writeby_' . $c2, $c),
-                'checked' => in_array($c2, $now, true)], self::channels($centre)),
+                'checked' => in_array($c2, $now, true)], $channels = self::channels($centre)),
+            // When the centre writes only by email, it says so, and where WhatsApp and Telegram are turned on.
+            'help' => get_string(count($channels) > 1 ? 'panel_writeby_change_help' : 'panel_writeby_change_onlymail', $c),
         ];
     }
 }

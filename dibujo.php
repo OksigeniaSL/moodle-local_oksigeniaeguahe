@@ -56,6 +56,7 @@ if (!$found || !$file) {
     );
 }
 [$household, $child, $centre] = $found;
+publicpage::practice_gate($centre, $url);
 $lang = publiclang::choose($centre);
 $action = optional_param('action', '', PARAM_ALPHA);
 

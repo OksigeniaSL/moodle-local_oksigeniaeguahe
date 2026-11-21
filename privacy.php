@@ -40,6 +40,7 @@ $signature = optional_param('k', '', PARAM_ALPHANUM);
 $url = new moodle_url('/local/oksigeniaeguahe/privacy.php', ['c' => $centreid, 'k' => $signature]);
 publicpage::setup($url);
 $centre = share::signed('privacy', 0, $centreid, $signature) ? centres::get($centreid) : null;
+publicpage::practice_gate($centre, $url);
 if (!$centre) {
     $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
     publicpage::message(

@@ -231,7 +231,15 @@ class messaging {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'reply'),
                 'idioma' => $lang]);
             $closed = null;
-            foreach (\local_oksigeniamarandu\api::send_text(self::COMPONENT, (int) $household->id, $text, $url) as $line) {
+            // To whoever wrote last, even after a no to admissions (decided); without it, to the whole household, where
+            // Marandu skips the chats that said no.
+            $to = self::last_writer($household);
+            $lines = \local_oksigeniamarandu\api::send_text(self::COMPONENT, (int) $household->id, $text, $url, $to);
+            if ($to !== null && !array_filter($lines, fn($l) => in_array($l['status'] ?? '', ['sent', 'closed'], true))) {
+                // That person is not joined to this household any more: to the household, where Marandu skips who said no.
+                $lines = \local_oksigeniamarandu\api::send_text(self::COMPONENT, (int) $household->id, $text, $url);
+            }
+            foreach ($lines as $line) {
                 if (($line['status'] ?? '') === 'sent') {
                     return (string) $line['channel'];
                 }
@@ -246,6 +254,26 @@ class messaging {
             return null;
         }
         return null;
+    }
+
+    /**
+     * Who of the family wrote last on WhatsApp or Telegram, as Marandu gave it, to answer that person.
+     *
+     * @param \stdClass $household
+     * @return string|null
+     */
+    public static function last_writer(\stdClass $household): ?string {
+        global $DB;
+        $rows = $DB->get_records_sql(
+            'SELECT id, address FROM {' . households::CONTACTS . '}
+              WHERE householdid = :h AND direction = :in AND address IS NOT NULL
+           ORDER BY timecreated DESC, id DESC',
+            ['h' => $household->id, 'in' => 'in'],
+            0,
+            1
+        );
+        $row = reset($rows);
+        return $row ? (string) $row->address : null;
     }
 
     /**
@@ -276,7 +304,9 @@ class messaging {
                 'location', 'contact'], true) ? $hook->get_kind() : 'other'), self::COMPONENT);
         }
         $channel = $hook->get_channel() === 'whatsapp' ? 'whatsapp' : 'telegram';
-        households::received($household, $channel, $text, true, $hook->get_time() ?: time());
+        // Who wrote, to answer that person (Marandu 0.51.1): «+34600…» or «tg:<chat>».
+        $address = method_exists($hook, 'get_address') ? (string) $hook->get_address() : '';
+        households::received($household, $channel, $text, true, $hook->get_time() ?: time(), 0, '', $address);
         $hook->set_handled();
     }
 }

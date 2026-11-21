@@ -6627,6 +6627,19 @@ html {
     color: var(--c-acento-texto);
 }
 
+/* What could not be kept, in its own line inside the card, never over the name. */
+.guardado-linea.no-guardado {
+    position: static;
+    display: block;
+    margin: 0 0 8px;
+    color: var(--eg-error);
+}
+
+/* Taking out a person they added here: a quiet line at the foot of their card. */
+.quitar-persona {
+    margin: 8px 0 0;
+}
+
 /* On a phone the line keeps what it is above it */
 @media (max-width: 599px) {
     .persona-datos .campo {

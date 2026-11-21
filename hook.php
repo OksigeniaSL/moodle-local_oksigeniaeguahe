@@ -71,6 +71,11 @@ if (!$items || count($items) > 200) {
     local_oksigeniaeguahe_hook_reply(400, ['ok' => false, 'error' => 'items']);
 }
 $centre = centres::get((int) $entry->centreid);
+if (!$centre || !empty($centre->practice)) {
+    // A practice or demo centre takes nothing from outside.
+    http_response_code(404);
+    die();
+}
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'invalid' => 0];
 foreach ($items as $item) {
     if (is_array($item) && isset($item['raw']) && is_string($item['raw']) && $entry->kind === 'email') {

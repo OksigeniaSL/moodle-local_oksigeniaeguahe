@@ -63,7 +63,8 @@ class api {
             $params + ['now' => $now, 'until' => $now + self::AHEAD],
             'timestart ASC, id ASC'
         );
-        $midnight = usergetmidnight($now);
+        // The day of the server, the same for the task of the screens (as an admin) and their beat (no user).
+        $midnight = usergetmidnight($now, \core_date::get_server_timezone());
         $out = [];
         foreach ($events as $event) {
             if (!share::act_open($event, $now)) {
@@ -138,7 +139,8 @@ class api {
         if (!$centres) {
             return [];
         }
-        $midnight = usergetmidnight($now);
+        // The day of the server, the same for the task of the screens (as an admin) and their beat (no user).
+        $midnight = usergetmidnight($now, \core_date::get_server_timezone());
         [$in, $params] = $DB->get_in_or_equal(array_keys($centres), SQL_PARAMS_NAMED);
         $events = $DB->get_records_select(
             events::T,

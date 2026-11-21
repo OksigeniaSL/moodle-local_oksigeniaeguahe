@@ -72,6 +72,9 @@ if (data_submitted()) {
         $task = new \local_oksigeniaeguahe\task\tell_renewal();
         $task->set_custom_data(['centreid' => (int) $centre->id, 'userid' => (int) $USER->id]);
         \core\task\manager::queue_adhoc_task($task, true);
+    } else if (str_starts_with($do, 'roster') && !centres::can_manage((int) $centre->id)) {
+        // Where the families already at the centre come from is a setting: only for whoever keeps the settings.
+        throw new required_capability_exception(context_system::instance(), 'local/oksigeniaeguahe:manage', 'nopermissions', '');
     } else if (in_array($do, ['rosterkind', 'rosteryear', 'rosteroff'], true)) {
         // The families already at the centre: where the course of each student comes from, and the school year now.
         $source = roster::source($centre);

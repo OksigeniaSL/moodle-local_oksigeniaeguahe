@@ -58,7 +58,9 @@ class invites {
      * @return bool
      */
     public static function by_phone(\stdClass $centre): bool {
-        return messaging::mode($centre) !== 'off' && method_exists('\local_oksigeniamarandu\api', 'bulk_request');
+        // A practice or demo centre never sends anything to a phone.
+        return empty($centre->practice) && messaging::mode($centre) !== 'off' &&
+            method_exists('\local_oksigeniamarandu\api', 'bulk_request');
     }
 
     /**
@@ -99,6 +101,8 @@ class invites {
             $DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id])
         ));
         $phones = $centre && self::by_phone($centre);
+        // Who lets the centre write by email, read once for the whole centre (one query per family does not scale).
+        $allowed = households::emailable($centreid);
         $out = [];
         foreach ($households as $id => $household) {
             $stages = $children[$id] ?? [];
@@ -108,7 +112,7 @@ class invites {
             if (isset($done[$id]) || in_array('enrolled', $stages, true) || !$ok || !writeby::may_send($household, 'openinvite')) {
                 continue;
             }
-            $household->reachemail = !empty($emails[$id]) && familymail::may_email($household) &&
+            $household->reachemail = !empty($emails[$id]) && !empty($allowed[$id]) &&
                 writeby::email_ok($household, $centre, 'openinvite');
             $household->reachphone = $phones && writeby::phone_ok($household, 'openinvite') &&
                 messaging::joined($household, $centre);
@@ -219,8 +223,11 @@ class invites {
             $items[] = [
                 'itemid' => (int) $household->id,
                 'params' => [$name, format_string($event->name), $parts['long'] . ', ' . $parts['hour']],
+                // A message is meant to be passed on: it carries a signature that only counts who opened it, never the
+                // private link of the family.
                 'url' => new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'idioma' => $lang,
-                    'k' => households::new_link($household, 'invitation'), 'de' => 'openinvite']),
+                    'ih' => (int) $household->id, 'is' => share::signature('invited', (int) $household->id, (int) $event->id),
+                    'de' => 'openinvite']),
                 'lang' => $plang,
             ];
         }

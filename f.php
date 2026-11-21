@@ -36,6 +36,7 @@ use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\hobbies;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\renewal;
@@ -55,6 +56,7 @@ publicpage::setup($url);
 
 $household = households::by_link($token);
 $centre = $household ? centres::get((int) $household->centreid) : null;
+publicpage::practice_gate($centre, $url);
 if ($household) {
     // A student who comes on their own reads their page as one person.
     publiclang::speak_to($household);
@@ -131,6 +133,7 @@ if ($drawing) {
     $children = households::full($household)->children;
     $file = isset($children[$drawing]) ? drawings::file($drawing) : null;
     if (!$file) {
+        require_once($CFG->libdir . '/filelib.php');
         send_header_404();
         die();
     }
@@ -143,6 +146,7 @@ if ($strokes) {
     $children = households::full($household)->children;
     $file = isset($children[$strokes]) ? local_oksigeniaeguahe\local\drawings::strokes_file($strokes) : null;
     if (!$file) {
+        require_once($CFG->libdir . '/filelib.php');
         send_header_404();
         die();
     }
@@ -415,6 +419,31 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         $new[$field] = trim(optional_param('n_' . $field, '', PARAM_TEXT));
     }
     $before = count(households::full($household)->adults);
+    // A person they added here, taken out again.
+    $remove = optional_param('quitar', 0, PARAM_INT);
+    if ($remove && households::remove_page_adult($household, $centre, $remove)) {
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos'));
+    }
+    // What was written and cannot be kept says so, beside its field: the one there was stays.
+    $bad = [];
+    $isbad = fn(string $field, string $value) => $value !== '' && ($field === 'phone' ?
+        phone::normalise($value, $centre->country ?? null) === null : households::email($value) === null);
+    foreach ($rows as $id => $row) {
+        foreach (['phone', 'email'] as $field) {
+            if ($isbad($field, $row[$field])) {
+                $bad['a' . $id . '_' . $field] = publiclang::str('pub_contacts_bad_' . $field, $lang);
+            }
+        }
+        $year = trim(optional_param('a' . $id . '_alumniyear', '', PARAM_TEXT));
+        if ($year !== '' && alumni::year($year) === '') {
+            $bad['a' . $id . '_alumniyear'] = publiclang::str('pub_contacts_bad_year', $lang);
+        }
+    }
+    foreach (['phone', 'email'] as $field) {
+        if ($isbad($field, $new[$field])) {
+            $bad['n_' . $field] = publiclang::str('pub_contacts_bad_' . $field, $lang);
+        }
+    }
     $saved = households::family_contacts($household, $centre, $rows, $new);
     // Whether each one studied at the centre: ticked, they did; unticked after having said so, they did not.
     $said = alumni::of((int) $household->id);
@@ -444,7 +473,7 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         @header('Cache-Control: no-store');
         // What the page lists now, to say it above and write each line as it is kept («+34 600 000 002»).
         echo json_encode(['saved' => $saved, 'added' => count($full->adults) > $before, 'url' => $back->out(false),
-            'list' => familypage::contact_list($full, $lang)]);
+            'list' => familypage::contact_list($full, $lang), 'bad' => (object) $bad]);
         die();
     }
     redirect($back);
@@ -471,10 +500,13 @@ if ($action === 'escribir') {
     // How they want to be written to. Opening the page changes nothing (a robot that opens the links of a mail would
     // otherwise choose for them): it asks, and one touch saves the boxes, or «do not write to us any more».
     if (data_submitted() && confirm_sesskey()) {
-        $ways = optional_param('nada', 0, PARAM_BOOL) ? [] : array_values(array_intersect(
-            writeby::channels($centre),
-            optional_param_array('por', [], PARAM_ALPHA)
-        ));
+        $none = optional_param('nada', 0, PARAM_BOOL);
+        $marked = optional_param_array('por', [], PARAM_ALPHA);
+        $ways = $none ? [] : array_values(array_intersect(writeby::channels($centre), $marked));
+        if (!$none && !$ways) {
+            // Nothing marked is not «do not write to us»: that has its own button. Back to choosing, nothing changed.
+            redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir', 'idioma' => $lang]));
+        }
         if (writeby::set($household, $ways, 'family')) {
             $note('writeby');
             writeby::confirm($household, $centre, $lang);

@@ -195,11 +195,19 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
     switch ($action) {
         case 'writeby':
-            // What the family said by phone or in person: how to write to them, or not to.
-            writeby::set($household, optional_param('nada', 0, PARAM_BOOL) ? [] : array_values(array_intersect(
-                writeby::channels($centre),
-                optional_param_array('por', [], PARAM_ALPHA)
-            )), 'team', (int) $USER->id);
+            // What the family said by phone or in person: how to write to them, or not to. Saving with nothing marked
+            // is not «no messages»: that has its own button.
+            $none = optional_param('nada', 0, PARAM_BOOL);
+            $ways = array_values(array_intersect(writeby::channels($centre), optional_param_array('por', [], PARAM_ALPHA)));
+            if (!$none && !$ways) {
+                redirect(
+                    new moodle_url($url, [], 'como-escribimos'),
+                    get_string('panel_writeby_pick_one', $c),
+                    null,
+                    \core\output\notification::NOTIFY_WARNING
+                );
+            }
+            writeby::set($household, $none ? [] : $ways, 'team', (int) $USER->id);
             redirect(new moodle_url($url, [], 'como-escribimos'));
             break;
         case 'leave':

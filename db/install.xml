@@ -175,6 +175,8 @@
         <FIELD NAME="lastname" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="email" TYPE="char" LENGTH="254" NOTNULL="false" SEQUENCE="false" COMMENT="In lower case"/>
         <FIELD NAME="phone" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="E.164, when it could be told"/>
+        <FIELD NAME="emailpage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the email was written on the private page of the family, by whoever had its link; a code goes there only after a week"/>
+        <FIELD NAME="frompage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When this adult was added from the private page of the family, which may take them out again"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -305,6 +307,7 @@
         <FIELD NAME="body" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="entryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The entry of the centre it came through, if any"/>
         <FIELD NAME="detail" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What the source said of itself: platform, campaign, ad, form"/>
+        <FIELD NAME="address" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="Who wrote on WhatsApp or Telegram, as Marandu gives it, to answer that person"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who wrote it; 0 for the household or the system"/>
         <FIELD NAME="asks" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What a message of the family asks or tells, in a line for the team, by the AI of the centre; null, not read yet; empty, nothing to say"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -586,6 +589,7 @@
         <FIELD NAME="questions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The questions seen, as they come: JSON"/>
         <FIELD NAME="examples" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The last answer that came to each question of a bridge, by question; never what says who someone is or how to reach them"/>
         <FIELD NAME="acknowledge" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1 when each new family gets an email saying it was received, with its page"/>
+        <FIELD NAME="teamsheet" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A sheet the team keeps: a phone finds the family, and what the team writes in it is read as gestures; never deduced from its headings"/>
         <FIELD NAME="received" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many came in"/>
         <FIELD NAME="lastreceived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="testedat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When a test last came through it: something sent with the test email (entries::TESTMAIL)"/>

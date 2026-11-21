@@ -40,7 +40,7 @@ class lookalike {
     /** @var string[] What a household has that goes with it as a whole, by its householdid, when two are put together. */
     const MOVED = [households::CONSENTS, households::CONTACTS, households::LINKS, visits::REQUESTS, forms::ANSWERS,
         attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, entries::ARRIVALS, roster::T, events::T,
-        renewal::T, listmatch::T, teamnotes::T, alumni::T];
+        renewal::T, listmatch::T, teamnotes::T, alumni::T, access::T];
 
     /** @var int Two families asking for the same course look alike only if they came within this time of each other. */
     const NEAR = 180 * DAYSECS;
@@ -53,6 +53,25 @@ class lookalike {
      */
     public static function of(\stdClass $household): array {
         global $DB;
+        // The same phone in two households: a family that wrote twice without an email, or one that wrote the phone of
+        // another (a form anyone can fill never joins them by a phone alone; a person says).
+        $apart = self::apart((int) $household->centreid, (int) $household->id);
+        $out = [];
+        foreach (
+            $DB->get_records_sql(
+                'SELECT DISTINCT b.householdid, a.phone
+                   FROM {' . households::ADULTS . '} a
+                   JOIN {' . households::ADULTS . '} b ON b.centreid = a.centreid AND b.phone = a.phone
+                        AND b.householdid <> a.householdid
+                  WHERE a.householdid = :me AND a.phone IS NOT NULL AND a.phone <> \'\'',
+                ['me' => $household->id]
+            ) as $row
+        ) {
+            if (!isset($apart[(int) $row->householdid])) {
+                $out[(int) $row->householdid] = ['child' => '', 'why' => 'phone', 'birthdate' => '',
+                    'phone' => (string) $row->phone];
+            }
+        }
         $mine = $DB->get_records(
             households::CHILDREN,
             ['householdid' => $household->id],
@@ -70,7 +89,7 @@ class lookalike {
             }
         }
         if (!$names) {
-            return [];
+            return $out;
         }
         $births = array_values(array_filter(array_unique(array_map(fn($k) => trim((string) $k->birthdate), $mine))));
         $offers = array_values(array_filter(array_unique(array_map(fn($k) => (int) $k->offerid, $mine))));
@@ -87,7 +106,7 @@ class lookalike {
             $params += $p;
         }
         if (!$where) {
-            return [];
+            return $out;
         }
         $others = $DB->get_records_sql(
             'SELECT c.id, c.householdid, c.firstname, c.birthdate, c.offerid, c.stage, h.roster, h.timecreated
@@ -97,8 +116,6 @@ class lookalike {
            ORDER BY h.timecreated ASC, c.id ASC',
             $params
         );
-        $apart = self::apart((int) $household->centreid, (int) $household->id);
-        $out = [];
         foreach ($others as $other) {
             $id = (int) $other->householdid;
             if (isset($out[$id]) || isset($apart[$id])) {
@@ -181,6 +198,7 @@ class lookalike {
         }
         $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'householda' => $a, 'householdb' => $b,
             'userid' => $userid, 'timecreated' => time()]);
+        self::forget($centreid);
     }
 
     /**
@@ -191,6 +209,34 @@ class lookalike {
      * @return array[] [newer householdid, older householdid], the newest first.
      */
     public static function pairs(int $centreid, int $since): array {
+        $cache = \cache::make('local_oksigeniaeguahe', 'lookalikes');
+        $kept = $cache->get($centreid);
+        // A few minutes old is fine for «may be the same family»; the window moves by the day.
+        if (is_array($kept) && ($kept['since'] ?? 0) === intdiv($since, DAYSECS)) {
+            return $kept['pairs'];
+        }
+        $pairs = self::compare($centreid, $since);
+        $cache->set($centreid, ['since' => intdiv($since, DAYSECS), 'pairs' => $pairs]);
+        return $pairs;
+    }
+
+    /**
+     * Forgets the pairs kept for the inbox of a centre: two households were joined, separated or said to be different.
+     *
+     * @param int $centreid
+     */
+    public static function forget(int $centreid): void {
+        \cache::make('local_oksigeniaeguahe', 'lookalikes')->delete($centreid);
+    }
+
+    /**
+     * The households that may be written down twice, compared now.
+     *
+     * @param int $centreid
+     * @param int $since
+     * @return array[] [newer householdid, older householdid], the newest first.
+     */
+    protected static function compare(int $centreid, int $since): array {
         global $DB;
         $rows = $DB->get_records_sql(
             'SELECT c.id, c.householdid, c.firstname, c.birthdate, c.offerid, c.stage, h.roster, h.timecreated
@@ -229,6 +275,24 @@ class lookalike {
                 }
             }
         }
+        // The same phone in two households, one of them come since.
+        $rows = $DB->get_recordset_sql(
+            'SELECT DISTINCT a.householdid AS one, b.householdid AS other
+               FROM {' . households::ADULTS . '} a
+               JOIN {' . households::T . '} h ON h.id = a.householdid
+               JOIN {' . households::ADULTS . '} b ON b.centreid = a.centreid AND b.phone = a.phone
+                    AND b.householdid <> a.householdid
+              WHERE a.centreid = :centreid AND a.phone IS NOT NULL AND a.phone <> \'\' AND h.timecreated >= :since',
+            ['centreid' => $centreid, 'since' => $since]
+        );
+        foreach ($rows as $row) {
+            [$a, $b] = [(int) $row->one, (int) $row->other];
+            $key = min($a, $b) . ':' . max($a, $b);
+            if (!isset($apart[$key]) && !isset($pairs[$key])) {
+                $pairs[$key] = [$a, $b];
+            }
+        }
+        $rows->close();
         return array_values($pairs);
     }
 
@@ -322,10 +386,22 @@ class lookalike {
         foreach (['thanked', 'applysent'] as $field) {
             $changes[$field] = max((int) $keep->$field, (int) $gone->$field);
         }
+        // How they are written to: the most careful of the two (no messages, or the ways both allow), never lost.
+        $wk = writeby::chosen($keep);
+        $wg = writeby::chosen($gone);
+        if ($wk !== null || $wg !== null) {
+            $changes['writeby'] = writeby::raw($wk === null ? $wg : ($wg === null ? $wk : array_values(array_intersect($wk, $wg))));
+            $latest = (int) $gone->writebytime > (int) $keep->writebytime ? $gone : $keep;
+            $changes['writebytime'] = max((int) $keep->writebytime, (int) $gone->writebytime);
+            $changes['writebyfrom'] = $latest->writebyfrom;
+        }
+        $changes['writebynone'] = max((int) $keep->writebynone, (int) $gone->writebynone);
         // The summary of the AI said one half of the family: written again when someone asks.
         $changes['aisummary'] = null;
         $changes['aisummarytime'] = 0;
         $DB->update_record(households::T, (object) $changes);
+        // Who wrote on a phone was joined to one of the two: from now on an answer goes to the household, not to them.
+        $DB->set_field_select(households::CONTACTS, 'address', null, 'householdid = ?', [$k]);
         $DB->delete_records_select(self::T, 'householda = :a OR householdb = :b', ['a' => $g, 'b' => $g]);
         attend::forget_family($gone);
         if (class_exists('\\local_oksigeniamarandu\\api') && method_exists('\\local_oksigeniamarandu\\api', 'unlink')) {
@@ -337,6 +413,7 @@ class lookalike {
             }
         }
         $DB->delete_records(households::T, ['id' => $g]);
+        self::forget((int) $keep->centreid);
         $DB->insert_record(self::LOG, (object) ['centreid' => $keep->centreid, 'householdid' => $k,
             'data' => json_encode($log), 'userid' => $userid, 'timecreated' => time()]);
         $kept = households::get($k, (int) $keep->centreid);
@@ -535,10 +612,11 @@ class lookalike {
             }
             $full = households::full($other);
             $who = panel::adults_line($full->adults) ?: get_string('panel_no_name', $c);
-            $reason = $why['why'] === 'birthdate' ?
+            $reason = $why['why'] === 'phone' ? get_string('lookalike_why_phone', $c, phone::display((string) $why['phone'])) :
+                ($why['why'] === 'birthdate' ?
                 get_string('lookalike_why_birthdate', $c, (object) ['child' => format_string($why['child']),
                     'date' => userdate((int) strtotime($why['birthdate'] . ' 12:00'), get_string('strftimedate', 'langconfig'))]) :
-                get_string('lookalike_why_course', $c, format_string($why['child']));
+                get_string('lookalike_why_course', $c, format_string($why['child'])));
             $older = (int) $other->timecreated <= (int) $household->timecreated;
             $out[] = [
                 'id' => (int) $id,
@@ -588,14 +666,33 @@ class lookalike {
         foreach (
             ['municipality', 'municipalityname', 'moving', 'self', 'heardfrom', 'heardwho', 'heardnet', 'incentre', 'volunteer',
                 'thanked', 'invitesign', 'familylink', 'roster', 'whyother', 'whyothertime', 'arrivalsource', 'arrivalmedium',
-                'arrivalcampaign', 'arrivalref', 'applysent', 'ownerid'] as $field
+                'arrivalcampaign', 'arrivalref', 'applysent', 'ownerid', 'writeby', 'writebytime', 'writebyfrom',
+                'writebynone'] as $field
         ) {
             if (array_key_exists($field, $was)) {
                 $fields[$field] = $was[$field];
             }
         }
+        // The link with the common record of families: back as it was when it comes from undoing a merge; else nobody
+        // knows which half it belongs to, so neither keeps it and the file asks again.
+        if (!$log) {
+            $fields['familylink'] = 0;
+        }
         $DB->update_record(households::T, (object) $fields);
+        if (!$log || (int) ($fields['familylink'] ?? 0) === (int) $household->familylink) {
+            $DB->set_field(households::T, 'familylink', 0, ['id' => $h]);
+        }
+        // The phones joined with the family join again from the page of each half; who wrote is forgotten in both.
+        $DB->set_field_select(households::CONTACTS, 'address', null, 'householdid = ?', [$h]);
+        if (class_exists('\\local_oksigeniamarandu\\api') && method_exists('\\local_oksigeniamarandu\\api', 'unlink')) {
+            try {
+                \local_oksigeniamarandu\api::unlink('local_oksigeniaeguahe', $h);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: Marandu did not unlink household ' . $h . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
 
+        self::forget($centreid);
         // The adults, with their permissions and what they like.
         [$in, $params] = $DB->get_in_or_equal($going);
         $DB->set_field_select(households::ADULTS, 'householdid', $id, "id $in", $params);

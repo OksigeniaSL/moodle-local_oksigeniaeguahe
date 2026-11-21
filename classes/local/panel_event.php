@@ -484,6 +484,9 @@ class panel_event {
             )] : false,
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
             'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
+            // Before it goes: to how many, by which way, and that it is once (a touch too many would mail them all).
+            'confirm' => $can ? self::invite_confirm($can, $emails, count($phones)) : '',
+            'someconfirm' => $some ? self::invite_confirm($some, min($some, $emails), min($some, count($phones))) : '',
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
             'haslikes' => (bool) $chips,
@@ -498,6 +501,22 @@ class panel_event {
                 $a
             ) : '',
         ];
+    }
+
+    /**
+     * The question before an invitation goes: to how many families, by which way, and only once.
+     *
+     * @param int $n
+     * @param int $emails
+     * @param int $phones
+     * @return string
+     */
+    protected static function invite_confirm(int $n, int $emails, int $phones): string {
+        $c = self::C;
+        $ways = $phones ? get_string('panel_invite_confirm_ways', $c, (object) ['email' => $emails, 'phone' => $phones]) :
+            get_string('panel_invite_confirm_email', $c);
+        return get_string($n === 1 ? 'panel_invite_confirm_one' : 'panel_invite_confirm', $c, (object) ['n' => $n,
+            'ways' => $ways]);
     }
 
     /**

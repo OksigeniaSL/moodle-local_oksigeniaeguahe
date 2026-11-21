@@ -334,7 +334,7 @@
             {{#family}}
             <div class="familia-centro" id="familia-centro">
                 {{#hints}}
-                <p>{{line}}</p>
+                <p>{{line}} <span class="secundario">{{kids}}</span></p>
                 {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familysame"><input type="hidden" name="familia" value="{{familyid}}"><button class="boton secundario pequeno" type="submit">{{#str}}panel_family_same, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
                 {{/hints}}
                 {{#hashints}}{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="familynot"><button class="enlace" type="submit">{{#str}}panel_family_not, local_oksigeniaeguahe{{/str}}</button></form>
@@ -501,7 +501,7 @@
                         <form method="post" action="{{action}}">
                             <input type="hidden" name="sesskey" value="{{sesskey}}">
                             <input type="hidden" name="action" value="writeby">
-                            <p class="ayuda">{{#str}}panel_writeby_change_help, local_oksigeniaeguahe{{/str}}</p>
+                            <p class="ayuda">{{help}}</p>
                             <div class="ce-opciones">{{#boxes}}<label class="casilla"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}> {{label}}</label>{{/boxes}}</div>
                             <div class="ce-acciones"><button class="boton secundario" type="submit">{{#str}}panel_writeby_save, local_oksigeniaeguahe{{/str}}</button> <button class="enlace" type="submit" name="nada" value="1">{{#str}}panel_writeby_none_set, local_oksigeniaeguahe{{/str}}</button></div>
                         </form>

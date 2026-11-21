@@ -146,14 +146,18 @@ class entries {
      * Changes the name, the email of receipt or whether it is open.
      *
      * @param \stdClass $entry
-     * @param \stdClass $data name, acknowledge, active.
+     * @param \stdClass $data name, acknowledge, active and, if given, teamsheet.
      */
     public static function update(\stdClass $entry, \stdClass $data): void {
         global $DB;
-        $DB->update_record(self::T, (object) ['id' => $entry->id,
+        $record = ['id' => $entry->id,
             'name' => \core_text::substr(trim((string) ($data->name ?? $entry->name)), 0, 255) ?: $entry->name,
             'acknowledge' => empty($data->acknowledge) ? 0 : 1, 'active' => empty($data->active) ? 0 : 1,
-            'timemodified' => time()]);
+            'timemodified' => time()];
+        if (property_exists($data, 'teamsheet')) {
+            $record['teamsheet'] = empty($data->teamsheet) ? 0 : 1;
+        }
+        $DB->update_record(self::T, (object) $record);
     }
 
     /**
@@ -302,13 +306,18 @@ class entries {
             implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->time]));
         $arrived = $DB->get_record(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key]);
         self::$noted = [];
+        // A sheet the team keeps, as a person said in the entry (never from its headings): a phone finds the family and
+        // what the team writes is read. A form anyone can fill finds a family only by an email it already has, never
+        // brings it a new address, and never changes what the team did.
+        $trusted = !empty($entry->teamsheet);
+        $byphone = $byphone && $trusted;
         if ($arrived) {
             // It came before; if the family erased its data since, it stays erased. What the team wrote since in the
-            // same row (a second call, the day of the visit) comes in, once.
+            // same row (a second call, the day of the visit) comes in, once; who they are and their courses stay as the
+            // team and the family left them in Eguahe.
             $household = $arrived->householdid ? households::get((int) $arrived->householdid, (int) $entry->centreid) : null;
-            if ($household && ($read->team || $read->staff || $read->appointment)) {
+            if ($household && $trusted && ($read->team || $read->staff || $read->appointment)) {
                 $transaction = $DB->start_delegated_transaction();
-                self::people($household, $read, $byphone);
                 self::$noted = teamnotes::apply($household, (array) $read);
                 $transaction->allow_commit();
                 $household = households::get((int) $household->id, (int) $entry->centreid);
@@ -327,6 +336,7 @@ class entries {
         }
         $about = (object) (['lang' => $centre->lang ?: 'es', 'firstchannel' => $channel,
             'heardfrom' => $read->heardfrom, 'incentre' => $read->incentre, 'arrival' => $arrival] + $read->place);
+        $existed = $householdid !== null;
         if ($householdid === null) {
             $householdid = households::create((int) $centre->id, $about);
             if ($time < time()) {
@@ -336,16 +346,26 @@ class entries {
         }
         $household = households::get($householdid, (int) $centre->id);
         households::complete($household, $about);
-        $adultid = self::people($household, $read, $byphone);
-        foreach ($read->consents as $consent) {
+        $adultid = self::people($household, $read, $byphone, $existed && !$trusted);
+        foreach ($adultid ? $read->consents : [] as $consent) {
             households::consent($household, $adultid, $consent, true, 'entry', $household->lang);
         }
         $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) .
             ($read->lines ? "\n\n" . implode("\n", $read->lines) : ''));
         // Something from long ago is kept, but does not wait for an answer.
         $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
-        households::received($household, $channel, $body, $awaits, $time, (int) $entry->id, $read->detail);
-        if ($read->team || $read->staff || $read->appointment) {
+        households::received(
+            $household,
+            $channel,
+            $body,
+            $awaits,
+            $time,
+            (int) $entry->id,
+            $read->detail,
+            '',
+            !$past && !$trusted
+        );
+        if ($trusted && ($read->team || $read->staff || $read->appointment)) {
             self::$noted = teamnotes::apply($household, (array) $read);
         }
         $DB->insert_record(self::ARRIVALS, (object) ['centreid' => $centre->id, 'entryid' => $entry->id,
@@ -366,10 +386,20 @@ class entries {
      * @param \stdClass $household
      * @param \stdClass $read What read() made of the row.
      * @param bool $byphone
-     * @return int The first adult.
+     * @param bool $guarded A form anyone can fill that matched a family the centre already had: no new email or phone
+     *     gets into it (they wait in a note for the team), and its children keep what they had.
+     * @return int The first adult; 0 when none of the row could be kept.
      */
-    protected static function people(\stdClass $household, \stdClass $read, bool $byphone): int {
+    protected static function people(\stdClass $household, \stdClass $read, bool $byphone, bool $guarded = false): int {
         $first = 0;
+        $full = $guarded ? households::full($household) : null;
+        $known = fn(string $field) => $full ? array_filter(array_map(
+            fn($a) => \core_text::strtolower((string) $a->$field),
+            $full->adults
+        )) : [];
+        $emails = $known('email');
+        $phones = $known('phone');
+        $held = [];
         foreach (
             $read->adults ?: [(object) ['firstname' => $read->firstname, 'lastname' => $read->lastname,
                 'email' => $read->email, 'phone' => $read->phone]] as $adult
@@ -377,13 +407,34 @@ class entries {
             if ($adult->firstname === '' && $adult->email === null && $adult->phone === null) {
                 continue;
             }
+            if ($guarded) {
+                $adult = clone $adult;
+                $new = [];
+                if ($adult->email !== null && !in_array(\core_text::strtolower((string) $adult->email), $emails, true)) {
+                    $new[] = $adult->email;
+                    $adult->email = null;
+                }
+                if ($adult->phone !== null && !in_array(\core_text::strtolower((string) $adult->phone), $phones, true)) {
+                    $new[] = phone::display((string) $adult->phone);
+                    $adult->phone = null;
+                }
+                if ($new) {
+                    $held[] = trim($adult->firstname . ' ' . ($adult->lastname ?? '')) . ' <' . implode(', ', $new) . '>';
+                }
+                if ($adult->email === null && $adult->phone === null) {
+                    continue;
+                }
+            }
             $id = households::add_adult($household, $adult);
             $first = $first ?: $id;
+        }
+        if ($held) {
+            households::note($household, 0, get_string('signup_unverified_email', 'local_oksigeniaeguahe', implode('; ', $held)));
         }
         foreach (
             $read->children ?: ($read->child !== '' || $read->offerid ? [[$read->child, $read->offerid]] : []) as [$name, $offerid]
         ) {
-            households::add_child($household, $name, (int) $offerid);
+            households::add_child($household, $name, (int) $offerid, '', $guarded);
         }
         if ($read->incentre && !$household->incentre) {
             households::complete($household, (object) ['incentre' => 1]);

@@ -643,6 +643,36 @@ display: grid; }
     }
 
     /**
+     * The public pages of a practice or demo centre are only for whoever works for it, signed in: anyone can open a demo,
+     * and its pages, forms and links never serve people outside (one could dress it up as another school and collect
+     * answers on the domain of the site).
+     *
+     * @param \stdClass|null $centre
+     * @param \moodle_url|null $url The page, to answer with a page; without it, a bare «not found».
+     */
+    public static function practice_gate(?\stdClass $centre, ?\moodle_url $url): void {
+        global $USER;
+        if (!$centre || empty($centre->practice)) {
+            return;
+        }
+        if (isloggedin() && !isguestuser() && centres::can_work((int) $centre->id, (int) $USER->id)) {
+            return;
+        }
+        if (!$url) {
+            http_response_code(404);
+            die();
+        }
+        $lang = publiclang::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) ?? 'en';
+        self::message(
+            null,
+            $lang,
+            publiclang::str('pub_practice_closed_title', $lang),
+            publiclang::str('pub_practice_closed', $lang),
+            $url
+        );
+    }
+
+    /**
      * A page that only says something: a link that no longer works, an event that is full, data erased. The rail
      * waits with its empty hook, and the family can write or call.
      *

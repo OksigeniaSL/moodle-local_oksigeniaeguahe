@@ -143,7 +143,12 @@ class signuppage {
                 'selected' => $value === $data['heardfrom']];
         }
         $channels = [];
+        // WhatsApp only where the centre writes by it: a box ticked for a way that does not exist vanishes later unsaid.
+        $whatsapp = in_array('whatsapp', writeby::channels($centre), true);
         foreach (lists::CONSENT_CHANNELS as $channel) {
+            if ($channel === 'whatsapp' && !$whatsapp) {
+                continue;
+            }
             $channels[] = ['name' => 'consent' . $channel, 'label' => publiclang::str('pub_consent_' . $channel, $lang),
                 'checked' => !empty($data['consents'][$channel])];
         }

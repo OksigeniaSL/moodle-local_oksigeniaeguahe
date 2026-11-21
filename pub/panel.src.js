@@ -128,11 +128,36 @@
 
     // ---- The search and the filters of a list: what does not fit hides; empty days and turns hide too.
     var filterState = {text: [], curso: '', etapa: ''};
+    // Without minding accents: «Perez» finds «Pérez».
+    var plain = function(text) {
+        text = String(text || '').toLowerCase();
+        return text.normalize ? text.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : text;
+    };
+    var cutList = one('[data-lista-cortada]');
+    var searchInput = one('#buscar-f input[name="q"]');
+    // «Search every family of the centre» carries what is written and what is chosen on the page.
+    var everywhere = function() {
+        all('a[data-buscar-todas]').forEach(function(link) {
+            if (!window.URL) {
+                return;
+            }
+            var url = new window.URL(window.location.href);
+            url.searchParams.set('all', '1');
+            url.searchParams.delete('n');
+            if (searchInput && searchInput.value.trim()) {
+                url.searchParams.set('q', searchInput.value.trim());
+            }
+            link.href = url.toString();
+        });
+    };
     var applyFilters = function(input) {
         var selector = input ? input.getAttribute('data-filtrar') : '.fila';
         var shown = 0;
         all(selector).forEach(function(row) {
-            var text = row.getAttribute('data-buscar') || '';
+            if (row.plainText === undefined) {
+                row.plainText = plain(row.getAttribute('data-buscar'));
+            }
+            var text = row.plainText;
             var fits = filterState.text.every(function(word) {
                 return text.indexOf(word) !== -1;
             });
@@ -158,16 +183,33 @@
         all('.sin-resultados').forEach(function(p) {
             p.hidden = shown > 0;
         });
+        everywhere();
     };
     all('input[data-filtrar]').forEach(function(input) {
+        var words = function() {
+            return plain(input.value).trim().split(/\s+/).filter(Boolean);
+        };
         on(input, 'input', function() {
-            filterState.text = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+            filterState.text = words();
             applyFilters(input);
         });
+        // What came searched from the server is already the list: the page does not filter it again.
+        filterState.text = input.value && input.form ? [] : words();
+    });
+    // Changing between «Waiting» and «All» keeps what is written in the search.
+    on(doc, 'click', function(e) {
+        var tab = e.target.closest && e.target.closest('.segmentos a');
+        if (!tab || !searchInput || !searchInput.value.trim() || !window.URL || e.ctrlKey || e.metaKey || e.shiftKey) {
+            return;
+        }
+        var url = new window.URL(tab.href, window.location.href);
+        url.searchParams.set('q', searchInput.value.trim());
+        tab.href = url.toString();
     });
     on(doc, 'click', function(e) {
         var pill = e.target.closest && e.target.closest('a[data-filtro]');
-        if (!pill || e.ctrlKey || e.metaKey || e.shiftKey) {
+        // A list cut short filters on the server: what is not on the page may be what is asked for.
+        if (!pill || cutList || e.ctrlKey || e.metaKey || e.shiftKey) {
             return;
         }
         e.preventDefault();

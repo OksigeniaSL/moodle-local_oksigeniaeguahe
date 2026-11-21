@@ -242,11 +242,8 @@ class signup {
         }
         $already = 0;
         foreach ($data['adults'] as $adult) {
-            $id = households::find(
-                (int) $centre->id,
-                households::email($adult['email'] ?? ''),
-                phone::normalise((string) ($adult['phone'] ?? ''), $centre->country)
-            );
+            // The same household save() will find: by an email it already has, never a phone alone.
+            $id = households::find((int) $centre->id, households::email($adult['email'] ?? ''), null);
             if ($id) {
                 $already = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $id]);
                 break;
@@ -294,8 +291,11 @@ class signup {
         }
         $place = self::place($data, $centre);
         $householdid = null;
+        // Anyone can fill this form: it finds a family only by an email it already has. A phone alone makes another
+        // household, and the team sees «It may be the same family» (whoever wrote a phone of another family never gets
+        // into it, nor gets its sign-ups).
         foreach ($adults as $adult) {
-            $householdid = $householdid ?? households::find($centre->id, $adult['email'], $adult['phone']);
+            $householdid = $householdid ?? households::find($centre->id, $adult['email'], null);
         }
         $channel = $entry ? entries::channel($entry) : (events::CHANNEL[$event->kind] ?? 'openday');
         $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],

@@ -617,7 +617,8 @@ class roster {
         foreach ($family->adults as $adult) {
             $adultid = households::add_adult($household, (object) ['firstname' => (string) $adult->firstname,
                 'lastname' => (string) $adult->lastname, 'email' => (string) $adult->email, 'phone' => (string) $adult->phone]);
-            if (trim((string) $adult->email) !== '') {
+            // An adult the record keeps quiet (Family: not written to until they join) comes without permission.
+            if (trim((string) $adult->email) !== '' && empty($adult->quiet)) {
                 households::consent($household, $adultid, 'email', true, self::CONSENT, $lang);
             }
         }

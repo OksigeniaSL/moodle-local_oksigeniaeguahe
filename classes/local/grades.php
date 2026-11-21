@@ -380,7 +380,8 @@ class grades {
      */
     protected static function read_label(int $centreid, string $grade): string {
         $centre = centres::get($centreid);
-        $grade = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', $grade)));
+        // What a list wrote is text: never markup.
+        $grade = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', clean_param(strip_tags($grade), PARAM_TEXT))));
         $age = self::age($grade, $centre);
         if ($age === null) {
             return \core_text::substr(\core_text::strtoupper(\core_text::substr($grade, 0, 1)) .

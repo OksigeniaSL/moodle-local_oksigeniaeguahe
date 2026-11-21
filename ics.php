@@ -25,6 +25,7 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Families have no account: their private link lets them in.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\access;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
@@ -38,14 +39,21 @@ $eventid = optional_param('e', 0, PARAM_INT);
 publicpage::setup(new moodle_url('/local/oksigeniaeguahe/ics.php'));
 
 $household = households::by_link($token);
+// A link unused for months stops working here too, as on the page of the family.
+$link = $household ? access::link($token) : null;
+if ($link && access::expired($link)) {
+    $household = null;
+}
 $event = $household ? events::get($eventid, (int) $household->centreid) : null;
 $signup = $event ? $DB->get_record('local_oksigeniaeguahe_signup', ['eventid' => $event->id,
     'householdid' => $household->id]) : null;
 if (!$signup) {
+    require_once($CFG->libdir . '/filelib.php');
     send_header_404();
     die();
 }
 $centre = centres::get((int) $event->centreid);
+publicpage::practice_gate($centre, null);
 $lang = publiclang::choose($centre);
 $full = familymail::signup($household, (int) $event->id);
 // Counted, from their page or from a mail; a robot that only asks for the headers is not a family.

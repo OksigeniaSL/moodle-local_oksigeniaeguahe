@@ -1644,5 +1644,37 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026119800) {
+        // Who wrote on WhatsApp or Telegram, to answer that person even after a no (Marandu 0.51.1).
+        $table = new xmldb_table('local_oksigeniaeguahe_contact');
+        $field = new xmldb_field('address', XMLDB_TYPE_CHAR, '64', null, null, null, null, 'detail');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // When an email was written on the private page of the family, and whether an adult was added there: a code to
+        // download or erase goes only to the addresses that were already theirs (review of 21-11).
+        $table = new xmldb_table('local_oksigeniaeguahe_adult');
+        foreach (['emailpage' => 'phone', 'frompage' => 'emailpage'] as $name => $after) {
+            $field = new xmldb_field($name, XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', $after);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        // Whether an entry is a sheet of the team, said by a person and never deduced from its headings (anyone can fill a
+        // public form with a question «Estado…»). The entries that already read columns of the team keep working.
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $field = new xmldb_field('teamsheet', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'acknowledge');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+            foreach ($DB->get_records('local_oksigeniaeguahe_entry', null, '', 'id, roles') as $entry) {
+                $roles = json_decode((string) $entry->roles, true) ?: [];
+                if (array_intersect(['team', 'staff'], array_values($roles))) {
+                    $DB->set_field('local_oksigeniaeguahe_entry', 'teamsheet', 1, ['id' => $entry->id]);
+                }
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026119800, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

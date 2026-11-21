@@ -280,7 +280,11 @@ class teamnotes {
         $lang = (string) ($centre->lang ?: 'en');
         $str = fn(string $id, $a = null) => get_string_manager()->get_string($id, self::C, $a, $lang);
         // What the row says happened on the day of its visit, when it has one.
-        $time = (int) ($row['appointment'] ?? 0) ?: ((int) ($row['time'] ?? 0) ?: time());
+        $stable = (int) ($row['appointment'] ?? 0) ?: (int) ($row['time'] ?? 0);
+        $time = $stable ?: time();
+        // A moment the sheet does not write (no date in the row) is not part of what a line is: the same sheet sent again
+        // every night is the same line, and it never says when the team answered.
+        $stamp = fn(array $g) => !$stable && (int) ($g['time'] ?? $time) === $time ? 0 : (int) ($g['time'] ?? 0);
         $counts = [];
         $latest = 0;
         $userid = 0;
@@ -329,9 +333,14 @@ class teamnotes {
                 alumni::set($household, 0, alumni::YES, 'sheet', $userid, '', false);
             }
             $marked = array_values(array_filter($gestures, fn($g) => !in_array($g['kind'], ['alumni', 'notalumni'], true)));
-            $mark = hash('sha256', $household->id . '|' . self::plain($question) . '|' . self::plain($value) . '|' .
-                implode(',', array_map(fn($g) => $g['kind'] . '@' . ($g['time'] ?? 0), $marked)));
-            if ($DB->record_exists(self::T, ['householdid' => $household->id, 'mark' => $mark])) {
+            // What a line is: its words and its gestures with the moments the sheet writes; not the household (a merge
+            // keeps its lines), nor tonight. The marks written before this (with the household) still count.
+            $kinds = fn(callable $at) => implode(',', array_map(fn($g) => $g['kind'] . '@' . $at($g), $marked));
+            $mark = hash('sha256', self::plain($question) . '|' . self::plain($value) . '|' . $kinds($stamp));
+            $legacy = hash('sha256', $household->id . '|' . self::plain($question) . '|' . self::plain($value) . '|' .
+                $kinds(fn($g) => $g['time'] ?? 0));
+            [$in, $inparams] = $DB->get_in_or_equal([$mark, $legacy], SQL_PARAMS_NAMED, 'mk');
+            if ($DB->record_exists_select(self::T, "householdid = :h AND mark $in", ['h' => $household->id] + $inparams)) {
                 $counts['already'] = ($counts['already'] ?? 0) + 1;
                 continue;
             }
@@ -344,7 +353,8 @@ class teamnotes {
                 $at = (int) ($gesture['time'] ?? $time);
                 $counts[$kind] = ($counts[$kind] ?? 0) + 1;
                 if (in_array($kind, self::TOUCH, true)) {
-                    $latest = max($latest, min($at, time()));
+                    // Only a moment the sheet writes says the team answered then.
+                    $latest = $stamp($gesture) ? max($latest, min($at, time())) : $latest;
                 }
                 switch ($kind) {
                     case 'contacted':

@@ -181,6 +181,10 @@ class family {
             // them once it is there (hints()), so the same child is never in the record twice.
             return 0;
         }
+        if ((int) ($household->familylink ?? 0) === 0 && self::hints(households::full($household))) {
+            // The family may already be in the record and nobody said yet: nothing is made, the file asks first.
+            return 0;
+        }
         $api = self::API;
         $id = (int) $api::add_child(self::family_of($household), null, self::key('c', (int) $child->id));
         $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'familychild' => $id, 'familygone' => 0]);
@@ -197,6 +201,11 @@ class family {
         global $DB;
         $id = (int) $DB->get_field(households::CHILDREN, 'familychild', ['id' => $child->id]);
         if (!$id || !self::available()) {
+            return;
+        }
+        // Only a child Eguahe put in the record: one the management system brought leaves by it, never by a word here.
+        $key = $DB->get_field('local_oksigeniafamily_child', 'sourcekey', ['id' => $id]);
+        if ($key !== self::key('c', (int) $child->id)) {
             return;
         }
         $api = self::API;

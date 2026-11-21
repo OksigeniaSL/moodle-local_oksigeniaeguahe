@@ -83,7 +83,7 @@ class send_reminders extends \core\task\scheduled_task {
                     mtrace('Eguahe: notice of the visit not sent (' . $e->getMessage() . ')');
                 }
             }
-            if ($signup && !familymail::may_email($household)) {
+            if ($signup && !\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'reminder')) {
                 // Without the email allowed, only on the phones the family joined with.
                 messaging::notify('reminder', $household, $centre, $signup, $household->lang ?: $centre->lang);
                 continue;
