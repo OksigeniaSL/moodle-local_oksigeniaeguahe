@@ -526,6 +526,31 @@ class writeby {
     }
 
     /**
+     * The address of «unsubscribe» in the mail program itself (the header List-Unsubscribe, one click), with a link of
+     * the family.
+     *
+     * @param string $token A link of the family.
+     * @param string $lang
+     * @return string
+     */
+    public static function unsubscribe_url(string $token, string $lang): string {
+        return (new \moodle_url('/local/oksigeniaeguahe/baja.php', ['k' => $token, 'idioma' => $lang]))->out(false);
+    }
+
+    /**
+     * «Unsubscribe» pressed in the mail program itself: no more mail, and the other ways they have stay. When mail was
+     * the only one, it is «do not write to us any more».
+     *
+     * @param \stdClass $household Changed in place.
+     * @param \stdClass $centre
+     * @return bool Whether it changed.
+     */
+    public static function stop_email(\stdClass $household, \stdClass $centre): bool {
+        $ways = array_values(array_diff(self::now($household, $centre), ['email']));
+        return self::set($household, $ways ?: 'none', 'family');
+    }
+
+    /**
      * The block at sight in every mail: its title, how they are written to now and the question, the ways in a
      * row with the ones of now marked, and «Do not write to us any more» apart below, in ink, without alarm.
      *

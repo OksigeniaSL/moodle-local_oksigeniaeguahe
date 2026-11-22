@@ -643,7 +643,9 @@ class familymail {
         // Every mail carries how to choose the way they are written to, with its own link if the mail has none.
         $choose = $token === null && $kind !== 'writeby' ? households::new_link($household, 'writeby') : null;
         [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text, $choose);
-        if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images)) {
+        $link = (string) ($token ?? $choose ?? '');
+        $unsubscribe = $link !== '' ? writeby::unsubscribe_url($link, $lang) : '';
+        if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images, $unsubscribe)) {
             return false;
         }
         seen::mail_sent($household, $kind);

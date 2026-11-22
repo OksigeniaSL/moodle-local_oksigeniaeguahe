@@ -21,6 +21,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\invites;
+use local_oksigeniaeguahe\local\mail;
 use local_oksigeniaeguahe\local\writeby;
 
 /**
@@ -122,6 +123,39 @@ final class writeby_test extends \advanced_testcase {
         $this->assertTrue(familymail::send('received', $household, $centre, null, 'es', 'clave'));
         $this->assertCount(1, $sink->get_messages());
         $sink->close();
+    }
+
+    /**
+     * Every mail to a family carries the one click to unsubscribe from the mail program; pressed, no more mail goes, and
+     * nothing ever leaves for the addresses of the sample data.
+     */
+    public function test_unsubscribe_one_click(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $household = $this->family();
+        $centre = centres::get($this->centreid);
+
+        $sink = $this->redirectEmails();
+        $this->assertTrue(familymail::send('received', $household, $centre, null, 'es', 'clave'));
+        $messages = $sink->get_messages();
+        $this->assertCount(1, $messages);
+        $url = writeby::unsubscribe_url('clave', 'es');
+        $this->assertStringContainsString('List-Unsubscribe: <' . $url . '>', $messages[0]->header);
+        $this->assertStringContainsString('List-Unsubscribe-Post: List-Unsubscribe=One-Click', $messages[0]->header);
+        $sink->clear();
+
+        $this->assertTrue(writeby::stop_email($household, $centre));
+        $this->assertFalse(writeby::stop_email($household, $centre));
+        $this->assertTrue(writeby::silent($household));
+        $this->assertFalse(familymail::send('reminder', $household, $centre, null, 'es', 'clave'));
+        $this->assertCount(0, $sink->get_messages());
+        $sink->close();
+
+        $this->assertTrue(mail::reserved('ana@example.com'));
+        $this->assertTrue(mail::reserved('prueba@eguahe.test'));
+        $this->assertTrue(mail::reserved('x@sub.example.org'));
+        $this->assertFalse(mail::reserved('ana@gmail.com'));
+        $this->assertFalse(mail::reserved('ana@myexample.com'));
     }
 
     /**

@@ -76,6 +76,7 @@ class mail {
      * @param string $html
      * @param string $text
      * @param array $images A list of data, cid, name, mime.
+     * @param string $unsubscribe The address of unsubscribing with one click from the mail program, if the mail has one.
      * @return bool Whether it was sent.
      */
     public static function send_rich(
@@ -84,10 +85,15 @@ class mail {
         string $subject,
         string $html,
         string $text,
-        array $images = []
+        array $images = [],
+        string $unsubscribe = ''
     ): bool {
         global $CFG;
         if (!validate_email($email)) {
+            return false;
+        }
+        if (self::reserved($email) && !(defined('PHPUNIT_TEST') && PHPUNIT_TEST)) {
+            // The sample data: nothing leaves for an address that bounces (the tests keep their mail in their sink).
             return false;
         }
         if (!empty($centre->practice)) {
@@ -120,6 +126,11 @@ class mail {
         foreach (array_filter(array_map('trim', explode("\n", (string) ($CFG->emailheaders ?? '')))) as $header) {
             $mail->addCustomHeader($header);
         }
+        if ($unsubscribe !== '') {
+            // Unsubscribing from the mail program itself, with one click (RFC 8058), as Gmail, Yahoo and Outlook expect.
+            $mail->addCustomHeader('List-Unsubscribe', '<' . $unsubscribe . '>');
+            $mail->addCustomHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+        }
         $mail->MessageID = generate_email_messageid();
         $mail->isHTML(true);
         $mail->Encoding = 'quoted-printable';
@@ -142,8 +153,22 @@ class mail {
                 $mail->DKIM_private = $pempath;
                 $mail->DKIM_selector = $CFG->emaildkimselector;
                 $mail->DKIM_identity = $mail->From;
+                // The one click to unsubscribe only counts when the signature covers it.
+                $mail->DKIM_extraHeaders = $unsubscribe !== '' ? ['List-Unsubscribe', 'List-Unsubscribe-Post'] : [];
             }
         }
         return (bool) $mail->send();
+    }
+
+    /**
+     * Whether an address is of a domain that never receives mail (example.com, .test, .invalid…): the ones of the sample
+     * data. Mail sent there bounces, and bounces take away the good name of the domain that sends.
+     *
+     * @param string $email
+     * @return bool
+     */
+    public static function reserved(string $email): bool {
+        $domain = \core_text::strtolower(substr((string) strrchr($email, '@'), 1));
+        return (bool) preg_match('/(^|\.)(example\.(com|net|org)|test|invalid|example|localhost)$/', $domain);
     }
 }
