@@ -17958,7 +17958,8 @@ html {
 }
 
 /* The new families, the step between those who were of the centre and those who enrolled (only without them). */
-.alumnos-nuevos.sin-centro .an-camino > li.an-nuevas {
+.alumnos-nuevos.sin-centro .an-camino > li.an-nuevas,
+.alumnos-nuevos.sin-centro .an-camino > li.an-resta {
     display: flex;
 }
 

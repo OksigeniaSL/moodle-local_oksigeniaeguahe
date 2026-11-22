@@ -333,7 +333,8 @@ class panel_inbox {
         // Each function at its moment, with «Known» for whoever may act.
         $canact = centres::can_act((int) $USER->id);
         foreach (moments::due($centre, $now) as $moment) {
-            $out[] = ['leaf' => false, 'blank' => false, 'title' => $moment['title'], 'text' => $moment['text'],
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => $moment['title'], 'short' => $moment['short'] ?? $moment['title'],
+                'text' => $moment['text'],
                 'url' => $moment['url'], 'link' => $moment['link'], 'known' => $canact ? ['key' => $moment['key'],
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
                 'sesskey' => sesskey()] : false];

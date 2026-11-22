@@ -544,10 +544,15 @@ class panel_newstudents {
             'key' => $key, 'label' => format_string($label), 'when' => $when, 'act' => $act, 'open' => false,
             'contacts' => self::num($contacts), 'contactsn' => $contacts, 'centre' => $centrefams,
             'newcontacts' => self::num($newcontacts), 'nonew' => !$newcontacts && $contacts > 0, 'allin' => $allin,
+            // Counting those of the centre: they are a note of the first box, and the last one says who they were.
+            'centrenote' => $centrefams ? self::one('panel_new_centre_note', (int) $centrefams, self::num($centrefams)) : '',
+            'allsplit' => $centrein ? get_string('panel_new_enrolled_split', $c, (object) [
+                'new' => self::one('panel_new_split_new', $newin, $newin),
+                'centre' => self::one('panel_new_split_centre', $centrein, $centrein)]) : '',
             'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
             // «Of every 100» only with ten or more behind it; an act says who came, not who left their contact.
-            'allsentence' => $contacts < self::MIN ? self::few_sentence($act, false, $allin, $contacts, $contacts) : get_string(
+            'allsentence' => $contacts < self::MIN ? self::few_sentence($act, false, $allin, $contacts, $contacts, $newin) : get_string(
                 'panel_new_hundred_all' . ($act ? '_act' : '') . (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : '')),
                 $c,
                 (object) ['n' => '<b>' . $perall . '</b>', 'k' => $allin, 'of' => self::num($contacts)]
@@ -908,10 +913,24 @@ class panel_newstudents {
      * @param int $k How many enrolled a child.
      * @param int $of Of how many families.
      * @param int $all All the families, with those of the centre.
+     * @param int $fresh Of those who enrolled, the new families (counting all of them): when none, it says that those
+     *                   who enrolled were already of the centre.
      * @return string
      */
-    public static function few_sentence(bool $act, bool $new, int $k, int $of, int $all): string {
+    public static function few_sentence(bool $act, bool $new, int $k, int $of, int $all, int $fresh = -1): string {
         $c = self::C;
+        if (!$new && $k > 0 && $fresh === 0) {
+            // All who enrolled were of the centre: no new student came out of here.
+            if ($k >= $of) {
+                return self::one('panel_new_few_centre_every', $of, $of);
+            }
+            $who = get_string('panel_new_who_all' . ($act ? '_act' : '') . ($of === 1 ? '_one' : ''), $c);
+            return get_string(
+                $k === 1 ? 'panel_new_few_centre_some_one' : 'panel_new_few_centre_some',
+                $c,
+                (object) ['who' => $who, 'of' => $of, 'k' => $k]
+            );
+        }
         if ($of === 0) {
             return get_string($new && $all ? ($all === 1 ? 'panel_new_few_all_centre_one' : 'panel_new_few_all_centre') :
                 'panel_new_few_nobody', $c, $all);

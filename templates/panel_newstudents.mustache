@@ -136,10 +136,10 @@
                 <li class="an-campana{{#act}} an-acto{{/act}}">
                     <p class="an-campana-cab"><b>{{label}}</b><span>{{when}}</span>{{#act}}<span class="an-sello-acto">{{#str}}panel_new_act, local_oksigeniaeguahe{{/str}}</span>{{/act}}</p>
                     <ol class="an-camino">
-                        <li><button type="button" class="an-toque" data-explica="{{ex.contacts}}"><b>{{contacts}}</b><span>{{steplabel}}</span></button></li>
-                        {{#centre}}<li class="an-resta"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
+                        <li><button type="button" class="an-toque" data-explica="{{ex.contacts}}"><b>{{contacts}}</b><span>{{steplabel}}{{#centrenote}}<span class="con"> · {{centrenote}}</span>{{/centrenote}}</span></button></li>
+                        {{#centre}}<li class="an-resta sin"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
                         <li class="an-nuevas sin"><span class="an-dato"><b>{{newcontacts}}</b><span>{{#act}}{{#str}}panel_new_step_new_act, local_oksigeniaeguahe{{/str}}{{/act}}{{^act}}{{#str}}panel_new_step_new, local_oksigeniaeguahe{{/str}}{{/act}}</span></span></li>{{/centre}}
-                        <li class="an-llegan{{#nonew}} sin-nuevas{{/nonew}}"><button type="button" class="an-toque" data-explica="{{ex.in}}"><b><span class="con">{{allin}}</span><span class="sin">{{newin}}</span></b><span><span class="con">{{#str}}panel_new_enrolled_all, local_oksigeniaeguahe{{/str}}</span><span class="sin">{{#str}}panel_new_enrolled_new, local_oksigeniaeguahe{{/str}}</span></span></button></li>
+                        <li class="an-llegan{{#nonew}} sin-nuevas{{/nonew}}"><button type="button" class="an-toque" data-explica="{{ex.in}}"><b><span class="con">{{allin}}</span><span class="sin">{{newin}}</span></b><span><span class="con">{{#allsplit}}{{allsplit}}{{/allsplit}}{{^allsplit}}{{#str}}panel_new_enrolled_all, local_oksigeniaeguahe{{/str}}{{/allsplit}}</span><span class="sin">{{#str}}panel_new_enrolled_new, local_oksigeniaeguahe{{/str}}</span></span></button></li>
                     </ol>
                     <div class="an-cien">
                         <span class="an-puntos con" aria-hidden="true">{{#alldots}}<i class="p-{{k}}"></i>{{/alldots}}</span>

@@ -159,6 +159,7 @@ class moments {
             }
             return ['key' => 'offer-' . preg_replace('/[^0-9]+/', '-', $cand['year']),
                 'title' => get_string('moment_offer_title', self::C, s($cand['year'])),
+                'short' => panel_inbox::short('moment_offer_title', s($cand['year'])),
                 'text' => get_string('moment_offer', self::C, s($cand['year'])),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $centre->id]))->out(false) . '#aj-oferta',
                 'link' => get_string('moment_offer_link', self::C)];
