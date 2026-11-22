@@ -567,6 +567,22 @@ class metrics {
             $label = isset($grade[$student]) ? grades::label($centreid, $grade[$student]) : '';
             $groups[$kind]['grades'][$label] = ($groups[$kind]['grades'][$label] ?? 0) + 1;
         }
+        // The families of Eguahe itself: a child enrolled for this school year that no whole list of the year has yet
+        // (before the list is imported, or with only part of it). With a whole list, the list is the truth.
+        if (!$whole) {
+            foreach (self::live_new($centreid, $schoolyear) as $student => $live) {
+                $new[$student] = true;
+                $homes[$student] = [$live['home'] => true];
+                $kind = $live['kind'];
+                if ($kind === 'newfamily') {
+                    $newby[$live['by']]++;
+                    $partof[$student] = $live['by'];
+                }
+                $kinds[$student] = $kind;
+                $groups[$kind]['n']++;
+                $groups[$kind]['grades'][$live['grade']] = ($groups[$kind]['grades'][$live['grade']] ?? 0) + 1;
+            }
+        }
         // The new students whose family has a mother, a father or someone who studied at the centre, as far as it is known.
         $known = alumni::known($centreid);
         $alumni = ['n' => 0, 'fresh' => 0, 'known' => $known, 'by' => []];
@@ -585,6 +601,61 @@ class metrics {
         return ['total' => count($new), 'hasroll' => $whole, 'groups' => $groups, 'newby' => $newby,
             'kinds' => $kinds, 'homes' => array_map('array_keys', array_intersect_key($homes, $new)), 'centre' => $centre,
             'alumni' => $alumni];
+    }
+
+    /**
+     * The children Eguahe has enrolled for a school year who are not yet on an imported list of that year (the list
+     * did not find them, or there is none): new students too. Of a family already at the centre (it said so, or it came
+     * from its roll), a brother or sister; else a new family, by an ad (it came by Meta or by a paid link), another
+     * campaign or act (it came to one), or nothing counted.
+     *
+     * @param int $centreid
+     * @param string $schoolyear
+     * @return array[] By a key of their own («eg» and the child): home, kind, by and grade.
+     */
+    public static function live_new(int $centreid, string $schoolyear): array {
+        global $DB;
+        $rows = $DB->get_records_sql(
+            'SELECT c.id, c.householdid, o.name AS grade, h.incentre, h.roster, h.firstchannel, h.arrivalmedium
+               FROM {' . households::CHILDREN . '} c
+               JOIN {' . households::T . '} h ON h.id = c.householdid
+               JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid
+              WHERE c.centreid = :centreid AND c.stage = :enrolled AND c.roster = 0 AND c.lefttime = 0
+                AND o.schoolyear = :year',
+            ['centreid' => $centreid, 'enrolled' => 'enrolled', 'year' => $schoolyear]
+        );
+        if (!$rows) {
+            return [];
+        }
+        // Those the list of the year already found are counted with it.
+        $listed = array_flip($DB->get_fieldset_select(
+            listmatch::T,
+            'childid',
+            "centreid = ? AND schoolyear = ? AND kind = 'enrolled' AND childid > 0",
+            [$centreid, $schoolyear]
+        ));
+        [$in, $params] = $DB->get_in_or_equal(array_unique(array_map(fn($r) => (int) $r->householdid, $rows)));
+        $acts = array_flip($DB->get_fieldset_select(
+            households::SIGNUPS,
+            'householdid',
+            "attended > 0 AND householdid $in",
+            $params
+        ));
+        $out = [];
+        foreach ($rows as $row) {
+            if (isset($listed[(int) $row->id])) {
+                continue;
+            }
+            $paid = $row->firstchannel === 'meta' ||
+                preg_match('/^(cpc|ppc|paid|ads?|display|banner|paid[_-]?social|social[_-]?paid)$/i', (string) $row->arrivalmedium);
+            $out['eg' . $row->id] = [
+                'home' => 'eg:h' . $row->householdid,
+                'kind' => !empty($row->incentre) || !empty($row->roster) ? 'sibling' : 'newfamily',
+                'by' => $paid ? 'ad' : (isset($acts[(int) $row->householdid]) ? 'campaign' : 'none'),
+                'grade' => format_string((string) $row->grade),
+            ];
+        }
+        return $out;
     }
 
     /**

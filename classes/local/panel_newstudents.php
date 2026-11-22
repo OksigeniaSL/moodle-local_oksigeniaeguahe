@@ -176,8 +176,8 @@ class panel_newstudents {
             'ads' => $campaigns ? [
                 'heroall' => get_string('panel_new_x_of_y', $c, (object) ['x' => $adstudents, 'y' => $total]),
                 'heronew' => get_string('panel_new_x_of_y', $c, (object) ['x' => $adstudents, 'y' => $g['newfamily']]),
-                'heroalltext' => get_string('panel_new_hero_ads_all', $c),
-                'heronewtext' => get_string('panel_new_hero_ads_new', $c),
+                'heroalltext' => self::one('panel_new_hero_ads_all', $total, null),
+                'heronewtext' => self::one('panel_new_hero_ads_new', (int) $g['newfamily'], null),
                 // Where the hours come from, said once for every campaign and act, never in each.
                 'hoursnote' => get_string((float) ($centre->hourvalue ?? 0) > 0 ? 'panel_new_hours_note' :
                     'panel_new_hours_note_novalue', $c),
@@ -377,13 +377,13 @@ class panel_newstudents {
                 $canact
             );
         }
-        foreach (self::acts($centreid, $from, $to) as $act) {
+        foreach (self::acts($centreid, $from, $to, $year) as $act) {
             $auto = [];
             if ($act['hosthours'] > 0) {
                 $auto[] = ['h' => $act['hosthours'], 'name' => self::one('panel_new_auto_act', (int) $act['hosts'], (object) [
                     'hours' => self::hours($act['length']), 'people' => $act['hosts']])];
             }
-            $out[] = self::card(
+            $card = self::card(
                 $centre,
                 'event',
                 (int) $act['id'],
@@ -404,6 +404,13 @@ class panel_newstudents {
                 $value,
                 $canact
             );
+            // Families of the act that enrolled for another school year: said, so «none enrolled» is not misread.
+            $card['otheryear'] = $act['otheryear'] ? self::one(
+                'panel_new_act_other_year',
+                (int) $act['otheryear'],
+                (int) $act['otheryear']
+            ) : '';
+            $out[] = $card;
         }
         return $out;
     }
@@ -536,7 +543,8 @@ class panel_newstudents {
         return [
             'key' => $key, 'label' => format_string($label), 'when' => $when, 'act' => $act, 'open' => false,
             'contacts' => self::num($contacts), 'contactsn' => $contacts, 'centre' => $centrefams,
-            'newcontacts' => self::num($newcontacts), 'allin' => $allin, 'newin' => $newin, 'allper' => $perall,
+            'newcontacts' => self::num($newcontacts), 'nonew' => !$newcontacts && $contacts > 0, 'allin' => $allin,
+            'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
             // «Of every 100» only with ten or more behind it; an act says who came, not who left their contact.
             'allsentence' => $contacts < self::MIN ? self::few_sentence($act, false, $allin, $contacts, $contacts) : get_string(
@@ -551,7 +559,7 @@ class panel_newstudents {
                     (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
                 ),
             // Nothing to share out is a note, never a result.
-            'each' => $each, 'eachnone' => !$students, 'students' => $students,
+            'each' => $each, 'eachnone' => !$students, 'students' => $students, 'otheryear' => '',
             'moneynone' => $spend === null, 'moneyvalue' => $spend === null ? '' : format_float((float) $spend, 2, true, true),
             'canspend' => $act && $canact,
             'steplabel' => get_string($act ? 'panel_new_came' : 'panel_new_left_contact', $c),
@@ -584,10 +592,18 @@ class panel_newstudents {
      * @param int $centreid
      * @param int $from
      * @param int $to
+     * @param string $year Only the children enrolled for this school year count as enrolled (an open day in October
+     *                     fills the places of the next year, not of this one); empty, any.
      * @return array[] id, name, time, length (hours), hosts, hosthours, came, centre, centrein, newin, students.
      */
-    public static function acts(int $centreid, int $from, int $to): array {
+    public static function acts(int $centreid, int $from, int $to, string $year = ''): array {
         global $DB;
+        $ofyear = $year === '' ? null : array_flip($DB->get_fieldset_select(
+            centres::OFFERS,
+            'id',
+            'centreid = ? AND schoolyear = ?',
+            [$centreid, $year]
+        ));
         $events = $DB->get_records_select(
             events::T,
             "centreid = :centreid AND kind IN ('openday', 'other') AND timestart >= :from AND timestart < :to",
@@ -602,11 +618,19 @@ class panel_newstudents {
             }
             [$in, $params] = $DB->get_in_or_equal($came);
             $homes = $DB->get_records_select(households::T, "id $in", $params, '', 'id, incentre, roster, familylink');
-            $kids = $DB->get_records_select(households::CHILDREN, "householdid $in", $params, '', 'id, householdid, stage, roster');
+            $kids = $DB->get_records_select(households::CHILDREN, "householdid $in", $params, '', 'id, householdid, stage, roster,
+                offerid');
             $enrolled = [];
+            $elsewhere = [];
             foreach ($kids as $kid) {
-                if ($kid->stage === 'enrolled' && empty($kid->roster)) {
+                if ($kid->stage !== 'enrolled' || !empty($kid->roster)) {
+                    continue;
+                }
+                if ($ofyear === null || isset($ofyear[(int) $kid->offerid])) {
                     $enrolled[(int) $kid->householdid][] = (int) $kid->id;
+                } else {
+                    // Enrolled for another school year: it counts in the sheet of that year, and this one says so.
+                    $elsewhere[(int) $kid->householdid] = true;
                 }
             }
             $centre = 0;
@@ -631,7 +655,8 @@ class panel_newstudents {
             $hosts = count(array_filter(explode(',', (string) ($event->hosts ?? ''))));
             $out[] = ['id' => (int) $event->id, 'name' => (string) $event->name, 'time' => (int) $event->timestart,
                 'length' => $length, 'hosts' => max(1, $hosts), 'hosthours' => round($length * max(1, $hosts), 1),
-                'came' => count($homes), 'centre' => $centre, 'centrein' => $centrein, 'newin' => $newin, 'students' => $students];
+                'came' => count($homes), 'centre' => $centre, 'centrein' => $centrein, 'newin' => $newin, 'students' => $students,
+                'otheryear' => count(array_diff_key($elsewhere, $enrolled))];
         }
         return $out;
     }

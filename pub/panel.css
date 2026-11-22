@@ -4054,26 +4054,32 @@ input:checked + .ap-hoja {
 }
 
 /* Who came these days: the names lead to the file; the button sends how to ask for a place. */
-.medida.vino {
+.medida.vinieron-fila {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
 }
 
-.medida.vino .nombres {
+.medida.vinieron-fila .nombres {
     font-size: 1.0625rem;
 }
 
-.medida.vino .nombres::after {
+.medida.vinieron-fila .nombres::after {
     content: none;
 }
 
-.medida.vino .estado {
+.medida.vinieron-fila .estado {
     grid-column: 1 / -1;
 }
 
 @media (max-width: 560px) {
-    .medida.vino {
+    .grupo-actos .medida.vinieron-fila {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .grupo-actos .medida.vinieron-fila .vino-pedir {
+        justify-self: stretch;
+        justify-content: center;
+        white-space: normal;
     }
 }
 
@@ -12332,8 +12338,9 @@ button.padron-pomo-no::after {
     border-top: 1px solid var(--eg-linea);
 }
 
-.separar-linea {
+.separar .casilla.separar-linea {
     flex-wrap: nowrap;
+    align-items: flex-start;
 }
 
 .separar-linea input {
@@ -12342,7 +12349,9 @@ button.padron-pomo-no::after {
 }
 
 .separar-linea > span {
+    display: grid;
     flex: 1 1 auto;
+    gap: 2px;
     min-width: 0;
 }
 
@@ -17985,6 +17994,11 @@ html {
     margin: -4px 0 12px;
 }
 
+.an-otro-curso {
+    flex-basis: 100%;
+    margin: 0;
+}
+
 .an-anotar > summary {
     width: fit-content;
     margin-top: 4px;
@@ -18019,6 +18033,11 @@ html {
     background: var(--eg-superficie);
     color: var(--eg-tinta);
     font: inherit;
+}
+
+/* With no new family, the way ends in «0 new families»: no box of nobody enrolled after it. */
+.alumnos-nuevos.sin-centro .an-camino > li.an-llegan.sin-nuevas {
+    display: none;
 }
 
 /* Those who were already of the centre: with them, a note of the way; without them, they are taken away. */
@@ -19559,15 +19578,16 @@ html {
 
     .hoy:not([open]) > summary .hoy-titulos {
         grid-area: titulos;
-        display: block;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
         color: var(--eg-tinta);
         font-size: 0.9375rem;
         font-weight: 600;
+        line-height: 1.35;
         letter-spacing: 0;
         text-transform: none;
-        white-space: nowrap;
-        text-overflow: ellipsis;
     }
 
     .hoy > summary .hoy-flecha {

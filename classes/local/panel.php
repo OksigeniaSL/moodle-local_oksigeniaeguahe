@@ -560,6 +560,18 @@ class panel {
     }
 
     /**
+     * A day and its hour for a list: «4 de agosto, 6:38», with the year when it is not this one.
+     *
+     * @param int $time
+     * @return string
+     */
+    public static function day_hour(int $time): string {
+        $format = userdate($time, '%Y', 99, false) === userdate(time(), '%Y', 99, false) ? 'strftimedateshort' : 'strftimedate';
+        return get_string('panel_day_hour', self::C, (object) ['day' => userdate($time, get_string($format, 'langconfig')),
+            'hour' => self::hour($time)]);
+    }
+
+    /**
      * The hour of a moment, as the language of the person writes it, without a leading zero.
      *
      * @param int $time

@@ -977,7 +977,7 @@ class lookalike {
         );
         foreach ($rows as $row) {
             $lines[] = ['id' => (int) $row->id, 'checked' => in_array((int) $row->id, $golines, true),
-                'when' => panel::when_words((int) $row->timecreated),
+                'when' => panel::day_hour((int) $row->timecreated),
                 'text' => shorten_text(trim(preg_replace('/\s+/u', ' ', (string) $row->body)), 90)];
         }
         $from = '';

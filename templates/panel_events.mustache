@@ -87,7 +87,7 @@
         <section class="grupo-actos" aria-labelledby="vinieron-t">
             <h2 id="vinieron-t">{{#str}}panel_came_title, local_oksigeniaeguahe{{/str}}</h2>
             {{#came}}
-            <div class="medida vino{{#pending}} pendiente{{/pending}}">
+            <div class="medida vinieron-fila{{#pending}} pendiente{{/pending}}">
                 <span class="quien"><a class="nombres" href="{{url}}">{{adults}}</a>{{#tag}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="secundario">{{what}}</span></span>
                 {{#applyurl}}<a class="boton secundario pequeno vino-pedir" href="{{applyurl}}">{{#str}}panel_apply_send, local_oksigeniaeguahe{{/str}}</a>{{/applyurl}}
                 {{#state}}<span class="estado">{{#pending}}<b>{{state}}</b>{{/pending}}{{^pending}}{{state}}{{/pending}}</span>{{/state}}

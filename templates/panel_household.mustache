@@ -583,7 +583,7 @@
                         {{#haslines}}
                         <fieldset>
                             <legend>{{#str}}lookalike_split_lines, local_oksigeniaeguahe{{/str}}</legend>
-                            {{#lines}}<label class="casilla separar-linea"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span><span class="secundario">{{when}}</span> {{text}}</span></label>{{/lines}}
+                            {{#lines}}<label class="casilla separar-linea"><input type="checkbox" name="contacts[]" value="{{id}}"{{#checked}} checked{{/checked}}> <span><span class="secundario">{{when}}</span><span>{{text}}</span></span></label>{{/lines}}
                         </fieldset>
                         {{/haslines}}
                         {{#nolog}}<p class="secundario">{{#str}}lookalike_split_links, local_oksigeniaeguahe{{/str}}</p>{{/nolog}}

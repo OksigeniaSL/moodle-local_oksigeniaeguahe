@@ -688,7 +688,11 @@ class panel_inbox {
             // instagram.com» at the end of the line.
             [$measured, $fromai] = arrival::of($household);
             if ($measured !== '' && !$fromai) {
-                $via .= ' · ' . get_string('panel_from_short', $c, $measured);
+                // By its own name when it is known («instagram» says Instagram); an unknown site as it came.
+                $name = arrival::label($measured);
+                $raw = \core_text::strtoupper(\core_text::substr($measured, 0, 1)) . \core_text::substr($measured, 1);
+                $via .= ' · ' . get_string('panel_from_short', $c, strpos($measured, '.') !== false && $name === $raw ?
+                    $measured : $name);
             }
             $aiwords = $fromai ? get_string('panel_arrived_ai', $c, $measured) : '';
             $children = [];
