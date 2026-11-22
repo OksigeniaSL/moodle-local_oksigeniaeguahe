@@ -184,7 +184,7 @@ class panel_renewal {
             ] : false,
             'groups' => $groups,
             'hasgroups' => (bool) $groups,
-            // The families already at the centre are set up in the settings (Jujol, 13 November 2026): here, one line.
+            // The families already at the centre are set up in the settings: here, one line.
             'roster' => false,
             'rosterlink' => roster::available() ? self::roster_link($centre) : false,
             'canact' => $canact,

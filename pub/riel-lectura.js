@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Eguahe's scrollbar, the reading rail (Jujol, 17 November 2026). On a wide screen it takes the place of the browser's:
+ * Eguahe's scrollbar, the reading rail. On a wide screen it takes the place of the browser's:
  * the wooden rail of the coat rack along the right edge, a knob for each section of the page (its h2 headings) and the
  * little backpack of the brand hanging from it, which comes down with the reading and swings a little as it goes. The
  * whole strip (34 px, more than the 24 px of WCAG 2.2, 2.5.8) is pressed or dragged like a scrollbar; a knob takes you to

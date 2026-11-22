@@ -369,7 +369,7 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
-     * The gestures of the offer (Jujol, 0.57.0): a stage lit makes its courses and put out keeps them unoffered; a
+     * The gestures of the offer: a stage lit makes its courses and put out keeps them unoffered; a
      * course on or off by its knob; one place more or less, never below none; the same places for a whole stage; and
      * the next school year started by copying this one. Saving the rest of the page never moves a year or its places.
      */

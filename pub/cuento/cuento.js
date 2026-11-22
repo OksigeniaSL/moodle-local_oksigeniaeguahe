@@ -1,7 +1,7 @@
 // This file is part of Moodle - https://moodle.org/ (GNU GPL v3 or later).
 
 /**
- * «Tu primer día», the welcome story of Eguahe (Gaudí, 8 and 9 November 2026): the pages turned by finger or arrow keys
+ * «Tu primer día», the welcome story of Eguahe: the pages turned by finger or arrow keys
  * (the other way in Arabic), the child's name written over each illustration, their drawing from the visit hung on the
  * wall of the class, the voice of each page with a little song under it (or the song alone where a language has no
  * voice), a handwritten dedication, and quiet reactions announced as `eguahe:reaccion` for Eguahe to count. Its data

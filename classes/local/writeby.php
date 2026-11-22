@@ -50,7 +50,7 @@ class writeby {
     /** @var int[] The households a person of the team chose to write to anyway, in this request. */
     protected static $anyway = [];
 
-    /** @var array The line icons of the page (Jujol), drawn with the stroke of the text. */
+    /** @var array The line icons of the page, drawn with the stroke of the text. */
     const ICONS = [
         'email' => '<path d="M3.5 6.5h17v11h-17z"/><path d="M4 7l8 6 8-6"/>',
         'whatsapp' => '<path d="M4.5 19.5l1.2-3.6A7.8 7.8 0 1 1 8.8 19z"/><path d="M9 9.2c.2 2.6 2.2 4.6 4.8 4.8l.9-1.2 ' .
@@ -526,7 +526,7 @@ class writeby {
     }
 
     /**
-     * The block at sight in every mail (Jujol): its title, how they are written to now and the question, the ways in a
+     * The block at sight in every mail: its title, how they are written to now and the question, the ways in a
      * row with the ones of now marked, and «Do not write to us any more» apart below, in ink, without alarm.
      *
      * @param \stdClass $household
@@ -584,7 +584,7 @@ class writeby {
     }
 
     /**
-     * The page to choose (Jujol). From a mail, the way pressed is asked on the wall («Shall we also write to you on
+     * The page to choose. From a mail, the way pressed is asked on the wall («Shall we also write to you on
      * WhatsApp?»); on the paper, a card with how they are written to now, the ways as boxes with the pressed one already
      * changed, and its one big button; beside it, «do not write to us any more». From their page, the boxes as they are.
      * Once chosen, the wall says it, and under the rail their backpacks with a note stuck on with two strips of tape in the

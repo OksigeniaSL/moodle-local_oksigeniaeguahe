@@ -17,7 +17,7 @@
  * The scene of the skin «vestíbulo» (the living hall), over the paper desk: the hall of the centre in isometric, with
  * the families that wait hanging from the rail, the chalk board that says hello, the clock at the hour of the centre and,
  * on the page of a family, each child in their place with their drawing on the table. The placement is the reference of
- * the art director (Gaudí, revision/colocar.js of the delivery of 8 November 2026), with the letters of the panel; the
+ * the art director, with the letters of the panel; the
  * start, below, reads what the page gives in data-escena and draws it in the frame of the screen. Without JavaScript,
  * the page is the paper desk as it is.
  *
@@ -596,7 +596,7 @@
     });
   }
 
-  // the drawing that draws itself (dibujo-vivo.js, Gaudí): a canvas in the place of the photo, with the same
+  // the drawing that draws itself (dibujo-vivo.js): a canvas in the place of the photo, with the same
   // transformation and blend. The first time the table comes into view in a visit (per child, in sessionStorage), the
   // sheet rises from the table to a flat card above it (0.6 s), draws itself there (3 to 5 s), stays 1.2 s and goes back
   // down (0.7 s), still; after that, the drawing is on the table, still. Without its strokes, without the script, with
@@ -656,7 +656,7 @@
     var sr = stage.getBoundingClientRect(), tr = table.getBoundingClientRect();
     var w = sr.width < 720 ? sr.width * 0.6 : Math.max(220, Math.min(360, sr.width * 0.28));
     var h = w * table.height / table.width;
-    // Never taller than 62 % of the hall on a desk (Gaudí), nor than the hall on the phone; the width follows the drawing.
+    // Never taller than 62 % of the hall on a desk, nor than the hall on the phone; the width follows the drawing.
     var most = sr.width < 720 ? sr.height - 16 : sr.height * 0.62;
     if (h > most) { h = most; w = h * table.width / table.height; }
     var clampTo = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
@@ -818,7 +818,7 @@
 
 (function () {
   // The start: each [data-vestibulo] of the page, drawn with its data in the frame of its width, again when it changes.
-  // The page of a family: 70 px more of floor under the frame, so the table with its drawings shows whole (Gaudí).
+  // The page of a family: 70 px more of floor under the frame, so the table with its drawings shows whole.
   var FRAMES = { '1920x1080': [1920, 1080], '1600x900': [1600, 900], '1366x768': [1366, 768], '390x844': [390, 844],
                  familia: [1366, 838], 'familia-390': [390, 320] };
   // The bar of the mock-ups the frames were made with: what shows starts under it.
@@ -890,7 +890,7 @@
       document.documentElement.classList.remove('sala-lista');
     }
   }
-  // The cloakroom of the places (Gaudí, section 8 of the plate): in each block of places, one cloakroom with a rail per
+  // The cloakroom of the places: in each block of places, one cloakroom with a rail per
   // course, stacked by their start so they compare as bars, what hangs from the pegs taken and the bench of the waiting
   // list; the name and the free places at the left of each rail. Built at 2400 and scaled to the width of the block. The
   // rail of the desk stays in each course for when there is no JavaScript.

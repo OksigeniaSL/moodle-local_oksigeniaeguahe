@@ -830,7 +830,7 @@ class centres {
     }
 
     /**
-     * Whether the logo of a centre gets lost on a dark page (Jujol): when more than a third of what it shows does not
+     * Whether the logo of a centre gets lost on a dark page: when more than a third of what it shows does not
      * stand out 3 to 1 against the paper of the night. Then, at night, it goes on its light plate.
      *
      * @param int $centreid
@@ -959,7 +959,7 @@ class centres {
     /**
      * The colour of the centre on what its families see (its pages, its emails, its images): the one it chose, unless it
      * wrote its brand and that colour is not in it; then the first of its brand that reads on white, or else the first
-     * (Jujol: a teal centre with a burgundy brand would show teal buttons under burgundy titles).
+     * (a teal centre with a burgundy brand would show teal buttons under burgundy titles).
      *
      * @param \stdClass $centre
      * @return string #rrggbb

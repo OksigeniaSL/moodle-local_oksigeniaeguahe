@@ -955,7 +955,7 @@
             document.body.appendChild(viewer);
             button.focus();
         };
-        // The drawing under each child draws itself once a visit, when it comes into view, in about 2.5 s (Gaudí);
+        // The drawing under each child draws itself once a visit, when it comes into view, in about 2.5 s;
         // without its strokes, the script or with less motion, the photo.
         var DV = window.DibujoVivo;
         if (DV && !DV.lessMotion() && window.fetch && window.Promise && window.IntersectionObserver) {
@@ -1007,7 +1007,7 @@
                         swap();
                         return;
                     }
-                    // The photo stays until the drawing comes into view: never a blank sheet waiting (Jujol, 21-11).
+                    // The photo stays until the drawing comes into view: never a blank sheet waiting.
                     // As soon as it starts to come in, the empty sheet; seen enough, it draws itself.
                     var started = false;
                     var seen = new window.IntersectionObserver(function(entries) {
@@ -1226,7 +1226,7 @@
             }
         });
         // The guide on the miniature: what it says goes to the first side, right, left or above, where it covers no
-        // label nor the pin of the picture (data-evita, read by the server) and stays inside it (Jujol).
+        // label nor the pin of the picture (data-evita, read by the server) and stays inside it.
         var placeGuide = function(guide) {
             var bubble = guide.querySelector('.bocadillo');
             var sheet = guide.parentNode;

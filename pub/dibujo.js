@@ -223,7 +223,7 @@
         ctx.putImageData(to, 0, 0);
         return out;
     };
-    // The drawing that draws itself on the page of its family (Gaudí): its strokes, found out of the page so it never
+    // The drawing that draws itself on the page of its family: its strokes, found out of the page so it never
     // hangs. Ten seconds at most, or without a worker, and the photo goes alone: the table shows it still.
     var strokes = function(sheet, done) {
         if (!thread || !window.Worker || !window.createImageBitmap || typeof window.OffscreenCanvas === 'undefined') {

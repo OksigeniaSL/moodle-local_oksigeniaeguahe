@@ -213,7 +213,7 @@ class panel_inbox {
                 ))->out(false),
                     'name' => get_string('household_new', $c), 'icon' => panel::icon('mas1')] : null,
             ]),
-            // To open admissions, while something is missing: six steps, each stamped when done (Jujol). Most are in the
+            // To open admissions, while something is missing: six steps, each stamped when done. Most are in the
             // settings, so only for whoever may change them.
             'opening' => $canact && empty($centre->practice) &&
                 centres::can_manage((int) $centre->id) ? self::opening($centre) : false,
@@ -685,7 +685,7 @@ class panel_inbox {
             if (!empty($household->moving)) {
                 $via .= ' · ' . get_string('panel_moving', $c);
             }
-            // Where it arrived from, measured: an AI assistant with its stamp, first (Jujol); anything else, «desde
+            // Where it arrived from, measured: an AI assistant with its stamp, first; anything else, «desde
             // instagram.com» at the end of the line.
             [$measured, $fromai] = arrival::of($household);
             if ($measured !== '' && !$fromai) {

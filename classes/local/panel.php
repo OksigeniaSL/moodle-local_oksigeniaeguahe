@@ -122,7 +122,7 @@ class panel {
     /** @var string[] The skins of the panel (decision of Enrique, 8 November 2026): the same panel, another scene. */
     const SKINS = ['vestibulo', 'mostrador', 'cinematico'];
 
-    /** @var array A skin drawn over another one (Gaudí, 8 November 2026): the living hall is the paper desk in the hall. */
+    /** @var array A skin drawn over another one: the living hall is the paper desk in the hall. */
     const UNDER = ['vestibulo' => 'mostrador', 'cinematico' => 'mostrador'];
 
     /** @var string What hangs for each child by the age of its course, as data: the steps of the ladder. */

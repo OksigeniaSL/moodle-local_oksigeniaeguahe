@@ -96,7 +96,7 @@ class vestibulo {
         $landscape = $info && (int) $info['width'] >= (int) $info['height'];
         $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'dibujo' => $childid,
             't' => $file->get_timemodified()]);
-        // With its strokes, it draws itself on the table (Gaudí); without them, the photo, still.
+        // With its strokes, it draws itself on the table; without them, the photo, still.
         $strokes = drawings::strokes_file($childid);
         return ['url' => $url->out(false), 'orientation' => $landscape ? 'landscape' : 'portrait',
             'strokes' => $strokes ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'trazos' => $childid,

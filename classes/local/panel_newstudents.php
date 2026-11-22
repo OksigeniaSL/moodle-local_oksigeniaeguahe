@@ -17,11 +17,11 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * «Quién entra y quién sale», the sheet of Cifras that tells what really happened with the new students of a school year
- * (Jujol's design, 21 November 2026; docs/18-analisis.md of hq): what comes out of the numbers, what it seems and what
- * really happens, where the new students come from, what each campaign of ads and each act brought with its money and
- * the hours of the team, and the joins and leaves during the year. Every number is a button with its definition; both
- * versions of what changes with or without those already of the centre are in the page.
+ * «Quién entra y quién sale», the sheet of Cifras that tells what really happened with the new students of a school
+ * year: what comes out of the numbers, what it seems and what really happens, where the new students come from, what
+ * each campaign of ads and each act brought with its money and the hours of the team, and the joins and leaves during
+ * the year. Every number is a button with its definition; both versions of what changes with or without those already
+ * of the centre are in the page.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>

@@ -91,7 +91,7 @@ class poster {
             'qr_alt' => $str($words . 'qr', $shown ?: format_string($event->name)),
             'firma' => publicpage::credit($lang)['text'] ?? '',
             'marca' => self::brand($centre),
-            // The logo by its area, not its width: a square one and a long one weigh the same on the sheet (Jujol).
+            // The logo by its area, not its width: a square one and a long one weigh the same on the sheet.
             'logoalto' => ($aspect = centres::logo_aspect((int) $centre->id)) ? (int) round(min(190, sqrt(62000 / $aspect))) : 150,
             // A word of one letter never ends a line («VENGAN / A CONOCERNOS»).
             'titular_marca' => preg_replace('/(^|\s)([aeouy])\s/iu', '$1$2' . "\u{00A0}", str_replace('|', ' ', $str($words . 'title'))),
@@ -99,7 +99,7 @@ class poster {
     }
 
     /**
-     * The colours of the brand of the centre for its poster, by their roles (Jujol): the title in the darkest that reads
+     * The colours of the brand of the centre for its poster, by their roles: the title in the darkest that reads
      * on white, the accent in the next one that reads, the line in the first that holds as a thin line, a tint of the
      * first pale one behind the code, and every colour in the stripe. A pale colour never carries words nor a thin line.
      * False when the centre has not written its brand.

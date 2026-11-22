@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What the cinematic skin (C, Jujol, 9 November 2026) needs from Eguahe, worked out on the server so the page reads the
+ * What the cinematic skin (C) needs from Eguahe, worked out on the server so the page reads the
  * same without JavaScript: the river of the inbox, where each family waiting is a lantern placed by how long it has
  * waited on a logarithmic scale of time, with the days marked along it; and the constellation of towns, each at its
  * real bearing from the centre and its distance on a square-root scale, from the positions of places.

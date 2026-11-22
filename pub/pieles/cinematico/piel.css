@@ -4,7 +4,7 @@
    and the accent is amber, the light of the counter; the textures of paper go and an ambient light breathes behind. On
    the inbox, the scene of C: the river of the week, where each family waiting is a lantern placed by how long it has
    waited, drifting to the light of the counter (panel_inbox_cinematico.mustache; escena.js only moves it). Chrome 93 and
-   Firefox 98: no backdrop-filter, no color-mix, no :has; only transform and opacity move. Jujol, 9 November 2026. */
+   Firefox 98: no backdrop-filter, no color-mix, no :has; only transform and opacity move. */
 
 /* ---------- The tokens: the night of B, taken to the cinema. One selector above the night of B, which also sits on
    the body, so C is dark whatever Moodle says. ---------- */
@@ -29,7 +29,7 @@ html body.panel.piel-mostrador.piel-cinematico {
     --margen: transparent;
     --cuadricula: transparent;
     --ruido: linear-gradient(transparent, transparent);
-    /* The stamps without their grain of ink, but seen: a fully transparent mask hid them whole (Jujol, 11 November 2026). */
+    /* The stamps without their grain of ink, but seen: a fully transparent mask hid them whole. */
     --ruido-sello: none;
     --b-blanco: #241c29;
     --b-velo: rgba(255, 255, 255, 0.04);
@@ -185,8 +185,7 @@ html body.panel.piel-mostrador.piel-cinematico::after {
     transform: none;
 }
 
-/* The river: a band under the sentence, low enough for the list to start on the first screen (Jujol, 13 November
-   2026: it was up to 400 px). */
+/* The river: a band under the sentence, low enough for the list to start on the first screen (it was up to 400 px). */
 .cine-rio {
     position: relative;
     /* stylelint-disable-next-line csstree/validator */
@@ -974,7 +973,7 @@ html[data-mov="menos"] body.piel-cinematico::after,
 html[data-mov="menos"] .cine-corriente {
     animation: none;
 }
-/* ---------- «How is it done?» (Jujol, 17 November 2026): the sheet as dark glass over the night, the slips lit from
+/* ---------- «How is it done?»: the sheet as dark glass over the night, the slips lit from
    within, the stub in the amber of the counter; the yellow pad becomes a band of amber light. ---------- */
 .piel-cinematico .mando-como {
     background: var(--cine-vidrio);
@@ -1049,7 +1048,7 @@ html[data-mov="menos"] .cine-corriente {
     box-shadow: inset 0 0 0 1.5px var(--cine-filo-2);
     color: var(--cine-ambar);
 }
-/* ---------- The guided helps (Jujol, 17 November 2026): the print as a pane of dark glass with its amber tab; the
+/* ---------- The guided helps: the print as a pane of dark glass with its amber tab; the
    pointer, the ring and the thread in the amber of the counter; the cards, glass lit from within. ---------- */
 .piel-cinematico .ayuda {
     --ayuda-dedo: var(--cine-ambar);
@@ -1118,7 +1117,7 @@ html[data-mov="menos"] .cine-corriente {
     color: var(--cine-ambar);
 }
 
-/* The printed guides (Jujol, 17 November 2026): a strip of dark glass, each guide lit in it, its printer amber. */
+/* The printed guides: a strip of dark glass, each guide lit in it, its printer amber. */
 .piel-cinematico .como-guias {
     border: 1px solid var(--cine-filo);
     background: var(--cine-fondo-2);
@@ -1133,7 +1132,7 @@ html[data-mov="menos"] .cine-corriente {
     color: var(--cine-ambar);
 }
 
-/* ---------- Lo medido in the cinema (Jujol, 18 November 2026, Eguahe 0.85.1). Goes in pub/pieles/cinematico/piel.css.
+/* ---------- Lo medido in the cinema. Goes in pub/pieles/cinematico/piel.css.
    No paper here: what they told us is a line of warm light in italic, what was measured a pane of glass with its site,
    and the AI assistant the amber stamp of the counter. Nothing turns and nothing has a texture. ---------- */
 .piel-cinematico .sello-ia,
@@ -1212,7 +1211,7 @@ html[data-mov="menos"] .cine-corriente {
     background: var(--cine-ambar);
 }
 
-/* ---------- How to ask for a place in the cinema (Jujol, 19 November 2026, Eguahe 0.86.0). Goes in
+/* ---------- How to ask for a place in the cinema. Goes in
    pub/pieles/cinematico/piel.css. Glass and amber, nothing turned and no textures: the envelope drawn in light lines,
    the stamp and the postmark in amber. ---------- */
 .piel-mostrador.piel-cinematico .sobre-dibujo {
@@ -1253,7 +1252,7 @@ html[data-mov="menos"] .cine-corriente {
     opacity: 1;
 }
 
-/* ---------- What was before, in pencil that reads on the dark (Jujol's review of contrast, 20 November 2026) ---------- */
+/* ---------- What was before, in pencil that reads on the dark ---------- */
 html body.panel.piel-mostrador.piel-cinematico .pagina-cifras,
 html body.panel.piel-mostrador.piel-cinematico .como-fue {
     --cf-lapiz-texto: #9a94a3;

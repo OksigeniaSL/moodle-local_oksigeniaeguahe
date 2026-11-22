@@ -25,7 +25,7 @@ use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\signup;
 
 /**
- * The page of the family (DESIGN.md of Gaudí): the colours of any centre stay readable, the name used at home heads the
+ * The page of the family: the colours of any centre stay readable, the name used at home heads the
  * page, the people who receive the family are those the centre shows, a way to write is asked for, and the families
  * moving to the area are noted. Example data.
  *

@@ -216,7 +216,7 @@ final class writeby_test extends \advanced_testcase {
     }
 
     /**
-     * The question: Jujol's sentence with several ways, Enrique's with email only.
+     * The question: one sentence with several ways, another with email only.
      */
     public function test_question(): void {
         $this->resetAfterTest();

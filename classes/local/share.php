@@ -582,7 +582,7 @@ class share {
                 (int) ($top / 2) + ($tall ? $px(30) : 0),
                 $px($wide ? 64 : ($tall ? 92 : 72)),
                 $w - 2 * $px(80),
-                // The logo by its area: 45,000 on the card of 1,200 × 630 and 100,000 on the square of 1,080 (Jujol).
+                // The logo by its area: 45,000 on the card of 1,200 × 630 and 100,000 on the square of 1,080.
                 $wide ? 45000 * ($w / 1200) ** 2 : 100000 * ($w / 1080) ** 2,
                 (int) round(0.55 * $top)
             );
@@ -634,7 +634,7 @@ class share {
             self::label($im, $name, $accent, $cx, $at([0.524, 0.5, 0.5]), 0.9 * $f, 0);
             self::identity($im, $centre, $vars, $cx, $at([0.917, 0.86, 0.72]), $px(50), $w - 2 * $px(80));
         }
-        // The stripe of the brand of the centre on the top edge, its colours side by side: 8 px on 1200 (Jujol).
+        // The stripe of the brand of the centre on the top edge, its colours side by side: 8 px on 1200.
         $brand = centres::brand($centre);
         if ($brand) {
             $stripe = max(4, (int) round($w * 8 / 1200));
@@ -909,7 +909,7 @@ class share {
         }
         $lh = $logo ? (int) round(imagesy($logo) * $lw / max(1, imagesx($logo))) : $size;
         if ($logo && $area > 0) {
-            // The logo by its area, as on the poster (Jujol): a square one and a long one weigh the same, never more
+            // The logo by its area, as on the poster: a square one and a long one weigh the same, never more
             // than the room of the wall.
             $aspect = imagesx($logo) / max(1, imagesy($logo));
             $lh = (int) round(min($maxh ?: PHP_INT_MAX, sqrt($area / $aspect)));

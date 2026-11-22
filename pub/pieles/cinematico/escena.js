@@ -9,7 +9,7 @@
  * 4. The names of the constellation, measured: each one on the first side of its light where it fits, without
  *    touching another name or light, nor leaving the sky; the centre first, then the largest. One that fits nowhere is
  *    not written (the table under the sky has it).
- * Chrome 93 and Firefox 98; only transform and opacity; still with «less motion». Jujol, 9 November 2026. */
+ * Chrome 93 and Firefox 98; only transform and opacity; still with «less motion». */
 (function () {
     'use strict';
     var doc = document;

@@ -13,7 +13,7 @@
     unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
 }
 
-/* Arabic text (Gaudí, 8 November 2026): Vazirmatn, a second face of the same family, so mixed text shares itself out;
+/* Arabic text: Vazirmatn, a second face of the same family, so mixed text shares itself out;
    a point larger, as Arabic needs to read as comfortably as the Latin letters. */
 @font-face {
     font-family: 'Eg Sans';
@@ -3523,7 +3523,7 @@ input:focus-visible + .ficha-canal {
     background: var(--piel-fondo);
 }
 
-/* ---------- Writing down a family with gestures (Jujol, 13 November 2026) ---------- */
+/* ---------- Writing down a family with gestures ---------- */
 /* What is written goes on lines, as on a card at the desk; what is chosen is a chip, a leaf, a counter, a stamp or a
    lamp. Every control is an input with its name, so the form behind reads the same values. */
 .ap-lineas .campo input:not([type="hidden"]) {
@@ -4539,7 +4539,7 @@ input:checked + .ap-hoja {
     box-shadow: 0 0 10px 2px rgba(240, 180, 60, 0.5);
 }
 
-/* ---------- The two moments of an act (Jujol, 13 November 2026) ---------- */
+/* ---------- The two moments of an act ---------- */
 /* Before its day: when the door opens, in one line over «Who is coming»; the list without «Came». */
 .se-abre {
     margin: 0 0 4px;
@@ -6772,7 +6772,7 @@ button.sin-usar-fila {
     white-space: nowrap;
 }
 
-/* ---------- The sheets of Cifras (Jujol, 13 November 2026) ---------- */
+/* ---------- The sheets of Cifras ---------- */
 /* A sheet with nothing to count yet: a blank page, dashed, that says where it comes from and the way to it. */
 .curso-vacio {
     display: grid;
@@ -7576,7 +7576,7 @@ html.modo-lamina {
     }
 }
 /* ==================== 11.5.1 What they like most ==================== */
-/* «What they like most», inside «Cifras» (Jujol, 8 November 2026). Sheets on the same desk, in the language of the
+/* «What they like most», inside «Cifras». Sheets on the same desk, in the language of the
    rest: ink for now, pencil for the reference, stamps for what is done again. Only the variables of «Cifras» (--cf-*)
    and of the skin, so light and dark follow them. */
 
@@ -7980,7 +7980,7 @@ html.modo-lamina {
     background: transparent;
 }
 
-/* The desk, wide (Jujol): what is looked at again across; their page tall on the left, with the drawing and the mails
+/* The desk, wide: what is looked at again across; their page tall on the left, with the drawing and the mails
    one above the other on its right; where they come from across, its places and its courses side by side. */
 @media (min-width: 1100px) {
     .cifras > .gusta-dibujo,
@@ -8046,7 +8046,7 @@ html.modo-lamina {
 }
 
 /* ==================== 11.5.2 Where from, month by month ==================== */
-/* «Por dónde, mes a mes», inside «Cifras» (Jujol, 8 November 2026). One sheet across the desk: each channel with its
+/* «Por dónde, mes a mes», inside «Cifras». One sheet across the desk: each channel with its
    twelve months in ink and the twelve before in pencil behind, a stamp when it goes up or down, and underneath the
    notices to the phone and the centre's channel. Only the variables of «Cifras» (--cf-*) and of the skin, so light
    and dark follow them. */
@@ -8635,7 +8635,7 @@ html.modo-lamina {
 }
 
 /* ==================== 11.5.3 The reports ==================== */
-/* «Cómo va» (hot, the week) and «El curso, en frío» (cold, the school year), inside «Cifras» (Jujol, 9 November 2026).
+/* «Cómo va» (hot, the week) and «El curso, en frío» (cold, the school year), inside «Cifras».
    One sheet on the desk of the skin, written like a document. What was counted is printed in ink, with what came
    before in pencil behind it (the outline of a bar, a figure in grey), and every big figure with the one before and,
    when it was counted, the one a year ago. What the AI of the centre read (the reading, the themes, its advice) is a
@@ -9876,7 +9876,7 @@ html.modo-lamina {
     }
 
     /* Without the reach of the centre (no data of the area yet), the courses take the whole width instead of leaving
-       the right column empty (Jujol, 17 November 2026). */
+       the right column empty. */
     .prevision > section:only-of-type {
         grid-column: 1 / -1;
     }
@@ -9915,7 +9915,7 @@ html.modo-lamina {
     min-width: 0;
 }
 
-/* The families already at the centre, after the form of the settings, in its same column (Jujol, 13 November 2026). */
+/* The families already at the centre, after the form of the settings, in its same column. */
 .ajustes-padron {
     margin-top: 18px;
 }
@@ -10964,7 +10964,7 @@ html.modo-lamina {
     }
 }
 
-/* Eguahe, How it went (Gaudí, 3.3; round of 8 November 2026): on the page of an event once it is over, sheets on the
+/* Eguahe, How it went: on the page of an event once it is over, sheets on the
    desk, in the language of the numbers. The first sheet says how many of the families who came told, with the tally of
    them by hand (ink those who told, pencil those who did not yet), the date stamped and the event before in pencil.
    Then a sheet per question: its sentence as the line of the datum, the words in their order in bars of one tone with
@@ -13256,7 +13256,7 @@ button.padron-pomo-no::after {
 .of-balda {
     display: grid;
     /* 180 px: the usual names of a course («Infantil 3 años», «1.º de Primaria», «Nursery, age 3») on one line beside the
-       knob (Jujol, 17 November 2026). */
+       knob. */
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 12px;
     margin: 0;
@@ -13353,7 +13353,7 @@ button.padron-pomo-no::after {
 }
 
 /* Those enrolled, as the rail of the course: a peg per place, those taken with something hanging. */
-/* The places of a course on its card: the coat rail of the inbox and Cifras, small (Jujol, one way to draw places).
+/* The places of a course on its card: the coat rail of the inbox and Cifras, small.
    Planks of the same wood, one turned peg for each place, and for each one enrolled what hangs from it in the colour
    of the backpacks; ten pegs a plank. */
 .of-riel {
@@ -13541,7 +13541,7 @@ button.padron-pomo-no::after {
     margin-top: 0;
 }
 
-/* Each stretch of the index on its strip of paper, never small grey on the wood (Jujol, 21-11); and the part one is in,
+/* Each stretch of the index on its strip of paper, never small grey on the wood; and the part one is in,
    marked. */
 .indice-ajustes .indice-t {
     display: inline-block;
@@ -13635,7 +13635,7 @@ button.padron-pomo-no::after {
 
 /* The help of a field is always in its place, quiet in the grey ink, and in the main ink while the field is used. If
    it came and went, what is under it would move when the field loses the focus, and a «Save» pressed then would get its
-   click outside. Never faded with opacity: on the wood it stopped reading (Jujol). */
+   click outside. Never faded with opacity: on the wood it stopped reading. */
 .con-ayuda .ayuda,
 .aj-elige-fila .ayuda,
 .aj-util .ayuda,
@@ -14186,7 +14186,7 @@ html:not(.con-botes) .aj-marca-botes {
     font-weight: 600;
 }
 
-/* An act that shows where to park: its box, with the miniature of where to park small beside it (Jujol). */
+/* An act that shows where to park: its box, with the miniature of where to park small beside it. */
 .acto-aparcar {
     display: flex;
     align-items: center;
@@ -15045,7 +15045,7 @@ html:not(.con-botes) .aj-marca-botes {
     margin: 6px 16px 12px;
 }
 
-/* ==================== Help (Jujol, piece 7) ==================== */
+/* ==================== Help ==================== */
 /* To open admissions: six slips of the desk at the head of the inbox, each stamped once done. */
 .abrir-admisiones {
     margin: 0 0 28px;
@@ -15340,7 +15340,7 @@ html:not(.con-botes) .aj-marca-botes {
     }
 }
 
-/* Cifras: the courses of the year without places, in one line with the way to put them (Jujol, piece 8). */
+/* Cifras: the courses of the year without places, in one line with the way to put them. */
 .sin-plazas {
     margin: 4px 0 0;
 }
@@ -15406,7 +15406,7 @@ html:not(.con-botes) .aj-marca-botes {
     color: var(--eg-tinta-2);
 }
 
-/* Answered: a tick, not a filled circle, so it reads as a list being ticked off and not as one to choose (Jujol). */
+/* Answered: a tick, not a filled circle, so it reads as a list being ticked off and not as one to choose. */
 .preguntaron .hecha .pr-marca {
     position: relative;
     border-color: transparent;
@@ -15502,7 +15502,7 @@ html:not(.con-botes) .aj-marca-botes {
     white-space: nowrap;
 }
 
-/* One or two families say little yet: their row in soft ink (Jujol). */
+/* One or two families say little yet: their row in soft ink. */
 .resp-parte .pocas .resp-barra i {
     background: var(--eg-tinta-2);
     opacity: 0.45;
@@ -15519,7 +15519,7 @@ html:not(.con-botes) .aj-marca-botes {
     font-size: 0.8125rem;
 }
 
-/* 11.7 «How is it done?» (0.78.0; Jujol's design, 17 November 2026): the button of the bar, its sheet and the page of
+/* 11.7 «How is it done?» (0.78.0): the button of the bar, its sheet and the page of
    the guide. Each answer is a slip of the desk, of the family of «To open admissions»: what it is and its first step on
    the body, and past the perforation the stub where it goes. What is asked is written on a line, not in a box. */
 /* The button: its bubble, and its words where they fit: from 1600 px, and from 900 to 1099 px, where only the current
@@ -16174,7 +16174,7 @@ a.como-talon:focus-visible {
     }
 }
 
-/* 11.8 The guided helps (0.79.0; Jujol's design, 17 November 2026). The practice centre is a print on the desk, under
+/* 11.8 The guided helps (0.79.0). The practice centre is a print on the desk, under
    its tab: its picture is the real screen, where the pointer moves; its margin below carries the step, its caption and
    the buttons. Before «Start», the first screen waits still behind a card; at the end, the stamp «Seen». The practice
    centre itself only lives inside the frame, without its bar. */
@@ -16664,7 +16664,7 @@ a.como-talon:focus-visible {
     font-size: 0.875rem;
 }
 
-/* The printed guides, from the page of «How is it done?» (0.81.3; Jujol's look): a strip of paper under the question,
+/* The printed guides, from the page of «How is it done?» (0.81.3): a strip of paper under the question,
    each guide a small sheet with its printer, to be taken to the office; on a phone they wrap. */
 .como-guias {
     display: flex;
@@ -16716,7 +16716,7 @@ a.como-talon:focus-visible {
     content: attr(data-iniciales);
 }
 
-/* 11.10 From 320 px nothing goes beyond the sides (Jujol, 17 November 2026, for the 1.0). A long address breaks where
+/* 11.10 From 320 px nothing goes beyond the sides. A long address breaks where
    it must, at any width; on a narrow phone the columns of a page keep to the screen, a button says its words on two
    lines rather than leave the page, the two views of the inbox share the strip, the tabs of the figures say only their
    names, and the tables of the forecast take less air. */
@@ -16799,7 +16799,7 @@ a.como-talon:focus-visible {
 }
 
 /* The shelf of the offer below 360 px: one card a row, so that a name of one long word («Reception») does not reach the
-   knob (Jujol, 17 November 2026). From 360 px the two columns of a phone hold it. */
+   knob. From 360 px the two columns of a phone hold it. */
 @media (max-width: 359.98px) {
     .of-balda {
         grid-template-columns: minmax(0, 1fr);
@@ -16813,7 +16813,7 @@ html {
     scrollbar-color: var(--eg-barra) transparent;
 }
 
-/* ==================== Lo medido, beside what they said (Jujol, 18 November 2026, for Eguahe 0.85.1) ====================
+/* ==================== Lo medido, beside what they said ====================
    Where a family arrived from, measured on arrival, next to what it says it heard of the centre by: people mistake it,
    so the two go together and neither corrects the other. One language in four places: what they said is theirs (in the
    paper skin, by hand on a note); what was measured is printed (a ticket with the site); an AI assistant gets a stamp of
@@ -17091,7 +17091,7 @@ html {
     }
 }
 
-/* ---------- Asking for a place (Jujol, 19 November 2026, Eguahe 0.86.0 and 0.87.0). Goes in pub/panel.css:
+/* ---------- Asking for a place. Goes in pub/panel.css:
    1. after «.hijo .datos» and the children wall (the envelope of the file);
    2. after «.aj-modo[aria-pressed="true"]» (the two choices of «Cómo se pide plaza» and the words of each stage);
    3. in place of the voices of block 3 of «lo medido» (Cifras, «Por dónde llegaron»), from «.grafico-canales .voces»
@@ -17359,7 +17359,7 @@ html {
     }
 }
 
-/* ---------- 11.6 The sheet «Los alumnos nuevos» (Jujol, 21 November 2026). Goes in pub/panel.css, after «11.5 The
+/* ---------- 11.6 The sheet «Los alumnos nuevos». Goes in pub/panel.css, after «11.5 The
    numbers»: it uses its tokens (--cf-serie, --cf-serie-medio, --cf-serie-suave, the pencil). ----------
    What really happened with the new students of a school year: what seems and what is, one backpack per student, and
    what each ad brought. Every number is a button, with a dotted line under it as in a glossary; touched, pointed or
@@ -18760,8 +18760,8 @@ html {
     white-space: nowrap;
 }
 
-/* ---------- 11.6 The family beside a conversation of the chat of the centre (chat.php). Design of Jujol, 20 November
-   2026: it replaces the section of the same name in pub/panel.css. A column of some 360 px in the side of the chat,
+/* ---------- 11.6 The family beside a conversation of the chat of the centre (chat.php).
+   A column of some 360 px in the side of the chat,
    light or dark as the chat says (data-bs-theme). ----------
    Who writes, at a glance: what the family is (its seal, by its shape), each child as a backpack (the mark of
    Eguahe) with the five steps of its way, how long they have waited and who attends them, the next visit as a leaf of
@@ -19320,7 +19320,7 @@ html {
     font-size: 0.875rem;
 }
 
-/* ---------- The filters of the inbox on a phone (Jujol, 20 November 2026) ----------
+/* ---------- The filters of the inbox on a phone ----------
    Each pill in one line, on a strip that slides inside its card and fades at its right edge; never names broken into
    three lines in a round pill, nor a strip that goes over the edge of its card onto the desk. */
 @media (max-width: 719px) {
@@ -19345,7 +19345,7 @@ html {
 }
 
 /* ---------- How a family wants to be written to (21 November 2026): the warning before writing, never a block; the
-   choice and its trail in «Who writes»; the line of the chat. The design of Jujol replaces these when it arrives. ---------- */
+   choice and its trail in «Who writes»; the line of the chat. ---------- */
 .aviso-escribir {
     display: grid;
     gap: 8px;

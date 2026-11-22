@@ -65,7 +65,7 @@ class familymail {
 
     /**
      * The colours of the centre for the mail, light and dark; with its brand, its paper, its wall and its titles, as on
-     * its pages (Jujol).
+     * its pages.
      *
      * @param string $colour
      * @param string[] $brand centres::brand()

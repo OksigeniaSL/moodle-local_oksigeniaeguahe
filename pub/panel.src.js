@@ -1652,7 +1652,7 @@
         }
     };
 
-    // «Quién entra y quién sale» (Jujol, 21 November 2026). Every number of the sheet is a button (.an-toque, data-explica
+    // «Quién entra y quién sale». Every number of the sheet is a button (.an-toque, data-explica
     // = the id of its definition in «Cómo se cuenta cada cifra»): pointed at, it fills the box of its sheet while the
     // pointer stays; touched or focused, it stays. Pointing at a shelf or a part lights its backpacks. The switch «Con o
     // sin los que ya eran del centro» only swaps the class .sin-centro, the pill and the address: both versions are in

@@ -146,7 +146,7 @@ class publicpage {
 
     /**
      * The attributes of the body of a page of a family: embedded or not, and the stripe of the brand of the centre, which
-     * the band of the visit carries on its top edge (Jujol), by day and at night.
+     * the band of the visit carries on its top edge, by day and at night.
      *
      * @param \stdClass $centre
      * @return string
@@ -194,7 +194,7 @@ class publicpage {
      * At night the brand has to be seen, not guessed (Enrique: «No veo yo la marca del colegio»): the wall is the colour
      * of the centre itself, deepened until white reads on it at 7:1; the paper below, a dark with a good part of that
      * colour; the titles in white; the line above the title and the rule under it in the colour of the brand that stands
-     * out most on those grounds (the yellow of Nuryana, the gold of Montesol); and the card of the date keeps its colours
+     * out most on those grounds (a bright yellow, a gold); and the card of the date keeps its colours
      * of the day, like a sticker. The header stays on the dark paper, where a logo for dark backgrounds was drawn to go.
      *
      * Every colour that carries words reads on every ground it can fall on: 4.5:1, the titles at night 7:1; a line, 3:1.
@@ -384,21 +384,21 @@ class publicpage {
             'initials' => $initials,
             'logo' => $logo ? $logo->out(false) : '',
             // At night: the logo for dark backgrounds when the centre gave one; else the logo on its light plate when
-            // it would get lost (Jujol), or when the centre says so.
+            // it would get lost, or when the centre says so.
             'logodark' => !empty($centre->id) && ($dark = centres::logo_dark((int) $centre->id)) ? $dark->out(false) : '',
             'logoplate' => !empty($centre->logoplate) || (!empty($centre->id) && !centres::logo_dark((int) $centre->id) &&
                 centres::logo_needs_plate((int) $centre->id)),
             // The colours of the brand of the centre, as a stripe above everything; in the dark, a colour that would
-            // be lost is lightened until it shows (Jujol).
+            // be lost is lightened until it shows.
             'brand' => $brand ? array_map(
                 fn($code, $night) => ['light' => $code, 'dark' => $night],
                 $brand,
                 self::brand_on_dark($centre)
             ) : [],
-            // A long logo already says the name of the centre: the name beside it is not repeated (Jujol).
+            // A long logo already says the name of the centre: the name beside it is not repeated.
             'namevisible' => !$logo || $aspect < 2.2,
             // With its brand, the logo measured by its area, as on the poster: a long one and a square one weigh the
-            // same (Jujol).
+            // same.
             'logoheight' => $brand && $logo ? (int) round(min(64, sqrt(11000 / $aspect))) : false,
             'logoheightphone' => $brand && $logo ? (int) round(min(46, sqrt(5200 / $aspect))) : false,
             'langcode' => \core_text::strtoupper(substr(str_replace('_', '-', $lang), 0, 2)),
@@ -412,7 +412,7 @@ class publicpage {
         ]);
         [$top, $bottom] = explode('<!-- main -->', $header, 2) + [1 => ''];
         $vars = fn(array $list) => implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($list), $list));
-        // The colours of the centre and, when it wrote its brand, the whole brand (Jujol), by day and at night.
+        // The colours of the centre and, when it wrote its brand, the whole brand, by day and at night.
         $light = self::centre_vars($colour, false) + ($brand ? self::brand_vars($brand, $colour, false) : []);
         $dark = self::centre_vars($colour, true) + ($brand ? self::brand_vars($brand, $colour, true) : []);
         // A centre can want the pages of its families always light, whatever the phone of each family says.
@@ -756,7 +756,7 @@ display: grid; }
                 'name' => $bracket === false ? $name . $key : substr($name, 0, $bracket) . $key . substr($name, $bracket),
                 'label' => publiclang::str('pub_date_' . ['d' => 'day', 'm' => 'month', 'y' => 'year'][$key], $lang),
                 'value' => $values[$key], 'size' => $key === 'y' ? 4 : 2,
-                // The month by its short name in the language, when the international data has them (Jujol); a number else.
+                // The month by its short name in the language, when the international data has them; a number else.
                 'months' => $key === 'm' && $months ? ['list' => array_map(fn($n) => ['value' => $n, 'name' => $months[$n],
                     'selected' => (int) $values['m'] === $n], array_keys($months))] : false];
         }

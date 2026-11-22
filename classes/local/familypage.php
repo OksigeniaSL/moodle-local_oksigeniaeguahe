@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What the page of a family shows (DESIGN.md of Gaudí): the name used at home as the heading, written by hand, and the
+ * What the page of a family shows: the name used at home as the heading, written by hand, and the
  * backpack on its hook; their visit in the colour of the centre; the people who will receive them; what they told us
  * and their data. After the visit, what comes next. In plain words, without the words of the trade.
  *
@@ -124,7 +124,7 @@ class familypage {
     }
 
     /**
-     * How the family is written to (Jujol): one block on their page, «Cómo les escribimos», with what they have as pills,
+     * How the family is written to: one block on their page, «Cómo les escribimos», with what they have as pills,
      * «Change it», and for a phone marked and not joined yet its button; after «do not write to us any more», since when,
      * and the way back.
      *
@@ -155,7 +155,7 @@ class familypage {
                 $lang
             )['daymonth']) : '',
             'backon' => publiclang::str('pub_writeby_back_on', $lang),
-            // What reaches them, full; what they marked and have not joined yet, dashed and grey (Jujol).
+            // What reaches them, full; what they marked and have not joined yet, dashed and grey.
             'pills' => array_map(
                 fn($c) => ['icon' => writeby::icon($c), 'label' => publiclang::str('pub_writeby_' . $c, $lang),
                     'missing' => isset($links[$c])],
@@ -364,7 +364,7 @@ class familypage {
                 'name' => $child->firstname,
                 // Their drawing, small, to see it big; and sending it, or another one.
                 'drawing' => $drawing ? $link(['dibujo' => $child->id, 't' => $drawing->get_timemodified()]) : '',
-                // Its strokes, for it to draw itself once (Gaudí).
+                // Its strokes, for it to draw itself once.
                 'drawingstrokes' => $drawing && ($strokes = drawings::strokes_file((int) $child->id)) ?
                     $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : '',
                 'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
@@ -598,7 +598,7 @@ class familypage {
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
             'quiet' => $issettled || $isgone || $isroster || $allclosed,
-            // Closed, what hung rests on the shelf, off its knob (Jujol).
+            // Closed, what hung rests on the shelf, off its knob.
             // Asked, while on their way, not to be written to, and now with a child at the centre: asked again, warmly.
             'writebyask' => writeby::enrolled_since($household) ? [
                 'title' => publiclang::str('pub_writeby_again_title', $lang),
@@ -657,7 +657,7 @@ class familypage {
             'adults' => $adults,
             // Their contact data, changed by themselves, and another person of the family (Enrique).
             'contactedit' => self::contacts_context($full, $lang, $token, !empty($flags['contacts'])),
-            // How they are written to, in one block where the notices on the phone were (Jujol): one word, kept everywhere.
+            // How they are written to, in one block where the notices on the phone were: one word, kept everywhere.
             'writeby' => self::writeby_strip($household, $centre, $lang, $token),
             'downloadurl' => $link(['action' => 'download']),
             'eraseurl' => $link(['action' => 'erase', 'idioma' => $lang]),
@@ -790,7 +790,7 @@ class familypage {
             // The guide at the entrance, walking the way.
             'guide' => guide::on_map($centre, $area, $narrow && $way, $lang),
             'caption' => publiclang::str($parking ? 'pub_miniature_parking' : 'pub_miniature', $lang),
-            // What each mark of the picture is: the pin and the dotted way (Jujol).
+            // What each mark of the picture is: the pin and the dotted way.
             'here' => publiclang::str('pub_miniature_here', $lang), 'way' => publiclang::str('pub_miniature_way', $lang),
             'slide' => publiclang::str('pub_miniature_slide', $lang)];
     }
@@ -1396,7 +1396,7 @@ class familypage {
         unset($answers[0]);
         $fields = forms::context($entry, $lang, (string) ($centre->lang ?: 'es'), $answers, []);
         $questions = array_values(array_filter($fields, fn($f) => !$f['issection']));
-        // Done once the questions to choose are answered: the texts are «if you wish» and never hold it back (Gaudí).
+        // Done once the questions to choose are answered: the texts are «if you wish» and never hold it back.
         $choose = array_values(array_filter($questions, fn($f) => $f['ischips'] || $f['ismulti']));
         $needed = $choose ?: $questions;
         $answered = count(array_filter($needed, fn($f) => isset($answers[$f['id']])));

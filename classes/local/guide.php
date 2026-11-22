@@ -256,7 +256,7 @@ class guide {
 
     /**
      * The guide by those who receive the family: it holds out a paw and says what the cards do not, where the first of
-     * them waits for them (Jujol).
+     * them waits for them.
      *
      * @param \stdClass $centre
      * @param array $hosts familypage::hosts()

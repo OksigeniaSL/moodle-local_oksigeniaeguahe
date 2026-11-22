@@ -62,7 +62,7 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
 .banda .url { margin-top: 14px; font-size: 25px; font-weight: 750; letter-spacing: -.005em; }
 .banda .tel { margin-top: 6px; font-size: 18px; }
 
-/* The brand of the centre (its colours and its logo, as in its own signs), with its colours by their roles (Jujol): white,
+/* The brand of the centre (its colours and its logo, as in its own signs), with its colours by their roles: white,
    its stripe above and below, its logo by its area, the title in its darkest colour that reads, the day between two thin
    lines and the code on a tinted panel */
 .hoja.marca { background: #FFFFFF; }

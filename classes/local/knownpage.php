@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What a family that was already known sees when it signs up again (public_known, Jujol): not the end of a form, but
+ * What a family that was already known sees when it signs up again (public_known): not the end of a form, but
  * the wall of the centre with the things of the children they just wrote hanging from the rail, and the visit they
  * signed up for with who receives them. Their page itself is not shown, since whoever filled in the form might not be
  * that family: its link went to the address the centre already had. Only what they just wrote and the act are shown.

@@ -500,7 +500,7 @@ body.local-oksigeniaeguahe #page.drawers .main-inner {
 }
 
 /* The centres of the site (centres.php), a row each: the name and what it has, its settings at the side; on a phone
-   the settings go under. From 320 px nothing leaves the page (Jujol, 17 November 2026). */
+   the settings go under. From 320 px nothing leaves the page. */
 .eguahe-centres-list {
     display: grid;
     gap: 0.75rem;

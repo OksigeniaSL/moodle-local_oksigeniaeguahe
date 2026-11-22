@@ -89,7 +89,7 @@
 }
 
 /* On a wide screen the hall goes beside the greeting, as a window onto their place, so that the greeting and the one
-   thing of now are in the first screen (Jujol); on a phone, above it, as before. The window has the proportion of the
+   thing of now are in the first screen; on a phone, above it, as before. The window has the proportion of the
    frame of the family (1366 × 838): escena.js fits the whole frame in its height. */
 @media (min-width: 960px) {
     .sala-lista .familia-arriba.con-sala {

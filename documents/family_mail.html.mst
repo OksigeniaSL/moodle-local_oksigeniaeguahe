@@ -92,7 +92,7 @@ u + #body a { color: inherit; text-decoration: none; }
 {{/muestra}}
 
 {{#franja.0}}
-<!-- The stripe of the brand of the centre, its colours side by side, above everything (Jujol) -->
+<!-- The stripe of the brand of the centre, its colours side by side, above everything -->
 <tr><td style="padding:0; font-size:6px; line-height:6px; mso-line-height-rule:exactly;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>{{#franja}}<td class="eg-franja-{{n}}" height="6" bgcolor="{{claro}}" style="height:6px; background-color:{{claro}}; font-size:6px; line-height:6px; mso-line-height-rule:exactly;">&nbsp;</td>{{/franja}}</tr></table></td></tr>
 {{/franja.0}}
 
@@ -210,7 +210,7 @@ u + #body a { color: inherit; text-decoration: none; }
 
 {{#escribir}}
 <!-- How they want us to write to them, or not at all: at sight, in the type of the rest, never the small print of the
-     foot (Jujol). Each button opens their page, which asks and confirms with one touch: a robot that opens the links of
+     foot. Each button opens their page, which asks and confirms with one touch: a robot that opens the links of
      a mail changes nothing. -->
 <tr><td class="eg-pad" style="padding:40px 40px 0;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -236,7 +236,7 @@ u + #body a { color: inherit; text-decoration: none; }
 </td></tr>
 
 {{#franja.0}}
-<!-- The stripe of the brand below everything too, as the signs of the centre close (Jujol) -->
+<!-- The stripe of the brand below everything too, as the signs of the centre close -->
 <tr><td style="padding:0; font-size:6px; line-height:6px; mso-line-height-rule:exactly;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>{{#franja}}<td class="eg-franja-{{n}}" height="6" bgcolor="{{claro}}" style="height:6px; background-color:{{claro}}; font-size:6px; line-height:6px; mso-line-height-rule:exactly;">&nbsp;</td>{{/franja}}</tr></table></td></tr>
 {{/franja.0}}
 

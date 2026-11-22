@@ -3,7 +3,7 @@
 /**
  * Before the book: where the voice says «you» as a boy or as a girl (Arabic), the family chooses once how the story is
  * read to them, and this browser remembers it. Never a field of a form: a sheet when the book first opens. Without a
- * choice, the book reads as for a boy, the form used when it is not known (Gaudí).
+ * choice, the book reads as for a boy, the form used when it is not known.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

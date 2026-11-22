@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * «What they like most», in «Cifras» (Jujol's sheets): what the families do with what Eguahe gives them, who they are and
+ * «What they like most», in «Cifras»: what the families do with what Eguahe gives them, who they are and
  * what the adults like doing, from the same families as the rest of the page. What is looked at again weighs most: one
  * stamp for each return of each family. Only counts, never a family; for one family, its file tells it as facts.
  *

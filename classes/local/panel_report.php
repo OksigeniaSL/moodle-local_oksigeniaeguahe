@@ -19,7 +19,7 @@ namespace local_oksigeniaeguahe\local;
 /**
  * A report in the panel (report.php): what was kept when it was made, with what the AI of the centre added and where
  * each piece of advice comes from, the reports before to go from one to another, making one again, and the sheet to
- * print it as a PDF. The data apart from the template, so the design of Jujol only changes the template and the styles.
+ * print it as a PDF. The data apart from the template, so the design only changes the template and the styles.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -125,7 +125,7 @@ class panel_report {
 
     /**
      * Where each bar and range of the design ends, from 0 to 1, on one scale per chart: what is now and what was before
-     * on the same one (Jujol). A course of the places and a course of what may come, each on its own, with a little air
+     * on the same one. A course of the places and a course of what may come, each on its own, with a little air
      * above. Nothing is made up: the same counts, scaled.
      *
      * @param array $data

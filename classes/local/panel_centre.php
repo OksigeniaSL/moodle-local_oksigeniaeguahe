@@ -87,7 +87,7 @@ class panel_centre {
         }
         $brand = centres::brand_colours((string) ($centre->brandcolours ?? ''));
         return [
-            // The families already at the centre (Jujol, 13 November 2026): set up here, once, and not in «Who goes on».
+            // The families already at the centre: set up here, once, and not in «Who goes on».
             'roster' => roster::available() ? panel_renewal::settings_roster($centre, $picked) : false,
             'head' => panel::head(['title' => get_string('centre_settings', $c),
                 'sub' => get_string('panel_settings_sub', $c)]),
@@ -201,7 +201,7 @@ class panel_centre {
             // Who puts an enrolled family in the common record, when the site has it.
             'familyfrom' => family::available() ? self::family_from($centre) : [],
             'hasfamilyfrom' => family::available(),
-            // The offer of one school year as the shelves of its stages, each course a card (Jujol).
+            // The offer of one school year as the shelves of its stages, each course a card.
             'oferta' => self::oferta($centre, optional_param('year', '', PARAM_TEXT)),
             'members' => self::members($centre),
             'skins' => self::skins($centre),
@@ -341,7 +341,7 @@ class panel_centre {
     }
 
     /**
-     * The offer of one school year, as Jujol drew it (panel_centre, #aj-oferta): the years as leaves of the calendar, with a
+     * The offer of one school year (panel_centre, #aj-oferta): the years as leaves of the calendar, with a
      * blank one to start the next by copying this; each stage of the school system as a shelf that the centre lights
      * when it gives it; each course as a card on its shelf, with its places, how many are enrolled, and the rest on its
      * back; the courses that are no stage of the system on a last shelf, with a blank card for a new one.
@@ -728,7 +728,7 @@ class panel_centre {
             $url = fn(string $file) => is_readable($CFG->dirroot . $dir . $file) ? (new \moodle_url($dir . $file))->out(false) : '';
             return [$url($name . '.webp'), $url($name . '-noche.webp')];
         };
-        // The one that goes with the offer: the three in a fan, the one it proposes today in front (Jujol).
+        // The one that goes with the offer: the three in a fan, the one it proposes today in front.
         [$img, $dark] = $picture($proposed, 'abanico');
         $out = [['value' => '', 'name' => get_string('centre_skin_auto', $c, $word),
             'help' => get_string('panel_skin_auto_help', $c), 'checked' => $chosen === '', 'auto' => true, 'img' => $img,

@@ -5,7 +5,7 @@
  * the age drawn in crayon by the class); the camera comes nearer, the candles are blown, paper confetti falls, and the words say how old the
  * child is today and who sends it. Twelve seconds, upright (1080 x 1920), with its own music.
  *
- * The same grid as the video of the story (Gaudí, 9 November 2026, with Kimi K3): the picture fills the top of the
+ * The same grid as the video of the story: the picture fills the top of the
  * screen and ends on the paper of the book like a wash of paint; the words come in on the paper, centred, in sepia,
  * the name in its own hand, never below where a player puts its controls. Made in the browser like the other two
  * videos: the sound mixed once with an OfflineAudioContext and encoded with AudioEncoder (AAC, else Opus), the

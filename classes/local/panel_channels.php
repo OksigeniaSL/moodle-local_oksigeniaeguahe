@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * «Where from, month by month», in «Cifras» (Jujol's sheet): the channels compared in time, the whole year round. How
+ * «Where from, month by month», in «Cifras»: the channels compared in time, the whole year round. How
  * families heard of the centre (and on which network), where their first contact came from and where the centre and
  * the families talk, each channel with the last twelve months and the twelve before; nothing folded into «Others»,
  * because what is little used is still used. Underneath, the notices to the phones and the mails, and the channel of

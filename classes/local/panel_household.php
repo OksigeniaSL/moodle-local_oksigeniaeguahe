@@ -1019,7 +1019,7 @@ class panel_household {
 
     /**
      * What they said about how they heard of the centre and where they were measured to arrive from, side by side under
-     * the head (Jujol, panel_origen): people mistake where they heard of a centre, so neither corrects the other.
+     * the head (panel_origen): people mistake where they heard of a centre, so neither corrects the other.
      *
      * @param \stdClass $household
      * @return array|false said, site, ai and text (the whole sentence, for a reader); false with neither.

@@ -1,9 +1,9 @@
-/* Eguahe, the skin «vestíbulo» (the living hall): the paper desk of the skin «mostrador», inside the hall of the centre
-  (Gaudí, 8 November 2026). Loaded after pieles/mostrador/piel.css, with both classes on the body, so every screen keeps
+/* Eguahe, the skin «vestíbulo» (the living hall): the paper desk of the skin «mostrador», inside the hall of the centre.
+  Loaded after pieles/mostrador/piel.css, with both classes on the body, so every screen keeps
   the desk and its paper; here the desk is light oak or beech like the floor and the counter of the hall, the paper a
   point warmer, the accents those of the scene (cream, light wood, coral only for what is pointed out) and the night that
   of its night light. On the page of a family, the hall itself, in isometric, drawn by escena.js from
-  datos/vestibulo.json; on the inbox, its rail as a window beside the list (Jujol, 13 November 2026); without
+  datos/vestibulo.json; on the inbox, its rail as a window beside the list; without
   JavaScript, the desk as it is. */
 body.piel-vestibulo {
     --papel-b: #fffaf0;

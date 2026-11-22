@@ -1,6 +1,6 @@
 /* Eguahe, the pages of the families: their own pages, not Moodle's. The centre's brand rules (logo, name, colour)
    and Eguahe keeps the language of its mark: the child's backpack on its hook, the name written by hand on its label,
-   the people who will receive the family, warm paper and calm, large type (DESIGN.md of Gaudí, 7 November 2026).
+   the people who will receive the family, warm paper and calm, large type.
    Works in Firefox 98: no color-mix(), no :has(), no container queries; every colour that comes from the centre is
    computed on the server and written as a variable. */
 @font-face {
@@ -12,7 +12,7 @@
     unicode-range: U+0000-05FF, U+1E00-1EFF, U+2000-20CF, U+2100-22FF, U+FB00-FB06;
 }
 
-/* Arabic text (Gaudí, 8 November 2026): Vazirmatn, a second face of the same family, so mixed text shares itself out;
+/* Arabic text: Vazirmatn, a second face of the same family, so mixed text shares itself out;
    a point larger, as Arabic needs to read as comfortably as the Latin letters. */
 @font-face {
     font-family: 'Eg Sans';
@@ -1081,7 +1081,7 @@ textarea {
 }
 
 /* The stripe of the brand of the centre on the top edge of the band of the visit, between the wall and the band */
-/* Always on paper, never stuck to a surface of colour: two pixels of the wall between it and the band (Jujol) */
+/* Always on paper, never stuck to a surface of colour: two pixels of the wall between it and the band */
 .con-marca .banda[data-parte="visit"] {
     background-image: var(--marca-franja), linear-gradient(var(--c-pared), var(--c-pared));
     background-repeat: no-repeat;
@@ -1284,7 +1284,7 @@ textarea {
     transform: translateX(-50%);
 }
 
-/* On a phone what it says goes first in the caption, with its head (Jujol). */
+/* On a phone what it says goes first in the caption, with its head. */
 .banda .miniatura figcaption .marca-guia {
     display: none;
 }
@@ -1404,7 +1404,7 @@ textarea {
         grid-column: 2;
     }
 
-    /* With a miniature (Jujol): the day and what they need to know on the left, the miniature on the right, level
+    /* With a miniature: the day and what they need to know on the left, the miniature on the right, level
        with the day; the two columns even. */
     .banda.banda-con-miniatura {
         grid-template-rows: auto auto 1fr;
@@ -2536,7 +2536,7 @@ fieldset.mal .fichas .ficha {
     visibility: hidden;
 }
 
-/* After the visit (Gaudí, «Cómo fue», 8 November 2026): a warm gesture, not a form. Once they came, the label of each
+/* After the visit: a warm gesture, not a form. Once they came, the label of each
    backpack is stuck down, as it was at the door. One open question waits on the wall as a note on lined paper, its top
    in the colour of the centre like the band of a label, with the face of whoever answers on the button; once sent, a
    slip says who has it. If the centre turned on the survey «How did it go?», the band says who reads it, with their
@@ -3281,7 +3281,7 @@ textarea.renglones:focus-visible {
     display: none;
 }
 /* «Your first day»: the story of a child who starts, as a card on the wall: its cover, the label with their name, what
-   it is and that it opens (Jujol) */
+   it is and that it opens */
 .cuento-tarjeta {
     display: grid;
     grid-template-columns: 112px minmax(0, 1fr);
@@ -3431,7 +3431,7 @@ textarea.renglones:focus-visible {
     }
 }
 
-/* In their free time (Jujol): a light part of «What you told us». Each adult folded, with what they said on their line;
+/* In their free time: a light part of «What you told us». Each adult folded, with what they said on their line;
    open, the chips of paper, which read as choosing and not as filling a form. Kept when touched. */
 .aficiones .muted {
     margin: 0 0 10px;
@@ -3946,7 +3946,7 @@ textarea.renglones:focus-visible {
 }
 
 /* The miniature big: an SVG has no size of its own, so its box has one (a miniature is 16:10). On a phone: as tall as
-   the screen, sliding sideways, opened at the pin (Jujol). */
+   the screen, sliding sideways, opened at the pin. */
 .visor-pista {
     display: none;
 }
@@ -4424,7 +4424,7 @@ html[lang="ar"] body * {
     letter-spacing: 0 !important;
 }
 
-/* Long Arabic text, with more room between its lines (Gaudí). */
+/* Long Arabic text, with more room between its lines. */
 :lang(ar) p,
 :lang(ar) li {
     line-height: 1.75;
@@ -4778,8 +4778,7 @@ html[lang="ar"] body * {
         padding-top: 18px;
     }
 
-    /* Without acts, asking for information stands at the height of the card, so the page reads as one piece (Gaudí,
-       11 November 2026). */
+    /* Without acts, asking for information stands at the height of the card, so the page reads as one piece. */
     .compartido-invitacion.sin-actos {
         align-items: center;
     }
@@ -5277,7 +5276,7 @@ button.enlace span {
     margin: 0;
 }
 
-/* ---------- One thing of now, and the rest under «Also on your page» (Jujol) ----------
+/* ---------- One thing of now, and the rest under «Also on your page» ----------
    Under the heading, the one thing that matters now (familypage::arrange()); a card goes on the wall, a band right after
    it. The rest, below: each a slip that says what it is and how it stands, and opens where it is. */
 .ahora {
@@ -5571,7 +5570,7 @@ button.enlace span {
 }
 
 /* A family whose every way is closed: what hung stands on a shelf, off its knob, a little leaning, with a short
-   shadow where it touches the wood (Jujol). The shelf runs under all of them. */
+   shadow where it touches the wood. The shelf runs under all of them. */
 .perchas.apoyadas {
     position: relative;
 }
@@ -5773,7 +5772,7 @@ html {
     text-decoration: none;
 }
 
-/* ---------- The brand of the centre, whole (Jujol, 20 November 2026) ----------
+/* ---------- The brand of the centre, whole ----------
    When the centre wrote its colours (body.con-marca), its pages are its own: the white of its signs by day and a dark
    of its own at night, the wall in a tint of its colour, the titles in its colour with the line of its signs under
    them, its logo larger and its stripe above and below. Eguahe keeps what is its gesture: the rail of wood, the hook,
@@ -5916,7 +5915,7 @@ html {
 /* The day of the act, on a panel in the tint of the brand: the name of the day in the accent, the date in the colour
    of the titles, the hour in ink */
 .con-marca .resumen-acto {
-    /* A sticker: by day and at night, the same colours of the day (the yellow of Nuryana also at night) */
+    /* A sticker: by day and at night, the same colours of the day (a bright yellow also at night) */
     --eg-tinta: var(--m-tarjeta-tinta);
     --eg-tinta-2: var(--m-tarjeta-tinta-2);
     --c-acento-texto: var(--m-tarjeta-titulo);
@@ -5948,7 +5947,7 @@ html {
     color: inherit;
 }
 
-/* «Cómo les escribimos» (Jujol, 21 Nov 2026): the page where a family chooses how the centre writes to it, or that it
+/* «Cómo les escribimos»: the page where a family chooses how the centre writes to it, or that it
    does not write any more, and the confirmation. Over eguahe.css with the brand of the centre; everything new is .es-*.
    Calm and large: the type of the rest of the page, never the small print of a footer. */
 
@@ -6247,7 +6246,7 @@ html {
     }
 }
 
-/* The ways as boxes, several at once (Jujol, 21 Nov 2026, later): a row each, the icon of the channel in its square,
+/* The ways as boxes, several at once: a row each, the icon of the channel in its square,
    its name and what it means, and a big box; checked, in the tint of the centre. Real checkboxes, hidden, the focus seen */
 .es-casillas {
     border: 0;
@@ -6481,7 +6480,7 @@ html {
     height: 20px;
 }
 
-/* A box checked at night, with the brand of the centre: on the blue of its wall, in its light ink (Jujol) */
+/* A box checked at night, with the brand of the centre: on the blue of its wall, in its light ink */
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) .con-marca .es-casilla.es-on {
         background: var(--m-pared);
@@ -6494,7 +6493,7 @@ html {
     color: var(--m-tinta);
 }
 
-/* The wall of the family page, wide (Jujol, 21 Nov 2026). Enrique, at about 1860 px: «¿Por qué Leo va debajo y queda
+/* The wall of the family page, wide. Enrique, at about 1860 px: «¿Por qué Leo va debajo y queda
    tanto espacio en blanco a la derecha?». */
 
 /* The name written by hand goes on the line of the greeting when it fits, as one piece: «Los esperamos, Leo». When it
@@ -6529,7 +6528,7 @@ html {
     }
 }
 
-/* Their contact data and what they like, without the look of a form (Jujol, 21 Nov 2026). Over the markup of the
+/* Their contact data and what they like, without the look of a form. Over the markup of the
    0.101.0: each person a small card with their name written by hand, and each datum a line written in its place, as
    on paper; it keeps itself, as the chips of «En su tiempo libre» already do. */
 

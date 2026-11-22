@@ -347,7 +347,7 @@ class panel_metrics {
         $enrolled = count(array_filter($mine, fn($f) => $f['step'] >= 5));
         $voice = in_array($view['voice'] ?? '', self::VOICES, true) ? $view['voice'] : 'first';
         $show = ($view['show'] ?? '') === 'matriculadas' ? 'matriculadas' : 'llegadas';
-        // Three sheets instead of one long page (Jujol, 13 November 2026): the campaign (answers, how far, where from,
+        // Three sheets instead of one long page: the campaign (answers, how far, where from,
         // week by week, places), the school year (the ledger and the roll year by year) and the families (what they like
         // and the channels month by month). Only the blocks of the sheet shown are worked out.
         $sheet = in_array($view['sheet'] ?? '', self::SHEETS, true) ? $view['sheet'] : 'campana';
@@ -453,7 +453,7 @@ class panel_metrics {
                 $context[$chart]['ancha'] = !$context[$partner];
             }
         }
-        // The sheet «Quién entra y quién sale» (Jujol): the new students, what the ads and the acts brought, the joins and
+        // The sheet «Quién entra y quién sale»: the new students, what the ads and the acts brought, the joins and
         // leaves, the ledger and the years; with nothing to count yet, how to bring it.
         $new = $on('curso') ? panel_newstudents::context(
             $centre,
@@ -575,7 +575,7 @@ class panel_metrics {
                     'hero' => $words((float) $group['median']),
                     'count' => get_string($one ? 'panel_resp_families_one' : 'panel_resp_families', $c, $group['count']),
                     'v' => round(max(0.02, (float) $group['median'] / $longest), 3),
-                    // One or two families say little yet: in soft ink, so nobody reads much into them (Jujol).
+                    // One or two families say little yet: in soft ink, so nobody reads much into them.
                     'few' => $group['count'] < 3,
                 ];
                 $few = $few || $group['count'] < 3;
@@ -707,7 +707,7 @@ class panel_metrics {
                 ($voice === 'last' ? get_string('panel_last_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 get_string('panel_first_line', $c, (object) ['n' => $row['n'], 'name' => $name, 'enrolled' => $row['enrolled'],
                 'frac' => self::fraction($row['enrolled'], $row['n']), 'cost' => $cost]));
-            // In the row of the AI assistants, what those families said, each with how many (Jujol).
+            // In the row of the AI assistants, what those families said, each with how many.
             $aisaid = $measured && $name === get_string('arrival_ai_group', $c) ? self::ai_said($open) : [];
             if ($aisaid) {
                 $line .= ' ' . get_string('panel_measured_ai', $c, implode(', ', array_map(
@@ -1127,7 +1127,7 @@ class panel_metrics {
                 'bench' => $waiting ? ['n' => $waiting, 'bags' => array_fill(0, min(self::BENCH, $waiting), 1),
                     'text' => get_string($waiting === 1 ? 'panel_bench_one' : 'panel_bench', $c, $waiting)] : false,
                 // The numbers of the rail, to point at it peg by peg. The flat rail of the desk in every skin: it reads
-                // as bars and keeps the range (Gaudí, 8 November 2026); the cloakroom of the hall stays for the inbox.
+                // as bars and keeps the range; the cloakroom of the hall stays for the inbox.
                 'taken' => $taken, 'places' => $places, 'low' => $rows ? $rows[0]['low'] : false,
                 'mid' => $rows ? $rows[0]['mid'] : false, 'high' => $rows ? $rows[0]['high'] : false];
         }

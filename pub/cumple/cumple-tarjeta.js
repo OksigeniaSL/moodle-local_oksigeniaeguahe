@@ -4,7 +4,7 @@
  *
  * The card: the badge a child pins on the backpack that hangs from their name in the panel (the ladder of
  * data/escalera.json), with their age in the middle and their name round the rim, its two ribbons, on the paper of the
- * book; above it, the garland of the class. Each step less childish (Gaudí, 10 November 2026):
+ * book; above it, the garland of the class. Each step less childish:
  *   6-7 (escolar): coral badge, the whole garland and confetti;
  *   8-9 (figura): sage badge, half the garland, a few dots;
  *   10-11 (llavero): ink-blue badge, no garland, one thin line.

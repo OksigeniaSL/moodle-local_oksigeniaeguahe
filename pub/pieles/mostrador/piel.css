@@ -1544,7 +1544,7 @@ body.piel-mostrador::after {
     transform: translateX(50%) rotate(3deg);
 }
 
-/* Near the right edge, hanging to the left of its mark (Jujol, 13 November 2026). */
+/* Near the right edge, hanging to the left of its mark. */
 .piel-mostrador .acto-sello.al-final {
     transform: translateX(-100%) rotate(-3deg);
 }
@@ -1907,7 +1907,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
         mask-image: none;
     }
 }
-/* ---------- «How is it done?» (Jujol, 17 November 2026): a sheet of the desk with its slips. The button is a paper
+/* ---------- «How is it done?»: a sheet of the desk with its slips. The button is a paper
    label in the bar; the sheet comes down over the dimmed desk; what is written goes on a ruled line; each answer is a
    slip with its stub (a setting's stub in kraft, as the archive of Ajustes); «Before, …», nothing found and the AI's
    answer on the yellow pad; a setting's value written by hand in blue ink. ---------- */
@@ -2004,7 +2004,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
     box-shadow: inset 0 0 0 1.5px var(--tinta-azul);
     color: var(--tinta-azul);
 }
-/* ---------- The guided helps (Jujol, 17 November 2026): the practice centre is a print laid on the desk, under its kraft
+/* ---------- The guided helps: the practice centre is a print laid on the desk, under its kraft
    tab, its margin the paper where the caption is written and the step in blue ink by hand; the cards, sheets of the
    desk; at the end, the inked stamp «Seen». ---------- */
 .piel-mostrador .ayuda-pestana {
@@ -2067,7 +2067,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
     mask-image: var(--ruido-sello);
 }
 
-/* The printed guides (Jujol, 17 November 2026): a strip of paper, each guide a small sheet laid on it. */
+/* The printed guides: a strip of paper, each guide a small sheet laid on it. */
 .piel-mostrador .como-guias {
     border-color: transparent;
     background: var(--papel-b) var(--ruido);
@@ -2085,7 +2085,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
     box-shadow: var(--sombra-alta);
 }
 
-/* ---------- Lo medido on the paper desk (Jujol, 18 November 2026, Eguahe 0.85.1). Goes in pub/pieles/mostrador/piel.css,
+/* ---------- Lo medido on the paper desk. Goes in pub/pieles/mostrador/piel.css,
    after «.sello-fecha». What they told us is written by hand on a small note (what they remember); what was measured is
    printed on a ticket with its torn stub (what the link said); an AI assistant is stamped in the ink of the other
    stamps, turned and worn like them. Each carries a datum: no decoration. ---------- */
@@ -2221,7 +2221,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
     }
 }
 
-/* ---------- How to ask for a place on the paper desk (Jujol, 19 November 2026, Eguahe 0.86.0). Goes in
+/* ---------- How to ask for a place on the paper desk. Goes in
    pub/pieles/mostrador/piel.css, after the children wall («.piel-mostrador .pared-hijos .riel»). A kraft envelope, a
    little crooked like everything on the desk, its address written in the kraft's ink; the stamp is paper with notched
    edges and the centre's colour inside; sent, the postmark in the ink of the other stamps. ---------- */
@@ -2261,7 +2261,7 @@ body.modo-lamina.piel-mostrador .barra-antes {
     }
 }
 
-/* ---------- What is written straight on the wood reads (Jujol's review of contrast, 20 November 2026) ----------
+/* ---------- What is written straight on the wood reads ----------
    The grey ink is for paper: on the wood, light by day and dark at night, a line in grey got lost (2.4 to 3.1:1). Every
    text that sits on the wood itself takes the main ink of the desk, which reads on its lightest grain. */
 .piel-mostrador .aj-tramo-t,

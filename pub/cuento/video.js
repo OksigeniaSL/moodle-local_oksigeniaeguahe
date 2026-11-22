@@ -9,7 +9,7 @@
  * on a canvas and encoded with VideoEncoder; both packed by mp4-muxer into one MP4. Without those, no video: the sheet
  * offers the story heard, as «Save it» always did. The sheet is the one of the drawing (../dibujo-video.js).
  *
- * How it looks (Gaudí, 9 November 2026, with the grid Kimi K3 proposed): every frame is a page of the picture book, on
+ * How it looks: every frame is a page of the picture book, on
  * one grid. The illustration fills the top of the screen, and the paper of the book, always the same, lies under it;
  * the picture ends on the paper as a wash of paint ends, and the paper keeps a vein of its colour. The words come in
  * under it, line by line with the voice, centred, in sepia, the child's name in its own hand. The camera only comes
@@ -322,7 +322,7 @@
 
     // --- The grid ------------------------------------------------------------------------------------------------------
 
-    // One grid for every frame, the cover and the dedication too (Gaudí, with Kimi K3's proposal, 9 November 2026), in
+    // One grid for every frame, the cover and the dedication too, in
     // units of 720 x 1280 (the pixels of the video divided by 1.5), on a module of 8 pixels:
     // - the picture: the whole width, from the top down to PLATE (1056 px), the illustration at 1584 x 1056 px and
     //   cropped at the sides; what matters lives in what shows, the central 68 %;
@@ -573,8 +573,8 @@
      * The paper of a page laid over its picture, as a canvas from ZONE down at the pixels of the video: the picture ends
      * there as a wash of paint ends on paper, along a brushed line that wanders EDGE ± 16 units, frayed by the grain of
      * the paper and with its pigment a little deeper where it stops; under it, the paper of the book, with a vein of the
-     * colour of the picture at 5 %, a little more right under the paint, gone by the end of the seam. (Gaudí chose the
-     * edge of a wash between three ways, with the frames in front: a melt into grainy paper read as fog, and a sheet with
+     * colour of the picture at 5 %, a little more right under the paint, gone by the end of the seam. (The edge of a
+     * wash, chosen between three ways with the frames in front: a melt into grainy paper read as fog, and a sheet with
      * a deckled edge laid over the picture read as a collage.) Kept for the three pages around the one shown.
      *
      * @param {Object} L
@@ -969,10 +969,10 @@
     // The child's drawing is the moment that moves most: the camera goes to the frame up to 1.5, the frame at 70 % of the
     // width (as far left as it goes: the picture ends 112 px after it) and a third of it, at the height of the eyes, with
     // the cork of the class's drawings on its left and the heads of the children looking at it below: the class sees
-    // your child's drawing (Gaudí chose it over 2, which shows the frame bigger and loses them). The wall softens, like a
+    // your child's drawing (chosen over 2, which shows the frame bigger and loses them). The wall softens, like a
     // depth of field; the drawing, drawn by its player on a sheet of 640 px, stays sharp. Checked page by page: the
     // child, the name and what happens show (the LEEME has the check).
-    // Nothing cut in half at an edge, at the start or the end of a look: no word, no face (Gaudí, 10 November 2026). The
+    // Nothing cut in half at an edge, at the start or the end of a look: no word, no face. The
     // chalkboard starts close on the board alone, the frame of the door at its edge (z0 1.78), and steps back to the
     // child and the teacher when the voice gets to her, the board out: from further, the teacher, crouching towards the
     // child, would smile at the edge of the screen for seconds (Enrique), and the three never fit. The first page ends

@@ -17,7 +17,7 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * «Your first day», the welcome story of a child who starts at the centre (Gaudí): a picture book to read at home in the
+ * «Your first day», the welcome story of a child who starts at the centre: a picture book to read at home in the
  * days before, with their name on the pictures and the drawing they made at the visit on the wall of their class. So
  * the child arrives wanting to go, and the family does not feel «you enrolled, now we forget you».
  *
@@ -42,13 +42,13 @@ class story {
     /** @var string[] Each language as the book names it. */
     const CODES = ['es' => 'es', 'en' => 'en', 'pt' => 'pt-PT', 'pt_br' => 'pt-BR', 'ar' => 'ar'];
 
-    /** @var string[] The pages that change when whoever receives the group is a man, and their pictures (Gaudí). */
+    /** @var string[] The pages that change when whoever receives the group is a man, and their pictures. */
     const MAESTRO = ['pizarra' => 'p3-pizarra-maestro', 'alfombra' => 'p6-alfombra-maestro', 'casa' => 'p7-casa-maestro'];
 
     /** @var string[] How the teacher of a course is called in the story. */
     const TEACHERS = ['maestra', 'maestro'];
 
-    /** @var string[] All the words of the book (Gaudí's cadenas.json), as strings «firstday_» plus the key. */
+    /** @var string[] All the words of the book, as strings «firstday_» plus the key. */
     const STRINGS = ['title', 'doc_title', 'book_label', 'page1', 'page2', 'page3', 'page3_maestro', 'page3_tutor',
         'page3_maestro_tutor', 'page4', 'page5', 'page6', 'page6_maestro', 'page6_tutor', 'page6_maestro_tutor', 'page7',
         'page7_maestro', 'page7_tutor', 'page7_maestro_tutor', 'page8', 'chalk', 'dedication', 'video', 'spoken1', 'spoken2',
@@ -431,7 +431,7 @@ class story {
                 $voices[$reading] = $named + ['lufs' => (float) ($level['voz_lufs'] ?? -20.91)];
             }
         }
-        // The song under the reading, at its level against the voice (Gaudí: the bed 11 dB under it, the door 8).
+        // The song under the reading, at its level against the voice (the bed 11 dB under it, the door 8).
         $lufs = (float) ($read('voz/es/nivel.json')['voz_lufs'] ?? -20.91);
         $loop = $read('musica/musica-bucle.json');
         $music = ['bedDb' => round($lufs - 11 + 18, 2), 'duckDb' => -4.0, 'doorDb' => round($lufs - 8 + 18, 2),
