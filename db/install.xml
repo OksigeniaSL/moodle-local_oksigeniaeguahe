@@ -27,6 +27,7 @@
         <FIELD NAME="address" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the centre is, for the families"/>
         <FIELD NAME="phone" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="The phone families call"/>
         <FIELD NAME="email" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The address families write to"/>
+        <FIELD NAME="emailsettled" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The address families already of the centre write to, when it is another one"/>
         <FIELD NAME="welcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What a visit is like, in a line, for the page of signing up"/>
         <FIELD NAME="logoplate" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the logo needs a light plate in dark mode"/>
         <FIELD NAME="messaging" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="notices" SEQUENCE="false" COMMENT="Telegram and WhatsApp with Marandu: off, notices or conversation"/>

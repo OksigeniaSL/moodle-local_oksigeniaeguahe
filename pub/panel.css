@@ -14301,6 +14301,17 @@ html:not(.con-botes) .aj-marca-botes {
     padding-top: 6px;
 }
 
+/* The address for the families already of the centre: its line, and what it is for under it, under the blank. */
+.aj-visita-otro {
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+.aj-visita-otro > .ayuda {
+    flex-basis: 100%;
+    padding-inline-start: 30px;
+}
+
 /* The country, the language, the money and the system: four plates. */
 .aj-placas {
     display: grid;

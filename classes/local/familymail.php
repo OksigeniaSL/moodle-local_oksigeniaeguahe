@@ -628,6 +628,8 @@ class familymail {
         if (!writeby::may_send($household, $kind)) {
             return false;
         }
+        // A family already of the centre answers to the office that looks after it, when the centre has one.
+        $centre = centres::for_family($centre, $household, $kind);
         // The same notice on the phones the family joined with, when the site has Marandu and they did not take them out.
         $phones = $kind !== 'reply' ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
         // By email only if they marked it (or never chose); else, while no phone they marked is joined, and what they must

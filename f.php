@@ -71,6 +71,8 @@ if (!$household || !$centre) {
         $url
     );
 }
+// A family already of the centre sees, and writes to, the office that looks after it, when the centre has one.
+$centre = centres::for_family($centre, $household);
 $lang = publiclang::choose($centre);
 // A link unused for months stops working: a new one goes to the email the centre has, never to one written here.
 $link = access::link($token);

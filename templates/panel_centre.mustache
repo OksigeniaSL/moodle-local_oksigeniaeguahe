@@ -61,7 +61,7 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
+        "email": "", "emailsettled": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
@@ -384,6 +384,7 @@
                             <span class="aj-visita-par"><span class="aj-visita-ic" aria-hidden="true">{{{i.telefono}}}</span><label class="oculto" for="c-tel">{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-tel" type="tel" name="phone" value="{{phone}}" placeholder="{{#str}}centre_phone, local_oksigeniaeguahe{{/str}}" size="16" dir="ltr" data-tel="{{tel}}"></span>
                             <span class="aj-visita-par"><span class="aj-visita-ic" aria-hidden="true">{{{i.correo}}}</span><label class="oculto" for="c-correo">{{#str}}centre_email, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-correo" type="email" name="email" value="{{email}}" placeholder="{{#str}}centre_email, local_oksigeniaeguahe{{/str}}" size="26" dir="ltr"></span>
                         </div>
+                        <div class="aj-visita-fila aj-visita-otro"><span class="aj-visita-ic" aria-hidden="true">{{{i.correo}}}</span><label class="oculto" for="c-correo2">{{#str}}centre_emailsettled, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-correo2" type="email" name="emailsettled" value="{{emailsettled}}" placeholder="{{#str}}centre_emailsettled, local_oksigeniaeguahe{{/str}}" size="26" dir="ltr" aria-describedby="c-correo2-a"><span class="ayuda" id="c-correo2-a">{{#str}}centre_emailsettled_help, local_oksigeniaeguahe{{/str}}</span></div>
                         <div class="aj-visita-llegar con-ayuda">
                             <label for="c-llegar">{{#str}}panel_how_to_arrive, local_oksigeniaeguahe{{/str}}</label>
                             <textarea class="aj-cuaderno" id="c-llegar" name="arrive" rows="2" aria-describedby="c-llegar-a">{{arrive}}</textarea>

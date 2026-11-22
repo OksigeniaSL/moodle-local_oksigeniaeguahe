@@ -134,11 +134,12 @@ class centres {
             $row->shareentry = max(0, (int) $data->shareentry);
         }
         // How families reach the centre, and a line about what a visit is like.
-        foreach (['address' => 255, 'phone' => 50, 'email' => 255] as $field => $length) {
+        foreach (['address' => 255, 'phone' => 50, 'email' => 255, 'emailsettled' => 255] as $field => $length) {
             $value = trim((string) ($data->$field ?? ''));
             $row->$field = $value === '' ? null : \core_text::substr($value, 0, $length);
         }
         $row->email = $row->email !== null && validate_email($row->email) ? $row->email : null;
+        $row->emailsettled = $row->emailsettled !== null && validate_email($row->emailsettled) ? $row->emailsettled : null;
         $row->welcome = trim((string) ($data->welcome ?? '')) ?: null;
         $row->arrive = trim((string) ($data->arrive ?? '')) ?: null;
         if (isset($data->library)) {
@@ -1134,5 +1135,35 @@ class centres {
         $parts = explode('_', current_language());
         $region = strtoupper($parts[1] ?? (string) ($centre->country ?? ''));
         return $parts[0] . ($region !== '' ? '_' . $region : '');
+    }
+
+    /**
+     * The centre as a family sees it. A family already of the centre (brought from its roll, marked as of the centre, or
+     * with a child enrolled), and the question of who goes on next year, get the address of the centre for its families
+     * when it has one: what they answer goes to the office that looks after them, not to admissions.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $household
+     * @param string $kind The mail, if it is one.
+     * @return \stdClass The same centre, or a copy with that address as its email.
+     */
+    public static function for_family(\stdClass $centre, \stdClass $household, string $kind = ''): \stdClass {
+        global $DB;
+        $other = trim((string) ($centre->emailsettled ?? ''));
+        if ($other === '') {
+            return $centre;
+        }
+        $ofcentre = $kind === 'renewal' || !empty($household->incentre) || !empty($household->roster) ||
+            $DB->record_exists_select(
+                households::CHILDREN,
+                "householdid = ? AND stage = 'enrolled' AND (lefttime IS NULL OR lefttime = 0)",
+                [(int) $household->id]
+            );
+        if (!$ofcentre) {
+            return $centre;
+        }
+        $copy = clone $centre;
+        $copy->email = $other;
+        return $copy;
     }
 }

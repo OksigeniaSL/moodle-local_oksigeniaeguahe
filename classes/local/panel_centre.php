@@ -119,6 +119,7 @@ class panel_centre {
             'phone' => (string) $centre->phone,
             'tel' => phone::for_page((string) ($centre->country ?? '')),
             'email' => (string) $centre->email,
+            'emailsettled' => (string) ($centre->emailsettled ?? ''),
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
             'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
@@ -796,6 +797,7 @@ class panel_centre {
             'address' => optional_param('address', '', PARAM_TEXT),
             'phone' => optional_param('phone', '', PARAM_TEXT),
             'email' => optional_param('email', '', PARAM_RAW_TRIMMED),
+            'emailsettled' => optional_param('emailsettled', '', PARAM_RAW_TRIMMED),
             'welcome' => optional_param('welcome', '', PARAM_TEXT),
             'arrive' => optional_param('arrive', '', PARAM_TEXT),
             'replydays' => optional_param('replydays', (int) ($centre->replydays ?? 2), PARAM_INT),
@@ -843,6 +845,10 @@ class panel_centre {
         if ($data->email !== '' && !validate_email($data->email)) {
             $problems[] = get_string('panel_email_kept', $c, s($data->email));
             $data->email = (string) $centre->email;
+        }
+        if ($data->emailsettled !== '' && !validate_email($data->emailsettled)) {
+            $problems[] = get_string('panel_email_kept', $c, s($data->emailsettled));
+            $data->emailsettled = (string) ($centre->emailsettled ?? '');
         }
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);

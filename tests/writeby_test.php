@@ -159,6 +159,43 @@ final class writeby_test extends \advanced_testcase {
     }
 
     /**
+     * A centre with a second address: the families that come answer to admissions, and the ones already of the centre
+     * (and the question of who goes on) to the office that looks after them.
+     */
+    public function test_address_for_families_of_the_centre(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $household = $this->family();
+        centres::update($this->centreid, (object) ['email' => 'admisiones@example.com']);
+        $centre = centres::get($this->centreid);
+        $this->assertSame('admisiones@example.com', centres::for_family($centre, $household, 'renewal')->email);
+
+        centres::update($this->centreid, (object) ['emailsettled' => 'secretaria@example.com']);
+        $centre = centres::get($this->centreid);
+        $this->assertSame('admisiones@example.com', $centre->email);
+        $this->assertSame('admisiones@example.com', centres::for_family($centre, $household)->email);
+        $this->assertSame('secretaria@example.com', centres::for_family($centre, $household, 'renewal')->email);
+        $this->assertSame('admisiones@example.com', $centre->email);
+
+        $child = $DB->get_record(households::CHILDREN, ['householdid' => $household->id], '*', IGNORE_MULTIPLE);
+        households::set_stage($child, 'enrolled');
+        $household = households::get((int) $household->id, $this->centreid);
+        $this->assertSame('secretaria@example.com', centres::for_family($centre, $household)->email);
+
+        $sink = $this->redirectEmails();
+        $this->assertTrue(familymail::send('received', $household, $centre, null, 'es', 'clave'));
+        $messages = $sink->get_messages();
+        $sink->close();
+        $this->assertCount(1, $messages);
+        $this->assertMatchesRegularExpression('/^Reply-To:.*secretaria@example\.com/mi', $messages[0]->header);
+
+        // An address that is not one keeps none.
+        centres::update($this->centreid, (object) ['emailsettled' => 'no es un correo']);
+        $this->assertNull(centres::get($this->centreid)->emailsettled);
+    }
+
+    /**
      * The «thank you» answered the same day to the confirmation does not undo it: it is answered, and the word stays.
      */
     public function test_same_day(): void {

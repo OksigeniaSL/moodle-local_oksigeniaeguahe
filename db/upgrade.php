@@ -1692,5 +1692,16 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026119900, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026120600) {
+        // A second address of the centre, for the families already of it: re-enrolment and what they answer go to the
+        // office that looks after them, not to admissions.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('emailsettled', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'email');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026120600, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
