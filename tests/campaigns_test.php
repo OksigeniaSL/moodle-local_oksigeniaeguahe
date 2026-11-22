@@ -111,14 +111,14 @@ final class campaigns_test extends \advanced_testcase {
      */
     public function test_clicks(): void {
         $this->resetAfterTest();
-        set_config('shortenerapi', 'https://nur.click/yourls-api.php', 'local_oksigeniaeguahe');
+        set_config('shortenerapi', 'https://short.example/yourls-api.php', 'local_oksigeniaeguahe');
         set_config('shortenerkey', 'test', 'local_oksigeniaeguahe');
         \curl::mock_response(json_encode(['message' => 'success', 'statusCode' => 200,
-            'link' => ['shorturl' => 'https://nur.click/visita-2111', 'clicks' => 42, 'clicks_month' => 12, 'active' => true]]));
-        $first = events::clicks(null, 'https://nur.click/visita-2111');
+            'link' => ['shorturl' => 'https://short.example/visita-2111', 'clicks' => 42, 'clicks_month' => 12, 'active' => true]]));
+        $first = events::clicks(null, 'https://short.example/visita-2111');
         $this->assertSame(42, $first['clicks']);
         // Kept a day: not asked again (no answer is waiting, and it would fail).
-        $this->assertSame($first, events::clicks($first, 'https://nur.click/visita-2111'));
+        $this->assertSame($first, events::clicks($first, 'https://short.example/visita-2111'));
         // A long address is not the shortener's: nothing is asked.
         $this->assertNull(events::clicks(null, 'https://example.com/local/oksigeniaeguahe/w.php?e=x'));
     }

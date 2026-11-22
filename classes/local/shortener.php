@@ -129,9 +129,9 @@ class shortener {
     }
 
     /**
-     * The short link of a long address, with what the shortener says of it: the short address, its keyword and, when the
-     * shortener draws its QR codes (as nur.click does), the address of the one of this link. A YOURLS that does not draw
-     * them gives no «qrsvg»: the plugin draws its own.
+     * The short link of a long address, with what the shortener says of it: the short address, its keyword and, when
+     * the shortener draws its QR codes (as some YOURLS installs do), the address of the one of this link. A YOURLS that
+     * does not draw them gives no «qrsvg»: the plugin draws its own.
      *
      * @param string $url The long address.
      * @param string $title What it is, for whoever looks at the links of the shortener.
@@ -215,7 +215,7 @@ class shortener {
     }
 
     /**
-     * How many times a short link of this program was opened (`url-stats`, as in YOURLS; nur.click since 18-11-2026): all
+     * How many times a short link of this program was opened (`url-stats`, as in YOURLS): all
      * the visits and those of the last 30 days, and whether it is active. Null when the shortener does not give it or the
      * link is not of this program. It spends of the limit every plugin shares: ask rarely and keep what it says.
      *
