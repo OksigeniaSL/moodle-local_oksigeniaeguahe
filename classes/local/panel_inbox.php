@@ -668,6 +668,9 @@ class panel_inbox {
         global $DB;
         $c = self::C;
         $latest = households::latest(array_keys($list));
+        // The names of the forms and bridges the last messages came by, at once.
+        $entryids = array_values(array_unique(array_filter(array_map(fn($i) => (int) ($i['last']->entryid ?? 0), $latest))));
+        $entrynames = $entryids ? $DB->get_records_list(entries::T, 'id', $entryids, '', 'id, name') : [];
         // The families of former students, with their mortarboard by the name.
         $first = reset($list);
         $alumni = $first ? alumni::families((int) $first->centreid) : [];
@@ -681,6 +684,12 @@ class panel_inbox {
             $channel = $last ? (string) $last->channel : (string) $household->firstchannel;
             $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel :
                 'other'), $c);
+            // By a form or a bridge of the centre: which one, and from which of its places («La web del colegio · Web ·
+            // Infantil»), so the team sees at a glance where the family came in.
+            if ($last && (int) $last->entryid && isset($entrynames[(int) $last->entryid])) {
+                $via = get_string('via_entry', $c, (object) ['entry' => format_string($entrynames[(int) $last->entryid]->name),
+                    'site' => trim((string) $last->detail) !== '' ? ' · ' . s(trim((string) $last->detail)) : '']);
+            }
             // The day and the hour are already at the left of the row: here only how it came, never cut in the middle.
             if (!empty($household->moving)) {
                 $via .= ' · ' . get_string('panel_moving', $c);
@@ -690,10 +699,7 @@ class panel_inbox {
             [$measured, $fromai] = arrival::of($household);
             if ($measured !== '' && !$fromai) {
                 // By its own name when it is known («instagram» says Instagram); an unknown site as it came.
-                $name = arrival::label($measured);
-                $raw = \core_text::strtoupper(\core_text::substr($measured, 0, 1)) . \core_text::substr($measured, 1);
-                $via .= ' · ' . get_string('panel_from_short', $c, strpos($measured, '.') !== false && $name === $raw ?
-                    $measured : $name);
+                $via .= ' · ' . get_string('panel_from_short', $c, arrival::shown($measured));
             }
             $aiwords = $fromai ? get_string('panel_arrived_ai', $c, $measured) : '';
             $children = [];

@@ -1040,10 +1040,10 @@ class panel_household {
             $parts[] = get_string('panel_said', $c, $said);
         }
         if ($site !== '') {
-            $parts[] = get_string($ai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $site);
+            $parts[] = get_string($ai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $ai ? $site : arrival::shown($site));
         }
         $text = implode('; ', $parts) . '.';
-        return ['said' => $said, 'site' => $site, 'ai' => $ai,
+        return ['said' => $said, 'site' => $ai ? $site : arrival::shown($site), 'ai' => $ai,
             'text' => \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1)];
     }
 

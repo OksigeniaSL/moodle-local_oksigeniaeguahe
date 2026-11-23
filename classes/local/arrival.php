@@ -209,6 +209,19 @@ class arrival {
     }
 
     /**
+     * A source or a site as the team reads it in a sentence: by its own name when it is known («google» says Google), an
+     * unknown site as its address («nueva.nuryana.com»), anything else with its capital.
+     *
+     * @param string $what A utm_source or a domain.
+     * @return string
+     */
+    public static function shown(string $what): string {
+        $name = self::label($what);
+        $raw = \core_text::strtoupper(\core_text::substr($what, 0, 1)) . \core_text::substr($what, 1);
+        return strpos($what, '.') !== false && $name === $raw ? $what : $name;
+    }
+
+    /**
      * What a source or a site is, for a list of where families came from: AI assistants together.
      *
      * @param string $what

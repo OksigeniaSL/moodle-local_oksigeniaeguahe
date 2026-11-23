@@ -41,7 +41,7 @@ class export {
         $out = [];
         foreach (
             ['family', 'emails', 'phones', 'child', 'home', 'birth', 'course', 'stage', 'since', 'arrived', 'channel',
-                'heard', 'measured', 'place', 'moving', 'alumni', 'waiting'] as $key
+                'entry', 'heard', 'measured', 'place', 'moving', 'alumni', 'waiting'] as $key
         ) {
             $out[$key] = get_string('export_col_' . $key, self::C);
         }
@@ -79,6 +79,24 @@ class export {
             $studied[(int) $r->householdid][] = (int) $r->adultid;
         }
         $studiedrows->close();
+        // The form or bridge of the centre each family first came in by, with its place («La web del colegio · Web ·
+        // Infantil»).
+        $entrynames = $DB->get_records_menu(entries::T, ['centreid' => $centre->id], '', 'id, name');
+        $entryof = [];
+        $firsts = $DB->get_recordset_select(
+            households::CONTACTS,
+            'centreid = ? AND entryid > 0',
+            [$centre->id],
+            'id ASC',
+            'id, householdid, entryid, detail'
+        );
+        foreach ($firsts as $first) {
+            if (!isset($entryof[(int) $first->householdid]) && isset($entrynames[(int) $first->entryid])) {
+                $entryof[(int) $first->householdid] = format_string($entrynames[(int) $first->entryid]) .
+                    (trim((string) $first->detail) !== '' ? ' · ' . trim((string) $first->detail) : '');
+            }
+        }
+        $firsts->close();
         $childrenof = [];
         foreach ($DB->get_recordset_select(households::CHILDREN, 'centreid = ?', [$centre->id], 'id ASC') as $child) {
             $childrenof[(int) $child->householdid][] = $child;
@@ -93,6 +111,7 @@ class export {
                 'arrived' => $date((int) $household->timecreated),
                 'channel' => $channel !== '' ? get_string('via_' . (in_array($channel, lists::CHANNELS, true) ||
                     $channel === lists::PAGE ? $channel : 'other'), $c) : '',
+                'entry' => $entryof[(int) $household->id] ?? '',
                 'heard' => $household->heardfrom ? get_string('heard_' . (in_array(
                     $household->heardfrom,
                     lists::HEARD_FROM,

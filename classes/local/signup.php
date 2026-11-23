@@ -162,7 +162,7 @@ class signup {
         foreach ($data['adults'] as $i => $adult) {
             if ($adult['email'] !== '' && households::email($adult['email']) === null) {
                 $errors["a{$i}email"] = publiclang::str('pub_err_email', $lang);
-            } else if ($adult['email'] !== '' && !emailcheck::reachable($adult['email'])) {
+            } else if ($adult['email'] !== '' && !entries::is_test($adult['email']) && !emailcheck::reachable($adult['email'])) {
                 // A domain that cannot receive mail: what goes after the @ is mistyped.
                 $errors["a{$i}email"] = publiclang::str('pub_err_email_domain', $lang);
             }
