@@ -475,10 +475,11 @@ class panel_metrics {
             ),
         ];
         $context['spendaction'] = $url([])->out(false);
-        // A chart without its partner in the row takes the whole row.
+        // A chart without its partner in the row takes the whole row; so does the sheet «By channel», a table, and then
+        // the weeks too, alone on the row below.
         foreach ([['reach', 'response'], ['channels', 'weeks'], ['weeks', 'channels']] as [$chart, $partner]) {
             if ($context[$chart]) {
-                $context[$chart]['ancha'] = !$context[$partner];
+                $context[$chart]['ancha'] = !$context[$partner] || !empty($context['channels']['sheet']);
             }
         }
         // The sheet «Quién entra y quién sale»: the new students, what the ads and the acts brought, the joins and

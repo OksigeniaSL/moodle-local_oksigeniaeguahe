@@ -6686,12 +6686,12 @@ button.sin-usar-fila {
    pages makes the browser lay what follows over its last row). The name of each group over its rows, with its sum;
    the numbers in the same column, one under the other. */
 .hoja-tabla {
-    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(4rem, 1fr)) minmax(10rem, 2.2fr);
+    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(5.5rem, 1fr)) minmax(10rem, 2.2fr);
     font-variant-numeric: tabular-nums;
 }
 
 .decidir-tabla {
-    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) minmax(6rem, 1.4fr) repeat(3, minmax(4rem, 1fr));
+    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) minmax(6rem, 1.4fr) repeat(3, minmax(5rem, 1fr));
 }
 
 .hoja-fila {
@@ -6897,7 +6897,7 @@ button.sin-usar-fila {
 /* Narrower, who they are goes on a line of its own under the steps, from the column of the families to the end. */
 @media screen and (max-width: 74.99rem) {
     .porcanal-tabla {
-        --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(4rem, 1fr));
+        --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(5.5rem, 1fr));
     }
 
     .porcanal-tabla .hoja-col:last-child {
