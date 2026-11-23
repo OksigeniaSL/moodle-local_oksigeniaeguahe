@@ -1,0 +1,102 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_oksigeniaeguahe;
+
+use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\entries;
+use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\teamnotice;
+
+/**
+ * «A new family»: the team hears of each family that comes on its own, never of what it wrote down itself.
+ *
+ * @package    local_oksigeniaeguahe
+ * @category   test
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \local_oksigeniaeguahe\local\teamnotice
+ */
+#[\PHPUnit\Framework\Attributes\CoversClass(teamnotice::class)]
+final class teamnotice_test extends \advanced_testcase {
+    /**
+     * Those chosen hear of the families that came by a form or a message; nothing of what the team wrote down or
+     * brought from its sheets; more than three at once go in one notice.
+     */
+    public function test_new_families(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->preventResetByRollback();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($cid);
+        $mary = $this->getDataGenerator()->create_user(['firstname' => 'María', 'lastname' => 'Admisiones']);
+        $other = $this->getDataGenerator()->create_user(['firstname' => 'Pedro', 'lastname' => 'Secretaría']);
+        centres::add_member($cid, (int) $mary->id);
+        centres::add_member($cid, (int) $other->id);
+        teamnotice::toggle($cid, (int) $mary->id);
+        teamnotice::toggle($cid, 999999);
+        $this->assertSame([(int) $mary->id], teamnotice::chosen($cid), 'Only members of the team.');
+        $this->assertSame([(int) $mary->id], array_keys(teamnotice::recipients($centre)));
+
+        $form = entries::create($cid, 'form', 'La web del colegio');
+        $sheet = entries::create($cid, 'google', 'Hoja de visitas');
+        $DB->set_field(entries::T, 'teamsheet', 1, ['id' => $sheet]);
+        $start = time() - 60;
+        $family = function (string $name, int $entry, int $userid) use ($DB, $cid): \stdClass {
+            $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
+            $household = households::get($id, $cid);
+            households::add_adult($household, (object) ['firstname' => $name, 'lastname' => 'Pérez',
+                'email' => strtolower($name) . '@example.com', 'phone' => null]);
+            households::add_child($household, 'Leo', 0);
+            $DB->insert_record(households::CONTACTS, (object) ['centreid' => $cid, 'householdid' => $id,
+                'direction' => 'in', 'channel' => 'webform', 'body' => 'Queremos ver el colegio con calma.',
+                'entryid' => $entry, 'detail' => 'Web · Pide una visita', 'userid' => $userid, 'timecreated' => time()]);
+            return households::get($id, $cid);
+        };
+        $ana = $family('Ana', $form, 0);
+        $family('Noted', 0, (int) $other->id);
+        $family('Sheet', $sheet, 0);
+        $came = teamnotice::arrived($cid, $start, time() + 1);
+        $this->assertSame([(int) $ana->id], array_keys($came));
+
+        $sink = $this->redirectMessages();
+        $this->assertSame(1, teamnotice::send($centre, $came));
+        $messages = $sink->get_messages();
+        $this->assertCount(1, $messages);
+        $this->assertSame((int) $mary->id, (int) $messages[0]->useridto);
+        $this->assertStringContainsString('Ana Pérez', $messages[0]->subject);
+        $this->assertStringContainsString('La web del colegio · Web · Pide una visita', $messages[0]->fullmessage);
+        $this->assertStringContainsString('Queremos ver el colegio', $messages[0]->fullmessage);
+        $sink->clear();
+
+        // Four at once: one notice with all of them.
+        $more = [];
+        foreach (['Bea', 'Carla', 'Dani', 'Eva'] as $name) {
+            $more[] = $family($name, $form, 0);
+        }
+        $this->assertSame(1, teamnotice::send($centre, $more));
+        $messages = $sink->get_messages();
+        $this->assertCount(1, $messages);
+        foreach (['Bea', 'Carla', 'Dani', 'Eva'] as $name) {
+            $this->assertStringContainsString($name . ' Pérez', $messages[0]->fullmessage);
+        }
+        $sink->close();
+
+        // A practice centre never tells anyone.
+        $DB->set_field(centres::T, 'practice', 1, ['id' => $cid]);
+        $this->assertSame(0, teamnotice::send(centres::get($cid), $came));
+    }
+}

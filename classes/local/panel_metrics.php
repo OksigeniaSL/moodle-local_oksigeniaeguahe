@@ -38,7 +38,7 @@ class panel_metrics {
     const STEPS = ['inquiry', 'visit', 'application', 'admitted', 'enrolled'];
 
     /** @var string[] Where families came from, said three ways. */
-    const VOICES = ['first', 'last', 'said', 'measured', 'campaign'];
+    const VOICES = ['channel', 'first', 'last', 'said', 'measured', 'campaign'];
 
     /** @var int The channels drawn one by one; the rest go together. */
     const CHANNELS = 7;
@@ -87,15 +87,27 @@ class panel_metrics {
     }
 
     /**
+     * The families of the campaign under way, with those already of the centre (a child in its nursery, or children
+     * inside): only to set them against the new ones, never in the other numbers of the campaign.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    public static function everyone(\stdClass $centre): array {
+        return self::live($centre, 0, true);
+    }
+
+    /**
      * The families of the campaign under way in Eguahe, those already of the centre apart: those who came since it
      * started (as the centre wrote it; if not, the last twelve months), and those who came earlier for a course of the
-     * latest school year offered. A campaign ends where the next one starts.
+     * latest school year offered. A campaign ends where the next one starts. Each says who it is (who).
      *
      * @param \stdClass $centre
      * @param int $now
+     * @param bool $withcentre With the families already of the centre too, but never those brought from the roll.
      * @return array
      */
-    protected static function live(\stdClass $centre, int $now = 0): array {
+    protected static function live(\stdClass $centre, int $now = 0, bool $withcentre = false): array {
         global $DB;
         $c = self::C;
         $id = ['centreid' => $centre->id];
@@ -110,7 +122,7 @@ class panel_metrics {
             ->getTimestamp();
         $out = [];
         $firsts = [];
-        $where = 'centreid = :centreid AND incentre = 0 AND (timecreated >= :since OR id IN (
+        $where = 'centreid = :centreid AND ' . ($withcentre ? 'roster = 0' : 'incentre = 0') . ' AND (timecreated >= :since OR id IN (
                       SELECT ch.householdid FROM {' . households::CHILDREN . '} ch
                         JOIN {' . centres::OFFERS . '} o ON o.id = ch.offerid
                        WHERE ch.centreid = :centreid2 AND o.schoolyear = :year))';
@@ -127,11 +139,14 @@ class panel_metrics {
             $firsts[$h->id] = (string) $h->firstchannel;
             // What was measured when it arrived: the site or the source, AI assistants together.
             $measured = arrival::of($h)[0];
-            $out[$h->id] = ['id' => (int) $h->id, 'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
+            $out[$h->id] = ['id' => (int) $h->id, 'who' => who::kind((int) $centre->id, (int) $h->id),
+                'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
                 'enrolledat' => 0, 'course' => '', 'coursename' => '', 'moving' => !empty($h->moving),
                 'voices' => ['first' => '', 'last' => '', 'said' => $said,
                     'measured' => $measured !== '' ? arrival::label($measured) : '',
-                    'campaign' => trim((string) ($h->arrivalcampaign ?? ''))]];
+                    'channel' => arrival::channel_name(arrival::channel($h, $centre)),
+                    'basis' => arrival::basis($h),
+                    'campaign' => self::campaign_name(trim((string) ($h->arrivalcampaign ?? '')))]];
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'centreid = :centreid', $id, 'id ASC') as $child) {
             // A child brought from the roll was already at the centre: never part of a campaign.
@@ -166,6 +181,10 @@ class panel_metrics {
         foreach ($contacts as $contact) {
             if (!isset($out[$contact->householdid])) {
                 continue;
+            }
+            // A contact left in an ad, whatever came first: it shows where advertising also touched a family.
+            if ($contact->channel === 'meta') {
+                $out[$contact->householdid]['adlater'] = true;
             }
             $name = $contact->entryid && isset($entries[$contact->entryid]) ? format_string($entries[$contact->entryid]) .
                 ($contact->detail ? ' · ' . $contact->detail : '') : get_string('channel_' . (in_array(
@@ -226,6 +245,7 @@ class panel_metrics {
                 'voices' => ['first' => $name($h['first']), 'last' => $name($h['last']),
                     'said' => trim((string) $h['first']->declaredsource),
                     'measured' => self::measured_import((string) ($h['first']->utmsource ?? '')),
+                    'channel' => '',
                     'campaign' => trim((string) ($h['first']->utmcampaign ?? ''))]];
         }
         return $out;
@@ -345,7 +365,8 @@ class panel_metrics {
         $cut = get_string('panel_cut', $c, userdate($now, get_string('strftimetime', 'langconfig')));
         $total = count(array_filter($mine, fn($f) => !$f['closed']));
         $enrolled = count(array_filter($mine, fn($f) => $f['step'] >= 5));
-        $voice = in_array($view['voice'] ?? '', self::VOICES, true) ? $view['voice'] : 'first';
+        // First, by channel: where the families really came from, before the door they came in by (an open day, a form).
+        $voice = in_array($view['voice'] ?? '', self::VOICES, true) ? $view['voice'] : 'channel';
         $show = ($view['show'] ?? '') === 'matriculadas' ? 'matriculadas' : 'llegadas';
         // Three sheets instead of one long page: the campaign (answers, how far, where from,
         // week by week, places), the school year (the ledger and the roll year by year) and the families (what they like
@@ -491,7 +512,7 @@ class panel_metrics {
         foreach ($names as $key => $name) {
             if (
                 !empty($view[$key]) && !($key === 'campaign' && $view[$key] === 'live') && !($key === 'voice' &&
-                    $view[$key] === 'first') && !($key === 'show' && $view[$key] === 'llegadas') &&
+                    $view[$key] === 'channel') && !($key === 'show' && $view[$key] === 'llegadas') &&
                     !($key === 'sheet' && $view[$key] === 'campana')
             ) {
                 $params[$name] = $view[$key];
@@ -677,36 +698,83 @@ class panel_metrics {
      */
     protected static function channels(\stdClass $centre, array $campaign, array $mine, string $voice, callable $url): array {
         $c = self::C;
-        $open = array_values(array_filter($mine, fn($f) => !$f['closed']));
+        // By channel, every family that came, also those that went elsewhere: what works and what does not, without
+        // leaving out the ones that were lost.
+        $open = array_values(array_filter($mine, fn($f) => !$f['closed'] || $voice === 'channel'));
         $said = $voice === 'said';
         $measured = $voice === 'measured';
         $bycampaign = $voice === 'campaign';
+        // By channel: every channel on its row, in their order, each with how far its families went; no money here (it is
+        // in what was measured and in each campaign).
+        $bychannel = $voice === 'channel';
         // What the families said is not a channel the centre pays for; what was measured and each campaign are, with what
         // each new student cost.
         $declared = $said;
         $names = array_filter(array_column(array_column($open, 'voices'), $voice), fn($v) => $v !== '');
         $channels = self::top(array_count_values($names));
+        $centrefamilies = [];
+        $sum = null;
+        $notes = [];
+        if ($bychannel) {
+            // The families already of the centre that came in the same time, by the channel they came by: set against
+            // the new ones, so a channel is not given families that already knew the centre.
+            if (empty($campaign['import'])) {
+                $from = $mine ? min(array_column($mine, 'first')) : 0;
+                $centrefamilies = array_values(array_filter(
+                    self::everyone($centre),
+                    fn($f) => in_array($f['who'], who::CENTRE, true) && $f['first'] >= $from
+                ));
+            }
+            $counts = array_count_values($names);
+            $theirs = array_count_values(array_column(array_column($centrefamilies, 'voices'), 'channel'));
+            $channels = [];
+            foreach (arrival::CHANNELS as $key) {
+                $name = arrival::channel_name($key);
+                if (!empty($counts[$name]) || !empty($theirs[$name])) {
+                    $channels[$name] = 'c' . $key;
+                }
+            }
+            // How many came by each channel, who they are and what each rests on.
+            $sum = arrival::by_channel(
+                array_map(fn($f) => ['basis' => $f['voices']['basis'] ?? ''] + $f, $open),
+                array_map(fn($f) => ['basis' => $f['voices']['basis'] ?? ''] + $f, $centrefamilies)
+            );
+            $notes = array_column($sum['rows'], null, 'key');
+        }
         $spend = self::spend($centre, $campaign);
         $rows = [];
         $most = 0;
         foreach ($channels as $name => $key) {
             $here = array_values(array_filter($open, fn($f) => self::bucket($f['voices'][$voice], $channels) === $name));
             $rows[$name] = ['n' => count($here), 'enrolled' => count(array_filter($here, fn($f) => $f['step'] >= 5)),
-                'key' => $key];
+                'visited' => count(array_filter($here, fn($f) => $f['step'] >= 2)),
+                'applied' => count(array_filter($here, fn($f) => $f['step'] >= 3)), 'key' => $key];
             $most = max($most, count($here));
         }
         $out = [];
         $unnoted = 0;
         foreach ($rows as $name => $row) {
-            $amount = $declared ? null : ($spend[$name] ?? null);
-            $unnoted += !$declared && $amount === null ? 1 : 0;
-            $cost = $amount === null ? get_string('panel_cost_none', $c) : ($amount == 0 ? get_string('panel_cost_free', $c) :
+            $amount = $declared || $bychannel ? null : ($spend[$name] ?? null);
+            $unnoted += !$declared && !$bychannel && $amount === null ? 1 : 0;
+            $cost = $bychannel ? '' : ($amount === null ? get_string('panel_cost_none', $c) : ($amount == 0 ? get_string('panel_cost_free', $c) :
                 ($row['enrolled'] ? get_string('panel_cost_per', $c, centres::money($centre, $amount / $row['enrolled'])) :
-                get_string('panel_cost_nobody', $c, centres::money($centre, (float) $amount))));
-            $line = $said ? get_string('panel_said_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
+                get_string('panel_cost_nobody', $c, centres::money($centre, (float) $amount)))));
+            $who = $bychannel ? arrival::row_note($notes[substr($row['key'], 1)] ?? []) : '';
+            $line = $bychannel ? get_string(
+                $row['n'] === 1 ? 'panel_bychannel_line_one' : 'panel_bychannel_line',
+                $c,
+                (object) ['name' => $name, 'n' => $row['n'], 'visited' => $row['visited'], 'applied' => $row['applied'],
+                'enrolled' => $row['enrolled'],
+                'frac' => self::fraction(
+                    $row['enrolled'],
+                    $row['n']
+                )]
+            ) .
+                ($who !== '' ? ' ' . $who : '') : ($said ?
+                get_string('panel_said_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 ($voice === 'last' ? get_string('panel_last_line', $c, (object) ['n' => $row['n'], 'name' => $name]) :
                 get_string('panel_first_line', $c, (object) ['n' => $row['n'], 'name' => $name, 'enrolled' => $row['enrolled'],
-                'frac' => self::fraction($row['enrolled'], $row['n']), 'cost' => $cost]));
+                'frac' => self::fraction($row['enrolled'], $row['n']), 'cost' => $cost])));
             // In the row of the AI assistants, what those families said, each with how many.
             $aisaid = $measured && $name === get_string('arrival_ai_group', $c) ? self::ai_said($open) : [];
             if ($aisaid) {
@@ -721,24 +789,46 @@ class panel_metrics {
                 'en' => $en, 'ev' => $en ? round($en / max(1, $most), 4) : false,
                 'declared' => $said, 'hasparts' => $voice === 'first',
                 'enrolled' => get_string($row['enrolled'] === 1 ? 'panel_enrolled_one' : 'panel_enrolled_n', $c, $row['enrolled']),
-                'cost' => $cost, 'line' => $line, 'hassaid' => (bool) $aisaid, 'said' => $aisaid];
+                'cost' => $cost, 'line' => $line, 'hassaid' => (bool) $aisaid, 'said' => $aisaid, 'group' => false,
+                'who' => $who !== '' ? $who : false];
+        }
+        // By channel, each block with its name over its first row: the centre's own work, advertising, other ways, and
+        // what was not measured.
+        if ($bychannel) {
+            $was = '';
+            foreach ($out as $i => $row) {
+                $group = arrival::block(substr((string) $row['key'], 1));
+                if ($group !== $was) {
+                    $out[$i]['group'] = get_string('panel_bychannel_group_' . $group, $c);
+                }
+                $was = $group;
+            }
         }
         $told = count($names);
         $top = $out[0] ?? null;
-        $rest = !$top ? get_string('panel_channels_none', $c) : ($said ? get_string('panel_said_rest', $c, (object) [
-            'name' => $top['name'], 'n' => $top['n'], 'told' => $told]) : ($measured ? get_string(
-                'panel_measured_rest',
-                $c,
-                (object) ['name' => $top['name'], 'n' => $top['n'], 'told' => $told]
-            ) : ($bycampaign ? get_string(
-                'panel_campaign_rest',
-                $c,
-                (object) ['name' => $top['name'], 'n' => $top['n'], 'told' => $told]
-            ) : get_string($voice === 'last' ?
+        // By channel, the work of the centre itself (its profile, the search engines, the AI assistants, its networks and
+        // channels, its web) against what it paid for, side by side: so the enrolments its own work brings are not put down
+        // to an ad.
+        $rest = !$top ? get_string('panel_channels_none', $c) : ($bychannel ? arrival::by_channel_text($sum) : ($said ? get_string(
+            'panel_said_rest',
+            $c,
+            (object) [
+            'name' => $top['name'],
+            'n' => $top['n'],
+            'told' => $told]
+        ) : ($measured ? get_string(
+            'panel_measured_rest',
+            $c,
+            (object) ['name' => $top['name'], 'n' => $top['n'], 'told' => $told]
+        ) : ($bycampaign ? get_string(
+            'panel_campaign_rest',
+            $c,
+            (object) ['name' => $top['name'], 'n' => $top['n'], 'told' => $told]
+        ) : get_string($voice === 'last' ?
             'panel_last_rest' : 'panel_first_rest', $c, (object) ['name' => $top['name'], 'n' => $top['n'],
-            'total' => count($open)]))));
+            'total' => count($open)])))));
         $spendrows = [];
-        if (!$declared) {
+        if (!$declared && !$bychannel) {
             foreach (self::spend_keys($centre, $campaign, $mine, $voice) as $key => $name) {
                 $amount = $spend[$name] ?? null;
                 $spendrows[] = ['key' => $key, 'name' => $name, 'value' => $amount === null ? '' : format_float(
@@ -756,10 +846,11 @@ class panel_metrics {
             'def' => $said ? get_string('panel_voice_said_def', $c, (object) ['told' => $told, 'total' => count($open)]) :
                 get_string('panel_voice_' . $voice . '_def', $c),
             'rest' => $rest,
-            'foot' => $said ? get_string('panel_said_foot', $c, count($open) - $told) : ($measured ?
+            'foot' => $bychannel ? get_string('panel_bychannel_foot', $c) : ($said ?
+                get_string('panel_said_foot', $c, count($open) - $told) : ($measured ?
                 get_string('panel_measured_foot', $c, count($open) - $told) : ($bycampaign ?
                 get_string('panel_campaign_foot', $c, count($open) - $told) : ($unnoted ? get_string($unnoted === 1 ?
-                'panel_spend_missing_one' : 'panel_spend_missing', $c, $unnoted) : ''))),
+                'panel_spend_missing_one' : 'panel_spend_missing', $c, $unnoted) : '')))),
             'declared' => $said,
             'rows' => $out,
             'hasenrolled' => !$said && (bool) array_filter(array_column($out, 'en')),
@@ -767,6 +858,19 @@ class panel_metrics {
             'canspend' => (bool) $spendrows,
             'currency' => centres::currency_symbol($centre),
         ];
+    }
+
+    /**
+     * A campaign as Numbers names it: a zone of the web of the centre («web-matricula») says so, never like an ad.
+     *
+     * @param string $campaign The utm_campaign.
+     * @return string
+     */
+    public static function campaign_name(string $campaign): string {
+        if (preg_match('/^web[-_](.+)$/', \core_text::strtolower($campaign), $m)) {
+            return get_string('panel_campaign_webzone', self::C, str_replace(['-', '_'], ' ', $m[1]));
+        }
+        return $campaign;
     }
 
     /**

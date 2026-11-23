@@ -67,7 +67,22 @@ class listmatch {
             $byhome[$row->household][$row->student] = $s;
         }
         $rows->close();
-        if (!$byhome) {
+        // The students of the years before, by the key of their family: a family that had children at the centre
+        // knew it, even if none is there now. Each with the last school year it was there and its grade.
+        $before = [];
+        $rows = $DB->get_recordset_select(
+            metrics::STUDENTS,
+            'centreid = :centreid AND schoolyear < :year AND household IS NOT NULL',
+            ['centreid' => $centreid, 'year' => $year],
+            'schoolyear ASC',
+            'id, student, household, grade, schoolyear'
+        );
+        foreach ($rows as $row) {
+            $before[$row->household][$row->student] = ['student' => $row->student, 'grade' => (string) $row->grade,
+                'year' => (string) $row->schoolyear];
+        }
+        $rows->close();
+        if (!$byhome && !$before) {
             return [0, 0, 0];
         }
         $keys = new pseudonym($centreid);
@@ -75,6 +90,10 @@ class listmatch {
         $seen = [];
         foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'schoolyear' => $year], '', 'id, householdid, student') as $r) {
             $seen[$r->householdid . ':' . $r->student] = true;
+        }
+        $seenbefore = [];
+        foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'kind' => 'former'], '', 'id, householdid, student') as $r) {
+            $seenbefore[$r->householdid . ':' . $r->student] = true;
         }
         $counts = [0, 0, 0];
         $homes = $DB->get_records_select(households::T, 'centreid = :centreid AND roster = 0', ['centreid' => $centreid]);
@@ -86,8 +105,21 @@ class listmatch {
                 $list[] = $adult->phone ? pseudonym::phone((string) $adult->phone) : null;
             }
             $students = [];
+            $past = [];
             foreach ($keys->find('household', $list) as $token) {
                 $students += $byhome[$token] ?? [];
+                $past += $before[$token] ?? [];
+            }
+            // Children there in the years before and not this year: the family already knew the centre.
+            foreach (array_diff_key($past, $students) as $s) {
+                if (isset($seenbefore[$household->id . ':' . $s['student']])) {
+                    continue;
+                }
+                $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'householdid' => $household->id,
+                    'schoolyear' => \core_text::substr($s['year'], 0, 9), 'student' => $s['student'], 'kind' => 'former',
+                    'grade' => \core_text::substr(grades::label($centreid, $s['grade']), 0, 100), 'timein' => 0,
+                    'childid' => 0, 'done' => $now, 'timecreated' => $now]);
+                $seenbefore[$household->id . ':' . $s['student']] = true;
             }
             if (!$students) {
                 continue;
@@ -205,12 +237,15 @@ class listmatch {
         }
         $c = self::C;
         $centregrades = [];
+        $formergrades = [];
         $lines = [];
         $asks = [];
         foreach ($rows as $row) {
             $date = userdate((int) $row->timein, get_string('strftimedate', 'langconfig'));
             if ($row->kind === 'incentre') {
                 $centregrades[$row->grade] = true;
+            } else if ($row->kind === 'former') {
+                $formergrades[$row->grade . ' (' . $row->schoolyear . ')'] = true;
             } else if ($row->kind === 'enrolled') {
                 $child = $full->children[(int) $row->childid] ?? null;
                 $lines[] = get_string('panel_fromlist_enrolled', $c, (object) ['child' => $child ?
@@ -223,6 +258,9 @@ class listmatch {
                         fn($k) => !in_array($k->stage, ['enrolled', 'closed'], true)
                     )))];
             }
+        }
+        if ($formergrades) {
+            array_unshift($lines, get_string('panel_fromlist_former', $c, implode(', ', array_keys($formergrades))));
         }
         if ($centregrades) {
             array_unshift($lines, get_string('panel_fromlist_incentre', $c, implode(', ', array_keys($centregrades))));

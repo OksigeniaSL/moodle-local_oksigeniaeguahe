@@ -172,10 +172,11 @@ class households {
         if (empty($household->heardfrom) && in_array($data->heardfrom ?? '', lists::HEARD_FROM, true)) {
             $changes['heardfrom'] = $data->heardfrom;
         }
-        // Where it arrived from, measured: the first time anything was, never written over.
+        // Where it arrived from, measured: the first time anything was, never written over; never an ad for a family
+        // that was already known.
         if (arrival::of($household)[0] === '') {
             $measured = array_filter(arrival::fields($data->arrival ?? null), fn($v) => $v !== null);
-            if (isset($measured['arrivalsource']) || isset($measured['arrivalref'])) {
+            if ((isset($measured['arrivalsource']) || isset($measured['arrivalref'])) && !arrival::paid($measured)) {
                 $changes += $measured;
             }
         }

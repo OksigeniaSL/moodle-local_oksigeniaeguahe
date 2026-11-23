@@ -72,12 +72,13 @@ class recognise {
         'childname' => [
             '(nombre|apellido|name|nome).*(alumn|nin[oa]|hij[oa]|futuro|student|child|kid|aluno|crianca|filh)',
             'futur[oa]s? alumn', '\\bse llama\\b'],
+        // A phone of a tutor («Teléfono móvil primer tutor», «Móvil de la madre») is a phone, never the name of a tutor.
+        'phone' => ['telefono', '^tel\b', 'movil', 'movl', 'celular', 'phone', 'whatsapp', 'telemovel'],
         'guardianname' => ['\btutor', 'padre', 'madre', 'responsable', 'guardian', 'parent', '\bpai\b', '\bmae\b',
             'progenitor', 'relacion con', 'parentesco', 'relationship', 'custodia'],
         'studentid' => ['^cial$', '^nia$', 'idnumber', '^id number$', 'id alumno', 'student id',
             'codigo (de )?alumno', 'expediente n', 'numero de expediente', '^usuario$', '^username$', '^login$',
             '^user$'],
-        'phone' => ['telefono', '^tel\b', 'movil', 'movl', 'celular', 'phone', 'whatsapp', 'telemovel'],
         'fullname' => ['nombre (y|completo)', 'full ?name', 'nome completo', 'nombre.*acompan', 'name.*accompan',
             'nome.*acompanh'],
         'surname' => ['apellido', 'last ?name', 'surname', 'sobrenome'],

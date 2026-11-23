@@ -183,13 +183,24 @@
             {{#rows.0}}
             <table class="inf-tabla">
                 <thead><tr><th scope="col">{{#str}}report_col_act, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_signed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_came, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}report_col_told, local_oksigeniaeguahe{{/str}}</th></tr></thead>
-                <tbody>{{#rows}}<tr><th scope="row">{{name}} <span class="inf-lapiz">{{when}}</span></th><td>{{signed}}</td><td>{{came}}{{#rate}} <span class="inf-lapiz">{{rate}}</span>{{/rate}}</td><td>{{told}}</td></tr>{{/rows}}</tbody>
+                <tbody>{{#rows}}<tr><th scope="row">{{name}} <span class="inf-lapiz">{{when}}</span>{{#who}}<span class="inf-quien">{{.}}</span>{{/who}}</th><td>{{signed}}</td><td>{{came}}{{#rate}} <span class="inf-lapiz">{{rate}}</span>{{/rate}}</td><td>{{told}}</td></tr>{{/rows}}</tbody>
             </table>
             {{/rows.0}}
             {{#own}}<p>{{own}}</p>{{/own}}
         </section>
         {{/acts}}
         {{/data}}
+
+        {{#data.bychannel}}
+        <section class="inf-seccion inf-por-canal" aria-labelledby="inf-por-canal">
+            <h2 id="inf-por-canal">{{#str}}report_h_bychannel, local_oksigeniaeguahe{{/str}}</h2>
+            <p class="inf-seccion-frase">{{sentence}}</p>
+            {{#blocks}}
+            <h3 class="inf-canal-grupo">{{name}}</h3>
+            <ul class="inf-canal-lineas">{{#rows}}<li>{{line}}</li>{{/rows}}</ul>
+            {{/blocks}}
+        </section>
+        {{/data.bychannel}}
 
         {{#data.voices}}
         <section class="inf-seccion inf-voces" aria-labelledby="inf-voces">

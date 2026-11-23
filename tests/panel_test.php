@@ -559,7 +559,10 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame([3, 2, 1, 1, 1], array_column($context['reach']['steps'], 'n'));
         $this->assertFalse($context['reach']['compare']);
         $this->assertNotSame('', $context['reach']['closed']);
-        $this->assertSame(3, array_sum(array_column($context['channels']['rows'], 'n')));
+        // By channel, every family that came, the one that went elsewhere too; the other voices only those still open.
+        $this->assertSame(4, array_sum(array_column($context['channels']['rows'], 'n')));
+        $first = panel_metrics::context($centre, ['campaign' => 'live', 'voice' => 'first'], true);
+        $this->assertSame(3, array_sum(array_column($first['channels']['rows'], 'n')));
         $this->assertSame(
             get_string('panel_places_free_of', 'local_oksigeniaeguahe', (object) ['free' => 24, 'places' => 25]),
             $context['places'][0]['free']

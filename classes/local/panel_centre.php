@@ -123,6 +123,7 @@ class panel_centre {
             // The visits and acts in the calendar the team already shares (only whoever runs the centre opens this page).
             'calendar' => empty($centre->practice) ? ['ics' => teamcalendar::url($centre),
                 'script' => teamcalendar::script($centre)] : false,
+            'notify' => empty($centre->practice) ? self::notify($centre) : false,
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
             'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
@@ -772,6 +773,26 @@ class panel_centre {
     }
 
     /**
+     * Who of the team hears of each family that comes on its own: each member as a switch, and in a line who does now.
+     *
+     * @param \stdClass $centre
+     * @return array people (id, name, pressed) and read.
+     */
+    public static function notify(\stdClass $centre): array {
+        $c = self::C;
+        $chosen = teamnotice::chosen((int) $centre->id);
+        $hear = teamnotice::recipients($centre);
+        $people = [];
+        foreach (centres::members((int) $centre->id) as $member) {
+            $people[] = ['id' => (int) $member->id, 'name' => fullname($member),
+                'pressed' => in_array((int) $member->id, $chosen, true)];
+        }
+        $names = implode(', ', array_map(fn($u) => fullname($u), $hear));
+        return ['people' => $people, 'read' => $chosen ? $names : ($names !== '' ? get_string('panel_notify_auto', $c, $names) :
+            get_string('panel_notify_nobody', $c))];
+    }
+
+    /**
      * Saves everything that was posted, with the logo and the photos.
      *
      * @param \stdClass $centre
@@ -784,6 +805,11 @@ class panel_centre {
         // A new link for the calendar of the team: the one before stops working.
         if (optional_param('calrenew', 0, PARAM_BOOL)) {
             teamcalendar::key((int) $centre->id, true);
+        }
+        // One person in or out of those who hear of each new family.
+        $notify = optional_param('notifytoggle', 0, PARAM_INT);
+        if ($notify) {
+            teamnotice::toggle((int) $centre->id, $notify);
         }
         $picked = strtolower(optional_param('colour', '', PARAM_RAW_TRIMMED));
         $typed = strtolower(optional_param('colourhex', '', PARAM_RAW_TRIMMED));

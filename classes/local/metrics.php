@@ -471,7 +471,7 @@ class metrics {
      *
      * @param int $centreid
      * @param string $schoolyear
-     * @return array total, hasroll, groups (inner, sibling, newfamily, unknown: n and by grade), newby (ad, campaign, none),
+     * @return array total, hasroll, groups (inner, sibling, newfamily, unknown: n and by grade), newby (own, ad, campaign, none),
      *     kinds (student => group) and homes (student => household keys).
      */
     protected static function origins_of(int $centreid, string $schoolyear): array {
@@ -544,7 +544,7 @@ class metrics {
         foreach (['inner', 'sibling', 'newfamily', 'unknown'] as $key) {
             $groups[$key] = ['n' => 0, 'grades' => []];
         }
-        $newby = ['ad' => 0, 'campaign' => 0, 'none' => 0];
+        $newby = ['own' => 0, 'ad' => 0, 'campaign' => 0, 'none' => 0];
         $kinds = [];
         $partof = [];
         foreach (array_keys($new) as $student) {
@@ -616,7 +616,8 @@ class metrics {
     public static function live_new(int $centreid, string $schoolyear): array {
         global $DB;
         $rows = $DB->get_records_sql(
-            'SELECT c.id, c.householdid, o.name AS grade, h.incentre, h.roster, h.firstchannel, h.arrivalmedium
+            'SELECT c.id, c.householdid, o.name AS grade, h.incentre, h.roster, h.firstchannel, h.arrivalsource,
+                    h.arrivalmedium, h.arrivalref, h.heardfrom
                FROM {' . households::CHILDREN . '} c
                JOIN {' . households::T . '} h ON h.id = c.householdid
                JOIN {' . centres::OFFERS . '} o ON o.id = c.offerid
@@ -634,24 +635,21 @@ class metrics {
             "centreid = ? AND schoolyear = ? AND kind = 'enrolled' AND childid > 0",
             [$centreid, $schoolyear]
         ));
-        [$in, $params] = $DB->get_in_or_equal(array_unique(array_map(fn($r) => (int) $r->householdid, $rows)));
-        $acts = array_flip($DB->get_fieldset_select(
-            households::SIGNUPS,
-            'householdid',
-            "attended > 0 AND householdid $in",
-            $params
-        ));
+        // What brought each family is its first contact, as Numbers counts it by channel: an ad, the centre's own work, or
+        // nothing measured. An open day it came to is a door, never what brought it.
+        $centre = centres::get($centreid);
         $out = [];
         foreach ($rows as $row) {
             if (isset($listed[(int) $row->id])) {
                 continue;
             }
-            $paid = $row->firstchannel === 'meta' ||
-                preg_match('/^(cpc|ppc|paid|ads?|display|banner|paid[_-]?social|social[_-]?paid)$/i', (string) $row->arrivalmedium);
+            $channel = arrival::channel($row, $centre ?: null);
+            $by = $row->firstchannel === 'meta' || $channel === 'campaign' ? 'ad' :
+                (in_array($channel, arrival::OWN, true) ? 'own' : 'none');
             $out['eg' . $row->id] = [
                 'home' => 'eg:h' . $row->householdid,
                 'kind' => !empty($row->incentre) || !empty($row->roster) ? 'sibling' : 'newfamily',
-                'by' => $paid ? 'ad' : (isset($acts[(int) $row->householdid]) ? 'campaign' : 'none'),
+                'by' => $by,
                 'grade' => format_string((string) $row->grade),
             ];
         }

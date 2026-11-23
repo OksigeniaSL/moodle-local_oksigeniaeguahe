@@ -362,6 +362,21 @@ class panel {
         }
         $skincss = '';
         $skinjs = '';
+        // «Propose an improvement» of Marandu, for whoever the site lets propose: its sheet, its texts and its script as
+        // files, since the panel lets no script run inline.
+        $proposal = '';
+        if (class_exists('\\local_oksigeniamarandu\\api') && method_exists('\\local_oksigeniamarandu\\api', 'proposal_assets')) {
+            try {
+                $assets = \local_oksigeniamarandu\api::proposal_assets();
+            } catch (\Throwable $e) {
+                $assets = null;
+            }
+            if ($assets) {
+                $proposal = '<link rel="stylesheet" href="' . s($assets['css']) . '">' . "\n" .
+                    '<script type="application/json" id="marandu-proposal">' . $assets['data'] . '</script>' . "\n" .
+                    '<script src="' . s($assets['js']) . '" defer></script>' . "\n";
+            }
+        }
         foreach ($layers as $layer) {
             $skindir = dirname(__DIR__, 2) . '/pub/pieles/' . $layer . '/';
             $skincss .= file_exists($skindir . 'piel.css') ? '<link rel="stylesheet" href="' . $base . 'pieles/' . $layer .
@@ -396,6 +411,8 @@ class panel {
             'demo' => demo::is_visitor((int) $USER->id) ? ['plans' => demo::plans_url($lang) ?? false] : false,
             'sesskey' => sesskey(),
             'howtourl' => (new \moodle_url('/local/oksigeniaeguahe/howto.php', ['c' => $centre->id]))->out(false),
+            'proposal' => $proposal !== '' ? ['screen' => $title,
+                'label' => get_string('proposal:button', 'local_oksigeniamarandu')] : false,
             'howtohere' => howto::here($section, $centre, centres::can_manage((int) $centre->id)),
             'centreid' => (int) $centre->id,
             'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
@@ -436,7 +453,7 @@ class panel {
 <script src="' . $base . 'panel-latido.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'riel-lectura.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>
-' . $skinjs . '</head>
+' . $skinjs . $proposal . '</head>
 <body class="panel ' . $page . ' ' . implode(' ', array_map(fn($l) => 'piel-' . $l, $layers)) . ($door ? '' : ' con-abajo') .
             (!empty($centre->practice) && (int) $centre->practice !== demo::KIND ? ' en-ayuda' : '') .
             '">

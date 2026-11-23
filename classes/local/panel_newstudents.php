@@ -269,8 +269,8 @@ class panel_newstudents {
         }
         $parts = [];
         $partbags = [];
-        foreach (['ad', 'campaign', 'none'] as $by) {
-            $n = (int) $o['newby'][$by];
+        foreach (['own', 'ad', 'campaign', 'none'] as $by) {
+            $n = (int) ($o['newby'][$by] ?? 0);
             if (!$n) {
                 continue;
             }

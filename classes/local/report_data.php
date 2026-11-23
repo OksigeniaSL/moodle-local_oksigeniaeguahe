@@ -118,6 +118,7 @@ class report_data {
             'places' => self::places($cifras),
             'acts' => self::acts($id, $from, $to),
             'voices' => self::voices($id, $all, $from, $to),
+            'bychannel' => self::by_channel($centre, $all, $from, $to),
             'gone' => $kind === 'cold' && $cifras['gone'] ? ['text' => $cifras['gone']['text'],
                 'reasons' => $cifras['gone']['reasons'] ?? []] : false,
             'started' => $kind === 'cold' && $cifras['started'] ? ['text' => $cifras['started']['text']] : false,
@@ -575,6 +576,15 @@ class report_data {
                                             WHERE eventid $in AND attended > 0 GROUP BY eventid", $params);
         $told = $DB->get_records_sql_menu("SELECT eventid, COUNT(DISTINCT householdid) FROM {" . surveys::T . "}
                                             WHERE eventid $in GROUP BY eventid", $params);
+        // Who the families of each act are: those that came, or those signed up while it is still to come.
+        $people = [];
+        $rs = $DB->get_recordset_sql("SELECT id, eventid, householdid, attended FROM {" . events::SIGNUPS . "}
+                                       WHERE eventid $in", $params);
+        foreach ($rs as $r) {
+            $people[(int) $r->eventid][(int) $r->householdid] = !empty($people[(int) $r->eventid][(int) $r->householdid]) ||
+                (int) $r->attended > 0;
+        }
+        $rs->close();
         $rows = [];
         $own = ['n' => 0, 'came' => 0];
         foreach ($events as $event) {
@@ -587,7 +597,11 @@ class report_data {
             $k = (int) ($came[$event->id] ?? 0);
             $hour = userdate((int) $event->timestart, get_string('strftimetime', 'langconfig'));
             $when = self::day((int) $event->timestart) . ', ' . $hour;
+            $past = $event->timestart < time();
+            $those = array_keys(array_filter($people[(int) $event->id] ?? [], fn($came) => $came || !$past));
+            $who = who::sentence(who::count(array_map(fn($id) => ['who' => who::kind($centreid, $id)], $those)), false, false);
             $rows[] = ['name' => format_string($event->name), 'when' => $when, 'signed' => $s,
+                'who' => $who !== '' ? get_string($past ? 'report_act_who_came' : 'report_act_who_signed', $c, $who) : false,
                 'came' => $k, 'told' => (int) ($told[$event->id] ?? 0),
                 'rate' => $s && $event->timestart < time() ? get_string('report_rate', $c, (int) round(100 * $k / $s)) : false];
         }
@@ -596,6 +610,53 @@ class report_data {
             $c,
             (object) $own
         ) : false];
+    }
+
+    /**
+     * Where the families of the period really came from, by channel and how far they went: the work of the centre
+     * itself, what it paid for, and what was not measured, apart.
+     *
+     * @param \stdClass $centre
+     * @param array $all
+     * @param int $from
+     * @param int $to
+     * @return array|false sentence, blocks (name, rows with line) and raw (for the AI).
+     */
+    protected static function by_channel(\stdClass $centre, array $all, int $from, int $to) {
+        $c = 'local_oksigeniaeguahe';
+        $mine = array_values(array_filter($all, fn($f) => $f['first'] >= $from && $f['first'] < $to &&
+            ($f['voices']['channel'] ?? '') !== ''));
+        // Those already of the centre that came in the period, set against the others.
+        $theirs = array_values(array_filter(panel_metrics::everyone($centre), fn($f) => in_array($f['who'], who::CENTRE, true) &&
+            $f['first'] >= $from && $f['first'] < $to));
+        if (!$mine && !$theirs) {
+            return false;
+        }
+        $basis = fn($f) => ['basis' => $f['voices']['basis'] ?? ''] + $f;
+        $sum = arrival::by_channel(array_map($basis, $mine), array_map($basis, $theirs));
+        // Each block with its name: the centre's own work, advertising, other ways, and what was not measured.
+        $blocks = [];
+        foreach ($sum['rows'] as $r) {
+            $note = arrival::row_note($r);
+            $blocks[$r['group']]['rows'][] = ['line' => get_string($r['n'] === 1 ? 'panel_bychannel_line_one' :
+                'panel_bychannel_line', $c, (object) (array_diff_key($r, ['who' => 1]) + ['frac' => $r['n'] ?
+                round(100 * $r['enrolled'] / $r['n']) . ' %' : '0 %'])) . ($note !== '' ? ' ' . $note : '')];
+        }
+        $out = [];
+        foreach (['own', 'paid', 'other', 'unmeasured'] as $group) {
+            if (!empty($blocks[$group])) {
+                $out[] = ['name' => get_string('panel_bychannel_group_' . $group, $c), 'rows' => $blocks[$group]['rows']];
+            }
+        }
+        $raw = array_map(fn($r) => ['channel' => $r['name'], 'block' => $r['group'], 'families' => $r['n'],
+            'came' => $r['visited'], 'applied' => $r['applied'], 'enrolled' => $r['enrolled'],
+            'only from what they said' => $r['said'], 'left their contact in an ad later' => $r['adlater'],
+            'really new' => $r['who']['new']['n'], 'really new that enrolled' => $r['who']['new']['enrolled'],
+            'already of the centre, set apart' => $r['who']['nursery']['n'] + $r['who']['centre']['n'],
+            'of them with a child in its nursery' => $r['who']['nursery']['n'],
+            'had children at the centre before' => $r['who']['former']['n'],
+            'of former students' => $r['who']['alumni']['n']], $sum['rows']);
+        return ['sentence' => arrival::by_channel_text($sum), 'blocks' => $out, 'raw' => $raw];
     }
 
     /**

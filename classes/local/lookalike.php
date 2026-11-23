@@ -431,7 +431,9 @@ class lookalike {
                 }
             }
         }
-        if (arrival::of($keep)[0] === '' && arrival::of($gone)[0] !== '') {
+        // The arrival of the newer one, only when the older had none and it was not an ad: an ad is where a family came
+        // from only when it was new.
+        if (arrival::of($keep)[0] === '' && arrival::of($gone)[0] !== '' && !arrival::paid($gone)) {
             foreach (['arrivalsource', 'arrivalmedium', 'arrivalcampaign', 'arrivalref'] as $field) {
                 $changes[$field] = $gone->$field;
             }

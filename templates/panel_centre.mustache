@@ -142,6 +142,7 @@
                 <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pedir">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-quien">{{#str}}panel_whoapplies_card, local_oksigeniaeguahe{{/str}}</a></li>
+                {{#notify}}<li><a href="#aj-avisos">{{#str}}panel_notify_card, local_oksigeniaeguahe{{/str}}</a></li>{{/notify}}
                 <li><a href="#aj-cifras">{{#str}}panel_metricsfor_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-cuesta">{{#str}}panel_costs_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-despues">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</a></li>
@@ -527,6 +528,20 @@
                     </div>
                 </div>
             </details>
+
+            {{! ===== Who hears of each family that comes on its own ===== }}
+            {{#notify}}
+            <details class="apartado aj-plegado" id="aj-avisos">
+                <summary><h2 id="aj-avisos-t">{{#str}}panel_notify_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{read}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p class="ayuda">{{#str}}panel_notify_help, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="aj-modos" role="group" aria-labelledby="aj-avisos-t">
+                        {{#people}}<button class="aj-modo" type="submit" name="notifytoggle" value="{{id}}" formaction="{{action}}#aj-avisos" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}"><span class="lampara" aria-hidden="true"></span><b>{{name}}</b></button>{{/people}}
+                    </div>
+                </div>
+            </details>
+            {{/notify}}
 
             {{! ===== Who sees Cifras: the whole team, or only its management ===== }}
             <details class="apartado aj-plegado" id="aj-cifras">

@@ -102,7 +102,7 @@ class panel_report {
             'kind' => $report->kind,
             'hot' => $report->kind === 'hot',
             'data' => $data + ['attention' => false, 'funnel' => false, 'pace' => false, 'channels' => false,
-                'places' => false, 'acts' => false, 'voices' => false, 'gone' => false, 'started' => false, 'referred' => false,
+                'places' => false, 'acts' => false, 'voices' => false, 'bychannel' => false, 'gone' => false, 'started' => false, 'referred' => false,
                 'forecast' => false, 'grow' => false, 'response' => false] + [
                 'hasattention' => !empty($data['attention']), 'haschannels' => !empty($data['channels']),
                 'hasplaces' => !empty($data['places']), 'hasforecast' => !empty($data['forecast']),

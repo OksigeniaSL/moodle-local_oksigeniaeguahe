@@ -17,6 +17,8 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\metrics;
 use local_oksigeniaeguahe\local\panel_newstudents;
 
@@ -83,7 +85,7 @@ final class origins_test extends \advanced_testcase {
             ['inner' => 1, 'sibling' => 1, 'newfamily' => 2, 'unknown' => 1],
             array_map(fn($g) => $g['n'], $o['groups'])
         );
-        $this->assertSame(['ad' => 1, 'campaign' => 0, 'none' => 1], $o['newby']);
+        $this->assertSame(['own' => 0, 'ad' => 1, 'campaign' => 0, 'none' => 1], $o['newby']);
 
         $p = metrics::publicity($cid, $o);
         $this->assertCount(1, $p);
@@ -123,11 +125,43 @@ final class origins_test extends \advanced_testcase {
             'household' => 'HO_family004', 'timecontact' => strtotime('2026-02-05'), 'channel' => 'webform',
             'kind' => 'visit_booked', 'children' => 1, 'enrolled' => 0, 'timeenrolled' => 0, 'incentre' => 0, 'birthyear' => 0]);
         $o = metrics::origins($cid, '2026-27');
-        $this->assertSame(['ad' => 1, 'campaign' => 1, 'none' => 0], $o['newby'], 'Without money, another campaign.');
+        $this->assertSame(['own' => 0, 'ad' => 1, 'campaign' => 1, 'none' => 0], $o['newby'], 'Without money, another campaign.');
         $this->assertCount(1, metrics::publicity($cid, $o));
         metrics::set_spend($cid, 'Puertas abiertas (web)', 'meta', '', 99.48, 2);
         $o = metrics::origins($cid, '2026-27');
-        $this->assertSame(['ad' => 2, 'campaign' => 0, 'none' => 0], $o['newby']);
+        $this->assertSame(['own' => 0, 'ad' => 2, 'campaign' => 0, 'none' => 0], $o['newby']);
         $this->assertSame(['Captación', 'Puertas abiertas (web)'], array_column(metrics::publicity($cid, $o), 'label'));
+    }
+
+    /**
+     * The families of Eguahe enrolled for the year, by what brought them first: the centre's own channels, an ad, or
+     * nothing measured. Coming to an open day is a door, never what brought them.
+     */
+    public function test_live_new_by_first_contact(): void {
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer = centres::save_offer($cid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $event = events::get(events::save($cid, (object) ['kind' => 'openday', 'name' => 'Jornada de puertas abiertas',
+            'timestart' => time() - DAYSECS, 'timeend' => time() - DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $cid);
+        $family = function (array $arrival, string $first) use ($cid, $offer, $event): int {
+            $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => $first, 'arrival' => $arrival]);
+            $household = households::get($id, $cid);
+            households::add_child($household, 'Leo', (int) $offer);
+            events::sign_up($event, $id, 2);
+            $child = array_values(households::full($household)->children)[0];
+            households::set_stage($child, 'enrolled');
+            return $id;
+        };
+        $google = $family(['src' => 'google', 'med' => 'organic', 'cmp' => '', 'ref' => 'google.com'], 'webform');
+        $ad = $family(['src' => 'instagram', 'med' => 'paid', 'cmp' => 'Jornada', 'ref' => ''], 'webform');
+        $door = $family(['src' => 'puerta', 'med' => 'formulario', 'cmp' => '', 'ref' => ''], 'openday');
+        $by = [];
+        foreach (metrics::live_new($cid, '2027-28') as $live) {
+            $by[$live['home']] = $live['by'];
+        }
+        $this->assertSame('own', $by['eg:h' . $google]);
+        $this->assertSame('ad', $by['eg:h' . $ad]);
+        $this->assertSame('none', $by['eg:h' . $door], 'The open day they came to did not bring them.');
     }
 }

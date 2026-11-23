@@ -626,6 +626,29 @@ main {
     background: var(--eg-hundido);
 }
 
+/* «Propose an improvement» of Marandu: an item of the menu like the others. */
+.menu-barra .menu .menu-propuesta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 600;
+    text-align: start;
+    cursor: pointer;
+}
+
+.menu-barra .menu .menu-propuesta:hover,
+.menu-barra .menu .menu-propuesta:focus-visible {
+    background: var(--eg-hundido);
+}
+
 .yo > summary {
     display: inline-flex;
     align-items: center;
@@ -6494,6 +6517,27 @@ button.sin-usar-fila {
     transition: opacity var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
+/* By channel: the name of each block (the centre's own work, advertising, other ways) over its first row. */
+.canal-fila.con-grupo {
+    grid-template-areas: "grupo grupo" "nombre pista" ". mas";
+    margin-block-start: 10px;
+}
+
+.canales > .canal-fila.con-grupo:first-child {
+    margin-block-start: 0;
+}
+
+.canal-grupo {
+    grid-area: grupo;
+    padding-block-end: 4px;
+    border-block-end: 1px solid var(--eg-linea);
+    margin-block-end: 4px;
+    color: var(--eg-tinta);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
 .canal-nombre {
     grid-area: nombre;
     font-size: 0.9375rem;
@@ -8789,6 +8833,40 @@ html.modo-lamina {
     margin: 0;
     color: var(--inf-lapiz-texto);
     font-size: 0.9rem;
+}
+
+/* By channel: each block with its name, and a line per channel. */
+.inf-canal-grupo {
+    margin: 6px 0 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.inf-canal-lineas {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding-inline-start: 1.1rem;
+}
+
+.inf-canal-lineas li {
+    break-inside: avoid;
+}
+
+/* Who the families of an act are, under its name. */
+.inf-quien {
+    display: block;
+    margin-top: 2px;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+/* By channel in Numbers: who the families of a row are, on a line of their own. */
+.canal-quien {
+    flex-basis: 100%;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
 }
 
 .inf-lapiz {
@@ -16909,7 +16987,8 @@ html {
     font-style: italic;
 }
 
-.origen-medido .origen-valor {
+.origen-medido .origen-valor,
+.origen-puerta .origen-valor {
     overflow-wrap: anywhere;
 }
 
@@ -17828,17 +17907,23 @@ html {
     --m-banda: transparent;
 }
 
-/* New families, in aubergine: by an ad, strong; by another campaign or an act, middle; by nothing measured, soft. */
-.m-ad {
+/* New families, in aubergine: by the centre's own channels, strong; by an ad, middle; left in another list, soft; by
+   nothing measured, only their outline. */
+.m-own {
     --m-relleno: var(--cf-serie);
 }
 
-.m-campaign {
+.m-ad {
     --m-relleno: var(--cf-serie-medio);
 }
 
-.m-none {
+.m-campaign {
     --m-relleno: var(--cf-serie-suave);
+}
+
+.m-none {
+    --m-relleno: transparent;
+    --m-linea: var(--cf-serie-medio);
     --m-banda: transparent;
 }
 
@@ -18768,6 +18853,7 @@ html {
         --m-linea: CanvasText;
     }
 
+    .m-own,
     .m-ad,
     .m-campaign {
         --m-relleno: Highlight;

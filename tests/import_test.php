@@ -304,5 +304,10 @@ final class import_test extends \advanced_testcase {
         $this->assertSame('2024-25', recognise::schoolyear('Correos alumnos nuevos 2024 2025'));
         $this->assertSame('2025-26', recognise::schoolyear('Correos de alumnos nuevos 25／26'));
         $this->assertNull(recognise::schoolyear('Puertas abiertas 2024'));
+        // The phone of a tutor is a key to join the family, never the name of a tutor that is left out.
+        $this->assertSame('phone', recognise::header_role('Teléfono móvil primer tutor'));
+        $this->assertSame('phone', recognise::header_role('Móvil de la madre'));
+        $this->assertSame('email', recognise::header_role('Correo electrónico segundo tutor'));
+        $this->assertSame('guardianname', recognise::header_role('Nombre del primer tutor'));
     }
 }

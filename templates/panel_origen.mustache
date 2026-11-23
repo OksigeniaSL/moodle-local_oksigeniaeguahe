@@ -21,12 +21,18 @@
     arrive from, side by side: people mistake where they heard of a centre, so neither corrects the other. Either may
     be missing. An AI assistant carries its stamp; a reader hears the whole sentence once.
 
+    With them, the channel it counts in (its origin, never the door) and where they signed up from (a form and its
+    place, or an act): three different things, each with its name.
+
     Example context (json):
-    {"said": "Redes sociales", "site": "chatgpt.com", "ai": true,
+    {"said": "Redes sociales", "site": "chatgpt.com", "ai": true, "channel": "Asistentes de IA",
+        "door": "La web del colegio · Web · Infantil",
         "text": "Nos dijeron «Redes sociales»; llegó desde chatgpt.com, un asistente de IA."}
 }}
 <div class="origen">
     <span class="oculto">{{text}}</span>
     {{#said}}<p class="origen-dicho" aria-hidden="true"><span class="origen-que">{{#str}}panel_origin_said, local_oksigeniaeguahe{{/str}}</span><span class="origen-valor" dir="auto">{{said}}</span></p>{{/said}}
     {{#site}}<p class="origen-medido" aria-hidden="true"><span class="origen-que">{{#str}}panel_origin_measured, local_oksigeniaeguahe{{/str}}</span><span class="origen-valor" dir="ltr" translate="no">{{site}}</span>{{#ai}}<span class="sello-ia">{{#str}}panel_ai_stamp, local_oksigeniaeguahe{{/str}}</span>{{/ai}}</p>{{/site}}
+    {{#channel}}<p class="origen-canal" aria-hidden="true"><span class="origen-que">{{#str}}panel_origin_channel, local_oksigeniaeguahe{{/str}}</span><span class="origen-valor">{{channel}}</span></p>{{/channel}}
+    {{#door}}<p class="origen-puerta" aria-hidden="true"><span class="origen-que">{{#str}}panel_origin_door, local_oksigeniaeguahe{{/str}}</span><span class="origen-valor" dir="auto">{{door}}</span></p>{{/door}}
 </div>

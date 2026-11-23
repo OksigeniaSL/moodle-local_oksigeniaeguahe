@@ -117,7 +117,7 @@ class export {
                     lists::HEARD_FROM,
                     true
                 ) ? $household->heardfrom : 'other'), $c) : '',
-                'measured' => arrival::of($household)[0],
+                'measured' => arrival::shown(arrival::of($household)[0]),
                 'place' => trim((string) ($household->municipalityname ?? '')),
                 'moving' => !empty($household->moving) ? get_string('yes') : '',
                 'alumni' => implode('; ', array_unique(array_map(function ($id) use ($adults, $c) {

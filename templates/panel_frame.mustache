@@ -82,6 +82,7 @@
         <div class="menu">
             <a href="{{moodleurl}}">{{{i.fuera}}}{{#str}}panel_to_moodle, local_oksigeniaeguahe{{/str}}</a>
             <a href="{{logouturl}}">{{{i.salir}}}{{#str}}logout{{/str}}</a>
+            {{#proposal}}<button class="menu-propuesta" type="button" data-marandu-proposal="local_oksigeniaeguahe" data-screen="{{screen}}">{{{i.lapiz}}}{{label}}</button>{{/proposal}}
             {{#awayurl}}
             <form class="fuera" method="post" action="{{awayurl}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">

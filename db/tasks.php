@@ -134,4 +134,13 @@ $tasks = [
         'month' => '*',
         'dayofweek' => '*',
     ],
+    [
+        'classname' => '\\local_oksigeniaeguahe\\task\\notify_team',
+        'blocking' => 0,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];

@@ -96,13 +96,22 @@ class panel_household {
         }
         $first = $contacts[0] ?? null;
         $origin = [];
+        // Where they signed up from (the door), as plain text: the form and its place, or the channel and its act.
+        $door = [];
         if ($first && $first->entryid) {
-            $origin[] = format_string((string) $DB->get_field(entries::T, 'name', ['id' => $first->entryid]));
+            $door[] = format_string(
+                (string) $DB->get_field(entries::T, 'name', ['id' => $first->entryid]),
+                true,
+                ['escape' => false]
+            );
         } else {
-            $origin[] = get_string('channel_' . $household->firstchannel, $c);
+            $door[] = get_string('channel_' . $household->firstchannel, $c);
         }
         if ($first && trim((string) $first->detail) !== '') {
-            $origin[] = s($first->detail);
+            $door[] = trim((string) $first->detail);
+        }
+        foreach ($door as $part) {
+            $origin[] = s($part);
         }
         $origin[] = get_string('panel_since_date', $c, userdate(
             (int) $household->timecreated,
@@ -159,7 +168,7 @@ class panel_household {
                 'ante' => $ante,
                 'title' => panel::adults_line($full->adults),
                 'sub' => implode(' · ', array_filter($origin)),
-                'origen' => self::origen($household),
+                'origen' => self::origen($household, $centre, implode(' · ', array_filter($door))),
                 'action' => $canact ? ($chat ? ['url' => $chat, 'anchor' => false, 'name' => get_string('panel_answer_chat', $c),
                     'icon' => panel::icon('whatsapp')] : ['url' => '#contestar', 'anchor' => true,
                     'name' => get_string('panel_answer', $c), 'icon' => panel::icon('enviado')]) : null,
@@ -1022,9 +1031,11 @@ class panel_household {
      * the head (panel_origen): people mistake where they heard of a centre, so neither corrects the other.
      *
      * @param \stdClass $household
-     * @return array|false said, site, ai and text (the whole sentence, for a reader); false with neither.
+     * @param \stdClass $centre
+     * @param string $door Where they signed up from: the form and its place, or the act.
+     * @return array|false said, site, ai, channel, door and text (the whole sentence, for a reader).
      */
-    protected static function origen(\stdClass $household) {
+    protected static function origen(\stdClass $household, \stdClass $centre, string $door = '') {
         $c = self::C;
         $said = !empty($household->heardfrom) ? get_string('heard_' . (in_array(
             $household->heardfrom,
@@ -1032,9 +1043,8 @@ class panel_household {
             true
         ) ? $household->heardfrom : 'other'), $c) : '';
         [$site, $ai] = arrival::of($household);
-        if ($said === '' && $site === '') {
-            return false;
-        }
+        $channel = $household->incentre || !empty($household->roster) ? '' :
+            arrival::channel_name(arrival::channel($household, $centre));
         $parts = [];
         if ($said !== '') {
             $parts[] = get_string('panel_said', $c, $said);
@@ -1042,8 +1052,18 @@ class panel_household {
         if ($site !== '') {
             $parts[] = get_string($ai ? 'panel_arrived_ai' : 'panel_arrived_from', $c, $ai ? $site : arrival::shown($site));
         }
+        if ($channel !== '') {
+            $parts[] = get_string('panel_origin_channel_text', $c, $channel);
+        }
+        if ($door !== '') {
+            $parts[] = get_string('panel_origin_door_text', $c, $door);
+        }
+        if (!$parts) {
+            return false;
+        }
         $text = implode('; ', $parts) . '.';
         return ['said' => $said, 'site' => $ai ? $site : arrival::shown($site), 'ai' => $ai,
+            'channel' => $channel !== '' ? $channel : false, 'door' => $door !== '' ? $door : false,
             'text' => \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1)];
     }
 
