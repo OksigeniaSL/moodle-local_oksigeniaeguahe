@@ -46,7 +46,7 @@
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
         "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "link": "https://example.com/v",
-        "posterurl": "#", "posterurla3": "#", "deskurl": "#", "doorposter": "#", "doorpostera5": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
+        "posterurl": "#", "posterurla3": "#", "deskurl": "#", "embed": "<iframe></iframe>", "doorposter": "#", "doorpostera5": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
         "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "cancelled": "",
         "before": false, "door": true, "opens": "", "signedsentence": "familias inscritas", "signedpeople": "87 de 120 personas", "signedpercent": 72
@@ -148,6 +148,10 @@
                     {{#doorposter}}<p class="cabeza-acciones"><a class="boton secundario pequeno" href="{{doorposter}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_door, local_oksigeniaeguahe{{/str}}</a> <a class="boton secundario pequeno" href="{{doorpostera5}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_door_a5, local_oksigeniaeguahe{{/str}}</a></p>{{/doorposter}}
                 </div>
                 {{/deskurl}}
+                {{#embed}}
+                <div class="campo codigo-web codigo-acto"><label for="codigo-acto">{{{i.codigo}}}{{#str}}event_embed, local_oksigeniaeguahe{{/str}}</label><textarea id="codigo-acto" readonly rows="4" spellcheck="false" dir="ltr">{{embed}}</textarea><span class="ayuda">{{#str}}event_embed_help, local_oksigeniaeguahe{{/str}}</span>
+                    <button class="boton terciario pequeno" type="button" data-copiar="{{embed}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                {{/embed}}
                 {{/tailored}}
             </details>
             {{/own}}

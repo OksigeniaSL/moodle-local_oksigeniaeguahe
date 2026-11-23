@@ -40,8 +40,12 @@ use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
 
 $token = optional_param('t', '', PARAM_ALPHANUM);
-$url = new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $token]);
+// Inside the web of the centre (events::embed_code()): it says how tall it is, and after signing up the page of the family
+// opens apart.
+$embedded = optional_param('embed', 0, PARAM_BOOL);
+$url = new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $token] + ($embedded ? ['embed' => 1] : []));
 publicpage::setup($url);
+publicpage::$embedded = (bool) $embedded;
 
 $event = events::by_token($token);
 $centre = $event ? centres::get((int) $event->centreid) : null;
@@ -130,7 +134,8 @@ publiclang::$self = !empty($data['self']);
 $data['answers'] = forms::read((int) $event->formid);
 $errors = [];
 if (data_submitted()) {
-    if (!confirm_sesskey()) {
+    // Inside the web of the centre there is no session of this site: the page carries its own mark (events::mark()).
+    if (!($embedded ? events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED)) : confirm_sesskey())) {
         // A page left open for hours: the session ended. Nothing is lost, it is sent again.
         $errors['form'] = publiclang::str('pub_err_session', $lang);
     } else {
@@ -211,7 +216,20 @@ if (data_submitted()) {
                 $url
             );
         }
-        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]));
+        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]);
+        if ($embedded) {
+            // Inside the web of the centre: done, and their page, with their visit, opens apart.
+            publicpage::message(
+                $centre,
+                $lang,
+                publiclang::str('pub_event_sent_title', $lang),
+                publiclang::str('pub_event_sent_embedded', $lang),
+                $url,
+                false,
+                ['url' => $page->out(false), 'label' => publiclang::str('pub_sent_open', $lang)]
+            );
+        }
+        redirect($page);
     }
 }
 
@@ -231,6 +249,9 @@ if ($sharer) {
     publicpage::$seal = share::seal('acto', $lang);
 }
 $context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
+if ($embedded) {
+    $context['sesskey'] = events::mark($event);
+}
 if ($desk) {
     // A computer many families use: the browser does not offer what the one before wrote.
     foreach ($context['adults'] ?? [] as $i => $adult) {

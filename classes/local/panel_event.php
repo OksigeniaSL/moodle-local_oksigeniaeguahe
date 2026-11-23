@@ -252,6 +252,9 @@ class panel_event {
             // For the computers of the centre at the act: the form again after each family, never their page.
             'deskurl' => !$tailored && !$family ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
                 'pk' => share::signature('puesto', 0, (int) $event->id)]))->out(false) : '',
+            // To have the signing up inside a page of the web of the centre.
+            'embed' => !$tailored && !$family && !empty($event->open) ? events::embed_code($event, format_string($event->name)) :
+                '',
             // The poster of the door, for the day: families sign in with their phone when they arrive.
             'doorposter' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1]))->out(false) : '',
             'doorpostera5' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1, 'paper' => 'A5',

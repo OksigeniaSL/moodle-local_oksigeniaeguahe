@@ -19,8 +19,8 @@
  *   kept in this browser for 90 days and passed to the links and the forms of Oksigenia Eguahe on the page, so that a
  *   family that came from an AI assistant and then pressed «Pedir plaza» is counted as such (eg_src, eg_med, eg_cmp,
  *   eg_ref; classes/local/arrival.php);
- * - a form of Eguahe inside the page is as tall as it is, without a scroll bar of its own, and after sending, the page
- *   goes to its top.
+ * - a form of Eguahe inside the page, or the signing up for one of its acts, is as tall as it is, without a scroll bar
+ *   of its own, and after sending, the page goes to its top.
  *
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,6 +30,7 @@
     var KEY = 'eguahe-llegada';
     var DAYS = 90;
     var PAGES = /\/local\/oksigeniaeguahe\/(j|w|invita)\.php/;
+    var FRAMES = 'iframe[src*="/local/oksigeniaeguahe/w.php"], iframe[src*="/local/oksigeniaeguahe/j.php"]';
 
     // The site an address names, without www.
     var host = function(url) {
@@ -100,7 +101,7 @@
             for (var i = 0; i < links.length; i++) {
                 links[i].href = carry(links[i].href, from);
             }
-            var frames = document.querySelectorAll('iframe[src*="/local/oksigeniaeguahe/w.php"]');
+            var frames = document.querySelectorAll(FRAMES);
             for (var j = 0; j < frames.length; j++) {
                 var src = carry(frames[j].src, from);
                 if (src !== frames[j].src) {
@@ -120,7 +121,7 @@
         if (!data || (data.eguahe !== 'height' && data.eguahe !== 'top')) {
             return;
         }
-        var frames = document.querySelectorAll('iframe[src*="/local/oksigeniaeguahe/w.php"]');
+        var frames = document.querySelectorAll(FRAMES);
         for (var i = 0; i < frames.length; i++) {
             if (frames[i].contentWindow !== event.source) {
                 continue;

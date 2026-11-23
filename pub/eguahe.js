@@ -1294,8 +1294,14 @@
 
         // Inside the web of the centre: it says how tall it is, and to go to its top after sending.
         if (window.parent !== window) {
+            // The height of the body, not of the page: a page inside a frame is never shorter than the frame, so a short
+            // page after a long form (the thanks after signing up) would keep the height of the form.
             var tell = function() {
-                window.parent.postMessage({eguahe: 'height', height: document.documentElement.scrollHeight}, '*');
+                var body = document.body;
+                var style = window.getComputedStyle(body);
+                var height = Math.ceil(body.getBoundingClientRect().height + parseFloat(style.marginTop) +
+                    parseFloat(style.marginBottom));
+                window.parent.postMessage({eguahe: 'height', height: height}, '*');
             };
             tell();
             window.addEventListener('load', tell);

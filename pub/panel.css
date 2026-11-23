@@ -12429,6 +12429,11 @@ button.padron-pomo-no::after {
     margin: 4px 0 0;
 }
 
+/* The code of the act for a page of the web of the centre, under the rest of what is shared. */
+.codigo-acto {
+    margin-top: 14px;
+}
+
 /* The families that left, last in the list. */
 .dia-sefueron {
     margin-top: 10px;

@@ -251,6 +251,51 @@ class events {
     }
 
     /**
+     * The mark of a page of signing up for an act given by this site, for the page inside the web of the centre: there
+     * the browser keeps no session of this site (its cookie belongs to another site), so the form carries this mark
+     * instead, as the forms of the entries do (entries::mark()).
+     *
+     * @param \stdClass $event
+     * @param int|null $time
+     * @return string
+     */
+    public static function mark(\stdClass $event, ?int $time = null): string {
+        $time = $time ?? time();
+        return $time . '-' . share::signature('formacto', $time, (int) $event->id);
+    }
+
+    /**
+     * Whether a page of signing up for an act was given by this site, less than a day ago.
+     *
+     * @param \stdClass $event
+     * @param string $mark
+     * @return bool
+     */
+    public static function mark_ok(\stdClass $event, string $mark): bool {
+        if (!preg_match('/^(\d{9,11})-[0-9a-f]{32}$/', $mark, $m)) {
+            return false;
+        }
+        $time = (int) $m[1];
+        return $time <= time() + 60 && $time > time() - DAYSECS && hash_equals(self::mark($event, $time), $mark);
+    }
+
+    /**
+     * What the centre pastes in a page of its web to have the signing up for an act inside it: as tall as it is (with
+     * pub/embed.js), and after signing up the page of the family opens apart. Not loaded late: on the page of a visit it
+     * is what the family came for.
+     *
+     * @param \stdClass $event
+     * @param string $title
+     * @return string
+     */
+    public static function embed_code(\stdClass $event, string $title): string {
+        global $CFG;
+        return '<iframe src="' . (new \moodle_url(self::url($event), ['embed' => 1]))->out(false) . '" title="' . s($title) .
+            '" style="width:100%;min-height:900px;border:0"></iframe>' . "\n" .
+            '<script src="' . $CFG->wwwroot . '/local/oksigeniaeguahe/pub/embed.js" async></script>';
+    }
+
+    /**
      * People signed up for an event.
      *
      * @param int $eventid
