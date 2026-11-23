@@ -112,19 +112,7 @@ class chatpanel {
                 // The phones as each way in wrote them («600 111 222», «+34600111222»): the few that end the same, and
                 // of those, the ones that are the same number.
                 $phones[$tel] = true;
-                $same = [];
-                $ends = $DB->get_records_select(
-                    households::ADULTS,
-                    'centreid = :centreid AND ' . $DB->sql_like('phone', ':ends'),
-                    ['centreid' => $cid, 'ends' => '%' . substr($tel, -3)],
-                    '',
-                    'id, phone'
-                );
-                foreach ($ends as $adult) {
-                    if (phone::normalise((string) $adult->phone, (string) ($centre->country ?? '')) === $tel) {
-                        $same[] = (int) $adult->id;
-                    }
-                }
+                $same = self::adults_with_phone($centre, $tel);
                 if ($same) {
                     [$in, $inparams] = $DB->get_in_or_equal($same, SQL_PARAMS_NAMED, 'ad');
                     $where[] = "a.id $in";
@@ -206,6 +194,32 @@ class chatpanel {
             ))->out(false) : false,
             'sesskey' => sesskey(),
         ];
+    }
+
+    /**
+     * The adults of a centre with a phone, as each way in wrote it («600 111 222», «+34600111222»): the few that end the
+     * same, and of those, the ones that are the same number.
+     *
+     * @param \stdClass $centre
+     * @param string $tel The phone, normalised.
+     * @return int[] Their ids.
+     */
+    public static function adults_with_phone(\stdClass $centre, string $tel): array {
+        global $DB;
+        $same = [];
+        $ends = $DB->get_records_select(
+            households::ADULTS,
+            'centreid = :centreid AND ' . $DB->sql_like('phone', ':ends'),
+            ['centreid' => (int) $centre->id, 'ends' => '%' . substr($tel, -3)],
+            '',
+            'id, phone'
+        );
+        foreach ($ends as $adult) {
+            if (phone::normalise((string) $adult->phone, (string) ($centre->country ?? '')) === $tel) {
+                $same[] = (int) $adult->id;
+            }
+        }
+        return $same;
     }
 
     /**

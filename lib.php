@@ -113,6 +113,19 @@ function local_oksigeniaeguahe_oksigeniamarandu_posts(): array {
 }
 
 /**
+ * What admissions knows of whoever writes to the chat of Oksigenia Marandu, for the reply it proposes with the AI of the
+ * site, which a person reviews and sends: short lines of plain text (the children and their courses, the visits, who
+ * attends them, what was promised), only of the centres of the person who asks and never of a practice centre.
+ *
+ * @param string $phone Digits only, with the prefix of the country.
+ * @param int $userid Who asks for the draft.
+ * @return string[] Empty when the phone is of no household this person may see.
+ */
+function local_oksigeniaeguahe_oksigeniamarandu_chat_context(string $phone, int $userid): array {
+    return \local_oksigeniaeguahe\local\chatcontext::lines($phone, $userid);
+}
+
+/**
  * What happened in admissions in the last seven days, added up and without names, for the line of its door in «Your
  * work»: so whoever runs the centre sees it alive, not only what waits (the common rule of 8 November 2026). Families
  * that came in, that came to know the centre, and that looked at their page.

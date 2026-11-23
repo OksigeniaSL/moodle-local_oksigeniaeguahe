@@ -1,31 +1,22 @@
 # Moodle Plugin CI — the suite that Moodle Marketplace reviewers expect (validate, lint, codechecker, phpdoc,
 # savepoints, mustache, grunt) plus the plugin's PHPUnit tests.
 #
-# Pushes and pull requests run a short matrix (the lowest and the highest supported branch); tags or a manual run
-# go through every branch that still gets security fixes, plus main. main tracks the next Moodle release and is
-# allowed to fail, so upstream breakage shows up early.
+# Only as the final check of a version: every push is checked first on the laptop with kit/ci-moodle of hq and goes up
+# only in green, so the minutes of Actions are not spent finding what the laptop finds in seconds (22 November 2026).
+# A tag (v*) runs the lowest and the highest supported branch, and MariaDB; a run by hand goes through every branch that
+# still gets security fixes, plus main, once, before a version goes to the Marketplace. main tracks the next Moodle
+# release and is allowed to fail.
 #
 # Reference template: https://github.com/moodlehq/moodle-plugin-ci
 name: Moodle Plugin CI
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    # What is not code does not run the suite: the minutes of Actions are counted.
-    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'provenance/**']
-  pull_request:
-    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'provenance/**']
   workflow_dispatch:
-  # Once a week, every supported branch on main: pushes only try the oldest and the newest, so a break in the middle
-  # branches (5.0, 5.1, 5.2) or in the next release shows up within the week.
-  schedule:
-    - cron: "40 4 * * 1"
 
-# A new push cancels the run of the one before it on the same branch, which nobody needs any more; the weekly run goes
-# on its own and neither cancels nor is cancelled by a push.
 concurrency:
-  group: moodle-ci-${{ github.ref }}-${{ github.event_name == 'schedule' && 'weekly' || 'run' }}
+  group: moodle-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -42,9 +33,8 @@ jobs:
           b502='{"moodle-branch":"MOODLE_502_STABLE","php":"8.3","node":"22"}'
           high='{"moodle-branch":"MOODLE_503_STABLE","php":"8.3","node":"22","pg":"17"}'
           next='{"moodle-branch":"main","php":"8.4","node":"22","pg":"17","experimental":true}'
-          # Every push: the oldest and the newest (the repository is private since 18-11-2026, and its minutes count).
-          # A tag, a run by hand or the weekly run: every branch supported.
-          if [[ "$GITHUB_REF" == refs/tags/* || "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_EVENT_NAME" == schedule ]]; then
+          # A tag: the oldest and the newest. A run by hand: every branch supported, plus main.
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
             echo "include=[$low,$b500,$b501,$b502,$high,$next]" >> "$GITHUB_OUTPUT"
           else
             echo "include=[$low,$high]" >> "$GITHUB_OUTPUT"
