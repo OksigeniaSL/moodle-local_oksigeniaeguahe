@@ -627,7 +627,7 @@ class report_data {
      * @param array $all
      * @param int $from
      * @param int $to
-     * @return array|false sentence, blocks (name, rows with line) and raw (for the AI).
+     * @return array|false sentence, blocks (name, rows with line), sheet (arrival::sheet()) and raw (for the AI).
      */
     protected static function by_channel(\stdClass $centre, array $all, int $from, int $to) {
         $c = 'local_oksigeniaeguahe';
@@ -663,7 +663,7 @@ class report_data {
             'of them with a child in its nursery' => $r['who']['nursery']['n'],
             'had children at the centre before' => $r['who']['former']['n'],
             'of former students' => $r['who']['alumni']['n']], $sum['rows']);
-        return ['sentence' => arrival::by_channel_text($sum), 'blocks' => $out, 'raw' => $raw];
+        return ['sentence' => arrival::by_channel_text($sum), 'blocks' => $out, 'sheet' => arrival::sheet($sum), 'raw' => $raw];
     }
 
     /**

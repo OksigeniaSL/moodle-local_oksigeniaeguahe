@@ -434,12 +434,12 @@ class panel_metrics {
                 self::reach($mine, $before, $compare, $elapsed, (int) ($previous['start'] ?? 0)) : null,
             'channels' => $mine && $on('campana') ? self::channels($centre, $campaign, $mine, $voice, $url) : null,
             // How they decide: those that stayed in their first word, how long they take, those that come back.
-            'decide' => $mine && $on('campana') && empty($campaign['import']) ? decide::summary(
+            'decide' => $mine && $on('campana') && empty($campaign['import']) ? self::folded(decide::summary(
                 $centre,
                 $mine,
                 (int) ($centre->campaignstart ?? 0) ?: (int) strtotime('-12 months', $now),
                 $now
-            ) : null,
+            )) : null,
             'weeks' => $mine && $on('campana') ? self::weeks(
                 $centre,
                 $campaign,
@@ -860,11 +860,24 @@ class panel_metrics {
                 'panel_spend_missing_one' : 'panel_spend_missing', $c, $unnoted) : '')))),
             'declared' => $said,
             'rows' => $out,
+            // By channel, the sheet: the totals, who they are and each channel with how far its families went.
+            'sheet' => $bychannel && $sum ? ['whatis' => get_string('panel_voice_channel_def', $c)] +
+                self::folded(arrival::sheet($sum)) : false,
             'hasenrolled' => !$said && (bool) array_filter(array_column($out, 'en')),
             'spend' => $spendrows,
             'canspend' => (bool) $spendrows,
             'currency' => centres::currency_symbol($centre),
         ];
+    }
+
+    /**
+     * On the screen, «How it is counted» goes folded under its name; on paper it stays open.
+     *
+     * @param array|false $sheet
+     * @return array|false
+     */
+    protected static function folded($sheet) {
+        return $sheet ? ['fold' => true] + $sheet : $sheet;
     }
 
     /**

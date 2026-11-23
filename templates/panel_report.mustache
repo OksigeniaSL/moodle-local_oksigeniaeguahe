@@ -194,23 +194,25 @@
         {{#data.bychannel}}
         <section class="inf-seccion inf-por-canal" aria-labelledby="inf-por-canal">
             <h2 id="inf-por-canal">{{#str}}report_h_bychannel, local_oksigeniaeguahe{{/str}}</h2>
+            {{#sheet}}{{> local_oksigeniaeguahe/panel_bychannel}}{{/sheet}}
+            {{^sheet}}
             <p class="inf-seccion-frase">{{sentence}}</p>
             {{#blocks}}
             <h3 class="inf-canal-grupo">{{name}}</h3>
             <ul class="inf-canal-lineas">{{#rows}}<li>{{line}}</li>{{/rows}}</ul>
             {{/blocks}}
+            {{/sheet}}
         </section>
         {{/data.bychannel}}
 
         {{#data.decide}}
         <section class="inf-seccion inf-decidir" aria-labelledby="inf-decidir">
             <h2 id="inf-decidir">{{#str}}decide_title, local_oksigeniaeguahe{{/str}}</h2>
+            {{#figures.0}}{{> local_oksigeniaeguahe/panel_decide}}{{/figures.0}}
+            {{^figures.0}}
             <ul class="inf-canal-lineas">{{#lines}}<li>{{text}}</li>{{/lines}}</ul>
-            <table>
-                <thead><tr><th scope="col"><span class="oculto">{{#str}}decide_col_group, local_oksigeniaeguahe{{/str}}</span></th><th scope="col">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_stayed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_tovisit, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_toenrol, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_multi, local_oksigeniaeguahe{{/str}}</th></tr></thead>
-                <tbody>{{#rows}}<tr{{#split}} class="decidir-corte"{{/split}}><th scope="row">{{name}}</th><td>{{n}}</td><td>{{stayed}}</td><td>{{tovisit}}</td><td>{{toenrol}}</td><td>{{multi}}</td></tr>{{/rows}}</tbody>
-            </table>
             <p class="inf-def">{{def}}</p>
+            {{/figures.0}}
         </section>
         {{/data.decide}}
 

@@ -116,4 +116,28 @@ final class decide_test extends \advanced_testcase {
         $this->assertNotEmpty($summary['rows']);
         $this->assertSame(get_string('who_new', $c), $summary['rows'][array_key_last($summary['rows'])]['name']);
     }
+
+    /**
+     * Each fact as a figure and what it means; the days to the first visit and to enrolling on one ruler, from 0 to a
+     * round number past the longest middle half.
+     */
+    public function test_figures(): void {
+        $c = 'local_oksigeniaeguahe';
+        $sum = ['n' => 10, 'quiet' => 8, 'stayed' => 2, 'multi' => 0, 'multienrolled' => 0, 'once' => 0, 'onceenrolled' => 0,
+            'tovisit' => [2, 4, 6, 8, 10], 'toenrol' => [10, 20, 30, 40, 50], 'returning' => 3, 'returningenrolled' => 1,
+            'otherchild' => 0, 'otherchildenrolled' => 0, 'latejoin' => 0];
+        $figures = decide::figures($sum);
+        $this->assertSame(
+            ['25 %', get_string('decide_days', $c, 6), get_string('decide_days', $c, 30), 3],
+            array_column($figures, 'fig')
+        );
+        $this->assertFalse($figures[0]['ruler']);
+        // Both on the same ruler: to 40 days, so the median of 30 stands at three quarters.
+        $this->assertEquals(
+            ['lo' => 0.5, 'hi' => 1.0, 'mid' => 0.75, 'max' => get_string('decide_days', $c, 40)],
+            $figures[2]['ruler']
+        );
+        $this->assertSame(get_string('decide_days', $c, 40), $figures[1]['ruler']['max']);
+        $this->assertSame(get_string('decide_fig_returning', $c, 1), $figures[3]['text']);
+    }
 }

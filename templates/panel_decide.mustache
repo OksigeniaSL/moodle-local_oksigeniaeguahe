@@ -1,0 +1,81 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_decide
+
+    How the families decide, in Numbers and in the reports. Each fact as a figure and what it means: the share that
+    stayed at their first contact, the days to the first visit and to enrolling (each on a ruler from 0, both on the
+    same one: the middle half as a band, the median as a stroke), and those that came more than once, from an earlier
+    campaign, with another child or once the course had started. Then a table by channel and by who they are, each
+    group under its name: a table of roles drawn as rows of one grid, as By channel (panel_bychannel); on a phone each
+    row its own card, never sliding sideways. «How it is counted», folded on the screen.
+
+    Context variables required for this template:
+    * figures - fig, text and ruler (lo, hi and mid from 0 to 1, and max: the end of the ruler) or false
+    * groups - name and rows: name, n, stayed (text), stayedbar (p, from 0 to 1) or false, tovisit, toenrol and multi
+    * fold - true on the screen: how - the note, without its first words, under «How it is counted»; else def, whole
+
+    Example context (json):
+    {"figures": [{"fig": "38 %", "text": "se quedaron en su primer contacto: 21 de 55.", "ruler": false},
+        {"fig": "46 días", "text": "de su primer contacto a la matrícula; la mitad, entre 21 y 88 días (34 familias).",
+        "ruler": {"lo": 0.21, "hi": 0.88, "mid": 0.46, "max": "100 días"} }],
+        "groups": [{"name": "Por canal", "rows": [{"name": "Canales propios", "n": 158, "stayed": "31 %",
+        "stayedbar": {"p": 0.31}, "tovisit": "10 días", "toenrol": "41 días", "multi": "14"} ]} ],
+        "fold": true, "how": "El primer contacto es la primera palabra de la familia.", "def": ""}
+}}
+<div class="decidir-cuerpo">
+    {{#figures.0}}
+    <ul class="decidir-cifras">
+        {{#figures}}
+        <li class="decidir-cifra">
+            <b class="decidir-cifra-n">{{fig}}</b>
+            <span class="decidir-cifra-txt">{{text}}</span>
+            {{#ruler}}<span class="regla" aria-hidden="true" style="--lo: {{lo}}; --hi: {{hi}}; --mid: {{mid}}"><i class="regla-rango"></i><i class="regla-mediana"></i><span class="regla-cero">0</span><span class="regla-tope">{{max}}</span></span>{{/ruler}}
+        </li>
+        {{/figures}}
+    </ul>
+    {{/figures.0}}
+    <div class="hoja-tabla decidir-tabla" role="table" aria-label="{{#str}}decide_title, local_oksigeniaeguahe{{/str}}">
+        <div class="hoja-cabeza" role="rowgroup">
+            <div class="hoja-fila" role="row">
+                <span class="hoja-col" role="columnheader"><span class="oculto">{{#str}}decide_col_group, local_oksigeniaeguahe{{/str}}</span></span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_stayed, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_tovisit, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_toenrol, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_multi, local_oksigeniaeguahe{{/str}}</span>
+            </div>
+        </div>
+        {{#groups}}
+        <div class="hoja-bloque" role="rowgroup">
+            <div class="hoja-fila hoja-grupo" role="row"><span role="cell" aria-colspan="6"><b>{{name}}</b></span></div>
+            {{#rows}}
+            <div class="hoja-fila" role="row">
+                <span class="hoja-nombre" role="rowheader">{{name}}</span>
+                <span class="hoja-n" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</span><b>{{n}}</b></span>
+                <span class="hoja-tramo es-sale" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_stayed, local_oksigeniaeguahe{{/str}}</span>{{#stayedbar}}<span class="tramo" style="--p: {{p}}"><b>{{stayed}}</b><i aria-hidden="true"></i></span>{{/stayedbar}}{{^stayedbar}}<b>{{stayed}}</b>{{/stayedbar}}</span>
+                <span class="hoja-dias" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_tovisit, local_oksigeniaeguahe{{/str}}</span><b>{{tovisit}}</b></span>
+                <span class="hoja-dias" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_toenrol, local_oksigeniaeguahe{{/str}}</span><b>{{toenrol}}</b></span>
+                <span class="hoja-dias" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_multi, local_oksigeniaeguahe{{/str}}</span><b>{{multi}}</b></span>
+            </div>
+            {{/rows}}
+        </div>
+        {{/groups}}
+    </div>
+    {{#fold}}<details class="tabla-gemela decidir-cuenta"><summary>{{#str}}bychannel_how, local_oksigeniaeguahe{{/str}}</summary><p class="def">{{how}}</p></details>{{/fold}}
+    {{^fold}}<p class="def">{{def}}</p>{{/fold}}
+</div>

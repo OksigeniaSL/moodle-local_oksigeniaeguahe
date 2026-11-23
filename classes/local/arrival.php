@@ -478,6 +478,104 @@ class arrival {
     }
 
     /**
+     * Where they came from, by channel, as a sheet for the template panel_bychannel: the families of each block and in
+     * all, who they all are, which channel enrols most and least, and each channel on its row with how far its families
+     * went, each step against its own families (so a channel of five is read as fairly as one of two hundred), who they
+     * are, how many only said it and how many left their contact in an ad later.
+     *
+     * @param array $sum From by_channel().
+     * @return array head, who, hasapart, best, adlater, blocks, foot, how (the foot for a fold), fold (false: on paper)
+     *     and whatis (false: the page says it).
+     */
+    public static function sheet(array $sum): array {
+        $c = 'local_oksigeniaeguahe';
+        $with = fn(int $n) => get_string('bychannel_with_enrolled', $c, $n);
+        $groups = [];
+        foreach ($sum['rows'] as $r) {
+            $groups[$r['group']][] = $r;
+        }
+        $head = [];
+        $blocks = [];
+        foreach (['own', 'paid', 'other', 'unmeasured'] as $group) {
+            if (empty($groups[$group])) {
+                continue;
+            }
+            $name = get_string('panel_bychannel_group_' . $group, $c);
+            $n = array_sum(array_column($groups[$group], 'n'));
+            $enrolled = array_sum(array_column($groups[$group], 'enrolled'));
+            $head[] = ['name' => $name, 'n' => $n, 'enrolled' => $with($enrolled), 'total' => false];
+            $rows = [];
+            foreach ($groups[$group] as $r) {
+                // Each step against the families of its own channel, never against the biggest one; one family is a sliver.
+                $step = fn(string $key) => ['n' => $r[$key], 'p' => $r[$key] ? max(0.03, round($r[$key] / $r['n'], 4)) : 0];
+                $rows[] = ['name' => $r['name'], 'n' => $r['n'], 'visit' => $step('visited'), 'applied' => $step('applied'),
+                    'enrolled' => $step('enrolled') + ['pct' => $r['n'] ? round(100 * $r['enrolled'] / $r['n']) . ' %' : ''],
+                    'kinds' => self::kinds($r['who']),
+                    'said' => $r['said'] ? get_string('bychannel_note_said', $c, $r['said']) : false,
+                    'adlater' => $r['adlater'] ? get_string('bychannel_note_adlater', $c, $r['adlater']) : false];
+            }
+            $blocks[] = ['name' => $name, 'sum' => get_string('bychannel_block_sum', $c, (object) ['n' => $n,
+                'enrolled' => $enrolled]), 'rows' => $rows];
+        }
+        if (count($head) > 1) {
+            $head[] = ['name' => get_string('bychannel_total', $c), 'n' => $sum['total'],
+                'enrolled' => $with(array_sum(array_column($sum['rows'], 'enrolled'))), 'total' => true];
+        }
+        $who = self::kinds($sum['who']);
+        return ['head' => $head, 'who' => $who, 'hasapart' => (bool) array_filter(array_column($who, 'apart')),
+            'best' => $sum['best'] ? get_string('panel_bychannel_best', $c, (object) ['fair' => self::FAIR,
+                'best' => $sum['best']['name'], 'bestfrac' => $sum['best']['frac'], 'worst' => $sum['worst']['name'],
+                'worstfrac' => $sum['worst']['frac']]) : false,
+            'adlater' => $sum['adlater'] ? get_string('panel_bychannel_adlater_all', $c, $sum['adlater']) : false,
+            'blocks' => $blocks, 'foot' => get_string('panel_bychannel_foot', $c),
+            'how' => self::how(get_string('panel_bychannel_foot', $c)), 'fold' => false, 'whatis' => false];
+    }
+
+    /**
+     * A note «How it is counted: …» without its first words, for a fold that already says them.
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function how(string $text): string {
+        $head = get_string('bychannel_how', 'local_oksigeniaeguahe') . ': ';
+        if (\core_text::strpos($text, $head) !== 0) {
+            return $text;
+        }
+        $text = \core_text::substr($text, \core_text::strlen($head));
+        return \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1);
+    }
+
+    /**
+     * Who some families are, as stamps: the really new, those already of the centre (set apart, as they do not count in
+     * the rest), those that had children there before and those of former students; each with how many enrolled.
+     *
+     * @param array $who From who::count().
+     * @return array n, name, enrolled (text, or empty) and apart.
+     */
+    protected static function kinds(array $who): array {
+        $c = 'local_oksigeniaeguahe';
+        $out = [];
+        $centre = $who['nursery']['n'] + $who['centre']['n'];
+        foreach (
+            ['new' => $who['new'], 'centre' => ['n' => $centre, 'enrolled' => 0], 'former' => $who['former'],
+                'alumni' => $who['alumni']] as $kind => $count
+        ) {
+            if (!$count['n']) {
+                continue;
+            }
+            $apart = $kind === 'centre';
+            $more = $count['enrolled'] ? get_string('bychannel_with_enrolled', $c, $count['enrolled']) : '';
+            if ($apart) {
+                $more = $who['nursery']['n'] ? get_string('bychannel_kind_nursery', $c, $who['nursery']['n']) : '';
+            }
+            $out[] = ['n' => $count['n'], 'name' => get_string($apart ? 'bychannel_kind_centre' : 'who_' . $kind, $c),
+                'enrolled' => $more, 'apart' => $apart];
+        }
+        return $out;
+    }
+
+    /**
      * The block of a channel in Numbers and the reports: the centre's own work, advertising, other ways, or not measured.
      *
      * @param string $channel One of CHANNELS.

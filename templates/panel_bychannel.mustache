@@ -1,0 +1,94 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_bychannel
+
+    Where the families really came from, by channel, in Numbers and in the reports. On top, the families of each block
+    and in all, each with how many enrolled, and who they all are, as stamps: those already of the centre go apart, in
+    pencil, as they do not count in the rest. Then each channel on its row, in its block: its families, and how far they
+    went, each step against the families of that same channel (a channel of five is read as fairly as one of two
+    hundred), and who they are, with how many only said it and how many left their contact in an ad later. A table of
+    roles (never a table element: one split across pages makes the browser lay what follows over it), drawn as rows of
+    one grid: who they are under the steps when narrower, and on a phone each channel its own card, never sliding
+    sideways. «How it is counted», folded on the screen.
+
+    Context variables required for this template:
+    * head - name, n, enrolled (text) and total (the last, «In all»)
+    * who - n, name, enrolled (text, or empty) and apart (already of the centre)
+    * hasapart - whether any of them is already of the centre: the note that they go apart
+    * best, adlater - sentences, or false
+    * blocks - name, sum (text) and rows: name, n, visit, applied and enrolled (n, p from 0 to 1; enrolled also pct),
+      kinds (as who), said and adlater (text, or false)
+    * fold - true on the screen: under «How it is counted», whatis (what the view shows, or false) and how (the note
+      without its first words); on paper, foot, whole
+
+    Example context (json):
+    {"head": [{"name": "Canales propios", "n": 10, "enrolled": "5 con matrícula", "total": false},
+        {"name": "En total", "n": 13, "enrolled": "6 con matrícula", "total": true}],
+        "who": [{"n": 12, "name": "Nuevas de verdad", "enrolled": "5 con matrícula", "apart": false},
+        {"n": 1, "name": "Ya eran del centro", "enrolled": "", "apart": true}], "hasapart": true, "best": false,
+        "adlater": false, "blocks": [{"name": "Canales propios", "sum": "10 familias · 5 con matrícula",
+        "rows": [{"name": "Boca a boca", "n": 5, "visit": {"n": 3, "p": 0.6}, "applied": {"n": 3, "p": 0.6},
+        "enrolled": {"n": 3, "p": 0.6, "pct": "60 %"}, "kinds": [{"n": 5, "name": "Nuevas de verdad",
+        "enrolled": "3 con matrícula", "apart": false}], "said": "solo por lo que dijeron, 2", "adlater": false} ]} ],
+        "fold": true, "whatis": false, "how": "El origen es el primer contacto medido.", "foot": ""}
+}}
+<div class="porcanal">
+    {{#head.0}}
+    <dl class="porcanal-totales">
+        {{#head}}<div class="porcanal-total{{#total}} es-total{{/total}}"><dt>{{name}}</dt><dd><b>{{n}}</b> <span>{{enrolled}}</span></dd></div>{{/head}}
+    </dl>
+    {{/head.0}}
+    {{#who.0}}
+    <div class="porcanal-quienes">
+        <h3 class="porcanal-rotulo">{{#str}}bychannel_who_title, local_oksigeniaeguahe{{/str}}</h3>
+        <ul class="sellos-quien">{{#who}}<li class="sello-quien{{#apart}} aparte{{/apart}}"><b>{{n}}</b> <span class="sello-quien-que">{{name}}</span>{{#enrolled}} <span class="sello-quien-mas">{{enrolled}}</span>{{/enrolled}}</li>{{/who}}</ul>
+        {{#hasapart}}<p class="porcanal-lapiz">{{#str}}bychannel_who_apart, local_oksigeniaeguahe{{/str}}</p>{{/hasapart}}
+    </div>
+    {{/who.0}}
+    {{#best}}<p class="porcanal-frase">{{best}}</p>{{/best}}
+    {{#adlater}}<p class="porcanal-frase porcanal-lapiz">{{adlater}}</p>{{/adlater}}
+    <div class="hoja-tabla porcanal-tabla" role="table" aria-label="{{#str}}report_h_bychannel, local_oksigeniaeguahe{{/str}}">
+        <div class="hoja-cabeza" role="rowgroup">
+            <div class="hoja-fila" role="row">
+                <span class="hoja-col" role="columnheader">{{#str}}bychannel_col_channel, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}bychannel_col_visit, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}bychannel_col_applied, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}bychannel_col_enrolled, local_oksigeniaeguahe{{/str}}</span>
+                <span class="hoja-col" role="columnheader">{{#str}}bychannel_col_who, local_oksigeniaeguahe{{/str}}</span>
+            </div>
+        </div>
+        {{#blocks}}
+        <div class="hoja-bloque" role="rowgroup">
+            <div class="hoja-fila hoja-grupo" role="row"><span role="cell" aria-colspan="6"><b>{{name}}</b> <span class="hoja-grupo-suma">{{sum}}</span></span></div>
+            {{#rows}}
+            <div class="hoja-fila" role="row">
+                <span class="hoja-nombre" role="rowheader">{{name}}</span>
+                <span class="hoja-n" role="cell"><span class="hoja-etiqueta" aria-hidden="true">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</span><b>{{n}}</b></span>
+                <span class="hoja-tramo" role="cell">{{#visit}}<span class="hoja-etiqueta" aria-hidden="true">{{#str}}bychannel_col_visit, local_oksigeniaeguahe{{/str}}</span><span class="tramo" style="--p: {{p}}"><b>{{n}}</b><i aria-hidden="true"></i></span>{{/visit}}</span>
+                <span class="hoja-tramo" role="cell">{{#applied}}<span class="hoja-etiqueta" aria-hidden="true">{{#str}}bychannel_col_applied, local_oksigeniaeguahe{{/str}}</span><span class="tramo" style="--p: {{p}}"><b>{{n}}</b><i aria-hidden="true"></i></span>{{/applied}}</span>
+                <span class="hoja-tramo es-final" role="cell">{{#enrolled}}<span class="hoja-etiqueta" aria-hidden="true">{{#str}}bychannel_col_enrolled, local_oksigeniaeguahe{{/str}}</span><span class="tramo" style="--p: {{p}}"><b>{{n}}</b>{{#pct}} <span class="tramo-pct">{{pct}}</span>{{/pct}}<i aria-hidden="true"></i></span>{{/enrolled}}</span>
+                <div class="porcanal-quien" role="cell">{{#kinds.0}}<ul class="sellos-quien es-fila">{{#kinds}}<li class="sello-quien{{#apart}} aparte{{/apart}}"><b>{{n}}</b> <span class="sello-quien-que">{{name}}</span>{{#enrolled}} <span class="sello-quien-mas">{{enrolled}}</span>{{/enrolled}}</li>{{/kinds}}</ul>{{/kinds.0}}{{#said}}<span class="porcanal-nota">{{said}}</span>{{/said}}{{#adlater}}<span class="porcanal-nota">{{adlater}}</span>{{/adlater}}</div>
+            </div>
+            {{/rows}}
+        </div>
+        {{/blocks}}
+    </div>
+    {{#fold}}<details class="tabla-gemela porcanal-cuenta"><summary>{{#str}}bychannel_how, local_oksigeniaeguahe{{/str}}</summary>{{#whatis}}<p class="def">{{whatis}}</p>{{/whatis}}<p class="def">{{how}}</p></details>{{/fold}}
+    {{^fold}}<p class="def">{{foot}}</p>{{/fold}}
+</div>

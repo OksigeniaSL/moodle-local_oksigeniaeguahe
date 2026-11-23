@@ -280,6 +280,8 @@ class decide {
             $enrol = self::middle($sum['toenrol']);
             $rows[] = ['name' => $name, 'n' => $sum['n'],
                 'stayed' => $sum['quiet'] ? round(100 * $sum['stayed'] / $sum['quiet']) . ' %' : '—',
+                'stayedbar' => $sum['quiet'] ? ['p' => $sum['stayed'] ? max(0.03, round($sum['stayed'] / $sum['quiet'], 4)) : 0]
+                    : false,
                 'tovisit' => $visit ? get_string('decide_days', $c, $visit['median']) : '—',
                 'toenrol' => $enrol ? get_string('decide_days', $c, $enrol['median']) : '—',
                 'multi' => (string) $sum['multi'],
@@ -289,8 +291,72 @@ class decide {
         foreach ($rows as $i => $row) {
             $rows[$i]['split'] = $row['who'] && ($i === 0 || !$rows[$i - 1]['who']);
         }
-        return ['lines' => array_map(fn($l) => ['text' => $l], $lines), 'rows' => $rows,
-            'def' => get_string('decide_def', $c, self::QUIET / DAYSECS), 'raw' => self::raw($all)];
+        // The same rows in two groups, by channel and by who they are, each under its name.
+        $groups = [];
+        foreach (['blocks' => false, 'who' => true] as $key => $who) {
+            $these = array_values(array_filter($rows, fn($r) => $r['who'] === $who));
+            if ($these) {
+                $groups[] = ['name' => get_string('decide_group_' . $key, $c), 'rows' => $these];
+            }
+        }
+        return ['lines' => array_map(fn($l) => ['text' => $l], $lines), 'rows' => $rows, 'groups' => $groups,
+            'figures' => self::figures($all), 'def' => get_string('decide_def', $c, self::QUIET / DAYSECS),
+            'how' => arrival::how(get_string('decide_def', $c, self::QUIET / DAYSECS)), 'fold' => false,
+            'raw' => self::raw($all)];
+    }
+
+    /**
+     * The same as lines(), each as a figure and what it means: the share that stayed at their first contact, the days to
+     * the first visit and to enrolling (each on a ruler, both on the same one), those that came more than once, from an
+     * earlier campaign, with another child, or once the course had started. Only what has something to say.
+     *
+     * @param array $sum From add().
+     * @return array fig, text and ruler (lo, hi and mid from 0 to 1, and max, the end of the ruler) or false.
+     */
+    public static function figures(array $sum): array {
+        $c = self::C;
+        $out = [];
+        if ($sum['quiet']) {
+            $out[] = ['fig' => round(100 * $sum['stayed'] / $sum['quiet']) . ' %', 'text' => get_string(
+                'decide_fig_stayed',
+                $c,
+                (object) ['n' => $sum['stayed'], 'of' => $sum['quiet'], 'days' => self::QUIET / DAYSECS]
+            ), 'ruler' => false];
+        }
+        // The days, on one ruler for both: from 0 to a round number past the longest middle half.
+        $mids = [];
+        foreach (['tovisit', 'toenrol'] as $key) {
+            $m = self::middle($sum[$key]);
+            if ($m) {
+                $mids[$key] = $m + ['n' => count($sum[$key])];
+            }
+        }
+        $top = $mids ? max(array_column($mids, 'high')) : 0;
+        $step = $top > 300 ? 100 : ($top > 60 ? 30 : ($top > 20 ? 10 : 5));
+        $top = max($step, (int) ceil($top / $step) * $step);
+        foreach ($mids as $key => $m) {
+            $out[] = ['fig' => get_string('decide_days', $c, $m['median']), 'text' => get_string(
+                'decide_fig_' . $key,
+                $c,
+                (object) $m
+            ), 'ruler' => ['lo' => round($m['low'] / $top, 4), 'hi' => round($m['high'] / $top, 4),
+                'mid' => round($m['median'] / $top, 4), 'max' => get_string('decide_days', $c, $top)]];
+        }
+        if ($sum['multi']) {
+            $out[] = ['fig' => $sum['multi'], 'text' => get_string('decide_fig_multi', $c, (object) [
+                'frac' => panel_metrics::fraction($sum['multienrolled'], $sum['multi']),
+                'oncefrac' => panel_metrics::fraction($sum['onceenrolled'], $sum['once'])]), 'ruler' => false];
+        }
+        foreach (['returning', 'otherchild'] as $key) {
+            if ($sum[$key]) {
+                $out[] = ['fig' => $sum[$key], 'text' => get_string('decide_fig_' . $key, $c, $sum[$key . 'enrolled']),
+                    'ruler' => false];
+            }
+        }
+        if ($sum['latejoin']) {
+            $out[] = ['fig' => $sum['latejoin'], 'text' => get_string('decide_fig_latejoin', $c), 'ruler' => false];
+        }
+        return $out;
     }
 
     /**

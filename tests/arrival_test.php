@@ -238,4 +238,35 @@ final class arrival_test extends \advanced_testcase {
         $export = households::export(households::get((int) $household->id, (int) $centre->id));
         $this->assertSame(['source' => 'chatgpt.com'], $export['household']['arrived_from']);
     }
+
+    /**
+     * By channel as a sheet: the totals of each block and in all, each step against the families of its own channel (one
+     * of two hundred is a sliver, three of five are three fifths), those already of the centre apart, and «How it is
+     * counted» without its first words for the fold.
+     */
+    public function test_sheet(): void {
+        $c = 'local_oksigeniaeguahe';
+        $who = fn(int $new, int $centre = 0) => ['new' => ['n' => $new, 'enrolled' => 0], 'nursery' => ['n' => 0, 'enrolled' => 0],
+            'centre' => ['n' => $centre, 'enrolled' => 0], 'former' => ['n' => 0, 'enrolled' => 0],
+            'alumni' => ['n' => 0, 'enrolled' => 0]];
+        $row = fn(string $key, string $group, int $n, int $visited, int $enrolled, int $said, array $kinds) => ['key' => $key,
+            'name' => arrival::channel_name($key), 'group' => $group, 'n' => $n, 'visited' => $visited, 'applied' => $enrolled,
+            'enrolled' => $enrolled, 'said' => $said, 'adlater' => 0, 'who' => $kinds];
+        $sheet = arrival::sheet(['rows' => [$row('wordofmouth', 'own', 5, 3, 3, 2, $who(5, 1)),
+            $row('campaign', 'paid', 200, 1, 0, 0, $who(200))], 'total' => 205, 'adlater' => 0, 'best' => false,
+            'worst' => false, 'who' => $who(205, 1)]);
+        $this->assertSame([5, 200, 205], array_column($sheet['head'], 'n'));
+        $this->assertTrue($sheet['head'][2]['total']);
+        $own = $sheet['blocks'][0]['rows'][0];
+        $this->assertEquals(0.6, $own['enrolled']['p'], 'Against its own five, not against the two hundred.');
+        $this->assertSame('60 %', $own['enrolled']['pct']);
+        $this->assertEquals(0.03, $sheet['blocks'][1]['rows'][0]['visit']['p'], 'One family of two hundred is a sliver.');
+        $this->assertSame(0, $sheet['blocks'][1]['rows'][0]['applied']['p']);
+        $this->assertSame(get_string('bychannel_note_said', $c, 2), $own['said']);
+        $this->assertTrue($sheet['hasapart']);
+        $this->assertSame([false, true], array_column($own['kinds'], 'apart'));
+        $this->assertFalse($sheet['fold']);
+        $this->assertStringStartsNotWith(get_string('bychannel_how', $c), $sheet['how']);
+        $this->assertStringStartsWith(get_string('bychannel_how', $c), $sheet['foot']);
+    }
 }

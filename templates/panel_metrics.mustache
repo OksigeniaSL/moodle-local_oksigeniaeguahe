@@ -162,6 +162,11 @@
             <h2 id="c-can">{{#str}}panel_where_from, local_oksigeniaeguahe{{/str}}</h2>
             <p class="corte">{{cut}}</p>
             <nav class="segmentos voces" aria-label="{{#str}}panel_three_voices, local_oksigeniaeguahe{{/str}}">{{#voices}}<a href="{{url}}" data-filtro-cifras{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/voices}}</nav>
+            {{#sheet}}
+            <p class="def">{{#str}}bychannel_lead, local_oksigeniaeguahe{{/str}}</p>
+            {{> local_oksigeniaeguahe/panel_bychannel}}
+            {{/sheet}}
+            {{^sheet}}
             <p class="def">{{def}}</p>
             <p class="linea-dato" data-linea-dato data-reposo="{{rest}}">{{rest}}</p>
             {{#hasenrolled}}<p class="leyenda" aria-hidden="true"><span class="clave"><span class="clave-llegaron"></span>{{#str}}panel_far_name_inquiry, local_oksigeniaeguahe{{/str}}</span><span class="clave"><span class="clave-ahora"></span>{{#str}}panel_far_name_enrolled, local_oksigeniaeguahe{{/str}}</span></p>{{/hasenrolled}}
@@ -178,6 +183,7 @@
                 {{/rows}}
             </ul>
             {{#foot}}<p class="def">{{.}}</p>{{/foot}}
+            {{/sheet}}
             {{#canspend}}
             <details class="tabla-gemela gasto"><summary>{{#str}}panel_what_it_cost, local_oksigeniaeguahe{{/str}}</summary>
                 <form method="post" action="{{spendaction}}" class="gasto-form">
@@ -192,14 +198,7 @@
         {{#decide}}
         <section class="lamina ancha decidir" aria-labelledby="c-dec" id="como-deciden">
             <h2 id="c-dec">{{#str}}decide_title, local_oksigeniaeguahe{{/str}}</h2>
-            <ul class="decidir-frases">{{#lines}}<li>{{text}}</li>{{/lines}}</ul>
-            <div class="tabla-ancha">
-                <table class="decidir-tabla">
-                    <thead><tr><th scope="col"><span class="oculto">{{#str}}decide_col_group, local_oksigeniaeguahe{{/str}}</span></th><th scope="col">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_stayed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_tovisit, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_toenrol, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_multi, local_oksigeniaeguahe{{/str}}</th></tr></thead>
-                    <tbody>{{#rows}}<tr{{#split}} class="decidir-corte"{{/split}}><th scope="row">{{name}}</th><td>{{n}}</td><td>{{stayed}}</td><td>{{tovisit}}</td><td>{{toenrol}}</td><td>{{multi}}</td></tr>{{/rows}}</tbody>
-                </table>
-            </div>
-            <p class="def">{{def}}</p>
+            {{> local_oksigeniaeguahe/panel_decide}}
         </section>
         {{/decide}}
         {{#weeks}}

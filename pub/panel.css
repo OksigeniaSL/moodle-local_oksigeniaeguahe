@@ -6517,47 +6517,534 @@ button.sin-usar-fila {
     transition: opacity var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
-/* How they decide: the sentences, then each block and who they are side by side. */
-.decidir-frases {
+/* ---------- By channel and how they decide: one sheet in Numbers and in the reports ----------
+   The figures in ink and what they mean beside them; a table where each step of a row is read against the families of
+   its own row (a channel of five as fairly as one of two hundred), with a pencil track to the end; on a phone, each
+   row its own card, never sliding sideways. Purple is what comes in, ochre what goes, pencil what is set apart. */
+.porcanal,
+.decidir-cuerpo {
+    --hj-lapiz: rgba(var(--eg-tinta-rgb), 0.16);
     display: grid;
-    gap: 6px;
-    margin: 0 0 14px;
-    padding-inline-start: 1.1rem;
+    gap: 18px;
+    min-width: 0;
 }
 
-.decidir .tabla-ancha {
-    overflow-x: auto;
-}
-
-.decidir-tabla {
-    width: 100%;
-    min-width: 520px;
-    border-collapse: collapse;
-    font-size: 0.9375rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.decidir-tabla th,
-.decidir-tabla td {
-    padding: 7px 8px;
+/* The totals: each block and «In all», big, with how many enrolled under the number. */
+.porcanal-totales {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 32px;
+    margin: 0;
+    padding-block-end: 16px;
     border-block-end: 1px solid var(--eg-linea);
-    text-align: end;
 }
 
-.decidir-tabla th[scope="row"],
-.decidir-tabla thead th:first-child {
-    text-align: start;
+.porcanal-total {
+    display: grid;
+    gap: 4px;
+    align-content: start;
 }
 
-.decidir-tabla thead th {
+.porcanal-total dt {
     color: var(--eg-tinta-2);
     font-size: 0.8125rem;
     font-weight: 700;
-    vertical-align: bottom;
+    letter-spacing: 0.02em;
 }
 
-.decidir-tabla .decidir-corte > * {
-    border-block-start: 2px solid var(--eg-linea);
+.porcanal-total dd {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+}
+
+.porcanal-total b {
+    font-size: 2rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.porcanal-total dd span {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.porcanal-total.es-total {
+    padding-inline-start: 32px;
+    border-inline-start: 1px solid var(--eg-linea);
+}
+
+/* Who they are: stamps in the ink of the stamps; those already of the centre, dashed in pencil, apart. */
+.porcanal-quienes {
+    display: grid;
+    gap: 8px;
+}
+
+.porcanal-rotulo {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.sellos-quien {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sello-quien {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 6px;
+    padding: 4px 10px;
+    border: 1.5px solid var(--eg-sello);
+    border-radius: 6px;
+    color: var(--eg-tinta);
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.sello-quien b {
+    color: var(--eg-sello);
+    font-variant-numeric: tabular-nums;
+}
+
+.sello-quien-mas {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.sello-quien.aparte {
+    border-style: dashed;
+    border-color: var(--eg-borde);
+}
+
+.sello-quien.aparte b {
+    color: var(--eg-tinta-2);
+}
+
+/* In a row, who they are is a line of text, one after the other: the stamps are the key on top. */
+.sellos-quien.es-fila {
+    display: block;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.sellos-quien.es-fila .sello-quien {
+    display: inline;
+    padding: 0;
+    border: 0;
+    font-size: inherit;
+}
+
+.sellos-quien.es-fila .sello-quien + .sello-quien::before {
+    content: ' · ';
+    color: var(--eg-tinta-2);
+}
+
+.sellos-quien.es-fila .sello-quien-mas::before {
+    content: '(';
+}
+
+.sellos-quien.es-fila .sello-quien-mas::after {
+    content: ')';
+}
+
+.sellos-quien.es-fila .sello-quien.aparte .sello-quien-que {
+    color: var(--eg-tinta-2);
+    font-style: italic;
+}
+
+.porcanal-frase {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.porcanal-lapiz,
+.porcanal-nota {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-style: italic;
+}
+
+.porcanal-lapiz {
+    margin: 0;
+}
+
+.porcanal-nota {
+    display: block;
+    margin-top: 4px;
+}
+
+/* The table, a table of roles drawn as rows of one grid, on the screen and on paper alike (a table element split across
+   pages makes the browser lay what follows over its last row). The name of each group over its rows, with its sum;
+   the numbers in the same column, one under the other. */
+.hoja-tabla {
+    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(4rem, 1fr)) minmax(10rem, 2.2fr);
+    font-variant-numeric: tabular-nums;
+}
+
+.decidir-tabla {
+    --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) minmax(6rem, 1.4fr) repeat(3, minmax(4rem, 1fr));
+}
+
+.hoja-fila {
+    display: grid;
+    grid-template-columns: var(--hj-columnas);
+    column-gap: 14px;
+}
+
+.hoja-fila > * {
+    min-width: 0;
+}
+
+.hoja-col {
+    align-self: end;
+    padding-block-end: 8px;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.hoja-bloque .hoja-fila:not(.hoja-grupo) {
+    padding: 10px 0;
+    border-block-end: 1px solid var(--eg-linea);
+}
+
+.hoja-fila.hoja-grupo {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px 0 6px;
+    border-block-end: 1.5px solid var(--eg-tinta);
+    color: var(--eg-tinta);
+    font-size: 0.875rem;
+}
+
+.hoja-cabeza + .hoja-bloque .hoja-grupo {
+    padding-top: 8px;
+}
+
+.hoja-grupo b {
+    font-weight: 750;
+}
+
+.hoja-grupo-suma {
+    margin-inline-start: 10px;
+    color: var(--eg-tinta-2);
+    font-weight: 400;
+}
+
+/* The name keeps its words whole. */
+.hoja-nombre {
+    font-weight: 650;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+}
+
+.hoja-n b {
+    font-size: 1.125rem;
+    font-weight: 750;
+}
+
+.hoja-dias b {
+    font-weight: 600;
+}
+
+/* Each label of a cell, for its card on a phone; the head of the table says it everywhere else. */
+.hoja-etiqueta {
+    display: none;
+}
+
+/* A step: its number and, under it, its share of the families of its row, on a pencil track to the end. Anything
+   above none shows at least a sliver. */
+.tramo {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0 6px;
+}
+
+.tramo b {
+    font-weight: 700;
+}
+
+.tramo-pct {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.tramo i {
+    position: relative;
+    grid-column: 1 / -1;
+    height: 6px;
+    margin-top: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--hj-lapiz);
+}
+
+.tramo i::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: calc(var(--p, 0) * 100%);
+    border-radius: 3px;
+    background: var(--eg-barra);
+}
+
+.es-final .tramo i::before {
+    background: var(--eg-serie-1);
+}
+
+.es-sale .tramo i::before {
+    background: var(--eg-serie-2);
+}
+
+/* How they decide: each figure big, what it means beside it, and the days on one ruler: the middle half as a band,
+   the median as a stroke of ink. */
+.decidir-cifras {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: 18px 36px;
+    margin: 0;
+    padding: 0 0 18px;
+    border-block-end: 1px solid var(--eg-linea);
+    list-style: none;
+}
+
+.decidir-cifra {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 4px 12px;
+}
+
+.decidir-cifra-n {
+    font-size: 1.75rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+    white-space: nowrap;
+}
+
+.decidir-cifra-txt {
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+.regla {
+    position: relative;
+    grid-column: 1 / -1;
+    height: 34px;
+    margin-top: 4px;
+}
+
+.regla::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 8px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--hj-lapiz);
+}
+
+.regla-rango {
+    position: absolute;
+    top: 4px;
+    inset-inline-start: calc(var(--lo, 0) * 100%);
+    width: calc((var(--hi, 0) - var(--lo, 0)) * 100%);
+    height: 10px;
+    border-radius: 3px;
+    background: var(--eg-rango);
+}
+
+.regla-mediana {
+    position: absolute;
+    top: 0;
+    inset-inline-start: calc(var(--mid, 0) * 100%);
+    width: 3px;
+    height: 18px;
+    margin-inline-start: -1.5px;
+    border-radius: 2px;
+    background: var(--eg-serie-1);
+}
+
+.regla-cero,
+.regla-tope {
+    position: absolute;
+    top: 18px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+}
+
+.regla-cero {
+    inset-inline-start: 0;
+}
+
+.regla-tope {
+    inset-inline-end: 0;
+}
+
+/* Narrower, who they are goes on a line of its own under the steps, from the column of the families to the end. */
+@media screen and (max-width: 74.99rem) {
+    .porcanal-tabla {
+        --hj-columnas: minmax(7rem, 1.4fr) minmax(3rem, 0.6fr) repeat(3, minmax(4rem, 1fr));
+    }
+
+    .porcanal-tabla .hoja-col:last-child {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .porcanal-tabla .porcanal-quien {
+        grid-column: 2 / -1;
+        margin-top: 8px;
+    }
+
+    .porcanal-totales {
+        gap: 12px 22px;
+    }
+
+    .porcanal-total.es-total {
+        padding-inline-start: 22px;
+    }
+}
+
+/* On a phone each row is its own card: its name and its families on top, then its figures, each under its label. */
+@media screen and (max-width: 44.99rem) {
+    .hoja-cabeza {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .hoja-bloque .hoja-fila:not(.hoja-grupo) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        padding: 14px 0;
+    }
+
+    .decidir-tabla .hoja-bloque .hoja-fila:not(.hoja-grupo) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hoja-fila .hoja-nombre {
+        grid-column: 1 / -2;
+        align-self: center;
+        font-size: 1rem;
+    }
+
+    .hoja-fila .hoja-n {
+        text-align: end;
+    }
+
+    /* Each figure at the foot of its cell, so labels of one line and of two leave the numbers level. */
+    .hoja-bloque .hoja-fila:not(.hoja-grupo) > [role="cell"] {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .hoja-bloque .hoja-fila:not(.hoja-grupo) > .porcanal-quien {
+        display: block;
+        grid-column: 1 / -1;
+        margin-top: 0;
+    }
+
+    .decidir-cifra {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .hoja-etiqueta {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--eg-tinta-2);
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+
+    .porcanal-totales {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .porcanal-total.es-total {
+        padding-inline-start: 0;
+        border-inline-start: 0;
+    }
+}
+
+/* On paper, a size smaller and the six columns on an A4 page, the totals on one line; each row whole, and the name of
+   a group with its first row, never alone at the foot of a page. */
+@media print {
+    /* On paper the sheet stacks in blocks: a grid split across pages lets the browser lay what follows over what it
+       pushed to the next one. */
+    .porcanal,
+    .decidir-cuerpo,
+    .porcanal-quienes,
+    .decidir-cifras {
+        display: block;
+    }
+
+    .porcanal > * + *,
+    .decidir-cuerpo > * + *,
+    .porcanal-quienes > * + * {
+        margin-top: 12px;
+    }
+
+    .decidir-cifra + .decidir-cifra {
+        margin-top: 12px;
+    }
+
+    .hoja-tabla {
+        font-size: 0.8125rem;
+    }
+
+    .porcanal-tabla {
+        --hj-columnas: minmax(0, 1.5fr) minmax(0, 0.8fr) repeat(3, minmax(0, 1fr)) minmax(0, 2.2fr);
+    }
+
+    .decidir-tabla {
+        --hj-columnas: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    }
+
+    .hoja-fila {
+        column-gap: 10px;
+    }
+
+    .porcanal-totales {
+        gap: 10px 20px;
+    }
+
+    .porcanal-total.es-total {
+        padding-inline-start: 20px;
+    }
+
+    .hoja-fila,
+    .decidir-cifra {
+        break-inside: avoid;
+    }
+
+    .hoja-grupo {
+        break-after: avoid;
+    }
 }
 
 /* By channel: the name of each block (the centre's own work, advertising, other ways) over its first row. */
@@ -8894,29 +9381,6 @@ html.modo-lamina {
 
 .inf-canal-lineas li {
     break-inside: avoid;
-}
-
-/* How they decide, in the report: the same table as in Numbers, on paper. */
-.inf-decidir table {
-    width: 100%;
-    border-collapse: collapse;
-    font-variant-numeric: tabular-nums;
-}
-
-.inf-decidir th,
-.inf-decidir td {
-    padding: 5px 6px;
-    border-block-end: 1px solid var(--inf-lapiz);
-    text-align: end;
-}
-
-.inf-decidir th[scope="row"],
-.inf-decidir thead th:first-child {
-    text-align: start;
-}
-
-.inf-decidir .decidir-corte > * {
-    border-block-start: 2px solid var(--inf-lapiz);
 }
 
 /* Who the families of an act are, under its name. */
