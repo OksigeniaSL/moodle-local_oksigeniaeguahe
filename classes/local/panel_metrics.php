@@ -433,6 +433,13 @@ class panel_metrics {
             'reach' => $mine && $on('campana') ?
                 self::reach($mine, $before, $compare, $elapsed, (int) ($previous['start'] ?? 0)) : null,
             'channels' => $mine && $on('campana') ? self::channels($centre, $campaign, $mine, $voice, $url) : null,
+            // How they decide: those that stayed in their first word, how long they take, those that come back.
+            'decide' => $mine && $on('campana') && empty($campaign['import']) ? decide::summary(
+                $centre,
+                $mine,
+                (int) ($centre->campaignstart ?? 0) ?: (int) strtotime('-12 months', $now),
+                $now
+            ) : null,
             'weeks' => $mine && $on('campana') ? self::weeks(
                 $centre,
                 $campaign,

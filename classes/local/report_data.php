@@ -119,6 +119,13 @@ class report_data {
             'acts' => self::acts($id, $from, $to),
             'voices' => self::voices($id, $all, $from, $to),
             'bychannel' => self::by_channel($centre, $all, $from, $to),
+            // How the families of the campaign under way decide, so far.
+            'decide' => decide::summary(
+                $centre,
+                array_values(array_filter($all, fn($f) => !empty($f['live']))),
+                (int) ($centre->campaignstart ?? 0) ?: (int) strtotime('-12 months', $end),
+                $end
+            ),
             'gone' => $kind === 'cold' && $cifras['gone'] ? ['text' => $cifras['gone']['text'],
                 'reasons' => $cifras['gone']['reasons'] ?? []] : false,
             'started' => $kind === 'cold' && $cifras['started'] ? ['text' => $cifras['started']['text']] : false,

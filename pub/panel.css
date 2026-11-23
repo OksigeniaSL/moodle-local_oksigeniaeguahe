@@ -6517,6 +6517,49 @@ button.sin-usar-fila {
     transition: opacity var(--dur-1) ease, background-color var(--dur-1) ease;
 }
 
+/* How they decide: the sentences, then each block and who they are side by side. */
+.decidir-frases {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 14px;
+    padding-inline-start: 1.1rem;
+}
+
+.decidir .tabla-ancha {
+    overflow-x: auto;
+}
+
+.decidir-tabla {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.decidir-tabla th,
+.decidir-tabla td {
+    padding: 7px 8px;
+    border-block-end: 1px solid var(--eg-linea);
+    text-align: end;
+}
+
+.decidir-tabla th[scope="row"],
+.decidir-tabla thead th:first-child {
+    text-align: start;
+}
+
+.decidir-tabla thead th {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    vertical-align: bottom;
+}
+
+.decidir-tabla .decidir-corte > * {
+    border-block-start: 2px solid var(--eg-linea);
+}
+
 /* By channel: the name of each block (the centre's own work, advertising, other ways) over its first row. */
 .canal-fila.con-grupo {
     grid-template-areas: "grupo grupo" "nombre pista" ". mas";
@@ -8851,6 +8894,29 @@ html.modo-lamina {
 
 .inf-canal-lineas li {
     break-inside: avoid;
+}
+
+/* How they decide, in the report: the same table as in Numbers, on paper. */
+.inf-decidir table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.inf-decidir th,
+.inf-decidir td {
+    padding: 5px 6px;
+    border-block-end: 1px solid var(--inf-lapiz);
+    text-align: end;
+}
+
+.inf-decidir th[scope="row"],
+.inf-decidir thead th:first-child {
+    text-align: start;
+}
+
+.inf-decidir .decidir-corte > * {
+    border-block-start: 2px solid var(--inf-lapiz);
 }
 
 /* Who the families of an act are, under its name. */

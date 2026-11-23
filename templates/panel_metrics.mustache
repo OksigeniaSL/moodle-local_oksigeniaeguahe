@@ -189,6 +189,19 @@
             {{/canspend}}
         </section>
         {{/channels}}
+        {{#decide}}
+        <section class="lamina ancha decidir" aria-labelledby="c-dec" id="como-deciden">
+            <h2 id="c-dec">{{#str}}decide_title, local_oksigeniaeguahe{{/str}}</h2>
+            <ul class="decidir-frases">{{#lines}}<li>{{text}}</li>{{/lines}}</ul>
+            <div class="tabla-ancha">
+                <table class="decidir-tabla">
+                    <thead><tr><th scope="col"><span class="oculto">{{#str}}decide_col_group, local_oksigeniaeguahe{{/str}}</span></th><th scope="col">{{#str}}decide_col_n, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_stayed, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_tovisit, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_toenrol, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}decide_col_multi, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+                    <tbody>{{#rows}}<tr{{#split}} class="decidir-corte"{{/split}}><th scope="row">{{name}}</th><td>{{n}}</td><td>{{stayed}}</td><td>{{tovisit}}</td><td>{{toenrol}}</td><td>{{multi}}</td></tr>{{/rows}}</tbody>
+                </table>
+            </div>
+            <p class="def">{{def}}</p>
+        </section>
+        {{/decide}}
         {{#weeks}}
         <section class="lamina grafico grafico-semanas{{^compare}} sin-comparar{{/compare}}{{#ancha}} ancha{{/ancha}}{{#hasadded}} con-pulso{{/hasadded}}" aria-labelledby="c-sem" id="semanas" data-grafico>
             <h2 id="c-sem">{{#str}}panel_week_by_week, local_oksigeniaeguahe{{/str}}</h2>

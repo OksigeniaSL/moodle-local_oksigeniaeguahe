@@ -134,6 +134,41 @@ class pseudonym {
     }
 
     /**
+     * The tokens of many at once, each by its own keys: one search for all of them, for a whole campaign.
+     *
+     * @param string $kind
+     * @param array $keysbyid Each id with its keys (null keys are left out).
+     * @return array id => tokens, only the ids with some.
+     */
+    public function find_each(string $kind, array $keysbyid): array {
+        global $DB;
+        $owners = [];
+        foreach ($keysbyid as $id => $keys) {
+            foreach (array_filter($keys) as $key) {
+                $owners[$this->hash($kind, $key)][$id] = true;
+            }
+        }
+        $out = [];
+        foreach (array_chunk(array_keys($owners), 500) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
+            $rows = $DB->get_recordset_select(
+                self::T,
+                "centreid = :centreid AND kind = :kind AND keyhash $in",
+                $params + ['centreid' => $this->centreid, 'kind' => $kind],
+                '',
+                'id, keyhash, token'
+            );
+            foreach ($rows as $row) {
+                foreach (array_keys($owners[$row->keyhash] ?? []) as $id) {
+                    $out[$id][$row->token] = true;
+                }
+            }
+            $rows->close();
+        }
+        return array_map('array_keys', $out);
+    }
+
+    /**
      * The tokens these keys already point to, without making any: to find a family of Eguahe in what was imported.
      *
      * @param string $kind household or student.

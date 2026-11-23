@@ -154,6 +154,9 @@ class report_ai {
             'where the families of the period really came from, by channel (the first contact, never an open day or a ' .
                 'form; families already of the centre counted apart)' => !empty($data['bychannel']['raw']) ?
                 $data['bychannel']['raw'] : null,
+            'how the families of the campaign under way decide, so far' => !empty($data['decide']['raw']) ?
+                $data['decide']['raw'] + ['by the block of their channel and by who they are' => $data['decide']['rows']] :
+                null,
             'places of the school year that is being filled' => array_map(fn($p) => ['course' => $p['name'],
                 'children with a place or enrolled' => $p['taken'], 'places' => $p['places'], 'may still come, low' => $p['low'],
                 'may still come, high' => $p['high']], $data['places'] ?: []),
