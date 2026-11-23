@@ -30,10 +30,12 @@ use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_familyform;
 use local_oksigeniaeguahe\local\phone;
+use local_oksigeniaeguahe\local\writeby;
 
 require_login(null, false);
 
@@ -93,9 +95,12 @@ if ($household) {
 } else if (optional_param('fromchat', 0, PARAM_BOOL) && confirm_sesskey()) {
     // A family nobody knew, from a conversation of the chat of the centre: its name, phone and email already written.
     [$first, $last] = array_pad(preg_split('/\s+/', trim(optional_param('chatname', '', PARAM_TEXT)), 2), 2, '');
+    // And the way it came, when the chat says it (a conversation of WhatsApp, Telegram, email or the chat of the web).
+    $way = optional_param('chatchannel', '', PARAM_ALPHA);
     $form->set_data(['c' => $centre->id, 'firstname0' => $first, 'lastname0' => $last,
         'phone0' => optional_param('chatphone', '', PARAM_RAW_TRIMMED),
-        'email0' => optional_param('chatemail', '', PARAM_RAW_TRIMMED)]);
+        'email0' => optional_param('chatemail', '', PARAM_RAW_TRIMMED)] +
+        (in_array($way, lists::HAND_CHANNELS, true) ? ['channel' => $way] : []));
 }
 
 if ($form->is_cancelled()) {
@@ -103,9 +108,17 @@ if ($form->is_cancelled()) {
 }
 if ($data = $form->get_data()) {
     $places = centres::municipalities($centre);
+    // An ad of Meta noted by hand: the channel is Meta, and its network is kept as where they arrived from, as a contact
+    // of the ads would bring it (entries::ad_arrival()).
+    $channel = (string) ($data->channel ?? 'other');
+    $adnetwork = lists::HAND_ADS[$channel] ?? '';
+    $channel = $adnetwork !== '' ? 'meta' : $channel;
     $about = (object) ['lang' => $data->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
         'heardnet' => $data->heardfrom === 'social' ? centres::network($centre, (string) ($data->heardnet ?? '')) : '',
-        'municipalityname' => null, 'firstchannel' => $data->channel ?? 'other', 'incentre' => !empty($data->incentre)];
+        'municipalityname' => null, 'firstchannel' => $channel, 'incentre' => !empty($data->incentre)];
+    if ($adnetwork !== '') {
+        $about->arrival = ['src' => $adnetwork, 'med' => 'paid'];
+    }
     if (isset($places[$data->municipality])) {
         $about->municipality = strpos($data->municipality, 'name:') === 0 ? null : $data->municipality;
         $about->municipalityname = $places[$data->municipality];
@@ -154,17 +167,23 @@ if ($data = $form->get_data()) {
         foreach ($adults as $i => $adult) {
             $adultid = households::add_adult($household, $adult);
             if ($i === 0) {
-                foreach (['email', 'whatsapp', 'phone'] as $channel) {
-                    if (!empty($data->{'consent' . $channel})) {
-                        households::consent($household, $adultid, $channel, true, 'team', $about->lang, (int) $USER->id);
+                foreach (['email', 'whatsapp', 'phone'] as $way) {
+                    if (!empty($data->{'consent' . $way})) {
+                        households::consent($household, $adultid, $way, true, 'team', $about->lang, (int) $USER->id);
                     }
                 }
             }
         }
+        if (!empty($data->consenttelegram)) {
+            // Telegram as well: they are written to by the ways marked, and their page asks them to join it.
+            $ways = array_keys(array_filter(['email' => !empty($data->consentemail),
+                'whatsapp' => !empty($data->consentwhatsapp), 'telegram' => true]));
+            writeby::set($household, $ways, 'team', (int) $USER->id);
+        }
         $body = trim((string) ($data->body ?? ''));
         households::received(
             $household,
-            $data->channel,
+            $channel,
             $body !== '' ? $body : get_string('noted_by_team', $c),
             !empty($data->awaits)
         );

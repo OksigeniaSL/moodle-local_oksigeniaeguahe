@@ -43,11 +43,22 @@
         p.textContent = text;
         out.appendChild(p);
     };
-    var ask = function(contact) {
+    // The way a conversation came, as the chat says it (Chatwoot: «Channel::WebWidget», «Channel::Whatsapp»…).
+    var way = function(d) {
+        var c = String((d.conversation && d.conversation.meta && d.conversation.meta.channel) || d.channel || '').toLowerCase();
+        if (c.indexOf('webwidget') !== -1 || c === 'web') {
+            return 'web';
+        }
+        var known = ['whatsapp', 'telegram', 'email'].filter(function(w) {
+            return c.indexOf(w) !== -1;
+        });
+        return known.length ? known[0] : '';
+    };
+    var ask = function(contact, channel) {
         var email = (contact && contact.email) || '';
         var phone = (contact && contact.phone_number) || '';
         var name = (contact && contact.name) || '';
-        var key = email + '|' + phone + '|' + name;
+        var key = email + '|' + phone + '|' + name + '|' + channel;
         if (key === last) {
             return;
         }
@@ -71,6 +82,7 @@
         body.append('email', email);
         body.append('phone', phone);
         body.append('name', name);
+        body.append('channel', channel);
         fetch(root.getAttribute('data-url'), {method: 'POST', body: body, credentials: 'same-origin'})
             .then(function(r) {
                 return r.json();
@@ -106,7 +118,7 @@
         if (d.theme === 'dark' || d.theme === 'light') {
             document.documentElement.setAttribute('data-bs-theme', d.theme);
         }
-        ask(d.contact || (d.conversation && d.conversation.meta && d.conversation.meta.sender) || null);
+        ask(d.contact || (d.conversation && d.conversation.meta && d.conversation.meta.sender) || null, way(d));
     });
     if (window.parent !== window) {
         // The request carries nothing: only the chat answers it, and the answer is checked by its origin above.

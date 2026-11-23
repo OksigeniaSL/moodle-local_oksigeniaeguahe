@@ -37,13 +37,16 @@ class lists {
 
     /** @var string[] Where a household can come from. */
     const CHANNELS = ['openday', 'visit', 'event', 'webform', 'phone', 'walkin', 'email', 'whatsapp', 'telegram', 'meta',
-        'googleforms', 'other'];
+        'googleforms', 'web', 'other'];
 
     /** @var string What a family writes from its own page after a visit: never a way it came in by. */
     const PAGE = 'page';
 
-    /** @var string[] Channels a person of the team notes by hand. */
-    const HAND_CHANNELS = ['phone', 'walkin', 'email', 'whatsapp', 'telegram', 'openday', 'other'];
+    /** @var string[] Channels a person of the team notes by hand; metaig and metafb are the channel meta with its network. */
+    const HAND_CHANNELS = ['phone', 'walkin', 'email', 'whatsapp', 'telegram', 'web', 'metaig', 'metafb', 'openday', 'other'];
+
+    /** @var string[] The ads of Meta a person of the team notes by hand, and the network each one arrived from. */
+    const HAND_ADS = ['metaig' => 'Instagram', 'metafb' => 'Facebook'];
 
     /** @var string[] How a household heard of the centre, as it says it: discovery, never the last click. */
     const HEARD_FROM = ['family', 'centrefamilies', 'centremessage', 'referral', 'social', 'search', 'ai', 'ad', 'press',

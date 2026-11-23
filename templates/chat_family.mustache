@@ -111,7 +111,7 @@
     {{#newurl}}
     <form class="chat-anotar-hoja" method="post" action="{{.}}" target="_blank">
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="fromchat" value="1">
-        {{#contact}}<input type="hidden" name="chatname" value="{{name}}"><input type="hidden" name="chatphone" value="{{phone}}"><input type="hidden" name="chatemail" value="{{email}}">{{/contact}}
+        {{#contact}}<input type="hidden" name="chatname" value="{{name}}"><input type="hidden" name="chatphone" value="{{phone}}"><input type="hidden" name="chatemail" value="{{email}}"><input type="hidden" name="chatchannel" value="{{channel}}">{{/contact}}
         <button class="boton principal chat-anotar" type="submit">{{#str}}chat_nobody_new, local_oksigeniaeguahe{{/str}}</button>
     </form>
     <p class="chat-nota">{{#str}}chat_nobody_help, local_oksigeniaeguahe{{/str}}</p>

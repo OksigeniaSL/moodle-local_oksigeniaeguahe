@@ -137,6 +137,10 @@ class panel_familyform {
             $consents[] = ['name' => 'consent' . $channel, 'label' => get_string('consent_' . $channel, $c),
                 'checked' => !empty($values['consent' . $channel])];
         }
+        if (in_array('telegram', writeby::channels($centre), true)) {
+            $consents[] = ['name' => 'consenttelegram', 'label' => get_string('consent_telegram', $c),
+                'checked' => !empty($values['consenttelegram'])];
+        }
         return [
             // To write each mobile in groups when it is left, and say when it looks short.
             'tel' => phone::for_page((string) ($centre->country ?? '')),

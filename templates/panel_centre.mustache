@@ -61,7 +61,7 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "emailsettled": "", "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
+        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script"}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
@@ -137,6 +137,7 @@
             <ol>
                 <li><a href="#aj-aspecto">{{#str}}panel_how_families_see_index, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</a></li>
+                {{#calendar}}<li><a href="#aj-calendario">{{#str}}panel_cal_card, local_oksigeniaeguahe{{/str}}</a></li>{{/calendar}}
                 <li><a href="#aj-miniatura">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pedir">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</a></li>
@@ -398,6 +399,22 @@
                     <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-contacto" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
                 </div>
             </details>
+
+            {{! ===== The calendar of the team: the visits and acts in the calendar it already shares ===== }}
+            {{#calendar}}
+            <details class="apartado aj-plegado" id="aj-calendario">
+                <summary><h2 id="aj-calendario-t">{{#str}}panel_cal_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{#str}}panel_cal_read, local_oksigeniaeguahe{{/str}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p>{{#str}}panel_cal_lead, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="campo codigo-web"><label for="cal-guion">{{{i.codigo}}}{{#str}}panel_cal_google, local_oksigeniaeguahe{{/str}}</label><textarea id="cal-guion" readonly rows="6" spellcheck="false" dir="ltr">{{script}}</textarea><span class="ayuda">{{#str}}panel_cal_google_help, local_oksigeniaeguahe{{/str}}</span>
+                        <button class="boton terciario pequeno" type="button" data-copiar="{{script}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
+                    <div class="campo codigo-web"><label for="cal-enlace">{{#str}}panel_cal_link, local_oksigeniaeguahe{{/str}}</label><textarea id="cal-enlace" readonly rows="2" spellcheck="false" dir="ltr">{{ics}}</textarea><span class="ayuda">{{#str}}panel_cal_link_help, local_oksigeniaeguahe{{/str}}</span>
+                        <button class="boton terciario pequeno" type="button" data-copiar="{{ics}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div>
+                    <p class="cal-nuevo"><button class="boton secundario pequeno" type="submit" name="calrenew" value="1" formaction="{{action}}#aj-calendario">{{#str}}panel_cal_renew, local_oksigeniaeguahe{{/str}}</button> <span class="secundario">{{#str}}panel_cal_renew_help, local_oksigeniaeguahe{{/str}}</span></p>
+                </div>
+            </details>
+            {{/calendar}}
 
             {{! ===== The miniature of the centre: the way in, drawn ===== }}
             <details class="apartado aj-plegado" id="aj-miniatura">

@@ -88,9 +88,10 @@ class chatpanel {
      * @param string $email
      * @param string $phone
      * @param string $name The name the chat knows, to note a family nobody knew.
+     * @param string $channel The way the conversation came, as the chat says it (whatsapp, telegram, email, web).
      * @return array The context of chat_family.
      */
-    public static function find(int $userid, string $email, string $phone, string $name = ''): array {
+    public static function find(int $userid, string $email, string $phone, string $name = '', string $channel = ''): array {
         global $DB;
         $email = \core_text::strtolower(trim($email));
         $email = validate_email($email) ? $email : '';
@@ -181,7 +182,8 @@ class chatpanel {
         $tel = $phone !== '' && $first ? phone::normalise($phone, (string) ($first->country ?? '')) : null;
         $shown = $tel ? phone::display($tel) : ($phone !== '' ? $phone : false);
         return [
-            'contact' => ['name' => $name, 'phone' => $shown, 'email' => $email !== '' ? $email : false],
+            'contact' => ['name' => $name, 'phone' => $shown, 'email' => $email !== '' ? $email : false,
+                'channel' => in_array($channel, lists::HAND_CHANNELS, true) ? $channel : ''],
             'same' => $same,
             'families' => $families,
             'hasfamilies' => (bool) $families,

@@ -47,7 +47,8 @@ if (optional_param('action', '', PARAM_ALPHA) === 'find') {
         (int) $USER->id,
         optional_param('email', '', PARAM_RAW_TRIMMED),
         optional_param('phone', '', PARAM_RAW_TRIMMED),
-        optional_param('name', '', PARAM_TEXT)
+        optional_param('name', '', PARAM_TEXT),
+        optional_param('channel', '', PARAM_ALPHA)
     );
     echo json_encode(['html' => $OUTPUT->render_from_template('local_oksigeniaeguahe/chat_family', $found)]);
     die();

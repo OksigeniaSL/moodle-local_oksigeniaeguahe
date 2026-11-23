@@ -12429,6 +12429,20 @@ button.padron-pomo-no::after {
     margin: 4px 0 0;
 }
 
+/* The calendar of the team: the script, the link and a new link, one under the other. */
+#aj-calendario .aj-cuerpo {
+    display: grid;
+    gap: 16px;
+}
+
+.cal-nuevo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0;
+}
+
 /* The code of the act for a page of the web of the centre, under the rest of what is shared. */
 .codigo-acto {
     margin-top: 14px;

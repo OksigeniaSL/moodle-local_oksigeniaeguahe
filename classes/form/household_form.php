@@ -25,6 +25,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\phone;
+use local_oksigeniaeguahe\local\writeby;
 
 /**
  * A household noted by the team (a call, someone at the desk or at the door of an open day), or changed.
@@ -138,6 +139,10 @@ class household_form extends \moodleform {
             $mform->addElement('static', 'consenthelp', '', get_string('form_consent_help', $c));
             foreach (lists::CONSENT_CHANNELS as $channel) {
                 $mform->addElement('advcheckbox', 'consent' . $channel, get_string('consent_' . $channel, $c));
+            }
+            // Telegram, where the site has it: they are written to there once they join it from their page.
+            if (in_array('telegram', writeby::channels($centre), true)) {
+                $mform->addElement('advcheckbox', 'consenttelegram', get_string('consent_telegram', $c));
             }
         }
         $this->add_action_buttons(true, get_string($isnew ? 'household_save_new' : 'savechanges', $isnew ? $c : 'moodle'));
