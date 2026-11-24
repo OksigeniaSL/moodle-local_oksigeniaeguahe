@@ -291,9 +291,9 @@ class teamnotice {
         $text = [];
         $html = [];
         foreach ($lines as $l) {
-            $text[] = $l['name'] . ' — ' . $l['line'] . ($l['wrote'] !== '' ? "\n«" . $l['wrote'] . '»' : '') . "\n" . $l['url'];
+            $text[] = $l['name'] . ' — ' . $l['line'] . ($l['wrote'] !== '' ? "\n" . panel::quote($l['wrote']) : '') . "\n" . $l['url'];
             $html[] = '<li><a href="' . s($l['url']) . '"><b>' . s($l['name']) . '</b></a><br>' . s($l['line']) .
-                ($l['wrote'] !== '' ? '<br><i>«' . s($l['wrote']) . '»</i>' : '') . '</li>';
+                ($l['wrote'] !== '' ? '<br><i>' . s(panel::quote($l['wrote'])) . '</i>' : '') . '</li>';
         }
         $inbox = (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false);
         $message = new \core\message\message();

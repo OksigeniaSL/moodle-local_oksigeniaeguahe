@@ -532,6 +532,16 @@ final class panel_test extends \advanced_testcase {
     }
 
     /**
+     * What someone wrote that has quotes inside: the ones inside are the second ones, in each language.
+     */
+    public function test_quote(): void {
+        $this->assertSame('Dijo “mañana” y “tarde”', panel::inner_quotes('Dijo «mañana» y «tarde»', '«'));
+        $this->assertSame('He said ‘hi’', panel::inner_quotes('He said “hi”', '“'));
+        $this->assertSame('Dijo “hola”', panel::inner_quotes('Dijo “hola”', '«'), 'Already the second ones.');
+        $this->assertSame(get_string('panel_quote', 'local_oksigeniaeguahe', 'Hola'), panel::quote('Hola'));
+    }
+
+    /**
      * The numbers: a part in words, the range of a share, and a campaign under way counted from its families, with how
      * far they got and where they came from; without a start date there is nothing to compare.
      */

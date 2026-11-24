@@ -577,6 +577,30 @@ class panel {
     }
 
     /**
+     * What someone wrote, between the quotes of the language; those inside it are the second ones, so they never close
+     * twice in a row.
+     *
+     * @param string $text
+     * @return string
+     */
+    public static function quote(string $text): string {
+        $open = \core_text::substr(get_string('panel_quote', self::C, ''), 0, 1);
+        return get_string('panel_quote', self::C, self::inner_quotes($text, $open));
+    }
+
+    /**
+     * A text that goes between quotes, with the quotes of the same kind inside it as the second ones.
+     *
+     * @param string $text
+     * @param string $open The quote that opens it: « or “.
+     * @return string
+     */
+    public static function inner_quotes(string $text, string $open): string {
+        $inner = ['«' => ['«', '»', '“', '”'], '“' => ['“', '”', '‘', '’']][$open] ?? null;
+        return $inner ? str_replace([$inner[0], $inner[1]], [$inner[2], $inner[3]], $text) : $text;
+    }
+
+    /**
      * A day and its hour for a list: «4 de agosto, 6:38», with the year when it is not this one.
      *
      * @param int $time

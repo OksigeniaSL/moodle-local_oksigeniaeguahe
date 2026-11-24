@@ -581,6 +581,14 @@ body.piel-mostrador::after {
     background: var(--b-resalte);
 }
 
+/* The family open beside it: its row keeps the ring and the tint, whatever row the mouse is over. */
+.piel-mostrador .lista[data-densidad="lista"] .fila.abierta,
+.piel-mostrador .lista[data-densidad="lista"] .fila.abierta:hover {
+    border-radius: 4px;
+    background: var(--eg-acento-suave);
+    box-shadow: inset 0 0 0 3px var(--eg-acento);
+}
+
 .piel-mostrador .lista[data-densidad="lista"] .sello-fecha {
     display: none;
 }

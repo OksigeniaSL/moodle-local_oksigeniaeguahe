@@ -1187,7 +1187,7 @@ class panel_household {
                 'who' => $who,
                 'how' => $how,
                 'when' => panel::when_words((int) $contact->timecreated, $now),
-                'body' => $body === '' ? '' : ($contact->direction === 'note' ? $body : get_string('panel_quote', $c, $body)),
+                'body' => $body === '' ? '' : ($contact->direction === 'note' ? $body : panel::quote($body)),
             ];
         }
         return $out;

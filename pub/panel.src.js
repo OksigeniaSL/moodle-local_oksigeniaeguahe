@@ -552,10 +552,17 @@
     var markOpen = function(row) {
         all('.fila.abierta').forEach(function(r) {
             r.classList.remove('abierta');
+            all('.nombres', r).forEach(function(a) {
+                a.removeAttribute('aria-current');
+            });
         });
         openRow = row;
         if (row) {
             row.classList.add('abierta');
+            // Which one is open, for a reader too.
+            all('.nombres', row).forEach(function(a) {
+                a.setAttribute('aria-current', 'true');
+            });
             row.scrollIntoView({block: 'nearest'});
         }
     };
