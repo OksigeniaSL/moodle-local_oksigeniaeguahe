@@ -73,7 +73,7 @@ class mail {
      * @param \stdClass $centre
      * @param string $email
      * @param string $subject
-     * @param string $html
+     * @param string $html Empty for a mail of text only.
      * @param string $text
      * @param array $images A list of data, cid, name, mime.
      * @param string $unsubscribe The address of unsubscribing with one click from the mail program, if the mail has one.
@@ -132,10 +132,10 @@ class mail {
             $mail->addCustomHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
         }
         $mail->MessageID = generate_email_messageid();
-        $mail->isHTML(true);
+        $mail->isHTML($html !== '');
         $mail->Encoding = 'quoted-printable';
-        $mail->Body = $html;
-        $mail->AltBody = $text;
+        $mail->Body = $html !== '' ? $html : $text;
+        $mail->AltBody = $html !== '' ? $text : '';
         foreach ($images as $image) {
             // Only the pictures the letter shows: one made but not shown, Gmail lists at its foot as an attachment.
             if (strpos($html, 'cid:' . $image['cid']) === false) {

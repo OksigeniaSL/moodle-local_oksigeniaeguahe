@@ -40,15 +40,25 @@ class invites {
     /** @var string Instead of something they like: only the families of former students of the centre. */
     const ALUMNI = 'antiguos';
 
+    /** @var int How many letters go out at a time, and every how long: many at once end in spam. */
+    const BATCH = 15;
+
+    /** @var int */
+    const PAUSE = 25 * MINSECS;
+
+    /** @var int[] From which hour and until which one they go out, in the time of the server. */
+    const DAYTIME = [9, 20];
+
     /**
-     * Whether an act is one to invite the families to: an open act still to come and open to sign up.
+     * Whether an act is one to invite the families to: an open day or an open act, still to come and open to sign up.
      *
      * @param \stdClass $event
      * @param int $now
      * @return bool
      */
     public static function fits(\stdClass $event, int $now): bool {
-        return $event->kind === 'other' && !empty($event->open) && empty($event->tailored) && (int) $event->timestart > $now;
+        return in_array($event->kind, ['openday', 'other'], true) && !empty($event->open) && empty($event->tailored) &&
+            (int) $event->timestart > $now;
     }
 
     /**
@@ -166,12 +176,9 @@ class invites {
      */
     public static function queued(int $eventid): array {
         $ids = [];
-        foreach (\core\task\manager::get_adhoc_tasks(\local_oksigeniaeguahe\task\send_invites::class) as $task) {
-            $data = $task->get_custom_data();
-            if ((int) ($data->eventid ?? 0) === $eventid) {
-                foreach ((array) ($data->ids ?? []) as $id) {
-                    $ids[(int) $id] = true;
-                }
+        foreach (self::tasks($eventid) as $task) {
+            foreach ((array) ($task->get_custom_data()->ids ?? []) as $id) {
+                $ids[(int) $id] = true;
             }
         }
         return $ids;
@@ -185,20 +192,29 @@ class invites {
      * @param \stdClass $centre
      * @param int $userid
      * @param int $now
-     * @param string $hobby Only the families that like this, or invites::ALUMNI for those of former students.
+     * @param string $group Only the families of one of groups(), by its key.
+     * @param int[]|null $ids Only these families, the ones left ticked; null for all.
      * @return array email, phone, status, said
      */
-    public static function queue(\stdClass $event, \stdClass $centre, int $userid, int $now, string $hobby = ''): array {
+    public static function queue(
+        \stdClass $event,
+        \stdClass $centre,
+        int $userid,
+        int $now,
+        string $group = '',
+        ?array $ids = null
+    ): array {
         $none = ['email' => 0, 'phone' => 0, 'status' => '', 'said' => ''];
         if (!self::fits($event, $now)) {
             return $none;
         }
         $eligible = self::eligible($event);
-        if ($hobby === self::ALUMNI) {
-            // Only the families of former students of the centre.
-            $eligible = array_intersect_key($eligible, alumni::families((int) $event->centreid));
-        } else if ($hobby !== '') {
-            $eligible = array_intersect_key($eligible, array_flip(hobbies::households_with(array_keys($eligible), [$hobby])));
+        if ($group !== '') {
+            // Never the whole list when the group is no longer there.
+            $eligible = array_intersect_key($eligible, array_flip(self::groups($event, $eligible)[$group]['ids'] ?? []));
+        }
+        if ($ids !== null) {
+            $eligible = array_intersect_key($eligible, array_flip(array_map('intval', $ids)));
         }
         $email = array_keys(array_filter($eligible, fn($h) => $h->reachemail));
         $phone = array_keys(array_filter($eligible, fn($h) => $h->reachphone));
@@ -216,6 +232,7 @@ class invites {
             $task = new \local_oksigeniaeguahe\task\send_invites();
             $task->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id, 'userid' => $userid,
                 'ids' => $email]);
+            $task->set_next_run_time(self::daytime($now));
             \core\task\manager::queue_adhoc_task($task, true);
             $out['email'] = count($email);
         }
@@ -406,6 +423,198 @@ class invites {
     }
 
     /**
+     * The groups the families an act may invite can be told apart by: what they like, those of former students, the
+     * course they ask for and whether they signed up to another act.
+     *
+     * @param \stdClass $event
+     * @param \stdClass[] $eligible As eligible() gives them.
+     * @return array key => [kind (hobby, alumni, course or act), name, ids]
+     */
+    public static function groups(\stdClass $event, array $eligible): array {
+        global $DB;
+        $ids = array_map('intval', array_keys($eligible));
+        if (!$ids) {
+            return [];
+        }
+        $out = [];
+        foreach (array_keys(hobbies::families_by($ids)) as $key) {
+            $out[$key] = ['kind' => 'hobby', 'name' => hobbies::name($key), 'ids' => hobbies::households_with($ids, [$key])];
+        }
+        $alumni = array_values(array_intersect($ids, array_keys(alumni::families((int) $event->centreid))));
+        if ($alumni) {
+            $out[self::ALUMNI] = ['kind' => 'alumni', 'name' => get_string('alumni_invite_chip', self::C), 'ids' => $alumni];
+        }
+        // The course each child still on its way asks for, by its name: the same course of two school years is one.
+        $courses = [];
+        $with = [];
+        $sql = 'SELECT k.id, k.householdid, o.name, o.sortorder
+                  FROM {' . households::CHILDREN . '} k
+                  JOIN {' . centres::OFFERS . "} o ON o.id = k.offerid
+                 WHERE k.centreid = ? AND k.stage <> ?
+              ORDER BY o.sortorder, o.name, k.id";
+        foreach ($DB->get_records_sql($sql, [$event->centreid, 'closed']) as $row) {
+            if (isset($eligible[$row->householdid])) {
+                $courses[(string) $row->name][(int) $row->householdid] = true;
+                $with[(int) $row->householdid] = true;
+            }
+        }
+        foreach ($courses as $name => $homes) {
+            $out['curso-' . substr(sha1($name), 0, 10)] = ['kind' => 'course', 'name' => format_string($name),
+                'ids' => array_keys($homes)];
+        }
+        $without = array_values(array_diff($ids, array_keys($with)));
+        if ($courses && $without) {
+            $out['sincurso'] = ['kind' => 'course', 'name' => get_string('panel_invite_nocourse', self::C), 'ids' => $without];
+        }
+        // The last acts of the centre, by whether they signed up.
+        $signed = [];
+        $sql = 'SELECT s.id, s.eventid, s.householdid FROM {' . events::SIGNUPS . '} s WHERE s.centreid = ? AND s.eventid <> ?';
+        foreach ($DB->get_records_sql($sql, [$event->centreid, (int) $event->id]) as $row) {
+            if (isset($eligible[$row->householdid])) {
+                $signed[(int) $row->eventid][(int) $row->householdid] = true;
+            }
+        }
+        $acts = $signed ? $DB->get_records_select(
+            events::T,
+            "centreid = ? AND kind IN ('openday', 'other') AND tailored = 0",
+            [$event->centreid],
+            'timestart DESC, id DESC',
+            'id, name, timestart'
+        ) : [];
+        $n = 0;
+        foreach ($acts as $act) {
+            $in = array_keys($signed[(int) $act->id] ?? []);
+            if (!$in || ++$n > 3) {
+                continue;
+            }
+            $name = (object) ['event' => format_string($act->name), 'date' => userdate(
+                (int) $act->timestart,
+                get_string('strftimedateshort', 'langconfig')
+            )];
+            $out['acto-' . $act->id] = ['kind' => 'act', 'name' => get_string('panel_invite_act_in', self::C, $name), 'ids' => $in];
+            $rest = array_values(array_diff($ids, $in));
+            if ($rest) {
+                $out['sinacto-' . $act->id] = ['kind' => 'act', 'name' => get_string('panel_invite_act_out', self::C, $name),
+                    'ids' => $rest];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The moment itself if it is of daytime; if not, when the next one starts.
+     *
+     * @param int $time
+     * @return int
+     */
+    public static function daytime(int $time): int {
+        $date = (new \DateTimeImmutable('@' . $time))->setTimezone(\core_date::get_server_timezone_object());
+        $hour = (int) $date->format('G');
+        if ($hour >= self::DAYTIME[0] && $hour < self::DAYTIME[1]) {
+            return $time;
+        }
+        return ($hour >= self::DAYTIME[1] ? $date->modify('+1 day') : $date)->setTime(self::DAYTIME[0], 0)->getTimestamp();
+    }
+
+    /**
+     * When the last of some letters goes out, if the first ones go at a moment.
+     *
+     * @param int $count
+     * @param int $first
+     * @return int
+     */
+    public static function last_at(int $count, int $first): int {
+        $time = self::daytime($first);
+        for ($left = $count - self::BATCH; $left > 0; $left -= self::BATCH) {
+            $time = self::daytime($time + self::PAUSE);
+        }
+        return $time;
+    }
+
+    /**
+     * What is still on its way of an act: how many families, and when the next ones go out.
+     *
+     * @param int $eventid
+     * @return int[] [families, next]
+     */
+    public static function on_the_way(int $eventid): array {
+        $n = 0;
+        $next = 0;
+        foreach (self::tasks($eventid) as $task) {
+            $n += count((array) ($task->get_custom_data()->ids ?? []));
+            $next = $next ? min($next, (int) $task->get_next_run_time()) : (int) $task->get_next_run_time();
+        }
+        return [$n, $next];
+    }
+
+    /**
+     * Stops what has not gone out yet: those families can be invited again.
+     *
+     * @param int $eventid
+     * @return int How many families were left.
+     */
+    public static function stop(int $eventid): int {
+        global $DB;
+        [$n] = self::on_the_way($eventid);
+        foreach (self::tasks($eventid) as $task) {
+            $DB->delete_records('task_adhoc', ['id' => $task->get_id()]);
+        }
+        return $n;
+    }
+
+    /**
+     * The tasks in the background with the letters of an act.
+     *
+     * @param int $eventid
+     * @return \core\task\adhoc_task[]
+     */
+    protected static function tasks(int $eventid): array {
+        return array_filter(
+            \core\task\manager::get_adhoc_tasks(\local_oksigeniaeguahe\task\send_invites::class),
+            fn($task) => (int) ($task->get_custom_data()->eventid ?? 0) === $eventid
+        );
+    }
+
+    /**
+     * What the letter of an act needs of it.
+     *
+     * @param \stdClass $event
+     * @return \stdClass
+     */
+    public static function of_letter(\stdClass $event): \stdClass {
+        return (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
+            'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
+            'token' => $event->token];
+    }
+
+    /**
+     * Sends the letter to whoever is going to send it, to see how it arrives: nothing is counted.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param \stdClass $user
+     * @return bool
+     */
+    public static function try_on(\stdClass $event, \stdClass $centre, \stdClass $user): bool {
+        publiclang::$self = false;
+        [$subject, $html, $text] = familymail::letter(
+            trim((string) $user->firstname),
+            $centre,
+            self::of_letter($event),
+            (string) ($centre->lang ?: 'es'),
+            '',
+            (string) ($event->invitewords ?? '')
+        );
+        return mail::send_rich(
+            $centre,
+            (string) $user->email,
+            $subject,
+            get_config(self::C, 'letterplain') ? '' : $html,
+            $text
+        );
+    }
+
+    /**
      * Sends the invitation by email, once, to the families it was queued for (see queue()), from a task in the
      * background: a family invited by phone with the same act keeps one record, by both.
      *
@@ -422,9 +631,8 @@ class invites {
             return 0;
         }
         $sent = 0;
-        $pseudo = (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
-            'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
-            'token' => $event->token];
+        $pseudo = self::of_letter($event);
+        $words = (string) ($event->invitewords ?? '');
         $note = get_string('invite_note', self::C, format_string($event->name));
         foreach ($ids as $id) {
             $household = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);
@@ -437,7 +645,7 @@ class invites {
             }
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $token = households::new_link($household, 'invitation');
-            if (!familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token)) {
+            if (!familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token, null, $words)) {
                 continue;
             }
             if ($row) {

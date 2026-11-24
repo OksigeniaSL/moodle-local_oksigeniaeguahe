@@ -59,10 +59,18 @@ class panel_event {
      * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
-     * @param string $hobby What goes with an open act, to invite only those who like it; '' for none.
+     * @param string $whom One of invites::groups(), to invite only those; '' for all.
+     * @param bool $nobody Whether the list of those to invite comes with nobody ticked.
      * @return array
      */
-    public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0, string $hobby = ''): array {
+    public static function context(
+        \stdClass $event,
+        \stdClass $centre,
+        bool $canact,
+        int $now = 0,
+        string $whom = '',
+        bool $nobody = false
+    ): array {
         $now = $now ?: time();
         $c = self::C;
         $url = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]);
@@ -225,7 +233,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
-            'invite' => self::invite($event, $canact, $now, $hobby),
+            'invite' => self::invite($event, $canact, $now, $whom, $nobody),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -432,39 +440,46 @@ class panel_event {
      * @param \stdClass $event
      * @param bool $canact
      * @param int $now
-     * @param string $hobby What goes with the act, chosen; '' for none.
+     * @param string $group One of invites::groups(), chosen; '' for all.
+     * @param bool $none Whether the list comes with nobody ticked, to tick a few.
      * @return array|false
      */
-    protected static function invite(\stdClass $event, bool $canact, int $now, string $hobby = '') {
+    protected static function invite(\stdClass $event, bool $canact, int $now, string $group = '', bool $none = false) {
         if (!invites::fits($event, $now)) {
             return false;
         }
         $c = self::C;
         $centre = centres::get((int) $event->centreid);
         $all = invites::eligible($event);
-        $eligible = array_keys($all);
-        $can = count($eligible);
+        $can = count($all);
         $done = invites::count((int) $event->id);
-        // What goes with the act: the families where an adult said they like it, to invite only them if it fits.
-        $by = hobbies::families_by($eligible);
-        // And the families of former students of the centre, to invite only them («antiguos»).
-        $alumnin = count(array_intersect_key(alumni::families((int) $event->centreid), array_flip($eligible)));
-        $hobby = isset($by[$hobby]) || ($hobby === invites::ALUMNI && $alumnin) ? $hobby : '';
-        $url = fn(string $key) => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id] +
-            ($key !== '' ? ['gusto' => $key] : []), 'invitar'))->out(false);
-        $chips = [];
-        foreach ($by as $key => $n) {
-            $chips[] = ['name' => hobbies::name($key), 'n' => $n, 'url' => $url($hobby === $key ? '' : $key),
-                'current' => $hobby === $key];
+        // The groups they can be told apart by: one at a time, and none for all of them.
+        $groups = invites::groups($event, $all);
+        $group = isset($groups[$group]) ? $group : '';
+        $url = fn(array $params) => (new \moodle_url(
+            '/local/oksigeniaeguahe/event.php',
+            ['id' => $event->id] + $params,
+            'invitar'
+        ))->out(false);
+        $intros = ['course' => 'panel_invite_by_course', 'act' => 'panel_invite_by_act', 'alumni' => 'alumni_invite_intro',
+            'hobby' => 'panel_invite_likes'];
+        $rows = [];
+        foreach ($intros as $kind => $intro) {
+            $chips = [];
+            foreach ($groups as $key => $one) {
+                if ($one['kind'] === $kind) {
+                    $chips[] = ['name' => $one['name'], 'n' => count($one['ids']), 'current' => $group === $key,
+                        'cap' => $kind === 'alumni', 'url' => $url($group === $key ? [] : ['gusto' => $key])];
+                }
+            }
+            if ($chips) {
+                $rows[] = ['intro' => get_string($intro, $c), 'chips' => $chips];
+            }
         }
-        $foralumni = $hobby === invites::ALUMNI;
-        $some = $foralumni ? $alumnin : ($hobby !== '' ? $by[$hobby] : 0);
-        $a = (object) ['n' => $some, 'of' => $can, 'what' => \core_text::strtolower($hobby !== '' && !$foralumni ?
-            hobbies::name($hobby) : '')];
-        $somekey = $foralumni ? 'alumni_invite_some' : 'panel_invite_some';
+        $chosen = $group !== '' ? array_intersect_key($all, array_flip($groups[$group]['ids'])) : $all;
         // By the way each family chose: how many by email and by phone, what WhatsApp costs, and who approves it.
-        $emails = count(array_filter($all, fn($h) => $h->reachemail));
-        $phones = array_keys(array_filter($all, fn($h) => $h->reachphone));
+        $emails = count(array_filter($chosen, fn($h) => $h->reachemail));
+        $phones = array_keys(array_filter($chosen, fn($h) => $h->reachphone));
         $quote = $canact && $centre ? invites::quote($centre, $phones) : null;
         $cost = '';
         if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
@@ -475,13 +490,33 @@ class panel_event {
                     (string) ($quote['currency'] ?? '')
                 )]);
         }
-        // Who it goes to, by name, before it goes: all of them, never «and N more».
-        $people = households::some((int) $event->centreid, $eligible);
-        $whom = fn(array $ids) => array_values(array_filter(array_map(fn($id) => isset($people[$id]) ?
-            panel::adults_line($people[$id]->adults) : '', $ids)));
-        $someids = $foralumni ? array_keys(array_intersect_key(alumni::families((int) $event->centreid), array_flip($eligible))) :
-            ($hobby !== '' ? hobbies::households_with($eligible, [$hobby]) : []);
+        // Who it goes to, by name, before it goes: all of them, never «and N more», and each can be left out.
+        $people = households::some((int) $event->centreid, array_keys($chosen));
+        $whom = [];
+        foreach (array_keys($chosen) as $id) {
+            if (!isset($people[$id])) {
+                continue;
+            }
+            $courses = array_unique(array_filter(array_map(
+                fn($child) => $child->stage !== 'closed' && $child->offer ? format_string($child->offer->name) : '',
+                $people[$id]->children
+            )));
+            $whom[] = ['id' => (int) $id, 'name' => panel::adults_line($people[$id]->adults), 'checked' => !$none,
+                'courses' => implode(' · ', $courses)];
+        }
+        usort($whom, fn($a, $b) => strcoll(\core_text::strtolower($a['name']), \core_text::strtolower($b['name'])));
         $state = invites::state(invites::last_bulk((int) $event->id));
+        [$left, $next] = invites::on_the_way((int) $event->id);
+        // The letter as it goes, to any of them: the name is of whoever it goes to.
+        [$subject, , $text] = $centre ? familymail::letter(
+            get_string('panel_invite_letter_name', $c),
+            $centre,
+            invites::of_letter($event),
+            (string) ($centre->lang ?: 'es'),
+            '',
+            (string) ($event->invitewords ?? '')
+        ) : ['', '', ''];
+        $n = count($chosen);
         return [
             'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
             'ways' => $phones ? get_string('panel_invite_ways', $c, (object) ['email' => $emails, 'phone' => count($phones)]) : '',
@@ -496,25 +531,31 @@ class panel_event {
                 (int) $event->id
             )] : false,
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
-            'button' => $can && $canact ? get_string($can === 1 ? 'panel_invite_send_one' : 'panel_invite_send', $c, $can) : '',
-            // Before it goes: to how many, by which way, and that it is once (a touch too many would mail them all).
-            'confirm' => $can ? self::invite_confirm($can, $emails, count($phones)) : '',
-            'whom' => $whom($eligible),
-            'somewhom' => $whom($someids),
-            'someconfirm' => $some ? self::invite_confirm($some, min($some, $emails), min($some, count($phones))) : '',
+            // Those that have not gone out yet, and until when they will be going.
+            'going' => $left ? ['text' => get_string($left === 1 ? 'panel_invite_left_one' : 'panel_invite_left', $c, (object) [
+                'n' => $left, 'when' => userdate(
+                    invites::last_at($left, max($now, $next)),
+                    get_string('strftimedatetimeshort', 'langconfig')
+                )]), 'stop' => $canact] : false,
+            'rows' => $rows,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
-            'haslikes' => (bool) $chips,
-            'likes' => $chips,
-            'hobby' => $hobby,
-            'some' => $hobby !== '' ? get_string($some === 1 ? $somekey . '_one' : $somekey, $c, $a) : '',
-            'alumnichip' => $alumnin ? ['name' => get_string('alumni_invite_chip', $c), 'n' => $alumnin,
-                'url' => $url($foralumni ? '' : invites::ALUMNI), 'current' => $foralumni] : false,
-            'somebutton' => $hobby !== '' && $canact ? get_string(
-                $some === 1 ? 'panel_invite_send_some_one' : 'panel_invite_send_some',
-                $c,
-                $a
-            ) : '',
+            'group' => $group,
+            'letter' => $canact ? ['subject' => $subject, 'text' => $text, 'words' => (string) ($event->invitewords ?? '')] : false,
+            'some' => $group !== '' ? get_string('panel_invite_group', $c, (object) ['n' => $n, 'of' => $can,
+                'what' => $groups[$group]['name']]) : '',
+            'button' => $n && $canact ? get_string($group !== '' ? ($n === 1 ? 'panel_invite_send_some_one' :
+                'panel_invite_send_some') : ($n === 1 ? 'panel_invite_send_one' : 'panel_invite_send'), $c, $group !== '' ?
+                (object) ['n' => $n] : $n) : '',
+            // Before it goes: to how many, by which way, and that it is once (a touch too many would mail them all).
+            'confirm' => $n ? self::invite_confirm($n, $emails, count($phones)) : '',
+            'slow' => $emails > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
+                'n' => (int) round(invites::BATCH * HOURSECS / invites::PAUSE), 'from' => invites::DAYTIME[0],
+                'until' => invites::DAYTIME[1]]) : '',
+            'whom' => $whom,
+            'opened' => $group !== '' || $none,
+            'allurl' => $none ? $url($group !== '' ? ['gusto' => $group] : []) : '',
+            'noneurl' => $none ? '' : $url(($group !== '' ? ['gusto' => $group] : []) + ['ninguna' => 1]),
         ];
     }
 

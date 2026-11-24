@@ -70,6 +70,7 @@
         "pub_message": "¿Quieren contarnos o preguntarnos algo?", "pub_message_hint": "Les contestará una persona.",
         "message": "", "pub_channels": "¿Cómo les escribimos?", "pub_channels_hint": "Solo sobre esta visita.",
         "channelerror": "", "channels": [{"name": "consentemail", "label": "Correo", "checked": false}],
+        "ways": {"choose": "Elegir por dónde les escribimos", "chooseurl": "#", "none": "No escribirnos más", "noneurl": "#"},
         "pub_privacy_link": "Cómo tratamos sus datos", "info": [{"label": "Quién", "text": "Colegio de ejemplo."}],
         "pub_info_more": "Más sobre sus datos", "privacyurl": "#", "altchaurl": "#", "altchaconfig": "{}",
         "altchalang": "es-es", "altchai18n": "es-es", "altchaerror": "", "formerror": "",
@@ -358,6 +359,7 @@
             <p class="nota-plaza">{{pub_no_place}}</p>
         </div>
     </form>
+    {{#ways}}<p class="vias-invitada"><a href="{{chooseurl}}">{{choose}}</a> <a href="{{noneurl}}">{{none}}</a></p>{{/ways}}
 </div>
 <script type="module" src="{{base}}altcha/altcha.min.js?v={{version}}"></script>
 {{#altchai18n}}<script type="module" src="{{base}}altcha/i18n-{{altchai18n}}.js?v={{version}}"></script>{{/altchai18n}}

@@ -34,10 +34,11 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
 
 [$options, $unrecognised] = cli_get_params(
     ['centre' => 0, 'email' => '', 'name' => '', 'phone' => '', 'child' => 'Leo', 'course' => '', 'lang' => '', 'event' => 0,
-        'mail' => 'received', 'enrol' => 0, 'remove' => 0, 'help' => false],
+        'mail' => 'received', 'unsubscribe' => false, 'plain' => false, 'enrol' => 0, 'remove' => 0, 'help' => false],
     ['h' => 'help']
 );
 if ($unrecognised) {
@@ -54,7 +55,9 @@ Make it and send it a real mail:
   --child=Leo       The name of the child.
   --course=TEXT     The course it asks for: the first of the offer whose name has this text (the first one if not given).
   --lang=es         The language of the family (that of the centre if not given).
-  --mail=received   The mail: received (we got your message), or openinvite with --event=ID (an open act).
+  --mail=received   The mail: received (we got your message), or openinvite with --event=ID (the letter of an act).
+  --unsubscribe     The letter with the header that unsubscribes in one touch.
+  --plain           The letter as text only.
 
 Then:
   --enrol=ID        Its child enrolled now, without passing to Family: to see the question asked again.
@@ -129,10 +132,19 @@ if ($options['mail'] === 'openinvite') {
     if (!$event) {
         cli_error('An open act of the centre is needed: --event=ID.');
     }
-    $pseudo = (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
-        'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
-        'token' => $event->token];
-    $sent = familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token);
+    // To compare how the letter arrives: with the header that unsubscribes in one touch, and as text only.
+    $CFG->forced_plugin_settings['local_oksigeniaeguahe']['letterunsubscribe'] = (int) !empty($options['unsubscribe']);
+    $CFG->forced_plugin_settings['local_oksigeniaeguahe']['letterplain'] = (int) !empty($options['plain']);
+    $sent = familymail::send(
+        'openinvite',
+        $household,
+        $centre,
+        invites::of_letter($event),
+        $lang,
+        $token,
+        null,
+        (string) ($event->invitewords ?? '')
+    );
 } else {
     $sent = familymail::send('received', $household, $centre, null, $lang, $token);
 }

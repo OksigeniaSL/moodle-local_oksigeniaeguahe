@@ -67,11 +67,36 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     $DB->set_field(events::T, 'outcome', $outcome === '' ? null : core_text::substr($outcome, 0, 600), ['id' => $event->id]);
     redirect(new moodle_url($url, [], 'como-fue'));
 }
-if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invite') {
-    // An open act: the invitation to the families that are not of the centre yet, once.
+if (
+    data_submitted() && confirm_sesskey() &&
+        in_array(optional_param('action', '', PARAM_ALPHA), ['invite', 'invitewords', 'invitetest'], true)
+) {
+    // The letter of the invitation: what the team adds in its own words is kept with the act, whatever is pressed.
     centres::require_act((int) $centre->id);
+    $event->invitewords = core_text::substr(trim(optional_param('invitewords', '', PARAM_TEXT)), 0, 1500) ?: null;
+    $DB->set_field(events::T, 'invitewords', $event->invitewords, ['id' => $event->id]);
+    $group = optional_param('gusto', '', PARAM_ALPHANUMEXT);
+    $back = new moodle_url($url, $group !== '' ? ['gusto' => $group] : [], 'invitar');
+    if (optional_param('action', '', PARAM_ALPHA) === 'invitewords') {
+        redirect($back);
+    }
+    if (optional_param('action', '', PARAM_ALPHA) === 'invitetest') {
+        // To whoever is going to send it, to see how it arrives: it invites nobody.
+        $out = invites::try_on($event, $centre, $USER);
+        redirect(
+            $back,
+            $out ? get_string('panel_invite_tested', $c, s($USER->email)) : get_string('panel_invite_tested_no', $c),
+            null,
+            $out ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+        );
+    }
+    // The families that are not of the centre yet, once, and only those left ticked.
+    $ids = optional_param_array('para', [], PARAM_INT);
+    if (!$ids) {
+        redirect($back, get_string('panel_invite_nobody', $c), null, \core\output\notification::NOTIFY_WARNING);
+    }
     // Hundreds of mails do not fit in a page: they go in the background.
-    $sent = invites::queue($event, $centre, (int) $USER->id, time(), optional_param('gusto', '', PARAM_ALPHA));
+    $sent = invites::queue($event, $centre, (int) $USER->id, time(), $group, $ids);
     $lines = [];
     if ($sent['email']) {
         $lines[] = get_string($sent['email'] === 1 ? 'panel_invite_going_one' : 'panel_invite_going', $c, $sent['email']);
@@ -82,6 +107,17 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     redirect(
         new moodle_url($url, [], 'invitar'),
         implode(' ', $lines),
+        null,
+        \core\output\notification::NOTIFY_SUCCESS
+    );
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitestop') {
+    // The letters that have not gone out yet, stopped: those families can be invited again.
+    centres::require_act((int) $centre->id);
+    $left = invites::stop((int) $event->id);
+    redirect(
+        new moodle_url($url, [], 'invitar'),
+        $left ? get_string($left === 1 ? 'panel_invite_stopped_one' : 'panel_invite_stopped', $c, $left) : '',
         null,
         \core\output\notification::NOTIFY_SUCCESS
     );
@@ -145,6 +181,13 @@ panel::output(
     'events',
     format_string($event->name),
     'panel_event',
-    panel_event::context($event, $centre, $canact, 0, optional_param('gusto', '', PARAM_ALPHA)),
+    panel_event::context(
+        $event,
+        $centre,
+        $canact,
+        0,
+        optional_param('gusto', '', PARAM_ALPHANUMEXT),
+        optional_param('ninguna', 0, PARAM_BOOL)
+    ),
     true
 );

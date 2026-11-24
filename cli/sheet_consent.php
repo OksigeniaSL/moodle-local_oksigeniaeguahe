@@ -30,6 +30,7 @@ require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\teamnotes;
 use local_oksigeniaeguahe\local\writeby;
@@ -52,7 +53,10 @@ $centre = centres::get((int) $options['centre']);
 if (!$centre) {
     cli_error('No centre ' . (int) $options['centre']);
 }
-$ids = $DB->get_fieldset_sql('SELECT DISTINCT householdid FROM {' . teamnotes::T . '} WHERE centreid = ?', [$centre->id]);
+// Those with a note of the team, and those with a line that came by a sheet of the team, which may have no note yet.
+$ids = $DB->get_fieldset_sql('SELECT householdid FROM {' . teamnotes::T . '} WHERE centreid = ?
+    UNION SELECT c.householdid FROM {' . households::CONTACTS . '} c JOIN {' . entries::T . '} e ON e.id = c.entryid
+           WHERE c.centreid = ? AND e.teamsheet = 1', [$centre->id, $centre->id]);
 $families = 0;
 $adults = 0;
 foreach ($ids as $id) {

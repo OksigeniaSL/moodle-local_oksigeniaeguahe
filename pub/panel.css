@@ -20585,8 +20585,72 @@ html {
     padding: 2px 0;
 }
 
-/* The list of those invited takes the whole line of the confirm box, the two answers under it. */
-.confirmar[open] form .invitar-quienes {
-    flex-basis: 100%;
+/* The letter that invites: what the team adds, the letter as it goes, and whom it goes to, each one to tick or not. */
+.invitar-carta {
+    display: grid;
+    gap: 14px;
+    margin-top: 6px;
+}
+
+.invitar-carta textarea {
     width: 100%;
+    box-sizing: border-box;
+}
+
+.carta-previa {
+    display: grid;
+    gap: 8px;
+}
+
+.carta-asunto {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--eg-linea);
+    overflow-wrap: anywhere;
+}
+
+.carta-texto {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+    font-size: 0.9375rem;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.invitar-mandar > summary {
+    width: fit-content;
+    list-style: none;
+}
+
+.invitar-mandar > summary::-webkit-details-marker {
+    display: none;
+}
+
+.invitar-mandar > p {
+    margin-top: 10px;
+}
+
+.invitar-quienes label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    min-height: 28px;
+    cursor: pointer;
+}
+
+.invitar-quienes input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    accent-color: var(--eg-accion);
+}
+
+.invitar-quienes small {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.invitar-estado form {
+    display: inline;
 }

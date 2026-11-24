@@ -1799,5 +1799,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121400, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121500) {
+        // What the team adds, in its own words, to the letter that invites to an act.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('invitewords', XMLDB_TYPE_TEXT, null, null, null, null, null, 'outcome');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026121500, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

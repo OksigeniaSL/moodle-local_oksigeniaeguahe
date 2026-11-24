@@ -2152,6 +2152,21 @@ legend .opc {
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
 }
+/* For who came by the letter of an invitation: how they want to be written to, quiet at the foot. */
+.vias-invitada {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    margin-top: 20px;
+    font-size: 0.9375rem;
+}
+
+.vias-invitada a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
 /* ---------- Loose messages, the question before erasing, the page of text ---------- */
 .mensaje {
     display: grid;

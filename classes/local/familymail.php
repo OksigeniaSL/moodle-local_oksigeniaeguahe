@@ -116,6 +116,17 @@ class familymail {
         global $CFG, $DB;
         // A student who comes on their own is written to as one person.
         publiclang::speak_to($household);
+        if ($kind === 'openinvite') {
+            [$subject, $html, $plain] = self::letter(
+                self::first_name($household),
+                $centre,
+                $signup,
+                $lang,
+                (string) $token,
+                $text
+            );
+            return [$subject, $html, $plain, []];
+        }
         $images = [];
         $embed = function (string $data, string $name, string $mime) use (&$images): string {
             $cid = 'eg' . count($images) . '-' . substr(sha1($data), 0, 12);
@@ -292,29 +303,7 @@ class familymail {
             // How they want to be written to, at sight and in normal type: never the small print at the foot.
             'escribir' => writeby::mail_block($household, $centre, (string) ($choose ?? $token ?? ''), $lang, $kind),
         ];
-        if ($kind === 'openinvite') {
-            // An open act of the centre for a family that is not of it yet: what, when and where, and how to sign up.
-            $joinurl = !empty($signup->token) ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token,
-                'idioma' => $lang] + ($token ? ['k' => $token, 'de' => $kind] : [])))->out(false) : '';
-            $event = format_string($signup->eventname);
-            $context['titular'] = $str($tags ? 'mail_open_titular' : 'mail_open_titular_nochild');
-            // Why they get it: they let the centre write to them, not that they signed up to a visit.
-            $context['pie']['porque'] = $str('mail_open_why', format_string($centre->name));
-            $context += [
-                'asunto' => $str('mail_open_subject', (object) ['centre' => format_string($centre->name), 'event' => $event]),
-                'preencabezado' => $ucfirst($plain) . ', ' . $hours . '.',
-                'entradilla' => $str('mail_open_lead', (object) ['event' => '<strong>' . s($event) . '</strong>',
-                    'date' => $strong]),
-                'entradilla_texto' => $str('mail_open_lead', (object) ['event' => $event, 'date' => $plain]),
-                'banda' => ['rotulo' => $str('mail_open_band'), 'personas' => ''] + $band + ['personas' => '',
-                    'boton' => $joinurl ? ['texto' => $str('mail_open_join'), 'url' => $joinurl, 'url_texto' => $joinurl] : null,
-                    'enlace' => $map],
-                'secciones' => $pageurl ? [['titulo' => $str('mail_your_page'), 'texto' => s($str('mail_your_page_text')),
-                    'texto_plano' => $str('mail_your_page_text'), 'enlace' => ['texto' => $str('mail_open_page'),
-                    'url' => $pageurl, 'url_texto' => $pageurl]]] : null,
-                'nota' => $str('mail_open_note'),
-            ];
-        } else if ($kind === 'writeby') {
+        if ($kind === 'writeby') {
             // They chose to be written to by email: said back, short and warm, in the same mail.
             $context['titular'] = $str('mail_writeby_titular');
             $context['etiquetas_filas'] = [];
@@ -587,6 +576,97 @@ class familymail {
     }
 
     /**
+     * The invitation to an act, as a person would write it: a few lines, one link and the name of who receives them, with
+     * no design, no pictures and no buttons. Sent to many families who have never had a mail of the centre, one with
+     * design ends in the spam of many of them. How they are written to is chosen on the page the link opens.
+     *
+     * @param string $name The first name of who it goes to, or ''.
+     * @param \stdClass $centre
+     * @param \stdClass $signup eventname, timestart, timeend, place, hosts and token of the act.
+     * @param string $lang
+     * @param string $token The private link of the family; '' for a copy to look at.
+     * @param string $words What the team adds, in its own words.
+     * @return string[] subject, html, text
+     */
+    public static function letter(
+        string $name,
+        \stdClass $centre,
+        \stdClass $signup,
+        string $lang,
+        string $token,
+        string $words = ''
+    ): array {
+        $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $parts = publicpage::date_parts((int) $signup->timestart, $lang);
+        $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
+        $long = empty($signup->slotid) && (int) $signup->timeend - (int) $signup->timestart >= 2 * HOURSECS;
+        $when = $long ? \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1) :
+            $str('mail_at_hour', $parts['hour']);
+        $event = trim(html_entity_decode(format_string($signup->eventname), ENT_QUOTES, 'UTF-8'));
+        $centrename = html_entity_decode(format_string($centre->name), ENT_QUOTES, 'UTF-8');
+        $place = implode(', ', array_filter([trim((string) ($signup->place ?? '')), trim((string) ($centre->address ?? ''))]));
+        $url = (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token, 'idioma' => $lang] +
+            ($token !== '' ? ['k' => $token, 'de' => 'openinvite'] : [])))->out(false);
+        $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
+        $host = $ids ? (centres::hosts((int) $centre->id, $ids)[0] ?? null) : null;
+
+        $before = [$name !== '' ? $str('mail_letter_hello', $name) : $str('mail_letter_hello_noname')];
+        $before[] = $str('mail_letter_lead', (object) ['centre' => html_entity_decode(
+            share::by_centre($centre, $lang),
+            ENT_QUOTES,
+            'UTF-8'
+        ), 'event' => $event, 'date' => $parts['long'], 'when' => $when]);
+        if ($place !== '') {
+            $before[] = $str('mail_letter_place', $place);
+        }
+        foreach (preg_split('/\R{2,}/', trim($words)) as $paragraph) {
+            if (trim($paragraph) !== '') {
+                $before[] = trim($paragraph);
+            }
+        }
+        $join = $str('mail_letter_join');
+        $after = [];
+        if (!empty($centre->email) && validate_email($centre->email)) {
+            $after[] = $str('mail_letter_stop');
+        }
+        $after[] = implode("\n", array_filter([$str('mail_letter_bye'), $host ? $host->name : '', $host ? (string) $host->role : '',
+            $centrename, trim((string) ($centre->phone ?? ''))], fn($l) => trim($l) !== ''));
+
+        $text = implode("\n\n", array_merge($before, [$join . "\n" . $url], $after)) . "\n";
+        $p = fn(string $html) => '<p style="margin:0 0 1em">' . $html . '</p>';
+        $line = fn(string $s) => $p(nl2br(s($s), false));
+        $html = '<!DOCTYPE html><html lang="' . ($lang === 'pt_br' ? 'pt-BR' : s($lang)) . '" dir="' . lists::dir($lang) .
+            '"><head><meta charset="utf-8"><title>' . s($event) . '</title></head><body>' .
+            '<div dir="' . lists::dir($lang) . '" style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5">' .
+            implode('', array_map($line, $before)) .
+            $p(s($join) . ' <a href="' . s($url) . '">' . s($event) . '</a>') .
+            implode('', array_map($line, $after)) . '</div></body></html>';
+        return [$str('mail_letter_subject', (object) ['event' => $event, 'date' => $parts['long']]), $html, $text];
+    }
+
+    /**
+     * The first name of the adult a family is written to, as it is said: never in capitals, never an address.
+     *
+     * @param \stdClass $household
+     * @return string Empty when there is none to say.
+     */
+    public static function first_name(\stdClass $household): string {
+        $email = households::recipient($household);
+        foreach (households::full($household)->adults as $adult) {
+            if ($email === '' || (string) $adult->email !== $email) {
+                continue;
+            }
+            $name = trim(preg_replace('/\s+/u', ' ', (string) $adult->firstname));
+            if ($name === '' || preg_match('/[@\d]/u', $name)) {
+                return '';
+            }
+            return $name === \core_text::strtoupper($name) || $name === \core_text::strtolower($name) ?
+                \core_text::strtotitle($name) : $name;
+        }
+        return '';
+    }
+
+    /**
      * Whether the family let the centre write to them by email.
      *
      * @param \stdClass $household
@@ -646,7 +726,14 @@ class familymail {
         $choose = $token === null && $kind !== 'writeby' ? households::new_link($household, 'writeby') : null;
         [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text, $choose);
         $link = (string) ($token ?? $choose ?? '');
-        $unsubscribe = $link !== '' ? writeby::unsubscribe_url($link, $lang) : '';
+        // The letter of an invitation says how to stop in its own words; the header that says it too, which sends it to
+        // «Promotions», only where the site wants it (letterunsubscribe). And as plain text only, with letterplain.
+        $letter = $kind === 'openinvite';
+        $unsubscribe = $link !== '' && (!$letter || get_config('local_oksigeniaeguahe', 'letterunsubscribe')) ?
+            writeby::unsubscribe_url($link, $lang) : '';
+        if ($letter && get_config('local_oksigeniaeguahe', 'letterplain')) {
+            $html = '';
+        }
         if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images, $unsubscribe)) {
             return false;
         }

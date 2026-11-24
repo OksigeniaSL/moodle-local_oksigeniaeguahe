@@ -328,6 +328,30 @@ class share {
     }
 
     /**
+     * The centre in a sentence, with its article, for who asked about it: «por el Colegio Los Arces», «pela Escola…»; by its
+     * phrase alone where the sentence has its own word for it.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function by_centre(\stdClass $centre, string $lang): string {
+        $phrase = self::phrase($centre, $lang);
+        if ($lang === 'es') {
+            return 'por ' . $phrase;
+        }
+        if ($lang !== 'pt' && $lang !== 'pt_br') {
+            return $phrase;
+        }
+        foreach (['o ' => 'pelo ', 'a ' => 'pela ', 'os ' => 'pelos ', 'as ' => 'pelas '] as $article => $joined) {
+            if (\core_text::strpos(\core_text::strtolower($phrase), $article) === 0) {
+                return $joined . \core_text::substr($phrase, \core_text::strlen($article));
+            }
+        }
+        return 'por ' . $phrase;
+    }
+
+    /**
      * The gift of the centre that closes a piece: «Un regalo del Colegio Los Arces».
      *
      * @param \stdClass $centre

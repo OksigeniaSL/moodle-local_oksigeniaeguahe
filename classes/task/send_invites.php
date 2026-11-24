@@ -21,8 +21,8 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\invites;
 
 /**
- * Sends, in the background, the invitation to an open act to the families it may go to: hundreds of mails do not fit in
- * a page. Each family once; a second run only reaches who is left.
+ * Sends, in the background, the invitation to an act to the families it may go to: a few at a time and by day, because
+ * hundreds at once do not fit in a page and end in spam. Each family once; a second run only reaches who is left.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -36,8 +36,18 @@ class send_invites extends \core\task\adhoc_task {
         $data = $this->get_custom_data();
         $centre = centres::get((int) ($data->centreid ?? 0));
         $event = $centre ? events::get((int) ($data->eventid ?? 0), (int) $centre->id) : null;
-        if ($event) {
-            invites::send($event, $centre, (int) ($data->userid ?? 0), time(), array_map('intval', (array) ($data->ids ?? [])));
+        if (!$event) {
+            return;
+        }
+        $ids = array_map('intval', (array) ($data->ids ?? []));
+        invites::send($event, $centre, (int) ($data->userid ?? 0), time(), array_slice($ids, 0, invites::BATCH));
+        $left = array_slice($ids, invites::BATCH);
+        if ($left && invites::fits($event, time())) {
+            $next = new self();
+            $next->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id,
+                'userid' => (int) ($data->userid ?? 0), 'ids' => $left]);
+            $next->set_next_run_time(invites::daytime(time() + invites::PAUSE));
+            \core\task\manager::queue_adhoc_task($next);
         }
     }
 }

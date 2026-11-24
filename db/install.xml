@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261213" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261215" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -248,6 +248,7 @@
         <FIELD NAME="formid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A form of the centre whose questions its sign-up asks too"/>
         <FIELD NAME="survey" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The survey How it went the families who came answer on their page; 0, only the open question"/>
         <FIELD NAME="outcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the centre does with what the families told, a line the families who answered read"/>
+        <FIELD NAME="invitewords" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the team adds, in its own words, to the letter that invites to the act"/>
         <FIELD NAME="kit" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The kit for the networks: the short link of each network and the texts written for them, JSON"/>
         <FIELD NAME="cancelled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the centre called it off; 0, it goes ahead"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

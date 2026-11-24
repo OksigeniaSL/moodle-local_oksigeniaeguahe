@@ -336,6 +336,8 @@ class signuppage {
             'altchaerror' => $errors['altcha'] ?? '',
             'altchaurl' => $CFG->wwwroot . '/local/oksigeniaeguahe/altcha.php',
             'altchaconfig' => $altcha,
+            // How they want to be written to, for who came by the letter of an invitation (j.php).
+            'ways' => false,
             'altchalang' => $altchalang,
             'altchai18n' => $altchalang === 'en' ? '' : $altchalang,
         ];

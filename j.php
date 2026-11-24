@@ -38,6 +38,7 @@ use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
+use local_oksigeniaeguahe\local\writeby;
 
 $token = optional_param('t', '', PARAM_ALPHANUM);
 // Inside the web of the centre (events::embed_code()): it says how tall it is, and after signing up the page of the family
@@ -89,6 +90,11 @@ if (!$from && $invitedid && share::signed('invited', $invitedid, (int) $event->i
 }
 if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
     seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
+}
+if ($from && $invited !== 'signed' && (int) $from->centreid === (int) $centre->id && data_submitted() === false) {
+    // The letter has one link: on the page it opens, how they want to be written to. Their private link is kept for this
+    // visit only, never in the address.
+    $SESSION->local_oksigeniaeguahe_invited = [(int) $event->id => $invited];
 }
 if ($invited !== '' && data_submitted() === false) {
     // Counted, the private link of the family leaves the address at once: never kept in the history of the browser or
@@ -249,6 +255,19 @@ if ($sharer) {
     publicpage::$seal = share::seal('acto', $lang);
 }
 $context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
+$mine = $desk || $embedded ? '' : (string) ($SESSION->local_oksigeniaeguahe_invited[(int) $event->id] ?? '');
+$family = $mine !== '' ? households::by_link($mine) : null;
+if ($family && (int) $family->centreid === (int) $centre->id) {
+    $self = publiclang::$self;
+    publiclang::speak_to($family);
+    $context['ways'] = [
+        'choose' => publiclang::str('pub_invited_choose', $lang),
+        'chooseurl' => writeby::url($mine, $lang, '', 'openinvite'),
+        'none' => publiclang::str('pub_writeby_none', $lang),
+        'noneurl' => writeby::url($mine, $lang, 'none', 'openinvite'),
+    ];
+    publiclang::$self = $self;
+}
 if ($embedded) {
     $context['sesskey'] = events::mark($event);
 }

@@ -86,14 +86,28 @@ final class invites_test extends \advanced_testcase {
         $mail = familymail::build('openinvite', $ana, $centre, (object) ['eventid' => $eventid, 'eventname' => $event->name,
             'timestart' => $event->timestart, 'timeend' => $event->timeend, 'place' => '', 'hosts' => '', 'people' => 0,
             'token' => $event->token], 'es', 'clave');
-        $this->assertSame('Colegio de ejemplo les invita: Festival de Infantil', $mail[0]);
-        $this->assertStringContainsString('j.php?t=' . $event->token, $mail[1]);
-        $this->assertStringContainsString('Inscribirse', $mail[2]);
+        // A plain letter: one link, no pictures, and how to say no in words.
+        $this->assertStringStartsWith('Festival de Infantil, el ', $mail[0]);
+        $this->assertStringContainsString('j.php?t=' . $event->token, $mail[2]);
+        $this->assertStringStartsWith("Hola, Ana:\n\nComo se interesaron por el Colegio de ejemplo", $mail[2]);
+        $this->assertSame(1, substr_count($mail[1], '<a '));
+        $this->assertStringNotContainsString('<img', $mail[1]);
+        $this->assertStringNotContainsString('<table', $mail[1]);
+        $this->assertSame([], $mail[3]);
 
         $sink = $this->redirectEmails();
         $ids = array_keys(invites::eligible($event));
+        $event->invitewords = 'Habrá chocolate.';
         $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time(), $ids));
         $this->assertCount(1, $sink->get_messages());
+        $sent = quoted_printable_decode($sink->get_messages()[0]->body);
+        $this->assertStringContainsString('Habrá chocolate.', $sent);
+        $this->assertStringNotContainsString('List-Unsubscribe', $sink->get_messages()[0]->header);
+        $sink->clear();
+        // To see how it arrives: to whoever sends it, and it invites nobody.
+        $this->assertTrue(invites::try_on($event, $centre, get_admin()));
+        $this->assertCount(1, $sink->get_messages());
+        $this->assertSame(1, invites::count($eventid));
         $this->assertSame(0, invites::send($event, $centre, (int) get_admin()->id, time(), $ids), 'Once per act.');
         // Through the page: the mails go in the background, none by phone without Marandu.
         $this->assertSame(
@@ -106,9 +120,98 @@ final class invites_test extends \advanced_testcase {
             $DB->get_fieldset_select(households::CONTACTS, 'body', 'householdid = ?', [$ana->id])
         );
 
-        // A visit, or an act already past, is no open act to invite to.
+        // An open day too; a visit, or an act already past, is none to invite to.
         $event->kind = 'openday';
+        $this->assertTrue(invites::fits($event, time()));
+        $this->assertFalse(invites::fits($event, (int) $event->timestart + 1));
+        $event->kind = 'visit';
         $this->assertFalse(invites::fits($event, time()));
+    }
+
+    /**
+     * Whom it goes to: by the course they ask for, by whether they signed up to another act, and only those left ticked.
+     */
+    public function test_groups(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $three = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $first = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => '1.º de Primaria', 'places' => 25,
+            'active' => 1]);
+        $ana = (int) $this->family($id, $three, 'Ana', 'visit', true)->id;
+        $berta = (int) $this->family($id, $first, 'Berta', 'inquiry', true)->id;
+        $carlos = (int) $this->family($id, 0, 'Carlos', 'inquiry', true)->id;
+        $past = events::save($id, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => time() - 3 * DAYSECS,
+            'timeend' => time() - 3 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]);
+        events::sign_up(events::get($past, $id), $berta, 2);
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Charla',
+            'timestart' => time() + 5 * DAYSECS, 'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $groups = invites::groups($event, invites::eligible($event));
+        $of = [];
+        foreach ($groups as $key => $group) {
+            sort($group['ids']);
+            $of[$group['kind'] . ' ' . preg_replace('/,.*/', '', $group['name'])] = $group['ids'];
+        }
+        $this->assertSame([$ana], $of['course Infantil 3 años']);
+        $this->assertSame([$berta], $of['course 1.º de Primaria']);
+        $this->assertSame([$carlos], $of['course ' . get_string('panel_invite_nocourse', 'local_oksigeniaeguahe')]);
+        $this->assertSame([$berta], $groups['acto-' . $past]['ids']);
+        $this->assertEqualsCanonicalizing([$ana, $carlos], $groups['sinacto-' . $past]['ids']);
+
+        // Only those of the group, and of them only those left ticked; a group that is not there invites nobody.
+        $user = (int) get_admin()->id;
+        $this->assertSame(0, invites::queue($event, $centre, $user, time(), 'curso-nada')['email']);
+        $this->assertSame(0, invites::queue($event, $centre, $user, time(), '', [])['email']);
+        $this->assertSame(1, invites::queue($event, $centre, $user, time(), 'sinacto-' . $past, [$ana, $berta])['email']);
+        $this->assertSame([$ana => true], invites::queued((int) $event->id));
+        $this->assertEqualsCanonicalizing([$berta, $carlos], array_keys(invites::eligible($event)));
+        // Stopped, it can be invited again.
+        $this->assertSame(1, invites::stop((int) $event->id));
+        $this->assertCount(3, invites::eligible($event));
+    }
+
+    /**
+     * Many letters go out a few at a time, by day.
+     */
+    public function test_little_by_little(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        for ($i = 0; $i < invites::BATCH + 2; $i++) {
+            $this->family($id, 0, 'Familia' . chr(97 + $i), 'inquiry', true);
+        }
+        $event = events::get(events::save($id, (object) ['kind' => 'openday', 'name' => 'Jornada',
+            'timestart' => time() + 5 * DAYSECS, 'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $sink = $this->redirectEmails();
+        invites::queue($event, $centre, (int) get_admin()->id, time());
+        $this->assertSame(invites::BATCH + 2, invites::on_the_way((int) $event->id)[0]);
+        $run = function () use ($event): void {
+            global $DB;
+            foreach ($DB->get_records('task_adhoc', ['classname' => '\\local_oksigeniaeguahe\\task\\send_invites']) as $row) {
+                $task = \core\task\manager::adhoc_task_from_record($row);
+                $DB->delete_records('task_adhoc', ['id' => $row->id]);
+                $task->execute();
+            }
+        };
+        $run();
+        $this->assertSame(invites::BATCH, $sink->count());
+        [$left, $next] = invites::on_the_way((int) $event->id);
+        $this->assertSame(2, $left);
+        $this->assertGreaterThanOrEqual(time() + invites::PAUSE - 5, $next);
+        $run();
+        $this->assertSame(invites::BATCH + 2, $sink->count());
+        $this->assertSame(0, invites::on_the_way((int) $event->id)[0]);
+
+        // By day only: at night they wait for the morning.
+        $zone = \core_date::get_server_timezone_object();
+        $time = fn(string $s) => (new \DateTimeImmutable($s, $zone))->getTimestamp();
+        $this->assertSame($time('2026-11-24 12:00'), invites::daytime($time('2026-11-24 12:00')));
+        $this->assertSame($time('2026-11-24 09:00'), invites::daytime($time('2026-11-24 07:30')));
+        $this->assertSame($time('2026-11-25 09:00'), invites::daytime($time('2026-11-24 20:00')));
+        $this->assertSame($time('2026-11-25 09:25'), invites::last_at(45, $time('2026-11-24 19:40')));
     }
 
     /**
