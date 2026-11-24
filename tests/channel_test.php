@@ -109,6 +109,26 @@ final class channel_test extends \advanced_testcase {
     }
 
     /**
+     * Skipped, a moment does not come back because the act is saved: only when its day, its hour or its place change.
+     */
+    public function test_again(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $start = make_timestamp(2030, 11, 23, 10, 0);
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Festival', 'place' => 'El patio',
+            'timestart' => $start, 'timeend' => $start + HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $this->assertTrue(channel::again($event, 'announce', null));
+        $this->assertTrue(channel::again($event, 'announce', ['status' => 'review']));
+        $this->assertFalse(channel::again($event, 'announce', ['status' => 'skipped']));
+        $event = events::get((int) $event->id, $id);
+        $event->name = 'Otro nombre';
+        $this->assertFalse(channel::again($event, 'announce', ['status' => 'skipped']));
+        $event->place = 'El gimnasio';
+        $this->assertTrue(channel::again($event, 'announce', ['status' => 'skipped']));
+        $this->assertTrue(channel::again($event, 'announce', ['status' => 'removed']));
+    }
+
+    /**
      * What goes by itself: the announcement while the centre says nothing; none, or its own choice, in its order.
      */
     public function test_auto(): void {

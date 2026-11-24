@@ -667,7 +667,8 @@
 
     /* Wide: under it, what it is and what is told, side by side. */
     .apaisado {
-        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) minmax(430px, 40%);
+        /* How much each takes, by what they say (formulario.js). */
+        grid-template-columns: minmax(0, var(--que, 0.92fr)) minmax(0, var(--mas, 1.08fr)) minmax(430px, 40%);
         grid-template-areas: "cartel cartel hoja" "que mas hoja";
         column-gap: 0;
     }
@@ -724,8 +725,13 @@
         grid-template-areas: "cartel que" "cartel mas";
     }
 
+    .con-cartel .unir-donde {
+        font-size: 0.9375rem;
+        line-height: 1.4;
+    }
+
     .sin-hoja.apaisado {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, var(--que, 1fr)) minmax(0, var(--mas, 1fr));
         grid-template-areas: "cartel cartel" "que mas";
     }
 

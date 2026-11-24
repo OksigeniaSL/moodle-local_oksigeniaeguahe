@@ -76,6 +76,18 @@ class kit {
     }
 
     /**
+     * Keeps when and where the act was, as each moment said it in the channel.
+     *
+     * @param \stdClass $event
+     * @param array $said Moment => channel::mark().
+     */
+    public static function keep_said(\stdClass $event, array $said): void {
+        $kit = self::kept($event);
+        $kit['said'] = $said;
+        self::keep($event, $kit);
+    }
+
+    /**
      * Marks the kit of an act as opened: the inbox stops offering it (moments).
      *
      * @param \stdClass $event

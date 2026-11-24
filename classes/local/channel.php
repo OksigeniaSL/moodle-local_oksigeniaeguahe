@@ -235,6 +235,10 @@ class channel {
                     }
                     continue;
                 }
+                if ($do === 'auto' && !self::again($event, $moment, $state)) {
+                    // It was skipped, and its day, hour and place are the same: saving the act does not bring it back.
+                    continue;
+                }
                 $when = $do === 'auto' ? self::day_of($event, $moment) : (int) ($choice['at'] ?? $now);
                 if ($do === 'auto' && $when && $when < $now && !$waiting) {
                     // Its day passed before the act was saved: a moment of the past does not go by itself.
@@ -249,9 +253,55 @@ class channel {
                     $key,
                     (int) $event->timestart
                 );
+                self::remember($event, $moment);
             } catch (\Throwable $e) {
                 continue;
             }
+        }
+    }
+
+    /**
+     * When and where an act is, as it was said: what makes it worth saying again.
+     *
+     * @param \stdClass $event
+     * @return string
+     */
+    public static function mark(\stdClass $event): string {
+        return (int) $event->timestart . '|' . (int) $event->timeend . '|' . trim((string) ($event->place ?? ''));
+    }
+
+    /**
+     * Whether a moment is prepared by itself: always, unless whoever reviews skipped it and the act is still when and where
+     * it was. (Taken out may be because the act was closed for a while: open again, it goes again.)
+     *
+     * @param \stdClass $event
+     * @param string $moment
+     * @param array|null $state As state() gives it.
+     * @return bool
+     */
+    public static function again(\stdClass $event, string $moment, ?array $state): bool {
+        if (($state['status'] ?? '') !== 'skipped') {
+            return true;
+        }
+        $said = kit::kept($event)['said'][$moment] ?? null;
+        if ($said === null) {
+            // From before this was kept: as it is now.
+            self::remember($event, $moment);
+            return false;
+        }
+        return $said !== self::mark($event);
+    }
+
+    /**
+     * Keeps when and where an act was, as it was said in a moment.
+     *
+     * @param \stdClass $event
+     * @param string $moment
+     */
+    protected static function remember(\stdClass $event, string $moment): void {
+        $said = kit::kept($event)['said'] ?? [];
+        if (($said[$moment] ?? null) !== self::mark($event)) {
+            kit::keep_said($event, [$moment => self::mark($event)] + $said);
         }
     }
 

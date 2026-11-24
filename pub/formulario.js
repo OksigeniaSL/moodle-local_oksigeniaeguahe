@@ -162,6 +162,7 @@
         window.addEventListener('resize', names);
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(names);
+            document.fonts.addEventListener('loadingdone', names);
         }
         var send = form.querySelector('.fb-enviar');
         form.addEventListener('submit', function() {
@@ -358,20 +359,45 @@
     var fitpage = function() {
         var wide = window.matchMedia('(min-width: 960px)').matches;
         var reads = about && about.hasAttribute('data-leer');
-        page.style.removeProperty('--cartel-alto');
+        ['--cartel-alto', '--que', '--mas'].forEach(function(name) {
+            page.style.removeProperty(name);
+        });
         if (reads) {
             cut(0);
         }
         if (!wide) {
             return;
         }
-        for (var i = 0; poster && i < 3; i++) {
-            var room = left();
-            if (Math.abs(room) < 2 || (room > 0 && i > 1)) {
+        // Under a wide poster, the two columns as wide as makes what they say shortest (a long address, a long text).
+        var telling = page.querySelector('.unir-mas');
+        if (telling && page.classList.contains('apaisado')) {
+            var best = 0;
+            var least = Infinity;
+            [0.92, 0.8, 1.05, 1.2, 1.35].forEach(function(share) {
+                page.style.setProperty('--que', share + 'fr');
+                page.style.setProperty('--mas', (2 - share) + 'fr');
+                var tall = page.querySelector('.unir-que').offsetHeight;
+                if (tall < least - 1) {
+                    least = tall;
+                    best = share;
+                }
+            });
+            page.style.setProperty('--que', best + 'fr');
+            page.style.setProperty('--mas', (2 - best) + 'fr');
+        }
+        var lowest = page.classList.contains('apaisado') ? 230 : 300;
+        var room = 0;
+        for (var i = 0; poster && i < 6; i++) {
+            room = left();
+            if (Math.abs(room) < 2 || (room < 0 && poster.offsetHeight <= lowest)) {
                 break;
             }
-            page.style.setProperty('--cartel-alto', Math.round(Math.max(page.classList.contains('apaisado') ? 230 : 300,
-                poster.offsetHeight + room)) + 'px');
+            page.style.setProperty('--cartel-alto', Math.round(Math.max(lowest, poster.offsetHeight + room)) + 'px');
+        }
+        // Never ending on too much.
+        room = poster ? left() : 0;
+        if (room < -1 && poster.offsetHeight > lowest) {
+            page.style.setProperty('--cartel-alto', Math.round(Math.max(lowest, poster.offsetHeight + room)) + 'px');
         }
         var over = left();
         if (reads && over < -1) {
@@ -388,6 +414,9 @@
         window.addEventListener('resize', fitpage);
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(fitpage);
+            // The letters that arrive after it.
+            document.fonts.addEventListener('loadingdone', fitpage);
         }
+        window.addEventListener('load', fitpage);
     }
 })();
