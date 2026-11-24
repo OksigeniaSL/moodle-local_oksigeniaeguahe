@@ -2481,13 +2481,28 @@ details[open].plegado > summary h2::after {
     grid-template-areas: "hora quien lleva" "hora promesa promesa";
 }
 
-/* In the list: the names with where they came from under them, in every row the same; the children; and the last
-   column only for what they ask, in two lines at most. Nothing cut, 16 px of air between columns. */
+/* In the list: the names with where they came from under them, in every row the same; the children beside them; and what
+   they ask under both, with the whole width, in two lines at most. Nothing over anything, 16 px of air between columns. */
 .lista[data-densidad="lista"] .fila .quien {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: "nombres hijos pide" "meta hijos pide";
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas: "nombres hijos" "meta hijos" "pide pide";
+    grid-template-rows: auto 1fr;
     align-items: start;
     gap: 2px 16px;
+}
+
+/* A course that does not fit beside the name of its child goes under it, never over what comes next; on a phone there is
+   only one column, and it fits. */
+@media (min-width: 720px) {
+    .lista[data-densidad="lista"] .nino {
+        flex-wrap: wrap;
+        gap: 2px 8px;
+    }
+}
+
+.lista[data-densidad="lista"] .nino .curso {
+    min-width: 0;
+    overflow-wrap: break-word;
 }
 
 .lista[data-densidad="lista"] .fila .quien > .nombres {

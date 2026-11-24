@@ -441,8 +441,10 @@ body.piel-mostrador::after {
     padding-top: 4px;
 }
 
+/* Under the stamp of the card: out of its place in the grid, or it would be measured from there and fall on the text. */
 .piel-mostrador .lista[data-densidad="fichas"] .fila .lleva {
     position: absolute;
+    grid-area: auto;
     inset-inline-end: 38px;
     top: 72px;
 }
@@ -461,6 +463,7 @@ body.piel-mostrador::after {
 
 .piel-mostrador .mostrador.con-hoja .fila .lleva {
     position: static;
+    grid-area: lleva;
 }
 
 .piel-mostrador .mostrador.con-hoja .lista[data-densidad="fichas"] .fila {
@@ -599,6 +602,7 @@ body.piel-mostrador::after {
 
     .piel-mostrador .lista[data-densidad="fichas"] .fila .lleva {
         position: static;
+        grid-area: lleva;
     }
 
     .piel-mostrador .sello-fecha {
