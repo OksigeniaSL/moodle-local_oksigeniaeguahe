@@ -38,7 +38,8 @@
     * i - icons; head - panel_head; action - the address of the form (with ?year= when another school year is shown)
     * sesskey, name, colour, lightvars, darkvars, colourguard, logo, logoplate, initial, hanging - how families see it
     * lang, countries, currencies, systems - options (value, name, selected)
-    * address, phone, email, welcome, arrive, replydays (options), replyread (panel_read_replies), hastales, libraries
+    * address, phone, email, welcome, arrive, replydays (options), replyread (panel_read_replies), closedics (the calendar of
+      the days it closes), closedwords (how it is, in words, or ""), hastales, libraries
     * hosts - everyone of the team: id (member), userid, me, name, first, picture, initials, role, shown, phrase
     * hasmessaging, messaging (value, name, help, checked), channel (as panel_kit)
     * handover (options), handoverplace, handoverhow, siblingages (options), invitegone
@@ -61,7 +62,8 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script"}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}],
+        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script"}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
+        "closedwords": "16 días cerrados por delante; el próximo, el martes 8 de diciembre de 2026.",
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
         "hosts": [{"id": 1, "userid": 5, "me": true, "name": "Lucía Medina", "first": "Lucía", "picture": "", "initials": "LM",
@@ -396,6 +398,12 @@
                     <div class="aj-elige-fila">
                         <span class="aj-elige-t" id="c-contestamos">{{#str}}panel_replydays, local_oksigeniaeguahe{{/str}}</span>
                         <span class="aj-elige" role="group" aria-labelledby="c-contestamos">{{#replydays}}<button class="aj-chapa" type="submit" name="replydays" value="{{value}}" formaction="{{action}}#aj-contacto" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{name}}</button>{{/replydays}}</span>
+                    </div>
+                    <div class="aj-frase">
+                        <label for="c-cerrados">{{#str}}panel_daysoff, local_oksigeniaeguahe{{/str}}</label>
+                        <input class="aj-hueco aj-hueco-web" id="c-cerrados" name="closedics" type="url" value="{{closedics}}" placeholder="https://" size="40" dir="ltr" autocomplete="off" aria-describedby="c-cerrados-a">
+                        {{#closedwords}}<span class="ayuda aj-cerrados">{{closedwords}}</span>{{/closedwords}}
+                        <span class="ayuda" id="c-cerrados-a">{{#str}}panel_daysoff_help, local_oksigeniaeguahe{{/str}}</span>
                     </div>
                     <div class="aj-guardar"><button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}#aj-contacto" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button></div>
                 </div>

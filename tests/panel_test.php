@@ -39,6 +39,7 @@ use local_oksigeniaeguahe\local\label_sheets;
 use local_oksigeniaeguahe\local\panel_events;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
+use local_oksigeniaeguahe\local\workdays;
 
 /**
  * The panel of the team: the time in words, the rail of the places, the names of the adults, and what the inbox and the
@@ -611,14 +612,19 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame('', local_oksigeniaeguahe_work_week($centreid, time() + 30 * DAYSECS), 'A quiet week says nothing.');
         $this->assertSame([], $cards[0]['alerts']);
 
-        // Waiting longer than the centre promises (two days by default): an alert, none left in a dead end.
+        // Waiting longer than the centre promises (two working days by default): an alert, none left in a dead end.
         global $DB;
-        $DB->set_field(households::T, 'waitingsince', time() - 3 * DAYSECS, ['id' => $household->id]);
+        $limit = workdays::limit(centres::get($centreid), time());
+        $DB->set_field(households::T, 'waitingsince', $limit, ['id' => $household->id]);
+        $this->assertSame([], local_oksigeniaeguahe_oksigenia_work(2)[0]['alerts'], 'The weekend does not count.');
+        $DB->set_field(households::T, 'waitingsince', $limit - 1, ['id' => $household->id]);
         $alerts = local_oksigeniaeguahe_oksigenia_work(2)[0]['alerts'];
         $this->assertCount(1, $alerts);
         $this->assertSame('urgent', $alerts[0]['level']);
         $this->assertSame(get_string('work_stuck_one', 'local_oksigeniaeguahe', (object) ['n' => 1,
             'days' => get_string('work_stuck_days', 'local_oksigeniaeguahe', 2)]), $alerts[0]['text']);
+        $this->assertSame(workdays::deadline(centres::get($centreid), $limit - 1), $alerts[0]['due']);
+        $this->assertLessThan(time(), $alerts[0]['due']);
     }
 
     /**

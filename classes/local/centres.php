@@ -151,6 +151,10 @@ class centres {
             // How soon the team usually answers, as the families read it after their visit.
             $row->replydays = in_array((int) $data->replydays, panel_centre::REPLYDAYS, true) ? (int) $data->replydays : 2;
         }
+        if (property_exists($data, 'closedics')) {
+            // The calendar of the days it closes.
+            $row->closedics = \core_text::substr(workdays::address((string) $data->closedics), 0, 500) ?: null;
+        }
         $row->logoplate = empty($data->logoplate) ? 0 : 1;
         if (isset($data->familylight)) {
             // The pages and mails of its families always light, whatever the phone of each family says.

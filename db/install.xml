@@ -36,6 +36,8 @@
         <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the campaign of admissions under way started, as the centre wrote it; 0 if it did not"/>
         <FIELD NAME="labelsheets" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sheets of labels of the centre: its favourites of each kind and how much its printer moves each, JSON"/>
         <FIELD NAME="replydays" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="Working days the team usually takes to answer a family, as the families read it"/>
+        <FIELD NAME="closedics" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="The address of a calendar (.ics) whose whole days are the days the centre closes"/>
+        <FIELD NAME="closeddays" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What that calendar said the last time it was read: days, read and failed, as JSON"/>
         <FIELD NAME="library" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The library of Ayvurenda whose stories to read at home the families get, by its slug"/>
         <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families once enrolled; 0, a place or nobody"/>
         <FIELD NAME="handoverplace" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the families are carried once enrolled when nobody is named: the office of students and its phone"/>

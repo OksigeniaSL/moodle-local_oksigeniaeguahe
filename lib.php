@@ -211,18 +211,12 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
         $stuck = $DB->get_record_sql(
             'SELECT COUNT(1) AS n, MIN(waitingsince) AS oldest FROM {local_oksigeniaeguahe_household}
               WHERE centreid = :centreid AND waitingsince > 0 AND waitingsince < :limit',
-            ['centreid' => $id, 'limit' => $now - $replydays * DAYSECS]
+            ['centreid' => $id, 'limit' => \local_oksigeniaeguahe\local\workdays::limit($centre, $now)]
         );
         if ($stuck && (int) $stuck->n) {
             $n = (int) $stuck->n;
-            // The deadline of one of which only its day is known is the whole day, never an hour nobody wrote.
-            $deadline = (int) $stuck->oldest + $replydays * DAYSECS;
-            $dayonly = $DB->record_exists('local_oksigeniaeguahe_household', ['centreid' => $id, 'waitingdayonly' => 1,
-                'waitingsince' => (int) $stuck->oldest]);
-            if ($dayonly) {
-                $zone = \core_date::get_server_timezone_object();
-                $deadline = (new \DateTime('@' . $deadline))->setTimezone($zone)->setTime(23, 59, 59)->getTimestamp();
-            }
+            // Whole working days: the last one ends with it, never at an hour nobody wrote.
+            $deadline = \local_oksigeniaeguahe\local\workdays::deadline($centre, (int) $stuck->oldest);
             $alerts[] = ['text' => get_string($n === 1 ? 'work_stuck_one' : 'work_stuck', $c, (object) ['n' => $n,
                 'days' => get_string($replydays === 1 ? 'work_stuck_days_one' : 'work_stuck_days', $c, $replydays)]),
                 'url' => $url->out(false), 'level' => 'urgent', 'due' => $deadline];

@@ -135,6 +135,15 @@ $tasks = [
         'dayofweek' => '*',
     ],
     [
+        'classname' => '\\local_oksigeniaeguahe\\task\\fetch_closed',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '4',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\notify_team',
         'blocking' => 0,
         'minute' => '*/5',

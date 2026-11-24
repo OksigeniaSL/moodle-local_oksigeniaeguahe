@@ -102,7 +102,7 @@ class household_ai {
             }
         }
         return [
-            'centre' => ['name' => format_string($centre->name), 'answers within days' => (int) ($centre->replydays ?? 2),
+            'centre' => ['name' => format_string($centre->name), 'answers within working days' => (int) ($centre->replydays ?? 2),
                 'courses offered' => array_values(array_unique(array_map(
                     fn($o) => format_string($o->name),
                     array_filter($offers, fn($o) => !empty($o->active))

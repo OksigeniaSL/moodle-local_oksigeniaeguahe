@@ -266,13 +266,12 @@ class chatpanel {
         }
         $waiting = false;
         if ($since = (int) $household->waitingsince) {
-            $replydays = max(1, (int) ($centre->replydays ?? 2));
             $dayonly = !empty($household->waitingdayonly);
             $days = panel::days_between($since, $now);
             $waiting = ['short' => !$dayonly ? self::span($now - $since) : ($days > 0 ? self::span($days * DAYSECS) :
                 get_string('panel_when_today_day', $c)),
                 'long' => get_string('chat_since', $c, panel::when_words($since, $now, $dayonly)),
-                'level' => $now - $since > $replydays * DAYSECS ? 'tarde' : 'atiempo'];
+                'level' => $now > workdays::deadline($centre, $since) ? 'tarde' : 'atiempo'];
         }
         $owner = (int) ($household->ownerid ?? 0) ? $DB->get_record('user', ['id' => $household->ownerid, 'deleted' => 0]) :
             null;

@@ -133,6 +133,8 @@ class panel_centre {
                 self::C,
                 (int) ($centre->replydays ?? 2)
             ))),
+            'closedics' => (string) ($centre->closedics ?? ''),
+            'closedwords' => workdays::words($centre, time()),
             'hastales' => (bool) $libraries,
             'libraries' => array_merge([['value' => '', 'name' => get_string('panel_tales_none', self::C),
                 'selected' => trim((string) ($centre->library ?? '')) === '']], array_map(fn($l) => ['value' => $l['slug'],
@@ -834,6 +836,7 @@ class panel_centre {
             'welcome' => optional_param('welcome', '', PARAM_TEXT),
             'arrive' => optional_param('arrive', '', PARAM_TEXT),
             'replydays' => optional_param('replydays', (int) ($centre->replydays ?? 2), PARAM_INT),
+            'closedics' => optional_param('closedics', (string) ($centre->closedics ?? ''), PARAM_RAW_TRIMMED),
             'library' => optional_param('library', (string) ($centre->library ?? ''), PARAM_ALPHANUMEXT),
             'logoplate' => optional_param('logoplate', 0, PARAM_BOOL),
             'familylight' => optional_param('familylight', (int) ($centre->familylight ?? 0), PARAM_BOOL),
@@ -883,6 +886,12 @@ class panel_centre {
             $problems[] = get_string('panel_email_kept', $c, s($data->emailsettled));
             $data->emailsettled = (string) ($centre->emailsettled ?? '');
         }
+        // Neither an address that is not one: a calendar is read from it every night.
+        if ($data->closedics !== '' && workdays::address($data->closedics) === '') {
+            $problems[] = get_string('panel_daysoff_kept', $c, s($data->closedics));
+            $data->closedics = (string) ($centre->closedics ?? '');
+        }
+        $closed = workdays::address($data->closedics) !== (string) ($centre->closedics ?? '');
         if (messaging::available()) {
             $data->messaging = optional_param('messaging', messaging::mode($centre), PARAM_ALPHA);
         }
@@ -982,6 +991,9 @@ class panel_centre {
             }
         }
         $transaction->allow_commit();
+        if ($closed && !workdays::fetch(centres::get((int) $centre->id))) {
+            $problems[] = get_string('panel_daysoff_unread', $c);
+        }
         if ($channelauto !== null && $channelauto !== channel::auto_value(channel::auto($centre))) {
             // What goes by itself changed: the open acts follow it now.
             channel::resync(centres::get((int) $centre->id));

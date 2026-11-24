@@ -1784,5 +1784,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121300, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121400) {
+        // The days a centre closes, from its own calendar: what it promises is counted in its working days.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $fields = [
+            new xmldb_field('closedics', XMLDB_TYPE_CHAR, '500', null, null, null, null, 'replydays'),
+            new xmldb_field('closeddays', XMLDB_TYPE_TEXT, null, null, null, null, null, 'closedics'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026121400, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
