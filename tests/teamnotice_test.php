@@ -55,20 +55,20 @@ final class teamnotice_test extends \advanced_testcase {
         $sheet = entries::create($cid, 'google', 'Hoja de visitas');
         $DB->set_field(entries::T, 'teamsheet', 1, ['id' => $sheet]);
         $start = time() - 60;
-        $family = function (string $name, int $entry, int $userid) use ($DB, $cid): \stdClass {
+        $family = function (string $name, int $entry, int $userid, string $direction = 'in') use ($DB, $cid): \stdClass {
             $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
             $household = households::get($id, $cid);
             households::add_adult($household, (object) ['firstname' => $name, 'lastname' => 'Pérez',
                 'email' => strtolower($name) . '@example.com', 'phone' => null]);
             households::add_child($household, 'Leo', 0);
             $DB->insert_record(households::CONTACTS, (object) ['centreid' => $cid, 'householdid' => $id,
-                'direction' => 'in', 'channel' => 'webform', 'body' => 'Queremos ver el colegio con calma.',
+                'direction' => $direction, 'channel' => 'webform', 'body' => 'Queremos ver el colegio con calma.',
                 'entryid' => $entry, 'detail' => 'Web · Pide una visita', 'userid' => $userid, 'timecreated' => time()]);
             return households::get($id, $cid);
         };
         $ana = $family('Ana', $form, 0);
         $family('Noted', 0, (int) $other->id);
-        $family('Sheet', $sheet, 0);
+        $family('Sheet', $sheet, 0, 'note');
         $came = teamnotice::arrived($cid, $start, time() + 1);
         $this->assertSame([(int) $ana->id], array_keys($came));
 
@@ -98,5 +98,34 @@ final class teamnotice_test extends \advanced_testcase {
         // A practice centre never tells anyone.
         $DB->set_field(centres::T, 'practice', 1, ['id' => $cid]);
         $this->assertSame(0, teamnotice::send(centres::get($cid), $came));
+    }
+
+    /**
+     * A contact of the ads that comes in through the sheet of the team, hours after it wrote, is told once, when it comes
+     * in; a row the team wrote, one of weeks ago, or one that was already here, never.
+     */
+    public function test_ads_through_the_sheet(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $entryid = entries::create($cid, 'google', 'Hoja de visitas');
+        $DB->set_field(entries::T, 'teamsheet', 1, ['id' => $entryid]);
+        $entry = entries::get($entryid, $cid);
+        $start = time() - 60;
+        $ad = fn(int $n, int $when): array => ['id' => 'l:10000000' . $n, 'created_time' => date('c', $when),
+            'ad_id' => 'ag:1', 'ad_name' => 'Anuncio', 'campaign_id' => 'c:1', 'campaign_name' => 'Otoño', 'platform' => 'ig',
+            'Nombre y apellidos' => 'Persona ' . $n, 'E-mail' => 'p' . $n . '@example.com', 'Teléfono' => 'p:+3460000010' . $n];
+        [$late] = entries::receive($entry, $ad(1, time() - 10 * HOURSECS), '', null, true);
+        [$old] = entries::receive($entry, $ad(2, time() - 20 * DAYSECS), '', null, true);
+        [$row] = entries::receive($entry, ['FECHA' => date('d/m/Y'), 'Tutor 1' => 'Marta Ejemplo',
+            'TELÉFONO' => '600 000 009', 'Canal' => 'Teléfono'], '', null, true);
+        $this->assertNotNull($late);
+        $this->assertNotNull($old);
+        $this->assertNotNull($row);
+        $this->assertSame([(int) $late->id], array_keys(teamnotice::arrived($cid, $start, time() + 1)));
+        // The next look, and the sheet sent again: nothing more.
+        $this->assertSame([], teamnotice::arrived($cid, time() + 1, time() + 301));
+        entries::receive($entry, $ad(1, time() - 10 * HOURSECS), '', null, true);
+        $this->assertCount(1, teamnotice::arrived($cid, $start, time() + 1));
     }
 }

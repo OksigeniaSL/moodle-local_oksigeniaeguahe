@@ -73,6 +73,8 @@ $data = json_decode($body, true);
 $items = is_array($data) && isset($data['items']) && is_array($data['items']) ? $data['items'] : [$data];
 // A script that calls every night though it has nothing to bring, and says which of its tabs it did not find.
 $beat = is_array($data) && !empty($data['beat']);
+// And that says too when it brings only the rows that are new or have changed.
+$some = is_array($data) && array_key_exists('beat', $data) && !$beat;
 if ((!$items && !$beat) || count($items) > 200) {
     local_oksigeniaeguahe_hook_reply(400, ['ok' => false, 'error' => 'items']);
 }
@@ -141,5 +143,5 @@ foreach ($items as $item) {
 $understood = $counts['new'] + $counts['already'] + ((int) ($entry->testedat ?? 0) > $tested ? 1 : 0);
 $unread = $counts['nobody'] + $counts['invalid'];
 $missing = $beat && isset($data['missing']) && is_array($data['missing']) ? array_slice($data['missing'], 0, 20) : [];
-pulse::called($entry, $understood, $unread, $beat || $allpast, $missing, 0, $headless > 0);
+pulse::called($entry, $understood, $unread, $beat || ($allpast && !$some), $missing, 0, $headless > 0);
 local_oksigeniaeguahe_hook_reply(200, ['ok' => true] + $counts + ($headless ? ['headless' => $headless] : []));

@@ -84,8 +84,9 @@ class teamnotice {
     }
 
     /**
-     * The families that came on their own between two times: their first word was theirs (no person of the team wrote it
-     * down) and not from a sheet of the team.
+     * The families that came on their own between two times: their first word was theirs, and no person of the team wrote
+     * it down, by hand or as a row of its sheet (that is a note). A contact of the ads that comes in through the sheet of
+     * the team is a family that wrote. One an entry brought counts from when it came in, though it wrote days before.
      *
      * @param int $centreid
      * @param int $from After this time.
@@ -97,14 +98,19 @@ class teamnotice {
         $homes = $DB->get_records_select(
             households::T,
             'centreid = :centreid AND roster = 0 AND timecreated > :from AND timecreated <= :to',
-            ['centreid' => $centreid, 'from' => $from, 'to' => $to],
+            ['centreid' => $centreid, 'from' => min($from, $to - entries::PASTDAYS * DAYSECS), 'to' => $to],
             'timecreated ASC, id ASC'
         );
         if (!$homes) {
             return [];
         }
-        $teamsheets = array_flip($DB->get_fieldset_select(entries::T, 'id', 'centreid = ? AND teamsheet = 1', [$centreid]));
         [$in, $params] = $DB->get_in_or_equal(array_keys($homes), SQL_PARAMS_NAMED);
+        // An entry leaves the family its link in the same moment it comes in.
+        $links = $DB->get_records_sql_menu(
+            'SELECT householdid, MIN(timecreated) FROM {' . households::LINKS . "}
+              WHERE householdid $in AND reason = :reason GROUP BY householdid",
+            $params + ['reason' => 'entry']
+        );
         $firsts = [];
         $rows = $DB->get_recordset_select(
             households::CONTACTS,
@@ -117,9 +123,13 @@ class teamnotice {
             $firsts[(int) $row->householdid] = $firsts[(int) $row->householdid] ?? $row;
         }
         $rows->close();
-        return array_filter($homes, function ($h) use ($firsts, $teamsheets) {
+        return array_filter($homes, function ($h) use ($firsts, $links, $from, $to) {
             $first = $firsts[(int) $h->id] ?? null;
-            return $first && $first->direction === 'in' && !(int) $first->userid && !isset($teamsheets[(int) $first->entryid]);
+            if (!$first || $first->direction !== 'in' || (int) $first->userid) {
+                return false;
+            }
+            $came = max((int) $h->timecreated, (int) $first->entryid ? (int) ($links[$h->id] ?? 0) : 0);
+            return $came > $from && $came <= $to;
         });
     }
 

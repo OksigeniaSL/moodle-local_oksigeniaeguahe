@@ -6,11 +6,11 @@
 //   3. To send also the answers the form already has, choose «eguaheSendAll» and press Run.
 {{/form}}
 {{#sheet}}
-// Sends each new row of this sheet to the inbox of the centre, every ten minutes, and every night all the rows again,
-// so that what the team writes later in a row (a second call, the day of the visit) arrives too. Nothing comes in twice.
+// Sends each new row of this sheet, and what the team writes later in one (a second call, the day of the visit), to the
+// inbox of the centre, every ten minutes, and every night all the rows again. Nothing comes in twice.
 //   1. In the sheet, menu Extensions › Apps Script. Replace what is there with all of this, and save.
 //   2. If the rows are not in the first tab, write the names of their tabs below, between quotes and separated by
-//      commas: ['Publi', 'Visitas'].
+//      commas: ['Publi', 'Visitas']. Pasted over an earlier one, it keeps the tabs that one sent.
 //   3. Choose «eguaheInstall» and press Run, once. Google asks for permission the first time.
 //   4. To send also the rows the sheet already has, choose «eguaheSendAll» and press Run.
 const EGUAHE_TABS = [];
@@ -76,34 +76,87 @@ function eguaheInstall() {
   ScriptApp.newTrigger('eguaheNightly').timeBased().atHour(2).everyDays(1).create();
   // From now on, only the rows that arrive.
   eguaheTabs_().forEach(function (tab) {
-    PropertiesService.getScriptProperties().setProperty('eguaheRows:' + tab.getName(), String(tab.getLastRow()));
+    eguaheKeep_('eguaheSent', tab, eguaheItems_(tab).map(function (item) { return item.mark; }));
   });
 }
 
+// Every ten minutes, the rows that are new or have changed. By what they say, never by where they are: a sheet may have
+// boxes to tick, or a cell with spaces, far below its last row, and its rows may be sorted.
 function eguaheCheck() {
-  eguaheTabs_().forEach(function (tab) {
-    const done = Number(PropertiesService.getScriptProperties().getProperty('eguaheRows:' + tab.getName()) || '1');
-    if (tab.getLastRow() > done) {
-      eguaheRows_(tab, done + 1, false);
-    }
+  eguaheAlone_(1000, function () {
+    eguaheTabs_().forEach(function (tab) {
+      const items = eguaheItems_(tab);
+      const sent = eguaheKept_('eguaheSent', tab);
+      if (sent === null) {
+        // The first time with this script over another one: everything, as what was already here.
+        eguaheSend_(tab, items, true);
+        return;
+      }
+      const before = eguaheSet_(sent);
+      const seen = eguaheSet_(eguaheKept_('eguaheSeen', tab) || []);
+      const fresh = items.filter(function (item) { return !before[item.mark]; });
+      // A row someone is still writing waits until it has been the same for two looks; one a tool writes goes at once.
+      const ready = fresh.filter(function (item) { return item.tool || seen[item.mark]; });
+      const waiting = fresh.filter(function (item) { return !item.tool && !seen[item.mark]; });
+      const marks = items.map(function (item) { return item.mark; });
+      const now = eguaheSet_(marks);
+      const gone = sent.filter(function (mark) { return !now[mark]; });
+      if (ready.length) {
+        // With a row that is no longer as it was, what comes may be an old one put right: nobody waits for it as new.
+        eguahePostAll_(ready, gone.length > 0, true);
+      }
+      const left = eguaheSet_(waiting.map(function (item) { return item.mark; }));
+      eguaheKeep_('eguaheSent', tab, marks.filter(function (mark) { return !left[mark]; }).concat(waiting.length ? gone : []));
+      eguaheKeep_('eguaheSeen', tab, marks.filter(function (mark) { return left[mark]; }));
+    });
   });
 }
 
 function eguaheNightly() {
-  eguaheTabs_().forEach(function (tab) {
-    eguaheRows_(tab, 2, true);
+  eguaheAlone_(120000, function () {
+    eguaheTabs_().forEach(function (tab) {
+      eguaheSend_(tab, eguaheItems_(tab), true);
+    });
+    // It calls though there is nothing, and says which tabs it did not find (renamed or gone).
+    const book = SpreadsheetApp.getActiveSpreadsheet();
+    eguahePost_([], eguaheNames_().filter(function (name) { return !book.getSheetByName(name); }));
   });
-  // It calls though there is nothing, and says which tabs it did not find (renamed or gone).
-  const book = SpreadsheetApp.getActiveSpreadsheet();
-  eguahePost_([], EGUAHE_TABS.filter(function (name) { return !book.getSheetByName(name); }));
 }
 
 function eguaheSendAll() {
   eguaheNightly();
 }
 
-function eguaheRows_(tab, from, past) {
-  const values = tab.getDataRange().getDisplayValues();
+// One at a time: the look of every ten minutes, the sending of the night and whoever runs it by hand.
+function eguaheAlone_(wait, work) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(wait)) {
+    return;
+  }
+  try {
+    work();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function eguaheSend_(tab, items, past) {
+  eguahePostAll_(items, past);
+  eguaheKeep_('eguaheSent', tab, items.map(function (item) { return item.mark; }));
+  eguaheKeep_('eguaheSeen', tab, []);
+}
+
+function eguahePostAll_(items, past, some) {
+  for (let i = 0; i < items.length; i += 100) {
+    eguahePost_(items.slice(i, i + 100).map(function (item) { return { past: past, answers: item.answers }; }), null, some);
+  }
+}
+
+// The rows that say something, with their titles; a mark of what each one says; and whether a tool wrote it.
+function eguaheItems_(tab) {
+  const range = tab.getDataRange();
+  const values = range.getDisplayValues();
+  const raw = range.getValues();
   const top = eguaheTop_(values);
   // A name that comes twice keeps both: the second one is «… (2)».
   const seen = {};
@@ -112,30 +165,81 @@ function eguaheRows_(tab, from, past) {
     seen[name] = (seen[name] || 0) + 1;
     return name !== '' && seen[name] > 1 ? name + ' (' + seen[name] + ')' : name;
   });
-  let items = [];
-  for (let r = from <= top + 2 ? 0 : from - 1; r < values.length; r++) {
+  const items = [];
+  values.forEach(function (row, r) {
     // Above the titles, only what is clearly a contact: a tool that did not find them wrote it there.
-    if (r === top || (r < top && !values[r].some(eguaheValue_))) {
-      continue;
+    if (r === top || (r < top && !row.some(eguaheValue_)) || !raw[r].some(eguaheSays_)) {
+      return;
     }
     const answers = {};
     head.forEach(function (question, c) {
-      if (question !== '' && values[r][c] !== '') {
-        answers[question] = values[r][c];
+      if (question !== '' && String(row[c]).trim() !== '') {
+        answers[question] = row[c];
       }
     });
     if (Object.keys(answers).length) {
-      items.push({ past: past, answers: answers });
+      items.push({ answers: answers, mark: eguaheMark_(answers), tool: row.some(eguaheTool_) });
     }
-    if (items.length === 100) {
-      eguahePost_(items);
-      items = [];
+  });
+  return items;
+}
+
+// A word, or a number as long as a phone: not a box to tick, an hour or a day alone, in rows prepared for later.
+function eguaheSays_(cell) {
+  return typeof cell === 'number' ? Math.abs(cell) >= 1000000 :
+    typeof cell === 'string' && (/\p{L}/u.test(cell) || (cell.match(/\d/g) || []).length > 6);
+}
+
+// A moment to the second or an identifier of the ads: written by a tool, all at once.
+function eguaheTool_(cell) {
+  const text = String(cell).trim();
+  return /^\d{1,4}[-\/.]\d{1,2}[-\/.]\d{1,4}[T, ]+\d{1,2}:\d{2}:\d{2}/.test(text) || /^l:\d{6,}$/i.test(text);
+}
+
+function eguaheMark_(answers) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(answers),
+    Utilities.Charset.UTF_8)).slice(0, 8);
+}
+
+function eguaheSet_(marks) {
+  const set = {};
+  marks.forEach(function (mark) { set[mark] = true; });
+  return set;
+}
+
+// The marks of a tab, eight letters each, in as many pieces as they need: a property of a script holds 9 KB.
+function eguaheKeep_(what, tab, marks) {
+  const store = PropertiesService.getScriptProperties();
+  const name = what + ':' + tab.getName();
+  const text = marks.join('');
+  const pieces = Math.ceil(text.length / 8000);
+  const had = Number(store.getProperty(name) || '0');
+  for (let i = 0; i < pieces; i++) {
+    const piece = text.slice(i * 8000, (i + 1) * 8000);
+    if (store.getProperty(name + ':' + i) !== piece) {
+      store.setProperty(name + ':' + i, piece);
     }
   }
-  if (items.length) {
-    eguahePost_(items);
+  for (let i = pieces; i < had; i++) {
+    store.deleteProperty(name + ':' + i);
   }
-  PropertiesService.getScriptProperties().setProperty('eguaheRows:' + tab.getName(), String(values.length));
+  if (store.getProperty(name) !== String(pieces)) {
+    store.setProperty(name, String(pieces));
+  }
+}
+
+function eguaheKept_(what, tab) {
+  const store = PropertiesService.getScriptProperties();
+  const name = what + ':' + tab.getName();
+  const pieces = store.getProperty(name);
+  if (pieces === null) {
+    return null;
+  }
+  let text = '';
+  for (let i = 0; i < Number(pieces); i++) {
+    text += store.getProperty(name + ':' + i) || '';
+  }
+  return text.match(/.{8}/g) || [];
 }
 
 // The row of titles, among the first three: one without any value in it, with most of the titles this sheet has had.
@@ -170,15 +274,30 @@ function eguahePlain_(text) {
   return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+// The tabs written above; with none, those this script already sent before it was pasted again; else the first one.
+function eguaheNames_() {
+  if (EGUAHE_TABS.length) {
+    return EGUAHE_TABS;
+  }
+  const names = [];
+  PropertiesService.getScriptProperties().getKeys().forEach(function (key) {
+    const found = /^(?:eguaheRows|eguaheSent):(.+?)(?::\d+)?$/.exec(key);
+    if (found && names.indexOf(found[1]) === -1) {
+      names.push(found[1]);
+    }
+  });
+  return names.length ? names : [SpreadsheetApp.getActiveSpreadsheet().getSheets()[0].getName()];
+}
+
 function eguaheTabs_() {
   const book = SpreadsheetApp.getActiveSpreadsheet();
-  return EGUAHE_TABS.length ? EGUAHE_TABS.map(function (name) { return book.getSheetByName(name); })
-    .filter(function (tab) { return tab; }) : [book.getSheets()[0]];
+  return eguaheNames_().map(function (name) { return book.getSheetByName(name); }).filter(function (tab) { return tab; });
 }
 {{/sheet}}
 
-function eguahePost_(items, missing) {
-  const body = JSON.stringify(missing ? { items: items, beat: true, missing: missing } : { items: items });
+function eguahePost_(items, missing, some) {
+  const body = JSON.stringify(missing ? { items: items, beat: true, missing: missing } :
+    (some ? { items: items, beat: false } : { items: items }));
   const signature = Utilities.computeHmacSha256Signature(body, EGUAHE_KEY, Utilities.Charset.UTF_8)
     .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
   const reply = UrlFetchApp.fetch(EGUAHE_URL, {
