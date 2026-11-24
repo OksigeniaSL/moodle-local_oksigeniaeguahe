@@ -79,8 +79,11 @@ class panel_entries {
                     get_string('panel_missing_' . $entry->kind, $c) : '',
                 // What may be wrong with it: it does not call, it is refused, nothing in it is understood, or it is quiet.
                 'silent' => isset($pulses[(int) $entry->id]) && in_array($pulses[(int) $entry->id]['state'], pulse::SILENT, true) ?
-                    pulse::words($pulses[(int) $entry->id], $now) : false,
-                'called' => isset($pulses[(int) $entry->id]) && (int) ($entry->calledat ?? 0) ?
+                    pulse::tag($pulses[(int) $entry->id], $now) +
+                    ['text' => pulse::words($pulses[(int) $entry->id], $now, false)] : false,
+                // Not of a quiet one: what is wrong with it already says it.
+                'called' => isset($pulses[(int) $entry->id]) && (int) ($entry->calledat ?? 0) &&
+                    $pulses[(int) $entry->id]['state'] !== 'quiet' ?
                     pulse::call($pulses[(int) $entry->id], $now) : false,
                 // The last test that came through it: something sent with the test email.
                 'tested' => (int) ($entry->testedat ?? 0) ? get_string('panel_entry_tested', $c, panel::when_words(
@@ -113,6 +116,8 @@ class panel_entries {
                 'v' => round($told / max(1, $most, $told), 3),
                 'last' => '',
                 'missing' => '',
+                'silent' => false,
+                'called' => false,
                 'tested' => false,
                 'sites' => [],
                 'hassites' => false,

@@ -600,6 +600,8 @@
         <FIELD NAME="opened" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many times a form was opened since the last family that sent it"/>
         <FIELD NAME="beats" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The last calls of the night, when it sends everything again"/>
         <FIELD NAME="missing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tabs its script did not find the last night"/>
+        <FIELD NAME="unreadat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when nothing of what it brings is understood"/>
+        <FIELD NAME="missingat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when its script does not find some of its tabs"/>
         <FIELD NAME="silenttold" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The silence the team was told of, once each"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

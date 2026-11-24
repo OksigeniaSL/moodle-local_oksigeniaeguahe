@@ -54,6 +54,9 @@
             {"leaf": false, "blank": false, "title": "Cumpleaños", "text": "Una familia tiene hoy un cumpleaños que felicitar.", "url": "#", "link": "Ver solo esas"},
             {"leaf": false, "blank": false, "title": "La jornada, en redes", "text": "«Jornada de puertas abiertas» es el sábado, 21 de noviembre de 2026: su kit trae cuándo publicar, los textos y las imágenes.", "url": "#", "link": "Abrir el kit",
                 "known": {"key": "kit-4", "action": "#", "centreid": 1, "sesskey": "x"} }],
+        "pulse": {"open": true, "some": true, "now": "Puede faltar lo que llega por «Hoja de visitas».", "rows": [{"url": "#", "name": "Hoja de visitas",
+            "tag": {"word": "Calla", "since": "desde el sábado a las 3:24"}, "line": "la última familia, el viernes a las 18:40",
+            "tape": [{"n": 0, "h": 0, "quiet": false, "before": true}, {"n": 2, "h": 2, "quiet": false, "before": false}, {"n": 0, "h": 0, "quiet": true, "before": false}]}]},
         "hasrows": true, "more": {"text": "Se ven 200 de 217: las de contacto más reciente. El buscador mira en todas.", "url": "#", "link": "Ver 17 más"},
         "search": {"query": "", "hidden": [{"name": "c", "value": "1"}], "line": "", "clearurl": "#", "nothing": "", "everywhereurl": "#"},
         "firstday": {"url": "#", "text": "Marcar quién ha empezado"}, "renewal": {"url": "#", "text": "Han contestado 3 de 5 para 2028-29; 1 no sigue.",
@@ -116,9 +119,16 @@
             </details>
             {{/showtools}}
             {{#pulse}}
-            <details class="llegan-por"{{#open}} open{{/open}}>
+            <details class="llegan-por{{#some}} con-calladas{{/some}}"{{#open}} open{{/open}}>
                 <summary><span class="llegan-por-t">{{#str}}pulse_where, local_oksigeniaeguahe{{/str}}</span> <span class="llegan-por-ahora">{{now}}</span>{{{i.chev}}}</summary>
-                <ul>{{#rows}}<li{{#silent}} class="callada"{{/silent}}><a href="{{url}}">{{name}}</a> <span>{{line}}</span></li>{{/rows}}</ul>
+                <p class="cinta-eje" aria-hidden="true"><span>{{#str}}pulse_tape_from, local_oksigeniaeguahe{{/str}}</span> <span>{{#str}}pulse_tape_to, local_oksigeniaeguahe{{/str}}</span></p>
+                <ul class="cintas">
+                    {{#rows}}<li class="cinta-fila{{#tag}} callada{{/tag}}">
+                        <span class="cinta-que"><a href="{{url}}">{{name}}</a> {{#tag}}<span class="cinta-desde"><b class="sello-calla">{{word}}</b> {{since}}</span> {{/tag}}<span class="cinta-linea">{{line}}</span></span>
+                        <span class="cinta" aria-hidden="true">{{#tape}}<i{{#quiet}} class="calla"{{/quiet}}{{#before}} class="antes"{{/before}}{{#n}} style="--h: {{h}}"{{/n}}></i>{{/tape}}</span>
+                    </li>{{/rows}}
+                </ul>
+                <p class="cinta-clave">{{#str}}pulse_tape_def, local_oksigeniaeguahe{{/str}}</p>
             </details>
             {{/pulse}}
             {{#search.line}}<p class="busqueda-linea"><span>{{search.line}}</span> <a href="{{search.clearurl}}">{{#str}}panel_search_clear, local_oksigeniaeguahe{{/str}}</a></p>{{/search.line}}

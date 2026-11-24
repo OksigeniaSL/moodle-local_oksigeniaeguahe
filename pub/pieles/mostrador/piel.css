@@ -345,6 +345,13 @@ body.piel-mostrador::after {
 .piel-mostrador .herramientas + .filtros {
     position: relative;
 }
+/* ---------- What came through each entry, on a slip of the same paper ---------- */
+.piel-mostrador .llegan-por {
+    border: 0;
+    background: var(--papel-b) var(--ruido);
+    box-shadow: var(--sombra-papel);
+}
+
 /* ---------- The notes of today: slips of the same paper, each a little crooked ---------- */
 .piel-mostrador .hoy-nota {
     border: 0;
@@ -1154,11 +1161,20 @@ body.piel-mostrador::after {
 }
 
 .piel-mostrador .entrada-fila {
+    isolation: isolate;
     border-radius: 4px;
-    background:
-        linear-gradient(to bottom, transparent 43px, var(--margen) 43px, var(--margen) 45px, transparent 45px),
-        var(--ruido),
-        var(--papel-b);
+}
+
+/* The red line of the card, under its name: it goes down with it when the name takes two lines. */
+.piel-mostrador .entrada-fila::before {
+    content: '';
+    grid-row: 1;
+    grid-column: 1 / -1;
+    align-self: end;
+    z-index: -1;
+    height: 2px;
+    margin-inline: -16px;
+    background: var(--margen);
 }
 
 .piel-mostrador .tipo-entrada {

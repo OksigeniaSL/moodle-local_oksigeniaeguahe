@@ -92,14 +92,18 @@ final class pulse_test extends \advanced_testcase {
         $pulse = pulse::of(entries::get((int) $sheet->id, (int) $this->centre->id), $now);
         $this->assertSame(['refused', $now - DAYSECS], [$pulse['state'], $pulse['since']], 'Since the first time.');
         pulse::called($sheet, 1, 0, true, ['Visitas'], $now);
-        $this->assertSame('missing', pulse::of($sheet, $now)['state']);
+        pulse::called($sheet, 1, 0, true, ['Visitas', 'Publi'], $now + 13 * HOURSECS);
+        $pulse = pulse::of($sheet, $now + 13 * HOURSECS);
+        $this->assertSame(['missing', $now], [$pulse['state'], $pulse['since']], 'Since the first night it was missed.');
         pulse::called($sheet, 1, 0, true, [], $now + DAYSECS);
         $this->assertSame('ok', pulse::of($sheet, $now + DAYSECS)['state']);
         // A row of the end of a sheet, after others that were read, says nothing.
         pulse::called($sheet, 0, 40, true, [], $now + DAYSECS + 60);
         $this->assertSame('ok', pulse::of($sheet, $now + DAYSECS + 60)['state']);
         pulse::called($sheet, 0, 40, true, [], $now + 2 * DAYSECS);
-        $this->assertSame('unread', pulse::of($sheet, $now + 2 * DAYSECS)['state']);
+        pulse::called($sheet, 0, 40, true, [], $now + 2 * DAYSECS + HOURSECS);
+        $pulse = pulse::of($sheet, $now + 2 * DAYSECS + HOURSECS);
+        $this->assertSame(['unread', $now + 2 * DAYSECS], [$pulse['state'], $pulse['since']]);
         pulse::called($sheet, 2, 0, true, [], $now + 3 * DAYSECS);
         $this->assertSame('ok', pulse::of($sheet, $now + 3 * DAYSECS)['state']);
         // The address of a form is anyone's: a call to it with a false key says nothing.
@@ -148,6 +152,46 @@ final class pulse_test extends \advanced_testcase {
         // Closed, nothing is said of it.
         $DB->set_field(entries::T, 'active', 0, ['id' => $form->id]);
         $this->assertSame([], pulse::silent($this->centre, $later));
+    }
+
+    /**
+     * The tape of an entry and its stamp: what came each day, quiet since the day after its last call, and nothing said of
+     * the days before it was there.
+     */
+    public function test_tape(): void {
+        global $DB;
+        $now = time();
+        $sheet = $this->entry('google');
+        $this->assertFalse(pulse::tag(pulse::of($sheet, $now), $now));
+        $DB->set_field(entries::T, 'timecreated', $now - 10 * DAYSECS, ['id' => $sheet->id]);
+        foreach ([5, 5, 5, 4] as $daysago) {
+            $DB->insert_record(households::CONTACTS, (object) ['centreid' => $this->centre->id, 'householdid' => households::create(
+                (int) $this->centre->id,
+                (object) ['lang' => 'es', 'firstchannel' => 'webform']
+            ), 'direction' => 'in', 'channel' => 'webform', 'body' => 'Hola', 'entryid' => $sheet->id, 'userid' => 0,
+                'timecreated' => $now - $daysago * DAYSECS]);
+        }
+        // One of them writes twice that day: it is still one family.
+        $again = $DB->get_records(households::CONTACTS, ['entryid' => $sheet->id], 'id ASC', '*', 0, 1);
+        $again = reset($again);
+        unset($again->id);
+        $DB->insert_record(households::CONTACTS, $again);
+        pulse::called($sheet, 3, 0, true, [], $now - 4 * DAYSECS);
+        pulse::called($sheet, 1, 0, true, [], $now - 3 * DAYSECS);
+        $pulses = pulse::of_centre($this->centre, $now);
+        $days = pulse::tapes($this->centre, $pulses, $now)[(int) $sheet->id];
+        $this->assertCount(pulse::TAPE, $days);
+        // The last one is today: «five days ago» is the sixth from the end.
+        $ago = fn(int $n): array => $days[pulse::TAPE - 1 - $n];
+        $this->assertSame([3, 2], [$ago(5)['n'], $ago(5)['h']]);
+        $this->assertSame([1, 1], [$ago(4)['n'], $ago(4)['h']]);
+        $this->assertSame([false, true, true, true], [$ago(3)['quiet'], $ago(2)['quiet'], $ago(1)['quiet'], $ago(0)['quiet']]);
+        $this->assertSame([true, false], [$ago(11)['before'], $ago(10)['before']]);
+        $tag = pulse::tag($pulses[0], $now);
+        $this->assertSame(get_string('pulse_tag_quiet', 'local_oksigeniaeguahe'), $tag['word']);
+        $this->assertNotSame('', $tag['since']);
+        $this->assertStringContainsString('Hoja de visitas', pulse::words($pulses[0], $now));
+        $this->assertStringNotContainsString('Hoja de visitas', pulse::words($pulses[0], $now, false));
     }
 
     /**

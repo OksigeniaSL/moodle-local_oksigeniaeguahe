@@ -23,23 +23,26 @@
 
     New in this round: kindname, icon, open, statetext, n, broughttext, hasn, v, hassites. Kept: name, last, missing,
     sites, url. Review of November 2026: tested, when a test last came through it (false if never). Pulse: silent, what may
-    be wrong with it (false if nothing), and called, when the last thing came and when it last called or was opened.
+    be wrong with it (false if nothing): word, for its stamp, since and text; and called, when it last called or was
+    opened. The name is the head of the card, and what else is said of it goes under its line.
 
     Example context (json):
     {"i": {"der": ""}, "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
         "n": 23, "broughttext": "23 familias", "hasn": true, "v": 0.6, "last": "la última, ayer a las 21:14", "missing": "",
-        "tested": "Probada hace 2 minutos: llegó bien", "sites": ["Instagram"], "hassites": true, "url": "#"}
+        "tested": "Probada hace 2 minutos: llegó bien", "called": "llamó por última vez hoy a las 2:38",
+        "silent": {"word": "Calla", "since": "desde el sábado a las 3:24", "text": "Llamaba cada noche. Puede haber familias que aún no se ven aquí."},
+        "sites": ["Instagram"], "hassites": true, "url": "#"}
 }}
 <div class="entrada-fila{{^open}} cerrada{{/open}}">
     <span class="tipo-entrada" aria-hidden="true">{{{icon}}}</span>
+    <a class="nombres" href="{{url}}">{{name}}</a>
     <span class="que">
-        <a class="nombres" href="{{url}}">{{name}}</a>
         <span class="secundario">{{kindname}} · <span class="estado-entrada">{{statetext}}</span></span>
         {{#tested}}<span class="probada">{{.}}</span>{{/tested}}
         {{#hassites}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/hassites}}
         {{#missing}}<span class="falta">{{missing}}</span>{{/missing}}
-        {{#silent}}<span class="falta">{{.}}</span>{{/silent}}
-        {{#called}}<span class="secundario">{{.}}</span>{{/called}}
+        {{#silent}}<span class="calla"><span class="calla-desde"><b class="sello-calla">{{word}}</b> {{since}}</span> {{text}}</span>{{/silent}}
+        {{#called}}<span class="secundario llamo">{{.}}</span>{{/called}}
     </span>
     <span class="cuantas">
         <span class="barra-entrada" aria-hidden="true">{{#hasn}}<i style="--v: {{v}}"></i>{{/hasn}}</span>

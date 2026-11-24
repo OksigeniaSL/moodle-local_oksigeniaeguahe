@@ -1951,8 +1951,12 @@ details[open].plegado > summary h2::after {
     text-transform: uppercase;
 }
 
-/* When the last thing came through each entry, beside «nobody is waiting». */
+/* ---------- What came through each entry, beside «nobody is waiting» ---------- */
+/* A tape for each one, its last four weeks: a stroke each day families came, and hatched the days that are not
+   known. Those that may not be bringing all there is go first, with the ochre of what goes. */
 .llegan-por {
+    --ci-tinta: var(--eg-serie-1);
+    --ci-calla: var(--eg-serie-2);
     margin: 0 0 12px;
     padding: 8px 14px;
     border: 1px solid var(--piel-hoja-borde);
@@ -1970,24 +1974,176 @@ details[open].plegado > summary h2::after {
     cursor: pointer;
 }
 
+.llegan-por summary .ic {
+    margin-inline-start: auto;
+    transition: transform var(--dur-1) ease;
+}
+
+.llegan-por[open] summary .ic {
+    transform: rotate(180deg);
+}
+
 .llegan-por-t {
     font-weight: 700;
 }
 
+/* Folded, its line says which may be missing; open, its rows do. */
 .llegan-por-ahora {
+    flex: 1 1 0;
+    min-width: 12rem;
     color: var(--eg-tinta-2);
 }
 
-.llegan-por ul {
+.con-calladas .llegan-por-ahora {
+    padding-inline-start: 8px;
+    border-inline-start: 4px solid var(--ci-calla);
+    color: var(--eg-tinta);
+    font-weight: 650;
+}
+
+.llegan-por[open] .llegan-por-ahora {
+    display: none;
+}
+
+.cintas {
     display: grid;
-    gap: 4px;
-    margin: 8px 0 4px;
+    gap: 2px;
+    margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.llegan-por li.callada span {
-    font-weight: 700;
+.cinta-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    align-items: center;
+    gap: 4px 18px;
+    padding: 6px 0 6px 12px;
+    border-inline-start: 4px solid transparent;
+}
+
+.cinta-fila.callada {
+    border-inline-start-color: var(--ci-calla);
+}
+
+.cinta-que {
+    line-height: 1.4;
+}
+
+.cinta-que > a {
+    font-weight: 650;
+}
+
+/* How it is, as a stamp of the desk, in the ochre of what goes; since when, beside it. */
+.sello-calla {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 2px solid var(--eg-serie-2);
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    transform: rotate(-1.2deg);
+}
+
+.cinta-desde {
+    margin-inline-start: 4px;
+    font-weight: 650;
+}
+
+.cinta-linea {
+    display: block;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+/* Clear of the stamp when it falls on a line of its own. */
+.cinta-desde + .cinta-linea {
+    margin-top: 3px;
+}
+
+.cinta {
+    display: grid;
+    grid-template-columns: repeat(28, minmax(0, 1fr));
+    height: 28px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--eg-hundido);
+}
+
+/* A day: a pinhole with nobody, a stroke with families, hatched when it is not known. */
+.cinta i {
+    position: relative;
+}
+
+.cinta i::before {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    inset-inline-start: 50%;
+    width: 3px;
+    height: calc(var(--h) * 5px);
+    margin-inline-start: -1.5px;
+    border-radius: 1.5px;
+    background: var(--ci-tinta);
+}
+
+.cinta i:not([style])::before {
+    height: 2px;
+    background: var(--eg-borde);
+    opacity: 0.55;
+}
+
+.cinta i.antes::before,
+.cinta i.calla::before {
+    display: none;
+}
+
+.cinta i.calla {
+    /* stylelint-disable-next-line csstree/validator */
+    background: repeating-linear-gradient(-45deg, var(--ci-calla) 0 2px, transparent 2px 5px);
+}
+
+/* Each week, a fold of the tape. */
+.cinta i:nth-child(7n + 1):not(:first-child) {
+    border-inline-start: 1px solid var(--eg-linea);
+}
+
+.cinta-eje {
+    display: flex;
+    justify-content: space-between;
+    width: 14rem;
+    margin: 0 0 2px;
+    margin-inline-start: auto;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+}
+
+.cinta-clave {
+    margin: 8px 0 4px;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+/* On a phone, its tape under each one, as wide as the slip. */
+@media (max-width: 560px) {
+    .cinta-fila {
+        grid-template-columns: minmax(0, 1fr);
+        padding-block: 8px;
+    }
+
+    .cinta-desde {
+        display: block;
+        margin-inline-start: 0;
+    }
+
+    .cinta-eje {
+        width: auto;
+        padding-inline-start: 16px;
+    }
 }
 
 .hoy-notas {
@@ -5368,12 +5524,13 @@ input:focus-visible + .pastilla-r {
     gap: 8px;
 }
 
+/* An index card: its name on the head, the line under it however long the name is, and the rest below. */
 .entrada-fila {
     position: relative;
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) minmax(170px, 300px);
-    gap: 6px 16px;
-    align-items: center;
+    gap: 0 16px;
+    align-items: start;
     padding: 14px 16px;
     border-radius: var(--piel-radio);
     background: var(--piel-fila);
@@ -5391,10 +5548,59 @@ input:focus-visible + .pastilla-r {
     color: var(--eg-tinta-2);
 }
 
-.entrada-fila .que {
+.entrada-fila > .tipo-entrada {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+}
+
+.entrada-fila > .nombres {
+    grid-row: 1;
+    grid-column: 2 / -1;
+    padding-bottom: 8px;
+    overflow-wrap: break-word;
+}
+
+.entrada-fila > .que {
     display: grid;
+    grid-row: 2;
+    grid-column: 2;
     gap: 4px;
     min-width: 0;
+    padding-top: 6px;
+}
+
+.entrada-fila > .cuantas {
+    grid-row: 2;
+    grid-column: 3;
+    padding-top: 6px;
+}
+
+.entrada-fila > .cuantas .barra-entrada {
+    margin-block: 5px 3px;
+}
+
+/* Nothing yet: no empty bar over the number. */
+.entrada-fila > .cuantas .barra-entrada:empty {
+    display: none;
+}
+
+.entrada-fila .llamo::first-letter {
+    text-transform: uppercase;
+}
+
+/* What may be wrong with it: the same stamp as in the inbox, and the sentence under it. */
+.entrada-fila .calla {
+    margin-block: 4px;
+    padding-inline-start: 10px;
+    border-inline-start: 4px solid var(--eg-serie-2);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+}
+
+.entrada-fila .calla-desde {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 650;
 }
 
 .entrada-fila .secundario {
@@ -5491,8 +5697,10 @@ button.sin-usar-fila {
         grid-template-columns: 40px minmax(0, 1fr);
     }
 
-    .entrada-fila .cuantas {
+    .entrada-fila > .cuantas {
+        grid-row: 3;
         grid-column: 2;
+        padding-top: 8px;
     }
 
     .sin-usar-fila {

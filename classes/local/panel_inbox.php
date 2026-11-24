@@ -210,12 +210,7 @@ class panel_inbox {
         return [
             'hall' => $hall,
             'cine' => $cine,
-            // When the last thing came through each entry, to be read beside «nobody is waiting».
-            // Open by itself when nobody waits, or when something may be missing: that is when it is read.
-            'pulse' => $entries ? ['open' => !$waiting || $silent, 'rows' => array_map(fn($p) => ['name' => $p['name'], 'line' => pulse::line($p, $now),
-                'silent' => in_array($p['state'], pulse::SILENT, true),
-                'url' => (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $p['id']]))->out(false)], $entries),
-                'now' => get_string($silent ? 'pulse_some_silent' : 'pulse_read', $c, count($silent))] : false,
+            'pulse' => $entries ? self::arrivals($centre, $entries, $silent, !$waiting, $now) : false,
             'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,
@@ -250,7 +245,7 @@ class panel_inbox {
             'hastoday' => (bool) $today,
             'todaycount' => count($today),
             // Folded on a phone, the fold says what is inside, never just how many.
-            'todaytitles' => implode(' · ', array_values(array_filter(array_map(fn($t) => (string) ($t['short'] ??
+            'todaytitles' => implode(' · ', array_unique(array_filter(array_map(fn($t) => (string) ($t['short'] ??
                 ($t['title'] ?? '')), $today)))),
             'days' => $days,
             'hasrows' => (bool) $days,
@@ -280,6 +275,29 @@ class panel_inbox {
             'hasnextevents' => (bool) $next,
             'keyhint' => get_string('panel_keyhint', $c),
         ];
+    }
+
+    /**
+     * What came through each entry, to be read beside «nobody is waiting»: those that may not be bringing all there is,
+     * first. Open by itself when nobody waits; with families waiting it is folded, and its line says which may be missing.
+     *
+     * @param \stdClass $centre
+     * @param array[] $entries From pulse::of_centre().
+     * @param array[] $silent Those that may not be bringing all there is.
+     * @param bool $open
+     * @param int $now
+     * @return array open, some, now and rows (name, url, tag, line and tape).
+     */
+    protected static function arrivals(\stdClass $centre, array $entries, array $silent, bool $open, int $now): array {
+        $c = self::C;
+        $tapes = pulse::tapes($centre, $entries, $now);
+        $rows = array_map(fn($p) => ['name' => $p['name'], 'tag' => pulse::tag($p, $now), 'line' => pulse::line($p, $now),
+            'tape' => $tapes[$p['id']],
+            'url' => (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $p['id']]))->out(false)], $entries);
+        usort($rows, fn($a, $b) => !$a['tag'] <=> !$b['tag']);
+        $names = implode(', ', array_map(fn($p) => '«' . $p['name'] . '»', $silent));
+        return ['open' => $open, 'some' => (bool) $silent, 'rows' => $rows,
+            'now' => $silent ? get_string('pulse_sub', $c, $names) : get_string('pulse_read', $c)];
     }
 
     /**

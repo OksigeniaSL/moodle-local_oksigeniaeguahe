@@ -57,6 +57,9 @@ class pulse {
     /** @var int The rows in a row that nothing was understood of before it is said. */
     const UNREAD = 5;
 
+    /** @var int The days of the tape of an entry, today the last one. */
+    const TAPE = 28;
+
     /** @var string The states that are said: what arrived may not be all there is. */
     const SILENT = ['refused', 'missing', 'unread', 'quiet'];
 
@@ -85,8 +88,10 @@ class pulse {
         $sameread = !(int) ($entry->unread ?? 0) && $now - (int) ($entry->calledat ?? 0) < HOURSECS;
         if ($understood) {
             $changes->unread = 0;
+            $changes->unreadat = 0;
         } else if ($unread && !$sameread) {
             $changes->unread = min(100000, (int) ($entry->unread ?? 0) + $unread);
+            $changes->unreadat = (int) ($entry->unreadat ?? 0) ?: $now;
         }
         if ($night) {
             $beats = self::beats($entry);
@@ -97,6 +102,7 @@ class pulse {
             // Only the call of the night looks at every tab.
             $names = array_filter(array_map(fn($t) => trim((string) $t), $missing), fn($t) => $t !== '');
             $changes->missing = $names ? \core_text::substr(implode(', ', $names), 0, 255) : null;
+            $changes->missingat = $names ? ((int) ($entry->missingat ?? 0) ?: $now) : 0;
         }
         $DB->update_record(entries::T, $changes);
         foreach ((array) $changes as $field => $value) {
@@ -178,9 +184,10 @@ class pulse {
             $out['since'] = $called;
         } else if (trim((string) ($entry->missing ?? '')) !== '') {
             $out['state'] = 'missing';
+            $out['since'] = (int) ($entry->missingat ?? 0);
         } else if ((int) ($entry->unread ?? 0) >= self::UNREAD) {
             $out['state'] = 'unread';
-            $out['since'] = $out['last'];
+            $out['since'] = (int) ($entry->unreadat ?? 0);
         } else if (!self::nightly($entry)) {
             $rhythm = self::rhythm($entry, $now);
             if ($rhythm && $now - $rhythm['last'] > max(self::FLOOR, 2 * $rhythm['longest'])) {
@@ -260,26 +267,86 @@ class pulse {
      *
      * @param array $pulse From of_centre().
      * @param int $now
+     * @param bool $named Whether it says the name of the entry and since when; not where its card and its tag say them.
      * @return string
      */
-    public static function words(array $pulse, int $now): string {
+    public static function words(array $pulse, int $now, bool $named = true): string {
         $c = self::C;
         $entry = $pulse['entry'];
         $a = (object) ['name' => $pulse['name'], 'since' => $pulse['since'] ? self::since($pulse['since'], $now) : '',
             'tabs' => (string) ($entry->missing ?? ''), 'n' => (int) ($entry->unread ?? 0), 'days' => $pulse['longest'],
             'opened' => (int) ($entry->opened ?? 0)];
+        $here = $named ? '' : '_here';
         if ($pulse['state'] !== 'quiet') {
-            return get_string('pulse_' . $pulse['state'], $c, $a);
+            return get_string('pulse_' . $pulse['state'] . $here, $c, $a);
         }
         if (self::nightly($entry)) {
-            return get_string('pulse_quiet_call', $c, $a);
+            return get_string('pulse_quiet_call' . $here, $c, $a);
         }
-        $text = get_string($a->days === 1 ? 'pulse_quiet_one' : 'pulse_quiet', $c, $a);
+        $text = get_string(($a->days === 1 ? 'pulse_quiet_one' : 'pulse_quiet') . $here, $c, $a);
         if ($entry->kind !== 'form') {
             return $text;
         }
         // A form that is still opened is there; whether it can be sent is tried in a minute.
         return $text . ' ' . get_string($a->opened ? 'pulse_quiet_opened' : 'pulse_quiet_unopened', $c, $a);
+    }
+
+    /**
+     * How an entry is, for its stamp, and since when: «Quiet», «since Saturday at 2:38».
+     *
+     * @param array $pulse From of_centre().
+     * @param int $now
+     * @return array|false word and since (empty when it is not known); false when there is nothing to say of it.
+     */
+    public static function tag(array $pulse, int $now) {
+        if (!in_array($pulse['state'], self::SILENT, true)) {
+            return false;
+        }
+        return ['word' => get_string('pulse_tag_' . $pulse['state'], self::C),
+            'since' => $pulse['since'] ? self::since($pulse['since'], $now) : ''];
+    }
+
+    /**
+     * The tape of each entry: what came through it on each of the last days, and the days that are not known: it was quiet,
+     * not let in or not understood.
+     *
+     * @param \stdClass $centre
+     * @param array[] $pulses From of_centre().
+     * @param int $now
+     * @return array[] By entry, its days, the oldest first: n (how many families), h (the height of its stroke, 1 to 4, 0 with
+     *     none), quiet (not known) and before (before the entry was there).
+     */
+    public static function tapes(\stdClass $centre, array $pulses, int $now): array {
+        global $DB;
+        $came = [];
+        $rows = $DB->get_recordset_select(
+            households::CONTACTS,
+            "centreid = :centre AND direction = 'in' AND entryid > 0 AND timecreated > :from AND timecreated <= :now",
+            ['centre' => $centre->id, 'from' => $now - (self::TAPE + 1) * DAYSECS, 'now' => $now],
+            '',
+            'id, entryid, householdid, timecreated'
+        );
+        foreach ($rows as $row) {
+            // Families, not messages: one that writes twice in a day is one.
+            $came[(int) $row->entryid][panel::days_between((int) $row->timecreated, $now)][(int) $row->householdid] = true;
+        }
+        $rows->close();
+        $out = [];
+        foreach ($pulses as $pulse) {
+            $born = panel::days_between((int) $pulse['entry']->timecreated, $now);
+            // Not known from the day after its last call or family; not let in or not understood, from the very day. With
+            // tabs it does not find, what comes by the others is still seen: no day is said not to be known.
+            $quiet = $pulse['since'] && in_array($pulse['state'], ['quiet', 'refused', 'unread'], true) ?
+                panel::days_between($pulse['since'], $now) - ($pulse['state'] === 'quiet' ? 1 : 0) : -1;
+            $days = [];
+            for ($ago = self::TAPE - 1; $ago >= 0; $ago--) {
+                $n = count($came[$pulse['id']][$ago] ?? []);
+                $days[] = ['n' => $n, 'h' => $n ? min(4, 1 + (int) floor(log($n, 2))) : 0, 'quiet' => !$n && $ago <= $quiet,
+                    'before' => !$n && $ago > max($born, $quiet)];
+            }
+            $out[$pulse['id']] = $days;
+        }
+        return $out;
     }
 
     /**
@@ -314,7 +381,8 @@ class pulse {
     }
 
     /**
-     * When an entry last called, though it brought nothing; a form, how many times it was opened.
+     * When an entry last called, though it brought nothing; a form, how many times it was opened. Not of one that does not
+     * call or is not let in: its tag says since when.
      *
      * @param array $pulse From of_centre().
      * @param int $now
@@ -332,6 +400,8 @@ class pulse {
             }
             return '';
         }
-        return $called ? get_string('pulse_called', $c, panel::when_words($called, $now)) : '';
+        // Nor of the call that brought the last family, which is already said.
+        return $called > $pulse['last'] + 5 * MINSECS && !in_array($pulse['state'], ['quiet', 'refused'], true) ?
+            get_string('pulse_called', $c, panel::when_words($called, $now)) : '';
     }
 }

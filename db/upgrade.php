@@ -1723,5 +1723,20 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121201) {
+        // Since when nothing of what an entry brings is understood, or its script does not find its tabs.
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $fields = [
+            new xmldb_field('unreadat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'missing'),
+            new xmldb_field('missingat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'unreadat'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026121201, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
