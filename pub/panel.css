@@ -1325,7 +1325,14 @@ input[data-hora]:focus,
     white-space: nowrap;
 }
 
-.pastilla[aria-current] {
+button.pastilla {
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.pastilla[aria-current],
+button.pastilla[aria-pressed="true"] {
     border-color: var(--eg-accion);
     background: var(--eg-accion);
     color: var(--eg-sobre-accion);
@@ -1341,8 +1348,18 @@ input[data-hora]:focus,
     list-style: none;
 }
 
+.gustos-acto li {
+    max-width: 100%;
+}
+
+/* The name of an act may take two lines: it never makes its column wider. */
 .gustos-acto .pastilla {
     gap: 8px;
+    box-sizing: border-box;
+    text-align: start;
+    max-width: 100%;
+    padding-block: 6px;
+    white-space: normal;
 }
 
 .gustos-acto .pastilla b {
@@ -4853,6 +4870,7 @@ input:checked + .ap-hoja {
 
 .compartir-acto {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     min-width: 0;
 }
@@ -20617,17 +20635,29 @@ html {
     overflow-wrap: anywhere;
 }
 
-.invitar-mandar > summary {
-    width: fit-content;
-    list-style: none;
+.invitar-lista {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
-.invitar-mandar > summary::-webkit-details-marker {
-    display: none;
+.invitar-lista legend {
+    padding: 0;
+    font-weight: 700;
 }
 
-.invitar-mandar > p {
-    margin-top: 10px;
+.invitar-grupo {
+    display: grid;
+    gap: 6px;
+}
+
+.invitar-carta > .boton {
+    justify-self: start;
+}
+
+.invitar-estado.con-error {
+    box-shadow: inset 4px 0 0 var(--eg-error);
 }
 
 .invitar-quienes label {

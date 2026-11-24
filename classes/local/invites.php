@@ -231,7 +231,7 @@ class invites {
         if ($email) {
             $task = new \local_oksigeniaeguahe\task\send_invites();
             $task->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id, 'userid' => $userid,
-                'ids' => $email]);
+                'ids' => $email, 'words' => (string) ($event->invitewords ?? '')]);
             $task->set_next_run_time(self::daytime($now));
             \core\task\manager::queue_adhoc_task($task, true);
             $out['email'] = count($email);
@@ -576,6 +576,63 @@ class invites {
     }
 
     /**
+     * Of the families shown, the ones left out of the invitation being prepared, kept for the session of whoever prepares
+     * it: whoever was unticked stays so, whatever is pressed before it goes.
+     *
+     * @param int $eventid
+     * @return int[]
+     */
+    public static function left_out(int $eventid): array {
+        global $SESSION;
+        return array_map('intval', array_keys($SESSION->local_oksigeniaeguahe_leftout[$eventid] ?? []));
+    }
+
+    /**
+     * Keeps who is ticked and who is not, of the families shown.
+     *
+     * @param int $eventid
+     * @param int[] $shown
+     * @param int[] $ticked
+     */
+    public static function tick(int $eventid, array $shown, array $ticked): void {
+        global $SESSION;
+        $out = array_flip(self::left_out($eventid));
+        foreach ($shown as $id) {
+            if (in_array((int) $id, $ticked, true)) {
+                unset($out[(int) $id]);
+            } else {
+                $out[(int) $id] = true;
+            }
+        }
+        $SESSION->local_oksigeniaeguahe_leftout[$eventid] = array_map(fn($x) => true, $out);
+    }
+
+    /**
+     * Leaves something to say in the block of the invitation, the next time it is shown.
+     *
+     * @param int $eventid
+     * @param string $text
+     * @param bool $error
+     */
+    public static function say(int $eventid, string $text, bool $error = false): void {
+        global $SESSION;
+        $SESSION->local_oksigeniaeguahe_invitesaid[$eventid] = ['text' => $text, 'error' => $error];
+    }
+
+    /**
+     * What was left to say, once.
+     *
+     * @param int $eventid
+     * @return array|false text, error
+     */
+    public static function said(int $eventid) {
+        global $SESSION;
+        $said = $SESSION->local_oksigeniaeguahe_invitesaid[$eventid] ?? false;
+        unset($SESSION->local_oksigeniaeguahe_invitesaid[$eventid]);
+        return $said;
+    }
+
+    /**
      * What the letter of an act needs of it.
      *
      * @param \stdClass $event
@@ -623,16 +680,23 @@ class invites {
      * @param int $userid Who sends it.
      * @param int $now
      * @param int[] $ids The households to invite by email.
+     * @param string $words What the team added, as it was when the invitation was sent.
      * @return int How many were sent.
      */
-    public static function send(\stdClass $event, \stdClass $centre, int $userid, int $now, array $ids): int {
+    public static function send(
+        \stdClass $event,
+        \stdClass $centre,
+        int $userid,
+        int $now,
+        array $ids,
+        string $words = ''
+    ): int {
         global $DB;
         if (!self::fits($event, $now)) {
             return 0;
         }
         $sent = 0;
         $pseudo = self::of_letter($event);
-        $words = (string) ($event->invitewords ?? '');
         $note = get_string('invite_note', self::C, format_string($event->name));
         foreach ($ids as $id) {
             $household = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);

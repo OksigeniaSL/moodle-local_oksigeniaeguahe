@@ -97,8 +97,7 @@ final class invites_test extends \advanced_testcase {
 
         $sink = $this->redirectEmails();
         $ids = array_keys(invites::eligible($event));
-        $event->invitewords = 'Habrá chocolate.';
-        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time(), $ids));
+        $this->assertSame(1, invites::send($event, $centre, (int) get_admin()->id, time(), $ids, 'Habrá chocolate.'));
         $this->assertCount(1, $sink->get_messages());
         $sent = quoted_printable_decode($sink->get_messages()[0]->body);
         $this->assertStringContainsString('Habrá chocolate.', $sent);
@@ -167,6 +166,11 @@ final class invites_test extends \advanced_testcase {
         $this->assertSame(1, invites::queue($event, $centre, $user, time(), 'sinacto-' . $past, [$ana, $berta])['email']);
         $this->assertSame([$ana => true], invites::queued((int) $event->id));
         $this->assertEqualsCanonicalizing([$berta, $carlos], array_keys(invites::eligible($event)));
+        // Whoever is unticked stays so in any group, and only who is shown changes.
+        invites::tick((int) $event->id, [$ana, $berta, $carlos], [$ana]);
+        $this->assertEqualsCanonicalizing([$berta, $carlos], invites::left_out((int) $event->id));
+        invites::tick((int) $event->id, [$carlos], [$carlos]);
+        $this->assertSame([$berta], invites::left_out((int) $event->id));
         // Stopped, it can be invited again.
         $this->assertSame(1, invites::stop((int) $event->id));
         $this->assertCount(3, invites::eligible($event));

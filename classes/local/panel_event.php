@@ -60,7 +60,7 @@ class panel_event {
      * @param bool $canact
      * @param int $now
      * @param string $whom One of invites::groups(), to invite only those; '' for all.
-     * @param bool $nobody Whether the list of those to invite comes with nobody ticked.
+     * @param bool $check Whether the invitation is looked over before it goes.
      * @return array
      */
     public static function context(
@@ -69,7 +69,7 @@ class panel_event {
         bool $canact,
         int $now = 0,
         string $whom = '',
-        bool $nobody = false
+        bool $check = false
     ): array {
         $now = $now ?: time();
         $c = self::C;
@@ -233,7 +233,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
-            'invite' => self::invite($event, $canact, $now, $whom, $nobody),
+            'invite' => self::invite($event, $canact, $now, $whom, $check),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -441,10 +441,10 @@ class panel_event {
      * @param bool $canact
      * @param int $now
      * @param string $group One of invites::groups(), chosen; '' for all.
-     * @param bool $none Whether the list comes with nobody ticked, to tick a few.
+     * @param bool $check Whether it is looked over before it goes: how many and who, to confirm it.
      * @return array|false
      */
-    protected static function invite(\stdClass $event, bool $canact, int $now, string $group = '', bool $none = false) {
+    protected static function invite(\stdClass $event, bool $canact, int $now, string $group = '', bool $check = false) {
         if (!invites::fits($event, $now)) {
             return false;
         }
@@ -469,7 +469,7 @@ class panel_event {
             foreach ($groups as $key => $one) {
                 if ($one['kind'] === $kind) {
                     $chips[] = ['name' => $one['name'], 'n' => count($one['ids']), 'current' => $group === $key,
-                        'cap' => $kind === 'alumni', 'url' => $url($group === $key ? [] : ['gusto' => $key])];
+                        'cap' => $kind === 'alumni', 'key' => $group === $key ? '' : $key];
                 }
             }
             if ($chips) {
@@ -477,6 +477,10 @@ class panel_event {
             }
         }
         $chosen = $group !== '' ? array_intersect_key($all, array_flip($groups[$group]['ids'])) : $all;
+        $shown = $chosen;
+        $out = array_flip(invites::left_out((int) $event->id));
+        // Those still ticked, of the ones shown: what is counted is always this.
+        $chosen = array_diff_key($chosen, $out);
         // By the way each family chose: how many by email and by phone, what WhatsApp costs, and who approves it.
         $emails = count(array_filter($chosen, fn($h) => $h->reachemail));
         $phones = array_keys(array_filter($chosen, fn($h) => $h->reachphone));
@@ -491,9 +495,9 @@ class panel_event {
                 )]);
         }
         // Who it goes to, by name, before it goes: all of them, never «and N more», and each can be left out.
-        $people = households::some((int) $event->centreid, array_keys($chosen));
+        $people = households::some((int) $event->centreid, array_keys($shown));
         $whom = [];
-        foreach (array_keys($chosen) as $id) {
+        foreach (array_keys($shown) as $id) {
             if (!isset($people[$id])) {
                 continue;
             }
@@ -501,7 +505,7 @@ class panel_event {
                 fn($child) => $child->stage !== 'closed' && $child->offer ? format_string($child->offer->name) : '',
                 $people[$id]->children
             )));
-            $whom[] = ['id' => (int) $id, 'name' => panel::adults_line($people[$id]->adults), 'checked' => !$none,
+            $whom[] = ['id' => (int) $id, 'name' => panel::adults_line($people[$id]->adults), 'checked' => isset($chosen[$id]),
                 'courses' => implode(' · ', $courses)];
         }
         usort($whom, fn($a, $b) => strcoll(\core_text::strtolower($a['name']), \core_text::strtolower($b['name'])));
@@ -532,31 +536,40 @@ class panel_event {
             )] : false,
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
             // Those that have not gone out yet, and until when they will be going.
-            'going' => $left ? ['text' => get_string($left === 1 ? 'panel_invite_left_one' : 'panel_invite_left', $c, (object) [
-                'n' => $left, 'when' => userdate(
-                    invites::last_at($left, max($now, $next)),
-                    get_string('strftimedatetimeshort', 'langconfig')
-                )]), 'stop' => $canact] : false,
+            'going' => $left ? ['text' => self::invite_left($left, invites::last_at($left, max($now, $next)), $now),
+                'stop' => $canact] : false,
+            'notice' => invites::said((int) $event->id),
             'rows' => $rows,
             'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
             'group' => $group,
-            'letter' => $canact ? ['subject' => $subject, 'text' => $text, 'words' => (string) ($event->invitewords ?? '')] : false,
-            'some' => $group !== '' ? get_string('panel_invite_group', $c, (object) ['n' => $n, 'of' => $can,
+            'some' => $group !== '' ? get_string('panel_invite_group', $c, (object) ['n' => count($shown), 'of' => $can,
                 'what' => $groups[$group]['name']]) : '',
-            'button' => $n && $canact ? get_string($group !== '' ? ($n === 1 ? 'panel_invite_send_some_one' :
-                'panel_invite_send_some') : ($n === 1 ? 'panel_invite_send_one' : 'panel_invite_send'), $c, $group !== '' ?
-                (object) ['n' => $n] : $n) : '',
-            // Before it goes: to how many, by which way, and that it is once (a touch too many would mail them all).
-            'confirm' => $n ? self::invite_confirm($n, $emails, count($phones)) : '',
-            'slow' => $emails > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
-                'n' => (int) round(invites::BATCH * HOURSECS / invites::PAUSE), 'from' => invites::DAYTIME[0],
-                'until' => invites::DAYTIME[1]]) : '',
+            'letter' => $canact && $can ? ['subject' => $subject, 'text' => $text,
+                'words' => (string) ($event->invitewords ?? '')] : false,
             'whom' => $whom,
-            'opened' => $group !== '' || $none,
-            'allurl' => $none ? $url($group !== '' ? ['gusto' => $group] : []) : '',
-            'noneurl' => $none ? '' : $url(($group !== '' ? ['gusto' => $group] : []) + ['ninguna' => 1]),
+            // Before it goes: to how many, by which way and to whom, and that it is once.
+            'check' => $check && $canact && $n ? ['question' => self::invite_confirm($n, $emails, count($phones)),
+                'slow' => $emails > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
+                    'n' => (int) round(invites::BATCH * HOURSECS / invites::PAUSE), 'from' => invites::DAYTIME[0],
+                    'until' => invites::DAYTIME[1]]) : '',
+                'going' => array_values(array_filter($whom, fn($w) => $w['checked'])),
+                'back' => $url($group !== '' ? ['gusto' => $group] : [])] : false,
         ];
+    }
+
+    /**
+     * How many letters are still to go out, and when the last ones do.
+     *
+     * @param int $left
+     * @param int $last
+     * @param int $now
+     * @return string
+     */
+    protected static function invite_left(int $left, int $last, int $now): string {
+        $today = panel::days_between($last, $now) === 0;
+        return get_string($today ? 'panel_invite_left' : 'panel_invite_left_day', self::C, (object) ['n' => $left,
+            'hour' => panel::hour($last), 'day' => userdate($last, get_string('strftimedaydate', 'langconfig'))]);
     }
 
     /**
