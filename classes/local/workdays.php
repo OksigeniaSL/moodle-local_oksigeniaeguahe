@@ -107,6 +107,22 @@ class workdays {
     }
 
     /**
+     * Until when a centre answers someone who writes at a moment, in words: «before the end of Thursday 26 November».
+     *
+     * @param \stdClass $centre
+     * @param int $since
+     * @param string $lang
+     * @return string
+     */
+    public static function promise(\stdClass $centre, int $since, string $lang): string {
+        $until = self::deadline($centre, $since);
+        if (self::day($until)->format('Ymd') === self::day($since)->modify('+1 day')->format('Ymd')) {
+            return publiclang::str('pub_promise_tomorrow', $lang);
+        }
+        return publiclang::str('pub_promise_day', $lang, publicpage::date_parts($until, $lang)['long']);
+    }
+
+    /**
      * Whoever waits since before this moment waits for longer than the centre promises.
      *
      * @param \stdClass $centre

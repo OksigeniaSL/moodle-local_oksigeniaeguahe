@@ -142,7 +142,7 @@ class panel_channels {
         $out = [];
         $rows = $DB->get_records_select(
             households::T,
-            'centreid = ? AND incentre = 0 AND heardfrom IS NOT NULL AND timecreated >= ? AND timecreated < ?',
+            'centreid = ? AND incentre = 0 AND guest = 0 AND heardfrom IS NOT NULL AND timecreated >= ? AND timecreated < ?',
             [$centre->id, $bounds[0], $bounds[24]],
             '',
             'id, heardfrom, heardnet, timecreated'
@@ -197,7 +197,9 @@ class panel_channels {
         [$in, $params] = $DB->get_in_or_equal(self::TALK);
         $rows = $DB->get_recordset_select(
             households::CONTACTS,
-            "centreid = ? AND direction IN ('in', 'out') AND timecreated >= ? AND timecreated < ? AND channel $in",
+            // What was sent to many at once is not a conversation.
+            "centreid = ? AND direction IN ('in', 'out') AND (aim IS NULL OR aim <> 'many') AND timecreated >= ? " .
+                "AND timecreated < ? AND channel $in",
             array_merge([$centre->id, $bounds[0], $bounds[24]], $params),
             '',
             'id, channel, timecreated'

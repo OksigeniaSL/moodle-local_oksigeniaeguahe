@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\invites;
@@ -128,6 +129,13 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     $said = $left ? ($left === 1 ? 'panel_invite_stopped_one' : 'panel_invite_stopped') : 'panel_invite_stopped_none';
     invites::say((int) $event->id, get_string($said, $c, $left));
     redirect(new moodle_url($url, ['invitar' => 1]));
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'linkout') {
+    // Whether what is published of it carries its sign-up link: the channel follows.
+    centres::require_act((int) $centre->id);
+    $DB->set_field(events::T, 'linkout', optional_param('linkout', 0, PARAM_BOOL) ? 1 : 0, ['id' => $event->id]);
+    channel::sync(events::get((int) $event->id, (int) $centre->id));
+    redirect(new moodle_url($url, [], 'compartir'));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'withdraw') {
     // A send by phone still waiting for approval, taken back: its families can be invited again.

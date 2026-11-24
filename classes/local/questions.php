@@ -67,7 +67,7 @@ class questions {
     public static function asked(array $contacts): array {
         $since = [];
         foreach ($contacts as $contact) {
-            if ($contact->direction === 'out') {
+            if ($contact->direction === 'out' && empty($contact->aim)) {
                 $since = [];
             } else if ($contact->direction === 'in' && trim((string) $contact->body) !== '') {
                 $since[] = (string) $contact->body;

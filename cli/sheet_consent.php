@@ -48,7 +48,8 @@ if ($options['help'] || !$options['centre']) {
 
 Options:
   --centre=ID   The centre.
-  --all         Not only those of the sheets: every family that came through Eguahe (never those of the roll).
+  --all         Not only those of the sheets: every family that came through Eguahe (never those of the
+                roll nor whoever only signed up to an open act).
   --run         Do it; without it, only how many there are.
   -h, --help    This help.
 ";
@@ -59,11 +60,12 @@ if (!$centre) {
     cli_error('No centre ' . (int) $options['centre']);
 }
 if ($options['all']) {
-    // Every family that came through Eguahe, never those of the roll nor the sample one (made with a date long past).
+    // Every family that came through Eguahe, never those of the roll, the guests of an act nor the sample one (made with a
+    // date long past).
     $ids = $DB->get_fieldset_select(
         households::T,
         'id',
-        'centreid = ? AND roster = 0 AND timecreated > ?',
+        'centreid = ? AND roster = 0 AND guest = 0 AND timecreated > ?',
         [$centre->id, 978307200]
     );
 } else {

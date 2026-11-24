@@ -194,7 +194,7 @@ class kit {
                 continue;
             }
             $out[] = ['key' => $key, 'day' => userdate($day, get_string('strftimedaydate', 'langconfig')),
-                'what' => get_string('kit_when_' . $key, self::C)];
+                'what' => get_string('kit_when_' . $key . ($key === 'announce' && empty($event->linkout) ? '_nolink' : ''), self::C)];
         }
         return $out;
     }
@@ -233,12 +233,13 @@ class kit {
         $a = (object) self::facts($event, $centre);
         $script = [];
         foreach ([1 => 4, 2 => 6, 3 => 6, 4 => 4] as $n => $seconds) {
+            $onscreen = $n === 4 && empty($event->linkout) ? 'kit_onscreen_4_nolink' : 'kit_onscreen_' . $n;
             $script[] = ['shot' => get_string('kit_shot_' . $n, self::C, $a), 'seconds' => $seconds,
-                'onscreen' => get_string('kit_onscreen_' . $n, self::C, $a)];
+                'onscreen' => get_string($onscreen, self::C, $a)];
         }
         return [
-            'post' => get_string($a->room ? 'kit_post_room' : 'kit_post', self::C, $a),
-            'forward' => get_string('kit_forward', self::C, $a),
+            'post' => get_string(empty($event->linkout) ? 'kit_post_nolink' : ($a->room ? 'kit_post_room' : 'kit_post'), self::C, $a),
+            'forward' => get_string(empty($event->linkout) ? 'kit_forward_nolink' : 'kit_forward', self::C, $a),
             'script' => $script,
             'by' => 'rules',
         ];
@@ -327,6 +328,7 @@ class kit {
             "short, in the first person; not a slogan of the school.\n" .
             "- The script is for a short upright video filmed with a phone in twenty minutes: three or four shots of " .
             "the school, each with what to film, how many seconds and a few words on screen.\n\n" .
+            (empty($event->linkout) ? "There is no link to sign up: never speak of signing up nor of a link.\n\n" : '') .
             "Answer only with JSON, this shape:\n" .
             '{"post": "the text for the networks, up to 600 characters, with the day, the hours and how to sign up ' .
             '(the link goes apart)", "forward": "the text for families to forward, up to 300 characters", "script": ' .
@@ -348,6 +350,16 @@ class kit {
         }
         $lang = (string) $centre->lang;
         $when = publicpage::date_parts((int) $event->timestart, $lang);
+        $poster = acts::poster_file((int) $event->id);
+        if ($poster) {
+            // The act has a poster of its own: whole, in the shape of each network.
+            $png = share::card($centre, 'cartel', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
+                'hours' => self::lower(familypage::hours((int) $event->timestart, (int) $event->timeend, $lang)),
+                'title' => format_string($event->name)], $poster->get_content(), self::SHAPES[$shape]);
+            if ($png !== '') {
+                return $png;
+            }
+        }
         return share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
             'hours' => self::lower(familypage::hours((int) $event->timestart, (int) $event->timeend, $lang)),
             'title' => format_string($event->name)], null, self::SHAPES[$shape]);

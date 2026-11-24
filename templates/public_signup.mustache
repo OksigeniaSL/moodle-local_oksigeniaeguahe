@@ -57,7 +57,7 @@
         "pub_tailored_title": "Cuando les venga bien", "pub_tailored_lead": "",
         "hasslots": true, "pub_slot": "Elijan su turno", "sloterror": "",
         "slots": [{"id": 3, "when": "10:00–11:00", "left": "quedan 8 sitios", "disabled": false, "checked": false}],
-        "isother": false, "pub_incentre": "¿Ya tienen a alguien en el centro?", "pub_incentre_yes": "Sí",
+        "openact": false, "tellme": {"checked": false}, "pub_tellme": "Queremos que nos cuenten del centro", "pub_incentre": "¿Ya tienen a alguien en el centro?", "pub_incentre_yes": "Sí",
         "pub_incentre_no": "Todavía no", "incentreyes": false, "incentreno": false,
         "pub_more": "Unas cosas más", "pub_people": "Personas que vendrán", "people": 2, "peopleerror": "",
         "pub_where": "¿Dónde viven?", "pub_where_choose": "Elijan", "hasplaces": true,
@@ -84,10 +84,10 @@
     }
 }}
 <section class="pared" aria-labelledby="titulo" data-para="{{para}}">
-    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px"{{/poster}}{{/act}}>
+    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{#wide}} con-apaisado{{/wide}}{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px; --cartel-razon: {{ratio}}"{{/poster}}{{/act}}>
         {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
         <h1 class="titular{{#longname}} largo{{/longname}}" id="titulo">{{headline}}</h1>
-        {{#isother}}<p class="acto-cuando">{{weekday}}, {{daymonth}}<span>{{hours}}{{#where}} · <span dir="auto">{{where}}</span>{{/where}}</span></p>{{/isother}}
+        {{#openact}}<p class="acto-cuando">{{weekday}}, {{daymonth}}<span>{{hours}}{{#where}} · <span dir="auto">{{where}}</span>{{/where}}</span></p>{{/openact}}
         {{#act}}{{#any}}{{> local_oksigeniaeguahe/public_act }}{{/any}}{{/act}}
         {{! Who signs up: at a centre where either may, the family for a child or the student for themselves. }}
         {{#choose}}
@@ -101,6 +101,7 @@
         </fieldset>
         {{/choose}}
     </div>
+    {{^openact}}
     <div class="riel" aria-hidden="true"></div>
     <div class="heroe-ancho">
         {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
@@ -137,6 +138,7 @@
             </div>
         </div>
     </div>
+    {{/openact}}
 </section>
 
 <div class="inscripcion" data-para="{{para}}">
@@ -155,7 +157,7 @@
         <p class="entradilla">{{hours}}{{#where}}<br><span class="lugar-acto" dir="auto">{{where}}</span>{{/where}}</p>
         {{/tailored}}
         {{/isform}}
-        {{#welcome}}<p class="muted" dir="auto">{{welcome}}</p>{{/welcome}}
+        {{^openact}}{{#welcome}}<p class="muted" dir="auto">{{welcome}}</p>{{/welcome}}{{/openact}}
         {{#hashosts}}
         <div class="caras-mini">
             <span class="pila">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}{{/hosts}}</span>
@@ -208,7 +210,7 @@
                     </div>
                     {{/fields}}
                 </div>
-                {{#alumni}}<div class="fichas fichas-sueltas"><label class="ficha"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label></div>{{/alumni}}
+                {{^openact}}{{#alumni}}<div class="fichas fichas-sueltas"><label class="ficha"><input type="checkbox" name="{{name}}" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{label}}</label></div>{{/alumni}}{{/openact}}
             </div>
             {{/adults}}
             {{#canaddadult}}<button type="button" class="anadir para-familia" data-add="adulto">{{{i.plus}}}{{pub_another_adult}}</button>{{/canaddadult}}
@@ -250,7 +252,7 @@
         </fieldset>
         {{/hasslots}}
 
-        {{#isother}}
+        {{#askincentre}}
         <fieldset>
             <legend>{{pub_incentre}}</legend>
             <div class="fichas">
@@ -258,7 +260,8 @@
                 <label class="ficha"><input type="radio" name="incentre" value="no"{{#incentreno}} checked{{/incentreno}}><span class="marca">{{{i.check}}}</span>{{pub_incentre_no}}</label>
             </div>
         </fieldset>
-        {{/isother}}
+        {{#tellme}}<div class="fichas fichas-sueltas"><label class="ficha"><input type="checkbox" name="tellme" value="1"{{#checked}} checked{{/checked}}><span class="marca">{{{i.check}}}</span>{{pub_tellme}}</label></div>{{/tellme}}
+        {{/askincentre}}
 
         {{#hasmore}}
         <fieldset>
@@ -361,7 +364,7 @@
             {{#formerror}}<p class="error" role="alert">{{{i.alert}}}{{formerror}}</p>{{/formerror}}
             {{#preview}}<p class="error" role="note">{{previewnote}}</p>{{/preview}}
             <button class="boton principal ancho" type="submit" data-sending="{{#selfmode}}{{pub_sending_self}}{{/selfmode}}{{^selfmode}}{{pub_sending}}{{/selfmode}}"{{#preview}} disabled{{/preview}}>{{#selfmode}}{{pub_submit_self}}{{/selfmode}}{{^selfmode}}{{pub_submit}}{{/selfmode}}</button>
-            <p class="nota-plaza">{{pub_no_place}}</p>
+            {{#pub_no_place}}<p class="nota-plaza">{{pub_no_place}}</p>{{/pub_no_place}}
         </div>
     </form>
     {{#ways}}<p class="vias-invitada"><a href="{{chooseurl}}">{{choose}}</a> <a href="{{noneurl}}">{{none}}</a></p>{{/ways}}

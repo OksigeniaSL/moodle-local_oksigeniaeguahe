@@ -334,12 +334,15 @@ class familymail {
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'secciones' => $cantcome ? [$cantcome] : null,
-                'nota' => $str('mail_note_confirm'),
+                // Of a talk or a party there is no place to speak of.
+                'nota' => $str($DB->get_field(events::T, 'kind', ['id' => $signup->eventid]) === 'other' ? 'mail_note_confirm_act' :
+                    'mail_note_confirm'),
             ];
         } else if ($kind === 'received') {
             // A family that wrote through a form or an entry: it was received, and a person will answer.
             // The thanks go to whoever wrote, never to the child: no label under the heading.
-            $days = publiclang::count('pub_reply_day', 'pub_reply_days', max(1, (int) ($centre->replydays ?? 2)), $lang);
+            // Until which day, by the working days of the centre: the day itself, not a count to make.
+            $days = workdays::promise($centre, time(), $lang);
             // Who will answer, with their face: the person who attends them, or those who usually answer; with nobody
             // to name, «a person of the centre».
             $answer = centres::answerers($centre, $household);
@@ -602,7 +605,9 @@ class familymail {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
         $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
-        $long = empty($signup->slotid) && (int) $signup->timeend - (int) $signup->timestart >= 2 * HOURSECS;
+        // Of a talk or a party, until what time too.
+        $long = empty($signup->slotid) && ((int) $signup->timeend - (int) $signup->timestart >= 2 * HOURSECS ||
+            (($signup->kind ?? '') === 'other' && (int) $signup->timeend > (int) $signup->timestart));
         $when = $long ? \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1) :
             $str('mail_at_hour', $parts['hour']);
         $event = trim(html_entity_decode(format_string($signup->eventname), ENT_QUOTES, 'UTF-8'));
@@ -621,6 +626,16 @@ class familymail {
         ), 'event' => $event, 'date' => $parts['long'], 'when' => $when]);
         if ($place !== '') {
             $before[] = $str('mail_letter_place', $place);
+        }
+        // What it is about and who gives it, as the act says it.
+        $about = trim((string) ($signup->about ?? ''));
+        if ($about !== '') {
+            $before[] = preg_replace('/\R{2,}/', "\n", $about);
+        }
+        $speakers = array_map(fn($one) => html_entity_decode(format_string($one['name']) . (trim($one['role']) !== '' ?
+            ' (' . format_string(trim($one['role'])) . ')' : ''), ENT_QUOTES, 'UTF-8'), acts::speakers($signup));
+        if ($speakers) {
+            $before[] = $str('mail_letter_speakers', familypage::join($speakers, $lang));
         }
         foreach (preg_split('/\R{2,}/', trim($words)) as $paragraph) {
             if (trim($paragraph) !== '') {
@@ -643,7 +658,9 @@ class familymail {
             '"><head><meta charset="utf-8"><title>' . s($event) . '</title></head><body>' .
             '<div dir="' . lists::dir($lang) . '" style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5">' .
             implode('', array_map($line, $before)) .
-            $p(s($join) . ' <a href="' . s($url) . '">' . s($event) . '</a>') .
+            // The words of the link say what it does.
+            $p(s($join) . ' <a href="' . s($url) . '">' . s($str(!empty($signup->free) ? 'mail_letter_see' : 'mail_letter_go')) .
+                '</a>') .
             implode('', array_map($line, $after)) . '</div></body></html>';
         return [$str('mail_letter_subject', (object) ['event' => $event, 'date' => $parts['long']]), $html, $text];
     }

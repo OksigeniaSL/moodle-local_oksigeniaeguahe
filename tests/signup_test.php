@@ -325,6 +325,57 @@ final class signup_test extends \advanced_testcase {
     }
 
     /**
+     * Whoever only comes to a talk is a guest of it: in no inbox, figure, notice or later letter, until it asks to be told
+     * of the centre, comes by another way or the team says so.
+     */
+    public function test_guest(): void {
+        global $DB;
+        $id = events::save($this->centre->id, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => time() + DAYSECS,
+            'timeend' => time() + DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]);
+        $event = events::get($id, $this->centre->id);
+        $this->assertEquals(0, $event->linkout, 'An open act is published without its link, unless asked for.');
+        $this->assertEquals(1, $this->event->linkout, 'An open day goes with its link.');
+        $person = function (int $n, array $more = []): array {
+            $data = $this->data($more);
+            $data['adults'][0]['firstname'] = 'Persona';
+            $data['adults'][0]['email'] = "persona$n@example.com";
+            $data['adults'][0]['phone'] = '';
+            $data['children'][0]['firstname'] = '';
+            return $data;
+        };
+        [$guest] = signup::save($person(1), $event, $this->centre, 'es');
+        [$asked] = signup::save($person(2, ['tellme' => 1]), $event, $this->centre, 'es');
+        $this->assertEquals(1, households::get($guest->id, $this->centre->id)->guest);
+        $this->assertEquals(0, households::get($asked->id, $this->centre->id)->guest);
+        $inbox = array_map(fn($h) => (int) $h->id, households::inbox($this->centre->id, false));
+        $this->assertContains((int) $asked->id, $inbox);
+        $this->assertNotContains((int) $guest->id, $inbox);
+        $this->assertSame(1, households::inbox_count($this->centre->id, false));
+        // What it writes is answered all the same.
+        $DB->set_field(households::T, 'waitingsince', time(), ['id' => $guest->id]);
+        $this->assertSame(2, households::inbox_count($this->centre->id, false));
+        $DB->set_field(households::T, 'waitingsince', 0, ['id' => $guest->id]);
+
+        // Its open day takes it to the admissions; another talk does not.
+        [$again] = signup::save($person(1), $event, $this->centre, 'es');
+        $this->assertEquals(1, households::get($again->id, $this->centre->id)->guest);
+        signup::save($person(1), $this->event, $this->centre, 'es');
+        $this->assertEquals(0, households::get($guest->id, $this->centre->id)->guest);
+        // And a family of the admissions that comes to a talk keeps being it.
+        signup::save($person(2), $event, $this->centre, 'es');
+        $this->assertEquals(0, households::get($asked->id, $this->centre->id)->guest);
+
+        // Those kept before: only whoever had nothing else.
+        [$old] = signup::save($person(3), $event, $this->centre, 'es');
+        $DB->set_field(households::T, 'guest', 0);
+        $this->assertSame(2, households::find_guests());
+        $this->assertEquals(1, households::get($old->id, $this->centre->id)->guest);
+        $this->assertEquals(0, households::get($guest->id, $this->centre->id)->guest);
+        $this->assertTrue(households::admit((int) $old->id));
+        $this->assertFalse(households::admit((int) $old->id));
+    }
+
+    /**
      * The calendar file of the event.
      */
     public function test_ics(): void {

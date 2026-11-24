@@ -211,7 +211,7 @@ class story {
         }
         $written = fn(int $since) => $DB->record_exists_select(
             households::CONTACTS,
-            'householdid = ? AND direction = ? AND timecreated >= ?',
+            'householdid = ? AND direction = ? AND aim IS NULL AND timecreated >= ?',
             [$household->id, 'out', $since]
         );
         $firsts = [];

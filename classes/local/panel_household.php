@@ -77,19 +77,30 @@ class panel_household {
         // The head: since when they wait, or who answered; who they are; where they came from and since when.
         $ante = '';
         $answered = null;
+        $told = '';
         if ($household->waitingsince > 0) {
             $words = panel::wait_words((int) $household->waitingsince, $now, !empty($household->waitingdayonly));
             $ante = get_string('panel_waits', $c, $words['since']) .
                 (panel::days_between((int) $household->waitingsince, $now) >= 2 ? ' · ' . $words['sub'] : '');
         } else {
+            $answers = happened::answers($contacts);
             foreach (array_reverse($contacts) as $contact) {
-                if ($contact->direction === 'out') {
+                if (isset($answers[(int) $contact->id])) {
                     $who = isset($people[$contact->userid]) ? fullname($people[$contact->userid]) : 'Eguahe';
                     $when = panel::when_words((int) $contact->timecreated, $now, !empty($contact->dayonly));
                     $ante = get_string('panel_answered_by', $c, (object) ['when' => $when, 'who' => $who]);
                     $answered = ['who' => $who, 'when' => $when, 'stamp' => ['top' => get_string('panel_answered', $c),
                         'day' => rtrim(userdate((int) $contact->timecreated, '%a %d'), '.'),
                         'hour' => empty($contact->dayonly) ? panel::hour((int) $contact->timecreated) : '']];
+                    break;
+                }
+            }
+            // Never «answered» when nobody answered: a person wrote to them, or nobody of the team ever did.
+            foreach ($answered ? [] : array_reverse($contacts) as $contact) {
+                if ($contact->direction === 'out' && isset($people[$contact->userid])) {
+                    $key = happened::to_many($contact) ? 'panel_invited_by' : 'panel_told_by';
+                    $told = get_string($key, $c, (object) ['who' => fullname($people[$contact->userid]),
+                        'when' => panel::when_words((int) $contact->timecreated, $now, !empty($contact->dayonly))]);
                     break;
                 }
             }
@@ -135,9 +146,10 @@ class panel_household {
         $answers = self::answers((int) $household->id);
         $email = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->email, $full->adults)))[0] ?? '');
         $phone = (string) (array_values(array_filter(array_map(fn($a) => (string) $a->phone, $full->adults)))[0] ?? '');
-        // The conversation: the two last things at sight, the ones before folded in a line.
+        // The conversation: the two last things said at sight, with the appointments since; the ones before, folded.
         $history = self::history($full, $contacts, $people, $now);
-        $old = array_slice($history, 0, max(0, count($history) - 2));
+        $lines = array_keys(array_filter($history, fn($one) => empty($one['visit'])));
+        $old = array_slice($history, 0, count($lines) > 2 ? $lines[count($lines) - 2] : 0);
         $suggestions = attend::suggest($full);
         $composer = self::composer($composermode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
             self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
@@ -165,7 +177,7 @@ class panel_household {
             'head' => panel::head([
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
                     'name' => get_string('tab_inbox', $c)],
-                'ante' => $ante,
+                'ante' => $ante !== '' ? $ante : $told,
                 'title' => panel::adults_line($full->adults),
                 'sub' => implode(' · ', array_filter($origin)),
                 'origen' => self::origen($household, $centre, implode(' · ', array_filter($door))),
@@ -180,6 +192,9 @@ class panel_household {
             'sesskey' => sesskey(),
             'canact' => $canact,
             'answered' => $answered,
+            // What the pad says when nobody waits: answered, written to without being asked, or nobody wrote yet.
+            'turntitle' => get_string($household->waitingsince > 0 ? 'panel_your_turn' : ($answered ? 'panel_answered_already' :
+                ($told !== '' ? 'panel_told_already' : 'panel_unwritten_yet')), $c),
             'relay' => true,
             'owner' => $owner,
             'takeurl' => $url->out(false),
@@ -630,7 +645,7 @@ class panel_household {
         if ($since === null || $since < $now - 14 * DAYSECS) {
             return false;
         }
-        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        $where = 'householdid = ? AND direction = ? AND aim IS NULL AND timecreated >= ?';
         if ($DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $since])) {
             return false;
         }
@@ -666,7 +681,7 @@ class panel_household {
             return false;
         }
         $since = max(array_map(fn($c) => (int) $c->stagetime, $waiting));
-        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        $where = 'householdid = ? AND direction = ? AND aim IS NULL AND timecreated >= ?';
         $written = $DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $since]);
         if ($since < $now - 30 * DAYSECS || $written) {
             return false;
@@ -1137,8 +1152,8 @@ class panel_household {
     }
 
     /**
-     * The conversation, from the first thing to the last: what the family did, what the team did and what Eguahe did
-     * by itself.
+     * The conversation, from the first thing to the last, each with its verb: what the family did, its appointments and
+     * whether it came, what the team did and what Eguahe did by itself. What is still to come goes last.
      *
      * @param \stdClass $full
      * @param array $contacts In order of time.
@@ -1151,7 +1166,16 @@ class panel_household {
         $c = self::C;
         $entries = [];
         $out = [];
+        $answers = happened::answers($contacts);
+        $visits = happened::appointments($full->signups, $now);
+        $visit = fn(array $one) => ['family' => false, 'team' => false, 'system' => false, 'visit' => true,
+            'next' => $one['next'], 'who' => happened::verb($one['kind']), 'how' => $one['what'], 'when' => $one['note'],
+            'body' => ''];
         foreach ($contacts as $i => $contact) {
+            // The appointments that were before it.
+            while ($visits && !$visits[0]['next'] && $visits[0]['time'] <= (int) $contact->timecreated) {
+                $out[] = $visit(array_shift($visits));
+            }
             $channel = in_array($contact->channel, lists::CHANNELS, true) || $contact->channel === lists::PAGE ?
                 $contact->channel : 'other';
             $where = '';
@@ -1175,8 +1199,11 @@ class panel_household {
             } else if ($contact->direction === 'in') {
                 $kind = 'familia';
                 $who = get_string('panel_the_family', $c);
-                $how = $i > 0 ? get_string('panel_wrote', $c, $via) :
-                    ($where !== '' ? get_string('panel_came_entry', $c, $where) : get_string('panel_came', $c, $via));
+                $how = happened::words(
+                    happened::kind($contact),
+                    $where !== '' && $i === 0 ? get_string('panel_by_entry', $c, $where) : $via,
+                    $channel
+                );
                 // What the family said to a person, who wrote it down.
                 $how .= $person ? ' · ' . get_string('panel_noted_by', $c, fullname($person)) : '';
             } else if ($contact->direction === 'note' && $contact->entryid) {
@@ -1192,7 +1219,7 @@ class panel_household {
             } else {
                 $kind = $person ? 'equipo' : 'sistema';
                 $who = $person ? fullname($person) : 'Eguahe';
-                $how = get_string('panel_answered_via', $c, $via);
+                $how = happened::words(happened::kind($contact, isset($answers[(int) $contact->id])), $via);
             }
             $out[] = [
                 'family' => $kind === 'familia',
@@ -1204,7 +1231,7 @@ class panel_household {
                 'body' => $body === '' ? '' : ($contact->direction === 'note' ? $body : panel::quote($body)),
             ];
         }
-        return $out;
+        return array_merge($out, array_map($visit, $visits));
     }
 
     /**

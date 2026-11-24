@@ -61,6 +61,8 @@ class poster {
             $short = events::short_url($event);
         }
         $shown = $short ? preg_replace('#^https?://#', '', $short) : '';
+        // An act published without its sign-up link; the poster of the door always has it.
+        $link = $door || !empty($event->linkout);
         $words = $door ? 'poster_door_' : 'poster_';
         $logo = centres::logo((int) $centre->id);
         $phone = trim((string) ($centre->phone ?? ''));
@@ -68,6 +70,8 @@ class poster {
         $own = $door ? false : acts::poster($event);
         return documents::render('poster.html', [
             'propio' => $own ? ['src' => $own['url'], 'dice' => $own['alt']] : false,
+            // A wide one, on a sheet lying down.
+            'tumbada' => $own && $own['wide'],
             'lang' => $lang === 'pt_br' ? 'pt-BR' : $lang,
             'papel' => $paper,
             'escala' => self::PAPERS[$paper],
@@ -87,9 +91,11 @@ class poster {
             'lugar' => implode(' · ', array_filter([$event->place ? format_string($event->place) : '',
                 (string) ($centre->address ?? '')])),
             // Anybody may come: the code is to know more, never to sign up.
-            'llamada' => $str(!$door && !empty($event->free) ? 'act_free' : $words . 'call'),
-            'como' => !$door && !empty($event->free) ? '' : $str($words . 'how'),
-            'url_corta' => $shown,
+            'llamada' => $str(!$door && !empty($event->free) ? 'act_free' : ($link ? $words . 'call' : 'poster_come')),
+            'como' => !$link || (!$door && !empty($event->free)) ? '' : $str($words . 'how'),
+            // Published without its link, the poster says when and where, and has no code.
+            'con_qr' => $link,
+            'url_corta' => $link ? $shown : '',
             'telefono_texto' => $phone !== '' && !$door ? $str('poster_phone', $phone) : '',
             'qr_svg' => $door ? $doorqr : events::qr_svg($event),
             'qr_alt' => $str($words . 'qr', $shown ?: format_string($event->name)),

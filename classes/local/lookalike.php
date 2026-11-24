@@ -445,6 +445,8 @@ class lookalike {
                 $changes[$field] = $gone->$field;
             }
         }
+        // Only a guest of an act when both were.
+        $changes['guest'] = min((int) $keep->guest, (int) $gone->guest);
         foreach (['thanked', 'applysent'] as $field) {
             $changes[$field] = max((int) $keep->$field, (int) $gone->$field);
         }
@@ -729,7 +731,7 @@ class lookalike {
             ['municipality', 'municipalityname', 'moving', 'self', 'heardfrom', 'heardwho', 'heardnet', 'incentre', 'volunteer',
                 'thanked', 'invitesign', 'familylink', 'roster', 'whyother', 'whyothertime', 'arrivalsource', 'arrivalmedium',
                 'arrivalcampaign', 'arrivalref', 'applysent', 'ownerid', 'writeby', 'writebytime', 'writebyfrom',
-                'writebynone'] as $field
+                'writebynone', 'guest'] as $field
         ) {
             if (array_key_exists($field, $was)) {
                 $fields[$field] = $was[$field];
@@ -865,14 +867,14 @@ class lookalike {
             "householdid = ? AND direction <> 'note'",
             [$householdid],
             'timecreated ASC, id ASC',
-            'id, direction, channel, dayonly, timecreated'
+            'id, direction, channel, dayonly, aim, timecreated'
         );
         $waiting = 0;
         $dayonly = 0;
         $last = 0;
         foreach ($lines as $line) {
             $last = max($last, (int) $line->timecreated);
-            if ($line->direction === 'out') {
+            if ($line->direction === 'out' && empty($line->aim)) {
                 $waiting = 0;
                 $dayonly = 0;
             } else if ($line->direction === 'in' && $line->channel !== 'page' && !$waiting) {

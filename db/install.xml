@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261217" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261219" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -138,6 +138,7 @@
         <FIELD NAME="waitingsince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when the household waits for a person to answer; 0 when nobody is owed an answer"/>
         <FIELD NAME="waitingdayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether of since when it waits only the day is known"/>
         <FIELD NAME="lastcontact" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="guest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when it only signed up to an open act (a talk, a party) and asked for nothing else: it is not in admissions"/>
         <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
@@ -244,6 +245,7 @@
         <FIELD NAME="token" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Of the public sign-up link and its QR"/>
         <FIELD NAME="open" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Families can still sign up"/>
         <FIELD NAME="free" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when anybody may come without signing up"/>
+        <FIELD NAME="linkout" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Whether what is published of it carries its sign-up link: an open act (a talk, a party) goes without it unless the team asks for it"/>
         <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
         <FIELD NAME="shorturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the public sign-up, for the poster, its QR and the texts"/>
         <FIELD NAME="shortqr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The QR the shortener draws for the short link, as SVG; empty when it draws none, null while not asked"/>
@@ -322,6 +324,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who wrote it; 0 for the household or the system"/>
         <FIELD NAME="asks" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What a message of the family asks or tells, in a line for the team, by the AI of the centre; null, not read yet; empty, nothing to say"/>
         <FIELD NAME="dayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether only its day is known (a date without its hour): no hour is ever said of it"/>
+        <FIELD NAME="aim" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Of what a person of the centre sent, when it answers nobody: many (sent to many at once: an invitation) or told (something they had not asked: a change in their visit)"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

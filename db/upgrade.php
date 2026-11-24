@@ -1828,5 +1828,48 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121901) {
+        // Whoever only signed up to an open act (a talk, a party) is a guest of it, not a family of the admissions.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $field = new xmldb_field('guest', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'lastcontact');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // An open act is published without its sign-up link, unless the team asks for it.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('linkout', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'free');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+            $DB->set_field('local_oksigeniaeguahe_event', 'linkout', 0, ['kind' => 'other']);
+        }
+        // What was sent to many at once (an invitation, who goes on next year) answers nobody: marked, in whatever
+        // language it was written.
+        $table = new xmldb_table('local_oksigeniaeguahe_contact');
+        $field = new xmldb_field('aim', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'dayonly');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+            $DB->execute(
+                "UPDATE {local_oksigeniaeguahe_contact} SET aim = 'many'
+                  WHERE direction = 'out' AND " . $DB->sql_like('detail', '?'),
+                ['renewal:%']
+            );
+            foreach (array_keys(get_string_manager()->get_list_of_translations(true)) as $lang) {
+                foreach (['invite_note', 'invite_note_phone'] as $key) {
+                    $text = get_string_manager()->get_string($key, 'local_oksigeniaeguahe', '|', $lang);
+                    $start = core_text::substr($text, 0, (int) core_text::strpos($text, '|'));
+                    if ($start !== '') {
+                        $DB->execute(
+                            "UPDATE {local_oksigeniaeguahe_contact} SET aim = 'many'
+                              WHERE direction = 'out' AND aim IS NULL AND " . $DB->sql_like('body', '?'),
+                            [$DB->sql_like_escape($start) . '%']
+                        );
+                    }
+                }
+            }
+        }
+        \local_oksigeniaeguahe\local\households::find_guests();
+        upgrade_plugin_savepoint(true, 2026121901, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

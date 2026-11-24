@@ -243,7 +243,7 @@ class sheetrows {
         $waiting = [0, 0];
         foreach ($rows as $row) {
             $body = trim((string) $row->body);
-            $touched = $row->direction === 'out' || ($row->direction === 'note' && !(int) $row->entryid &&
+            $touched = ($row->direction === 'out' && empty($row->aim)) || ($row->direction === 'note' && !(int) $row->entryid &&
                 array_filter($touches, fn($t) => strpos($body, $t) === 0));
             if ($touched) {
                 $waiting = [0, 0];

@@ -205,7 +205,7 @@ class acts {
      * Its own picture, with its size and what it says.
      *
      * @param \stdClass $event
-     * @return array|false url, alt, w, h, wide and tall
+     * @return array|false url, alt, w, h, wide, tall and ratio (its height by its width)
      */
     public static function poster(\stdClass $event) {
         $file = !empty($event->id) ? self::poster_file((int) $event->id) : null;
@@ -217,6 +217,7 @@ class acts {
         $tall = (int) round(min(400, 330 * $info['height'] / max(1, $info['width'])));
         return ['url' => self::url($file), 'w' => (int) $info['width'], 'h' => (int) $info['height'],
             'wide' => $info['width'] > 1.15 * $info['height'], 'tall' => $tall,
+            'ratio' => round($info['height'] / max(1, $info['width']), 4),
             'alt' => trim((string) ($event->posteralt ?? '')) ?: format_string($event->name)];
     }
 

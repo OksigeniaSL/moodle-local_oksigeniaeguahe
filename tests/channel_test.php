@@ -71,6 +71,12 @@ final class channel_test extends \advanced_testcase {
         $eventid = events::save($id, (object) ['kind' => 'other', 'name' => 'Festival de otoño', 'place' => 'El patio',
             'timestart' => $start, 'timeend' => $start + 3 * HOURSECS, 'capacity' => 0, 'open' => 1]);
         $event = events::get($eventid, $id);
+        // An open act is published without its link, unless it is asked for.
+        $event->linkout = 0;
+        $quiet = channel::content($event, 'announce');
+        $this->assertArrayNotHasKey('url', $quiet);
+        $this->assertArrayNotHasKey('label', $quiet);
+        $event->linkout = 1;
         $announce = channel::content($event, 'announce');
         $this->assertSame('Abierto a todos', $announce['card']['zones']['kicker']);
         $this->assertSame('Festival de otoño', $announce['card']['zones']['title']);

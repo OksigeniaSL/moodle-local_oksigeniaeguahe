@@ -617,7 +617,7 @@ class centres {
         $lately = $DB->get_records_sql_menu(
             "SELECT userid, COUNT(1) AS n
                FROM {" . households::CONTACTS . "}
-              WHERE centreid = :centreid AND direction = 'out' AND userid > 0 AND timecreated > :since
+              WHERE centreid = :centreid AND direction = 'out' AND aim IS NULL AND userid > 0 AND timecreated > :since
            GROUP BY userid
            ORDER BY COUNT(1) DESC, userid ASC",
             ['centreid' => $centre->id, 'since' => $now - 90 * DAYSECS]

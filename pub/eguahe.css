@@ -2299,6 +2299,34 @@ legend .opc {
         max-height: 400px;
     }
 
+    /* A wide one takes nearly half of the wall, and the rest is written beside it. */
+    .saludo-arriba.con-cartel.con-apaisado {
+        --cartel-ancho: min(45vw, 820px);
+
+        min-height: calc(var(--cartel-ancho) * var(--cartel-razon, 0.56) + 40px);
+        padding-inline-end: calc(var(--g) + var(--cartel-ancho) + 44px);
+    }
+
+    .saludo-arriba.con-cartel.con-apaisado .acto-cartel.apaisado {
+        width: var(--cartel-ancho);
+        max-width: none;
+        box-sizing: border-box;
+    }
+
+    .saludo-arriba.con-cartel.con-apaisado .acto-cartel img {
+        width: 100%;
+        max-height: none;
+    }
+
+    .con-apaisado .titular {
+        font-size: calc(var(--eg-fluido-1) * 0.76);
+        overflow-wrap: anywhere;
+    }
+
+    .con-apaisado .titular.largo {
+        font-size: calc(var(--eg-fluido-1) * 0.52);
+    }
+
     .acto-cuenta {
         font-size: 1.0625rem;
     }

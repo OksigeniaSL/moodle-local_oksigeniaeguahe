@@ -253,7 +253,7 @@ class chatpanel {
                 $asking = true;
             }
         }
-        $kind = $asking && $incentre ? 'both' : ($incentre ? 'centre' : 'asking');
+        $kind = $asking && $incentre ? 'both' : ($incentre ? 'centre' : (!empty($household->guest) ? 'guest' : 'asking'));
         $next = false;
         foreach ($full->signups as $signup) {
             $start = (int) $signup->timestart;

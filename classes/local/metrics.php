@@ -782,7 +782,7 @@ class metrics {
         global $DB;
         $households = $DB->get_records_sql("SELECT h.id, h.incentre, h.moving, h.firstchannel
                                               FROM {" . households::T . "} h
-                                             WHERE h.centreid = :centreid
+                                             WHERE h.centreid = :centreid AND h.guest = 0
                                           ORDER BY h.id", ['centreid' => $centreid]);
         if (!$households) {
             return ['rows' => [], 'moving' => null, 'total' => null, 'incentre' => 0];
@@ -885,7 +885,8 @@ class metrics {
         $lines = $DB->get_recordset_sql("SELECT c.id, c.householdid, c.direction, c.channel, c.dayonly, c.timecreated
                                            FROM {local_oksigeniaeguahe_contact} c
                                            JOIN {local_oksigeniaeguahe_household} h ON h.id = c.householdid
-                                          WHERE c.centreid = :centreid AND h.incentre = 0 AND c.direction <> 'note'
+                                          WHERE c.centreid = :centreid AND h.incentre = 0 AND h.guest = 0 AND c.direction <> 'note'
+                                                AND c.aim IS NULL
                                        ORDER BY c.householdid, c.timecreated, c.id", ['centreid' => $centreid]);
         foreach ($lines as $line) {
             $rows[$line->householdid] = $rows[$line->householdid] ?? ['in' => null, 'out' => null];

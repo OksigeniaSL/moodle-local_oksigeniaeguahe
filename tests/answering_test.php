@@ -165,7 +165,10 @@ final class answering_test extends \advanced_testcase {
             'phone' => '']);
         $token = households::new_link($household, 'test');
         [, $html, $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
-        $this->assertStringContainsString('Pablo les contesta normalmente en 2 días laborables.', $text);
+        $this->assertStringContainsString(
+            'Pablo les contesta normalmente ' . \local_oksigeniaeguahe\local\workdays::promise($this->centre, time(), 'es') . '.',
+            $text
+        );
         $this->assertStringContainsString('Quién les contesta', $html);
         $this->assertStringContainsString('Pablo Medina', $html);
     }

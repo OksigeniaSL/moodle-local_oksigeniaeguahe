@@ -144,7 +144,7 @@ function local_oksigeniaeguahe_work_week(int $centreid, int $now): string {
     $since = $now - 7 * DAYSECS;
     $new = $DB->count_records_select(
         'local_oksigeniaeguahe_household',
-        'centreid = ? AND incentre = 0 AND timecreated >= ?',
+        'centreid = ? AND incentre = 0 AND guest = 0 AND timecreated >= ?',
         [$centreid, $since]
     );
     $came = (int) $DB->count_records_sql(

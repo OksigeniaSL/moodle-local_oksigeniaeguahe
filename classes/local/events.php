@@ -133,6 +133,9 @@ class events {
                 40
             ) : null;
         }
+        if (isset($data->linkout)) {
+            $row->linkout = empty($data->linkout) ? 0 : 1;
+        }
         if (isset($data->told)) {
             // How it is told: what it is about, who gives it, for whom, and whether anybody may come.
             foreach (acts::columns($centreid, (array) $data->told) as $column => $value) {
@@ -158,12 +161,18 @@ class events {
         if (!empty($data->id)) {
             $was = self::get((int) $data->id, $centreid) ?? throw new \moodle_exception('invalidrecord', 'error');
             $row->id = (int) $data->id;
+            if (!isset($row->linkout) && ($was->kind === 'other') !== ($row->kind === 'other')) {
+                // It became an open act, or stopped being one: what is published of it goes as the new one goes.
+                $row->linkout = $row->kind === 'other' ? 0 : 1;
+            }
             $DB->update_record(self::T, $row);
             // Another day or hour: the reminder of the day before goes again, for the new day.
             if ((int) $was->timestart !== (int) $row->timestart) {
                 $DB->set_field(self::SIGNUPS, 'reminded', 0, ['eventid' => $row->id, 'slotid' => 0]);
             }
         } else {
+            // An open act is published without its sign-up link, unless the team asks for it.
+            $row->linkout = $row->linkout ?? ($row->kind === 'other' ? 0 : 1);
             $row->token = self::new_token();
             $row->timecreated = $row->timemodified;
             $row->id = (int) $DB->insert_record(self::T, $row);
@@ -393,6 +402,9 @@ class events {
     public static function sign_up(\stdClass $event, int $householdid, int $people, int $slotid = 0): int {
         global $DB;
         $people = max(1, min(self::MAXPEOPLE, $people));
+        if ($event->kind !== 'other') {
+            households::admit($householdid);
+        }
         $current = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid]);
         if ($current) {
             $slot = $slotid ?: (int) $current->slotid;

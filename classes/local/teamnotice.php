@@ -97,7 +97,7 @@ class teamnotice {
         global $DB;
         $homes = $DB->get_records_select(
             households::T,
-            'centreid = :centreid AND roster = 0 AND timecreated > :from AND timecreated <= :to',
+            'centreid = :centreid AND roster = 0 AND guest = 0 AND timecreated > :from AND timecreated <= :to',
             ['centreid' => $centreid, 'from' => min($from, $to - entries::PASTDAYS * DAYSECS), 'to' => $to],
             'timecreated ASC, id ASC'
         );

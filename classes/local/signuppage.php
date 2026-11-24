@@ -29,7 +29,7 @@ class signuppage {
     const STRINGS = ['pub_come_meet', 'pub_tagname', 'pub_tagname_hint', 'pub_birthdate', 'pub_birthdate_hint', 'pub_latinname',
         'pub_latinname_hint',
         'pub_if_you_wish', 'pub_add_child', 'pub_offer_unknown',
-        'pub_you', 'pub_you_hint', 'pub_another_adult', 'pub_slot', 'pub_incentre', 'pub_incentre_yes', 'pub_incentre_no',
+        'pub_you', 'pub_you_hint', 'pub_another_adult', 'pub_slot', 'pub_incentre', 'pub_incentre_yes', 'pub_incentre_no', 'pub_tellme',
         'pub_more', 'pub_people', 'pub_where', 'pub_where_choose', 'pub_where_other', 'pub_where_moving', 'pub_heardfrom',
         'pub_message', 'pub_message_hint', 'pub_channels', 'pub_channels_hint', 'pub_privacy_link', 'pub_info_more',
         'pub_submit', 'pub_sending', 'pub_no_place', 'pub_when_suits', 'pub_when_suits_hint', 'pub_tailored_title',
@@ -234,7 +234,15 @@ class signuppage {
             $str['pub_no_place'] = publiclang::str('pub_no_place_form', $lang);
             $str['pub_channels_hint'] = publiclang::str('pub_channels_hint_form', $lang);
         }
-        $askincentre = $event->kind === 'other' || ($isform && in_array('incentre', $blocks, true));
+        // A talk or a party: who comes, how many and how to tell them. What a place is asked with is left for whoever asks to
+        // be told of the centre, with a person.
+        $openact = $event->kind === 'other';
+        if ($openact) {
+            $str['pub_channels_hint'] = publiclang::str('pub_channels_hint_act', $lang);
+            $str['pub_no_place'] = '';
+            $str['pub_you'] = publiclang::str('pub_you_act', $lang);
+        }
+        $askincentre = $openact || ($isform && in_array('incentre', $blocks, true));
         return $str + [
             'isform' => $isform,
             // How the act is told: its picture, what it is about, who gives it and for whom.
@@ -255,8 +263,8 @@ class signuppage {
             'emailuse' => publiclang::str('pub_email_use', $lang),
             'fields' => $fields,
             'hasfields' => (bool) $fields,
-            'askplace' => in_array('place', $blocks, true),
-            'askheard' => in_array('heard', $blocks, true),
+            'askplace' => !$openact && in_array('place', $blocks, true),
+            'askheard' => !$openact && in_array('heard', $blocks, true),
             // Which family of the centre told them, if they want to say, to thank them.
             'heardwho' => (string) ($data['heardwho'] ?? ''),
             'heardwhoshown' => ($data['heardfrom'] ?? '') === 'centrefamilies',
@@ -269,7 +277,7 @@ class signuppage {
             'heardnethelp' => publiclang::str('pub_heardnet_help', $lang),
             'networks' => array_map(fn($n) => ['name' => $n], centres::networks($centre)),
             // Brothers and sisters who would come later, where children enter by age and the event is about admissions.
-            'asksiblings' => siblings::on($centre) && $event->kind !== 'other',
+            'asksiblings' => siblings::on($centre) && !$openact,
             'siblingstitle' => publiclang::str('pub_siblings_title', $lang),
             'siblingshelp' => publiclang::str('pub_siblings_help', $lang),
             'siblingname' => publiclang::str('pub_sibling_name', $lang),
@@ -296,7 +304,7 @@ class signuppage {
             'children' => $children,
             'canaddchild' => $shownchildren < count($children),
             // Who signs up (centres::WHOAPPLIES): the family, the student, or either, who chooses here.
-            'choose' => ($centre->whoapplies ?? 'family') === 'both',
+            'choose' => !$openact && ($centre->whoapplies ?? 'family') === 'both',
             'selfonly' => ($centre->whoapplies ?? 'family') === 'student',
             'selfmode' => !empty($data['self']),
             'para' => !empty($data['self']) ? 'yo' : 'familia',
@@ -325,14 +333,15 @@ class signuppage {
             'sesskey' => sesskey(),
             'adults' => $adults,
             'canaddadult' => (bool) array_filter($adults, fn($a) => $a['hidden']),
-            'hasoffers' => $groups || $offers,
+            'hasoffers' => !$openact && ($groups || $offers),
             'people' => (int) $data['people'] ?: 2,
             'hasslots' => (bool) $slots,
             'slots' => $slots,
             'sloterror' => $errors['slot'] ?? '',
-            'isother' => $askincentre,
+            'openact' => $openact,
             'incentreyes' => ($data['incentre'] ?? '') === 'yes',
             'incentreno' => ($data['incentre'] ?? '') === 'no',
+            'tellme' => $openact ? ['checked' => !empty($data['tellme'])] : false,
             'peopleerror' => $errors['people'] ?? '',
             'places' => $places,
             'otherselected' => $municipality === 'other',

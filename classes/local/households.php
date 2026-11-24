@@ -121,6 +121,7 @@ class households {
             'incentre' => empty($data->incentre) ? 0 : 1,
             'moving' => empty($data->moving) ? 0 : 1,
             'self' => empty($data->self) ? 0 : 1,
+            'guest' => empty($data->guest) ? 0 : 1,
             'waitingsince' => 0,
             'waitingdayonly' => 0,
         ] + arrival::fields($data->arrival ?? null) + [
@@ -128,6 +129,47 @@ class households {
             'timecreated' => $now,
             'timemodified' => $now,
         ]));
+    }
+
+    /**
+     * Whoever was only a guest of an open act is from now a family of the admissions: it asked to be told of the centre,
+     * wrote by a form, signed up to an open day or a visit, or the team says so.
+     *
+     * @param int $id
+     * @return bool Whether it was a guest.
+     */
+    public static function admit(int $id): bool {
+        global $DB;
+        if (!$DB->record_exists(self::T, ['id' => $id, 'guest' => 1])) {
+            return false;
+        }
+        $DB->update_record(self::T, (object) ['id' => $id, 'guest' => 0, 'timemodified' => time()]);
+        return true;
+    }
+
+    /**
+     * Of the families already kept, those that only signed up to open acts (neither an open day nor a visit), asked for
+     * nothing else and nobody of the team has answered: they become guests.
+     *
+     * @return int How many.
+     */
+    public static function find_guests(): int {
+        global $DB;
+        $n = 0;
+        $homes = $DB->get_records_select(self::T, 'firstchannel = ? AND roster = 0 AND guest = 0', ['event'], '', 'id');
+        foreach (array_keys($homes) as $id) {
+            $other = $DB->record_exists_sql("SELECT 1 FROM {" . self::SIGNUPS . "} s JOIN {" . events::T . "} e ON e.id = s.eventid
+                                              WHERE s.householdid = ? AND e.kind <> 'other'", [$id]) ||
+                $DB->record_exists(visits::REQUESTS, ['householdid' => $id]) ||
+                $DB->record_exists_select(self::CONTACTS, "householdid = ? AND (entryid > 0 OR userid > 0 OR direction = 'out' OR " .
+                    "(direction = 'in' AND channel <> 'event'))", [$id]) ||
+                $DB->record_exists_select(self::CHILDREN, "householdid = ? AND stage <> 'inquiry'", [$id]);
+            if (!$other && $DB->record_exists(self::SIGNUPS, ['householdid' => $id])) {
+                $DB->set_field(self::T, 'guest', 1, ['id' => $id]);
+                $n++;
+            }
+        }
+        return $n;
     }
 
     /**
@@ -153,6 +195,10 @@ class households {
      * @return bool
      */
     public static function offered_apply(\stdClass $household, \stdClass $centre, bool $came): bool {
+        if (!empty($household->guest) && !(int) ($household->applysent ?? 0)) {
+            // Whoever only came to a talk asked for no place.
+            return false;
+        }
         return !empty($household->applysent) || ($came && (int) ($centre->applyafter ?? 1) === 1);
     }
 
@@ -508,7 +554,7 @@ class households {
     public static function told(\stdClass $household, int $userid, string $channel, string $body, bool $sent = false): void {
         global $DB;
         $time = time();
-        self::contact($household, 'out', $channel, $body, $userid, $time);
+        self::contact($household, 'out', $channel, $body, $userid, $time, 0, '', '', false, $sent ? 'many' : 'told');
         // What the centre sends to many at once (an invitation) does not count as being in touch: it does not keep the
         // data of a family that never answers any longer.
         if (!$sent) {
@@ -540,6 +586,7 @@ class households {
      * @param string $detail
      * @param string $address Who wrote on WhatsApp or Telegram, as Marandu gives it.
      * @param bool $dayonly Whether only its day is known, never its hour.
+     * @param string $aim many or told, for what answers nobody; empty for the rest.
      */
     protected static function contact(
         \stdClass $household,
@@ -551,7 +598,8 @@ class households {
         int $entryid = 0,
         string $detail = '',
         string $address = '',
-        bool $dayonly = false
+        bool $dayonly = false,
+        string $aim = ''
     ): void {
         global $DB;
         $DB->insert_record(self::CONTACTS, (object) [
@@ -565,6 +613,7 @@ class households {
             'address' => $address === '' ? null : \core_text::substr($address, 0, 64),
             'userid' => $userid,
             'dayonly' => $dayonly ? 1 : 0,
+            'aim' => $aim === '' ? null : $aim,
             'timecreated' => $time,
         ]);
     }
@@ -819,6 +868,9 @@ class households {
             'stagetime' => $now,
             'timemodified' => $now,
         ]);
+        if (!in_array($stage, ['inquiry', 'closed'], true)) {
+            self::admit((int) $child->householdid);
+        }
         // Enrolled, the child passes to the common family record of the centre; taken back, it leaves it.
         if ($stage === 'enrolled' && $was !== 'enrolled' && ($household = self::get((int) $child->householdid, 0))) {
             // The school year it starts: what is only for new children (the story, the eve, the first day) is for it.
@@ -1232,7 +1284,7 @@ class households {
         global $DB;
         // The families brought from the roll of the centre come in only when they wait for someone: there may be hundreds.
         $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ($roster ? '' :
-            ' AND (roster = 0 OR waitingsince > 0)'));
+            ' AND ((roster = 0 AND guest = 0) OR waitingsince > 0)'));
         $params = ['centreid' => $centreid];
         $where .= self::children_where($centreid, $course, $stage, $params);
         $order = 'CASE WHEN waitingsince > 0 THEN 0 ELSE 1 END, waitingsince ASC, lastcontact DESC';
@@ -1335,7 +1387,7 @@ class households {
     public static function inbox_count(int $centreid, bool $waitingonly, int $course = 0, string $stage = ''): int {
         global $DB;
         $params = ['centreid' => $centreid];
-        $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ' AND (roster = 0 OR waitingsince > 0)');
+        $where = 'centreid = :centreid' . ($waitingonly ? ' AND waitingsince > 0' : ' AND ((roster = 0 AND guest = 0) OR waitingsince > 0)');
         return $DB->count_records_select(self::T, $where . self::children_where($centreid, $course, $stage, $params), $params);
     }
 
@@ -1422,25 +1474,27 @@ class households {
 
     /**
      * The latest of each household of a list, for the rows of the inbox: its last contact with the family (a note of the
-     * team does not count), the last thing the family said, and the last answer of the team.
+     * team does not count), the last thing the family said, what it has waited an answer to the longest, the last answer
+     * of a person to something it asked, and the last thing a person wrote to it without being asked.
      *
      * @param int[] $ids
-     * @return array Household id => ['last' => contact or null, 'said' => contact or null, 'answer' => contact or null,
-     *     'line' => the last line of all, a note of the team too, or null].
+     * @return array Household id => ['last' => contact or null, 'said' => contact or null, 'since' => contact or null,
+     *     'answer' => contact or null, 'told' => contact or null, 'line' => the last line of all, a note too, or null].
      */
     public static function latest(array $ids): array {
         global $DB;
         if (!$ids) {
             return [];
         }
-        $out = array_fill_keys($ids, ['last' => null, 'said' => null, 'answer' => null, 'line' => null]);
+        $out = array_fill_keys($ids, ['last' => null, 'said' => null, 'since' => null, 'answer' => null, 'told' => null,
+            'line' => null, 'maybe' => null]);
         [$in, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
         $contacts = $DB->get_recordset_select(
             self::CONTACTS,
             "householdid $in",
             $params,
             'timecreated DESC, id DESC',
-            'id, householdid, direction, channel, body, entryid, detail, userid, dayonly, timecreated, asks'
+            'id, householdid, direction, channel, body, entryid, detail, userid, dayonly, aim, timecreated, asks'
         );
         foreach ($contacts as $contact) {
             $row = $out[$contact->householdid];
@@ -1451,8 +1505,18 @@ class households {
             if ($row['said'] === null && $contact->direction === 'in' && trim((string) $contact->body) !== '') {
                 $row['said'] = $contact;
             }
-            if ($row['answer'] === null && $contact->direction === 'out') {
-                $row['answer'] = $contact;
+            // From the last to the first: of what a person wrote after the family did, the first answers it.
+            $asks = $contact->direction === 'in' && !self::is_hand_note($contact);
+            $kind = $contact->direction === 'out' ? happened::kind($contact) : '';
+            if (in_array($kind, ['answered', 'invited'], true)) {
+                $row['told'] = $row['told'] ?? $contact;
+            }
+            if ($kind === 'answered' && $row['answer'] === null) {
+                $row['maybe'] = $contact;
+            } else if ($asks && $row['answer'] === null && $row['maybe'] !== null) {
+                $row['answer'] = $row['maybe'];
+            } else if ($asks && $row['maybe'] === null) {
+                $row['since'] = $contact;
             }
             $out[$contact->householdid] = $row;
         }
@@ -1488,7 +1552,7 @@ class households {
                                           FROM {' . self::CHILDREN . '} c JOIN {' . self::T . '} h ON h.id = c.householdid
                                          WHERE c.centreid = :centreid
                                                AND ((c.stage = :enrolled AND COALESCE(c.lefttime, 0) = 0)
-                                                    OR (c.stage <> :enrolled2 AND h.incentre = 0))
+                                                    OR (c.stage <> :enrolled2 AND h.incentre = 0 AND h.guest = 0))
                                       GROUP BY c.offerid, c.stage', ['centreid' => $centreid, 'enrolled' => 'enrolled',
             'enrolled2' => 'enrolled']);
         foreach ($rows as $row) {

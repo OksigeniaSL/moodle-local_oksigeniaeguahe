@@ -515,7 +515,7 @@ class renewal {
                         'renewal_told_line',
                         'local_oksigeniaeguahe',
                         $year
-                    ), 'detail' => self::TOLD . $year, 'userid' => $userid, 'timecreated' => $now]);
+                    ), 'detail' => self::TOLD . $year, 'aim' => 'many', 'userid' => $userid, 'timecreated' => $now]);
                 // Sent to many at once: it does not keep the data of a family that never answers any longer.
                 $sent++;
             }

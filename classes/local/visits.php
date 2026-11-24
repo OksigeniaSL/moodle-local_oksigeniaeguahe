@@ -47,6 +47,7 @@ class visits {
      */
     public static function request(\stdClass $household, \stdClass $event, array $days, array $periods, int $people): int {
         global $DB;
+        households::admit((int) $household->id);
         $row = (object) [
             'centreid' => $household->centreid,
             'householdid' => $household->id,
@@ -131,6 +132,7 @@ class visits {
         int $people
     ): \stdClass {
         global $DB;
+        households::admit((int) $household->id);
         $centreid = (int) $household->centreid;
         // The name the family reads: who guides them.
         $host = $guide ? (centres::hosts($centreid, [$guide])[0] ?? null) : null;

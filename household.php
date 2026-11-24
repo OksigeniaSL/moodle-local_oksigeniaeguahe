@@ -142,6 +142,13 @@ if ($action && data_submitted() && confirm_sesskey()) {
         $body = '';
     }
     $channel = optional_param('channel', 'other', PARAM_ALPHA);
+    if ($action === 'admit') {
+        // A guest of an act, now a family of the admissions: the team says so.
+        if (households::admit((int) $household->id)) {
+            households::note($household, (int) $USER->id, get_string('household_admitted', $c));
+        }
+        redirect($url);
+    }
     if ($action === 'send') {
         // The answer of the file, by the way chosen: the phone app, email, or a call written down.
         $action = ['mobile' => 'replyphone', 'email' => 'reply'][$channel] ?? 'answer';
@@ -512,5 +519,8 @@ panel::output(
     'inbox',
     panel::adults_line(households::full($household)->adults),
     'panel_household',
-    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted)
+    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted) + [
+        // Only signed up to an open act: it is not in admissions, and the team may take it there.
+        'guest' => !empty($household->guest) ? ['may' => $canact, 'posturl' => $url->out(false), 'sesskey' => sesskey()] : false,
+    ]
 );

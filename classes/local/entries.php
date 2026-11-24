@@ -387,6 +387,9 @@ class entries {
                 $DB->update_record(households::T, (object) ['id' => $householdid, 'timecreated' => $time, 'lastcontact' => $time]);
             }
         }
+        if ($existed) {
+            households::admit($householdid);
+        }
         $household = households::get($householdid, (int) $centre->id);
         households::complete($household, $about);
         $adultid = self::people($household, $read, $byphone, $existed && !$trusted);

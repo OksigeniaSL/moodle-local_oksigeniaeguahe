@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\signup;
+use local_oksigeniaeguahe\local\workdays;
 
 /**
  * Tests for the brief form inside the web of a centre.
@@ -126,7 +127,10 @@ final class brief_test extends \advanced_testcase {
         $body = $DB->get_field(households::CONTACTS, 'body', ['householdid' => $household->id]);
         $this->assertStringContainsString('¿Cómo quieren conocernos?: Un día de clase', $body);
         $this->assertNotEmpty($DB->get_field(households::T, 'waitingsince', ['id' => $household->id]));
-        $this->assertSame('Les contestamos en 2 días laborables.', brief::sent($centre, 'es', null)['sent']['text']);
+        $this->assertSame(
+            'Les contestamos ' . workdays::promise($centre, time(), 'es') . '.',
+            brief::sent($centre, 'es', null)['sent']['text']
+        );
     }
 
     /**

@@ -819,7 +819,7 @@ class report_data {
         );
         if ($next) {
             $notyet = (int) $DB->count_records_sql("SELECT COUNT(1) FROM {" . households::T . "} h
-                                                     WHERE h.centreid = ? AND h.incentre = 0 AND h.timecreated >= ?
+                                                     WHERE h.centreid = ? AND h.incentre = 0 AND h.guest = 0 AND h.timecreated >= ?
                                                        AND NOT EXISTS (SELECT 1 FROM {" . events::SIGNUPS . "} s
                                                                         WHERE s.householdid = h.id)
                                                        AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} k

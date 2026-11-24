@@ -110,7 +110,7 @@ class invites {
     protected static function reachable(\stdClass $event, bool $ofcentre): array {
         global $DB;
         $centreid = (int) $event->centreid;
-        $households = $DB->get_records(households::T, ['centreid' => $centreid] + ($ofcentre ? ['roster' => 0] :
+        $households = $DB->get_records(households::T, ['centreid' => $centreid, 'guest' => 0] + ($ofcentre ? ['roster' => 0] :
             ['incentre' => 0]));
         if (!$households) {
             return [];
@@ -685,7 +685,8 @@ class invites {
     public static function of_letter(\stdClass $event): \stdClass {
         return (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
             'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
-            'token' => $event->token, 'free' => (int) ($event->free ?? 0)];
+            'token' => $event->token, 'free' => (int) ($event->free ?? 0), 'kind' => $event->kind,
+            'about' => $event->about ?? null, 'speakers' => $event->speakers ?? null];
     }
 
     /**

@@ -42,7 +42,7 @@
                 "labelled": false, "arialabel": "Día y hora", "describedby": false, "mirror": false, "value": "2026-11-07",
                 "parts": [{"key": "d", "id": "kit-at-telld", "name": "atd", "label": "Día", "value": "7", "size": 2, "months": false}]} } }],
         "channel": {"ready": true, "title": "Colegio de ejemplo", "url": "https://t.me/ejemplo", "none": "", "moments": []},
-        "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig", "opened": ""}],
+        "nolink": "", "links": [{"name": "Instagram", "key": "instagram", "url": "https://example.com/ig", "opened": ""}],
         "pictures": [{"name": "Cuadrada", "size": "1080 × 1080", "url": "#", "download": "#", "w": 1080, "h": 1080}],
         "posterurl": "#", "post": "El sábado abrimos las puertas.", "forward": "Te paso esto.",
         "shots": [{"n": 1, "shot": "La puerta de entrada", "seconds": "4 s", "onscreen": "Sábado 21"}], "total": "20 s",
@@ -88,7 +88,7 @@
     </section>
     <section class="apartado kit-imagenes" aria-labelledby="kit-imagenes-t">
         <h2 id="kit-imagenes-t">{{#str}}kit_pictures, local_oksigeniaeguahe{{/str}}</h2>
-        <p class="def">{{#str}}kit_pictures_help, local_oksigeniaeguahe{{/str}} <a href="{{posterurl}}" target="_blank" rel="noopener">{{#str}}kit_poster, local_oksigeniaeguahe{{/str}}</a></p>
+        <p class="def">{{#nolink}}{{#str}}kit_pictures_help_nolink, local_oksigeniaeguahe{{/str}}{{/nolink}}{{^nolink}}{{#str}}kit_pictures_help, local_oksigeniaeguahe{{/str}}{{/nolink}} <a href="{{posterurl}}" target="_blank" rel="noopener">{{#str}}kit_poster, local_oksigeniaeguahe{{/str}}</a></p>
         <div class="kit-fotos">
             {{#pictures}}
             <figure class="kit-foto"><img src="{{url}}" alt="{{name}}" width="{{w}}" height="{{h}}" loading="lazy"><figcaption><span><b>{{name}}</b> <span class="secundario">{{size}}</span></span> <a class="boton secundario pequeno" href="{{download}}">{{{i.abajo}}}{{#str}}kit_download, local_oksigeniaeguahe{{/str}}</a></figcaption></figure>
@@ -116,11 +116,14 @@
             {{#noai}}<p class="def">{{noai}}</p>{{/noai}}
         </div>
     </section>
+    {{#nolink}}<section class="apartado kit-sin-enlace"><p>{{nolink}}</p></section>{{/nolink}}
+    {{^nolink}}
     <section class="apartado kit-enlaces" aria-labelledby="kit-enlaces-t">
         <h2 id="kit-enlaces-t">{{#str}}kit_links, local_oksigeniaeguahe{{/str}}</h2>
         <p class="def">{{#str}}kit_links_help, local_oksigeniaeguahe{{/str}}</p>
         <ul class="kit-redes">{{#links}}<li><b>{{name}}</b> <span class="enlace-corto" translate="no">{{url}}</span>{{#opened}} <span class="secundario">{{.}}</span>{{/opened}} <button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></li>{{/links}}</ul>
     </section>
+    {{/nolink}}
     <section class="apartado kit-guion" aria-labelledby="kit-guion-t">
         <h2 id="kit-guion-t">{{#str}}kit_script, local_oksigeniaeguahe{{/str}}</h2>
         <p class="def">{{{i.movil}}} {{#str}}kit_script_help, local_oksigeniaeguahe{{/str}} {{total}}.</p>

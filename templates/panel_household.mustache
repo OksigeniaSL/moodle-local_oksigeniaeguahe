@@ -48,7 +48,7 @@
             "persona": "", "sistema": "", "info": "", "mano": "", "fuera": "", "cerrar": "", "fundir": ""},
         "head": {"title": "Marta Ruiz y Daniel Ortega", "ante": "Espera respuesta desde el jueves a las 18:40",
             "sub": "Formulario de la web · desde el 5 de noviembre", "back": {"url": "#", "name": "Bandeja"}, "action": false},
-        "url": "#", "inboxurl": "#", "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "canact": true, "waiting": true, "answered": null,
+        "url": "#", "inboxurl": "#", "action": "/local/oksigeniaeguahe/household.php?id=1", "sesskey": "abc", "canact": true, "waiting": true, "answered": null, "turntitle": "Para contestar",
         "owner": {"first": "Lucía", "name": "Lucía Medina", "picture": "", "initials": "LM", "mine": false},
         "relay": true, "takeurl": "#", "ownedbyme": false, "promise": null, "typing": null,
         "children": [{"id": 1, "hanging": {"name": "Leo", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "#", "name": "Leonardo", "tagline": "En casa: Leo", "birthline": "Cumple el 14 de marzo · 3 años", "coursehint": "",
@@ -103,6 +103,7 @@
     </div>
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
     {{#lookalike}}<p class="aviso-suave misma-familia-aviso">{{{i.info}}}<span>{{#str}}lookalike_top, local_oksigeniaeguahe{{/str}} <a class="enlace" href="#misma-familia">{{#str}}lookalike_top_see, local_oksigeniaeguahe{{/str}}</a></span></p>{{/lookalike}}
+    {{#guest}}<div class="aviso-suave aviso-asistente">{{{i.info}}}<span>{{#str}}household_guest, local_oksigeniaeguahe{{/str}}</span>{{#may}}<form class="en-linea" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="admit"><button class="boton secundario pequeno" type="submit">{{#str}}household_admit, local_oksigeniaeguahe{{/str}}</button></form>{{/may}}</div>{{/guest}}
     <div class="ficha-cuerpo">
         {{#relay}}
         <div class="relevo" role="group" aria-label="{{#str}}panel_owner_label, local_oksigeniaeguahe{{/str}}">
@@ -174,11 +175,11 @@
                 {{#hasold}}
                 <details class="anteriores">
                     <summary>{{oldlabel}}</summary>
-                    <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
+                    <ol class="historial">{{#historyold}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}{{#visit}}cita-h{{/visit}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/historyold}}</ol>
                 </details>
                 {{/hasold}}
                 <ol class="historial">
-                    {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
+                    {{#history}}<li class="{{#family}}familia{{/family}}{{#team}}equipo{{/team}}{{#system}}sistema{{/system}}{{#visit}}cita-h{{#next}} por-venir{{/next}}{{/visit}}">{{> local_oksigeniaeguahe/panel_history_item }}</li>{{/history}}
                 </ol>
                 {{#canact}}
                 <div class="papeles-hilo">
@@ -216,7 +217,7 @@
                     <div class="que">
                     <div class="turno-cab">
                         {{#me}}{{> local_oksigeniaeguahe/panel_face }}{{/me}}
-                        <h2 class="turno-titulo" id="turno-t" data-turno-titulo>{{#waiting}}{{#str}}panel_your_turn, local_oksigeniaeguahe{{/str}}{{/waiting}}{{^waiting}}{{#str}}panel_answered_already, local_oksigeniaeguahe{{/str}}{{/waiting}}</h2>
+                        <h2 class="turno-titulo" id="turno-t" data-turno-titulo>{{turntitle}}</h2>
                         {{#answered}}{{#stamp}}<span class="sello-grande" aria-hidden="true"><small>{{top}}</small><b>{{day}}</b><span>{{hour}}</span></span>{{/stamp}}{{/answered}}
                     </div>
                     {{#typing}}<p class="escribiendo">{{> local_oksigeniaeguahe/panel_face }}<span>{{#str}}panel_typing, local_oksigeniaeguahe, {{first}}{{/str}}</span></p>{{/typing}}

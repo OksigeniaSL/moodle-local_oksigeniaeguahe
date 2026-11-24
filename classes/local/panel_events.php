@@ -154,7 +154,7 @@ class panel_events {
         $list = [];
         foreach ($last as $id => $row) {
             $household = $families[$id] ?? null;
-            if (!$household || !empty($household->roster)) {
+            if (!$household || !empty($household->roster) || !empty($household->guest)) {
                 continue;
             }
             $child = reset($household->children);

@@ -25,6 +25,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_eventform;
@@ -68,6 +69,8 @@ if (data_submitted()) {
         } else {
             $saved = events::save((int) $centre->id, panel_eventform::data($values, $old));
             $good = panel_eventform::pictures($saved, $values);
+            // Its poster is kept after it: what waits for the channel takes it too.
+            channel::sync(events::get($saved, (int) $centre->id));
             $told = $changes && $notify > 0 ? panel_eventform::tell(
                 $centre,
                 events::get($saved, (int) $centre->id),

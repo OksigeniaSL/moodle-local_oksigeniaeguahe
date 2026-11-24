@@ -170,6 +170,8 @@ class brief {
         // What is wrong, short: it goes where the name of the field was, so nothing moves.
         $short = fn(string $name, string $word) => isset($errors[$name]) ? $str('pub_breve_err_' . $word) : '';
         $reach = isset($errors['a0phone']) && $adult['phone'] === '' ? $short('a0phone', 'reach') : $short('a0phone', 'phone');
+        // Either of the two is enough, so both say it.
+        $either = isset($errors['a0phone']) && $adult['phone'] === '' && $adult['email'] === '' ? $short('a0phone', 'reach') : '';
         $field = fn(string $name, string $label, string $value, string $error, array $more = []) => $more + ['name' => $name,
             'label' => $str($label), 'value' => $value, 'error' => $error, 'type' => 'text', 'autocomplete' => 'off',
             'inputmode' => '', 'ltr' => false, 'select' => false, 'need' => ''];
@@ -182,7 +184,7 @@ class brief {
         }
         $fields[] = $field('a0phone', 'pub_phone', $adult['phone'], $reach, ['type' => 'tel', 'autocomplete' => 'tel',
             'inputmode' => 'tel', 'ltr' => true, 'need' => 'contacto']);
-        $fields[] = $field('a0email', 'pub_email', $adult['email'], $short('a0email', 'email'), ['type' => 'email',
+        $fields[] = $field('a0email', 'pub_email', $adult['email'], $short('a0email', 'email') ?: $either, ['type' => 'email',
             'autocomplete' => 'email', 'inputmode' => 'email', 'ltr' => true, 'need' => 'contacto']);
         // The courses of the centre, by stage.
         [$grouped, $loose] = grades::grouped(array_values(centres::offers((int) $centre->id, true)), $centre);
@@ -265,7 +267,7 @@ class brief {
                     'date' => $parts['long']]),
                 'url' => $page ? $page->out(false) : '', 'more' => publiclang::str('pub_breve_more', $lang)]];
         }
-        $days = publiclang::count('pub_reply_day', 'pub_reply_days', max(1, (int) ($centre->replydays ?? 2)), $lang);
+        $days = workdays::promise($centre, time(), $lang);
         return ['sent' => ['title' => publiclang::str('pub_breve_sent', $lang),
             'text' => publiclang::str('pub_breve_sent_text', $lang, $days),
             'url' => $page ? $page->out(false) : '', 'more' => publiclang::str('pub_breve_more', $lang)]];

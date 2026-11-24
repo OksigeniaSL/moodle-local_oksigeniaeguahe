@@ -112,6 +112,8 @@ class panel_event {
                 'adults' => panel::adults_line($signup->household->adults),
                 'children' => $children,
                 'people' => get_string((int) $signup->people === 1 ? 'panel_people_one' : 'panel_people', $c, (int) $signup->people),
+                // Apart from the families of the admissions: those of the centre, its team, and whoever only comes to this.
+                'aside' => self::aside($signup->household, $centre),
                 'came' => $arrived,
                 'cametext' => $arrived ? get_string('panel_came_at', $c, panel::hour((int) $signup->attended)) :
                     get_string('panel_came_button', $c),
@@ -267,13 +269,17 @@ class panel_event {
             'doorsound' => (new \moodle_url('/local/oksigeniaeguahe/pub/sonido/puerta'))->out(false),
             'qr' => events::qr_svg($event),
             'link' => events::short_url($event) ?? events::url($event)->out(false),
+            // An open act is published without its link; offering it is asked for on purpose.
+            'linkout' => !empty($event->linkout),
+            'linkmay' => $event->kind === 'other' && $canact && !$family ? ['posturl' => $url->out(false), 'sesskey' => sesskey()] :
+                false,
             'posterurl' => (new \moodle_url($url, ['poster' => 1]))->out(false),
             'posterurla3' => (new \moodle_url($url, ['poster' => 1, 'paper' => 'A3']))->out(false),
             // For the computers of the centre at the act: the form again after each family, never their page.
             'deskurl' => !$tailored && !$family ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
                 'pk' => share::signature('puesto', 0, (int) $event->id)]))->out(false) : '',
             // To have the signing up inside a page of the web of the centre.
-            'embed' => !$tailored && !$family && !empty($event->open) ? events::embed_code($event, format_string($event->name)) :
+            'embed' => !$tailored && !$family && !empty($event->open) && !empty($event->linkout) ? events::embed_code($event, format_string($event->name)) :
                 '',
             // The poster of the door, for the day: families sign in with their phone when they arrive.
             'doorposter' => !$tailored && !$family ? (new \moodle_url($url, ['poster' => 1, 'door' => 1]))->out(false) : '',
@@ -443,6 +449,24 @@ class panel_event {
             $top = $row['n'] > $top['n'] ? $row : $top;
         }
         return get_string('panel_howitwent_choice', $c, (object) ['word' => $top['label'], 'n' => $top['n'], 'of' => $answered]);
+    }
+
+    /**
+     * Who is at an act without being a family of the admissions: one of the centre, its team or only a guest.
+     *
+     * @param \stdClass $household With its adults.
+     * @param \stdClass $centre
+     * @return string Empty for a family of the admissions.
+     */
+    protected static function aside(\stdClass $household, \stdClass $centre): string {
+        $adults = array_map(fn($a) => (object) ['email' => (string) $a->email, 'phone' => (string) $a->phone], $household->adults);
+        if ($adults && entries::is_team($centre, (object) ['adults' => $adults, 'email' => '', 'phone' => ''])) {
+            return get_string('panel_aside_team', self::C);
+        }
+        if (!empty($household->incentre) || !empty($household->roster)) {
+            return get_string('panel_aside_centre', self::C);
+        }
+        return !empty($household->guest) ? get_string('panel_aside_guest', self::C) : '';
     }
 
     /**

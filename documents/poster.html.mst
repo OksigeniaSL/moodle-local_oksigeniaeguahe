@@ -9,7 +9,7 @@
 <title>{{titular}} · {{centro.nombre}}</title>
 <style>
 @font-face { font-family: 'Eg Sans'; src: url('{{fuente_sans}}') format('woff2'); font-weight: 400 800; font-display: block; }
-@page { size: {{papel}} portrait; margin: 0; }
+@page { size: {{papel}} {{#tumbada}}landscape{{/tumbada}}{{^tumbada}}portrait{{/tumbada}}; margin: 0; }
 :root {
   --c-acento: {{c.acento}}; --c-sobre-acento: {{c.sobre_acento}}; --c-acento-texto: {{c.acento_texto}};
   --c-vivo: {{c.vivo}}; --c-pared: {{c.pared}};
@@ -102,14 +102,21 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
 .propia .tira .url { margin-top: 6px; font-size: 20px; font-weight: 750; }
 .propia .tira .centro { margin-inline-start: auto; max-width: 170px; text-align: end; font-size: 16px; font-weight: 750; line-height: 1.2; }
 .propia .tira .firma { position: absolute; right: 53px; bottom: 9px; font-size: 10px; }
+.pliego.tumbado { width: calc(1123px * var(--k)); height: calc(793px * var(--k)); }
+.tumbado .hoja { width: 1123px; height: 794px; }
+.tumbado .lamina { padding: 18px 18px 14px; }
+.tumbado .tira { padding: 14px 40px 26px; }
+.tumbado .tira .qr { width: 116px; height: 116px; padding: 9px; }
+.tumbado .tira .centro { max-width: 260px; }
+.tumbado .tira .firma { right: 40px; bottom: 7px; }
 </style>
 </head>
 <body>
-<div class="pliego">{{#propio}}<div class="hoja propia">
+<div class="pliego{{#tumbada}} tumbado{{/tumbada}}">{{#propio}}<div class="hoja propia">
   {{#muestra}}<span class="muestra">{{muestra}}</span>{{/muestra}}
   <div class="lamina"><img src="{{src}}" alt="{{dice}}"></div>
   <section class="tira">
-    <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
+    {{#con_qr}}<div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>{{/con_qr}}
     <div>
       <p class="llamada">{{llamada}}</p>
       <p class="cuando">{{fecha}} · {{hora}}{{#lugar}}<br>{{lugar}}{{/lugar}}</p>
@@ -133,7 +140,7 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
       {{#lugar}}<p class="lugar">{{lugar}}</p>{{/lugar}}
     </section>
     <section class="qr-caja">
-      <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
+      {{#con_qr}}<div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>{{/con_qr}}
       <div>
         <p class="llamada">{{llamada}}</p>
         <p class="como">{{como}}</p>
@@ -185,7 +192,7 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
     <p class="lugar">{{lugar}}</p>
   </section>
   <section class="banda">
-    <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
+    {{#con_qr}}<div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>{{/con_qr}}
     <div>
       <p class="llamada">{{llamada}}</p>
       <p class="como">{{como}}</p>

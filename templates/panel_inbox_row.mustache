@@ -18,7 +18,7 @@
     @template local_oksigeniaeguahe/panel_inbox_row
 
     What is inside the item of one family in the inbox (its li, with its classes and data, is drawn by the list of
-    panel_inbox), read as one sentence: the hour it came (the day is the one of its group), the adults by
+    panel_inbox), read as one sentence: what they did and when (the day is the one of its group), the adults by
     name (the only link, stretched over the row), each child by the name of its label with its course and stage, how
     and when they wrote last, who looks after them (a small face), who is writing to them now, and the promise that is
     due, with «Done» at hand for anyone. The stamp repeats the date for the eye of the skin and is hidden from readers.
@@ -27,8 +27,8 @@
     A visit of today says who receives them.
 
     Example context (json):
-    {"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40",
-        "stamp": {"top": "Llegó", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
+    {"id": "1", "url": "#", "waiting": true, "answered": false, "hour": "18:40", "verb": "Escribió", "said": "18:40",
+        "stamp": {"top": "Escribió", "day": "jue 5", "hour": "18:40"}, "adults": "Marta Ruiz y Daniel Ortega",
         "children": [{"tag": "Leo", "course": "Infantil 3 años", "stage": ""}], "via": "Por WhatsApp, el viernes a las 9:02", "fromai": "Llegó desde chatgpt.com, un asistente de IA",
         "asks": "Pregunta por el comedor de Infantil",
         "viaicon": "", "owner": {"first": "Lucía", "picture": "", "initials": "LM", "mine": false},
@@ -36,7 +36,7 @@
         "promise": {"text": "Lo prometido: llamarles, para el lunes; hoy es miércoles.", "action": "#", "sesskey": "abc", "id": "1",
             "who": {"first": "Andrés", "picture": "", "initials": "AR", "mine": true} } }
 }}
-    <span class="hora">{{hour}}</span>
+    <span class="hora"><span class="que-hizo">{{verb}}</span> <span class="cuando-fue">{{said}}</span></span>
     <div class="quien">
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}{{#alumni}} <span class="birrete-fila" title="{{#str}}alumni_row, local_oksigeniaeguahe{{/str}}">{{{i.birrete}}}<span class="oculto">{{#str}}alumni_row, local_oksigeniaeguahe{{/str}}</span></span>{{/alumni}}</a>
         <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>

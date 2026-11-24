@@ -101,7 +101,7 @@ class export {
         foreach ($DB->get_recordset_select(households::CHILDREN, 'centreid = ?', [$centre->id], 'id ASC') as $child) {
             $childrenof[(int) $child->householdid][] = $child;
         }
-        foreach ($DB->get_records(households::T, ['centreid' => $centre->id], 'timecreated DESC, id DESC') as $household) {
+        foreach ($DB->get_records(households::T, ['centreid' => $centre->id, 'guest' => 0], 'timecreated DESC, id DESC') as $household) {
             $adults = $adultsof[(int) $household->id] ?? [];
             $channel = (string) $household->firstchannel;
             $family = [

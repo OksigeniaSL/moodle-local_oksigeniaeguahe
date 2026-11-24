@@ -589,7 +589,7 @@ class panel_inbox {
                 $days = panel::days_between((int) $household->waitingsince, $now);
                 $key = 'espera' . $days;
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'espera',
-                    'day' => self::day_name((int) $household->waitingsince, $days),
+                    'day' => self::waits_since((int) $household->waitingsince, $days),
                     'sub' => $days >= 2 ? get_string('panel_ago_days', $c, $days) : '', 'answered' => false, 'rows' => []];
             } else if (settled::gone($household->children)) {
                 // They left: last, behind the line of those in the centre.
@@ -602,6 +602,13 @@ class panel_inbox {
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'encentro',
                     'day' => get_string('panel_group_incentre', $c), 'sub' => get_string('panel_group_incentre_sub', $c),
                     'answered' => true, 'rows' => []];
+            } else if (!$row['answer']) {
+                // They wait for nothing, but nobody answered them either: never among the answered ones. Nobody of the
+                // team wrote to them, or someone did and they have said nothing.
+                $key = $row['written'] ? 'escritas' : 'sinescribir';
+                $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => $key, 'answered' => true, 'rows' => [],
+                    'day' => get_string($row['written'] ? 'panel_group_told' : 'panel_group_unwritten', $c),
+                    'sub' => get_string($row['written'] ? 'panel_group_told_sub' : 'panel_group_unwritten_sub', $c)];
             } else {
                 $key = 'contestadas';
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'contestadas',
@@ -609,38 +616,42 @@ class panel_inbox {
             }
             $groups[$key]['rows'][] = $row;
         }
-        // Today first, then the waiting days from the oldest, then the answered ones.
-        $order = fn($key) => $key === 'prometido' ? -2000000 : ($key === 'hoy' ? -1000000 : ($key === 'contestadas' ? 1000000 :
-            ($key === 'encentro' ? 2000000 : ($key === 'sefueron' ? 3000000 : -(int) substr($key, 6)))));
+        // Today first, then the waiting days from the oldest, then those nobody wrote to, then the answered ones.
+        $last = ['prometido' => -2000000, 'hoy' => -1000000, 'sinescribir' => 800000, 'escritas' => 900000, 'contestadas' => 1000000,
+            'encentro' => 2000000, 'sefueron' => 3000000];
+        $order = fn($key) => $last[$key] ?? -(int) substr($key, 6);
         uksort($groups, fn($a, $b) => $order($a) <=> $order($b));
         return array_values(array_map(fn($g) => $g + ['count' => count($g['rows'])], $groups));
     }
 
     /**
-     * The name of a day in the list: «Hoy», «Ayer», «Jueves 5», or the date.
+     * Since which day the families of a group wait: «Esperan desde hoy», «desde ayer», «desde el jueves 5», or the date.
+     * Alone, the day was read as the one of an appointment.
      *
      * @param int $time
      * @param int $days How many days ago.
      * @return string
      */
-    protected static function day_name(int $time, int $days): string {
+    protected static function waits_since(int $time, int $days): string {
         $c = self::C;
-        if ($days === 0) {
-            return get_string('panel_day_today', $c);
+        if ($days <= 0) {
+            return get_string('panel_group_waits_today', $c);
         }
         if ($days === 1) {
-            return get_string('panel_day_yesterday', $c);
+            return get_string('panel_group_waits_yesterday', $c);
         }
-        $name = $days < 7 ? userdate($time, '%A %d') : userdate($time, get_string('strftimedateshort', 'langconfig'));
-        return \core_text::strtoupper(\core_text::substr($name, 0, 1)) . \core_text::substr($name, 1);
+        return get_string('panel_group_waits', $c, $days < 7 ? userdate($time, '%A %d') : userdate(
+            $time,
+            get_string('strftimedateshort', 'langconfig')
+        ));
     }
 
     /**
-     * The families that come today, to a visit or an event: the hour and who receives them.
+     * The families that come today, to a visit or an event: the hour, and the hour with who receives them.
      *
      * @param int $centreid
      * @param int $now
-     * @return array Household id => text.
+     * @return array Household id => text and hour.
      */
     protected static function coming_today(int $centreid, int $now): array {
         global $DB;
@@ -651,7 +662,7 @@ class panel_inbox {
                                         FROM {local_oksigeniaeguahe_signup} s
                                         JOIN {' . events::T . '} e ON e.id = s.eventid
                                    LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
-                                       WHERE e.centreid = :centreid AND s.attended = 0
+                                       WHERE e.centreid = :centreid AND s.attended = 0 AND e.cancelled = 0
                                              AND COALESCE(t.timestart, e.timestart) >= :start
                                              AND COALESCE(t.timestart, e.timestart) < :end',
             ['centreid' => $centreid, 'start' => $start, 'end' => $start + DAYSECS]
@@ -659,8 +670,12 @@ class panel_inbox {
         $out = [];
         foreach ($rows as $row) {
             $hosts = $row->hosts ? centres::hosts($centreid, array_map('intval', explode(',', (string) $row->hosts))) : [];
-            $out[$row->householdid] = get_string($hosts ? 'panel_coming_with' : 'panel_coming_at', self::C, (object) [
-                'hour' => panel::hour((int) $row->timestart), 'who' => implode(', ', array_map(fn($h) => $h->first, $hosts))]);
+            $hour = panel::hour((int) $row->timestart);
+            $out[$row->householdid] = ['hour' => $hour, 'text' => get_string(
+                $hosts ? 'panel_coming_with' : 'panel_coming_at',
+                self::C,
+                (object) ['hour' => $hour, 'who' => implode(', ', array_map(fn($h) => $h->first, $hosts))]
+            )];
         }
         return $out;
     }
@@ -690,12 +705,12 @@ class panel_inbox {
     }
 
     /**
-     * The rows of the inbox: the hour, the adults, the children with their course and stage, how and when they wrote,
-     * and what is filtered by.
+     * The rows of the inbox: what the family or the team did last and when, with its verb; the adults, the children with
+     * their course and stage, how they wrote, and what is filtered by.
      *
      * @param array $list Households, as households::inbox() gives them.
      * @param int $now
-     * @param array $today Household id => the visit of today, in words.
+     * @param array $today Household id => the visit of today, its text and its hour.
      * @param int $userid Who looks.
      * @param array $due Household id => the promise that is due.
      * @return array Household id => row.
@@ -714,13 +729,20 @@ class panel_inbox {
         foreach ($list as $household) {
             $info = $latest[$household->id] ?? ['last' => null, 'said' => null, 'answer' => null, 'line' => null];
             $waiting = $household->waitingsince > 0;
-            $moment = $waiting ? (int) $household->waitingsince : (int) ($info['answer']->timecreated ??
-                $household->lastcontact);
+            // What is said with its day: what they wait an answer to, the last answer, or the last line of all.
+            $line = $waiting ? ($info['since'] ?? $info['last']) : ($info['answer'] ?? $info['line']);
+            $moment = $waiting ? (int) $household->waitingsince : (int) ($line->timecreated ?? $household->lastcontact);
             // A day whose hour nobody wrote is said without any.
-            $line = $info['answer'] ?? $info['line'];
-            $dayonly = $waiting ? !empty($household->waitingdayonly) :
-                $line && (int) $line->timecreated === $moment && !empty($line->dayonly);
+            $dayonly = $waiting ? !empty($household->waitingdayonly) : $line && !empty($line->dayonly);
             $hour = $dayonly ? '' : panel::hour($moment);
+            $did = $line ? happened::kind($line, $info['answer'] !== null) : 'noted';
+            // Waiting, it was the family who did something: a line of the team would be the note it was written in.
+            $did = $waiting && in_array($did, ['answered', 'told', 'invited', 'sent', 'noted'], true) ? 'wrote' : $did;
+            $today1 = $today[$household->id] ?? null;
+            $today1 = is_array($today1) || $today1 === null ? $today1 : ['text' => $today1, 'hour' => ''];
+            $verb = $today1 && $today1['hour'] !== '' ? happened::verb('appointment') : happened::verb($did);
+            $said = $today1 && $today1['hour'] !== '' ? $today1['hour'] :
+                happened::when($moment, $now, $dayonly, $waiting && !isset($due[$household->id]));
             $last = $info['last'];
             $channel = $last ? (string) $last->channel : (string) $household->firstchannel;
             $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel :
@@ -766,7 +788,13 @@ class panel_inbox {
                 'waiting' => $waiting,
                 'answered' => !$waiting,
                 'hour' => $hour,
-                'stamp' => ['top' => get_string($waiting ? 'panel_stamp_came' : 'panel_answered', $c),
+                'verb' => $verb,
+                'said' => $said,
+                // Whether a person of the team answered them, or ever wrote to them.
+                'answer' => $info['answer'] !== null,
+                'written' => $info['told'] !== null,
+                'stamp' => $today1 && $today1['hour'] !== '' ? ['top' => $verb, 'day' => rtrim(userdate($now, '%a %d'), '.'),
+                    'hour' => $today1['hour']] : ['top' => happened::verb($did),
                     'day' => rtrim(userdate($moment, '%a %d'), '.'), 'hour' => $hour],
                 'adults' => panel::adults_line($household->adults),
                 'alumni' => isset($alumni[(int) $household->id]),
@@ -780,7 +808,7 @@ class panel_inbox {
                 'owner' => self::owner_face($household, $userid),
                 'typing' => attend::typing((int) $household->id, $userid),
                 'promise' => isset($due[$household->id]) ? attend::promise_context($due[$household->id], $now, $userid) : null,
-                'visit' => isset($today[$household->id]) ? ['text' => $today[$household->id]] : null,
+                'visit' => $today1 ? ['text' => $today1['text']] : null,
                 'courses' => implode(' ', array_unique($courses)),
                 'stages' => implode(' ', array_unique($stages)),
                 'search' => \core_text::strtolower(implode(' ', $search)),
@@ -865,7 +893,7 @@ class panel_inbox {
             'SELECT c.id, c.householdid, c.stage
                                           FROM {' . households::CHILDREN . '} c
                                           JOIN {' . households::T . '} h ON h.id = c.householdid
-                                         WHERE h.centreid = :centreid AND h.incentre = 0 AND c.stage <> :closed',
+                                         WHERE h.centreid = :centreid AND h.incentre = 0 AND h.guest = 0 AND c.stage <> :closed',
             ['centreid' => $centreid, 'closed' => 'closed']
         );
         $furthest = [];
@@ -947,7 +975,7 @@ class panel_inbox {
         global $DB;
         $answer = $DB->get_records(
             households::CONTACTS,
-            ['centreid' => $centreid, 'direction' => 'out'],
+            ['centreid' => $centreid, 'direction' => 'out', 'aim' => null],
             'timecreated DESC, id DESC',
             'id, userid, dayonly, timecreated',
             0,

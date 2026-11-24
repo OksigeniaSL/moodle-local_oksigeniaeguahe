@@ -254,7 +254,7 @@ class birthdays {
         }
         $written = $DB->record_exists_select(
             households::CONTACTS,
-            'householdid = ? AND direction = ? AND timecreated >= ?',
+            'householdid = ? AND direction = ? AND aim IS NULL AND timecreated >= ?',
             [$household->id, 'out', $found['day'] - DAYSECS]
         );
         return $written ? null : $found;

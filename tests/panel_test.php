@@ -149,7 +149,7 @@ final class panel_test extends \advanced_testcase {
         $this->assertSame(get_string('inbox_waiting_one', 'local_oksigeniaeguahe'), $inbox['head']['title']);
         // By the rule of time: one day, today, and the family under it.
         $this->assertCount(1, $inbox['days']);
-        $this->assertSame(get_string('panel_day_today', 'local_oksigeniaeguahe'), $inbox['days'][0]['day']);
+        $this->assertSame(get_string('panel_group_waits_today', 'local_oksigeniaeguahe'), $inbox['days'][0]['day']);
         $row = $inbox['days'][0]['rows'][0];
         $this->assertTrue($row['waiting']);
         $this->assertNull($row['owner']);

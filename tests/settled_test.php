@@ -184,7 +184,8 @@ final class settled_test extends \advanced_testcase {
         );
         households::add_child($other, 'Vera', 0);
         $days = panel_inbox::days(households::inbox((int) $centre->id, false), (int) $centre->id, time());
-        $this->assertSame(['contestadas', 'encentro'], array_column($days, 'kind'));
+        // Nobody wrote to the other one yet: never among the answered.
+        $this->assertSame(['sinescribir', 'encentro'], array_column($days, 'kind'));
         $this->assertSame((string) $household->id, $days[1]['rows'][0]['id']);
 
         settled::ask($household, '¿A qué hora es la entrada?');

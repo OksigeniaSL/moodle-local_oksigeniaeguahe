@@ -98,7 +98,8 @@ class api {
                 'timeend' => (int) $event->timeend,
                 'today' => $today,
                 'turns' => $turns,
-                'url' => events::short_url($event) ?? events::url($event)->out(false),
+                // Without it, the act is published with its day, its hour and its place only.
+                'url' => empty($event->linkout) ? '' : (events::short_url($event) ?? events::url($event)->out(false)),
                 'capacity' => (int) $event->capacity,
                 'signed' => events::people((int) $event->id),
                 'came' => $today ? (int) $DB->count_records_select(
@@ -226,7 +227,7 @@ class api {
         [$in, $params] = $DB->get_in_or_equal(array_keys($centres), SQL_PARAMS_NAMED);
         $homes = $DB->get_records_select(
             households::T,
-            "centreid $in AND roster = 0",
+            "centreid $in AND roster = 0 AND guest = 0",
             $params,
             'lastcontact DESC',
             'id, centreid, incentre, writeby, writebytime, writebynone'

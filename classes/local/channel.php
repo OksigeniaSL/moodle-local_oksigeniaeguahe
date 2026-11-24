@@ -334,6 +334,15 @@ class channel {
                 'detail' => $hours . ($place !== '' ? '. ' . $place : ''),
             ]],
         ];
+        if (empty($event->linkout)) {
+            unset($content['url'], $content['label']);
+        }
+        $poster = acts::poster_file((int) $event->id);
+        if ($poster && in_array($poster->get_mimetype(), ['image/jpeg', 'image/png'], true)) {
+            // The act has a poster of its own: it says more than a card drawn for any of them.
+            $content['image'] = acts::poster($event)['url'];
+            unset($content['card']);
+        }
         if ($moment === 'tell' && $centre) {
             $content['text'] = (string) kit::texts($event, $centre)['post'];
         }

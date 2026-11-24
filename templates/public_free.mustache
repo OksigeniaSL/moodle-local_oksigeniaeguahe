@@ -27,7 +27,7 @@
     }
 }}
 <section class="pared pared-libre" aria-labelledby="titulo">
-    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px"{{/poster}}{{/act}}>
+    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{#wide}} con-apaisado{{/wide}}{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px; --cartel-razon: {{ratio}}"{{/poster}}{{/act}}>
         {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
         <h1 class="titular{{#longname}} largo{{/longname}}" id="titulo">{{headline}}</h1>
         <p class="acto-cuando">{{when}}<span>{{hours}}{{#where}} · <span dir="auto">{{where}}</span>{{/where}}</span></p>

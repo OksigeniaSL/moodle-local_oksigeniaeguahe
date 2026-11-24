@@ -82,7 +82,7 @@ class cinematico {
         $midnight = usergetmidnight($now);
         $answered = (int) $DB->count_records_sql(
             "SELECT COUNT(DISTINCT householdid) FROM {" . households::CONTACTS . "}
-              WHERE centreid = ? AND direction = 'out' AND timecreated >= ?",
+              WHERE centreid = ? AND direction = 'out' AND aim IS NULL AND timecreated >= ?",
             [$centre->id, $midnight]
         );
         $waiting = array_values(array_filter($queue, fn($h) => (int) $h->waitingsince > 0));

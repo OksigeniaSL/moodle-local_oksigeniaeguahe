@@ -18,11 +18,11 @@
     @template local_oksigeniaeguahe/panel_history_item
 
     What is inside one stop of the conversation (its li is drawn by the list of panel_household): who (the family,
-    someone of the team, or Eguahe by itself), how and when, and what they said.
+    someone of the team, or Eguahe by itself), how and when, and what they said; or an appointment, with whether they came.
 
     Example context (json):
-    {"i": {"persona": "", "nota": "", "sistema": ""}, "family": true, "team": false, "system": false, "who": "La familia",
+    {"i": {"persona": "", "nota": "", "sistema": "", "actos": ""}, "family": true, "team": false, "system": false, "visit": false, "who": "La familia",
         "how": "llegó por la jornada", "when": "ayer a las 16:30", "body": "«¿Tienen comedor?»"}
 }}
-    <span class="punto{{#team}} equipo{{/team}}">{{#family}}{{{i.persona}}}{{/family}}{{#team}}{{{i.nota}}}{{/team}}{{#system}}{{{i.sistema}}}{{/system}}</span>
-    <div class="que"><span class="quien"><b>{{who}}</b> {{how}} · {{when}}</span>{{#body}}<p>{{body}}</p>{{/body}}</div>
+    <span class="punto{{#team}} equipo{{/team}}">{{#family}}{{{i.persona}}}{{/family}}{{#team}}{{{i.nota}}}{{/team}}{{#system}}{{{i.sistema}}}{{/system}}{{#visit}}{{{i.actos}}}{{/visit}}</span>
+    <div class="que"><span class="quien"><b>{{who}}</b> {{how}}{{#when}} · {{when}}{{/when}}</span>{{#body}}<p>{{body}}</p>{{/body}}</div>

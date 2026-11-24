@@ -138,7 +138,7 @@ class settled {
         }
         $left = self::left($children);
         $time = max(array_map(fn($c) => (int) $c->lefttime, $left));
-        $where = 'householdid = ? AND direction = ? AND timecreated >= ?';
+        $where = 'householdid = ? AND direction = ? AND aim IS NULL AND timecreated >= ?';
         $written = $DB->record_exists_select(households::CONTACTS, $where, [$household->id, 'out', $time]);
         return ['time' => $time, 'reason' => (string) ($left[0]->leftreason ?? 'unknown'),
             'note' => (string) ($left[0]->leftnote ?? ''), 'written' => $written];

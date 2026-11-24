@@ -2251,7 +2251,7 @@ details[open].plegado > summary h2::after {
 .fila {
     position: relative;
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
     grid-template-areas: "hora quien lleva" "hora promesa promesa";
     gap: 4px 14px;
     align-items: start;
@@ -2411,6 +2411,98 @@ details[open].plegado > summary h2::after {
     color: var(--eg-tinta-2);
 }
 
+/* ---------- Each date with its verb ---------- */
+/* At the side of a family, what it did and when: «Escribió», and under it the hour. */
+.fila .hora {
+    display: grid;
+    gap: 1px;
+    align-content: start;
+}
+
+.que-hizo {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.cuando-fue {
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+.fila.contestada .cuando-fue {
+    font-size: 0.875rem;
+}
+
+.dia-sinescribir,
+.dia-escritas {
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 2px solid var(--eg-linea);
+}
+
+.dia-sinescribir .dia,
+.dia-escritas .dia {
+    color: var(--eg-tinta-2);
+    font-size: 1.125rem;
+}
+
+/* An appointment in the history: its leaf; the ones to come, apart, after what already was. */
+.historial .cita-h .punto {
+    border-radius: 6px;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+}
+
+.historial .cita-h .quien {
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.historial .por-venir {
+    padding-top: 14px;
+    border-top: 1px dashed var(--eg-borde);
+}
+
+@media (max-width: 719px) {
+    .fila .hora {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 6px;
+        align-items: baseline;
+    }
+}
+
+/* On the cards of the desk the stamp already says it: the side is only for readers. */
+@media (min-width: 720px) {
+    .piel-mostrador .lista[data-densidad="fichas"] .fila {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "quien lleva" "promesa promesa";
+    }
+
+    .piel-mostrador .lista[data-densidad="fichas"] .fila .hora {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .piel-mostrador .lista[data-densidad="lista"] .dia b {
+        font-size: 1.3125rem;
+    }
+}
+
+@media (max-width: 719px) {
+    .lista .dia {
+        flex-wrap: wrap;
+    }
+}
+
 .sin-resultados {
     padding: 12px 0;
 }
@@ -2483,7 +2575,7 @@ details[open].plegado > summary h2::after {
 }
 
 .lista[data-densidad="lista"] .fila {
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
     grid-template-areas: "hora quien lleva";
     padding: 8px 10px;
     border-radius: 0;
@@ -11264,8 +11356,8 @@ html.modo-lamina {
     }
 
     .lista[data-densidad="lista"] .fila {
-        grid-template-columns: 46px minmax(0, 1fr) auto;
-        grid-template-areas: "hora quien lleva";
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "hora lleva" "quien quien";
     }
 
     .lista[data-densidad="lista"] .fila .quien {
@@ -21537,4 +21629,37 @@ html {
     box-sizing: border-box;
     padding: 6px;
     background: #fff;
+}
+
+/* An open act is published without its link; offering it, asked for on purpose. */
+.sin-enlace {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    margin: 8px 0 14px;
+}
+
+/* At an act, who is not a family of the admissions: said beside the name. */
+.aparte-acto {
+    display: inline-block;
+    width: fit-content;
+    justify-self: start;
+    align-self: start;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 650;
+}
+
+/* The file of a guest of an act: what it is, and the way into the admissions. */
+.aviso-asistente {
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.aviso-asistente > span {
+    flex: 1 1 260px;
 }

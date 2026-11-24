@@ -316,7 +316,8 @@ class familypage {
             // An act open to all can be passed on to whoever looks for a centre, with the text of the family.
             $act = (object) ['id' => $s->eventid, 'open' => $s->eventopen ?? 0, 'token' => $s->eventtoken ?? '',
                 'tailored' => $s->eventtailored ?? 0, 'householdid' => $s->eventhousehold ?? 0, 'timeend' => $s->timeend];
-            $share = share::act_open($act) ? ['url' => share::act_url($household, $act)->out(false),
+            $told = events::get((int) $s->eventid, (int) $centre->id);
+            $share = share::act_open($act) && $told && !empty($told->linkout) ? ['url' => share::act_url($household, $act)->out(false),
                 'label' => publiclang::str('pub_act_share', $lang), 'title' => $name,
                 'text' => publiclang::str('share_act_text', $lang, (object) ['act' => $name, 'when' => $parts['long'],
                     'centre' => format_string($centre->name)]),
@@ -333,7 +334,7 @@ class familypage {
                     (string) ($centre->address ?? '')])))),
                 'people' => publiclang::count('pub_people_one', 'pub_people_count', (int) $s->people, $lang),
                 // How it is told: its picture, what it is about, who gives it and for whom.
-                'act' => ($told = events::get((int) $s->eventid, (int) $centre->id)) ? acts::context($told, $lang) : false,
+                'act' => $told ? acts::context($told, $lang) : false,
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
                 // Not coming after all: one touch, and the centre knows.

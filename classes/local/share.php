@@ -441,7 +441,7 @@ class share {
             return new \moodle_url(entries::form_url($entry), ['d' => $piece]);
         }
         foreach (events::for_centre((int) $centre->id) as $event) {
-            if (self::act_open($event, $now) && $event->kind !== 'visit') {
+            if (self::act_open($event, $now) && $event->kind !== 'visit' && !empty($event->linkout)) {
                 return new \moodle_url(events::url($event), ['d' => $piece]);
             }
         }
@@ -609,7 +609,9 @@ class share {
             $ph = max(1, (int) round($sh * $scale));
             $beside = $wide && $words['date'] !== '' && $w - $pw > 0.45 * $w;
             $x = $beside ? $w - $pw - $px(60) : (int) (($w - $pw) / 2);
-            $y = $top + (int) (($h - $top - $air - $ph) / 2);
+            // In a square or an upright one, a poster with room under it leaves there what it is and when.
+            $under = !$wide && $words['date'] !== '' && $h - $top - $air - $ph > 0.3 * $h;
+            $y = $top + (int) (($h - $top - $air - $ph) / 2) - ($under ? (int) round(0.14 * $h) : 0);
             self::shadow($im, $x + (int) ($pw / 2), $y + (int) ($ph / 2), $pw, $ph, 0);
             imagecopyresampled($im, $src, $x, $y, 0, 0, $pw, $ph, $sw, $sh);
             imagedestroy($src);
@@ -622,6 +624,16 @@ class share {
                     ['bold', $words['date'], $px(72), 2, 0, 1],
                     ['bold', $words['title'], $px(46), 3, 0, 0.92],
                 ], (int) ($x / 2), (int) (($top + $h) / 2), $x - 2 * $px(50), $text);
+            }
+            if ($under) {
+                $text = $vars['--c-sobre-acento'] === '#FFFFFF' ? '#FFFFFF' : '#1A1614';
+                $dot = arabic::has($words['weekday'] . $words['hours']) ? '، ' : ' · ';
+                $when = trim($words['weekday'] . ($words['hours'] !== '' && $words['weekday'] !== '' ? $dot : '') . $words['hours']);
+                self::block($im, [
+                    ['medium', \core_text::strtoupper($when), $px(30), 1, 0.1, 0.84],
+                    ['bold', $words['date'], $px(92), 2, 0, 1],
+                    ['bold', $words['title'], $px(50), 3, 0, 0.92],
+                ], $cx, (int) (($y + $ph + $h) / 2), $w - 2 * $px(70), $text);
             }
         } else if ($piece === 'acto') {
             // The band of the visit, in the colour of the centre, under the centre on its wall.

@@ -84,6 +84,8 @@ class signup {
             'people' => optional_param('people', 2, PARAM_INT),
             'slot' => optional_param('slot', 0, PARAM_INT),
             'incentre' => optional_param('incentre', '', PARAM_ALPHA),
+            // At an open act: whether they want to be told of the centre too.
+            'tellme' => optional_param('tellme', 0, PARAM_BOOL),
             'municipality' => optional_param('municipality', '', PARAM_RAW_TRIMMED),
             'municipalityother' => trim(optional_param('municipalityother', '', PARAM_TEXT)),
             'heardfrom' => optional_param('heardfrom', '', PARAM_ALPHA),
@@ -313,6 +315,8 @@ class signup {
             'heardnet' => ($data['heardfrom'] ?? '') === 'social' ?
                 centres::network($centre, (string) ($data['heardnet'] ?? '')) : '',
             'incentre' => ($data['incentre'] ?? '') === 'yes', 'self' => !empty($data['self']),
+            // Whoever only comes to a talk or a party is a guest of it: not a family of the admissions.
+            'guest' => $event->kind === 'other' && empty($data['tellme']),
             'arrival' => $data['arrival'] ?? null] + $place);
         $existed = $householdid !== null;
         $before = [];
@@ -325,6 +329,9 @@ class signup {
         }
         $household = households::get($householdid, $centre->id);
         households::complete($household, $about);
+        $tellme = $event->kind === 'other' && !empty($data['tellme']);
+        $admitted = $existed && ($event->kind !== 'other' || $tellme) && households::admit($householdid);
+        $tellme = $tellme && (!$existed || $admitted);
         // A form anyone can fill matched a family the centre already has: it never brings it an address of its own (the
         // family's mail would go there), never takes back a permission, and never changes what its children already
         // have. A new address waits in a note for the team, which adds it if it is theirs.
@@ -347,6 +354,10 @@ class signup {
                     }
                 }
             }
+        }
+        if (!$existed && !empty($about->guest) && !$about->incentre && family::hints(households::full($household))) {
+            // The centre already has them in its common family record: said at once, not the morning after.
+            households::complete($household, (object) ['incentre' => 1]);
         }
         if ($unverified) {
             households::note($household, 0, get_string(
@@ -394,6 +405,9 @@ class signup {
         $answered = $form ? forms::save_answers($household, $form, $data['answers'] ?? [], $centre->lang ?: 'es') : [];
         $body = get_string('signedup_note', 'local_oksigeniaeguahe', (object) ['event' => $event->name,
             'people' => $data['people']]);
+        if ($tellme) {
+            $body .= ' ' . get_string('signedup_tellme', 'local_oksigeniaeguahe');
+        }
         if ($data['message'] !== '') {
             $body .= "\n\n" . $data['message'];
         }
@@ -410,12 +424,12 @@ class signup {
         if ($answered) {
             $body .= "\n\n" . implode("\n", $answered);
         }
-        // Whoever writes a question, sends a form or asks for a visit of its own waits for a person to answer.
+        // Whoever writes a question, sends a form, asks for a visit of its own or to be told of the centre waits for a person.
         households::received(
             $household,
             $channel,
             $body,
-            $data['message'] !== '' || $tailored || $isform,
+            $data['message'] !== '' || $tailored || $isform || $tellme,
             null,
             $isform && $entry ? (int) $entry->id : 0,
             $origin

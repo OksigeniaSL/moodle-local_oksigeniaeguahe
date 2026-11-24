@@ -122,7 +122,7 @@ class panel_metrics {
             ->getTimestamp();
         $out = [];
         $firsts = [];
-        $where = 'centreid = :centreid AND ' . ($withcentre ? 'roster = 0' : 'incentre = 0') . ' AND (timecreated >= :since OR id IN (
+        $where = 'centreid = :centreid AND guest = 0 AND ' . ($withcentre ? 'roster = 0' : 'incentre = 0') . ' AND (timecreated >= :since OR id IN (
                       SELECT ch.householdid FROM {' . households::CHILDREN . '} ch
                         JOIN {' . centres::OFFERS . '} o ON o.id = ch.offerid
                        WHERE ch.centreid = :centreid2 AND o.schoolyear = :year))';

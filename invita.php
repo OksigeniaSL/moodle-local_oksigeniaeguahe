@@ -64,7 +64,7 @@ if (optional_param('action', '', PARAM_ALPHA) === 'pedir') {
 // The next open acts, the soonest first: an open day, a visit by turns, a talk.
 $acts = [];
 foreach (events::for_centre((int) $centre->id) as $event) {
-    if (count($acts) >= 3 || !share::act_open($event) || !empty($event->tailored)) {
+    if (count($acts) >= 3 || !share::act_open($event) || !empty($event->tailored) || empty($event->linkout)) {
         continue;
     }
     $parts = publicpage::date_parts((int) $event->timestart, $lang);

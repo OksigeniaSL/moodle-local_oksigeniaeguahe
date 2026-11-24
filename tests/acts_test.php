@@ -18,9 +18,11 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\acts;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\invites;
+use local_oksigeniaeguahe\local\kit;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signuppage;
@@ -91,6 +93,13 @@ final class acts_test extends \advanced_testcase {
         $this->assertSame(['Lucía Medina', 'Andrés Rivas'], array_column(acts::speakers($event), 'name'));
         $this->assertNotSame('', acts::speakers($event)[1]['key']);
 
+        // The letter says it, until what time, and its link says what it does.
+        [, $html, $text] = familymail::letter('Ana', $centre, invites::of_letter($event), 'es', '');
+        $this->assertStringContainsString("\n\nCon Lucía Medina (Psicóloga) y Andrés Rivas.\n\n", $text);
+        $this->assertStringContainsString(str_repeat('a', 100), $text);
+        $this->assertMatchesRegularExpression('/, de \d+:\d\d a \d+:\d\d/u', $text);
+        $this->assertStringContainsString('>Inscribirnos</a>', $html);
+
         // Its picture, kept no longer than its side; the photo of who gives it, by its key.
         $image = imagecreatetruecolor(2400, 1200);
         ob_start();
@@ -107,6 +116,14 @@ final class acts_test extends \advanced_testcase {
         $this->assertNotSame('', $context['speakers'][0]['photo']);
         $this->assertSame('', $context['speakers'][1]['photo']);
         $this->assertNotSame('', share::card($centre, 'cartel', [], acts::poster_file($id)->get_content()));
+        // The channel carries it instead of a card drawn for any act, and the networks too.
+        $post = channel::content($event, 'announce');
+        $this->assertSame($context['poster']['url'], $post['image']);
+        $this->assertArrayNotHasKey('card', $post);
+        foreach (array_keys(kit::SHAPES) as $shape) {
+            $size = getimagesizefromstring(kit::picture($event, $centre, $shape));
+            $this->assertSame(kit::SHAPES[$shape], [$size[0], $size[1]]);
+        }
         // A second one takes its place, and what is no longer there goes.
         $this->assertTrue(acts::store($bytes, acts::POSTER, $id));
         $this->assertCount(1, get_file_storage()->get_area_files(
