@@ -308,7 +308,7 @@ class pulse {
 
     /**
      * The tape of each entry: what came through it on each of the last days, and the days that are not known: it was quiet,
-     * not let in or not understood.
+     * not let in, not understood or without some of its tabs.
      *
      * @param \stdClass $centre
      * @param array[] $pulses From of_centre().
@@ -334,9 +334,9 @@ class pulse {
         $out = [];
         foreach ($pulses as $pulse) {
             $born = panel::days_between((int) $pulse['entry']->timecreated, $now);
-            // Not known from the day after its last call or family; not let in or not understood, from the very day. With
-            // tabs it does not find, what comes by the others is still seen: no day is said not to be known.
-            $quiet = $pulse['since'] && in_array($pulse['state'], ['quiet', 'refused', 'unread'], true) ?
+            // Not known from the day after its last call or family; not let in, not understood or with tabs it does not find,
+            // from the very day. A day families came is never said not to be known: what came by the other tabs is seen.
+            $quiet = $pulse['since'] && in_array($pulse['state'], self::SILENT, true) ?
                 panel::days_between($pulse['since'], $now) - ($pulse['state'] === 'quiet' ? 1 : 0) : -1;
             $days = [];
             for ($ago = self::TAPE - 1; $ago >= 0; $ago--) {

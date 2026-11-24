@@ -182,11 +182,18 @@ final class pulse_test extends \advanced_testcase {
         $days = pulse::tapes($this->centre, $pulses, $now)[(int) $sheet->id];
         $this->assertCount(pulse::TAPE, $days);
         // The last one is today: «five days ago» is the sixth from the end.
-        $ago = fn(int $n): array => $days[pulse::TAPE - 1 - $n];
+        $ago = fn(int $n, ?array $of = null): array => ($of ?? $days)[pulse::TAPE - 1 - $n];
         $this->assertSame([3, 2], [$ago(5)['n'], $ago(5)['h']]);
         $this->assertSame([1, 1], [$ago(4)['n'], $ago(4)['h']]);
         $this->assertSame([false, true, true, true], [$ago(3)['quiet'], $ago(2)['quiet'], $ago(1)['quiet'], $ago(0)['quiet']]);
         $this->assertSame([true, false], [$ago(11)['before'], $ago(10)['before']]);
+        // Without one of its tabs, a day with nobody is not known; one with families is.
+        $DB->update_record(entries::T, (object) ['id' => $sheet->id, 'beats' => null, 'missing' => 'Visitas',
+            'missingat' => $now - 5 * DAYSECS]);
+        $missing = pulse::of_centre($this->centre, $now);
+        $days = pulse::tapes($this->centre, $missing, $now)[(int) $sheet->id];
+        $this->assertSame('missing', $missing[0]['state']);
+        $this->assertSame([false, true, true], [$ago(4, $days)['quiet'], $ago(3, $days)['quiet'], $ago(0, $days)['quiet']]);
         $tag = pulse::tag($pulses[0], $now);
         $this->assertSame(get_string('pulse_tag_quiet', 'local_oksigeniaeguahe'), $tag['word']);
         $this->assertNotSame('', $tag['since']);

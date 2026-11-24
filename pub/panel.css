@@ -2005,6 +2005,19 @@ details[open].plegado > summary h2::after {
     display: none;
 }
 
+/* On a phone, its name and the arrow on a line, and what may be missing under them at full width. */
+@media (max-width: 599.98px) {
+    .llegan-por-t {
+        flex: 1 1 0;
+    }
+
+    .llegan-por-ahora {
+        flex: 1 0 100%;
+        order: 1;
+        min-width: 0;
+    }
+}
+
 .cintas {
     display: grid;
     gap: 2px;
@@ -2461,6 +2474,11 @@ details[open].plegado > summary h2::after {
     border-bottom: 1px solid var(--eg-linea);
     background: none;
     box-shadow: none;
+}
+
+/* What was promised has its own row under the family, or the browser makes up columns for it and squeezes the names. */
+.lista[data-densidad="lista"] .fila.con-promesa {
+    grid-template-areas: "hora quien lleva" "hora promesa promesa";
 }
 
 /* In the list: the names with where they came from under them, in every row the same; the children; and the last
@@ -11223,12 +11241,14 @@ html.modo-lamina {
         gap: 2px;
     }
 
+    /* One column: each thing under the one before. By their names, or the areas they have on a wide screen win and lay
+       the children over the name. Where they came in by is said here too. */
+    .lista[data-densidad="lista"] .fila .quien > .nombres,
+    .lista[data-densidad="lista"] .fila .quien > .meta,
+    .lista[data-densidad="lista"] .fila .quien > .hijos,
+    .lista[data-densidad="lista"] .fila .quien > .pide,
     .lista[data-densidad="lista"] .fila .quien > * {
         grid-area: auto;
-    }
-
-    .lista[data-densidad="lista"] .meta {
-        display: none;
     }
 
     .siguiente-fila {
