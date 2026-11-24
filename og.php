@@ -27,6 +27,7 @@ define('NO_MOODLE_COOKIES', true);
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- The networks that build a preview have no account: the signed link is enough.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\acts;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\drawings;
 use local_oksigeniaeguahe\local\events;
@@ -45,7 +46,9 @@ if ($piece === 'acto') {
     if ($event && $centre && share::act_open($event)) {
         $lang = publiclang::choose($centre);
         $when = publicpage::date_parts((int) $event->timestart, $lang);
-        $png = share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
+        $poster = acts::poster_file((int) $event->id);
+        $png = $poster ? share::card($centre, 'cartel', [], $poster->get_content()) : '';
+        $png = $png !== '' ? $png : share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
             'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'title' => format_string($event->name)]);
     }

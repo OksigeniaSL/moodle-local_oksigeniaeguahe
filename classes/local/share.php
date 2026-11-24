@@ -593,7 +593,29 @@ class share {
         $px = fn(float $n): int => (int) round($n * $f);
         // Where things go, as a share of the height: [wide, square, upright].
         $at = fn(array $shares): int => (int) round($h * ($wide ? $shares[0] : ($tall ? $shares[2] : $shares[1])));
-        if ($piece === 'acto') {
+        if ($piece === 'cartel') {
+            // The picture of the act, whole, on the colour of the centre.
+            $src = $picture !== null ? @imagecreatefromstring($picture) : false;
+            if (!$src) {
+                return '';
+            }
+            imagefilledrectangle($im, 0, 0, $w, $h, self::ink($im, $vars['--c-acento']));
+            $scale = min($w / imagesx($src), $h / imagesy($src));
+            $pw = max(1, (int) round(imagesx($src) * $scale));
+            $ph = max(1, (int) round(imagesy($src) * $scale));
+            imagecopyresampled(
+                $im,
+                $src,
+                (int) (($w - $pw) / 2),
+                (int) (($h - $ph) / 2),
+                0,
+                0,
+                $pw,
+                $ph,
+                imagesx($src),
+                imagesy($src)
+            );
+        } else if ($piece === 'acto') {
             // The band of the visit, in the colour of the centre, under the centre on its wall.
             $top = $at([0.327, 0.34, 0.3]);
             imagefilledrectangle($im, 0, $top, $w, $h, self::ink($im, $vars['--c-acento']));

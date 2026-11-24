@@ -268,7 +268,7 @@ class panel_events {
         return panel::leaf((int) $event->timestart) + [
             'url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'name' => format_string($event->name),
-            'kind' => get_string('event_kind_' . $event->kind, $c),
+            'kind' => acts::team_word($event),
             'hours' => get_string('panel_hours', $c, (object) ['from' => panel::hour((int) $event->timestart),
                 'to' => panel::hour((int) $event->timeend)]),
             'place' => trim((string) $event->place) !== '' ? format_string($event->place) : '',

@@ -67,6 +67,7 @@ if (data_submitted()) {
             $notice = panel_eventform::notice($centre, $changes, $reached, $values);
         } else {
             $saved = events::save((int) $centre->id, panel_eventform::data($values, $old));
+            $good = panel_eventform::pictures($saved, $values);
             $told = $changes && $notify > 0 ? panel_eventform::tell(
                 $centre,
                 events::get($saved, (int) $centre->id),
@@ -74,10 +75,14 @@ if (data_submitted()) {
                 (int) $USER->id
             ) : 0;
             redirect(
-                new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved]),
-                $told ? get_string($told === 1 ? 'panel_told_one' : 'panel_told', $c, $told) : '',
+                new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved] + ($id ? [] : ['nuevo' => 1])),
+                !$good ? get_string('event_picture_no', $c) : ($told ? get_string(
+                    $told === 1 ? 'panel_told_one' : 'panel_told',
+                    $c,
+                    $told
+                ) : ''),
                 null,
-                \core\output\notification::NOTIFY_SUCCESS
+                $good ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
             );
         }
     }

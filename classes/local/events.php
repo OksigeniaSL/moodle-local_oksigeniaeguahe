@@ -125,6 +125,20 @@ class events {
             'formid' => !empty($data->formid) && entries::get((int) $data->formid, $centreid) ? (int) $data->formid : 0,
             'timemodified' => time(),
         ];
+        if (isset($data->word)) {
+            // What it is, for one that is neither an open day nor a visit.
+            $row->word = $row->kind === 'other' && trim((string) $data->word) !== '' ? \core_text::substr(
+                trim((string) $data->word),
+                0,
+                40
+            ) : null;
+        }
+        if (isset($data->told)) {
+            // How it is told: what it is about, who gives it, for whom, and whether anybody may come.
+            foreach (acts::columns($centreid, (array) $data->told) as $column => $value) {
+                $row->{$column} = $value;
+            }
+        }
         if (isset($data->parking)) {
             // A big act: the miniature of the centre shows where to park.
             $row->parking = empty($data->parking) ? 0 : 1;

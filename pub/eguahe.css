@@ -2152,6 +2152,68 @@ legend .opc {
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
 }
+/* How an act is told: its picture, what it is about, who gives it and for whom. */
+.acto-contado {
+    display: grid;
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.acto-cartel {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 70vh;
+    border-radius: 12px;
+}
+
+.acto-cuenta {
+    display: grid;
+    gap: 10px;
+}
+
+.acto-va {
+    white-space: pre-line;
+}
+
+.acto-con {
+    font-weight: 700;
+}
+
+.acto-ponentes {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.acto-ponentes li {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.acto-ponentes img,
+.acto-ponentes .iniciales {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-weight: 700;
+}
+
+.acto-ponentes b,
+.acto-ponentes .suave {
+    display: block;
+}
+
 /* For who came by the letter of an invitation: how they want to be written to, quiet at the foot. */
 .vias-invitada {
     display: flex;

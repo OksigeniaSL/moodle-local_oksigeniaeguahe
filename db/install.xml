@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261215" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261217" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -231,13 +231,19 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="kind" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="openday" SEQUENCE="false" COMMENT="openday, visit or other (an event that is neither, counted apart)"/>
+        <FIELD NAME="word" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="What an event of kind other is, as families read it: talk, workshop, party, or the word of the centre"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="about" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it is about, as families read it"/>
+        <FIELD NAME="speakers" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Who gives it, of the team or not: name, who they are and the key of their photo, JSON"/>
+        <FIELD NAME="audience" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="For which courses, by their names, JSON; null for everyone"/>
+        <FIELD NAME="posteralt" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What its own picture shows, for whoever cannot see it"/>
         <FIELD NAME="place" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where families go: an address or the door of the centre"/>
         <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="capacity" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="People at most; 0 without a limit"/>
         <FIELD NAME="token" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Of the public sign-up link and its QR"/>
         <FIELD NAME="open" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Families can still sign up"/>
+        <FIELD NAME="free" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when anybody may come without signing up"/>
         <FIELD NAME="hosts" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The members of the team who receive the families, by member id, comma-separated"/>
         <FIELD NAME="shorturl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The short link of the public sign-up, for the poster, its QR and the texts"/>
         <FIELD NAME="shortqr" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The QR the shortener draws for the short link, as SVG; empty when it draws none, null while not asked"/>

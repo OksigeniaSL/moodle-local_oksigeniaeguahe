@@ -47,7 +47,8 @@ class panel_eventform {
             $day = self::day(($now ?: time()) + 14 * DAYSECS);
             return ['id' => 0, 'kind' => 'openday', 'name' => get_string('event_kind_openday', self::C), 'tailored' => false,
                 'day' => $day, 'start' => '10:00', 'end' => '13:00', 'place' => '', 'capacity' => '', 'open' => true,
-                'hosts' => [], 'formid' => 0, 'survey' => 0, 'slots' => []];
+                'hosts' => [], 'formid' => 0, 'survey' => 0, 'slots' => [], 'choice' => 'openday', 'word' => '', 'about' => '',
+                'speakers' => [], 'audience' => [], 'posteralt' => '', 'free' => false];
         }
         $slots = [];
         foreach (events::slots((int) $event->id) as $slot) {
@@ -71,6 +72,13 @@ class panel_eventform {
             'survey' => (int) ($event->survey ?? 0),
             'parking' => !empty($event->parking),
             'slots' => $slots,
+            'choice' => acts::choice((string) $event->kind, (string) ($event->word ?? '')),
+            'word' => (string) ($event->word ?? ''),
+            'about' => (string) ($event->about ?? ''),
+            'speakers' => acts::speakers($event),
+            'audience' => acts::audience($event),
+            'posteralt' => (string) ($event->posteralt ?? ''),
+            'free' => !empty($event->free),
         ];
     }
 
@@ -83,12 +91,16 @@ class panel_eventform {
     public static function posted(array $old): array {
         // An hour as the team writes it, by the clock of the centre (9, 9:30, 21h); a day in three fields.
         $hour = fn(string $v) => panel::clock($v);
-        $kind = optional_param('kind', 'openday', PARAM_ALPHA);
+        $choice = optional_param('kind', 'openday', PARAM_ALPHA);
+        $choice = in_array($choice, acts::CHOICES, true) ? $choice : 'openday';
+        [$kind, $word] = acts::kept($choice, optional_param('word', '', PARAM_TEXT));
         $day = publicpage::date_param('day');
         $capacity = (int) optional_param('capacity', '', PARAM_RAW_TRIMMED);
         $values = [
             'id' => $old['id'],
-            'kind' => in_array($kind, events::KINDS, true) ? $kind : 'openday',
+            'kind' => $kind,
+            'choice' => acts::choice($kind, $word),
+            'word' => $word,
             'name' => trim(optional_param('name', '', PARAM_TEXT)),
             'tailored' => optional_param('tailored', 0, PARAM_BOOL),
             'day' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ? $day : '',
@@ -102,7 +114,24 @@ class panel_eventform {
             'survey' => optional_param('survey', 0, PARAM_INT),
             'parking' => optional_param('parking', 0, PARAM_BOOL),
             'slots' => [],
+            'about' => trim(optional_param('about', '', PARAM_TEXT)),
+            'speakers' => [],
+            'audience' => array_values(array_map('strval', optional_param_array('audience', [], PARAM_TEXT))),
+            'posteralt' => trim(optional_param('posteralt', '', PARAM_TEXT)),
+            'free' => optional_param('free', 0, PARAM_BOOL),
         ];
+        // Who gives it: a row without a name is none.
+        $names = optional_param_array('speakername', [], PARAM_TEXT);
+        $roles = optional_param_array('speakerrole', [], PARAM_TEXT);
+        $keys = optional_param_array('speakerkey', [], PARAM_ALPHANUM);
+        foreach ($names as $i => $name) {
+            if (trim($name) !== '' && count($values['speakers']) < acts::SPEAKERS) {
+                // The key is made here, so its photo finds it however the rows are.
+                $key = \core_text::strtolower((string) ($keys[$i] ?? ''));
+                $values['speakers'][] = ['name' => trim($name), 'role' => trim((string) ($roles[$i] ?? '')),
+                    'key' => $key !== '' ? $key : \core_text::strtolower(random_string(8)), 'row' => (int) $i];
+            }
+        }
         $ids = optional_param_array('slotid', [], PARAM_INT);
         $starts = optional_param_array('slotstart', [], PARAM_RAW_TRIMMED);
         $minutes = optional_param_array('slotminutes', [], PARAM_INT);
@@ -186,7 +215,7 @@ class panel_eventform {
             'timeend' => self::stamp($values['day'], $values['end']), 'capacity' => (int) $values['capacity'],
             'open' => $values['open'] ? 1 : 0, 'tailored' => $values['tailored'] ? 1 : 0, 'formid' => $values['formid'],
             'survey' => $values['survey'], 'parking' => empty($values['parking']) ? 0 : 1, 'hosts' => $values['hosts'],
-            'slots' => $slots];
+            'slots' => $slots, 'word' => (string) ($values['word'] ?? ''), 'told' => $values];
     }
 
     /**
@@ -451,11 +480,24 @@ class panel_eventform {
         $c = self::C;
         $isnew = !$values['id'];
         $kinds = [];
-        foreach (events::KINDS as $kind) {
-            $kinds[] = ['value' => $kind, 'name' => get_string('event_kind_' . $kind, $c),
-                'help' => get_string('event_kind_' . $kind . '_help', $c), 'checked' => $values['kind'] === $kind,
+        $choice = $values['choice'] ?? $values['kind'];
+        foreach (acts::CHOICES as $kind) {
+            $kinds[] = ['value' => $kind, 'name' => get_string('event_choice_' . $kind, $c),
+                'help' => get_string('event_choice_' . $kind . '_help', $c), 'checked' => $choice === $kind,
+                // The name proposed for it, while nobody has written another.
+                'suggested' => $kind === 'openday' ? get_string('event_kind_openday', $c) : '',
                 'id' => 'tipo-' . $kind];
         }
+        $poster = $values['id'] ? acts::poster((object) ['id' => $values['id'], 'name' => $values['name'],
+            'posteralt' => $values['posteralt'] ?? '']) : false;
+        $speakers = [];
+        foreach ($values['speakers'] ?? [] as $i => $one) {
+            $speakers[] = ['i' => $i, 'n' => $i + 1, 'name' => $one['name'], 'role' => $one['role'], 'key' => $one['key'],
+                'photo' => $values['id'] ? acts::photo((int) $values['id'], $one['key']) : '',
+                'initials' => publicpage::initials($one['name'])];
+        }
+        $courses = array_map(fn($name) => ['value' => $name, 'name' => format_string($name),
+            'checked' => in_array($name, $values['audience'] ?? [], true)], acts::courses((int) $centre->id));
         // The turns, with who signed up in each; one with families is not taken out.
         $people = $values['id'] ? $DB->get_records_sql('SELECT slotid, COUNT(1) AS households, SUM(people) AS people
                                                          FROM {' . events::SIGNUPS . '} WHERE eventid = ?
@@ -615,8 +657,22 @@ class panel_eventform {
             'surveys' => $surveys,
             'surveyurl' => $surveyentry ? (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $surveyentry->id]))
                 ->out(false) : '',
+            // How it is told.
+            'choice' => $choice,
+            'word' => $choice === 'other' ? (string) ($values['word'] ?? '') : '',
+            'about' => (string) ($values['about'] ?? ''),
+            'aboutmost' => acts::ABOUT,
+            'speakers' => $speakers,
+            'emptyspeaker' => count($speakers) < acts::SPEAKERS ? ['i' => count($speakers), 'n' => count($speakers) + 1] : false,
+            'courses' => $courses,
+            'hascourses' => (bool) $courses,
+            'poster' => $poster,
+            'posteralt' => (string) ($values['posteralt'] ?? ''),
+            'free' => !empty($values['free']),
+            // What each part that need not be touched holds, in one line.
+            'sums' => self::sums($centre, $values, $firsts, $chosen, $surveyentry),
             'preview' => [
-                'kind' => get_string('event_kind_' . $values['kind'], $c),
+                'kind' => acts::team_word((object) ['kind' => $values['kind'], 'word' => $values['word'] ?? '']),
                 'name' => $values['name'] !== '' ? $values['name'] : get_string('panel_preview_name', $c),
                 'when' => $start ? self::when_words($start, $values['start'], $values['end']) :
                     get_string('panel_preview_when', $c),
@@ -630,6 +686,71 @@ class panel_eventform {
             ],
             'notice' => $notice,
             ];
+    }
+
+    /**
+     * Keeps the pictures sent with the form: its own, and the photo of each one who gives it.
+     *
+     * @param int $eventid
+     * @param array $values As posted() gives them.
+     * @return bool False when one could not be kept.
+     */
+    public static function pictures(int $eventid, array $values): bool {
+        $good = true;
+        if (optional_param('posterdrop', 0, PARAM_BOOL)) {
+            acts::drop($eventid, acts::POSTER);
+        }
+        $good = acts::keep($_FILES['poster'] ?? null, acts::POSTER, $eventid) && $good;
+        $sent = $_FILES['speakerphoto'] ?? null;
+        foreach ($values['speakers'] as $one) {
+            $i = $one['row'] ?? -1;
+            if ($sent && isset($sent['error'][$i])) {
+                $good = acts::keep(
+                    ['error' => $sent['error'][$i], 'tmp_name' => $sent['tmp_name'][$i]],
+                    acts::SPEAKER,
+                    $eventid,
+                    '/' . $one['key'] . '/'
+                ) && $good;
+            }
+        }
+        // The photo of whoever no longer gives it goes with them.
+        acts::drop($eventid, acts::SPEAKER, array_column($values['speakers'], 'key'));
+        return $good;
+    }
+
+    /**
+     * What each part of the form that need not be touched holds, in one line.
+     *
+     * @param \stdClass $centre
+     * @param array $values
+     * @param string[] $hosts The first names of who receives.
+     * @param \stdClass|null $form The form whose questions it asks too.
+     * @param \stdClass|null $survey
+     * @return string[] turns, fit, hosts, asks, after
+     */
+    protected static function sums(
+        \stdClass $centre,
+        array $values,
+        array $hosts,
+        ?\stdClass $form,
+        ?\stdClass $survey
+    ): array {
+        $c = self::C;
+        $n = count($values['slots']);
+        $capacity = (int) $values['capacity'];
+        return [
+            'turns' => $n ? get_string($n === 1 ? 'panel_sum_turn' : 'panel_sum_turns', $c, $n) : get_string('panel_sum_noturns', $c),
+            'fit' => !empty($values['free']) ? get_string('panel_sum_free', $c) : ($capacity ? get_string(
+                'panel_sum_limit',
+                $c,
+                $capacity
+            ) : get_string('panel_sum_nolimit', $c)) . ' ' . get_string($values['open'] ? 'panel_sum_open' : 'panel_sum_closed', $c),
+            'hosts' => $hosts ? get_string('panel_sum_hosts', $c, familypage::join($hosts, current_language())) :
+                get_string('panel_sum_nohosts', $c),
+            'asks' => $form ? get_string('panel_sum_asks_form', $c, format_string($form->name)) : get_string('panel_sum_asks', $c),
+            'after' => $survey ? get_string('panel_sum_after_survey', $c, format_string($survey->name)) :
+                get_string('panel_sum_after', $c),
+        ];
     }
 
     /**

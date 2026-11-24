@@ -1,0 +1,37 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_free
+
+    An act anybody may come to without signing up: what it is, when and where.
+
+    Example context (json):
+    {
+        "kicker": "Charla", "headline": "Respirar y atender", "when": "miércoles 2 de diciembre", "hours": "De 15:00 a 16:00", "where": "Biblioteca",
+        "act": {"word": "Charla", "about": "Cómo acompañar a los niños.", "poster": false, "speakers": [], "hasspeakers": false,
+            "speakerstitle": "Con", "audience": "", "free": true, "freetext": "Entrada libre. No hace falta inscribirse."}
+    }
+}}
+<section class="pared" aria-labelledby="titulo">
+    <div class="saludo-arriba">
+        {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
+        <h1 class="titular" id="titulo">{{headline}}</h1>
+        <p class="entradilla">{{when}} · {{hours}}</p>
+        {{#where}}<p>{{where}}</p>{{/where}}
+        {{#act}}<p><b>{{freetext}}</b></p>{{> local_oksigeniaeguahe/public_act }}{{/act}}
+    </div>
+</section>

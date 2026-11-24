@@ -37,6 +37,27 @@ class signuppage {
         'pub_submit_self', 'pub_sending_self'];
 
     /**
+     * The context of the page of an act anybody may come to without signing up (public_free).
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array
+     */
+    public static function free(\stdClass $event, \stdClass $centre, string $lang): array {
+        $parts = publicpage::date_parts((int) $event->timestart, $lang);
+        return [
+            'kicker' => acts::word($event, $lang),
+            'headline' => format_string($event->name),
+            'when' => $parts['long'],
+            'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
+            'where' => implode(', ', array_filter([$event->place ? format_string($event->place) : '',
+                !empty($centre->address) ? format_string($centre->address) : ''])),
+            'act' => acts::context($event, $lang),
+        ];
+    }
+
+    /**
      * The context of the template public_signup.
      *
      * @param \stdClass $event
@@ -215,9 +236,13 @@ class signuppage {
         $askincentre = $event->kind === 'other' || ($isform && in_array('incentre', $blocks, true));
         return $str + [
             'isform' => $isform,
-            'kicker' => $isform ? '' : format_string($event->name),
+            // How the act is told: its picture, what it is about, who gives it and for whom.
+            'act' => $isform ? false : acts::context($event, $lang),
+            // A talk or a party is announced by its own name: «Come and meet us» is of an open day or a visit.
+            'kicker' => $isform ? '' : ($event->kind === 'other' ? acts::word($event, $lang) : format_string($event->name)),
             'headline' => $isform ? (trim((string) ($form->title ?? '')) !== '' ? format_string($form->title) :
-                publiclang::str('pub_form_title', $lang)) : $str['pub_come_meet'],
+                publiclang::str('pub_form_title', $lang)) : ($event->kind === 'other' ? format_string($event->name) :
+                $str['pub_come_meet']),
             'formlead' => $isform && trim((string) ($form->lead ?? '')) !== '' ? format_string($form->lead) :
                 publiclang::str('pub_form_lead', $lang),
             'formside' => publiclang::str('pub_form_side', $lang),

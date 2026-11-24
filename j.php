@@ -134,6 +134,17 @@ if (!$event->open || $event->timeend < time()) {
     );
 }
 
+if (!empty($event->free) && !$desk) {
+    // Anybody may come: what it is, when and where, and no form.
+    publicpage::output(
+        $centre,
+        $lang,
+        format_string($event->name),
+        'public_free',
+        signuppage::free($event, $centre, $lang),
+        $url
+    );
+}
 $data = signup::read($centre);
 // A student signing up for themselves is spoken to as one person from here on (what is wrong, the wall afterwards).
 publiclang::$self = !empty($data['self']);
@@ -244,7 +255,8 @@ if (share::act_open($event)) {
     $when = publicpage::date_parts((int) $event->timestart, $lang);
     publicpage::$head = share::meta(
         format_string($event->name),
-        $when['long'] . (!empty($event->place) ? ' · ' . format_string($event->place) : ''),
+        $when['long'] . (!empty($event->place) ? ' · ' . format_string($event->place) : '') .
+            (trim((string) ($event->about ?? '')) !== '' ? '. ' . core_text::substr(trim($event->about), 0, 160) : ''),
         events::url($event),
         new moodle_url('/local/oksigeniaeguahe/og.php', ['p' => 'acto', 't' => $event->token, 'idioma' => $lang]),
         $lang,

@@ -212,6 +212,10 @@ final class practice {
         foreach ($DB->get_fieldset_select(households::CHILDREN, 'id', 'centreid = ?', [$id]) as $childid) {
             drawings::delete((int) $childid);
         }
+        foreach ($DB->get_fieldset_select(events::T, 'id', 'centreid = ?', [$id]) as $eventid) {
+            acts::drop((int) $eventid, acts::POSTER);
+            acts::drop((int) $eventid, acts::SPEAKER);
+        }
         $dbman = $DB->get_manager();
         foreach ($DB->get_tables(false) as $table) {
             if (strpos($table, 'local_oksigeniaeguahe_') !== 0 || $table === centres::T || $table === centres::MEMBERS) {

@@ -124,11 +124,12 @@ class drawings {
      *
      * @param string $bytes
      * @param array $info As getimagesizefromstring() gives it.
+     * @param int $side The longest side kept.
      * @return array [bytes, info]
      */
-    public static function clean(string $bytes, array $info): array {
+    public static function clean(string $bytes, array $info, int $side = self::SIDE): array {
         $exif = $info['mime'] === 'image/jpeg' && strpos(substr($bytes, 0, 65536), "Exif\0\0") !== false;
-        $big = max($info[0], $info[1]) > self::SIDE;
+        $big = max($info[0], $info[1]) > $side;
         if ((!$exif && !$big) || !function_exists('imagecreatefromstring')) {
             return [$bytes, $info];
         }
@@ -144,8 +145,8 @@ class drawings {
         }
         $w = imagesx($image);
         $h = imagesy($image);
-        if (max($w, $h) > self::SIDE) {
-            $scale = self::SIDE / max($w, $h);
+        if (max($w, $h) > $side) {
+            $scale = $side / max($w, $h);
             $image = imagescale($image, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale))) ?: $image;
         }
         ob_start();

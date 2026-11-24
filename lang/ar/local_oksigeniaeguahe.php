@@ -25,6 +25,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['act_for'] = 'موجّه إلى: {$a}';
+$string['act_free'] = 'الدخول حرّ، ولا حاجة إلى التسجيل.';
+$string['act_speakers'] = 'مع';
+$string['act_word_openday'] = 'يوم مفتوح';
+$string['act_word_party'] = 'حفل';
+$string['act_word_talk'] = 'محاضرة';
+$string['act_word_visit'] = 'زيارة';
+$string['act_word_workshop'] = 'ورشة';
 $string['app_renewal_leave_send'] = 'إرسال: لن يواصل';
 $string['app_renewal_none'] = 'لا يوجد ما تجيبون عنه الآن.';
 $string['app_renewal_title'] = 'هل تواصلون العام المقبل؟';
@@ -312,6 +320,7 @@ $string['mail_invite_preheader'] = 'ننتظركم، {$a->names}. في استق�
 $string['mail_invite_preheader_self'] = 'ننتظركم، {$a->names}. في استقبالكم {$a->host} الساعة {$a->hour}.';
 $string['mail_invite_subject'] = 'زيارتكم إلى {$a->centre}: {$a->date}، {$a->when}';
 $string['mail_letter_bye'] = 'مع أطيب التحيات،';
+$string['mail_letter_free'] = 'الدخول حرّ ولا حاجة إلى التسجيل. كل شيء هنا:';
 $string['mail_letter_hello'] = 'مرحبًا {$a}،';
 $string['mail_letter_hello_noname'] = 'مرحبًا،';
 $string['mail_letter_join'] = 'إن رغبتم في الحضور، يمكنكم التسجيل هنا:';

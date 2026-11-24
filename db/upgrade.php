@@ -1809,5 +1809,24 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121500, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121700) {
+        // How an act is told: the word for what it is, what it is about, who gives it, for whom, its picture, free entry.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $fields = [
+            new xmldb_field('word', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'kind'),
+            new xmldb_field('about', XMLDB_TYPE_TEXT, null, null, null, null, null, 'name'),
+            new xmldb_field('speakers', XMLDB_TYPE_TEXT, null, null, null, null, null, 'about'),
+            new xmldb_field('audience', XMLDB_TYPE_TEXT, null, null, null, null, null, 'speakers'),
+            new xmldb_field('posteralt', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'audience'),
+            new xmldb_field('free', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'open'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026121700, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

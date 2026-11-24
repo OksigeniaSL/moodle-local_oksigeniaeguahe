@@ -627,7 +627,8 @@ class familymail {
                 $before[] = trim($paragraph);
             }
         }
-        $join = $str('mail_letter_join');
+        // With free entry there is nothing to sign up to: the link says what it is.
+        $join = $str(!empty($signup->free) ? 'mail_letter_free' : 'mail_letter_join');
         $after = [];
         if (!empty($centre->email) && validate_email($centre->email)) {
             $after[] = $str('mail_letter_stop');

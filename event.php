@@ -204,6 +204,6 @@ panel::output(
     'events',
     format_string($event->name),
     'panel_event',
-    panel_event::context($event, $centre, $canact),
+    panel_event::context($event, $centre, $canact, 0, optional_param('nuevo', 0, PARAM_BOOL)),
     true
 );

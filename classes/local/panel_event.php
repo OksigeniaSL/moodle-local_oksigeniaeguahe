@@ -59,9 +59,16 @@ class panel_event {
      * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
+     * @param bool $fresh Whether it was just made.
      * @return array
      */
-    public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0): array {
+    public static function context(
+        \stdClass $event,
+        \stdClass $centre,
+        bool $canact,
+        int $now = 0,
+        bool $fresh = false
+    ): array {
         $now = $now ?: time();
         $c = self::C;
         $url = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]);
@@ -225,6 +232,20 @@ class panel_event {
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
             'invite' => self::invite_card($event, $canact, $now),
+            // Just made: what comes next.
+            'fresh' => $fresh && $canact ? [
+                'invite' => invites::fits($event, $now) ? (new \moodle_url(
+                    '/local/oksigeniaeguahe/event.php',
+                    ['id' => $event->id, 'invitar' => 1]
+                ))->out(false) : '',
+                'edit' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id, 'id' => $event->id]))->out(
+                    false
+                ),
+                'share' => '#compartir',
+                'poster' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'poster' => 1]))->out(false),
+            ] : false,
+            // How it is told, as the team reads it.
+            'told' => acts::context($event, (string) ($centre->lang ?: 'es')),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -261,7 +282,7 @@ class panel_event {
             // The kit for the networks, for an act open to all and still to come.
             'kiturl' => kit::has($event, $now) ? (new \moodle_url('/local/oksigeniaeguahe/kit.php', ['id' => $event->id]))
                 ->out(false) : false,
-            'kind' => get_string($family ? 'visit_own' : ($tailored ? 'visit_asking' : 'event_kind_' . $event->kind), $c),
+            'kind' => $family || $tailored ? get_string($family ? 'visit_own' : 'visit_asking', $c) : acts::team_word($event),
             'capacity' => $event->capacity ? get_string(
                 (int) $event->capacity === 1 ? 'panel_people_one' : 'panel_people',
                 $c,

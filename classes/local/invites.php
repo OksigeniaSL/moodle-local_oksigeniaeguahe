@@ -685,7 +685,7 @@ class invites {
     public static function of_letter(\stdClass $event): \stdClass {
         return (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
             'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
-            'token' => $event->token];
+            'token' => $event->token, 'free' => (int) ($event->free ?? 0)];
     }
 
     /**

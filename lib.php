@@ -40,7 +40,11 @@ function local_oksigeniaeguahe_pluginfile($course, $cm, $context, $filearea, $ar
     // The voice saying a first name (namevoices) is for anyone: a page of the story asks for it without an account.
     // The miniature of a centre, too: its page shows it to the families.
     $miniatures = \local_oksigeniaeguahe\local\centres::MINIATURES;
-    $areas = array_merge(['logo', 'logodark', 'hostphoto', 'drawing', 'drawingstrokes', 'namevoice'], $miniatures);
+    // And the picture of an act and the photos of who gives it, on the pages where families sign up.
+    $areas = array_merge(
+        ['logo', 'logodark', 'hostphoto', 'drawing', 'drawingstrokes', 'namevoice', 'actposter', 'actspeaker'],
+        $miniatures
+    );
     if ($context->contextlevel != CONTEXT_SYSTEM || !in_array($filearea, $areas, true)) {
         return false;
     }

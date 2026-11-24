@@ -2415,6 +2415,17 @@
             if (visitOnly) {
                 visitOnly.hidden = !chosen || chosen.value !== 'visit';
             }
+            var otherOnly = one('.solo-otra', eventForm);
+            if (otherOnly) {
+                otherOnly.hidden = !chosen || chosen.value !== 'other';
+            }
+            // The name of an open day is proposed while nobody has written another.
+            var actName = one('#acto-nombre', eventForm);
+            if (actName && chosen && actName.getAttribute('data-propuesto') === actName.value) {
+                actName.value = chosen.getAttribute('data-sugerido') || '';
+                actName.setAttribute('data-propuesto', actName.value);
+                setMuestra('nombre', actName.value || actName.getAttribute('placeholder') || '');
+            }
         };
         on(eventForm, 'input', function(e) {
             var key = e.target.getAttribute('data-vivo');

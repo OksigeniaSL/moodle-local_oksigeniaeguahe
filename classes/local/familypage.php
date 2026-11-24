@@ -332,6 +332,8 @@ class familypage {
                 'place' => trim(implode(' · ', array_unique(array_filter([$s->place ? format_string($s->place) : '',
                     (string) ($centre->address ?? '')])))),
                 'people' => publiclang::count('pub_people_one', 'pub_people_count', (int) $s->people, $lang),
+                // How it is told: its picture, what it is about, who gives it and for whom.
+                'act' => ($told = events::get((int) $s->eventid, (int) $centre->id)) ? acts::context($told, $lang) : false,
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
                 // Not coming after all: one touch, and the centre knows.
