@@ -21,17 +21,17 @@
 
     Example context (json):
     {
-        "kicker": "Charla", "headline": "Respirar y atender", "when": "miércoles 2 de diciembre", "hours": "De 15:00 a 16:00", "where": "Biblioteca",
-        "act": {"word": "Charla", "about": "Cómo acompañar a los niños.", "poster": false, "speakers": [], "hasspeakers": false,
+        "longname": false, "kicker": "Charla", "headline": "Respirar y atender", "when": "miércoles 2 de diciembre", "hours": "De 15:00 a 16:00", "where": "Biblioteca",
+        "act": {"word": "Charla", "any": true, "about": "Cómo acompañar a los niños.", "poster": false, "speakers": [], "hasspeakers": false,
             "speakerstitle": "Con", "audience": "", "free": true, "freetext": "Entrada libre. No hace falta inscribirse."}
     }
 }}
-<section class="pared" aria-labelledby="titulo">
-    <div class="saludo-arriba">
+<section class="pared pared-libre" aria-labelledby="titulo">
+    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px"{{/poster}}{{/act}}>
         {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
-        <h1 class="titular" id="titulo">{{headline}}</h1>
-        <p class="entradilla">{{when}} · {{hours}}</p>
-        {{#where}}<p>{{where}}</p>{{/where}}
-        {{#act}}<p><b>{{freetext}}</b></p>{{> local_oksigeniaeguahe/public_act }}{{/act}}
+        <h1 class="titular{{#longname}} largo{{/longname}}" id="titulo">{{headline}}</h1>
+        <p class="acto-cuando">{{when}}<span>{{hours}}{{#where}} · <span dir="auto">{{where}}</span>{{/where}}</span></p>
+        {{#act}}{{> local_oksigeniaeguahe/public_act }}{{/act}}
     </div>
+    <div class="riel" aria-hidden="true"></div>
 </section>

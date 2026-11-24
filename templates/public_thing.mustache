@@ -55,6 +55,16 @@
         {{#place}}<span>{{place}}</span>{{/place}}
         {{#arrive}}<span class="llegar" dir="auto">{{arrive}}</span>{{/arrive}}
         <span>{{people}}</span>
+        {{#act}}{{#any}}
+        <div class="acto-en-banda">
+            {{#poster}}<a class="acto-en-banda-cartel" href="{{url}}" target="_blank" rel="noopener" data-ampliar="{{pub_drawing_close}}"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}" loading="lazy"></a>{{/poster}}
+            <div>
+                {{#about}}<p class="acto-va" dir="auto">{{about}}</p>{{/about}}
+                {{#speakers}}<p dir="auto"><b>{{name}}</b>{{#role}} · {{role}}{{/role}}</p>{{/speakers}}
+                {{#audience}}<p dir="auto">{{audience}}</p>{{/audience}}
+            </div>
+        </div>
+        {{/any}}{{/act}}
         <div class="acciones">
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
             {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}

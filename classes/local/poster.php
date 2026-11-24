@@ -64,7 +64,10 @@ class poster {
         $words = $door ? 'poster_door_' : 'poster_';
         $logo = centres::logo((int) $centre->id);
         $phone = trim((string) ($centre->phone ?? ''));
+        // The poster of the centre is the poster: whole, with the strip of the code under it. The one of the door is ours.
+        $own = $door ? false : acts::poster($event);
         return documents::render('poster.html', [
+            'propio' => $own ? ['src' => $own['url'], 'dice' => $own['alt']] : false,
             'lang' => $lang === 'pt_br' ? 'pt-BR' : $lang,
             'papel' => $paper,
             'escala' => self::PAPERS[$paper],
@@ -83,8 +86,9 @@ class poster {
             'hora' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'lugar' => implode(' · ', array_filter([$event->place ? format_string($event->place) : '',
                 (string) ($centre->address ?? '')])),
-            'llamada' => $str($words . 'call'),
-            'como' => $str($words . 'how'),
+            // Anybody may come: the code is to know more, never to sign up.
+            'llamada' => $str(!$door && !empty($event->free) ? 'act_free' : $words . 'call'),
+            'como' => !$door && !empty($event->free) ? '' : $str($words . 'how'),
             'url_corta' => $shown,
             'telefono_texto' => $phone !== '' && !$door ? $str('poster_phone', $phone) : '',
             'qr_svg' => $door ? $doorqr : events::qr_svg($event),

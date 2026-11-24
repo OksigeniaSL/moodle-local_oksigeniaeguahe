@@ -50,7 +50,7 @@
         "adults": [{"index": 0, "hidden": false, "fields": [{"name": "a0first", "label": "Nombre", "value": "",
             "type": "text", "autocomplete": "given-name", "inputmode": "", "error": "", "invalid": false}]}],
         "canaddadult": true, "pub_another_adult": "Añadir a otro adulto",
-        "isform": false, "kicker": "Jornada de puertas abiertas", "headline": "Vengan a conocernos", "formlead": "",
+        "isform": false, "kicker": "Jornada de puertas abiertas", "longname": false, "headline": "Vengan a conocernos", "formlead": "",
         "formside": "", "emaildomains": "gmail.com hotmail.com", "emailmaybe": "¿Quisieron decir {$a}?", "emailuse": "Sí, usar ese", "fields": [], "hasfields": false, "askplace": true, "askheard": true, "askmessage": true,
         "askincentre": false, "askpeople": true, "hasmore": true, "preview": false, "previewnote": "",
         "tailored": false, "days": [], "periods": [], "pub_when_suits": "¿Cuándo les viene bien?", "pub_when_suits_hint": "",
@@ -84,10 +84,11 @@
     }
 }}
 <section class="pared" aria-labelledby="titulo" data-para="{{para}}">
-    <div class="saludo-arriba">
+    <div class="saludo-arriba{{#act}}{{#poster}} con-cartel{{/poster}}{{/act}}"{{#act}}{{#poster}} style="--cartel-alto: {{tall}}px"{{/poster}}{{/act}}>
         {{#kicker}}<p class="antetitulo">{{kicker}}</p>{{/kicker}}
-        <h1 class="titular" id="titulo">{{headline}}</h1>
-        {{#act}}{{> local_oksigeniaeguahe/public_act }}{{/act}}
+        <h1 class="titular{{#longname}} largo{{/longname}}" id="titulo">{{headline}}</h1>
+        {{#isother}}<p class="acto-cuando">{{weekday}}, {{daymonth}}<span>{{hours}}{{#where}} · <span dir="auto">{{where}}</span>{{/where}}</span></p>{{/isother}}
+        {{#act}}{{#any}}{{> local_oksigeniaeguahe/public_act }}{{/any}}{{/act}}
         {{! Who signs up: at a centre where either may, the family for a child or the student for themselves. }}
         {{#choose}}
         <fieldset class="para-quien" id="para">

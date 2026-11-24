@@ -53,6 +53,8 @@ class panel {
         'telefono' => ['' .
             '<path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2z"/>', 2],
         'formulario' => ['<rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/>', 2],
+        'imagen' => ['<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/>' .
+            '<path d="M4 17.5l5-4.5 3.5 3 3-2.5 4.5 4"/>', 2],
         'persona' => ['<circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/>', 2],
         'nota' => ['<path d="M5 4.5h14v10l-5 5H5z"/><path d="M14 19.5v-5h5"/>', 2],
         'enviado' => ['<path d="M20.5 3.5L10 14M20.5 3.5l-6.5 17-4-6.5-6.5-4z"/>', 2],

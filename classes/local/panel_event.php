@@ -535,6 +535,8 @@ class panel_event {
             '/local/oksigeniaeguahe/event.php',
             ['id' => $event->id, 'invitar' => 1] + $params
         ))->out(false);
+        // For whom the act is, already chosen: pressed by the page, so without script nothing is left out of sight.
+        $for = $group === '' && !$done ? array_map('format_string', acts::audience($event)) : [];
         $rows = [];
         foreach ($centres ? ['centre'] : ['course', 'act', 'alumni', 'hobby', 'centre'] as $kind) {
             foreach ($groups as $key => $one) {
@@ -543,7 +545,7 @@ class panel_event {
                     $rows[$row]['name'] = $row;
                     $rows[$row]['chips'][] = ['name' => $one['short'] ?? $one['name'], 'n' => count($one['ids']),
                         'ids' => $kind === 'centre' ? '' : implode(',', $one['ids']), 'current' => $group === $key,
-                        'cap' => $kind === 'alumni',
+                        'cap' => $kind === 'alumni', 'start' => $kind === 'course' && in_array($one['name'], $for, true),
                         'key' => $group === $key ? '' : $key];
                 }
             }

@@ -101,7 +101,8 @@ class panel_eventform {
             'kind' => $kind,
             'choice' => acts::choice($kind, $word),
             'word' => $word,
-            'name' => trim(optional_param('name', '', PARAM_TEXT)),
+            // Written in as many lines as it takes, it is one.
+            'name' => trim(preg_replace('/\s+/u', ' ', optional_param('name', '', PARAM_TEXT))),
             'tailored' => optional_param('tailored', 0, PARAM_BOOL),
             'day' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ? $day : '',
             'start' => $hour(optional_param('start', '', PARAM_RAW_TRIMMED)),
@@ -496,8 +497,9 @@ class panel_eventform {
                 'photo' => $values['id'] ? acts::photo((int) $values['id'], $one['key']) : '',
                 'initials' => publicpage::initials($one['name'])];
         }
-        $courses = array_map(fn($name) => ['value' => $name, 'name' => format_string($name),
-            'checked' => in_array($name, $values['audience'] ?? [], true)], acts::courses((int) $centre->id));
+        $names = acts::courses((int) $centre->id);
+        $courses = array_map(fn($name, $n) => ['n' => $n, 'value' => $name, 'name' => format_string($name),
+            'checked' => in_array($name, $values['audience'] ?? [], true)], $names, array_keys($names));
         // The turns, with who signed up in each; one with families is not taken out.
         $people = $values['id'] ? $DB->get_records_sql('SELECT slotid, COUNT(1) AS households, SUM(people) AS people
                                                          FROM {' . events::SIGNUPS . '} WHERE eventid = ?
@@ -671,6 +673,9 @@ class panel_eventform {
             'free' => !empty($values['free']),
             // What each part that need not be touched holds, in one line.
             'sums' => self::sums($centre, $values, $firsts, $chosen, $surveyentry),
+            'sumtexts' => json_encode(self::sumtexts(), JSON_UNESCAPED_UNICODE),
+            // Inside a badge «i» is its number: its icon goes apart.
+            'faceicon' => panel::icon('persona'),
             'preview' => [
                 'kind' => acts::team_word((object) ['kind' => $values['kind'], 'word' => $values['word'] ?? '']),
                 'name' => $values['name'] !== '' ? $values['name'] : get_string('panel_preview_name', $c),
@@ -719,6 +724,25 @@ class panel_eventform {
     }
 
     /**
+     * The sentences of sums(), for the page to say them again when something changes: what goes in them is {x}.
+     *
+     * @return string[]
+     */
+    protected static function sumtexts(): array {
+        $c = self::C;
+        $out = [];
+        foreach (['noturns', 'turn', 'free', 'nolimit', 'open', 'closed', 'nohosts', 'asks', 'after'] as $key) {
+            $out[$key] = get_string('panel_sum_' . $key, $c);
+        }
+        $filled = ['turns' => 'turns', 'limit' => 'limit', 'hosts' => 'hosts', 'asksform' => 'asks_form',
+            'aftersurvey' => 'after_survey'];
+        foreach ($filled as $key => $id) {
+            $out[$key] = get_string('panel_sum_' . $id, $c, '{x}');
+        }
+        return $out + ['parkon' => get_string('event_parking_on', $c), 'parkoff' => get_string('event_parking_off', $c)];
+    }
+
+    /**
      * What each part of the form that need not be touched holds, in one line.
      *
      * @param \stdClass $centre
@@ -747,7 +771,11 @@ class panel_eventform {
             ) : get_string('panel_sum_nolimit', $c)) . ' ' . get_string($values['open'] ? 'panel_sum_open' : 'panel_sum_closed', $c),
             'hosts' => $hosts ? get_string('panel_sum_hosts', $c, familypage::join($hosts, current_language())) :
                 get_string('panel_sum_nohosts', $c),
-            'asks' => $form ? get_string('panel_sum_asks_form', $c, format_string($form->name)) : get_string('panel_sum_asks', $c),
+            'asks' => !empty($values['free']) ? get_string('panel_sum_asks_free', $c) : ($form ? get_string(
+                'panel_sum_asks_form',
+                $c,
+                format_string($form->name)
+            ) : get_string('panel_sum_asks', $c)),
             'after' => $survey ? get_string('panel_sum_after_survey', $c, format_string($survey->name)) :
                 get_string('panel_sum_after', $c),
         ];

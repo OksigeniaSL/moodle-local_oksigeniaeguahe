@@ -1,0 +1,321 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_oksigeniaeguahe\local;
+
+/**
+ * The brief form inside the web of a centre (w.php and j.php with breve=1): what is needed to answer and nothing else, all
+ * of it in sight, with no wall, no drawings and no scroll, for the window the web opens. The rest (what they call the child
+ * at home, the birthday, how they heard of the centre, how they want to be written to) is told later, if they wish, on the
+ * page of the family.
+ *
+ * @package    local_oksigeniaeguahe
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class brief {
+    /** @var int A form sent sooner than this after its page was given is not of a person, in seconds. */
+    const SOONEST = 2;
+
+    /** @var int How many forms the same address of the internet sends in an hour. */
+    const PERHOUR = 20;
+
+    /** @var string What a person does not see and a machine fills. */
+    const TRAP = 'web2';
+
+    /** @var int More options than this do not fit as buttons. */
+    const OPTIONS = 5;
+
+    /**
+     * The question of the form shown as buttons, above everything: the first that picks one of a few and depends on no
+     * other.
+     *
+     * @param int $formid
+     * @param string $fallback The language of the centre.
+     * @return \stdClass|null
+     */
+    public static function question(int $formid, string $fallback): ?\stdClass {
+        foreach (forms::fields($formid) as $field) {
+            $n = count(forms::texts($field, $fallback, $fallback)['baseoptions']);
+            if ($field->type === 'choice' && !$field->showif && $n > 1 && $n <= self::OPTIONS) {
+                return $field;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The option of a question that the web asked for by a word of its own («un-dia» is «Un día de clase»).
+     *
+     * @param \stdClass $field
+     * @param string $word
+     * @param string $fallback
+     * @return string Its value; empty when none is.
+     */
+    public static function option(\stdClass $field, string $word, string $fallback): string {
+        $slug = fn(string $s) => trim(preg_replace('/[^a-z0-9]+/', '-', recognise::plain($s)), '-');
+        $word = $slug($word);
+        if ($word === '') {
+            return '';
+        }
+        $base = forms::texts($field, $fallback, $fallback)['baseoptions'];
+        foreach (lists::LANGS as $lang) {
+            foreach (forms::texts($field, $lang, $fallback)['options'] as $i => $label) {
+                // By how it starts, or by any of its words: «videollamada» is «Por videollamada».
+                if (strpos('-' . $slug($label) . '-', '-' . $word) !== false) {
+                    return $base[$i] ?? '';
+                }
+            }
+        }
+        return '';
+    }
+
+    /**
+     * What was sent, as the brief form asks it: nothing of what is not in sight, and no permission that was not asked.
+     *
+     * @param array $data As signup::read() gives it.
+     * @param \stdClass $event
+     * @param \stdClass|null $question
+     * @return array
+     */
+    public static function data(array $data, \stdClass $event, ?\stdClass $question): array {
+        $first = $data['adults'][0];
+        // At an act, the confirmation goes by what they gave; a form asks for an answer, and the rest is for later.
+        $data['consents'] = $event->kind === 'form' ? [] : ['email' => $first['email'] !== '' ? 1 : 0,
+            'phone' => $first['phone'] !== '' ? 1 : 0];
+        $data['answers'] = $question ? array_intersect_key($data['answers'] ?? [], [$question->id => 1]) : [];
+        return $data;
+    }
+
+    /**
+     * What is missing, by field: what signup::check() says, without what is not in sight.
+     *
+     * @param array $errors
+     * @param \stdClass|null $question
+     * @param array $data As signup::read() gives it: what is missing is all said at once.
+     * @return array
+     */
+    public static function errors(array $errors, ?\stdClass $question, array $data): array {
+        if ($data['adults'][0]['email'] === '' && $data['adults'][0]['phone'] === '') {
+            $errors['a0phone'] = $errors['a0phone'] ?? 'pub_err_reach';
+        }
+        $seen = ['a0first', 'a0phone', 'a0email', 'c0name', 'c0offer', 'slot', 'people', 'form'];
+        if ($question) {
+            $seen[] = 'f' . $question->id;
+        }
+        return array_intersect_key($errors, array_flip($seen));
+    }
+
+    /**
+     * Whether what was sent is of a person: it waited a moment, left the trap alone and does not come by the dozen.
+     *
+     * @param string $mark The mark of the page, which says when it was given.
+     * @param string $trap
+     * @param int $id Of the entry, or the act.
+     * @param string $ip
+     * @param int $now
+     * @return bool
+     */
+    public static function person(string $mark, string $trap, int $id, string $ip, int $now): bool {
+        if ($trap !== '' || $now - (int) $mark < self::SOONEST) {
+            return false;
+        }
+        $cache = \cache::make('local_oksigeniaeguahe', 'signupsfrom');
+        $key = sha1($ip . '|breve|' . $id . '|' . get_site_identifier());
+        $count = (int) $cache->get($key) + 1;
+        $cache->set($key, $count);
+        return $count <= self::PERHOUR;
+    }
+
+    /**
+     * The context of the form.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param array $data
+     * @param array $errors
+     * @param \moodle_url $url
+     * @param string $mark
+     * @param \stdClass|null $question
+     * @return array
+     */
+    public static function context(
+        \stdClass $event,
+        \stdClass $centre,
+        string $lang,
+        array $data,
+        array $errors,
+        \moodle_url $url,
+        string $mark,
+        ?\stdClass $question
+    ): array {
+        $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $fallback = (string) ($centre->lang ?: 'es');
+        $adult = $data['adults'][0];
+        $child = $data['children'][0];
+        // What is wrong, short: it goes where the name of the field was, so nothing moves.
+        $short = fn(string $name, string $word) => isset($errors[$name]) ? $str('pub_breve_err_' . $word) : '';
+        $reach = isset($errors['a0phone']) && $adult['phone'] === '' ? $short('a0phone', 'reach') : $short('a0phone', 'phone');
+        $field = fn(string $name, string $label, string $value, string $error, array $more = []) => $more + ['name' => $name,
+            'label' => $str($label), 'value' => $value, 'error' => $error, 'type' => 'text', 'autocomplete' => 'off',
+            'inputmode' => '', 'ltr' => false, 'select' => false, 'need' => ''];
+        $self = !empty($data['self']);
+        $askchild = !$self && $event->kind !== 'other';
+        $fields = [$field('a0first', 'pub_breve_you', $adult['firstname'], $short('a0first', 'name'), ['autocomplete' => 'given-name',
+            'need' => 'nombre'])];
+        if ($askchild) {
+            $fields[] = $field('c0name', 'pub_breve_child', $child['firstname'], $short('c0name', 'child'), ['need' => 'alumno']);
+        }
+        $fields[] = $field('a0phone', 'pub_phone', $adult['phone'], $reach, ['type' => 'tel', 'autocomplete' => 'tel',
+            'inputmode' => 'tel', 'ltr' => true, 'need' => 'contacto']);
+        $fields[] = $field('a0email', 'pub_email', $adult['email'], $short('a0email', 'email'), ['type' => 'email',
+            'autocomplete' => 'email', 'inputmode' => 'email', 'ltr' => true, 'need' => 'contacto']);
+        // The courses of the centre, by stage.
+        [$grouped, $loose] = grades::grouped(array_values(centres::offers((int) $centre->id, true)), $centre);
+        $option = fn($o, bool $year) => ['value' => (int) $o->id, 'name' => format_string($o->name) . ($year ? ' · ' .
+            $o->schoolyear : ''), 'selected' => (int) $o->id === (int) $child['offerid']];
+        if (($askchild || $self) && ($grouped || $loose)) {
+            $fields[] = $field('c0offer', 'pub_breve_course', '', $short('c0offer', 'course'), ['select' => [
+                'none' => $str('pub_breve_course_none'),
+                'groups' => array_map(fn($g) => ['label' => $g['label'], 'options' => array_map(
+                    fn($o) => $option($o, false),
+                    $g['offers']
+                )], $grouped),
+                'options' => array_map(fn($o) => $option($o, true), $loose),
+            ]]);
+        }
+        // An act with turns: its hour.
+        $slots = [];
+        if ($event->kind !== 'form' && empty($event->tailored)) {
+            foreach (events::slots((int) $event->id) as $slot) {
+                $full = $slot->capacity && (int) $slot->people >= (int) $slot->capacity;
+                if ($slot->timeend >= time() && !$full) {
+                    $slots[] = ['value' => (int) $slot->id, 'name' => mail::hours($slot, $lang),
+                        'selected' => (int) $slot->id === (int) ($data['slot'] ?? 0)];
+                }
+            }
+        }
+        if ($slots) {
+            $fields[] = $field('slot', 'pub_breve_slot', '', $short('slot', 'slot'), ['select' => ['none' => '—', 'groups' => [],
+                'options' => $slots]]);
+        }
+        $fields[] = $field('message', 'pub_breve_message', $data['message'], '', []);
+        $ask = false;
+        if ($question) {
+            $texts = forms::texts($question, $lang, $fallback);
+            $given = (string) ($data['answers'][$question->id] ?? '');
+            $options = [];
+            foreach ($texts['options'] as $i => $label) {
+                $value = $texts['baseoptions'][$i] ?? $label;
+                $options[] = ['id' => 'o' . $i, 'value' => $value, 'label' => $label, 'checked' => $given === $value];
+            }
+            $ask = ['name' => 'f' . $question->id, 'label' => isset($errors['f' . $question->id]) ? $str('pub_breve_err_ask') :
+                $texts['label'], 'error' => isset($errors['f' . $question->id]), 'options' => $options];
+        }
+        return [
+            'action' => $url->out(false),
+            'mark' => $mark,
+            'trap' => self::TRAP,
+            'self' => $self,
+            'ask' => $ask,
+            'fields' => array_map(fn($f, $i) => $f + ['id' => 'b' . $i, 'last' => $i === count($fields) - 1 &&
+                count($fields) % 2 === 1], $fields, array_keys($fields)),
+            'arrival' => array_map(
+                fn($k) => ['key' => $k, 'value' => (string) ($data['arrival'][$k] ?? '')],
+                array_keys(arrival::FIELDS)
+            ),
+            // What is wrong with the whole of it goes where the hint was.
+            'hint' => isset($errors['form']) ? $errors['form'] : ($errors['people'] ?? $str('pub_breve_hint')),
+            'hinterror' => isset($errors['form']) || isset($errors['people']),
+            'privacyurl' => publicpage::privacy_url($centre, $lang)->out(false),
+            'privacy' => $str('pub_privacy_link'),
+            'send' => $str($event->kind === 'form' ? 'pub_submit_form' : 'pub_submit' . ($self ? '_self' : '')),
+            'sent' => false,
+        ];
+    }
+
+    /**
+     * The context once it was sent: two lines in the same place.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param \moodle_url|null $page The page of the family, to tell more if they wish; null for a family already known.
+     * @param \stdClass|null $event The act they signed up to; null for a form.
+     * @return array
+     */
+    public static function sent(\stdClass $centre, string $lang, ?\moodle_url $page, ?\stdClass $event = null): array {
+        if ($event) {
+            $parts = publicpage::date_parts((int) $event->timestart, $lang);
+            return ['sent' => ['title' => publiclang::str('pub_breve_signed', $lang),
+                'text' => publiclang::str('pub_breve_signed_text', $lang, (object) ['event' => format_string($event->name),
+                    'date' => $parts['long']]),
+                'url' => $page ? $page->out(false) : '', 'more' => publiclang::str('pub_breve_more', $lang)]];
+        }
+        $days = publiclang::count('pub_reply_day', 'pub_reply_days', max(1, (int) ($centre->replydays ?? 2)), $lang);
+        return ['sent' => ['title' => publiclang::str('pub_breve_sent', $lang),
+            'text' => publiclang::str('pub_breve_sent_text', $lang, $days),
+            'url' => $page ? $page->out(false) : '', 'more' => publiclang::str('pub_breve_more', $lang)]];
+    }
+
+    /**
+     * Writes the page: light, see-through and as tall as what it holds.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $title
+     * @param array $context
+     * @param string $button The colour of the buttons of the web that shows it, as six hexadecimal digits; '' for that of the
+     *     centre.
+     */
+    public static function output(\stdClass $centre, string $lang, string $title, array $context, string $button = ''): void {
+        global $CFG, $OUTPUT;
+        $base = $CFG->wwwroot . '/local/oksigeniaeguahe/pub/';
+        $version = (int) get_config('local_oksigeniaeguahe', 'version');
+        $colour = centres::colour($centre);
+        $brand = centres::brand($centre);
+        // The web of the centre puts the ground, and it is light: so are the colours here, whatever the phone says.
+        $vars = publicpage::centre_vars($colour, false) + ($brand ? publicpage::brand_vars($brand, $colour, false) : []);
+        if (preg_match('/^[0-9a-f]{6}$/i', $button)) {
+            $colourof = '#' . \core_text::strtoupper($button);
+            $on = publicpage::contrast($colourof, '#FFFFFF') >= publicpage::contrast($colourof, '#1A1614') ? '#FFFFFF' : '#1A1614';
+            // A light button, with a border of ink: without it, it would get lost on the paper.
+            $vars += ['--boton' => $colourof, '--sobre-boton' => $on,
+                '--borde-boton' => publicpage::contrast($colourof, '#FFFFFF') < 3 ? '#1A1614' : $colourof];
+        }
+        $style = implode(' ', array_map(fn($k, $v) => "$k: $v;", array_keys($vars), $vars));
+        $body = $OUTPUT->render_from_template('local_oksigeniaeguahe/public_brief', $context);
+        publicpage::headers();
+        echo '<!DOCTYPE html>
+<html lang="' . s($lang === 'pt_br' ? 'pt-BR' : $lang) . '" dir="' . lists::dir($lang) . '">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="only light">
+<title>' . s($title) . '</title>
+<style>:root { ' . $style . ' }
+' . str_replace('url(fonts/', 'url(' . $base . 'fonts/', file_get_contents(dirname(__DIR__, 2) . '/pub/breve.css')) . '</style>
+<script src="' . $base . 'breve.js?v=' . $version . '" defer></script>
+</head>
+<body' . (!empty($context['sent']) ? ' data-enviado' : '') . '>
+' . $body . '
+</body>
+</html>';
+        die();
+    }
+}

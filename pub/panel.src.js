@@ -450,6 +450,10 @@
                 });
             }
         });
+        // For whom the act is: chosen when it opens, and to let go as any other.
+        all('[data-de-serie]', inviteForm).forEach(function(chip) {
+            chip.setAttribute('aria-pressed', 'true');
+        });
         // Back from the page before it goes, as it was.
         on(window, 'pageshow', function() {
             inviteRows.forEach(function(row) {
@@ -2448,6 +2452,218 @@
             }
         });
         tipoActo();
+        // The word of the centre, on the band as it is written; the help of what is chosen, under the chips.
+        var palabra = one('#acto-palabra', eventForm);
+        var ayudaTipo = one('[data-ayuda-tipo]', eventForm);
+        var dicho = function() {
+            var chosen = one('input[name="kind"]:checked', eventForm);
+            if (chosen) {
+                setMuestra('tipo', (chosen.value === 'other' && palabra && palabra.value.trim()) || chosen.getAttribute('data-vivo-tipo'));
+                if (ayudaTipo) {
+                    ayudaTipo.textContent = chosen.getAttribute('data-ayuda') || '';
+                }
+            }
+        };
+        if (palabra) {
+            on(palabra, 'input', dicho);
+        }
+        on(eventForm, 'change', dicho);
+        dicho();
+        // A picture, seen as soon as it is chosen: read here, nothing leaves until it is saved.
+        var leer = function(file, then) {
+            if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type) || !window.FileReader) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function() {
+                then(reader.result);
+            };
+            reader.readAsDataURL(file);
+        };
+        var hueco = one('[data-cartel]', eventForm);
+        if (hueco) {
+            var cartel = one('input[type="file"]', hueco);
+            var imagen = one('[data-cartel-imagen]', hueco);
+            if (!imagen) {
+                imagen = doc.createElement('img');
+                imagen.alt = '';
+                imagen.hidden = true;
+                imagen.setAttribute('data-cartel-imagen', '');
+                one('.acto-cartel-boton', hueco).insertBefore(imagen, one('.acto-cartel-di', hueco));
+            }
+            var altCampo = one('[data-cartel-alt]', hueco);
+            var nada = one('[data-cartel-nada]', hueco);
+            var quitar = one('[data-cartel-quitar] input', hueco);
+            var antes = imagen.getAttribute('src');
+            var cartelPinta = function(src) {
+                imagen.hidden = !src;
+                if (src) {
+                    imagen.src = src;
+                }
+                hueco.classList.toggle('puesto', !!src);
+                altCampo.hidden = !src;
+            };
+            var cartelElegido = function() {
+                nada.hidden = !cartel.files.length;
+                if (quitar) {
+                    quitar.closest('label').hidden = cartel.files.length > 0;
+                }
+                if (cartel.files.length) {
+                    leer(cartel.files[0], cartelPinta);
+                } else {
+                    cartelPinta(quitar && quitar.checked ? '' : antes);
+                }
+            };
+            hueco.classList.add('con-guion');
+            altCampo.hidden = !antes;
+            on(cartel, 'change', cartelElegido);
+            on(nada, 'click', function() {
+                cartel.value = '';
+                cartelElegido();
+                cartel.focus();
+            });
+            if (quitar) {
+                on(quitar, 'change', cartelElegido);
+            }
+            ['dragover', 'dragleave', 'drop'].forEach(function(type) {
+                on(hueco, type, function(e) {
+                    e.preventDefault();
+                    hueco.classList.toggle('encima', type === 'dragover');
+                    if (type === 'drop' && e.dataTransfer.files.length) {
+                        cartel.files = e.dataTransfer.files;
+                        cartelElegido();
+                    }
+                });
+            });
+        }
+        // Who gives it: one badge more, up to four; one taken out goes with what it has.
+        var solapas = one('[data-solapas]', eventForm);
+        if (solapas) {
+            var otra = one('[data-solapa-mas]', eventForm);
+            var molde = one('[data-solapa-nueva]', solapas);
+            var SOLAPAS = 4;
+            var moldeHtml = molde ? molde.outerHTML : '';
+            var moldeN = molde ? parseInt(molde.getAttribute('data-solapa-nueva'), 10) : 0;
+            var siguiente = moldeN + 1;
+            // With someone already, the empty one waits behind «Another person».
+            if (molde && all('[data-solapa]', solapas).length > 1) {
+                solapas.removeChild(molde);
+            }
+            var cuentaSolapas = function() {
+                var list = all('[data-solapa]', solapas);
+                list.forEach(function(s) {
+                    one('[data-solapa-quita]', s).hidden = !one('input[name^="speakername"]', s).value && list.length < 2;
+                });
+                otra.hidden = !moldeHtml || list.length >= SOLAPAS;
+            };
+            on(solapas, 'change', function(e) {
+                if (e.target.type === 'file') {
+                    var tag = one('.solapa-cara label', e.target.closest('[data-solapa]'));
+                    leer(e.target.files[0], function(src) {
+                        var face = one('[data-cara]', tag) || tag.insertBefore(doc.createElement('img'), tag.firstChild);
+                        face.alt = '';
+                        face.setAttribute('data-cara', '');
+                        face.src = src;
+                    });
+                }
+                cuentaSolapas();
+            });
+            on(solapas, 'input', cuentaSolapas);
+            on(solapas, 'click', function(e) {
+                var out = e.target.closest('[data-solapa-quita]');
+                if (!out) {
+                    return;
+                }
+                var one1 = out.closest('[data-solapa]');
+                one1.parentNode.removeChild(one1);
+                if (!all('[data-solapa]', solapas).length) {
+                    otra.hidden = false;
+                }
+                cuentaSolapas();
+                (otra.hidden ? one('input[name^="speakername"]', solapas) : otra).focus();
+            });
+            on(otra, 'click', function() {
+                var holder = doc.createElement('div');
+                // The number of the mould, in its names and its ids, by the next one.
+                holder.innerHTML = moldeHtml.replace(new RegExp('\\[' + moldeN + '\\]', 'g'), '[' + siguiente + ']')
+                    .replace(new RegExp('(pon-[fnq]-)' + moldeN + '"', 'g'), '$1' + siguiente + '"');
+                siguiente++;
+                var row = holder.firstElementChild;
+                solapas.appendChild(row);
+                cuentaSolapas();
+                one('input[name^="speakername"]', row).focus();
+            });
+            cuentaSolapas();
+        }
+        // What grows as it is written; the name, in as many lines as it takes, is one: Enter goes on to the next field.
+        all('[data-crece]', eventForm).forEach(function(area) {
+            var grow = function() {
+                area.style.height = 'auto';
+                area.style.height = area.scrollHeight + (area.offsetHeight - area.clientHeight) + 'px';
+            };
+            var oneLine = area.hasAttribute('data-una-linea');
+            on(area, 'input', function() {
+                if (oneLine && /\n/.test(area.value)) {
+                    area.value = area.value.replace(/\s*\n\s*/g, ' ');
+                }
+                grow();
+            });
+            if (oneLine) {
+                on(area, 'keydown', function(e) {
+                    if (e.key === 'Enter' && !e.isComposing) {
+                        e.preventDefault();
+                    }
+                });
+            }
+            on(eventForm, 'change', grow);
+            on(window, 'resize', grow);
+            grow();
+        });
+        // What each folded part holds, said again when it changes.
+        var sumas = one('[data-sumas]', eventForm);
+        if (sumas) {
+            var st = JSON.parse(sumas.getAttribute('data-sumas') || '{}');
+            var pon = function(key, text) {
+                var el = one('[data-plegado="' + key + '"] [data-suma]', sumas);
+                if (el && text !== undefined) {
+                    el.textContent = text;
+                }
+            };
+            var lleva = function(text, value) {
+                return (text || '').split('{x}').join(value);
+            };
+            var elegido = function(id) {
+                var s = one(id, sumas);
+                return s && s.value !== '0' ? s.options[s.selectedIndex].text : '';
+            };
+            var sumar = function() {
+                var n = all('[data-turno-fila]', sumas).filter(function(r) {
+                    return one('[data-hora]', r).value;
+                }).length;
+                pon('turns', n ? (n === 1 ? st.turn : lleva(st.turns, n)) : st.noturns);
+                var libre = one('input[name="free"]:checked', eventForm);
+                var cap = parseInt(one('#acto-aforo', sumas).value, 10) || 0;
+                pon('fit', libre && libre.value === '1' ? st.free : (cap ? lleva(st.limit, cap) : st.nolimit) + ' ' +
+                    (one('input[name="open"]', sumas).checked ? st.open : st.closed));
+                var names = all('[data-vivo-anfitrion]:checked', sumas).map(function(c) {
+                    return c.getAttribute('data-vivo-anfitrion');
+                });
+                var list = names.length > 1 ? say('panel_js_and', {list: names.slice(0, -1).join(', '), last: names[names.length - 1]}) : names[0];
+                pon('hosts', names.length ? lleva(st.hosts, list) : st.nohosts);
+                var park = one('input[name="parking"]', sumas);
+                pon('parking', park && park.checked ? st.parkon : st.parkoff);
+                pon('asks', elegido('#acto-form') ? lleva(st.asksform, elegido('#acto-form')) : st.asks);
+                pon('after', elegido('#acto-encuesta') ? lleva(st.aftersurvey, elegido('#acto-encuesta')) : st.after);
+            };
+            on(eventForm, 'change', sumar);
+            // What is wrong is never behind a fold.
+            on(eventForm, 'invalid', function(e) {
+                var fold = e.target.closest('details');
+                if (fold) {
+                    fold.open = true;
+                }
+            }, true);
+        }
         var otroTurno = one('[data-otro-turno]', eventForm);
         var moldeTurno = one('[data-turno-molde]', eventForm);
         if (otroTurno && moldeTurno && moldeTurno.content) {

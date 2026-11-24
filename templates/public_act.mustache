@@ -17,24 +17,26 @@
 {{!
     @template local_oksigeniaeguahe/public_act
 
-    How an act is told to a family: its picture, what it is about, who gives it and for whom; each only when it is there.
+    How an act is told to a family: its poster stuck on the wall, whole when it is touched; what it is about, who gives it
+    and for whom.
 
     Example context (json):
     {
-        "word": "Charla", "about": "Cómo acompañar a los niños con las pantallas.",
-        "poster": {"url": "#", "alt": "Cartel de la charla", "w": 800, "h": 1000}, "hasspeakers": true, "speakerstitle": "Con",
+        "word": "Charla", "any": true, "about": "Cómo acompañar a los niños con las pantallas.",
+        "poster": {"url": "#", "alt": "Cartel de la charla", "w": 800, "h": 1000, "wide": false, "tall": 400}, "hasspeakers": true, "speakerstitle": "Con",
         "speakers": [{"name": "Lucía Medina", "role": "Psicóloga", "photo": "", "initials": "LM"}],
         "audience": "Para: Infantil 3 años", "free": false, "freetext": ""
     }
 }}
 <div class="acto-contado">
-    {{#poster}}<img class="acto-cartel" src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}" loading="lazy">{{/poster}}
+    {{#poster}}<a class="acto-cartel{{#wide}} apaisado{{/wide}}" href="{{url}}" target="_blank" rel="noopener"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}"></a>{{/poster}}
     <div class="acto-cuenta">
-        {{#about}}<p class="acto-va">{{about}}</p>{{/about}}
+        {{#free}}<p class="acto-libre">{{freetext}}</p>{{/free}}
+        {{#about}}<p class="acto-va" dir="auto">{{about}}</p>{{/about}}
         {{#hasspeakers}}
         <p class="acto-con">{{speakerstitle}}</p>
-        <ul class="acto-ponentes">{{#speakers}}<li>{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="iniciales" aria-hidden="true">{{initials}}</span>{{/photo}}<span><b>{{name}}</b>{{#role}} <span class="suave">{{role}}</span>{{/role}}</span></li>{{/speakers}}</ul>
+        <ul class="acto-ponentes">{{#speakers}}<li>{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="iniciales" aria-hidden="true">{{initials}}</span>{{/photo}}<span dir="auto"><b>{{name}}</b>{{#role}} <span class="suave">{{role}}</span>{{/role}}</span></li>{{/speakers}}</ul>
         {{/hasspeakers}}
-        {{#audience}}<p class="acto-para">{{audience}}</p>{{/audience}}
+        {{#audience}}<p class="acto-para" dir="auto">{{audience}}</p>{{/audience}}
     </div>
 </div>

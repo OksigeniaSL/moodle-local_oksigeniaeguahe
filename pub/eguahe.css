@@ -2152,32 +2152,86 @@ legend .opc {
     color: var(--eg-tinta-2);
     font-size: 0.9375rem;
 }
-/* How an act is told: its picture, what it is about, who gives it and for whom. */
-.acto-contado {
-    display: grid;
-    gap: 18px;
-    margin-top: 16px;
+/* How an act is told: its poster stuck on the wall, what it is about, who gives it and for whom. */
+.acto-cuando {
+    margin-top: 6px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
 }
 
-.acto-cartel {
+.acto-cuando::first-letter {
+    text-transform: uppercase;
+}
+
+.acto-cuando > span {
     display: block;
-    width: auto;
-    max-width: 100%;
-    height: auto;
-    max-height: 70vh;
-    border-radius: 12px;
+    font-weight: 400;
 }
 
-.acto-cuenta {
-    display: grid;
-    gap: 10px;
+.acto-contado {
+    display: flow-root;
+    margin-top: 12px;
+    padding-bottom: 22px;
+}
+
+/* On a phone, small beside what it is about: the first screen is for what, when and where. */
+.acto-cartel {
+    float: inline-start;
+    display: block;
+    width: 40%;
+    max-width: 190px;
+    margin: 4px 18px 10px 0;
+    padding: 5px;
+    border-radius: 3px;
+    background: #fff;
+    box-shadow: 0 10px 20px -10px rgba(40, 30, 20, 0.5);
+    transform: rotate(-1.2deg);
+}
+
+[dir="rtl"] .acto-cartel {
+    margin: 4px 0 10px 18px;
+}
+
+.acto-cartel img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* A wide one says nothing so small: whole, over what it is about. */
+.acto-cartel.apaisado {
+    float: none;
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 16px;
+}
+
+.titular.largo {
+    font-size: calc(var(--eg-fluido-1) * 0.62);
+    line-height: 1.04;
+}
+
+.acto-cartel:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 3px;
+}
+
+.acto-cuenta > * + * {
+    margin-top: 10px;
+}
+
+.acto-libre {
+    font-weight: 750;
 }
 
 .acto-va {
     white-space: pre-line;
+    overflow-wrap: anywhere;
 }
 
 .acto-con {
+    clear: both;
     font-weight: 700;
 }
 
@@ -2187,6 +2241,10 @@ legend .opc {
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+.acto-cuenta > .acto-ponentes {
+    margin-top: 6px;
 }
 
 .acto-ponentes li {
@@ -2212,6 +2270,75 @@ legend .opc {
 .acto-ponentes b,
 .acto-ponentes .suave {
     display: block;
+}
+
+/* With room, the poster at the side of everything, as on a notice board. */
+@media (min-width: 960px) {
+    .saludo-arriba.con-cartel {
+        position: relative;
+        min-height: calc(var(--cartel-alto, 400px) + 40px);
+        align-content: start;
+        padding-inline-end: calc(var(--g) + 380px);
+    }
+
+    .saludo-arriba.con-cartel .acto-cartel,
+    .saludo-arriba.con-cartel .acto-cartel.apaisado {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-end: var(--g);
+        float: none;
+        width: auto;
+        max-width: 330px;
+        margin: 0;
+        padding: 8px;
+    }
+
+    .saludo-arriba.con-cartel .acto-cartel img {
+        width: auto;
+        max-width: 100%;
+        max-height: 400px;
+    }
+
+    .acto-cuenta {
+        font-size: 1.0625rem;
+    }
+
+    .acto-cuando {
+        font-size: var(--eg-fluido-11);
+    }
+}
+
+/* In the band of the visit, on the page of the family. */
+.acto-en-banda {
+    display: flow-root;
+    margin-top: 8px;
+}
+
+.acto-en-banda b {
+    font-size: inherit;
+}
+
+.acto-en-banda p + p {
+    margin-top: 4px;
+}
+
+.acto-en-banda-cartel {
+    float: inline-start;
+    width: 96px;
+    margin: 2px 14px 6px 0;
+    padding: 3px;
+    border-radius: 3px;
+    background: #fff;
+}
+
+[dir="rtl"] .acto-en-banda-cartel {
+    margin: 2px 0 6px 14px;
+}
+
+.acto-en-banda-cartel img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 /* For who came by the letter of an invitation: how they want to be written to, quiet at the foot. */

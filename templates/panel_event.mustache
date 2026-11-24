@@ -75,6 +75,17 @@
         {{/before}}
         {{/counts}}
     </section>
+    {{#fresh}}
+    <section class="acto-recien" aria-labelledby="recien-t">
+        <h2 id="recien-t">{{#str}}panel_fresh_title, local_oksigeniaeguahe{{/str}}</h2>
+        <div class="acto-pasos">
+            {{#invite}}<a class="acto-paso" href="{{invite}}">{{{i.correo}}}<span><b>{{#str}}panel_invite_go, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_fresh_invite, local_oksigeniaeguahe{{/str}}</span></span></a>{{/invite}}
+            <a class="acto-paso" href="{{share}}">{{{i.enlace}}}<span><b>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_fresh_share, local_oksigeniaeguahe{{/str}}</span></span></a>
+            <a class="acto-paso" href="{{poster}}" target="_blank" rel="noopener">{{{i.imprimir}}}<span><b>{{#str}}panel_fresh_poster, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_fresh_poster_sub, local_oksigeniaeguahe{{/str}}</span></span></a>
+            <a class="acto-paso" href="{{edit}}">{{{i.lapiz}}}<span><b>{{#str}}panel_change_event, local_oksigeniaeguahe{{/str}}</b><span class="secundario">{{#str}}panel_fresh_edit, local_oksigeniaeguahe{{/str}}</span></span></a>
+        </div>
+    </section>
+    {{/fresh}}
     {{#howitwent}}{{> local_oksigeniaeguahe/panel_howitwent }}{{/howitwent}}
     {{#nowturn}}
     <div class="pared-turno" aria-hidden="true" data-pared-turno>
@@ -140,7 +151,7 @@
             </section>
             {{/invite}}
             {{^own}}
-            <details class="bloque compartir-plegable"{{^door}} open{{/door}}>
+            <details class="bloque compartir-plegable" id="compartir"{{^door}} open{{/door}}>
                 <summary><h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>{{{i.chev}}}</summary>
                 <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto" dir="ltr">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
                 {{^tailored}}
@@ -166,6 +177,17 @@
             {{/own}}
             <section class="bloque">
                 <h2>{{#str}}panel_the_event, local_oksigeniaeguahe{{/str}}</h2>
+                {{#told}}{{#any}}
+                <div class="acto-dicho">
+                    {{#poster}}<a class="acto-dicho-cartel" href="{{url}}" target="_blank" rel="noopener"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}" loading="lazy"></a>{{/poster}}
+                    <div>
+                        {{#about}}<p class="acto-dicho-va">{{about}}</p>{{/about}}
+                        {{#speakers}}<p><b>{{name}}</b>{{#role}} <span class="secundario">{{role}}</span>{{/role}}</p>{{/speakers}}
+                        {{#audience}}<p class="secundario">{{audience}}</p>{{/audience}}
+                        {{#free}}<p><b>{{freetext}}</b></p>{{/free}}
+                    </div>
+                </div>
+                {{/any}}{{/told}}
                 <div class="lista-simple">
                     <div class="fila-s"><span>{{#str}}panel_kind, local_oksigeniaeguahe{{/str}}</span><b>{{kind}}</b></div>
                     {{#capacity}}<div class="fila-s"><span>{{#str}}panel_capacity, local_oksigeniaeguahe{{/str}}</span><b>{{capacity}}</b></div>{{/capacity}}

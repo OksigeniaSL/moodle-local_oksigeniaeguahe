@@ -65,7 +65,7 @@
             <header><h2 id="invitar-a-t">{{#str}}panel_invite_whom, local_oksigeniaeguahe{{/str}}</h2><p class="invitar-cuenta" data-cuenta>{{count}}</p></header>
             {{#some}}<p><b>{{some}}</b></p>{{/some}}
             {{#rows}}
-            <div class="invitar-fila" role="group" aria-label="{{name}}"><span class="invitar-fila-n" aria-hidden="true">{{name}}</span><span class="invitar-pastillas">{{#chips}}<button class="pastilla" type="submit" name="pasar" value="{{key}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"{{#ids}} data-grupo="{{ids}}"{{/ids}}>{{#cap}}{{{i.birrete}}}{{/cap}}<span>{{name}}</span> <b>{{n}}</b></button>{{/chips}}</span></div>
+            <div class="invitar-fila" role="group" aria-label="{{name}}"><span class="invitar-fila-n" aria-hidden="true">{{name}}</span><span class="invitar-pastillas">{{#chips}}<button class="pastilla" type="submit" name="pasar" value="{{key}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"{{#ids}} data-grupo="{{ids}}"{{/ids}}{{#start}} data-de-serie{{/start}}>{{#cap}}{{{i.birrete}}}{{/cap}}<span>{{name}}</span> <b>{{n}}</b></button>{{/chips}}</span></div>
             {{/rows}}
             <div class="invitar-marcar">
                 {{#many}}<label class="buscar" data-con-guion hidden><span class="oculto">{{#str}}panel_invite_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-buscar-sobre placeholder="{{#str}}panel_invite_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>{{/many}}

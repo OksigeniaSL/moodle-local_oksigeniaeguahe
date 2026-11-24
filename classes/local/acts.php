@@ -205,7 +205,7 @@ class acts {
      * Its own picture, with its size and what it says.
      *
      * @param \stdClass $event
-     * @return array|false url, alt, w, h
+     * @return array|false url, alt, w, h, wide and tall
      */
     public static function poster(\stdClass $event) {
         $file = !empty($event->id) ? self::poster_file((int) $event->id) : null;
@@ -213,7 +213,10 @@ class acts {
         if (!$info) {
             return false;
         }
+        // How tall it stands beside the rest, in its 330 by 400 px, for the page to leave its place.
+        $tall = (int) round(min(400, 330 * $info['height'] / max(1, $info['width'])));
         return ['url' => self::url($file), 'w' => (int) $info['width'], 'h' => (int) $info['height'],
+            'wide' => $info['width'] > 1.15 * $info['height'], 'tall' => $tall,
             'alt' => trim((string) ($event->posteralt ?? '')) ?: format_string($event->name)];
     }
 
@@ -342,17 +345,20 @@ class acts {
      *
      * @param \stdClass $event
      * @param string $lang
-     * @return array word, about, poster, speakers, hasspeakers, audience, free and their words.
+     * @return array word, any (whether there is something to tell), about, poster, speakers, hasspeakers, audience, free and their words.
      */
     public static function context(\stdClass $event, string $lang): array {
         $speakers = array_map(fn($one) => ['name' => format_string($one['name']), 'role' => format_string($one['role']),
             'photo' => self::photo((int) ($event->id ?? 0), $one['key']),
             'initials' => publicpage::initials($one['name'])], self::speakers($event));
         $audience = array_map('format_string', self::audience($event));
+        $about = trim((string) ($event->about ?? ''));
+        $poster = self::poster($event);
         return [
             'word' => self::word($event, $lang),
-            'about' => trim((string) ($event->about ?? '')),
-            'poster' => self::poster($event),
+            'any' => $poster || $speakers || $audience || $about !== '' || !empty($event->free),
+            'about' => $about,
+            'poster' => $poster,
             'speakers' => $speakers,
             'hasspeakers' => (bool) $speakers,
             'speakerstitle' => publiclang::str('act_speakers', $lang),

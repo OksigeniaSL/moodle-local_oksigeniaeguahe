@@ -20944,21 +20944,597 @@ html {
 }
 
 /* How an act is told, while it is being made: its picture and the courses it is for. */
-.acto-cartel-puesto {
-    display: block;
-    width: auto;
-    max-width: 100%;
-    height: auto;
-    max-height: 220px;
-    border-radius: 10px;
-}
-
-.acto-cursos {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13em), 1fr));
-    gap: 4px 14px;
-}
-
 .rotulo-campo {
     margin-top: 6px;
+}
+
+/* ---------- Creating an act: its poster, written on it ---------- */
+/* The sheet is what a family will read: the band in the colour of the centre with its name, its day and its place; beside
+   it, the picture; under it, what it is about, who gives it and for whom. The rest, folded, says in one line how it is. */
+.acto-hoja {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.acto-hoja fieldset,
+.acto-plegado fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.acto-tipos {
+    display: grid;
+    gap: 8px;
+}
+
+.acto-tipos-fichas,
+.acto-cursos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tipo-acto {
+    position: relative;
+    display: inline-flex;
+    min-width: 0;
+}
+
+.tipo-acto .pastilla-r {
+    min-height: 40px;
+    padding-block: 6px;
+    white-space: normal;
+}
+
+.acto-banda {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+    gap: 22px 28px;
+}
+
+.acto-banda-texto {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+}
+
+.acto-banda .etiqueta-b {
+    grid-area: auto;
+}
+
+.acto-banda .campo label,
+.acto-banda .ayuda,
+.acto-banda .casilla {
+    color: inherit;
+}
+
+.acto-banda .campo > input {
+    padding-inline: 0;
+    border: 0;
+    border-bottom: 1.5px dashed currentColor;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font-weight: 650;
+}
+
+.acto-banda .campo > input::placeholder {
+    color: inherit;
+    opacity: 0.82;
+}
+
+.acto-banda .campo > input:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-bottom-color: transparent;
+    box-shadow: none;
+}
+
+.acto-banda-nombre > textarea {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 0 0 4px;
+    border: 0;
+    border-bottom: 1.5px dashed currentColor;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    resize: none;
+    overflow: hidden;
+    font-size: var(--t-acto);
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.acto-banda-nombre > textarea::placeholder {
+    color: inherit;
+    opacity: 0.82;
+}
+
+.acto-banda-nombre > textarea:focus {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+    border-bottom-color: transparent;
+    box-shadow: none;
+}
+
+.acto-banda .error {
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--eg-error-suave);
+}
+
+.acto-banda-cuando {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    align-items: start;
+}
+
+.acto-banda-cuando .campo > input[data-hora] {
+    padding-inline: 14px;
+    width: 6.2ch;
+    box-sizing: content-box;
+    border: 0;
+    border-radius: 8px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+}
+
+/* The place of the poster: a sheet with a dashed edge until there is one; then, the poster whole. */
+.acto-cartel-hueco {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-width: 0;
+}
+
+.acto-cartel-boton {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 240px;
+    padding: 14px;
+    border: 2px dashed currentColor;
+    border-radius: 6px;
+    color: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+.acto-cartel-hueco.encima .acto-cartel-boton {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.acto-cartel-di {
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+}
+
+.acto-cartel-di .ic {
+    width: 34px;
+    height: 34px;
+}
+
+.acto-cartel-boton img {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    width: auto;
+    height: auto;
+    border-radius: 3px;
+    box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.6);
+}
+
+.acto-cartel-boton img[hidden] {
+    display: none;
+}
+
+.acto-cartel-hueco.puesto .acto-cartel-boton {
+    min-height: 0;
+    padding: 0;
+    border-color: transparent;
+}
+
+.acto-cartel-hueco.con-guion.puesto > .ayuda {
+    display: none;
+}
+
+/* Over the poster it is no longer seen, but it is still its name. */
+.acto-cartel-hueco.puesto .acto-cartel-di {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.acto-cartel-fichero {
+    max-width: 100%;
+    color: inherit;
+    font-size: 0.875rem;
+}
+
+/* With script, the sheet itself is the button. */
+.acto-cartel-hueco.con-guion .acto-cartel-fichero {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.acto-cartel-hueco.con-guion:focus-within .acto-cartel-boton {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+}
+
+.acto-banda .enlace {
+    justify-self: start;
+    color: inherit;
+}
+
+.acto-cuenta-hoja {
+    display: grid;
+    gap: 20px;
+    padding: 6px 4px 4px;
+}
+
+.acto-cuenta-hoja legend,
+.acto-va-campo label {
+    padding: 0;
+    font-size: 1.0625rem;
+    font-weight: 750;
+}
+
+.acto-cuenta-hoja legend {
+    margin-bottom: 10px;
+}
+
+.acto-cuenta-hoja legend .secundario {
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.acto-va-campo textarea {
+    min-height: 92px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 4px;
+    background: repeating-linear-gradient(transparent 0 28px, var(--eg-borde) 28px 29px, transparent 29px 30px);
+    background-attachment: local;
+    line-height: 30px;
+    resize: none;
+    overflow: hidden;
+}
+
+/* Who gives it: the badge each one wears. */
+.acto-solapas {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 12px;
+}
+
+.solapa {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 6px 14px;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 8px;
+    background: var(--eg-superficie);
+}
+
+.solapa-cara {
+    position: relative;
+}
+
+.solapa-cara label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 50%;
+    overflow: hidden;
+    color: var(--eg-tinta-2);
+    cursor: pointer;
+}
+
+.solapa-cara:focus-within label {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.solapa-cara img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.solapa-campos {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.solapa-campos input {
+    width: 100%;
+    min-height: 36px;
+    box-sizing: border-box;
+    padding: 2px;
+    border: 0;
+    border-bottom: 1.5px dashed var(--eg-borde);
+    border-radius: 0;
+    background: transparent;
+}
+
+.solapa-campos input:first-of-type {
+    font-weight: 700;
+}
+
+.solapa-campos input::placeholder {
+    color: var(--eg-tinta-2);
+    font-weight: 400;
+    opacity: 1;
+}
+
+.solapa-campos input:focus {
+    border-bottom-style: solid;
+    border-bottom-color: var(--eg-acento);
+    outline: none;
+    box-shadow: 0 1px 0 var(--eg-acento);
+}
+
+.solapa-quita {
+    grid-column: 2;
+    justify-self: start;
+    font-size: 0.875rem;
+}
+
+.acto-quienes > .boton {
+    margin-top: 10px;
+}
+
+/* What need not be touched: each one with how it is, in one line. */
+.acto-resto {
+    display: grid;
+    gap: 0;
+    padding: 18px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.acto-resto-cab {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    align-items: baseline;
+    padding-bottom: 10px;
+}
+
+.acto-resto-cab h2 {
+    font-size: 1.25rem;
+}
+
+.acto-plegado {
+    border-top: 1px solid var(--eg-linea);
+}
+
+.acto-plegado > summary {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) auto;
+    gap: 2px 18px;
+    align-items: center;
+    min-height: 52px;
+    padding: 8px 4px;
+    list-style: none;
+    cursor: pointer;
+}
+
+.acto-plegado > summary::-webkit-details-marker {
+    display: none;
+}
+
+.acto-plegado > summary h3 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.acto-plegado > summary .ic {
+    transition: transform var(--dur-1) ease;
+}
+
+.acto-plegado[open] > summary .ic {
+    transform: rotate(180deg);
+}
+
+.acto-suma {
+    color: var(--eg-tinta-2);
+    overflow-wrap: anywhere;
+}
+
+.acto-plegado > :not(summary) {
+    margin-inline: 4px;
+}
+
+.acto-plegado > * + :not(summary) {
+    margin-top: 10px;
+}
+
+.acto-plegado > fieldset {
+    display: grid;
+    gap: 12px;
+}
+
+.acto-plegado > :last-child {
+    margin-bottom: 18px;
+}
+
+@media (min-width: 900px) {
+    .acto-hoja {
+        padding: 22px;
+    }
+
+    .acto-banda {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+        grid-template-areas: none;
+        padding: 26px 28px;
+    }
+}
+
+@media (max-width: 719.98px) {
+    .acto-form .guardar-pie .acciones {
+        flex-wrap: nowrap;
+    }
+}
+
+@media (max-width: 599.98px) {
+    .acto-hoja,
+    .acto-resto {
+        padding: 14px;
+    }
+
+    .acto-banda {
+        margin-inline: -14px;
+        padding: 18px 14px;
+        border-radius: 0;
+    }
+
+    .acto-plegado > summary {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .acto-suma {
+        grid-row: 2;
+        grid-column: 1;
+        font-size: 0.9375rem;
+    }
+
+    .acto-plegado > summary .ic {
+        grid-row: 1 / 3;
+        grid-column: 2;
+    }
+}
+
+/* ---------- The page of an act: just made, and how it is told ---------- */
+.acto-recien {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 18px 20px 20px;
+    border-radius: var(--piel-radio);
+    background: var(--piel-hoja);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: var(--piel-hoja-sombra);
+}
+
+.acto-recien h2 {
+    font-size: 1.25rem;
+}
+
+.acto-pasos {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 12px;
+}
+
+.acto-paso {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 8px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+.acto-paso > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.acto-paso .ic {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    color: var(--eg-acento);
+}
+
+.acto-paso b {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+}
+
+.acto-paso:hover,
+.acto-paso:focus-visible {
+    border-color: var(--eg-accion);
+}
+
+.acto-paso .secundario {
+    font-size: 0.9375rem;
+}
+
+.acto-dicho {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: flex-start;
+}
+
+.acto-dicho > div {
+    display: grid;
+    flex: 1 1 180px;
+    gap: 6px;
+}
+
+.acto-dicho-cartel {
+    flex: none;
+    padding: 4px;
+    background: #fff;
+    box-shadow: 0 6px 12px -7px rgba(40, 30, 20, 0.5);
+}
+
+.acto-dicho-cartel img {
+    display: block;
+    width: 104px;
+    height: auto;
+}
+
+.acto-dicho-va {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+/* The code, on its own white with its margin: on a dark sheet, black on dark, no phone reads it. */
+.qr svg,
+.qr img {
+    box-sizing: border-box;
+    padding: 6px;
+    background: #fff;
 }

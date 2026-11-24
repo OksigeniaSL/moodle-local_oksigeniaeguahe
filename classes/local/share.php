@@ -594,27 +594,35 @@ class share {
         // Where things go, as a share of the height: [wide, square, upright].
         $at = fn(array $shares): int => (int) round($h * ($wide ? $shares[0] : ($tall ? $shares[2] : $shares[1])));
         if ($piece === 'cartel') {
-            // The picture of the act, whole, on the colour of the centre.
+            // The picture of the act, whole, on the colour of the centre and under its stripe; with room at its side, a
+            // narrow one leaves there what it is and when.
             $src = $picture !== null ? @imagecreatefromstring($picture) : false;
             if (!$src) {
                 return '';
             }
             imagefilledrectangle($im, 0, 0, $w, $h, self::ink($im, $vars['--c-acento']));
-            $scale = min($w / imagesx($src), $h / imagesy($src));
-            $pw = max(1, (int) round(imagesx($src) * $scale));
-            $ph = max(1, (int) round(imagesy($src) * $scale));
-            imagecopyresampled(
-                $im,
-                $src,
-                (int) (($w - $pw) / 2),
-                (int) (($h - $ph) / 2),
-                0,
-                0,
-                $pw,
-                $ph,
-                imagesx($src),
-                imagesy($src)
-            );
+            $air = $px(26);
+            $top = (centres::brand($centre) ? max(4, (int) round($w * 8 / 1200)) : 0) + $air;
+            [$sw, $sh] = [imagesx($src), imagesy($src)];
+            $scale = min(($w - 2 * $air) / $sw, ($h - $top - $air) / $sh);
+            $pw = max(1, (int) round($sw * $scale));
+            $ph = max(1, (int) round($sh * $scale));
+            $beside = $wide && $words['date'] !== '' && $w - $pw > 0.45 * $w;
+            $x = $beside ? $w - $pw - $px(60) : (int) (($w - $pw) / 2);
+            $y = $top + (int) (($h - $top - $air - $ph) / 2);
+            self::shadow($im, $x + (int) ($pw / 2), $y + (int) ($ph / 2), $pw, $ph, 0);
+            imagecopyresampled($im, $src, $x, $y, 0, 0, $pw, $ph, $sw, $sh);
+            imagedestroy($src);
+            if ($beside) {
+                $text = $vars['--c-sobre-acento'] === '#FFFFFF' ? '#FFFFFF' : '#1A1614';
+                $dot = arabic::has($words['weekday'] . $words['hours']) ? '، ' : ' · ';
+                $when = trim($words['weekday'] . ($words['hours'] !== '' && $words['weekday'] !== '' ? $dot : '') . $words['hours']);
+                self::block($im, [
+                    ['medium', \core_text::strtoupper($when), $px(26), 1, 0.1, 0.84],
+                    ['bold', $words['date'], $px(72), 2, 0, 1],
+                    ['bold', $words['title'], $px(46), 3, 0, 0.92],
+                ], (int) ($x / 2), (int) (($top + $h) / 2), $x - 2 * $px(50), $text);
+            }
         } else if ($piece === 'acto') {
             // The band of the visit, in the colour of the centre, under the centre on its wall.
             $top = $at([0.327, 0.34, 0.3]);

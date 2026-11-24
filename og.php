@@ -47,10 +47,11 @@ if ($piece === 'acto') {
         $lang = publiclang::choose($centre);
         $when = publicpage::date_parts((int) $event->timestart, $lang);
         $poster = acts::poster_file((int) $event->id);
-        $png = $poster ? share::card($centre, 'cartel', [], $poster->get_content()) : '';
-        $png = $png !== '' ? $png : share::card($centre, 'acto', ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
+        $words = ['weekday' => $when['weekday'], 'date' => $when['daymonth'],
             'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
-            'title' => format_string($event->name)]);
+            'title' => format_string($event->name)];
+        $png = $poster ? share::card($centre, 'cartel', $words, $poster->get_content()) : '';
+        $png = $png !== '' ? $png : share::card($centre, 'acto', $words);
     }
 } else if ($piece === 'cuento' || $piece === 'dibujo') {
     $householdid = optional_param('h', 0, PARAM_INT);

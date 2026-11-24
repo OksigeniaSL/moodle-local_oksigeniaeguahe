@@ -127,7 +127,9 @@
                 continue;
             }
             if (data.eguahe === 'height') {
-                frames[i].style.height = Math.max(300, Math.min(20000, Number(data.height) || 0)) + 'px';
+                // The brief form is as tall as it says; a whole page, never shorter than this.
+                var least = /[?&]breve=1(&|$)/.test(frames[i].src) ? 60 : 300;
+                frames[i].style.height = Math.max(least, Math.min(20000, Number(data.height) || 0)) + 'px';
                 frames[i].style.minHeight = '0';
             } else if (frames[i].getBoundingClientRect().top < 0) {
                 frames[i].scrollIntoView({block: 'start'});

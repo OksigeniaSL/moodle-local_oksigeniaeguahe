@@ -151,9 +151,16 @@ class signup {
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param string $lang
+     * @param bool $brief In the brief form: the ways to write and the robot are not asked (brief).
      * @return array Field => message, in the language of the family; empty when all is well.
      */
-    public static function check(array $data, \stdClass $event, \stdClass $centre, string $lang): array {
+    public static function check(
+        array $data,
+        \stdClass $event,
+        \stdClass $centre,
+        string $lang,
+        bool $brief = false
+    ): array {
         $errors = [];
         $first = $data['adults'][0];
         if ($first['firstname'] === '') {
@@ -207,6 +214,9 @@ class signup {
             !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))
         ) {
             $errors[$slots ? 'slot' : 'people'] = publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang);
+        }
+        if ($brief) {
+            return $errors;
         }
         // How to write to them: at least one way, and one they gave the means for.
         $chosen = array_keys(array_filter($data['consents']));

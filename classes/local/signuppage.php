@@ -49,6 +49,7 @@ class signuppage {
         return [
             'kicker' => acts::word($event, $lang),
             'headline' => format_string($event->name),
+            'longname' => \core_text::strlen(format_string($event->name)) > 38,
             'when' => $parts['long'],
             'hours' => familypage::hours((int) $event->timestart, (int) $event->timeend, $lang),
             'where' => implode(', ', array_filter([$event->place ? format_string($event->place) : '',
@@ -240,6 +241,8 @@ class signuppage {
             'act' => $isform ? false : acts::context($event, $lang),
             // A talk or a party is announced by its own name: «Come and meet us» is of an open day or a visit.
             'kicker' => $isform ? '' : ($event->kind === 'other' ? acts::word($event, $lang) : format_string($event->name)),
+            // A long name of its own is written smaller: the day has to be seen too.
+            'longname' => !$isform && $event->kind === 'other' && \core_text::strlen(format_string($event->name)) > 38,
             'headline' => $isform ? (trim((string) ($form->title ?? '')) !== '' ? format_string($form->title) :
                 publiclang::str('pub_form_title', $lang)) : ($event->kind === 'other' ? format_string($event->name) :
                 $str['pub_come_meet']),

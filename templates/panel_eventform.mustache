@@ -18,8 +18,8 @@
     @template local_oksigeniaeguahe/panel_eventform
 
     Creating or changing an event (events.php), in the order a person thinks it: what it is, when and where, its turns
-    on a strip of the day, how many fit, who receives the families (with their faces) and the questions it asks. At the
-    side, what the families will see, as it is being written. When a change reaches families already signed up (the
+    on a strip of the day, how many fit, who receives the families (with their faces) and the questions it asks. The form is
+    its poster: what a family will read is written where it will be read, and the rest, folded, says how it is in one line. When a change reaches families already signed up (the
     hour, the place, who receives), the server answers the POST with this same page and «notice»: what changes, and the
     message each family would get, before anything is saved or sent. Works without JavaScript: «Add a turn» posts and
     comes back with one more row.
@@ -29,13 +29,13 @@
     Example context (json):
     {
         "volunteers": false,
-        "i": {"atras": "", "mas1": "", "check": "", "borrar": "", "actos": "", "lapiz": "", "enviado": "", "info": ""},
+        "i": {"atras": "", "mas1": "", "check": "", "borrar": "", "actos": "", "lapiz": "", "enviado": "", "info": "", "imagen": "", "persona": "", "chev": ""},
         "head": {"title": "Un acto nuevo", "sub": "Las familias lo verán en su página.", "back": {"url": "#", "name": "Jornadas y visitas"}, "action": false, "ante": ""},
         "action": "#", "sesskey": "abc", "id": 0, "isnew": true,
         "kinds": [{"value": "openday", "name": "Jornada de puertas abiertas", "help": "Muchas familias a la vez.", "suggested": "Jornada de puertas abiertas", "checked": true, "id": "tipo-openday"}],
         "word": "", "about": "", "aboutmost": 600, "poster": false, "posteralt": "", "speakers": [], "emptyspeaker": {"i": 0, "n": 1},
-        "hascourses": true, "courses": [{"value": "Infantil 3 años", "name": "Infantil 3 años", "checked": false}], "free": false,
-        "sums": {"turns": "", "fit": "", "hosts": "", "asks": "", "after": ""},
+        "hascourses": true, "courses": [{"n": 0, "value": "Infantil 3 años", "name": "Infantil 3 años", "checked": false}], "free": false,
+        "sums": {"turns": "", "fit": "", "hosts": "", "asks": "", "after": ""}, "sumtexts": "{}", "faceicon": "",
         "name": {"value": "", "error": ""}, "tailored": false, "day": "", "start": "", "end": "", "daytext": "",
         "daydate": {"id": "acto-dia", "first": "acto-diad", "form": false, "child": false, "invalid": false, "labelled": true,
             "arialabel": false, "describedby": false, "mirror": {"vivo": "dia"}, "value": "",
@@ -70,42 +70,64 @@
             </div>
         </section>
         {{/notice}}
-        <div class="acto-rejilla">
-            <div class="acto-campos">
-                <fieldset class="apartado" id="acto-que">
-                    <legend><h2>{{#str}}panel_event_what, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <div class="opciones opciones-3" role="radiogroup" aria-label="{{#str}}event_kind, local_oksigeniaeguahe{{/str}}">
-                        {{#kinds}}<label class="opcion" for="{{id}}"><input type="radio" id="{{id}}" name="kind" value="{{value}}"{{#checked}} checked{{/checked}} data-vivo-tipo="{{name}}" data-sugerido="{{suggested}}"><span><b>{{name}}</b><span class="secundario">{{help}}</span></span></label>{{/kinds}}
-                    </div>
-                    <div class="campo"><label for="acto-nombre">{{#str}}event_name, local_oksigeniaeguahe{{/str}}</label><input id="acto-nombre" name="name" value="{{name.value}}" required data-vivo="nombre"{{#isnew}} data-propuesto="{{name.value}}"{{/isnew}}{{#name.error}} aria-invalid="true" aria-describedby="acto-nombre-e"{{/name.error}}>{{#name.error}}<span class="error" id="acto-nombre-e">{{.}}</span>{{/name.error}}</div>
-                    <label class="casilla solo-visita"><input type="checkbox" name="tailored" value="1"{{#tailored}} checked{{/tailored}}><span>{{#str}}event_tailored, local_oksigeniaeguahe{{/str}} <span class="secundario">{{#str}}panel_only_visits, local_oksigeniaeguahe{{/str}}</span></span></label>
-                </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}panel_event_told, local_oksigeniaeguahe{{/str}}</h2></legend>
+        <div class="acto-hoja">
+            <fieldset class="acto-tipos" id="acto-que">
+                <legend class="oculto">{{#str}}event_kind, local_oksigeniaeguahe{{/str}}</legend>
+                <div class="acto-tipos-fichas">{{#kinds}}<span class="tipo-acto"><input class="oculto" type="radio" id="{{id}}" name="kind" value="{{value}}"{{#checked}} checked{{/checked}} data-vivo-tipo="{{name}}" data-sugerido="{{suggested}}" data-ayuda="{{help}}"><label class="pastilla-r" for="{{id}}">{{name}}</label></span>{{/kinds}}</div>
+                <p class="def" data-ayuda-tipo>{{#kinds}}{{#checked}}{{help}}{{/checked}}{{/kinds}}</p>
+                <label class="casilla solo-visita"><input type="checkbox" name="tailored" value="1"{{#tailored}} checked{{/tailored}}><span>{{#str}}event_tailored, local_oksigeniaeguahe{{/str}} <span class="secundario">{{#str}}panel_only_visits, local_oksigeniaeguahe{{/str}}</span></span></label>
+            </fieldset>
+            <p class="rotulo-muestra" id="muestra-t">{{#str}}panel_families_see, local_oksigeniaeguahe{{/str}}</p>
+            <div class="banda acto-banda">
+                <div class="acto-banda-texto">
+                    <span class="etiqueta-b" data-muestra="tipo">{{preview.kind}}</span>
                     <div class="campo solo-otra"><label for="acto-palabra">{{#str}}event_word, local_oksigeniaeguahe{{/str}}</label><input id="acto-palabra" name="word" value="{{word}}" maxlength="40"></div>
-                    <div class="campo"><label for="acto-va">{{#str}}event_about, local_oksigeniaeguahe{{/str}}</label><textarea id="acto-va" name="about" rows="3" maxlength="{{aboutmost}}">{{about}}</textarea></div>
-                    <div class="campo"><label for="acto-cartel">{{#str}}event_picture, local_oksigeniaeguahe{{/str}}</label>{{#poster}}<img class="acto-cartel-puesto" src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}"><label class="casilla"><input type="checkbox" name="posterdrop" value="1"><span>{{#str}}event_picture_drop, local_oksigeniaeguahe{{/str}}</span></label>{{/poster}}<input id="acto-cartel" type="file" name="poster" accept="image/jpeg,image/png,image/webp" aria-describedby="acto-cartel-a"><span class="ayuda" id="acto-cartel-a">{{#str}}event_picture_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    <div class="campo"><label for="acto-cartel-alt">{{#str}}event_picture_alt, local_oksigeniaeguahe{{/str}}</label><input id="acto-cartel-alt" name="posteralt" value="{{posteralt}}" maxlength="255"></div>
-                    <p class="rotulo-campo"><b>{{#str}}event_speakers, local_oksigeniaeguahe{{/str}}</b></p>
-                    {{#speakers}}<div class="rejilla-3 ponente"><input type="hidden" name="speakerkey[{{i}}]" value="{{key}}"><div class="campo"><label for="pon-n-{{i}}">{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}</label><input id="pon-n-{{i}}" name="speakername[{{i}}]" value="{{name}}" maxlength="80"></div><div class="campo"><label for="pon-q-{{i}}">{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}</label><input id="pon-q-{{i}}" name="speakerrole[{{i}}]" value="{{role}}" maxlength="120"></div><div class="campo"><label for="pon-f-{{i}}">{{#str}}event_speaker_photo, local_oksigeniaeguahe{{/str}}</label><input id="pon-f-{{i}}" type="file" name="speakerphoto[{{i}}]" accept="image/jpeg,image/png,image/webp"></div></div>{{/speakers}}
-                    {{#emptyspeaker}}<div class="rejilla-3 ponente"><input type="hidden" name="speakerkey[{{i}}]" value=""><div class="campo"><label for="pon-n-{{i}}">{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}</label><input id="pon-n-{{i}}" name="speakername[{{i}}]" value="" maxlength="80"></div><div class="campo"><label for="pon-q-{{i}}">{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}</label><input id="pon-q-{{i}}" name="speakerrole[{{i}}]" value="" maxlength="120"></div><div class="campo"><label for="pon-f-{{i}}">{{#str}}event_speaker_photo, local_oksigeniaeguahe{{/str}}</label><input id="pon-f-{{i}}" type="file" name="speakerphoto[{{i}}]" accept="image/jpeg,image/png,image/webp"></div></div>{{/emptyspeaker}}
-                    {{#hascourses}}<p class="rotulo-campo"><b>{{#str}}event_audience, local_oksigeniaeguahe{{/str}}</b> <span class="secundario">{{#str}}event_audience_help, local_oksigeniaeguahe{{/str}}</span></p>
-                    <div class="acto-cursos">{{#courses}}<label class="casilla"><input type="checkbox" name="audience[]" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{name}}</span></label>{{/courses}}</div>{{/hascourses}}
-                    <label class="casilla"><input type="checkbox" name="free" value="1"{{#free}} checked{{/free}}><span>{{#str}}event_free, local_oksigeniaeguahe{{/str}}</span></label>
-                </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}panel_event_when, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <div class="rejilla-3">
+                    <div class="campo acto-banda-nombre"><label class="oculto" for="acto-nombre">{{#str}}event_name, local_oksigeniaeguahe{{/str}}</label><textarea id="acto-nombre" name="name" rows="1" required data-crece data-una-linea placeholder="{{#str}}event_name_here, local_oksigeniaeguahe{{/str}}" data-vivo="nombre"{{#isnew}} data-propuesto="{{name.value}}"{{/isnew}}{{#name.error}} aria-invalid="true" aria-describedby="acto-nombre-e"{{/name.error}}>{{name.value}}</textarea>{{#name.error}}<span class="error" id="acto-nombre-e">{{.}}</span>{{/name.error}}</div>
+                    <div class="acto-banda-cuando">
                         <div class="campo"><label id="acto-dia-l" for="{{daydate.first}}">{{#str}}panel_day, local_oksigeniaeguahe{{/str}}</label>{{#daydate}}{{> local_oksigeniaeguahe/public_date }}{{/daydate}}</div>
                         <div class="campo"><label for="acto-empieza">{{#str}}event_start, local_oksigeniaeguahe{{/str}}</label><input id="acto-empieza" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="start" value="{{start}}" required data-vivo="empieza"></div>
                         <div class="campo"><label for="acto-termina">{{#str}}event_end, local_oksigeniaeguahe{{/str}}</label><input id="acto-termina" type="{{#h24}}text{{/h24}}{{^h24}}time{{/h24}}"{{#h24}} inputmode="numeric" maxlength="5" placeholder="hh:mm" autocomplete="off"{{/h24}}{{^h24}} step="900"{{/h24}} data-hora name="end" value="{{end}}" required data-vivo="termina"></div>
                     </div>
                     {{#whenerror}}<p class="error" id="acto-cuando-e">{{.}}</p>{{/whenerror}}
-                    <div class="campo"><label for="acto-donde">{{#str}}event_place, local_oksigeniaeguahe{{/str}}</label><input id="acto-donde" name="place" value="{{place.value}}" data-vivo="donde" aria-describedby="acto-donde-a"><span class="ayuda" id="acto-donde-a">{{placehelp}}</span></div>
-                    {{#parkingon}}<div class="acto-aparcar"><label class="casilla"><input type="checkbox" name="parking" value="1"{{#parking}} checked{{/parking}}><span>{{#str}}event_parking, local_oksigeniaeguahe{{/str}}</span></label><img src="{{parkingimg}}" alt="{{#str}}panel_event_parking_img, local_oksigeniaeguahe{{/str}}" height="64" loading="lazy"></div>{{/parkingon}}
+                    <div class="campo acto-banda-donde"><label for="acto-donde">{{#str}}event_place, local_oksigeniaeguahe{{/str}}</label><input id="acto-donde" name="place" value="{{place.value}}" data-vivo="donde" aria-describedby="acto-donde-a"><span class="ayuda" id="acto-donde-a">{{placehelp}}</span></div>
+                </div>
+                <div class="acto-cartel-hueco{{#poster}} puesto{{/poster}}" data-cartel>
+                    <label class="acto-cartel-boton" for="acto-cartel">{{#poster}}<img src="{{url}}" alt="{{alt}}" data-cartel-imagen>{{/poster}}<span class="acto-cartel-di">{{{i.imagen}}}<b>{{#str}}event_picture, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}event_picture_put, local_oksigeniaeguahe{{/str}}</span></span></label>
+                    <input class="acto-cartel-fichero" id="acto-cartel" type="file" name="poster" accept="image/jpeg,image/png,image/webp" aria-describedby="acto-cartel-a">
+                    {{#poster}}<label class="casilla" data-cartel-quitar><input type="checkbox" name="posterdrop" value="1"><span>{{#str}}event_picture_drop, local_oksigeniaeguahe{{/str}}</span></label>{{/poster}}
+                    <button class="enlace" type="button" data-cartel-nada hidden>{{#str}}event_picture_drop, local_oksigeniaeguahe{{/str}}</button>
+                    <span class="ayuda" id="acto-cartel-a">{{#str}}event_picture_help, local_oksigeniaeguahe{{/str}}</span>
+                    <div class="campo" data-cartel-alt><label for="acto-cartel-alt">{{#str}}event_picture_alt, local_oksigeniaeguahe{{/str}}</label><input id="acto-cartel-alt" name="posteralt" value="{{posteralt}}" maxlength="255"></div>
+                </div>
+            </div>
+            <div class="acto-cuenta-hoja">
+                <div class="campo acto-va-campo"><label for="acto-va">{{#str}}event_about, local_oksigeniaeguahe{{/str}}</label><textarea id="acto-va" name="about" rows="3" maxlength="{{aboutmost}}" data-crece>{{about}}</textarea></div>
+                <fieldset class="acto-quienes">
+                    <legend>{{#str}}event_speakers, local_oksigeniaeguahe{{/str}}</legend>
+                    <div class="acto-solapas" data-solapas>
+                        {{#speakers}}<div class="solapa" data-solapa><input type="hidden" name="speakerkey[{{i}}]" value="{{key}}"><span class="solapa-cara"><label for="pon-f-{{i}}">{{#photo}}<img src="{{photo}}" alt="" data-cara>{{/photo}}<span class="solapa-ini" aria-hidden="true">{{{faceicon}}}</span><span class="oculto">{{#str}}event_speaker_photo, local_oksigeniaeguahe{{/str}}</span></label><input class="oculto" id="pon-f-{{i}}" type="file" name="speakerphoto[{{i}}]" accept="image/jpeg,image/png,image/webp"></span><div class="solapa-campos"><label class="oculto" for="pon-n-{{i}}">{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}</label><input id="pon-n-{{i}}" name="speakername[{{i}}]" value="{{name}}" maxlength="80" placeholder="{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}"><label class="oculto" for="pon-q-{{i}}">{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}</label><input id="pon-q-{{i}}" name="speakerrole[{{i}}]" value="{{role}}" maxlength="120" placeholder="{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}"></div><button class="enlace solapa-quita" type="button" data-solapa-quita hidden>{{#str}}event_speaker_remove, local_oksigeniaeguahe{{/str}}</button></div>{{/speakers}}
+                        {{#emptyspeaker}}<div class="solapa nueva" data-solapa data-solapa-nueva="{{i}}"><input type="hidden" name="speakerkey[{{i}}]" value=""><span class="solapa-cara"><label for="pon-f-{{i}}"><span class="solapa-ini" aria-hidden="true">{{{faceicon}}}</span><span class="oculto">{{#str}}event_speaker_photo, local_oksigeniaeguahe{{/str}}</span></label><input class="oculto" id="pon-f-{{i}}" type="file" name="speakerphoto[{{i}}]" accept="image/jpeg,image/png,image/webp"></span><div class="solapa-campos"><label class="oculto" for="pon-n-{{i}}">{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}</label><input id="pon-n-{{i}}" name="speakername[{{i}}]" value="" maxlength="80" placeholder="{{#str}}event_speaker_name, local_oksigeniaeguahe{{/str}}"><label class="oculto" for="pon-q-{{i}}">{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}</label><input id="pon-q-{{i}}" name="speakerrole[{{i}}]" value="" maxlength="120" placeholder="{{#str}}event_speaker_role, local_oksigeniaeguahe{{/str}}"></div><button class="enlace solapa-quita" type="button" data-solapa-quita hidden>{{#str}}event_speaker_remove, local_oksigeniaeguahe{{/str}}</button></div>{{/emptyspeaker}}
+                    </div>
+                    <button class="boton terciario pequeno" type="button" data-solapa-mas hidden>{{{i.mas1}}}{{#str}}event_speaker_add, local_oksigeniaeguahe{{/str}}</button>
                 </fieldset>
-                <fieldset class="apartado turnos-campo" data-turnos>
-                    <legend><h2>{{#str}}panel_event_turns, local_oksigeniaeguahe{{/str}}</h2></legend>
+                {{#hascourses}}
+                <fieldset class="acto-cursos-campo">
+                    <legend>{{#str}}event_audience, local_oksigeniaeguahe{{/str}} <span class="secundario">{{#str}}event_audience_help, local_oksigeniaeguahe{{/str}}</span></legend>
+                    <div class="acto-cursos">{{#courses}}<span class="tipo-acto"><input class="oculto" type="checkbox" id="curso-acto-{{n}}" name="audience[]" value="{{value}}"{{#checked}} checked{{/checked}}><label class="pastilla-r" for="curso-acto-{{n}}">{{name}}</label></span>{{/courses}}</div>
+                </fieldset>
+                {{/hascourses}}
+                <fieldset class="acto-entrada">
+                    <legend>{{#str}}event_entry, local_oksigeniaeguahe{{/str}}</legend>
+                    <div class="acto-cursos"><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-si" name="free" value="0"{{^free}} checked{{/free}}><label class="pastilla-r" for="entrada-si">{{#str}}event_entry_sign, local_oksigeniaeguahe{{/str}}</label></span><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-libre" name="free" value="1"{{#free}} checked{{/free}}><label class="pastilla-r" for="entrada-libre">{{#str}}event_free, local_oksigeniaeguahe{{/str}}</label></span></div>
+                </fieldset>
+            </div>
+        </div>
+        <section class="acto-resto" aria-labelledby="acto-resto-t" data-sumas="{{sumtexts}}">
+            <div class="acto-resto-cab"><h2 id="acto-resto-t">{{#str}}event_rest, local_oksigeniaeguahe{{/str}}</h2><p class="def">{{#str}}event_rest_help, local_oksigeniaeguahe{{/str}}</p></div>
+            <details class="acto-plegado" data-plegado="turns"{{#whenerror}} open{{/whenerror}}>
+                <summary><h3>{{#str}}panel_event_turns, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{sums.turns}}</span>{{{i.chev}}}</summary>
+                <fieldset class="turnos-campo" data-turnos>
+                    <legend class="oculto">{{#str}}panel_event_turns, local_oksigeniaeguahe{{/str}}</legend>
                     <p class="def">{{#str}}panel_event_turns_help, local_oksigeniaeguahe{{/str}}</p>
                     {{#hasslots}}
                     <div class="tira-turnos" aria-hidden="true" data-tira>
@@ -144,49 +166,39 @@
                         <button class="boton secundario pequeno" type="submit" name="addslot" value="1" data-otro-turno>{{{i.mas1}}}{{#str}}panel_turn_add, local_oksigeniaeguahe{{/str}}</button>
                     </div>
                 </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}panel_event_fit, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <div class="rejilla-2">
-                        <div class="campo"><label for="acto-aforo">{{#str}}event_capacity, local_oksigeniaeguahe{{/str}}</label><input id="acto-aforo" type="number" min="0" name="capacity" value="{{capacity}}" inputmode="numeric" aria-describedby="acto-aforo-a"><span class="ayuda" id="acto-aforo-a">{{#str}}panel_capacity_help, local_oksigeniaeguahe{{/str}}</span></div>
-                        {{#load}}<div class="carga"><span class="secundario">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span><b>{{text}}</b><span class="barra-aforo" aria-hidden="true"><i style="width: {{percent}}%"></i></span></div>{{/load}}
-                    </div>
-                    <label class="casilla"><input type="checkbox" name="open" value="1"{{#open}} checked{{/open}}><span>{{#str}}event_open, local_oksigeniaeguahe{{/str}}</span></label>
-                </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}event_hosts, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <p class="def">{{#str}}panel_hosts_help, local_oksigeniaeguahe{{/str}}</p>
-                    {{^hashosts}}<p class="secundario">{{nohosts}}</p>{{/hashosts}}
-                    {{#volunteers}}<p class="voluntarias">{{text}} <a class="enlace" href="{{url}}">{{#str}}panel_volunteers_see, local_oksigeniaeguahe{{/str}}</a></p>{{/volunteers}}
-                    <div class="anfitriones">
-                        {{#hosts}}<label class="anfitrion"><input type="checkbox" name="hosts[]" value="{{id}}"{{#checked}} checked{{/checked}} data-vivo-anfitrion="{{first}}"><span class="anfitrion-cara">{{> local_oksigeniaeguahe/panel_face }}</span><span><b>{{name}}</b><span class="secundario">{{role}}</span></span></label>{{/hosts}}
-                    </div>
-                </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}panel_event_questions, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <div class="campo"><label for="acto-form">{{#str}}event_form, local_oksigeniaeguahe{{/str}}</label><select id="acto-form" name="formid">{{#forms}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/forms}}</select><span class="ayuda">{{#str}}panel_event_form_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    {{#hasformquestions}}<ol class="preguntas-acto">{{#formquestions}}<li>{{q}}</li>{{/formquestions}}</ol><a class="enlace" href="{{formurl}}">{{{i.lapiz}}}{{#str}}panel_event_form_change, local_oksigeniaeguahe{{/str}}</a>{{/hasformquestions}}
-                </fieldset>
-                <fieldset class="apartado">
-                    <legend><h2>{{#str}}panel_event_after, local_oksigeniaeguahe{{/str}}</h2></legend>
-                    <div class="campo"><label for="acto-encuesta">{{#str}}event_survey, local_oksigeniaeguahe{{/str}}</label><select id="acto-encuesta" name="survey">{{#surveys}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/surveys}}</select><span class="ayuda">{{#str}}panel_event_survey_help, local_oksigeniaeguahe{{/str}}</span></div>
-                    {{#surveyurl}}<a class="enlace" href="{{surveyurl}}">{{{i.lapiz}}}{{#str}}panel_event_survey_change, local_oksigeniaeguahe{{/str}}</a>{{/surveyurl}}
-                </fieldset>
-            </div>
-            <aside class="acto-muestra" aria-labelledby="muestra-t">
-                <h2 id="muestra-t" class="rotulo-muestra">{{#str}}panel_families_see, local_oksigeniaeguahe{{/str}}</h2>
-                {{#preview}}
-                <div class="cartel-muestra" aria-hidden="true">
-                    <div class="banda banda-muestra">
-                        <span class="etiqueta-b" data-muestra="tipo">{{kind}}</span>
-                        <div class="banda-texto"><p class="acto-n" data-muestra="nombre">{{name}}</p><p class="detalle" data-muestra="cuando">{{when}}</p><p class="detalle" data-muestra="donde">{{place}}</p></div>
-                    </div>
-                    <p class="reciben-muestra"><span class="pila">{{#faces}}{{> local_oksigeniaeguahe/panel_face }}{{/faces}}</span><span data-muestra="reciben">{{hosts}}</span></p>
-                    <p class="digan-nombre">{{#str}}panel_say_your_name, local_oksigeniaeguahe{{/str}}</p>
+            </details>
+            <details class="acto-plegado" data-plegado="fit">
+                <summary><h3>{{#str}}panel_event_fit, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{sums.fit}}</span>{{{i.chev}}}</summary>
+                <div class="rejilla-2">
+                    <div class="campo"><label for="acto-aforo">{{#str}}event_capacity, local_oksigeniaeguahe{{/str}}</label><input id="acto-aforo" type="number" min="0" name="capacity" value="{{capacity}}" inputmode="numeric" aria-describedby="acto-aforo-a"><span class="ayuda" id="acto-aforo-a">{{#str}}panel_capacity_help, local_oksigeniaeguahe{{/str}}</span></div>
+                    {{#load}}<div class="carga"><span class="secundario">{{#str}}panel_now, local_oksigeniaeguahe{{/str}}</span><b>{{text}}</b><span class="barra-aforo" aria-hidden="true"><i style="width: {{percent}}%"></i></span></div>{{/load}}
                 </div>
-                {{/preview}}
-                <p class="def">{{#str}}panel_families_see_help, local_oksigeniaeguahe{{/str}}</p>
-            </aside>
-        </div>
+                <label class="casilla"><input type="checkbox" name="open" value="1"{{#open}} checked{{/open}}><span>{{#str}}event_open, local_oksigeniaeguahe{{/str}}</span></label>
+            </details>
+            <details class="acto-plegado" data-plegado="hosts">
+                <summary><h3>{{#str}}event_hosts, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{sums.hosts}}</span>{{{i.chev}}}</summary>
+                <p class="def">{{#str}}panel_hosts_help, local_oksigeniaeguahe{{/str}}</p>
+                {{^hashosts}}<p class="secundario">{{nohosts}}</p>{{/hashosts}}
+                {{#volunteers}}<p class="voluntarias">{{text}} <a class="enlace" href="{{url}}">{{#str}}panel_volunteers_see, local_oksigeniaeguahe{{/str}}</a></p>{{/volunteers}}
+                <div class="anfitriones">
+                    {{#hosts}}<label class="anfitrion"><input type="checkbox" name="hosts[]" value="{{id}}"{{#checked}} checked{{/checked}} data-vivo-anfitrion="{{first}}"><span class="anfitrion-cara">{{> local_oksigeniaeguahe/panel_face }}</span><span><b>{{name}}</b><span class="secundario">{{role}}</span></span></label>{{/hosts}}
+                </div>
+            </details>
+            {{#parkingon}}<details class="acto-plegado" data-plegado="parking">
+                <summary><h3>{{#str}}event_parking_title, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{#parking}}{{#str}}event_parking_on, local_oksigeniaeguahe{{/str}}{{/parking}}{{^parking}}{{#str}}event_parking_off, local_oksigeniaeguahe{{/str}}{{/parking}}</span>{{{i.chev}}}</summary>
+                <div class="acto-aparcar"><label class="casilla"><input type="checkbox" name="parking" value="1"{{#parking}} checked{{/parking}}><span>{{#str}}event_parking, local_oksigeniaeguahe{{/str}}</span></label><img src="{{parkingimg}}" alt="{{#str}}panel_event_parking_img, local_oksigeniaeguahe{{/str}}" height="64" loading="lazy"></div>
+            </details>{{/parkingon}}
+            <details class="acto-plegado" data-plegado="asks">
+                <summary><h3>{{#str}}panel_event_questions, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{sums.asks}}</span>{{{i.chev}}}</summary>
+                <div class="campo"><label for="acto-form">{{#str}}event_form, local_oksigeniaeguahe{{/str}}</label><select id="acto-form" name="formid">{{#forms}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/forms}}</select><span class="ayuda">{{#str}}panel_event_form_help, local_oksigeniaeguahe{{/str}}</span></div>
+                {{#hasformquestions}}<ol class="preguntas-acto">{{#formquestions}}<li>{{q}}</li>{{/formquestions}}</ol><a class="enlace" href="{{formurl}}">{{{i.lapiz}}}{{#str}}panel_event_form_change, local_oksigeniaeguahe{{/str}}</a>{{/hasformquestions}}
+            </details>
+            <details class="acto-plegado" data-plegado="after">
+                <summary><h3>{{#str}}panel_event_after, local_oksigeniaeguahe{{/str}}</h3><span class="acto-suma" data-suma>{{sums.after}}</span>{{{i.chev}}}</summary>
+                <div class="campo"><label for="acto-encuesta">{{#str}}event_survey, local_oksigeniaeguahe{{/str}}</label><select id="acto-encuesta" name="survey">{{#surveys}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/surveys}}</select><span class="ayuda">{{#str}}panel_event_survey_help, local_oksigeniaeguahe{{/str}}</span></div>
+                {{#surveyurl}}<a class="enlace" href="{{surveyurl}}">{{{i.lapiz}}}{{#str}}panel_event_survey_change, local_oksigeniaeguahe{{/str}}</a>{{/surveyurl}}
+            </details>
+        </section>
         {{^notice}}
         <div class="guardar-pie">
             <div class="acciones">

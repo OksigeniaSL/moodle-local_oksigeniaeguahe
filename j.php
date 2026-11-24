@@ -25,6 +25,7 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Families have no account: the link of the event lets them in.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\brief;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
@@ -47,6 +48,12 @@ $embedded = optional_param('embed', 0, PARAM_BOOL);
 $url = new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $token] + ($embedded ? ['embed' => 1] : []));
 publicpage::setup($url);
 publicpage::$embedded = (bool) $embedded;
+// All of it in sight, for the window the web of the centre opens (brief).
+$brief = $embedded && optional_param('breve', 0, PARAM_BOOL);
+$button = $brief ? optional_param('boton', '', PARAM_ALPHANUM) : '';
+if ($brief) {
+    $url->params(['breve' => 1] + ($button !== '' ? ['boton' => $button] : []));
+}
 
 $event = events::by_token($token);
 $centre = $event ? centres::get((int) $event->centreid) : null;
@@ -149,6 +156,21 @@ $data = signup::read($centre);
 // A student signing up for themselves is spoken to as one person from here on (what is wrong, the wall afterwards).
 publiclang::$self = !empty($data['self']);
 $data['answers'] = forms::read((int) $event->formid);
+// A visit made to measure asks when it suits them: the whole page.
+$brief = $brief && empty($event->tailored) && !$desk;
+$question = null;
+if ($brief) {
+    $question = brief::question((int) $event->formid, (string) ($centre->lang ?: 'es'));
+    if ($question && !data_submitted()) {
+        // The web says which of the options was pressed there.
+        $data['answers'][$question->id] = brief::option(
+            $question,
+            optional_param('o', '', PARAM_ALPHANUMEXT),
+            (string) ($centre->lang ?: 'es')
+        );
+    }
+    $data = brief::data($data, $event, $question);
+}
 $errors = [];
 if (data_submitted()) {
     // Inside the web of the centre there is no session of this site: the page carries its own mark (events::mark()).
@@ -156,7 +178,21 @@ if (data_submitted()) {
         // A page left open for hours: the session ended. Nothing is lost, it is sent again.
         $errors['form'] = publiclang::str('pub_err_session', $lang);
     } else {
-        $errors = signup::check($data, $event, $centre, $lang);
+        $errors = signup::check($data, $event, $centre, $lang, $brief);
+        if ($brief) {
+            $errors = brief::errors($errors, $question, $data);
+            if (
+                !$errors && !brief::person(
+                    optional_param('sesskey', '', PARAM_RAW_TRIMMED),
+                    optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
+                    (int) $event->id,
+                    getremoteaddr(),
+                    time()
+                )
+            ) {
+                $errors['form'] = publiclang::str('pub_err_toomany', $lang);
+            }
+        }
     }
     $lock = null;
     if (!$errors) {
@@ -221,6 +257,15 @@ if (data_submitted()) {
                 $url
             );
         }
+        if ($brief) {
+            // Two lines in the same place; the page of a family already known is never offered here.
+            brief::output($centre, $lang, publiclang::str('pub_breve_sent', $lang), brief::sent(
+                $centre,
+                $lang,
+                $existed ? null : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]),
+                $event
+            ));
+        }
         if ($existed) {
             // The wall with what they just wrote and their visit; never their page (public_known).
             $signup = empty($event->tailored) ? familymail::signup($household, (int) $event->id) : null;
@@ -265,6 +310,18 @@ if (share::act_open($event)) {
 }
 if ($sharer) {
     publicpage::$seal = share::seal('acto', $lang);
+}
+if ($brief) {
+    brief::output($centre, $lang, format_string($event->name), brief::context(
+        $event,
+        $centre,
+        $lang,
+        $data,
+        $errors,
+        new moodle_url($url, ['idioma' => $lang]),
+        events::mark($event),
+        $question
+    ), $button);
 }
 $context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
 $mine = $desk || $embedded ? '' : (string) ($SESSION->local_oksigeniaeguahe_invited[(int) $event->id] ?? '');

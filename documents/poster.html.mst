@@ -88,10 +88,37 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
 .marca .qr-caja .url { margin-top: 12px; font-size: 25px; font-weight: 800; color: var(--m-acento); }
 .marca .qr-caja .tel { margin-top: 6px; font-size: 18px; color: var(--tinta-2); }
 .marca .firma { margin: auto 0 0; padding: 18px 0 12px; text-align: right; font-size: 11px; color: var(--tinta-2); }
+
+/* The poster of the centre, whole, and under it the strip with the code */
+.hoja.propia { background: #FFFFFF; }
+.propia .lamina { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 26px 26px 18px; }
+.propia .lamina img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; }
+.propia .tira { position: relative; flex: none; display: flex; align-items: center; gap: 26px; padding: 18px 53px 30px; background: var(--c-acento); color: var(--c-sobre-acento); }
+.propia .tira .qr { width: 132px; height: 132px; padding: 10px; border-radius: 12px; }
+.propia .tira p { margin: 0; }
+.propia .tira > div:nth-child(2) { flex: 1; }
+.propia .tira .llamada { font-size: 25px; line-height: 1.1; font-weight: 790; letter-spacing: -.02em; }
+.propia .tira .cuando { margin-top: 6px; font-size: 17px; line-height: 1.35; }
+.propia .tira .url { margin-top: 6px; font-size: 20px; font-weight: 750; }
+.propia .tira .centro { margin-inline-start: auto; max-width: 170px; text-align: end; font-size: 16px; font-weight: 750; line-height: 1.2; }
+.propia .tira .firma { position: absolute; right: 53px; bottom: 9px; font-size: 10px; }
 </style>
 </head>
 <body>
-<div class="pliego">{{#marca}}<div class="hoja marca" style="--m-titulo: {{titulo}}; --m-acento: {{acento}}; --m-linea: {{linea}}; --m-linea-suave: {{lineasuave}}; --m-relleno: {{relleno}};">
+<div class="pliego">{{#propio}}<div class="hoja propia">
+  {{#muestra}}<span class="muestra">{{muestra}}</span>{{/muestra}}
+  <div class="lamina"><img src="{{src}}" alt="{{dice}}"></div>
+  <section class="tira">
+    <div class="qr" role="img" aria-label="{{qr_alt}}">{{{qr_svg}}}</div>
+    <div>
+      <p class="llamada">{{llamada}}</p>
+      <p class="cuando">{{fecha}} · {{hora}}{{#lugar}}<br>{{lugar}}{{/lugar}}</p>
+      {{#url_corta}}<p class="url">{{url_corta}}</p>{{/url_corta}}
+    </div>
+    <p class="centro">{{centro.nombre}}</p>
+    {{#firma}}<p class="firma">{{firma}}</p>{{/firma}}
+  </section>
+</div>{{/propio}}{{^propio}}{{#marca}}<div class="hoja marca" style="--m-titulo: {{titulo}}; --m-acento: {{acento}}; --m-linea: {{linea}}; --m-linea-suave: {{lineasuave}}; --m-relleno: {{relleno}};">
   {{#muestra}}<span class="muestra">{{muestra}}</span>{{/muestra}}
   <div class="franja" aria-hidden="true">{{#franja}}<span style="background: {{.}}"></span>{{/franja}}</div>
   <div class="cuerpo">
@@ -167,6 +194,6 @@ h1 { margin: 6px 0 0; font-size: 82px; line-height: .96; font-weight: 790; lette
     </div>
     {{#firma}}<p class="firma">{{firma}}</p>{{/firma}}
   </section>
-</div>{{/marca}}</div>
+</div>{{/marca}}{{/propio}}</div>
 </body>
 </html>
