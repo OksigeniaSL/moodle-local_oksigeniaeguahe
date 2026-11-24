@@ -170,7 +170,11 @@ class vestibulo {
             $tags = array_values(array_filter(array_map([familypage::class, 'label_name'], $household->children)));
             $out[] = [
                 'adults' => panel::adults_line($household->adults),
-                'since' => panel::wait_words((int) $household->waitingsince, $now)['since'],
+                'since' => panel::wait_words(
+                    (int) $household->waitingsince,
+                    $now,
+                    !empty($household->waitingdayonly)
+                )['since'],
                 'tags' => familypage::join($tags, current_language()),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
             ];

@@ -810,7 +810,7 @@ class metrics {
         foreach (
             $DB->get_records_select(
                 households::CONTACTS,
-                "centreid = :centreid AND direction = 'in' AND channel <> 'page'",
+                "centreid = :centreid AND (direction = 'in' OR (direction = 'note' AND entryid > 0)) AND channel <> 'page'",
                 ['centreid' => $centreid],
                 'timecreated ASC, id ASC',
                 'id, householdid, channel, entryid, detail'
@@ -870,7 +870,8 @@ class metrics {
 
     /**
      * The campaign in Eguahe itself: how long the families wait for a first answer from a person, and who has none yet;
-     * also by where they wrote first and by when (BANDS), to see where the waits are.
+     * also by where they wrote first and by when (BANDS), to see where the waits are. What only has its day (a date of a
+     * sheet without its hour) measures no hours: such a first message or answer is left out.
      *
      * @param int $centreid
      * @return array median hours to the first answer, households answered, households still waiting, and bychannel and
@@ -878,33 +879,34 @@ class metrics {
      */
     public static function response(int $centreid): array {
         global $DB;
-        $rows = $DB->get_records_sql("SELECT c.householdid,
-                                             MIN(CASE WHEN c.direction = 'in' THEN c.timecreated END) AS firstin,
-                                             MIN(CASE WHEN c.direction = 'out' THEN c.timecreated END) AS firstout
-                                        FROM {local_oksigeniaeguahe_contact} c
-                                        JOIN {local_oksigeniaeguahe_household} h ON h.id = c.householdid
-                                       WHERE c.centreid = :centreid AND h.incentre = 0
-                                    GROUP BY c.householdid", ['centreid' => $centreid]);
-        // The channel of the first message of each family.
-        $channels = [];
-        $firsts = $DB->get_recordset_sql("SELECT c.householdid, c.channel, c.timecreated
-                                            FROM {local_oksigeniaeguahe_contact} c
-                                           WHERE c.centreid = :centreid AND c.direction = 'in'
-                                        ORDER BY c.householdid, c.timecreated, c.id", ['centreid' => $centreid]);
-        foreach ($firsts as $first) {
-            $channels[$first->householdid] = $channels[$first->householdid] ?? (string) $first->channel;
+        // The first message and the first answer of each family, and the channel of its first message.
+        $rows = [];
+        $lines = $DB->get_recordset_sql("SELECT c.id, c.householdid, c.direction, c.channel, c.dayonly, c.timecreated
+                                           FROM {local_oksigeniaeguahe_contact} c
+                                           JOIN {local_oksigeniaeguahe_household} h ON h.id = c.householdid
+                                          WHERE c.centreid = :centreid AND h.incentre = 0 AND c.direction <> 'note'
+                                       ORDER BY c.householdid, c.timecreated, c.id", ['centreid' => $centreid]);
+        foreach ($lines as $line) {
+            $rows[$line->householdid] = $rows[$line->householdid] ?? ['in' => null, 'out' => null];
+            $rows[$line->householdid][$line->direction] = $rows[$line->householdid][$line->direction] ?? $line;
         }
-        $firsts->close();
+        $lines->close();
+        $answered = 0;
         $hours = [];
         $bychannel = [];
         $byband = [];
         $zone = \core_date::get_server_timezone();
         foreach ($rows as $row) {
-            if ($row->firstin && $row->firstout && $row->firstout >= $row->firstin) {
-                $wait = ($row->firstout - $row->firstin) / HOURSECS;
+            [$in, $answer] = [$row['in'], $row['out']];
+            if (!$in || !$answer || $answer->timecreated < $in->timecreated) {
+                continue;
+            }
+            $answered++;
+            if (!$in->dayonly && !$answer->dayonly) {
+                $wait = ($answer->timecreated - $in->timecreated) / HOURSECS;
                 $hours[] = $wait;
-                $bychannel[$channels[$row->householdid] ?? 'other'][] = $wait;
-                $byband[self::band((int) $row->firstin, $zone)][] = $wait;
+                $bychannel[(string) $in->channel][] = $wait;
+                $byband[self::band((int) $in->timecreated, $zone)][] = $wait;
             }
         }
         $median = function (array $list): ?float {
@@ -913,7 +915,7 @@ class metrics {
         };
         $split = fn(array $groups) => array_map(fn($list) => ['median' => $median($list), 'count' => count($list)], $groups);
         $byband = array_merge(array_intersect_key(array_flip(self::BANDS), $byband), $byband);
-        return ['median' => $median($hours), 'answered' => count($hours), 'waiting' => households::waiting_count($centreid),
+        return ['median' => $median($hours), 'answered' => $answered, 'waiting' => households::waiting_count($centreid),
             'bychannel' => $split($bychannel), 'byband' => $split($byband)];
     }
 

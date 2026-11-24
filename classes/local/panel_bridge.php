@@ -197,7 +197,7 @@ class panel_bridge {
      */
     protected static function last_mails(\stdClass $entry, int $now): array {
         global $DB;
-        $rows = $DB->get_records_sql('SELECT c.id, c.householdid, c.body, c.timecreated
+        $rows = $DB->get_records_sql('SELECT c.id, c.householdid, c.body, c.dayonly, c.timecreated
                                         FROM {' . households::CONTACTS . '} c
                                        WHERE c.entryid = ? AND c.direction = ?
                                     ORDER BY c.timecreated DESC, c.id DESC', [$entry->id, 'in'], 0, self::LASTMAILS);
@@ -209,7 +209,7 @@ class panel_bridge {
             $said = $lines[1] ?? ($lines[0] ?? '');
             $out[] = ['from' => $from !== '' ? $from : get_string('panel_a_family', self::C),
                 'subject' => \core_text::substr($said, 0, 70) . (\core_text::strlen($said) > 70 ? '…' : ''),
-                'when' => panel::when_words((int) $row->timecreated, $now)];
+                'when' => panel::when_words((int) $row->timecreated, $now, !empty($row->dayonly))];
         }
         return $out;
     }

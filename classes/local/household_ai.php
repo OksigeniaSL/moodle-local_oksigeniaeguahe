@@ -80,7 +80,7 @@ class household_ai {
             households::CONTACTS,
             ['householdid' => $household->id],
             'timecreated DESC, id DESC',
-            'id, direction, channel, body, timecreated',
+            'id, direction, channel, body, entryid, timecreated',
             0,
             self::THREAD
         );
@@ -89,8 +89,9 @@ class household_ai {
             if ($body === '') {
                 continue;
             }
-            $thread[] = ['from' => ['in' => 'family', 'out' => 'centre', 'note' => 'note of the team'][$contact->direction] ??
-                'centre', 'when' => userdate((int) $contact->timecreated, '%Y-%m-%d', 99, false), 'text' => $body];
+            $from = households::is_hand_note($contact) ? 'note' : $contact->direction;
+            $thread[] = ['from' => ['in' => 'family', 'out' => 'centre', 'note' => 'note of the team'][$from] ?? 'centre',
+                 'when' => userdate((int) $contact->timecreated, '%Y-%m-%d', 99, false), 'text' => $body];
         }
         $acts = [];
         foreach (events::for_centre((int) $centre->id) as $event) {

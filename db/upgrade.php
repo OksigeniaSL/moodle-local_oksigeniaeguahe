@@ -1738,5 +1738,51 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121201, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121300) {
+        // A day without its hour is kept as a day; a visit of a sheet is followed while the sheet gives it; and a sheet that
+        // loses its row of titles says so.
+        $int = fn(string $name, string $length, string $after) => new xmldb_field(
+            $name,
+            XMLDB_TYPE_INTEGER,
+            $length,
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            $after
+        );
+        $tables = [
+            'local_oksigeniaeguahe_contact' => [$int('dayonly', '1', 'asks')],
+            'local_oksigeniaeguahe_household' => [$int('waitingdayonly', '1', 'waitingsince')],
+            'local_oksigeniaeguahe_entry' => [
+                $int('lastdayonly', '1', 'lastreceived'),
+                $int('headlessat', '10', 'missingat'),
+                $int('headlessseen', '10', 'headlessat'),
+                $int('wholeat', '10', 'headlessseen'),
+            ],
+            'local_oksigeniaeguahe_teamnote' => [
+                $int('entryid', '10', 'mark'),
+                $int('contactid', '10', 'entryid'),
+                $int('visit', '10', 'contactid'),
+                $int('dayonly', '1', 'visit'),
+                $int('seen', '10', 'dayonly'),
+                $int('replacedby', '10', 'seen'),
+                new xmldb_field('body', XMLDB_TYPE_TEXT, null, null, null, null, null, 'replacedby'),
+            ],
+        ];
+        foreach ($tables as $name => $fields) {
+            $table = new xmldb_table($name);
+            foreach ($fields as $field) {
+                if (!$dbman->field_exists($table, $field)) {
+                    $dbman->add_field($table, $field);
+                }
+            }
+        }
+        // What is already there: the moments nobody wrote, and the values of a row kept as if they were titles.
+        \local_oksigeniaeguahe\local\sheetrows::mark_days();
+        \local_oksigeniaeguahe\local\sheetrows::clean_titles();
+        upgrade_plugin_savepoint(true, 2026121300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

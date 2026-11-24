@@ -78,18 +78,18 @@ class panel_household {
         $ante = '';
         $answered = null;
         if ($household->waitingsince > 0) {
-            $words = panel::wait_words((int) $household->waitingsince, $now);
+            $words = panel::wait_words((int) $household->waitingsince, $now, !empty($household->waitingdayonly));
             $ante = get_string('panel_waits', $c, $words['since']) .
                 (panel::days_between((int) $household->waitingsince, $now) >= 2 ? ' · ' . $words['sub'] : '');
         } else {
             foreach (array_reverse($contacts) as $contact) {
                 if ($contact->direction === 'out') {
                     $who = isset($people[$contact->userid]) ? fullname($people[$contact->userid]) : 'Eguahe';
-                    $when = panel::when_words((int) $contact->timecreated, $now);
+                    $when = panel::when_words((int) $contact->timecreated, $now, !empty($contact->dayonly));
                     $ante = get_string('panel_answered_by', $c, (object) ['when' => $when, 'who' => $who]);
                     $answered = ['who' => $who, 'when' => $when, 'stamp' => ['top' => get_string('panel_answered', $c),
                         'day' => rtrim(userdate((int) $contact->timecreated, '%a %d'), '.'),
-                        'hour' => panel::hour((int) $contact->timecreated)]];
+                        'hour' => empty($contact->dayonly) ? panel::hour((int) $contact->timecreated) : '']];
                     break;
                 }
             }
@@ -1164,11 +1164,26 @@ class panel_household {
             $person = $people[$contact->userid] ?? null;
             $via = get_string('via_' . $channel, $c);
             $via = \core_text::strtolower(\core_text::substr($via, 0, 1)) . \core_text::substr($via, 1);
-            if ($contact->direction === 'in') {
+            $body = trim((string) $contact->body);
+            $hand = $contact->direction === 'in' && households::is_hand_note($contact);
+            if ($hand) {
+                // The team wrote the family down, and nothing the family said: never as if it had written.
+                $kind = 'equipo';
+                $who = $person ? fullname($person) : get_string('panel_the_team', $c);
+                $how = get_string('panel_noted_hand', $c, $via);
+                $body = '';
+            } else if ($contact->direction === 'in') {
                 $kind = 'familia';
                 $who = get_string('panel_the_family', $c);
                 $how = $i > 0 ? get_string('panel_wrote', $c, $via) :
                     ($where !== '' ? get_string('panel_came_entry', $c, $where) : get_string('panel_came', $c, $via));
+                // What the family said to a person, who wrote it down.
+                $how .= $person ? ' · ' . get_string('panel_noted_by', $c, fullname($person)) : '';
+            } else if ($contact->direction === 'note' && $contact->entryid) {
+                // A row of a sheet the team keeps.
+                $kind = 'equipo';
+                $who = get_string('panel_the_team', $c);
+                $how = get_string('panel_noted_sheet', $c);
             } else if ($contact->direction === 'note') {
                 $kind = 'equipo';
                 // A note of a person, for the team; one Eguahe writes by itself (what the family chose, a list) is a fact.
@@ -1179,14 +1194,13 @@ class panel_household {
                 $who = $person ? fullname($person) : 'Eguahe';
                 $how = get_string('panel_answered_via', $c, $via);
             }
-            $body = trim((string) $contact->body);
             $out[] = [
                 'family' => $kind === 'familia',
                 'team' => $kind === 'equipo',
                 'system' => $kind === 'sistema',
                 'who' => $who,
                 'how' => $how,
-                'when' => panel::when_words((int) $contact->timecreated, $now),
+                'when' => panel::when_words((int) $contact->timecreated, $now, !empty($contact->dayonly)),
                 'body' => $body === '' ? '' : ($contact->direction === 'note' ? $body : panel::quote($body)),
             ];
         }

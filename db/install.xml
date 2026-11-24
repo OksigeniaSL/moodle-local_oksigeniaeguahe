@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261107" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261213" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -134,6 +134,7 @@
         <FIELD NAME="incentre" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Already a family of the centre: out of the numbers of the campaign"/>
         <FIELD NAME="linkhash" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="SHA-256 of the private link of the household; never the link itself"/>
         <FIELD NAME="waitingsince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when the household waits for a person to answer; 0 when nobody is owed an answer"/>
+        <FIELD NAME="waitingdayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether of since when it waits only the day is known"/>
         <FIELD NAME="lastcontact" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
@@ -311,6 +312,7 @@
         <FIELD NAME="address" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" COMMENT="Who wrote on WhatsApp or Telegram, as Marandu gives it, to answer that person"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who wrote it; 0 for the household or the system"/>
         <FIELD NAME="asks" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What a message of the family asks or tells, in a line for the team, by the AI of the centre; null, not read yet; empty, nothing to say"/>
+        <FIELD NAME="dayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether only its day is known (a date without its hour): no hour is ever said of it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -593,6 +595,7 @@
         <FIELD NAME="teamsheet" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="A sheet the team keeps: a phone finds the family, and what the team writes in it is read as gestures; never deduced from its headings"/>
         <FIELD NAME="received" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How many came in"/>
         <FIELD NAME="lastreceived" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="lastdayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether of its last family only the day is known"/>
         <FIELD NAME="testedat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When a test last came through it: something sent with the test email (entries::TESTMAIL)"/>
         <FIELD NAME="calledat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it last called and was let in, with something new or not; a form, when it was last opened"/>
         <FIELD NAME="refusedat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when it calls with a key that is not its own; 0, it does not"/>
@@ -602,6 +605,9 @@
         <FIELD NAME="missing" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The tabs its script did not find the last night"/>
         <FIELD NAME="unreadat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when nothing of what it brings is understood"/>
         <FIELD NAME="missingat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when its script does not find some of its tabs"/>
+        <FIELD NAME="headlessat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when its sheet comes without its row of titles; 0, never"/>
+        <FIELD NAME="headlessseen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time a row came that way"/>
+        <FIELD NAME="wholeat" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When its last sending of the whole sheet began"/>
         <FIELD NAME="silenttold" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="The silence the team was told of, once each"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -998,6 +1004,13 @@
         <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="mark" TYPE="char" LENGTH="64" NOTNULL="true" DEFAULT="-" SEQUENCE="false" COMMENT="The hash of the column, the value and what was read from it"/>
+        <FIELD NAME="entryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The entry of the sheet, of a visit its rows give"/>
+        <FIELD NAME="contactid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The line of the history that says that visit"/>
+        <FIELD NAME="visit" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The day, and the hour when the sheet says it, of that visit"/>
+        <FIELD NAME="dayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether only the day of that visit is known"/>
+        <FIELD NAME="seen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time the sheet gave that visit"/>
+        <FIELD NAME="replacedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The visit the same row gave later, in its place; 0, it stands"/>
+        <FIELD NAME="body" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What its line said, while it says that the visit changed"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

@@ -20,7 +20,8 @@ namespace local_oksigeniaeguahe\local;
  * Whether what comes in through each entry of a centre is still coming: zero and «not known» are not the same, so
  * «nobody is waiting» is only said of what arrived. An entry can go quiet in four ways, and all of them used to look like
  * nobody writing: it stops calling, it calls and is refused (its key changed), it calls and nothing in it is understood
- * (a column was renamed, a tab is gone), or the families stop coming through it for longer than it ever was.
+ * (a column was renamed, a tab is gone, the row of titles was lost), or the families stop coming through it for longer
+ * than it ever was.
  *
  * A sheet calls every night even with nothing new, so its silence is known in a day and a half; a form, an address or a
  * tool is only compared with itself, and one that brings few families is never hurried.
@@ -61,7 +62,10 @@ class pulse {
     const TAPE = 28;
 
     /** @var string The states that are said: what arrived may not be all there is. */
-    const SILENT = ['refused', 'missing', 'unread', 'quiet'];
+    const SILENT = ['refused', 'headless', 'missing', 'unread', 'quiet'];
+
+    /** @var int Two calls nearer than this are of the same sending of the whole sheet. */
+    const SENDING = 10 * MINSECS;
 
     /**
      * An entry called and was let in, with something new or with nothing.
@@ -72,6 +76,7 @@ class pulse {
      * @param bool $night Whether it is the call of every night: everything again, or a beat with nothing in it.
      * @param string[] $missing The tabs its script could not find.
      * @param int $now
+     * @param bool $headless Whether some row came with its titles lost.
      */
     public static function called(
         \stdClass $entry,
@@ -79,7 +84,8 @@ class pulse {
         int $unread,
         bool $night = false,
         array $missing = [],
-        int $now = 0
+        int $now = 0,
+        bool $headless = false
     ): void {
         global $DB;
         $now = $now ?: time();
@@ -92,6 +98,20 @@ class pulse {
         } else if ($unread && !$sameread) {
             $changes->unread = min(100000, (int) ($entry->unread ?? 0) + $unread);
             $changes->unreadat = (int) ($entry->unreadat ?? 0) ?: $now;
+        }
+        if ($night && $now - (int) ($entry->calledat ?? 0) > self::SENDING) {
+            // A sheet sent whole goes in several calls: when this sending began.
+            $changes->wholeat = $now;
+        }
+        if ($headless) {
+            // Since when, until it is sent whole with its titles; the same one while it is seen again every night.
+            $same = (int) ($entry->headlessseen ?? 0) && $now - (int) $entry->headlessseen <= self::NIGHT;
+            $changes->headlessat = $same ? (int) $entry->headlessat : $now;
+            $changes->headlessseen = $now;
+        } else if ($understood && !self::nightly($entry) && !$night && !(int) ($entry->wholeat ?? 0)) {
+            // One that never sends everything again: what comes in with its titles says they are back.
+            $changes->headlessat = 0;
+            $changes->headlessseen = 0;
         }
         if ($night) {
             $beats = self::beats($entry);
@@ -154,6 +174,18 @@ class pulse {
     }
 
     /**
+     * Whether the row of titles of the sheet of an entry is lost, as far as its last sending tells: nothing under it can
+     * be told, and families stay out from the first row, so it is said at once.
+     *
+     * @param \stdClass $entry
+     * @return bool
+     */
+    public static function headless(\stdClass $entry): bool {
+        $seen = (int) ($entry->headlessseen ?? 0);
+        return $seen && $seen >= (int) ($entry->wholeat ?? 0);
+    }
+
+    /**
      * Whether an entry calls every night, as far as its last two calls tell.
      *
      * @param \stdClass $entry
@@ -179,6 +211,9 @@ class pulse {
         if ((int) ($entry->refusedat ?? 0)) {
             $out['state'] = 'refused';
             $out['since'] = (int) $entry->refusedat;
+        } else if (self::headless($entry)) {
+            $out['state'] = 'headless';
+            $out['since'] = (int) ($entry->headlessat ?? 0);
         } else if (self::nightly($entry) && $now - $called > self::NIGHT) {
             $out['state'] = 'quiet';
             $out['since'] = $called;
@@ -217,7 +252,8 @@ class pulse {
         $times = array_map('intval', $DB->get_fieldset_select(
             households::CONTACTS,
             'timecreated',
-            "entryid = :entry AND direction = 'in' AND timecreated > :from AND timecreated <= :now ORDER BY timecreated ASC",
+            // What the team writes in its sheet comes through it too.
+            "entryid = :entry AND direction <> 'out' AND timecreated > :from AND timecreated <= :now ORDER BY timecreated ASC",
             ['entry' => $entry->id, 'from' => $now - self::HISTORY, 'now' => $now]
         ));
         $days = array_unique(array_map(fn($t) => userdate($t, '%Y%m%d', 99, false), $times));
@@ -321,7 +357,7 @@ class pulse {
         $came = [];
         $rows = $DB->get_recordset_select(
             households::CONTACTS,
-            "centreid = :centre AND direction = 'in' AND entryid > 0 AND timecreated > :from AND timecreated <= :now",
+            "centreid = :centre AND direction <> 'out' AND entryid > 0 AND timecreated > :from AND timecreated <= :now",
             ['centre' => $centre->id, 'from' => $now - (self::TAPE + 1) * DAYSECS, 'now' => $now],
             '',
             'id, entryid, householdid, timecreated'
@@ -376,7 +412,8 @@ class pulse {
     public static function line(array $pulse, int $now): string {
         return implode(' · ', array_filter([$pulse['last'] ? get_string('pulse_last', self::C, panel::when_words(
             $pulse['last'],
-            $now
+            $now,
+            !empty($pulse['entry']->lastdayonly)
         )) : get_string('pulse_nobody_yet', self::C), self::call($pulse, $now)]));
     }
 

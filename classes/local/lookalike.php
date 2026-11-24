@@ -420,6 +420,8 @@ class lookalike {
             'lastcontact' => max((int) $keep->lastcontact, (int) $gone->lastcontact)];
         $waiting = array_filter([(int) $keep->waitingsince, (int) $gone->waitingsince]);
         $changes['waitingsince'] = $waiting ? min($waiting) : 0;
+        $waits = $changes['waitingsince'] && $changes['waitingsince'] === (int) $keep->waitingsince ? $keep : $gone;
+        $changes['waitingdayonly'] = $changes['waitingsince'] ? (int) ($waits->waitingdayonly ?? 0) : 0;
         foreach (
             ['municipality', 'municipalityname', 'heardfrom', 'heardwho', 'heardnet', 'invitesign', 'whyother',
                 'ownerid', 'familylink', 'roster'] as $field
@@ -863,19 +865,22 @@ class lookalike {
             "householdid = ? AND direction <> 'note'",
             [$householdid],
             'timecreated ASC, id ASC',
-            'id, direction, channel, timecreated'
+            'id, direction, channel, dayonly, timecreated'
         );
         $waiting = 0;
+        $dayonly = 0;
         $last = 0;
         foreach ($lines as $line) {
             $last = max($last, (int) $line->timecreated);
             if ($line->direction === 'out') {
                 $waiting = 0;
+                $dayonly = 0;
             } else if ($line->direction === 'in' && $line->channel !== 'page' && !$waiting) {
                 $waiting = (int) $line->timecreated;
+                $dayonly = (int) $line->dayonly;
             }
         }
-        $changes = ['id' => $householdid, 'waitingsince' => $waiting];
+        $changes = ['id' => $householdid, 'waitingsince' => $waiting, 'waitingdayonly' => $dayonly];
         if ($last) {
             $changes['lastcontact'] = $last;
         }
@@ -970,16 +975,16 @@ class lookalike {
         $lines = [];
         $rows = $DB->get_records_select(
             households::CONTACTS,
-            "householdid = ? AND direction <> 'note'",
+            "householdid = ? AND (direction <> 'note' OR entryid > 0)",
             [$household->id],
             'timecreated DESC, id DESC',
-            'id, direction, body, timecreated',
+            'id, direction, body, dayonly, timecreated',
             0,
             40
         );
         foreach ($rows as $row) {
             $lines[] = ['id' => (int) $row->id, 'checked' => in_array((int) $row->id, $golines, true),
-                'when' => panel::day_hour((int) $row->timecreated),
+                'when' => panel::day_hour((int) $row->timecreated, !empty($row->dayonly)),
                 'text' => shorten_text(trim(preg_replace('/\s+/u', ' ', (string) $row->body)), 90)];
         }
         $from = '';

@@ -143,7 +143,11 @@ class chatcontext {
             ));
         }
         if ($since = (int) $household->waitingsince) {
-            $lines[] = get_string('chatctx_waiting', $c, panel::when_words($since, $now));
+            $lines[] = get_string('chatctx_waiting', $c, panel::when_words(
+                $since,
+                $now,
+                !empty($household->waitingdayonly)
+            ));
         }
         if ((int) ($household->ownerid ?? 0) && ($owner = $DB->get_record('user', ['id' => $household->ownerid, 'deleted' => 0]))) {
             $lines[] = get_string('chatctx_owner', $c, fullname($owner));

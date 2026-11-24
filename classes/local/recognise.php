@@ -246,6 +246,53 @@ class recognise {
     }
 
     /**
+     * A date with its hour when it is written («22/11/2026 8:30:52», «7/11/26, 3:05 p. m.»); without it, its day at noon,
+     * said to be only a day, so that nobody ever reads an hour that nobody wrote.
+     *
+     * @param string $v
+     * @param bool $monthfirst
+     * @return array|null [time, whether only its day is known], or null when it is no date.
+     */
+    public static function moment(string $v, bool $monthfirst = false): ?array {
+        $v = trim($v);
+        if (preg_match('/^\d{1,4}[\/.-]\d{1,2}[\/.-]\d{1,4}/', $v)) {
+            $zoned = (bool) preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/', $v);
+            $day = $zoned ? null : self::date($v, $monthfirst);
+            if ($day !== null) {
+                $re = '/^[\d\/.-]+,?\s+(\d{1,2})[:.h](\d{2})(?::\d{2})?\s*(?:([ap])\.?\s?m\b)?/i';
+                if (!preg_match($re, $v, $m) || (int) $m[1] > 23 || (int) $m[2] > 59) {
+                    return [$day, true];
+                }
+                $hour = (int) $m[1];
+                if (!empty($m[3])) {
+                    $hour = $hour % 12 + (strtolower($m[3]) === 'p' ? 12 : 0);
+                }
+                $zone = \core_date::get_user_timezone_object();
+                return [(new \DateTime('@' . $day))->setTimezone($zone)->setTime($hour, (int) $m[2])->getTimestamp(), false];
+            }
+        }
+        return self::sent($v);
+    }
+
+    /**
+     * A moment as a tool writes it («2026-11-20T10:00:00Z»); without its hour, its day at noon, said to be only a day.
+     *
+     * @param string $v
+     * @return array|null [time, whether only its day is known], or null when it is none.
+     */
+    public static function sent(string $v): ?array {
+        $time = strtotime($v);
+        if (!$time) {
+            return null;
+        }
+        if (date_parse($v)['hour'] !== false) {
+            return [$time, false];
+        }
+        $zone = \core_date::get_server_timezone_object();
+        return [(new \DateTime('@' . $time))->setTimezone($zone)->setTime(12, 0)->getTimestamp(), true];
+    }
+
+    /**
      * Whether the dates of a column put the month first (03/25/2027): a value whose second number cannot be a month says
      * day first, one whose first cannot be says month first; if none says, the order of the country of the centre.
      *

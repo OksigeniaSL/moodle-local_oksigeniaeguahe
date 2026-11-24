@@ -185,7 +185,14 @@ if ($data = $form->get_data()) {
             $household,
             $channel,
             $body !== '' ? $body : get_string('noted_by_team', $c),
-            !empty($data->awaits)
+            !empty($data->awaits),
+            null,
+            0,
+            '',
+            '',
+            true,
+            false,
+            (int) $USER->id
         );
     }
     for ($i = 0; $i < household_form::CHILDREN; $i++) {

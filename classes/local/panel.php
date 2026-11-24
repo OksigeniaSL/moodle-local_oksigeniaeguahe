@@ -517,12 +517,23 @@ class panel {
      *
      * @param int $since
      * @param int $now
+     * @param bool $dayonly Whether only its day is known, never its hour.
      * @return array main, sub, since
      */
-    public static function wait_words(int $since, int $now = 0): array {
+    public static function wait_words(int $since, int $now = 0, bool $dayonly = false): array {
         $now = $now ?: time();
-        $time = self::hour($since);
         $days = self::days_between($since, $now);
+        if ($dayonly) {
+            $day = $days < 7 ? userdate($since, '%A') : userdate($since, get_string('strftimedateshort', 'langconfig'));
+            return [
+                'main' => $days <= 0 ? get_string('panel_day_today', self::C) : ($days === 1 ?
+                    get_string('panel_wait_yesterday', self::C) : get_string('panel_wait_day', self::C, $day)),
+                'sub' => $days >= 2 ? get_string('panel_ago_days', self::C, $days) : '',
+                'since' => $days <= 0 ? get_string('panel_since_today_day', self::C) : ($days === 1 ?
+                    get_string('panel_since_yesterday_day', self::C) : get_string('panel_since_day_day', self::C, $day)),
+            ];
+        }
+        $time = self::hour($since);
         if ($days === 0) {
             $minutes = max(1, intdiv($now - $since, MINSECS));
             if ($minutes < 60) {
@@ -556,23 +567,27 @@ class panel {
 
     /**
      * When something happened, in words: «hoy a las 8:15», «ayer a las 19:05», «el viernes a las 9:02», «el 28 de
-     * octubre a las 9:02».
+     * octubre a las 9:02»; without the hour when only its day is known: «hoy», «ayer», «el viernes».
      *
      * @param int $time
      * @param int $now
+     * @param bool $dayonly Whether only its day is known, never its hour.
      * @return string
      */
-    public static function when_words(int $time, int $now = 0): string {
+    public static function when_words(int $time, int $now = 0, bool $dayonly = false): string {
         $now = $now ?: time();
-        $hour = self::hour($time);
+        $hour = $dayonly ? '' : self::hour($time);
         $days = self::days_between($time, $now);
         if ($days === 0) {
-            return get_string('panel_when_today', self::C, $hour);
+            return get_string($dayonly ? 'panel_when_today_day' : 'panel_when_today', self::C, $hour);
         }
         if ($days === 1) {
-            return get_string('panel_when_yesterday', self::C, $hour);
+            return get_string($dayonly ? 'panel_when_yesterday_day' : 'panel_when_yesterday', self::C, $hour);
         }
         $day = $days > 0 && $days < 7 ? userdate($time, '%A') : userdate($time, get_string('strftimedateshort', 'langconfig'));
+        if ($dayonly) {
+            return get_string('panel_when_day_day', self::C, $day);
+        }
         return get_string('panel_when_day', self::C, (object) ['day' => $day, 'time' => $hour]);
     }
 
@@ -604,12 +619,13 @@ class panel {
      * A day and its hour for a list: «4 de agosto, 6:38», with the year when it is not this one.
      *
      * @param int $time
+     * @param bool $dayonly Whether only its day is known, never its hour.
      * @return string
      */
-    public static function day_hour(int $time): string {
+    public static function day_hour(int $time, bool $dayonly = false): string {
         $format = userdate($time, '%Y', 99, false) === userdate(time(), '%Y', 99, false) ? 'strftimedateshort' : 'strftimedate';
-        return get_string('panel_day_hour', self::C, (object) ['day' => userdate($time, get_string($format, 'langconfig')),
-            'hour' => self::hour($time)]);
+        $day = userdate($time, get_string($format, 'langconfig'));
+        return $dayonly ? $day : get_string('panel_day_hour', self::C, (object) ['day' => $day, 'hour' => self::hour($time)]);
     }
 
     /**

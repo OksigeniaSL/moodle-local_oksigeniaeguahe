@@ -414,7 +414,8 @@ if ($action && data_submitted() && confirm_sesskey()) {
             redirect($url, get_string('answered_saved', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'received':
-            households::received($household, $channel, $body, true);
+            // Who of the team notes it, for the family: it wrote or called somewhere else.
+            households::received($household, $channel, $body, true, null, 0, '', '', true, false, (int) $USER->id);
             redirect($url);
             break;
         case 'note':

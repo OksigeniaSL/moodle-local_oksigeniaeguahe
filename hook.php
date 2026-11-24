@@ -40,6 +40,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\pulse;
+use local_oksigeniaeguahe\local\recognise;
 
 /**
  * Answers and ends.
@@ -82,6 +83,7 @@ if (!$centre || !empty($centre->practice)) {
     die();
 }
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'invalid' => 0];
+$headless = 0;
 $tested = (int) ($entry->testedat ?? 0);
 $allpast = (bool) $items;
 foreach ($items as $item) {
@@ -105,8 +107,10 @@ foreach ($items as $item) {
             (string) $answer;
     }
     $time = 0;
+    $dayonly = false;
     if (isset($item['time'])) {
-        $time = is_numeric($item['time']) ? (int) $item['time'] : (int) strtotime((string) $item['time']);
+        [$time, $dayonly] = is_numeric($item['time']) ? [(int) $item['time'], false] :
+            (recognise::sent((string) $item['time']) ?? [0, false]);
     }
     $past = !empty($item['past']);
     [$household, $new, $token] = entries::receive(
@@ -114,8 +118,11 @@ foreach ($items as $item) {
         $answers,
         \core_text::substr((string) ($item['id'] ?? ''), 0, 255),
         $time ?: null,
-        $past
+        $past,
+        true,
+        $dayonly
     );
+    $headless += entries::$headless ? 1 : 0;
     $counts[$household ? ($new ? 'new' : 'already') : 'nobody']++;
     if ($household && $new && $token && !$past && !empty($entry->acknowledge)) {
         // A family that just wrote gets, by email, that it was received and its page.
@@ -134,5 +141,5 @@ foreach ($items as $item) {
 $understood = $counts['new'] + $counts['already'] + ((int) ($entry->testedat ?? 0) > $tested ? 1 : 0);
 $unread = $counts['nobody'] + $counts['invalid'];
 $missing = $beat && isset($data['missing']) && is_array($data['missing']) ? array_slice($data['missing'], 0, 20) : [];
-pulse::called($entry, $understood, $unread, $beat || $allpast, $missing);
-local_oksigeniaeguahe_hook_reply(200, ['ok' => true] + $counts);
+pulse::called($entry, $understood, $unread, $beat || $allpast, $missing, 0, $headless > 0);
+local_oksigeniaeguahe_hook_reply(200, ['ok' => true] + $counts + ($headless ? ['headless' => $headless] : []));

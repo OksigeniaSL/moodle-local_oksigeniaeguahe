@@ -173,17 +173,17 @@ class panel_metrics {
         $entries = $DB->get_records_menu(entries::T, $id, '', 'id, name');
         $contacts = $DB->get_recordset_select(
             households::CONTACTS,
-            "centreid = :centreid AND direction = 'in' AND channel <> 'page'",
+            "centreid = :centreid AND (direction = 'in' OR (direction = 'note' AND entryid > 0)) AND channel <> 'page'",
             $id,
             'timecreated ASC, id ASC',
-            'id, householdid, channel, entryid, detail, timecreated'
+            'id, householdid, direction, channel, entryid, detail, timecreated'
         );
         foreach ($contacts as $contact) {
             if (!isset($out[$contact->householdid])) {
                 continue;
             }
             // A contact left in an ad, whatever came first: it shows where advertising also touched a family.
-            if ($contact->channel === 'meta') {
+            if ($contact->channel === 'meta' && $contact->direction === 'in') {
                 $out[$contact->householdid]['adlater'] = true;
             }
             $name = $contact->entryid && isset($entries[$contact->entryid]) ? format_string($entries[$contact->entryid]) .

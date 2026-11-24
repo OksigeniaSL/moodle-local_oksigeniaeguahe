@@ -122,6 +122,7 @@ class households {
             'moving' => empty($data->moving) ? 0 : 1,
             'self' => empty($data->self) ? 0 : 1,
             'waitingsince' => 0,
+            'waitingdayonly' => 0,
         ] + arrival::fields($data->arrival ?? null) + [
             'lastcontact' => $now,
             'timecreated' => $now,
@@ -385,6 +386,24 @@ class households {
     }
 
     /**
+     * Whether a line says only that the team wrote the family down, with no word of the family («Anotada por el equipo.»,
+     * in the language of whoever did it).
+     *
+     * @param \stdClass $contact
+     * @return bool
+     */
+    public static function is_hand_note(\stdClass $contact): bool {
+        static $words = null;
+        if ($words === null) {
+            $words = [];
+            foreach (array_keys(get_string_manager()->get_list_of_translations(true)) as $lang) {
+                $words[] = get_string_manager()->get_string('noted_by_team', 'local_oksigeniaeguahe', null, $lang);
+            }
+        }
+        return !(int) $contact->entryid && in_array(trim((string) $contact->body), $words, true);
+    }
+
+    /**
      * The household wrote or came: it is noted, and if it asked something, it waits for a person to answer.
      *
      * @param \stdClass $household
@@ -397,6 +416,8 @@ class households {
      * @param string $address Who wrote on WhatsApp or Telegram, as Marandu gives it.
      * @param bool $theywrote Whether the family itself wrote it: a row of a sheet of the team, or one sent before, is
      *     not, and never lifts a «do not write to us».
+     * @param bool $dayonly Whether only the day of it is known (a date without its hour): no hour is ever said of it.
+     * @param int $userid The person of the team who noted it for the family; 0, the family itself or what it sent.
      */
     public static function received(
         \stdClass $household,
@@ -407,11 +428,13 @@ class households {
         int $entryid = 0,
         string $detail = '',
         string $address = '',
-        bool $theywrote = true
+        bool $theywrote = true,
+        bool $dayonly = false,
+        int $userid = 0
     ): void {
         global $DB;
         $time = $time ?? time();
-        self::contact($household, 'in', $channel, $body, 0, $time, $entryid, $detail, $address);
+        self::contact($household, 'in', $channel, $body, $userid, $time, $entryid, $detail, $address, $dayonly);
         // Writing again after asking not to be written to lifts it, by the way they wrote (never for an old message).
         if ($theywrote) {
             writeby::wrote_again($household, $channel, $time);
@@ -419,9 +442,38 @@ class households {
         $changes = (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time];
         if ($awaits && !$household->waitingsince) {
             $changes->waitingsince = $time;
+            $changes->waitingdayonly = $dayonly ? 1 : 0;
             $household->waitingsince = $time;
+            $household->waitingdayonly = $changes->waitingdayonly;
         }
         $DB->update_record(self::T, $changes);
+    }
+
+    /**
+     * A row of a sheet the team keeps that is not a contact of an ad: something the team wrote down, never something the
+     * family said. It goes to the history as a note, and nobody waits for an answer because of it.
+     *
+     * @param \stdClass $household
+     * @param string $channel The way the sheet says they came.
+     * @param string $body
+     * @param int $time
+     * @param int $entryid The entry of the sheet.
+     * @param string $detail
+     * @param bool $dayonly Whether only the day of it is known.
+     */
+    public static function noted(
+        \stdClass $household,
+        string $channel,
+        string $body,
+        int $time,
+        int $entryid,
+        string $detail = '',
+        bool $dayonly = false
+    ): void {
+        global $DB;
+        self::contact($household, 'note', $channel, $body, 0, $time, $entryid, $detail, '', $dayonly);
+        $DB->update_record(self::T, (object) ['id' => $household->id, 'timemodified' => time(),
+            'lastcontact' => max((int) $household->lastcontact, $time)]);
     }
 
     /**
@@ -437,9 +489,10 @@ class households {
         $time = time();
         attend::answered_by($household, $userid);
         self::contact($household, 'out', $channel, $body, $userid, $time);
-        $DB->update_record(self::T, (object) ['id' => $household->id, 'waitingsince' => 0, 'lastcontact' => $time,
-            'timemodified' => $time]);
+        $DB->update_record(self::T, (object) ['id' => $household->id, 'waitingsince' => 0, 'waitingdayonly' => 0,
+            'lastcontact' => $time, 'timemodified' => $time]);
         $household->waitingsince = 0;
+        $household->waitingdayonly = 0;
     }
 
     /**
@@ -486,6 +539,7 @@ class households {
      * @param int $entryid
      * @param string $detail
      * @param string $address Who wrote on WhatsApp or Telegram, as Marandu gives it.
+     * @param bool $dayonly Whether only its day is known, never its hour.
      */
     protected static function contact(
         \stdClass $household,
@@ -496,7 +550,8 @@ class households {
         int $time,
         int $entryid = 0,
         string $detail = '',
-        string $address = ''
+        string $address = '',
+        bool $dayonly = false
     ): void {
         global $DB;
         $DB->insert_record(self::CONTACTS, (object) [
@@ -509,6 +564,7 @@ class households {
             'detail' => $detail === '' ? null : \core_text::substr($detail, 0, 255),
             'address' => $address === '' ? null : \core_text::substr($address, 0, 64),
             'userid' => $userid,
+            'dayonly' => $dayonly ? 1 : 0,
             'timecreated' => $time,
         ]);
     }
@@ -884,6 +940,9 @@ class households {
         $full = self::full($household);
         $offers = $DB->get_records_menu(centres::OFFERS, ['centreid' => $household->centreid], '', 'id, name');
         $date = fn(int $time) => $time ? date('c', $time) : null;
+        // A family of which only the day it came is known has no hour here either.
+        $dayonly = fn(int $time) => userdate($time, '%Y-%m-%d', \core_date::get_server_timezone(), false);
+        $born = array_filter($full->contacts, fn($line) => (int) $line->timecreated === (int) $full->timecreated && $line->dayonly);
         $data = [
             'household' => [
                 'language' => $full->lang,
@@ -902,7 +961,7 @@ class households {
                 'how_you_want_us_to_write' => ($full->writeby ?? '') !== '' ? ['way' => $full->writeby,
                     'since' => $date((int) $full->writebytime),
                     'last_asked_not_to' => $date((int) ($full->writebynone ?? 0))] : null,
-                'created' => $date((int) $full->timecreated),
+                'created' => $born ? $dayonly((int) $full->timecreated) : $date((int) $full->timecreated),
             ],
             'adults' => [],
             'children' => [],
@@ -934,7 +993,8 @@ class households {
                 $data['messages'][] = ['from' => $contact->direction === 'in' ? 'family' : 'centre',
                     'channel' => $contact->channel, 'text' => $contact->body,
                     'in_a_line' => trim((string) ($contact->asks ?? '')) !== '' ? $contact->asks : null,
-                    'when' => $date((int) $contact->timecreated)];
+                    'when' => empty($contact->dayonly) ? $date((int) $contact->timecreated) :
+                        $dayonly((int) $contact->timecreated)];
             }
         }
         // What the centre promised them, with its day.
@@ -1365,24 +1425,26 @@ class households {
      * team does not count), the last thing the family said, and the last answer of the team.
      *
      * @param int[] $ids
-     * @return array Household id => ['last' => contact or null, 'said' => contact or null, 'answer' => contact or null].
+     * @return array Household id => ['last' => contact or null, 'said' => contact or null, 'answer' => contact or null,
+     *     'line' => the last line of all, a note of the team too, or null].
      */
     public static function latest(array $ids): array {
         global $DB;
         if (!$ids) {
             return [];
         }
-        $out = array_fill_keys($ids, ['last' => null, 'said' => null, 'answer' => null]);
+        $out = array_fill_keys($ids, ['last' => null, 'said' => null, 'answer' => null, 'line' => null]);
         [$in, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
         $contacts = $DB->get_recordset_select(
             self::CONTACTS,
             "householdid $in",
             $params,
             'timecreated DESC, id DESC',
-            'id, householdid, direction, channel, body, entryid, detail, userid, timecreated, asks'
+            'id, householdid, direction, channel, body, entryid, detail, userid, dayonly, timecreated, asks'
         );
         foreach ($contacts as $contact) {
             $row = $out[$contact->householdid];
+            $row['line'] = $row['line'] ?? $contact;
             if ($row['last'] === null && $contact->direction !== 'note') {
                 $row['last'] = $contact;
             }

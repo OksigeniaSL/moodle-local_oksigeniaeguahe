@@ -293,6 +293,7 @@ class report_data {
 
     /**
      * Half the families that came in in a period had their first answer within this time (seconds); null without any.
+     * What only has its day measures no hours: such a first message or answer is left out.
      *
      * @param int $centreid
      * @param int $from
@@ -302,21 +303,37 @@ class report_data {
     protected static function response(int $centreid, int $from, int $to): ?float {
         global $DB;
         $rows = $DB->get_records_sql(
-            "SELECT i.householdid, MIN(i.timecreated) AS asked,
-                                             (SELECT MIN(o.timecreated) FROM {" . households::CONTACTS . "} o
-                                               WHERE o.householdid = i.householdid AND o.direction = 'out'
-                                                 AND o.timecreated >= MIN(i.timecreated)) AS answered
-                                        FROM {" . households::CONTACTS . "} i
-                                       WHERE i.centreid = :centreid AND i.direction = 'in' AND i.channel <> 'page'
-                                    GROUP BY i.householdid
-                                      HAVING MIN(i.timecreated) >= :since AND MIN(i.timecreated) < :until",
+            "SELECT i.householdid, MIN(i.timecreated) AS asked
+               FROM {" . households::CONTACTS . "} i
+              WHERE i.centreid = :centreid AND i.direction = 'in' AND i.channel <> 'page'
+           GROUP BY i.householdid
+             HAVING MIN(i.timecreated) >= :since AND MIN(i.timecreated) < :until",
             ['centreid' => $centreid, 'since' => $from, 'until' => $to]
         );
         $times = [];
-        foreach ($rows as $row) {
-            if ($row->answered) {
-                $times[] = (int) $row->answered - (int) $row->asked;
+        foreach (array_chunk($rows, 500, true) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal(array_keys($chunk), SQL_PARAMS_NAMED);
+            $lines = $DB->get_recordset_select(
+                households::CONTACTS,
+                "householdid $in AND direction <> 'note' AND channel <> 'page'",
+                $params,
+                'householdid ASC, timecreated ASC, id ASC',
+                'id, householdid, direction, dayonly, timecreated'
+            );
+            $asked = [];
+            $done = [];
+            foreach ($lines as $line) {
+                $id = (int) $line->householdid;
+                if ($line->direction === 'in') {
+                    $asked[$id] = $asked[$id] ?? $line;
+                } else if (isset($asked[$id]) && !isset($done[$id])) {
+                    $done[$id] = true;
+                    if (!$line->dayonly && !$asked[$id]->dayonly) {
+                        $times[] = (int) $line->timecreated - (int) $asked[$id]->timecreated;
+                    }
+                }
             }
+            $lines->close();
         }
         if (!$times) {
             return null;
@@ -374,14 +391,25 @@ class report_data {
         $id = (int) $centre->id;
         $inbox = new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $id]);
         $out = [];
-        $oldest = (int) $DB->get_field_sql('SELECT MIN(waitingsince) FROM {' . households::T . '}
-                                             WHERE centreid = ? AND waitingsince > 0', [$id]);
+        $first = $DB->get_records_select(
+            households::T,
+            'centreid = ? AND waitingsince > 0',
+            [$id],
+            'waitingsince ASC, id ASC',
+            'id, waitingsince, waitingdayonly',
+            0,
+            1
+        );
+        $first = reset($first);
+        $oldest = $first ? (int) $first->waitingsince : 0;
+        // Of a day without its hour, whole days.
+        $since = $first && $first->waitingdayonly ? max(1, panel::days_between($oldest, $now)) * DAYSECS : $now - $oldest;
         $waiting = households::waiting_count($id);
         if ($waiting) {
             $late = $oldest && $now - $oldest > self::LATE;
             $out[] = ['kind' => 'reply', 'count' => $waiting, 'late' => $late, 'url' => $inbox->out(false),
                 'text' => get_string('report_att_waiting' . ($waiting === 1 ? '_one' : ''), $c, (object) ['n' => $waiting,
-                'since' => self::hours($now - $oldest)])];
+                'since' => self::hours($since)])];
         }
         $due = count(attend::due($id, $now));
         if ($due) {

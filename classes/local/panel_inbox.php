@@ -143,9 +143,8 @@ class panel_inbox {
             $sub = $silent ? get_string('pulse_sub', $c, implode(', ', array_map(fn($p) => '«' . $p['name'] . '»', $silent))) :
                 self::last_answer($centreid, $now);
         } else {
-            $first = $DB->get_field_select(households::T, 'MIN(waitingsince)', 'centreid = ? AND waitingsince > 0', [$centreid]);
             $title = get_string($waiting === 1 ? 'inbox_waiting_one' : 'inbox_waiting', $c, $waiting);
-            $sub = get_string('panel_inbox_longest', $c, panel::wait_words((int) $first, $now)['since']);
+            $sub = self::longest($centreid, $now);
         }
 
         // The list as cards or as a ledger: what the person chose, else by how many families there are.
@@ -544,16 +543,9 @@ class panel_inbox {
         $household = $latest ? households::full(households::get((int) $latest->id, $centreid)) : null;
         // The line under the title, as the page writes it: whoever waits longest, or when the last answer went.
         $waiting = households::waiting_count($centreid);
-        $first = $waiting ? (int) $DB->get_field_select(
-            households::T,
-            'MIN(waitingsince)',
-            'centreid = ? AND waitingsince > 0',
-            [$centreid]
-        ) : 0;
         return [
             'waiting' => $waiting,
-            'sub' => $waiting ? get_string('panel_inbox_longest', self::C, panel::wait_words($first, time())['since']) :
-                self::last_answer($centreid, time()),
+            'sub' => $waiting ? self::longest($centreid, time()) : self::last_answer($centreid, time()),
             'latest' => $household ? ['id' => (int) $household->id, 'adults' => panel::adults_line($household->adults),
                 'listurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centreid]))->out(false),
                 // For the living hall: what of theirs comes in through the door.
@@ -720,10 +712,15 @@ class panel_inbox {
         $alumni = $first ? alumni::families((int) $first->centreid) : [];
         $rows = [];
         foreach ($list as $household) {
-            $info = $latest[$household->id] ?? ['last' => null, 'said' => null, 'answer' => null];
+            $info = $latest[$household->id] ?? ['last' => null, 'said' => null, 'answer' => null, 'line' => null];
             $waiting = $household->waitingsince > 0;
             $moment = $waiting ? (int) $household->waitingsince : (int) ($info['answer']->timecreated ??
                 $household->lastcontact);
+            // A day whose hour nobody wrote is said without any.
+            $line = $info['answer'] ?? $info['line'];
+            $dayonly = $waiting ? !empty($household->waitingdayonly) :
+                $line && (int) $line->timecreated === $moment && !empty($line->dayonly);
+            $hour = $dayonly ? '' : panel::hour($moment);
             $last = $info['last'];
             $channel = $last ? (string) $last->channel : (string) $household->firstchannel;
             $via = get_string('via_' . (in_array($channel, lists::CHANNELS, true) || $channel === lists::PAGE ? $channel :
@@ -768,9 +765,9 @@ class panel_inbox {
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
                 'waiting' => $waiting,
                 'answered' => !$waiting,
-                'hour' => panel::hour($moment),
+                'hour' => $hour,
                 'stamp' => ['top' => get_string($waiting ? 'panel_stamp_came' : 'panel_answered', $c),
-                    'day' => rtrim(userdate($moment, '%a %d'), '.'), 'hour' => panel::hour($moment)],
+                    'day' => rtrim(userdate($moment, '%a %d'), '.'), 'hour' => $hour],
                 'adults' => panel::adults_line($household->adults),
                 'alumni' => isset($alumni[(int) $household->id]),
                 'children' => $children,
@@ -914,6 +911,32 @@ class panel_inbox {
     }
 
     /**
+     * Since when whoever waits longest waits: «La que más lleva espera desde el jueves a las 18:40».
+     *
+     * @param int $centreid
+     * @param int $now
+     * @return string
+     */
+    protected static function longest(int $centreid, int $now): string {
+        global $DB;
+        $first = $DB->get_records_select(
+            households::T,
+            'centreid = ? AND waitingsince > 0',
+            [$centreid],
+            'waitingsince ASC, id ASC',
+            'id, waitingsince, waitingdayonly',
+            0,
+            1
+        );
+        $first = reset($first);
+        return $first ? get_string('panel_inbox_longest', self::C, panel::wait_words(
+            (int) $first->waitingsince,
+            $now,
+            !empty($first->waitingdayonly)
+        )['since']) : '';
+    }
+
+    /**
      * Who answered last, when nobody waits: «La última la contestó Lucía hoy a las 9:12».
      *
      * @param int $centreid
@@ -926,7 +949,7 @@ class panel_inbox {
             households::CONTACTS,
             ['centreid' => $centreid, 'direction' => 'out'],
             'timecreated DESC, id DESC',
-            'id, userid, timecreated',
+            'id, userid, dayonly, timecreated',
             0,
             1
         );
@@ -936,7 +959,7 @@ class panel_inbox {
         }
         $first = (string) $DB->get_field('user', 'firstname', ['id' => $answer->userid]);
         return get_string('panel_inbox_all_answered', self::C, (object) ['who' => $first,
-            'when' => panel::when_words((int) $answer->timecreated, $now)]);
+            'when' => panel::when_words((int) $answer->timecreated, $now, !empty($answer->dayonly))]);
     }
 
     /**

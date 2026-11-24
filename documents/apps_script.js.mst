@@ -14,6 +14,8 @@
 //   3. Choose «eguaheInstall» and press Run, once. Google asks for permission the first time.
 //   4. To send also the rows the sheet already has, choose «eguaheSendAll» and press Run.
 const EGUAHE_TABS = [];
+// The titles of the columns, to find their row if something is written above it.
+const EGUAHE_TITLES = {{{titles}}}.map(eguahePlain_);
 {{/sheet}}
 // The key below signs what is sent: whoever has it can send families to the centre. Do not share it.
 const EGUAHE_URL = {{{url}}};
@@ -102,15 +104,20 @@ function eguaheSendAll() {
 
 function eguaheRows_(tab, from, past) {
   const values = tab.getDataRange().getDisplayValues();
+  const top = eguaheTop_(values);
   // A name that comes twice keeps both: the second one is «… (2)».
   const seen = {};
-  const head = values[0].map(function (question) {
+  const head = values[top].map(function (question) {
     const name = String(question).trim();
     seen[name] = (seen[name] || 0) + 1;
     return name !== '' && seen[name] > 1 ? name + ' (' + seen[name] + ')' : name;
   });
   let items = [];
-  for (let r = Math.max(from, 2) - 1; r < values.length; r++) {
+  for (let r = from <= top + 2 ? 0 : from - 1; r < values.length; r++) {
+    // Above the titles, only what is clearly a contact: a tool that did not find them wrote it there.
+    if (r === top || (r < top && !values[r].some(eguaheValue_))) {
+      continue;
+    }
     const answers = {};
     head.forEach(function (question, c) {
       if (question !== '' && values[r][c] !== '') {
@@ -129,6 +136,38 @@ function eguaheRows_(tab, from, past) {
     eguahePost_(items);
   }
   PropertiesService.getScriptProperties().setProperty('eguaheRows:' + tab.getName(), String(values.length));
+}
+
+// The row of titles, among the first three: one without any value in it, with most of the titles this sheet has had.
+function eguaheTop_(values) {
+  let top = 0;
+  let most = -1;
+  values.slice(0, 3).forEach(function (row, r) {
+    const found = {};
+    row.forEach(function (cell) {
+      const title = eguahePlain_(cell);
+      if (title !== '' && EGUAHE_TITLES.indexOf(title) !== -1) {
+        found[title] = true;
+      }
+    });
+    const n = Object.keys(found).length - (row.some(eguaheValue_) ? 1000 : 0);
+    if (n > most) {
+      top = r;
+      most = n;
+    }
+  });
+  return top;
+}
+
+// An email, a phone, a moment or an identifier of the ads: never the title of a column.
+function eguaheValue_(cell) {
+  const text = String(cell).trim();
+  return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(text) || /^\d{4}-\d{2}-\d{2}[T ]\d{1,2}:\d{2}/.test(text) ||
+    /^[a-z]{1,2}:\+?\d{6,}$/i.test(text) || /^\+\d[\d\s().-]{7,}$/.test(text) || /^\d{9,16}$/.test(text);
+}
+
+function eguahePlain_(text) {
+  return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
 function eguaheTabs_() {

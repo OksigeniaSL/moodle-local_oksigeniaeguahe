@@ -56,6 +56,16 @@ class entries {
     /** @var string[] The platforms of Meta, as the column of an export of its ads says them once read. */
     const META_PLATFORMS = ['Instagram', 'Facebook', 'Audience Network', 'Messenger', 'WhatsApp'];
 
+    /** @var string[] The titles of a sheet the ads of Meta fill, as recognise::plain() gives them. */
+    const AD_TITLES = ['id', 'created time', 'ad id', 'ad name', 'adset id', 'adset name', 'campaign id', 'campaign name',
+        'form id', 'form name', 'is organic', 'platform'];
+
+    /** @var string A column that says the day of a visit, in a sheet with a column for its hour. */
+    const VISIT_DAY = '/^(fecha|data|date|dia|day)( (de )?(la )?(cita|visita|visit))?$/';
+
+    /** @var string A column a form writes by itself: the family sent that row. */
+    const STAMPED = '/created time|marca temporal|timestamp|carimbo|submitted/';
+
     /** @var string[] What is not kept: whether a lead was organic, and what the team said to leave. */
     const DROPPED = ['organic', 'ignore'];
 
@@ -64,6 +74,9 @@ class entries {
 
     /** @var \stdClass|null What read() made of the last row received. */
     public static $lastread = null;
+
+    /** @var bool Whether the last row received came with its titles lost: the row of titles of its sheet is not there. */
+    public static $headless = false;
 
     /**
      * A new entry of a centre, with its public name and its key.
@@ -268,6 +281,7 @@ class entries {
      * @param int|null $time When it was sent, if the source says so.
      * @param bool $past Whether it is something sent before the entry was connected.
      * @param bool $byphone Whether a phone may find a family the centre already has (not from an email anyone could write).
+     * @param bool $dayonly Whether of the moment it was sent only the day is known.
      * @return array [household or null when there is nobody to answer, whether it is new, the token of its page or null]
      */
     public static function receive(
@@ -276,49 +290,71 @@ class entries {
         string $externalid = '',
         ?int $time = null,
         bool $past = false,
-        bool $byphone = true
+        bool $byphone = true,
+        bool $dayonly = false
     ): array {
         global $DB;
+        self::$headless = false;
+        self::$noted = [];
         $centre = centres::get((int) $entry->centreid);
         if (!$centre) {
             return [null, false, null];
         }
-        $questions = array_map('strval', array_keys($answers));
-        self::note_questions($entry, $questions);
-        self::note_examples($entry, $answers);
+        [$answers, self::$headless] = self::headings($entry, $answers);
+        if (!self::$headless) {
+            // With its titles lost, what comes in their place may say who a family is: it is never kept as a question.
+            self::note_questions($entry, array_map('strval', array_keys($answers)));
+            self::note_examples($entry, $answers);
+        }
         $read = self::read($entry, $centre, $answers);
         self::$lastread = $read;
         if (self::is_test($read->email) || self::is_team($centre, $read)) {
             // A test, or a person of the team trying it: the entry works, and nobody comes in.
-            // A test: the entry works, and nobody comes in.
             self::tested($entry);
             return [null, false, null];
         }
         // A day given to come is not when they first wrote: never later than now, and before the visit.
-        $time = $time ?: ($read->appointment ? min($read->appointment, time()) - MINSECS :
-            ($read->time ? min($read->time, time()) : time()));
+        $now = time();
+        if (!$time && $read->appointment) {
+            // Of a visit already past, nobody wrote when it was noted: its day is all there is.
+            $dayonly = $read->appointment <= $now;
+            $time = $read->appointmenthour ? min($read->appointment, $now) - MINSECS : min($read->appointment, $now);
+        } else if (!$time && $read->time) {
+            $dayonly = $read->dayonly;
+            $time = min($read->time, $now);
+        }
+        $time = $time ?: $now;
         $externalid = $externalid !== '' ? $externalid : $read->externalid;
         if ($read->email === null && $read->phone === null && $read->firstname === '') {
             // Nobody to answer: nothing comes in.
             return [null, false, null];
         }
         $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid :
-            implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->time]));
-        $arrived = $DB->get_record(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key]);
-        self::$noted = [];
+            implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->keytime]));
+        // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
+        // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
+        $arrival = self::ad_arrival($entry, $read);
+        // A contact of an ad is also known by who left it and the very moment, so that it is the same one with its
+        // identifier and without it (a sheet that lost the title of that column).
+        $keys = array_merge([$key], $arrival !== null ? self::ad_keys($read) : []);
+        $arrived = self::arrived($entry, $read, $keys, $arrival !== null);
         // A sheet the team keeps, as a person said in the entry (never from its headings): a phone finds the family and
         // what the team writes is read. A form anyone can fill finds a family only by an email it already has, never
         // brings it a new address, and never changes what the team did.
         $trusted = !empty($entry->teamsheet);
         $byphone = $byphone && $trusted;
         if ($arrived) {
+            self::keep_keys($entry, $keys, (int) $arrived->householdid);
+            if (!$dayonly && $arrived->householdid) {
+                self::give_hour($entry, (int) $arrived->householdid, $time);
+            }
             // It came before; if the family erased its data since, it stays erased. What the team wrote since in the
             // same row (a second call, the day of the visit) comes in, once; who they are and their courses stay as the
             // team and the family left them in Eguahe.
             $household = $arrived->householdid ? households::get((int) $arrived->householdid, (int) $entry->centreid) : null;
             if ($household && $trusted && ($read->team || $read->staff || $read->appointment)) {
                 $transaction = $DB->start_delegated_transaction();
-                self::$noted = teamnotes::apply($household, (array) $read);
+                self::$noted = teamnotes::apply($household, (array) $read + ['entryid' => (int) $entry->id, 'past' => $past]);
                 $transaction->allow_commit();
                 $household = households::get((int) $household->id, (int) $entry->centreid);
             }
@@ -335,9 +371,6 @@ class entries {
         if (households::erased_before((int) $centre->id, array_filter($contacts), (int) ($read->time ?: 0))) {
             return [null, false, null];
         }
-        // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
-        // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
-        $arrival = self::ad_arrival($entry, $read);
         $channel = $arrival !== null ? 'meta' : ($read->channel ?? ($read->teamsheet ? 'other' : self::channel($entry)));
         $transaction = $DB->start_delegated_transaction();
         $householdid = null;
@@ -351,7 +384,7 @@ class entries {
             $householdid = households::create((int) $centre->id, $about);
             if ($time < time()) {
                 // Something sent before: the family is from when it first wrote, not from today.
-                $DB->update_record(households::T, (object) ['id' => $householdid, 'timecreated' => $time]);
+                $DB->update_record(households::T, (object) ['id' => $householdid, 'timecreated' => $time, 'lastcontact' => $time]);
             }
         }
         $household = households::get($householdid, (int) $centre->id);
@@ -360,33 +393,203 @@ class entries {
         foreach ($adultid ? $read->consents : [] as $consent) {
             households::consent($household, $adultid, $consent, true, 'entry', $household->lang);
         }
-        $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) .
-            ($read->lines ? "\n\n" . implode("\n", $read->lines) : ''));
-        // Something from long ago is kept, but does not wait for an answer.
-        $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
-        households::received(
-            $household,
-            $channel,
-            $body,
-            $awaits,
-            $time,
-            (int) $entry->id,
-            $read->detail,
-            '',
-            !$past && !$trusted
-        );
-        if ($trusted && ($read->team || $read->staff || $read->appointment)) {
-            self::$noted = teamnotes::apply($household, (array) $read);
+        $said = $read->lines ? "\n\n" . implode("\n", $read->lines) : '';
+        if ($trusted && $arrival === null && !preg_match(self::STAMPED, $read->datecolumn)) {
+            // A row the team wrote in its sheet is not something the family said: nobody waits because of it.
+            self::note_row($entry, $household, $channel, $said, $time, (string) $read->detail, $dayonly);
+        } else {
+            $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) . $said);
+            // Something from long ago is kept, but does not wait for an answer.
+            $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
+            households::received(
+                $household,
+                $channel,
+                $body,
+                $awaits,
+                $time,
+                (int) $entry->id,
+                $read->detail,
+                '',
+                !$past && !$trusted,
+                $dayonly
+            );
         }
-        $DB->insert_record(self::ARRIVALS, (object) ['centreid' => $centre->id, 'entryid' => $entry->id,
-            'externalid' => $key, 'householdid' => $household->id, 'timecreated' => time()]);
+        if ($trusted && ($read->team || $read->staff || $read->appointment)) {
+            self::$noted = teamnotes::apply($household, (array) $read + ['entryid' => (int) $entry->id, 'past' => $past]);
+        }
+        self::keep_keys($entry, $keys, (int) $household->id);
+        $lastdayonly = $time >= (int) $entry->lastreceived ? ($dayonly ? 1 : 0) : (int) ($entry->lastdayonly ?? 0);
+        $entry->lastreceived = max($time, (int) $entry->lastreceived);
+        $entry->lastdayonly = $lastdayonly;
         $DB->execute(
-            'UPDATE {' . self::T . '} SET received = received + 1, lastreceived = :t WHERE id = :id',
-            ['t' => max($time, (int) $entry->lastreceived), 'id' => $entry->id]
+            'UPDATE {' . self::T . '} SET received = received + 1, lastreceived = :t, lastdayonly = :d WHERE id = :id',
+            ['t' => $entry->lastreceived, 'd' => $lastdayonly, 'id' => $entry->id]
         );
         $token = households::new_link($household, 'entry');
         $transaction->allow_commit();
         return [households::get($householdid, (int) $centre->id), true, $token];
+    }
+
+    /**
+     * What a contact of an ad is known by besides its identifier: who left it (its email and its phone) and the very
+     * moment, when it has one.
+     *
+     * @param \stdClass $read What read() made of the row.
+     * @return string[]
+     */
+    protected static function ad_keys(\stdClass $read): array {
+        if (!$read->time || $read->dayonly) {
+            return [];
+        }
+        $out = [];
+        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+            foreach (array_filter([(string) $adult->email, (string) $adult->phone]) as $who) {
+                $out[] = hash('sha256', 'ad:' . $who . '|' . $read->time);
+            }
+        }
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Whether a row came before, by any of what it is known by; a contact of an ad, also by the line it left in the
+     * history of its family at that very moment.
+     *
+     * @param \stdClass $entry
+     * @param \stdClass $read
+     * @param string[] $keys
+     * @param bool $ad Whether it is a contact of an ad.
+     * @return \stdClass|null With its householdid.
+     */
+    protected static function arrived(\stdClass $entry, \stdClass $read, array $keys, bool $ad): ?\stdClass {
+        global $DB;
+        [$in, $params] = $DB->get_in_or_equal($keys, SQL_PARAMS_NAMED);
+        $rows = $DB->get_records_select(
+            self::ARRIVALS,
+            "entryid = :entry AND externalid $in",
+            $params + ['entry' => $entry->id],
+            'householdid DESC, id ASC',
+            'id, externalid, householdid'
+        );
+        // By its own key first, whatever else is known of it.
+        foreach ($rows as $row) {
+            if ($row->externalid === $keys[0]) {
+                return $row;
+            }
+        }
+        if ($rows) {
+            return reset($rows);
+        }
+        if (!$ad || !$read->time || $read->dayonly) {
+            return null;
+        }
+        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+            foreach (array_filter(['email' => (string) $adult->email, 'phone' => (string) $adult->phone]) as $field => $who) {
+                $ids = $DB->get_fieldset_select(
+                    households::ADULTS,
+                    'DISTINCT householdid',
+                    "centreid = ? AND $field = ?",
+                    [$entry->centreid, $who]
+                );
+                foreach ($ids as $id) {
+                    $was = $DB->record_exists(households::CONTACTS, ['householdid' => $id, 'entryid' => $entry->id,
+                        'direction' => 'in', 'timecreated' => $read->time]);
+                    if ($was) {
+                        return (object) ['householdid' => (int) $id];
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Keeps what a row is known by, so that it never comes in twice.
+     *
+     * @param \stdClass $entry
+     * @param string[] $keys
+     * @param int $householdid
+     */
+    protected static function keep_keys(\stdClass $entry, array $keys, int $householdid): void {
+        global $DB;
+        [$in, $params] = $DB->get_in_or_equal($keys, SQL_PARAMS_NAMED);
+        $have = $DB->get_fieldset_select(
+            self::ARRIVALS,
+            'externalid',
+            "entryid = :entry AND externalid $in",
+            $params + ['entry' => $entry->id]
+        );
+        foreach (array_diff(array_unique($keys), $have) as $key) {
+            $DB->insert_record(self::ARRIVALS, (object) ['centreid' => $entry->centreid, 'entryid' => $entry->id,
+                'externalid' => $key, 'householdid' => $householdid, 'timecreated' => time()]);
+        }
+    }
+
+    /**
+     * A row that came in with only its day, and that says its hour now: its line takes it, and so does since when the
+     * family waits.
+     *
+     * @param \stdClass $entry
+     * @param int $householdid
+     * @param int $time
+     */
+    protected static function give_hour(\stdClass $entry, int $householdid, int $time): void {
+        global $DB;
+        $lines = $DB->get_records(households::CONTACTS, ['householdid' => $householdid, 'entryid' => $entry->id,
+            'direction' => 'in'], 'id ASC', 'id, dayonly, timecreated');
+        if (array_filter($lines, fn($line) => !$line->dayonly && (int) $line->timecreated === $time)) {
+            return;
+        }
+        $lines = array_filter($lines, fn($line) => (bool) $line->dayonly);
+        $zone = \core_date::get_server_timezone_object();
+        $day = fn(int $t) => (new \DateTime('@' . $t))->setTimezone($zone)->format('Ymd');
+        foreach ($lines as $line) {
+            if ($day((int) $line->timecreated) !== $day($time)) {
+                continue;
+            }
+            $DB->update_record(households::CONTACTS, (object) ['id' => $line->id, 'timecreated' => $time, 'dayonly' => 0]);
+            $DB->execute(
+                'UPDATE {' . households::T . '} SET waitingsince = :t, waitingdayonly = 0
+                  WHERE id = :id AND waitingsince = :was AND waitingdayonly = 1',
+                ['t' => $time, 'id' => $householdid, 'was' => $line->timecreated]
+            );
+            return;
+        }
+    }
+
+    /**
+     * A row of a sheet the team keeps, as a note in the history of its family; the same words never twice, though their
+     * day changed.
+     *
+     * @param \stdClass $entry
+     * @param \stdClass $household
+     * @param string $channel
+     * @param string $said The columns of the row that are nothing else.
+     * @param int $time
+     * @param string $detail
+     * @param bool $dayonly
+     */
+    protected static function note_row(
+        \stdClass $entry,
+        \stdClass $household,
+        string $channel,
+        string $said,
+        int $time,
+        string $detail,
+        bool $dayonly
+    ): void {
+        global $DB;
+        $name = format_string($entry->name);
+        $body = trim(get_string('entry_noted', 'local_oksigeniaeguahe', $name) . $said);
+        $was = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', $name) . $said);
+        $lines = $DB->get_fieldset_select(
+            households::CONTACTS,
+            'body',
+            'householdid = ? AND entryid = ?',
+            [$household->id, $entry->id]
+        );
+        if (!array_intersect([$body, $was], array_map(fn($line) => trim((string) $line), $lines))) {
+            households::noted($household, $channel, $body, $time, (int) $entry->id, $detail, $dayonly);
+        }
     }
 
     /**
@@ -543,7 +746,8 @@ class entries {
             'child' => '', 'grade' => '', 'offerid' => 0, 'lines' => [], 'detail' => '', 'consents' => [],
             'incentre' => 0, 'alumni' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
-            'appointment' => 0, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0, 'otherschool' => ''];
+            'appointment' => 0, 'appointmenthour' => false, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0,
+            'otherschool' => '', 'dayonly' => false, 'keytime' => 0, 'datecolumn' => ''];
         $detail = [];
         $people = [];
         $grades = [];
@@ -711,9 +915,17 @@ class entries {
                 case 'date':
                     // «6/07/2026» is the 6th of July where days go first: never read the American way by mistake. The
                     // export of the ads of Meta writes its own column the American way in any country («11/6/26»).
+                    if ($r->time) {
+                        break;
+                    }
                     $first = $r->monthfirst || recognise::plain((string) $question) === 'created time';
-                    $r->time = $r->time ?: (int) (preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}#', $value) ?
+                    // What a row is known by is its day, as it always was: its hour never makes it another row.
+                    $r->keytime = (int) (preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}#', $value) ?
                         recognise::date($value, $first) : (strtotime($value) ?: recognise::date($value)));
+                    if ($r->keytime && ($moment = recognise::moment($value, $first))) {
+                        [$r->time, $r->dayonly] = $moment;
+                        $r->datecolumn = recognise::plain((string) $question);
+                    }
                     break;
                 case 'platform':
                     // Meta writes its short names in its exports; a connector may write the whole ones.
@@ -729,8 +941,13 @@ class entries {
                     $detail[$role] = $value;
                     break;
                 case 'ids':
-                    // The identifier of the contact itself wins over those of its ad, set, campaign or form.
-                    if ($r->externalid === '' || in_array(recognise::plain((string) $question), ['id', 'lead id'], true)) {
+                    // The identifier of the contact itself, never that of its ad, set, campaign or form: without the
+                    // column of its own, every contact of the same ad would be taken for the same one.
+                    $plain = recognise::plain((string) $question);
+                    if (in_array($plain, ['ad id', 'adset id', 'campaign id', 'form id'], true)) {
+                        break;
+                    }
+                    if ($r->externalid === '' || in_array($plain, ['id', 'lead id'], true)) {
                         $r->externalid = $value;
                     }
                     break;
@@ -783,15 +1000,123 @@ class entries {
         if ($r->children) {
             [$r->child, $r->offerid] = $r->children[0];
         }
-        // A day with its hour, in a sheet the team keeps, is the visit they were given.
-        if ($r->hour !== '' && $r->time) {
-            $r->appointment = teamnotes::at($r->time, $r->hour);
-        }
         $r->detail = implode(' · ', array_filter([$detail['platform'] ?? '', $detail['campaign'] ?? '',
             $detail['adset'] ?? '', $detail['ad'] ?? '', $detail['form'] ?? '']));
         $r->ads = $detail;
         $r->consents = array_values(array_unique($r->consents));
+        // A day with its hour, in a sheet the team keeps, is the visit they were given; and the day alone too, where the
+        // sheet has a column for the hour that this row leaves empty (a script never sends an empty cell).
+        if ($r->hour !== '' && $r->time) {
+            $r->appointment = teamnotes::at($r->time, $r->hour);
+            $r->appointmenthour = teamnotes::has_hour($r->hour) || !$r->dayonly;
+        } else if (
+            $r->time && !empty($entry->teamsheet) && preg_match(self::VISIT_DAY, $r->datecolumn) &&
+                self::ad_arrival($entry, $r) === null &&
+                in_array('hour', self::roles($entry, self::questions($entry)), true)
+        ) {
+            $r->appointment = $r->time;
+            $r->appointmenthour = !$r->dayonly;
+        }
         return $r;
+    }
+
+    /**
+     * Whether the title of a column is not one but a value (an email, a phone, a moment, an identifier of Meta): the row
+     * of titles of its sheet was lost, and the first row with data took its place.
+     *
+     * @param string $title
+     * @return bool
+     */
+    public static function is_value(string $title): bool {
+        $title = trim($title);
+        return $title !== '' && (validate_email($title) ||
+            preg_match('/^\d{4}-\d{2}-\d{2}[T ]\d{1,2}:\d{2}/', $title) ||
+            preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4},? \d{1,2}:\d{2}#', $title) ||
+            preg_match('/^[a-z]{1,2}:\+?\d{6,}$/i', $title) ||
+            preg_match('/^\+\d[\d\s().-]{7,}$/', $title) || preg_match('/^\d{9,16}$/', $title));
+    }
+
+    /**
+     * What can be read of a row whose sheet lost, moved or repeated its row of titles, and whether it did: a title that is
+     * a value; the titles of the ads written twice («created_time (2)»); or a contact of the ads without its «id», which
+     * this entry always had. What cannot be told is left out, and never kept as a question of the entry.
+     *
+     * @param \stdClass $entry
+     * @param array $answers
+     * @return array [answers, whether the titles are lost].
+     */
+    public static function headings(\stdClass $entry, array $answers): array {
+        $titles = array_map('strval', array_keys($answers));
+        $known = array_map([recognise::class, 'plain'], self::questions($entry));
+        $lost = false;
+        if (array_filter($titles, [self::class, 'is_value'])) {
+            $lost = true;
+            $roles = self::roles($entry, $titles);
+            foreach ($titles as $title) {
+                if (self::is_value($title) || (!$roles[$title] && !in_array(recognise::plain($title), $known, true))) {
+                    unset($answers[$title]);
+                }
+            }
+        }
+        // The titles of the ads twice: their second set says the same as the first one, where the first one is empty.
+        $twice = [];
+        foreach (array_map('strval', array_keys($answers)) as $title) {
+            if (preg_match('/^(.+) \(\d+\)$/u', trim($title), $m)) {
+                $twice[$title] = $m[1];
+            }
+        }
+        if (array_filter($twice, fn($base) => in_array(recognise::plain($base), self::AD_TITLES, true))) {
+            $lost = true;
+            foreach ($twice as $title => $base) {
+                if (!isset($answers[$base])) {
+                    $answers[$base] = $answers[$title];
+                } else if ($answers[$base] !== $answers[$title] && !in_array(recognise::plain($base), self::AD_TITLES, true)) {
+                    // Another value under the repeated title is of someone else: it stays as it came.
+                    continue;
+                }
+                unset($answers[$title]);
+            }
+        }
+        $plain = array_map([recognise::class, 'plain'], array_map('strval', array_keys($answers)));
+        if (
+            count(array_intersect(array_diff(self::AD_TITLES, ['id']), $plain)) >= 3 &&
+                !array_intersect(['id', 'lead id'], $plain) && array_intersect(['id', 'lead id'], $known)
+        ) {
+            $lost = true;
+        }
+        return [$answers, $lost];
+    }
+
+    /**
+     * The questions of an entry without what is not one: when its sheet lost its row of titles, the values of a contact
+     * were taken for them, which say who a family is and how to reach it.
+     *
+     * @param string[] $questions In the order they came.
+     * @param array $examples
+     * @return array [questions, examples].
+     */
+    public static function clean_questions(array $questions, array $examples): array {
+        $at = array_keys(array_filter($questions, [self::class, 'is_value']));
+        if ($at) {
+            // The whole row came in at once: from its first value to its last one, and what is around them and is no
+            // title either.
+            $odd = fn(int $i) => isset($questions[$i]) && recognise::header_role((string) $questions[$i]) === null;
+            $from = min($at);
+            $to = max($at);
+            while ($odd($from - 1)) {
+                $from--;
+            }
+            while ($odd($to + 1)) {
+                $to++;
+            }
+            array_splice($questions, $from, $to - $from + 1);
+        }
+        $person = fn(string $value) => validate_email($value) || preg_match('/^p?:?\+?\d[\d\s().-]{7,}$/i', $value);
+        $examples = array_filter(
+            array_intersect_key($examples, array_flip($questions)),
+            fn($value) => !$person(trim((string) $value))
+        );
+        return [$questions, $examples];
     }
 
     /**
@@ -1087,6 +1412,11 @@ class entries {
             'url' => json_encode(self::hook_url($entry)->out(false), JSON_UNESCAPED_SLASHES),
             'secret' => json_encode((string) $entry->secret),
             'name' => preg_replace('/[\r\n]+/', ' ', (string) $entry->name),
+            // The titles this sheet has had, and those the ads write: its row of titles is found by them.
+            'titles' => json_encode(array_values(array_unique(array_merge(
+                array_filter(self::questions($entry), fn($q) => !self::is_value((string) $q)),
+                self::AD_TITLES
+            ))), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG),
         ]);
     }
 

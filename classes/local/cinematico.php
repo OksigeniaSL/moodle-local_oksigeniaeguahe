@@ -104,13 +104,14 @@ class cinematico {
             $last[$lane] = $x;
             $owner = attend::owner($household, $viewer);
             $since = (int) $household->waitingsince;
+            $dayonly = !empty($household->waitingdayonly);
             $lanterns[] = [
                 'x' => round($x, 3),
                 'lane' => $lane,
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
                 'adults' => panel::adults_line($household->adults),
-                'since' => panel::wait_words($since, $now)['main'],
-                'arrived' => get_string('cine_arrived', $c, (object) [
+                'since' => panel::wait_words($since, $now, $dayonly)['main'],
+                'arrived' => get_string($dayonly ? 'cine_arrived_day' : 'cine_arrived', $c, (object) [
                     'day' => \core_text::strtolower(trim(preg_replace(
                         '/\s+/',
                         ' ',

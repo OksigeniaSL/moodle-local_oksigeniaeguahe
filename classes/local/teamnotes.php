@@ -243,6 +243,16 @@ class teamnotes {
     }
 
     /**
+     * Whether what is written as an hour is one («11:00», «17h»), and not a word («por la tarde»).
+     *
+     * @param string $hour
+     * @return bool
+     */
+    public static function has_hour(string $hour): bool {
+        return (bool) preg_match('/\b(\d{1,2})(?:[:.h](\d{2}))?\s*h?\b/', self::plain($hour), $m) && (int) $m[1] <= 23;
+    }
+
+    /**
      * Who of the team a name written in the sheet is: the one person of the team of the centre with that first name.
      *
      * @param int $centreid
@@ -271,7 +281,8 @@ class teamnotes {
      *
      * @param \stdClass $household
      * @param array $row What entries::read() kept of the team: team (question, value, role), staff, appointment
-     *     (a moment, or 0), time and monthfirst.
+     *     (a moment, or 0), appointmenthour (whether its hour is known), hour, time, keytime and monthfirst; and entryid
+     *     and past (whether the whole sheet is being sent again), from entries::receive().
      * @return array Counts of what was done, by gesture, plus «note» and «already».
      */
     public static function apply(\stdClass $household, array $row): array {
@@ -282,9 +293,15 @@ class teamnotes {
         // What the row says happened on the day of its visit, when it has one.
         $stable = (int) ($row['appointment'] ?? 0) ?: (int) ($row['time'] ?? 0);
         $time = $stable ?: time();
+        // The day of the row, as it always was known by it: its hour never makes it another line.
+        $keytime = (int) ($row['keytime'] ?? 0) ?: $stable;
+        $marktime = trim((string) ($row['hour'] ?? '')) !== '' && $keytime ? self::at($keytime, (string) $row['hour']) : $keytime;
+        $at = fn(array $g) => (int) ($g['time'] ?? 0) === $time && $stable ? $marktime : (int) ($g['time'] ?? 0);
         // A moment the sheet does not write (no date in the row) is not part of what a line is: the same sheet sent again
         // every night is the same line, and it never says when the team answered.
-        $stamp = fn(array $g) => !$stable && (int) ($g['time'] ?? $time) === $time ? 0 : (int) ($g['time'] ?? 0);
+        $stamp = fn(array $g) => !$stable && (int) ($g['time'] ?? $time) === $time ? 0 : $at($g);
+        $entryid = (int) ($row['entryid'] ?? 0);
+        $visit = null;
         $counts = [];
         $latest = 0;
         $userid = 0;
@@ -304,8 +321,8 @@ class teamnotes {
             $free = in_array($role, ['notes', 'channel', 'channelknown'], true);
             $gestures = self::read($question, $value, $time, $free, !empty($row['monthfirst']));
             // A «no» in a column of yes or no («Asistencia: FALSE») only says they did not come to a visit that was
-            // already their day; before it, or without a day, it says nothing.
-            $past = (int) ($row['appointment'] ?? 0) && (int) $row['appointment'] < time();
+            // already their day; before it, or without a day and its hour, it says nothing (an empty box is a «no» too).
+            $past = (int) ($row['appointment'] ?? 0) && !empty($row['appointmenthour']) && (int) $row['appointment'] < time();
             if ($gestures) {
                 $gestures = array_values(array_filter($gestures, fn($g) => $g['kind'] !== 'absent' || empty($g['column']) ||
                     $past));
@@ -321,7 +338,8 @@ class teamnotes {
         }
         $appointment = (int) ($row['appointment'] ?? 0);
         if ($appointment) {
-            $lines[] = ['', '', [['kind' => 'visitbooked', 'time' => $appointment, 'exact' => true]]];
+            $lines[] = ['', '', [['kind' => 'visitbooked', 'time' => $appointment,
+                'exact' => !empty($row['appointmenthour']), 'row' => true]]];
         }
         foreach ($names as $name) {
             $lines[] = ['', $name, [['kind' => 'by', 'time' => $time]]];
@@ -338,10 +356,24 @@ class teamnotes {
             $kinds = fn(callable $at) => implode(',', array_map(fn($g) => $g['kind'] . '@' . $at($g), $marked));
             $mark = hash('sha256', self::plain($question) . '|' . self::plain($value) . '|' . $kinds($stamp));
             $legacy = hash('sha256', $household->id . '|' . self::plain($question) . '|' . self::plain($value) . '|' .
-                $kinds(fn($g) => $g['time'] ?? 0));
+                $kinds($at));
+            // The day the sheet itself gives for the visit, followed while the sheet is sent: it may change.
+            $given = array_values(array_filter($gestures, fn($g) => !empty($g['row'])))[0] ?? null;
             [$in, $inparams] = $DB->get_in_or_equal([$mark, $legacy], SQL_PARAMS_NAMED, 'mk');
-            if ($DB->record_exists_select(self::T, "householdid = :h AND mark $in", ['h' => $household->id] + $inparams)) {
+            $known = $DB->get_records_select(
+                self::T,
+                "householdid = :h AND mark $in",
+                ['h' => $household->id] + $inparams,
+                'id ASC',
+                '*',
+                0,
+                1
+            );
+            if ($known) {
                 $counts['already'] = ($counts['already'] ?? 0) + 1;
+                if ($given) {
+                    $visit = self::seen_again(reset($known), $household, $given, $entryid, $lang);
+                }
                 continue;
             }
             $said = $question !== '' ? trim($question) . ': ' . $value : $value;
@@ -350,11 +382,11 @@ class teamnotes {
             $when = $time;
             foreach ($gestures as $gesture) {
                 $kind = $gesture['kind'];
-                $at = (int) ($gesture['time'] ?? $time);
+                $moment = (int) ($gesture['time'] ?? $time);
                 $counts[$kind] = ($counts[$kind] ?? 0) + 1;
                 if (in_array($kind, self::TOUCH, true)) {
                     // Only a moment the sheet writes says the team answered then.
-                    $latest = $stamp($gesture) ? max($latest, min($at, time())) : $latest;
+                    $latest = $stamp($gesture) ? max($latest, min($moment, time())) : $latest;
                 }
                 switch ($kind) {
                     case 'contacted':
@@ -387,14 +419,15 @@ class teamnotes {
                         break;
                     case 'visitbooked':
                         // Noted when the row was written, not on the day of the visit.
-                        $when = min($time, $at);
-                        $day = userdate($at, get_string_manager()->get_string('strftimedaydate', 'langconfig', null, $lang));
-                        $hour = !empty($gesture['exact']) ? userdate($at, '%H:%M', 99, false) : '';
-                        $what[] = $hour !== '' ? $str('teamnote_visitbooked_at', (object) ['day' => $day, 'hour' => $hour]) :
-                            $str('teamnote_visitbooked', $day);
-                        if ($at > time() && !attend::open_promise((int) $household->id)) {
-                            attend::promise($household, $userid, $hour !== '' ? $str('teamnote_visit_promise', $hour) :
-                                $str('teamnote_visit_promise_day'), $at);
+                        $when = min($time, $moment);
+                        $what[] = self::booked($moment, !empty($gesture['exact']), $lang);
+                        if ($moment > time() && !attend::open_promise((int) $household->id)) {
+                            attend::promise(
+                                $household,
+                                $userid,
+                                self::visit_promise($moment, !empty($gesture['exact']), $lang),
+                                $moment
+                            );
                         }
                         break;
                     case 'attended':
@@ -459,7 +492,7 @@ class teamnotes {
             }
             $body = implode('. ', array_unique($what));
             $body = trim($body . ($body !== '' && $said !== '' ? ' · ' : '') . $said);
-            $DB->insert_record(households::CONTACTS, (object) [
+            $contactid = (int) $DB->insert_record(households::CONTACTS, (object) [
                 'centreid' => $household->centreid,
                 'householdid' => $household->id,
                 'direction' => $channel !== null ? 'out' : 'note',
@@ -468,16 +501,33 @@ class teamnotes {
                 'entryid' => 0,
                 'detail' => null,
                 'userid' => $userid,
+                // The sheet never writes at what time the team did it: the hour of the row is of something else.
+                'dayonly' => $stable && $when <= time() ? 1 : 0,
                 'timecreated' => min($when, time()),
             ]);
-            $DB->insert_record(self::T, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
-                'mark' => $mark, 'timecreated' => time()]);
+            $note = (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+                'mark' => $mark, 'timecreated' => time()];
+            if ($given) {
+                $note->entryid = $entryid;
+                $note->contactid = $contactid;
+                $note->visit = (int) $given['time'];
+                $note->dayonly = empty($given['exact']) ? 1 : 0;
+                $note->seen = time();
+            }
+            $note->id = $DB->insert_record(self::T, $note);
+            if ($given) {
+                $visit = $DB->get_record(self::T, ['id' => $note->id]);
+            }
+        }
+        if ($visit) {
+            self::supersede($visit, $household, !empty($row['past']), $lang);
         }
         $fresh = households::get((int) $household->id, (int) $household->centreid);
         if ($fresh) {
             $changes = ['id' => $fresh->id];
             if ($latest && $fresh->waitingsince && $fresh->waitingsince <= $latest) {
                 $changes['waitingsince'] = 0;
+                $changes['waitingdayonly'] = 0;
             }
             if ($latest > (int) $fresh->lastcontact) {
                 $changes['lastcontact'] = $latest;
@@ -491,6 +541,182 @@ class teamnotes {
             }
         }
         return $counts;
+    }
+
+    /**
+     * The visit a sheet gives, in words: «Visita citada el jueves 19», with its hour when the sheet says it.
+     *
+     * @param int $moment
+     * @param bool $exact Whether its hour is known.
+     * @param string $lang
+     * @return string
+     */
+    protected static function booked(int $moment, bool $exact, string $lang): string {
+        $str = fn(string $id, $a = null) => get_string_manager()->get_string($id, self::C, $a, $lang);
+        $day = userdate($moment, get_string_manager()->get_string('strftimedaydate', 'langconfig', null, $lang));
+        return $exact ? $str('teamnote_visitbooked_at', (object) ['day' => $day, 'hour' => userdate($moment, '%H:%M', 99, false)]) :
+            $str('teamnote_visitbooked', $day);
+    }
+
+    /**
+     * What the team promised with that visit.
+     *
+     * @param int $moment
+     * @param bool $exact
+     * @param string $lang
+     * @return string
+     */
+    protected static function visit_promise(int $moment, bool $exact, string $lang): string {
+        return $exact ? get_string_manager()->get_string(
+            'teamnote_visit_promise',
+            self::C,
+            userdate($moment, '%H:%M', 99, false),
+            $lang
+        ) : get_string_manager()->get_string('teamnote_visit_promise_day', self::C, null, $lang);
+    }
+
+    /**
+     * A visit the sheet still gives: it was seen again, so it was never replaced. One taken before its line was followed
+     * starts being so.
+     *
+     * @param \stdClass $note
+     * @param \stdClass $household
+     * @param array $given Its gesture.
+     * @param int $entryid
+     * @param string $lang
+     * @return \stdClass The note, as it is now.
+     */
+    protected static function seen_again(
+        \stdClass $note,
+        \stdClass $household,
+        array $given,
+        int $entryid,
+        string $lang
+    ): \stdClass {
+        global $DB;
+        if (!(int) $note->visit) {
+            $note->visit = (int) $given['time'];
+            $note->dayonly = empty($given['exact']) ? 1 : 0;
+            $note->entryid = $entryid;
+            $words = [self::booked($note->visit, true, $lang), self::booked($note->visit, false, $lang)];
+            foreach (
+                $DB->get_records(
+                    households::CONTACTS,
+                    ['householdid' => $household->id, 'direction' => 'note', 'entryid' => 0],
+                    'id ASC',
+                    'id, body'
+                ) as $line
+            ) {
+                if (in_array(trim((string) $line->body), $words, true)) {
+                    $note->contactid = (int) $line->id;
+                    break;
+                }
+            }
+        }
+        $note->seen = time();
+        $DB->update_record(self::T, $note);
+        if ((int) $note->replacedby) {
+            $by = $DB->get_record(self::T, ['id' => $note->replacedby]);
+            // Its hour came later, on the same day: that one stays, whatever is sent again.
+            if (!$by || !self::gave_hour($note, $by)) {
+                self::restore($note, $by ?: null);
+            }
+        }
+        return $note;
+    }
+
+    /**
+     * Whether a visit is the same one as another, with the hour it did not have.
+     *
+     * @param \stdClass $old
+     * @param \stdClass $new
+     * @return bool
+     */
+    protected static function gave_hour(\stdClass $old, \stdClass $new): bool {
+        $zone = \core_date::get_server_timezone_object();
+        $day = fn(int $t) => (new \DateTime('@' . $t))->setTimezone($zone)->format('Ymd');
+        return $old->dayonly && !$new->dayonly && $day((int) $old->visit) === $day((int) $new->visit);
+    }
+
+    /**
+     * The visit the sheet gives now takes the place of the one it gave before in the same row: its hour was added, or
+     * its day changed and the old one no longer comes when the whole sheet is sent again. The team reads the new one,
+     * with the day it had before, and the old line says it was before.
+     *
+     * @param \stdClass $visit The visit as the sheet gives it now.
+     * @param \stdClass $household
+     * @param bool $whole Whether the whole sheet is being sent again.
+     * @param string $lang
+     */
+    protected static function supersede(\stdClass $visit, \stdClass $household, bool $whole, string $lang): void {
+        global $DB;
+        if ((int) $visit->replacedby) {
+            return;
+        }
+        $others = $DB->get_records_select(
+            self::T,
+            'householdid = ? AND entryid = ? AND visit > 0 AND id <> ? AND replacedby = 0',
+            [$household->id, $visit->entryid, $visit->id],
+            'id ASC'
+        );
+        // A visit new in the sheet takes at once the place of the one this sending has not brought yet (which comes back if
+        // it does); later, only of one that missed a whole night.
+        $missed = time() - ((int) $visit->timecreated > time() - pulse::NIGHT ? pulse::APART : pulse::NIGHT);
+        foreach ($others as $old) {
+            if (!self::gave_hour($old, $visit) && !($whole && (int) $old->seen < $missed)) {
+                continue;
+            }
+            $str = fn(string $id, $a = null) => get_string_manager()->get_string($id, self::C, $a, $lang);
+            $words = fn(\stdClass $note) => userdate((int) $note->visit, get_string_manager()->get_string(
+                'strftimedaydate',
+                'langconfig',
+                null,
+                $lang
+            )) . ($note->dayonly ? '' : ', ' . userdate((int) $note->visit, '%H:%M', 99, false));
+            $line = $old->contactid ? $DB->get_record(households::CONTACTS, ['id' => $old->contactid]) : null;
+            if ($line) {
+                $old->body = (string) ($old->body ?? '') !== '' ? $old->body : (string) $line->body;
+                $DB->set_field(households::CONTACTS, 'body', $str('teamnote_visit_was', $old->body), ['id' => $line->id]);
+            }
+            $old->replacedby = (int) $visit->id;
+            $DB->update_record(self::T, $old);
+            $now = $visit->contactid ? $DB->get_record(households::CONTACTS, ['id' => $visit->contactid]) : null;
+            if ($now) {
+                $visit->body = (string) ($visit->body ?? '') !== '' ? $visit->body : (string) $now->body;
+                $DB->set_field(households::CONTACTS, 'body', $str('teamnote_visit_changed', (object) ['now' => $visit->body,
+                    'was' => $words($old)]), ['id' => $now->id]);
+                $DB->update_record(self::T, $visit);
+            }
+            // What was promised for that day goes with it.
+            $promise = attend::open_promise((int) $household->id);
+            $texts = [self::visit_promise((int) $old->visit, true, $lang), self::visit_promise((int) $old->visit, false, $lang)];
+            if ($promise && in_array((string) $promise->body, $texts, true)) {
+                $due = (new \DateTime('@' . $visit->visit))->setTimezone(\core_date::get_user_timezone_object())->setTime(0, 0);
+                $DB->update_record(attend::PROMISES, (object) ['id' => $promise->id, 'dueday' => $due->getTimestamp(),
+                    'body' => self::visit_promise((int) $visit->visit, !$visit->dayonly, $lang)]);
+            }
+        }
+    }
+
+    /**
+     * A visit that was taken for replaced and comes again with the sheet: both are in it, so both are as they were.
+     *
+     * @param \stdClass $note
+     * @param \stdClass|null $by The one that took its place.
+     */
+    protected static function restore(\stdClass $note, ?\stdClass $by): void {
+        global $DB;
+        if ($note->contactid && (string) ($note->body ?? '') !== '') {
+            $DB->set_field(households::CONTACTS, 'body', $note->body, ['id' => $note->contactid]);
+        }
+        $note->body = null;
+        $note->replacedby = 0;
+        $DB->update_record(self::T, $note);
+        if ($by && !$DB->record_exists(self::T, ['replacedby' => $by->id]) && (string) ($by->body ?? '') !== '') {
+            $DB->set_field(households::CONTACTS, 'body', $by->body, ['id' => $by->contactid]);
+            $by->body = null;
+            $DB->update_record(self::T, $by);
+        }
     }
 
     /**

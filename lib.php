@@ -215,9 +215,17 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
         );
         if ($stuck && (int) $stuck->n) {
             $n = (int) $stuck->n;
+            // The deadline of one of which only its day is known is the whole day, never an hour nobody wrote.
+            $deadline = (int) $stuck->oldest + $replydays * DAYSECS;
+            $dayonly = $DB->record_exists('local_oksigeniaeguahe_household', ['centreid' => $id, 'waitingdayonly' => 1,
+                'waitingsince' => (int) $stuck->oldest]);
+            if ($dayonly) {
+                $zone = \core_date::get_server_timezone_object();
+                $deadline = (new \DateTime('@' . $deadline))->setTimezone($zone)->setTime(23, 59, 59)->getTimestamp();
+            }
             $alerts[] = ['text' => get_string($n === 1 ? 'work_stuck_one' : 'work_stuck', $c, (object) ['n' => $n,
                 'days' => get_string($replydays === 1 ? 'work_stuck_days_one' : 'work_stuck_days', $c, $replydays)]),
-                'url' => $url->out(false), 'level' => 'urgent', 'due' => (int) $stuck->oldest + $replydays * DAYSECS];
+                'url' => $url->out(false), 'level' => 'urgent', 'due' => $deadline];
         }
         // An entry that may not be bringing all there is, until someone says it is known.
         $silent = \local_oksigeniaeguahe\local\pulse::silent($centre, $now);

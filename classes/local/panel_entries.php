@@ -71,7 +71,8 @@ class panel_entries {
                 'v' => round($n / $most, 3),
                 'last' => $entry->lastreceived ? get_string('panel_last_one', $c, panel::when_words(
                     (int) $entry->lastreceived,
-                    $now
+                    $now,
+                    !empty($entry->lastdayonly)
                 )) : '',
                 // What is missing to start, until something comes through it or a test says it works.
                 'missing' => !$n && $entry->kind !== 'form' && !(int) ($entry->testedat ?? 0) && !(int) ($entry->calledat ?? 0) &&
@@ -146,7 +147,7 @@ class panel_entries {
         // Arrivals against families: a family may come in by several doors.
         $arrivals = array_sum(array_map(fn($e) => (int) $e->received, $list));
         $families = (int) $DB->count_records_sql('SELECT COUNT(DISTINCT householdid) FROM {' . households::CONTACTS . '}
-                                                   WHERE centreid = ? AND entryid > 0 AND direction = ?', [$centre->id, 'in']);
+                                                   WHERE centreid = ? AND entryid > 0 AND direction <> ?', [$centre->id, 'out']);
         $sub = [];
         if ($arrivals) {
             $sub[] = get_string('panel_entries_sub', $c, (object) ['arrivals' => $arrivals, 'families' => $families]);
@@ -193,7 +194,7 @@ class panel_entries {
         $month = make_timestamp((int) userdate($now, '%Y'), (int) userdate($now, '%m'), 1);
         $rows = $DB->get_recordset_sql("SELECT c.entryid, COALESCE(c.detail, '') AS detail, COUNT(DISTINCT c.householdid) AS n
                                           FROM {" . households::CONTACTS . "} c
-                                         WHERE c.centreid = :centreid AND c.entryid > 0 AND c.direction = 'in'
+                                         WHERE c.centreid = :centreid AND c.entryid > 0 AND c.direction <> 'out'
                                                AND c.timecreated >= :month
                                       GROUP BY c.entryid, COALESCE(c.detail, '')
                                       ORDER BY n DESC", ['centreid' => $centreid, 'month' => $month], 0, 1);

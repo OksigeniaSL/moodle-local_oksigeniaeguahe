@@ -246,7 +246,8 @@ class provider implements
             $written = [];
             foreach ($DB->get_records('local_oksigeniaeguahe_contact', ['userid' => $userid], 'timecreated ASC') as $row) {
                 $written[] = ['kind' => $row->direction, 'channel' => $row->channel, 'text' => $row->body,
-                    'when' => \core_privacy\local\request\transform::datetime($row->timecreated)];
+                    'when' => empty($row->dayonly) ? \core_privacy\local\request\transform::datetime($row->timecreated) :
+                        \core_privacy\local\request\transform::date($row->timecreated)];
             }
             $noted = $DB->count_records('local_oksigeniaeguahe_consent', ['userid' => $userid]);
             $imported = $DB->count_records('local_oksigeniaeguahe_import', ['userid' => $userid]);

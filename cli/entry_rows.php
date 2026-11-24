@@ -108,12 +108,14 @@ foreach ($roles as $header => $role) {
 cli_writeln('What each column is: ' . implode(' | ', $seen));
 
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'signedup' => 0];
+$lost = 0;
 $noted = [];
 $households = [];
 $people = [];
 $transaction = $DB->start_delegated_transaction();
 foreach ($rows as $row) {
     [$household, $new] = entries::receive($entry, $row, '', null, true);
+    $lost += entries::$headless ? 1 : 0;
     $counts[$household ? ($new ? 'new' : 'already') : 'nobody']++;
     foreach (entries::$noted as $kind => $n) {
         $noted[$kind] = ($noted[$kind] ?? 0) + $n;
@@ -153,6 +155,9 @@ $households = count($households);
 ksort($noted);
 cli_writeln('Families: ' . $households . ' · new ' . $counts['new'] . ' · already there ' . $counts['already'] .
     ' · rows without anyone to answer ' . $counts['nobody'] . ($event ? ' · signed up ' . $counts['signedup'] : ''));
+if ($lost) {
+    cli_writeln('Rows whose titles are lost, twice or without their id: ' . $lost . '. Put the row of titles right in the sheet.');
+}
 cli_writeln('What the team wrote: ' . ($noted ? implode(', ', array_map(
     fn($k, $n) => "$k $n",
     array_keys($noted),
