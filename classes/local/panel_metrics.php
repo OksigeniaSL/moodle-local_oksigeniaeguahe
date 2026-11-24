@@ -128,7 +128,7 @@ class panel_metrics {
                        WHERE ch.centreid = :centreid2 AND o.schoolyear = :year))';
         foreach (
             $DB->get_records_select(households::T, $where, $id + ['since' => $since, 'centreid2' => $centre->id,
-                'year' => $year]) as $h
+                'year' => $year], 'id ASC') as $h
         ) {
             $said = $h->heardfrom ? get_string('heard_' . (in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom :
                 'other'), $c) : '';

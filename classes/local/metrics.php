@@ -782,7 +782,8 @@ class metrics {
         global $DB;
         $households = $DB->get_records_sql("SELECT h.id, h.incentre, h.moving, h.firstchannel
                                               FROM {" . households::T . "} h
-                                             WHERE h.centreid = :centreid", ['centreid' => $centreid]);
+                                             WHERE h.centreid = :centreid
+                                          ORDER BY h.id", ['centreid' => $centreid]);
         if (!$households) {
             return ['rows' => [], 'moving' => null, 'total' => null, 'incentre' => 0];
         }
