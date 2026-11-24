@@ -219,6 +219,15 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
                 'days' => get_string($replydays === 1 ? 'work_stuck_days_one' : 'work_stuck_days', $c, $replydays)]),
                 'url' => $url->out(false), 'level' => 'urgent', 'due' => (int) $stuck->oldest + $replydays * DAYSECS];
         }
+        // An entry that may not be bringing all there is, until someone says it is known.
+        $silent = \local_oksigeniaeguahe\local\pulse::silent($centre, $now);
+        foreach ($silent as $pulse) {
+            if (!\local_oksigeniaeguahe\local\moments::knows($id, $pulse['key'])) {
+                $alerts[] = ['text' => \local_oksigeniaeguahe\local\pulse::words($pulse, $now),
+                    'url' => (new moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $pulse['id']]))->out(false),
+                    'level' => $pulse['state'] === 'quiet' ? 'today' : 'urgent'];
+            }
+        }
         if ($today) {
             $alerts[] = ['text' => get_string($today === 1 ? 'work_today_one' : 'work_today', $c, $today),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $id]))->out(false), 'level' => 'today'];
@@ -240,7 +249,8 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
                 get_string('work_title', $c),
             'url' => $url->out(false),
             'status' => ($waiting ? get_string($waiting === 1 ? 'work_waiting_one' : 'work_waiting', $c, $waiting) :
-                get_string('work_waiting_none', $c)) . local_oksigeniaeguahe_work_week($id, $now),
+                get_string($silent ? 'work_waiting_none_known' : 'work_waiting_none', $c)) .
+                local_oksigeniaeguahe_work_week($id, $now),
             'alerts' => $alerts,
             'actions' => \local_oksigeniaeguahe\local\centres::can_act($userid) ? [['label' => get_string('household_new', $c),
                 'url' => (new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $id]))->out(false)]] : [],

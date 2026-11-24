@@ -219,6 +219,61 @@ class teamnotice {
     }
 
     /**
+     * Tells the team, once for each silence, of the entries that may not be bringing all there is: whoever waits for the
+     * notice of each new family would take its silence for nobody writing. By day only.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return int How many notices were sent.
+     */
+    public static function silences(\stdClass $centre, int $now): int {
+        global $DB;
+        $hour = (int) userdate($now, '%H', 99, false);
+        if (!empty($centre->practice) || $hour < 8 || $hour >= 20) {
+            return 0;
+        }
+        $sent = 0;
+        foreach (pulse::silent($centre, $now) as $pulse) {
+            if (
+                (string) ($pulse['entry']->silenttold ?? '') === $pulse['key'] ||
+                    moments::knows((int) $centre->id, $pulse['key'])
+            ) {
+                continue;
+            }
+            $DB->set_field(entries::T, 'silenttold', $pulse['key'], ['id' => $pulse['id']]);
+            foreach (self::recipients($centre) as $member) {
+                $user = \core_user::get_user((int) $member->id);
+                if (!$user || !empty($user->suspended) || !empty($user->deleted)) {
+                    continue;
+                }
+                $lang = force_current_language($user->lang ?: ($centre->lang ?: 'es'));
+                try {
+                    $url = (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $pulse['id']]))->out(false);
+                    $words = pulse::words($pulse, $now);
+                    $message = new \core\message\message();
+                    $message->component = 'local_oksigeniaeguahe';
+                    $message->name = 'entrysilent';
+                    $message->userfrom = \core_user::get_noreply_user();
+                    $message->userto = $user;
+                    $message->subject = get_string('pulse_subject', self::C, $pulse['name']);
+                    $message->fullmessage = $words . "\n\n" . get_string('pulse_do', self::C) . "\n" . $url;
+                    $message->fullmessageformat = FORMAT_PLAIN;
+                    $message->fullmessagehtml = '<p>' . s($words) . '</p><p>' . s(get_string('pulse_do', self::C)) .
+                        '</p><p><a href="' . s($url) . '">' . s(get_string('pulse_look', self::C)) . '</a></p>';
+                    $message->smallmessage = $message->subject;
+                    $message->notification = 1;
+                    $message->contexturl = $url;
+                    $message->contexturlname = get_string('pulse_look', self::C);
+                    $sent += message_send($message) ? 1 : 0;
+                } finally {
+                    force_current_language($lang);
+                }
+            }
+        }
+        return $sent;
+    }
+
+    /**
      * One notice to one person, for one family or several.
      *
      * @param \stdClass $centre

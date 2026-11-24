@@ -77,6 +77,17 @@ class moments {
     }
 
     /**
+     * Whether someone said that a moment, or the silence of an entry (pulse), is known.
+     *
+     * @param int $centreid
+     * @param string $key
+     * @return bool
+     */
+    public static function knows(int $centreid, string $key): bool {
+        return in_array($key, self::known($centreid), true);
+    }
+
+    /**
      * The moments of a centre someone said were known.
      *
      * @param int $centreid

@@ -39,6 +39,7 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\familymail;
+use local_oksigeniaeguahe\local\pulse;
 
 /**
  * Answers and ends.
@@ -63,11 +64,15 @@ if (!$entry) {
 }
 $body = (string) file_get_contents('php://input', false, null, 0, 1024 * 1024);
 if (!entries::signed($entry, $body, (string) ($_SERVER['HTTP_X_EGUAHE_SIGNATURE'] ?? ''))) {
+    // It calls, and what it brings is not seen: that is said to the team, not only to the tool.
+    pulse::refused($entry);
     local_oksigeniaeguahe_hook_reply(401, ['ok' => false, 'error' => 'signature']);
 }
 $data = json_decode($body, true);
 $items = is_array($data) && isset($data['items']) && is_array($data['items']) ? $data['items'] : [$data];
-if (!$items || count($items) > 200) {
+// A script that calls every night though it has nothing to bring, and says which of its tabs it did not find.
+$beat = is_array($data) && !empty($data['beat']);
+if ((!$items && !$beat) || count($items) > 200) {
     local_oksigeniaeguahe_hook_reply(400, ['ok' => false, 'error' => 'items']);
 }
 $centre = centres::get((int) $entry->centreid);
@@ -77,7 +82,10 @@ if (!$centre || !empty($centre->practice)) {
     die();
 }
 $counts = ['new' => 0, 'already' => 0, 'nobody' => 0, 'invalid' => 0];
+$tested = (int) ($entry->testedat ?? 0);
+$allpast = (bool) $items;
 foreach ($items as $item) {
+    $allpast = $allpast && is_array($item) && !empty($item['past']);
     if (is_array($item) && isset($item['raw']) && is_string($item['raw']) && $entry->kind === 'email') {
         // An email as it came, from the address of the centre.
         [$household, $new] = entries::from_email($entry, (string) base64_decode($item['raw']), !empty($item['past']));
@@ -122,4 +130,9 @@ foreach ($items as $item) {
         }
     }
 }
+// A test that came through was understood: whoever put a column right and tried it sees it at once.
+$understood = $counts['new'] + $counts['already'] + ((int) ($entry->testedat ?? 0) > $tested ? 1 : 0);
+$unread = $counts['nobody'] + $counts['invalid'];
+$missing = $beat && isset($data['missing']) && is_array($data['missing']) ? array_slice($data['missing'], 0, 20) : [];
+pulse::called($entry, $understood, $unread, $beat || $allpast, $missing);
 local_oksigeniaeguahe_hook_reply(200, ['ok' => true] + $counts);

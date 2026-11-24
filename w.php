@@ -35,6 +35,7 @@ use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\knownpage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
+use local_oksigeniaeguahe\local\pulse;
 use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
 use local_oksigeniaeguahe\local\signuppage;
@@ -75,6 +76,9 @@ $data = signup::read($centre);
 publiclang::$self = !empty($data['self']);
 $data['answers'] = forms::read((int) $entry->id);
 $errors = [];
+if (!$preview && !data_submitted()) {
+    pulse::opened($entry);
+}
 if (data_submitted() && !$preview) {
     if (!entries::mark_ok($entry, optional_param('sesskey', '', PARAM_RAW_TRIMMED))) {
         // A page left open for a day: nothing is lost, it is sent again.

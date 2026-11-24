@@ -522,7 +522,7 @@ class entries {
     public static function counted(\stdClass $entry): void {
         global $DB;
         $DB->execute(
-            'UPDATE {' . self::T . '} SET received = received + 1, lastreceived = :t WHERE id = :id',
+            'UPDATE {' . self::T . '} SET received = received + 1, lastreceived = :t, opened = 0 WHERE id = :id',
             ['t' => time(), 'id' => $entry->id]
         );
     }

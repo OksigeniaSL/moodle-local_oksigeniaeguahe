@@ -23,11 +23,17 @@ const EGUAHE_KEY = {{{secret}}};
 function eguaheInstall() {
   const form = FormApp.getActiveForm();
   ScriptApp.getProjectTriggers().forEach(function (trigger) {
-    if (trigger.getHandlerFunction() === 'eguaheOnSubmit') {
+    if (['eguaheOnSubmit', 'eguaheNightly'].indexOf(trigger.getHandlerFunction()) !== -1) {
       ScriptApp.deleteTrigger(trigger);
     }
   });
   ScriptApp.newTrigger('eguaheOnSubmit').forForm(form).onFormSubmit().create();
+  // Every night it calls though there is nothing new, so the centre knows that it is still there.
+  ScriptApp.newTrigger('eguaheNightly').timeBased().atHour(2).everyDays(1).create();
+}
+
+function eguaheNightly() {
+  eguahePost_([], []);
 }
 
 function eguaheOnSubmit(e) {
@@ -85,6 +91,9 @@ function eguaheNightly() {
   eguaheTabs_().forEach(function (tab) {
     eguaheRows_(tab, 2, true);
   });
+  // It calls though there is nothing, and says which tabs it did not find (renamed or gone).
+  const book = SpreadsheetApp.getActiveSpreadsheet();
+  eguahePost_([], EGUAHE_TABS.filter(function (name) { return !book.getSheetByName(name); }));
 }
 
 function eguaheSendAll() {
@@ -129,8 +138,8 @@ function eguaheTabs_() {
 }
 {{/sheet}}
 
-function eguahePost_(items) {
-  const body = JSON.stringify({ items: items });
+function eguahePost_(items, missing) {
+  const body = JSON.stringify(missing ? { items: items, beat: true, missing: missing } : { items: items });
   const signature = Utilities.computeHmacSha256Signature(body, EGUAHE_KEY, Utilities.Charset.UTF_8)
     .map(function (b) { return ('0' + (b & 255).toString(16)).slice(-2); }).join('');
   const reply = UrlFetchApp.fetch(EGUAHE_URL, {

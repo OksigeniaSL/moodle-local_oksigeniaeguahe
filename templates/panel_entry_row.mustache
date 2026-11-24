@@ -22,7 +22,8 @@
     places it is shared from, or what is missing to start. The name is the link, stretched to the row.
 
     New in this round: kindname, icon, open, statetext, n, broughttext, hasn, v, hassites. Kept: name, last, missing,
-    sites, url. Review of November 2026: tested, when a test last came through it (false if never).
+    sites, url. Review of November 2026: tested, when a test last came through it (false if never). Pulse: silent, what may
+    be wrong with it (false if nothing), and called, when the last thing came and when it last called or was opened.
 
     Example context (json):
     {"i": {"der": ""}, "name": "Pidan información", "kindname": "Formulario", "icon": "", "open": true, "statetext": "Abierta",
@@ -37,6 +38,8 @@
         {{#tested}}<span class="probada">{{.}}</span>{{/tested}}
         {{#hassites}}<span class="sitios-l">{{#sites}}<span class="dato contorno">{{.}}</span>{{/sites}}</span>{{/hassites}}
         {{#missing}}<span class="falta">{{missing}}</span>{{/missing}}
+        {{#silent}}<span class="falta">{{.}}</span>{{/silent}}
+        {{#called}}<span class="secundario">{{.}}</span>{{/called}}
     </span>
     <span class="cuantas">
         <span class="barra-entrada" aria-hidden="true">{{#hasn}}<i style="--v: {{v}}"></i>{{/hasn}}</span>

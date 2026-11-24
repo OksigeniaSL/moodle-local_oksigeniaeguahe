@@ -48,6 +48,7 @@ class panel_entries {
         $list = entries::for_centre((int) $centre->id);
         $most = max(1, ...array_map(fn($e) => (int) $e->received, $list ?: [(object) ['received' => 0]]));
         $groups = ['formularios' => [], 'puentes' => []];
+        $pulses = array_column(pulse::of_centre($centre, $now), null, 'id');
         $used = [];
         foreach ($list as $entry) {
             $used[$entry->kind] = true;
@@ -73,8 +74,14 @@ class panel_entries {
                     $now
                 )) : '',
                 // What is missing to start, until something comes through it or a test says it works.
-                'missing' => !$n && $entry->kind !== 'form' && !(int) ($entry->testedat ?? 0) ?
+                'missing' => !$n && $entry->kind !== 'form' && !(int) ($entry->testedat ?? 0) && !(int) ($entry->calledat ?? 0) &&
+                    !(int) ($entry->refusedat ?? 0) ?
                     get_string('panel_missing_' . $entry->kind, $c) : '',
+                // What may be wrong with it: it does not call, it is refused, nothing in it is understood, or it is quiet.
+                'silent' => isset($pulses[(int) $entry->id]) && in_array($pulses[(int) $entry->id]['state'], pulse::SILENT, true) ?
+                    pulse::words($pulses[(int) $entry->id], $now) : false,
+                'called' => isset($pulses[(int) $entry->id]) && (int) ($entry->calledat ?? 0) ?
+                    pulse::call($pulses[(int) $entry->id], $now) : false,
                 // The last test that came through it: something sent with the test email.
                 'tested' => (int) ($entry->testedat ?? 0) ? get_string('panel_entry_tested', $c, panel::when_words(
                     (int) $entry->testedat,

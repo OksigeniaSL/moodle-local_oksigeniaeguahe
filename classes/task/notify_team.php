@@ -44,6 +44,10 @@ class notify_team extends \core\task\scheduled_task {
         global $DB;
         $now = time();
         foreach ($DB->get_records(centres::T, ['practice' => 0], 'id ASC', 'id') as $row) {
+            $full = centres::get((int) $row->id);
+            if ($full) {
+                teamnotice::silences($full, $now);
+            }
             $name = 'notifiedto_' . $row->id;
             $last = (int) get_config('local_oksigeniaeguahe', $name);
             set_config($name, $now, 'local_oksigeniaeguahe');

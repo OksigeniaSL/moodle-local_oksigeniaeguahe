@@ -130,14 +130,18 @@ class panel_inbox {
         });
         $days = self::days($list, $centreid, $now, $userid);
         $fresh = $total === 0;
+        $entries = pulse::of_centre($centre, $now);
+        $silent = array_values(array_filter($entries, fn($p) => in_array($p['state'], pulse::SILENT, true)));
 
         // The sentence of the page, and the line under it.
         if ($fresh) {
             $title = get_string('panel_inbox_fresh', $c);
             $sub = get_string('panel_inbox_fresh_sub', $c);
         } else if (!$waiting) {
-            $title = get_string('inbox_empty_waiting', $c);
-            $sub = self::last_answer($centreid, $now);
+            // «Nobody» is only said of what arrived: with an entry that may not be bringing all there is, it says so.
+            $title = get_string($silent ? 'inbox_empty_waiting_known' : 'inbox_empty_waiting', $c);
+            $sub = $silent ? get_string('pulse_sub', $c, implode(', ', array_map(fn($p) => '«' . $p['name'] . '»', $silent))) :
+                self::last_answer($centreid, $now);
         } else {
             $first = $DB->get_field_select(households::T, 'MIN(waitingsince)', 'centreid = ? AND waitingsince > 0', [$centreid]);
             $title = get_string($waiting === 1 ? 'inbox_waiting_one' : 'inbox_waiting', $c, $waiting);
@@ -200,9 +204,18 @@ class panel_inbox {
         // The cinematic skin: the river of the week, the families waiting as lanterns.
         $cine = cinematico::on($centre) ? cinematico::river($centre, households::inbox($centreid, true, 60), $userid, $now) :
             false;
+        if ($cine) {
+            $cine['unsure'] = (bool) $silent;
+        }
         return [
             'hall' => $hall,
             'cine' => $cine,
+            // When the last thing came through each entry, to be read beside «nobody is waiting».
+            // Open by itself when nobody waits, or when something may be missing: that is when it is read.
+            'pulse' => $entries ? ['open' => !$waiting || $silent, 'rows' => array_map(fn($p) => ['name' => $p['name'], 'line' => pulse::line($p, $now),
+                'silent' => in_array($p['state'], pulse::SILENT, true),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $p['id']]))->out(false)], $entries),
+                'now' => get_string($silent ? 'pulse_some_silent' : 'pulse_read', $c, count($silent))] : false,
             'head' => panel::head([
                 'title' => $title,
                 'sub' => $sub,
@@ -244,7 +257,8 @@ class panel_inbox {
             'search' => $search,
             'more' => $more,
             'emptybag' => panel::hanging(0, '', '', $centre),
-            'emptytitle' => get_string($fresh ? 'panel_inbox_fresh_empty' : 'panel_inbox_upto', $c),
+            'emptytitle' => get_string($fresh ? 'panel_inbox_fresh_empty' : ($silent ? 'panel_inbox_upto_known' :
+                'panel_inbox_upto'), $c),
             'emptytext' => get_string($fresh ? 'panel_inbox_fresh_text' : 'panel_inbox_upto_text', $c),
             'newevent' => (new \moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centreid, 'new' => 1]))->out(false),
             'newform' => (new \moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centreid]))->out(false),
@@ -285,6 +299,18 @@ class panel_inbox {
         $c = self::C;
         $centreid = (int) $centre->id;
         $out = [];
+        // First, an entry that may not be bringing all there is.
+        foreach (pulse::silent($centre, $now) as $pulse) {
+            if (moments::knows($centreid, $pulse['key'])) {
+                continue;
+            }
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('pulse_title', $c),
+                'short' => self::short('pulse_title'), 'text' => pulse::words($pulse, $now),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/entry.php', ['id' => $pulse['id']]))->out(false),
+                'link' => get_string('pulse_look', $c), 'known' => centres::can_act((int) $USER->id) ? ['key' => $pulse['key'],
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
+                'sesskey' => sesskey()] : false];
+        }
         foreach ($asks as $ask) {
             // A course without a day yet: its leaf blank, waiting to be written.
             $out[] = ['leaf' => $ask['leaf'], 'blank' => !$ask['leaf'], 'title' => '', 'text' => $ask['text'], 'url' => $ask['url'],

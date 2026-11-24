@@ -46,9 +46,9 @@
         </ol>
         {{/empty}}
         <p class="cine-llegan" aria-hidden="true">{{#str}}cine_arrive, local_oksigeniaeguahe{{/str}}</p>
-        {{#empty}}<p class="cine-calma"><b>{{#str}}cine_nobody, local_oksigeniaeguahe{{/str}}</b>{{#str}}cine_uptodate_text, local_oksigeniaeguahe{{/str}}</p>{{/empty}}
+        {{#empty}}<p class="cine-calma">{{#unsure}}<b>{{#str}}cine_nobody_known, local_oksigeniaeguahe{{/str}}</b>{{/unsure}}{{^unsure}}<b>{{#str}}cine_nobody, local_oksigeniaeguahe{{/str}}</b>{{#str}}cine_uptodate_text, local_oksigeniaeguahe{{/str}}{{/unsure}}</p>{{/empty}}
         <p class="cine-mostrador"><span class="cine-pilar" aria-hidden="true"></span><b>{{#str}}cine_counter, local_oksigeniaeguahe{{/str}}</b>
-            <span>{{#empty}}{{#str}}cine_uptodate, local_oksigeniaeguahe{{/str}}{{/empty}}{{^empty}}{{#str}}cine_answered, local_oksigeniaeguahe, {{answeredtoday}}{{/str}}{{/empty}}</span></p>
+            <span>{{#empty}}{{#unsure}}{{#str}}panel_inbox_upto_known, local_oksigeniaeguahe{{/str}}{{/unsure}}{{^unsure}}{{#str}}cine_uptodate, local_oksigeniaeguahe{{/str}}{{/unsure}}{{/empty}}{{^empty}}{{#str}}cine_answered, local_oksigeniaeguahe, {{answeredtoday}}{{/str}}{{/empty}}</span></p>
         {{^empty}}
         <ol class="cine-farolillos" aria-label="{{#str}}cine_longest, local_oksigeniaeguahe{{/str}}">
             {{#lanterns}}<li class="farolillo" style="--x: {{x}}; --fila: {{lane}}"><a href="{{url}}" data-abre-hoja><span class="etiquetas" translate="no">{{#tags}}<span class="etiqueta" dir="auto">{{tag}}</span>{{/tags}}</span><b class="farolillo-quien">{{adults}}</b><span class="farolillo-desde">{{since}}</span><span class="farolillo-como">{{arrived}}{{#owner}} · {{owner}}{{/owner}}</span></a></li>{{/lanterns}}

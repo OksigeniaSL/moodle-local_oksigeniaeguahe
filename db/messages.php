@@ -37,6 +37,12 @@ $messageproviders = [
     'visitsoon' => ['defaults' => $defaults],
     // The centre asks whether each child goes on next school year.
     'renewalasked' => ['defaults' => $defaults],
+    // For the team: an entry may not be bringing all there is.
+    'entrysilent' => ['defaults' => [
+        'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+    ]],
     // For the team: a family came on its own. By mail too, as the forms of a web did.
     'newfamily' => ['defaults' => [
         'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,

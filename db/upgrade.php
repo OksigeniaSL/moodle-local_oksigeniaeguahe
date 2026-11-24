@@ -1703,5 +1703,25 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026120600, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026121200) {
+        // Whether what comes in through each entry is still coming: its calls, the refused ones too.
+        $table = new xmldb_table('local_oksigeniaeguahe_entry');
+        $fields = [
+            new xmldb_field('calledat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'testedat'),
+            new xmldb_field('refusedat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'calledat'),
+            new xmldb_field('unread', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'refusedat'),
+            new xmldb_field('opened', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'unread'),
+            new xmldb_field('beats', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'opened'),
+            new xmldb_field('missing', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'beats'),
+            new xmldb_field('silenttold', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'missing'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026121200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

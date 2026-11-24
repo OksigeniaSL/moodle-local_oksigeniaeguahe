@@ -1951,6 +1951,45 @@ details[open].plegado > summary h2::after {
     text-transform: uppercase;
 }
 
+/* When the last thing came through each entry, beside «nobody is waiting». */
+.llegan-por {
+    margin: 0 0 12px;
+    padding: 8px 14px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+    font-size: 0.9375rem;
+}
+
+.llegan-por summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    min-height: 32px;
+    cursor: pointer;
+}
+
+.llegan-por-t {
+    font-weight: 700;
+}
+
+.llegan-por-ahora {
+    color: var(--eg-tinta-2);
+}
+
+.llegan-por ul {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 4px;
+    padding: 0;
+    list-style: none;
+}
+
+.llegan-por li.callada span {
+    font-weight: 700;
+}
+
 .hoy-notas {
     display: flex;
     flex-wrap: wrap;

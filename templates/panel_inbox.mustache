@@ -115,6 +115,12 @@
                 {{#filters.hasfamilies}}<div class="pastillas" role="group" aria-label="{{#str}}panel_filter_families, local_oksigeniaeguahe{{/str}}">{{#filters.families}}<a class="pastilla" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/filters.families}}</div>{{/filters.hasfamilies}}
             </details>
             {{/showtools}}
+            {{#pulse}}
+            <details class="llegan-por"{{#open}} open{{/open}}>
+                <summary><span class="llegan-por-t">{{#str}}pulse_where, local_oksigeniaeguahe{{/str}}</span> <span class="llegan-por-ahora">{{now}}</span>{{{i.chev}}}</summary>
+                <ul>{{#rows}}<li{{#silent}} class="callada"{{/silent}}><a href="{{url}}">{{name}}</a> <span>{{line}}</span></li>{{/rows}}</ul>
+            </details>
+            {{/pulse}}
             {{#search.line}}<p class="busqueda-linea"><span>{{search.line}}</span> <a href="{{search.clearurl}}">{{#str}}panel_search_clear, local_oksigeniaeguahe{{/str}}</a></p>{{/search.line}}
             {{#hasrows}}
             <div class="lista" id="lista" data-lista data-densidad="{{density}}"{{#more}} data-lista-cortada{{/more}}>
