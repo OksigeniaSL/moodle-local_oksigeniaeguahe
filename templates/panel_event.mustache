@@ -96,7 +96,7 @@
             {{^hasrequests}}<p class="secundario">{{#str}}panel_events_no_requests, local_oksigeniaeguahe{{/str}}</p>{{/hasrequests}}
             {{/tailored}}
             {{^tailored}}
-            {{#before}}<p class="se-abre">{{opens}}</p><h2 class="quien-viene">{{#str}}panel_before_who, local_oksigeniaeguahe{{/str}}</h2>{{/before}}
+            {{#before}}<p class="se-abre">{{opens}}</p>{{#invite}}{{#url}}<a class="boton secundario invitar-cerca" href="{{url}}">{{{i.correo}}}{{#str}}panel_invite_go, local_oksigeniaeguahe{{/str}}</a>{{/url}}{{/invite}}<h2 class="quien-viene">{{#str}}panel_before_who, local_oksigeniaeguahe{{/str}}</h2>{{/before}}
             <div class="buscar-puerta">
                 <label class="buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".llegada" data-tecla="/" data-tecla-que="{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>
                 {{#addurl}}{{^before}}<a class="boton principal en-ancho" href="{{addurl}}" data-tecla="a" data-tecla-que="{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}">{{{i.mas1}}}<span class="largo">{{#str}}panel_walk_in, local_oksigeniaeguahe{{/str}}</span><span class="corto-b">{{#str}}panel_walk_in_short, local_oksigeniaeguahe{{/str}}</span></a>{{/before}}{{#before}}<a class="boton secundario en-ancho" href="{{addurl}}">{{{i.mas1}}}<span>{{#str}}household_new, local_oksigeniaeguahe{{/str}}</span></a>{{/before}}{{/addurl}}
@@ -131,62 +131,12 @@
         </section>
         <aside class="compartir-acto">
             {{#invite}}
-            <section class="bloque invitar" id="invitar">
+            <section class="bloque invitar-acto" id="invitar">
                 <h2>{{#str}}panel_invite_title, local_oksigeniaeguahe{{/str}}</h2>
                 <p>{{text}}</p>
-                {{#ways}}<p class="secundario">{{ways}}</p>{{/ways}}
-                {{#cost}}<p class="secundario">{{cost}}{{#approval}} {{approval}}{{/approval}}</p>{{/cost}}
                 {{#done}}<p class="secundario">{{done}}</p>{{/done}}
-                {{#going}}<div class="aviso-suave invitar-estado" role="status">{{{i.info}}}<span>{{text}}</span>{{#stop}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitestop"><button class="enlace" type="submit">{{#str}}panel_invite_stop, local_oksigeniaeguahe{{/str}}</button></form>{{/stop}}</div>{{/going}}
-                {{#said}}<div class="aviso-suave invitar-estado" role="status">{{{i.info}}}<span>{{said}}</span>{{#withdraw}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="withdraw"><input type="hidden" name="bulk" value="{{bulk}}"><button class="enlace" type="submit">{{#str}}panel_invite_withdraw, local_oksigeniaeguahe{{/str}}</button></form>{{/withdraw}}</div>{{/said}}
-                {{#notice}}<p class="aviso-suave invitar-estado{{#error}} con-error{{/error}}" role="{{#error}}alert{{/error}}{{^error}}status{{/error}}">{{{i.info}}}<span>{{text}}</span></p>{{/notice}}
-                {{#check}}
-                <form class="invitar-carta" method="post" action="{{action}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitego">
-                    <p><b>{{question}}</b></p>
-                    <ul class="invitar-quienes">{{#going}}<li><input type="hidden" name="para[]" value="{{id}}">{{name}}{{#courses}} <small>{{courses}}</small>{{/courses}}</li>{{/going}}</ul>
-                    {{#slow}}<p class="secundario">{{slow}}</p>{{/slow}}
-                    <div class="cabeza-acciones">
-                        <button class="boton principal pequeno" type="submit">{{#str}}panel_invite_yes, local_oksigeniaeguahe{{/str}}</button>
-                        <a class="boton secundario pequeno" href="{{back}}">{{#str}}panel_invite_notyet, local_oksigeniaeguahe{{/str}}</a>
-                    </div>
-                </form>
-                {{/check}}
-                {{^check}}
-                {{#letter}}
-                <form class="invitar-carta" method="post" action="{{action}}">
-                    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="invitar" value="1"><input type="hidden" name="gusto" value="{{group}}">
-                    <button class="oculto" type="submit" name="action" value="invitewords" tabindex="-1" aria-hidden="true">{{#str}}panel_invite_look, local_oksigeniaeguahe{{/str}}</button>
-                    {{#rows}}
-                    <div class="invitar-grupo">
-                        <p class="secundario">{{intro}}</p>
-                        <ul class="gustos-acto">{{#chips}}<li><button class="pastilla{{#current}} actual{{/current}}" type="submit" name="pasar" value="{{key}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}">{{#cap}}{{{i.birrete}}}{{/cap}}<span>{{name}}</span> <b>{{n}}</b></button></li>{{/chips}}</ul>
-                    </div>
-                    {{/rows}}
-                    {{#some}}<p><b>{{some}}</b></p>{{/some}}
-                    <div class="campo"><label for="invitewords">{{#str}}panel_invite_words, local_oksigeniaeguahe{{/str}}</label><textarea id="invitewords" name="invitewords" rows="3" maxlength="1500">{{words}}</textarea></div>
-                    <div class="carta-previa">
-                        <p class="secundario">{{#str}}panel_invite_letter, local_oksigeniaeguahe{{/str}}</p>
-                        <p class="carta-asunto"><b>{{subject}}</b></p>
-                        <div class="carta-texto">{{text}}</div>
-                    </div>
-                    <div class="cabeza-acciones">
-                        <button class="boton secundario pequeno" type="submit" name="action" value="invitewords">{{#str}}panel_invite_look, local_oksigeniaeguahe{{/str}}</button>
-                        <button class="boton secundario pequeno" type="submit" name="action" value="invitetest">{{{i.enviado}}}{{#str}}panel_invite_test, local_oksigeniaeguahe{{/str}}</button>
-                    </div>
-                    <fieldset class="invitar-lista">
-                        <legend>{{#str}}panel_invite_whom, local_oksigeniaeguahe{{/str}}</legend>
-                        <div class="cabeza-acciones">
-                            <button class="enlace" type="submit" name="action" value="invitetick">{{#str}}panel_invite_tickall, local_oksigeniaeguahe{{/str}}</button>
-                            <button class="enlace" type="submit" name="action" value="inviteuntick">{{#str}}panel_invite_untick, local_oksigeniaeguahe{{/str}}</button>
-                        </div>
-                        <ul class="invitar-quienes">{{#whom}}<li><label><input type="checkbox" name="para[]" value="{{id}}"{{#checked}} checked{{/checked}}><span>{{name}}{{#courses}} <small>{{courses}}</small>{{/courses}}</span></label></li>{{/whom}}</ul>
-                    </fieldset>
-                    <button class="boton principal" type="submit" name="action" value="invite">{{#str}}panel_invite_ticked, local_oksigeniaeguahe{{/str}}</button>
-                </form>
-                {{/letter}}
-                {{/check}}
-                <p class="def">{{#str}}panel_invite_help, local_oksigeniaeguahe{{/str}}</p>
+                {{> local_oksigeniaeguahe/panel_invite_state }}
+                {{#url}}<div><a class="boton principal" href="{{url}}">{{{i.correo}}}{{#str}}panel_invite_prepare, local_oksigeniaeguahe{{/str}}</a></div>{{/url}}
             </section>
             {{/invite}}
             {{^own}}

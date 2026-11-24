@@ -1,0 +1,104 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_invite
+
+    The invitation to an act, on a page of its own. At one side the families, each one an envelope: with its stamp it
+    goes, without it it does not. At the other, the letter as it goes: what the team adds is written on it, where it will
+    be read. At the foot, always in sight, to how many it goes and the button; before it goes, how many and who (check).
+    Without script it is one form and every button keeps the words and the ticks. With it, the chips leave in sight only
+    some families (only those in sight go), the numbers follow the stamps, and the words and the test go without leaving.
+
+    Example context (json):
+    {
+        "i": {"atras": "", "info": "", "check": "", "enviado": "", "buscar": "", "birrete": ""},
+        "title": "Invitar a «Charla para familias»", "sub": "2 familias que aún no son del centro pueden recibir la invitación por correo.",
+        "back": {"url": "#", "name": "Charla para familias"}, "going": false, "said": "", "withdraw": false, "notice": false,
+        "posturl": "https://example.com/event.php", "sesskey": "abc", "group": "", "texts": "{}", "check": false, "some": "", "none": "",
+        "count": "Marcadas: 2 de 2", "goes": "Va a 2 familias, por correo.", "many": false, "cost": "", "approval": "",
+        "rows": [{"name": "Piden", "chips": [{"key": "curso-a", "name": "Infantil 3 años", "n": 1, "ids": "2", "current": false, "cap": false}]}],
+        "whom": [{"id": 1, "name": "Andrea Hernández", "courses": "1.º de Bachillerato", "checked": true, "email": true, "phone": false, "search": "andrea hernández"},
+            {"id": 2, "name": "João Silva", "courses": "Infantil 3 años", "checked": true, "email": true, "phone": false, "search": "joão silva"}],
+        "letter": {"subject": "Charla para familias, el sábado 28 de noviembre", "before": "Hola:", "after": "Un saludo,", "words": "",
+            "notes": ["A cada familia le llega en su idioma."]}
+    }
+}}
+<div class="pagina pagina-invitar">
+    {{> local_oksigeniaeguahe/panel_head }}
+    {{> local_oksigeniaeguahe/panel_invite_state }}
+    {{#none}}<p class="aviso-suave">{{{i.info}}}<span>{{none}}</span></p>{{/none}}
+    {{#check}}
+    <form class="invitar-confirmar" method="post" action="{{posturl}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitego">
+        <section class="bloque">
+            <h2 class="invitar-pregunta">{{question}}</h2>
+            <ul class="sobres-f">{{#going}}<li class="sobre-f va"><input type="hidden" name="para[]" value="{{id}}"><span class="sobre-cara"><b>{{name}}</b>{{#courses}}<small>{{courses}}</small>{{/courses}}</span><span class="franqueo" aria-hidden="true">{{{i.check}}}</span></li>{{/going}}</ul>
+            {{#slow}}<p class="secundario">{{slow}}</p>{{/slow}}
+            {{#cost}}<p class="secundario">{{cost}}{{#approval}} {{approval}}{{/approval}}</p>{{/cost}}
+        </section>
+        <div class="invitar-pie">
+            <a class="boton secundario" href="{{back}}">{{#str}}panel_invite_notyet, local_oksigeniaeguahe{{/str}}</a>
+            <button class="boton principal" type="submit">{{#str}}panel_invite_yes, local_oksigeniaeguahe{{/str}}</button>
+        </div>
+    </form>
+    {{/check}}
+    {{^check}}
+    {{#letter}}
+    <form class="invitar" method="post" action="{{posturl}}" data-invitar data-textos="{{texts}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="invitar" value="1"><input type="hidden" name="gusto" value="{{group}}">
+        <button class="oculto" type="submit" name="action" value="invitewords" tabindex="-1" aria-hidden="true">{{#str}}panel_invite_look, local_oksigeniaeguahe{{/str}}</button>
+        <section class="bloque invitar-a" aria-labelledby="invitar-a-t">
+            <header><h2 id="invitar-a-t">{{#str}}panel_invite_whom, local_oksigeniaeguahe{{/str}}</h2><p class="invitar-cuenta" data-cuenta>{{count}}</p></header>
+            {{#some}}<p><b>{{some}}</b></p>{{/some}}
+            {{#rows}}
+            <div class="invitar-fila" role="group" aria-label="{{name}}"><span class="invitar-fila-n" aria-hidden="true">{{name}}</span><span class="invitar-pastillas">{{#chips}}<button class="pastilla" type="submit" name="pasar" value="{{key}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"{{#ids}} data-grupo="{{ids}}"{{/ids}}>{{#cap}}{{{i.birrete}}}{{/cap}}<span>{{name}}</span> <b>{{n}}</b></button>{{/chips}}</span></div>
+            {{/rows}}
+            <div class="invitar-marcar">
+                {{#many}}<label class="buscar" data-con-guion hidden><span class="oculto">{{#str}}panel_invite_search, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-buscar-sobre placeholder="{{#str}}panel_invite_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>{{/many}}
+                <button class="enlace" type="submit" name="action" value="invitetick" data-marcar="1">{{#str}}panel_invite_tickall, local_oksigeniaeguahe{{/str}}</button>
+                <button class="enlace" type="submit" name="action" value="inviteuntick" data-marcar="0">{{#str}}panel_invite_untick, local_oksigeniaeguahe{{/str}}</button>
+            </div>
+            <ul class="sobres-f{{#many}} muchos{{/many}}">{{#whom}}
+                <li class="sobre-f" data-sobre="{{id}}" data-buscar="{{search}}"><label><input type="checkbox" name="para[]" value="{{id}}"{{#checked}} checked{{/checked}}{{#email}} data-correo{{/email}}{{#phone}} data-movil{{/phone}}><span class="sobre-cara"><b>{{name}}</b>{{#courses}}<small>{{courses}}</small>{{/courses}}</span><span class="franqueo" aria-hidden="true">{{{i.check}}}</span></label></li>{{/whom}}
+            </ul>
+            <p class="secundario" data-nadie hidden>{{#str}}panel_invite_nomatch, local_oksigeniaeguahe{{/str}}</p>
+            <p class="def">{{#str}}panel_invite_help, local_oksigeniaeguahe{{/str}}</p>
+        </section>
+        <section class="bloque invitar-carta" aria-labelledby="invitar-c-t">
+            <header><h2 id="invitar-c-t">{{#str}}panel_invite_theletter, local_oksigeniaeguahe{{/str}}</h2><p class="invitar-guardado" data-guardado role="status"></p></header>
+            <div class="carta-hoja">
+                <p class="carta-asunto"><span>{{#str}}panel_invite_subject, local_oksigeniaeguahe{{/str}}</span> <b>{{subject}}</b></p>
+                <div class="carta-texto">{{{before}}}</div>
+                <div class="carta-palabras"><label class="oculto" for="invitewords">{{#str}}panel_invite_words, local_oksigeniaeguahe{{/str}}</label><textarea id="invitewords" name="invitewords" rows="3" maxlength="1500" placeholder="{{#str}}panel_invite_words_here, local_oksigeniaeguahe{{/str}}">{{words}}</textarea></div>
+                <div class="carta-texto">{{{after}}}</div>
+            </div>
+            <ul class="carta-notas">{{#notes}}<li>{{.}}</li>{{/notes}}</ul>
+            <div class="cabeza-acciones">
+                <button class="boton secundario pequeno" type="submit" name="action" value="invitetest" data-mandarmela>{{{i.enviado}}}{{#str}}panel_invite_test, local_oksigeniaeguahe{{/str}}</button>
+                <button class="boton secundario pequeno" type="submit" name="action" value="invitewords" data-sin-guion>{{#str}}panel_invite_look, local_oksigeniaeguahe{{/str}}</button>
+            </div>
+            <p class="aviso-suave" data-mandada role="status" hidden></p>
+        </section>
+        <div class="invitar-pie">
+            <p class="invitar-va" data-va role="status">{{goes}}</p>
+            {{#cost}}<p class="def">{{cost}}{{#approval}} {{approval}}{{/approval}}</p>{{/cost}}
+            <button class="boton principal" type="submit" name="action" value="invite" data-mandar>{{#str}}panel_invite_ticked, local_oksigeniaeguahe{{/str}}</button>
+        </div>
+    </form>
+    {{/letter}}
+    {{/check}}
+</div>

@@ -40,6 +40,9 @@ class invites {
     /** @var string Instead of something they like: only the families of former students of the centre. */
     const ALUMNI = 'antiguos';
 
+    /** @var string The families already of the centre that came through Eguahe: only when they are chosen. */
+    const OFCENTRE = 'delcentro';
+
     /** @var int How many letters go out at a time, and every how long: many at once end in spam. */
     const BATCH = 15;
 
@@ -82,9 +85,33 @@ class invites {
      * @return \stdClass[] Households, by id.
      */
     public static function eligible(\stdClass $event): array {
+        return self::reachable($event, false);
+    }
+
+    /**
+     * The families already of the centre that came through Eguahe (they ask for another child, or were enrolled by it):
+     * never invited with the others, only when they are chosen. The families of the roll of the centre are told by the
+     * centre, not from here.
+     *
+     * @param \stdClass $event
+     * @return \stdClass[] As eligible() gives them.
+     */
+    public static function of_centre(\stdClass $event): array {
+        return self::reachable($event, true);
+    }
+
+    /**
+     * The families an invitation can reach, of one side or the other: not of the centre yet, or already of it.
+     *
+     * @param \stdClass $event
+     * @param bool $ofcentre
+     * @return \stdClass[]
+     */
+    protected static function reachable(\stdClass $event, bool $ofcentre): array {
         global $DB;
         $centreid = (int) $event->centreid;
-        $households = $DB->get_records(households::T, ['centreid' => $centreid, 'incentre' => 0]);
+        $households = $DB->get_records(households::T, ['centreid' => $centreid] + ($ofcentre ? ['roster' => 0] :
+            ['incentre' => 0]));
         if (!$households) {
             return [];
         }
@@ -121,10 +148,16 @@ class invites {
             // A family that left the centre is left in peace, unless the centre wants it invited.
             $gone = in_array('left', $stages, true) && !in_array('enrolled', $stages, true);
             $ok = $gone ? !empty($centre->invitegone) : (!$stages || array_diff($stages, ['closed']));
-            if (
-                isset($done[$id]) || isset($queued[$id]) || in_array('enrolled', $stages, true) || !$ok ||
-                    !writeby::may_send($household, 'openinvite')
-            ) {
+            $enrolled = in_array('enrolled', $stages, true);
+            if ($ofcentre) {
+                // Of the centre by its list, or by an enrolled child.
+                if (!$enrolled && (empty($household->incentre) || $gone)) {
+                    continue;
+                }
+            } else if ($enrolled || !$ok) {
+                continue;
+            }
+            if (isset($done[$id]) || isset($queued[$id]) || !writeby::may_send($household, 'openinvite')) {
                 continue;
             }
             $household->reachemail = !empty($emails[$id]) && !empty($allowed[$id]) &&
@@ -209,9 +242,12 @@ class invites {
             return $none;
         }
         $eligible = self::eligible($event);
-        if ($group !== '') {
+        if ($group !== '' || $ids !== null) {
+            $ofcentre = self::of_centre($event);
+            $groups = $group !== '' ? self::groups($event, $eligible, $ofcentre) : [];
+            $eligible += $ofcentre;
             // Never the whole list when the group is no longer there.
-            $eligible = array_intersect_key($eligible, array_flip(self::groups($event, $eligible)[$group]['ids'] ?? []));
+            $eligible = $group !== '' ? array_intersect_key($eligible, array_flip($groups[$group]['ids'] ?? [])) : $eligible;
         }
         if ($ids !== null) {
             $eligible = array_intersect_key($eligible, array_flip(array_map('intval', $ids)));
@@ -428,15 +464,20 @@ class invites {
      *
      * @param \stdClass $event
      * @param \stdClass[] $eligible As eligible() gives them.
-     * @return array key => [kind (hobby, alumni, course or act), name, ids]
+     * @param \stdClass[] $ofcentre As of_centre() gives them.
+     * @return array key => [kind (hobby, alumni, course, act or centre), name, ids]; of an act, also its row and its short name
      */
-    public static function groups(\stdClass $event, array $eligible): array {
+    public static function groups(\stdClass $event, array $eligible, array $ofcentre = []): array {
         global $DB;
         $ids = array_map('intval', array_keys($eligible));
-        if (!$ids) {
-            return [];
-        }
         $out = [];
+        if ($ofcentre) {
+            $out[self::OFCENTRE] = ['kind' => 'centre', 'name' => get_string('panel_invite_ofcentre', self::C),
+                'ids' => array_map('intval', array_keys($ofcentre))];
+        }
+        if (!$ids) {
+            return $out;
+        }
         foreach (array_keys(hobbies::families_by($ids)) as $key) {
             $out[$key] = ['kind' => 'hobby', 'name' => hobbies::name($key), 'ids' => hobbies::households_with($ids, [$key])];
         }
@@ -491,11 +532,14 @@ class invites {
                 (int) $act->timestart,
                 get_string('strftimedateshort', 'langconfig')
             )];
-            $out['acto-' . $act->id] = ['kind' => 'act', 'name' => get_string('panel_invite_act_in', self::C, $name), 'ids' => $in];
+            $act = (int) $act->id;
+            $row = get_string('panel_invite_act', self::C, $name);
+            $out['acto-' . $act] = ['kind' => 'act', 'name' => get_string('panel_invite_act_in', self::C, $name), 'ids' => $in,
+                'row' => $row, 'short' => get_string('panel_invite_signed', self::C)];
             $rest = array_values(array_diff($ids, $in));
             if ($rest) {
-                $out['sinacto-' . $act->id] = ['kind' => 'act', 'name' => get_string('panel_invite_act_out', self::C, $name),
-                    'ids' => $rest];
+                $out['sinacto-' . $act] = ['kind' => 'act', 'name' => get_string('panel_invite_act_out', self::C, $name),
+                    'ids' => $rest, 'row' => $row, 'short' => get_string('panel_invite_unsigned', self::C)];
             }
         }
         return $out;

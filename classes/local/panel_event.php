@@ -59,18 +59,9 @@ class panel_event {
      * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
-     * @param string $whom One of invites::groups(), to invite only those; '' for all.
-     * @param bool $check Whether the invitation is looked over before it goes.
      * @return array
      */
-    public static function context(
-        \stdClass $event,
-        \stdClass $centre,
-        bool $canact,
-        int $now = 0,
-        string $whom = '',
-        bool $check = false
-    ): array {
+    public static function context(\stdClass $event, \stdClass $centre, bool $canact, int $now = 0): array {
         $now = $now ?: time();
         $c = self::C;
         $url = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]);
@@ -233,7 +224,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
-            'invite' => self::invite($event, $canact, $now, $whom, $check),
+            'invite' => self::invite_card($event, $canact, $now),
             'family' => $family ? panel::adults_line(households::full($family)->adults) : '',
             'familyurl' => $family ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $family->id]))->out(false) :
                 '',
@@ -434,57 +425,116 @@ class panel_event {
     }
 
     /**
-     * An open act still to come: the invitation to the families that are not of the centre yet, how many can get it and
-     * how many got it.
+     * What the invitation of an act is doing: what was just done, the letters still to go out and the send by phone.
      *
      * @param \stdClass $event
+     * @param bool $canact
+     * @param int $now
+     * @return array notice, going, said, withdraw, posturl and sesskey, for panel_invite_state.
+     */
+    protected static function invite_state(\stdClass $event, bool $canact, int $now): array {
+        $bulk = invites::last_bulk((int) $event->id);
+        $state = invites::state($bulk);
+        [$left, $next] = invites::on_the_way((int) $event->id);
+        return [
+            // What Marandu says of the last send by phone, in its own words: waiting, approved, turned down and why.
+            'said' => $state ? (string) ($state['said'] ?? '') : '',
+            'withdraw' => $state && ($state['status'] ?? '') === 'pending' && $canact ? ['bulk' => $bulk] : false,
+            // Those that have not gone out yet, and until when they will be going.
+            'going' => $left ? ['text' => self::invite_left($left, invites::last_at($left, max($now, $next)), $now),
+                'stop' => $canact] : false,
+            'notice' => invites::said((int) $event->id),
+            'posturl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
+            'sesskey' => sesskey(),
+        ];
+    }
+
+    /**
+     * On the page of an open act still to come: how many families can get its invitation, how many got it and the way to
+     * prepare it.
+     *
+     * @param \stdClass $event
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function invite_card(\stdClass $event, bool $canact, int $now) {
+        if (!invites::fits($event, $now)) {
+            return false;
+        }
+        $can = count(invites::eligible($event));
+        $any = $can || invites::of_centre($event);
+        $done = invites::count((int) $event->id);
+        return self::invite_state($event, $canact, $now) + [
+            'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
+                get_string('panel_invite_noone', self::C),
+            'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', self::C, $done) : '',
+            'url' => $any && $canact ? (new \moodle_url(
+                '/local/oksigeniaeguahe/event.php',
+                ['id' => $event->id, 'invitar' => 1]
+            ))->out(false) : '',
+        ];
+    }
+
+    /**
+     * The page where the invitation of an open act still to come is prepared: to whom, the letter and, before it goes, how
+     * many and who.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
      * @param bool $canact
      * @param int $now
      * @param string $group One of invites::groups(), chosen; '' for all.
      * @param bool $check Whether it is looked over before it goes: how many and who, to confirm it.
      * @return array|false
      */
-    protected static function invite(\stdClass $event, bool $canact, int $now, string $group = '', bool $check = false) {
+    public static function invite_page(
+        \stdClass $event,
+        \stdClass $centre,
+        bool $canact,
+        int $now = 0,
+        string $group = '',
+        bool $check = false
+    ) {
+        $now = $now ?: time();
         if (!invites::fits($event, $now)) {
             return false;
         }
         $c = self::C;
-        $centre = centres::get((int) $event->centreid);
         $all = invites::eligible($event);
         $can = count($all);
         $done = invites::count((int) $event->id);
-        // The groups they can be told apart by: one at a time, and none for all of them.
-        $groups = invites::groups($event, $all);
+        // The groups they can be told apart by: without script one at a time, and none for all of them.
+        $ofcentre = invites::of_centre($event);
+        $groups = invites::groups($event, $all, $ofcentre);
         $group = isset($groups[$group]) ? $group : '';
-        $url = fn(array $params) => (new \moodle_url(
+        // Those already of the centre are a list of their own, never mixed with the others.
+        $centres = $group === invites::OFCENTRE;
+        $here = fn(array $params) => (new \moodle_url(
             '/local/oksigeniaeguahe/event.php',
-            ['id' => $event->id] + $params,
-            'invitar'
+            ['id' => $event->id, 'invitar' => 1] + $params
         ))->out(false);
-        $intros = ['course' => 'panel_invite_by_course', 'act' => 'panel_invite_by_act', 'alumni' => 'alumni_invite_intro',
-            'hobby' => 'panel_invite_likes'];
         $rows = [];
-        foreach ($intros as $kind => $intro) {
-            $chips = [];
+        foreach ($centres ? ['centre'] : ['course', 'act', 'alumni', 'hobby', 'centre'] as $kind) {
             foreach ($groups as $key => $one) {
                 if ($one['kind'] === $kind) {
-                    $chips[] = ['name' => $one['name'], 'n' => count($one['ids']), 'current' => $group === $key,
-                        'cap' => $kind === 'alumni', 'key' => $group === $key ? '' : $key];
+                    $row = $one['row'] ?? get_string('panel_invite_row_' . $kind, $c);
+                    $rows[$row]['name'] = $row;
+                    $rows[$row]['chips'][] = ['name' => $one['short'] ?? $one['name'], 'n' => count($one['ids']),
+                        'ids' => $kind === 'centre' ? '' : implode(',', $one['ids']), 'current' => $group === $key,
+                        'cap' => $kind === 'alumni',
+                        'key' => $group === $key ? '' : $key];
                 }
             }
-            if ($chips) {
-                $rows[] = ['intro' => get_string($intro, $c), 'chips' => $chips];
-            }
         }
-        $chosen = $group !== '' ? array_intersect_key($all, array_flip($groups[$group]['ids'])) : $all;
-        $shown = $chosen;
-        $out = array_flip(invites::left_out((int) $event->id));
+        $shown = $group !== '' ? array_intersect_key($all + $ofcentre, array_flip($groups[$group]['ids'])) : $all;
         // Those still ticked, of the ones shown: what is counted is always this.
-        $chosen = array_diff_key($chosen, $out);
+        $chosen = array_diff_key($shown, array_flip(invites::left_out((int) $event->id)));
+        $n = count($chosen);
         // By the way each family chose: how many by email and by phone, what WhatsApp costs, and who approves it.
-        $emails = count(array_filter($chosen, fn($h) => $h->reachemail));
-        $phones = array_keys(array_filter($chosen, fn($h) => $h->reachphone));
-        $quote = $canact && $centre ? invites::quote($centre, $phones) : null;
+        $mails = fn(array $list) => count(array_filter($list, fn($h) => $h->reachemail));
+        $phones = fn(array $list) => array_keys(array_filter($list, fn($h) => $h->reachphone));
+        $quote = $canact ? invites::quote($centre, $phones($chosen)) : null;
         $cost = '';
         if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
             $cost = get_string((int) $quote['whatsapp'] === 1 ? 'panel_invite_cost_one' : 'panel_invite_cost', $c, (object) [
@@ -497,7 +547,7 @@ class panel_event {
         // Who it goes to, by name, before it goes: all of them, never «and N more», and each can be left out.
         $people = households::some((int) $event->centreid, array_keys($shown));
         $whom = [];
-        foreach (array_keys($shown) as $id) {
+        foreach ($shown as $id => $household) {
             if (!isset($people[$id])) {
                 continue;
             }
@@ -505,56 +555,125 @@ class panel_event {
                 fn($child) => $child->stage !== 'closed' && $child->offer ? format_string($child->offer->name) : '',
                 $people[$id]->children
             )));
-            $whom[] = ['id' => (int) $id, 'name' => panel::adults_line($people[$id]->adults), 'checked' => isset($chosen[$id]),
-                'courses' => implode(' · ', $courses)];
+            $name = panel::adults_line($people[$id]->adults);
+            $whom[] = ['id' => (int) $id, 'name' => $name, 'checked' => isset($chosen[$id]), 'courses' => implode(' · ', $courses),
+                'email' => (bool) $household->reachemail, 'phone' => (bool) $household->reachphone,
+                'search' => \core_text::strtolower(implode(' ', array_merge([$name], array_map(
+                    fn($child) => panel::tag($child),
+                    array_values($people[$id]->children)
+                ))))];
         }
         usort($whom, fn($a, $b) => strcoll(\core_text::strtolower($a['name']), \core_text::strtolower($b['name'])));
-        $state = invites::state(invites::last_bulk((int) $event->id));
-        [$left, $next] = invites::on_the_way((int) $event->id);
-        // The letter as it goes, to any of them: the name is of whoever it goes to.
-        [$subject, , $text] = $centre ? familymail::letter(
-            get_string('panel_invite_letter_name', $c),
-            $centre,
-            invites::of_letter($event),
-            (string) ($centre->lang ?: 'es'),
-            '',
-            (string) ($event->invitewords ?? '')
-        ) : ['', '', ''];
-        $n = count($chosen);
-        return [
-            'text' => get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can),
-            'ways' => $phones ? get_string('panel_invite_ways', $c, (object) ['email' => $emails, 'phone' => count($phones)]) : '',
+        $text = [get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can)];
+        if ($phones($all)) {
+            $text[] = get_string('panel_invite_ways', $c, (object) ['email' => $mails($all), 'phone' => count($phones($all))]);
+        }
+        if ($done) {
+            $text[] = get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done);
+        }
+        return self::invite_state($event, $canact, $now) + [
+            'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
+                'name' => format_string($event->name)],
+            'title' => get_string('panel_invite_to', $c, panel::quote(format_string($event->name))),
+            'sub' => $can ? implode(' ', $text) : '',
+            'none' => $can || $ofcentre ? '' : get_string('panel_invite_noone', $c),
+            'rows' => array_values($rows),
+            'group' => $group,
+            'some' => $centres ? get_string('panel_invite_group_centre', $c, count($shown)) : ($group !== '' ? get_string(
+                'panel_invite_group',
+                $c,
+                (object) ['n' => count($shown), 'of' => $can, 'what' => $groups[$group]['name']]
+            ) : ''),
+            'whom' => $whom,
+            'many' => count($whom) > 12,
             'cost' => $cost,
             'approval' => $quote && !empty($quote['approval']) ? get_string('panel_invite_approval', $c, implode(
                 ' · ',
                 array_map('strval', (array) ($quote['approvers'] ?? []))
             )) : '',
-            // What Marandu says of the last send by phone, in its own words: waiting, approved, turned down and why.
-            'said' => $state ? (string) ($state['said'] ?? '') : '',
-            'withdraw' => $state && ($state['status'] ?? '') === 'pending' && $canact ? ['bulk' => invites::last_bulk(
-                (int) $event->id
-            )] : false,
-            'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done) : '',
-            // Those that have not gone out yet, and until when they will be going.
-            'going' => $left ? ['text' => self::invite_left($left, invites::last_at($left, max($now, $next)), $now),
-                'stop' => $canact] : false,
-            'notice' => invites::said((int) $event->id),
-            'rows' => $rows,
-            'action' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
-            'sesskey' => sesskey(),
-            'group' => $group,
-            'some' => $group !== '' ? get_string('panel_invite_group', $c, (object) ['n' => count($shown), 'of' => $can,
-                'what' => $groups[$group]['name']]) : '',
-            'letter' => $canact && $can ? ['subject' => $subject, 'text' => $text,
-                'words' => (string) ($event->invitewords ?? '')] : false,
-            'whom' => $whom,
+            'count' => get_string('panel_invite_count', $c, (object) ['n' => $n, 'of' => count($shown)]),
+            'goes' => get_string('panel_invite_pick', $c),
+            'texts' => json_encode(self::invite_texts(), JSON_UNESCAPED_UNICODE),
+            'letter' => $canact && ($can || $ofcentre) ? self::invite_letter($event, $centre, $centres ? $shown : $all, $centres) : false,
             // Before it goes: to how many, by which way and to whom, and that it is once.
-            'check' => $check && $canact && $n ? ['question' => self::invite_confirm($n, $emails, count($phones)),
-                'slow' => $emails > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
+            'check' => $check && $canact && $n ? [
+                'question' => self::invite_confirm($n, $mails($chosen), count($phones($chosen))),
+                'slow' => $mails($chosen) > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
                     'n' => (int) round(invites::BATCH * HOURSECS / invites::PAUSE), 'from' => invites::DAYTIME[0],
                     'until' => invites::DAYTIME[1]]) : '',
                 'going' => array_values(array_filter($whom, fn($w) => $w['checked'])),
-                'back' => $url($group !== '' ? ['gusto' => $group] : [])] : false,
+                'back' => $here($group !== '' ? ['gusto' => $group] : [])] : false,
+        ];
+    }
+
+    /**
+     * The letter as it goes, in two halves: between them goes what the team adds, written there. The name is a gap, since
+     * it is the one of whoever it goes to; the link is its words, as in the mail.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param \stdClass[] $all The families that can get it.
+     * @param bool $ofcentre Whether they are already of the centre.
+     * @return array subject, before, after, words, notes
+     */
+    protected static function invite_letter(\stdClass $event, \stdClass $centre, array $all, bool $ofcentre = false): array {
+        $c = self::C;
+        $lang = (string) ($centre->lang ?: 'es');
+        publiclang::$self = false;
+        [$subject, $html, $text] = familymail::letter(
+            '[[n]]',
+            $centre,
+            invites::of_letter($event),
+            $lang,
+            '',
+            '[[w]]',
+            $ofcentre
+        );
+        [$before, $after] = explode('[[w]]', $text, 2);
+        $gap = '<span class="su-nombre">' . s(get_string('panel_invite_name_here', $c)) . '</span>';
+        $after = s(trim($after));
+        if (!get_config($c, 'letterplain') && preg_match('~<a href="([^"]+)">(.*?)</a>~', $html, $link)) {
+            $after = str_replace($link[1], '<span class="va-enlace">' . $link[2] . '</span>', $after);
+        }
+        $langs = [];
+        foreach ($all as $household) {
+            $its = in_array($household->lang, lists::LANGS, true) ? $household->lang : $lang;
+            $langs[$its] = ($langs[$its] ?? 0) + 1;
+        }
+        $notes = [get_string('panel_invite_note_plain', $c)];
+        if (count($langs) > 1) {
+            arsort($langs);
+            $names = array_map(fn($code, $n) => get_string('panel_invite_in_lang', $c, (object) ['n' => $n,
+                'lang' => get_string('panel_langname_' . $code, $c)]), array_keys($langs), $langs);
+            $notes[] = get_string('panel_invite_note_langs', $c, panel::and_list($names));
+        }
+        if (array_filter($all, fn($h) => $h->reachphone)) {
+            $notes[] = get_string('panel_invite_note_phone', $c);
+        }
+        return ['subject' => $subject, 'before' => str_replace('[[n]]', $gap, s(trim($before))), 'after' => $after,
+            'words' => (string) ($event->invitewords ?? ''), 'notes' => $notes];
+    }
+
+    /**
+     * The sentences the page says again as the stamps change, with their gaps between braces.
+     *
+     * @return string[]
+     */
+    protected static function invite_texts(): array {
+        $c = self::C;
+        return [
+            'count' => get_string('panel_invite_count', $c, (object) ['n' => '{n}', 'of' => '{of}']),
+            'goes' => get_string('panel_invite_goes', $c, (object) ['n' => '{n}', 'ways' => '{ways}']),
+            'goesone' => get_string('panel_invite_goes_one', $c, (object) ['ways' => '{ways}']),
+            'goesnone' => get_string('panel_invite_goes_none', $c),
+            'email' => get_string('panel_invite_confirm_email', $c),
+            'ways' => get_string('panel_invite_confirm_ways', $c, (object) ['email' => '{email}', 'phone' => '{phone}']),
+            'send' => get_string('panel_invite_send', $c, '{n}'),
+            'sendone' => get_string('panel_invite_send_one', $c),
+            'sendnone' => get_string('panel_invite_send_none', $c),
+            'kept' => get_string('panel_invite_kept', $c),
+            'notkept' => get_string('panel_invite_notkept', $c),
+            'testno' => get_string('panel_invite_tested_no', $c),
         ];
     }
 

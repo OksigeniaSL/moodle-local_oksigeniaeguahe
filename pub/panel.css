@@ -20585,102 +20585,360 @@ html {
     opacity: 1;
 }
 
-/* Before an invitation goes, the families it goes to, by name, in a box that scrolls when they are many. */
-.invitar-quienes {
-    max-height: 13em;
-    margin: 6px 0 10px;
-    padding: 8px 12px;
-    overflow: auto;
-    border-radius: 10px;
-    background: var(--eg-hundido);
-    columns: 16em auto;
-    column-gap: 18px;
-    list-style: none;
+/* ---------- The invitation to an act, on its page ---------- */
+/* The families at one side, the letter at the other and, at the foot, to how many it goes. A family is an envelope: with
+   its stamp it goes. */
+.invitar {
+    display: grid;
+    gap: 22px;
+    align-items: start;
+    margin-top: 18px;
 }
 
-.invitar-quienes li {
-    break-inside: avoid;
-    padding: 2px 0;
-}
-
-/* The letter that invites: what the team adds, the letter as it goes, and whom it goes to, each one to tick or not. */
+.invitar-a,
 .invitar-carta {
-    display: grid;
-    gap: 14px;
-    margin-top: 6px;
-}
-
-.invitar-carta textarea {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.carta-previa {
-    display: grid;
-    gap: 8px;
-}
-
-.carta-asunto {
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--eg-linea);
-    overflow-wrap: anywhere;
-}
-
-.carta-texto {
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: var(--eg-hundido);
-    font-size: 0.9375rem;
-    white-space: pre-line;
-    overflow-wrap: anywhere;
-}
-
-.invitar-lista {
     min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
 }
 
-.invitar-lista legend {
-    padding: 0;
+.invitar-cuenta {
     font-weight: 700;
 }
 
-.invitar-grupo {
+.invitar-fila {
     display: grid;
     gap: 6px;
 }
 
-.invitar-carta > .boton {
-    justify-self: start;
+.invitar-fila-n {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
 }
 
-.invitar-estado.con-error {
-    box-shadow: inset 4px 0 0 var(--eg-error);
-}
-
-.invitar-quienes label {
+.invitar-pastillas {
     display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.invitar-fila .pastilla {
     gap: 8px;
-    align-items: flex-start;
-    min-height: 28px;
+    box-sizing: border-box;
+    max-width: 100%;
+    padding-block: 6px;
+    text-align: start;
+    white-space: normal;
+}
+
+.invitar-fila .pastilla b {
+    font-variant-numeric: tabular-nums;
+}
+
+.invitar-marcar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.invitar-marcar .buscar {
+    flex: 1 1 100%;
+}
+
+.invitar-marcar .enlace {
+    min-height: 36px;
+}
+
+.sobres-f {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 232px), 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* With many families, the envelopes go in their own box, so that the letter is never far. */
+.sobres-f.muchos {
+    max-height: 60vh;
+    padding: 4px;
+    margin: -4px;
+    overflow-y: auto;
+}
+
+.sobre-f label,
+.sobre-f.va {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    min-height: 64px;
+    box-sizing: border-box;
+    padding: 10px 10px 10px 14px;
+    border: 1px solid var(--eg-borde);
+    border-radius: 3px;
+    background: var(--eg-superficie);
+}
+
+.sobre-f label {
+    position: relative;
+    height: 100%;
     cursor: pointer;
 }
 
-.invitar-quienes input {
-    flex: none;
-    width: 18px;
-    height: 18px;
-    margin: 2px 0 0;
-    accent-color: var(--eg-accion);
+.sobre-f[hidden] {
+    display: none;
 }
 
-.invitar-quienes small {
+.sobre-f input[type="checkbox"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.sobre-f label:focus-within {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.sobre-cara {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sobre-cara b {
+    font-weight: 650;
+}
+
+.sobre-cara small {
     color: var(--eg-tinta-2);
     font-size: 0.8125rem;
+    line-height: 1.35;
 }
 
-.invitar-estado form {
-    display: inline;
+/* The place of the stamp, empty; and the stamp, in the colour of the centre, its edge bitten by the paper. */
+.franqueo {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 36px;
+    box-sizing: border-box;
+    border: 1.5px dashed var(--eg-borde);
+    color: transparent;
+}
+
+.franqueo .ic {
+    width: 18px;
+    height: 18px;
+}
+
+.sobre-f.va .franqueo,
+.sobre-f input:checked ~ .franqueo {
+    border: 2px dotted var(--eg-superficie);
+    background: var(--c-acento, var(--eg-acento));
+    color: var(--c-sobre-acento, var(--eg-sobre-accion));
+    transform: rotate(2deg);
+}
+
+.sobre-f input[type="checkbox"]:not(:checked) ~ .sobre-cara b {
+    color: var(--eg-tinta-2);
+    font-weight: 500;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .sobre-f input:checked ~ .franqueo {
+        animation: franqueo 0.22s ease-out;
+    }
+}
+
+@keyframes franqueo {
+    from {
+        transform: rotate(-8deg) scale(1.35);
+    }
+}
+
+/* The letter: a sheet, and on it the place where the team writes, with its pencil lines. */
+.carta-hoja {
+    display: grid;
+    gap: 14px;
+    padding: 18px 20px 20px;
+    border: 1px solid var(--eg-linea);
+    border-radius: 3px;
+    background: var(--eg-superficie);
+    box-shadow: 0 1px 2px rgba(60, 35, 20, 0.14);
+}
+
+.carta-asunto {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--eg-linea);
+    overflow-wrap: anywhere;
+}
+
+.carta-asunto span {
+    margin-inline-end: 6px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.carta-texto {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.carta-texto .su-nombre {
+    padding: 1px 8px;
+    border: 1px dashed var(--eg-borde);
+    border-radius: 6px;
+    color: var(--eg-tinta-2);
+}
+
+.carta-texto .va-enlace {
+    color: var(--eg-acento);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.carta-palabras textarea {
+    display: block;
+    width: calc(100% + 16px);
+    min-height: 84px;
+    margin-inline: -8px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 4px;
+    background: repeating-linear-gradient(transparent 0 26px, var(--eg-borde) 26px 27px, transparent 27px 28px);
+    background-attachment: local;
+    color: inherit;
+    font: inherit;
+    line-height: 28px;
+    resize: none;
+    overflow: hidden;
+}
+
+.carta-palabras textarea::placeholder {
+    color: var(--eg-tinta-2);
+    font-style: italic;
+    opacity: 1;
+}
+
+.carta-palabras textarea:focus {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 4px;
+}
+
+.carta-notas {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding-inline-start: 18px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.invitar-guardado {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.invitar-pie {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px calc(12px + var(--seguro-abajo));
+    border-radius: var(--piel-radio) var(--piel-radio) 0 0;
+    background: var(--eg-papel);
+    border: 1px solid var(--piel-hoja-borde);
+    box-shadow: 0 -8px 18px -12px rgba(30, 18, 12, 0.45);
+}
+
+.invitar-va {
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+.invitar-pie .boton[disabled] {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.invitar-estado {
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 14px;
+}
+
+.invitar-estado > span {
+    flex: 1 1 220px;
+}
+
+.invitar-estado.con-error,
+.invitar-carta .con-error {
+    box-shadow: inset 4px 0 0 var(--eg-error);
+}
+
+.invitar-confirmar {
+    display: grid;
+    gap: 22px;
+    margin-top: 18px;
+}
+
+.invitar-acto {
+    display: grid;
+    gap: 12px;
+}
+
+/* On the page of the act, the button over the list is for when the card is further down. */
+@media (min-width: 1100px) {
+    .boton.invitar-cerca {
+        display: none;
+    }
+}
+
+@media (min-width: 1000px) {
+    .invitar {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .invitar-pie {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 719.98px) {
+    body.con-abajo .invitar-pie {
+        bottom: calc(64px + var(--seguro-abajo));
+    }
+
+    .invitar-pie {
+        padding-inline: 14px;
+    }
+
+    .invitar-va {
+        flex: 1 1 130px;
+        font-size: 0.9375rem;
+        line-height: 1.3;
+    }
+
+    .invitar-pie .boton {
+        flex: 1 0 auto;
+    }
+
+    .invitar-pie .def {
+        order: -1;
+        flex: 1 1 100%;
+    }
 }

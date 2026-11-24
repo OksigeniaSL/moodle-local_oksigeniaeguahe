@@ -282,6 +282,184 @@
             }
         });
     }
+    // Inviting to an act: the numbers follow the stamps, the chips leave in sight only some families (and only those go),
+    // and the words and the test go without leaving. Without this it is one form, where every button keeps what is there.
+    var inviteForm = one('[data-invitar]');
+    if (inviteForm) {
+        var inviteT = JSON.parse(inviteForm.getAttribute('data-textos') || '{}');
+        var fill = function(text, values) {
+            return Object.keys(values).reduce(function(s, k) {
+                return s.split('{' + k + '}').join(values[k]);
+            }, text || '');
+        };
+        var inviteRows = all('[data-sobre]', inviteForm);
+        var inviteTick = function(row) {
+            return one('input', row);
+        };
+        var inviteFind = one('[data-buscar-sobre]', inviteForm);
+        var plain = function(s) {
+            return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        };
+        // Inside a row any of its chips; every row with one pressed has to agree. The name that is searched for only
+        // finds: it never leaves anybody out.
+        var inviteShow = function() {
+            var rows = all('[role="group"]', inviteForm).map(function(group) {
+                return all('[data-grupo][aria-pressed="true"]', group).map(function(chip) {
+                    return chip.getAttribute('data-grupo').split(',');
+                });
+            }).filter(function(chips) {
+                return chips.length;
+            });
+            var words = inviteFind ? plain(inviteFind.value.trim()) : '';
+            var seen = 0;
+            inviteRows.forEach(function(row) {
+                var id = row.getAttribute('data-sobre');
+                var inside = rows.every(function(chips) {
+                    return chips.some(function(ids) {
+                        return ids.indexOf(id) !== -1;
+                    });
+                });
+                var found = !words || plain(row.getAttribute('data-buscar')).indexOf(words) !== -1;
+                row.classList.toggle('fuera', !inside);
+                row.hidden = !inside || !found;
+                seen += row.hidden ? 0 : 1;
+            });
+            one('[data-nadie]', inviteForm).hidden = seen > 0;
+            inviteCount();
+        };
+        var inviteGoing = function() {
+            return inviteRows.filter(function(row) {
+                return !row.classList.contains('fuera') && inviteTick(row).checked;
+            });
+        };
+        var inviteCount = function() {
+            var inside = inviteRows.filter(function(row) {
+                return !row.classList.contains('fuera');
+            }).length;
+            var going = inviteGoing();
+            var by = function(way) {
+                return going.filter(function(row) {
+                    return inviteTick(row).hasAttribute(way);
+                }).length;
+            };
+            var n = going.length;
+            var ways = fill(by('data-movil') ? inviteT.ways : inviteT.email, {email: by('data-correo'), phone: by('data-movil')});
+            one('[data-cuenta]', inviteForm).textContent = fill(inviteT.count, {n: n, of: inside});
+            one('[data-va]', inviteForm).textContent = fill(n > 1 ? inviteT.goes : (n ? inviteT.goesone : inviteT.goesnone),
+                {n: n, ways: ways});
+            var send = one('[data-mandar]', inviteForm);
+            send.textContent = fill(n > 1 ? inviteT.send : (n ? inviteT.sendone : inviteT.sendnone), {n: n});
+            send.disabled = !n;
+        };
+        all('[data-con-guion]', inviteForm).forEach(function(el) {
+            el.hidden = false;
+        });
+        all('[data-sin-guion]', inviteForm).forEach(function(el) {
+            el.hidden = true;
+        });
+        // What is kept: the words, and every stamp, also those out of sight.
+        var inviteData = function(action) {
+            var data = new FormData();
+            ['sesskey', 'invitar', 'gusto', 'invitewords'].forEach(function(name) {
+                data.append(name, inviteForm.elements[name].value);
+            });
+            data.append('action', action);
+            inviteRows.forEach(function(row) {
+                if (inviteTick(row).checked) {
+                    data.append('para[]', inviteTick(row).value);
+                }
+            });
+            return data;
+        };
+        var inviteAsk = function(action) {
+            return ask(inviteForm.getAttribute('action'), {method: 'POST', body: inviteData(action)}).then(function(r) {
+                return r.text();
+            }).then(function(html) {
+                return one('[data-aviso]', new DOMParser().parseFromString(html, 'text/html'));
+            });
+        };
+        var inviteWords = one('#invitewords', inviteForm);
+        var inviteKept = one('[data-guardado]', inviteForm);
+        var inviteGrow = function() {
+            inviteWords.style.height = 'auto';
+            inviteWords.style.height = inviteWords.scrollHeight + 'px';
+        };
+        on(inviteWords, 'input', function() {
+            inviteGrow();
+            inviteKept.textContent = '';
+        });
+        on(inviteWords, 'change', function() {
+            inviteAsk('invitewords').then(function() {
+                inviteKept.textContent = inviteT.kept;
+            }).catch(function() {
+                inviteKept.textContent = inviteT.notkept;
+            });
+        });
+        on(inviteForm, 'change', function(e) {
+            if (e.target.type === 'checkbox') {
+                inviteCount();
+            }
+        });
+        if (inviteFind) {
+            on(inviteFind, 'input', inviteShow);
+            on(inviteFind, 'keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
+        }
+        on(inviteForm, 'click', function(e) {
+            var button = e.target.closest && e.target.closest('button');
+            if (!button) {
+                return;
+            }
+            if (button.hasAttribute('data-grupo')) {
+                e.preventDefault();
+                button.setAttribute('aria-pressed', button.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+                inviteShow();
+            } else if (button.hasAttribute('data-marcar')) {
+                // Only those in sight: with a chip pressed or a name searched for, the rest stay as they are.
+                e.preventDefault();
+                inviteRows.forEach(function(row) {
+                    if (!row.hidden) {
+                        inviteTick(row).checked = button.getAttribute('data-marcar') === '1';
+                    }
+                });
+                inviteCount();
+            } else if (button.hasAttribute('data-mandarmela')) {
+                e.preventDefault();
+                var told = one('[data-mandada]', inviteForm);
+                button.disabled = true;
+                inviteAsk('invitetest').then(function(said) {
+                    if (!said) {
+                        throw new Error('said');
+                    }
+                    told.textContent = said.textContent.trim();
+                    told.classList.toggle('con-error', said.classList.contains('con-error'));
+                }).catch(function() {
+                    told.textContent = inviteT.testno;
+                    told.classList.add('con-error');
+                }).then(function() {
+                    told.hidden = false;
+                    button.disabled = false;
+                });
+            } else if (button.hasAttribute('data-mandar')) {
+                // Whoever a chip leaves out of sight does not go.
+                inviteRows.forEach(function(row) {
+                    inviteTick(row).disabled = row.classList.contains('fuera');
+                });
+            }
+        });
+        // Back from the page before it goes, as it was.
+        on(window, 'pageshow', function() {
+            inviteRows.forEach(function(row) {
+                inviteTick(row).disabled = false;
+            });
+            inviteShow();
+        });
+        inviteGrow();
+        inviteShow();
+    }
     on(doc, 'click', function(e) {
         var no = e.target.closest && e.target.closest('[data-cerrar]');
         if (no && no.closest('details')) {

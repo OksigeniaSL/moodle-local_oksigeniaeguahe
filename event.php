@@ -72,15 +72,17 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     centres::require_act((int) $centre->id);
     // Hundreds of mails do not fit in a page: they go in the background.
     $sent = invites::queue($event, $centre, (int) $USER->id, time(), '', optional_param_array('para', [], PARAM_INT));
-    $lines = [];
-    if ($sent['email']) {
-        $lines[] = get_string($sent['email'] === 1 ? 'panel_invite_going_one' : 'panel_invite_going', $c, $sent['email']);
-    }
+    // The letters still to go out are said on the page; here, only what goes by phone, or that nobody was left.
     if ($sent['phone']) {
-        $lines[] = $sent['said'] !== '' ? $sent['said'] : get_string('panel_invite_going_phone', $c, $sent['phone']);
+        invites::say((int) $event->id, $sent['said'] !== '' ? $sent['said'] : get_string(
+            'panel_invite_going_phone',
+            $c,
+            $sent['phone']
+        ));
+    } else if (!$sent['email']) {
+        invites::say((int) $event->id, get_string('panel_invite_nobody', $c), true);
     }
-    invites::say((int) $event->id, $lines ? implode(' ', $lines) : get_string('panel_invite_nobody', $c), !$lines);
-    redirect(new moodle_url($url, [], 'invitar'));
+    redirect(new moodle_url($url, ['invitar' => 1]));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('invitar', 0, PARAM_BOOL)) {
     // The invitation being prepared: the words of the team are kept with the act, and who is ticked with the session of
@@ -89,7 +91,7 @@ if (data_submitted() && confirm_sesskey() && optional_param('invitar', 0, PARAM_
     $event->invitewords = core_text::substr(trim(optional_param('invitewords', '', PARAM_TEXT)), 0, 1500) ?: null;
     $DB->set_field(events::T, 'invitewords', $event->invitewords, ['id' => $event->id]);
     $eligible = invites::eligible($event);
-    $groups = invites::groups($event, $eligible);
+    $groups = invites::groups($event, $eligible, invites::of_centre($event));
     $group = optional_param('gusto', '', PARAM_ALPHANUMEXT);
     $group = isset($groups[$group]) ? $group : '';
     $shown = $group !== '' ? $groups[$group]['ids'] : array_map('intval', array_keys($eligible));
@@ -117,16 +119,15 @@ if (data_submitted() && confirm_sesskey() && optional_param('invitar', 0, PARAM_
             invites::say((int) $event->id, get_string('panel_invite_nobody', $c), true);
         }
     }
-    redirect(new moodle_url($url, $params, 'invitar'));
+    redirect(new moodle_url($url, ['invitar' => 1] + $params));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitestop') {
     // The letters that have not gone out yet, stopped: those families can be invited again.
     centres::require_act((int) $centre->id);
     $left = invites::stop((int) $event->id);
-    if ($left) {
-        invites::say((int) $event->id, get_string($left === 1 ? 'panel_invite_stopped_one' : 'panel_invite_stopped', $c, $left));
-    }
-    redirect(new moodle_url($url, [], 'invitar'));
+    $said = $left ? ($left === 1 ? 'panel_invite_stopped_one' : 'panel_invite_stopped') : 'panel_invite_stopped_none';
+    invites::say((int) $event->id, get_string($said, $c, $left));
+    redirect(new moodle_url($url, ['invitar' => 1]));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'withdraw') {
     // A send by phone still waiting for approval, taken back: its families can be invited again.
@@ -135,7 +136,7 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     if ($bulk === invites::last_bulk((int) $event->id)) {
         invites::withdraw($bulk, (int) $USER->id);
     }
-    redirect(new moodle_url($url, [], 'invitar'));
+    redirect(new moodle_url($url, ['invitar' => 1]));
 }
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'cancel') {
     // The act is called off: every family signed up is told, and nothing more goes out for it.
@@ -182,18 +183,27 @@ if ($poster) {
     die();
 }
 
-panel::output(
-    $centre,
-    'events',
-    format_string($event->name),
-    'panel_event',
-    panel_event::context(
+if (optional_param('invitar', 0, PARAM_BOOL)) {
+    // The invitation, on a page of its own; when the act no longer invites, its page.
+    $page = panel_event::invite_page(
         $event,
         $centre,
         $canact,
         0,
         optional_param('gusto', '', PARAM_ALPHANUMEXT),
         optional_param('confirmar', 0, PARAM_BOOL)
-    ),
+    );
+    if ($page) {
+        panel::output($centre, 'events', $page['title'], 'panel_invite', $page);
+        die();
+    }
+}
+
+panel::output(
+    $centre,
+    'events',
+    format_string($event->name),
+    'panel_event',
+    panel_event::context($event, $centre, $canact),
     true
 );

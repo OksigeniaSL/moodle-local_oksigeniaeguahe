@@ -123,7 +123,8 @@ class familymail {
                 $signup,
                 $lang,
                 (string) $token,
-                $text
+                $text,
+                !empty($household->incentre)
             );
             return [$subject, $html, $plain, []];
         }
@@ -586,6 +587,7 @@ class familymail {
      * @param string $lang
      * @param string $token The private link of the family; '' for a copy to look at.
      * @param string $words What the team adds, in its own words.
+     * @param bool $ofcentre Whether the family is already of the centre.
      * @return string[] subject, html, text
      */
     public static function letter(
@@ -594,7 +596,8 @@ class familymail {
         \stdClass $signup,
         string $lang,
         string $token,
-        string $words = ''
+        string $words = '',
+        bool $ofcentre = false
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
@@ -611,7 +614,7 @@ class familymail {
         $host = $ids ? (centres::hosts((int) $centre->id, $ids)[0] ?? null) : null;
 
         $before = [$name !== '' ? $str('mail_letter_hello', $name) : $str('mail_letter_hello_noname')];
-        $before[] = $str('mail_letter_lead', (object) ['centre' => html_entity_decode(
+        $before[] = $str($ofcentre ? 'mail_letter_lead_centre' : 'mail_letter_lead', (object) ['centre' => html_entity_decode(
             share::by_centre($centre, $lang),
             ENT_QUOTES,
             'UTF-8'

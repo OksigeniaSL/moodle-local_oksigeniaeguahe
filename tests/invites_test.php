@@ -171,6 +171,22 @@ final class invites_test extends \advanced_testcase {
         $this->assertEqualsCanonicalizing([$berta, $carlos], invites::left_out((int) $event->id));
         invites::tick((int) $event->id, [$carlos], [$carlos]);
         $this->assertSame([$berta], invites::left_out((int) $event->id));
+        // Those already of the centre that came through Eguahe: only when they are chosen, and never those of its roll.
+        global $DB;
+        $dora = (int) $this->family($id, $three, 'Dora', 'visit', true)->id;
+        $elsa = (int) $this->family($id, $three, 'Elsa', 'enrolled', true)->id;
+        $fara = (int) $this->family($id, $three, 'Fara', 'visit', true)->id;
+        $DB->set_field(households::T, 'incentre', 1, ['id' => $dora]);
+        $DB->update_record(households::T, (object) ['id' => $fara, 'incentre' => 1, 'roster' => time()]);
+        $this->assertEqualsCanonicalizing([$berta, $carlos], array_keys(invites::eligible($event)));
+        $this->assertEqualsCanonicalizing([$dora, $elsa], array_keys(invites::of_centre($event)));
+        $groups = invites::groups($event, invites::eligible($event), invites::of_centre($event));
+        $this->assertEqualsCanonicalizing([$dora, $elsa], $groups[invites::OFCENTRE]['ids']);
+        $mail = familymail::build('openinvite', households::get($dora, $id), $centre, invites::of_letter($event), 'es', 'clave');
+        $this->assertStringContainsString('Queremos contarles que tenemos «Charla»', $mail[2]);
+        $this->assertSame(1, invites::queue($event, $centre, $user, time(), '', [$dora, $fara])['email']);
+        $this->assertSame(2, invites::stop((int) $event->id));
+        invites::queue($event, $centre, $user, time(), '', [$ana]);
         // Stopped, it can be invited again.
         $this->assertSame(1, invites::stop((int) $event->id));
         $this->assertCount(3, invites::eligible($event));
