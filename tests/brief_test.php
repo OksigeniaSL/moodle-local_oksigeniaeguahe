@@ -128,7 +128,7 @@ final class brief_test extends \advanced_testcase {
         $this->assertStringContainsString('¿Cómo quieren conocernos?: Un día de clase', $body);
         $this->assertNotEmpty($DB->get_field(households::T, 'waitingsince', ['id' => $household->id]));
         $this->assertSame(
-            'Les contestamos ' . workdays::promise($centre, time(), 'es') . '.',
+            'La respuesta llega ' . workdays::promise($centre, time(), 'es') . '.',
             brief::sent($centre, 'es', null)['sent']['text']
         );
     }

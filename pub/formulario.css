@@ -1,0 +1,713 @@
+/* The form of Eguahe, the same inside the web of a centre (breve.css) and on its own page (inscripcion.css): the name of
+   each field is written in it and rises when it is used; a field that is ready draws its mark. Every class begins with
+   «fb», so it can live beside the styles of the pages. Only still things for whoever asks for less movement. */
+.fb {
+    --fb-papel: #fff;
+    --fb-tinta: #1a1614;
+    --fb-tinta-2: #5f5459;
+    --fb-borde: #8c8086;
+    --fb-error: #b3261e;
+    /* stylelint-disable-next-line function-url-scheme-disallowed-list */
+    --fb-flecha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231a1614' stroke-width='2'/%3E%3C/svg%3E");
+
+    position: relative;
+    color: var(--fb-tinta);
+    font-size: 16px;
+    line-height: 1.35;
+}
+
+.fb svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.fb-oculto,
+.fb-trampa {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.fb-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 6px;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+}
+
+.fb-opciones legend {
+    width: 100%;
+    margin-bottom: 7px;
+    padding: 0;
+    font-weight: 700;
+}
+
+.fb-opciones label {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.fb-opciones input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.fb-opciones span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    background: var(--fb-papel);
+    box-shadow: 0 0 0 1px var(--fb-borde), 0 2px 6px rgba(26, 22, 20, 0.07);
+    font-size: 15px;
+}
+
+.fb-opciones svg {
+    flex: none;
+    width: 0;
+    height: 18px;
+    opacity: 0;
+    stroke-width: 3;
+}
+
+.fb-opciones input:checked + span {
+    background: var(--c-acento);
+    box-shadow: 0 6px 12px -5px var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-weight: 700;
+}
+
+.fb-opciones input:checked + span svg {
+    width: 16px;
+    margin-inline-end: 5px;
+    opacity: 1;
+}
+
+.fb-opciones input:focus-visible + span {
+    border-color: var(--c-acento-texto);
+    outline: 2px solid var(--c-acento-texto);
+}
+
+.fb-opciones input:checked:focus-visible + span {
+    border-color: var(--c-sobre-acento);
+}
+
+.fb-campos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+}
+
+.fb-campo {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+}
+
+.fb-ancho {
+    grid-column: 1 / -1;
+}
+
+.fb-campo input,
+.fb-campo select {
+    display: block;
+    width: 100%;
+    height: 54px;
+    margin: 0;
+    padding: 20px 14px 4px;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    background: var(--fb-papel);
+    box-shadow: 0 0 0 1px var(--fb-borde), 0 1px 3px rgba(26, 22, 20, 0.06);
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    appearance: none;
+    text-overflow: ellipsis;
+}
+
+.fb-campo input[dir="ltr"] {
+    text-align: start;
+}
+
+.fb-campo input::placeholder {
+    color: transparent;
+}
+
+.fb-campo label {
+    position: absolute;
+    inset-block-start: 7px;
+    inset-inline: 15px 38px;
+    overflow: hidden;
+    color: var(--fb-tinta-2);
+    font-size: 12.5px;
+    font-weight: 650;
+    line-height: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+/* Not used yet, its name is written where they will write. */
+.fb-campo input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
+    inset-block-start: 17px;
+    inset-inline-end: 10px;
+    color: var(--fb-tinta-2);
+    /* A long name gets smaller until it fits with air at its side (formulario.js). */
+    font-size: var(--fb-rotulo, 16px);
+    font-weight: 500;
+    line-height: 20px;
+}
+
+/* Too long even so: in two lines. */
+.fb-campo.fb-dos input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
+    inset-block-start: 10px;
+    line-height: 17px;
+    white-space: normal;
+}
+
+.fb-campo input:focus,
+.fb-campo select:focus {
+    border-color: var(--c-acento);
+    outline: 0;
+    box-shadow: 0 0 0 1px var(--c-acento), 0 10px 22px -10px var(--c-acento), 0 4px 10px rgba(26, 22, 20, 0.1);
+}
+
+.fb-campo input:focus ~ label:not(.fb-mal),
+.fb-campo select:focus ~ label:not(.fb-mal) {
+    color: var(--c-acento-texto);
+}
+
+.fb-campo select {
+    padding-inline-end: 34px;
+    background-image: var(--fb-flecha);
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    background-size: 12px 8px;
+}
+
+[dir="rtl"] .fb-campo select {
+    background-position: left 13px center;
+}
+
+/* Ready: its mark, drawn in the colour of the centre. */
+.fb-campo .fb-listo {
+    position: absolute;
+    inset-block-start: 16px;
+    inset-inline-end: 12px;
+    width: 22px;
+    height: 22px;
+    color: var(--c-sobre-vivo);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.fb-campo .fb-listo circle {
+    fill: var(--c-acento-vivo);
+    stroke: none;
+}
+
+.fb-campo .fb-listo path {
+    stroke-dasharray: 18;
+    stroke-dashoffset: 18;
+}
+
+.fb-campo.fb-esta .fb-listo {
+    opacity: 1;
+}
+
+.fb-campo.fb-esta .fb-listo path {
+    stroke-dashoffset: 0;
+}
+
+.fb-campo.fb-esta input {
+    padding-inline-end: 42px;
+}
+
+/* What is wrong is said whole: there is no mark beside it. */
+.fb-campo label.fb-mal {
+    inset-inline-end: 4px;
+}
+
+.fb-mal,
+.fb-campo label.fb-mal {
+    color: var(--fb-error);
+    font-weight: 700;
+}
+
+.fb-campo [aria-invalid="true"]:not(:focus) {
+    border-color: var(--fb-error);
+    box-shadow: 0 0 0 1px var(--fb-error);
+}
+
+.fb-pie {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+}
+
+.fb-nota {
+    margin: 0;
+    color: var(--fb-tinta-2);
+    font-size: 13px;
+}
+
+.fb-nota.fb-mal {
+    color: var(--fb-error);
+}
+
+.fb a {
+    color: var(--c-acento-texto);
+    text-underline-offset: 3px;
+}
+
+.fb a:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid var(--c-acento-texto);
+}
+
+.fb-enviar {
+    display: inline-flex;
+    flex: none;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-width: 132px;
+    min-height: 50px;
+    padding: 0 22px;
+    border: 2px solid var(--borde-boton, transparent);
+    border-radius: 14px;
+    background: var(--boton, var(--c-acento));
+    box-shadow: 0 7px 12px -6px var(--borde-boton, var(--c-acento)), 0 2px 4px rgba(26, 22, 20, 0.16);
+    color: var(--sobre-boton, var(--c-sobre-acento));
+    font: 700 16px/1 'Eg Sans', system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.fb-enviar svg {
+    width: 19px;
+    height: 19px;
+}
+
+[dir="rtl"] .fb-enviar svg {
+    transform: scaleX(-1);
+}
+
+.fb-enviar:focus-visible {
+    outline: 2px solid var(--sobre-boton, var(--c-sobre-acento));
+    outline-offset: -7px;
+}
+
+.fb-enviar:disabled {
+    opacity: 0.72;
+}
+
+/* Quiet until what is needed is there; it can be pressed all the same. */
+.fb-falta .fb-enviar {
+    box-shadow: none;
+    filter: saturate(0.55);
+}
+
+.fb-recibido {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.fb-recibido h1 {
+    margin: 0 0 3px;
+    color: var(--c-acento-texto);
+    font-size: 22px;
+    line-height: 1.2;
+}
+
+.fb-recibido p {
+    margin: 0;
+}
+
+.fb-recibido a {
+    white-space: nowrap;
+}
+
+.fb-sello {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    color: var(--c-acento-vivo);
+    stroke-width: 3;
+}
+
+@media (max-width: 420px) {
+    .fb-campos {
+        gap: 10px 8px;
+    }
+
+    .fb-campo input,
+    .fb-campo select {
+        padding-inline-start: 11px;
+    }
+
+    .fb-campo label {
+        inset-inline-start: 12px;
+    }
+
+    .fb-campo input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
+        font-size: var(--fb-rotulo, 15px);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .fb-opciones span,
+    .fb-campo input,
+    .fb-campo select,
+    .fb-enviar {
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+    }
+
+    .fb-campo label {
+        transition: inset-block-start 0.16s ease, font-size 0.16s ease, color 0.16s ease;
+    }
+
+    .fb-opciones svg {
+        transition: width 0.18s ease, opacity 0.18s ease;
+    }
+
+    .fb-opciones label:hover span,
+    .fb-campo input:focus,
+    .fb-campo select:focus,
+    .fb-enviar:hover {
+        transform: translateY(-2px);
+    }
+
+    .fb-enviar svg {
+        transition: translate 0.18s ease;
+    }
+
+    .fb-enviar:hover svg {
+        translate: 4px 0;
+    }
+
+    [dir="rtl"] .fb-enviar:hover svg {
+        translate: -4px 0;
+    }
+
+    .fb-enviar:active {
+        transform: translateY(1px);
+    }
+
+    .fb-campo .fb-listo {
+        transition: opacity 0.15s ease;
+    }
+
+    .fb-campo .fb-listo path {
+        /* stylelint-disable-next-line time-min-milliseconds */
+        transition: stroke-dashoffset 0.28s ease 0.08s;
+    }
+
+    .fb-opciones,
+    .fb-campo,
+    .fb-pie {
+        animation: llega 0.34s ease both;
+    }
+
+    .fb-campo:nth-child(n + 3) {
+        /* stylelint-disable-next-line time-min-milliseconds */
+        animation-delay: 0.05s;
+    }
+
+    .fb-campo:nth-child(n + 5) {
+        animation-delay: 0.1s;
+    }
+
+    .fb-pie {
+        animation-delay: 0.14s;
+    }
+
+    .fb-sello circle {
+        stroke-dasharray: 132;
+        animation: dibuja-vuelta 0.5s ease both;
+    }
+
+    .fb-sello path {
+        stroke-dasharray: 32;
+        animation: dibuja-marca 0.32s ease 0.4s both;
+    }
+}
+
+@keyframes llega {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+@keyframes dibuja-vuelta {
+    from {
+        stroke-dashoffset: 132;
+    }
+}
+
+@keyframes dibuja-marca {
+    from {
+        stroke-dashoffset: 32;
+    }
+}
+
+/* A long button: what is said beside it goes to its own line before it gets squeezed. */
+.fb-pie {
+    flex-wrap: wrap;
+}
+
+.fb-nota {
+    flex: 1000 1 110px;
+}
+
+.fb-enviar {
+    flex: 1 0 auto;
+}
+
+/* A slip in the domain of an email, pointed out as it is written. */
+.fb-quisieron {
+    grid-column: 1 / -1;
+    margin: -2px 2px 2px;
+    color: var(--fb-tinta);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.fb-quisieron[hidden] {
+    display: none;
+}
+
+.fb-quisieron bdi {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.fb-quisieron button {
+    min-height: 32px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: var(--c-acento-texto);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+/* ---------- What the whole page asks besides: how many, a line to tick, and what is folded ---------- */
+.fb form {
+    display: block;
+}
+
+.fb-paso {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    height: 54px;
+    padding: 0 5px 0 14px;
+    border-radius: 12px;
+    background: var(--fb-papel);
+    box-shadow: 0 0 0 1px var(--fb-borde), 0 1px 3px rgba(26, 22, 20, 0.06);
+}
+
+.fb-campo.fb-paso {
+    grid-column: 1 / -1;
+}
+
+.fb-campo.fb-paso label {
+    position: static;
+    flex: 1 1 auto;
+    color: inherit;
+    font-size: inherit;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: normal;
+}
+
+.fb-campo.fb-paso input {
+    flex: none;
+    order: 1;
+    width: 44px;
+    height: 46px;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1.25rem;
+    font-weight: 750;
+    text-align: center;
+    appearance: textfield;
+}
+
+.fb-paso [data-fb-mas] {
+    order: 2;
+}
+
+.fb-campo.fb-paso input:focus {
+    transform: none;
+    box-shadow: none;
+}
+
+.fb-paso:focus-within {
+    box-shadow: 0 0 0 2px var(--c-acento-texto);
+}
+
+.fb-campo.fb-paso input::-webkit-outer-spin-button,
+.fb-campo.fb-paso input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.fb-mas-menos {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--c-acento-texto);
+    cursor: pointer;
+}
+
+.fb-mas-menos svg {
+    width: 22px;
+    height: 22px;
+}
+
+.fb-mas-menos:hover {
+    background: rgba(128, 118, 122, 0.16);
+}
+
+.fb-mas-menos:focus-visible {
+    outline: 2px solid var(--c-acento-texto);
+}
+
+.fb-mas-menos:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.fb-mas-menos[hidden] {
+    display: none;
+}
+
+.fb-linea {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.fb-linea input {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    accent-color: var(--c-acento);
+}
+
+.fb-plegado > summary {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    min-height: 40px;
+    color: var(--c-acento-texto);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    list-style: none;
+    cursor: pointer;
+}
+
+.fb-plegado > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fb-plegado > summary:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid var(--c-acento-texto);
+}
+
+.fb-plegado textarea {
+    display: block;
+    width: 100%;
+    min-height: 84px;
+    padding: 10px 14px;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    background: var(--fb-papel);
+    box-shadow: 0 0 0 1px var(--fb-borde);
+    color: inherit;
+    font: inherit;
+    resize: vertical;
+}
+
+.fb-plegado textarea:focus {
+    border-color: var(--c-acento-texto);
+    outline: 0;
+}
+
+.fb-info {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 4px 0 8px;
+    font-size: 14px;
+}
+
+.fb-info dt {
+    font-weight: 700;
+}
+
+.fb-info dd {
+    margin: 0 0 4px;
+    color: var(--fb-tinta-2);
+    overflow-wrap: anywhere;
+}
+
+.fb-plegados {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 22px;
+    font-size: 14px;
+}
+
+.fb-plegados > details[open] {
+    flex: 1 1 100%;
+}
+
+.fb-preguntas {
+    margin-top: 16px;
+}
+
+@media (max-width: 420px) {
+    .fb-paso {
+        padding-inline-start: 11px;
+    }
+}

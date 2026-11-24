@@ -33,13 +33,13 @@ use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
+use local_oksigeniaeguahe\local\joinpage;
 use local_oksigeniaeguahe\local\knownpage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\pulse;
 use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
-use local_oksigeniaeguahe\local\signuppage;
 
 $token = optional_param('e', '', PARAM_ALPHANUM);
 $embedded = optional_param('embed', 0, PARAM_BOOL);
@@ -91,8 +91,8 @@ if ($brief) {
             (string) ($centre->lang ?: 'es')
         );
     }
-    $data = brief::data($data, $event, $question);
 }
+$data = brief::data($data, $event, $question, !$brief);
 $errors = [];
 if (!$preview && !data_submitted()) {
     pulse::opened($entry);
@@ -102,20 +102,20 @@ if (data_submitted() && !$preview) {
         // A page left open for a day: nothing is lost, it is sent again.
         $errors['form'] = publiclang::str('pub_err_session', $lang);
     } else {
-        $errors = signup::check($data, $event, $centre, $lang);
-        if ($brief) {
-            $errors = brief::errors($errors, $question, $data);
-            if (
-                !$errors && !brief::person(
-                    optional_param('sesskey', '', PARAM_RAW_TRIMMED),
-                    optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
-                    (int) $entry->id,
-                    getremoteaddr(),
-                    time()
-                )
-            ) {
-                $errors['form'] = publiclang::str('pub_err_toomany', $lang);
-            }
+        $errors = brief::errors(signup::check($data, $event, $centre, $lang, true), $question, $data, !$brief);
+        if (
+            !$errors && !brief::person(
+                optional_param('sesskey', '', PARAM_RAW_TRIMMED),
+                optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
+                (int) $entry->id,
+                getremoteaddr(),
+                time()
+            )
+        ) {
+            $errors['form'] = publiclang::str(
+                brief::refusal(optional_param('sesskey', '', PARAM_RAW_TRIMMED), time()),
+                $lang
+            );
         }
     }
     $lock = null;
@@ -218,16 +218,6 @@ if ($brief) {
         $question
     ), $button);
 }
-$context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
-$context['sesskey'] = entries::mark($entry);
-$context['action'] = (new moodle_url($url, ['idioma' => $lang]))->out(false);
-$context['preview'] = (bool) $preview;
-$context['previewnote'] = publiclang::str('pub_preview', $lang);
-publicpage::output(
-    $centre,
-    $lang,
-    $context['headline'],
-    'public_signup',
-    $context,
-    $url
-);
+$context = joinpage::context($event, $centre, $lang, $data, $errors, $url, entries::mark($entry));
+$context['preview'] = $preview ? ['note' => publiclang::str('pub_preview', $lang)] : false;
+publicpage::output($centre, $lang, $context['headline'], 'public_join', $context, $url);

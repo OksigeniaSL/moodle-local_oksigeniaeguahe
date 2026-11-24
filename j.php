@@ -25,12 +25,15 @@
 // phpcs:ignore moodle.Files.RequireLogin.Missing -- Families have no account: the link of the event lets them in.
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\acts;
 use local_oksigeniaeguahe\local\brief;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
+use local_oksigeniaeguahe\local\joinpage;
 use local_oksigeniaeguahe\local\kit;
 use local_oksigeniaeguahe\local\knownpage;
 use local_oksigeniaeguahe\local\publiclang;
@@ -38,7 +41,6 @@ use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
 use local_oksigeniaeguahe\local\share;
 use local_oksigeniaeguahe\local\signup;
-use local_oksigeniaeguahe\local\signuppage;
 use local_oksigeniaeguahe\local\writeby;
 
 $token = optional_param('t', '', PARAM_ALPHANUM);
@@ -141,14 +143,62 @@ if (!$event->open || $event->timeend < time()) {
     );
 }
 
-if (!empty($event->free) && !$desk) {
+// Whoever comes by the letter of an invitation is already known: they only say whether they come, and it is kept by itself.
+$mine = $desk || $embedded ? '' : (string) ($SESSION->local_oksigeniaeguahe_invited[(int) $event->id] ?? '');
+$family = $mine !== '' ? households::by_link($mine) : null;
+$family = $family && (int) $family->centreid === (int) $centre->id ? $family : null;
+$known = $family && empty($event->tailored) && !events::slots((int) $event->id) && (int) $event->free !== acts::FREE &&
+    !optional_param('otra', 0, PARAM_BOOL);
+if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
+    publiclang::speak_to($family);
+    $kept = events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED));
+    $wrong = $kept ? 'pub_err_full' : 'pub_err_session';
+    $first = false;
+    if ($kept && optional_param('opened', 0, PARAM_BOOL)) {
+        // The page says it was looked at for a moment, never the team that looks at it.
+        if (!seen::from_team($centre)) {
+            invites::opened($event, $family);
+        }
+    } else if ($kept) {
+        $lock = events::lock($event);
+        $first = !$DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
+        $kept = joinpage::said($event, $centre, $family);
+        if ($lock) {
+            $lock->release();
+        }
+        $first = $first && $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
+    }
+    if ($first && ($signup = familymail::signup($family, (int) $event->id))) {
+        // Their place, with its calendar, as any other sign-up.
+        ob_start();
+        try {
+            familymail::send('confirmation', $family, $centre, $signup, $lang, households::new_link($family));
+        } catch (\Throwable $e) {
+            debugging('Eguahe: confirmation not sent: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        } finally {
+            ob_end_clean();
+        }
+    }
+    if (optional_param('ajax', 0, PARAM_BOOL)) {
+        $said = joinpage::known($event, $centre, households::get((int) $family->id, (int) $centre->id), $lang, $url, events::mark($event));
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => $kept, 'answer' => $said['answer'], 'coming' => $said['coming'], 'done' => $said['done'],
+            'people' => $said['people']['value'], 'full' => $kept ? '' : publiclang::str($wrong, $lang)]);
+        die();
+    }
+    redirect(new moodle_url($url, ['idioma' => $lang] + ($kept || $wrong !== 'pub_err_full' ? [] : ['llena' => 1])));
+}
+
+if ((int) $event->free === acts::FREE && !$desk) {
     // Anybody may come: what it is, when and where, and no form.
     publicpage::output(
         $centre,
         $lang,
         format_string($event->name),
-        'public_free',
-        signuppage::free($event, $centre, $lang),
+        'public_join',
+        ['form' => false, 'bare' => true, 'pegs' => false] +
+            joinpage::context($event, $centre, $lang, signup::read($centre), [], $url, events::mark($event)),
         $url
     );
 }
@@ -156,7 +206,7 @@ $data = signup::read($centre);
 // A student signing up for themselves is spoken to as one person from here on (what is wrong, the wall afterwards).
 publiclang::$self = !empty($data['self']);
 $data['answers'] = forms::read((int) $event->formid);
-// A visit made to measure asks when it suits them: the whole page.
+// Inside a web, the form alone; everywhere else, the whole page, with all the questions of the centre.
 $brief = $brief && empty($event->tailored) && !$desk;
 $question = null;
 if ($brief) {
@@ -169,36 +219,37 @@ if ($brief) {
             (string) ($centre->lang ?: 'es')
         );
     }
-    $data = brief::data($data, $event, $question);
 }
+$data = brief::data($data, $event, $question, !$brief);
 $errors = [];
 if (data_submitted()) {
-    // Inside the web of the centre there is no session of this site: the page carries its own mark (events::mark()).
-    if (!($embedded ? events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED)) : confirm_sesskey())) {
-        // A page left open for hours: the session ended. Nothing is lost, it is sent again.
+    // The page carries its own mark (events::mark()): inside the web of the centre there is no session of this site.
+    if (!events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED))) {
+        // A page left open for a day. Nothing is lost, it is sent again.
         $errors['form'] = publiclang::str('pub_err_session', $lang);
     } else {
-        $errors = signup::check($data, $event, $centre, $lang, $brief);
-        if ($brief) {
-            $errors = brief::errors($errors, $question, $data);
-            if (
-                !$errors && !brief::person(
-                    optional_param('sesskey', '', PARAM_RAW_TRIMMED),
-                    optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
-                    (int) $event->id,
-                    getremoteaddr(),
-                    time()
-                )
-            ) {
-                $errors['form'] = publiclang::str('pub_err_toomany', $lang);
-            }
+        $errors = brief::errors(signup::check($data, $event, $centre, $lang, true), $question, $data, !$brief);
+        if (
+            !$errors && !brief::person(
+                optional_param('sesskey', '', PARAM_RAW_TRIMMED),
+                optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
+                (int) $event->id,
+                getremoteaddr(),
+                time(),
+                $desk
+            )
+        ) {
+            $errors['form'] = publiclang::str(
+                brief::refusal(optional_param('sesskey', '', PARAM_RAW_TRIMMED), time()),
+                $lang
+            );
         }
     }
     $lock = null;
     if (!$errors) {
         // The room again, now under the lock of the act: two families sending at once never take its last place twice.
         $lock = events::lock($event);
-        $errors = signup::fits($data, $event, $centre, $lang);
+        $errors = signup::fits($data, $event, $centre, $lang, $desk);
         if ($errors && $lock) {
             $lock->release();
             $lock = null;
@@ -323,29 +374,28 @@ if ($brief) {
         $question
     ), $button);
 }
-$context = signuppage::context($event, $centre, $lang, $data, $errors, $url);
-$mine = $desk || $embedded ? '' : (string) ($SESSION->local_oksigeniaeguahe_invited[(int) $event->id] ?? '');
-$family = $mine !== '' ? households::by_link($mine) : null;
-if ($family && (int) $family->centreid === (int) $centre->id) {
-    $self = publiclang::$self;
+$self = publiclang::$self;
+if ($known) {
     publiclang::speak_to($family);
-    $context['ways'] = [
-        'choose' => publiclang::str('pub_invited_choose', $lang),
-        'chooseurl' => writeby::url($mine, $lang, '', 'openinvite'),
-        'none' => publiclang::str('pub_writeby_none', $lang),
-        'noneurl' => writeby::url($mine, $lang, 'none', 'openinvite'),
-    ];
-    publiclang::$self = $self;
 }
-if ($embedded) {
-    $context['sesskey'] = events::mark($event);
+$context = joinpage::context(
+    $event,
+    $centre,
+    $lang,
+    $data,
+    $errors,
+    $url,
+    events::mark($event),
+    $known ? joinpage::known($event, $centre, $family, $lang, $url, events::mark($event)) : false
+);
+publiclang::$self = $self;
+if (optional_param('llena', 0, PARAM_BOOL) && $context['known']) {
+    $context['known']['full'] = publiclang::str('pub_err_full', $lang);
 }
 if ($desk) {
     // A computer many families use: the browser does not offer what the one before wrote.
-    foreach ($context['adults'] ?? [] as $i => $adult) {
-        foreach ($adult['fields'] ?? [] as $j => $field) {
-            $context['adults'][$i]['fields'][$j]['autocomplete'] = 'off';
-        }
+    foreach ($context['form']['fields'] as $i => $field) {
+        $context['form']['fields'][$i]['autocomplete'] = 'off';
     }
 }
-publicpage::output($centre, $lang, format_string($event->name), 'public_signup', $context, $url);
+publicpage::output($centre, $lang, format_string($event->name), 'public_join', $context, $url);

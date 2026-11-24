@@ -603,6 +603,7 @@ class familymail {
         bool $ofcentre = false
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $plain = fn(string $s) => trim(html_entity_decode($s, ENT_QUOTES, 'UTF-8'));
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
         $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
         // Of a talk or a party, until what time too.
@@ -610,59 +611,48 @@ class familymail {
             (($signup->kind ?? '') === 'other' && (int) $signup->timeend > (int) $signup->timestart));
         $when = $long ? \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1) :
             $str('mail_at_hour', $parts['hour']);
-        $event = trim(html_entity_decode(format_string($signup->eventname), ENT_QUOTES, 'UTF-8'));
-        $centrename = html_entity_decode(format_string($centre->name), ENT_QUOTES, 'UTF-8');
-        $place = implode(', ', array_filter([trim((string) ($signup->place ?? '')), trim((string) ($centre->address ?? ''))]));
+        $event = $plain(format_string($signup->eventname));
+        $centrename = $plain(format_string($centre->name));
         $url = (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token, 'idioma' => $lang] +
             ($token !== '' ? ['k' => $token, 'de' => 'openinvite'] : [])))->out(false);
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
         $host = $ids ? (centres::hosts((int) $centre->id, $ids)[0] ?? null) : null;
 
+        // As anybody is told: when, who and what; then, for whom and where.
         $before = [$name !== '' ? $str('mail_letter_hello', $name) : $str('mail_letter_hello_noname')];
-        $before[] = $str($ofcentre ? 'mail_letter_lead_centre' : 'mail_letter_lead', (object) ['centre' => html_entity_decode(
-            share::by_centre($centre, $lang),
-            ENT_QUOTES,
-            'UTF-8'
-        ), 'event' => $event, 'date' => $parts['long'], 'when' => $when]);
-        if ($place !== '') {
-            $before[] = $str('mail_letter_place', $place);
-        }
-        // What it is about and who gives it, as the act says it.
-        $about = trim((string) ($signup->about ?? ''));
-        if ($about !== '') {
-            $before[] = preg_replace('/\R{2,}/', "\n", $about);
-        }
-        $speakers = array_map(fn($one) => html_entity_decode(format_string($one['name']) . (trim($one['role']) !== '' ?
-            ' (' . format_string(trim($one['role'])) . ')' : ''), ENT_QUOTES, 'UTF-8'), acts::speakers($signup));
-        if ($speakers) {
-            $before[] = $str('mail_letter_speakers', familypage::join($speakers, $lang));
+        $before[] = acts::letter_lead($signup, $centre, $lang, $parts['long'], $when);
+        $before[] = implode(' ', array_filter([acts::letter_whom($signup, $centre, $lang),
+            acts::letter_place($signup, $centre, $lang)]));
+        if (trim((string) ($signup->topic ?? '')) === '' && trim((string) ($signup->about ?? '')) !== '') {
+            $before[] = preg_replace('/\R{2,}/', "\n", trim((string) $signup->about));
         }
         foreach (preg_split('/\R{2,}/', trim($words)) as $paragraph) {
             if (trim($paragraph) !== '') {
                 $before[] = trim($paragraph);
             }
         }
-        // With free entry there is nothing to sign up to: the link says what it is.
-        $join = $str(!empty($signup->free) ? 'mail_letter_free' : 'mail_letter_join');
-        $after = [];
-        if (!empty($centre->email) && validate_email($centre->email)) {
-            $after[] = $str('mail_letter_stop');
-        }
-        $after[] = implode("\n", array_filter([$str('mail_letter_bye'), $host ? $host->name : '', $host ? (string) $host->role : '',
+        $before = array_values(array_filter($before, fn($l) => trim($l) !== ''));
+        // What there is to do: sign up, look at it or say they come.
+        $free = (int) ($signup->free ?? 0);
+        $join = $free ? $str($free === acts::FREE_ASKS ? 'mail_letter_free_asks' : 'mail_letter_free') : '';
+        $go = $str($free === acts::FREE_ASKS ? 'mail_letter_come' : ($free ? 'mail_letter_see' : 'mail_letter_go'));
+        $after = implode("\n", array_filter([$str('mail_letter_bye'), $host ? $host->name : '', $host ? (string) $host->role : '',
             $centrename, trim((string) ($centre->phone ?? ''))], fn($l) => trim($l) !== ''));
+        // Why it reaches them and how to say no, small, at the end.
+        $small = trim(($ofcentre ? '' : $str('mail_letter_why', $plain(acts::by_centre($centre, $lang))) . ' ') .
+            (!empty($centre->email) && validate_email($centre->email) ? $str('mail_letter_stop') : ''));
 
-        $text = implode("\n\n", array_merge($before, [$join . "\n" . $url], $after)) . "\n";
-        $p = fn(string $html) => '<p style="margin:0 0 1em">' . $html . '</p>';
+        $text = implode("\n\n", array_filter(array_merge($before, [($join !== '' ? $join : $go . ':') . "\n" . $url, $after, $small]))) . "\n";
+        $p = fn(string $html, string $style = '') => '<p style="margin:0 0 1em' . $style . '">' . $html . '</p>';
         $line = fn(string $s) => $p(nl2br(s($s), false));
         $html = '<!DOCTYPE html><html lang="' . ($lang === 'pt_br' ? 'pt-BR' : s($lang)) . '" dir="' . lists::dir($lang) .
             '"><head><meta charset="utf-8"><title>' . s($event) . '</title></head><body>' .
             '<div dir="' . lists::dir($lang) . '" style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5">' .
             implode('', array_map($line, $before)) .
             // The words of the link say what it does.
-            $p(s($join) . ' <a href="' . s($url) . '">' . s($str(!empty($signup->free) ? 'mail_letter_see' : 'mail_letter_go')) .
-                '</a>') .
-            implode('', array_map($line, $after)) . '</div></body></html>';
-        return [$str('mail_letter_subject', (object) ['event' => $event, 'date' => $parts['long']]), $html, $text];
+            $p(($join !== '' ? s($join) . ' ' : '') . '<a href="' . s($url) . '">' . s($go) . '</a>') . $line($after) .
+            ($small !== '' ? $p(s($small), ';font-size:12.5px;color:#5f5459') : '') . '</div></body></html>';
+        return [acts::letter_subject($signup, $lang, $parts), $html, $text];
     }
 
     /**

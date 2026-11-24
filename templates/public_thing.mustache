@@ -31,12 +31,13 @@
     * sibling - telling them when it is the turn of a brother or sister.
     * volunteer - telling another family how it went: the question with its yes (ask), or the thanks (done).
     * ambassador - the invitation of an ambassador family.
+    * tell - how they heard of the centre and where they live, for whoever wants to tell it.
 
     Example context (json):
     {
         "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "send": "", "chev": ""},
         "band": false, "turn": false, "survey": false, "birthday": false, "ask": false, "sibling": false,
-        "volunteer": false, "ambassador": false, "whyother": false, "waitlist": false,
+        "volunteer": false, "ambassador": false, "whyother": false, "waitlist": false, "tell": false,
         "costs": {"title": "Lo que cuesta", "rows": [{"what": "Cuota mensual", "amount": "320 €"}], "note": "Pregúntennos."},
         "story": {"url": "#", "name": "Leo", "open": "Abrir el cuento", "kicker": "Un cuento para Leo",
             "title": "Tu primer día", "lead": "Para leerlo juntos en casa."},
@@ -260,6 +261,23 @@
     <p class="muted">{{note}}</p>
 </div>
 {{/costs}}
+{{#tell}}
+<form class="hoja-pregunta contar-mas" id="contar" method="post" action="{{action}}">
+    <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="contar">
+    {{^fold}}<h3>{{title}}</h3>{{/fold}}
+    <p class="muted">{{help}}</p>
+    {{#heard}}
+    <fieldset>
+        <legend>{{label}}</legend>
+        <div class="fichas-papel">{{#options}}<label class="ficha-papel"><input type="radio" name="heardfrom" value="{{value}}"><span class="palabra">{{name}}</span></label>{{/options}}</div>
+    </fieldset>
+    {{/heard}}
+    {{#place}}
+    <div class="campo"><label for="contar-donde">{{label}}</label><select id="contar-donde" name="municipality"><option value="">{{choose}}</option>{{#options}}<option value="{{value}}">{{name}}</option>{{/options}}<option value="other">{{other}}</option><option value="moving">{{moving}}</option></select></div>
+    {{/place}}
+    <div class="acciones"><button class="boton secundario" type="submit">{{save}}</button></div>
+</form>
+{{/tell}}
 {{#whyother}}
 {{^done}}
 <form class="hoja-pregunta otro-centro" id="otro-centro" method="post" action="{{action}}">

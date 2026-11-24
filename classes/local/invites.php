@@ -686,7 +686,8 @@ class invites {
         return (object) ['eventid' => (int) $event->id, 'eventname' => $event->name, 'timestart' => $event->timestart,
             'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
             'token' => $event->token, 'free' => (int) ($event->free ?? 0), 'kind' => $event->kind,
-            'about' => $event->about ?? null, 'speakers' => $event->speakers ?? null];
+            'about' => $event->about ?? null, 'speakers' => $event->speakers ?? null, 'topic' => $event->topic ?? null,
+            'word' => $event->word ?? null, 'audience' => $event->audience ?? null];
     }
 
     /**
@@ -768,5 +769,105 @@ class invites {
             $sent++;
         }
         return $sent;
+    }
+
+    /**
+     * A family invited looked at the page its letter opens, for a moment, for the first time: never a robot that only
+     * follows the links of a mail, since the page itself says it.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @param int $now
+     */
+    public static function opened(\stdClass $event, \stdClass $household, int $now = 0): void {
+        global $DB;
+        $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);
+        if ($row && !(int) $row->opened) {
+            $DB->set_field(self::T, 'opened', $now ?: time(), ['id' => $row->id]);
+        }
+    }
+
+    /**
+     * What a family invited said last.
+     *
+     * @param int $eventid
+     * @param int $householdid
+     * @return string yes, no or empty.
+     */
+    public static function answer(int $eventid, int $householdid): string {
+        global $DB;
+        return (string) $DB->get_field(self::T, 'reply', ['eventid' => $eventid, 'householdid' => $householdid]);
+    }
+
+    /**
+     * A family invited says whether it comes, with one touch: it is kept at once, with its place, and it can change its
+     * mind. «Not this time» only says that: it takes away no permission.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @param string $reply yes or no.
+     * @param int $people How many come; 0, as many adults as the family has.
+     * @param int $now
+     * @return bool Whether it was kept; false when there is no room left, or nothing is open.
+     */
+    public static function reply(\stdClass $event, \stdClass $household, string $reply, int $people = 0, int $now = 0): bool {
+        global $DB;
+        $now = $now ?: time();
+        if (!in_array($reply, ['yes', 'no'], true) || empty($event->open) || !empty($event->cancelled) || $event->timeend < $now) {
+            return false;
+        }
+        $already = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]);
+        $name = format_string($event->name);
+        if ($reply === 'yes') {
+            $people = max(1, min(events::MAXPEOPLE, $people ?: ($already ?: max(1, count(households::full($household)->adults)))));
+            $slots = events::slots((int) $event->id);
+            if ($slots || !events::has_room($event, $people, $already)) {
+                // With turns there is one to choose, on the whole form; without room, nothing is promised.
+                return false;
+            }
+            if ($people !== $already) {
+                events::sign_up($event, (int) $household->id, $people);
+            }
+            if (!$already) {
+                // What they said, in their history, once: nobody has to answer it.
+                households::received($household, 'event', get_string('invite_yes_note', self::C, (object) ['event' => $name,
+                    'people' => $people]), false, $now);
+            }
+        } else if (self::answer((int) $event->id, (int) $household->id) !== 'no') {
+            $line = get_string('invite_no_note', self::C, $name);
+            if ($already) {
+                events::unsign($event, $household, $line, false);
+            } else {
+                households::note($household, 0, $line);
+            }
+        }
+        $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);
+        if ($row) {
+            $DB->update_record(self::T, (object) ['id' => $row->id, 'opened' => (int) $row->opened ?: $now, 'reply' => $reply,
+                'replied' => $now]);
+        } else {
+            // From a letter sent by hand, or the one tried on: kept all the same.
+            $DB->insert_record(self::T, (object) ['centreid' => $event->centreid, 'eventid' => $event->id, 'householdid' =>
+                $household->id, 'userid' => 0, 'channel' => 'email', 'bulkid' => 0, 'opened' => $now, 'timecreated' => $now,
+                'reply' => $reply, 'replied' => $now]);
+        }
+        return true;
+    }
+
+    /**
+     * What the families invited to an act said: who comes, who does not, who opened it and said nothing, and who has not
+     * opened it.
+     *
+     * @param int $eventid
+     * @return array yes, no, opened and none, each a list of households by id => when.
+     */
+    public static function replies(int $eventid): array {
+        global $DB;
+        $out = ['yes' => [], 'no' => [], 'opened' => [], 'none' => []];
+        foreach ($DB->get_records(self::T, ['eventid' => $eventid], 'replied DESC, opened DESC, id ASC') as $row) {
+            $key = in_array((string) $row->reply, ['yes', 'no'], true) ? (string) $row->reply : ((int) $row->opened ? 'opened' : 'none');
+            $out[$key][(int) $row->householdid] = (int) $row->replied ?: (int) $row->opened;
+        }
+        return $out;
     }
 }

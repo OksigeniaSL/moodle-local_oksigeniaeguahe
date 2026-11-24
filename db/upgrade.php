@@ -1871,5 +1871,26 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026121901, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026122100) {
+        // What an act is about, in a line; and what each family invited to it said.
+        $table = new xmldb_table('local_oksigeniaeguahe_event');
+        $field = new xmldb_field('topic', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'free');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_invite');
+        $fields = [
+            new xmldb_field('opened', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'bulkid'),
+            new xmldb_field('reply', XMLDB_TYPE_CHAR, '3', null, null, null, null, 'opened'),
+            new xmldb_field('replied', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'reply'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026122100, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -94,8 +94,14 @@ class signup {
             'message' => trim(optional_param('message', '', PARAM_TEXT)),
             'consents' => $consents,
             'altcha' => optional_param('altcha', '', PARAM_RAW_TRIMMED),
-            'days' => array_keys(array_filter(optional_param_array('day', [], PARAM_BOOL))),
-            'periods' => array_keys(array_filter(optional_param_array('period', [], PARAM_BOOL))),
+            'days' => array_merge(array_keys(array_filter(optional_param_array('day', [], PARAM_BOOL))), array_map(
+                'intval',
+                optional_param_array('tday', [], PARAM_INT)
+            )),
+            'periods' => array_merge(
+                array_keys(array_filter(optional_param_array('period', [], PARAM_BOOL))),
+                optional_param_array('tperiod', [], PARAM_ALPHA)
+            ),
             'self' => false,
             // Where it arrived from, measured, carried in the form from its first page.
             'arrival' => arrival::read(),
@@ -242,14 +248,15 @@ class signup {
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param string $lang
+     * @param bool $desk Whether it is a computer of the centre or the code of its door: many families from one address.
      * @return array Errors by field, as check() gives them.
      */
-    public static function fits(array $data, \stdClass $event, \stdClass $centre, string $lang): array {
+    public static function fits(array $data, \stdClass $event, \stdClass $centre, string $lang, bool $desk = false): array {
         global $DB;
         if ($event->kind === 'form' || !empty($event->tailored)) {
             return [];
         }
-        if (!events::allowed_from($event, getremoteaddr())) {
+        if (!$desk && !events::allowed_from($event, getremoteaddr())) {
             return ['form' => publiclang::str('pub_err_toomany', $lang)];
         }
         $already = 0;

@@ -565,6 +565,12 @@ class familypage {
         // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
         [$current, $more] = self::arrange([
             'whyother' => $whyother,
+            'tell' => $issettled || $isgone || $isroster || $allclosed ? false : self::tell_context(
+                $household,
+                $centre,
+                $lang,
+                $link(['idioma' => $lang])
+            ),
             'waitlist' => $waitlist,
             'costs' => $costs,
             'turns' => $turns,
@@ -692,7 +698,7 @@ class familypage {
         $add = function (int $rank, string $kind, $context, array $line = []) use (&$list): void {
             $thing = ['band' => false, 'turn' => false, 'renewal' => false, 'survey' => false, 'birthday' => false,
                 'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false,
-                'whyother' => false, 'waitlist' => false, 'costs' => false];
+                'whyother' => false, 'waitlist' => false, 'costs' => false, 'tell' => false];
             $list[] = [$rank, count($list), [$kind => $context] + $thing + ['fold' => (bool) $line,
                 'kicker' => $line['kicker'] ?? '', 'title' => $line['title'] ?? '', 'state' => $line['state'] ?? '']];
         };
@@ -717,6 +723,9 @@ class familypage {
         }
         if (!empty($p['waitlist'])) {
             $add(45, 'waitlist', $p['waitlist'], ['title' => $p['waitlist']['title'], 'state' => $p['waitlist']['state']]);
+        }
+        if (!empty($p['tell'])) {
+            $add(105, 'tell', $p['tell'], ['title' => $p['tell']['title']]);
         }
         if (!empty($p['costs'])) {
             $add(135, 'costs', $p['costs'], ['title' => $p['costs']['title']]);
@@ -762,6 +771,40 @@ class familypage {
             $now['fold'] = false;
         }
         return [$now, $things];
+    }
+
+    /**
+     * What the form no longer asks, for whoever wants to tell it: how they heard of the centre and where they live, each kept
+     * as it is touched. Not for the guest of an act nor for a family of the centre.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $action Where it is sent.
+     * @return array|false
+     */
+    public static function tell_context(\stdClass $household, \stdClass $centre, string $lang, string $action = '') {
+        if (!empty($household->guest) || !empty($household->incentre)) {
+            return false;
+        }
+        $heard = [];
+        if (empty($household->heardfrom)) {
+            foreach (lists::HEARD_FROM as $value) {
+                $heard[] = ['value' => $value, 'name' => publiclang::str('heard_' . $value, $lang), 'id' => 'oyo-' . $value];
+            }
+        }
+        $places = [];
+        if (empty($household->municipality) && empty($household->municipalityname)) {
+            foreach (centres::municipalities($centre) as $code => $name) {
+                $places[] = ['value' => $code, 'name' => $name];
+            }
+        }
+        return $heard || $places ? ['title' => publiclang::str('pub_tell_title', $lang), 'help' => publiclang::str('pub_tell_help', $lang),
+            'save' => publiclang::str('pub_tell_save', $lang), 'action' => $action, 'sesskey' => sesskey(),
+            'heard' => $heard ? ['label' => publiclang::str('pub_heardfrom', $lang), 'options' => $heard] : false,
+            'place' => $places ? ['label' => publiclang::str('pub_where', $lang), 'choose' => publiclang::str('pub_where_choose', $lang),
+                'options' => $places, 'other' => publiclang::str('pub_where_other', $lang),
+                'moving' => publiclang::str('pub_where_moving', $lang)] : false] : false;
     }
 
     /**

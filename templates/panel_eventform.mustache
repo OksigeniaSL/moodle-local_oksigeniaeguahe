@@ -34,7 +34,7 @@
         "action": "#", "sesskey": "abc", "id": 0, "isnew": true,
         "kinds": [{"value": "openday", "name": "Jornada de puertas abiertas", "help": "Muchas familias a la vez.", "suggested": "Jornada de puertas abiertas", "checked": true, "id": "tipo-openday"}],
         "word": "", "about": "", "aboutmost": 600, "poster": false, "posteralt": "", "speakers": [], "emptyspeaker": {"i": 0, "n": 1},
-        "hascourses": true, "courses": [{"n": 0, "value": "Infantil 3 años", "name": "Infantil 3 años", "checked": false}], "free": false,
+        "hascourses": true, "courses": [{"n": 0, "value": "Infantil 3 años", "name": "Infantil 3 años", "checked": false}], "free": false, "freeasks": false, "topic": "", "topicmost": 200,
         "sums": {"turns": "", "fit": "", "hosts": "", "asks": "", "after": ""}, "sumtexts": "{}", "faceicon": "",
         "name": {"value": "", "error": ""}, "tailored": false, "day": "", "start": "", "end": "", "daytext": "",
         "daydate": {"id": "acto-dia", "first": "acto-diad", "form": false, "child": false, "invalid": false, "labelled": true,
@@ -101,6 +101,7 @@
                 </div>
             </div>
             <div class="acto-cuenta-hoja">
+                <div class="campo"><label for="acto-tema">{{#str}}event_topic, local_oksigeniaeguahe{{/str}}</label><input id="acto-tema" name="topic" value="{{topic}}" maxlength="{{topicmost}}" placeholder="{{#str}}event_topic_example, local_oksigeniaeguahe{{/str}}"></div>
                 <div class="campo acto-va-campo"><label for="acto-va">{{#str}}event_about, local_oksigeniaeguahe{{/str}}</label><textarea id="acto-va" name="about" rows="3" maxlength="{{aboutmost}}" data-crece>{{about}}</textarea></div>
                 <fieldset class="acto-quienes">
                     <legend>{{#str}}event_speakers, local_oksigeniaeguahe{{/str}}</legend>
@@ -118,7 +119,7 @@
                 {{/hascourses}}
                 <fieldset class="acto-entrada">
                     <legend>{{#str}}event_entry, local_oksigeniaeguahe{{/str}}</legend>
-                    <div class="acto-cursos"><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-si" name="free" value="0"{{^free}} checked{{/free}}><label class="pastilla-r" for="entrada-si">{{#str}}event_entry_sign, local_oksigeniaeguahe{{/str}}</label></span><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-libre" name="free" value="1"{{#free}} checked{{/free}}><label class="pastilla-r" for="entrada-libre">{{#str}}event_free, local_oksigeniaeguahe{{/str}}</label></span></div>
+                    <div class="acto-cursos"><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-si" name="free" value="0"{{^free}}{{^freeasks}} checked{{/freeasks}}{{/free}}><label class="pastilla-r" for="entrada-si">{{#str}}event_entry_sign, local_oksigeniaeguahe{{/str}}</label></span><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-libre" name="free" value="1"{{#free}} checked{{/free}}><label class="pastilla-r" for="entrada-libre">{{#str}}event_free, local_oksigeniaeguahe{{/str}}</label></span><span class="tipo-acto"><input class="oculto" type="radio" id="entrada-avisa" name="free" value="2"{{#freeasks}} checked{{/freeasks}}><label class="pastilla-r" for="entrada-avisa">{{#str}}event_free_asks, local_oksigeniaeguahe{{/str}}</label></span></div>
                 </fieldset>
             </div>
         </div>

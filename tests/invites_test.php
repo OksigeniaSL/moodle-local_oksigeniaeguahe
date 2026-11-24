@@ -89,7 +89,8 @@ final class invites_test extends \advanced_testcase {
         // A plain letter: one link, no pictures, and how to say no in words.
         $this->assertStringStartsWith('Festival de Infantil, el ', $mail[0]);
         $this->assertStringContainsString('j.php?t=' . $event->token, $mail[2]);
-        $this->assertStringStartsWith("Hola, Ana:\n\nComo se interesaron por el Colegio de ejemplo", $mail[2]);
+        $this->assertMatchesRegularExpression('/^Hola, Ana:\n\nEl .+ tenemos «Festival de Infantil» en el colegio\./u', $mail[2]);
+        $this->assertStringContainsString('Les escribimos porque nos dejaron su correo al preguntar por el colegio.', $mail[2]);
         $this->assertSame(1, substr_count($mail[1], '<a '));
         $this->assertStringNotContainsString('<img', $mail[1]);
         $this->assertStringNotContainsString('<table', $mail[1]);
@@ -183,7 +184,8 @@ final class invites_test extends \advanced_testcase {
         $groups = invites::groups($event, invites::eligible($event), invites::of_centre($event));
         $this->assertEqualsCanonicalizing([$dora, $elsa], $groups[invites::OFCENTRE]['ids']);
         $mail = familymail::build('openinvite', households::get($dora, $id), $centre, invites::of_letter($event), 'es', 'clave');
-        $this->assertStringContainsString('Queremos contarles que tenemos «Charla»', $mail[2]);
+        $this->assertStringContainsString('tenemos «Charla» en el colegio.', $mail[2]);
+        $this->assertStringNotContainsString('porque nos dejaron su correo', $mail[2]);
         $this->assertSame(1, invites::queue($event, $centre, $user, time(), '', [$dora, $fara])['email']);
         $this->assertSame(2, invites::stop((int) $event->id));
         invites::queue($event, $centre, $user, time(), '', [$ana]);

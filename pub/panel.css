@@ -21663,3 +21663,30 @@ html {
 .aviso-asistente > span {
     flex: 1 1 260px;
 }
+
+/* What the families invited to an act said. */
+.respuestas-acto {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.respuestas-acto h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.respuestas-acto summary {
+    cursor: pointer;
+    padding: 6px 0;
+}
+
+.respuestas-acto ul {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+.respuestas-acto li {
+    padding: 4px 0;
+}

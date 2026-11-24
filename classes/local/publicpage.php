@@ -423,6 +423,12 @@ class publicpage {
         $vivo = in_array($template, ['public_family', 'public_shared_drawing'], true) ?
             '<script src="' . $base . 'dibujo-vivo.js?v=' . $version . '" defer></script>' . "\n" .
             '<script src="' . $base . 'dibujo-video.js?v=' . $version . '" defer></script>' . "\n" : '';
+        // Signing up: the form, the same as inside the web of a centre, and its page.
+        $join = $template === 'public_join';
+        $joincss = $join ? '<link rel="stylesheet" href="' . $base . 'formulario.css?v=' . $version . '">
+<link rel="stylesheet" href="' . $base . 'inscripcion.css?v=' . $version . '">
+' : '';
+        $joinjs = $join ? '<script src="' . $base . 'formulario.js?v=' . $version . '" defer></script>' . "\n" : '';
         // The page of the drawing cuts and straightens the photo in the browser.
         $cropper = $template === 'public_drawing' ?
             '<script src="' . $base . 'dibujo.js?v=' . $version . '" defer></script>' . "\n" : '';
@@ -440,7 +446,7 @@ class publicpage {
 ' . self::$head . '<link rel="preload" href="' . $base . 'fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="' . $base . 'eguahe.css?v=' . $version . '">
 <link rel="stylesheet" href="' . $base . 'riel-lectura.css?v=' . $version . '">
-<style>:root { ' . $vars($light) . ' }' . ($onlylight ? '' : '
+' . $joincss . '<style>:root { ' . $vars($light) . ' }' . ($onlylight ? '' : '
 @media (prefers-color-scheme: dark) { :root { ' . $vars($dark) . ' } }') . '</style>
 <noscript><style>.nino[hidden], .adulto[hidden], .hermano[hidden], .percha[hidden], .lejos[hidden], .curso[hidden],
 .quien-cuenta[hidden] {
@@ -448,7 +454,7 @@ display: grid; }
 .anadir-nino, .anadir, .paso button { display: none; }</style></noscript>
 ' . $vivo . '<script src="' . $base . 'eguahe.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'riel-lectura.js?v=' . $version . '" defer></script>
-' . $cropper . $skin . '</head>
+' . $joinjs . $cropper . $skin . '</head>
 <body' . self::body_attributes($centre) . '>
 ' . $top . $body . $bottom . '
 </body>

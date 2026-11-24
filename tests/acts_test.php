@@ -22,10 +22,10 @@ use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\invites;
+use local_oksigeniaeguahe\local\joinpage;
 use local_oksigeniaeguahe\local\kit;
 use local_oksigeniaeguahe\local\panel_eventform;
 use local_oksigeniaeguahe\local\share;
-use local_oksigeniaeguahe\local\signuppage;
 
 /**
  * Tests for how an act is told: its word, what it is about, who gives it, for whom, its picture and free entry.
@@ -49,6 +49,16 @@ final class acts_test extends \advanced_testcase {
             centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => $name, 'places' => 25, 'active' => 1]);
         }
         return centres::get($id);
+    }
+
+    /**
+     * A centre, as it is kept.
+     *
+     * @param \stdClass $centre
+     * @return \stdClass
+     */
+    protected function reload(\stdClass $centre): \stdClass {
+        return centres::get((int) $centre->id);
     }
 
     /**
@@ -93,12 +103,23 @@ final class acts_test extends \advanced_testcase {
         $this->assertSame(['Lucía Medina', 'Andrés Rivas'], array_column(acts::speakers($event), 'name'));
         $this->assertNotSame('', acts::speakers($event)[1]['key']);
 
-        // The letter says it, until what time, and its link says what it does.
-        [, $html, $text] = familymail::letter('Ana', $centre, invites::of_letter($event), 'es', '');
-        $this->assertStringContainsString("\n\nCon Lucía Medina (Psicóloga) y Andrés Rivas.\n\n", $text);
-        $this->assertStringContainsString(str_repeat('a', 100), $text);
-        $this->assertMatchesRegularExpression('/, de \d+:\d\d a \d+:\d\d/u', $text);
+        // The letter: when, who and what; for whom and where; and its link says what it does.
+        $event->topic = 'respiración y atención: si respirar bien ayuda a atender';
+        [$subject, $html, $text] = familymail::letter('Ana', $centre, invites::of_letter($event), 'es', '');
+        $this->assertMatchesRegularExpression('/^Charla para familias el \\d+ de \\p{L}+: respiración y atención$/u', $subject);
+        $this->assertMatchesRegularExpression('/\\n\\nEl .+, de \\d+:\\d\\d a \\d+:\\d\\d, Lucía Medina \\(psicóloga\\) y Andrés Rivas dan una charla en ' .
+            'el colegio sobre respiración y atención: si respirar bien ayuda a atender\\.\\n\\n/u', $text);
+        $this->assertStringContainsString('Es para familias de Infantil 3 años.', $text);
+        $this->assertStringNotContainsString(str_repeat('a', 100), $text);
         $this->assertStringContainsString('>Inscribirnos</a>', $html);
+        $event->audience = null;
+        $event->place = 'Biblioteca del colegio';
+        $centre->address = 'Calle Mayor 12, 28065 Getafe';
+        [, , $text] = familymail::letter('Ana', $centre, invites::of_letter($event), 'es', '');
+        $this->assertStringContainsString("Está abierta a cualquier familia, tenga o no hijos en el colegio. Es en la Biblioteca del " .
+            "colegio, Calle Mayor 12.\n", $text);
+        $event = events::get($id, (int) $centre->id);
+        $centre = $this->reload($centre);
 
         // Its picture, kept no longer than its side; the photo of who gives it, by its key.
         $image = imagecreatetruecolor(2400, 1200);
@@ -140,15 +161,16 @@ final class acts_test extends \advanced_testcase {
         $this->assertFalse(acts::poster($event));
 
         // The page where families sign up is of the talk, not «Come and meet us».
-        $page = signuppage::context(
+        $page = fn($event) => joinpage::context(
             $event,
             $centre,
             'es',
             \local_oksigeniaeguahe\local\signup::read($centre),
             [],
-            new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token])
+            new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token]),
+            events::mark($event)
         );
-        $this->assertSame(['Charla', 'Respirar y atender'], [$page['kicker'], $page['headline']]);
+        $this->assertSame(['Charla', 'Respirar y atender'], [$page($event)['kicker'], $page($event)['headline']]);
 
         // With free entry, the letter has nothing to sign up to.
         events::save((int) $centre->id, (object) ['id' => $id, 'kind' => 'other', 'word' => 'talk', 'name' => $event->name,
@@ -157,7 +179,8 @@ final class acts_test extends \advanced_testcase {
         $this->assertNull($event->about);
         [, , $text] = familymail::letter('Ana', $centre, invites::of_letter($event), 'es', '');
         $this->assertStringContainsString('La entrada es libre y no hace falta inscribirse.', $text);
-        $this->assertTrue(signuppage::free($event, $centre, 'es')['act']['free']);
+        $this->assertTrue($page($event)['free']);
+        $this->assertFalse($page($event)['asks']);
 
         // Saved from elsewhere without any of this, it stays.
         events::save((int) $centre->id, (object) ['id' => $id, 'kind' => 'other', 'name' => 'Otro nombre',

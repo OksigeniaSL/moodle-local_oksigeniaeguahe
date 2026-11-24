@@ -46,6 +46,27 @@ class acts {
     /** @var int How long what it is about can be. */
     const ABOUT = 600;
 
+    /** @var string[] What a centre is called in a sentence, in Spanish, when its name starts with it. */
+    const NOUNS = ['colegio', 'escuela', 'instituto', 'academia', 'conservatorio', 'universidad', 'centro', 'liceo', 'jardín',
+        'guardería'];
+
+    /** @var string[] Places of a centre that are feminine in Spanish, to say them in a sentence. */
+    const FEMININE = ['biblioteca', 'sala', 'entrada', 'cafeteria', 'secretaria', 'capilla', 'cancha', 'pista', 'piscina',
+        'recepcion', 'ludoteca', 'casa', 'plaza', 'terraza', 'clase', 'huerta', 'guarderia', 'planta', 'escuela'];
+
+    /** @var string[] And those that are masculine. */
+    const MASCULINE = ['salon', 'patio', 'gimnasio', 'comedor', 'teatro', 'auditorio', 'pabellon', 'edificio', 'aula',
+        'laboratorio', 'vestibulo', 'jardin', 'polideportivo', 'huerto', 'taller', 'colegio', 'instituto', 'parque'];
+
+    /** @var int How long what it is about, in a line, can be. */
+    const TOPIC = 200;
+
+    /** @var int Anybody may come, and there is nothing to sign up to. */
+    const FREE = 1;
+
+    /** @var int Anybody may come, and whoever wants says so. */
+    const FREE_ASKS = 2;
+
     /** @var int The longest side of a picture, as it is kept. */
     const SIDE = 1600;
 
@@ -154,7 +175,7 @@ class acts {
      * What the form sends of all this, as events::save() keeps it.
      *
      * @param int $centreid
-     * @param array $values about, speakers (name, role, key), audience, free and posteralt
+     * @param array $values topic, about, speakers (name, role, key), audience, free and posteralt
      * @return array Columns of the event.
      */
     public static function columns(int $centreid, array $values): array {
@@ -174,12 +195,14 @@ class acts {
         $audience = array_values(array_intersect(self::courses($centreid), (array) ($values['audience'] ?? [])));
         $about = $cut($values['about'] ?? '', self::ABOUT);
         $alt = $cut($values['posteralt'] ?? '', 255);
+        $topic = rtrim(trim(preg_replace('/\s+/u', ' ', $cut($values['topic'] ?? '', self::TOPIC))), '.');
         return [
             'about' => $about === '' ? null : $about,
             'speakers' => $speakers ? json_encode($speakers, JSON_UNESCAPED_UNICODE) : null,
             'audience' => $audience ? json_encode($audience, JSON_UNESCAPED_UNICODE) : null,
             'posteralt' => $alt === '' ? null : $alt,
-            'free' => empty($values['free']) ? 0 : 1,
+            'topic' => $topic === '' ? null : $topic,
+            'free' => in_array((int) ($values['free'] ?? 0), [self::FREE, self::FREE_ASKS], true) ? (int) $values['free'] : 0,
         ];
     }
 
@@ -205,7 +228,7 @@ class acts {
      * Its own picture, with its size and what it says.
      *
      * @param \stdClass $event
-     * @return array|false url, alt, w, h, wide, tall and ratio (its height by its width)
+     * @return array|false url, full (to enlarge it), alt, w, h, wide, portrait, tall and ratio (its height by its width)
      */
     public static function poster(\stdClass $event) {
         $file = !empty($event->id) ? self::poster_file((int) $event->id) : null;
@@ -216,7 +239,8 @@ class acts {
         // How tall it stands beside the rest, in its 330 by 400 px, for the page to leave its place.
         $tall = (int) round(min(400, 330 * $info['height'] / max(1, $info['width'])));
         return ['url' => self::url($file), 'w' => (int) $info['width'], 'h' => (int) $info['height'],
-            'wide' => $info['width'] > 1.15 * $info['height'], 'tall' => $tall,
+            'wide' => $info['width'] > 1.15 * $info['height'], 'portrait' => $info['height'] > 1.15 * $info['width'],
+            'full' => self::url($file), 'tall' => $tall,
             'ratio' => round($info['height'] / max(1, $info['width']), 4),
             'alt' => trim((string) ($event->posteralt ?? '')) ?: format_string($event->name)];
     }
@@ -314,7 +338,22 @@ class acts {
         $fs->create_file_from_string(['contextid' => $context, 'component' => self::C, 'filearea' => $area,
             'itemid' => $eventid, 'filepath' => $path, 'filename' => substr(sha1($bytes), 0, 12) . '.' .
             $types[$info['mime']]], $bytes);
+        self::posted($eventid, $area);
         return true;
+    }
+
+    /**
+     * What waits for the channel takes the poster of its act as it is now, whoever kept it.
+     *
+     * @param int $eventid
+     * @param string $area
+     */
+    protected static function posted(int $eventid, string $area): void {
+        global $DB;
+        $event = $area === self::POSTER ? $DB->get_record(events::T, ['id' => $eventid]) : null;
+        if ($event) {
+            channel::sync($event);
+        }
     }
 
     /**
@@ -339,6 +378,7 @@ class acts {
                 $file->delete();
             }
         }
+        self::posted($eventid, $area);
     }
 
     /**
@@ -365,7 +405,191 @@ class acts {
             'speakerstitle' => publiclang::str('act_speakers', $lang),
             'audience' => $audience ? publiclang::str('act_for', $lang, implode(', ', $audience)) : '',
             'free' => !empty($event->free),
-            'freetext' => !empty($event->free) ? publiclang::str('act_free', $lang) : '',
+            // Whether there is something to fill all the same: whoever wants says they come.
+            'asks' => (int) ($event->free ?? 0) === self::FREE_ASKS,
+            'freetext' => !empty($event->free) ? publiclang::str((int) $event->free === self::FREE_ASKS ? 'act_free_asks' :
+                'act_free', $lang) : '',
         ];
+    }
+
+    /**
+     * What an act is about, said in a word or two: what goes before the colon of its topic, or its name.
+     *
+     * @param \stdClass $act
+     * @return string
+     */
+    public static function short_topic(\stdClass $act): string {
+        $topic = trim((string) ($act->topic ?? ''));
+        $short = trim((string) strtok($topic, ':'));
+        return $short !== '' ? format_string($short, true, ['escape' => false]) : format_string(
+            (string) ($act->eventname ?? $act->name ?? ''),
+            true,
+            ['escape' => false]
+        );
+    }
+
+    /**
+     * The centre as people call it in a sentence: in Spanish «el colegio», when it is one; else its name.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function short_centre(\stdClass $centre, string $lang): string {
+        $phrase = html_entity_decode(share::phrase($centre, $lang), ENT_QUOTES, 'UTF-8');
+        if ($lang === 'es' && preg_match('/^(el|la) (' . implode('|', self::NOUNS) . ')\b/iu', $phrase, $m)) {
+            return \core_text::strtolower($m[1] . ' ' . $m[2]);
+        }
+        return $phrase;
+    }
+
+    /**
+     * The centre after asking for it, as it is called in a sentence: «por el colegio».
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function by_centre(\stdClass $centre, string $lang): string {
+        return $lang === 'es' ? 'por ' . self::short_centre($centre, $lang) : share::by_centre($centre, $lang);
+    }
+
+    /**
+     * The subject of the letter of an act: what it is, the day and what it is about, never only its name.
+     *
+     * @param \stdClass $act As invites::of_letter() gives it.
+     * @param string $lang
+     * @param array $parts publicpage::date_parts() of its day.
+     * @return string
+     */
+    public static function letter_subject(\stdClass $act, string $lang, array $parts): string {
+        $name = html_entity_decode(format_string($act->eventname), ENT_QUOTES, 'UTF-8');
+        $word = ($act->kind ?? '') === 'other' ? self::word($act, $lang) : '';
+        if ($word === '') {
+            return publiclang::str('mail_letter_subject', $lang, (object) ['event' => $name, 'date' => $parts['long']]);
+        }
+        return publiclang::str('mail_letter_subject_act', $lang, (object) ['word' => html_entity_decode(
+            $word,
+            ENT_QUOTES,
+            'UTF-8'
+        ), 'day' => $parts['daymonth'], 'what' => self::short_topic($act)]);
+    }
+
+    /**
+     * The first sentence of the letter: when, who and what about.
+     *
+     * @param \stdClass $act
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $date
+     * @param string $when
+     * @return string
+     */
+    public static function letter_lead(\stdClass $act, \stdClass $centre, string $lang, string $date, string $when): string {
+        $kind = (string) ($act->kind ?? 'other');
+        $word = trim((string) ($act->word ?? ''));
+        $name = html_entity_decode(format_string($act->eventname), ENT_QUOTES, 'UTF-8');
+        $speakers = self::speakers($act);
+        // Who gives it, with what they are: «Carolina Pérez Soto, maestra de Educación Primaria, da…»; of several, each with
+        // theirs in brackets.
+        $several = count($speakers) > 1;
+        $who = array_map(function ($one) use ($several) {
+            $role = self::lower(html_entity_decode(format_string(trim($one['role'])), ENT_QUOTES, 'UTF-8'));
+            return html_entity_decode(format_string($one['name']), ENT_QUOTES, 'UTF-8') . ($role === '' ? '' : ($several ?
+                ' (' . $role . ')' : ', ' . $role));
+        }, $speakers);
+        $named = familypage::join($who, $lang);
+        // The comma that closes what they are, before what they do.
+        $comma = !$several && $speakers && trim($speakers[0]['role']) !== '' ? (lists::dir($lang) === 'rtl' ? '' : ',') : '';
+        $a = (object) ['date' => $date, 'when' => $when, 'who' => $named . $comma,
+            'centre' => self::short_centre($centre, $lang), 'word' => self::lower(html_entity_decode(
+                format_string($word),
+                ENT_QUOTES,
+                'UTF-8'
+            )), 'event' => $name];
+        $many = count($speakers) > 1 ? '_many' : '';
+        if ($kind !== 'other') {
+            $key = 'mail_letter_act_' . ($kind === 'visit' ? 'visit' : 'openday');
+            $named = recognise::plain($name) !== recognise::plain(self::word($act, $lang)) ? $name : '';
+        } else if (in_array($word, self::WORDS, true)) {
+            $key = 'mail_letter_act_' . $word . ($speakers ? $many : '_none');
+            $named = $name;
+        } else {
+            $key = $word !== '' ? 'mail_letter_act_own' : 'mail_letter_act_other';
+            $named = $word !== '' ? $name : '';
+        }
+        $topic = $kind === 'other' ? trim((string) ($act->topic ?? '')) : '';
+        $lead = publiclang::str($key, $lang, $a);
+        // A party, or an act of a word of the centre, is with somebody; a talk is given by them.
+        if ($speakers && !in_array($word, ['talk', 'workshop'], true)) {
+            $lead .= publiclang::str('mail_letter_with', $lang, implode(', ', $who));
+        }
+        // It begins a paragraph, whatever it begins with in each language.
+        $lead = \core_text::strtoupper(\core_text::substr($lead, 0, 1)) . \core_text::substr($lead, 1);
+        if ($topic !== '') {
+            return $lead . publiclang::str('mail_letter_about', $lang, format_string($topic, true, ['escape' => false])) . '.';
+        }
+        return $named !== '' ? $lead . publiclang::str('mail_letter_named', $lang, $named) : $lead . '.';
+    }
+
+    /**
+     * For whom an act is: any family, or those of some courses. Nothing for an open day or a visit.
+     *
+     * @param \stdClass $act
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function letter_whom(\stdClass $act, \stdClass $centre, string $lang): string {
+        if (($act->kind ?? '') !== 'other') {
+            return '';
+        }
+        $audience = array_map(fn($n) => html_entity_decode(format_string($n), ENT_QUOTES, 'UTF-8'), self::audience($act));
+        if ($audience) {
+            return publiclang::str('mail_letter_for', $lang, familypage::join($audience, $lang));
+        }
+        $word = trim((string) ($act->word ?? ''));
+        return publiclang::str('mail_letter_open_' . (in_array($word, self::WORDS, true) ? $word : 'own'), $lang, self::short_centre(
+            $centre,
+            $lang
+        ));
+    }
+
+    /**
+     * Where an act is, as it is said: «Es en la Biblioteca…», with its article when it has a known one, and the street.
+     *
+     * @param \stdClass $act
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    public static function letter_place(\stdClass $act, \stdClass $centre, string $lang): string {
+        // The street is enough in a letter to somebody of the place; the page it opens has the whole address.
+        $address = trim(preg_replace('/[\s,·-]*\b\d{4,5}(-\d{3,4})?\b.*$/us', '', trim((string) ($centre->address ?? ''))));
+        $place = html_entity_decode(format_string(trim((string) ($act->place ?? ''))), ENT_QUOTES, 'UTF-8');
+        if ($place === '' && $address === '') {
+            return '';
+        }
+        if ($place !== '' && $lang === 'es') {
+            $article = preg_match('/^(el|la|los|las) /iu', $place) ? '' : null;
+            $first = recognise::plain((string) preg_replace('/[^\p{L}].*$/us', '', $place));
+            $article = $article ?? (in_array($first, self::FEMININE, true) ? 'la ' : (in_array($first, self::MASCULINE, true) ?
+                'el ' : null));
+            if ($article !== null) {
+                return 'Es en ' . $article . $place . ($address !== '' ? ', ' . $address : '') . '.';
+            }
+        }
+        return publiclang::str('mail_letter_place', $lang, implode(', ', array_filter([$place, $address])));
+    }
+
+    /**
+     * A word or a role as it goes inside a sentence, unless it is an acronym.
+     *
+     * @param string $text
+     * @return string
+     */
+    protected static function lower(string $text): string {
+        return preg_match('/^\p{Lu}\p{Ll}/u', $text) ? \core_text::strtolower(\core_text::substr($text, 0, 1)) .
+            \core_text::substr($text, 1) : $text;
     }
 }

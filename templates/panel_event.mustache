@@ -147,6 +147,7 @@
                 <p>{{text}}</p>
                 {{#done}}<p class="secundario">{{done}}</p>{{/done}}
                 {{> local_oksigeniaeguahe/panel_invite_state }}
+                {{#replies}}{{> local_oksigeniaeguahe/panel_replies }}{{/replies}}
                 {{#url}}<div><a class="boton principal" href="{{url}}">{{{i.correo}}}{{#str}}panel_invite_prepare, local_oksigeniaeguahe{{/str}}</a></div>{{/url}}
             </section>
             {{/invite}}

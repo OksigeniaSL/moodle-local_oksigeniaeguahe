@@ -48,7 +48,7 @@ class panel_eventform {
             return ['id' => 0, 'kind' => 'openday', 'name' => get_string('event_kind_openday', self::C), 'tailored' => false,
                 'day' => $day, 'start' => '10:00', 'end' => '13:00', 'place' => '', 'capacity' => '', 'open' => true,
                 'hosts' => [], 'formid' => 0, 'survey' => 0, 'slots' => [], 'choice' => 'openday', 'word' => '', 'about' => '',
-                'speakers' => [], 'audience' => [], 'posteralt' => '', 'free' => false];
+                'speakers' => [], 'audience' => [], 'posteralt' => '', 'topic' => '', 'free' => 0];
         }
         $slots = [];
         foreach (events::slots((int) $event->id) as $slot) {
@@ -78,7 +78,8 @@ class panel_eventform {
             'speakers' => acts::speakers($event),
             'audience' => acts::audience($event),
             'posteralt' => (string) ($event->posteralt ?? ''),
-            'free' => !empty($event->free),
+            'topic' => (string) ($event->topic ?? ''),
+            'free' => (int) ($event->free ?? 0),
         ];
     }
 
@@ -119,7 +120,8 @@ class panel_eventform {
             'speakers' => [],
             'audience' => array_values(array_map('strval', optional_param_array('audience', [], PARAM_TEXT))),
             'posteralt' => trim(optional_param('posteralt', '', PARAM_TEXT)),
-            'free' => optional_param('free', 0, PARAM_BOOL),
+            'topic' => trim(optional_param('topic', '', PARAM_TEXT)),
+            'free' => optional_param('free', 0, PARAM_INT),
         ];
         // Who gives it: a row without a name is none.
         $names = optional_param_array('speakername', [], PARAM_TEXT);
@@ -670,7 +672,10 @@ class panel_eventform {
             'hascourses' => (bool) $courses,
             'poster' => $poster,
             'posteralt' => (string) ($values['posteralt'] ?? ''),
-            'free' => !empty($values['free']),
+            'topic' => (string) ($values['topic'] ?? ''),
+            'topicmost' => acts::TOPIC,
+            'free' => (int) ($values['free'] ?? 0) === acts::FREE,
+            'freeasks' => (int) ($values['free'] ?? 0) === acts::FREE_ASKS,
             // What each part that need not be touched holds, in one line.
             'sums' => self::sums($centre, $values, $firsts, $chosen, $surveyentry),
             'sumtexts' => json_encode(self::sumtexts(), JSON_UNESCAPED_UNICODE),
@@ -764,14 +769,14 @@ class panel_eventform {
         $capacity = (int) $values['capacity'];
         return [
             'turns' => $n ? get_string($n === 1 ? 'panel_sum_turn' : 'panel_sum_turns', $c, $n) : get_string('panel_sum_noturns', $c),
-            'fit' => !empty($values['free']) ? get_string('panel_sum_free', $c) : ($capacity ? get_string(
+            'fit' => (int) ($values['free'] ?? 0) === acts::FREE ? get_string('panel_sum_free', $c) : ($capacity ? get_string(
                 'panel_sum_limit',
                 $c,
                 $capacity
             ) : get_string('panel_sum_nolimit', $c)) . ' ' . get_string($values['open'] ? 'panel_sum_open' : 'panel_sum_closed', $c),
             'hosts' => $hosts ? get_string('panel_sum_hosts', $c, familypage::join($hosts, current_language())) :
                 get_string('panel_sum_nohosts', $c),
-            'asks' => !empty($values['free']) ? get_string('panel_sum_asks_free', $c) : ($form ? get_string(
+            'asks' => (int) ($values['free'] ?? 0) === acts::FREE ? get_string('panel_sum_asks_free', $c) : ($form ? get_string(
                 'panel_sum_asks_form',
                 $c,
                 format_string($form->name)

@@ -1,0 +1,104 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_join
+
+    Signing up on its own page, on one screen. At one side the band of the centre, as the poster that is filled to make the
+    act: its poster, large, or the leaf of the day; what it is, when and where, once and small; and what is told besides
+    (on a phone, under the form). For an open day or a visit, the rail with the backpack whose label writes itself. At the
+    other, the form (public_brief_form); none when anybody may come without saying (bare). Whoever comes by the letter of an
+    invitation is known: two buttons, and after «We are coming», how many and how they are written to, which are kept by
+    themselves (formulario.js; without it, a button).
+
+    Example context (json):
+    {
+        "kicker": "Charla", "headline": "Respirar y atender", "longname": false, "lead": "", "where": "Biblioteca",
+        "when": {"weekday": "miércoles", "daymonth": "2 de diciembre", "hours": "De 15:00 a 16:00", "day": "2", "month": "dic"},
+        "poster": {"url": "#", "full": "#", "alt": "Cartel de la charla", "w": 1080, "h": 1350, "wide": false, "portrait": true, "ratio": 1.25}, "pub_drawing_close": "Cerrar",
+        "pegs": false, "leaf": false, "band": true, "bare": false, "preview": false, "freetext": "", "readmore": "Leer más", "about": "Cómo acompañar a los niños.", "hasspeakers": true,
+        "speakerstitle": "Con", "speakers": [{"name": "Lucía Medina", "role": "Psicóloga", "photo": "", "initials": "LM"}], "audience": "Para: Infantil",
+        "hashosts": false, "hosts": [], "willreceive": "", "hasmore": true, "choose": false,
+        "known": {"hello": "Hola, Ana", "ask": "¿Se vienen?", "answer": "yes", "coming": true, "action": "#", "mark": "1", "full": "",
+            "yes": {"name": "reply", "value": "yes", "label": "Vamos", "current": true}, "no": {"name": "reply", "value": "no", "label": "Esta vez no podemos", "current": false},
+            "people": {"name": "people", "label": "Cuántos vienen", "value": 2, "min": 1, "max": 12, "less": "Uno menos", "more": "Uno más"},
+            "waystitle": "Por dónde les escribimos", "hasways": true, "ways": [{"id": "by-email", "name": "by[]", "value": "email", "label": "Correo", "checked": true, "icon": ""}],
+            "done": "Les guardamos sitio.", "saved": "Guardado", "notsaved": "No se ha podido guardar", "save": "Guardar", "other": "No soy Ana", "otherurl": "#"},
+        "form": {"action": "#", "mark": "1", "trap": "web2", "self": false, "sent": false, "whole": true, "ask": false, "fields": [], "people": false,
+            "hasquestions": false, "tellme": false, "info": [], "arrival": [], "hint": "", "hinterror": false, "privacyurl": "#", "privacy": "Datos", "send": "Inscribirnos"}
+    }
+}}
+{{#preview}}<p class="unir-previa" role="note">{{note}}</p>{{/preview}}
+<section class="unir{{#band}} con-banda{{/band}}{{#poster}} con-cartel{{#wide}} apaisado{{/wide}}{{/poster}}{{#bare}} sin-hoja{{/bare}}" aria-labelledby="titulo">
+    <div class="unir-cabeza">
+        {{#poster}}<a class="unir-cartel" href="{{full}}" target="_blank" rel="noopener" data-ampliar="{{pub_drawing_close}}" data-toca="act_poster"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}"></a>{{/poster}}
+        {{#pegs}}<div class="unir-riel" aria-hidden="true"><div class="riel"></div>{{> local_oksigeniaeguahe/public_pegs }}</div>{{/pegs}}
+        <div class="unir-que">
+            {{#leaf}}<p class="unir-hoja-dia" aria-hidden="true">{{#when}}<small>{{month}}</small><b>{{day}}</b><span>{{weekday}}</span>{{/when}}</p>{{/leaf}}
+            {{#kicker}}<p class="unir-tipo">{{kicker}}</p>{{/kicker}}
+            <h1 class="unir-titulo{{#longname}} largo{{/longname}}" id="titulo">{{headline}}</h1>
+            {{#lead}}<p class="unir-cuando">{{lead}}</p>{{/lead}}
+            {{#when}}<p class="unir-cuando"><b>{{weekday}} {{daymonth}}</b><span class="unir-horas">{{hours}}</span></p>{{/when}}
+            {{#where}}<p class="unir-donde" dir="auto">{{where}}</p>{{/where}}
+            {{#bare}}{{#freetext}}<p class="unir-libre">{{freetext}}</p>{{/freetext}}{{/bare}}
+        </div>
+    </div>
+    {{#hasmore}}
+    <div class="unir-mas">
+        {{#about}}<p class="acto-va" dir="auto" data-leer="{{readmore}}">{{about}}</p>{{/about}}
+        {{#hasspeakers}}<ul class="acto-ponentes" aria-label="{{speakerstitle}}">{{#speakers}}<li>{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="iniciales" aria-hidden="true">{{initials}}</span>{{/photo}}<span dir="auto"><b>{{name}}</b>{{#role}} <span class="suave">{{role}}</span>{{/role}}</span></li>{{/speakers}}</ul>{{/hasspeakers}}
+        {{#hashosts}}<div class="caras-mini"><span class="pila">{{#hosts}}{{#photo}}<img src="{{photo}}" alt="">{{/photo}}{{^photo}}<span class="ini" aria-hidden="true">{{initials}}</span>{{/photo}}{{/hosts}}</span><span>{{willreceive}}</span></div>{{/hashosts}}
+        {{#audience}}<p class="acto-para" dir="auto">{{audience}}</p>{{/audience}}
+    </div>
+    {{/hasmore}}
+    {{#known}}
+    <div class="unir-hoja unir-conocida" data-conocida>
+        <h2 class="unir-hola">{{hello}}</h2>
+        <form class="fb unir-respuesta" method="post" action="{{action}}" data-guardado="{{saved}}" data-fallo="{{notsaved}}">
+            <input type="hidden" name="sesskey" value="{{mark}}"><input type="hidden" name="known" value="1">{{#hasways}}<input type="hidden" name="ways" value="1">{{/hasways}}
+            <p class="unir-pregunta">{{ask}}</p>
+            <div class="unir-botones{{#no}}{{#current}} dijo-no{{/current}}{{/no}}">
+                {{#yes}}<button class="unir-si" type="submit" name="{{name}}" value="{{value}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{label}}</span></button>{{/yes}}
+                {{#no}}<button class="unir-no" type="submit" name="{{name}}" value="{{value}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{label}}</span></button>{{/no}}
+            </div>
+            <p class="unir-lleno" role="alert" data-lleno>{{full}}</p>
+            <p class="unir-hecho" role="status" data-hecho>{{done}}</p>
+            <div class="unir-detalle" data-detalle{{^coming}} hidden{{/coming}}>
+                {{#people}}
+                <p class="fb-campo fb-paso" data-fb-paso>
+                    <label for="unir-{{name}}">{{label}}</label>
+                    <button class="fb-mas-menos" type="button" data-fb-menos aria-label="{{less}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
+                    <input id="unir-{{name}}" name="{{name}}" type="number" inputmode="numeric" min="{{min}}" max="{{max}}" value="{{value}}">
+                    <button class="fb-mas-menos" type="button" data-fb-mas aria-label="{{more}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
+                </p>
+                {{/people}}
+                {{#hasways}}
+                <fieldset class="unir-vias"><legend>{{waystitle}}</legend>{{#ways}}<label for="{{id}}"><input type="checkbox" id="{{id}}" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{{icon}}}{{label}}</span></label>{{/ways}}</fieldset>
+                {{/hasways}}
+                <p class="unir-guardado"><span data-dice role="status"></span><button class="fb-enviar" type="submit" data-sin-guion>{{save}}</button></p>
+            </div>
+        </form>
+        <p class="unir-otra"><a href="{{otherurl}}">{{other}}</a></p>
+    </div>
+    {{/known}}
+    {{^known}}
+    {{#form}}<div class="unir-hoja">
+        {{#choose}}<nav class="unir-para" aria-label="{{label}}"><a href="{{childurl}}"{{^self}} aria-current="true"{{/self}}>{{child}}</a><a href="{{meurl}}"{{#self}} aria-current="true"{{/self}}>{{me}}</a></nav>{{/choose}}
+        {{^sent}}{{#freetext}}<p class="unir-aviso">{{freetext}}</p>{{/freetext}}{{/sent}}
+        {{> local_oksigeniaeguahe/public_brief_form }}
+    </div>{{/form}}
+    {{/known}}
+</section>

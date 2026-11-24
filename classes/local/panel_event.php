@@ -514,11 +514,44 @@ class panel_event {
             'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
                 get_string('panel_invite_noone', self::C),
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', self::C, $done) : '',
+            'replies' => self::replies($event, $now),
             'url' => $any && $canact ? (new \moodle_url(
                 '/local/oksigeniaeguahe/event.php',
                 ['id' => $event->id, 'invitar' => 1]
             ))->out(false) : '',
         ];
+    }
+
+    /**
+     * What the families invited said, by name: who comes, who does not this time, who opened it and said nothing, and who
+     * has not opened it.
+     *
+     * @param \stdClass $event
+     * @param int $now
+     * @return array|false
+     */
+    protected static function replies(\stdClass $event, int $now) {
+        $c = self::C;
+        $all = invites::replies((int) $event->id);
+        if (!array_filter($all)) {
+            return false;
+        }
+        $people = households::some((int) $event->centreid, array_keys($all['yes'] + $all['no'] + $all['opened'] + $all['none']));
+        $groups = [];
+        foreach ($all as $key => $list) {
+            $rows = [];
+            foreach ($list as $id => $time) {
+                if (isset($people[$id])) {
+                    $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $time ? panel::when_words($time, $now) : '',
+                        'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false)];
+                }
+            }
+            if ($rows) {
+                $groups[] = ['key' => $key, 'name' => get_string('panel_replies_' . $key, $c), 'n' => count($rows), 'rows' => $rows,
+                    'open' => in_array($key, ['yes', 'no'], true)];
+            }
+        }
+        return $groups ? ['groups' => $groups] : false;
     }
 
     /**
@@ -680,7 +713,9 @@ class panel_event {
         $gap = '<span class="su-nombre">' . s(get_string('panel_invite_name_here', $c)) . '</span>';
         $after = s(trim($after));
         if (!get_config($c, 'letterplain') && preg_match('~<a href="([^"]+)">(.*?)</a>~', $html, $link)) {
-            $after = str_replace($link[1], '<span class="va-enlace">' . $link[2] . '</span>', $after);
+            // What the link says goes once: in the text alone it is said before the address.
+            $words = '<span class="va-enlace">' . $link[2] . '</span>';
+            $after = str_replace([$link[2] . ":\n" . $link[1], $link[1]], [$words, $words], $after);
         }
         $langs = [];
         foreach ($all as $household) {

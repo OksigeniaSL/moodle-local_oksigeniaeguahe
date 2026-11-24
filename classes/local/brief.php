@@ -17,10 +17,11 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * The brief form inside the web of a centre (w.php and j.php with breve=1): what is needed to answer and nothing else, all
- * of it in sight, with no wall, no drawings and no scroll, for the window the web opens. The rest (what they call the child
- * at home, the birthday, how they heard of the centre, how they want to be written to) is told later, if they wish, on the
- * page of the family.
+ * The form of a sign-up, or of writing to the centre: what is needed to answer and nothing else, all of it in sight. The
+ * same inside the web of a centre (w.php and j.php with breve=1: no wall, no drawings and no scroll, for the window the web
+ * opens) and on the whole page (joinpage), which also asks the questions the centre wrote. The rest (what they call the
+ * child at home, the birthday, where they live, how they heard of the centre) is told later, if they wish, on the page of
+ * the family.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -88,15 +89,18 @@ class brief {
      *
      * @param array $data As signup::read() gives it.
      * @param \stdClass $event
-     * @param \stdClass|null $question
+     * @param \stdClass|null $question The only one asked, inside a web; null on the whole page, which asks them all.
+     * @param bool $whole Whether it is the whole page.
      * @return array
      */
-    public static function data(array $data, \stdClass $event, ?\stdClass $question): array {
+    public static function data(array $data, \stdClass $event, ?\stdClass $question, bool $whole = false): array {
         $first = $data['adults'][0];
         // At an act, the confirmation goes by what they gave; a form asks for an answer, and the rest is for later.
         $data['consents'] = $event->kind === 'form' ? [] : ['email' => $first['email'] !== '' ? 1 : 0,
             'phone' => $first['phone'] !== '' ? 1 : 0];
-        $data['answers'] = $question ? array_intersect_key($data['answers'] ?? [], [$question->id => 1]) : [];
+        if (!$whole) {
+            $data['answers'] = $question ? array_intersect_key($data['answers'] ?? [], [$question->id => 1]) : [];
+        }
         return $data;
     }
 
@@ -106,9 +110,10 @@ class brief {
      * @param array $errors
      * @param \stdClass|null $question
      * @param array $data As signup::read() gives it: what is missing is all said at once.
+     * @param bool $whole Whether it is the whole page, with all the questions of the centre in sight.
      * @return array
      */
-    public static function errors(array $errors, ?\stdClass $question, array $data): array {
+    public static function errors(array $errors, ?\stdClass $question, array $data, bool $whole = false): array {
         if ($data['adults'][0]['email'] === '' && $data['adults'][0]['phone'] === '') {
             $errors['a0phone'] = $errors['a0phone'] ?? 'pub_err_reach';
         }
@@ -116,7 +121,11 @@ class brief {
         if ($question) {
             $seen[] = 'f' . $question->id;
         }
-        return array_intersect_key($errors, array_flip($seen));
+        return array_filter(
+            $errors,
+            fn($name) => in_array($name, $seen, true) || ($whole && preg_match('/^f\d+$/', $name)),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**
@@ -127,17 +136,32 @@ class brief {
      * @param int $id Of the entry, or the act.
      * @param string $ip
      * @param int $now
+     * @param bool $many Whether many come from one address by right: a computer of the centre, or the code of its door.
      * @return bool
      */
-    public static function person(string $mark, string $trap, int $id, string $ip, int $now): bool {
+    public static function person(string $mark, string $trap, int $id, string $ip, int $now, bool $many = false): bool {
         if ($trap !== '' || $now - (int) $mark < self::SOONEST) {
             return false;
+        }
+        if ($many) {
+            return true;
         }
         $cache = \cache::make('local_oksigeniaeguahe', 'signupsfrom');
         $key = sha1($ip . '|breve|' . $id . '|' . get_site_identifier());
         $count = (int) $cache->get($key) + 1;
         $cache->set($key, $count);
         return $count <= self::PERHOUR;
+    }
+
+    /**
+     * What is said to whoever is not taken for a person: too soon (the browser filled it), it is enough to press again.
+     *
+     * @param string $mark
+     * @param int $now
+     * @return string
+     */
+    public static function refusal(string $mark, int $now): string {
+        return $now - (int) $mark < self::SOONEST ? 'pub_err_soon' : 'pub_err_toomany';
     }
 
     /**
@@ -151,6 +175,7 @@ class brief {
      * @param \moodle_url $url
      * @param string $mark
      * @param \stdClass|null $question
+     * @param bool $whole Whether it is the whole page, which asks every question of the centre.
      * @return array
      */
     public static function context(
@@ -161,7 +186,8 @@ class brief {
         array $errors,
         \moodle_url $url,
         string $mark,
-        ?\stdClass $question
+        ?\stdClass $question,
+        bool $whole = false
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $fallback = (string) ($centre->lang ?: 'es');
@@ -174,13 +200,14 @@ class brief {
         $either = isset($errors['a0phone']) && $adult['phone'] === '' && $adult['email'] === '' ? $short('a0phone', 'reach') : '';
         $field = fn(string $name, string $label, string $value, string $error, array $more = []) => $more + ['name' => $name,
             'label' => $str($label), 'value' => $value, 'error' => $error, 'type' => 'text', 'autocomplete' => 'off',
-            'inputmode' => '', 'ltr' => false, 'select' => false, 'need' => ''];
+            'inputmode' => '', 'ltr' => false, 'select' => false, 'need' => '', 'peg' => false, 'fold' => false];
         $self = !empty($data['self']);
         $askchild = !$self && $event->kind !== 'other';
         $fields = [$field('a0first', 'pub_breve_you', $adult['firstname'], $short('a0first', 'name'), ['autocomplete' => 'given-name',
             'need' => 'nombre'])];
         if ($askchild) {
-            $fields[] = $field('c0name', 'pub_breve_child', $child['firstname'], $short('c0name', 'child'), ['need' => 'alumno']);
+            $fields[] = $field('c0name', 'pub_breve_child', $child['firstname'], $short('c0name', 'child'), ['need' => 'alumno',
+                'peg' => $whole]);
         }
         $fields[] = $field('a0phone', 'pub_phone', $adult['phone'], $reach, ['type' => 'tel', 'autocomplete' => 'tel',
             'inputmode' => 'tel', 'ltr' => true, 'need' => 'contacto']);
@@ -215,9 +242,11 @@ class brief {
             $fields[] = $field('slot', 'pub_breve_slot', '', $short('slot', 'slot'), ['select' => ['none' => '—', 'groups' => [],
                 'options' => $slots]]);
         }
-        $fields[] = $field('message', 'pub_breve_message', $data['message'], '', []);
+        // To write, folded where there is a page for it.
+        $fields[] = $field('message', 'pub_breve_message', $data['message'], '', ['fold' => $whole]);
+        $seen = count($fields) - ($whole ? 1 : 0);
         $ask = false;
-        if ($question) {
+        if ($question && !$whole) {
             $texts = forms::texts($question, $lang, $fallback);
             $given = (string) ($data['answers'][$question->id] ?? '');
             $options = [];
@@ -228,14 +257,15 @@ class brief {
             $ask = ['name' => 'f' . $question->id, 'label' => isset($errors['f' . $question->id]) ? $str('pub_breve_err_ask') :
                 $texts['label'], 'error' => isset($errors['f' . $question->id]), 'options' => $options];
         }
+        $questions = $whole ? self::questions($event, $centre, $lang, $data, $errors) : [];
         return [
             'action' => $url->out(false),
             'mark' => $mark,
             'trap' => self::TRAP,
             'self' => $self,
             'ask' => $ask,
-            'fields' => array_map(fn($f, $i) => $f + ['id' => 'b' . $i, 'last' => $i === count($fields) - 1 &&
-                count($fields) % 2 === 1], $fields, array_keys($fields)),
+            'fields' => array_map(fn($f, $i) => $f + ['id' => $whole ? $f['name'] : 'b' . $i,
+                'last' => $i === $seen - 1 && $seen % 2 === 1], $fields, array_keys($fields)),
             'arrival' => array_map(
                 fn($k) => ['key' => $k, 'value' => (string) ($data['arrival'][$k] ?? '')],
                 array_keys(arrival::FIELDS)
@@ -243,11 +273,59 @@ class brief {
             // What is wrong with the whole of it goes where the hint was.
             'hint' => isset($errors['form']) ? $errors['form'] : ($errors['people'] ?? $str('pub_breve_hint')),
             'hinterror' => isset($errors['form']) || isset($errors['people']),
+            // How many come, at an act; and, at a talk or a party, whether they want to be told of the centre too.
+            'people' => $event->kind === 'form' ? false : ['name' => 'people', 'label' => $str('pub_join_people'),
+                'value' => max(1, min(events::MAXPEOPLE, (int) $data['people'] ?: 1)), 'min' => 1, 'max' => events::MAXPEOPLE,
+                'less' => $str('pub_join_less'), 'more' => $str('pub_join_more')],
+            'tellme' => $event->kind === 'other' ? ['name' => 'tellme', 'label' => $str('pub_tellme'),
+                'checked' => !empty($data['tellme'])] : false,
+            'whole' => $whole,
+            'questions' => ['fields' => $questions],
+            'hasquestions' => (bool) $questions,
+            // A slip in the domain of an email (gmial.com), to point it out as it is written.
+            'emailcheck' => $whole ? ['domains' => implode(' ', emailcheck::DOMAINS), 'maybe' => $str('pub_email_maybe'),
+                'use' => $str('pub_email_use')] : false,
             'privacyurl' => publicpage::privacy_url($centre, $lang)->out(false),
-            'privacy' => $str('pub_privacy_link'),
-            'send' => $str($event->kind === 'form' ? 'pub_submit_form' : 'pub_submit' . ($self ? '_self' : '')),
+            'privacy' => $str('pub_breve_privacy'),
+            'info' => joinpage::first_layer($centre, $lang),
+            'send' => $str($event->kind === 'form' ? 'pub_submit_form' : ((int) ($event->free ?? 0) === acts::FREE_ASKS ?
+                'mail_letter_come' : 'pub_submit' . ($self ? '_self' : ''))),
             'sent' => false,
         ];
+    }
+
+    /**
+     * The questions the whole page asks: those of the form of the centre and, for a visit made to measure, when it suits
+     * them, as one more.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param array $data
+     * @param array $errors
+     * @return array As forms::context() gives them.
+     */
+    protected static function questions(\stdClass $event, \stdClass $centre, string $lang, array $data, array $errors): array {
+        $form = !empty($event->formid) ? entries::get((int) $event->formid, (int) $centre->id) : null;
+        $out = $form ? forms::context($form, $lang, (string) ($centre->lang ?: 'es'), $data['answers'] ?? [], $errors) : [];
+        if (!empty($event->tailored)) {
+            $blank = ['id' => 0, 'help' => '', 'required' => false, 'value' => '', 'error' => '', 'invalid' => false,
+                'hidden' => false, 'showif' => '', 'showvalue' => '', 'issection' => false, 'istext' => false, 'islong' => false,
+                'isdate' => false, 'date' => false, 'isnumber' => false, 'ischips' => false, 'isscale' => false, 'ismulti' => true];
+            $days = [];
+            foreach (visits::day_names($lang) as $day => $name) {
+                $days[] = ['value' => $day, 'id' => 'tday-' . $day, 'label' => $name,
+                    'checked' => in_array($day, array_map('intval', $data['days'] ?? []), true)];
+            }
+            $periods = [];
+            foreach (visits::PERIODS as $period) {
+                $periods[] = ['value' => $period, 'id' => 'tperiod-' . $period, 'label' => publiclang::str('pub_period_' . $period, $lang),
+                    'checked' => in_array($period, $data['periods'] ?? [], true)];
+            }
+            $out[] = ['name' => 'tday', 'label' => publiclang::str('pub_when_suits', $lang), 'options' => $days] + $blank;
+            $out[] = ['name' => 'tperiod', 'label' => publiclang::str('pub_when_suits_part', $lang), 'options' => $periods] + $blank;
+        }
+        return $out;
     }
 
     /**
@@ -311,7 +389,9 @@ class brief {
 <meta name="color-scheme" content="only light">
 <title>' . s($title) . '</title>
 <style>:root { ' . $style . ' }
-' . str_replace('url(fonts/', 'url(' . $base . 'fonts/', file_get_contents(dirname(__DIR__, 2) . '/pub/breve.css')) . '</style>
+' . str_replace('url(fonts/', 'url(' . $base . 'fonts/', file_get_contents(dirname(__DIR__, 2) . '/pub/breve.css') .
+            file_get_contents(dirname(__DIR__, 2) . '/pub/formulario.css')) . '</style>
+<script src="' . $base . 'formulario.js?v=' . $version . '" defer></script>
 <script src="' . $base . 'breve.js?v=' . $version . '" defer></script>
 </head>
 <body' . (!empty($context['sent']) ? ' data-enviado' : '') . '>

@@ -1,0 +1,810 @@
+/* Signing up on its own page, on one screen: at one side the poster of the act, large, or the rail with what hangs from
+   it; at the other the form (formulario.css), whole. On a phone, one under the other: what, when and where; the form; and
+   what is told besides. */
+.unir {
+    display: grid;
+    gap: 18px;
+    align-self: start;
+    padding: 14px var(--g) 22px;
+}
+
+.unir .fb {
+    --fb-papel: var(--eg-superficie);
+    --fb-tinta: var(--eg-tinta);
+    --fb-tinta-2: var(--eg-tinta-2);
+    --fb-borde: var(--eg-borde);
+    --fb-error: var(--eg-error);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .unir .fb {
+        /* stylelint-disable-next-line function-url-scheme-disallowed-list */
+        --fb-flecha: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23f3ece6' stroke-width='2'/%3E%3C/svg%3E");
+    }
+}
+
+.unir-cabeza {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
+}
+
+.unir-que {
+    min-width: 0;
+}
+
+.unir-titulo {
+    margin-top: 2px;
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(1.75rem, 6vw, 3rem);
+    font-weight: 780;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+}
+
+.unir-titulo.largo {
+    /* stylelint-disable-next-line csstree/validator */
+    font-size: clamp(1.375rem, 4.4vw, 2.125rem);
+    line-height: 1.12;
+}
+
+/* What the poster already says in large is written here in small. */
+.con-cartel .unir-titulo,
+.con-cartel .unir-titulo.largo {
+    font-size: 1.375rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+.unir-cuando {
+    margin-top: 6px;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+}
+
+.unir-cuando b {
+    display: inline-block;
+    margin-inline-end: 0.5em;
+}
+
+.unir-cuando b::first-letter {
+    text-transform: uppercase;
+}
+
+.unir-horas {
+    white-space: nowrap;
+}
+
+.unir-donde {
+    color: var(--eg-tinta-2);
+    overflow-wrap: anywhere;
+}
+
+.unir-libre {
+    margin-top: 6px;
+    font-weight: 700;
+}
+
+.unir-cartel {
+    display: block;
+    justify-self: start;
+    padding: 5px;
+    border-radius: 3px;
+    background: #fff;
+    box-shadow: 0 12px 24px -12px rgba(40, 30, 20, 0.55);
+    cursor: zoom-in;
+}
+
+.unir-cartel img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.unir-cartel:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 3px;
+}
+
+/* On a phone, an upright poster stands beside what it is; a wide one, over it. */
+.con-cartel:not(.apaisado) .unir-cabeza {
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    align-items: start;
+}
+
+.apaisado .unir-cartel {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.unir-mas {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    order: 3;
+    min-width: 0;
+}
+
+.unir .caras-mini .ini {
+    color: var(--eg-tinta);
+}
+
+.unir-mas .acto-ponentes {
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+
+.unir-hoja {
+    align-self: start;
+    min-width: 0;
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--eg-papel);
+    box-shadow: 0 14px 34px -20px rgba(40, 30, 20, 0.5);
+}
+
+.unir-hola {
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    font-weight: 780;
+    line-height: 1.15;
+}
+
+.unir-conocida .unir-hola {
+    font-size: 1.75rem;
+}
+
+/* Who signs up, where either may: two links, the one it is for marked. */
+.unir-para {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 4px;
+    margin-bottom: 14px;
+    padding: 4px;
+    border: 1px solid var(--eg-borde);
+    border-radius: 14px;
+}
+
+.unir-para a {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+}
+
+.unir-para a[aria-current] {
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.unir-para a:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+/* Seen from the panel: nothing is sent. */
+.unir-previa {
+    margin: 0;
+    padding: 8px var(--g);
+    background: var(--c-acento-suave);
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    text-align: center;
+}
+
+.unir-aviso {
+    margin: -4px 0 12px;
+    line-height: 1.4;
+}
+
+/* Known: two buttons, and the first one is enough; what comes after is kept by itself. */
+.unir form.unir-respuesta {
+    display: block;
+}
+
+.unir-pregunta {
+    margin: -2px 0 12px;
+}
+
+.unir-botones {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 10px;
+}
+
+.unir-si,
+.unir-no {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    min-height: 64px;
+    padding: 8px 14px;
+    border: 2px solid var(--eg-borde);
+    border-radius: 16px;
+    background: transparent;
+    color: var(--eg-tinta);
+    font: inherit;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.unir-no {
+    gap: 6px;
+    padding-inline: 8px;
+    font-size: 0.9375rem;
+}
+
+.unir-si {
+    border-color: transparent;
+    background: var(--c-acento);
+    box-shadow: 0 8px 14px -8px var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-size: 1.25rem;
+}
+
+/* What they said is the one that is full; the other stays at hand, quiet. */
+.unir-no[aria-pressed="true"] {
+    border-color: var(--c-acento-texto);
+    background: var(--c-acento-suave);
+}
+
+.unir-botones.dijo-no .unir-si {
+    border-color: var(--eg-borde);
+    background: transparent;
+    box-shadow: none;
+    color: var(--eg-tinta);
+}
+
+.unir-si svg,
+.unir-no svg {
+    display: none;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.unir-no svg {
+    width: 18px;
+    height: 18px;
+}
+
+.unir-botones [aria-pressed="true"] > svg {
+    display: block;
+}
+
+.unir-si:focus-visible,
+.unir-no:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.unir-lleno {
+    margin-top: 12px;
+    color: var(--eg-error);
+    font-weight: 650;
+}
+
+.unir-lleno:empty,
+.unir-hecho:empty {
+    display: none;
+}
+
+.unir-hecho {
+    margin-top: 12px;
+    font-weight: 650;
+}
+
+.unir-detalle {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.unir-detalle[hidden] {
+    display: none;
+}
+
+.unir-vias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.unir-vias legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 2px;
+    padding: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.unir-vias label {
+    position: relative;
+    cursor: pointer;
+}
+
+.unir-vias input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.unir-vias span {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+}
+
+.unir-vias span svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+
+.unir-vias input:checked + span {
+    border-color: var(--c-acento);
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-weight: 700;
+}
+
+.unir-vias input:focus-visible + span {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.unir-guardado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 22px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.unir-guardado [hidden] {
+    display: none;
+}
+
+.unir-otra {
+    margin-top: 16px;
+    padding-top: 6px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.unir-otra a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--c-acento-texto);
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+/* The band of the centre, as the poster that is filled to make the act. */
+.unir-tipo {
+    color: var(--c-acento-texto);
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.con-banda .unir-tipo {
+    justify-self: start;
+    width: fit-content;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px var(--c-banda-linea);
+    color: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.con-banda .unir-cabeza {
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.con-banda .unir-donde {
+    color: inherit;
+}
+
+/* On its own colour, the title of a centre with its brand is in the ink of the band, without its line. */
+.con-marca main .con-banda .unir-titulo {
+    color: inherit;
+}
+
+.con-marca main .unir h1::after {
+    display: none;
+}
+
+.con-banda .unir-cartel:focus-visible {
+    outline-color: var(--c-sobre-acento);
+}
+
+/* The rail, to its size: the backpack whose label writes itself, or the leaf of the day. */
+.unir-riel {
+    position: relative;
+    margin-inline: calc(var(--g) * -1);
+}
+
+.unir-riel .riel {
+    height: 22px;
+    margin-top: 0;
+}
+
+.unir-riel .perchas {
+    padding-bottom: 0;
+}
+
+.unir-riel .colgante,
+.unir-riel .perchas[class*="n"] .colgante {
+    /* stylelint-disable-next-line csstree/validator */
+    width: clamp(84px, 24vw, 132px);
+}
+
+.unir-hoja-dia {
+    display: grid;
+    float: inline-end;
+    justify-items: center;
+    width: 84px;
+    margin: 0 0 8px;
+    margin-inline-start: 14px;
+    padding: 0 0 7px;
+    border-radius: 8px;
+    background: var(--eg-chapita);
+    box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.6);
+    color: var(--eg-chapita-tinta);
+    text-align: center;
+}
+
+.unir-hoja-dia small {
+    width: 100%;
+    padding: 5px 0 4px;
+    border-bottom: 1px solid #e7ded3;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.unir-hoja-dia b {
+    font-size: 2.375rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+}
+
+.unir-hoja-dia span {
+    font-size: 0.75rem;
+}
+
+/* The questions of a form of the centre are the ones of always; here, with the fields of this form. */
+.unir .fb-preguntas {
+    display: grid;
+    gap: 14px;
+}
+
+.unir .fb-preguntas .fichas {
+    gap: 8px;
+}
+
+.unir .fb-preguntas .ficha {
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px 0 10px;
+    font-size: 0.9375rem;
+}
+
+@media (min-width: 960px) {
+    .unir {
+        position: relative;
+        grid-template-columns: minmax(0, 1fr) minmax(430px, 40%);
+        grid-template-areas: "cabeza hoja" "mas hoja";
+        grid-template-rows: auto 1fr;
+        gap: 0 40px;
+        padding-block: 20px 22px;
+    }
+
+    .unir-cabeza {
+        grid-area: cabeza;
+    }
+
+    .unir-mas {
+        grid-area: mas;
+        order: 0;
+        margin-top: 18px;
+    }
+
+    .unir-hoja {
+        grid-area: hoja;
+        position: sticky;
+        top: 16px;
+        padding: 22px 24px 18px;
+    }
+
+    /* The band holds it all: the poster, what it is and what is told. */
+    .con-banda::before {
+        content: '';
+        grid-column: 1;
+        grid-row: 1 / 3;
+        border-radius: 18px;
+        background: var(--c-acento);
+        box-shadow: 0 14px 34px -20px rgba(40, 30, 20, 0.6);
+    }
+
+    .con-banda .unir-cabeza {
+        position: relative;
+        padding: 28px 30px 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .con-banda .unir-mas {
+        position: relative;
+        padding: 0 30px 28px;
+        color: var(--c-sobre-acento);
+    }
+
+    .con-banda .unir-mas .suave {
+        color: inherit;
+    }
+
+    .con-banda .unir-mas .iniciales {
+        background: var(--c-sobre-acento);
+        color: var(--c-acento);
+    }
+
+    .con-banda .unir-hoja-dia {
+        width: 112px;
+    }
+
+    .unir-hoja-dia b {
+        font-size: 3.25rem;
+    }
+
+    .unir-cartel {
+        padding: 6px;
+    }
+
+    .con-cartel .unir-titulo,
+    .con-cartel .unir-titulo.largo {
+        font-size: 1.5rem;
+    }
+
+    /* Upright: as tall as the screen leaves it, with what it is and what is told beside it. */
+    .con-cartel:not(.apaisado) {
+        grid-template-columns: auto minmax(0, 1fr) minmax(400px, 36%);
+        grid-template-areas: "cartel que hoja" "cartel mas hoja";
+        column-gap: 0;
+    }
+
+    .con-cartel:not(.apaisado)::before,
+    .apaisado::before {
+        grid-column: 1 / 3;
+    }
+
+    .con-cartel .unir-cabeza {
+        display: contents;
+    }
+
+    .con-cartel .unir-cartel,
+    .con-cartel .unir-que {
+        position: relative;
+    }
+
+    .con-cartel:not(.apaisado) .unir-cartel {
+        grid-area: cartel;
+        align-self: start;
+        margin: 22px 0 22px 22px;
+    }
+
+    .con-cartel:not(.apaisado) .unir-cartel img {
+        width: auto;
+        /* stylelint-disable-next-line csstree/validator */
+        max-width: min(32vw, 620px);
+        /* stylelint-disable-next-line csstree/validator */
+        max-height: var(--cartel-alto, max(300px, calc(100vh - 272px)));
+    }
+
+    [dir="rtl"] .con-cartel:not(.apaisado) .unir-cartel {
+        margin: 22px 22px 22px 0;
+    }
+
+    .con-cartel:not(.apaisado) .unir-que {
+        grid-area: que;
+        padding: 24px 24px 0;
+    }
+
+    .con-cartel:not(.apaisado) .unir-mas {
+        padding: 0 24px 22px;
+    }
+
+    .con-cartel:not(.apaisado) .unir-mas .acto-ponentes {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .con-cartel .unir-hoja {
+        margin-inline-start: 32px;
+    }
+
+    /* Wide: under it, what it is and what is told, side by side. */
+    .apaisado {
+        grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr) minmax(430px, 40%);
+        grid-template-areas: "cartel cartel hoja" "que mas hoja";
+        column-gap: 0;
+    }
+
+    .apaisado .unir-cartel {
+        grid-area: cartel;
+        justify-self: center;
+        width: fit-content;
+        max-width: calc(100% - 44px);
+        margin: 22px 22px 0;
+    }
+
+    .apaisado .unir-cartel img {
+        width: auto;
+        max-width: 100%;
+        /* stylelint-disable-next-line csstree/validator */
+        max-height: var(--cartel-alto, max(220px, calc(100vh - 444px)));
+    }
+
+    .apaisado .unir-que {
+        grid-area: que;
+        padding: 16px 14px 20px 24px;
+    }
+
+    .apaisado .unir-mas {
+        gap: 8px;
+        margin-top: 16px;
+        padding: 0 24px 20px 14px;
+        font-size: 0.9375rem;
+    }
+
+    .apaisado .acto-ponentes img,
+    .apaisado .acto-ponentes .iniciales {
+        width: 40px;
+        height: 40px;
+    }
+
+    [dir="rtl"] .apaisado .unir-que {
+        padding: 16px 24px 20px 14px;
+    }
+
+    [dir="rtl"] .apaisado .unir-mas {
+        padding: 0 14px 20px 24px;
+    }
+
+    /* Nobody has to say anything: the poster has the page to itself. */
+    .sin-hoja {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "cabeza" "mas";
+    }
+
+    .sin-hoja.con-cartel:not(.apaisado) {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas: "cartel que" "cartel mas";
+    }
+
+    .sin-hoja.apaisado {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas: "cartel cartel" "que mas";
+    }
+
+    .unir-riel .colgante,
+    .unir-riel .perchas[class*="n"] .colgante {
+        /* stylelint-disable-next-line csstree/validator */
+        width: clamp(140px, 14vw, 220px);
+    }
+}
+
+/* What it is about, cut where the page would not fit on the screen; the rest, with a touch (formulario.js). */
+.unir-mas .recortado {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--lineas, 4);
+}
+
+.unir-leer {
+    justify-self: start;
+    min-height: 32px;
+    margin-top: -8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.unir-leer:focus-visible {
+    outline: 3px solid currentcolor;
+    outline-offset: 2px;
+}
+
+/* The page is as tall as the screen, and its foot one line: this sheet is only of this page. */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Inside the web of the centre, as tall as what it says. */
+.incrustado {
+    min-height: 0;
+}
+
+main {
+    display: grid;
+    flex: 1 0 auto;
+    background: radial-gradient(ellipse 70% 90% at 25% 20%, var(--eg-luz), transparent 70%), var(--c-pared);
+}
+
+.pie {
+    margin-top: 0;
+    padding-block: 10px 14px;
+    font-size: 0.8125rem;
+}
+
+@media (min-width: 960px) {
+    .pie {
+        flex-wrap: nowrap;
+    }
+
+    .pie > span {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .pie a,
+    .pie .firma {
+        flex: none;
+    }
+
+    .pie .firma a {
+        display: inline-flex;
+        align-items: center;
+    }
+}

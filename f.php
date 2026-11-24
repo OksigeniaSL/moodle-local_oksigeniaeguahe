@@ -36,6 +36,7 @@ use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\hobbies;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
@@ -413,6 +414,32 @@ if ($action === 'hobbies' && data_submitted() && confirm_sesskey()) {
         die();
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'gustos' => 1], 'aficiones'));
+}
+
+if ($action === 'contar' && data_submitted() && confirm_sesskey()) {
+    // What the form of a sign-up no longer asks, told here by whoever wants, each thing by itself.
+    $told = ['heardfrom' => optional_param('heardfrom', '', PARAM_ALPHA)];
+    $place = optional_param('municipality', '', PARAM_RAW_TRIMMED);
+    $places = centres::municipalities($centre);
+    if (isset($places[$place])) {
+        $told += ['municipality' => $place, 'municipalityname' => $places[$place]];
+    } else if ($place === 'moving') {
+        $told += ['moving' => 1];
+    } else if ($place === 'other') {
+        $told += ['municipalityname' => publiclang::str('pub_where_other', (string) ($centre->lang ?: 'es'))];
+    }
+    if (!in_array($told['heardfrom'], lists::HEARD_FROM, true)) {
+        unset($told['heardfrom']);
+    }
+    households::complete($household, (object) $told);
+    if (optional_param('fetch', 0, PARAM_BOOL)) {
+        publicpage::headers();
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('Cache-Control: no-store');
+        echo json_encode(['saved' => (bool) $told, 'thanks' => publiclang::str('pub_tell_thanks', $lang)]);
+        die();
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
 }
 
 if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
