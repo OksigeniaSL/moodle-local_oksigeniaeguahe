@@ -1250,6 +1250,7 @@
                 }
             };
             boxes.addEventListener('change', mark);
+            mark();
         }
 
         // A computer of the centre at the act: after a while, the form again, empty, for the next family.

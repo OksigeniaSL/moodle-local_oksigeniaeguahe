@@ -269,6 +269,10 @@
         var show = function(said, mine) {
             tell('');
             full.textContent = said.full || '';
+            if (!said.ways) {
+                // The act is over or closed, or the letter is no longer theirs: only why.
+                return;
+            }
             done.textContent = said.done || '';
             detail.hidden = !said.answered;
             field('[data-fb-paso]').hidden = !said.coming;

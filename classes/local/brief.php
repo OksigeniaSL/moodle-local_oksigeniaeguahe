@@ -343,7 +343,8 @@ class brief {
             return ['sent' => ['title' => publiclang::str('pub_breve_signed', $lang),
                 'text' => publiclang::str('pub_breve_signed_text', $lang, (object) ['event' => format_string($event->name),
                     'date' => $parts['long']]),
-                'url' => $page ? $page->out(false) : '', 'more' => publiclang::str('pub_breve_more', $lang)]];
+                'url' => $page ? $page->out(false) : '', 'more' => publiclang::str($event->kind === 'other' &&
+                    !events::slots((int) $event->id) ? 'pub_act_change' : 'pub_breve_more', $lang)]];
         }
         $days = workdays::promise($centre, time(), $lang);
         return ['sent' => ['title' => publiclang::str('pub_breve_sent', $lang),

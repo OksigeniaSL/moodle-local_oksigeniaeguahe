@@ -157,7 +157,7 @@ class household_form extends \moodleform {
     public static function event_options(\stdClass $centre): array {
         $options = [0 => get_string('form_noevent', 'local_oksigeniaeguahe')];
         foreach (events::for_centre((int) $centre->id) as $event) {
-            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
+            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored) && empty($event->cancelled)) {
                 $options[$event->id] = format_string($event->name) . ' · ' .
                     userdate((int) $event->timestart, get_string('strftimedatetimeshort', 'langconfig'));
             }

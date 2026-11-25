@@ -134,22 +134,25 @@ class visits {
         global $DB;
         households::admit((int) $household->id);
         $centreid = (int) $household->centreid;
-        // The name the family reads: who guides them.
-        $host = $guide ? (centres::hosts($centreid, [$guide])[0] ?? null) : null;
-        $lang = $household->lang ?: 'es';
-        $name = $host ? publiclang::str('visit_name', $lang, $host->first) : publiclang::str('visit_name_team', $lang);
+        $name = self::name($household, $guide);
         $transaction = $DB->start_delegated_transaction();
         // A visit of its own still to come is replaced by this one, never kept beside it: one day for the family, and
         // no reminder of the old one.
         $now = time();
         $old = $DB->get_records_select(
             events::T,
-            'householdid = ? AND timeend >= ? AND cancelled = 0',
+            // The one under way stays, with what was noted of it: the next one is given while they are here.
+            'householdid = ? AND timestart > ? AND cancelled = 0',
             [$household->id, $now],
             '',
             'id'
         );
         foreach (array_keys($old) as $oldid) {
+            if ($DB->record_exists_select(events::SIGNUPS, 'eventid = ? AND (attended > 0 OR missed > 0)', [$oldid])) {
+                // Came earlier than its hour, and noted: it happened.
+                unset($old[$oldid]);
+                continue;
+            }
             $DB->delete_records(events::SIGNUPS, ['eventid' => $oldid]);
             $DB->update_record(events::T, (object) ['id' => $oldid, 'cancelled' => $now, 'open' => 0, 'timemodified' => $now]);
         }
@@ -169,6 +172,19 @@ class visits {
         }
         $transaction->allow_commit();
         return $event;
+    }
+
+    /**
+     * The name the family reads of a visit of its own: who guides them.
+     *
+     * @param \stdClass $household
+     * @param int $guide
+     * @return string
+     */
+    public static function name(\stdClass $household, int $guide): string {
+        $host = $guide ? (centres::hosts((int) $household->centreid, [$guide])[0] ?? null) : null;
+        $lang = $household->lang ?: 'es';
+        return $host ? publiclang::str('visit_name', $lang, $host->first) : publiclang::str('visit_name_team', $lang);
     }
 
     /**

@@ -337,7 +337,8 @@ class appointments {
     ): array {
         $replaced = null;
         foreach (self::of($household) as $one) {
-            $replaced = $one['kind'] === 'visit' && $one['state'] === 'coming' ? $one : $replaced;
+            $replaced = $one['kind'] === 'visit' && $one['state'] === 'coming' && $one['start'] > time() ?
+                $one : $replaced;
         }
         $event = visits::propose($household, $start, $minutes, $guide, $place, $people);
         self::receives($event, $guide);
@@ -372,8 +373,11 @@ class appointments {
         if (!$event) {
             return null;
         }
-        events::save((int) $centre->id, (object) ['id' => (int) $event->id, 'kind' => 'visit', 'name' => $event->name, 'place' => $place,
-            'timestart' => $start, 'timeend' => $start + max(15, $minutes) * MINSECS, 'capacity' => 0, 'open' => 0, 'hosts' => [$guide]]);
+        events::save((int) $centre->id, (object) ['id' => (int) $event->id, 'kind' => 'visit', 'name' => \core_text::substr(
+            visits::name($household, $guide),
+            0,
+            255
+        ), 'place' => $place, 'timestart' => $start, 'timeend' => $start + max(15, $minutes) * MINSECS, 'capacity' => 0, 'open' => 0, 'hosts' => [$guide]]);
         $DB->set_field(events::T, 'householdid', $household->id, ['id' => $event->id]);
         self::receives($event, $guide);
         // The reminder goes for the new day, and nothing said of the old one stands.

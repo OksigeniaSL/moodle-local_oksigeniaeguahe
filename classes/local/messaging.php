@@ -304,6 +304,10 @@ class messaging {
         }
         $lang = $household->lang ?: $centre->lang;
         if (self::mode($centre) !== 'conversation') {
+            if (method_exists($hook, 'is_attended') && $hook->is_attended()) {
+                // Its team does read that number, in its chat: it is for them, and the bot says nothing.
+                return;
+            }
             // Notices only: nobody reads it, so the bot says where to talk to the centre.
             $ways = array_filter([(string) ($centre->phone ?? ''), (string) ($centre->email ?? '')]);
             $hook->set_reply(publiclang::str($ways ? 'msg_notices_only' : 'msg_notices_only_page', $lang, (object) [

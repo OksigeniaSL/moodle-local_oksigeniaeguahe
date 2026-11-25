@@ -105,9 +105,11 @@ class invites {
      *
      * @param \stdClass $event
      * @param bool $ofcentre
+     * @param bool $sending Whether the letter of these families is the one going out now: those in the queue count too, and
+     *     one invited by phone with the same act still gets its letter.
      * @return \stdClass[]
      */
-    protected static function reachable(\stdClass $event, bool $ofcentre): array {
+    protected static function reachable(\stdClass $event, bool $ofcentre, bool $sending = false): array {
         global $DB;
         $centreid = (int) $event->centreid;
         $households = $DB->get_records(households::T, ['centreid' => $centreid, 'guest' => 0] + ($ofcentre ? ['roster' => 0] :
@@ -134,14 +136,20 @@ class invites {
             $emails[$adult->householdid] = true;
         }
         $done = array_flip(array_merge(
-            $DB->get_fieldset_select(self::T, 'householdid', 'eventid = ?', [$event->id]),
+            $DB->get_fieldset_select(
+                self::T,
+                'householdid',
+                'eventid = ?' . ($sending ? ' AND (channel IN (?, ?, ?) OR COALESCE(reply, ?) <> ?)' : ''),
+                $sending ? [$event->id, '', 'email', 'both', '', ''] : [$event->id]
+            ),
             $DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id])
         ));
         $phones = $centre && self::by_phone($centre);
         // Who lets the centre write by email, read once for the whole centre (one query per family does not scale).
         $allowed = households::emailable($centreid);
         // Those whose invitation is already on its way, waiting for the task.
-        $queued = self::queued((int) $event->id);
+        $queued = $sending ? [] : self::queued((int) $event->id);
+        $twice = self::shared_addresses($centreid);
         $out = [];
         foreach ($households as $id => $household) {
             $stages = $children[$id] ?? [];
@@ -164,11 +172,71 @@ class invites {
             $household->reachemail = !empty($emails[$id]) && self::by_mail($household, $centre, !empty($allowed[$id]));
             $household->reachphone = $phones && writeby::phone_ok($household, 'openinvite') &&
                 messaging::joined($household, $centre);
+            if ($household->reachemail && isset($twice[$id]) && !self::first_of($household, $twice[$id], $households, $event)) {
+                // Two files of the same people: one letter, and none if either said no more of them.
+                $household->reachemail = false;
+            }
             if ($household->reachemail || $household->reachphone) {
                 $out[$id] = $household;
             }
         }
         return $out;
+    }
+
+    /**
+     * The families of a centre with an address that is also of another one of its families.
+     *
+     * @param int $centreid
+     * @return array householdid => the ids of the others.
+     */
+    protected static function shared_addresses(int $centreid): array {
+        global $DB;
+        $by = [];
+        $rows = $DB->get_records_select(households::ADULTS, "centreid = ? AND COALESCE(email, '') <> ''", [$centreid], 'id ASC', 'id, householdid, email');
+        foreach ($rows as $row) {
+            $by[\core_text::strtolower(trim($row->email))][(int) $row->householdid] = true;
+        }
+        $out = [];
+        foreach ($by as $homes) {
+            foreach (count($homes) > 1 ? array_keys($homes) : [] as $id) {
+                $out[$id] = ($out[$id] ?? []) + array_diff_key($homes, [$id => true]);
+            }
+        }
+        return array_map('array_keys', $out);
+    }
+
+    /**
+     * Whether the letter of an act goes to this family and not to another file of the same people: the older one gets it, and
+     * neither does if one of them has it already, has signed up, or said no to being invited or written to.
+     *
+     * @param \stdClass $household
+     * @param int[] $others
+     * @param \stdClass[] $households Those of the centre that were read.
+     * @param \stdClass $event
+     * @return bool
+     */
+    protected static function first_of(\stdClass $household, array $others, array $households, \stdClass $event): bool {
+        global $DB;
+        $mine = \core_text::strtolower(households::recipient($household));
+        foreach ($others as $id) {
+            $other = $households[$id] ?? $DB->get_record(households::T, ['id' => $id]);
+            $same = $other && $DB->record_exists_select(
+                households::ADULTS,
+                'householdid = ? AND ' . $DB->sql_equal('email', '?', false),
+                [$id, $mine]
+            );
+            if (!$same) {
+                continue;
+            }
+            $has = $DB->record_exists(self::T, ['eventid' => $event->id, 'householdid' => $id]) ||
+                $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $id]);
+            $theirs = \core_text::strtolower(households::recipient($other)) === $mine;
+            if ($has || (int) $other->noinvites || writeby::silent($other) ||
+                    ($theirs && $id < (int) $household->id && empty($other->guest) && empty($other->incentre))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -286,6 +354,7 @@ class invites {
             return $none;
         }
         $eligible = self::eligible($event);
+        $ofcentre = [];
         if ($group !== '' || $ids !== null) {
             $ofcentre = self::of_centre($event);
             $groups = $group !== '' ? self::groups($event, $eligible, $ofcentre) : [];
@@ -311,7 +380,9 @@ class invites {
         if ($email) {
             $task = new \local_oksigeniaeguahe\task\send_invites();
             $task->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id, 'userid' => $userid,
-                'ids' => $email, 'words' => (string) ($event->invitewords ?? '')]);
+                'ids' => $email, 'words' => (string) ($event->invitewords ?? ''),
+                // Those already of the centre that a person chose: one that becomes of it while it waits gets no letter.
+                'centre' => array_values(array_intersect($email, array_keys($ofcentre)))]);
             $task->set_next_run_time(self::daytime($now));
             \core\task\manager::queue_adhoc_task($task, true);
             $out['email'] = count($email);
@@ -771,6 +842,7 @@ class invites {
      * @param int $now
      * @param int[] $ids The households to invite by email.
      * @param string $words What the team added, as it was when the invitation was sent.
+     * @param int[]|null $chosen Of them, those already of the centre that a person chose; null, whichever they are.
      * @return int How many were sent.
      */
     public static function send(
@@ -779,7 +851,8 @@ class invites {
         int $userid,
         int $now,
         array $ids,
-        string $words = ''
+        string $words = '',
+        ?array $chosen = null
     ): int {
         global $DB;
         if (!self::fits($event, $now)) {
@@ -788,7 +861,14 @@ class invites {
         $sent = 0;
         $pseudo = self::of_letter($event);
         $note = get_string('invite_note', self::C, format_string($event->name));
+        // As they are now, which may be hours after they were chosen: one that signed up meanwhile, was enrolled or closed, or
+        // asked for no more of these, gets no letter.
+        $theirs = self::reachable($event, true, true);
+        $still = self::reachable($event, false, true) + ($chosen === null ? $theirs : array_intersect_key($theirs, array_flip($chosen)));
         foreach ($ids as $id) {
+            if (empty($still[(int) $id]->reachemail)) {
+                continue;
+            }
             $household = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);
             if (
                 !$household || (int) $household->noinvites || !writeby::may_send($household, 'openinvite') ||
@@ -801,7 +881,8 @@ class invites {
                 continue;
             }
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
-            $token = households::new_link($household, 'invitation');
+            // The letter may be passed on: its link opens the page of the act and nothing else.
+            $token = households::new_link($household, 'letter');
             if (!familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token, null, $words)) {
                 continue;
             }
@@ -865,9 +946,14 @@ class invites {
         }
         $already = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]);
         $name = format_string($event->name);
+        $asked = $people;
         if ($reply === 'yes') {
             $people = max(1, min(events::MAXPEOPLE, $people ?: ($already ?: max(1, count(households::full($household)->adults)))));
             $slots = events::slots((int) $event->id);
+            if (!$slots && !$asked && !$already && $people > 1 && !events::has_room($event, $people)) {
+                // As many adults as they are do not fit: one, and the page lets them see it.
+                $people = 1;
+            }
             if ($slots || !events::has_room($event, $people, $already)) {
                 // With turns there is one to choose, on the whole form; without room, nothing is promised.
                 return false;
@@ -878,7 +964,7 @@ class invites {
             if (!$already) {
                 // What they said, in their history, once: nobody has to answer it.
                 households::received($household, 'event', get_string('invite_yes_note', self::C, (object) ['event' => $name,
-                    'people' => $people]), false, $now);
+                    'people' => $people]), false, $now, 0, '', '', false);
             }
         } else if (self::answer((int) $event->id, (int) $household->id) !== 'no') {
             $line = get_string('invite_no_note', self::C, $name);

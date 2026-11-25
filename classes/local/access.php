@@ -546,6 +546,7 @@ class access {
      * @param string $lang
      * @param string $token
      * @param string[] $sent The masked addresses the new link went to; empty before sending it.
+     * @param bool $letter Whether it is the link of the letter of an act, which opens the act and not their page.
      * @return array
      */
     public static function expired_context(
@@ -553,20 +554,21 @@ class access {
         \stdClass $centre,
         string $lang,
         string $token,
-        array $sent
+        array $sent,
+        bool $letter = false
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $action = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false);
         $emails = self::emails($household);
-        $out = ['title' => $str('pub_link_expired_title'), 'note' => false, 'error' => false, 'codeform' => false,
+        $out = ['title' => $str($letter ? 'pub_link_letter_title' : 'pub_link_expired_title'), 'note' => false, 'error' => false, 'codeform' => false,
             'sendform' => false, 'nowhere' => false, 'back' => false];
         if (!$emails) {
-            $out['text'] = $str('pub_link_expired_none');
+            $out['text'] = $str($letter ? 'pub_link_letter_none' : 'pub_link_expired_none');
             $out['nowhere'] = publicpage::reach($centre, $lang);
         } else if ($sent) {
             $out['text'] = $str('pub_link_expired_sent', familypage::join($sent, $lang));
         } else {
-            $out['text'] = $str('pub_link_expired');
+            $out['text'] = $str($letter ? 'pub_link_letter' : 'pub_link_expired');
             $out['sendform'] = ['action' => $action, 'sesskey' => sesskey(), 'step' => 'nuevoenlace', 'para' => '',
                 'label' => $str('pub_link_expired_send'), 'secondary' => false];
         }

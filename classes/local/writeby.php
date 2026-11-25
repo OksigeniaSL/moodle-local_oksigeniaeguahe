@@ -50,6 +50,9 @@ class writeby {
      * it, and they need to know (a visit they signed up to, cancelled). */
     const MUSTKNOW = ['cancelled'];
 
+    /** @var string[] What a family is told of something that still stands, whatever it asked: it counts on it. */
+    const STANDS = ['cancelled', 'change'];
+
     /** @var int[] The households a person of the team chose to write to anyway, in this request. */
     protected static $anyway = [];
 
@@ -145,7 +148,7 @@ class writeby {
         if (in_array($kind, ['reply', 'replyphone'], true) && !empty(self::$anyway[(int) $household->id])) {
             return true;
         }
-        return in_array($kind, self::ANSWERS, true) && self::wrote_after($household);
+        return in_array($kind, self::STANDS, true) || (in_array($kind, self::ANSWERS, true) && self::wrote_after($household));
     }
 
     /**
@@ -393,7 +396,10 @@ class writeby {
             return false;
         }
         $state = self::whatsapp($household, $centre);
-        return !$state['joined'] && !$state['asked'] && !$state['declined'];
+        $time = (int) $household->writebytime;
+        // Said no, or never answered for a week, and now marks it again: it is asked again (Marandu says how often).
+        return !$state['joined'] && (!$state['asked'] || ($state['asked'] < $now - WEEKSECS && $time > $state['asked'])) &&
+            (!$state['declined'] || $state['declined'] < $time);
     }
 
     /**
@@ -842,12 +848,15 @@ class writeby {
                 $context['title'] = $str('pub_writeby_done_none');
                 $text = $named('pub_writeby_done_none_text');
                 // A visit still to come stays: they are expected all the same, and the page says how to call it off.
-                $visit = array_values(array_filter(
-                    households::full($household)->signups,
-                    fn($v) => (int) $v->timeend >= time() && !actmail::is($v)
-                ))[0] ?? null;
+                $stands = array_filter(households::full($household)->signups, fn($v) => (int) $v->timeend >= time());
+                $visit = array_values(array_filter($stands, fn($v) => !actmail::is($v)))[0] ?? null;
                 if ($visit) {
                     $text .= ' ' . $str('pub_writeby_none_visit', publicpage::date_parts((int) $visit->timestart, $lang)['long']);
+                }
+                // Of a talk or a party too, and it is said if it is called off.
+                foreach (array_filter($stands, fn($v) => actmail::is($v)) as $act) {
+                    $text .= ' ' . $str('pub_writeby_none_act', (object) ['event' => format_string($act->eventname),
+                        'date' => publicpage::date_parts((int) $act->timestart, $lang)['long']]);
                 }
             } else if ($state['asked']) {
                 // Asked on WhatsApp: one touch there; with Telegram to join too, its step below.
@@ -864,7 +873,8 @@ class writeby {
                     (in_array('email', $ways, true) ? '' : ' ' . $str('pub_writeby_until_joined'));
             } else {
                 $context['title'] = $str('pub_writeby_done', self::words($ways, $lang));
-                $text = $str(in_array('email', $ways, true) ? 'pub_writeby_done_text_mail' : 'pub_writeby_done_text_phone');
+                $text = $str(in_array('email', $ways, true) ? (optional_param('correo', 0, PARAM_BOOL) ?
+                    'pub_writeby_done_text_mail' : 'pub_writeby_done_text') : 'pub_writeby_done_text_phone');
             }
             $context['done'] = [
                 'pegs' => publicpage::pegs($tags ?: [''], true, null, array_map(fn($c) => ages::hanging(
@@ -892,6 +902,10 @@ class writeby {
                     'changeurl' => self::url($token, $lang), 'change' => $str('pub_writeby_change_link')] : false,
             ];
             return $context;
+        }
+        if (in_array($pressed, $now, true) && count($now) === 1) {
+            // Its only way: taking it out is not being written to any more, and it is asked as such.
+            $pressed = 'none';
         }
         if ($pressed === 'none') {
             // Pressed «Do not write to us any more» in a mail: asked, with its one button; beside it, choosing instead.
@@ -952,7 +966,7 @@ class writeby {
                 $channels
             ),
             'icon' => self::icon('check'),
-            'button' => $marked ? $str('pub_writeby_save') : $str('pub_writeby_opt_none'),
+            'button' => $marked ? $str('pub_writeby_save') : $str('pub_writeby_pick_one'),
             'save' => $str('pub_writeby_save'),
             'nobox' => $str('pub_writeby_pick_one'),
             'next' => array_diff(array_intersect($marked, self::PHONES), self::joined_on($household, $centre)) ?
@@ -971,17 +985,17 @@ class writeby {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $lang
+     * @return bool Whether it went.
      */
-    public static function confirm(\stdClass $household, \stdClass $centre, string $lang): void {
+    public static function confirm(\stdClass $household, \stdClass $centre, string $lang): bool {
         // At most one an hour: going back and forth between ways never floods their inbox with mails and new links.
         $cache = \cache::make('local_oksigeniaeguahe', 'writebyconfirm');
         if ((int) $cache->get((int) $household->id) > time() - HOURSECS) {
-            return;
+            return false;
         }
         $cache->set((int) $household->id, time());
-        if (in_array('email', self::chosen($household) ?? [], true)) {
+        return in_array('email', self::chosen($household) ?? [], true) &&
             familymail::send('writeby', $household, $centre, null, $lang, households::new_link($household, 'writeby'));
-        }
     }
 
     /**

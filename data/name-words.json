@@ -1,0 +1,77 @@
+{
+    "about": "Words to tell the name of a person by, so that nobody is greeted by what is not a name. business: words of a business, in plain letters. people: what somebody is to a child, and what is written to fill a box, as written. second: those usual as a second given name, in plain letters, to know where a name written whole in one box ends.",
+    "business": {
+        "es": [
+            "abogados", "academia", "agencia", "alquiler", "alquileres", "arquitectos", "asador", "asesoria", "asociacion", "autoescuela",
+            "bar", "barberia", "bazar", "bodega", "boutique", "cafeteria", "carniceria", "carpinteria", "centro", "cerrajeria",
+            "charcuteria", "clinica", "comercial", "construcciones", "consultora", "consultoria", "cooperativa", "cristaleria",
+            "decoraciones", "dentista", "distribuciones", "electricidad", "electronica", "empresa", "escuela", "estanco", "estetica",
+            "estudio", "farmacia", "ferreteria", "fisioterapia", "floristeria", "fontaneria", "fotografia", "fruteria", "gestoria",
+            "gimnasio", "guagua", "heladeria", "hostal", "hotel", "imprenta", "informatica", "inmobiliaria", "inversiones", "jardineria",
+            "joyeria", "lavanderia", "libreria", "limpiezas", "mensajeria", "mercado", "muebles", "notaria", "optica", "panaderia",
+            "papeleria", "pasteleria", "peluqueria", "pescaderia", "pinturas", "pizzeria", "psicologia", "quiosco", "reformas",
+            "restaurante", "sa", "salon", "seguros", "servicios", "sl", "sll", "slu", "sociedad", "supermercado", "taller", "talleres",
+            "tapiceria", "taxi", "taxis", "tienda", "tintoreria", "transportes", "veterinaria", "viajes", "zapateria"
+        ],
+        "en": [
+            "academy", "agency", "apartments", "bakery", "barbershop", "bookshop", "boutique", "builders", "cafe", "catering",
+            "cleaning", "clinic", "company", "consulting", "dental", "electrical", "foundation", "gym", "hairdresser", "hairdressers",
+            "hotel", "inc", "insurance", "laundry", "limited", "llc", "lounge", "ltd", "market", "nails", "pharmacy", "photography",
+            "pizzeria", "plumbing", "realty", "restaurant", "salon", "school", "services", "shop", "spa", "store", "studio",
+            "studios", "supermarket", "transport", "travel", "workshop"
+        ],
+        "pt": [
+            "academia", "advogados", "agencia", "alfaiataria", "autoescola", "banca", "barbearia", "bazar", "borracharia", "botequim",
+            "cabeleireiro", "cabeleireiros", "cafe", "chaveiro", "clinica", "comercio", "confeitaria", "construtora", "consultorio",
+            "costura", "dentista", "distribuidora", "drogaria", "eireli", "empresa", "escola", "escritorio", "estetica", "farmacia",
+            "floricultura", "fotografia", "grafica", "hotel", "imobiliaria", "joalheria", "lanchonete", "lavanderia", "lda",
+            "livraria", "loja", "ltda", "marcenaria", "mercado", "oficina", "otica", "padaria", "papelaria", "pastelaria", "pizzaria",
+            "pousada", "quitanda", "restaurante", "salao", "seguros", "servicos", "supermercado", "transportes", "veterinaria",
+            "viagens"
+        ]
+    },
+    "people": {
+        "es": [
+            "abuela", "abuelo", "admin", "administración", "apellidos", "contacto", "familia", "hola", "info", "madre", "mama",
+            "mamá", "nombre", "padre", "papa", "papá", "prueba", "pruebas", "test", "tutor", "tutora", "yo"
+        ],
+        "en": [
+            "contact", "dad", "family", "father", "grandfather", "grandma", "grandmother", "grandpa", "guardian", "hello", "mom",
+            "mother", "mum", "name", "tester"
+        ],
+        "pt": [
+            "avó", "avô", "contato", "família", "mãe", "nome", "olá", "pai", "teste"
+        ]
+    },
+    "second": {
+        "es": [
+            "adela", "adolfo", "agustin", "alba", "alberto", "aldo", "alejandra", "alejandro", "alfonso", "alfredo", "alicia",
+            "almudena", "alvaro", "amalia", "amparo", "ana", "andrea", "andres", "angel", "angela", "angeles", "angelica", "antonia",
+            "antonio", "araceli", "armando", "arturo", "asuncion", "aurora", "beatriz", "belen", "benito", "blanca", "camila",
+            "candelaria", "carla", "carlos", "carmen", "carolina", "catalina", "cecilia", "celeste", "cesar", "clara", "claudia",
+            "concepcion", "consuelo", "cristina", "cristobal", "cruz", "daniel", "daniela", "david", "diego", "dolores", "eduardo",
+            "elena", "elisa", "elvira", "emilia", "emilio", "encarnacion", "enrique", "ernesto", "esperanza", "esteban", "esther",
+            "eugenia", "eugenio", "eva", "fatima", "felipe", "felix", "fernanda", "fernando", "francisca", "francisco", "gabriel",
+            "gabriela", "genoveva", "gerardo", "gonzalo", "graciela", "guadalupe", "guillermo", "gustavo", "hugo", "ignacio",
+            "ines", "inmaculada", "irene", "isabel", "isidro", "ivan", "jaime", "javier", "jesus", "joaquin", "jorge", "jose",
+            "josefa", "juan", "juana", "julia", "julian", "julio", "laura", "leonor", "leticia", "lidia", "lorena", "lorenzo",
+            "lourdes", "lucas", "lucia", "luis", "luisa", "luz", "magdalena", "manuel", "manuela", "mar", "marcela", "marcos",
+            "margarita", "maria", "mariano", "marina", "mario", "marta", "martina", "mateo", "matilde", "mauricio", "mercedes",
+            "micaela", "miguel", "milagros", "milagrosa", "montserrat", "natalia", "nicolas", "nieves", "noelia", "nuria", "octavio",
+            "olga", "oscar", "pablo", "paloma", "paola", "patricia", "paula", "paz", "pedro", "pia", "pilar", "rafael", "rafaela",
+            "ramon", "raquel", "raul", "remedios", "ricardo", "rita", "roberto", "rocio", "rodrigo", "rosa", "rosalia", "rosario",
+            "ruben", "salvador", "santiago", "sara", "sebastian", "sergio", "silvia", "simon", "sofia", "soledad", "sonia", "susana",
+            "teresa", "tomas", "trinidad", "valentina", "valeria", "vanesa", "vega", "veronica", "vicente", "victor", "victoria",
+            "virginia", "ximena", "yolanda"
+        ],
+        "en": [
+            "ann", "anne", "beth", "elizabeth", "ellen", "grace", "james", "jane", "jean", "jo", "john", "kate", "lee", "lou",
+            "louise", "lynn", "mae", "marie", "mary", "may", "michael", "paul", "pierre", "rose", "ruth", "sue"
+        ],
+        "pt": [
+            "aparecida", "beatriz", "carolina", "catarina", "clara", "cristina", "eduarda", "eduardo", "fernanda", "filipa",
+            "filipe", "gabriel", "guilherme", "helena", "henrique", "ines", "joana", "joao", "jose", "luis", "luisa", "luiz",
+            "luiza", "manuel", "margarida", "miguel", "paulo", "pedro", "rafael", "rita", "sofia", "teresa", "vitor", "vitoria"
+        ]
+    }
+}

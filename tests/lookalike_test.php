@@ -86,6 +86,23 @@ final class lookalike_test extends \advanced_testcase {
     }
 
     /**
+     * Joined, two people who share the phone of the home stay two, with what each one said; the same person is one.
+     */
+    public function test_phone_of_the_home(): void {
+        global $DB;
+        $mother = $this->family('Ana López', 'ana@example.com', 'Lucía', '2024-05-10');
+        $father = $this->family('Juan Pérez', 'juan@example.com', 'Lucía', '2024-05-10');
+        $DB->set_field(households::ADULTS, 'phone', '+34922000111', ['centreid' => $this->centre->id]);
+        $kept = lookalike::merge($mother, $father, 2);
+        $names = array_map(fn($a) => $a->firstname, array_values(households::full($kept)->adults));
+        $this->assertSame(['Ana', 'Juan'], $names);
+        $again = $this->family('Ana López', 'otra@example.com', 'Lucía', '2024-05-10');
+        $DB->set_field(households::ADULTS, 'phone', '+34922000111', ['householdid' => $again->id]);
+        $kept = lookalike::merge($kept, $again, 2);
+        $this->assertCount(2, households::full($kept)->adults);
+    }
+
+    /**
      * The same child with the same birthday, or asking for the same course, looks alike; two birthdays are two children;
      * classmates already enrolled never do; and what a person said is kept.
      */

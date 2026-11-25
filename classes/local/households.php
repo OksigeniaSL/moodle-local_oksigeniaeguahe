@@ -482,7 +482,8 @@ class households {
         $time = $time ?? time();
         self::contact($household, 'in', $channel, $body, $userid, $time, $entryid, $detail, $address, $dayonly);
         // Writing again after asking not to be written to lifts it, by the way they wrote (never for an old message).
-        if ($theywrote) {
+        // What a person of the team notes of them («we called, no answer») is not them writing.
+        if ($theywrote && !$userid) {
             writeby::wrote_again($household, $channel, $time);
         }
         $changes = (object) ['id' => $household->id, 'lastcontact' => $time, 'timemodified' => $time];

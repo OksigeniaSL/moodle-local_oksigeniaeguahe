@@ -209,5 +209,22 @@ final class actmail_test extends \advanced_testcase {
         ) {
             $this->assertSame($said, greeting::name((string) $raw), (string) $raw);
         }
+        // What somebody is to a child, and what is written only to fill a box, is not a name; two names, the first.
+        foreach (
+            ['Ana (mamá de Leo)' => 'Ana', 'Ana mamá de Leo' => 'Ana', 'Ana / Pedro' => 'Ana', 'Ana, la madre' => 'Ana', 'Ana y Pedro' =>
+                'Ana y Pedro', 'Mamá de Leo' => '', 'Familia Pérez' => '', 'Prueba' => '', 'Info' => '', 'Tía de Leo' => '', 'Fco Javier' =>
+                'Francisco Javier', 'Mãe da Rita' => '', '(Ana)' => 'Ana', 'Mae' => 'Mae', 'Tia' => 'Tia'] as $raw => $said
+        ) {
+            $this->assertSame($said, greeting::name($raw), $raw);
+        }
+        // The whole name in one box: only what it is called by.
+        foreach (
+            ['Carmen Rodríguez Díaz' => 'Carmen', 'María José Pérez' => 'María José', 'María del Carmen Pérez León' => 'María del Carmen',
+                'José Luis' => 'José Luis', 'Ana Martín' => 'Ana', 'María de los Ángeles Ruiz' => 'María de los Ángeles', 'CARMEN DÍAZ' =>
+                'Carmen', 'محمد علي' => 'محمد علي', 'Ana' => 'Ana', 'Juan de la Cruz' => 'Juan de la Cruz', 'Rosa del Valle' => 'Rosa'] as
+            $raw => $said
+        ) {
+            $this->assertSame($said, greeting::name($raw, false), $raw);
+        }
     }
 }

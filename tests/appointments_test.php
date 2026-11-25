@@ -101,6 +101,31 @@ final class appointments_test extends \advanced_testcase {
     }
 
     /**
+     * The next one is given while they are here: the visit under way stays, with what was noted of it; and its name is of
+     * whoever receives them now.
+     */
+    public function test_next_during(): void {
+        global $DB;
+        $now = appointments::give($this->family, $this->centre, time() + HOURSECS, 60, 0, '', 2, false)['event'];
+        $DB->set_field(events::T, 'timestart', time() - 600, ['id' => $now->id]);
+        $signup = $DB->get_field(events::SIGNUPS, 'id', ['eventid' => $now->id]);
+        events::attend(events::get((int) $now->id, (int) $this->centre->id), (int) $signup, true);
+        $next = appointments::give($this->family, $this->centre, time() + 7 * DAYSECS, 60, 0, '', 2, false);
+        $this->assertNull($next['replaced']);
+        $this->assertSame(0, (int) $DB->get_field(events::T, 'cancelled', ['id' => $now->id]));
+        $this->assertGreaterThan(0, (int) $DB->get_field(events::SIGNUPS, 'attended', ['id' => $signup]));
+        $this->assertCount(2, $DB->get_records(events::SIGNUPS, ['householdid' => $this->family->id]));
+        $user = $this->getDataGenerator()->create_user(['firstname' => 'Marta', 'lastname' => 'Ruiz']);
+        $guide = (int) $DB->insert_record(centres::MEMBERS, (object) ['centreid' => $this->centre->id, 'userid' => $user->id,
+            'public' => 1, 'sortorder' => 1, 'timecreated' => time()]);
+        $id = (int) $next['event']->id;
+        appointments::move($this->family, $this->centre, $id, time() + 8 * DAYSECS, 60, $guide, '', false);
+        $this->assertStringContainsString('Marta', $DB->get_field(events::T, 'name', ['id' => $id]));
+        appointments::move($this->family, $this->centre, $id, time() + 8 * DAYSECS, 60, 0, '', false);
+        $this->assertStringNotContainsString('Marta', $DB->get_field(events::T, 'name', ['id' => $id]));
+    }
+
+    /**
      * What is said of several at once, and taking it back: of a sign-up and of a visit of a sheet, with the way of the child.
      */
     public function test_mark(): void {

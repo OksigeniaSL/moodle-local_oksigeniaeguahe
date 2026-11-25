@@ -680,10 +680,11 @@ class familymail {
     public static function first_name(\stdClass $household): string {
         $email = households::recipient($household);
         foreach (households::full($household)->adults as $adult) {
-            if ($email === '' || (string) $adult->email !== $email) {
+            // Without an address to write to (they left only a phone), the first one.
+            if ($email !== '' && (string) $adult->email !== $email) {
                 continue;
             }
-            return greeting::name((string) $adult->firstname);
+            return greeting::name((string) $adult->firstname, trim((string) $adult->lastname) !== '');
         }
         return '';
     }

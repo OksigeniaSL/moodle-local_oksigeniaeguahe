@@ -64,7 +64,8 @@
 {{/nota}}
 {{#escribir}}
 
-{{{pregunta}}}
+{{{titulo}}}
+{{{frase}}}
 {{#botones}}
 {{{texto}}}: {{{url_texto}}}
 {{/botones}}

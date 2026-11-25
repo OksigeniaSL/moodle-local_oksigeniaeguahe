@@ -35,9 +35,17 @@ class knownpage {
      * @param array $children The children just written: firstname, tagname, offerid and birthdate.
      * @param \stdClass|null $signup Their visit just booked (familymail::signup()), or null (a tailored visit, w.php).
      * @param bool $sent Whether the link went to the address the centre had.
+     * @param string $title What they just did, as a string.
      * @return array
      */
-    public static function context(\stdClass $centre, string $lang, array $children, ?\stdClass $signup, bool $sent): array {
+    public static function context(
+        \stdClass $centre,
+        string $lang,
+        array $children,
+        ?\stdClass $signup,
+        bool $sent,
+        string $title = 'pub_known_title'
+    ): array {
         global $DB;
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $kids = [];
@@ -72,9 +80,9 @@ class knownpage {
                 'hours' => familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang), 'place' => $place];
         }
         return [
-            'title' => publiclang::str('pub_known_title', $lang),
+            'title' => publiclang::str($title, $lang),
             'names' => $names,
-            'text' => publiclang::str($sent ? 'pub_known_sent' : 'pub_known_nomail', $lang),
+            'text' => publiclang::str($sent ? ($act ? 'pub_known_sent_act' : 'pub_known_sent') : 'pub_known_nomail', $lang),
             'rail' => $rail + ['came' => false, 'live' => false],
             // Not the hall of skin A: its scene is the family's own, with what they keep there.
             'hall' => false,

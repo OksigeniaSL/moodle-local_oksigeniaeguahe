@@ -33,16 +33,20 @@ class greeting {
         'ꜱ' => 's', 'ᴛ' => 't', 'ᴜ' => 'u', 'ᴠ' => 'v', 'ᴡ' => 'w', 'ʏ' => 'y', 'ᴢ' => 'z', 'ɑ' => 'a', 'ɡ' => 'g'];
 
     /** @var string[] Short forms that are said, though they are not whole words: with their name. */
-    const SHORT = ['mª' => 'María', 'ma.' => 'María', 'm.ª' => 'María', 'mª.' => 'María'];
+    const SHORT = ['mª' => 'María', 'ma.' => 'María', 'm.ª' => 'María', 'mª.' => 'María', 'fco' => 'Francisco',
+        'fco.' => 'Francisco'];
 
     /**
      * The name to say, or nothing.
      *
      * @param string $raw The first name, as it was written.
+     * @param bool $haslast Whether the last name is written apart; if not, it may be in the same box as the first one.
      * @return string
      */
-    public static function name(string $raw): string {
-        $name = self::plain($raw);
+    public static function name(string $raw, bool $haslast = true): string {
+        // «Ana (mamá de Leo)», «Ana / Pedro», «Ana, la madre»: what goes first.
+        $first = trim((string) preg_split('/[(\[,;\/&+|]|\s[\-–—]\s/u', $raw, 2)[0]);
+        $name = self::plain($first !== '' ? $first : $raw);
         if ($name === '' || preg_match('/[@\d]/u', $name)) {
             return '';
         }
@@ -51,6 +55,17 @@ class greeting {
         if (isset(self::SHORT[$lower])) {
             $words[0] = self::SHORT[$lower];
         }
+        // Said of somebody («Ana mamá de Leo»), only what goes before; «Mamá de Leo» or «Familia Pérez» is no name to say.
+        foreach ($words as $i => $word) {
+            if (isset(self::words('people')[\core_text::strtolower($word)])) {
+                $words = array_slice($words, 0, $i);
+                break;
+            }
+        }
+        if (!$words || preg_match('/^t[ií][ao] del?\b/iu', implode(' ', $words))) {
+            return '';
+        }
+        $words = $haslast ? $words : self::given($words);
         $name = implode(' ', $words);
         if ($name === \core_text::strtoupper($name) || $name === \core_text::strtolower($name)) {
             // All in one case (with the letters it has), as it is written: «Ana», «María José».
@@ -58,7 +73,7 @@ class greeting {
                 $m[1]
             ), \core_text::strtotitle($name));
         }
-        $business = self::business();
+        $business = self::words('business');
         foreach (explode(' ', $name) as $i => $word) {
             if (isset($business[grades::plain($word)]) || !self::looks_like_one($word, $i > 0)) {
                 return '';
@@ -68,20 +83,44 @@ class greeting {
     }
 
     /**
-     * The words that name a business, not a person (data/business-words.json), in plain letters.
+     * Of a name written whole in one box («Carmen Rodríguez Díaz», «María del Carmen Pérez»), the given one: the first word, and
+     * the second when it is usual as such.
      *
+     * @param string[] $words
+     * @return string[]
+     */
+    protected static function given(array $words): array {
+        if (!preg_match('/\p{Latin}/u', $words[0])) {
+            return $words;
+        }
+        $seconds = self::words('second');
+        $next = 1;
+        while (preg_match('/^(de|del|la|las|los|el|do|da|das|dos)$/iu', $words[$next] ?? '')) {
+            $next++;
+        }
+        return isset($words[$next]) && isset($seconds[grades::plain($words[$next])]) ? array_slice($words, 0, $next + 1) :
+            array_slice($words, 0, 1);
+    }
+
+    /**
+     * Words to tell a name by (data/name-words.json): of a business, in plain letters; of what somebody is to a child, as
+     * written; and those usual as a second given name, in plain letters.
+     *
+     * @param string $kind business, people or second.
      * @return array word => true
      */
-    protected static function business(): array {
+    protected static function words(string $kind): array {
         static $words = null;
         if ($words === null) {
-            $words = [];
-            $said = json_decode((string) file_get_contents(__DIR__ . '/../../data/business-words.json'), true);
-            foreach (is_array($said) ? $said : [] as $list) {
-                $words += is_array($list) ? array_fill_keys($list, true) : [];
+            $words = ['business' => [], 'people' => [], 'second' => []];
+            $said = json_decode((string) file_get_contents(__DIR__ . '/../../data/name-words.json'), true);
+            foreach (is_array($said) ? $said : [] as $of => $lists) {
+                foreach (is_array($lists) ? $lists : [] as $list) {
+                    $words[$of] += array_fill_keys($list, true);
+                }
             }
         }
-        return $words;
+        return $words[$kind];
     }
 
     /**
@@ -112,6 +151,9 @@ class greeting {
      */
     protected static function looks_like_one(string $word, bool $small): bool {
         $letters = preg_replace('/[^\p{L}\p{M}]/u', '', $word);
+        if ($small && preg_match('/^(de|del|da|do|dos|das|la|las|los|el|y|e|i|van|von|bin|al)$/iu', $letters)) {
+            return true;
+        }
         $length = \core_text::strlen($letters);
         // «I’m» is not a name; «D’Angelo» and «O’Brien» are.
         if ($length < 2 || $length > 20 || preg_match('/[.@]|^(?![DOLdol])\p{L}[\'’]/u', $word)) {
@@ -119,9 +161,6 @@ class greeting {
         }
         if (!preg_match('/\p{Latin}/u', $letters)) {
             // Another script: its letters are enough.
-            return true;
-        }
-        if ($small && preg_match('/^(de|del|da|do|dos|das|la|las|los|el|y|e|i|van|von|bin|al)$/iu', $letters)) {
             return true;
         }
         // A capital in the middle is a user name; «McKenna» and «D’Angelo», what names have them.

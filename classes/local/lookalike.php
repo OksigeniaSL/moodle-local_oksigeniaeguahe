@@ -519,7 +519,8 @@ class lookalike {
     }
 
     /**
-     * The adults of the other household come to this one; the same person (the same email or phone) only once.
+     * The adults of the other household come to this one; the same person (the same email, or the same phone and name: a
+     * phone of the home is of two people) only once.
      *
      * @param int $keep
      * @param int $gone
@@ -534,7 +535,7 @@ class lookalike {
             foreach ($here as $mine) {
                 if (
                     (!empty($adult->email) && $adult->email === $mine->email) ||
-                    (!empty($adult->phone) && $adult->phone === $mine->phone)
+                    (!empty($adult->phone) && $adult->phone === $mine->phone && self::same_person($adult, $mine))
                 ) {
                     $match = $mine;
                     break;
@@ -557,6 +558,26 @@ class lookalike {
             }
         }
         return $same;
+    }
+
+    /**
+     * Whether two adults with the same phone are the same person: by their names, or because one of them has none.
+     *
+     * @param \stdClass $a
+     * @param \stdClass $b
+     * @return bool
+     */
+    protected static function same_person(\stdClass $a, \stdClass $b): bool {
+        $words = fn(\stdClass $adult) => array_values(array_filter(explode(' ', grades::plain(trim($adult->firstname . ' ' .
+            $adult->lastname)))));
+        $one = $words($a);
+        $two = $words($b);
+        if (!$one || !$two) {
+            return true;
+        }
+        // «Ana» and «Ana Pérez», «María José» and «María»: the one with fewer words, whole in the other, and the same first.
+        [$short, $long] = count($one) <= count($two) ? [$one, $two] : [$two, $one];
+        return $short[0] === $long[0] && !array_diff($short, $long);
     }
 
     /**

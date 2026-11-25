@@ -461,10 +461,6 @@ class familypage {
                 }
             }
         }
-        $emailed = false;
-        foreach ($full->adults as $adult) {
-            $emailed = $emailed || !empty($adult->email);
-        }
         $address = trim((string) ($centre->address ?? ''));
         // After the visit: one open question on the wall or, if the centre turned on the survey of that event, the
         // survey in the band with the open question first; never both waiting at once.
@@ -648,9 +644,13 @@ class familypage {
             'settled' => $settled,
             'lead' => $lead,
             'new' => $new,
-            'saved' => publiclang::str($pending ? 'pub_saved_request' : 'pub_saved', $lang),
-            'savedline' => publiclang::str('pub_done_keep', $lang),
-            'emailed' => $new && $emailed ? publiclang::str('pub_done_emailed', $lang) : '',
+            // A visit ahead, what they asked for, or only what they told: never «we expect you» to whoever only asked.
+            'saved' => publiclang::str($pending ? 'pub_saved_request' : ($upcoming || $coming ? 'pub_saved' : 'pub_sent_title'), $lang),
+            'savedline' => publiclang::str($upcoming ? 'pub_done_keep' : ($pending ? 'pub_done_keep_request' : 'pub_done_keep_told'), $lang),
+            'emailed' => $new && !empty($flags['mailed']) ? publiclang::str('pub_done_emailed', $lang) : '',
+            // They just said they do not come: thanked, with what comes next.
+            'notcoming' => in_array($flags['notcoming'] ?? '', ['visita', 'acto'], true) ?
+                publiclang::str('pub_cantcome_told_' . $flags['notcoming'], $lang) : '',
             // The living hall: their hooks wait with their names, and once they came their backpacks hang.
             'hall' => $hall,
             'outcome' => !$issettled && !$isgone && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),

@@ -41,12 +41,14 @@ class send_invites extends \core\task\adhoc_task {
         }
         $ids = array_map('intval', (array) ($data->ids ?? []));
         $words = (string) ($data->words ?? '');
-        invites::send($event, $centre, (int) ($data->userid ?? 0), time(), array_slice($ids, 0, invites::BATCH), $words);
+        $chosen = isset($data->centre) ? array_map('intval', (array) $data->centre) : null;
+        $batch = array_slice($ids, 0, invites::BATCH);
+        invites::send($event, $centre, (int) ($data->userid ?? 0), time(), $batch, $words, $chosen);
         $left = array_slice($ids, invites::BATCH);
         if ($left && invites::fits($event, time())) {
             $next = new self();
             $next->set_custom_data(['eventid' => (int) $event->id, 'centreid' => (int) $centre->id,
-                'userid' => (int) ($data->userid ?? 0), 'ids' => $left, 'words' => $words]);
+                'userid' => (int) ($data->userid ?? 0), 'ids' => $left, 'words' => $words] + ($chosen === null ? [] : ['centre' => $chosen]));
             $next->set_next_run_time(invites::daytime(time() + invites::PAUSE));
             \core\task\manager::queue_adhoc_task($next);
         }

@@ -78,15 +78,16 @@ $centre = centres::for_family($centre, $household);
 $lang = publiclang::choose($centre);
 // A link unused for months stops working: a new one goes to the email the centre has, never to one written here.
 $link = access::link($token);
-if ($link && access::expired($link)) {
+if ($link && ($link->reason === 'letter' || access::expired($link))) {
+    // So does the link of the letter of an act, which is meant to be passed on: it opens the act, never their page.
     $sent = $action === 'nuevoenlace' && data_submitted() && confirm_sesskey() ?
         access::send_new_link($household, $centre, $lang) : [];
     publicpage::output(
         $centre,
         $lang,
-        publiclang::str('pub_link_expired_title', $lang),
+        publiclang::str($link->reason === 'letter' ? 'pub_link_letter_title' : 'pub_link_expired_title', $lang),
         'public_code',
-        access::expired_context($household, $centre, $lang, $token, $sent),
+        access::expired_context($household, $centre, $lang, $token, $sent, $link->reason === 'letter'),
         $url
     );
 }
@@ -224,16 +225,18 @@ if ($action === 'download' && $download) {
 if ($action === 'cantcome' && data_submitted() && confirm_sesskey()) {
     // Not coming after all: the sign-up goes, and the centre reads it in their history.
     $event = $DB->get_record(events::T, ['id' => required_param('acto', PARAM_INT), 'centreid' => $centre->id]);
+    $gone = false;
     if ($event) {
         // Of a visit, somebody of the team reads it and offers another day; of a talk or a party, it is only known.
-        events::unsign(
+        $gone = events::unsign(
             $event,
             $household,
             publiclang::str('pub_cantcome_note', $lang, format_string($event->name)),
             $event->kind !== 'other'
         );
     }
-    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang] +
+        ($gone ? ['novienen' => $event->kind === 'other' ? 'acto' : 'visita'] : [])));
 }
 
 if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {
@@ -559,14 +562,15 @@ if ($action === 'escribir') {
         if (!$none && optional_param('evt', 0, PARAM_BOOL)) {
             invites::wanted($household, !optional_param('noinvites', 0, PARAM_BOOL), 'family');
         }
+        $mailed = false;
         if (writeby::set($household, $ways, 'family')) {
             $note('writeby');
             // Marked WhatsApp: asked there, with one touch.
             writeby::ask($household, $centre);
-            writeby::confirm($household, $centre, $lang);
+            $mailed = writeby::confirm($household, $centre, $lang);
         }
         redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir',
-            'hecho' => writeby::raw($ways), 'idioma' => $lang]));
+            'hecho' => writeby::raw($ways), 'idioma' => $lang] + ($mailed ? ['correo' => 1] : [])));
     }
     // What was just chosen, as it is kept: «email,whatsapp» or «none».
     $done = (string) optional_param('hecho', '', PARAM_RAW);
@@ -612,6 +616,7 @@ publicpage::output(
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
         'home' => optional_param('casa', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
         'de' => optional_param('de', '', PARAM_ALPHA), 'contacts' => optional_param('datos', 0, PARAM_BOOL),
-        'drawing' => optional_param('dibujo', 0, PARAM_INT)]),
+        'drawing' => optional_param('dibujo', 0, PARAM_INT), 'mailed' => optional_param('correo', 0, PARAM_BOOL),
+        'notcoming' => optional_param('novienen', '', PARAM_ALPHA)]),
     $url
 );

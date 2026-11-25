@@ -159,10 +159,11 @@ if (data_submitted() && !$preview) {
         // A family already known: whoever filled the form may not be that family, so its page is not shown here and
         // the link goes only to the email it had.
         $to = $existed ? (string) ($before[0] ?? '') : null;
+        $sent = false;
         ob_start();
         try {
             if ($to !== '' && !empty($entry->acknowledge)) {
-                familymail::send('received', $household, $centre, null, $lang, $link, $to);
+                $sent = familymail::send('received', $household, $centre, null, $lang, $link, $to);
             }
         } catch (\Throwable $e) {
             // The family is in the inbox: the team answers it anyway.
@@ -175,7 +176,8 @@ if (data_submitted() && !$preview) {
             brief::output($centre, $lang, publiclang::str('pub_breve_sent', $lang), brief::sent(
                 $centre,
                 $lang,
-                $existed ? null : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang])
+                $existed ? null : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang] +
+                    ($sent ? ['correo' => 1] : []))
             ));
         }
         if ($existed) {
@@ -183,13 +185,14 @@ if (data_submitted() && !$preview) {
             publicpage::output(
                 $centre,
                 $lang,
-                publiclang::str('pub_known_title', $lang),
+                publiclang::str('pub_sent_title', $lang),
                 'public_known',
-                knownpage::context($centre, $lang, $data['children'], null, $to !== ''),
+                knownpage::context($centre, $lang, $data['children'], null, $sent, 'pub_sent_title'),
                 $url
             );
         }
-        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]);
+        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang] +
+            ($sent ? ['correo' => 1] : []));
         if ($embedded) {
             // Inside the web of the centre: done, and their page opens apart.
             publicpage::message(

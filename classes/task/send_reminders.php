@@ -61,7 +61,7 @@ class send_reminders extends \core\task\scheduled_task {
                                         FROM {local_oksigeniaeguahe_signup} s
                                         JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
                                    LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
-                                       WHERE s.reminded = 0 AND COALESCE(t.timestart, e.timestart) > :now
+                                       WHERE s.reminded = 0 AND e.cancelled = 0 AND COALESCE(t.timestart, e.timestart) > :now
                                              AND COALESCE(t.timestart, e.timestart) < :limit',
             ['now' => $now, 'limit' => $now + 2 * DAYSECS]
         );

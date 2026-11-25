@@ -128,6 +128,7 @@ class joinpage {
      * @param string $lang
      * @param \moodle_url $url
      * @param string $mark
+     * @param string $who As letter_of() gives it.
      * @return array
      */
     public static function known(
@@ -136,7 +137,8 @@ class joinpage {
         \stdClass $household,
         string $lang,
         \moodle_url $url,
-        string $mark
+        string $mark,
+        string $who = ''
     ): array {
         global $DB;
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
@@ -149,7 +151,7 @@ class joinpage {
         $admission = self::in_admission($household);
         $lastway = $str($admission ? 'pub_known_lastway' : 'pub_known_lastway_other');
         $ways = [];
-        foreach (writeby::channels($centre) as $way) {
+        foreach (self::ways($centre, $household) as $way) {
             $ways[] = ['name' => 'by[]', 'value' => $way, 'label' => $str('pub_writeby_' . $way), 'id' => 'by-' . $way,
                 'checked' => in_array($way, $now, true), 'icon' => writeby::icon($way)];
         }
@@ -186,7 +188,57 @@ class joinpage {
             'otherurl' => (new \moodle_url($url, ['otra' => 1, 'idioma' => $lang]))->out(false),
             'action' => (new \moodle_url($url, ['idioma' => $lang]))->out(false),
             'mark' => $mark,
+            // Who it is, signed for this act: the page answers even when the browser kept nothing.
+            'who' => $who,
         ];
+    }
+
+    /** @var string The cookie that says, on this device, which letter was opened: until the browser is closed. */
+    const COOKIE = 'eguahe_carta';
+
+    /**
+     * What a page keeps of the letter it came from, instead of its private link: which link, signed for this act. It lets
+     * answer for that act and nothing else, and it stops working with the link.
+     *
+     * @param \stdClass $event
+     * @param string $token The private link of the letter.
+     * @return string Empty when the link is none, or too old.
+     */
+    public static function letter_of(\stdClass $event, string $token): string {
+        $link = access::link($token);
+        if (!$link || (int) $link->centreid !== (int) $event->centreid || access::expired($link)) {
+            return '';
+        }
+        return $link->id . '.' . share::signature('carta', (int) $link->id, (int) $event->id);
+    }
+
+    /**
+     * The family of a letter, as letter_of() keeps it.
+     *
+     * @param \stdClass $event
+     * @param string $kept
+     * @return \stdClass|null
+     */
+    public static function family_of(\stdClass $event, string $kept): ?\stdClass {
+        global $DB;
+        if (!preg_match('/^(\d{1,10})\.([0-9a-f]{32})$/', $kept, $m) ||
+                !hash_equals(share::signature('carta', (int) $m[1], (int) $event->id), $m[2])) {
+            return null;
+        }
+        $id = $DB->get_field(households::LINKS, 'householdid', ['id' => (int) $m[1], 'centreid' => $event->centreid]);
+        return $id ? (households::get((int) $id, (int) $event->centreid) ?: null) : null;
+    }
+
+    /**
+     * The ways a family can mark here: email only if it has one.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $household
+     * @return string[]
+     */
+    protected static function ways(\stdClass $centre, \stdClass $household): array {
+        $ways = writeby::channels($centre);
+        return households::recipient($household) === '' ? array_values(array_diff($ways, ['email'])) : $ways;
     }
 
     /**
@@ -247,18 +299,21 @@ class joinpage {
      * @return bool Whether it was kept; false when there is no room left.
      */
     public static function said(\stdClass $event, \stdClass $centre, \stdClass $household): bool {
+        global $DB;
         $reply = optional_param('reply', '', PARAM_ALPHA);
-        $answer = invites::answer((int) $event->id, (int) $household->id);
+        // They come if they said so on the letter, or signed up on the web: what known() shows.
+        $coming = invites::answer((int) $event->id, (int) $household->id) === 'yes' ||
+            $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id]);
         $people = optional_param('people', 0, PARAM_INT);
         $kept = true;
         if (in_array($reply, ['yes', 'no'], true)) {
             // The touch is enough: how many is asked afterwards, and it is not of the button.
-            $kept = invites::reply($event, $household, $reply, $reply === 'yes' && $answer === 'yes' ? $people : 0);
-        } else if ($people && $answer === 'yes') {
+            $kept = invites::reply($event, $household, $reply, $reply === 'yes' && $coming ? $people : 0);
+        } else if ($people && $coming) {
             $kept = invites::reply($event, $household, 'yes', $people);
         }
         // How they want to be written to, for everything: never «none» by leaving it empty here (last_way()).
-        $ways = array_values(array_intersect(writeby::channels($centre), optional_param_array('by', [], PARAM_ALPHA)));
+        $ways = array_values(array_intersect(self::ways($centre, $household), optional_param_array('by', [], PARAM_ALPHA)));
         if ($ways && optional_param('ways', 0, PARAM_BOOL) && $ways !== writeby::now($household, $centre)) {
             writeby::set($household, $ways, 'family', 0, 0);
         }
@@ -280,7 +335,8 @@ class joinpage {
             return false;
         }
         $stages = $DB->get_fieldset_select(households::CHILDREN, 'stage', 'householdid = ?', [$household->id]);
-        return !$stages || (bool) array_diff($stages, ['enrolled', 'closed']);
+        // Already of the centre, with no child written down: it asks for nothing.
+        return $stages ? (bool) array_diff($stages, ['enrolled', 'closed']) : empty($household->incentre);
     }
 
     /**

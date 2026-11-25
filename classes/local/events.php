@@ -292,14 +292,15 @@ class events {
      *
      * @param \stdClass $event
      * @param string $mark
+     * @param int $within How long ago at most.
      * @return bool
      */
-    public static function mark_ok(\stdClass $event, string $mark): bool {
+    public static function mark_ok(\stdClass $event, string $mark, int $within = DAYSECS): bool {
         if (!preg_match('/^(\d{9,11})-[0-9a-f]{32}$/', $mark, $m)) {
             return false;
         }
         $time = (int) $m[1];
-        return $time <= time() + 60 && $time > time() - DAYSECS && hash_equals(self::mark($event, $time), $mark);
+        return $time <= time() + 60 && $time > time() - $within && hash_equals(self::mark($event, $time), $mark);
     }
 
     /**

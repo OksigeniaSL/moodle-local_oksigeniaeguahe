@@ -132,6 +132,53 @@ final class invites_test extends \advanced_testcase {
     }
 
     /**
+     * The letter waits in a queue: a family that signed up, was enrolled, closed or became of the centre meanwhile gets none;
+     * one of the centre that a person chose does; and two files of the same people, one letter.
+     */
+    public function test_as_they_are_when_it_goes(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $offer = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $f = [];
+        foreach (['Ana', 'Berta', 'Carla', 'Dora', 'Elsa', 'Flor', 'Gema'] as $name) {
+            $f[$name] = $this->family($id, $offer, $name, 'visit', true);
+        }
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => time() + 5 * DAYSECS,
+            'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $DB->set_field(households::T, 'incentre', 1, ['id' => $f['Gema']->id]);
+        $sink = $this->redirectEmails();
+        $ids = array_map(fn($h) => (int) $h->id, array_values($f));
+        $said = invites::queue($event, $centre, 2, time(), '', $ids);
+        $this->assertSame(7, $said['email']);
+        $task = array_values(\core\task\manager::get_adhoc_tasks('\local_oksigeniaeguahe\task\send_invites'))[0];
+        $this->assertSame([(int) $f['Gema']->id], array_map('intval', $task->get_custom_data()->centre));
+        // While it waits.
+        events::sign_up($event, (int) $f['Berta']->id, 1);
+        $child = fn(string $name) => $DB->get_record(households::CHILDREN, ['householdid' => $f[$name]->id]);
+        households::set_stage($child('Carla'), 'enrolled');
+        households::set_stage($child('Dora'), 'closed', 'moved');
+        $DB->set_field(households::T, 'incentre', 1, ['id' => $f['Elsa']->id]);
+        $DB->set_field(households::T, 'noinvites', 1, ['id' => $f['Flor']->id]);
+        $this->runAdhocTasks('\local_oksigeniaeguahe\task\send_invites');
+        $to = array_map(fn($m) => $m->to, $sink->get_messages());
+        sort($to);
+        $this->assertSame(['ana@example.com', 'gema@example.com'], $to);
+        $this->assertSame('letter', $DB->get_field(households::LINKS, 'reason', ['householdid' => $f['Ana']->id]));
+        // The same people in two files: the older one, once; and a no of either is of both.
+        $sink->clear();
+        $hugo = $this->family($id, $offer, 'Hugo', 'visit', true);
+        $again = $this->family($id, $offer, 'Hugo', 'visit', true);
+        $this->assertSame([(int) $hugo->id], array_map('intval', array_keys(invites::eligible($event))));
+        $DB->set_field(households::T, 'noinvites', 1, ['id' => $again->id]);
+        $this->assertSame([], invites::eligible($event));
+        $sink->close();
+    }
+
+    /**
      * A family that does not want invitations to events, by the box of its page or noted by the team: out of the ones to
      * invite, also when its letter was already waiting to go; the ways it is written to stay; a line in its history; and
      * back when it wants them again.

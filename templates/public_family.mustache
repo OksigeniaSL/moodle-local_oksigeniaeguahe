@@ -104,6 +104,12 @@
                 <p><b>{{saved}}.</b> {{savedline}} {{emailed}}</p>
             </div>
             {{/new}}
+            {{#notcoming}}
+            <div class="aviso en-heroe" role="status">
+                <span class="icono">{{{i.check}}}</span>
+                <p><b>{{notcoming}}</b></p>
+            </div>
+            {{/notcoming}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span dir="auto">{{text}}</span></p>{{/outcome}}
             {{#settled}}
             <div class="quien-lleva">

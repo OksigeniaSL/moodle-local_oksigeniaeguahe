@@ -101,9 +101,12 @@ if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() ===
     $SESSION->local_oksigeniaeguahe_pressed = [(int) $event->id => [(int) $from->id, optional_param('de', '', PARAM_ALPHA)]];
 }
 if ($from && $invited !== 'signed' && (int) $from->centreid === (int) $centre->id && data_submitted() === false) {
-    // The letter has one link: on the page it opens, how they want to be written to. Their private link is kept for this
-    // visit only, never in the address.
-    $SESSION->local_oksigeniaeguahe_invited = [(int) $event->id => $invited];
+    // The letter has one link: on the page it opens, whether they come and how they want to be written to. What this device
+    // keeps of it is not the link but a signature for this act, until the browser is closed: a visit of the site may last
+    // minutes, and whoever reads a letter takes longer.
+    setcookie(joinpage::COOKIE, (int) $event->id . '.' . joinpage::letter_of($event, $invited), ['expires' => 0,
+        'path' => parse_url($CFG->wwwroot . '/local/oksigeniaeguahe/', PHP_URL_PATH), 'secure' => is_moodle_cookie_secure(),
+        'httponly' => true, 'samesite' => 'Lax']);
 }
 if ($invited !== '' && data_submitted() === false) {
     // Counted, the private link of the family leaves the address at once: never kept in the history of the browser or
@@ -133,6 +136,30 @@ if ($sharer) {
     $url->param('d', $came);
 }
 $lang = publiclang::choose($centre);
+// Whoever comes by the letter of an invitation is already known: they only say whether they come, and it is kept by itself.
+// «I am not Ana»: the whole form, also when something in it is wrong and it comes back.
+$another = optional_param('otra', 0, PARAM_BOOL);
+if ($another) {
+    $url->param('otra', 1);
+}
+$saying = data_submitted() !== false && optional_param('known', 0, PARAM_BOOL);
+$kept = $desk || $embedded ? '' : ($saying ? optional_param('fam', '', PARAM_RAW_TRIMMED) : '');
+if ($kept === '' && !$desk && !$embedded) {
+    [$of, $letter] = array_pad(explode('.', (string) ($_COOKIE[joinpage::COOKIE] ?? ''), 2), 2, '');
+    $kept = (int) $of === (int) $event->id ? $letter : '';
+}
+$family = $kept !== '' ? joinpage::family_of($event, $kept) : null;
+$known = $family && empty($event->tailored) && !events::slots((int) $event->id) && (int) $event->free !== acts::FREE &&
+    !$another && ($saying || data_submitted() === false);
+if ($saying && optional_param('ajax', 0, PARAM_BOOL) && (!$known || !$event->open || $event->timeend < time())) {
+    // The page was left open and things have changed: said there, in a line.
+    $why = !empty($event->cancelled) ? 'pub_act_off' : ($event->timeend < time() ? 'pub_act_over' :
+        (!$event->open ? 'pub_act_closed' : 'pub_known_notsaved'));
+    publicpage::headers();
+    @header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => false, 'full' => publiclang::str($why, $lang)]);
+    die();
+}
 if (!$event->open || $event->timeend < time()) {
     // Of a talk or a party, what happened to it; of a visit, that there is no room and how to come another day.
     $act = $event->kind === 'other' ? (!empty($event->cancelled) ? 'off' : ($event->timeend < time() ? 'over' : 'closed')) : '';
@@ -145,12 +172,6 @@ if (!$event->open || $event->timeend < time()) {
     );
 }
 
-// Whoever comes by the letter of an invitation is already known: they only say whether they come, and it is kept by itself.
-$mine = $desk || $embedded ? '' : (string) ($SESSION->local_oksigeniaeguahe_invited[(int) $event->id] ?? '');
-$family = $mine !== '' ? households::by_link($mine) : null;
-$family = $family && (int) $family->centreid === (int) $centre->id ? $family : null;
-$known = $family && empty($event->tailored) && !events::slots((int) $event->id) && (int) $event->free !== acts::FREE &&
-    !optional_param('otra', 0, PARAM_BOOL);
 // The link pressed is counted where its page says a person looked at it (formulario.js); where it does not, at once.
 $pressed = function () use ($event, $centre): void {
     global $SESSION;
@@ -164,9 +185,11 @@ $pressed = function () use ($event, $centre): void {
 if (!$known && data_submitted() === false) {
     $pressed();
 }
-if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
+if ($known && $saying) {
+    $letter = $kept;
     publiclang::speak_to($family);
-    $kept = events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED));
+    // A letter is read when there is time: its page may be open for days.
+    $kept = events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED), WEEKSECS);
     $wrong = $kept ? 'pub_err_full' : 'pub_err_session';
     $first = false;
     $last = false;
@@ -199,7 +222,7 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         \local_oksigeniaeguahe\task\send_confirmation::queue($family, $event, $lang);
     }
     if (optional_param('ajax', 0, PARAM_BOOL)) {
-        $said = joinpage::known($event, $centre, households::get((int) $family->id, (int) $centre->id), $lang, $url, events::mark($event));
+        $said = joinpage::known($event, $centre, households::get((int) $family->id, (int) $centre->id), $lang, $url, events::mark($event), $letter);
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['ok' => $kept, 'answer' => $said['answer'], 'answered' => $said['answered'],
@@ -296,12 +319,13 @@ if (data_submitted()) {
         $to = $existed ? (string) ($before[0] ?? '') : null;
         // The sign-up is kept already: if the mail of the site fails or says something, the family still gets its
         // page.
+        $sent = false;
         ob_start();
         try {
             if ($to !== '' && !empty($event->tailored)) {
-                familymail::send('request', $household, $centre, null, $lang, $link, $to);
+                $sent = familymail::send('request', $household, $centre, null, $lang, $link, $to);
             } else if ($to !== '' && ($signup = familymail::signup($household, (int) $event->id))) {
-                familymail::send('confirmation', $household, $centre, $signup, $lang, $link, $to);
+                $sent = familymail::send('confirmation', $household, $centre, $signup, $lang, $link, $to);
             }
         } catch (\Throwable $e) {
             // The page of the family is what matters now; the mail of the site says itself what went wrong.
@@ -322,11 +346,11 @@ if (data_submitted()) {
                 $lang,
                 publiclang::str('desk_done_title', $lang),
                 'public_known',
-                ['text' => publiclang::str('desk_note', $lang), 'desk' => $where !== '' ? false : [
+                ['text' => publiclang::str('desk_note' . ($event->kind === 'other' ? '_act' : ''), $lang), 'desk' => $where !== '' ? false : [
                     'next' => (new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token,
                         'pk' => share::signature('puesto', 0, (int) $event->id), 'idioma' => $lang]))->out(false),
                     'nexttext' => publiclang::str('desk_next', $lang),
-                ]] + knownpage::context($centre, $lang, $data['children'], $signup, $to !== ''),
+                ]] + knownpage::context($centre, $lang, $data['children'], $signup, $sent),
                 $url
             );
         }
@@ -338,7 +362,8 @@ if (data_submitted()) {
                 $existed ? null : ($event->kind === 'other' && !events::slots((int) $event->id) ? new moodle_url(
                     '/local/oksigeniaeguahe/j.php',
                     ['t' => $event->token, 'k' => $link, 'idioma' => $lang]
-                ) : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang])),
+                ) : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang] +
+                    ($sent ? ['correo' => 1] : []))),
                 $event
             ));
         }
@@ -348,13 +373,15 @@ if (data_submitted()) {
             publicpage::output(
                 $centre,
                 $lang,
-                publiclang::str('pub_known_title', $lang),
+                publiclang::str(empty($event->tailored) ? 'pub_known_title' : 'pub_saved_request', $lang),
                 'public_known',
-                knownpage::context($centre, $lang, $data['children'], $signup, $to !== ''),
+                knownpage::context($centre, $lang, $data['children'], $signup, $sent, empty($event->tailored) ?
+                    'pub_known_title' : 'pub_saved_request'),
                 $url
             );
         }
-        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]);
+        $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang] +
+            ($sent ? ['correo' => 1] : []));
         if ($event->kind === 'other' && !events::slots((int) $event->id)) {
             // A talk or a party: the page of the act, where they say they do not come after all and how they are written to.
             $page = new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $link, 'idioma' => $lang]);
@@ -365,12 +392,13 @@ if (data_submitted()) {
                 $centre,
                 $lang,
                 $event->kind === 'other' ? publiclang::str('pub_breve_signed', $lang) :
-                    publiclang::str('pub_event_sent_title', $lang),
+                    publiclang::str(empty($event->tailored) ? 'pub_event_sent_title' : 'pub_saved_request', $lang),
                 $event->kind === 'other' ? \local_oksigeniaeguahe\local\actmail::saved($event, $lang) :
-                    publiclang::str('pub_event_sent_embedded', $lang),
+                    publiclang::str(empty($event->tailored) ? 'pub_event_sent_embedded' : 'pub_request_sent_embedded', $lang),
                 $url,
                 false,
-                ['url' => $page->out(false), 'label' => publiclang::str('pub_sent_open', $lang)]
+                ['url' => $page->out(false), 'label' => publiclang::str($event->kind === 'other' && !events::slots((int) $event->id) ?
+                    'pub_act_change' : 'pub_sent_open', $lang)]
             );
         }
         redirect($page);
@@ -417,7 +445,7 @@ $context = joinpage::context(
     $errors,
     $url,
     events::mark($event),
-    $known ? joinpage::known($event, $centre, $family, $lang, $url, events::mark($event)) : false
+    $known ? joinpage::known($event, $centre, $family, $lang, $url, events::mark($event), $kept) : false
 );
 publiclang::$self = $self;
 if (optional_param('llena', 0, PARAM_BOOL) && $context['known']) {

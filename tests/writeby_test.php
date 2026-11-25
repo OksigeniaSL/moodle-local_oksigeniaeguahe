@@ -115,6 +115,12 @@ final class writeby_test extends \advanced_testcase {
         $this->assertTrue(writeby::may_send($household, 'reply'));
         $this->assertFalse(writeby::may_send($household, 'reminder'));
 
+        // What a person of the team notes of them is not them writing.
+        households::received($household, 'phone', 'Les llamamos y no contestan', true, null, 0, '', '', true, false, 2);
+        $household = households::get((int) $household->id, $this->centreid);
+        $this->assertTrue(writeby::silent($household));
+        $this->assertFalse(familymail::may_email($household));
+
         // The family writes again by email, days later: it accepts to be written to by that way.
         households::received($household, 'email', 'Una pregunta', true);
         $household = households::get((int) $household->id, $this->centreid);
@@ -226,6 +232,7 @@ final class writeby_test extends \advanced_testcase {
         $this->assertStringContainsString('action=escribir', $html);
         $this->assertStringContainsString('por=none', $html);
         $this->assertStringContainsString('No escribirnos más', $text);
+        $this->assertStringContainsString("¿Por dónde les escribimos?\nAhora les escribimos por correo.", $text);
         // The mail that confirms the choice does not ask again.
         [$subject, $html] = familymail::build('writeby', $household, $centre, null, 'es', 'clave');
         $this->assertStringStartsWith('Les escribiremos por correo', $subject);
@@ -242,11 +249,11 @@ final class writeby_test extends \advanced_testcase {
         $this->assertSame('email', $page['choosing']['only']['value']);
         $this->assertNotSame('', $page['choosing']['only']['address']);
         $this->assertSame('Sí, así', $page['choosing']['button']);
-        // Pressing email in a mail, which they have: it is offered taken out.
+        // Pressing email in a mail, the only way they have: it is not being written to any more, with the button that does it.
         $page = writeby::page_context($household, $centre, 'es', 'clave', 'email', '');
-        $this->assertSame('¿Dejamos de escribirles por correo?', $page['title']);
-        $this->assertSame([false], array_column($page['choosing']['boxes'], 'checked'));
-        $this->assertSame('No escribirnos más', $page['choosing']['button']);
+        $this->assertSame('¿Dejamos de escribirles?', $page['title']);
+        $this->assertNotEmpty($page['none']['button']);
+        $this->assertArrayNotHasKey('choosing', array_filter($page));
 
         writeby::set($household, [], 'family');
         $done = writeby::page_context($household, $centre, 'es', 'clave', '', 'none');
