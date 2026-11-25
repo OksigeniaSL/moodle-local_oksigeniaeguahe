@@ -455,6 +455,8 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="centreyear" UNIQUE="false" FIELDS="centreid, schoolyear"/>
+        <INDEX NAME="centrestudent" UNIQUE="false" FIELDS="centreid, student"/>
+        <INDEX NAME="centrehousehold" UNIQUE="false" FIELDS="centreid, household"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_enrolcount" COMMENT="How many students a course had in a past school year, when the centre only has totals">
@@ -1120,6 +1122,7 @@
         <FIELD NAME="timein" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="childid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="done" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was settled; 0, a person has to say"/>
+        <FIELD NAME="marked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Of a child already there: 1, it was this that made the family one of the centre; 2, it already was; 0, not known"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

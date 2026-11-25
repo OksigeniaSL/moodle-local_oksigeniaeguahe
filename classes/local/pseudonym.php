@@ -30,12 +30,13 @@ class pseudonym {
     /** @var string */
     const T = 'local_oksigeniaeguahe_importkey';
 
-    /** @var array The prefix of the tokens, and the tables and fields that hold them. */
+    /** @var array The prefix of the tokens, and the tables and fields that hold them: the imported rows, and what was
+     *     already said of a family with them (what the list found of it, who studied at the centre). */
     const KINDS = [
         'household' => ['prefix' => 'HOG_', 'fields' => ['local_oksigeniaeguahe_pastcontact' => 'household',
-            'local_oksigeniaeguahe_student' => 'household']],
+            'local_oksigeniaeguahe_student' => 'household', 'local_oksigeniaeguahe_alumni' => 'token']],
         'student' => ['prefix' => 'ALU_', 'fields' => ['local_oksigeniaeguahe_pastcontact' => 'student',
-            'local_oksigeniaeguahe_student' => 'student']],
+            'local_oksigeniaeguahe_student' => 'student', 'local_oksigeniaeguahe_listmatch' => 'student']],
     ];
 
     /** @var int */
@@ -46,6 +47,9 @@ class pseudonym {
 
     /** @var array kind:hash => token, for this import. */
     protected $cache = [];
+
+    /** @var array A token that was joined to another => the other, for this import. */
+    protected $joined = [];
 
     /**
      * For a centre.
@@ -244,6 +248,19 @@ class pseudonym {
     }
 
     /**
+     * The token a token given before in this import is now: a later row may have shown that two were the same.
+     *
+     * @param string $token
+     * @return string
+     */
+    public function current(string $token): string {
+        while (isset($this->joined[$token])) {
+            $token = $this->joined[$token];
+        }
+        return $token;
+    }
+
+    /**
      * Makes two tokens one, everywhere.
      *
      * @param string $kind
@@ -252,6 +269,7 @@ class pseudonym {
      */
     protected function merge(string $kind, string $from, string $to): void {
         global $DB;
+        $this->joined[$from] = $to;
         foreach (self::KINDS[$kind]['fields'] as $table => $field) {
             $DB->set_field($table, $field, $to, ['centreid' => $this->centreid, $field => $from]);
         }
@@ -264,7 +282,8 @@ class pseudonym {
     }
 
     /**
-     * Forgets the keys no imported row uses any more.
+     * Forgets the keys nothing uses any more. The tokens in use are joined once: asked as a «NOT IN» of them, the
+     * database read every imported row again for each key, which is minutes with a few years of lists.
      *
      * @param int $centreid
      */
@@ -272,15 +291,18 @@ class pseudonym {
         global $DB;
         foreach (self::KINDS as $kind => $spec) {
             $used = [];
-            foreach ($spec['fields'] as $table => $field) {
-                $used[] = "SELECT $field FROM {" . $table . "} WHERE centreid = :c$table AND $field IS NOT NULL";
-            }
             $params = ['centreid' => $centreid, 'kind' => $kind];
-            foreach (array_keys($spec['fields']) as $table) {
+            foreach ($spec['fields'] as $table => $field) {
+                $used[] = "SELECT $field AS used FROM {" . $table . "} WHERE centreid = :c$table AND $field IS NOT NULL";
                 $params['c' . $table] = $centreid;
             }
-            $DB->delete_records_select(self::T, 'centreid = :centreid AND kind = :kind AND token NOT IN (' .
-                implode(' UNION ', $used) . ')', $params);
+            $ids = $DB->get_fieldset_sql('SELECT k.id
+                                            FROM {' . self::T . '} k
+                                       LEFT JOIN (' . implode(' UNION ', $used) . ') u ON u.used = k.token
+                                           WHERE k.centreid = :centreid AND k.kind = :kind AND u.used IS NULL', $params);
+            foreach (array_chunk($ids, 500) as $chunk) {
+                $DB->delete_records_list(self::T, 'id', $chunk);
+            }
         }
     }
 }

@@ -18,7 +18,9 @@ namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\listmatch;
+use local_oksigeniaeguahe\local\metrics;
 use local_oksigeniaeguahe\local\pseudonym;
 use local_oksigeniaeguahe\local\who;
 
@@ -156,5 +158,120 @@ final class listmatch_test extends \advanced_testcase {
             get_string('who_part_centre_nursery', $c, (object) ['n' => 2, 'nursery' => 1]) . '; ' .
             get_string('who_part_alumni', $c, 1), who::sentence($counts, false));
         $this->assertSame('', who::sentence(who::count([])));
+    }
+
+    /**
+     * The lists a bridge puts in every night: each in the place of the one of the night before, all at once. A student
+     * keeps its key from one night to the next, so nothing is said twice and what a person corrected stays; a new one of
+     * the night enrols its child; an empty list never takes out the one there was.
+     */
+    public function test_every_night(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $primaria = centres::save_offer($cid, (object) ['schoolyear' => '2026-27', 'name' => '1.º de Primaria', 'places' => 0,
+            'active' => 1]);
+        $family = function (string $email) use ($cid, $primaria): \stdClass {
+            $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
+            $household = households::get($id, $cid);
+            households::add_adult($household, (object) ['firstname' => 'Ana', 'lastname' => 'Ruiz', 'email' => $email,
+                'phone' => null]);
+            households::add_child($household, 'Leo', $primaria);
+            return households::get($id, $cid);
+        };
+        $inside = $family('dentro@gmail.com');
+        $comes = $family('llega@empresa-ejemplo.com');
+        $dir = make_request_directory();
+        $write = function (string $name, array $rows) use ($dir): string {
+            $out = "Nombre,Apellidos,Nivel,Correo electrónico,Fecha de alta\n";
+            foreach ($rows as $row) {
+                $out .= implode(',', $row) . "\n";
+            }
+            file_put_contents("$dir/$name.csv", $out);
+            return "$dir/$name.csv";
+        };
+        $night = fn(array $roll, array $joins) => imports::replace($cid, '2026-27', [
+            'Programa 2026-27 · lista' => ['kind' => 'roll', 'path' => $write('lista', $roll)],
+            'Programa 2026-27 · altas' => ['kind' => 'joins', 'path' => $write('altas', $joins)],
+        ], 2);
+        $roll = [['Mía', 'Sosa Díaz', '3.º de ESO', 'dentro@gmail.com', ''],
+            ['Pol', 'Gil Vera', '2.º de ESO', 'otra@hotmail.com', '']];
+        $this->assertSame([2, 0], $night($roll, [])['Programa 2026-27 · lista']);
+        $tokens = $DB->get_fieldset_select(metrics::STUDENTS, 'student', 'centreid = ?', [$cid]);
+        $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $inside->id]));
+        // A person says it is not of the centre: the next night does not say it again, and the keys are the same.
+        $DB->set_field(households::T, 'incentre', 0, ['id' => $inside->id]);
+        $lines = $DB->count_records(households::CONTACTS, ['householdid' => $inside->id]);
+        $night($roll, []);
+        $this->assertEqualsCanonicalizing(
+            $tokens,
+            $DB->get_fieldset_select(metrics::STUDENTS, 'student', 'centreid = ?', [$cid])
+        );
+        $this->assertSame(1, $DB->count_records(listmatch::T, ['householdid' => $inside->id]));
+        $this->assertSame(0, (int) $DB->get_field(households::T, 'incentre', ['id' => $inside->id]));
+        $this->assertSame($lines, $DB->count_records(households::CONTACTS, ['householdid' => $inside->id]));
+        $this->assertSame(1, $DB->count_records(imports::T, ['centreid' => $cid]), 'One import of each list, the last.');
+        // Who joins one night is on both lists: the family enrolled its child, it is not one that was there before. An email
+        // of a company, alone on the list of the new ones, is not taken for the one of a family; the list of the year has it.
+        $join = ['Leo', 'Ruiz Mar', '1.º de Primaria', 'llega@empresa-ejemplo.com', '24/11/2026'];
+        $night(array_merge($roll, [array_replace($join, [4 => ''])]), [$join]);
+        $this->assertSame('enrolled', $DB->get_field(households::CHILDREN, 'stage', ['householdid' => $comes->id]));
+        $this->assertSame(0, (int) $DB->get_field(households::T, 'incentre', ['id' => $comes->id]));
+        // An empty list of the year does not take out the one there was; an empty list of who joined does.
+        $this->assertSame([0, 0], $night([], [])['Programa 2026-27 · lista']);
+        $this->assertSame(3, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid, 'movement' => 'roll']));
+        $this->assertSame(0, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid, 'movement' => 'join']));
+    }
+
+    /**
+     * The list of the new ones that comes days after the list of the year: a family taken for one of the centre was one
+     * that had just enrolled its child. A family made of the centre by hand, or with another child there, stays so.
+     */
+    public function test_joins_after_the_list(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer = centres::save_offer($cid, (object) ['schoolyear' => '2026-27', 'name' => '1.º de Primaria', 'places' => 0,
+            'active' => 1]);
+        $family = function (string $email) use ($cid, $offer): \stdClass {
+            $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
+            $household = households::get($id, $cid);
+            households::add_adult($household, (object) ['firstname' => 'Ana', 'lastname' => 'Ruiz', 'email' => $email,
+                'phone' => null]);
+            households::add_child($household, 'Leo', $offer);
+            return households::get($id, $cid);
+        };
+        $one = $family('una@gmail.com');
+        $two = $family('dos@hotmail.com');
+        $csv = fn(array $rows) => "Nombre,Apellidos,Nivel,Correo electrónico\n" . implode("\n", $rows) . "\n";
+        $leo = 'Leo,Ruiz Mar,1.º de Primaria,una@gmail.com';
+        $teo = 'Teo,Vega Sol,1.º de Primaria,dos@hotmail.com';
+        imports::import($cid, 'roll', '2026-27', 'l.csv', $csv([$leo, $teo, 'Eva,Vega Sol,3.º de ESO,dos@hotmail.com']), 2);
+        $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $one->id]));
+        $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $two->id]));
+        imports::import($cid, 'joins', '2026-27', 'a.csv', $csv([$leo, $teo]), 2);
+        $this->assertSame('enrolled', $DB->get_field(households::CHILDREN, 'stage', ['householdid' => $one->id]));
+        $this->assertSame(0, (int) $DB->get_field(households::T, 'incentre', ['id' => $one->id]));
+        $this->assertSame('enrolled', $DB->get_field(households::CHILDREN, 'stage', ['householdid' => $two->id]));
+        $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $two->id]), 'Its other child was there.');
+    }
+
+    /**
+     * Two rows of a sheet that a later row shows to be one family: the three carry the same key, which can be found.
+     */
+    public function test_one_family_in_three_rows(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        imports::import($cid, 'roll', '2026-27', 'l.csv', "Nombre,Apellidos,Nivel,Correo electrónico,Correo electrónico 2\n" .
+            "Leo,Ruiz Mar,1.º de Primaria,madre@gmail.com,\nEva,Ruiz Mar,2.º de Primaria,padre@hotmail.com,\n" .
+            "Pau,Ruiz Mar,3.º de Primaria,madre@gmail.com,padre@hotmail.com\n" .
+            "Mía,Sosa Díaz,3.º de Primaria,otra@hotmail.com,\nPol,Gil Vera,3.º de Primaria,mas@gmail.com,\n" .
+            "Teo,Vega Sol,3.º de Primaria,aun@gmail.com,\n", 2);
+        $homes = $DB->get_fieldset_select(metrics::STUDENTS, 'DISTINCT household', 'centreid = ?', [$cid]);
+        $this->assertCount(4, $homes);
+        $found = (new pseudonym($cid))->find('household', [pseudonym::email('padre@hotmail.com')]);
+        $this->assertCount(1, $found);
+        $this->assertSame(3, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid, 'household' => $found[0]]));
     }
 }

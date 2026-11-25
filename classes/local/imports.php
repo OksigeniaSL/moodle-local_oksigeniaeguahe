@@ -129,11 +129,83 @@ class imports {
      */
     public static function import_file(int $centreid, string $path, string $filename, array $choices, int $userid): array {
         global $DB;
+        $transaction = $DB->start_delegated_transaction();
+        [$made, $total, $skipped] = self::load($centreid, $path, $filename, $choices, $userid);
+        $transaction->allow_commit();
+        self::cross($centreid, $made ? array_column($choices, 'kind') : []);
+        return [$made, $total, $skipped];
+    }
+
+    /**
+     * Puts the lists of a school year in the place of the ones that were there with the same names, as a bridge with
+     * the management program does every night: the new ones come in before the old ones go, so a student keeps its key
+     * from one night to the next, and the families are crossed once, with all of them in. All or nothing: if one cannot
+     * be read, everything stays as it was. A list of the year that comes empty, or any of which no row is understood,
+     * never takes out the one there was.
+     *
+     * @param int $centreid
+     * @param string $schoolyear
+     * @param array $lists The name of each list => [kind (roll, joins or leaves), path and, if it is not its own, filename].
+     * @param int $userid
+     * @return array The name of each list => [rows, rows left out].
+     */
+    public static function replace(int $centreid, string $schoolyear, array $lists, int $userid): array {
+        global $DB;
+        $done = [];
+        $kinds = [];
+        $transaction = $DB->start_delegated_transaction();
+        foreach ($lists as $label => $list) {
+            if (!in_array($list['kind'], ['roll', 'joins', 'leaves'], true)) {
+                throw new \coding_exception('Not a list of a school year: ' . $list['kind']);
+            }
+            if (!is_readable($list['path'])) {
+                throw new \moodle_exception('import_err_empty', 'local_oksigeniaeguahe', '', null, $list['path']);
+            }
+            $old = $DB->get_records(self::T, ['centreid' => $centreid, 'label' => \core_text::substr($label, 0, 100),
+                'kind' => $list['kind']]);
+            $choice = ['kind' => $list['kind'], 'label' => $label, 'schoolyear' => $schoolyear];
+            [$made, $rows, $skipped] = self::load(
+                $centreid,
+                $list['path'],
+                $list['filename'] ?? basename($list['path']),
+                [0 => $choice],
+                $userid
+            );
+            $done[$label] = [$rows, $skipped];
+            if (!$made && ($skipped || $list['kind'] === 'roll')) {
+                continue;
+            }
+            foreach ($old as $import) {
+                self::remove($import);
+            }
+            if ($made || $old) {
+                $kinds[] = $list['kind'];
+            }
+        }
+        if ($kinds) {
+            pseudonym::clean($centreid);
+        }
+        $transaction->allow_commit();
+        self::cross($centreid, $kinds);
+        return $done;
+    }
+
+    /**
+     * Reads the sheets of a file and keeps their rows.
+     *
+     * @param int $centreid
+     * @param string $path
+     * @param string $filename
+     * @param array $choices As import_file() has them.
+     * @param int $userid
+     * @return array [imports made, rows imported, rows left out]
+     */
+    protected static function load(int $centreid, string $path, string $filename, array $choices, int $userid): array {
+        global $DB;
         $keys = new pseudonym($centreid);
         $made = 0;
         $total = 0;
         $skipped = 0;
-        $transaction = $DB->start_delegated_transaction();
         foreach (sheets::read($path, $filename) as $i => $sheet) {
             $choice = $choices[$i] ?? null;
             if (!$choice || !isset(self::TABLES[$choice['kind'] ?? '']) || $choice['kind'] === 'students') {
@@ -144,6 +216,15 @@ class imports {
             $flagged = [];
             [$records, $left] = self::records($centreid, $plan, $choice, $keys, $flagged);
             $skipped += $left;
+            // A later row may have made one family or one student of two earlier ones of this same sheet.
+            foreach ($records as $record) {
+                foreach (['household', 'student'] as $field) {
+                    if (!empty($record->$field)) {
+                        $record->$field = $keys->current($record->$field);
+                    }
+                }
+            }
+            $flagged = array_map([$keys, 'current'], $flagged);
             if (!$records) {
                 continue;
             }
@@ -163,21 +244,29 @@ class imports {
             $made++;
             $total += $choice['kind'] === 'alumni' ? count(array_filter($records, fn($r) => $r->exact)) : count($records);
         }
-        $transaction->allow_commit();
-        // A list of former students came in: every adult of the centre is looked for in it, in the background (a big
-        // centre and a long list take longer than a page).
-        if ($made && in_array('alumni', array_column($choices, 'kind'), true)) {
+        return [$made, $total, $skipped];
+    }
+
+    /**
+     * What has to be looked at again after some lists came in.
+     *
+     * @param int $centreid
+     * @param string[] $kinds The kinds of the lists.
+     */
+    protected static function cross(int $centreid, array $kinds): void {
+        // A list of former students: every adult of the centre is looked for in it, in the background (a big centre and a
+        // long list take longer than a page).
+        if (in_array('alumni', $kinds, true)) {
             \local_oksigeniaeguahe\task\match_alumni::queue($centreid);
         }
-        // A list of the year came in: the families of Eguahe that enrolled a child, or that have one at the centre.
-        if ($made && array_intersect(array_column($choices, 'kind'), ['roll', 'joins'])) {
+        // A list of the year: the families of Eguahe that enrolled a child, or that have one at the centre.
+        if (array_intersect($kinds, ['roll', 'joins'])) {
             try {
                 listmatch::detect(centres::get($centreid), time());
             } catch (\Throwable $e) {
                 debugging('Eguahe: the list was not crossed with the families: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
         }
-        return [$made, $total, $skipped];
     }
 
     /**
@@ -531,13 +620,23 @@ class imports {
         global $DB;
         $import = $DB->get_record(self::T, ['id' => $importid, 'centreid' => $centreid], '*', MUST_EXIST);
         $transaction = $DB->start_delegated_transaction();
-        $DB->delete_records(self::TABLES[$import->kind], ['importid' => $import->id]);
-        $DB->delete_records(alumni::T, ['importid' => $import->id]);
-        $DB->delete_records(self::T, ['id' => $import->id]);
+        self::remove($import);
         pseudonym::clean($centreid);
         $transaction->allow_commit();
         if ($import->kind === 'alumni') {
             alumni::list_removed($centreid);
         }
+    }
+
+    /**
+     * Removes an import and its rows, without looking at the keys.
+     *
+     * @param \stdClass $import
+     */
+    protected static function remove(\stdClass $import): void {
+        global $DB;
+        $DB->delete_records(self::TABLES[$import->kind], ['importid' => $import->id]);
+        $DB->delete_records(alumni::T, ['importid' => $import->id]);
+        $DB->delete_records(self::T, ['id' => $import->id]);
     }
 }

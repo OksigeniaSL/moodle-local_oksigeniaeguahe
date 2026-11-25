@@ -34,6 +34,12 @@ class listmatch {
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
+    /** @var int A child already there: it was this that made the family one of the centre. */
+    const MADE = 1;
+
+    /** @var int A child already there, of a family that already was one of the centre. */
+    const WAS = 2;
+
     /**
      * Crosses the families of Eguahe of a centre with the list of its last school year.
      *
@@ -49,24 +55,35 @@ class listmatch {
             return [0, 0, 0];
         }
         $year = (string) reset($years);
-        // The students of the year by the key of their family: who is new this year, and who was already there.
+        // The students of the year by the key of their family: who is new this year, and who was already there. Who is
+        // new is told of the student: the list of the new ones may come without the contact of its family, which the list
+        // of the year has.
         $byhome = [];
+        $ofyear = [];
+        $homesof = [];
         $rows = $DB->get_recordset_select(
             metrics::STUDENTS,
-            "centreid = :centreid AND schoolyear = :year AND movement <> 'leave' AND household IS NOT NULL",
+            "centreid = :centreid AND schoolyear = :year AND movement <> 'leave'",
             ['centreid' => $centreid, 'year' => $year],
             '',
             'id, student, household, movement, grade, timein'
         );
         foreach ($rows as $row) {
-            $s = $byhome[$row->household][$row->student] ?? ['student' => $row->student, 'new' => false, 'grade' => '',
-                'timein' => 0];
+            $s = $ofyear[$row->student] ?? ['student' => $row->student, 'new' => false, 'grade' => '', 'timein' => 0];
             $s['new'] = $s['new'] || $row->movement === 'join';
             $s['grade'] = $s['grade'] !== '' ? $s['grade'] : (string) $row->grade;
             $s['timein'] = max($s['timein'], (int) $row->timein);
-            $byhome[$row->household][$row->student] = $s;
+            $ofyear[$row->student] = $s;
+            if ((string) $row->household !== '') {
+                $homesof[$row->student][$row->household] = true;
+            }
         }
         $rows->close();
+        foreach ($homesof as $student => $tokens) {
+            foreach (array_keys($tokens) as $token) {
+                $byhome[$token][$student] = $ofyear[$student];
+            }
+        }
         // The students of the years before, by the key of their family: a family that had children at the centre
         // knew it, even if none is there now. Each with the last school year it was there and its grade.
         $before = [];
@@ -88,8 +105,14 @@ class listmatch {
         $keys = new pseudonym($centreid);
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centreid], '', 'id, name, schoolyear');
         $seen = [];
-        foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'schoolyear' => $year], '', 'id, householdid, student') as $r) {
-            $seen[$r->householdid . ':' . $r->student] = true;
+        $known = $DB->get_records(
+            self::T,
+            ['centreid' => $centreid, 'schoolyear' => $year],
+            '',
+            'id, householdid, student, kind, marked'
+        );
+        foreach ($known as $r) {
+            $seen[$r->householdid . ':' . $r->student] = $r;
         }
         $seenbefore = [];
         foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'kind' => 'former'], '', 'id, householdid, student') as $r) {
@@ -125,15 +148,26 @@ class listmatch {
                 continue;
             }
             $older = [];
+            $unmark = false;
             foreach ($students as $s) {
-                if (isset($seen[$household->id . ':' . $s['student']])) {
+                $row = $seen[$household->id . ':' . $s['student']] ?? null;
+                if ($row && !($s['new'] && $row->kind === 'incentre' && $row->marked)) {
                     continue;
                 }
                 if (!$s['new']) {
                     $older[] = $s;
                     continue;
                 }
+                if ($row) {
+                    // The list of the new ones came after the list of the year: it was not there before, it has just come.
+                    $DB->delete_records(self::T, ['id' => $row->id]);
+                    $unmark = $unmark || (int) $row->marked === self::MADE;
+                }
                 $counts[self::enrol($centre, $household, $s, $offers, $year) === 'enrolled' ? 0 : 2]++;
+            }
+            if ($unmark && !$older && !$DB->record_exists(self::T, ['householdid' => $household->id, 'kind' => 'incentre'])) {
+                $DB->set_field(households::T, 'incentre', 0, ['id' => $household->id]);
+                $household->incentre = 0;
             }
             if ($older) {
                 $grades = array_values(array_unique(array_map(fn($s) => grades::label($centreid, $s['grade']), $older)));
@@ -141,7 +175,8 @@ class listmatch {
                     $DB->insert_record(self::T, (object) ['centreid' => $centreid, 'householdid' => $household->id,
                         'schoolyear' => $year, 'student' => $s['student'], 'kind' => 'incentre',
                         'grade' => \core_text::substr(grades::label($centreid, $s['grade']), 0, 100), 'timein' => $s['timein'],
-                        'childid' => 0, 'done' => $now, 'timecreated' => $now]);
+                        'childid' => 0, 'done' => $now, 'marked' => empty($household->incentre) ? self::MADE : self::WAS,
+                        'timecreated' => $now]);
                 }
                 if (empty($household->incentre)) {
                     // A family with a child already at the centre: out of the numbers of who comes, as one of the centre.

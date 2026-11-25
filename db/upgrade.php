@@ -1972,5 +1972,40 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026122501, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026122502) {
+        $table = new xmldb_table('local_oksigeniaeguahe_listmatch');
+        $field = new xmldb_field('marked', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'done');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_student');
+        foreach (['centrestudent' => 'student', 'centrehousehold' => 'household'] as $name => $column) {
+            $index = new xmldb_index($name, XMLDB_INDEX_NOTUNIQUE, ['centreid', $column]);
+            if (!$dbman->index_exists($table, $index)) {
+                $dbman->add_index($table, $index);
+            }
+        }
+        // A list put in every night gave a new key to whoever was only in it, and the same child was said again the next
+        // day: of each family, the ones whose key is in no list go when another of the same year and kind stays.
+        $sql = "SELECT m.id, m.householdid, m.schoolyear, m.kind, s.student AS living
+                  FROM {local_oksigeniaeguahe_listmatch} m
+             LEFT JOIN (SELECT DISTINCT centreid, student FROM {local_oksigeniaeguahe_student}) s
+                    ON s.centreid = m.centreid AND s.student = m.student
+                 WHERE m.kind = :kind";
+        $rows = $DB->get_records_sql($sql, ['kind' => 'incentre']);
+        $stays = [];
+        foreach ($rows as $row) {
+            if ($row->living !== null) {
+                $stays[$row->householdid . ':' . $row->schoolyear] = true;
+            }
+        }
+        foreach ($rows as $row) {
+            if ($row->living === null && isset($stays[$row->householdid . ':' . $row->schoolyear])) {
+                $DB->delete_records('local_oksigeniaeguahe_listmatch', ['id' => $row->id]);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2026122502, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }
