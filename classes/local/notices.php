@@ -152,7 +152,7 @@ class notices {
                         'at' => (int) $signup->reminded], $signups);
                 }
             } else if (userdate($start, '%Y%m%d', 99, false) > userdate($now, '%Y%m%d', 99, false)) {
-                $reach = self::may($household, $centre, 'reminder');
+                $reach = self::may($household, $centre, 'reminder', actmail::is($signup));
                 $out[] = self::row(['kind' => 'reminder', 'eventid' => $eventid, 'state' => $reach ? 'queued' : 'blocked',
                     'reason' => $reach ? '' : self::why($household), 'due' => max($eve, $now)], $signups);
             }
@@ -162,7 +162,8 @@ class notices {
             $out[] = self::row(['id' => (int) $row->id, 'kind' => $row->kind, 'eventid' => (int) $row->eventid,
                 'what' => format_string((string) $row->what), 'start' => (int) $row->timestart, 'channel' => $row->channel,
                 'state' => $row->state, 'reason' => (string) $row->reason, 'at' => (int) $row->timecreated,
-                'again' => in_array($row->kind, self::AGAIN, true) && $start > $now && self::may($household, $centre, $row->kind)], $signups);
+                'again' => in_array($row->kind, self::AGAIN, true) && $start > $now &&
+                    self::may($household, $centre, $row->kind, actmail::is($signups[(int) $row->eventid] ?? null))], $signups);
         }
         return $out;
     }
@@ -173,15 +174,17 @@ class notices {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $kind
+     * @param bool $act Whether it is of an act that is not a visit: only by email.
      * @return bool
      */
-    protected static function may(\stdClass $household, \stdClass $centre, string $kind): bool {
+    protected static function may(\stdClass $household, \stdClass $centre, string $kind, bool $act = false): bool {
         if (!writeby::may_send($household, $kind)) {
             return false;
         }
-        $email = $kind === 'reminder' ? writeby::email_now($household, $centre, $kind) : writeby::email_ok($household, $centre, $kind);
+        $email = $kind === 'reminder' ? writeby::email_now($household, $centre, $kind, $act) :
+            writeby::email_ok($household, $centre, $kind, $act);
         return ($email && households::recipient($household) !== '') ||
-            (writeby::phone_ok($household, $kind) && messaging::joined($household, $centre));
+            (!$act && writeby::phone_ok($household, $kind) && messaging::joined($household, $centre));
     }
 
     /**
@@ -212,12 +215,12 @@ class notices {
         $signup = $row ? familymail::signup($household, (int) $row->eventid) : null;
         if (
             !$row || !in_array($row->kind, self::AGAIN, true) || !$signup || (int) $signup->timestart <= time() ||
-                !self::may($household, $centre, (string) $row->kind)
+                !self::may($household, $centre, (string) $row->kind, actmail::is($signup))
         ) {
             return null;
         }
         $lang = (string) ($household->lang ?: $centre->lang);
-        if ($row->kind === 'reminder' && !writeby::email_now($household, $centre, 'reminder')) {
+        if ($row->kind === 'reminder' && !writeby::email_now($household, $centre, 'reminder', actmail::is($signup))) {
             // Without the email allowed, only on the phones it joined, as the one of the eve.
             return self::phones('reminder', $household, $centre, $signup, $lang);
         }

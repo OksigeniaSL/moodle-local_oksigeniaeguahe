@@ -402,6 +402,9 @@ class events {
     public static function sign_up(\stdClass $event, int $householdid, int $people, int $slotid = 0): int {
         global $DB;
         $people = max(1, min(self::MAXPEOPLE, $people));
+        // Invited by a letter: what it said there is that it comes.
+        $DB->set_field_select(invites::T, 'reply', 'yes', 'eventid = ? AND householdid = ? AND reply = ?', [(int) $event->id,
+            $householdid, 'no']);
         if ($event->kind !== 'other') {
             households::admit($householdid);
         }
@@ -528,6 +531,9 @@ class events {
             return false;
         }
         $DB->delete_records(self::SIGNUPS, ['id' => $row->id]);
+        // Invited by a letter: what it said there is that it does not come.
+        $DB->set_field_select(invites::T, 'reply', 'no', 'eventid = ? AND householdid = ? AND reply = ?', [(int) $event->id,
+            (int) $household->id, 'yes']);
         if ($awaits) {
             households::received($household, lists::PAGE, $line, true);
         } else {
@@ -605,8 +611,12 @@ class events {
         $host = parse_url($CFG->wwwroot, PHP_URL_HOST) ?: 'localhost';
         $when = $when ?? $event;
         $name = format_string($centre->name);
-        $location = implode(', ', array_filter([$name, $event->place ? format_string($event->place) : '',
-            (string) ($centre->address ?? '')]));
+        $place = $event->place ? format_string($event->place) : '';
+        // The centre once: «Biblioteca del Colegio…» already names it.
+        $location = implode(', ', array_filter([$place !== '' && \core_text::strpos(
+            \core_text::strtolower($place),
+            \core_text::strtolower($name)
+        ) !== false ? '' : $name, $place, (string) ($centre->address ?? '')]));
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
@@ -886,6 +896,7 @@ class events {
         }
         // Scaling to its box.
         return '<svg viewBox="0 0 ' . $code['num_cols'] . ' ' . $code['num_rows'] . '" role="img" aria-hidden="true" ' .
+            'style="--n: ' . $code['num_cols'] . '" ' .
             'xmlns="http://www.w3.org/2000/svg"><path fill="black" stroke="none" d="' . $path . '"/></svg>';
     }
 }

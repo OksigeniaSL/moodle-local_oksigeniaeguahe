@@ -287,7 +287,7 @@ class brief {
                 'use' => $str('pub_email_use')] : false,
             'privacyurl' => publicpage::privacy_url($centre, $lang)->out(false),
             'privacy' => $str('pub_breve_privacy'),
-            'info' => joinpage::first_layer($centre, $lang),
+            'info' => joinpage::first_layer($centre, $lang, ($event->kind ?? '') === 'other'),
             'send' => $str($event->kind === 'form' ? 'pub_submit_form' : ((int) ($event->free ?? 0) === acts::FREE_ASKS ?
                 'mail_letter_come' : 'pub_submit' . ($self ? '_self' : ''))),
             'sent' => false,

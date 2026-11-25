@@ -80,8 +80,10 @@
         <input type="hidden" name="action" value="escribir">
         <input type="hidden" name="idioma" value="{{lang}}">
         {{#nowpill}}<p class="es-ahora">{{{icon}}}{{text}}</p>{{/nowpill}}
+        {{#events}}<button type="submit" name="soloeventos" value="1" class="boton principal">{{label}}</button>
+        {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}{{/events}}
         <p>{{means}}</p>
-        <button type="submit" name="nada" value="1" class="boton principal">{{{icon}}}{{button}}</button>
+        <button type="submit" name="nada" value="1" class="boton {{#events}}secundario{{/events}}{{^events}}principal{{/events}}">{{{icon}}}{{button}}</button>
     </form>
     <div class="es-otras">
         <p>{{other}}</p>

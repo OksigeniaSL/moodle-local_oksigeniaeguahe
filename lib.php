@@ -151,8 +151,8 @@ function local_oksigeniaeguahe_work_week(int $centreid, int $now): string {
         'SELECT COUNT(DISTINCT s.householdid)
            FROM {local_oksigeniaeguahe_signup} s
            JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
-          WHERE e.centreid = ? AND s.attended >= ?',
-        [$centreid, $since]
+          WHERE e.centreid = ? AND s.attended >= ? AND e.kind <> ?',
+        [$centreid, $since, 'other']
     );
     $looked = (int) $DB->count_records_sql(
         'SELECT COUNT(DISTINCT householdid) FROM {local_oksigeniaeguahe_seen} WHERE centreid = ? AND kind = ? AND timecreated >= ?',

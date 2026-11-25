@@ -204,8 +204,8 @@ class report_data {
             'SELECT COUNT(DISTINCT s.householdid)
                                                 FROM {' . events::SIGNUPS . '} s
                                                 JOIN {' . events::T . '} e ON e.id = s.eventid
-                                               WHERE e.centreid = ? AND s.attended >= ? AND s.attended < ?',
-            [$centreid, $from, $to]
+                                               WHERE e.centreid = ? AND s.attended >= ? AND s.attended < ? AND e.kind <> ?',
+            [$centreid, $from, $to, 'other']
         );
         $enrolled = $DB->count_records_select(
             households::CHILDREN,
@@ -821,7 +821,8 @@ class report_data {
             $notyet = (int) $DB->count_records_sql("SELECT COUNT(1) FROM {" . households::T . "} h
                                                      WHERE h.centreid = ? AND h.incentre = 0 AND h.guest = 0 AND h.timecreated >= ?
                                                        AND NOT EXISTS (SELECT 1 FROM {" . events::SIGNUPS . "} s
-                                                                        WHERE s.householdid = h.id)
+                                                                         JOIN {" . events::T . "} v ON v.id = s.eventid
+                                                                        WHERE s.householdid = h.id AND v.kind <> 'other')
                                                        AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} k
                                                                     WHERE k.householdid = h.id
                                                                       AND k.stage = 'inquiry')", [$id,

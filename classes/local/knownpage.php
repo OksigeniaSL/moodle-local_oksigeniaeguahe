@@ -54,8 +54,9 @@ class knownpage {
         $rail = publicpage::pegs($tags, true, null, array_map(fn($k) => ages::hanging($k, $offers, $centre), $kids));
         $event = false;
         $hosts = [];
+        $act = actmail::act('confirmation', $signup, $centre);
         if ($signup && (int) $signup->timestart) {
-            $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
+            $ids = $act ? [] : array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
             $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
             $host = $hosts[0]->first ?? '';
             $parts = publicpage::date_parts((int) $signup->timestart, $lang);
@@ -65,7 +66,8 @@ class knownpage {
                 (ages::older($kids, $centre, $offers) ? '_older' : '') . (count($tags) > 1 ? '_many' : ''));
             $place = trim(implode(' · ', array_filter([$signup->place ? format_string($signup->place) : '',
                 (string) ($centre->address ?? '')])));
-            $event = ['lead' => publiclang::str($key, $lang, $a), 'weekday' => $parts['weekday'],
+            // Of a talk or a party: that they have a place, and nothing of who receives them.
+            $event = ['lead' => $act ? s(actmail::saved($act, $lang)) : publiclang::str($key, $lang, $a), 'weekday' => $parts['weekday'],
                 'daymonth' => $parts['daymonth'], 'name' => format_string($signup->eventname),
                 'hours' => familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang), 'place' => $place];
         }

@@ -23,6 +23,7 @@
       for a place once they came (isapply) or how to write with no visit yet (isnext); the visit and its words come
       from the page (first, others, bandlabel…), and so do the email and phone of the centre, with canwrite when there
       is one of them (else «write to us» is not said).
+    * act - a talk, a workshop or a party they said they come to: when, where and how to say they do not.
     * turn - a brother or sister whose turn has come: a place kept with one touch.
     * renewal - whether each child goes on next school year.
     * survey - «How did it go?», with the open question first.
@@ -37,7 +38,7 @@
     {
         "i": {"check": "", "cal": "", "map": "", "mail": "", "phone": "", "send": "", "chev": ""},
         "band": false, "turn": false, "survey": false, "birthday": false, "ask": false, "sibling": false,
-        "volunteer": false, "ambassador": false, "whyother": false, "waitlist": false, "tell": false,
+        "volunteer": false, "ambassador": false, "whyother": false, "waitlist": false, "tell": false, "act": false,
         "costs": {"title": "Lo que cuesta", "rows": [{"what": "Cuota mensual", "amount": "320 €"}], "note": "Pregúntennos."},
         "story": {"url": "#", "name": "Leo", "open": "Abrir el cuento", "kicker": "Un cuento para Leo",
             "title": "Tu primer día", "lead": "Para leerlo juntos en casa."},
@@ -136,6 +137,17 @@
 </section>
 {{/isnext}}
 {{/band}}
+{{#act}}
+<section class="acto-suyo" aria-label="{{name}}">
+    <p class="acto-suyo-tipo">{{kind}}</p>
+    <p class="acto-suyo-que"><b dir="auto">{{name}}</b><span>{{long}} · {{hours}}</span>{{#place}}<span dir="auto">{{place}}</span>{{/place}}<span>{{people}}</span></p>
+    <div class="acciones">
+        <a class="boton secundario" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
+        {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
+        {{#cantcome}}<form class="no-podemos" id="no-podemos-{{eventid}}" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
+    </div>
+</section>
+{{/act}}
 {{#turn}}
 <form class="le-toca" method="post" action="{{action}}" id="le-toca-{{id}}">
     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="siblingconfirm"><input type="hidden" name="hermano" value="{{id}}">

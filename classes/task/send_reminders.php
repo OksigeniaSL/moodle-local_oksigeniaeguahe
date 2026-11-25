@@ -16,6 +16,7 @@
 
 namespace local_oksigeniaeguahe\task;
 
+use local_oksigeniaeguahe\local\actmail;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
@@ -83,7 +84,8 @@ class send_reminders extends \core\task\scheduled_task {
                     mtrace('Eguahe: notice of the visit not sent (' . $e->getMessage() . ')');
                 }
             }
-            if ($signup && !\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'reminder')) {
+            $act = actmail::is($signup);
+            if ($signup && !\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'reminder', $act)) {
                 // Without the email allowed, only on the phones the family joined with.
                 notices::phones(
                     'reminder',

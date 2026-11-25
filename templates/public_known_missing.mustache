@@ -17,15 +17,17 @@
 {{!
     @template local_oksigeniaeguahe/public_known_missing
 
-    What is left to be written to by the phones they marked: for each one not joined yet, what to do and what for, its
-    button and, at a computer, the code to point the phone at; and that until then they are written to by email.
+    What is left to be written to by the phones they marked: for each one not joined yet, what to do and what for, and its
+    button; once and at a computer, the codes to point the phone at; and that until then they are written to by email. With
+    «asking», a message is on its way to them: only that. With «asked», it has reached them: what to touch («yes», its word,
+    drawn), and under it, quieter, what to do if it has not («planb») with the button.
 
     Example context (json):
     {
-        "missing": {"hasrows": true, "rows": [{"label": "Un paso más para WhatsApp",
-            "text": "El botón abre WhatsApp con un saludo ya escrito. Envíenlo y les escribiremos por ahí.", "url": "#", "icon": "", "open": "Abrir WhatsApp", "qr": "",
-            "qrline": "¿Están en el ordenador? Apunten la cámara del teléfono a este código."}],
+        "missing": {"hasrows": true, "rows": [{"label": "Un paso más para WhatsApp", "asking": false, "asked": false, "yes": "Sí", "planb": "",
+            "text": "El botón abre WhatsApp con un saludo ya escrito. Envíenlo y les escribiremos por ahí.", "url": "#", "icon": "", "open": "Abrir WhatsApp"}],
+            "computer": {"ask": "¿Están en el ordenador?", "line": "Apunten la cámara del teléfono a este código.", "many": false, "codes": [{"name": "WhatsApp", "qr": ""}]},
             "until": "Hasta entonces, les seguimos escribiendo por correo."}
     }
 }}
-{{#missing}}{{#rows}}<div class="unir-falta"><p class="unir-cual"><b>{{label}}</b></p><p class="unir-como">{{text}}</p><a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a>{{#qr}}<span class="unir-codigo">{{{qr}}}</span><p class="unir-apunten">{{qrline}}</p>{{/qr}}</div>{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}
+{{#missing}}{{#rows}}<div class="unir-falta{{#asking}} avisando{{/asking}}{{#asked}} avisada{{/asked}}">{{#asking}}<span class="unir-aviso-movil" aria-hidden="true"><i></i><i></i><i></i></span>{{/asking}}{{#asked}}<span class="unir-aviso-movil" aria-hidden="true"><i></i><i></i><b>{{yes}}</b></span>{{/asked}}{{#label}}<p class="unir-cual"><b>{{label}}</b></p>{{/label}}{{#text}}<p class="unir-como">{{text}}</p>{{/text}}{{^asking}}{{#planb}}<p class="unir-planb">{{planb}}</p>{{/planb}}<a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a>{{/asking}}</div>{{/rows}}{{#computer}}<details class="unir-ordenador"><summary><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM6 6h1v1H6zM17 6h1v1h-1zM6 17h1v1H6zM14 14h3v3h-3zM18 18h3v3h-3z"/></svg><span>{{ask}}</span></summary><p>{{line}}</p><div class="unir-codigos">{{#codes}}<div class="unir-codigo"><span>{{{qr}}}</span>{{#many}}<b>{{name}}</b>{{/many}}</div>{{/codes}}</div></details>{{/computer}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}

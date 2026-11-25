@@ -6055,6 +6055,28 @@ html {
     height: 16px;
 }
 
+.acto-suyo {
+    display: grid;
+    gap: 10px;
+}
+
+.acto-suyo-tipo {
+    margin: 0;
+    color: var(--c-acento-texto);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.acto-suyo-que {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+}
+
+.acto-suyo-que b {
+    font-size: 1.125rem;
+}
+
 .es-eventos {
     display: flex;
     gap: 12px;

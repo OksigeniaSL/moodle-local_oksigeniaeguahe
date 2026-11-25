@@ -398,6 +398,15 @@ class panel_eventform {
      * @return array greeting and text.
      */
     public static function message(\stdClass $household, \stdClass $centre, \stdClass $signup, string $lang): array {
+        $act = actmail::act('change', $signup, $centre);
+        if ($act) {
+            // Of a talk or a party: what it is and when and where it is now, to the adult, and nobody who receives them.
+            $first = familymail::first_name($household);
+            $lines = actmail::lines($act, $signup, $centre, $lang);
+            return ['greeting' => $first !== '' ? publiclang::str('mail_letter_hello', $lang, $first) :
+                publiclang::str('mail_letter_hello_noname', $lang), 'text' => actmail::changed($act, $lang) . "\n\n" .
+                implode("\n", $lines), 'when' => rtrim($lines[0] ?? '', '.')];
+        }
         $names = array_values(array_filter(array_map(
             fn($a) => trim((string) $a->firstname),
             households::full($household)->adults

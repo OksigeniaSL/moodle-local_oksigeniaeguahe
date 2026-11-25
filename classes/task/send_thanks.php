@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe\task;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\notices;
@@ -68,8 +69,16 @@ class send_thanks extends \core\task\scheduled_task {
             if (!$signup) {
                 continue;
             }
+            if (\local_oksigeniaeguahe\local\actmail::is($signup)) {
+                // A talk or a party is not a visit: no thanks, unless the team asks there how it went.
+                $event = events::get((int) $row->eventid, (int) $centre->id);
+                if (!$event || !surveys::is_open($event, $now) || !surveys::form($event)) {
+                    continue;
+                }
+            }
             $lang = $household->lang ?: $centre->lang;
-            if (!\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'thanks')) {
+            $act = \local_oksigeniaeguahe\local\actmail::is($signup);
+            if (!\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'thanks', $act)) {
                 // Without the email allowed, only on the phones the family joined with.
                 notices::phones('thanks', $household, $centre, $signup, $lang);
                 continue;

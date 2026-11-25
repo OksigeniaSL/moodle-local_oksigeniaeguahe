@@ -134,11 +134,13 @@ if ($sharer) {
 }
 $lang = publiclang::choose($centre);
 if (!$event->open || $event->timeend < time()) {
+    // Of a talk or a party, what happened to it; of a visit, that there is no room and how to come another day.
+    $act = $event->kind === 'other' ? (!empty($event->cancelled) ? 'off' : ($event->timeend < time() ? 'over' : 'closed')) : '';
     publicpage::message(
         $centre,
         $lang,
-        publiclang::str('pub_closed_title', $lang),
-        publiclang::str('pub_closed', $lang),
+        $act !== '' ? format_string($event->name) : publiclang::str('pub_closed_title', $lang),
+        publiclang::str($act !== '' ? 'pub_act_' . $act : 'pub_closed', $lang),
         $url
     );
 }
@@ -327,7 +329,10 @@ if (data_submitted()) {
             brief::output($centre, $lang, publiclang::str('pub_breve_sent', $lang), brief::sent(
                 $centre,
                 $lang,
-                $existed ? null : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]),
+                $existed ? null : ($event->kind === 'other' && !events::slots((int) $event->id) ? new moodle_url(
+                    '/local/oksigeniaeguahe/j.php',
+                    ['t' => $event->token, 'k' => $link, 'idioma' => $lang]
+                ) : new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang])),
                 $event
             ));
         }
@@ -344,13 +349,19 @@ if (data_submitted()) {
             );
         }
         $page = new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $link, 'new' => 1, 'idioma' => $lang]);
+        if ($event->kind === 'other' && !events::slots((int) $event->id)) {
+            // A talk or a party: the page of the act, where they say they do not come after all and how they are written to.
+            $page = new moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $link, 'idioma' => $lang]);
+        }
         if ($embedded) {
             // Inside the web of the centre: done, and their page, with their visit, opens apart.
             publicpage::message(
                 $centre,
                 $lang,
-                publiclang::str('pub_event_sent_title', $lang),
-                publiclang::str('pub_event_sent_embedded', $lang),
+                $event->kind === 'other' ? publiclang::str('pub_breve_signed', $lang) :
+                    publiclang::str('pub_event_sent_title', $lang),
+                $event->kind === 'other' ? \local_oksigeniaeguahe\local\actmail::saved($event, $lang) :
+                    publiclang::str('pub_event_sent_embedded', $lang),
                 $url,
                 false,
                 ['url' => $page->out(false), 'label' => publiclang::str('pub_sent_open', $lang)]

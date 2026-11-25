@@ -75,7 +75,7 @@ class decide {
             $rows = $DB->get_recordset_sql("SELECT s.id, s.householdid, e.timestart
                                               FROM {" . events::SIGNUPS . "} s
                                               JOIN {" . events::T . "} e ON e.id = s.eventid
-                                             WHERE s.householdid $in AND s.attended > 0", $params);
+                                             WHERE s.householdid $in AND s.attended > 0 AND e.kind <> 'other'", $params);
             foreach ($rows as $row) {
                 $visits[(int) $row->householdid][] = (int) $row->timestart;
             }

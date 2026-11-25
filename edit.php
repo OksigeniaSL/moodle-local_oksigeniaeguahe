@@ -119,9 +119,12 @@ if ($data = $form->get_data()) {
     $channel = (string) ($data->channel ?? 'other');
     $adnetwork = lists::HAND_ADS[$channel] ?? '';
     $channel = $adnetwork !== '' ? 'meta' : $channel;
+    $act = !empty($data->eventid) ? events::get((int) $data->eventid, (int) $centre->id) : null;
     $about = (object) ['lang' => $data->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
         'heardnet' => $data->heardfrom === 'social' ? centres::network($centre, (string) ($data->heardnet ?? '')) : '',
-        'municipalityname' => null, 'firstchannel' => $channel, 'incentre' => !empty($data->incentre)];
+        'municipalityname' => null, 'firstchannel' => $channel, 'incentre' => !empty($data->incentre),
+        // Noted at a talk or a party, with no child: of that act, not of the admissions.
+        'guest' => !$household && $act && $act->kind === 'other' && trim((string) ($data->childname0 ?? '')) === ''];
     if ($adnetwork !== '') {
         $about->arrival = ['src' => $adnetwork, 'med' => 'paid'];
     }

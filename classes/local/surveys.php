@@ -121,9 +121,9 @@ class surveys {
                FROM {' . events::SIGNUPS . '} s
                JOIN {' . events::T . '} e ON e.id = s.eventid
           LEFT JOIN {' . events::SLOTS . '} t ON t.id = s.slotid
-              WHERE s.householdid = :householdid AND s.attended > 0 AND e.timeend < :now
+              WHERE s.householdid = :householdid AND s.attended > 0 AND e.timeend < :now AND (e.kind <> :other OR e.survey > 0)
            ORDER BY e.timeend DESC, e.id DESC',
-            ['householdid' => $household->id, 'now' => $now],
+            ['householdid' => $household->id, 'now' => $now, 'other' => 'other'],
             0,
             1
         );

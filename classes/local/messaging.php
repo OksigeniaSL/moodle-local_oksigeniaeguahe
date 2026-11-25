@@ -159,8 +159,9 @@ class messaging {
     ): int {
         if (
             !isset(self::NOTICES[$kind]) || !empty($centre->practice) || !writeby::phone_ok($household, $kind) ||
-                !self::joined($household, $centre)
+                !self::joined($household, $centre) || (in_array($kind, actmail::KINDS, true) && actmail::is($signup))
         ) {
+            // Of an act that is not a visit neither: the words of these notices are of one (actmail, by email).
             return 0;
         }
         // The notice goes whole in one language (Marandu 0.26.0): the family's, if the site has it, else the site's;

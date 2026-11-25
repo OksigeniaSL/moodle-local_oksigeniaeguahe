@@ -225,7 +225,13 @@ if ($action === 'cantcome' && data_submitted() && confirm_sesskey()) {
     // Not coming after all: the sign-up goes, and the centre reads it in their history.
     $event = $DB->get_record(events::T, ['id' => required_param('acto', PARAM_INT), 'centreid' => $centre->id]);
     if ($event) {
-        events::unsign($event, $household, publiclang::str('pub_cantcome_note', $lang, format_string($event->name)), true);
+        // Of a visit, somebody of the team reads it and offers another day; of a talk or a party, it is only known.
+        events::unsign(
+            $event,
+            $household,
+            publiclang::str('pub_cantcome_note', $lang, format_string($event->name)),
+            $event->kind !== 'other'
+        );
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
 }
@@ -536,6 +542,12 @@ if ($action === 'escribir') {
     // How they want to be written to. Opening the page changes nothing (a robot that opens the links of a mail would
     // otherwise choose for them): it asks, and one touch saves the boxes, or «do not write to us any more».
     if (data_submitted() && confirm_sesskey()) {
+        if (optional_param('soloeventos', 0, PARAM_BOOL)) {
+            // Only the events: what is of the admission goes on by the same ways.
+            invites::wanted($household, false, 'family');
+            redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir', 'hecho' => 'eventos',
+                'idioma' => $lang]));
+        }
         $none = optional_param('nada', 0, PARAM_BOOL);
         $marked = optional_param_array('por', [], PARAM_ALPHA);
         $ways = $none ? [] : array_values(array_intersect(writeby::channels($centre), $marked));

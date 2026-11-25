@@ -253,9 +253,12 @@ class familypage {
             array_filter($children, fn($c) => self::label_name($c) !== '')
         ));
         $names = self::join($tags, $lang);
-        $upcoming = array_values(array_filter($full->signups, fn($s) => (int) $s->timeend >= $now));
+        // A talk or a party is not a visit: apart, in a line of its own, and nothing of the page turns around it.
+        $visits = array_filter($full->signups, fn($s) => !actmail::is($s));
+        $coming = array_values(array_filter($full->signups, fn($s) => actmail::is($s) && (int) $s->timeend >= $now));
+        $upcoming = array_values(array_filter($visits, fn($s) => (int) $s->timeend >= $now));
         $pending = $upcoming ? null : visits::pending((int) $household->id);
-        $attended = array_values(array_filter($full->signups, fn($s) => !empty($s->attended)));
+        $attended = array_values(array_filter($visits, fn($s) => !empty($s->attended)));
         // Who receives them: those of the next visit, or after it, those of the last one they came to.
         $visit = $upcoming[0] ?? end($attended) ?: null;
         $ids = $visit ? array_filter(array_map('intval', explode(',', (string) ($visit->hosts ?? '')))) : [];
@@ -308,6 +311,9 @@ class familypage {
         } else if ($attended) {
             // The open question under it already says who answers them, and how soon.
             $lead = s(publiclang::str('pub_lead_after_short', $lang));
+        } else if (!empty($household->guest)) {
+            // Only signed up to an act: nothing of coming to see the centre.
+            $lead = s(publiclang::str('pub_guest_lead', $lang));
         } else {
             $lead = s(publiclang::str('pub_lead_novisit', $lang));
         }
@@ -338,6 +344,8 @@ class familypage {
                 'act' => $told ? acts::context($told, $lang) : false,
                 'ics' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $s->eventid]))->out(false),
                 'addlabel' => publiclang::str('pub_add_calendar', $lang) . ': ' . $name,
+                // What it is, for an act that is not a visit.
+                'kind' => $told && actmail::is($s) ? (acts::word($told, $lang) ?: publiclang::str('pub_act_soon', $lang)) : '',
                 // Not coming after all: one touch, and the centre knows.
                 'cantcome' => ['action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token,
                     'idioma' => $lang]))->out(false), 'sesskey' => sesskey(), 'eventid' => (int) $s->eventid,
@@ -543,7 +551,7 @@ class familypage {
         } else if (!$issettled && !$isgone && !$isroster && $attended) {
             // They came, and the team will send them how to ask for a place when it is time: their page waits.
             $band = false;
-        } else if (!$issettled && !$isgone && !$isroster) {
+        } else if (!$issettled && !$isgone && !$isroster && empty($household->guest)) {
             $band = ['isnext' => true];
         }
         $survey = $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) : false;
@@ -560,7 +568,7 @@ class familypage {
             $band = false;
         }
         // What it all costs, when the centre shows it: from the start, or once they came (costs).
-        $costs = !$allclosed && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
+        $costs = !$allclosed && empty($household->guest) && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
         // A child on the waiting list: said plainly, with nothing of the places of the course.
         $waitlist = self::waitlist_context($children, $offers, $lang);
         // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
@@ -584,7 +592,13 @@ class familypage {
             'ask' => !$first && !$survey ? $ask : false,
             'siblings' => $offerlater,
             'settled' => $settled,
+            'acts' => array_map($visitrow, $coming),
         ], $upcoming ? $visitrow($upcoming[0]) : null, $lang);
+        $hello = $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
+            ($isroster ? 'pub_roster' : ($allclosed ? 'pub_metus' : $greeting))) . ($tags ? '' : '_nochild'), $lang);
+        if (!empty($household->guest) && !$upcoming) {
+            $hello = self::guest_hello($household, $lang);
+        }
         return publicpage::strings($lang, self::STRINGS) + publicpage::reach($centre, $lang) + [
             'hassiblings' => (bool) $siblingrows,
             'siblings' => $siblingrows,
@@ -603,8 +617,7 @@ class familypage {
             'more' => $more,
             'hasmore' => (bool) $more,
             'moretitle' => publiclang::str('pub_more_title', $lang),
-            'greeting' => $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
-                ($isroster ? 'pub_roster' : ($allclosed ? 'pub_metus' : $greeting))) . ($tags ? '' : '_nochild'), $lang),
+            'greeting' => $hello,
             'names' => $issettled ? '' : $names,
             // Once enrolled or once gone, the page is quiet: no next visit, no who receives them.
             'quiet' => $issettled || $isgone || $isroster || $allclosed,
@@ -635,8 +648,7 @@ class familypage {
             'arrive' => trim((string) ($centre->arrive ?? '')),
             // The miniature of the centre with the way in; for a big act, the one with where to park.
             'miniature' => self::miniature_context($centre, $upcoming[0] ?? null, $lang),
-            'mapurl' => $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
-                rawurlencode(format_string($centre->name) . ', ' . $address) : '',
+            'mapurl' => centres::map_url($centre),
             'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?
                 publiclang::str('pub_next_year', $lang, s($year)) : publiclang::str('pub_next_noyear', $lang)),
             'novisit' => $pending ? publiclang::str('pub_pending_line', $lang, visits::suits($pending, $lang)) :
@@ -680,6 +692,18 @@ class familypage {
     }
 
     /**
+     * The greeting of whoever only signed up to an act: by their name.
+     *
+     * @param \stdClass $household
+     * @param string $lang
+     * @return string
+     */
+    protected static function guest_hello(\stdClass $household, string $lang): string {
+        $first = familymail::first_name($household);
+        return $first !== '' ? publiclang::str('pub_known_hello', $lang, s($first)) : publiclang::str('pub_known_hello_noname', $lang);
+    }
+
+    /**
      * What goes where on the page: the one thing of now, at its head, and the rest under «Also on your page», each in
      * a line that opens (or, when it is a line already, as it is). Of now, in this order: the turn of a brother or
      * sister, the visit (or the day they will be offered), whether each child goes on while some is not answered, how
@@ -699,7 +723,7 @@ class familypage {
         $add = function (int $rank, string $kind, $context, array $line = []) use (&$list): void {
             $thing = ['band' => false, 'turn' => false, 'renewal' => false, 'survey' => false, 'birthday' => false,
                 'story' => false, 'ask' => false, 'sibling' => false, 'volunteer' => false, 'ambassador' => false,
-                'whyother' => false, 'waitlist' => false, 'costs' => false, 'tell' => false];
+                'whyother' => false, 'waitlist' => false, 'costs' => false, 'tell' => false, 'act' => false];
             $list[] = [$rank, count($list), [$kind => $context] + $thing + ['fold' => (bool) $line,
                 'kicker' => $line['kicker'] ?? '', 'title' => $line['title'] ?? '', 'state' => $line['state'] ?? '']];
         };
@@ -721,6 +745,10 @@ class familypage {
                 'state' => $band['year']]);
         } else if ($band) {
             $add(120, 'band', $band, ['kicker' => $s('pub_band_next'), 'title' => $s('pub_novisit')]);
+        }
+        foreach ($p['acts'] ?? [] as $act) {
+            $add(25, 'act', $act, ['kicker' => $act['kind'], 'title' => $act['name'], 'state' => $act['long'] . ' · ' .
+                $act['hours']]);
         }
         if (!empty($p['waitlist'])) {
             $add(45, 'waitlist', $p['waitlist'], ['title' => $p['waitlist']['title'], 'state' => $p['waitlist']['state']]);

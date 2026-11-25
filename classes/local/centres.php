@@ -962,6 +962,19 @@ class centres {
     }
 
     /**
+     * Where the map of a centre opens, to get there: the search of the map most phones open, with its name and its address.
+     *
+     * @param \stdClass $centre
+     * @return string Empty without an address.
+     */
+    public static function map_url(\stdClass $centre): string {
+        $address = trim((string) ($centre->address ?? ''));
+        return $address === '' ? '' : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode(
+            html_entity_decode(format_string($centre->name), ENT_QUOTES, 'UTF-8') . ', ' . $address
+        );
+    }
+
+    /**
      * The colour of the centre on what its families see (its pages, its emails, its images): the one it chose, unless it
      * wrote its brand and that colour is not in it; then the first of its brand that reads on white, or else the first
      * (a teal centre with a burgundy brand would show teal buttons under burgundy titles).

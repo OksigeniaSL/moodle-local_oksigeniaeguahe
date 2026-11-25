@@ -128,6 +128,11 @@ class familymail {
             );
             return [$subject, $html, $plain, []];
         }
+        // Of an act that is not a visit: a plain letter of its own, about the act.
+        $act = actmail::act($kind, $signup, $centre);
+        if ($act) {
+            return actmail::build($kind, $household, $centre, $act, $signup, $lang, (string) ($token ?? $choose ?? ''), $text);
+        }
         $images = [];
         $embed = function (string $data, string $name, string $mime) use (&$images): string {
             $cid = 'eg' . count($images) . '-' . substr(sha1($data), 0, 12);
@@ -162,8 +167,7 @@ class familymail {
         $icsurl = $token && $signup->eventid ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
             'e' => $signup->eventid, 'de' => $kind]))->out(false) : '';
         $address = trim((string) ($centre->address ?? ''));
-        $mapurl = $address !== '' ? 'https://www.openstreetmap.org/search?query=' .
-            rawurlencode(format_string($centre->name) . ', ' . $address) : '';
+        $mapurl = centres::map_url($centre);
         $phone = trim((string) ($centre->phone ?? ''));
         $tel = preg_replace('/[^\d+]/', '', $phone);
 
@@ -667,12 +671,7 @@ class familymail {
             if ($email === '' || (string) $adult->email !== $email) {
                 continue;
             }
-            $name = trim(preg_replace('/\s+/u', ' ', (string) $adult->firstname));
-            if ($name === '' || preg_match('/[@\d]/u', $name)) {
-                return '';
-            }
-            return $name === \core_text::strtoupper($name) || $name === \core_text::strtolower($name) ?
-                \core_text::strtotitle($name) : $name;
+            return greeting::name((string) $adult->firstname);
         }
         return '';
     }
@@ -723,13 +722,15 @@ class familymail {
         // A family already of the centre answers to the office that looks after it, when the centre has one.
         $centre = centres::for_family($centre, $household, $kind);
         // The same notice on the phones the family joined with, when the site has Marandu and they did not take them out.
-        $phones = $kind !== 'reply' ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
+        // Of an act that is not a visit, the phones have no words yet: theirs are of a visit. It goes by email.
+        $act = actmail::act($kind, $signup, $centre) !== null;
+        $phones = $kind !== 'reply' && !$act ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
         if ($phones) {
             notices::log($household, $kind, $signup, 'phone', 'sent');
         }
         // By email only if they marked it (or never chose); else, while no phone they marked is joined, and what they must
         // know.
-        if (!writeby::email_ok($household, $centre, $kind)) {
+        if (!writeby::email_ok($household, $centre, $kind, $act)) {
             if (!$phones) {
                 notices::log($household, $kind, $signup, 'email', 'skipped', notices::why($household));
             }
@@ -749,7 +750,7 @@ class familymail {
         $link = (string) ($token ?? $choose ?? '');
         // The letter of an invitation says how to stop in its own words; the header that says it too, which sends it to
         // «Promotions», only where the site wants it (letterunsubscribe). And as plain text only, with letterplain.
-        $letter = $kind === 'openinvite';
+        $letter = $kind === 'openinvite' || $act;
         $unsubscribe = $link !== '' && (!$letter || get_config('local_oksigeniaeguahe', 'letterunsubscribe')) ?
             writeby::unsubscribe_url($link, $lang) : '';
         if ($letter && get_config('local_oksigeniaeguahe', 'letterplain')) {
@@ -792,6 +793,17 @@ class familymail {
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
         $link = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token]))->out(false);
+        if ($event->kind === 'other') {
+            // A talk, a workshop, a party: how many come and where to say they do not, and nothing of a visit.
+            $when = events::when($event, (int) $signup->slotid);
+            $answer = actmail::answer_url($event, $token, $lang);
+            return events::ics($event, $centre, implode("\n", [
+                publiclang::count('pub_people_one', 'pub_people_count', (int) $signup->people, $lang) . '.',
+                $str('ics_act_answer', $answer),
+            ]), $when, ['uid' => 'visita-' . $event->id . '-familia-' . $household->id, 'url' => $answer,
+                'alarm' => $str('ics_alarm', (object) ['hour' => publicpage::date_parts((int) $when->timestart, $lang)['hour'],
+                'centre' => format_string($centre->name)])]);
+        }
         $lines = [];
         if ($tags) {
             $lines[] = $str('pub_wait') . ' ' . familypage::join($tags, $lang) . '.';

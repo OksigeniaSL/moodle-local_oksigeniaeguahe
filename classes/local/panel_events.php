@@ -142,9 +142,9 @@ class panel_events {
             'SELECT s.id, s.householdid, s.attended, e.name
                FROM {' . households::SIGNUPS . '} s
                JOIN {' . events::T . '} e ON e.id = s.eventid
-              WHERE s.centreid = :centreid AND s.attended >= :since AND s.attended <= :now
+              WHERE s.centreid = :centreid AND s.attended >= :since AND s.attended <= :now AND e.kind <> :other
            ORDER BY s.attended DESC, s.id DESC',
-            ['centreid' => (int) $centre->id, 'since' => $now - self::CAME, 'now' => $now],
+            ['centreid' => (int) $centre->id, 'since' => $now - self::CAME, 'now' => $now, 'other' => 'other'],
             0,
             200
         );

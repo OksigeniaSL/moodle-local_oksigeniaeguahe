@@ -79,6 +79,7 @@ class settle {
         $groups = [];
         // Each family once, for the first that would answer it.
         $placed = [];
+        $talks = [];
         foreach (appointments::agenda($centre, min($last) - DAYSECS, $now + YEARSECS, $now) as $one) {
             $id = $one['householdid'];
             if (!isset($last[$id]) || isset($placed[$id])) {
@@ -87,6 +88,13 @@ class settle {
             // The day of a note without hour counts whole.
             $end = $one['dayonly'] ? $one['start'] + DAYSECS : $one['start'];
             $given = $one['state'] === 'coming' && $one['kind'] === 'visit' ? self::given($one) : 0;
+            if ($one['kind'] === 'act' && ($talks[$one['eventid']] ?? null) === null) {
+                $talks[$one['eventid']] = (string) $DB->get_field(events::T, 'kind', ['id' => (int) $one['eventid']]) === 'other';
+            }
+            if ($one['kind'] === 'act' && $talks[$one['eventid']]) {
+                // Coming to a talk or a party answers nothing they asked.
+                continue;
+            }
             if ($one['state'] === 'came' && $end > $last[$id]) {
                 $reason = 'came';
             } else if ($given > $last[$id]) {

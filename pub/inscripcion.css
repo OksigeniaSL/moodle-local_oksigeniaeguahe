@@ -500,15 +500,14 @@
 
 .unir-falta {
     display: grid;
-    gap: 10px;
+    gap: 6px;
     padding: 12px 14px 14px;
     border: 1.5px dashed var(--eg-borde);
     border-radius: 16px;
 }
 
 .unir-cual,
-.unir-como,
-.unir-apunten {
+.unir-como {
     margin: 0;
 }
 
@@ -524,6 +523,7 @@
     align-items: center;
     justify-content: center;
     min-height: 48px;
+    margin-top: 4px;
     padding: 6px 18px;
     border-radius: 14px;
     background: var(--c-acento);
@@ -547,9 +547,127 @@
     height: 20px;
 }
 
-/* The code is for who looks at the page away from their phone. */
-.unir-codigo,
-.unir-apunten {
+/* A message on its way to their phone, or there already: what to touch, drawn; what to do if not, quieter and under it. */
+.unir-falta.avisando,
+.unir-falta.avisada {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 3px 14px;
+    padding: 14px;
+    border-style: solid;
+    border-color: transparent;
+    background: var(--eg-hundido);
+}
+
+.unir-falta.avisando {
+    display: flex;
+    align-items: center;
+}
+
+.avisada .unir-cual,
+.avisada .unir-como {
+    grid-column: 2;
+}
+
+.avisada .unir-planb {
+    grid-column: 1 / -1;
+    margin: 11px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.unir-falta.avisada a.unir-abrir {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 44px;
+    margin-top: 6px;
+    padding: 4px 16px;
+    border: 1.5px solid var(--eg-borde);
+    background: transparent;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+.unir-aviso-movil {
+    display: grid;
+    grid-row: 1 / 3;
+    gap: 5px;
+    align-self: start;
+    min-height: 52px;
+    margin-top: 2px;
+    padding: 10px 10px 0;
+    border: 2px solid var(--c-acento-texto);
+    border-radius: 14px;
+    border-end-start-radius: 3px;
+    background: var(--eg-superficie);
+}
+
+.unir-aviso-movil i {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--eg-borde);
+}
+
+.unir-aviso-movil i + i {
+    width: 62%;
+}
+
+.unir-aviso-movil b {
+    margin: 3px -10px 0;
+    padding: 4px 2px 5px;
+    border-top: 2px solid var(--c-acento-texto);
+    color: var(--c-acento-texto);
+    font-size: 0.875rem;
+    line-height: 1.3;
+    text-align: center;
+}
+
+/* Without its word, the button alone. */
+.unir-aviso-movil b:empty {
+    height: 10px;
+    margin: 4px 0 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: var(--c-acento-texto);
+}
+
+.avisando .unir-aviso-movil {
+    grid-template-columns: repeat(3, 8px);
+    flex: none;
+    justify-content: center;
+    align-content: center;
+    width: 64px;
+    padding: 0;
+}
+
+.avisando .unir-aviso-movil i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c-acento-texto);
+    animation: unir-late 600ms ease-in-out infinite alternate;
+}
+
+.avisando .unir-aviso-movil i + i {
+    animation-delay: 200ms;
+}
+
+.avisando .unir-aviso-movil i + i + i {
+    animation-delay: 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .avisando .unir-aviso-movil i {
+        animation: none;
+    }
+}
+
+/* The codes are for who looks at the page away from their phone: asked once, under the buttons. */
+.unir-ordenador {
     display: none;
 }
 
@@ -560,38 +678,66 @@
 }
 
 @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
-    .unir-falta {
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-areas: "cual codigo" "como codigo" "abrir codigo" "apunten apunten";
-        grid-template-rows: auto 1fr auto auto;
-        gap: 6px 14px;
-        padding: 14px;
-    }
-
-    .unir-cual {
-        grid-area: cual;
-    }
-
-    .unir-como {
-        grid-area: como;
-    }
-
-    .unir-falta a.unir-abrir {
-        grid-area: abrir;
-        padding-inline: 10px;
-    }
-
-    .unir-apunten {
-        grid-area: apunten;
+    .unir-ordenador {
         display: block;
-        color: var(--eg-tinta-2);
-        font-size: 0.9375rem;
-        line-height: 1.35;
     }
 
-    /* White around it, also at night; four pixels to a module for the longest greeting. */
+    .unir-ordenador summary {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: fit-content;
+        min-height: 44px;
+        border-radius: 8px;
+        color: var(--c-acento-texto);
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .unir-ordenador summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .unir-ordenador summary span {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .unir-ordenador summary svg {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        fill: currentcolor;
+        fill-rule: evenodd;
+    }
+
+    .unir-ordenador summary:focus-visible {
+        outline: 3px solid var(--c-acento-texto);
+        outline-offset: 2px;
+    }
+
+    .unir-ordenador p {
+        margin: 0 0 10px;
+        font-size: 0.9375rem;
+        line-height: 1.4;
+    }
+
+    .unir-codigos {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
     .unir-codigo {
-        grid-area: codigo;
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+        font-size: 0.9375rem;
+    }
+
+    /* White around it, also at night; four pixels to a module, whatever it says. */
+    .unir-codigo span {
         display: block;
         padding: 12px;
         border-radius: 12px;
@@ -601,15 +747,8 @@
     }
 
     .unir-codigo svg {
-        width: 180px;
-        height: 180px;
-    }
-}
-
-@media (min-width: 960px) and (max-width: 1239px) and (hover: hover) and (pointer: fine) {
-    .unir-falta {
-        grid-template-areas: "cual codigo" "como codigo" "apunten codigo" "abrir abrir";
-        row-gap: 8px;
+        width: calc(var(--n, 45) * 4px);
+        height: calc(var(--n, 45) * 4px);
     }
 }
 
@@ -811,19 +950,19 @@
         box-shadow: 0 14px 34px -20px rgba(40, 30, 20, 0.6);
     }
 
-    /* Without a poster, no longer than the screen, however long the form; and never shorter than what it says. */
-    .con-respuesta.con-banda:not(.con-cartel) {
+    /* No longer than the screen, however long the form; and never shorter than what it says. */
+    .con-respuesta.con-banda {
         grid-template-areas: "cabeza hoja" "mas hoja" ". hoja";
         grid-template-rows: auto auto 1fr;
         isolation: isolate;
     }
 
-    .con-respuesta.con-banda:not(.con-cartel)::before {
+    .con-respuesta.con-banda::before {
         z-index: 1;
         box-shadow: none;
     }
 
-    .con-respuesta.con-banda:not(.con-cartel)::after {
+    .con-respuesta.con-banda::after {
         content: '';
         grid-column: 1;
         grid-row: 1 / 4;
@@ -874,11 +1013,26 @@
         font-size: 1.5rem;
     }
 
+    .con-respuesta.con-cartel::after {
+        grid-column: 1 / 3;
+    }
+
+    .con-respuesta .unir-cartel,
+    .con-respuesta .unir-que {
+        z-index: 2;
+    }
+
     /* Upright: as tall as the screen leaves it, with what it is and what is told beside it. */
     .con-cartel:not(.apaisado) {
         grid-template-columns: auto minmax(0, 1fr) minmax(400px, 36%);
         grid-template-areas: "cartel que hoja" "cartel mas hoja";
         column-gap: 0;
+    }
+
+    /* What the poster takes over what it is goes under what is told, never between the two. */
+    .con-respuesta.con-cartel:not(.apaisado) {
+        grid-template-areas: "cartel que hoja" "cartel mas hoja" ". . hoja";
+        grid-template-rows: minmax(min-content, 1px) auto 1fr;
     }
 
     .con-cartel:not(.apaisado)::before,
@@ -936,6 +1090,10 @@
         grid-template-columns: minmax(0, var(--que, 0.92fr)) minmax(0, var(--mas, 1.08fr)) minmax(430px, 40%);
         grid-template-areas: "cartel cartel hoja" "que mas hoja";
         column-gap: 0;
+    }
+
+    .con-respuesta.apaisado {
+        grid-template-areas: "cartel cartel hoja" "que mas hoja" ". . hoja";
     }
 
     .apaisado .unir-cartel {

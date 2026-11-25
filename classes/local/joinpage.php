@@ -143,8 +143,8 @@ class joinpage {
         $first = s(familymail::first_name($household));
         $answer = invites::answer((int) $event->id, (int) $household->id);
         $people = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]);
-        // Signed up before by another way: they come.
-        $answer = $answer === '' && $people ? 'yes' : $answer;
+        // What there is, whoever changed it and from where: signed up, they come; not signed up, they have not said so.
+        $answer = $people ? 'yes' : ($answer === 'yes' ? '' : $answer);
         $now = writeby::now($household, $centre);
         $admission = self::in_admission($household);
         $lastway = $str($admission ? 'pub_known_lastway' : 'pub_known_lastway_other');
@@ -200,6 +200,7 @@ class joinpage {
      */
     protected static function missing(\stdClass $household, \stdClass $centre, string $lang, array $now): array {
         $rows = [];
+        $codes = [];
         foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
             $rows[] = [
                 'label' => publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
@@ -208,11 +209,13 @@ class joinpage {
                 'url' => $link,
                 'icon' => writeby::icon($channel),
                 'open' => publiclang::str('pub_writeby_open_' . $channel, $lang),
-                'qr' => events::qr_of($link),
-                'qrline' => publiclang::str('pub_writeby_qr_' . $channel, $lang),
             ];
+            $codes[] = ['name' => publiclang::str('pub_writeby_' . $channel, $lang), 'qr' => events::qr_of($link)];
         }
-        return ['rows' => $rows, 'hasrows' => (bool) $rows, 'until' => $rows && !in_array('email', $now, true) ?
+        // At a computer, for the phone: asked once, whatever is left.
+        $computer = $codes ? ['ask' => publiclang::str('pub_known_computer', $lang), 'many' => count($codes) > 1, 'codes' => $codes,
+            'line' => publiclang::str(count($codes) > 1 ? 'pub_known_point_many' : 'pub_known_point', $lang)] : false;
+        return ['rows' => $rows, 'hasrows' => (bool) $rows, 'computer' => $computer, 'until' => $rows && !in_array('email', $now, true) ?
             publiclang::str('pub_writeby_until_joined', $lang) : ''];
     }
 
@@ -252,7 +255,7 @@ class joinpage {
      * @param \stdClass $household
      * @return bool
      */
-    protected static function in_admission(\stdClass $household): bool {
+    public static function in_admission(\stdClass $household): bool {
         global $DB;
         if (!empty($household->roster) || !empty($household->guest)) {
             return false;
@@ -278,9 +281,10 @@ class joinpage {
      *
      * @param \stdClass $centre
      * @param string $lang
+     * @param bool $act Whether it is for an act that is not a visit.
      * @return array Lines with a label and a text.
      */
-    public static function first_layer(\stdClass $centre, string $lang): array {
+    public static function first_layer(\stdClass $centre, string $lang, bool $act = false): array {
         $a = (object) [
             'centre' => format_string($centre->controller ?: $centre->name),
             'contact' => s($centre->rightscontact ?: ''),
@@ -289,7 +293,7 @@ class joinpage {
         $lines = [];
         // How long they are kept goes in the second layer, with the rest: the first stays short on a phone.
         foreach (['who', 'why', 'basis', 'whom', 'rights'] as $part) {
-            $text = publiclang::str('info_' . $part, $lang, $a);
+            $text = publiclang::str('info_' . $part . ($act && $part === 'why' ? '_act' : ''), $lang, $a);
             if ($part === 'rights' && $a->contact !== '') {
                 $text .= ' ' . publiclang::str('info_rights_contact', $lang, $a);
             }

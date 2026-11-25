@@ -149,11 +149,16 @@ class writeby {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $kind A kind of familymail.
+     * @param bool $act Whether it is a letter of an act that is not a visit (actmail), which goes only by email.
      * @return bool
      */
-    public static function email_ok(\stdClass $household, \stdClass $centre, string $kind): bool {
+    public static function email_ok(\stdClass $household, \stdClass $centre, string $kind, bool $act = false): bool {
         if (!self::may_send($household, $kind)) {
             return false;
+        }
+        if ($act) {
+            // They said they come, and nothing else tells them: at their address, whatever they marked for the rest.
+            return true;
         }
         $ways = self::chosen($household);
         if ($ways === null || in_array('email', $ways, true) || ($kind === 'reply' && self::silent($household))) {
@@ -173,15 +178,16 @@ class writeby {
      * @param \stdClass $household
      * @param \stdClass $centre
      * @param string $kind A kind of familymail.
+     * @param bool $act Whether it is a letter of an act that is not a visit.
      * @return bool
      */
-    public static function email_now(\stdClass $household, \stdClass $centre, string $kind): bool {
+    public static function email_now(\stdClass $household, \stdClass $centre, string $kind, bool $act = false): bool {
         $chosen = self::chosen($household);
         if (in_array($kind, self::MUSTKNOW, true) && $chosen) {
             // A family that chose how to be written to hears what it must know at its address, also if it chose a phone.
             return households::recipient($household) !== '';
         }
-        return $chosen === null ? familymail::may_email($household) : self::email_ok($household, $centre, $kind);
+        return $chosen === null ? familymail::may_email($household) : self::email_ok($household, $centre, $kind, $act);
     }
 
     /**
@@ -348,6 +354,23 @@ class writeby {
         // Email only when some adult allows it: having an address is not a yes.
         return array_values(array_merge(familymail::may_email($household) && households::recipient($household) !== '' ?
             ['email'] : [], $phones));
+    }
+
+    /**
+     * The ways that reach a family now: what it marked, without the phones it has not joined yet; until it joins one, email.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string[]
+     */
+    public static function reaching(\stdClass $household, \stdClass $centre): array {
+        $ways = self::now($household, $centre);
+        $phones = array_intersect($ways, self::PHONES);
+        if (!$phones) {
+            return $ways;
+        }
+        $out = array_values(array_diff($ways, array_diff($phones, self::joined_on($household, $centre))));
+        return $out ?: (households::recipient($household) !== '' ? ['email'] : []);
     }
 
     /**
@@ -567,6 +590,7 @@ class writeby {
         }
         $channels = self::channels($centre);
         $now = self::now($household, $centre);
+        $reach = self::reaching($household, $centre);
         $button = function (string $way) use ($token, $lang, $kind, $now): array {
             $url = self::url($token, $lang, $way, $kind);
             return ['texto' => publiclang::str('pub_writeby_' . $way, $lang), 'url' => $url, 'url_texto' => $url,
@@ -577,7 +601,7 @@ class writeby {
         $all = array_merge($channels, ['none']);
         return [
             'titulo' => publiclang::str('pub_writeby_heading', $lang),
-            'frase' => trim(($now ? publiclang::str('pub_writeby_now', $lang, self::words($now, $lang)) . ' ' : '') .
+            'frase' => trim(($reach ? publiclang::str('pub_writeby_now', $lang, self::words($reach, $lang)) . ' ' : '') .
                 self::question($channels, $lang, $now)),
             'fila' => array_map(fn($c) => $button($c) + ['ancho' => $width], $only ? $all : $channels),
             'baja' => $only ? false : $button('none'),
@@ -635,6 +659,7 @@ class writeby {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $channels = self::channels($centre);
         $now = self::now($household, $centre);
+        $reach = self::reaching($household, $centre);
         $full = households::full($household);
         $children = array_values(array_filter($full->children, fn($c) => familypage::label_name($c) !== ''));
         $tags = array_map([familypage::class, 'label_name'], $children);
@@ -648,8 +673,8 @@ class writeby {
             'lang' => $lang,
             'ante' => $str('pub_writeby_title'),
             'pageurl' => $pageurl,
-            'nowpill' => $now ? ['icon' => self::icon($now[0]), 'text' => $str('pub_writeby_pill', self::words(
-                $now,
+            'nowpill' => $reach ? ['icon' => self::icon($reach[0]), 'text' => $str('pub_writeby_pill', self::words(
+                $reach,
                 $lang,
                 'pub_writeby_name_'
             ))] : false,
@@ -657,6 +682,18 @@ class writeby {
             'none' => false,
             'done' => false,
         ];
+        if ($done === 'eventos') {
+            $parts = publicpage::date_parts(time(), $lang);
+            $context['title'] = $str('pub_writeby_done_events');
+            $context['done'] = ['pegs' => publicpage::pegs($tags ?: [''], true, null, array_map(fn($c) => ages::hanging(
+                $c,
+                centres::offers((int) $centre->id),
+                $centre
+            ), $children)), 'note' => $str('pub_noinvites_line'), 'pending' => false, 'sign' => format_string($centre->name) . ' · ' .
+                $parts['daymonth'], 'text' => $str('pub_writeby_done_events_text'), 'joins' => [], 'hasjoins' => false, 'back' => [
+                'url' => $pageurl, 'icon' => self::icon('home'), 'label' => $str('pub_writeby_back')], 'notnow' => false];
+            return $context;
+        }
         if ($done !== '') {
             $ways = $done === 'none' ? [] : array_values(array_intersect(self::CHANNELS, explode(',', $done)));
             // The phones marked and not joined yet: one step is left, a button for each.
@@ -677,8 +714,10 @@ class writeby {
                 $context['title'] = $str('pub_writeby_done_none');
                 $text = $named('pub_writeby_done_none_text');
                 // A visit still to come stays: they are expected all the same, and the page says how to call it off.
-                $visit = array_values(array_filter(households::full($household)->signups, fn($v) => (int) $v->timeend >= time()))[0] ??
-                    null;
+                $visit = array_values(array_filter(
+                    households::full($household)->signups,
+                    fn($v) => (int) $v->timeend >= time() && !actmail::is($v)
+                ))[0] ?? null;
                 if ($visit) {
                     $text .= ' ' . $str('pub_writeby_none_visit', publicpage::date_parts((int) $visit->timestart, $lang)['long']);
                 }
@@ -719,7 +758,11 @@ class writeby {
         if ($pressed === 'none') {
             // Pressed «Do not write to us any more» in a mail: asked, with its one button; beside it, choosing instead.
             $context['title'] = $str('pub_writeby_q_none');
-            $context['none'] = ['means' => $named('pub_writeby_means_none'), 'icon' => self::icon('check'),
+            // Whether it is only of the events, first; and what «no more» takes with it, the admission too.
+            $admission = joinpage::in_admission($household);
+            $context['none'] = ['means' => $named('pub_writeby_means_none' . ($admission ? '_admission' : '')),
+                'events' => (int) $household->noinvites ? false : ['label' => $str('pub_writeby_only_events'),
+                'small' => $admission ? $str('pub_writeby_only_events_small') : ''], 'icon' => self::icon('check'),
                 'button' => $str('pub_writeby_yes_none'), 'other' => $str('pub_writeby_other'),
                 'pickurl' => self::url($token, $lang), 'pick' => $str('pub_writeby_pick_link')];
             return $context;

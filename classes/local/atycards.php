@@ -152,7 +152,7 @@ class atycards {
         $full = households::full($household);
         foreach ($full->signups as $signup) {
             if ((int) $signup->timeend >= $now) {
-                $rows[] = ['title' => format_string($signup->eventname), 'detail' => $s('aty_visit'),
+                $rows[] = ['title' => format_string($signup->eventname), 'detail' => actmail::is($signup) ? '' : $s('aty_visit'),
                     'date' => (int) $signup->timestart, 'time' => true] + $open('visita');
                 break;
             }

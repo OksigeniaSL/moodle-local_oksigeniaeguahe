@@ -244,6 +244,16 @@
         var ways = all('input[name="by[]"]', form);
         var events = field('input[name="noinvites"]');
         var turn = 0;
+        // Without its drawings: the same link is drawn with other modules each time.
+        var asWritten = function(html) {
+            var box = document.createElement('div');
+            box.innerHTML = html;
+            all('svg', box).forEach(function(drawing) {
+                drawing.remove();
+            });
+            return box.innerHTML.trim();
+        };
+        var written = asWritten(missing.innerHTML);
         var buttons = all('button[name="reply"]', form);
         var post = function(more) {
             var data = new FormData(form);
@@ -276,7 +286,9 @@
                 button.setAttribute('aria-pressed', button.value === said.answer ? 'true' : 'false');
             });
             form.querySelector('.unir-botones').classList.toggle('dijo-no', said.answer === 'no');
-            if (missing.innerHTML.trim() !== said.missing.trim()) {
+            var now = asWritten(said.missing);
+            if (written !== now) {
+                written = now;
                 missing.innerHTML = said.missing;
             }
             missing.hidden = !said.missing.trim();
