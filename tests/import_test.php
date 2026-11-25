@@ -72,12 +72,16 @@ final class import_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
-        $rows = [['Curso', 'Grupo', 'Apellidos', 'Nombre', 'Correo electrónico'], ['2026-27', '1.º ESO A', 'Ruiz Sosa', 'Leo', 'a@gmail.com'],
-            ['2026-27', '1.º ESO B', 'Vega Paz', 'Mía', ''], ['', '', '', '', ''], ['', 'INF 4A', 'Gil Mar', '', 'Noa'], ['', '', 'Noa Gil Mar', '', '']];
+        // The emails of a list of students are their accounts: their codes.
+        $rows = [['Curso', 'Grupo', 'Apellidos', 'Nombre', 'Correo electrónico']];
+        foreach (['Leo' => 'Ruiz Sosa', 'Mía' => 'Vega Paz', 'Teo' => 'Sanz Rey', 'Eva' => 'Cano Luz'] as $name => $surname) {
+            $rows[] = ['1.º de ESO', '1.º ESO A', $surname, $name, strtolower(substr($surname, 0, 4)) . '@colegio.example'];
+        }
+        array_push($rows, ['', '', '', '', ''], ['Infantil 4 años', 'INF 4A', 'Gil Mar', ' ', 'Noa'], ['Infantil 4 años', 'INF 4A', 'Noa Gil Mar', '', '']);
         $path = $this->xlsx(['ESO' => $rows]);
         [, $total] = imports::import_file($cid, $path, 'Alumnos nuevos.xlsx', [0 => ['kind' => 'joins', 'label' => 'ESO',
             'schoolyear' => '2026-27']], 2);
-        $this->assertSame([2, 2], [$total, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid])]);
+        $this->assertSame([4, 4], [$total, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid])]);
     }
 
     /**

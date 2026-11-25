@@ -282,6 +282,7 @@ final class act_report_test extends \advanced_testcase {
         $this->assertSame(make_timestamp($year, 3, 14, 12), act_files::day("Jornada $year-03-14"));
         $this->assertSame(0, act_files::day('Fiesta de primavera (anuncios)'));
         $this->assertSame('Puertas abiertas', act_files::name("Puertas abiertas 14 de marzo de $year (anuncios)"));
+        $this->assertSame('Puertas abiertas', act_files::name("Puertas abiertas 3 y 4 de marzo de $year"));
         $file = function (string $label, array $phones, string $month = '03') use ($cid, $year): int {
             $csv = "date,Teléfono,platform,campaign_name,grade_requested\n";
             foreach ($phones as $i => $phone) {
@@ -410,6 +411,15 @@ final class act_report_test extends \advanced_testcase {
         $r = metrics::response($cid, array_values($ids), $this->now);
         $this->assertSame([7, 2, 2, 1, 1, 1], [$r['asked'], $r['answered'], $r['waiting'], $r['unreached'], $r['met'], $r['quiet']]);
         $this->assertSame([$ids['unreached'], $ids['met'], $ids['quiet']], array_map(fn($k) => array_key_first($r['who'][$k]), ['unreached', 'met', 'quiet']));
+        // Each number opens its families.
+        $live = array_values(array_filter(facts::campaigns($this->centre, $this->now), fn($k) => $k['key'] === 'live'))[0];
+        $nums = array_column(\local_oksigeniaeguahe\local\familylists::nums(
+            $this->centre,
+            $live,
+            facts::all($this->centre, $live, $this->now),
+            ['unreached', 'met', 'quiet']
+        ), 'n');
+        $this->assertCount(3, $nums);
         $said = panel_metrics::response_sentence(panel_metrics::said($r));
         foreach (['unreached', 'met', 'quiet'] as $key) {
             $this->assertStringContainsString(get_string('panel_response_' . $key . '_one', 'local_oksigeniaeguahe', 1), $said);

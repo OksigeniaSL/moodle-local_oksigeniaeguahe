@@ -162,7 +162,7 @@ class act_files {
     public static function name(string $label): string {
         $name = preg_replace('/\s*\([^)]*\)/u', '', $label);
         $months = implode('|', array_map('preg_quote', array_keys(self::words()['months'])));
-        $name = preg_replace('~[\s,·-]*\b\d{1,2}\s+(?:de\s+|of\s+)?(?:' . $months . ')(?:\s+de|\s+of|,)?\s+\d{4}\b~iu', '', $name);
+        $name = preg_replace('~[\s,·-]*\b(?:\d{1,2}\s*(?:y|e|and|al?|-)\s*)?\d{1,2}\s+(?:de\s+|of\s+)?(?:' . $months . ')(?:\s+de|\s+of|,)?\s+\d{4}\b~iu', '', $name);
         $name = preg_replace('~[\s,·-]*\b(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})\b~', '', $name);
         return trim($name, " \t,·-") ?: $label;
     }

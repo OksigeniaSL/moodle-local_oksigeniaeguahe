@@ -369,7 +369,7 @@ class panel_agenda {
         }
         $one = $ahead[0];
         $today = userdate($one['start'], '%Y-%m-%d', 99, false) === userdate($now, '%Y-%m-%d', 99, false);
-        $when = ($today ? get_string('today', 'calendar') : userdate($one['start'], '%A %e')) . ($one['dayonly'] ? '' : ', ' . panel::hour($one['start']));
+        $when = ($today ? get_string('today', 'calendar') : preg_replace('/\s+/u', ' ', userdate($one['start'], '%A %e'))) . ($one['dayonly'] ? '' : ', ' . panel::hour($one['start']));
         return panel::head(['ante' => $whose, 'title' => $title, 'sub' => get_string('agenda_ahead_next', self::C, (object) ['when' => \core_text::strtolower($when),
             'who' => $one['kind'] === 'act' ? $one['title'] : panel::adults_line($people[$one['householdid']]->adults)])]);
     }

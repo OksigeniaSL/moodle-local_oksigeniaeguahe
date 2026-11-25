@@ -876,7 +876,8 @@ class imports {
                 $person = $people[$i];
                 if (
                     in_array('firstname', $roles, true) && in_array('surname', $roles, true) && $v('firstname') === '' && $v('fullname') === '' &&
-                        $v('childname') === '' && !$hkeys && !$person['codes'] && $v('studenttoken') === ''
+                        $v('childname') === '' && !$hkeys && !preg_grep('/[@\d]/', self::values($row, $columns, 'studentid')) &&
+                        $v('studenttoken') === ''
                 ) {
                     // With a column for the name and nothing in it, nor any way to reach them, it is not a row of a student: something
                     // written under the list.

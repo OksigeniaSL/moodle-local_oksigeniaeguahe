@@ -428,7 +428,7 @@ class act_report {
     public static function question(array $act, int $now): string {
         // With its year when it is not of these months.
         $near = abs($now - $act['time']) < 300 * DAYSECS;
-        $day = trim(userdate($act['time'], get_string($near ? 'actr_day' : 'actr_day_year', self::C)));
+        $day = trim(preg_replace('/\s+/u', ' ', userdate($act['time'], get_string($near ? 'actr_day' : 'actr_day_year', self::C))));
         return get_string($act['time'] > $now ? 'actr_question_ahead' : 'actr_question', self::C, (object) ['name' => $act['name'], 'day' => $day]);
     }
 

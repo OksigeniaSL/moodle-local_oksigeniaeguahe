@@ -33,7 +33,7 @@ class familylists {
 
     /** @var string[] What of a campaign can be opened. */
     const OFYEAR = ['campaign', 'came', 'applied', 'waitlist', 'place', 'enrolled', 'went', 'closed', 'nokids', 'undated', 'fresh', 'knew',
-        'centre', 'other', 'unmeasured', 'waiting', 'answered', 'unanswered', 'tried', 'open'];
+        'centre', 'other', 'unmeasured', 'waiting', 'answered', 'unanswered', 'tried', 'unreached', 'met', 'quiet', 'open'];
 
     /** @var string[] What of the visits can be opened. */
     const OFVISITS = ['came', 'notcame', 'off', 'unknown', 'ahead'];
