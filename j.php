@@ -186,16 +186,9 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         }
         $first = $first && $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
     }
-    if ($first && ($signup = familymail::signup($family, (int) $event->id))) {
-        // Their place, with its calendar, as any other sign-up.
-        ob_start();
-        try {
-            familymail::send('confirmation', $family, $centre, $signup, $lang, households::new_link($family));
-        } catch (\Throwable $e) {
-            debugging('Eguahe: confirmation not sent: ' . $e->getMessage(), DEBUG_DEVELOPER);
-        } finally {
-            ob_end_clean();
-        }
+    if ($first) {
+        // Their place, with its calendar, as any other sign-up; after answering, so the button never waits for the mail.
+        \local_oksigeniaeguahe\task\send_confirmation::queue($family, $event, $lang);
     }
     if (optional_param('ajax', 0, PARAM_BOOL)) {
         $said = joinpage::known($event, $centre, households::get((int) $family->id, (int) $centre->id), $lang, $url, events::mark($event));

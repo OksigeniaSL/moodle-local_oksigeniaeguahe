@@ -289,6 +289,39 @@
     display: block;
 }
 
+/* At the touch: marked, and its tick comes and goes until the centre has it. */
+.unir-no[aria-busy="true"] {
+    border-color: var(--c-acento-texto);
+    background: var(--c-acento-suave);
+}
+
+.unir-botones.dijo-no .unir-si[aria-busy="true"] {
+    border-color: var(--c-acento);
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.unir-botones [aria-busy="true"] > svg {
+    display: block;
+    animation: unir-late 600ms ease-in-out infinite alternate;
+}
+
+@keyframes unir-late {
+    from {
+        opacity: 0.25;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .unir-botones [aria-busy="true"] > svg {
+        animation: none;
+    }
+}
+
 .unir-si:focus-visible,
 .unir-no:focus-visible {
     outline: 3px solid var(--c-acento-texto);

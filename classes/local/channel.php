@@ -200,8 +200,9 @@ class channel {
      *
      * @param \stdClass $event
      * @param int|null $now
+     * @param string $asked The moment a person has just asked for in the kit: proposed again even if its review skipped it.
      */
-    public static function sync(\stdClass $event, ?int $now = null): void {
+    public static function sync(\stdClass $event, ?int $now = null, string $asked = ''): void {
         if (centres::is_practice((int) $event->centreid)) {
             return;
         }
@@ -235,8 +236,9 @@ class channel {
                     }
                     continue;
                 }
-                if ($do === 'auto' && !self::again($event, $moment, $state)) {
-                    // It was skipped, and its day, hour and place are the same: saving the act does not bring it back.
+                if ($asked !== $moment && !self::again($event, $moment, $state)) {
+                    // It was skipped, and its day, hour and place are the same: saving the act does not bring it back, not
+                    // even what a person asked for before it was skipped.
                     continue;
                 }
                 $when = $do === 'auto' ? self::day_of($event, $moment) : (int) ($choice['at'] ?? $now);
@@ -251,7 +253,8 @@ class channel {
                     $when ?: null,
                     false,
                     $key,
-                    (int) $event->timestart
+                    (int) $event->timestart,
+                    $asked === $moment
                 );
                 self::remember($event, $moment);
             } catch (\Throwable $e) {
@@ -341,7 +344,7 @@ class channel {
             $plan[$moment] = ['do' => $do, 'at' => $do === 'now' ? $now : ($do === 'at' ? $at : 0)];
         }
         kit::keep_channel($event, $plan);
-        self::sync($event, $now);
+        self::sync($event, $now, in_array($do, ['now', 'at'], true) ? $moment : '');
         return true;
     }
 

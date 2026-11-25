@@ -26,6 +26,7 @@ use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\writeby;
+use local_oksigeniaeguahe\task\send_confirmation;
 
 /**
  * What is left after «Enrolled»: the open acts of the centre for the families that are not of it yet, sent once by a
@@ -183,6 +184,36 @@ final class invites_test extends \advanced_testcase {
         $sink = $this->redirectEmails();
         $this->assertSame(1, invites::send($event, $centre, 2, time(), [(int) $ana->id]));
         $this->assertSame('ana@example.com', $sink->get_messages()[0]->to);
+        $sink->close();
+    }
+
+    /**
+     * The confirmation of a family that says it comes with one touch goes after its page has answered; once, and not if it
+     * has said by then that it does not come.
+     */
+    public function test_confirmation_afterwards(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $offer = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $ana = $this->family($id, $offer, 'Ana', 'visit', true);
+        $eva = $this->family($id, $offer, 'Eva', 'inquiry', true);
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => time() + 5 * DAYSECS,
+            'timeend' => time() + 5 * DAYSECS + 2 * HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $sink = $this->redirectEmails();
+        foreach ([$ana, $eva] as $family) {
+            $this->assertTrue(invites::reply($event, $family, 'yes', 1));
+            send_confirmation::queue($family, $event, 'es');
+            send_confirmation::queue($family, $event, 'es');
+        }
+        $this->assertCount(0, $sink->get_messages());
+        invites::reply($event, $eva, 'no', 0);
+        ob_start();
+        $this->runAdhocTasks(send_confirmation::class);
+        ob_end_clean();
+        $this->assertSame(['ana@example.com'], array_column($sink->get_messages(), 'to'));
         $sink->close();
     }
 

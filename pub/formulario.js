@@ -294,11 +294,15 @@
                 }
                 busy = true;
                 says.textContent = '';
+                // Marked at the touch, as on its way: what it says comes when the centre has it.
+                button.setAttribute('aria-busy', 'true');
+                full.textContent = '';
                 var mine = turn;
                 post({reply: button.value}).then(function(said) {
                     show(said, mine);
                 }).catch(failed).then(function() {
                     busy = false;
+                    button.removeAttribute('aria-busy');
                 });
             });
         });
