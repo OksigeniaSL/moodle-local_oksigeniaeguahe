@@ -193,7 +193,7 @@ final class brief_test extends \advanced_testcase {
         $data['children'][1]['firstname'] = 'Luis';
         $context = brief::context($event, $centre, 'es', $data, [], $url, entries::mark($entry), null);
         $this->assertTrue($context['others'][0]['open']);
-        $this->assertStringContainsString('Prueben en un minuto', $context['unsent']);
+        $this->assertStringContainsString('Prueba en un minuto', $context['unsent']);
 
         // Of an act, how many come is asked there too.
         $start = time() + 5 * DAYSECS;

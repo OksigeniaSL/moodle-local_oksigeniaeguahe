@@ -218,15 +218,17 @@ class brief {
      *
      * @param \stdClass $centre
      * @param string $lang
+     * @param bool $one Whether it speaks to one person.
      * @return string Empty, it has nothing.
      */
-    public static function reach_words(\stdClass $centre, string $lang): string {
+    public static function reach_words(\stdClass $centre, string $lang, bool $one = false): string {
         $phone = trim((string) ($centre->phone ?? ''));
         $email = trim((string) ($centre->email ?? ''));
         if ($phone === '' && $email === '') {
             return '';
         }
-        return publiclang::str('pub_reach_' . ($phone !== '' && $email !== '' ? 'both' : ($phone !== '' ? 'phone' : 'email')), $lang, (object) [
+        $key = 'pub_reach_' . ($phone !== '' && $email !== '' ? 'both' : ($phone !== '' ? 'phone' : 'email')) . ($one ? '_self' : '');
+        return publiclang::str($key, $lang, (object) [
             'phone' => $phone, 'email' => $email]);
     }
 
@@ -367,7 +369,7 @@ class brief {
             // A person of the team: whether it is a test, with one touch.
             'team' => isset($errors['team']) ? ['yes' => $str('pub_team_test'), 'no' => $str('pub_team_real')] : false,
             // Sent without leaving the page: what is said when it cannot be sent now, and what was written stays.
-            'unsent' => trim($str('pub_unsent') . ' ' . self::reach_words($centre, $lang)),
+            'unsent' => trim(publiclang::str('pub_unsent_self', $lang) . ' ' . self::reach_words($centre, $lang, true)),
             // How many come, at an act; and, at a talk or a party, whether they want to be told of the centre too.
             'people' => $event->kind === 'form' ? false : ['name' => 'people', 'label' => $str('pub_join_people'),
                 'value' => max(1, min(events::MAXPEOPLE, (int) $data['people'] ?: 1)), 'min' => 1, 'max' => events::MAXPEOPLE,

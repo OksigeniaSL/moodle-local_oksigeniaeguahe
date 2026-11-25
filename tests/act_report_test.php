@@ -393,6 +393,27 @@ final class act_report_test extends \advanced_testcase {
         $this->assertNull($r['median']);
         $said = panel_metrics::response_sentence(panel_metrics::said($r));
         $this->assertStringContainsString(get_string('panel_response_tried', 'local_oksigeniaeguahe', 2), $said);
+        // Those that wrote, with no answer, and are not among those that wait: each in its place, none left out.
+        foreach (['unreached' => ['teamnote_noanswer', 'tried'], 'met' => null, 'quiet' => null, 'signed' => null] as $kind => $line) {
+            $family = $this->family();
+            households::received(households::get((int) $family->id, $cid), 'email', '¿Hay plaza?', false, $this->now - 3 * DAYSECS);
+            $ids[$kind] = (int) $family->id;
+            if ($line) {
+                $say($family, ...$line);
+            } else if ($kind === 'met') {
+                $DB->insert_record(\local_oksigeniaeguahe\local\teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $family->id,
+                    'mark' => sha1('m'), 'entryid' => 1, 'visit' => $this->now + DAYSECS, 'timecreated' => $this->now]);
+            } else if ($kind === 'signed') {
+                events::sign_up($this->act, (int) $family->id, 2);
+            }
+        }
+        $r = metrics::response($cid, array_values($ids), $this->now);
+        $this->assertSame([7, 2, 2, 1, 1, 1], [$r['asked'], $r['answered'], $r['waiting'], $r['unreached'], $r['met'], $r['quiet']]);
+        $this->assertSame([$ids['unreached'], $ids['met'], $ids['quiet']], array_map(fn($k) => array_key_first($r['who'][$k]), ['unreached', 'met', 'quiet']));
+        $said = panel_metrics::response_sentence(panel_metrics::said($r));
+        foreach (['unreached', 'met', 'quiet'] as $key) {
+            $this->assertStringContainsString(get_string('panel_response_' . $key . '_one', 'local_oksigeniaeguahe', 1), $said);
+        }
         $this->assertStringContainsString(get_string('panel_response_timed_one', 'local_oksigeniaeguahe', (object) ['timed' => 1, 'answered' => 2]), $said);
     }
 
@@ -501,8 +522,26 @@ final class act_report_test extends \advanced_testcase {
         $this->assertSame(12, array_sum(array_column($of('channels', 'canal')['bars']['groups'][0]['rows'], 'n')));
         $this->assertSame(1, array_sum(array_column($of('channels', 'canal')['bars']['groups'][1]['rows'], 'n')));
         $this->assertNotFalse($of('channels', 'gasto')['note']);
-        $this->assertSame([2, 1], [(int) $of('answers', 'contestadas')['path']['total'], (int) $of('answers', 'esperan')['list']['rows'][0]['n']]);
+        $this->assertSame([11, 1], [(int) $of('answers', 'contestadas')['path']['total'], (int) $of('answers', 'esperan')['list']['rows'][0]['n']]);
         $this->assertSame([1], array_column($of('outs', 'motivo')['bars']['groups'][0]['rows'], 'n'));
         $this->assertSame([25, 1], array_map('intval', array_slice(array_column($of('places', 'cursos')['table']['rows'][0]['cells'], 'n'), 0, 2)));
+    }
+
+    /**
+     * The day of the sheet that is the day of the act is not an appointment after it; one of another day is.
+     */
+    public function test_after(): void {
+        global $DB;
+        $cid = (int) $this->centre->id;
+        $note = fn(\stdClass $family, int $when) => $DB->insert_record(\local_oksigeniaeguahe\local\teamnotes::T, (object) ['centreid' => $cid,
+            'householdid' => $family->id, 'mark' => sha1((string) $when), 'entryid' => 1, 'visit' => $when, 'dayonly' => 1, 'timecreated' => $this->now]);
+        $same = $this->family();
+        $later = $this->family();
+        $start = usergetmidnight($this->now - 4 * DAYSECS) + 9 * HOURSECS;
+        $note($same, $start + 3 * HOURSECS);
+        $note($later, $start + DAYSECS + 3 * HOURSECS);
+        $after = new \ReflectionMethod(act_report::class, 'after');
+        $out = $after->invoke(null, $this->centre, [(int) $same->id, (int) $later->id], $start, $this->now);
+        $this->assertSame([(int) $later->id], array_keys($out['appointment']));
     }
 }

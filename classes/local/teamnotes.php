@@ -284,6 +284,7 @@ class teamnotes {
             'id ASC'
         );
         $families = [];
+        $touched = [];
         foreach ($rows as $row) {
             if (!preg_match('/^(?:.* · )?([^:·\n]{1,80}): (.+)$/su', (string) $row->body, $m) || ($title !== '' && trim($m[1]) !== $title)) {
                 continue;
@@ -297,11 +298,15 @@ class teamnotes {
                 $out['lines'][] = (int) $row->id;
                 $out['titles'][trim($m[1])] = ($out['titles'][trim($m[1])] ?? 0) + 1;
                 $families[(int) $row->householdid][] = (int) $row->id;
+                if (array_intersect(array_column($gestures, 'kind'), self::TOUCH)) {
+                    $touched[(int) $row->householdid] = true;
+                }
             }
         }
         foreach ($families as $householdid => $ids) {
             $household = households::get($householdid, (int) $centre->id);
-            if (!$household || (int) $household->waitingsince) {
+            // Only who may have stopped waiting because of one of them: a call nobody answered never answered anybody.
+            if (!$household || (int) $household->waitingsince || outs::is_out($household) || empty($touched[$householdid])) {
                 continue;
             }
             [$in, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'x', false);
@@ -315,6 +320,16 @@ class teamnotes {
                 "householdid = :h AND direction = 'out' AND aim IS NULL AND timecreated >= :since AND id $in",
                 ['h' => $householdid, 'since' => usergetmidnight($asked)] + $params
             );
+            // Or it was said otherwise: a person that gave it as answered, a visit or a call to come that the sheet says.
+            $answered = $answered || ($asked && ($DB->record_exists_select(settle::T, 'householdid = ? AND timecreated >= ?', [$householdid, $asked]) ||
+                $DB->record_exists_select(self::T, 'householdid = ? AND visit >= ?', [$householdid, usergetmidnight($asked)])));
+            foreach ($answered || !$asked ? [] : self::lines_before($householdid, $asked) as $key => $lines) {
+                $does = array_intersect(array_map(fn($k) => explode(':', $k)[0], explode(',', explode('|', $key)[0])), self::TOUCH);
+                foreach ($does ? array_diff($lines, $ids) : [] as $line) {
+                    $when = (int) $DB->get_field(households::CONTACTS, 'timecreated', ['id' => $line]);
+                    $answered = $answered || $when >= usergetmidnight($asked);
+                }
+            }
             $closed = $DB->count_records_select(households::CHILDREN, "householdid = ? AND stage <> 'closed'", [$householdid]) === 0 &&
                 $DB->record_exists(households::CHILDREN, ['householdid' => $householdid]);
             if ($asked && !$answered && !$closed) {
@@ -330,6 +345,103 @@ class teamnotes {
                 $DB->update_record(households::T, (object) ['id' => $householdid, 'waitingsince' => $since, 'timemodified' => time()]);
             }
             $transaction->allow_commit();
+        }
+        return $out;
+    }
+
+    /**
+     * Of some families, those a sheet of the team says were in touch with them some way: a visit given, a call to come…
+     *
+     * @param int[] $ids Households.
+     * @return bool[] household => true
+     */
+    public static function touched(array $ids): array {
+        global $DB;
+        $out = [];
+        foreach (array_chunk($ids, 500) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk);
+            foreach ($DB->get_fieldset_select(self::T, 'DISTINCT householdid', "householdid $in AND visit > 0 AND (state IS NULL OR state <> 'note')", $params) as $id) {
+                $out[(int) $id] = true;
+            }
+            $rows = $DB->get_recordset_select(
+                households::CONTACTS,
+                "householdid $in AND entryid = 0 AND direction IN ('note', 'out')",
+                $params,
+                'id ASC',
+                'id, householdid, body, timecreated'
+            );
+            foreach ($rows as $row) {
+                if (!isset($out[(int) $row->householdid]) && preg_match('/^(?:.* · )?([^:·\n]{1,80}): (.+)$/su', (string) $row->body, $m)) {
+                    $gestures = self::read($m[1], $m[2], (int) $row->timecreated) ?? [];
+                    if (array_intersect(array_column($gestures, 'kind'), self::TOUCH)) {
+                        $out[(int) $row->householdid] = true;
+                    }
+                }
+            }
+            $rows->close();
+        }
+        return $out;
+    }
+
+    /**
+     * The families that wrote and, since then, were only called with nobody answering: before, such a call stopped them waiting.
+     * For cli/unreached.php; with $run they wait again, since they wrote.
+     *
+     * @param \stdClass $centre
+     * @param bool $run
+     * @return int[] household => since when
+     */
+    public static function unreached(\stdClass $centre, bool $run): array {
+        global $DB;
+        $out = [];
+        $homes = $DB->get_records_select(
+            households::T,
+            "centreid = ? AND waitingsince = 0 AND guest = 0 AND roster = 0 AND (outreason IS NULL OR outreason = '')",
+            [$centre->id],
+            'id ASC'
+        );
+        foreach ($homes as $home) {
+            $asked = $DB->get_records_select(
+                households::CONTACTS,
+                "householdid = ? AND direction = 'in' AND userid = 0 AND channel <> 'event'",
+                [$home->id],
+                'timecreated DESC',
+                'id, timecreated, dayonly',
+                0,
+                1
+            );
+            $asked = reset($asked);
+            if (!$asked) {
+                continue;
+            }
+            $since = [$home->id, usergetmidnight((int) $asked->timecreated)];
+            $is = fn(string $table, string $where, array $params) => $DB->record_exists_select($table, "householdid = ? AND $where", $params);
+            $tried = $is(households::CONTACTS, "timecreated >= ? AND direction = 'out' AND aim = 'tried'", $since);
+            $open = $is(households::CHILDREN, "stage <> 'closed' AND stage <> 'enrolled' AND lefttime = 0", [$home->id]) ||
+                !$is(households::CHILDREN, 'id > 0', [$home->id]);
+            if (
+                !$tried || !$open || $is(households::CONTACTS, "timecreated >= ? AND direction = 'out' AND aim IS NULL", $since) ||
+                    $is(self::T, 'visit >= ?', $since) || $is(events::SIGNUPS, 'timecreated >= ?', $since) ||
+                    $is(settle::T, 'timecreated >= ?', [$home->id, (int) $asked->timecreated])
+            ) {
+                continue;
+            }
+            // A row of the sheet that says it otherwise (they will call, the family is at the centre already).
+            $touched = false;
+            foreach (self::lines_before((int) $home->id, (int) $asked->timecreated) as $key => $lines) {
+                $does = array_intersect(array_map(fn($k) => explode(':', $k)[0], explode(',', explode('|', $key)[0])), self::TOUCH);
+                foreach ($does ? $lines : [] as $line) {
+                    $touched = $touched || (int) $DB->get_field(households::CONTACTS, 'timecreated', ['id' => $line]) >= $since[1];
+                }
+            }
+            if ($touched) {
+                continue;
+            }
+            $out[(int) $home->id] = (int) $asked->timecreated;
+            if ($run) {
+                $DB->update_record(households::T, (object) ['id' => $home->id, 'waitingsince' => (int) $asked->timecreated,
+                    'waitingdayonly' => (int) $asked->dayonly, 'timemodified' => time()]);
+            }
         }
         return $out;
     }

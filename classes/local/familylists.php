@@ -195,11 +195,14 @@ class familylists {
             case 'answered':
             case 'unanswered':
             case 'tried':
+            case 'unreached':
+            case 'met':
+            case 'quiet':
                 $who = metrics::response((int) $centre->id, facts::ids(array_filter($mine, [facts::class, 'lives'])), $now)['who'];
-                $those = $what === 'answered' ? $who['answered'] : ($what === 'unanswered' ? $who['waiting'] : array_intersect_key(
-                    $who['tried'],
-                    $who['waiting']
-                ));
+                $those = $who[$what === 'unanswered' ? 'waiting' : $what];
+                if ($what === 'tried') {
+                    $those = array_intersect_key($those, $who['waiting']);
+                }
                 return $pick(fn($f) => facts::lives($f) && isset($those[$f['id']]));
             default:
                 return $pick(fn($f) => !empty($f[$what]));

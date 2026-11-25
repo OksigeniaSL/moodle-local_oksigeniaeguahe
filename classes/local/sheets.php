@@ -117,7 +117,9 @@ class sheets {
         if (is_int($value) || is_float($value)) {
             if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell)) {
                 try {
-                    return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y-m-d H:i:s');
+                    // An hour alone («11:00») is only an hour, and a day alone only a day.
+                    $format = $value >= 0 && $value < 1 ? 'H:i' : (floor($value) == $value ? 'Y-m-d' : 'Y-m-d H:i:s');
+                    return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format($format);
                 } catch (\Throwable $e) {
                     return '';
                 }

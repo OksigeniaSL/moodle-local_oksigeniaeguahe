@@ -593,6 +593,11 @@ class panel_metrics {
                 $facts[] = ['n' => $r['open'][$key], 'text' => get_string('panel_response_open_' . $key, $c)];
             }
         }
+        foreach (['unreached', 'met', 'quiet'] as $key) {
+            if ($r[$key]) {
+                $facts[] = ['n' => $r[$key], 'text' => get_string('panel_response_fact_' . $key, $c)];
+            }
+        }
         if (count($mine) > $r['asked']) {
             $facts[] = ['n' => count($mine) - $r['asked'], 'text' => get_string('panel_response_rest', $c)];
         }
@@ -638,7 +643,13 @@ class panel_metrics {
         if ($r['waiting']) {
             $parts[] = get_string('panel_response_waits' . ($r['waiting'] === 1 ? '_one' : ''), $c, $a);
         }
-        $out .= implode($r['waiting'] ? get_string('panel_response_and', $c) : '', $parts) . '.';
+        foreach (['unreached', 'met', 'quiet'] as $key) {
+            if ($r[$key]) {
+                $parts[] = get_string('panel_response_' . $key . ($r[$key] === 1 ? '_one' : ''), $c, $r[$key]);
+            }
+        }
+        $last = array_pop($parts);
+        $out .= ($parts ? implode('; ', $parts) . get_string('panel_response_and', $c) : '') . $last . '.';
         if ($r['tried']) {
             $out .= ' ' . get_string('panel_response_tried' . ($r['tried'] === 1 ? '_one' : ''), $c, $r['tried']);
         }

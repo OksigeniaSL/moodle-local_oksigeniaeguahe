@@ -290,8 +290,13 @@ class act_report {
             $rows->close();
         }
         $mine = array_flip($ids);
+        $sameday = userdate($start, '%Y-%m-%d', 99, false);
         foreach ($ids ? appointments::agenda($centre, $start + MINSECS, $now + YEARSECS, $now) : [] as $item) {
-            // Its own visits, and the open days it signed up to after.
+            // Its own visits, and the open days it signed up to after. A day of the sheet without its hour that is the day of the
+            // act is the act.
+            if ($item['dayonly'] && $sameday === userdate($item['start'], '%Y-%m-%d', 99, false)) {
+                continue;
+            }
             if (isset($mine[$item['householdid']]) && in_array($item['state'], ['coming', 'came', 'unknown'], true) && $item['kind'] !== 'act') {
                 $out['appointment'][$item['householdid']] = true;
                 if ($item['start'] >= $now) {

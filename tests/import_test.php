@@ -66,6 +66,39 @@ final class import_test extends \advanced_testcase {
     }
 
     /**
+     * What is written under a list of students, without a name in its column nor any way to reach them, is not a student.
+     */
+    public function test_written_under(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $rows = [['Curso', 'Grupo', 'Apellidos', 'Nombre', 'Correo electrónico'], ['2026-27', '1.º ESO A', 'Ruiz Sosa', 'Leo', 'a@gmail.com'],
+            ['2026-27', '1.º ESO B', 'Vega Paz', 'Mía', ''], ['', '', '', '', ''], ['', 'INF 4A', 'Gil Mar', '', 'Noa'], ['', '', 'Noa Gil Mar', '', '']];
+        $path = $this->xlsx(['ESO' => $rows]);
+        [, $total] = imports::import_file($cid, $path, 'Alumnos nuevos.xlsx', [0 => ['kind' => 'joins', 'label' => 'ESO',
+            'schoolyear' => '2026-27']], 2);
+        $this->assertSame([2, 2], [$total, $DB->count_records(metrics::STUDENTS, ['centreid' => $cid])]);
+    }
+
+    /**
+     * A day of a spreadsheet is a day, an hour only an hour, and a moment both.
+     */
+    public function test_cells(): void {
+        $this->resetAfterTest();
+        $book = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $book->getActiveSheet();
+        $cells = ['A1' => ['dd/mm/yyyy', 46202], 'B1' => ['hh:mm', 11 / 24], 'C1' => ['dd/mm/yyyy hh:mm', 46202.4375]];
+        foreach ($cells as $at => [$format, $value]) {
+            $sheet->setCellValue($at, $value);
+            $sheet->getStyle($at)->getNumberFormat()->setFormatCode($format);
+        }
+        $path = make_request_directory() . '/celdas.xlsx';
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($book))->save($path);
+        $read = \local_oksigeniaeguahe\local\sheets::read($path, 'celdas.xlsx');
+        $this->assertSame(['2026-06-29', '11:00', '2026-06-29 10:30:00'], array_values($read[0]['rows'][0]));
+    }
+
+    /**
      * The adverts: the export of a lead form, with a lead above its header and the header copied to the right.
      *
      * @return array

@@ -1069,6 +1069,26 @@ class metrics {
         return [$years, array_keys($grades), $matrix, $totals];
     }
 
+    /**
+     * Of some families, those that signed up to an act or a visit, and whether they came.
+     *
+     * @param int[] $ids
+     * @return string[] household => came or signed
+     */
+    protected static function with_acts(array $ids): array {
+        global $DB;
+        $out = [];
+        foreach (array_chunk($ids, 500) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk);
+            $rows = $DB->get_records_sql('SELECT householdid, MAX(attended) AS attended FROM {' . events::SIGNUPS . "}
+                                           WHERE householdid $in GROUP BY householdid", $params);
+            foreach ($rows as $row) {
+                $out[(int) $row->householdid] = (int) $row->attended ? 'came' : 'signed';
+            }
+        }
+        return $out;
+    }
+
     /** @var string[] When a family wrote first, in the time of the site: the part of the week that may wait longer. */
     const BANDS = ['weekmorning', 'weekafternoon', 'night', 'weekend'];
 
@@ -1083,7 +1103,9 @@ class metrics {
      * @param int $centreid
      * @param int[]|null $ids Only these families; null, those of admissions.
      * @param int $now
-     * @return array who (answered, waiting and tried: household id => true), asked, answered, timed (of those, with both hours
+     * @return array who (answered, waiting, tried, unreached, met and quiet: household id => true), asked (every family that wrote),
+     *     unreached (only called, with nobody answering), met (given a visit or in touch some way, with no answer written down),
+     *     quiet (nothing is known of them), answered, timed (of those, with both hours
      *     known), waiting (without any answer), tried (of those,
      *     called and nobody took it), longest (hours of the one that waits most, or null), open
      *     (waiting, by how long: day, two and more), median (hours, or null), and bychannel and byband: name => [median, count
@@ -1125,7 +1147,13 @@ class metrics {
             }
         }
         $lines->close();
-        $out = ['asked' => 0, 'answered' => 0, 'timed' => 0, 'waiting' => 0, 'tried' => 0, 'longest' => null, 'open' => ['day' => 0, 'two' => 0, 'more' => 0]];
+        $out = ['asked' => 0, 'answered' => 0, 'timed' => 0, 'waiting' => 0, 'tried' => 0, 'unreached' => 0, 'met' => 0, 'quiet' => 0,
+            'longest' => null, 'open' => ['day' => 0, 'two' => 0, 'more' => 0]];
+        // Those that wrote, have no answer and are not waiting: what there is of them.
+        $loose = array_keys(array_filter($rows, fn($row, $id) => $row['in'] && !$row['out'] && !$homes[$id][0], ARRAY_FILTER_USE_BOTH));
+        $touched = teamnotes::touched($loose);
+        $acts = self::with_acts($loose);
+        $kinds = ['unreached' => [], 'met' => [], 'quiet' => []];
         $out['within'] = ['day' => 0, 'two' => 0];
         $all = [];
         $who = [];
@@ -1134,11 +1162,28 @@ class metrics {
         $zone = \core_date::get_server_timezone();
         foreach ($rows as $id => $row) {
             [$in, $answer] = [$row['in'], $row['out']];
-            if (!$in || (!$answer && !$homes[$id][0])) {
-                // It wrote nothing, or nothing that waits for an answer (it signed up to an open day).
+            if (!$in) {
+                // It wrote nothing.
                 continue;
             }
+            $kind = '';
+            if (!$answer && !$homes[$id][0]) {
+                $kind = isset($touched[$id]) || ($acts[$id] ?? '') === 'came' ? 'met' : (isset($tried[$id]) ? 'unreached' : 'quiet');
+                if ($kind === 'quiet' && (isset($acts[$id]) || $in->channel === 'event')) {
+                    // Nothing that waits for an answer (it signed up to an open day).
+                    continue;
+                }
+            }
             $out['asked']++;
+            if ($kind !== '') {
+                $out[$kind]++;
+                $kinds[$kind][$id] = true;
+                // Answered at a time nobody knows, or not answered.
+                $all[] = $kind === 'met' ? false : null;
+                $bychannel[(string) $in->channel][] = end($all);
+                $byband[self::band((int) $in->timecreated, $zone)][] = end($all);
+                continue;
+            }
             $who[$id] = (bool) $answer;
             // Hours to the answer; null, not yet; false, answered without its hour.
             $wait = null;
@@ -1165,7 +1210,7 @@ class metrics {
             'answered' => count(array_filter($list, fn($w) => $w !== null))], $groups);
         $byband = array_merge(array_intersect_key(array_flip(self::BANDS), $byband), $byband);
         return $out + ['who' => ['answered' => array_filter($who, fn($w) => $w), 'waiting' => array_filter($who, fn($w) => !$w),
-            'tried' => $tried], 'median' => self::median($all), 'bychannel' => $split($bychannel), 'byband' => $split($byband)];
+            'tried' => $tried] + $kinds, 'median' => self::median($all), 'bychannel' => $split($bychannel), 'byband' => $split($byband)];
     }
 
     /**

@@ -224,6 +224,41 @@ final class teamnotes_test extends \advanced_testcase {
     }
 
     /**
+     * Who was only called and did not answer waits again when it is asked for; who was reached some way does not.
+     */
+    public function test_unreached(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $make = function (array $lines, int $visit = 0) use ($cid, $DB): int {
+            $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'meta']), $cid);
+            households::received($household, 'meta', '¿Hay plaza?', true, time() - 3 * DAYSECS);
+            $DB->set_field(households::T, 'waitingsince', 0, ['id' => $household->id]);
+            foreach ($lines as [$direction, $aim, $body]) {
+                $DB->insert_record(households::CONTACTS, (object) ['householdid' => $household->id, 'centreid' => $cid, 'direction' => $direction,
+                    'channel' => 'phone', 'body' => $body, 'entryid' => 0, 'userid' => 0, 'aim' => $aim, 'timecreated' => time() - DAYSECS]);
+            }
+            if ($visit) {
+                $DB->insert_record(teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $household->id, 'mark' => sha1('v'), 'entryid' => 1,
+                    'visit' => $visit, 'timecreated' => time()]);
+            }
+            return (int) $household->id;
+        };
+        $tried = ['out', 'tried', 'Llamada sin respuesta · Priority: No contesta'];
+        $lost = $make([$tried]);
+        $make([$tried, ['out', null, 'Hola, Ana']]);
+        $make([$tried, ['note', null, 'Volver a llamar · Priority: llamar por la tarde']]);
+        $make([$tried], time() + DAYSECS);
+        $make([]);
+        $centre = centres::get($cid);
+        $this->assertSame([$lost], array_keys(teamnotes::unreached($centre, false)));
+        $this->assertSame(0, (int) households::get($lost, $cid)->waitingsince);
+        teamnotes::unreached($centre, true);
+        $this->assertGreaterThan(0, (int) households::get($lost, $cid)->waitingsince);
+        $this->assertSame([], teamnotes::unreached($centre, false));
+    }
+
+    /**
      * What an earlier version repeated is taken out, once, and whoever stopped waiting because of it waits again.
      */
     public function test_repeated(): void {
@@ -241,16 +276,28 @@ final class teamnotes_test extends \advanced_testcase {
         $first = $line($words . ' · Priority: No contesta', time() - 2 * DAYSECS);
         // Read today, with the day of its row and who attended them.
         $start = $line('Hola', usergetmidnight(time()) + 60);
-        $twice = $line($words . ' · OBSERVACIONES: No contesta', time() - 5 * DAYSECS);
+        $said = \local_oksigeniaeguahe\local\publiclang::str('teamnote_contacted_whatsapp', 'es');
+        $line($said . ' · Priority: Wasap', time() - 9 * DAYSECS);
+        $twice = $line($said . ' · OBSERVACIONES: Wasap', time() - 5 * DAYSECS);
         $DB->set_field(households::CONTACTS, 'userid', 2, ['id' => $twice]);
+        $again = $line($words . ' · OBSERVACIONES: No contesta', time());
         $other = $line($words . ' · OBSERVACIONES: Contestador', time());
         $DB->set_field(households::T, 'waitingsince', 0, ['id' => $household->id]);
+        // Another family, that a person gave as answered: a call nobody answered said twice does not make it wait.
+        $calm = $household;
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'meta']), $cid);
+        households::received($household, 'meta', '¿Hay comedor?', true, time() - 3 * DAYSECS);
+        $DB->set_field(households::T, 'waitingsince', 0, ['id' => $household->id]);
+        $DB->set_field(households::CONTACTS, 'timecreated', time() - 20 * DAYSECS, ['id' => $line($words . ' · Priority: Apagado', time())]);
+        $off = $line($words . ' · OBSERVACIONES: Apagado', time());
+        $household = $calm;
         $look = teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, false);
-        $this->assertSame([$twice], $look['lines']);
+        $this->assertSame([$twice, $again, $off], $look['lines']);
         $this->assertSame([(int) $household->id => $asked], $look['waiting']);
         $this->assertTrue($DB->record_exists(households::CONTACTS, ['id' => $twice]), 'Only looked at.');
         teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, true);
         $this->assertSame([true, false, true], array_map(fn($id) => $DB->record_exists(households::CONTACTS, ['id' => $id]), [$first, $twice, $other]));
+        $this->assertSame([], teamnotes::repeated($centre, '', usergetmidnight(time()), time() + DAYSECS, false)['waiting']);
         $this->assertSame($asked, (int) households::get((int) $household->id, $cid)->waitingsince);
         $this->assertSame([], teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, true)['lines']);
     }

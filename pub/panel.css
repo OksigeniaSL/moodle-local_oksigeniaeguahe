@@ -24455,6 +24455,13 @@ html {
     margin-inline-start: auto;
 }
 
+/* A day the centre closes says so on its leaf; what is in it is written as any other day. */
+.dia-s.cerrado,
+.dc-dia.cerrado {
+    font-weight: inherit;
+    color: inherit;
+}
+
 .dc-dia.cerrado input:not(:checked) + span {
     border-style: dashed;
     background: transparent;

@@ -386,7 +386,7 @@
     }
 }
 
-@media (max-width: 375px) {
+@media (max-width: 330px) {
     .fb-campos {
         grid-template-columns: minmax(0, 1fr);
     }

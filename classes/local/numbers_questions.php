@@ -196,6 +196,7 @@ class numbers_questions {
      * @return int[][] came, notcame, off and unknown: household ids; and ahead
      */
     public static function visit_outcomes(\stdClass $centre, int $now): array {
+        global $DB;
         $said = facts::sheet_outcomes($centre);
         $day = fn(int $t) => userdate($t, '%Y-%m-%d', 99, false);
         $acts = [];
@@ -224,6 +225,14 @@ class numbers_questions {
                 }
             }
             $best[$hid] = isset($best[$hid]) && $order[$best[$hid]] > $order[$state] ? $best[$hid] : $state;
+        }
+        // Somebody said of its child that it visited.
+        $asked = array_keys(array_filter($best, fn($state) => $state === 'unknown'));
+        foreach (array_chunk($asked, 500) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk);
+            foreach ($DB->get_fieldset_select(households::CHILDREN, 'householdid', "householdid $in AND stage = 'visit'", $params) as $hid) {
+                $best[(int) $hid] = 'came';
+            }
         }
         foreach ($best as $hid => $state) {
             $out[$state][$hid] = $hid;
@@ -328,7 +337,7 @@ class numbers_questions {
             self::one('channels', get_string('nq_channels', $c), $answer, $url(['hoja' => 'campana'], 'por-donde'), $form, $warn);
         // Whether they are answered in time.
         $r = panel_metrics::said(metrics::response((int) $centre->id, facts::ids(array_filter($mine, [facts::class, 'lives'])), $now));
-        $out[] = ['nums' => familylists::nums($centre, $campaign, $all, ['answered', 'unanswered', 'tried'])] + self::one(
+        $out[] = ['nums' => familylists::nums($centre, $campaign, $all, ['answered', 'unanswered', 'tried', 'unreached', 'met', 'quiet'])] + self::one(
             'answers',
             get_string('nq_answers', $c),
             $r['asked'] ? panel_metrics::response_sentence($r) : '',

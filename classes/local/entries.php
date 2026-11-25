@@ -354,15 +354,19 @@ class entries {
             // Nobody to answer: nothing comes in.
             return [null, false, null];
         }
-        $whois = fn($email, $phone) => implode('|', ['who', $email, $phone, $read->firstname, $read->lastname, $read->child, $read->keytime]);
-        $who = $whois($read->email, $read->phone);
-        // As the versions before read its phone and its email: what came then is the same one now.
-        $whowas = $whois($read->was[0], $read->was[1]);
+        $whois = fn($email, $phone, $at) => implode('|', ['who', $email, $phone, $read->firstname, $read->lastname, $read->child, $at]);
+        $who = $whois($read->email, $read->phone, $read->keytime);
+        // As the versions before read its phone, its email and its day: what came then is the same one now.
+        $whowas = [];
+        foreach ($read->keytimes ?: [$read->keytime] as $at) {
+            $whowas[] = $whois($read->email, $read->phone, $at);
+            $whowas[] = $whois($read->was[0], $read->was[1], $at);
+        }
         $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid : $who);
         $same = [];
         $also = [];
         if ($externalid === '') {
-            $same = array_unique([hash('sha256', $who), hash('sha256', $whowas)]);
+            $same = array_values(array_unique(array_map(fn($one) => hash('sha256', $one), array_merge([$who], $whowas))));
         }
         if ($externalid === '' && empty($entry->teamsheet)) {
             // Not a row of the sheet of the team: its moment is part of what it is known by or, without it, its day and what it
@@ -879,7 +883,7 @@ class entries {
             'incentre' => 0, 'alumni' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
             'appointment' => 0, 'appointmenthour' => false, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0,
-            'otherschool' => '', 'dayonly' => false, 'keytime' => 0, 'datecolumn' => '', 'raw' => [], 'was' => [null, null]];
+            'otherschool' => '', 'dayonly' => false, 'keytime' => 0, 'keytimes' => [], 'datecolumn' => '', 'raw' => [], 'was' => [null, null]];
         $detail = [];
         $people = [];
         $before = [];
@@ -1067,6 +1071,14 @@ class entries {
                     // What a row is known by is its day, as it always was: its hour never makes it another row.
                     $r->keytime = (int) (preg_match('#^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}#', $value) ?
                         recognise::date($value, $first) : (strtotime($value) ?: recognise::date($value)));
+                    $plainday = preg_match('/^\d{4}-\d{2}-\d{2}(?:[T ]00:00(?::00)?)?$/', $value) ? recognise::date($value) : 0;
+                    if ($plainday) {
+                        // The day of a spreadsheet, as the same one in words.
+                        $r->keytime = $plainday;
+                        $value = \core_text::substr($value, 0, 10);
+                    }
+                    // A row is known by the noon of its day, or by its midnight, as a spreadsheet was read before.
+                    $r->keytimes = $r->keytime ? [$r->keytime, usergetmidnight($r->keytime, \core_date::get_server_timezone())] : [];
                     if ($r->keytime && ($moment = recognise::moment($value, $first))) {
                         [$r->time, $r->dayonly] = $moment;
                         $r->datecolumn = recognise::plain((string) $question);

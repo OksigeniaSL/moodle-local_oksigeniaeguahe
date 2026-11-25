@@ -522,6 +522,17 @@ final class entries_test extends \advanced_testcase {
                 $this->assertSame('+34600111555', $DB->get_field(households::ADULTS, 'phone', ['householdid' => $id]));
             }
         }
+        // The same row from a spreadsheet, whose cells are dates, and one that came from it with a version before.
+        $row = ['Hora' => '11:00', 'FECHA' => '29/06/2026', 'Tutor 1' => 'Iria Paz', 'TELÉFONO' => '600222333', 'ASISTENCIA' => 'FALSE'];
+        $this->assertTrue(entries::receive($sheet, $row, '', null, true)[1]);
+        foreach (['2026-06-29', '2026-06-29 00:00:00'] as $cell) {
+            $this->assertFalse(entries::receive($sheet, ['FECHA' => $cell] + $row, '', null, true)[1], $cell);
+        }
+        $midnight = usergetmidnight($day, \core_date::get_server_timezone());
+        $DB->insert_record(entries::ARRIVALS, (object) ['centreid' => $cid, 'entryid' => $sheet->id, 'householdid' => $id, 'timecreated' => time(),
+            'externalid' => hash('sha256', implode('|', ['who', null, '+34600444555', 'Saúl', 'Vega', '', $midnight]))]);
+        $this->assertFalse(entries::receive($sheet, ['FECHA' => '12/11/2026', 'Tutor 1' => 'Saúl Vega', 'TELÉFONO' => '600444555',
+            'ASISTENCIA' => 'FALSE'], '', null, true)[1]);
         // A person of the team in an old row.
         $mary = $this->getDataGenerator()->create_user(['firstname' => 'Mary', 'lastname' => 'Medina', 'email' => 'mary@example.com']);
         centres::add_member($cid, (int) $mary->id);

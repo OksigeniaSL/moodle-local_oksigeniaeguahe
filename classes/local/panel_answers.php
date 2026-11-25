@@ -234,11 +234,19 @@ class panel_answers {
                     [['kind' => 'yes', 'n' => $r['within'][$key]]] : [], 'legend' => []];
             }
         }
-        $parts = array_values(array_filter([['kind' => 'yes', 'n' => $r['answered']], ['kind' => 'no', 'n' => $r['waiting']]], fn($p) => $p['n']));
+        $parts = array_values(array_filter([['kind' => 'yes', 'n' => $r['answered']], ['kind' => 'no', 'n' => $r['waiting']],
+            ['kind' => 'unknown', 'n' => $r['unreached'] + $r['met'] + $r['quiet']]], fn($p) => $p['n']));
         $steps[] = ['name' => get_string('familylist_answered', $c), 'n' => $r['answered'], 'url' => $answered['url'] ?? false, 'parts' => $parts,
             'legend' => array_values(array_filter([
                 $answered ? ['kind' => 'yes', 'n' => $answered['n'], 'text' => \core_text::strtolower($answered['name']), 'url' => $answered['url']] : null,
                 $waiting ? ['kind' => 'no', 'n' => $waiting['n'], 'text' => \core_text::strtolower($waiting['name']), 'url' => $waiting['url']] : null]))];
+        foreach (['unreached', 'met', 'quiet'] as $key) {
+            $one = $w->nums[$key] ?? null;
+            if ($one) {
+                $steps[count($steps) - 1]['legend'][] = ['kind' => 'unknown', 'n' => $one['n'], 'text' => \core_text::strtolower($one['name']),
+                    'url' => $one['url']];
+            }
+        }
         $open = [];
         foreach (['more', 'two', 'day'] as $key) {
             if ($r['open'][$key]) {
