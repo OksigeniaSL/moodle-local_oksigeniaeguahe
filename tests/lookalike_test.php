@@ -19,6 +19,7 @@ namespace local_oksigeniaeguahe;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\lookalike;
 
 /**
@@ -112,6 +113,21 @@ final class lookalike_test extends \advanced_testcase {
         // In the inbox, from the families of the last half year.
         $this->assertSame([[(int) $father->id, (int) $mother->id]], lookalike::pairs((int) $this->centre->id, 0));
 
+        // Its name with its surnames, in another order and from another adult: the same child; a compound name is not that.
+        $phone = $this->family('Marta Soler', 'marta@example.com', 'Nora Vidal Cano', '2024-01-02', $this->infantil);
+        $ad = $this->family('Pau Vidal', 'pau@example.com', 'Vidal Cano Nora', '', $this->infantil);
+        $this->assertSame('course', lookalike::of($ad)[$phone->id]['why']);
+        $aunt = $this->family('Sara Gil', 'sara@example.com', 'María del Carmen', '', $this->infantil);
+        $this->family('Leo Prat', 'leo@example.com', 'María del Carmen', '', $this->infantil);
+        $this->assertSame([], lookalike::of($aunt));
+        $children = households::full($ad)->children;
+        households::set_stage(reset($children), 'admitted');
+        $kept = lookalike::merge($phone, households::get((int) $ad->id, (int) $this->centre->id), 2);
+        $children = array_values(households::full($kept)->children);
+        $this->assertCount(1, $children);
+        $this->assertSame(['Nora Vidal Cano', 'admitted', '2024-01-02'], [$children[0]->firstname, $children[0]->stage,
+            $children[0]->birthdate]);
+
         // A person says they are different: never asked again.
         lookalike::distinct((int) $this->centre->id, (int) $father->id, (int) $mother->id, 2);
         $this->assertSame([], lookalike::of($father));
@@ -135,8 +151,17 @@ final class lookalike_test extends \advanced_testcase {
         $fatherlink = households::new_link($father, 'signup');
         households::received($father, 'webform', '¿Hay comedor?', true);
 
+        // A letter to each for the same talk: the mother said no and, later, the father yes.
+        $talk = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'other', 'name' => 'Charla',
+            'timestart' => time() + 2 * DAYSECS, 'timeend' => time() + 2 * DAYSECS + HOURSECS, 'capacity' => 0,
+            'open' => 1, 'free' => 2]), (int) $this->centre->id);
+        invites::reply($talk, $mother, 'no', 0, time() - HOURSECS);
+        invites::reply($talk, $father, 'yes', 2);
+
         $kept = lookalike::merge($father, $mother, 7);
         $this->assertSame((int) $mother->id, (int) $kept->id, 'The older one stays.');
+        $this->assertSame(1, $DB->count_records(invites::T, ['eventid' => $talk->id]));
+        $this->assertSame('yes', invites::answer((int) $talk->id, (int) $kept->id));
         $this->assertFalse($DB->record_exists(households::T, ['id' => $father->id]));
         $full = households::full($kept);
         $this->assertCount(2, $full->adults);

@@ -84,7 +84,7 @@ class lookalike {
         }
         $names = [];
         foreach ($mine as $child) {
-            $plain = grades::plain((string) $child->firstname);
+            $plain = self::name_key((string) $child->firstname);
             if ($plain !== '') {
                 $names[$plain][] = $child;
             }
@@ -127,7 +127,7 @@ class lookalike {
                 continue;
             }
             $shared = (bool) array_intersect_key($sur[(int) $household->id] ?? [], $sur[$id] ?? []);
-            foreach ($names[grades::plain((string) $other->firstname)] ?? [] as $child) {
+            foreach ($names[self::name_key((string) $other->firstname)] ?? [] as $child) {
                 $why = self::why($child, $other, abs((int) $household->timecreated - (int) $other->timecreated), $shared);
                 if ($why !== '') {
                     $out[$id] = ['child' => (string) $child->firstname, 'why' => $why,
@@ -164,9 +164,34 @@ class lookalike {
             return '';
         }
         // The same first name and course is not enough on its own (two Hugos for the same year are common): a surname of
-        // the adults in common too.
-        return $samename && (int) $one->offerid && (int) $one->offerid === (int) $other->offerid && $apart <= self::NEAR ?
+        // the adults in common too, or the name written with its surnames.
+        return ($samename || self::whole_name((string) $one->firstname)) && (int) $one->offerid && (int) $one->offerid === (int) $other->offerid && $apart <= self::NEAR ?
             'course' : '';
+    }
+
+    /**
+     * The name of a child to compare it: its words without accents, whatever their order («Ruiz Gil Leo» is «Leo Ruiz Gil»).
+     *
+     * @param string $name
+     * @return string
+     */
+    protected static function name_key(string $name): string {
+        $words = explode(' ', grades::plain($name));
+        sort($words);
+        return implode(' ', $words);
+    }
+
+    /**
+     * Whether what is written as the name of a child is its name with its surnames: three words or more, without counting
+     * «de», «del» and the like.
+     *
+     * @param string $name
+     * @return bool
+     */
+    protected static function whole_name(string $name): bool {
+        $words = array_diff(explode(' ', grades::plain($name)), ['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'i', 'da', 'do', 'das',
+            'dos', 'san', 'santa']);
+        return count(array_filter($words, fn($w) => \core_text::strlen($w) > 1)) >= 3;
     }
 
     /**
@@ -305,7 +330,7 @@ class lookalike {
         );
         $byname = [];
         foreach ($rows as $row) {
-            $plain = grades::plain((string) $row->firstname);
+            $plain = self::name_key((string) $row->firstname);
             if ($plain !== '') {
                 $byname[$plain][] = $row;
             }
@@ -407,6 +432,7 @@ class lookalike {
                 $DB->delete_records(surveys::T, ['id' => $row->id]);
             }
         }
+        self::merge_invites($k, $g);
         foreach (self::MOVED as $table) {
             $log['tables'][$table] = array_map('intval', $DB->get_fieldset_select($table, 'id', 'householdid = ?', [$g]));
             $DB->set_field($table, 'householdid', $k, ['householdid' => $g]);
@@ -550,8 +576,9 @@ class lookalike {
                 $a = trim((string) $mine->birthdate);
                 $b = trim((string) $child->birthdate);
                 if (
-                    grades::plain((string) $mine->firstname) === grades::plain((string) $child->firstname) &&
-                    ($a === '' || $b === '' || $a === $b) && !in_array((int) $mine->id, $same, true)
+                    self::name_key((string) $mine->firstname) === self::name_key((string) $child->firstname) &&
+                    ($a === '' || $b === '' || $a === $b) && !in_array((int) $mine->id, $same, true) &&
+                    (trim((string) $child->firstname) !== '' || (int) $mine->offerid === (int) $child->offerid)
                 ) {
                     $match = $mine;
                     break;
@@ -633,6 +660,34 @@ class lookalike {
                 'slotid' => (int) $mine->slotid ?: (int) $row->slotid,
                 'wasstages' => $mine->wasstages ?: $renumber($row->wasstages)]);
             $DB->delete_records(households::SIGNUPS, ['id' => $row->id]);
+        }
+    }
+
+    /**
+     * One letter for each act both were invited to: what they said last, and that they come when they are signed up.
+     *
+     * @param int $keep
+     * @param int $gone
+     */
+    protected static function merge_invites(int $keep, int $gone): void {
+        global $DB;
+        $here = [];
+        foreach ($DB->get_records(invites::T, ['householdid' => $keep], 'id ASC') as $row) {
+            $here[(int) $row->eventid] = $row;
+        }
+        foreach ($DB->get_records(invites::T, ['householdid' => $gone], 'id ASC') as $row) {
+            $mine = $here[(int) $row->eventid] ?? null;
+            if (!$mine) {
+                continue;
+            }
+            $last = (int) $row->replied > (int) $mine->replied ? $row : $mine;
+            $comes = $DB->record_exists(households::SIGNUPS, ['householdid' => $keep, 'eventid' => $row->eventid]);
+            $ways = fn($r) => (string) $r->channel ?: 'email';
+            $DB->update_record(invites::T, (object) ['id' => $mine->id, 'reply' => $comes && (string) $last->reply !== '' ? 'yes' : $last->reply,
+                'replied' => $last->replied, 'opened' => min(array_filter([(int) $mine->opened, (int) $row->opened]) ?: [0]),
+                'channel' => $ways($mine) === $ways($row) ? $mine->channel : 'both',
+                'bulkid' => (int) $mine->bulkid ?: (int) $row->bulkid]);
+            $DB->delete_records(invites::T, ['id' => $row->id]);
         }
     }
 
