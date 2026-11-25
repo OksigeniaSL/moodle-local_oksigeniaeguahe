@@ -59,7 +59,8 @@
     {{#hasjoins}}
     <div class="es-unirse">
         {{#joins}}
-        <a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
+        {{#planb}}<p class="es-pequeno">{{planb}}</p>{{/planb}}
+        <a class="boton {{#planb}}secundario{{/planb}}{{^planb}}principal{{/planb}}" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
         {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
         {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}
         <p class="es-qr"><span class="es-qr-img">{{{qr}}}</span>{{qrline}}</p>

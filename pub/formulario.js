@@ -286,6 +286,21 @@
         var failed = function() {
             full.textContent = form.getAttribute('data-fallo');
         };
+        // They have just marked WhatsApp: the centre asks them there, which takes Meta a moment; what was kept is kept already.
+        var ask = function(said) {
+            if (!said.ask) {
+                return;
+            }
+            var mine = turn;
+            post({ask: '1'}).then(function(after) {
+                show(after, mine);
+            }).catch(function() {
+                var waiting = missing.querySelector('.unir-pidiendo');
+                if (waiting) {
+                    waiting.remove();
+                }
+            });
+        };
         // Beside what they touched: kept, for a moment; not kept, until they touch something.
         var mark = document.createElement('small');
         mark.setAttribute('aria-hidden', 'true');
@@ -324,6 +339,7 @@
                 var mine = turn;
                 post({reply: button.value}).then(function(said) {
                     show(said, mine);
+                    ask(said);
                 }).catch(failed).then(function() {
                     busy = false;
                     button.removeAttribute('aria-busy');
@@ -356,6 +372,7 @@
                 post({}).then(function(said) {
                     show(said, mine);
                     tell(said.ok && !said.last ? form.getAttribute('data-guardado') : '', place(e.target));
+                    ask(said);
                 }).catch(function() {
                     tell(form.getAttribute('data-fallo'), place(e.target), true);
                 });

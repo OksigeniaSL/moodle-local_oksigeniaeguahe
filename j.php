@@ -176,6 +176,9 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         if (!seen::from_team($centre)) {
             invites::opened($event, $family);
         }
+    } else if ($kept && optional_param('ask', 0, PARAM_BOOL)) {
+        // They marked WhatsApp a moment ago: asked there, apart from what they touch, which never waits for Meta.
+        writeby::ask($family, $centre);
     } else if ($kept) {
         $lock = events::lock($event);
         $first = !$DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
@@ -185,6 +188,9 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
             $lock->release();
         }
         $first = $first && $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
+        if (!optional_param('ajax', 0, PARAM_BOOL)) {
+            writeby::ask($family, $centre);
+        }
     }
     if ($first) {
         // Their place, with its calendar, as any other sign-up; after answering, so the button never waits for the mail.
@@ -195,7 +201,7 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['ok' => $kept, 'answer' => $said['answer'], 'answered' => $said['answered'],
-            'coming' => $said['coming'], 'done' => $said['done'], 'ways' => $said['now'], 'last' => $last ? $said['lastway'] : '',
+            'ask' => $said['ask'], 'coming' => $said['coming'], 'done' => $said['done'], 'ways' => $said['now'], 'last' => $last ? $said['lastway'] : '',
             'noinvites' => $said['noinvites'], 'people' => $said['people']['value'], 'full' => $kept ? '' : publiclang::str($wrong, $lang),
             'missing' => $OUTPUT->render_from_template('local_oksigeniaeguahe/public_known_missing', $said)]);
         die();

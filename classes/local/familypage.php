@@ -140,11 +140,13 @@ class familypage {
         $silent = writeby::silent($household);
         $pending = [];
         $links = writeby::join_links($household, $centre, $now);
+        $asked = isset($links['whatsapp']) && writeby::whatsapp($household, $centre)['asked'];
         foreach ($links as $channel => $link) {
-            $pending[] = ['label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str(
-                'pub_writeby_' . $channel,
-                $lang
-            )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
+            $pending[] = ['label' => $channel === 'whatsapp' && $asked ? publiclang::str('pub_writeby_asked_line', $lang) :
+                publiclang::str('pub_writeby_missing', $lang, publiclang::str(
+                    'pub_writeby_' . $channel,
+                    $lang
+                )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
                 $channel, $lang)];
         }
         return [
@@ -173,11 +175,12 @@ class familypage {
             'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),
             // The step left, small, on the wall: «Falta unir WhatsApp y Telegram», its buttons and «Cambiarlo».
-            'reminder' => $pending ? publiclang::str('pub_writeby_reminder', $lang, writeby::words(
-                array_keys($links),
-                $lang,
-                'pub_writeby_name_'
-            )) : '',
+            'reminder' => !$pending ? '' : ($asked && count($links) === 1 ? publiclang::str('pub_writeby_asked_line', $lang) :
+                publiclang::str('pub_writeby_reminder', $lang, writeby::words(
+                    array_keys($links),
+                    $lang,
+                    'pub_writeby_name_'
+                ))),
         ];
     }
 

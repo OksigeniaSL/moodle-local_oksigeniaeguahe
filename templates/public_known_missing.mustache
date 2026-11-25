@@ -18,14 +18,14 @@
     @template local_oksigeniaeguahe/public_known_missing
 
     What is left to be written to by the phones they marked: for each one not joined yet, what to do and what for, its
-    button and, at a computer, the code to point the phone at; and that until then they are written to by email.
+    button and, at a computer, the code to point the phone at; on WhatsApp, that they are being asked there or were asked; and that until then they are written to by email.
 
     Example context (json):
     {
-        "missing": {"hasrows": true, "rows": [{"label": "Un paso más para WhatsApp",
+        "missing": {"hasrows": true, "rows": [{"asking": "", "asked": false, "planb": "", "label": "Un paso más para WhatsApp",
             "text": "El botón abre WhatsApp con un saludo ya escrito. Envíenlo y les escribiremos por ahí.", "url": "#", "icon": "", "open": "Abrir WhatsApp", "qr": "",
             "qrline": "¿Están en el ordenador? Apunten la cámara del teléfono a este código."}],
             "until": "Hasta entonces, les seguimos escribiendo por correo."}
     }
 }}
-{{#missing}}{{#rows}}<div class="unir-falta"><p class="unir-cual"><b>{{label}}</b></p><p class="unir-como">{{text}}</p><a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a>{{#qr}}<span class="unir-codigo">{{{qr}}}</span><p class="unir-apunten">{{qrline}}</p>{{/qr}}</div>{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}
+{{#missing}}{{#rows}}{{#asking}}<div class="unir-falta unir-pidiendo" aria-busy="true"><p class="unir-cual">{{asking}}</p></div>{{/asking}}{{^asking}}<div class="unir-falta{{#asked}} unir-pedida{{/asked}}"><p class="unir-cual"><b>{{label}}</b></p><p class="unir-como">{{text}}</p>{{#planb}}<p class="unir-planb">{{planb}}</p>{{/planb}}<a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a>{{#qr}}<span class="unir-codigo">{{{qr}}}</span><p class="unir-apunten">{{qrline}}</p>{{/qr}}</div>{{/asking}}{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}
