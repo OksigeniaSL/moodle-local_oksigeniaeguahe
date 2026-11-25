@@ -112,9 +112,9 @@
         });
     };
 
-    // What the family does on its page, counted and never scored: that it opened it, once the page has been in sight
-    // for a moment (the robots that read the links of a mail do not stay); how far down it goes; what it touches. Each
-    // part once a visit. Without the script nothing is counted here, and the page is the same.
+    // What the family does on its page, counted and never scored: that it opened it, by a touch, the mouse, the wheel or a
+    // key with the page in sight, or ten seconds of it in sight (the machines that open the links of a mail before anybody
+    // run the page for a moment and leave); how far down it goes; what it touches. Each part once a visit. Without the script nothing is counted here, and the page is the same.
     var count = function() {
         return;
     };
@@ -172,34 +172,42 @@
                 watch.observe(part);
             });
         };
-        var open = function() {
-            if (opened || document.visibilityState === 'hidden') {
+        var looking = 0;
+        var gestures = ['pointerdown', 'pointermove', 'touchstart', 'wheel', 'keydown'];
+        var open = function(e) {
+            if (opened || document.visibilityState === 'hidden' || (e && !e.isTrusted)) {
                 return;
             }
-            window.setTimeout(function() {
-                if (opened || document.visibilityState === 'hidden') {
-                    return;
+            opened = true;
+            window.clearTimeout(looking);
+            gestures.forEach(function(name) {
+                document.removeEventListener(name, open, {passive: true});
+            });
+            count('open', '', from);
+            // The address forgets the mail: going back or reloading is not another press.
+            if (from && window.history && window.history.replaceState && window.URL) {
+                try {
+                    var here = new window.URL(window.location.href);
+                    here.searchParams.delete('de');
+                    window.history.replaceState(window.history.state, '', here.toString());
+                } catch (err) {
+                    // The address stays.
                 }
-                opened = true;
-                count('open', '', from);
-                // The address forgets the mail: going back or reloading is not another press.
-                if (from && window.history && window.history.replaceState && window.URL) {
-                    try {
-                        var here = new window.URL(window.location.href);
-                        here.searchParams.delete('de');
-                        window.history.replaceState(window.history.state, '', here.toString());
-                    } catch (err) {
-                        // The address stays.
-                    }
-                }
-                pending.splice(0).forEach(function(one) {
-                    count(one[0], one[1], one[2]);
-                });
-                parts();
-            }, 1000);
+            }
+            pending.splice(0).forEach(function(one) {
+                count(one[0], one[1], one[2]);
+            });
+            parts();
         };
-        open();
-        document.addEventListener('visibilitychange', open);
+        var look = function() {
+            window.clearTimeout(looking);
+            looking = opened || document.visibilityState === 'hidden' ? 0 : window.setTimeout(open, 10000);
+        };
+        gestures.forEach(function(name) {
+            document.addEventListener(name, open, {passive: true});
+        });
+        look();
+        document.addEventListener('visibilitychange', look);
         document.addEventListener('click', function(e) {
             var thing = e.target.closest ? e.target.closest('[data-toca]') : null;
             if (thing) {

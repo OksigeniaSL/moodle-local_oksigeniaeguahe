@@ -1,0 +1,30 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/public_known_missing
+
+    What is left to be written to by the phones they marked: a line for each one not joined yet, with its button and, at a
+    computer, the code to point the phone at; and that until then they are written to by email.
+
+    Example context (json):
+    {
+        "missing": {"hasrows": true, "rows": [{"label": "Falta unir WhatsApp", "url": "#", "icon": "", "open": "Abrir WhatsApp", "qr": "",
+            "qrline": "¿Están en el ordenador? Apunten la cámara del teléfono a este código."}],
+            "until": "Hasta entonces, les seguimos escribiendo por correo."}
+    }
+}}
+{{#missing}}{{#rows}}<div class="unir-falta"><p><b>{{label}}</b> <a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a></p>{{#qr}}<div class="unir-codigo"><span>{{{qr}}}</span><small>{{qrline}}</small></div>{{/qr}}</div>{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}

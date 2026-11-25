@@ -238,7 +238,12 @@
         var done = field('[data-hecho]');
         var full = field('[data-lleno]');
         var detail = field('[data-detalle]');
+        var missing = field('[data-faltan]');
         var number = field('[data-fb-paso] input');
+        var last = field('[data-una]');
+        var ways = all('input[name="by[]"]', form);
+        var events = field('input[name="noinvites"]');
+        var turn = 0;
         var buttons = all('button[name="reply"]', form);
         var post = function(more) {
             var data = new FormData(form);
@@ -251,14 +256,29 @@
             });
         };
         // What the server kept, always: never what was pressed.
-        var show = function(said) {
+        var show = function(said, mine) {
             full.textContent = said.full || '';
             done.textContent = said.done || '';
-            detail.hidden = !said.coming;
+            detail.hidden = !said.answered;
+            field('[data-fb-paso]').hidden = !said.coming;
+            // Unless they have touched another meanwhile.
+            if (mine === turn) {
+                ways.forEach(function(way) {
+                    way.checked = said.ways.indexOf(way.value) >= 0;
+                });
+                events.checked = said.noinvites;
+            }
+            if (last && said.last) {
+                last.textContent = said.last;
+            }
             buttons.forEach(function(button) {
                 button.setAttribute('aria-pressed', button.value === said.answer ? 'true' : 'false');
             });
             form.querySelector('.unir-botones').classList.toggle('dijo-no', said.answer === 'no');
+            if (missing.innerHTML.trim() !== said.missing.trim()) {
+                missing.innerHTML = said.missing;
+            }
+            missing.hidden = !said.missing.trim();
             number.value = said.people;
             number.dispatchEvent(new Event('eguahe:pon'));
         };
@@ -274,7 +294,10 @@
                 }
                 busy = true;
                 says.textContent = '';
-                post({reply: button.value}).then(show).catch(failed).then(function() {
+                var mine = turn;
+                post({reply: button.value}).then(function(said) {
+                    show(said, mine);
+                }).catch(failed).then(function() {
                     busy = false;
                 });
             });
@@ -284,14 +307,28 @@
             e.preventDefault();
         });
         var wait = 0;
-        detail.addEventListener('change', function() {
+        detail.addEventListener('change', function(e) {
+            // The last way they are written to by stays, and it is said: never «kept» for what is not.
+            if (ways.indexOf(e.target) >= 0) {
+                var none = !ways.some(function(way) {
+                    return way.checked;
+                });
+                last.textContent = none ? form.getAttribute('data-una-texto') : '';
+                if (none) {
+                    e.target.checked = true;
+                    says.textContent = '';
+                    return;
+                }
+            }
             window.clearTimeout(wait);
             says.textContent = '';
             full.textContent = '';
+            turn++;
             wait = window.setTimeout(function() {
+                var mine = turn;
                 post({}).then(function(said) {
-                    show(said);
-                    says.textContent = said.ok ? form.getAttribute('data-guardado') : '';
+                    show(said, mine);
+                    says.textContent = said.ok && !said.last ? form.getAttribute('data-guardado') : '';
                 }).catch(failed);
             }, 450);
         });
@@ -299,21 +336,43 @@
         all('[data-sin-guion]', form).forEach(function(el) {
             el.hidden = true;
         });
-        // Looked at for a moment, with the page in sight: that is what counts as opened, and it is said once.
+        // Opened by a person: a touch, the mouse, the wheel or a key with the page in sight, or ten seconds of it in sight. The
+        // machines that open the links of a mail before anybody run the page for a moment and leave. It is said once.
         var looking = 0;
+        var gestures = ['pointerdown', 'pointermove', 'touchstart', 'wheel', 'keydown'];
+        var person = function(e) {
+            if (document.visibilityState !== 'visible' || (e && !e.isTrusted)) {
+                return;
+            }
+            window.clearTimeout(looking);
+            document.removeEventListener('visibilitychange', looked);
+            gestures.forEach(function(name) {
+                document.removeEventListener(name, person, {passive: true});
+            });
+            post({opened: '1'}).catch(function() {
+                return false;
+            });
+        };
         var looked = function() {
             window.clearTimeout(looking);
-            if (document.visibilityState === 'visible') {
-                looking = window.setTimeout(function() {
-                    document.removeEventListener('visibilitychange', looked);
-                    post({opened: '1'}).catch(function() {
-                        return false;
-                    });
-                }, 1500);
-            }
+            looking = document.visibilityState === 'visible' ? window.setTimeout(person, 10000) : 0;
         };
+        gestures.forEach(function(name) {
+            document.addEventListener(name, person, {passive: true});
+        });
         document.addEventListener('visibilitychange', looked);
         looked();
+        // Back from joining a phone: what is left is asked again.
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && missing.querySelector('a')) {
+                var mine = turn;
+                post({opened: '1'}).then(function(said) {
+                    show(said, mine);
+                }).catch(function() {
+                    return false;
+                });
+            }
+        });
     };
     if (window.fetch) {
         all('[data-conocida]').forEach(known);

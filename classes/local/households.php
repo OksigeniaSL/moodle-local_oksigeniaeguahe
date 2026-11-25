@@ -1013,6 +1013,7 @@ class households {
                 'how_you_want_us_to_write' => ($full->writeby ?? '') !== '' ? ['way' => $full->writeby,
                     'since' => $date((int) $full->writebytime),
                     'last_asked_not_to' => $date((int) ($full->writebynone ?? 0))] : null,
+                'no_invitations_to_events_since' => $date((int) ($full->noinvites ?? 0)),
                 'created' => $born ? $dayonly((int) $full->timecreated) : $date((int) $full->timecreated),
             ],
             'adults' => [],

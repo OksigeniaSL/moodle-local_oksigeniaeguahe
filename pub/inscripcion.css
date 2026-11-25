@@ -384,6 +384,134 @@
     outline-offset: 2px;
 }
 
+.unir-detalle .fb-paso[hidden],
+.unir-una:empty {
+    display: none;
+}
+
+.unir-vias .unir-varias {
+    width: 100%;
+    margin: -4px 0 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.unir-eventos {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.unir-eventos input {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    accent-color: var(--c-acento);
+    cursor: pointer;
+}
+
+.unir-eventos input:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.unir-una {
+    margin: -4px 0 0;
+    font-size: 0.9375rem;
+    font-weight: 650;
+}
+
+.unir-faltan {
+    display: grid;
+    gap: 12px;
+}
+
+.unir-faltan[hidden] {
+    display: none;
+}
+
+.unir-falta {
+    display: grid;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 14px;
+}
+
+.unir-falta p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+}
+
+.unir-falta a.unir-abrir {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.unir-falta a.unir-abrir:hover {
+    text-decoration: underline;
+}
+
+.unir-falta a.unir-abrir:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+.unir-falta a.unir-abrir svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+
+/* The code is for who looks at the page away from their phone. */
+.unir-codigo {
+    display: none;
+}
+
+.unir-hasta {
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) {
+    .unir-codigo {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        color: var(--eg-tinta-2);
+        font-size: 0.9375rem;
+    }
+
+    .unir-codigo span {
+        flex: none;
+        padding: 8px;
+        border-radius: 8px;
+        background: #fff;
+        line-height: 0;
+    }
+
+    .unir-codigo svg {
+        width: 140px;
+        height: 140px;
+    }
+}
+
 .unir-guardado {
     display: flex;
     align-items: center;

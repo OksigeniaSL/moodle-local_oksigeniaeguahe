@@ -21,9 +21,11 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\invites;
+use local_oksigeniaeguahe\local\joinpage;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\panel_inbox;
 use local_oksigeniaeguahe\local\settled;
+use local_oksigeniaeguahe\local\writeby;
 
 /**
  * What is left after «Enrolled»: the open acts of the centre for the families that are not of it yet, sent once by a
@@ -126,6 +128,62 @@ final class invites_test extends \advanced_testcase {
         $this->assertFalse(invites::fits($event, (int) $event->timestart + 1));
         $event->kind = 'visit';
         $this->assertFalse(invites::fits($event, time()));
+    }
+
+    /**
+     * A family that does not want invitations to events, by the box of its page or noted by the team: out of the ones to
+     * invite, also when its letter was already waiting to go; the ways it is written to stay; a line in its history; and
+     * back when it wants them again.
+     */
+    public function test_not_invited_to_events(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($id);
+        $offer = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1]);
+        $ana = $this->family($id, $offer, 'Ana', 'visit', true);
+        $eva = $this->family($id, $offer, 'Eva', 'inquiry', true);
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Festival de Infantil',
+            'timestart' => time() + 5 * DAYSECS, 'timeend' => time() + 5 * DAYSECS + 2 * HOURSECS, 'capacity' => 0,
+            'open' => 1]), $id);
+        $this->assertEqualsCanonicalizing([(int) $ana->id, (int) $eva->id], array_keys(invites::eligible($event)));
+        $before = $DB->count_records(households::CONTACTS, ['householdid' => $ana->id]);
+        $ways = writeby::now($ana, $centre);
+        $this->assertTrue(invites::wanted($ana, false, 'family'));
+        $this->assertFalse(invites::wanted($ana, false, 'family'), 'Said once.');
+        $this->assertSame($before + 1, $DB->count_records(households::CONTACTS, ['householdid' => $ana->id]));
+        $ana = households::get((int) $ana->id, $id);
+        $this->assertNotEmpty(households::export($ana)['household']['no_invitations_to_events_since']);
+        $this->assertSame($ways, writeby::now($ana, $centre), 'How they are written to for the rest stays.');
+        $this->assertSame([(int) $eva->id], array_keys(invites::eligible($event)));
+        // Its letter was already in the queue: it does not go.
+        $sink = $this->redirectEmails();
+        $this->assertSame(1, invites::send($event, $centre, 2, time(), [(int) $ana->id, (int) $eva->id]));
+        $this->assertSame('eva@example.com', $sink->get_messages()[0]->to);
+        $sink->close();
+        // From the page of the letter, the box is apart from the ways: taken out, and marked with no way left.
+        $_POST = ['evt' => '1'];
+        joinpage::said($event, $centre, $ana);
+        $this->assertSame(0, (int) $DB->get_field(households::T, 'noinvites', ['id' => $ana->id]));
+        $_POST = ['evt' => '1', 'noinvites' => '1', 'ways' => '1'];
+        $this->assertTrue(joinpage::last_way($centre, $ana), 'No way marked: the last one stays, and it is said.');
+        joinpage::said($event, $centre, $ana);
+        $_POST = [];
+        $ana = households::get((int) $ana->id, $id);
+        $this->assertGreaterThan(0, (int) $ana->noinvites);
+        $this->assertSame($ways, writeby::now($ana, $centre));
+        // It marks only WhatsApp and has not joined it yet: until then by email, the invitations too, once it wants them.
+        writeby::set($ana, ['whatsapp'], 'family');
+        $this->assertSame([], array_keys(invites::eligible($event)));
+        invites::wanted($ana, true, 'team', 2);
+        $this->assertFalse(familymail::may_email($ana));
+        $this->assertSame([(int) $ana->id], array_keys(invites::eligible($event)));
+        $sink = $this->redirectEmails();
+        $this->assertSame(1, invites::send($event, $centre, 2, time(), [(int) $ana->id]));
+        $this->assertSame('ana@example.com', $sink->get_messages()[0]->to);
+        $sink->close();
     }
 
     /**

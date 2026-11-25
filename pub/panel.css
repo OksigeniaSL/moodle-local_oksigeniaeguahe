@@ -20418,6 +20418,13 @@ html {
     border-top: 1px solid var(--eg-linea);
 }
 
+.como-escribimos .ce-eventos {
+    margin: 4px 0 0;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
 .como-escribimos .ce-ahora {
     margin: 0;
 }

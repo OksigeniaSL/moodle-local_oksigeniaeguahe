@@ -159,6 +159,7 @@
         <FIELD NAME="writebytime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it chose"/>
         <FIELD NAME="writebyfrom" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Who changed it: family, team or messaging (the word that stops the notices on the phone)"/>
         <FIELD NAME="writebynone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time it asked not to be written to, kept after it chooses again"/>
+        <FIELD NAME="noinvites" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it said it does not want invitations to events; 0, it has not. All else of the admission goes on"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

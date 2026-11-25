@@ -146,6 +146,8 @@ class joinpage {
         // Signed up before by another way: they come.
         $answer = $answer === '' && $people ? 'yes' : $answer;
         $now = writeby::now($household, $centre);
+        $admission = self::in_admission($household);
+        $lastway = $str($admission ? 'pub_known_lastway' : 'pub_known_lastway_other');
         $ways = [];
         foreach (writeby::channels($centre) as $way) {
             $ways[] = ['name' => 'by[]', 'value' => $way, 'label' => $str('pub_writeby_' . $way), 'id' => 'by-' . $way,
@@ -159,12 +161,22 @@ class joinpage {
             'yes' => ['name' => 'reply', 'value' => 'yes', 'label' => $str('pub_known_yes'), 'current' => $answer === 'yes'],
             'no' => ['name' => 'reply', 'value' => 'no', 'label' => $str('pub_known_no'), 'current' => $answer === 'no'],
             'coming' => $answer === 'yes',
+            // Whether they come or not, how they are written to; how many, only if they come.
+            'answered' => $answer !== '',
+            'now' => $now,
             'done' => $answer === '' ? '' : $str('pub_known_done_' . $answer),
             'people' => ['name' => 'people', 'label' => $str('pub_join_people'), 'value' => $people ?: 1, 'min' => 1,
                 'max' => events::MAXPEOPLE, 'less' => $str('pub_join_less'), 'more' => $str('pub_join_more')],
             'ways' => $ways,
             'hasways' => count($ways) > 1,
-            'waystitle' => $str('pub_known_ways'),
+            // What the ways are for: the admission, for whoever is in it (the letter they come from was of an event).
+            'waystitle' => $str($admission ? 'pub_known_ways_admission' : 'pub_known_ways'),
+            'several' => $str('pub_known_several'),
+            'lastway' => $lastway,
+            'told' => optional_param('una', 0, PARAM_BOOL) ? $lastway : '',
+            'noinvites' => (bool) (int) $household->noinvites,
+            'noinvitestext' => $str('pub_noinvites'),
+            'missing' => self::missing($household, $centre, $lang, $now),
             'save' => $str('pub_known_save'),
             'saved' => $str('pub_home_saved'),
             'notsaved' => $str('pub_known_notsaved'),
@@ -174,6 +186,32 @@ class joinpage {
             'action' => (new \moodle_url($url, ['idioma' => $lang]))->out(false),
             'mark' => $mark,
         ];
+    }
+
+    /**
+     * The phones they marked and have not joined yet: each with its button (at a computer, its code for the phone), and
+     * that until then they are written to by email. Saying «kept» without it would promise what does not reach them.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string[] $now The ways they are written to by now.
+     * @return array
+     */
+    protected static function missing(\stdClass $household, \stdClass $centre, string $lang, array $now): array {
+        $rows = [];
+        foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
+            $rows[] = [
+                'label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
+                'url' => $link,
+                'icon' => writeby::icon($channel),
+                'open' => publiclang::str('pub_writeby_open_' . $channel, $lang),
+                'qr' => events::qr_of($link),
+                'qrline' => publiclang::str('pub_writeby_qr_' . $channel, $lang),
+            ];
+        }
+        return ['rows' => $rows, 'hasrows' => (bool) $rows, 'until' => $rows && !in_array('email', $now, true) ?
+            publiclang::str('pub_writeby_until_joined', $lang) : ''];
     }
 
     /**
@@ -195,12 +233,42 @@ class joinpage {
         } else if ($people && $answer === 'yes') {
             $kept = invites::reply($event, $household, 'yes', $people);
         }
-        // How they want to be written to, for everything: never «none» by leaving it empty here.
+        // How they want to be written to, for everything: never «none» by leaving it empty here (last_way()).
         $ways = array_values(array_intersect(writeby::channels($centre), optional_param_array('by', [], PARAM_ALPHA)));
         if ($ways && optional_param('ways', 0, PARAM_BOOL) && $ways !== writeby::now($household, $centre)) {
             writeby::set($household, $ways, 'family', 0, 0);
         }
+        if (optional_param('evt', 0, PARAM_BOOL)) {
+            invites::wanted($household, !optional_param('noinvites', 0, PARAM_BOOL), 'family');
+        }
         return $kept;
+    }
+
+    /**
+     * Whether a family is asking for a place: not one that is only of the centre, nor only of an act.
+     *
+     * @param \stdClass $household
+     * @return bool
+     */
+    protected static function in_admission(\stdClass $household): bool {
+        global $DB;
+        if (!empty($household->roster) || !empty($household->guest)) {
+            return false;
+        }
+        $stages = $DB->get_fieldset_select(households::CHILDREN, 'stage', 'householdid = ?', [$household->id]);
+        return !$stages || (bool) array_diff($stages, ['enrolled', 'closed']);
+    }
+
+    /**
+     * Whether they took out the last way they are written to by: it stays, and the page says so, never that it was kept.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $household
+     * @return bool
+     */
+    public static function last_way(\stdClass $centre, \stdClass $household): bool {
+        return optional_param('ways', 0, PARAM_BOOL) && !optional_param_array('by', [], PARAM_ALPHA) &&
+            writeby::now($household, $centre);
     }
 
     /**

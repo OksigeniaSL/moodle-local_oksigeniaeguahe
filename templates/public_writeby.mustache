@@ -32,7 +32,7 @@
      "boxes": [{"value": "email", "icon": "", "check": "", "label": "Correo", "line": "A su correo", "checked": true,
      "pressed": false, "tag": ""}, {"value": "whatsapp", "icon": "", "check": "", "label": "WhatsApp",
      "line": "Al teléfono", "checked": true, "pressed": true, "tag": "Nuevo"}],
-     "icon": "", "button": "Sí, así", "save": "Sí, así", "nobox": "Marquen al menos una", "next": "Después nos saludan."},
+     "icon": "", "button": "Sí, así", "save": "Sí, así", "nobox": "Marquen al menos una", "noinvites": false, "noinvitestext": "No queremos recibir invitaciones a eventos", "next": "Después nos saludan."},
      "none": false,
      "nonebutton": {"icon": "", "label": "No escribirnos más", "ask": "¿O prefieren que no les escribamos más?",
      "small": "Su página sigue aquí."},
@@ -102,6 +102,8 @@
             {{#boxes}}<label class="es-casilla{{#checked}} es-on{{/checked}}{{#pressed}} es-pulsada{{/pressed}}"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="es-cas-ico">{{{icon}}}</span><span class="es-cas-t"><b>{{label}}{{#tag}}<span class="es-cambia">{{tag}}</span>{{/tag}}</b><small>{{line}}</small></span><span class="es-caja" aria-hidden="true">{{{check}}}</span></label>{{/boxes}}
         </fieldset>
         {{/only}}
+        <input type="hidden" name="evt" value="1">
+        <label class="es-eventos"><input type="checkbox" name="noinvites" value="1"{{#noinvites}} checked{{/noinvites}}><span>{{noinvitestext}}</span></label>
         <button type="submit" class="boton principal" data-guardar="{{save}}" data-ninguno="{{nobox}}">{{{icon}}}<span>{{button}}</span></button>
         {{#next}}<p class="es-pequeno">{{next}}</p>{{/next}}
     </form>

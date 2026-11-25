@@ -98,7 +98,7 @@ if (!$from && $invitedid && share::signed('invited', $invitedid, (int) $event->i
     $invited = $from ? 'signed' : '';
 }
 if ($from && (int) $from->centreid === (int) $centre->id && data_submitted() === false && !seen::from_team($centre)) {
-    seen::record($from, 'touch', 'open_act', optional_param('de', '', PARAM_ALPHA));
+    $SESSION->local_oksigeniaeguahe_pressed = [(int) $event->id => [(int) $from->id, optional_param('de', '', PARAM_ALPHA)]];
 }
 if ($from && $invited !== 'signed' && (int) $from->centreid === (int) $centre->id && data_submitted() === false) {
     // The letter has one link: on the page it opens, how they want to be written to. Their private link is kept for this
@@ -149,13 +149,30 @@ $family = $mine !== '' ? households::by_link($mine) : null;
 $family = $family && (int) $family->centreid === (int) $centre->id ? $family : null;
 $known = $family && empty($event->tailored) && !events::slots((int) $event->id) && (int) $event->free !== acts::FREE &&
     !optional_param('otra', 0, PARAM_BOOL);
+// The link pressed is counted where its page says a person looked at it (formulario.js); where it does not, at once.
+$pressed = function () use ($event, $centre): void {
+    global $SESSION;
+    $press = $SESSION->local_oksigeniaeguahe_pressed[(int) $event->id] ?? null;
+    $presser = $press ? households::get((int) $press[0], (int) $centre->id) : null;
+    unset($SESSION->local_oksigeniaeguahe_pressed);
+    if ($presser) {
+        seen::record($presser, 'touch', 'open_act', (string) $press[1]);
+    }
+};
+if (!$known && data_submitted() === false) {
+    $pressed();
+}
 if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
     publiclang::speak_to($family);
     $kept = events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED));
     $wrong = $kept ? 'pub_err_full' : 'pub_err_session';
     $first = false;
+    $last = false;
+    if ($kept) {
+        $pressed();
+    }
     if ($kept && optional_param('opened', 0, PARAM_BOOL)) {
-        // The page says it was looked at for a moment, never the team that looks at it.
+        // The page says a person looked at it, never the team that looks at it.
         if (!seen::from_team($centre)) {
             invites::opened($event, $family);
         }
@@ -163,6 +180,7 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         $lock = events::lock($event);
         $first = !$DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
         $kept = joinpage::said($event, $centre, $family);
+        $last = joinpage::last_way($centre, $family);
         if ($lock) {
             $lock->release();
         }
@@ -183,11 +201,14 @@ if ($known && data_submitted() && optional_param('known', 0, PARAM_BOOL)) {
         $said = joinpage::known($event, $centre, households::get((int) $family->id, (int) $centre->id), $lang, $url, events::mark($event));
         publicpage::headers();
         @header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => $kept, 'answer' => $said['answer'], 'coming' => $said['coming'], 'done' => $said['done'],
-            'people' => $said['people']['value'], 'full' => $kept ? '' : publiclang::str($wrong, $lang)]);
+        echo json_encode(['ok' => $kept, 'answer' => $said['answer'], 'answered' => $said['answered'],
+            'coming' => $said['coming'], 'done' => $said['done'], 'ways' => $said['now'], 'last' => $last ? $said['lastway'] : '',
+            'noinvites' => $said['noinvites'], 'people' => $said['people']['value'], 'full' => $kept ? '' : publiclang::str($wrong, $lang),
+            'missing' => $OUTPUT->render_from_template('local_oksigeniaeguahe/public_known_missing', $said)]);
         die();
     }
-    redirect(new moodle_url($url, ['idioma' => $lang] + ($kept || $wrong !== 'pub_err_full' ? [] : ['llena' => 1])));
+    redirect(new moodle_url($url, ['idioma' => $lang] + ($kept || $wrong !== 'pub_err_full' ? [] : ['llena' => 1]) +
+        ($last ? ['una' => 1] : [])));
 }
 
 if ((int) $event->free === acts::FREE && !$desk) {

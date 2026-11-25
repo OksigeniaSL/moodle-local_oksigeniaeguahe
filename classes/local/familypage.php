@@ -169,6 +169,7 @@ class familypage {
                 array_diff(writeby::channels($centre), $now)
             )),
             'nothing' => publiclang::str('pub_writeby_now_nothing', $lang),
+            'noinvites' => (int) $household->noinvites ? publiclang::str('pub_noinvites_line', $lang) : '',
             'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),
             // The step left, small, on the wall: «Falta unir WhatsApp y Telegram», its buttons and «Cambiarlo».

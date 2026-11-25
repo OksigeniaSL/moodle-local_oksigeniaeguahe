@@ -33,6 +33,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\listmatch;
 use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
@@ -221,7 +222,10 @@ if ($action && data_submitted() && confirm_sesskey()) {
             // is not «no messages»: that has its own button.
             $none = optional_param('nada', 0, PARAM_BOOL);
             $ways = array_values(array_intersect(writeby::channels($centre), optional_param_array('por', [], PARAM_ALPHA)));
-            if (!$none && !$ways) {
+            // Apart from the ways: whether they want to be invited to events.
+            $noted = !$none && optional_param('evt', 0, PARAM_BOOL) &&
+                invites::wanted($household, !optional_param('noinvites', 0, PARAM_BOOL), 'team', (int) $USER->id);
+            if (!$none && !$ways && !$noted) {
                 redirect(
                     new moodle_url($url, [], 'como-escribimos'),
                     get_string('panel_writeby_pick_one', $c),
@@ -229,7 +233,10 @@ if ($action && data_submitted() && confirm_sesskey()) {
                     \core\output\notification::NOTIFY_WARNING
                 );
             }
-            writeby::set($household, $none ? [] : $ways, 'team', (int) $USER->id);
+            // Only that was noted: the ways stay as they were, never written as if the family had said them.
+            if ($none || ($ways && !($noted && $ways === writeby::now($household, $centre)))) {
+                writeby::set($household, $none ? [] : $ways, 'team', (int) $USER->id);
+            }
             redirect(new moodle_url($url, [], 'como-escribimos'));
             break;
         case 'leave':

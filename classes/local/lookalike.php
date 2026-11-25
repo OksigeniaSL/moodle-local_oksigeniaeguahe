@@ -461,6 +461,7 @@ class lookalike {
             $changes['writebyfrom'] = $latest->writebyfrom;
         }
         $changes['writebynone'] = max((int) $keep->writebynone, (int) $gone->writebynone);
+        $changes['noinvites'] = max((int) $keep->noinvites, (int) $gone->noinvites);
         // The summary of the AI said one half of the family: written again when someone asks.
         $changes['aisummary'] = null;
         $changes['aisummarytime'] = 0;
@@ -732,7 +733,7 @@ class lookalike {
             ['municipality', 'municipalityname', 'moving', 'self', 'heardfrom', 'heardwho', 'heardnet', 'incentre', 'volunteer',
                 'thanked', 'invitesign', 'familylink', 'roster', 'whyother', 'whyothertime', 'arrivalsource', 'arrivalmedium',
                 'arrivalcampaign', 'arrivalref', 'applysent', 'ownerid', 'writeby', 'writebytime', 'writebyfrom',
-                'writebynone', 'guest'] as $field
+                'writebynone', 'noinvites', 'guest'] as $field
         ) {
             if (array_key_exists($field, $was)) {
                 $fields[$field] = $was[$field];

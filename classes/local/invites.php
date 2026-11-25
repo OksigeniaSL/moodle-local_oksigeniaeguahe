@@ -78,7 +78,7 @@ class invites {
 
     /**
      * The families to invite to an act: not of the centre yet (no child enrolled, not all of their ways stopped, not
-     * already of the centre), not asking not to be written to, not signed up to it and not invited yet; each with the
+     * already of the centre), not asking not to be written to or invited, not signed up to it and not invited yet; each with the
      * ways the invitation reaches it (reachemail, reachphone).
      *
      * @param \stdClass $event
@@ -157,11 +157,11 @@ class invites {
             } else if ($enrolled || !$ok) {
                 continue;
             }
-            if (isset($done[$id]) || isset($queued[$id]) || !writeby::may_send($household, 'openinvite')) {
+            $mute = (int) $household->noinvites || !writeby::may_send($household, 'openinvite');
+            if (isset($done[$id]) || isset($queued[$id]) || $mute) {
                 continue;
             }
-            $household->reachemail = !empty($emails[$id]) && !empty($allowed[$id]) &&
-                writeby::email_ok($household, $centre, 'openinvite');
+            $household->reachemail = !empty($emails[$id]) && self::by_mail($household, $centre, !empty($allowed[$id]));
             $household->reachphone = $phones && writeby::phone_ok($household, 'openinvite') &&
                 messaging::joined($household, $centre);
             if ($household->reachemail || $household->reachphone) {
@@ -169,6 +169,50 @@ class invites {
             }
         }
         return $out;
+    }
+
+    /**
+     * Whether an invitation goes by email: where the family lets the centre write by it. One that marked only phones and has
+     * joined none is written to by email until it does, as its page tells it, and so it is invited.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param bool $allowed Whether some adult lets the centre write by email.
+     * @return bool
+     */
+    protected static function by_mail(\stdClass $household, \stdClass $centre, bool $allowed): bool {
+        $ways = writeby::chosen($household);
+        return ($allowed || ($ways && !in_array('email', $ways, true))) &&
+            writeby::email_ok($household, $centre, 'openinvite');
+    }
+
+    /**
+     * Whether a family wants to be invited to events: the letters and the messages of the acts, and nothing else. What is of
+     * its admission goes on by the ways it marked (writeby). A line of it stays in its history.
+     *
+     * @param \stdClass $household Changed in place.
+     * @param bool $want
+     * @param string $source family or team.
+     * @param int $userid The person of the team who noted it, if one did.
+     * @param int $now
+     * @return bool Whether it changed.
+     */
+    public static function wanted(\stdClass $household, bool $want, string $source, int $userid = 0, int $now = 0): bool {
+        global $DB;
+        if ($want === !(int) $household->noinvites) {
+            return false;
+        }
+        $household->noinvites = $want ? 0 : ($now ?: time());
+        $DB->update_record(households::T, (object) ['id' => $household->id, 'noinvites' => $household->noinvites,
+            'timemodified' => $now ?: time()]);
+        $centre = centres::get((int) $household->centreid);
+        households::note($household, $userid, get_string_manager()->get_string(
+            'invites_noted_' . ($source === 'team' ? 'team' : 'family') . ($want ? '_on' : '_off'),
+            self::C,
+            null,
+            (string) ($centre->lang ?? '') ?: current_language()
+        ));
+        return true;
     }
 
     /**
@@ -746,7 +790,10 @@ class invites {
         $note = get_string('invite_note', self::C, format_string($event->name));
         foreach ($ids as $id) {
             $household = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);
-            if (!$household || !writeby::may_send($household, 'openinvite') || !familymail::may_email($household)) {
+            if (
+                !$household || (int) $household->noinvites || !writeby::may_send($household, 'openinvite') ||
+                !self::by_mail($household, $centre, familymail::may_email($household))
+            ) {
                 continue;
             }
             $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);

@@ -36,6 +36,7 @@ use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\hobbies;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\publiclang;
@@ -541,6 +542,10 @@ if ($action === 'escribir') {
         if (!$none && !$ways) {
             // Nothing marked is not «do not write to us»: that has its own button. Back to choosing, nothing changed.
             redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir', 'idioma' => $lang]));
+        }
+        // Apart from the ways: whether they want to be invited to events.
+        if (!$none && optional_param('evt', 0, PARAM_BOOL)) {
+            invites::wanted($household, !optional_param('noinvites', 0, PARAM_BOOL), 'family');
         }
         if (writeby::set($household, $ways, 'family')) {
             $note('writeby');

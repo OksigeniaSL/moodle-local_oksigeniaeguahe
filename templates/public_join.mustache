@@ -22,7 +22,7 @@
     (on a phone, under the form). For an open day or a visit, the rail with the backpack whose label writes itself. At the
     other, the form (public_brief_form); none when anybody may come without saying (bare). Whoever comes by the letter of an
     invitation is known: two buttons, and after «We are coming», how many and how they are written to, which are kept by
-    themselves (formulario.js; without it, a button).
+    themselves (formulario.js; without it, a button); after «not this time», only how they are written to.
 
     Example context (json):
     {
@@ -32,10 +32,11 @@
         "pegs": false, "leaf": false, "band": true, "bare": false, "preview": false, "freetext": "", "readmore": "Leer más", "about": "Cómo acompañar a los niños.", "hasspeakers": true,
         "speakerstitle": "Con", "speakers": [{"name": "Lucía Medina", "role": "Psicóloga", "photo": "", "initials": "LM"}], "audience": "Para: Infantil",
         "hashosts": false, "hosts": [], "willreceive": "", "hasmore": true, "choose": false,
-        "known": {"hello": "Hola, Ana", "ask": "¿Se vienen?", "answer": "yes", "coming": true, "action": "#", "mark": "1", "full": "",
+        "known": {"hello": "Hola, Ana", "ask": "¿Se vienen?", "answer": "yes", "coming": true, "answered": true, "lastway": "Siempre queda una marcada.", "told": "", "action": "#", "mark": "1", "full": "",
             "yes": {"name": "reply", "value": "yes", "label": "Vamos", "current": true}, "no": {"name": "reply", "value": "no", "label": "Esta vez no podemos", "current": false},
             "people": {"name": "people", "label": "Cuántos vienen", "value": 2, "min": 1, "max": 12, "less": "Uno menos", "more": "Uno más"},
-            "waystitle": "Por dónde les escribimos", "hasways": true, "ways": [{"id": "by-email", "name": "by[]", "value": "email", "label": "Correo", "checked": true, "icon": ""}],
+            "waystitle": "Para el proceso de admisión, ¿por dónde les escribimos?", "several": "Pueden marcar varias.", "noinvites": false, "noinvitestext": "No queremos recibir invitaciones a eventos", "hasways": true, "ways": [{"id": "by-email", "name": "by[]", "value": "email", "label": "Correo", "checked": true, "icon": ""}],
+            "missing": {"rows": [], "hasrows": false, "until": ""},
             "done": "Les guardamos sitio.", "saved": "Guardado", "notsaved": "No se ha podido guardar", "save": "Guardar", "other": "No soy Ana", "otherurl": "#"},
         "form": {"action": "#", "mark": "1", "trap": "web2", "self": false, "sent": false, "whole": true, "ask": false, "fields": [], "people": false,
             "hasquestions": false, "tellme": false, "info": [], "arrival": [], "hint": "", "hinterror": false, "privacyurl": "#", "privacy": "Datos", "send": "Inscribirnos"}
@@ -67,8 +68,8 @@
     {{#known}}
     <div class="unir-hoja unir-conocida" data-conocida>
         <h2 class="unir-hola">{{hello}}</h2>
-        <form class="fb unir-respuesta" method="post" action="{{action}}" data-guardado="{{saved}}" data-fallo="{{notsaved}}">
-            <input type="hidden" name="sesskey" value="{{mark}}"><input type="hidden" name="known" value="1">{{#hasways}}<input type="hidden" name="ways" value="1">{{/hasways}}
+        <form class="fb unir-respuesta" method="post" action="{{action}}" data-guardado="{{saved}}" data-fallo="{{notsaved}}" data-una-texto="{{lastway}}">
+            <input type="hidden" name="sesskey" value="{{mark}}"><input type="hidden" name="known" value="1"><input type="hidden" name="evt" value="1">{{#hasways}}<input type="hidden" name="ways" value="1">{{/hasways}}
             <p class="unir-pregunta">{{ask}}</p>
             <div class="unir-botones{{#no}}{{#current}} dijo-no{{/current}}{{/no}}">
                 {{#yes}}<button class="unir-si" type="submit" name="{{name}}" value="{{value}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{label}}</span></button>{{/yes}}
@@ -76,9 +77,9 @@
             </div>
             <p class="unir-lleno" role="alert" data-lleno>{{full}}</p>
             <p class="unir-hecho" role="status" data-hecho>{{done}}</p>
-            <div class="unir-detalle" data-detalle{{^coming}} hidden{{/coming}}>
+            <div class="unir-detalle" data-detalle{{^answered}} hidden{{/answered}}>
                 {{#people}}
-                <p class="fb-campo fb-paso" data-fb-paso>
+                <p class="fb-campo fb-paso" data-fb-paso{{^coming}} hidden{{/coming}}>
                     <label for="unir-{{name}}">{{label}}</label>
                     <button class="fb-mas-menos" type="button" data-fb-menos aria-label="{{less}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
                     <input id="unir-{{name}}" name="{{name}}" type="number" inputmode="numeric" min="{{min}}" max="{{max}}" value="{{value}}">
@@ -86,8 +87,11 @@
                 </p>
                 {{/people}}
                 {{#hasways}}
-                <fieldset class="unir-vias"><legend>{{waystitle}}</legend>{{#ways}}<label for="{{id}}"><input type="checkbox" id="{{id}}" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{{icon}}}{{label}}</span></label>{{/ways}}</fieldset>
+                <fieldset class="unir-vias"><legend>{{waystitle}}</legend><p class="unir-varias">{{several}}</p>{{#ways}}<label for="{{id}}"><input type="checkbox" id="{{id}}" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{{icon}}}{{label}}</span></label>{{/ways}}</fieldset>
+                <p class="unir-una" role="status" data-una>{{told}}</p>
                 {{/hasways}}
+                <div class="unir-faltan" role="status" data-faltan{{#missing}}{{^hasrows}} hidden{{/hasrows}}{{/missing}}>{{> local_oksigeniaeguahe/public_known_missing }}</div>
+                <label class="unir-eventos" for="no-invitar"><input type="checkbox" id="no-invitar" name="noinvites" value="1"{{#noinvites}} checked{{/noinvites}}><span>{{noinvitestext}}</span></label>
                 <p class="unir-guardado"><span data-dice role="status"></span><button class="fb-enviar" type="submit" data-sin-guion>{{save}}</button></p>
             </div>
         </form>

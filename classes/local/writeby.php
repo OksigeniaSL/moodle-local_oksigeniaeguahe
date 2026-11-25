@@ -757,6 +757,8 @@ class writeby {
             $marked = $channels;
         }
         $context['choosing'] = [
+            'noinvites' => (bool) (int) $household->noinvites,
+            'noinvitestext' => $str('pub_noinvites'),
             'only' => $only,
             'means' => $means,
             'legend' => $str('pub_writeby_boxes'),
@@ -921,6 +923,9 @@ class writeby {
                 'pub_writeby_name_'
             )) : '',
             'silent' => $silent,
+            'noinvites' => (bool) (int) $household->noinvites,
+            'noinvitessince' => (int) $household->noinvites ?
+                get_string('panel_noinvites_since', $c, $day((int) $household->noinvites)) : '',
             // Who said it: the family on its page or by message, or the team, who noted what they heard.
             'since' => $silent ? get_string(($household->writebyfrom ?? '') === 'team' ? 'panel_writeby_silent_team' :
                 'panel_writeby_silent_since', $c, $day((int) $household->writebytime)) : '',

@@ -500,6 +500,7 @@
                 <div class="como-escribimos{{#silent}} sin-mensajes{{/silent}}" id="como-escribimos">
                     <p class="rotulo-p">{{#str}}panel_writeby, local_oksigeniaeguahe{{/str}}</p>
                     <p class="ce-ahora"><b>{{now}}</b>{{#pending}} <span class="secundario">{{pending}}</span>{{/pending}}{{#since}} <span class="secundario">{{since}}</span>{{/since}}</p>
+                    {{#noinvitessince}}<p class="ce-eventos">{{noinvitessince}}</p>{{/noinvitessince}}
                     {{#askagain}}<p class="aviso-suave">{{{i.info}}}<span>{{askagain}} <a href="{{askurl}}#contestar">{{#str}}panel_writeby_ask_go, local_oksigeniaeguahe{{/str}}</a></span></p>{{/askagain}}
                     {{#hastrail}}<ol class="ce-rastro">{{#trail}}<li>{{text}}</li>{{/trail}}</ol>{{/hastrail}}
                     {{#canact}}
@@ -510,6 +511,7 @@
                             <input type="hidden" name="action" value="writeby">
                             <p class="ayuda">{{help}}</p>
                             <div class="ce-opciones">{{#boxes}}<label class="casilla"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}> {{label}}</label>{{/boxes}}</div>
+                            <div class="ce-opciones"><input type="hidden" name="evt" value="1"><label class="casilla"><input type="checkbox" name="noinvites" value="1"{{#noinvites}} checked{{/noinvites}}> {{#str}}panel_noinvites, local_oksigeniaeguahe{{/str}}</label></div>
                             <div class="ce-acciones"><button class="boton secundario" type="submit">{{#str}}panel_writeby_save, local_oksigeniaeguahe{{/str}}</button> <button class="enlace" type="submit" name="nada" value="1">{{#str}}panel_writeby_none_set, local_oksigeniaeguahe{{/str}}</button></div>
                         </form>
                     </details>
