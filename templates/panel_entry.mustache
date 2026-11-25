@@ -41,7 +41,7 @@
         "newfield": {"types": [{"value": "yesno", "name": "Sí o no", "selected": true}]},
         "phone": {"centre": "Colegio de ejemplo", "title": "Hablemos", "lead": "", "sentence": [{"text": "Hola", "hole": false, "k": ""}], "hassentence": true, "fixed": "",
             "questions": [], "blocks": [], "button": "Inscribirnos", "faces": [], "foot": "", "base": 4, "perquestion": 10},
-        "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "opened": "Abierto 42 veces", "n": "", "qr": "", "general": true}],
+        "share": {"sites": [{"key": "", "name": "Enlace general", "short": "example.com/i", "url": "https://example.com/i", "opened": "Abierto 42 veces", "n": "", "qr": "", "general": true, "file": "Hablemos de su familia"}],
             "embed": "<iframe></iframe>", "sitecode": "<script></script>"},
         "issurvey": false, "settings": {"name": "Pidan información", "title": "Hablemos", "lead": "", "acknowledge": true, "open": true, "canteam": true, "teamsheet": false},
         "erasequestion": "¿Borramos este formulario?"
@@ -104,9 +104,14 @@
                 <ul class="sitios">
                     {{#sites}}
                     <li class="sitio">
-                        <span class="qr">{{{qr}}}</span>
+                        <details class="sitio-qr" data-qr>
+                            <summary><span class="oculto">{{#str}}panel_qr_of, local_oksigeniaeguahe, {{name}}{{/str}}</span><span class="qr">{{{qr}}}</span><span class="sitio-ver"><span class="si-cerrado">{{#str}}panel_qr_big, local_oksigeniaeguahe{{/str}}</span><span class="si-abierto">{{#str}}panel_qr_less, local_oksigeniaeguahe{{/str}}</span></span></summary>
+                            <span class="qr-bajar"><button class="boton secundario pequeno" type="button" data-qr-bajar="png" data-nombre="{{file}}" hidden>{{{i.bajar}}}{{#str}}panel_qr_picture, local_oksigeniaeguahe{{/str}}</button><button class="enlace" type="button" data-qr-bajar="svg" data-nombre="{{file}}" hidden>{{#str}}panel_qr_print, local_oksigeniaeguahe{{/str}}</button></span>
+                        </details>
+                        <div class="sitio-resto">
                         <span class="sitio-que"><b>{{name}}</b><a class="corto" href="{{url}}" dir="ltr">{{short}}</a>{{#opened}}<span class="secundario">{{.}}</span>{{/opened}}{{#n}}<span class="secundario">{{.}}</span>{{/n}}</span>
                         <span class="sitio-mandos"><button class="boton terciario pequeno" type="button" data-copiar="{{url}}" hidden>{{{i.copiar}}}{{#str}}panel_copy, local_oksigeniaeguahe{{/str}}</button>{{^general}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="key" value="{{key}}"><button class="boton terciario pequeno" type="submit" name="action" value="removeorigin">{{{i.borrar}}}<span class="oculto">{{name}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</button></form>{{/general}}</span>
+                        </div>
                     </li>
                     {{/sites}}
                 </ul>

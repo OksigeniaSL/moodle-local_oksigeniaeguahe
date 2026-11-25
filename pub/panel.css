@@ -4969,16 +4969,33 @@ input:checked + .ap-hoja {
 
 .qr-caja {
     display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
     align-items: start;
 }
 
-.qr svg {
-    width: 120px;
-    height: 120px;
+/* As large as a phone reads it from the screen. */
+.qr svg,
+.qr img {
     display: block;
-    border-radius: 8px;
+    width: 188px;
+    height: 188px;
+    border-radius: 10px;
+}
+
+.qr-caja + .cabeza-acciones,
+.qr-caja + .sin-enlace {
+    margin-top: 14px;
+}
+
+.qr-bajar {
+    display: grid;
+    gap: 2px;
+    justify-items: start;
+}
+
+.qr-bajar .enlace {
+    min-height: 44px;
 }
 
 .qr-texto {
@@ -6096,28 +6113,90 @@ button.sin-usar-fila {
 }
 
 .sitio {
-    display: grid;
-    grid-template-columns: 76px minmax(0, 1fr) auto;
-    gap: 12px;
-    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    align-items: flex-start;
 }
 
-.sitio .qr svg {
-    display: block;
-    width: 76px;
-    height: 76px;
-    border-radius: 6px;
+.sitio-resto {
+    display: flex;
+    flex: 1 1 130px;
+    gap: 4px 12px;
+    align-items: center;
+    min-width: 0;
+    min-height: 84px;
+}
+
+/* The code of each place, small in the list; touched, it grows where it is, as large as a phone reads it. */
+.sitio-qr {
+    flex: none;
+}
+
+.sitio-qr summary {
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.sitio-qr summary::-webkit-details-marker {
+    display: none;
+}
+
+.sitio-qr summary:focus-visible {
+    outline: 3px solid var(--eg-accion);
+    outline-offset: 3px;
+}
+
+.sitio-qr .qr svg,
+.sitio-qr .qr img {
+    width: 84px;
+    height: 84px;
+    box-shadow: 0 0 0 1px var(--eg-linea);
+}
+
+.sitio-qr[open] .qr svg,
+.sitio-qr[open] .qr img {
+    width: 248px;
+    height: 248px;
+}
+
+.sitio-ver {
+    color: var(--eg-tinta);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    line-height: 1.5;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.sitio-qr[open] .si-cerrado,
+.sitio-qr:not([open]) .si-abierto {
+    display: none;
+}
+
+.sitio-qr[open] .qr-bajar {
+    margin-top: 10px;
+    justify-items: center;
 }
 
 .sitio-que {
     display: grid;
+    flex: 1;
     gap: 2px;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
+/* A long address, in one line: whoever wants it copies it. */
 .sitio-que .corto {
+    overflow: hidden;
     font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sitio-mandos {
@@ -6384,18 +6463,23 @@ button.sin-usar-fila {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .sitio {
-        grid-template-columns: 64px minmax(0, 1fr);
+    .sitio-resto {
+        flex-direction: column;
+        align-items: stretch;
+        min-height: 0;
     }
 
-    .sitio .qr svg {
-        width: 64px;
-        height: 64px;
+    .sitio-qr[open] {
+        flex: 1 1 100%;
+    }
+
+    .sitio-que {
+        flex: none;
     }
 
     .sitio-mandos {
-        grid-column: 2;
         justify-content: flex-start;
+        margin-inline-start: -10px;
     }
 
     .movil-pantalla {
@@ -11526,6 +11610,13 @@ html.modo-lamina {
 
     .qr-caja {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .qr-caja .qr svg,
+    .qr-caja .qr img {
+        width: 248px;
+        height: 248px;
+        margin-inline: auto;
     }
 }
 /* ==================== 13. Motion ==================== */
@@ -21651,6 +21742,11 @@ html {
     box-sizing: border-box;
     padding: 6px;
     background: #fff;
+}
+
+.qr-caja .qr svg,
+.sitio-qr[open] .qr svg {
+    padding: 14px;
 }
 
 /* An open act is published without its link; offering it, asked for on purpose. */

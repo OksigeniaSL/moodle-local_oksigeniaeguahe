@@ -270,6 +270,7 @@ class panel_event {
             'labelsname' => get_string('panel_labels', $c),
             'doorsound' => (new \moodle_url('/local/oksigeniaeguahe/pub/sonido/puerta'))->out(false),
             'qr' => events::qr_svg($event),
+            'qrfile' => format_string($event->name),
             'link' => events::short_url($event) ?? events::url($event)->out(false),
             // An open act is published without its link; offering it is asked for on purpose.
             'linkout' => !empty($event->linkout),

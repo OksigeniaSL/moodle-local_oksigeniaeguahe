@@ -370,7 +370,7 @@ class panel_entry {
                 'n' => $n ? get_string($n === 1 ? 'panel_brought_one' : 'panel_brought', $c, $n) : '',
                 'opened' => $link['opened'] !== null ? get_string($link['opened'] === 1 ? 'panel_link_opened_one' :
                     'panel_link_opened', $c, $link['opened']) : '',
-                'qr' => $link['qr'], 'general' => $general];
+                'qr' => $link['qr'], 'general' => $general, 'file' => format_string($entry->name) . ($general ? '' : ' ' . $name)];
         };
         $sites = [$site('', '', true)];
         foreach (forms::origins($entry) as $key => $name) {

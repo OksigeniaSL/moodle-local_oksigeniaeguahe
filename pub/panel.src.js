@@ -249,6 +249,80 @@
             }
         });
     });
+    // The code of an act or of a place, to take away: a picture for a document or a network, or the drawing for the printer.
+    var codeOf = function(box, size) {
+        var shown = one('.qr svg, .qr img', box);
+        var drawn = null;
+        var text = '';
+        if (shown.tagName.toLowerCase() === 'img') {
+            // The one of the shortener: a picture kept in the page, with its own margin.
+            var bytes = window.atob(shown.src.split(',')[1]);
+            var codes = new Uint8Array(bytes.length);
+            for (var i = 0; i < bytes.length; i++) {
+                codes[i] = bytes.charCodeAt(i);
+            }
+            text = new TextDecoder().decode(codes);
+            drawn = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+            if (!drawn.getAttribute('viewBox')) {
+                drawn.setAttribute('viewBox', '0 0 ' + parseFloat(drawn.getAttribute('width')) + ' ' +
+                    parseFloat(drawn.getAttribute('height')));
+            }
+        } else {
+            // The one drawn here: with its white and the four modules it needs around it.
+            drawn = shown.cloneNode(true);
+            var n = parseFloat(drawn.getAttribute('viewBox').split(' ')[2]);
+            var paper = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
+            paper.setAttribute('fill', '#fff');
+            paper.setAttribute('d', 'M-4-4h' + (n + 8) + 'v' + (n + 8) + 'h-' + (n + 8) + 'z');
+            drawn.insertBefore(paper, drawn.firstChild);
+            drawn.setAttribute('viewBox', '-4 -4 ' + (n + 8) + ' ' + (n + 8));
+            drawn.removeAttribute('aria-hidden');
+        }
+        drawn.setAttribute('width', size);
+        drawn.setAttribute('height', size);
+        return new XMLSerializer().serializeToString(drawn);
+    };
+    var takeAway = function(blob, name) {
+        var link = doc.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = name;
+        doc.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(function() {
+            URL.revokeObjectURL(link.href);
+        }, 10000);
+    };
+    all('[data-qr-bajar]').forEach(function(button) {
+        button.hidden = false;
+        on(button, 'click', function() {
+            var size = 1200;
+            var kind = button.getAttribute('data-qr-bajar');
+            var name = 'qr ' + button.getAttribute('data-nombre');
+            name = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '') + '.' + kind;
+            var drawn = codeOf(button.closest('[data-qr]'), size);
+            if (kind === 'svg') {
+                takeAway(new Blob([drawn], {type: 'image/svg+xml'}), name);
+                return;
+            }
+            var picture = new Image();
+            on(picture, 'load', function() {
+                var canvas = doc.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                var pen = canvas.getContext('2d');
+                pen.fillStyle = '#fff';
+                pen.fillRect(0, 0, size, size);
+                pen.drawImage(picture, 0, 0, size, size);
+                canvas.toBlob(function(png) {
+                    takeAway(png, name);
+                }, 'image/png');
+            });
+            // As data: the policy of the panel takes no blob in a picture.
+            picture.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(drawn);
+        });
+    });
     // Splitting two families: one line says who moves to the new record and who stays, and the button waits until
     // somebody moves.
     var splitForm = one('#separar form');
