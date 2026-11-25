@@ -564,7 +564,9 @@ class panel_event {
             $rows = [];
             foreach ($list as $id => $time) {
                 if (isset($people[$id])) {
-                    $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $time ? panel::when_words($time, $now) : '',
+                    $when = $time ? panel::when_words($time, $now) : '';
+                    $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $key === 'none' && $when !== '' ?
+                        get_string('panel_replies_sent', $c, $when) : $when,
                         'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false)];
                 }
             }

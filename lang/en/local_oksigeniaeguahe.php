@@ -3509,6 +3509,7 @@ $string['panel_replies_help'] = 'Opening is looking at the page of the link for 
 $string['panel_replies_no'] = 'Not this time';
 $string['panel_replies_none'] = 'Not opened';
 $string['panel_replies_opened'] = 'Opened it, no answer yet';
+$string['panel_replies_sent'] = 'sent {$a}';
 $string['panel_replies_yes'] = 'Coming';
 $string['panel_response_fact_met'] = 'with an appointment, a visit or something else noted, and no written answer';
 $string['panel_response_fact_quiet'] = 'of which nothing is known';

@@ -297,7 +297,8 @@ class invites {
             'SELECT h.*
                FROM {' . households::T . '} h
                JOIN {' . self::T . "} i ON i.householdid = h.id AND i.eventid = :eventid
-              WHERE h.noinvites = 0 AND COALESCE(i.reply, '') <> 'no' AND COALESCE(i.channel, '') IN ('', 'email', 'both')
+              WHERE h.noinvites = 0 AND h.guest <> " . households::SAMPLE . " AND COALESCE(i.reply, '') <> 'no'
+                    AND COALESCE(i.channel, '') IN ('', 'email', 'both')
                     AND NOT EXISTS (SELECT 1 FROM {" . events::SIGNUPS . '} s WHERE s.eventid = i.eventid AND s.householdid = h.id)
            ORDER BY h.id ASC',
             ['eventid' => (int) $event->id]
@@ -356,7 +357,7 @@ class invites {
      */
     public static function count(int $eventid): int {
         global $DB;
-        return $DB->count_records(self::T, ['eventid' => $eventid]);
+        return $DB->count_records_select(self::T, 'eventid = ? AND ' . households::NOTSAMPLE, [$eventid]);
     }
 
     /**
@@ -1124,7 +1125,12 @@ class invites {
      */
     public static function skipped(int $eventid) {
         global $DB;
-        $rows = $DB->get_records(notices::T, ['eventid' => $eventid, 'kind' => 'openinvite', 'state' => 'skipped'], 'id DESC');
+        $rows = $DB->get_records_select(
+            notices::T,
+            "eventid = ? AND kind = 'openinvite' AND state = 'skipped' AND " . households::NOTSAMPLE,
+            [$eventid],
+            'id DESC'
+        );
         $names = [];
         foreach ($rows as $row) {
             if (isset($names[$row->householdid]) || $DB->record_exists(self::T, ['eventid' => $eventid, 'householdid' => $row->householdid])) {
@@ -1238,9 +1244,11 @@ class invites {
     public static function replies(int $eventid): array {
         global $DB;
         $out = ['yes' => [], 'no' => [], 'opened' => [], 'none' => []];
-        foreach ($DB->get_records(self::T, ['eventid' => $eventid], 'replied DESC, opened DESC, id ASC') as $row) {
+        $rows = $DB->get_records_select(self::T, 'eventid = ? AND ' . households::NOTSAMPLE, [$eventid], 'replied DESC, opened DESC, timecreated DESC, id ASC');
+        foreach ($rows as $row) {
             $key = in_array((string) $row->reply, ['yes', 'no'], true) ? (string) $row->reply : ((int) $row->opened ? 'opened' : 'none');
-            $out[$key][(int) $row->householdid] = (int) $row->replied ?: (int) $row->opened;
+            // When it said it, opened it or, if neither, when the letter went.
+            $out[$key][(int) $row->householdid] = (int) $row->replied ?: ((int) $row->opened ?: (int) $row->timecreated);
         }
         return $out;
     }

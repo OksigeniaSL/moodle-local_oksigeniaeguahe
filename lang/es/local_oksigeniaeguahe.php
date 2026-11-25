@@ -3509,6 +3509,7 @@ $string['panel_replies_help'] = 'Abrir es ver la página del enlace un momento; 
 $string['panel_replies_no'] = 'Esta vez no pueden';
 $string['panel_replies_none'] = 'Sin abrir';
 $string['panel_replies_opened'] = 'La han abierto y no han contestado';
+$string['panel_replies_sent'] = 'enviada {$a}';
 $string['panel_replies_yes'] = 'Vienen';
 $string['panel_response_fact_met'] = 'con cita, visita u otra gestión anotada, sin respuesta escrita';
 $string['panel_response_fact_quiet'] = 'de las que no consta nada';

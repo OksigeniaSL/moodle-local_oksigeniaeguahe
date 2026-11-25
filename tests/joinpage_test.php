@@ -117,6 +117,12 @@ final class joinpage_test extends \advanced_testcase {
         $DB->insert_record(invites::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id, 'householdid' => $family->id,
             'userid' => 0, 'channel' => 'email', 'bulkid' => 0, 'timecreated' => time()]);
         $this->assertCount(1, invites::replies((int) $event->id)['none']);
+        // A made-up family is not among those invited.
+        $sample = households::create((int) $centre->id, (object) ['lang' => 'es', 'firstchannel' => 'phone', 'guest' => households::SAMPLE]);
+        $DB->insert_record(invites::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id, 'householdid' => $sample, 'reply' => 'yes',
+            'userid' => 0, 'channel' => 'email', 'bulkid' => 0, 'timecreated' => time()]);
+        $this->assertSame([1, 1, 0], [invites::count((int) $event->id), count(invites::replies((int) $event->id)['none']),
+            count(invites::replies((int) $event->id)['yes'])]);
         invites::opened($event, $family);
         $this->assertCount(1, invites::replies((int) $event->id)['opened']);
 
