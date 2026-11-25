@@ -129,6 +129,7 @@ class joinpage {
      * @param \moodle_url $url
      * @param string $mark
      * @param string $who As letter_of() gives it.
+     * @param bool $no Whether they come to say that they cannot after all: asked as such, never marked by opening the page.
      * @return array
      */
     public static function known(
@@ -138,7 +139,8 @@ class joinpage {
         string $lang,
         \moodle_url $url,
         string $mark,
-        string $who = ''
+        string $who = '',
+        bool $no = false
     ): array {
         global $DB;
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
@@ -147,6 +149,7 @@ class joinpage {
         $people = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]);
         // What there is, whoever changed it and from where: signed up, they come; not signed up, they have not said so.
         $answer = $people ? 'yes' : ($answer === 'yes' ? '' : $answer);
+        $no = $no && $answer === 'yes';
         $now = writeby::now($household, $centre);
         $admission = self::in_admission($household);
         $lastway = $str($admission ? 'pub_known_lastway' : 'pub_known_lastway_other');
@@ -158,15 +161,21 @@ class joinpage {
         return [
             'first' => $first,
             'hello' => $first !== '' ? $str('pub_known_hello', $first) : $str('pub_known_hello_noname'),
-            'ask' => $str('pub_known_ask'),
+            'ask' => $str($no ? 'pub_known_ask_no' : 'pub_known_ask'),
+            'wantsno' => $no,
             'answer' => $answer,
-            'yes' => ['name' => 'reply', 'value' => 'yes', 'label' => $str('pub_known_yes'), 'current' => $answer === 'yes'],
+            'yes' => ['name' => 'reply', 'value' => 'yes', 'label' => $str('pub_known_yes'), 'current' => $answer === 'yes' && !$no],
             'no' => ['name' => 'reply', 'value' => 'no', 'label' => $str('pub_known_no'), 'current' => $answer === 'no'],
-            'coming' => $answer === 'yes',
+            'coming' => $answer === 'yes' && !$no,
+            // To their calendar, and that a mail says it too.
+            'calendar' => $who !== '' ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['t' => $event->token, 'fam' => $who,
+                'idioma' => $lang]))->out(false) : '',
+            'calendarlabel' => $str('pub_add_calendar'),
+            'mailed' => households::recipient($household) !== '' ? $str('pub_known_mailed') : '',
             // Whether they come or not, how they are written to; how many, only if they come.
-            'answered' => $answer !== '',
+            'answered' => $answer !== '' && !$no,
             'now' => $now,
-            'done' => $answer === '' ? '' : $str('pub_known_done_' . $answer),
+            'done' => $no ? $str('pub_known_has_place') : ($answer === '' ? '' : $str('pub_known_done_' . $answer)),
             'people' => ['name' => 'people', 'label' => $str('pub_join_people'), 'value' => $people ?: 1, 'min' => 1,
                 'max' => events::MAXPEOPLE, 'less' => $str('pub_join_less'), 'more' => $str('pub_join_more')],
             'ways' => $ways,

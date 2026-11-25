@@ -147,7 +147,7 @@ class actmail {
         }
         $open = !empty($event->open) && empty($event->tailored) && (int) ($event->free ?? 0) !== acts::FREE &&
             !events::slots((int) $event->id);
-        return $open ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $token, 'idioma' => $lang] +
+        return $open ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $token, 'idioma' => $lang, 'no' => 1] +
             ($kind !== '' ? ['de' => $kind] : [])))->out(false) :
             (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false) . '#no-podemos-' .
             (int) $event->id;

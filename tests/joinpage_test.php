@@ -189,6 +189,27 @@ final class joinpage_test extends \advanced_testcase {
     }
 
     /**
+     * «We cannot come», pressed in a mail: the page asks only that, and opening it changes nothing; after «Vamos», its calendar.
+     */
+    public function test_cannot_come(): void {
+        [$centre, $event] = $this->act();
+        $family = $this->family($centre);
+        $url = new \moodle_url('/local/oksigeniaeguahe/j.php');
+        $this->assertStringContainsString('no=1', \local_oksigeniaeguahe\local\actmail::answer_url($event, 'clave', 'es'));
+        // Who does not come yet is asked as ever.
+        $this->assertFalse(joinpage::known($event, $centre, $family, 'es', $url, 'x', 'y', true)['wantsno']);
+        invites::reply($event, $family, 'yes', 2);
+        $no = joinpage::known($event, $centre, $family, 'es', $url, 'x', 'y', true);
+        $this->assertSame(['¿Al final no pueden venir?', true, false, false, false], [$no['ask'], $no['wantsno'], $no['yes']['current'],
+            $no['answered'], $no['coming']]);
+        $this->assertSame('yes', invites::answer((int) $event->id, (int) $family->id));
+        $yes = joinpage::known($event, $centre, $family, 'es', $url, 'x', 'y');
+        $this->assertSame([false, true, true], [$yes['wantsno'], $yes['yes']['current'], $yes['coming']]);
+        $this->assertStringContainsString('ics.php', $yes['calendar']);
+        $this->assertNotSame('', $yes['mailed']);
+    }
+
+    /**
      * «Vamos» answers an invitation: it takes back no «do not write to us», and its confirmation goes all the same.
      */
     public function test_yes_after_silence(): void {

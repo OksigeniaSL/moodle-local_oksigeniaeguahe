@@ -276,6 +276,10 @@
             done.textContent = said.done || '';
             detail.hidden = !said.answered;
             field('[data-fb-paso]').hidden = !said.coming;
+            if (field('[data-cal]')) {
+                field('[data-cal]').hidden = !said.coming;
+            }
+            form.querySelector('.unir-botones').classList.remove('quiere-no');
             // Unless they have touched another meanwhile.
             if (mine === turn) {
                 ways.forEach(function(way) {

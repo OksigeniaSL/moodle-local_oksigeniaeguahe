@@ -71,7 +71,7 @@
         <form class="fb unir-respuesta" method="post" action="{{action}}" data-guardado="{{saved}}" data-fallo="{{notsaved}}" data-una-texto="{{lastway}}">
             <input type="hidden" name="sesskey" value="{{mark}}"><input type="hidden" name="known" value="1"><input type="hidden" name="fam" value="{{who}}"><input type="hidden" name="evt" value="1">{{#hasways}}<input type="hidden" name="ways" value="1">{{/hasways}}
             <p class="unir-pregunta">{{ask}}</p>
-            <div class="unir-botones{{#no}}{{#current}} dijo-no{{/current}}{{/no}}">
+            <div class="unir-botones{{#no}}{{#current}} dijo-no{{/current}}{{/no}}{{#wantsno}} dijo-no quiere-no{{/wantsno}}">
                 {{#yes}}<button class="unir-si" type="submit" name="{{name}}" value="{{value}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{label}}</span></button>{{/yes}}
                 {{#no}}<button class="unir-no" type="submit" name="{{name}}" value="{{value}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{label}}</span></button>{{/no}}
             </div>
@@ -86,6 +86,7 @@
                     <button class="fb-mas-menos" type="button" data-fb-mas aria-label="{{more}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
                 </p>
                 {{/people}}
+                {{#calendar}}<p class="unir-cal" data-cal{{^coming}} hidden{{/coming}}>{{#mailed}}{{mailed}} {{/mailed}}<a href="{{calendar}}">{{calendarlabel}}</a></p>{{/calendar}}
                 {{#hasways}}
                 <fieldset class="unir-vias"><legend>{{waystitle}}</legend><p class="unir-varias">{{several}}</p>{{#ways}}<label for="{{id}}"><input type="checkbox" id="{{id}}" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span>{{{icon}}}{{label}}</span></label>{{/ways}}</fieldset>
                 <p class="unir-una" role="status" data-una>{{told}}</p>

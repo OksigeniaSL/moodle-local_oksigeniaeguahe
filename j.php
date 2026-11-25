@@ -112,7 +112,9 @@ if ($invited !== '' && data_submitted() === false) {
     // Counted, the private link of the family leaves the address at once: never kept in the history of the browser or
     // passed on with the page.
     $lang = optional_param('idioma', '', PARAM_ALPHANUMEXT);
-    redirect(new moodle_url($url, $lang !== '' ? ['idioma' => $lang] : []));
+    // «We cannot come», pressed in a mail: the page asks that. Opening it answers nothing.
+    $no = optional_param('no', 0, PARAM_BOOL) ? ['no' => 1] : [];
+    redirect(new moodle_url($url, ($lang !== '' ? ['idioma' => $lang] : []) + $no));
 }
 // Passed on by a family of the centre (share::act_url()), or reached from the invitation at the end of a piece shared:
 // whoever signs up here comes by it, and the family that passed it on has it counted.
@@ -445,7 +447,11 @@ $context = joinpage::context(
     $errors,
     $url,
     events::mark($event),
-    $known ? joinpage::known($event, $centre, $family, $lang, $url, events::mark($event), $kept) : false
+    $known ? joinpage::known($event, $centre, $family, $lang, $url, events::mark($event), $kept, optional_param(
+        'no',
+        0,
+        PARAM_BOOL
+    )) : false
 );
 publiclang::$self = $self;
 if (optional_param('llena', 0, PARAM_BOOL) && $context['known']) {
