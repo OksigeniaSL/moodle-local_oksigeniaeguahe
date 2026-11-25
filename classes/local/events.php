@@ -877,10 +877,15 @@ class events {
      */
     public static function qr_of(string $url): string {
         $qr = new \core_qrcode($url);
-        $svg = $qr->getBarcodeSVGcode(6, 6, 'black');
-        // Inside a page: without the XML prologue, and scaling to its box.
-        $svg = substr($svg, strpos($svg, '<svg'));
-        return preg_replace_callback('/<svg width="([\d.]+)" height="([\d.]+)"/', fn($m) =>
-            '<svg viewBox="0 0 ' . $m[1] . ' ' . $m[2] . '" role="img" aria-hidden="true"', $svg, 1);
+        $code = $qr->getBarcodeArray();
+        $path = '';
+        foreach ($code['bcode'] as $y => $row) {
+            foreach ($row as $x => $dark) {
+                $path .= $dark ? 'M' . $x . ' ' . $y . 'h1v1h-1z' : '';
+            }
+        }
+        // Scaling to its box.
+        return '<svg viewBox="0 0 ' . $code['num_cols'] . ' ' . $code['num_rows'] . '" role="img" aria-hidden="true" ' .
+            'xmlns="http://www.w3.org/2000/svg"><path fill="black" stroke="none" d="' . $path . '"/></svg>';
     }
 }

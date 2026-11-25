@@ -43,7 +43,7 @@
     }
 }}
 {{#preview}}<p class="unir-previa" role="note">{{note}}</p>{{/preview}}
-<section class="unir{{#band}} con-banda{{/band}}{{#poster}} con-cartel{{#wide}} apaisado{{/wide}}{{/poster}}{{#bare}} sin-hoja{{/bare}}" aria-labelledby="titulo">
+<section class="unir{{#known}} con-respuesta{{/known}}{{#band}} con-banda{{/band}}{{#poster}} con-cartel{{#wide}} apaisado{{/wide}}{{/poster}}{{#bare}} sin-hoja{{/bare}}" aria-labelledby="titulo">
     <div class="unir-cabeza">
         {{#poster}}<a class="unir-cartel" href="{{full}}" target="_blank" rel="noopener" data-ampliar="{{pub_drawing_close}}" data-toca="act_poster"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}"></a>{{/poster}}
         {{#pegs}}<div class="unir-riel" aria-hidden="true"><div class="riel"></div>{{> local_oksigeniaeguahe/public_pegs }}</div>{{/pegs}}
@@ -92,7 +92,7 @@
                 {{/hasways}}
                 <div class="unir-faltan" role="status" data-faltan{{#missing}}{{^hasrows}} hidden{{/hasrows}}{{/missing}}>{{> local_oksigeniaeguahe/public_known_missing }}</div>
                 <label class="unir-eventos" for="no-invitar"><input type="checkbox" id="no-invitar" name="noinvites" value="1"{{#noinvites}} checked{{/noinvites}}><span>{{noinvitestext}}</span></label>
-                <p class="unir-guardado"><span data-dice role="status"></span><button class="fb-enviar" type="submit" data-sin-guion>{{save}}</button></p>
+                <p class="unir-guardado"><span class="oculto" data-dice role="status"></span><button class="fb-enviar" type="submit" data-sin-guion>{{save}}</button></p>
             </div>
         </form>
         <p class="unir-otra"><a href="{{otherurl}}">{{other}}</a></p>

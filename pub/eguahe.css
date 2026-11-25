@@ -6057,19 +6057,56 @@ html {
 
 .es-eventos {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     min-height: 44px;
-    margin: 4px 0 12px;
+    margin: 16px 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--eg-linea);
+    line-height: 1.35;
     cursor: pointer;
 }
 
 .es-eventos input {
+    display: grid;
     flex: none;
-    width: 22px;
-    height: 22px;
+    place-items: center;
+    width: 30px;
+    height: 30px;
     margin: 0;
-    accent-color: var(--c-acento);
+    border: 2px solid var(--eg-borde);
+    border-radius: 9px;
+    background: var(--eg-superficie);
+    cursor: pointer;
+    appearance: none;
+}
+
+.es-eventos input::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    clip-path: polygon(12% 46%, 0 60%, 38% 96%, 100% 22%, 86% 8%, 36% 68%);
+}
+
+.es-eventos input:checked {
+    border-color: var(--c-acento-vivo);
+    background: var(--c-acento-vivo);
+}
+
+.es-eventos input:checked::before {
+    background: var(--c-sobre-vivo);
+}
+
+.es-eventos input:focus-visible {
+    outline: 3px solid var(--c-acento-texto);
+    outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+    .es-eventos input {
+        appearance: auto;
+    }
 }
 
 .es-carta .boton.principal {
@@ -6291,9 +6328,9 @@ html {
 .es-qr-img {
     flex: none;
     display: block;
-    width: 92px;
-    height: 92px;
-    padding: 6px;
+    width: 212px;
+    height: 212px;
+    padding: 16px;
     background: #fff;
     border-radius: 10px;
     border: 1px solid var(--eg-linea);

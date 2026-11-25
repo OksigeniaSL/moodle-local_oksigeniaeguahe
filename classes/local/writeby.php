@@ -892,7 +892,7 @@ class writeby {
         $now = self::now($household, $centre);
         $silent = $ways === [];
         $lang = current_language();
-        $day = fn(int $t) => userdate($t, get_string('strftimedateshort', 'langconfig'));
+        $day = fn(int $t) => userdate($t, get_string('strftimedate', 'langconfig'));
         $none = (int) ($household->writebynone ?? 0);
         $enrolled = self::enrolled_since($household);
         // The trail, with its days: when they asked not to be written to, when a child was enrolled, what they chose after.

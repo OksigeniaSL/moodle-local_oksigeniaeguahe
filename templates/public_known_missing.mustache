@@ -27,4 +27,4 @@
             "until": "Hasta entonces, les seguimos escribiendo por correo."}
     }
 }}
-{{#missing}}{{#rows}}<div class="unir-falta"><p><b>{{label}}</b> <a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a></p>{{#qr}}<div class="unir-codigo"><span>{{{qr}}}</span><small>{{qrline}}</small></div>{{/qr}}</div>{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}
+{{#missing}}{{#rows}}<div class="unir-falta"><p class="unir-cual"><b>{{label}}</b></p><a class="unir-abrir" href="{{url}}" target="_blank" rel="noopener noreferrer">{{{icon}}}<span>{{open}}</span></a>{{#qr}}<span class="unir-codigo">{{{qr}}}</span><p class="unir-apunten">{{qrline}}</p>{{/qr}}</div>{{/rows}}{{#until}}<p class="unir-hasta">{{until}}</p>{{/until}}{{/missing}}

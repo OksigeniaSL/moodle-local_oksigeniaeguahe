@@ -20455,8 +20455,23 @@ html {
 .ce-opciones {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 0 24px;
+    margin-top: 4px;
+}
+
+/* The invitations, apart from the ways. */
+.ce-opciones + .ce-opciones {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.ce-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    align-items: center;
+    margin-top: 10px;
 }
 
 .chat-sin-mensajes {

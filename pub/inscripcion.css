@@ -429,26 +429,58 @@
     font-size: 0.875rem;
 }
 
+/* Not of the admission: apart from its ways. */
 .unir-eventos {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     min-height: 44px;
+    padding-top: 14px;
+    border-top: 1px solid var(--eg-linea);
+    line-height: 1.35;
     cursor: pointer;
 }
 
 .unir-eventos input {
+    display: grid;
     flex: none;
-    width: 22px;
-    height: 22px;
+    place-items: center;
+    width: 30px;
+    height: 30px;
     margin: 0;
-    accent-color: var(--c-acento);
+    border: 2px solid var(--eg-borde);
+    border-radius: 9px;
+    background: var(--eg-superficie);
     cursor: pointer;
+    appearance: none;
+}
+
+.unir-eventos input::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    clip-path: polygon(12% 46%, 0 60%, 38% 96%, 100% 22%, 86% 8%, 36% 68%);
+}
+
+.unir-eventos input:checked {
+    border-color: var(--c-acento-vivo);
+    background: var(--c-acento-vivo);
+}
+
+.unir-eventos input:checked::before {
+    background: var(--c-sobre-vivo);
 }
 
 .unir-eventos input:focus-visible {
     outline: 3px solid var(--c-acento-texto);
     outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+    .unir-eventos input {
+        appearance: auto;
+    }
 }
 
 .unir-una {
@@ -469,27 +501,25 @@
 .unir-falta {
     display: grid;
     gap: 10px;
-    padding: 12px 14px;
+    padding: 12px 14px 14px;
     border: 1.5px dashed var(--eg-borde);
-    border-radius: 14px;
+    border-radius: 16px;
 }
 
-.unir-falta p {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 14px;
-    align-items: center;
-    justify-content: space-between;
+.unir-cual,
+.unir-apunten {
     margin: 0;
 }
 
+/* What is done, with the corners of the buttons: the ways are chips. */
 .unir-falta a.unir-abrir {
-    display: inline-flex;
-    gap: 8px;
+    display: flex;
+    gap: 10px;
     align-items: center;
-    min-height: 44px;
-    padding: 0 16px;
-    border-radius: 999px;
+    justify-content: center;
+    min-height: 48px;
+    padding: 6px 18px;
+    border-radius: 14px;
     background: var(--c-acento);
     color: var(--c-sobre-acento);
     font-weight: 700;
@@ -507,12 +537,13 @@
 
 .unir-falta a.unir-abrir svg {
     flex: none;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
 }
 
 /* The code is for who looks at the page away from their phone. */
-.unir-codigo {
+.unir-codigo,
+.unir-apunten {
     display: none;
 }
 
@@ -523,36 +554,75 @@
 }
 
 @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
-    .unir-codigo {
-        display: flex;
-        gap: 14px;
-        align-items: center;
-        color: var(--eg-tinta-2);
-        font-size: 0.9375rem;
+    .unir-falta {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas: "codigo cual" "codigo apunten" "codigo abrir";
+        grid-template-rows: auto 1fr auto;
+        gap: 4px 14px;
+        padding: 14px;
     }
 
-    .unir-codigo span {
-        flex: none;
-        padding: 8px;
-        border-radius: 8px;
+    .unir-cual {
+        grid-area: cual;
+    }
+
+    .unir-falta a.unir-abrir {
+        grid-area: abrir;
+        padding-inline: 10px;
+    }
+
+    .unir-apunten {
+        grid-area: apunten;
+        display: block;
+        color: var(--eg-tinta-2);
+        font-size: 0.9375rem;
+        line-height: 1.35;
+    }
+
+    /* White around it, also at night; four pixels to a module for the longest greeting. */
+    .unir-codigo {
+        grid-area: codigo;
+        display: block;
+        padding: 12px;
+        border-radius: 12px;
         background: #fff;
+        box-shadow: inset 0 0 0 1px var(--eg-linea);
         line-height: 0;
     }
 
     .unir-codigo svg {
-        width: 140px;
-        height: 140px;
+        width: 180px;
+        height: 180px;
     }
 }
 
+@media (min-width: 960px) and (max-width: 1239px) and (hover: hover) and (pointer: fine) {
+    .unir-falta {
+        grid-template-areas: "codigo cual" "codigo apunten" "abrir abrir";
+        row-gap: 8px;
+    }
+}
+
+/* What was kept, said where it was touched (formulario.js); the button, without a script. */
 .unir-guardado {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 22px;
-    margin: 0;
-    color: var(--eg-tinta-2);
+    display: contents;
+}
+
+.unir-ya {
+    color: var(--c-acento-texto);
     font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* A space that goes when it is the first of its line. */
+.unir-ya::before {
+    content: ' ';
+    word-spacing: 8px;
+}
+
+.unir-ya.mal {
+    color: var(--eg-error);
 }
 
 .unir-guardado [hidden] {
@@ -731,8 +801,31 @@
         box-shadow: 0 14px 34px -20px rgba(40, 30, 20, 0.6);
     }
 
+    /* Without a poster, no longer than the screen, however long the form; and never shorter than what it says. */
+    .con-respuesta.con-banda:not(.con-cartel) {
+        grid-template-areas: "cabeza hoja" "mas hoja" ". hoja";
+        grid-template-rows: auto auto 1fr;
+        isolation: isolate;
+    }
+
+    .con-respuesta.con-banda:not(.con-cartel)::before {
+        z-index: 1;
+        box-shadow: none;
+    }
+
+    .con-respuesta.con-banda:not(.con-cartel)::after {
+        content: '';
+        grid-column: 1;
+        grid-row: 1 / 4;
+        max-height: calc(100vh - 140px);
+        border-radius: 18px;
+        background: var(--c-acento);
+        box-shadow: 0 14px 34px -20px rgba(40, 30, 20, 0.6);
+    }
+
     .con-banda .unir-cabeza {
         position: relative;
+        z-index: 2;
         padding: 28px 30px 0;
         border-radius: 0;
         background: none;
@@ -740,6 +833,7 @@
 
     .con-banda .unir-mas {
         position: relative;
+        z-index: 2;
         padding: 0 30px 28px;
         color: var(--c-sobre-acento);
     }

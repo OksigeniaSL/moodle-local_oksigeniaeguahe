@@ -257,6 +257,7 @@
         };
         // What the server kept, always: never what was pressed.
         var show = function(said, mine) {
+            tell('');
             full.textContent = said.full || '';
             done.textContent = said.done || '';
             detail.hidden = !said.answered;
@@ -268,8 +269,8 @@
                 });
                 events.checked = said.noinvites;
             }
-            if (last && said.last) {
-                last.textContent = said.last;
+            if (last) {
+                last.textContent = said.last || '';
             }
             buttons.forEach(function(button) {
                 button.setAttribute('aria-pressed', button.value === said.answer ? 'true' : 'false');
@@ -284,6 +285,29 @@
         };
         var failed = function() {
             full.textContent = form.getAttribute('data-fallo');
+        };
+        // Beside what they touched: kept, for a moment; not kept, until they touch something.
+        var mark = document.createElement('small');
+        mark.setAttribute('aria-hidden', 'true');
+        var quiet = 0;
+        var tell = function(text, beside, wrong) {
+            window.clearTimeout(quiet);
+            says.textContent = text;
+            mark.textContent = text;
+            mark.className = 'unir-ya' + (wrong ? ' mal' : '');
+            if (!text) {
+                mark.remove();
+                return;
+            }
+            beside.appendChild(mark);
+            if (!wrong) {
+                quiet = window.setTimeout(function() {
+                    tell('');
+                }, 4000);
+            }
+        };
+        var place = function(input) {
+            return field(input === events ? '.unir-eventos span' : ways.indexOf(input) >= 0 ? '.unir-varias' : '[data-hecho]');
         };
         var busy = false;
         buttons.forEach(function(button) {
@@ -313,27 +337,28 @@
         var wait = 0;
         detail.addEventListener('change', function(e) {
             // The last way they are written to by stays, and it is said: never «kept» for what is not.
-            if (ways.indexOf(e.target) >= 0) {
-                var none = !ways.some(function(way) {
-                    return way.checked;
-                });
+            var none = ways.indexOf(e.target) >= 0 && !ways.some(function(way) {
+                return way.checked;
+            });
+            if (last) {
                 last.textContent = none ? form.getAttribute('data-una-texto') : '';
-                if (none) {
-                    e.target.checked = true;
-                    says.textContent = '';
-                    return;
-                }
+            }
+            tell('');
+            if (none) {
+                e.target.checked = true;
+                return;
             }
             window.clearTimeout(wait);
-            says.textContent = '';
             full.textContent = '';
             turn++;
             wait = window.setTimeout(function() {
                 var mine = turn;
                 post({}).then(function(said) {
                     show(said, mine);
-                    says.textContent = said.ok && !said.last ? form.getAttribute('data-guardado') : '';
-                }).catch(failed);
+                    tell(said.ok && !said.last ? form.getAttribute('data-guardado') : '', place(e.target));
+                }).catch(function() {
+                    tell(form.getAttribute('data-fallo'), place(e.target), true);
+                });
             }, 450);
         });
         all('[data-fb-paso]', form).forEach(step);
