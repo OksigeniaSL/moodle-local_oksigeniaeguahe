@@ -39,7 +39,7 @@
         "haschildren": true,
         "waiting": {"short": "7 días", "long": "desde el 13 de noviembre a las 6:55", "level": "tarde"},
         "owner": {"name": "Elena Díaz", "initials": "ED", "you": false}, "noowner": false,
-        "next": {"day": "21", "month": "nov", "weekday": "sáb", "event": "Jornada de puertas abiertas", "when": "Sábado, 10:00"},
+        "next": {"nexttitle": "Próxima visita", "day": "21", "month": "nov", "weekday": "sáb", "event": "Jornada de puertas abiertas", "when": "Sábado, 10:00"},
         "url": "#"}],
      "hasfamilies": true, "school": [], "hasschool": false, "nobody": false, "newurl": false, "sesskey": "x"}
 }}
@@ -85,7 +85,7 @@
     {{#next}}
     <div class="chat-visita">
         <span class="chat-hoja" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><small>{{month}}</small></span>
-        <p><small>{{#str}}chat_next_title, local_oksigeniaeguahe{{/str}}</small><b>{{event}}</b><span>{{when}}</span></p>
+        <p><small>{{nexttitle}}</small><b>{{event}}</b><span>{{when}}</span></p>
     </div>
     {{/next}}
     <a class="chat-abrir" href="{{url}}" target="_blank" rel="noopener">{{#str}}chat_open, local_oksigeniaeguahe{{/str}}<svg class="chat-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ch-fuera"/></svg></a>

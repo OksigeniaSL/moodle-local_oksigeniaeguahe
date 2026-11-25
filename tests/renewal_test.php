@@ -194,6 +194,18 @@ final class renewal_test extends \advanced_testcase {
         [$centre, $family] = $this->centre();
         renewal::set($centre, '2028-29', time() - 10, make_timestamp(2029, 3, 16));
         $this->assertSame([(int) $family->id], renewal::to_tell($centre), 'Hugo\'s family does not let the centre email it.');
+        // Marking only a phone takes the email out, and nothing asks this on a phone: it still goes by email.
+        $DB->set_field(households::T, 'writeby', 'whatsapp', ['id' => $family->id]);
+        foreach ($DB->get_records(households::ADULTS, ['householdid' => $family->id]) as $adult) {
+            households::consent($family, (int) $adult->id, 'email', false, 'family', 'es');
+        }
+        $this->assertSame([(int) $family->id], renewal::to_tell($centre));
+        $DB->set_field(households::T, 'writeby', 'none', ['id' => $family->id]);
+        $this->assertSame([], renewal::to_tell($centre));
+        $DB->set_field(households::T, 'writeby', '', ['id' => $family->id]);
+        foreach ($DB->get_records(households::ADULTS, ['householdid' => $family->id]) as $adult) {
+            households::consent($family, (int) $adult->id, 'email', true, 'family', 'es');
+        }
         $sink = $this->redirectEmails();
         $this->assertSame(1, renewal::tell($centre, 0, time()));
         $messages = $sink->get_messages();

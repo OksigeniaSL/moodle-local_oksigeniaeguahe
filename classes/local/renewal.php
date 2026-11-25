@@ -474,10 +474,23 @@ class renewal {
         )));
         $emailable = households::emailable((int) $centre->id);
         $out = [];
+        $phones = [];
         foreach (self::children($centre) as $childid => [$child]) {
             $householdid = (int) $child->householdid;
-            if (!isset($answers[$childid]) && !isset($told[$householdid]) && isset($emailable[$householdid])) {
+            if (isset($answers[$childid]) || isset($told[$householdid])) {
+                continue;
+            }
+            if (isset($emailable[$householdid])) {
                 $out[$householdid] = $householdid;
+            } else {
+                $phones[$householdid] = $householdid;
+            }
+        }
+        // Those that marked only phones: nothing asks them this on a phone, so it goes by email, as their page tells them.
+        foreach ($phones ? $DB->get_records_list(households::T, 'id', $phones) : [] as $id => $household) {
+            $ways = writeby::chosen($household);
+            if ($ways && !in_array('email', $ways, true) && writeby::email_ok($household, $centre, 'renewal')) {
+                $out[$id] = (int) $id;
             }
         }
         return array_values($out);

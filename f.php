@@ -561,6 +561,8 @@ if ($action === 'escribir') {
         }
         if (writeby::set($household, $ways, 'family')) {
             $note('writeby');
+            // Marked WhatsApp: asked there, with one touch.
+            writeby::ask($household, $centre);
             writeby::confirm($household, $centre, $lang);
         }
         redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir',

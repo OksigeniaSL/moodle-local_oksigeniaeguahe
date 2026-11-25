@@ -154,7 +154,10 @@ final class actmail_test extends \advanced_testcase {
         $before = familypage::context($household, $centre, 'es', 'clave', false);
         invites::reply($event, $household, 'yes', 1);
         $after = familypage::context($household, $centre, 'es', 'clave', false);
-        foreach (['greeting', 'lead', 'hasnext', 'guidehello', 'bandlabel', 'hashosts'] as $same) {
+        // What there is now is the act: coming to see the centre is said in its own line, further down.
+        $this->assertNotSame('', $before['lead']);
+        $this->assertSame(['', html_entity_decode($before['lead'])], [$after['lead'], $after['novisit']]);
+        foreach (['greeting', 'hasnext', 'guidehello', 'bandlabel', 'hashosts'] as $same) {
             $this->assertSame($before[$same], $after[$same], $same);
         }
         $things = array_merge([$after['nowcard'] ?: $after['nowband']], $after['more']);

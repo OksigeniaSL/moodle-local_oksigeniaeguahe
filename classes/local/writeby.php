@@ -43,6 +43,9 @@ class writeby {
     /** @var string[] What answers something the family did: it goes after «none» if they did it after choosing. */
     const ANSWERS = ['reply', 'confirmation', 'request', 'received'];
 
+    /** @var int How long after marking WhatsApp on its page a family may be asked there. */
+    const JUST = 600;
+
     /** @var string[] What goes by email even to a family that took email out while on a phone: the phone has no notice of
      * it, and they need to know (a visit they signed up to, cancelled). */
     const MUSTKNOW = ['cancelled'];
@@ -59,6 +62,9 @@ class writeby {
         'none' => '<circle cx="12" cy="12" r="8.5"/><path d="M6.5 17.5l11-11"/>',
         'home' => '<path d="M4 11l8-6.5 8 6.5"/><path d="M6 9.5V19.5h12V9.5"/>',
         'check' => '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+        // A leaf of the calendar, struck out.
+        'noevents' => '<rect x="4" y="5.5" width="16" height="14" rx="2.5"/><path d="M8.5 3.5v4M15.5 3.5v4M9 11l6 5M15 11l-6 5"/>',
+        'go' => '<path d="M9 6l6 6-6 6"/>',
     ];
 
     /**
@@ -318,6 +324,112 @@ class writeby {
         }
         // Marandu lists the channels in its own order: here, in ours.
         return array_filter(array_replace(array_fill_keys($phones, null), $out));
+    }
+
+    /**
+     * Where a family stands on WhatsApp: whether it joined, when it was asked there (0, not waiting for its answer) and when
+     * it answered no.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return array joined, asked, declined and ends (the last three digits of the phone it is asked on).
+     */
+    public static function whatsapp(\stdClass $household, \stdClass $centre): array {
+        $out = ['joined' => false, 'asked' => 0, 'declined' => 0, 'ends' => ''];
+        if (messaging::mode($centre) === 'off' || !method_exists('\local_oksigeniamarandu\api', 'ask_to_join')) {
+            return $out;
+        }
+        try {
+            $info = \local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, (int) $household->id)['whatsapp'] ?? null;
+        } catch (\Throwable $e) {
+            return $out;
+        }
+        return $info ? ['joined' => !empty($info['joined']), 'asked' => (int) ($info['asked'] ?? 0),
+            'declined' => (int) ($info['declined'] ?? 0), 'ends' => substr(self::ask_phone($household, $centre), -3)] : $out;
+    }
+
+    /**
+     * The phone a family is asked on: the one of the adult its mails go to, else the first it gave.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string With its country code; empty, none.
+     */
+    protected static function ask_phone(\stdClass $household, \stdClass $centre): string {
+        $first = '';
+        $email = households::recipient($household);
+        foreach (households::full($household)->adults as $adult) {
+            $phone = phone::normalise((string) $adult->phone, $centre->country ?: null);
+            if ($phone === null) {
+                continue;
+            }
+            if ($email !== '' && trim((string) $adult->email) === $email) {
+                return $phone;
+            }
+            $first = $first ?: $phone;
+        }
+        return $first;
+    }
+
+    /**
+     * Whether a family that has just marked WhatsApp on its page can be asked there, with one touch: it gave its phone, it
+     * has not joined and was not asked before. Only for its own touch of a moment ago: never because a page is opened, nor
+     * for what the team notes.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $now
+     * @return bool
+     */
+    public static function askable(\stdClass $household, \stdClass $centre, int $now = 0): bool {
+        $now = $now ?: time();
+        if (
+            !empty($centre->practice) || !in_array('whatsapp', self::chosen($household) ?? [], true) ||
+            ($household->writebyfrom ?? '') !== 'family' || (int) $household->writebytime < $now - self::JUST ||
+            \cache::make('local_oksigeniaeguahe', 'writebyconfirm')->get('ask_' . (int) $household->id) ||
+            !method_exists('\local_oksigeniamarandu\api', 'ask_to_join') ||
+            !in_array('whatsapp', self::channels($centre), true) || self::ask_phone($household, $centre) === ''
+        ) {
+            return false;
+        }
+        $state = self::whatsapp($household, $centre);
+        return !$state['joined'] && !$state['asked'] && !$state['declined'];
+    }
+
+    /**
+     * Asks it: Marandu sends «you asked for our news here, is that right?» with its two buttons. It takes the seconds Meta
+     * takes; once an hour at most, whatever it says.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string What Marandu says (asked, waiting, joined, declined, invalid, limit, notready); empty, not asked.
+     */
+    public static function ask(\stdClass $household, \stdClass $centre): string {
+        if (!self::askable($household, $centre)) {
+            return '';
+        }
+        \cache::make('local_oksigeniaeguahe', 'writebyconfirm')->set('ask_' . (int) $household->id, time());
+        try {
+            $answer = (string) \local_oksigeniamarandu\api::ask_to_join(
+                messaging::COMPONENT,
+                (int) $household->id,
+                self::ask_phone($household, $centre),
+                (int) $household->writebytime,
+                'eguahe:family'
+            );
+        } catch (\Throwable $e) {
+            debugging('Eguahe: a family was not asked on WhatsApp: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return 'notready';
+        }
+        if ($answer === 'asked') {
+            households::note($household, 0, get_string_manager()->get_string(
+                'writeby_asked_note',
+                self::C,
+                null,
+                (string) ($centre->lang ?? '') ?: current_language()
+            ));
+        }
+        return $answer;
     }
 
     /**
@@ -699,14 +811,20 @@ class writeby {
             // The phones marked and not joined yet: one step is left, a button for each.
             $joins = [];
             $joined = self::joined_on($household, $centre);
+            $state = in_array('whatsapp', $ways, true) ? self::whatsapp($household, $centre) : ['asked' => 0, 'ends' => ''];
             foreach (self::join_links($household, $centre, $ways) as $channel => $link) {
                 $query = [];
                 parse_str((string) parse_url($link, PHP_URL_QUERY), $query);
-                $joins[] = ['url' => $link, 'icon' => self::icon($channel), 'label' => $str('pub_writeby_open_' . $channel),
+                $joins[] = ['channel' => $channel, 'planb' => $channel === 'whatsapp' && $state['asked'] ?
+                    $str('pub_known_asked_planb') : '', 'url' => $link, 'icon' => self::icon($channel), 'label' => $str('pub_writeby_open_' . $channel),
                     'written' => (string) ($query['text'] ?? ''), 'writtenlabel' => $str('pub_writeby_written'),
                     'qr' => events::qr_of($link), 'qrline' => $str('pub_writeby_qr_' . $channel),
                     // Telegram needs no number: the button opens the bot with the code of the family.
                     'small' => $channel === 'telegram' ? $str('pub_writeby_join_small_telegram') : ''];
+            }
+            if ($state['asked']) {
+                // Asked there already: its button is for whoever does not get it, after the rest.
+                usort($joins, fn($a, $b) => ($a['channel'] === 'whatsapp') <=> ($b['channel'] === 'whatsapp'));
             }
             $parts = publicpage::date_parts(time(), $lang);
             $first = $joins ? array_values(array_intersect(self::PHONES, array_diff($ways, $joined)))[0] : '';
@@ -721,6 +839,12 @@ class writeby {
                 if ($visit) {
                     $text .= ' ' . $str('pub_writeby_none_visit', publicpage::date_parts((int) $visit->timestart, $lang)['long']);
                 }
+            } else if ($state['asked']) {
+                // Asked on WhatsApp: one touch there; with Telegram to join too, its button below.
+                $context['title'] = $str('pub_known_asked');
+                $text = $str('pub_known_asked_text', $state['ends']) .
+                    (count($joins) > 1 ? ' ' . $str('pub_known_step_telegram') : '') .
+                    (in_array('email', $ways, true) ? '' : ' ' . $str('pub_writeby_until_joined'));
             } else if (count($joins) > 1) {
                 // Both phones to join: one step for each, one under the other.
                 $context['title'] = $str('pub_writeby_done_join_many', self::words(array_diff($ways, $joined, ['email']), $lang));
@@ -762,7 +886,8 @@ class writeby {
             $admission = joinpage::in_admission($household);
             $context['none'] = ['means' => $named('pub_writeby_means_none' . ($admission ? '_admission' : '')),
                 'events' => (int) $household->noinvites ? false : ['label' => $str('pub_writeby_only_events'),
-                'small' => $admission ? $str('pub_writeby_only_events_small') : ''], 'icon' => self::icon('check'),
+                'small' => $admission ? $str('pub_writeby_only_events_small') : '', 'eventsicon' => self::icon('noevents'),
+                'noneicon' => self::icon('none'), 'go' => self::icon('go')], 'icon' => self::icon('check'),
                 'button' => $str('pub_writeby_yes_none'), 'other' => $str('pub_writeby_other'),
                 'pickurl' => self::url($token, $lang), 'pick' => $str('pub_writeby_pick_link')];
             return $context;
@@ -881,6 +1006,20 @@ class writeby {
                 // «Not on WhatsApp» from a family that never chose: Marandu keeps it; it is not «no messages at all».
                 return;
             }
+            if ($source === 'asked') {
+                // The answer to our own question was no: perhaps the phone is not theirs, and the team should know. With
+                // nothing else marked, email goes on, as it did: it was a no to WhatsApp, not to being written to.
+                households::note($household, 0, get_string_manager()->get_string(
+                    'writeby_asked_no_note',
+                    self::C,
+                    null,
+                    (string) ($centre->lang ?? '') ?: current_language()
+                ));
+                $keep = $keep ?: (households::recipient($household) !== '' ? ['email'] : []);
+                if (!$keep) {
+                    return;
+                }
+            }
             self::set($household, $keep, 'messaging');
         } else if (!in_array($channel, $now, true)) {
             self::set($household, array_merge($now, [$channel]), 'messaging', 0, 0, self::silent($household) ? 'back' : '');
@@ -953,6 +1092,7 @@ class writeby {
         }
         // The phones marked and not joined yet: until they join them, what has no other way goes by email.
         $pending = $ways ? array_diff(array_intersect($ways, self::PHONES), self::joined_on($household, $centre)) : [];
+        $asked = in_array('whatsapp', $pending, true) ? self::whatsapp($household, $centre)['asked'] : 0;
         return [
             'now' => $silent ? get_string('panel_writeby_none', $c) : ($now ? get_string(
                 'panel_writeby_list',
@@ -965,6 +1105,7 @@ class writeby {
                 $lang,
                 'pub_writeby_name_'
             )) : '',
+            'asked' => $asked ? get_string('panel_writeby_asked', $c, $day($asked)) : '',
             'silent' => $silent,
             'noinvites' => (bool) (int) $household->noinvites,
             'noinvitessince' => (int) $household->noinvites ?

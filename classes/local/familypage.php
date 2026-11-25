@@ -140,11 +140,13 @@ class familypage {
         $silent = writeby::silent($household);
         $pending = [];
         $links = writeby::join_links($household, $centre, $now);
+        $asked = isset($links['whatsapp']) && writeby::whatsapp($household, $centre)['asked'];
         foreach ($links as $channel => $link) {
-            $pending[] = ['label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str(
-                'pub_writeby_' . $channel,
-                $lang
-            )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
+            $pending[] = ['label' => $channel === 'whatsapp' && $asked ? publiclang::str('pub_writeby_asked_line', $lang) :
+                publiclang::str('pub_writeby_missing', $lang, publiclang::str(
+                    'pub_writeby_' . $channel,
+                    $lang
+                )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
                 $channel, $lang)];
         }
         return [
@@ -173,11 +175,12 @@ class familypage {
             'pending' => $pending,
             'change' => publiclang::str('pub_writeby_change_link', $lang),
             // The step left, small, on the wall: «Falta unir WhatsApp y Telegram», its buttons and «Cambiarlo».
-            'reminder' => $pending ? publiclang::str('pub_writeby_reminder', $lang, writeby::words(
-                array_keys($links),
-                $lang,
-                'pub_writeby_name_'
-            )) : '',
+            'reminder' => !$pending ? '' : ($asked && count($links) === 1 ? publiclang::str('pub_writeby_asked_line', $lang) :
+                publiclang::str('pub_writeby_reminder', $lang, writeby::words(
+                    array_keys($links),
+                    $lang,
+                    'pub_writeby_name_'
+                ))),
         ];
     }
 
@@ -315,7 +318,8 @@ class familypage {
             // Only signed up to an act: nothing of coming to see the centre.
             $lead = s(publiclang::str('pub_guest_lead', $lang));
         } else {
-            $lead = s(publiclang::str('pub_lead_novisit', $lang));
+            // With an act ahead, the act is what there is now: coming to see the centre waits in its own line, further down.
+            $lead = $coming ? '' : s(publiclang::str('pub_lead_novisit', $lang));
         }
         $visitrow = function (\stdClass $s) use ($lang, $token, $ucfirst, $centre, $household): array {
             $parts = publicpage::date_parts((int) $s->timestart, $lang);
@@ -334,6 +338,15 @@ class familypage {
                 'weekday' => $ucfirst($parts['weekday']),
                 'daymonth' => $parts['daymonth'],
                 'long' => $ucfirst($parts['long']),
+                // The leaf of the calendar.
+                'leafday' => $parts['weekday'],
+                'day' => (string) (int) userdate((int) $s->timestart, '%d', 99, false),
+                'month' => publicpage::month_names($lang, (string) ($centre->country ?? ''))[(int) userdate(
+                    (int) $s->timestart,
+                    '%m',
+                    99,
+                    false
+                )] ?? '',
                 'name' => $name,
                 'hours' => self::hours((int) $s->timestart, (int) $s->timeend, $lang),
                 'turn' => !empty($s->slotid),
@@ -652,7 +665,8 @@ class familypage {
             'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?
                 publiclang::str('pub_next_year', $lang, s($year)) : publiclang::str('pub_next_noyear', $lang)),
             'novisit' => $pending ? publiclang::str('pub_pending_line', $lang, visits::suits($pending, $lang)) :
-                publiclang::str($attended ? 'pub_novisit_after' : 'pub_novisit', $lang),
+                publiclang::str($attended ? 'pub_novisit_after' : ($coming && empty($household->guest) ? 'pub_lead_novisit' :
+                    'pub_novisit'), $lang),
             'bandnext' => publiclang::str($pending ? 'pub_band_visit' : 'pub_band_next', $lang),
             'hashosts' => (bool) $hosts,
             // Before the visit, who will receive them; after it, who did.

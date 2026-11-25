@@ -668,7 +668,7 @@ class events {
 
     /**
      * The short link of the public sign-up of an event, for the poster, its QR and the texts: asked once to the
-     * shortener of the site, with a word that reads («visita-2111»), and kept. Null without a shortener.
+     * shortener of the site, with a word that reads («visita-2111», «acto-0212»), and kept. Null without a shortener.
      *
      * @param \stdClass $event
      * @return string|null
@@ -686,7 +686,7 @@ class events {
         $centre = centres::get((int) $event->centreid);
         $title = get_string('short_title', 'local_oksigeniaeguahe', (object) ['centre' => $centre ? format_string($centre->name) :
             '', 'event' => format_string($event->name)]);
-        $link = self::shorten($shortener, self::url($event)->out(false), $title, true, 'visita-' .
+        $link = self::shorten($shortener, self::url($event)->out(false), $title, true, ($event->kind === 'other' ? 'acto-' : 'visita-') .
             userdate((int) $event->timestart, '%d%m'));
         if (!$link) {
             return null;

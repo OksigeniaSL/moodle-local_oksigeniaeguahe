@@ -23,7 +23,8 @@
       for a place once they came (isapply) or how to write with no visit yet (isnext); the visit and its words come
       from the page (first, others, bandlabel…), and so do the email and phone of the centre, with canwrite when there
       is one of them (else «write to us» is not said).
-    * act - a talk, a workshop or a party they said they come to: when, where and how to say they do not.
+    * act - a talk, a workshop or a party they said they come to: the leaf of its day, when, where, its poster and how to
+      say they do not.
     * turn - a brother or sister whose turn has come: a place kept with one touch.
     * renewal - whether each child goes on next school year.
     * survey - «How did it go?», with the open question first.
@@ -139,8 +140,15 @@
 {{/band}}
 {{#act}}
 <section class="acto-suyo" aria-label="{{name}}">
-    <p class="acto-suyo-tipo">{{kind}}</p>
-    <p class="acto-suyo-que"><b dir="auto">{{name}}</b><span>{{long}} · {{hours}}</span>{{#place}}<span dir="auto">{{place}}</span>{{/place}}<span>{{people}}</span></p>
+    <p class="acto-suyo-dia" aria-hidden="true"><small>{{month}}</small><b>{{day}}</b><span>{{leafday}}</span></p>
+    <div class="acto-suyo-que">
+        <p class="acto-suyo-tipo">{{kind}}</p>
+        <p class="acto-suyo-nombre" dir="auto">{{name}}</p>
+        <p class="acto-suyo-cuando"><b>{{long}}</b> <span class="acto-suyo-horas">{{hours}}</span></p>
+        {{#place}}<p dir="auto">{{place}}</p>{{/place}}
+        <p class="muted">{{people}}</p>
+    </div>
+    {{#act}}{{#poster}}<a class="acto-suyo-cartel" href="{{url}}" target="_blank" rel="noopener" data-ampliar="{{pub_drawing_close}}"><img src="{{url}}" alt="{{alt}}" width="{{w}}" height="{{h}}" loading="lazy"></a>{{/poster}}{{/act}}
     <div class="acciones">
         <a class="boton secundario" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
         {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}

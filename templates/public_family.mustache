@@ -95,7 +95,7 @@
     <div class="heroe-ancho">
         {{#pegs}}{{> local_oksigeniaeguahe/public_pegs }}{{/pegs}}
         <div class="bajo-riel">
-            <p class="entradilla">{{{lead}}}</p>
+            {{#lead}}<p class="entradilla">{{{lead}}}</p>{{/lead}}
             {{#writeby}}{{#reminder}}<p class="escribimos-recordatorio">{{reminder}} {{#pending}}<a class="enlace" href="{{url}}" target="_blank" rel="noopener noreferrer" data-toca="phone_join">{{open}}</a> · {{/pending}}<a class="enlace" href="{{url}}" data-toca="writeby">{{change}}</a></p>{{/reminder}}{{/writeby}}
             {{#guidehello}}<div class="guia guia-saluda"><img src="{{img.src}}" srcset="{{img.srcset}}" alt="" width="96" height="96"><p class="bocadillo" dir="auto">{{bubble}}</p></div>{{/guidehello}}
             {{#new}}

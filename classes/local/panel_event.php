@@ -265,7 +265,8 @@ class panel_event {
             'nowturn' => $nowturn,
             'checkurl' => !$tailored && !$family ? (new \moodle_url($url, ['check' => 1]))->out(false) : '',
             'checkevery' => 30,
-            'labelsurl' => $households ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
+            // The backpacks on the wall are of whoever comes to see the centre.
+            'labelsurl' => $households && $event->kind !== 'other' ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
                 'event' => $event->id]))->out(false) : '',
             'labelsname' => get_string('panel_labels', $c),
             'doorsound' => (new \moodle_url('/local/oksigeniaeguahe/pub/sonido/puerta'))->out(false),

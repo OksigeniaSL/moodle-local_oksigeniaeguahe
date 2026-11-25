@@ -258,7 +258,8 @@ class chatpanel {
         foreach ($full->signups as $signup) {
             $start = (int) $signup->timestart;
             if ($start > $now && empty($signup->attended)) {
-                $next = ['weekday' => rtrim(userdate($start, '%a'), '.'), 'day' => userdate($start, '%d', 99, false),
+                $next = ['nexttitle' => get_string(actmail::is($signup) ? 'chat_next_act' : 'chat_next_title', 'local_oksigeniaeguahe'),
+                    'weekday' => rtrim(userdate($start, '%a'), '.'), 'day' => userdate($start, '%d', 99, false),
                     'month' => rtrim(userdate($start, '%b'), '.'), 'event' => format_string($signup->eventname),
                     'when' => self::upper(userdate($start, '%A')) . ', ' . panel::hour($start)];
                 break;

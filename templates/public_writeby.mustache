@@ -59,7 +59,8 @@
     {{#hasjoins}}
     <div class="es-unirse">
         {{#joins}}
-        <a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
+        {{#planb}}<p class="es-pequeno">{{planb}}</p>{{/planb}}
+        <a class="boton {{#planb}}secundario{{/planb}}{{^planb}}principal{{/planb}}" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
         {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
         {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}
         <p class="es-qr"><span class="es-qr-img">{{{qr}}}</span>{{qrline}}</p>
@@ -80,10 +81,16 @@
         <input type="hidden" name="action" value="escribir">
         <input type="hidden" name="idioma" value="{{lang}}">
         {{#nowpill}}<p class="es-ahora">{{{icon}}}{{text}}</p>{{/nowpill}}
-        {{#events}}<button type="submit" name="soloeventos" value="1" class="boton principal">{{label}}</button>
-        {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}{{/events}}
+        {{#events}}
+        <div class="es-paradas">
+            <button type="submit" name="soloeventos" value="1" class="es-parada es-primera"><span class="es-cas-ico">{{{eventsicon}}}</span><span><b>{{label}}</b>{{#small}}<small>{{small}}</small>{{/small}}</span>{{{go}}}</button>
+            <button type="submit" name="nada" value="1" class="es-parada"><span class="es-cas-ico">{{{noneicon}}}</span><span><b>{{button}}</b><small>{{means}}</small></span>{{{go}}}</button>
+        </div>
+        {{/events}}
+        {{^events}}
         <p>{{means}}</p>
-        <button type="submit" name="nada" value="1" class="boton {{#events}}secundario{{/events}}{{^events}}principal{{/events}}">{{{icon}}}{{button}}</button>
+        <button type="submit" name="nada" value="1" class="boton principal">{{{icon}}}{{button}}</button>
+        {{/events}}
     </form>
     <div class="es-otras">
         <p>{{other}}</p>

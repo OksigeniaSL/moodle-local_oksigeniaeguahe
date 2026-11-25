@@ -177,6 +177,7 @@ class joinpage {
             'noinvites' => (bool) (int) $household->noinvites,
             'noinvitestext' => $str('pub_noinvites'),
             'missing' => self::missing($household, $centre, $lang, $now),
+            'askwhatsapp' => writeby::askable($household, $centre),
             'save' => $str('pub_known_save'),
             'saved' => $str('pub_home_saved'),
             'notsaved' => $str('pub_known_notsaved'),
@@ -199,13 +200,31 @@ class joinpage {
      * @return array
      */
     protected static function missing(\stdClass $household, \stdClass $centre, string $lang, array $now): array {
+        global $CFG;
         $rows = [];
         $codes = [];
+        // On WhatsApp, one touch: being asked right now (formulario.js waits for it) or asked already; its button is then for
+        // whoever does not get the message.
+        $state = in_array('whatsapp', $now, true) ? writeby::whatsapp($household, $centre) : ['asked' => 0, 'ends' => ''];
+        $asking = optional_param('ajax', 0, PARAM_BOOL) && !optional_param('opened', 0, PARAM_BOOL) &&
+            !optional_param('ask', 0, PARAM_BOOL) && writeby::askable($household, $centre);
         foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
+            if ($channel === 'whatsapp' && $asking) {
+                $rows[] = ['asking' => true, 'asked' => false, 'label' => publiclang::str('pub_known_asking', $lang)];
+                continue;
+            }
+            $asked = $channel === 'whatsapp' && $state['asked'];
             $rows[] = [
-                'label' => publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
+                'asking' => false,
+                'asked' => $asked,
+                // The word of its button, as the message has it: in the language of the site.
+                'yes' => $asked ? get_string_manager()->get_string('yes', 'moodle', null, (string) $CFG->lang) : '',
                 // What to do and what for, in words: «join» alone says neither.
-                'text' => publiclang::str('pub_known_step_' . $channel, $lang),
+                'label' => $asked ? publiclang::str('pub_known_asked', $lang) :
+                    publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
+                'text' => $asked ? publiclang::str('pub_known_asked_text', $lang, $state['ends']) :
+                    publiclang::str('pub_known_step_' . $channel, $lang),
+                'planb' => $asked ? publiclang::str('pub_known_asked_planb', $lang) : '',
                 'url' => $link,
                 'icon' => writeby::icon($channel),
                 'open' => publiclang::str('pub_writeby_open_' . $channel, $lang),

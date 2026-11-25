@@ -238,10 +238,10 @@ class vestibulo {
                FROM {' . events::SIGNUPS . '} s
                JOIN {' . events::T . '} e ON e.id = s.eventid
           LEFT JOIN {' . events::SLOTS . '} t ON t.id = s.slotid
-              WHERE e.centreid = :centreid AND s.attended = 0
+              WHERE e.centreid = :centreid AND s.attended = 0 AND e.kind <> :act
                     AND COALESCE(t.timeend, e.timeend) >= :now AND COALESCE(t.timestart, e.timestart) < :end
            ORDER BY COALESCE(t.timestart, e.timestart) ASC, s.id ASC',
-            ['centreid' => $centreid, 'now' => $now, 'end' => $end],
+            ['centreid' => $centreid, 'now' => $now, 'end' => $end, 'act' => 'other'],
             0,
             1
         );

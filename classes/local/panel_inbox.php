@@ -672,9 +672,11 @@ class panel_inbox {
                                         JOIN {' . events::T . '} e ON e.id = s.eventid
                                    LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
                                        WHERE e.centreid = :centreid AND s.attended = 0 AND e.cancelled = 0
+                                             AND e.kind <> :act
                                              AND COALESCE(t.timestart, e.timestart) >= :start
                                              AND COALESCE(t.timestart, e.timestart) < :end',
-            ['centreid' => $centreid, 'start' => $start, 'end' => $start + DAYSECS]
+            // To see the centre: a talk is not that.
+            ['centreid' => $centreid, 'start' => $start, 'end' => $start + DAYSECS, 'act' => 'other']
         );
         $out = [];
         foreach ($rows as $row) {
