@@ -202,7 +202,9 @@ class joinpage {
         $rows = [];
         foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
             $rows[] = [
-                'label' => publiclang::str('pub_writeby_missing', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
+                'label' => publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
+                // What to do and what for, in words: «join» alone says neither.
+                'text' => publiclang::str('pub_known_step_' . $channel, $lang),
                 'url' => $link,
                 'icon' => writeby::icon($channel),
                 'open' => publiclang::str('pub_writeby_open_' . $channel, $lang),

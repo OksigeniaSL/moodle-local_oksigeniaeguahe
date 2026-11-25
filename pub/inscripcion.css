@@ -507,8 +507,14 @@
 }
 
 .unir-cual,
+.unir-como,
 .unir-apunten {
     margin: 0;
+}
+
+.unir-como {
+    font-size: 0.9375rem;
+    line-height: 1.4;
 }
 
 /* What is done, with the corners of the buttons: the ways are chips. */
@@ -555,15 +561,19 @@
 
 @media (min-width: 960px) and (hover: hover) and (pointer: fine) {
     .unir-falta {
-        grid-template-columns: auto minmax(0, 1fr);
-        grid-template-areas: "codigo cual" "codigo apunten" "codigo abrir";
-        grid-template-rows: auto 1fr auto;
-        gap: 4px 14px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "cual codigo" "como codigo" "abrir codigo" "apunten apunten";
+        grid-template-rows: auto 1fr auto auto;
+        gap: 6px 14px;
         padding: 14px;
     }
 
     .unir-cual {
         grid-area: cual;
+    }
+
+    .unir-como {
+        grid-area: como;
     }
 
     .unir-falta a.unir-abrir {
@@ -598,7 +608,7 @@
 
 @media (min-width: 960px) and (max-width: 1239px) and (hover: hover) and (pointer: fine) {
     .unir-falta {
-        grid-template-areas: "codigo cual" "codigo apunten" "abrir abrir";
+        grid-template-areas: "cual codigo" "como codigo" "apunten codigo" "abrir abrir";
         row-gap: 8px;
     }
 }
