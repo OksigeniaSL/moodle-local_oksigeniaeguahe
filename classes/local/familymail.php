@@ -237,6 +237,9 @@ class familymail {
         // Why they get it, by the moment: they signed up, came, wrote, asked for a visit or are a family of the centre.
         $why = ['thanks' => 'mail_why_came', 'received' => 'mail_why_wrote', 'reply' => 'mail_why_wrote',
             'request' => 'mail_why_request', 'renewal' => 'mail_why_family'][$kind] ?? 'mail_why';
+        // A visit of their own, which the centre gave them: nobody signed up to it, and there is no place to pass on.
+        $own = $signup->eventid && (int) $DB->get_field(events::T, 'householdid', ['id' => $signup->eventid]) > 0;
+        $why = $own && $why === 'mail_why' ? 'mail_why_visit' : $why;
         $older = ages::older(array_values($full->children), $centre);
         $lead = function (string $date) use ($host, $tags, $names, $str, $older): string {
             $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
@@ -261,8 +264,8 @@ class familymail {
         $cantgo = $pageurl && $signup->eventid ? $pageurl . '#no-podemos-' . (int) $signup->eventid : '';
         $cantcome = $cantgo ? [
             'titulo' => $str('mail_cant_come'),
-            'texto' => $phone !== '' ? $str('mail_cant_come_page_phone', $phonelink) : $str('mail_cant_come_page'),
-            'texto_plano' => $phone !== '' ? $str('mail_cant_come_page_phone', $phone) : $str('mail_cant_come_page'),
+            'texto' => $str('mail_cant_come_' . ($own ? 'own' : 'page') . ($phone !== '' ? '_phone' : ''), $phonelink),
+            'texto_plano' => $str('mail_cant_come_' . ($own ? 'own' : 'page') . ($phone !== '' ? '_phone' : ''), $phone),
             'enlace' => ['texto' => $str('mail_cant_come_go'), 'url' => $cantgo, 'url_texto' => $cantgo],
         ] : null;
         $map = $mapurl ? ['texto' => $str('pub_how_get'), 'url' => $mapurl, 'url_texto' => $mapurl] : null;
@@ -353,7 +356,11 @@ class familymail {
             $one = count($answer) === 1;
             $received = $one ? $str('mail_received_lead_host', (object) ['host' => $answer[0]->first, 'days' => $days]) :
                 $str('mail_received_lead', $days);
-            $context['titular'] = $str('mail_received_titular');
+            // What they have just asked for, in the words of the form: «Pedir cita».
+            $asked = forms::asked_for((int) $household->id, time());
+            $received = ($asked !== '' ? $str('mail_received_said', $asked) . ' ' : '') . $received;
+            $first = self::first_name($household);
+            $context['titular'] = $first !== '' ? $str('mail_received_titular_name', $first) : $str('mail_received_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
@@ -361,12 +368,13 @@ class familymail {
                 'preencabezado' => $received,
                 'entradilla' => s($received),
                 'entradilla_texto' => $received,
-                'aviso' => ['titulo' => $str('mail_saved_title_received'), 'texto' => $str('mail_saved_text')],
+                // They have no visit yet: what they told is what is in their page.
+                'aviso' => ['titulo' => $str('mail_saved_title_received'), 'texto' => $str('mail_saved_text_wrote')],
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
                 'anfitriones_breve' => $answer ? ['titulo' => $str($one ? 'mail_received_who' : 'mail_received_who_many'),
                     'personas' => array_map(fn($h) => $faceof($h, $bytesof($h)), $answer)] : null,
-                'nota' => $str('mail_note_confirm'),
+                'nota' => $str('pub_no_place_form') . ' ' . $str('mail_note_confirm_act'),
             ];
         } else if ($kind === 'reply') {
             // What a person of the team writes, as it was written, with its page below.
@@ -375,7 +383,7 @@ class familymail {
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
-                'asunto' => $str('mail_reply_subject', format_string($centre->name)),
+                'asunto' => $str('mail_reply_subject', $from),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', $text), 0, 120),
                 'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
                 'entradilla_texto' => trim($text),
@@ -390,7 +398,8 @@ class familymail {
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
-                'asunto' => $str('mail_change_subject', format_string($signup->eventname)),
+                'asunto' => $own ? $str('mail_change_subject_visit', (object) ['date' => $plain, 'when' => $when]) :
+                    $str('mail_change_subject', format_string($signup->eventname)),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', end($paragraphs) ?: $text), 0, 120),
                 'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
                 'entradilla_texto' => trim($text),
@@ -404,13 +413,13 @@ class familymail {
             // The centre called the act off: said plainly, with whatever the team added, and the way to write back.
             $a = (object) ['event' => format_string($signup->eventname),
                 'when' => publicpage::date_parts((int) $signup->timestart, $lang)['long']];
-            $lead = $str('mail_cancelled_lead', $a);
+            $lead = $str($own ? 'mail_cancelled_lead_visit' : 'mail_cancelled_lead', $a);
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
-            $context['titular'] = $str('mail_cancelled_titular');
+            $context['titular'] = $str($own ? 'mail_cancelled_titular_visit' : 'mail_cancelled_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
-                'asunto' => $str('mail_cancelled_subject', $a),
+                'asunto' => $str($own ? 'mail_cancelled_subject_visit' : 'mail_cancelled_subject', $a),
                 'preencabezado' => $lead,
                 'entradilla' => s($lead) . ($paragraphs ? '<br><br>' . implode('<br><br>', array_map(
                     fn($p) => nl2br(s($p), false),
@@ -506,15 +515,18 @@ class familymail {
         } else if ($kind === 'request') {
             $pending = visits::pending((int) $household->id);
             $when = $pending ? visits::suits($pending, $lang) : $str('visit_anyday');
+            // There is no day yet: nobody is expected.
+            $context['titular'] = $str('mail_request_titular');
+            $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_request_subject'),
                 'preencabezado' => $str('mail_request_lead', $when),
                 'entradilla' => s($str('mail_request_lead', $when)),
                 'entradilla_texto' => $str('mail_request_lead', $when),
-                'aviso' => ['titulo' => $str('mail_saved_title_request'), 'texto' => $str('mail_saved_text')],
+                'aviso' => ['titulo' => $str('mail_saved_title_request'), 'texto' => $str('mail_saved_text_asked')],
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
-                'nota' => $str('mail_note_confirm'),
+                'nota' => $str('mail_note_request') . ' ' . $str('mail_note_confirm_act'),
             ];
         } else if ($kind === 'reminder') {
             // How they get in on the day, as the centre wrote it.

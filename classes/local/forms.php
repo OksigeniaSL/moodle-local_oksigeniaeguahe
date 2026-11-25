@@ -342,6 +342,30 @@ class forms {
     }
 
     /**
+     * What a family has just asked for in a form, in the words of the form: what it chose in its first question of choosing
+     * one («Pedir cita»). Only of what was sent now.
+     *
+     * @param int $householdid
+     * @param int $now
+     * @return string Empty when it chose nothing.
+     */
+    public static function asked_for(int $householdid, int $now): string {
+        global $DB;
+        $rows = $DB->get_records_sql(
+            'SELECT a.id, a.value
+               FROM {' . self::ANSWERS . '} a
+               JOIN {' . self::FIELDS . "} f ON f.id = a.fieldid
+              WHERE a.householdid = :household AND a.timecreated >= :since AND f.type = 'choice' AND f.showif = 0
+           ORDER BY a.timecreated DESC, f.sortorder ASC, f.id ASC",
+            ['household' => $householdid, 'since' => $now - 5 * MINSECS],
+            0,
+            1
+        );
+        $value = trim((string) (reset($rows)->value ?? ''));
+        return \core_text::strlen($value) <= 80 ? $value : '';
+    }
+
+    /**
      * The questions of a form for its page: each with what it needs to be drawn and what was answered.
      *
      * @param \stdClass $entry

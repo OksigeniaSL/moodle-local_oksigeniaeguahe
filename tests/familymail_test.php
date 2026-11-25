@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\antispam;
+use local_oksigeniaeguahe\local\appointments;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
@@ -110,6 +111,42 @@ final class familymail_test extends \advanced_testcase {
     }
 
     /**
+     * A visit of their own, that the centre gave them: nobody signed up to it, there is no place to pass on, and one called
+     * off or changed says it is theirs. An open day keeps its words.
+     */
+    public function test_own_visit(): void {
+        [$household] = $this->family();
+        $given = appointments::give($household, $this->centre, time() + 5 * DAYSECS, 45, 0, 'Secretaría', 2, false);
+        $signup = familymail::signup($household, (int) $given['event']->id);
+        $said = [];
+        foreach (['invitation', 'change', 'cancelled', 'reminder'] as $kind) {
+            [$subject, , $text] = familymail::build($kind, $household, $this->centre, $signup, 'es', 'clave', 'Hola:');
+            $said[$kind] = $subject . "\n" . $text;
+            $this->assertStringContainsString('Les escribimos por su visita al Colegio de ejemplo.', $text, $kind);
+            $this->assertStringNotContainsString('se inscribieron', $text, $kind);
+            $this->assertDoesNotMatchRegularExpression('/^\S.* \n/', $text, 'No space at the end of the heading.');
+            foreach (['en', 'pt', 'pt_br', 'ar'] as $lang) {
+                [$other, , $words] = familymail::build($kind, $household, $this->centre, $signup, $lang, 'clave', 'Hola:');
+                $this->assertStringNotContainsString('[[', $other . $words, $lang);
+            }
+        }
+        $this->assertStringContainsString('Cambio en su visita: ', $said['change']);
+        $this->assertStringContainsString('queda anulada', $said['cancelled']);
+        $this->assertStringContainsString('y buscamos otro día', $said['reminder']);
+        $this->assertStringNotContainsString('otra familia', $said['reminder']);
+        $this->assertStringNotContainsString('en la entrada', $said['invitation']);
+        $signup = familymail::signup($household, (int) $this->event->id);
+        [, , $text] = familymail::build('reminder', $household, $this->centre, $signup, 'es', 'clave');
+        $this->assertStringContainsString('dejamos su sitio a otra familia', $text);
+        $this->assertStringContainsString('porque se inscribieron en una visita al Colegio de ejemplo', $text);
+        // Asked for and without a day: nobody is expected yet.
+        [, , $text] = familymail::build('request', $household, $this->centre, null, 'es', 'clave');
+        $this->assertStringStartsWith("Les buscamos un día\n", $text);
+        $this->assertStringContainsString('con su petición y sus datos', $text);
+        $this->assertStringContainsString('Pedir una visita no es pedir plaza', $text);
+    }
+
+    /**
      * The label as a PNG: its size, the same bytes for the same name, smaller writing for a long name or an accent.
      */
     public function test_sticker(): void {
@@ -140,7 +177,7 @@ final class familymail_test extends \advanced_testcase {
         $this->assertStringContainsString('Lucía', $html);
         $this->assertStringContainsString('Leo y Íñigo', $text);
         $this->assertStringNotContainsStringIgnoringCase('eguahe.', $html);
-        // Who makes Eguahe, at the end, small (Enrique, 8 November 2026).
+        // Who makes Eguahe, at the end, small.
         $this->assertStringContainsString('Enviado con <a class="eg-enlace"', $html);
         $this->assertStringContainsString('Enviado con Eguahe, de Oksigenia: https://oksigenia.com/', $text);
         if (sticker::available()) {

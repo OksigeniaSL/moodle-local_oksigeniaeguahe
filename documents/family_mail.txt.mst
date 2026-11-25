@@ -2,7 +2,7 @@
     The plain text of the mail to a family, next to its HTML: the same texts in the same order, the links written out.
 }}{{#muestra}}[{{{muestra}}}]
 
-{{/muestra}}{{{titular}}} {{{nombres}}}
+{{/muestra}}{{{titular}}}{{#nombres}} {{{nombres}}}{{/nombres}}
 
 {{{entradilla_texto}}}
 {{#aviso}}

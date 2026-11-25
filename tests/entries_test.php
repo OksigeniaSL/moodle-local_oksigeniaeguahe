@@ -298,10 +298,31 @@ final class entries_test extends \advanced_testcase {
      * The mail of receipt, and the answer a person of the team writes, as it was written.
      */
     public function test_received_and_reply_mails(): void {
+        global $DB;
         $entry = entries::get(entries::create((int) $this->centre->id, 'hook', 'Web a medida'), (int) $this->centre->id);
         [$household, , $token] = entries::receive($entry, ['Nombre' => 'Marta', 'Email' => 'marta@example.com'], 'x1');
-        [$subject] = familymail::build('received', $household, $this->centre, null, 'es', $token);
+        [$subject, $html, $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
         $this->assertSame('Hemos recibido su mensaje', $subject);
+        // To whoever wrote, by their name, and nothing of a visit they do not have.
+        $this->assertStringStartsWith("Gracias por escribirnos, Marta\n", $text);
+        $this->assertStringContainsString('Gracias por escribirnos, Marta</h1>', $html);
+        $this->assertStringContainsString('con lo que nos contaron y sus datos', $text);
+        $this->assertStringContainsString('Escribirnos no es pedir plaza', $text);
+        $this->assertStringNotContainsString('visita', preg_replace('~https?://\S+~', '', $text));
+        $DB->set_field(households::ADULTS, 'firstname', 'Barbería Marta', ['householdid' => $household->id]);
+        [, , $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
+        $this->assertStringStartsWith("Gracias por escribirnos\n", $text, 'Without a name, and without a space after it.');
+        // What they chose in the form, said back; not what they chose long ago.
+        $form = entries::get(entries::create((int) $this->centre->id, 'form', 'La web'), (int) $this->centre->id);
+        forms::save_field($form, (object) ['type' => 'choice', 'required' => 1, 'label_es' => '¿Cómo quieres conocernos?',
+            'options_es' => "Pedir cita\nJornada de puertas abiertas"]);
+        $field = array_values(forms::fields((int) $form->id))[0];
+        forms::save_answers($household, $form, [$field->id => 'Pedir cita'], 'es');
+        [, , $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
+        $this->assertStringContainsString('Nos dijeron: «Pedir cita».', $text);
+        $DB->set_field(forms::ANSWERS, 'timecreated', time() - HOURSECS, ['householdid' => $household->id]);
+        [, , $text] = familymail::build('received', $household, $this->centre, null, 'es', $token);
+        $this->assertStringNotContainsString('Pedir cita', $text);
         [$subject, $html, $text] = familymail::build(
             'reply',
             $household,
@@ -311,7 +332,7 @@ final class entries_test extends \advanced_testcase {
             $token,
             "Hola, Marta:\n\nSí hay comedor.\nY aula matinal desde las 7:30."
         );
-        $this->assertSame('Respuesta de Colegio de ejemplo', $subject);
+        $this->assertSame('Respuesta del Colegio de ejemplo', $subject);
         $this->assertStringContainsString('Sí hay comedor.<br>', $html);
         $this->assertStringContainsString('Y aula matinal desde las 7:30.', $text);
         // Who makes Eguahe: off by default (the Moodle Plugins directory), at the end when the site turns it on.

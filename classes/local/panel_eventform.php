@@ -408,7 +408,7 @@ class panel_eventform {
                 implode("\n", $lines), 'when' => rtrim($lines[0] ?? '', '.')];
         }
         $names = array_values(array_filter(array_map(
-            fn($a) => trim((string) $a->firstname),
+            fn($a) => greeting::name((string) $a->firstname),
             households::full($household)->adults
         )));
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
