@@ -768,6 +768,7 @@ class writeby {
         string $pressed,
         string $done
     ): array {
+        global $CFG;
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $channels = self::channels($centre);
         $now = self::now($household, $centre);
@@ -818,14 +819,23 @@ class writeby {
                 $joins[] = ['channel' => $channel, 'planb' => $channel === 'whatsapp' && $state['asked'] ?
                     $str('pub_known_asked_planb') : '', 'url' => $link, 'icon' => self::icon($channel), 'label' => $str('pub_writeby_open_' . $channel),
                     'written' => (string) ($query['text'] ?? ''), 'writtenlabel' => $str('pub_writeby_written'),
-                    'qr' => events::qr_of($link), 'qrline' => $str('pub_writeby_qr_' . $channel),
+                    'name' => $str('pub_writeby_' . $channel), 'qr' => events::qr_of($link), 'text' => '',
                     // Telegram needs no number: the button opens the bot with the code of the family.
                     'small' => $channel === 'telegram' ? $str('pub_writeby_join_small_telegram') : ''];
             }
-            if ($state['asked']) {
-                // Asked there already: its button is for whoever does not get it, after the rest.
-                usort($joins, fn($a, $b) => ($a['channel'] === 'whatsapp') <=> ($b['channel'] === 'whatsapp'));
+            // Asked there already: its button is for whoever does not get it, apart from the steps that are left.
+            $steps = array_values(array_filter($joins, fn($join) => $join['planb'] === ''));
+            $planb = array_values(array_filter($joins, fn($join) => $join['planb'] !== ''))[0] ?? false;
+            $until = '';
+            if ($planb) {
+                // Each with its words: what to touch on WhatsApp, and what the button of Telegram does.
+                $steps = array_map(fn($step) => ['text' => $str('pub_known_step_telegram')] + $step, $steps);
+                $until = in_array('email', $ways, true) ? '' : $str('pub_writeby_until_joined');
             }
+            // At a computer, for the phone: asked once, whatever is left.
+            $computer = $joins ? ['ask' => $str('pub_known_computer'), 'many' => count($joins) > 1, 'open' => !$planb,
+                'line' => $str(count($joins) > 1 ? 'pub_known_point_many' : 'pub_known_point'),
+                'codes' => array_map(fn($join) => ['name' => $join['name'], 'qr' => $join['qr']], $joins)] : false;
             $parts = publicpage::date_parts(time(), $lang);
             $first = $joins ? array_values(array_intersect(self::PHONES, array_diff($ways, $joined)))[0] : '';
             if ($ways === []) {
@@ -840,11 +850,9 @@ class writeby {
                     $text .= ' ' . $str('pub_writeby_none_visit', publicpage::date_parts((int) $visit->timestart, $lang)['long']);
                 }
             } else if ($state['asked']) {
-                // Asked on WhatsApp: one touch there; with Telegram to join too, its button below.
+                // Asked on WhatsApp: one touch there; with Telegram to join too, its step below.
                 $context['title'] = $str('pub_known_asked');
-                $text = $str('pub_known_asked_text', $state['ends']) .
-                    (count($joins) > 1 ? ' ' . $str('pub_known_step_telegram') : '') .
-                    (in_array('email', $ways, true) ? '' : ' ' . $str('pub_writeby_until_joined'));
+                $text = $str('pub_known_asked_text', $state['ends']);
             } else if (count($joins) > 1) {
                 // Both phones to join: one step for each, one under the other.
                 $context['title'] = $str('pub_writeby_done_join_many', self::words(array_diff($ways, $joined, ['email']), $lang));
@@ -869,7 +877,13 @@ class writeby {
                 'pending' => (bool) $joins,
                 'sign' => format_string($centre->name) . ' · ' . $parts['daymonth'],
                 'text' => $text,
-                'joins' => $joins,
+                'asked' => (bool) $planb,
+                'until' => $until,
+                // The word of the button of the message, in the language it goes out.
+                'yes' => $planb ? get_string_manager()->get_string('yes', 'moodle', null, (string) $CFG->lang) : '',
+                'joins' => $steps,
+                'planb' => $planb,
+                'computer' => $computer,
                 'hasjoins' => (bool) $joins,
                 'back' => $joins ? false : ['url' => $pageurl, 'icon' => self::icon('home'),
                     'label' => $str($ways ? 'pub_writeby_back' : 'pub_writeby_go_page')],

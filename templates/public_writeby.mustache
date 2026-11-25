@@ -22,7 +22,9 @@
     now, the ways as boxes with the pressed one already changed and its one big button; beside it, «do not write to us any
     more». «Do not write to us any more» pressed in a mail is asked with its own button, the boxes beside it. Once chosen,
     the wall says it, and under the rail their backpacks with a note in the hand of the centre; for each phone marked and
-    not joined yet, the button that joins it, the message as it goes written and its QR on a computer.
+    not joined yet, the button that joins it and the message as it goes written. Asked on WhatsApp already («asked»), what
+    to touch there, drawn with the word of its button («yes»), and beside it the button for whoever does not get it
+    («planb»). At a computer, asked once, the codes to point the phone at («computer»).
 
     Example context (json):
     {"action": "#", "sesskey": "abc", "lang": "es", "ante": "Cómo les escribimos", "pageurl": "#",
@@ -54,17 +56,37 @@
     </div>
     {{/hasjoins}}
 </section>
-<section class="es-despues">
-    <div><p>{{text}}</p></div>
+<section class="es-despues{{#hasjoins}} con-pasos{{/hasjoins}}">
+    {{^hasjoins}}<div><p>{{text}}</p></div>{{/hasjoins}}
     {{#hasjoins}}
-    <div class="es-unirse">
+    <div class="es-carta es-unirse">
+        {{#asked}}<div class="es-mirar"><span class="es-globo" aria-hidden="true"><i></i><i></i><b>{{yes}}</b></span><p>{{text}}</p></div>{{/asked}}
+        {{^asked}}<p>{{text}}</p>{{/asked}}
         {{#joins}}
-        {{#planb}}<p class="es-pequeno">{{planb}}</p>{{/planb}}
-        <a class="boton {{#planb}}secundario{{/planb}}{{^planb}}principal{{/planb}}" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
-        {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
-        {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}
-        <p class="es-qr"><span class="es-qr-img">{{{qr}}}</span>{{qrline}}</p>
+        <div class="es-paso">
+            {{#text}}<p>{{text}}</p>{{/text}}
+            <a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
+            {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
+            {{#small}}<p class="es-pequeno">{{small}}</p>{{/small}}
+        </div>
         {{/joins}}
+        {{#until}}<p class="es-pequeno">{{until}}</p>{{/until}}
+    </div>
+    <div class="es-aparte">
+        {{#planb}}
+        <div class="es-paso">
+            <p>{{planb}}</p>
+            <a class="boton secundario" href="{{url}}" target="_blank" rel="noopener">{{{icon}}}{{label}}</a>
+            {{#written}}<div class="es-burbuja" dir="auto"><small>{{writtenlabel}}</small>{{written}}</div>{{/written}}
+        </div>
+        {{/planb}}
+        {{#computer}}
+        <details class="es-ordenador"{{#open}} open{{/open}}>
+            <summary><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM6 6h1v1H6zM17 6h1v1h-1zM6 17h1v1H6zM14 14h3v3h-3zM18 18h3v3h-3z"/></svg><span>{{ask}}</span></summary>
+            <p>{{line}}</p>
+            <div class="es-codigos">{{#codes}}<div class="es-codigo"><span>{{{qr}}}</span>{{#many}}<b>{{name}}</b>{{/many}}</div>{{/codes}}</div>
+        </details>
+        {{/computer}}
     </div>
     {{/hasjoins}}
     {{#back}}<a class="boton secundario" href="{{url}}">{{{icon}}}{{label}}</a>{{/back}}
