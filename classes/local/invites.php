@@ -231,8 +231,8 @@ class invites {
             $has = $DB->record_exists(self::T, ['eventid' => $event->id, 'householdid' => $id]) ||
                 $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $id]);
             $theirs = \core_text::strtolower(households::recipient($other)) === $mine;
-            if ($has || (int) $other->noinvites || writeby::silent($other) ||
-                    ($theirs && $id < (int) $household->id && empty($other->guest) && empty($other->incentre))) {
+            $first = $theirs && $id < (int) $household->id && empty($other->guest) && empty($other->incentre);
+            if ($has || (int) $other->noinvites || writeby::silent($other) || $first) {
                 return false;
             }
         }

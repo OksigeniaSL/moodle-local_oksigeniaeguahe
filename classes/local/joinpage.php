@@ -221,8 +221,10 @@ class joinpage {
      */
     public static function family_of(\stdClass $event, string $kept): ?\stdClass {
         global $DB;
-        if (!preg_match('/^(\d{1,10})\.([0-9a-f]{32})$/', $kept, $m) ||
-                !hash_equals(share::signature('carta', (int) $m[1], (int) $event->id), $m[2])) {
+        if (!preg_match('/^(\d{1,10})\.([0-9a-f]{32})$/', $kept, $m)) {
+            return null;
+        }
+        if (!hash_equals(share::signature('carta', (int) $m[1], (int) $event->id), $m[2])) {
             return null;
         }
         $id = $DB->get_field(households::LINKS, 'householdid', ['id' => (int) $m[1], 'centreid' => $event->centreid]);

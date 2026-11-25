@@ -116,7 +116,7 @@ final class settled_test extends \advanced_testcase {
         $this->assertSame('', $page['names']);
         $this->assertSame('Leo tiene su sitio en Infantil 3 años.', $page['lead']);
         $this->assertTrue($page['pegs']['came']);
-        $this->assertSame('Desde ahora les acompaña el equipo del centro.', $page['settled']['team']);
+        $this->assertSame('Desde ahora los acompaña el equipo del centro.', $page['settled']['team']);
         $this->assertSame('Gracias por venir, Marta y Andrés', $page['settled']['thanks']['text']);
         $this->assertSame('settledask', $page['wallask']['do']);
         $this->assertSame('¿Qué les quedó por preguntar antes del primer día?', $page['wallask']['title']);

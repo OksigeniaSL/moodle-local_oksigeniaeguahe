@@ -264,7 +264,7 @@ class actmail {
             $html .= $p(trim(nl2br(s($words), false) . ' ' . implode(' · ', array_map($a, $under))));
         }
         $lines[] = $why . "\n" . implode("\n", array_map(fn($l) => $l[0] . ': ' . $l[1], $foot));
-        $html .= $p(s($why) . '<br>' . implode(' · ', array_map($a, $foot)), ';font-size:12.5px;color:#5f5459');
+        $html .= $p(s($why) . '<br>' . implode(' · ', array_map($a, $foot)), ';font-size:13px');
         $subject = self::subject($kind, $event, $lang, ['day' => $day, 'hour' => $hour, 'event' => $name]);
         return [$subject, '<!DOCTYPE html><html lang="' . ($lang === 'pt_br' ? 'pt-BR' : s($lang)) . '" dir="' . lists::dir($lang) .
             '"><head><meta charset="utf-8"><title>' . s($subject) . '</title></head><body><div dir="' . lists::dir($lang) .

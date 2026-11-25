@@ -218,12 +218,11 @@ final class actmail_test extends \advanced_testcase {
             $this->assertSame($said, greeting::name($raw), $raw);
         }
         // The whole name in one box: only what it is called by.
-        foreach (
-            ['Carmen Rodríguez Díaz' => 'Carmen', 'María José Pérez' => 'María José', 'María del Carmen Pérez León' => 'María del Carmen',
-                'José Luis' => 'José Luis', 'Ana Martín' => 'Ana', 'María de los Ángeles Ruiz' => 'María de los Ángeles', 'CARMEN DÍAZ' =>
-                'Carmen', 'محمد علي' => 'محمد علي', 'Ana' => 'Ana', 'Juan de la Cruz' => 'Juan de la Cruz', 'Rosa del Valle' => 'Rosa'] as
-            $raw => $said
-        ) {
+        $whole = ['Carmen Rodríguez Díaz' => 'Carmen', 'María José Pérez' => 'María José', 'CARMEN DÍAZ' => 'Carmen',
+            'María del Carmen Pérez León' => 'María del Carmen', 'José Luis' => 'José Luis', 'Ana Martín' => 'Ana',
+            'María de los Ángeles Ruiz' => 'María de los Ángeles', 'محمد علي' => 'محمد علي', 'Ana' => 'Ana',
+            'Juan de la Cruz' => 'Juan de la Cruz', 'Rosa del Valle' => 'Rosa'];
+        foreach ($whole as $raw => $said) {
             $this->assertSame($said, greeting::name($raw, false), $raw);
         }
     }

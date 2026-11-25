@@ -717,6 +717,17 @@ class writeby {
         $only = count($channels) === 1;
         $width = $only ? '50%' : round(100 / count($channels)) . '%';
         $all = array_merge($channels, ['none']);
+        // By the one way there is, already theirs: a button for it would open «Shall we stop writing?». It is said in the title,
+        // and the only button is the one to leave.
+        if ($only && $channels === ['email'] && $now === ['email']) {
+            return [
+                'titulo' => publiclang::str('pub_writeby_only_title_email', $lang),
+                'frase' => self::question($channels, $lang, $now),
+                'fila' => [],
+                'baja' => $button('none'),
+                'botones' => [$button('none')],
+            ];
+        }
         return [
             'titulo' => publiclang::str('pub_writeby_heading', $lang),
             'frase' => trim(($reach ? publiclang::str('pub_writeby_now', $lang, self::words($reach, $lang)) . ' ' : '') .

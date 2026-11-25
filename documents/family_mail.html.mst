@@ -168,7 +168,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
     {{#personas}}
     <td class="eg-col" width="50%" style="width:50%; vertical-align:top; padding:0 12px;">
-      {{#foto}}<img src="{{foto}}" width="248" height="310" alt="" style="display:block; width:100%; max-width:248px; height:auto; border:0; border-radius:18px;">{{/foto}}{{^foto}}<div class="eg-sup" style="width:100%; max-width:248px; height:200px; border-radius:18px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:40px; line-height:200px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/foto}}
+      {{#foto}}<img src="{{foto}}" width="248" height="310" alt="" style="display:block; width:100%; max-width:248px; height:auto; border:0; border-radius:18px;">{{/foto}}{{^foto}}<div class="eg-marca" style="width:88px; height:88px; border-radius:44px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:28px; line-height:88px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/foto}}
       <p class="eg-tinta" style="margin:12px 0 0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p>
       <p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p>
       {{#dice}}<p class="eg-tinta" style="margin:8px 0 0; font-size:16px; line-height:23px; color:#2B2226;">{{dice}}</p>{{/dice}}
@@ -186,7 +186,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <h2 class="eg-tinta eg-titulo" style="margin:0 0 6px; font-size:22px; line-height:28px; font-weight:800; letter-spacing:-0.3px; color:{{c.titulo}};">{{titulo}}</h2>
   {{#personas}}
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;"><tr>
-    <td style="vertical-align:middle; padding-right:14px;">{{#cara}}<img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;">{{/cara}}{{^cara}}<div class="eg-sup" style="width:56px; height:56px; border-radius:28px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:18px; line-height:56px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/cara}}</td>
+    <td style="vertical-align:middle; padding-{{fin}}:14px;">{{#cara}}<img src="{{cara}}" width="56" height="56" alt="" style="display:block; width:56px; height:56px; border:0; border-radius:28px;">{{/cara}}{{^cara}}<div class="eg-marca" style="width:56px; height:56px; border-radius:28px; background-color:#EEF2EF; color:{{c.acento_texto}}; font-size:18px; line-height:56px; font-weight:800; text-align:center;">{{iniciales}}</div>{{/cara}}</td>
     <td style="vertical-align:middle;"><p class="eg-tinta" style="margin:0; font-size:17px; line-height:22px; font-weight:700; color:#2B2226;">{{nombre}}</p><p class="eg-tinta-2" style="margin:2px 0 0; font-size:15px; line-height:21px; color:#5F5459;">{{papel}}</p></td>
   </tr></table>
   {{/personas}}

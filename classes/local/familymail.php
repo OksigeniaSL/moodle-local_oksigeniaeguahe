@@ -667,7 +667,7 @@ class familymail {
             implode('', array_map($line, $before)) .
             // The words of the link say what it does.
             $p(($join !== '' ? s($join) . ' ' : '') . '<a href="' . s($url) . '">' . s($go) . '</a>') . $line($after) .
-            ($small !== '' ? $p(s($small), ';font-size:12.5px;color:#5f5459') : '') . '</div></body></html>';
+            ($small !== '' ? $p(s($small), ';font-size:13px') : '') . '</div></body></html>';
         return [acts::letter_subject($signup, $lang, $parts), $html, $text];
     }
 

@@ -226,13 +226,14 @@ final class writeby_test extends \advanced_testcase {
         $household = $this->family();
         $centre = centres::get($this->centreid);
         [, $html, $text] = familymail::build('received', $household, $centre, null, 'es', 'clave');
-        $this->assertStringContainsString('¿Por dónde les escribimos?', $html);
-        $this->assertStringContainsString('Ahora les escribimos por correo. ¿Prefieren que no les escribamos más?', $html);
-        $this->assertStringContainsString('&#10003;&nbsp;Correo', $html);
+        // With email alone there is nothing to choose: how they are written to, and the one button to leave.
+        $this->assertStringContainsString('Les escribimos por correo', $html);
+        $this->assertStringContainsString('¿Prefieren que no les escribamos más?', $html);
+        $this->assertStringNotContainsString('&#10003;&nbsp;Correo', $html);
         $this->assertStringContainsString('action=escribir', $html);
         $this->assertStringContainsString('por=none', $html);
         $this->assertStringContainsString('No escribirnos más', $text);
-        $this->assertStringContainsString("¿Por dónde les escribimos?\nAhora les escribimos por correo.", $text);
+        $this->assertStringContainsString("Les escribimos por correo\n¿Prefieren que no les escribamos más?", $text);
         // The mail that confirms the choice does not ask again.
         [$subject, $html] = familymail::build('writeby', $household, $centre, null, 'es', 'clave');
         $this->assertStringStartsWith('Les escribiremos por correo', $subject);
