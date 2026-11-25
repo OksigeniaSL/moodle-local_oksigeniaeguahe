@@ -261,8 +261,6 @@ class panel_household {
             'visit' => self::visit($household, $centre),
             'seen' => self::seen($household),
             'ambassador' => $canact && settled::in_centre(array_values($full->children)) ? self::ambassador($household) : false,
-            'events' => self::events($full),
-            'hasevents' => (bool) $full->signups,
             'newlink' => $newlink,
             'erasequestion' => get_string('panel_erase_question', $c, panel::adults_line($full->adults)),
         ];
@@ -1450,24 +1448,5 @@ class panel_household {
             'hasguides' => (bool) $guides,
             'minutes' => $minutes,
         ];
-    }
-
-    /**
-     * The events they signed up for, and whether they came.
-     *
-     * @param \stdClass $full
-     * @return array
-     */
-    protected static function events(\stdClass $full): array {
-        $out = [];
-        foreach ($full->signups as $signup) {
-            $out[] = panel::leaf((int) $signup->timestart) + [
-                'name' => format_string($signup->eventname),
-                'hour' => panel::hour((int) $signup->timestart),
-                'people' => get_string((int) $signup->people === 1 ? 'panel_people_one' : 'panel_people', self::C, (int) $signup->people),
-                'came' => (bool) $signup->attended,
-            ];
-        }
-        return $out;
     }
 }

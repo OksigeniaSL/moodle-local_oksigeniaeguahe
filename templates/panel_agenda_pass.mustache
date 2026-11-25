@@ -23,35 +23,41 @@
     Example context (json):
     {
         "head": {"back": {"url": "#", "name": "La semana"}, "title": "¿Vinieron?", "sub": "6 citas han pasado y no está anotado."},
-        "n": 6, "sesskey": "abc", "markurl": "#", "undo": "", "none": false,
+        "n": 6, "sesskey": "abc", "markurl": "#", "undo": "", "none": false, "act": false, "thanks": "",
         "days": [{"name": "Jueves 19 de noviembre", "idlist": "s4", "n": 1, "many": false, "items": [{"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "unknown": true, "came": false, "notcame": false, "isact": false, "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}]}]
     }
 }}
 <div class="pagina pagina-agenda pagina-pasada">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
     {{> local_oksigeniaeguahe/panel_agenda_undo }}
-    <div class="pasada" data-agenda>
+    {{#act}}{{^none}}<p class="pasada-como">{{#str}}agenda_act_how, local_oksigeniaeguahe{{/str}}{{#thanks}} {{thanks}}{{/thanks}}</p>{{/none}}{{/act}}
+    <div class="pasada{{#act}} pasada-acto{{/act}}" data-agenda>
         {{#days}}
         <section class="bloque pasada-dia" data-dia>
             <header>
                 <h2>{{name}}</h2>
-                {{#many}}<form method="post" action="{{markurl}}" data-marca><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mark"><input type="hidden" name="idlist" value="{{idlist}}"><button class="boton secundario pequeno" type="submit" name="state" value="came">{{{i.check}}}{{#str}}agenda_all_came, local_oksigeniaeguahe{{/str}}</button></form>{{/many}}
+                {{^act}}{{#many}}<form method="post" action="{{markurl}}" data-marca><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mark"><input type="hidden" name="idlist" value="{{idlist}}"><button class="boton secundario pequeno" type="submit" name="state" value="came">{{{i.check}}}{{#str}}agenda_all_came, local_oksigeniaeguahe{{/str}}</button></form>{{/many}}{{/act}}
             </header>
+            {{#act}}{{#many}}<label class="buscar pasada-buscar"><span class="oculto">{{#str}}panel_door_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input type="search" data-filtrar=".pasada-fila" placeholder="{{#str}}panel_door_search, local_oksigeniaeguahe{{/str}}" spellcheck="false" autocomplete="off"></label>{{/many}}{{/act}}
+            <div class="pasada-filas">
             {{#items}}
-            <div class="pasada-fila" data-cita="{{id}}">
-                <span class="hora">{{#dayonly}}<span class="sin-hora">{{#str}}agenda_nohour, local_oksigeniaeguahe{{/str}}</span>{{/dayonly}}{{^dayonly}}{{hour}}{{/dayonly}}</span>
-                <span class="pasada-quien"><a class="cita-familia" href="{{url}}">{{adults}}</a>{{#children}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}<span class="secundario">{{#sourcename}}{{sourcename}}{{/sourcename}}{{^sourcename}}{{place}}{{/sourcename}}</span></span>
-                <span class="lleva">{{#guide}}{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span>{{/guide}}</span>
+            <div class="pasada-fila" data-cita="{{id}}" data-buscar="{{adults}}{{#children}} {{tag}}{{/children}}">
+                {{^act}}<span class="hora">{{#dayonly}}<span class="sin-hora">{{#str}}agenda_nohour, local_oksigeniaeguahe{{/str}}</span>{{/dayonly}}{{^dayonly}}{{hour}}{{/dayonly}}</span>{{/act}}
+                <span class="pasada-quien"><a class="cita-familia" href="{{url}}">{{adults}}</a>{{#children}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}{{^act}}<span class="secundario">{{#sourcename}}{{sourcename}}{{/sourcename}}{{^sourcename}}{{place}}{{/sourcename}}</span>{{/act}}</span>
+                {{^act}}<span class="lleva">{{#guide}}{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span>{{/guide}}</span>{{/act}}
                 <form class="pasada-marcas" method="post" action="{{markurl}}" data-marca>
                     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mark"><input type="hidden" name="ids[]" value="{{id}}">
                     <button type="submit" name="state" value="came">{{{i.check}}}<span>{{#str}}agenda_came, local_oksigeniaeguahe{{/str}}</span></button>
                     <button type="submit" name="state" value="notcame"><span>{{#str}}agenda_notcame, local_oksigeniaeguahe{{/str}}</span></button>
-                    <button class="quiza" type="submit" name="state" value="unknown"><span>{{#str}}agenda_unknown, local_oksigeniaeguahe{{/str}}</span></button>
+                    {{^act}}<button class="quiza" type="submit" name="state" value="unknown"><span>{{#str}}agenda_unknown, local_oksigeniaeguahe{{/str}}</span></button>{{/act}}
                 </form>
             </div>
             {{/items}}
+            </div>
+            {{#act}}<p class="secundario sin-resultados" hidden>{{#str}}panel_search_none, local_oksigeniaeguahe{{/str}}</p>
+            {{#many}}<div class="invitar-pie pasada-pie" data-resto data-una="{{#str}}agenda_left_one, local_oksigeniaeguahe{{/str}}" data-varias="{{#str}}agenda_left, local_oksigeniaeguahe, NUM{{/str}}"><span class="pasada-quedan" role="status" data-quedan>{{#str}}agenda_left, local_oksigeniaeguahe, {{n}}{{/str}}</span><form method="post" action="{{markurl}}" data-marca><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mark"><input type="hidden" name="idlist" value="{{idlist}}"><button class="boton principal" type="submit" name="state" value="came">{{{i.check}}}{{#str}}agenda_rest_came, local_oksigeniaeguahe{{/str}}</button></form></div>{{/many}}{{/act}}
         </section>
         {{/days}}
-        <p class="pasada-fin"{{^none}} hidden{{/none}} data-fin>{{#str}}agenda_pass_none, local_oksigeniaeguahe{{/str}}</p>
+        <p class="pasada-fin"{{^none}} hidden{{/none}} data-fin>{{#act}}{{#str}}agenda_act_none, local_oksigeniaeguahe{{/str}}{{/act}}{{^act}}{{#str}}agenda_pass_none, local_oksigeniaeguahe{{/str}}{{/act}}</p>
     </div>
 </div>

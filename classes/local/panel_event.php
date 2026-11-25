@@ -84,6 +84,7 @@ class panel_event {
                 'capacity' => (int) $slot->capacity, 'signups' => [], 'came' => 0];
         }
         $households = 0;
+        $topass = 0;
         $came = 0;
         $people = 0;
         $peoplecame = 0;
@@ -121,6 +122,7 @@ class panel_event {
                 'search' => \core_text::strtolower(panel::adults_line($signup->household->adults) . ' ' .
                     implode(' ', array_column($children, 'tag'))),
             ];
+            $topass += !$arrived && empty($signup->missed) && !$tailored && !$family && (int) $event->timeend < $now ? 1 : 0;
             $groups[$key]['came'] += $arrived ? 1 : 0;
             $households++;
             $came += $arrived ? 1 : 0;
@@ -307,6 +309,9 @@ class panel_event {
                 userdate((int) $event->cancelled, get_string('strftimedate', 'langconfig'))
             ) : '',
             'howitwent' => self::howitwent($event, $centre, $canact, $now),
+            // Over, and nobody said of some whether they came.
+            'topass' => $canact && $topass ? ['text' => get_string('agenda_acttopass' . ($topass === 1 ? '_one' : ''), $c, $topass),
+                'url' => panel_agenda::passurl((int) $centre->id, (int) $event->id)] : false,
             // Over: on a phone, the band no longer stays on top of the door.
             'past' => (int) $event->timeend < $now,
         ];

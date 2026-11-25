@@ -45,6 +45,12 @@ $eventid = optional_param('eventid', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_act($centreid);
+// From the week: whoever is written down is given an appointment next.
+$give = [];
+if (!$id && optional_param('cita', 0, PARAM_BOOL)) {
+    $day = optional_param('dia', '', PARAM_RAW_TRIMMED);
+    $give = ['cita' => 1] + (preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ? ['dia' => $day] : []);
+}
 if (optional_param('dup', 0, PARAM_BOOL)) {
     // While writing one down: whether the family is there already, by its phone or its email.
     @header('Content-Type: application/json; charset=utf-8');
@@ -60,10 +66,10 @@ $household = $id ? households::get($id, (int) $centre->id) : null;
 if ($id && !$household) {
     throw new moodle_exception('invalidrecord', 'error');
 }
-$url = new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []));
+$url = new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []) + $give);
 panel::setup($url, get_string($household ? 'household_edit' : 'household_new', $c));
 $back = $household ? new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]) :
-    new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]);
+    new moodle_url('/local/oksigeniaeguahe/' . ($give ? 'cita.php' : 'index.php'), ['c' => $centre->id]);
 
 $form = new household_form($url, ['centre' => $centre, 'householdid' => $id, 'eventid' => $eventid]);
 if ($household) {
@@ -221,6 +227,9 @@ if ($data = $form->get_data()) {
         }
     }
     $transaction->allow_commit();
+    if ($give) {
+        redirect(new moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $household->id] + array_diff_key($give, ['cita' => 1])), $notice);
+    }
     // With «and answer now», straight to the answer of the file.
     $anchor = optional_param('answernow', 0, PARAM_BOOL) ? 'contestar' : null;
     redirect(

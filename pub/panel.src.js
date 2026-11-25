@@ -4008,6 +4008,13 @@
     // ---------- The appointments: what is said of one is kept at the touch, and can be taken back; and giving one, with the
     // hour on the ruler of its day. ----------
     (function() {
+        // Looking for one in the list, what says them all is not there.
+        var seeking = document.querySelector('[data-filtrar=".pasada-fila"]');
+        if (seeking) {
+            seeking.addEventListener('input', function() {
+                seeking.closest('[data-agenda]').classList.toggle('filtrando', Boolean(seeking.value.trim()));
+            });
+        }
         // The person chosen, in sight on the row that slides.
         var chosen = document.querySelector('.agenda-equipo [aria-current]');
         if (chosen && chosen.parentNode.scrollWidth > chosen.parentNode.clientWidth) {
@@ -4042,6 +4049,13 @@
             if (fin) {
                 fin.hidden = left > 0;
             }
+            // How many are still to be said, beside what says them all.
+            var bar = document.querySelector('[data-resto]');
+            if (bar) {
+                bar.hidden = !left;
+                bar.querySelector('[data-quedan]').textContent = left === 1 ? bar.getAttribute('data-una') :
+                    bar.getAttribute('data-varias').replace('NUM', left);
+            }
         };
         document.addEventListener('submit', function(e) {
             var form = e.target;
@@ -4057,9 +4071,12 @@
             more[button.name] = button.value;
             button.disabled = true;
             send(form, more).then(function(r) {
+                // Several at once never change what was said of one.
                 var rows = ids.map(function(id) {
                     return document.querySelector('[data-cita="' + id + '"]');
-                }).filter(Boolean);
+                }).filter(function(row) {
+                    return row && (form.querySelector('[name="ids[]"]') || !row.classList.contains('dicha'));
+                });
                 said[r.key] = rows;
                 rows.forEach(function(row) {
                     row.classList.add('dicha');
@@ -4070,7 +4087,7 @@
                         }
                     });
                 });
-                button.disabled = !button.closest('header');
+                button.disabled = !button.closest('header, [data-resto]');
                 tell(r.said, r.key);
                 end(r.left);
             }).catch(function() {
@@ -4243,4 +4260,22 @@
         });
         draw();
     })();
+
+    // ---------- The families that may already be answered: the button says how many of them ----------
+    Array.prototype.forEach.call(document.querySelectorAll('[data-contestadas]'), function(form) {
+        var button = form.querySelector('[data-boton]');
+        if (!button) {
+            return;
+        }
+        var count = function() {
+            var n = form.querySelectorAll('[name="ids[]"]:checked').length;
+            var all = form.querySelectorAll('[name="ids[]"]').length;
+            // Those left waiting are not asked again: saying it of all of them is an answer too.
+            button.textContent = !n ? form.getAttribute(all === 1 ? 'data-ninguna' : 'data-nada').replace('NUM', all) :
+                n === 1 ? form.getAttribute('data-una') : form.getAttribute('data-varias').replace('NUM', n);
+        };
+        form.addEventListener('change', count);
+        window.addEventListener('pageshow', count);
+        count();
+    });
 })();

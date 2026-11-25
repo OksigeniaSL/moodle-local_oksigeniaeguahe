@@ -29,7 +29,7 @@
     <div class="que">
         <a class="cita-familia" href="{{url}}">{{#isact}}{{title}}{{/isact}}{{^isact}}{{adults}}{{/isact}}</a>
         {{^isact}}<span class="cita-hijos">{{#children}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{/isact}}
-        {{#isact}}<span class="secundario">{{familiestext}}</span>{{/isact}}
+        {{#isact}}<span class="secundario">{{familiestext}}</span>{{#passurl}}<a class="enlace" href="{{passurl}}">{{passtext}}</a>{{/passurl}}{{/isact}}
         {{#place}}<span class="secundario">{{place}}</span>{{/place}}
         {{#sourcename}}<span class="cita-origen">{{sourcename}}</span>{{/sourcename}}
         {{#iscame}}<span class="cita-sello">{{{i.check}}}{{#str}}agenda_came, local_oksigeniaeguahe{{/str}}</span>{{/iscame}}

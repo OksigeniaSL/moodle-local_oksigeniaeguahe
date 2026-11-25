@@ -52,6 +52,8 @@ final class howto {
         'sibling' => ['inbox', 'index.php', ''],
         'tailored' => ['inbox', 'index.php', ''],
         'moveappointment' => ['events', 'agenda.php', ''],
+        'notices' => ['inbox', 'index.php', ''],
+        'settled' => ['inbox', 'contestadas.php', ''],
         'whocame' => ['events', 'agenda.php', ''],
         'ambassador' => ['inbox', 'index.php', ''],
         'familylabels' => ['inbox', 'index.php', ''],

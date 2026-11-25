@@ -1194,7 +1194,7 @@ class households {
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
                 forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T,
-                alumni::T, access::T, appointments::T] as $table
+                alumni::T, access::T, appointments::T, notices::T, settle::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

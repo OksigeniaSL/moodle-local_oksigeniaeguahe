@@ -1,0 +1,29 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_notice
+
+    One notice of a family: whether it went, is still to go or did not, and why; what it is of; and sending it again.
+
+    Example context (json):
+    {"id": 4, "kind": "invitation", "name": "Su cita", "what": "Visita", "day": "jueves 26 de noviembre, 10:00", "state": "sent", "went": true, "didnot": false, "isqueued": false, "isunknown": false, "text": "Salió por correo hoy a las 8:15", "again": true, "sesskey": "abc", "action": "#"}
+}}
+<div class="su-aviso su-aviso-{{state}}">
+    <span class="su-aviso-sello" aria-hidden="true">{{#went}}{{{i.check}}}{{/went}}{{#isqueued}}{{{i.reloj}}}{{/isqueued}}{{#didnot}}{{{i.cerrar}}}{{/didnot}}{{#isunknown}}?{{/isunknown}}</span>
+    <span class="su-aviso-que"><b>{{name}}</b><span class="su-aviso-estado">{{text}}</span>{{#what}}<span class="secundario">{{what}}{{#day}} · {{day}}{{/day}}</span>{{/what}}</span>
+    {{#again}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="resend"><input type="hidden" name="notice" value="{{id}}"><button class="boton secundario pequeno" type="submit">{{#str}}notice_again, local_oksigeniaeguahe{{/str}}</button></form>{{/again}}
+</div>

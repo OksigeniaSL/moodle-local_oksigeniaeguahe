@@ -198,4 +198,59 @@ final class appointments_test extends \advanced_testcase {
         $family = panel_agenda::of_family(households::full($this->family), $this->centre, true, time());
         $this->assertTrue($family['hasappointments']);
     }
+
+    /**
+     * From the week: whose it is, first. Those that asked, those that wait, and any other by its name; the day it comes from
+     * stays chosen.
+     */
+    public function test_who(): void {
+        $ana = $this->family;
+        households::received($ana, 'webform', '¿Hay plazas?', true);
+        $luis = households::get(households::create((int) $this->centre->id, (object) ['lang' => 'es', 'firstchannel' => 'phone']), 0);
+        households::add_adult($luis, (object) ['firstname' => 'Luis', 'phone' => '+34600333555']);
+        $week = panel_agenda::context($this->centre, true);
+        $this->assertStringContainsString('cita.php', $week['head']['action']['url']);
+        $this->assertFalse(panel_agenda::context($this->centre, false)['head']['action']);
+        $who = panel_give::who($this->centre, '');
+        $this->assertSame(['Ana'], array_map(fn($f) => strtok($f['adults'], ' '), $who['families']));
+        $this->assertTrue($who['families'][0]['waiting']);
+        $this->assertSame(['Luis'], array_map(fn($f) => strtok($f['adults'], ' '), panel_give::who($this->centre, 'lui')['families']));
+        $this->assertNotSame('', panel_give::who($this->centre, 'nadie')['none']);
+        // The day it comes from, when it has room.
+        $zone = \core_date::get_server_timezone_object();
+        $now = (new \DateTimeImmutable('2026-11-25 08:00', $zone))->getTimestamp();
+        $give = panel_give::context(households::full($ana), $this->centre, null, ['day' => '2026-11-27'], false, $now);
+        $this->assertSame(['2026-11-27'], array_column(array_filter($give['days'], fn($d) => $d['current']), 'key'));
+        $this->assertStringContainsString('dia=2026-11-27', panel_give::who($this->centre, '', '2026-11-27')['families'][0]['url']);
+    }
+
+    /**
+     * Who came to an act that is over: first those that did not, then the rest at once, which never changes what was said of
+     * one; and taking it back.
+     */
+    public function test_act(): void {
+        $past = time() - 5 * DAYSECS;
+        $event = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => $past,
+            'timeend' => $past + HOURSECS, 'capacity' => 0, 'open' => 1]), (int) $this->centre->id);
+        $ids = [];
+        foreach (['Ana', 'Luis', 'Eva'] as $name) {
+            $household = households::get(households::create((int) $this->centre->id, (object) ['lang' => 'es', 'firstchannel' => 'phone']), 0);
+            households::add_adult($household, (object) ['firstname' => $name, 'phone' => '']);
+            $ids[$name] = 's' . events::sign_up($event, (int) $household->id, 2);
+        }
+        $now = time();
+        $this->assertSame([], panel_agenda::topass($this->centre, $now));
+        $page = panel_agenda::pass($this->centre, true, '', 0, $event);
+        $this->assertSame(3, $page['n']);
+        $this->assertSame(['Ana', 'Eva', 'Luis'], array_column($page['days'][0]['items'], 'adults'));
+        $this->assertSame('', $page['thanks'], 'Too late for the thanks: none goes out.');
+        $this->assertNotFalse(\local_oksigeniaeguahe\local\panel_event::context($event, $this->centre, true, $now)['topass']);
+        appointments::mark($this->centre, [$ids['Eva']], 'notcame', 2);
+        $batch = appointments::mark($this->centre, array_values($ids), 'came', 2, 0, true);
+        $states = fn() => array_column(appointments::agenda($this->centre, $past - DAYSECS, $now), 'state', 'id');
+        $this->assertSame(['came', 'came', 'notcame'], [$states()[$ids['Ana']], $states()[$ids['Luis']], $states()[$ids['Eva']]]);
+        $this->assertTrue(panel_agenda::pass($this->centre, true, $batch, 0, $event)['none']);
+        appointments::undo($this->centre, $batch);
+        $this->assertSame(['unknown', 'unknown', 'notcame'], [$states()[$ids['Ana']], $states()[$ids['Luis']], $states()[$ids['Eva']]]);
+    }
 }

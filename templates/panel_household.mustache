@@ -93,7 +93,7 @@
             "value": "2026-11-12", "parts": [{"key": "d", "id": "vdd", "name": "dated", "label": "Día", "value": "12", "size": 2, "months": false}]}, "place": "", "people": 2, "hasguides": true,
             "guides": [{"id": 1, "name": "Lucía Medina", "selected": true}],
             "minutes": [{"value": 45, "name": "45 min", "selected": true}]},
-        "hasevents": false, "events": [], "newlink": "", "mergeurl": "#", "erasequestion": "¿Borramos todo lo de Marta Ruiz?"
+        "newlink": "", "mergeurl": "#", "erasequestion": "¿Borramos todo lo de Marta Ruiz?"
     }
 }}
 <div class="pagina ficha{{#waiting}} espera{{/waiting}}" data-hoja data-url="{{url}}">
@@ -123,6 +123,7 @@
         {{/relay}}
         <div class="col col-propuesta">
             {{#citas}}{{> local_oksigeniaeguahe/panel_appts }}{{/citas}}
+            {{#avisos}}{{> local_oksigeniaeguahe/panel_notices }}{{/avisos}}
             {{#proposal}}
             <section class="apartado propuesta" aria-labelledby="prop-t">
                 <header><h2 id="prop-t">{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
@@ -545,12 +546,6 @@
                 {{/ambassador}}
             </section>
             {{/seen}}
-            {{#hasevents}}
-            <section class="apartado">
-                <header><h2>{{#str}}panel_their_events, local_oksigeniaeguahe{{/str}}</h2></header>
-                {{#events}}<p class="visita"><span class="hoja-cal"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span><span class="que"><b>{{hour}} · {{name}}</b><span class="secundario">{{people}}{{#came}} · {{#str}}panel_came_yes, local_oksigeniaeguahe{{/str}}{{/came}}</span></span></p>{{/events}}
-            </section>
-            {{/hasevents}}
             <details class="apartado plegado">
                 <summary><h2>{{#str}}panel_their_page_and_data, local_oksigeniaeguahe{{/str}}</h2></summary>
                 <p>{{#str}}panel_their_page_help, local_oksigeniaeguahe{{/str}}</p>

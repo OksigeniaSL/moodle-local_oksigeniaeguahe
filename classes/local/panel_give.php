@@ -37,6 +37,9 @@ class panel_give {
     /** @var int The first hour proposed, in minutes: earlier is for whoever asks for it. */
     const FIRST = 540;
 
+    /** @var int How many families are shown to choose from. */
+    const FOUND = 12;
+
     /** @var int[] How long one can be. */
     const MINUTES = [20, 30, 45, 60, 90];
 
@@ -132,6 +135,10 @@ class panel_give {
         $start = $values['start'] ?? ($event ? (int) $event->timestart : 0);
         // The day it starts on: the one it has, or the first with a free hour.
         $chosen = $start ? userdate($start, '%Y-%m-%d', $zone->getName(), false) : '';
+        // Or the one it comes from, in the week.
+        foreach ($chosen === '' ? $days : [] as $day) {
+            $chosen = $day['key'] === ($values['day'] ?? '') && $day['first'] !== '' ? $day['key'] : $chosen;
+        }
         foreach ($days as $day) {
             $chosen = $chosen === '' && $day['first'] !== '' ? $day['key'] : $chosen;
         }
@@ -237,5 +244,65 @@ class panel_give {
             $places,
             array_keys($places)
         );
+    }
+
+    /**
+     * Whose appointment it is, when it starts from the week: the families that asked for one, those that wait for an answer,
+     * any other by its name or its phone, or a new one.
+     *
+     * @param \stdClass $centre
+     * @param string $query What was written to look for it.
+     * @param string $day The day it comes from, if any.
+     * @param int $now
+     * @return array
+     */
+    public static function who(\stdClass $centre, string $query, string $day = '', int $now = 0): array {
+        $now = $now ?: time();
+        $carry = $day !== '' ? ['dia' => $day] : [];
+        $page = new \moodle_url('/local/oksigeniaeguahe/cita.php', ['c' => $centre->id] + $carry);
+        $asked = [];
+        foreach (appointments::asked($centre) as $one) {
+            $asked[$one['householdid']] = $one['suits'] ?? '';
+        }
+        $all = 0;
+        if (trim($query) !== '') {
+            [$found, $all] = households::search((int) $centre->id, $query, false, self::FOUND);
+        } else {
+            $found = households::some((int) $centre->id, array_keys($asked));
+            if (count($found) < self::FOUND) {
+                $found += households::inbox((int) $centre->id, true, self::FOUND - count($found));
+            }
+        }
+        $families = [];
+        foreach ($found as $household) {
+            $tags = [];
+            foreach ($household->children as $child) {
+                if ($child->stage !== 'closed' && panel::tag($child) !== '') {
+                    $tags[] = ['tag' => panel::tag($child)];
+                }
+            }
+            $next = '';
+            foreach (appointments::of($household, $now) as $one) {
+                $next = $one['kind'] === 'visit' && $one['state'] === 'coming' ? panel_agenda::day($one['start']) : $next;
+            }
+            $families[] = ['id' => (int) $household->id, 'adults' => panel::adults_line($household->adults) ?:
+                get_string('chat_family_noname', self::C), 'children' => $tags, 'suits' => $asked[$household->id] ?? '',
+                'asked' => isset($asked[$household->id]), 'waiting' => (int) $household->waitingsince > 0,
+                'has' => $next !== '' ? get_string('give_who_has', self::C, $next) : '',
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $household->id] + $carry))->out(false)];
+        }
+        return ['head' => panel::head(['title' => get_string('give_title', self::C), 'sub' => $day === '' ? get_string('give_who', self::C) :
+            get_string('give_who_day', self::C, panel_agenda::day((new \DateTimeImmutable(
+                $day . ' 12:00',
+                \core_date::get_server_timezone_object()
+            ))->getTimestamp())),
+            'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id]))->out(false),
+                'name' => get_string('tab_events', self::C)]]),
+            'action' => $page->out_omit_querystring(), 'c' => (int) $centre->id, 'dia' => $day, 'query' => $query,
+            'searched' => trim($query) !== '', 'families' => $families, 'hasfamilies' => (bool) $families,
+            'cut' => $all > count($families) ? get_string('panel_search_cut', self::C, (object) ['shown' => count($families),
+                'all' => $all]) : '',
+            'none' => trim($query) !== '' && !$families ? get_string('panel_search_nothing', self::C, $query) : '',
+            'newurl' => (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id, 'cita' => 1] + $carry))->out(false)];
     }
 }

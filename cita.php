@@ -33,13 +33,27 @@ use local_oksigeniaeguahe\local\panel_give;
 
 require_login(null, false);
 
-$household = households::get(required_param('h', PARAM_INT), 0);
+$c = 'local_oksigeniaeguahe';
+$day = optional_param('dia', '', PARAM_RAW_TRIMMED);
+$day = preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ? $day : '';
+$hid = optional_param('h', 0, PARAM_INT);
+if (!$hid) {
+    // From the week: whose it is, first.
+    $centre = centres::require_act(required_param('c', PARAM_INT));
+    panel::setup(new moodle_url('/local/oksigeniaeguahe/cita.php', ['c' => $centre->id]), get_string('give_title', $c));
+    panel::output($centre, 'events', get_string('give_title', $c), 'panel_give_who', panel_give::who(
+        $centre,
+        \core_text::substr(optional_param('q', '', PARAM_TEXT), 0, 100),
+        $day
+    ));
+    die();
+}
+$household = households::get($hid, 0);
 if (!$household) {
     throw new moodle_exception('invalidrecord', 'error');
 }
 $centre = centres::require_work((int) $household->centreid);
 centres::require_act((int) $centre->id);
-$c = 'local_oksigeniaeguahe';
 $id = optional_param('id', 0, PARAM_INT);
 $event = $id ? $DB->get_record(events::T, ['id' => $id, 'householdid' => $household->id, 'cancelled' => 0]) : null;
 if ($id && !$event) {
@@ -95,6 +109,6 @@ panel::output($centre, 'inbox', get_string('give_title', $c), 'panel_give', pane
     households::full($household),
     $centre,
     $event ?: null,
-    $values,
+    $values ?: ($day !== '' ? ['day' => $day] : []),
     (bool) $off
 ));

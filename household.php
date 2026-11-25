@@ -37,8 +37,10 @@ use local_oksigeniaeguahe\local\listmatch;
 use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
+use local_oksigeniaeguahe\local\notices;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_agenda;
+use local_oksigeniaeguahe\local\panel_notices;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\renewal;
@@ -149,6 +151,11 @@ if ($action && data_submitted() && confirm_sesskey()) {
         [$one, $other] = array_pad(explode(',', optional_param('pair', '', PARAM_TAGLIST)), 2, '');
         appointments::$action($household, ...($action === 'keep' ? [$centre, $one, $other, (int) $USER->id] : [$one, $other, (int) $USER->id]));
         redirect($url);
+    }
+    if ($action === 'resend') {
+        // A notice that went, or did not, again.
+        $went = notices::resend($household, $centre, optional_param('notice', 0, PARAM_INT));
+        redirect($url, get_string($went ? 'notice_resent' : 'notice_notresent', $c));
     }
     if ($action === 'admit') {
         // A guest of an act, now a family of the admissions: the team says so.
@@ -528,9 +535,10 @@ panel::output(
     panel::adults_line(households::full($household)->adults),
     'panel_household',
     panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted) + [
-        // Only signed up to an open act: it is not in admissions, and the team may take it there.
-        // Its appointments, wherever they come from, and the pairs that may be one.
+        // Its appointments, wherever they come from, and the pairs that may be one; and what it was sent.
         'citas' => panel_agenda::of_family(households::full($household), $centre, $canact, time()),
+        'avisos' => panel_notices::context($household, $centre, $canact, time()),
+        // Only signed up to an open act: it is not in admissions, and the team may take it there.
         'guest' => !empty($household->guest) ? ['may' => $canact, 'posturl' => $url->out(false), 'sesskey' => sesskey()] : false,
     ]
 );

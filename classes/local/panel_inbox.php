@@ -373,6 +373,15 @@ class panel_inbox {
                     ->out(false),
                 'link' => get_string('lookalike_inbox_see', $c), 'known' => false];
         }
+        // Those that wait and may already be answered: a person says it.
+        $settled = array_sum(array_map(fn($g) => count($g['families']), settle::candidates($centre, $now)));
+        if ($settled) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('settle_title', $c),
+                'short' => self::short('settle_title'),
+                'text' => get_string($settled === 1 ? 'settle_inbox_one' : 'settle_inbox', $c, $settled),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/contestadas.php', ['c' => $centreid]))->out(false),
+                'link' => get_string('settle_inbox_see', $c), 'known' => false];
+        }
         // Each function at its moment, with «Known» for whoever may act.
         $canact = centres::can_act((int) $USER->id);
         foreach (moments::due($centre, $now) as $moment) {

@@ -1,0 +1,50 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_settle
+
+    The families that wait and may already be answered, by why, each with what it wrote. All of them are said answered but
+    those a person takes out, with one button that says how many (panel.js); and it can be taken back.
+
+    Example context (json):
+    {
+        "head": {"back": {"url": "#", "name": "Bandeja"}, "title": "Quizá ya están contestadas", "sub": "2 familias esperan y ya vinieron o tienen cita"},
+        "none": false, "canact": true, "undo": "", "undotext": "", "sesskey": "abc", "markurl": "#",
+        "groups": [{"key": "came-0", "reason": "came", "name": "Vinieron a su cita después de escribir", "day": "", "n": 1, "button": "Las marcadas ya están contestadas",
+            "families": [{"id": 4, "adults": "Ana Ruiz", "children": [{"tag": "Leo"}], "wrote": "Escribieron el 12 de noviembre", "said": "«¿Hay comedor?»", "url": "#"}]}]
+    }
+}}
+<div class="pagina pagina-contestadas">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{> local_oksigeniaeguahe/panel_agenda_undo }}
+    {{^none}}{{#canact}}<p class="contestadas-que">{{{i.info}}}<span>{{#str}}settle_what, local_oksigeniaeguahe{{/str}}</span></p>{{/canact}}{{/none}}
+    {{#groups}}
+    <form class="bloque contestadas-grupo" method="post" action="{{markurl}}" data-contestadas data-una="{{#str}}settle_this, local_oksigeniaeguahe{{/str}}" data-varias="{{#str}}settle_these, local_oksigeniaeguahe, NUM{{/str}}" data-nada="{{#str}}settle_nobody, local_oksigeniaeguahe, NUM{{/str}}" data-ninguna="{{#str}}settle_nobody_one, local_oksigeniaeguahe{{/str}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="settle"><input type="hidden" name="group" value="{{key}}">
+        <header><h2>{{name}}</h2>{{#day}}<span class="secundario">{{day}}</span>{{/day}}</header>
+        {{#families}}
+        <div class="contestada">
+            <input class="oculto" type="checkbox" id="c-{{key}}-{{id}}" name="ids[]" value="{{id}}" checked{{^canact}} disabled{{/canact}}>
+            <span class="contestada-quien"><span class="contestada-nombre"><a class="cita-familia" href="{{url}}">{{adults}}</a>{{#children}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span><span class="secundario">{{wrote}}</span>{{#said}}<span class="contestada-dijo" dir="auto">{{said}}</span>{{/said}}</span>
+            {{#canact}}<label class="contestada-sello" for="c-{{key}}-{{id}}"><span class="si" aria-hidden="true">{{{i.check}}}{{#str}}settle_yes, local_oksigeniaeguahe{{/str}}</span><span class="no" aria-hidden="true">{{#str}}settle_no, local_oksigeniaeguahe{{/str}}</span><span class="oculto">{{#str}}settle_yes, local_oksigeniaeguahe{{/str}}: {{adults}}</span></label>{{/canact}}
+            {{! After the box: its seal looks at the one before it. }}<input type="hidden" name="seen[]" value="{{id}}">
+        </div>
+        {{/families}}
+        {{#canact}}<div class="contestadas-pie"><button class="boton principal" type="submit" data-boton>{{button}}</button></div>{{/canact}}
+    </form>
+    {{/groups}}
+</div>

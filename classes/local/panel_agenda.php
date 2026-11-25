@@ -28,6 +28,9 @@ class panel_agenda {
     /** @var string */
     const C = 'local_oksigeniaeguahe';
 
+    /** @var int How many of those that passed are in sight on a file. */
+    const LASTONES = 3;
+
     /** @var int How far back who came is asked, in days. */
     const BACK = 30;
 
@@ -57,6 +60,8 @@ class panel_agenda {
         $today = userdate($now, '%Y-%m-%d', 99, false);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id] + $params))->out(false);
         $key = fn(int $time) => userdate($time, '%Y-%m-%d', $zone->getName(), false);
+        $give = fn(array $more) => (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['c' => $centre->id] + $more))->out(false);
+        $until = $key($now + (panel_give::DAYS - 1) * DAYSECS);
         $out = [];
         foreach ($days as $i => $day) {
             $items = $guide ? array_filter($day['items'], fn($o) => $o['guideid'] === $guide) : $day['items'];
@@ -66,7 +71,9 @@ class panel_agenda {
             }
             $out[] = ['key' => $key($day['day']), 'weekday' => userdate($day['day'], '%a'), 'day' => userdate($day['day'], '%d', 99, true),
                 'month' => userdate($day['day'], '%b'), 'today' => $key($day['day']) === $today, 'past' => $key($day['day']) < $today,
-                'closed' => !$day['open'], 'items' => $cards, 'hasitems' => (bool) $cards];
+                'closed' => !$day['open'], 'items' => $cards, 'hasitems' => (bool) $cards,
+                'addurl' => $canact && $day['open'] && $key($day['day']) >= $today && $key($day['day']) <= $until ?
+                    $give(['dia' => $key($day['day'])]) : ''];
         }
         $asked = [];
         $waiting = appointments::asked($centre);
@@ -87,7 +94,7 @@ class panel_agenda {
                 'guia' => $id === $guide ? 0 : $id]))];
         }
         return [
-            'head' => self::ahead(
+            'head' => ['action' => $canact ? ['url' => $give([]), 'name' => get_string('give_title', self::C), 'icon' => panel::icons()['mas1'] ?? ''] : false] + self::ahead(
                 $guide ? array_filter($all, fn($o) => $o['guideid'] === $guide) : $all,
                 $people,
                 $key($first) <= $today && $today <= $key($last),
@@ -159,13 +166,27 @@ class panel_agenda {
      *
      * @param \stdClass $centre
      * @param int $now
+     * @param \stdClass|null $act Those of this act; null, every appointment but the acts.
      * @return array[]
      */
-    public static function topass(\stdClass $centre, int $now): array {
+    public static function topass(\stdClass $centre, int $now, ?\stdClass $act = null): array {
+        $from = $act ? (int) $act->timestart : $now - self::BACK * DAYSECS;
+        $to = $act ? min($now, (int) $act->timeend + 1) : $now;
         return array_values(array_filter(
-            appointments::agenda($centre, $now - self::BACK * DAYSECS, $now, $now),
-            fn($o) => $o['state'] === 'unknown' && $o['kind'] !== 'act'
+            appointments::agenda($centre, $from, $to, $now),
+            fn($o) => $o['state'] === 'unknown' && ($act ? $o['kind'] === 'act' && $o['eventid'] === (int) $act->id : $o['kind'] !== 'act')
         ));
+    }
+
+    /**
+     * Where it is said who came to an act.
+     *
+     * @param int $centreid
+     * @param int $eventid
+     * @return string
+     */
+    public static function passurl(int $centreid, int $eventid): string {
+        return (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centreid, 'pasada' => 1, 'acto' => $eventid]))->out(false);
     }
 
     /**
@@ -175,11 +196,18 @@ class panel_agenda {
      * @param bool $canact
      * @param string $key Of what was just said, to take it back; empty, nothing.
      * @param int $now
+     * @param \stdClass|null $act Those of an act, with those that came to it for sure out.
      * @return array
      */
-    public static function pass(\stdClass $centre, bool $canact, string $key = '', int $now = 0): array {
+    public static function pass(
+        \stdClass $centre,
+        bool $canact,
+        string $key = '',
+        int $now = 0,
+        ?\stdClass $act = null
+    ): array {
         $now = $now ?: time();
-        $all = self::topass($centre, $now);
+        $all = self::topass($centre, $now, $act);
         $people = households::some((int) $centre->id, array_column($all, 'householdid'));
         $faces = self::faces($centre);
         $days = [];
@@ -193,22 +221,32 @@ class panel_agenda {
             $days[$day]['items'][] = self::card($one, $people[$one['householdid']], $faces, $canact, $now);
         }
         krsort($days);
+        foreach ($act ? array_keys($days) : [] as $day) {
+            usort($days[$day]['items'], fn($x, $y) => strcoll($x['adults'], $y['adults']));
+        }
+        $n = count($all);
+        $thanks = $act && surveys::THANKSUNTIL * DAYSECS > $now - (int) $act->timeend;
         return [
-            'head' => panel::head(['title' => get_string('agenda_pass_title', self::C), 'sub' => get_string(
-                count($all) === 1 ? 'agenda_topass_one' : 'agenda_topass',
-                self::C,
-                count($all)
-            ), 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id]))->out(false),
-                'name' => get_string('tab_events', self::C)]]),
+            'head' => panel::head(['title' => $act ? get_string('agenda_act_title', self::C, panel::quote(format_string($act->name))) :
+                get_string('agenda_pass_title', self::C),
+                'sub' => get_string(($act ? 'agenda_acttopass' : 'agenda_topass') . ($n === 1 ? '_one' : ''), self::C, $n),
+                'back' => $act ? ['url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $act->id]))->out(false),
+                    'name' => format_string($act->name)] : ['url' => (new \moodle_url(
+                        '/local/oksigeniaeguahe/agenda.php',
+                        ['c' => $centre->id]
+                    ))->out(false), 'name' => get_string('tab_events', self::C)]]),
+            'act' => (bool) $act,
+            'thanks' => $thanks && $n ? get_string('agenda_pass_thanks', self::C) : '',
             'days' => array_map(
                 fn($d) => $d + ['idlist' => implode(',', $d['ids']), 'n' => count($d['ids']), 'many' => count($d['ids']) > 1],
                 array_values($days)
             ),
-            'n' => count($all),
+            'n' => $n,
             'none' => !$all,
             'canact' => $canact,
             'undo' => $key,
-            'markurl' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id, 'pasada' => 1]))->out(false),
+            'markurl' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id, 'pasada' => 1] +
+                ($act ? ['acto' => $act->id] : [])))->out(false),
             'sesskey' => sesskey(),
         ];
     }
@@ -280,6 +318,8 @@ class panel_agenda {
             $act['people'] += $one['people'];
             $act['came'] += $one['state'] === 'came' ? 1 : 0;
             $act['topass'] += $one['state'] === 'unknown' ? 1 : 0;
+            $act['passtext'] = $canact && $act['topass'] ? get_string('agenda_acttopass' . ($act['topass'] === 1 ? '_one' : ''), self::C, $act['topass']) : '';
+            $act['passurl'] = $act['passtext'] !== '' ? self::passurl((int) $centre->id, (int) $one['eventid']) : '';
             $act['familiestext'] = get_string($act['families'] === 1 ? 'cal_families_one' : 'cal_families', self::C, $act['families']);
             unset($act);
         }
@@ -318,6 +358,8 @@ class panel_agenda {
             'source' => $one['source'],
             'sourcename' => $one['source'] === 'eguahe' ? '' : get_string('agenda_source_' . $one['source'], self::C),
             'people' => $one['people'],
+            'peopletext' => $one['people'] > 0 && $one['kind'] !== 'note' ?
+                get_string($one['people'] === 1 ? 'panel_people_one' : 'panel_people', self::C, $one['people']) : '',
             'url' => $file->out(false),
             'moveurl' => $own ? $give(['id' => $one['eventid']]) : ($canact && $one['state'] === 'asked' ? $give([]) : ''),
             'offurl' => $own ? $give(['id' => $one['eventid'], 'anular' => 1]) : '',
@@ -374,7 +416,18 @@ class panel_agenda {
      */
     public static function of_family(\stdClass $full, \stdClass $centre, bool $canact, int $now): array {
         $faces = self::faces($centre);
-        $cards = array_map(fn($o) => self::card($o, $full, $faces, $canact, $now), appointments::of($full, $now));
+        $groups = ['coming' => [], 'asked' => [], 'unknown' => [], 'past' => []];
+        foreach (appointments::of($full, $now) as $one) {
+            // The year, only of those of another one.
+            $year = $one['start'] ? userdate($one['start'], '%Y') : '';
+            $groups[isset($groups[$one['state']]) ? $one['state'] : 'past'][] = self::card($one, $full, $faces, $canact, $now) +
+                ['year' => $year === userdate($now, '%Y') ? '' : $year];
+        }
+        $past = array_reverse($groups['past']);
+        // What is still ahead or to be said, whole; of what passed, the last ones.
+        $ahead = array_merge($groups['coming'], $groups['asked'], array_reverse($groups['unknown']));
+        $cards = array_merge($ahead, array_slice($past, 0, self::LASTONES));
+        $older = array_slice($past, self::LASTONES);
         $twins = [];
         foreach ($canact ? appointments::twins($full, $now) : [] as $pair) {
             $twins[] = ['a' => self::card($pair['a'], $full, $faces, false, $now), 'b' => self::card($pair['b'], $full, $faces, false, $now),
@@ -384,7 +437,8 @@ class panel_agenda {
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $full->id]))->out(false), 'sesskey' => sesskey()];
         }
         return ['canact' => $canact, 'sesskey' => sesskey(), 'markurl' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id]))->out(false),
-            'appointments' => $cards, 'hasappointments' => (bool) $cards, 'twins' => $twins, 'hastwins' => (bool) $twins,
+            'appointments' => $cards, 'hasappointments' => (bool) $cards,
+            'older' => $older, 'hasolder' => (bool) $older, 'twins' => $twins, 'hastwins' => (bool) $twins,
             'giveurl' => $canact ? (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $full->id]))->out(false) : ''];
     }
 }

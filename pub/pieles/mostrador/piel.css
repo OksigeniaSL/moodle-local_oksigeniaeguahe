@@ -1738,10 +1738,12 @@ body.modo-lamina.piel-mostrador .barra-antes {
 }
 /* The first sheet: an index card, the red line under its title */
 .piel-mostrador .como-cabeza {
-    background: linear-gradient(var(--margen), var(--margen)) 0 66px / 100% 2px no-repeat, var(--ruido), var(--papel-b);
+    background: var(--ruido), var(--papel-b);
 }
 
 .piel-mostrador .como-cabeza .cabeza-como-fue {
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--margen);
     min-height: 44px;
     margin-bottom: 6px;
 }

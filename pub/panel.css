@@ -22951,3 +22951,455 @@ html {
     font-size: 0.8125rem;
     letter-spacing: 0;
 }
+
+/* ---------- What the centre sends by itself, and the families that may already be answered ---------- */
+.su-aviso {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    align-items: start;
+    padding: 11px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.su-aviso-sello {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 50%;
+    color: var(--eg-tinta-2);
+    font-weight: 800;
+}
+
+.su-aviso-sello svg {
+    width: 15px;
+    height: 15px;
+}
+
+.su-aviso-que {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+
+.su-aviso-estado {
+    overflow-wrap: anywhere;
+}
+
+.su-aviso .secundario {
+    font-size: 0.875rem;
+}
+
+/* Still to go: what is asked the most. */
+.su-aviso-queued .su-aviso-sello {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.su-aviso-queued .su-aviso-estado {
+    font-weight: 700;
+}
+
+/* It did not go: the reason is what matters. */
+.su-aviso-blocked .su-aviso-sello,
+.su-aviso-skipped .su-aviso-sello,
+.su-aviso-failed .su-aviso-sello {
+    border-color: var(--eg-error);
+    color: var(--eg-error);
+}
+
+.su-aviso-blocked .su-aviso-estado,
+.su-aviso-skipped .su-aviso-estado,
+.su-aviso-failed .su-aviso-estado {
+    color: var(--eg-error);
+    font-weight: 700;
+}
+
+.avisos-antes {
+    border-top: 1px solid var(--eg-linea);
+}
+
+.avisos-antes summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.avisos-antes summary::-webkit-details-marker {
+    display: none;
+}
+
+.avisos-antes[open] summary svg {
+    transform: rotate(180deg);
+}
+
+.contestadas-que {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    background: #fff3bf;
+    box-shadow: 0 8px 16px -12px rgba(40, 25, 15, 0.6);
+    color: #3b2f12;
+}
+
+.contestadas-que svg {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+}
+
+.contestadas-grupo {
+    display: block;
+    margin-bottom: 18px;
+}
+
+.contestadas-grupo > header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+
+.contestadas-grupo h2 {
+    font-size: 1.125rem;
+}
+
+.contestada {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 20px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.contestada-quien {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    transition: opacity 0.2s ease;
+}
+
+.contestada-dijo {
+    overflow-wrap: anywhere;
+}
+
+/* All are answered but those taken out, which keep waiting: the two in sight, the one it is filled. */
+.contestada-sello {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    padding: 3px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.contestada-sello > span:not(.oculto) {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 2px 14px;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 650;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.contestada-sello svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.contestada input:not(:checked) ~ .contestada-sello svg {
+    display: none;
+}
+
+.contestada input:checked ~ .contestada-sello .si,
+.contestada input:not(:checked) ~ .contestada-sello .no {
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+    font-weight: 750;
+}
+
+.contestada input:not(:checked) ~ .contestada-quien .contestada-dijo,
+.contestada input:not(:checked) ~ .contestada-quien .secundario {
+    opacity: 0.75;
+}
+
+.contestada input:focus-visible ~ .contestada-sello {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.contestadas-pie {
+    padding-top: 16px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+@media (max-width: 719px) {
+    .su-aviso {
+        grid-template-columns: 30px minmax(0, 1fr);
+    }
+
+    .su-aviso form {
+        grid-column: 2;
+    }
+
+    .contestada {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .contestada-sello,
+    .contestadas-pie .boton {
+        width: 100%;
+    }
+
+    .contestada-sello {
+        box-sizing: border-box;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .contestada-quien {
+        transition: none;
+    }
+}
+
+/* ---------- Giving one from the week, and who came to an act ---------- */
+.dia-mas {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 8px;
+    color: var(--eg-tinta-2);
+    text-decoration: none;
+}
+
+.dia-mas svg {
+    width: 18px;
+    height: 18px;
+}
+
+.dia-mas:hover,
+.dia-mas:focus-visible {
+    border-color: var(--eg-accion);
+    border-style: solid;
+    color: var(--eg-tinta);
+}
+
+.dia-mas:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.agenda .dia-s.vacio .nada:not(:only-child) {
+    display: none;
+}
+
+.cita-acto .enlace {
+    position: relative;
+    z-index: 1;
+    font-size: 0.875rem;
+}
+
+.cita-quien {
+    display: block;
+}
+
+.cita-busca {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.cita-familias {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cita-familias li + li {
+    border-top: 1px solid var(--eg-linea);
+}
+
+.cita-familias a {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    align-items: center;
+    min-height: 56px;
+    padding: 8px 30px 8px 0;
+    position: relative;
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+[dir="rtl"] .cita-familias a {
+    padding: 8px 0 8px 30px;
+}
+
+.cita-familias a > svg {
+    position: absolute;
+    inset-inline-end: 2px;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    color: var(--eg-tinta-2);
+}
+
+[dir="rtl"] .cita-familias a > svg {
+    transform: scaleX(-1);
+}
+
+.cita-familias a:hover b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.cita-familias a:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.cita-fam {
+    flex: 1 1 220px;
+    min-width: 0;
+    font-size: 1.0625rem;
+}
+
+.cita-porque {
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.pidio .cita-porque:not(.tiene) {
+    padding: 2px 10px;
+    border-radius: 3px;
+    background: #fff3bf;
+    color: #3b2f12;
+}
+
+.cita-nadie {
+    padding: 14px 0 4px;
+}
+
+.cita-nueva {
+    margin: 14px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.pasada-fila[hidden] {
+    display: none;
+}
+
+.pasada-como {
+    margin: 0 0 14px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    background: #fff3bf;
+    box-shadow: 0 8px 16px -12px rgba(40, 25, 15, 0.6);
+    color: #3b2f12;
+}
+
+.pasada-buscar {
+    margin-bottom: 6px;
+}
+
+/* An act: all at the same hour, in two columns, and only what is done there. */
+.pasada-acto .pasada-fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.pasada-acto .pasada-marcas button[aria-pressed="true"] {
+    opacity: 1;
+}
+
+.pasada-pie[hidden],
+.filtrando .pasada-pie {
+    display: none;
+}
+
+.pasada-pie {
+    margin-top: 16px;
+}
+
+.pasada-quedan {
+    font-size: 1.0625rem;
+    font-weight: 700;
+}
+
+@media (min-width: 1100px) {
+    .pasada-acto .pasada-filas {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 40px;
+    }
+}
+
+@media (max-width: 719px) {
+    .pasada-acto .pasada-marcas {
+        grid-column: auto;
+    }
+
+    .pasada-acto .pasada-fila {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cita-busca {
+        flex-wrap: wrap;
+    }
+
+    .cita-busca .boton {
+        width: 100%;
+    }
+
+    .cita-nueva .boton {
+        width: 100%;
+    }
+
+    .pasada-acto .pasada-pie {
+        flex-wrap: nowrap;
+        padding-inline: 12px;
+    }
+
+    .pasada-quedan {
+        flex: 1 1 0;
+        min-width: 0;
+        font-size: 0.9375rem;
+    }
+
+    .pasada-acto .pasada-pie form {
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .pasada-acto .pasada-pie .boton {
+        width: auto;
+        padding-inline: 14px;
+        white-space: normal;
+    }
+}

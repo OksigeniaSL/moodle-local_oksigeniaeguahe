@@ -717,20 +717,30 @@ class familymail {
     ): bool {
         // A family that asked not to be written to gets nothing, but the answer to what it did after asking.
         if (!writeby::may_send($household, $kind)) {
+            notices::log($household, $kind, $signup, 'email', 'skipped', 'silent');
             return false;
         }
         // A family already of the centre answers to the office that looks after it, when the centre has one.
         $centre = centres::for_family($centre, $household, $kind);
         // The same notice on the phones the family joined with, when the site has Marandu and they did not take them out.
         $phones = $kind !== 'reply' ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
+        if ($phones) {
+            notices::log($household, $kind, $signup, 'phone', 'sent');
+        }
         // By email only if they marked it (or never chose); else, while no phone they marked is joined, and what they must
         // know.
         if (!writeby::email_ok($household, $centre, $kind)) {
+            if (!$phones) {
+                notices::log($household, $kind, $signup, 'email', 'skipped', notices::why($household));
+            }
             return $phones > 0;
         }
         // To whoever let the centre write by email, never to an address someone else added.
         $email = $to === null ? households::recipient($household) : (string) $to;
         if ($email === '') {
+            if (!$phones) {
+                notices::log($household, $kind, $signup, 'email', 'skipped', 'noemail');
+            }
             return false;
         }
         // Every mail carries how to choose the way they are written to, with its own link if the mail has none.
@@ -746,8 +756,10 @@ class familymail {
             $html = '';
         }
         if (!mail::send_rich($centre, $email, $subject, $html, $plain, $images, $unsubscribe)) {
+            notices::log($household, $kind, $signup, 'email', 'failed', 'mail');
             return false;
         }
+        notices::log($household, $kind, $signup, 'email', 'sent');
         seen::mail_sent($household, $kind);
         return true;
     }

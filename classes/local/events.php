@@ -495,6 +495,9 @@ class events {
                 ) . ($message !== '' ? "\n\n" . $message : ''), true);
             } else {
                 // No email for this family: the team reads it on its record and tells them some other way.
+                if ($signup && !writeby::email_now($household, $centre, 'cancelled')) {
+                    notices::log($household, 'cancelled', $signup, 'email', 'skipped', notices::why($household));
+                }
                 households::note($household, $userid, get_string(
                     'event_cancelled_unreached',
                     'local_oksigeniaeguahe',

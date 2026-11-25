@@ -210,9 +210,17 @@ class appointments {
      * @param string $state One of STATES.
      * @param int $userid
      * @param int $now
+     * @param bool $rest Only those nothing was said of yet: a whole day or act at once never changes what was said of one.
      * @return string The key of this time, for undo(); empty when nothing changed.
      */
-    public static function mark(\stdClass $centre, array $ids, string $state, int $userid, int $now = 0): string {
+    public static function mark(
+        \stdClass $centre,
+        array $ids,
+        string $state,
+        int $userid,
+        int $now = 0,
+        bool $rest = false
+    ): string {
         global $DB;
         $now = $now ?: time();
         if (!in_array($state, self::STATES, true)) {
@@ -224,6 +232,9 @@ class appointments {
             $one = self::one((int) $centre->id, (string) $id, $now);
             // Nothing is said of what is still to come, nor of what was called off.
             if (!$one || $one['start'] > $now || in_array($one['state'], ['off', 'asked', $state], true)) {
+                continue;
+            }
+            if ($rest && $one['state'] !== 'unknown') {
                 continue;
             }
             $stages = self::put($one, $state, $now);

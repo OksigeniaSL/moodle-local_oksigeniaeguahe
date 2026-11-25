@@ -1,0 +1,49 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_give_who
+
+    Whose appointment it is, when it starts from the week: looking for a family, those that asked for one or wait for an
+    answer, or writing down a new one.
+
+    Example context (json):
+    {
+        "head": {"back": {"url": "#", "name": "Jornadas y visitas"}, "title": "Dar cita", "sub": "¿A qué familia?"},
+        "action": "#", "c": 1, "dia": "2026-11-27", "query": "", "searched": false, "hasfamilies": true, "cut": "", "none": "", "newurl": "#",
+        "families": [{"id": 4, "adults": "Ana Ruiz", "children": [{"tag": "Leo"}], "suits": "Martes y jueves, por la tarde", "asked": true, "waiting": true, "has": "", "url": "#"}]
+    }
+}}
+<div class="pagina pagina-cita pagina-cita-quien">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <div class="bloque cita-quien">
+        <form class="cita-busca" method="get" action="{{action}}" role="search">
+            <input type="hidden" name="c" value="{{c}}">{{#dia}}<input type="hidden" name="dia" value="{{dia}}">{{/dia}}
+            <label class="buscar" for="cita-q"><span class="oculto">{{#str}}panel_search_label, local_oksigeniaeguahe{{/str}}</span>{{{i.buscar}}}<input id="cita-q" type="search" name="q" value="{{query}}" maxlength="100" placeholder="{{#str}}give_who_search, local_oksigeniaeguahe{{/str}}" autocomplete="off" spellcheck="false"></label>
+            <button class="boton secundario" type="submit">{{#str}}give_who_go, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{#none}}<p class="cita-nadie">{{none}}</p>{{/none}}
+        {{#hasfamilies}}
+        <ul class="cita-familias">
+            {{#families}}
+            <li{{#asked}} class="pidio"{{/asked}}><a href="{{url}}"><span class="cita-fam"><b>{{adults}}</b>{{#children}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{#asked}}<span class="cita-porque">{{#str}}agenda_asked_one, local_oksigeniaeguahe{{/str}}{{#suits}}: {{suits}}{{/suits}}</span>{{/asked}}{{^asked}}{{#waiting}}<span class="cita-porque">{{#str}}give_who_waiting, local_oksigeniaeguahe{{/str}}</span>{{/waiting}}{{/asked}}{{#has}}<span class="cita-porque tiene">{{has}}</span>{{/has}}{{{i.der}}}</a></li>
+            {{/families}}
+        </ul>
+        {{/hasfamilies}}
+        {{#cut}}<p class="secundario">{{cut}}</p>{{/cut}}
+        <p class="cita-nueva"><a class="boton {{#none}}principal{{/none}}{{^none}}secundario{{/none}}" href="{{newurl}}">{{{i.mas1}}}{{#str}}household_new, local_oksigeniaeguahe{{/str}}</a></p>
+    </div>
+</div>

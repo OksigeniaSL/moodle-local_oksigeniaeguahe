@@ -24,6 +24,6 @@
 }}
 <form class="agenda-hecho" method="post" action="{{markurl}}" data-hecho{{^undo}} hidden{{/undo}}>
     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="undo"><input type="hidden" name="key" value="{{undo}}">
-    <span role="status" data-hecho-texto></span>
+    <span role="status" data-hecho-texto>{{undotext}}</span>
     <button class="boton terciario pequeno" type="submit">{{#str}}agenda_undo, local_oksigeniaeguahe{{/str}}</button>
 </form>

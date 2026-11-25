@@ -49,6 +49,7 @@
                     <span class="dia-s-nombre"><small>{{weekday}}</small><b>{{day}}</b>{{#today}}<span class="oculto">, {{#str}}panel_today_word, local_oksigeniaeguahe{{/str}}</span>{{/today}}</span>
                     <div class="dia-s-cosas">
                         {{#items}}{{> local_oksigeniaeguahe/panel_agenda_card }}{{/items}}
+                        {{#addurl}}<a class="dia-mas" href="{{addurl}}">{{{i.mas1}}}<span class="oculto">{{#str}}give_title, local_oksigeniaeguahe{{/str}}: {{weekday}} {{day}}</span></a>{{/addurl}}
                         {{^hasitems}}<span class="nada">{{#closed}}{{#str}}agenda_closed, local_oksigeniaeguahe{{/str}}{{/closed}}{{^closed}}{{#str}}panel_nothing_day, local_oksigeniaeguahe{{/str}}{{/closed}}</span>{{/hasitems}}
                     </div>
                 </li>

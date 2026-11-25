@@ -48,7 +48,8 @@ class provider implements
     /** @var array Other columns that name a person of the team: table => column. */
     const OTHERS = ['local_oksigeniaeguahe_promise' => 'doneby', 'local_oksigeniaeguahe_household' => 'ownerid',
         'local_oksigeniaeguahe_notsame' => 'userid', 'local_oksigeniaeguahe_mergelog' => 'userid',
-        'local_oksigeniaeguahe_hours' => 'userid', 'local_oksigeniaeguahe_apptmark' => 'userid'];
+        'local_oksigeniaeguahe_hours' => 'userid', 'local_oksigeniaeguahe_apptmark' => 'userid',
+        'local_oksigeniaeguahe_notice' => 'userid', 'local_oksigeniaeguahe_settle' => 'userid'];
 
     /**
      * What is kept about users.
@@ -78,6 +79,14 @@ class provider implements
             'userid' => 'privacy:metadata:invite:userid',
             'timecreated' => 'privacy:metadata:invite:timecreated',
         ], 'privacy:metadata:invite');
+        $collection->add_database_table('local_oksigeniaeguahe_notice', [
+            'userid' => 'privacy:metadata:notice:userid',
+            'timecreated' => 'privacy:metadata:notice:timecreated',
+        ], 'privacy:metadata:notice');
+        $collection->add_database_table('local_oksigeniaeguahe_settle', [
+            'userid' => 'privacy:metadata:settle:userid',
+            'timecreated' => 'privacy:metadata:settle:timecreated',
+        ], 'privacy:metadata:settle');
         $collection->add_database_table('local_oksigeniaeguahe_apptmark', [
             'userid' => 'privacy:metadata:apptmark:userid',
             'state' => 'privacy:metadata:apptmark:state',

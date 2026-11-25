@@ -19,7 +19,7 @@ namespace local_oksigeniaeguahe\task;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
-use local_oksigeniaeguahe\local\messaging;
+use local_oksigeniaeguahe\local\notices;
 
 /**
  * The reminder of the day before: «Mañana los esperamos», to the families signed up for a visit tomorrow who let the
@@ -85,13 +85,20 @@ class send_reminders extends \core\task\scheduled_task {
             }
             if ($signup && !\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'reminder')) {
                 // Without the email allowed, only on the phones the family joined with.
-                messaging::notify('reminder', $household, $centre, $signup, $household->lang ?: $centre->lang);
+                notices::phones(
+                    'reminder',
+                    $household,
+                    $centre,
+                    $signup,
+                    $household->lang ?: $centre->lang
+                );
                 continue;
             }
             if ($signup) {
                 try {
                     familymail::send('reminder', $household, $centre, $signup, $household->lang ?: $centre->lang);
                 } catch (\Throwable $e) {
+                    notices::log($household, 'reminder', $signup, 'email', 'failed', 'mail');
                     mtrace('Eguahe: reminder not sent (' . $e->getMessage() . ')');
                 }
             }
