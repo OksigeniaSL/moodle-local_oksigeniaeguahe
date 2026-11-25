@@ -41,7 +41,7 @@ class export {
         $out = [];
         foreach (
             ['family', 'emails', 'phones', 'child', 'home', 'birth', 'course', 'stage', 'since', 'arrived', 'channel',
-                'entry', 'heard', 'measured', 'place', 'moving', 'ties', 'alumni', 'waiting'] as $key
+                'entry', 'heard', 'measured', 'place', 'moving', 'ties', 'alumni', 'out', 'waiting'] as $key
         ) {
             $out[$key] = get_string('export_col_' . $key, self::C);
         }
@@ -131,6 +131,7 @@ class export {
                     }
                     return get_string('alumni_someone', $c);
                 }, $studied[(int) $household->id] ?? []))),
+                'out' => outs::is_out($household) ? get_string('out_' . $household->outreason, $c) : '',
                 'waiting' => $date((int) $household->waitingsince),
             ];
             $ties = array_map([who::class, 'name'], $who[(int) $household->id] ?? []);
@@ -173,7 +174,8 @@ class export {
     public static function figure_columns(): array {
         $out = [];
         foreach (
-            ['campaign', 'arrived', 'course', 'reached', 'enrolled', 'first', 'last', 'heard', 'measured', 'moving'] as $key
+            ['campaign', 'counts', 'arrived', 'course', 'who', 'channel', 'basis', 'came', 'applied', 'reached', 'enrolled', 'students',
+                'out', 'first', 'last', 'heard', 'measured', 'moving', 'source', 'dated'] as $key
         ) {
             $out[$key] = get_string('export_fig_' . $key, self::C);
         }
@@ -181,34 +183,65 @@ class export {
     }
 
     /**
-     * The families Cifras counts, each campaign of the centre, without a name or a way to reach them.
+     * The families Cifras counts, each campaign of the centre, without a name or a way to reach them: each with all it did, so
+     * every figure of Numbers can be worked out again from here. Those its totals leave out (already of the centre, or that
+     * came for another school year) go too, and say it.
      *
      * @param \stdClass $centre
      * @return array[]
      */
     public static function figures(\stdClass $centre): array {
-        $c = self::C;
-        $steps = [1 => 'inquiry', 2 => 'visit', 3 => 'application', 4 => 'admitted', 5 => 'enrolled'];
-        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d', 99, false) : '';
         $rows = [];
+        $date = fn(int $t) => $t ? userdate($t, '%Y-%m-%d', 99, false) : '';
+        $keys = array_keys(self::figure_columns());
+        $yes = fn(bool $is) => $is ? get_string('yes') : '';
+        $c = self::C;
+        $files = array_map(fn($i) => format_string($i->label), imports::for_centre((int) $centre->id, 'contacts'));
         foreach (panel_metrics::campaigns($centre) as $campaign) {
-            foreach (panel_metrics::families($centre, $campaign) as $family) {
-                $step = (int) ($family['step'] ?? 1);
-                $rows[] = array_map([self::class, 'cell'], [
-                    'campaign' => (string) $campaign['name'],
-                    'arrived' => $date((int) ($family['first'] ?? 0)),
-                    'course' => (string) ($family['coursename'] ?? $family['course'] ?? ''),
-                    'reached' => !empty($family['closed']) ? get_string('stage_closed', $c) :
-                        get_string('stage_' . ($steps[min(5, max(1, $step))]), $c),
-                    'enrolled' => $date((int) ($family['enrolledat'] ?? 0)),
-                    'first' => (string) ($family['voices']['first'] ?? ''),
-                    'last' => (string) ($family['voices']['last'] ?? ''),
-                    'heard' => (string) ($family['voices']['said'] ?? ''),
-                    'measured' => (string) ($family['voices']['measured'] ?? ''),
-                    'moving' => !empty($family['moving']) ? get_string('yes') : '',
-                ]);
+            foreach (panel_metrics::all_families($centre, $campaign) as $group => $families) {
+                foreach ($families as $family) {
+                    $row = array_map([self::class, 'cell'], [
+                        'campaign' => (string) $campaign['name'] . ($campaign['year'] !== '' && $campaign['key'] === 'live' ? ' · ' .
+                            $campaign['year'] : ''),
+                        'counts' => get_string('export_counts_' . $group, $c),
+                        'arrived' => $date((int) ($family['first'] ?? 0)),
+                        'course' => (string) ($family['coursename'] ?? ''),
+                        'who' => implode('; ', array_map([who::class, 'name'], $family['also'] ?? ['new'])),
+                        'channel' => (string) ($family['voices']['channel'] ?? ''),
+                        'basis' => ($family['voices']['basis'] ?? '') !== '' ? get_string('export_basis_' . $family['voices']['basis'], $c) : '',
+                        'came' => $yes(!empty($family['came'])),
+                        'applied' => $yes(!empty($family['applied'])),
+                        'reached' => get_string('export_reached_' . self::reached($family), $c),
+                        'enrolled' => $date((int) ($family['enrolledat'] ?? 0)),
+                        'students' => (string) (int) ($family['students'] ?? 0),
+                        'out' => !empty($family['closed']) && $family['why'] !== '' ? get_string('out_' . $family['why'], $c) : '',
+                        'first' => (string) ($family['voices']['first'] ?? ''),
+                        'last' => (string) ($family['voices']['last'] ?? ''),
+                        'heard' => (string) ($family['voices']['said'] ?? ''),
+                        'measured' => (string) ($family['voices']['measured'] ?? ''),
+                        'moving' => $yes(!empty($family['moving'])),
+                        'dated' => $yes(!empty($family['dated'])),
+                        'source' => implode('; ', array_map(fn($s) => $s === 'eguahe' ? 'Eguahe' : ($files[$s] ?? ''), $family['sources'])),
+                    ]);
+                    $rows[] = array_combine($keys, array_map(fn($k) => $row[$k], $keys));
+                }
             }
         }
         return $rows;
+    }
+
+    /**
+     * Where a family is, as the download says it: one thing only.
+     *
+     * @param array $family Of facts.
+     * @return string enrolled, went, closed, place, waitlist, applied, came or wrote.
+     */
+    public static function reached(array $family): string {
+        foreach (['enrolled', 'went', 'closed', 'place', 'waitlist', 'applied', 'came'] as $key) {
+            if (!empty($family[$key])) {
+                return $key;
+            }
+        }
+        return 'wrote';
     }
 }

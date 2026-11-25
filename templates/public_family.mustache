@@ -36,7 +36,7 @@
             "delay": "0.15", "tilt": "-3.5", "hidden": false}]},
         "lead": "El <b>sábado 21 de noviembre</b> los recibe Lucía.", "new": true, "saved": "Ya está, los esperamos",
         "savedline": "Guarden esta página.", "emailed": "También se la hemos enviado por correo.",
-        "bandlabel": "Su visita", "outcome": false, "hall": false, "settled": false, "quiet": false,
+        "notcoming": false, "calledoff": [], "bandlabel": "Su visita", "outcome": false, "hall": false, "settled": false, "quiet": false,
         "nowcard": false, "nowband": {"band": {"isvisit": true}, "turn": false, "renewal": false, "survey": false,
             "birthday": false, "story": false, "ask": false, "sibling": false, "volunteer": false, "ambassador": false,
             "fold": false, "kicker": "", "title": "", "state": ""},
@@ -63,11 +63,12 @@
             "drawingsend": "#", "drawingsendname": "Mandar su dibujo", "drawingshare": false,
             "home": {"id": 7, "value": "Leo", "action": "#", "sesskey": "abc", "open": "Cambiarlo",
                 "label": "¿Cómo le llaman en casa?", "hint": "Así le llamaremos en su etiqueta, en su cuento y en su cumpleaños.",
-                "save": "Guardar", "saved": "Guardado", "birth": "2024-03-14", "birthdate": {"id": "cumple-7", "first": "cumple-7d", "form": false, "child": false,
+                "save": "Guardar", "saved": "Guardado", "bad": "", "birth": "2024-03-14", "birthdate": {"id": "cumple-7", "first": "cumple-7d", "form": false, "child": false,
                     "invalid": false, "labelled": true, "describedby": "cumple-7-ayuda", "parts": [{"key": "d", "id": "cumple-7d",
                     "name": "cumpled", "label": "Día", "value": "14", "size": 2, "months": false}]},
                 "latin": false, "birthlabel": "Fecha de nacimiento", "birthhint": "Para felicitarle en su cumpleaños."}, "birthline": "Cumple el 14 de marzo"}],
-        "haschildren": true, "pub_contact": "Sus datos de contacto",
+        "haschildren": true, "newchild": {"open": "Añadir a alguien más", "action": "#", "sesskey": "abc", "name": "Nombre del alumno", "course": "Curso",
+            "none": "Sin decidir", "hascourses": true, "groups": [{"label": "Infantil", "options": [{"value": 3, "name": "Infantil 3 años"}]}], "options": [], "save": "Guardar"}, "pub_contact": "Sus datos de contacto",
         "adults": [{"name": "Marta Ruiz", "reach": ["+34 611 22 23 33", "marta@example.com"]}],
         "writeby": {"title": "Cómo les escribimos", "url": "#", "silent": "", "noinvites": "", "backon": "Volver a recibirlos",
         "pills": [{"icon": "", "label": "Correo", "missing": false}], "others": [{"icon": "", "label": "Telegram", "url": "#"}], "haspills": true, "nothing": "", "pending": [], "change": "Cambiarlo"}, "pub_data": "Sus datos",
@@ -107,9 +108,18 @@
             {{#notcoming}}
             <div class="aviso en-heroe" role="status">
                 <span class="icono">{{{i.check}}}</span>
-                <p><b>{{notcoming}}</b></p>
+                <div>
+                    <p>{{#text}}<b>{{text}}</b> {{/text}}{{next}}</p>
+                    {{#undo}}<form class="no-podemos" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="alfinal"><input type="hidden" name="acto" value="{{eventid}}"><input type="hidden" name="n" value="{{people}}"><input type="hidden" name="turno" value="{{slot}}"><button class="enlace" type="submit">{{label}}</button></form>{{/undo}}
+                    {{#hasothers}}<p class="otros-dias">{{otherstitle}} {{#others}}<a class="enlace" href="{{url}}">{{name}}, {{when}}</a> {{/others}}</p>{{/hasothers}}
+                </div>
             </div>
             {{/notcoming}}
+            {{#calledoff}}
+            <div class="aviso en-heroe">
+                <p><b>{{text}}</b>{{#said}} <span dir="auto">{{said}}</span>{{/said}}</p>
+            </div>
+            {{/calledoff}}
             {{#outcome}}<p class="lo-que-hacemos"><b>{{title}}</b> <span dir="auto">{{text}}</span></p>{{/outcome}}
             {{#settled}}
             <div class="quien-lleva">
@@ -188,7 +198,8 @@
         {{#haschildren}}
         <div>
             <h3 id="quien-vendria">{{whocomes}}</h3>
-            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#birthline}}<br>{{birthline}}{{/birthline}}{{#home}}{{#saved}}<br><span class="casa-guardado" role="status">{{saved}}</span>{{/saved}}<details class="en-casa"><summary class="enlace">{{open}}</summary><form class="hoja-casa" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="nino" value="{{id}}"><div class="campo"><label for="casa-{{id}}">{{label}}</label><input id="casa-{{id}}" name="casa" value="{{value}}" maxlength="100" autocomplete="off" dir="auto" aria-describedby="casa-{{id}}-ayuda"><p class="ayuda-campo" id="casa-{{id}}-ayuda">{{hint}}</p></div>{{#latin}}<div class="campo"><label for="latina-{{id}}">{{label}}</label><input id="latina-{{id}}" name="latina" value="{{value}}" maxlength="100" dir="ltr" lang="en" autocomplete="off" aria-describedby="latina-{{id}}-ayuda"><p class="ayuda-campo" id="latina-{{id}}-ayuda">{{hint}}</p></div>{{/latin}}<div class="campo"><label id="cumple-{{id}}-l" for="{{birthdate.first}}">{{birthlabel}}</label>{{#birthdate}}{{> local_oksigeniaeguahe/public_date }}{{/birthdate}}<p class="ayuda-campo" id="cumple-{{id}}-ayuda">{{birthhint}}</p></div><button class="boton secundario" type="submit">{{save}}</button></form></details>{{/home}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{#drawingsend}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a>{{/drawingsend}}{{#drawingshare}}<span class="pasar"><button class="enlace mandar-dibujo" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#video}} data-video="{{.}}"{{/video}} data-toca="share_drawing">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/drawingshare}}</dd></div>{{/children}}</dl>
+            <dl>{{#children}}<div class="nino-fila"><dt>{{name}}</dt><dd>{{course}}{{#ontag}}<br>{{ontag}}{{/ontag}}{{#birthline}}<br>{{birthline}}{{/birthline}}{{#home}}{{#saved}}<br><span class="casa-guardado" role="status">{{saved}}</span>{{/saved}}<details class="en-casa"{{#bad}} open{{/bad}}><summary class="enlace">{{open}}</summary><form class="hoja-casa" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="nino" value="{{id}}">{{#bad}}<p class="aviso-error" role="alert">{{bad}}</p>{{/bad}}<div class="campo"><label for="casa-{{id}}">{{label}}</label><input id="casa-{{id}}" name="casa" value="{{value}}" maxlength="100" autocomplete="off" dir="auto" aria-describedby="casa-{{id}}-ayuda"><p class="ayuda-campo" id="casa-{{id}}-ayuda">{{hint}}</p></div>{{#latin}}<div class="campo"><label for="latina-{{id}}">{{label}}</label><input id="latina-{{id}}" name="latina" value="{{value}}" maxlength="100" dir="ltr" lang="en" autocomplete="off" aria-describedby="latina-{{id}}-ayuda"><p class="ayuda-campo" id="latina-{{id}}-ayuda">{{hint}}</p></div>{{/latin}}<div class="campo"><label id="cumple-{{id}}-l" for="{{birthdate.first}}">{{birthlabel}}</label>{{#birthdate}}{{> local_oksigeniaeguahe/public_date }}{{/birthdate}}<p class="ayuda-campo" id="cumple-{{id}}-ayuda">{{birthhint}}</p></div><button class="boton secundario" type="submit">{{save}}</button></form></details>{{/home}}{{#tales}}<br><a class="enlace cuentos" href="{{tales}}" data-toca="tales">{{talesname}}</a>{{/tales}}{{#drawing}}<a class="dibujo-nino" href="{{drawing}}" data-ampliar="{{pub_drawing_close}}"{{#drawingstrokes}} data-trazos="{{.}}"{{/drawingstrokes}}><img src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}{{#drawingsend}}{{^drawing}}<br>{{/drawing}}<a class="enlace mandar-dibujo" href="{{drawingsend}}">{{drawingsendname}}</a>{{/drawingsend}}{{#drawingshare}}<span class="pasar"><button class="enlace mandar-dibujo" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}"{{#video}} data-video="{{.}}"{{/video}} data-toca="share_drawing">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/drawingshare}}</dd></div>{{/children}}</dl>
+            {{#newchild}}<details class="en-casa" id="otro-hijo"><summary class="enlace">{{open}}</summary><form class="hoja-casa" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><div class="campo"><label for="otro-hijo-n">{{name}}</label><input id="otro-hijo-n" name="nombre" maxlength="100" autocomplete="off" dir="auto"></div>{{#hascourses}}<div class="campo"><label for="otro-hijo-c">{{course}}</label><select id="otro-hijo-c" name="curso"><option value="0">{{none}}</option>{{#groups}}<optgroup label="{{label}}">{{#options}}<option value="{{value}}">{{name}}</option>{{/options}}</optgroup>{{/groups}}{{#options}}<option value="{{value}}">{{name}}</option>{{/options}}</select></div>{{/hascourses}}<button class="boton secundario" type="submit">{{save}}</button></form></details>{{/newchild}}
             {{#hassiblings}}<h3>{{siblingstitle}}</h3><dl>{{#siblings}}<div><dt>{{name}}</dt><dd>{{line}}</dd></div>{{/siblings}}</dl>{{/hassiblings}}
         </div>
         {{/haschildren}}
@@ -198,7 +209,8 @@
                 {{#adults}}<div><dt>{{name}}</dt><dd>{{#reach}}{{.}}<br>{{/reach}}</dd></div>{{/adults}}
             </dl>
             {{#contactedit}}
-            {{#saved}}<p class="casa-guardado" role="status">{{saved}}</p>{{/saved}}
+            {{#removed}}<form class="quitado" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="deshacer" value="1"><p class="casa-guardado" role="status">{{text}} <button class="enlace" type="submit">{{undo}}</button></p></form>{{/removed}}
+            {{^removed}}{{#saved}}<p class="casa-guardado" role="status">{{saved}}</p>{{/saved}}{{/removed}}
             <details class="en-casa datos-contacto" id="datos"{{#savedopen}} open{{/savedopen}}>
                 <summary class="enlace">{{open}}</summary>
                 <form class="hoja-casa" method="post" action="{{action}}" data-datos data-guardado-texto="{{savedline}}" data-falta-texto="{{needreach}}">

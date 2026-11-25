@@ -78,7 +78,7 @@ class publiclang {
             if ($primary === 'pt') {
                 return 'pt';
             }
-            if ($primary === 'es' || $primary === 'en') {
+            if ($primary === 'es' || $primary === 'en' || $primary === 'ar') {
                 return $primary;
             }
         }
@@ -216,12 +216,12 @@ class publiclang {
      * @return array For the template: name, url, current.
      */
     public static function switcher(string $lang, \moodle_url $url): array {
-        $names = ['es' => 'Español', 'en' => 'English', 'pt_br' => 'Português', 'pt' => 'Português'];
+        $names = ['es' => 'Español', 'en' => 'English', 'pt_br' => 'Português', 'pt' => 'Português', 'ar' => 'العربية'];
         // One Portuguese in the corner: the one of the browser, Brazil's when it says neither.
         $portuguese = in_array($lang, ['pt', 'pt_br'], true) ? $lang :
             (self::from_header((string) ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')) === 'pt' ? 'pt' : 'pt_br');
         $list = [];
-        foreach (['es', 'en', $portuguese] as $code) {
+        foreach (['es', 'en', $portuguese, 'ar'] as $code) {
             $link = new \moodle_url($url, ['idioma' => $code]);
             $link->remove_params('lang');
             $list[] = ['name' => $names[$code], 'url' => $link->out(false), 'current' => $code === $lang,

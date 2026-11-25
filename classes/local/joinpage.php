@@ -53,9 +53,9 @@ class joinpage {
         $form = $isform ? entries::get((int) $event->formid, (int) $centre->id) : null;
         $act = $isform ? ['poster' => false, 'about' => '', 'speakers' => [], 'hasspeakers' => false, 'speakerstitle' => '',
             'audience' => '', 'free' => false, 'freetext' => '', 'asks' => false] : acts::context($event, $lang);
-        $name = format_string($event->name);
+        $name = publicpage::text($event->name);
         $own = $event->kind === 'other';
-        $headline = $isform ? (trim((string) ($form->title ?? '')) !== '' ? format_string($form->title) :
+        $headline = $isform ? (trim((string) ($form->title ?? '')) !== '' ? publicpage::text($form->title) :
             publiclang::str('pub_form_title', $lang)) : ($own ? $name : publiclang::str('pub_come_meet', $lang));
         $ids = array_filter(array_map('intval', explode(',', (string) ($event->hosts ?? ''))));
         $hosts = $isform ? centres::answerers($centre, null) : ($ids ? centres::hosts((int) $centre->id, $ids) : []);
@@ -79,11 +79,11 @@ class joinpage {
             'kicker' => $isform ? '' : ($own ? acts::word($event, $lang) : $name),
             'headline' => $headline,
             'longname' => \core_text::strlen($headline) > 38,
-            'lead' => $isform ? (trim((string) ($form->lead ?? '')) !== '' ? format_string($form->lead) :
+            'lead' => $isform ? (trim((string) ($form->lead ?? '')) !== '' ? publicpage::text($form->lead) :
                 publiclang::str('pub_form_lead', $lang)) : (empty($event->tailored) ? '' : publiclang::str('pub_when_suits_hint', $lang)),
             'when' => $when,
-            'where' => $isform ? '' : implode(', ', array_filter([$event->place ? format_string($event->place) : '',
-                !empty($centre->address) ? format_string($centre->address) : ''])),
+            'where' => $isform ? '' : implode(', ', array_filter([$event->place ? publicpage::text($event->place) : '',
+                !empty($centre->address) ? publicpage::text($centre->address) : ''])),
             'poster' => $act['poster'],
             'about' => $act['about'],
             'speakers' => $act['speakers'],
@@ -100,6 +100,8 @@ class joinpage {
                 $lang,
                 familypage::join($firsts, $lang)
             ) : '',
+            // No room left: said before they write, and what the button does instead.
+            'full' => !empty($data['full']) ? publiclang::str('pub_full_lead', $lang) : '',
             'hasmore' => $act['about'] !== '' || $act['hasspeakers'] || $act['audience'] !== '' || $hosts,
             'pegs' => $pegs,
             // Without a poster and with nothing on the rail, the leaf of the day, on the same band.
@@ -149,7 +151,11 @@ class joinpage {
         $people = (int) $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]);
         // What there is, whoever changed it and from where: signed up, they come; not signed up, they have not said so.
         $answer = $people ? 'yes' : ($answer === 'yes' ? '' : $answer);
+        // «We cannot come», pressed in a mail: only that is asked, and nothing looks answered yet.
         $no = $no && $answer === 'yes';
+        $said = $answer;
+        $answer = $no ? '' : $answer;
+        $done = $said === 'yes' && households::recipient($household) !== '' ? 'pub_known_done_yes_mail' : 'pub_known_done_' . $answer;
         $now = writeby::now($household, $centre);
         $admission = self::in_admission($household);
         $lastway = $str($admission ? 'pub_known_lastway' : 'pub_known_lastway_other');
@@ -164,18 +170,18 @@ class joinpage {
             'ask' => $str($no ? 'pub_known_ask_no' : 'pub_known_ask'),
             'wantsno' => $no,
             'answer' => $answer,
-            'yes' => ['name' => 'reply', 'value' => 'yes', 'label' => $str('pub_known_yes'), 'current' => $answer === 'yes' && !$no],
-            'no' => ['name' => 'reply', 'value' => 'no', 'label' => $str('pub_known_no'), 'current' => $answer === 'no'],
-            'coming' => $answer === 'yes' && !$no,
-            // To their calendar, and that a mail says it too.
-            'calendar' => $who !== '' ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['t' => $event->token, 'fam' => $who,
-                'idioma' => $lang]))->out(false) : '',
-            'calendarlabel' => $str('pub_add_calendar'),
-            'mailed' => households::recipient($household) !== '' ? $str('pub_known_mailed') : '',
+            'yes' => ['name' => 'reply', 'value' => 'yes', 'label' => $str($no ? 'pub_known_yes_after' : 'pub_known_yes'),
+                'current' => $answer === 'yes'],
+            'no' => ['name' => 'reply', 'value' => 'no', 'label' => $str($no ? 'pub_cantcome' : 'pub_known_no'),
+                'current' => $answer === 'no'],
+            // The act in their own calendar, once they come.
+            'calendar' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['t' => $event->token, 'idioma' => $lang]))->out(false),
+                'label' => $str('pub_add_calendar')],
+            'coming' => $answer === 'yes',
             // Whether they come or not, how they are written to; how many, only if they come.
             'answered' => $answer !== '' && !$no,
             'now' => $now,
-            'done' => $no ? $str('pub_known_has_place') : ($answer === '' ? '' : $str('pub_known_done_' . $answer)),
+            'done' => $no ? $str('pub_known_has_place') : ($answer === '' ? '' : $str($done)),
             'people' => ['name' => 'people', 'label' => $str('pub_join_people'), 'value' => $people ?: 1, 'min' => 1,
                 'max' => events::MAXPEOPLE, 'less' => $str('pub_join_less'), 'more' => $str('pub_join_more')],
             'ways' => $ways,
@@ -268,7 +274,7 @@ class joinpage {
         $codes = [];
         // On WhatsApp, one touch: being asked right now (formulario.js waits for it) or asked already; its button is then for
         // whoever does not get the message.
-        $state = in_array('whatsapp', $now, true) ? writeby::whatsapp($household, $centre) : ['asked' => 0, 'ends' => ''];
+        $state = in_array('whatsapp', $now, true) ? writeby::whatsapp($household, $centre) : ['asked' => 0, 'ends' => '', 'failed' => false];
         $asking = optional_param('ajax', 0, PARAM_BOOL) && !optional_param('opened', 0, PARAM_BOOL) &&
             !optional_param('ask', 0, PARAM_BOOL) && writeby::askable($household, $centre);
         foreach (writeby::join_links($household, $centre, $now) as $channel => $link) {
@@ -276,17 +282,18 @@ class joinpage {
                 $rows[] = ['asking' => true, 'asked' => false, 'label' => publiclang::str('pub_known_asking', $lang)];
                 continue;
             }
-            $asked = $channel === 'whatsapp' && $state['asked'];
+            $failed = $channel === 'whatsapp' && !empty($state['failed']);
+            $asked = $channel === 'whatsapp' && $state['asked'] && !$failed;
             $rows[] = [
                 'asking' => false,
                 'asked' => $asked,
                 // The word of its button, as the message has it: in the language of the site.
                 'yes' => $asked ? get_string_manager()->get_string('yes', 'moodle', null, (string) $CFG->lang) : '',
                 // What to do and what for, in words: «join» alone says neither.
-                'label' => $asked ? publiclang::str('pub_known_asked', $lang) :
-                    publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang)),
-                'text' => $asked ? publiclang::str('pub_known_asked_text', $lang, $state['ends']) :
-                    publiclang::str('pub_known_step_' . $channel, $lang),
+                'label' => $failed ? publiclang::str('pub_known_failed', $lang, $state['ends']) : ($asked ? publiclang::str('pub_known_asked', $lang) :
+                    publiclang::str('pub_known_step', $lang, publiclang::str('pub_writeby_' . $channel, $lang))),
+                'text' => $failed ? publiclang::str('pub_known_failed_text', $lang) : ($asked ? publiclang::str('pub_known_asked_text', $lang, $state['ends']) :
+                    publiclang::str('pub_known_step_' . $channel, $lang)),
                 'planb' => $asked ? publiclang::str('pub_known_asked_planb', $lang) : '',
                 'url' => $link,
                 'icon' => writeby::icon($channel),
@@ -372,7 +379,7 @@ class joinpage {
      */
     public static function first_layer(\stdClass $centre, string $lang, bool $act = false): array {
         $a = (object) [
-            'centre' => format_string($centre->controller ?: $centre->name),
+            'centre' => publicpage::text($centre->controller ?: $centre->name),
             'contact' => s($centre->rightscontact ?: ''),
             'months' => (int) $centre->retention,
         ];

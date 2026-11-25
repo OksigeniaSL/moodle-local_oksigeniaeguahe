@@ -235,7 +235,10 @@ class panel_eventform {
             return [[], []];
         }
         $signups = $DB->get_records(events::SIGNUPS, ['eventid' => $old['id']], 'timecreated ASC', 'id, householdid, slotid');
-        if (!$signups) {
+        $event = events::get((int) $old['id'], (int) $centre->id);
+        // Those that have its letter, with the day it had.
+        $letters = $event && (int) $event->timestart > time() ? count(invites::with_letter($event)) : 0;
+        if (!$signups && !$letters) {
             return [[], []];
         }
         $c = self::C;
@@ -286,7 +289,7 @@ class panel_eventform {
                 $reached[(int) $signup->householdid] = (int) $signup->householdid;
             }
         }
-        return [$reached ? $changes : [], array_values($reached)];
+        return [$reached || ($letters && $all) ? $changes : [], array_values($reached)];
     }
 
     /**
@@ -297,9 +300,10 @@ class panel_eventform {
      * @param array $changes
      * @param int[] $householdids
      * @param array $values
+     * @param array|null $old The act as it was.
      * @return array
      */
-    public static function notice(\stdClass $centre, array $changes, array $householdids, array $values): array {
+    public static function notice(\stdClass $centre, array $changes, array $householdids, array $values, ?array $old = null): array {
         global $USER;
         $c = self::C;
         $count = count($householdids);
@@ -313,8 +317,11 @@ class panel_eventform {
                 continue;
             }
             $first = $first ?? $household;
-            $byemail = (bool) array_filter(households::full($household)->adults, fn($a) => trim((string) $a->email) !== '');
-            $bymobile = messaging::joined($household, $centre);
+            // As it will go: whoever asked not to be written to, or by another way, does not get it.
+            $signup = familymail::signup($household, (int) $values['id']);
+            $act = $signup && actmail::is($signup);
+            $byemail = households::recipient($household) !== '' && writeby::email_ok($household, $centre, 'change', $act);
+            $bymobile = !$act && writeby::phone_ok($household, 'change') && messaging::joined($household, $centre);
             $email += $byemail ? 1 : 0;
             $mobile += $bymobile ? 1 : 0;
             $neither += !$byemail && !$bymobile ? 1 : 0;
@@ -339,17 +346,25 @@ class panel_eventform {
             $first,
             $centre,
             self::preview_signup($first, $centre, $values),
-            $first->lang ?: (string) $centre->lang
+            $first->lang ?: (string) $centre->lang,
+            $old
         ) : ['greeting' => '', 'text' => ''];
         $names = $first ? array_values(array_filter(array_map(
             fn($a) => trim((string) $a->firstname),
             households::full($first)->adults
         ))) : [];
+        // Those that have its letter and are not signed up: what it says is the day it had.
+        $event = events::get((int) $values['id'], (int) $centre->id);
+        $letters = $event ? count(invites::with_letter($event)) : 0;
         return [
-            'title' => get_string($count === 1 ? 'panel_notice_title_one' : 'panel_notice_title', $c, $count),
+            'letters' => $letters ? get_string($letters === 1 ? 'panel_notice_letters_one' : 'panel_notice_letters', $c, $letters) : '',
+            'title' => !$count ? get_string('panel_notice_title_letters', $c) :
+                get_string($count === 1 ? 'panel_notice_title_one' : 'panel_notice_title', $c, $count),
+            'hasfamilies' => $count > 0,
             'changes' => $changes,
             'households' => $count,
-            'tell' => get_string($count === 1 ? 'panel_save_and_tell_one' : 'panel_save_and_tell', $c, $count),
+            'tell' => !$count ? get_string('panel_save_and_tell_letters', $c) :
+                get_string($count === 1 ? 'panel_save_and_tell_one' : 'panel_save_and_tell', $c, $count),
             'who' => $who,
             'greeting' => $message['greeting'],
             'message' => $message['text'],
@@ -395,29 +410,47 @@ class panel_eventform {
      * @param \stdClass $centre
      * @param \stdClass $signup As households::full() gives them, or as it will be.
      * @param string $lang
+     * @param array|null $old The act as it was, from values(): its day and hour are said beside the new ones.
      * @return array greeting and text.
      */
-    public static function message(\stdClass $household, \stdClass $centre, \stdClass $signup, string $lang): array {
+    public static function message(
+        \stdClass $household,
+        \stdClass $centre,
+        \stdClass $signup,
+        string $lang,
+        ?array $old = null
+    ): array {
+        $was = $old ? self::preview_signup($household, $centre, $old) : null;
+        if ($was && (int) $was->timestart === (int) $signup->timestart && (int) $was->timeend === (int) $signup->timeend) {
+            $was = null;
+        }
         $act = actmail::act('change', $signup, $centre);
         if ($act) {
             // Of a talk or a party: what it is and when and where it is now, to the adult, and nobody who receives them.
             $first = familymail::first_name($household);
             $lines = actmail::lines($act, $signup, $centre, $lang);
+            $before = $was ? "\n" . publiclang::str('mail_act_change_was', $lang, rtrim(
+                actmail::lines($act, $was, $centre, $lang)[0] ?? '',
+                '.'
+            )) : '';
             return ['greeting' => $first !== '' ? publiclang::str('mail_letter_hello', $lang, $first) :
                 publiclang::str('mail_letter_hello_noname', $lang), 'text' => actmail::changed($act, $lang) . "\n\n" .
-                implode("\n", $lines), 'when' => rtrim($lines[0] ?? '', '.')];
+                implode("\n", $lines) . $before, 'when' => rtrim($lines[0] ?? '', '.')];
         }
         $names = array_values(array_filter(array_map(
             fn($a) => greeting::name((string) $a->firstname, trim((string) $a->lastname) !== ''),
             households::full($household)->adults
         )));
-        $parts = publicpage::date_parts((int) $signup->timestart, $lang);
-        $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
-        $when = $parts['long'] . ', ' . \core_text::strtolower(\core_text::substr($hours, 0, 1)) .
-            \core_text::substr($hours, 1);
+        $said = function (\stdClass $of) use ($lang): string {
+            $hours = familypage::hours((int) $of->timestart, (int) $of->timeend, $lang);
+            return publicpage::date_parts((int) $of->timestart, $lang)['long'] . ', ' .
+                \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1);
+        };
+        $when = $said($signup);
         $place = trim((string) $signup->place);
-        $text = publiclang::str('mail_change_lead', $lang, (object) ['name' => format_string($signup->eventname),
-            'when' => $when, 'place' => $place !== '' ? publiclang::str('mail_change_place', $lang, $place) : '']);
+        $text = publiclang::str($was ? 'mail_change_lead_was' : 'mail_change_lead', $lang, (object) [
+            'name' => format_string(visits::shown((string) $signup->eventname, $lang)), 'was' => $was ? $said($was) : '', 'when' => $when,
+            'place' => $place !== '' ? publiclang::str('mail_change_place', $lang, $place) : '']);
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
         $hosts = array_map(fn($h) => $h->first ?: $h->name, $ids ? centres::hosts((int) $centre->id, $ids) : []);
         if ($hosts) {
@@ -439,9 +472,10 @@ class panel_eventform {
      * @param \stdClass $event As it is now.
      * @param int[] $householdids
      * @param int $userid
+     * @param array|null $old The act as it was, from values().
      * @return int How many were told.
      */
-    public static function tell(\stdClass $centre, \stdClass $event, array $householdids, int $userid): int {
+    public static function tell(\stdClass $centre, \stdClass $event, array $householdids, int $userid, ?array $old = null): int {
         $told = 0;
         foreach ($householdids as $id) {
             $household = households::get((int) $id, (int) $centre->id);
@@ -450,7 +484,7 @@ class panel_eventform {
                 continue;
             }
             $lang = $household->lang ?: $centre->lang;
-            $message = self::message($household, $centre, $signup, $lang);
+            $message = self::message($household, $centre, $signup, $lang, $old);
             $text = trim($message['greeting'] . "\n\n" . $message['text']);
             $sent = false;
             ob_start();
@@ -470,7 +504,7 @@ class panel_eventform {
             } finally {
                 ob_end_clean();
             }
-            if ($sent || messaging::joined($household, $centre)) {
+            if ($sent) {
                 households::told($household, $userid, $sent ? 'email' : 'other', $text);
                 $told++;
             }

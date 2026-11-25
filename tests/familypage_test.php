@@ -158,4 +158,66 @@ final class familypage_test extends \advanced_testcase {
         $this->assertTrue($page['hasnext']);
         antispam::$testpass = null;
     }
+
+    /**
+     * Not coming is noted with its day, taken back with one touch and with the other days; an act called off is said.
+     */
+    public function test_not_coming(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'email' => 'centro@example.com']);
+        $centre = centres::get($cid);
+        $save = fn(string $name, int $days) => events::get(events::save($cid, (object) ['kind' => 'openday', 'name' => $name,
+            'timestart' => time() + $days * DAYSECS, 'timeend' => time() + $days * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $cid);
+        $event = $save('Jornada de otoño', 5);
+        $other = $save('Jornada de invierno', 12);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        households::add_adult($household, (object) ['firstname' => 'Marta', 'email' => 'marta.no@example.com']);
+        events::sign_up($event, (int) $household->id, 3);
+        $ask = familypage::cantcome_context($household, $centre, (int) $event->id, 'es', 'x');
+        $this->assertSame('¿Al final no pueden venir?', $ask['title']);
+        $this->assertNull(familypage::cantcome_context($household, $centre, (int) $other->id, 'es', 'x'));
+        events::unsign($event, $household, 'Al final no podemos ir.', true);
+        $page = familypage::context($household, $centre, 'es', 'x', false, ['notcoming' => 'visita', 'notevent' => (int) $event->id,
+            'notpeople' => 3]);
+        $this->assertStringStartsWith('Anotado: no vienen el ', $page['notcoming']['text']);
+        $this->assertContains('Jornada de invierno', array_column($page['notcoming']['others'], 'name'));
+        $this->assertNotContains('Jornada de otoño', array_column($page['notcoming']['others'], 'name'));
+        $this->assertSame('Hola', rtrim($page['greeting'], ','), 'Nobody is expecting them now.');
+        $this->assertSame(3, $page['notcoming']['undo']['people']);
+        $this->assertTrue(familypage::come_after_all($household, $centre, (int) $event->id, 3, 0, 'es'));
+        $this->assertEquals(3, $DB->get_field(events::SIGNUPS, 'people', ['eventid' => $event->id, 'householdid' => $household->id]));
+        // Called off: said in its page, until its day.
+        \local_oksigeniaeguahe\local\notices::log($household, 'cancelled', (object) ['eventid' => $event->id, 'eventname' => $event->name,
+            'timestart' => $event->timestart], 'email', 'sent');
+        $DB->set_field(events::T, 'cancelled', time(), ['id' => $event->id]);
+        $this->assertFalse(familypage::come_after_all($household, $centre, (int) $event->id, 3, 0, 'es'));
+        $page = familypage::context(households::get((int) $household->id, $cid), $centre, 'es', 'x', false);
+        $this->assertCount(1, $page['calledoff']);
+        $this->assertStringContainsString('Jornada de otoño', $page['calledoff'][0]['text']);
+    }
+
+    /**
+     * Whoever wrote reads who answers and until when, not a visit it did not ask for; with the admission open, the page says so.
+     */
+    public function test_waiting_and_open(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'email' => 'centro@example.com']);
+        $centre = centres::get($cid);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        households::add_adult($household, (object) ['firstname' => 'Marta', 'email' => 'marta.espera@example.com']);
+        households::received($household, 'webform', '¿Hay comedor?', true);
+        $page = familypage::context(households::get((int) $household->id, $cid), $centre, 'es', 'x', false);
+        $this->assertStringContainsString('contesta', $page['lead']);
+        $next = function (array $fields) use ($DB, $cid): string {
+            $DB->update_record(centres::T, (object) (['id' => $cid] + $fields));
+            $method = new \ReflectionMethod(familypage::class, 'next_line');
+            return $method->invoke(null, centres::get($cid), '2027-28', 'es', time());
+        };
+        $closed = $next(['applyhow' => 'En la secretaría', 'applyfrom' => time() + 9 * DAYSECS, 'applyuntil' => time() + 40 * DAYSECS]);
+        $this->assertStringContainsString('Cuando abra', $closed);
+        $open = $next(['applyfrom' => time() - DAYSECS]);
+        $this->assertStringContainsString('está abierta hasta el', $open);
+    }
 }

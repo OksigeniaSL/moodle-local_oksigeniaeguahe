@@ -1130,7 +1130,8 @@
             if (window.ResizeObserver) {
                 new window.ResizeObserver(tell).observe(document.body);
             }
-            if (!form || summary) {
+            // Sent, or with something wrong in it: its top is what there is to read.
+            if (!document.querySelector('[data-fb]') || document.querySelector('[data-fb] [aria-invalid="true"]')) {
                 window.parent.postMessage({eguahe: 'top'}, '*');
             }
         }
@@ -1195,6 +1196,23 @@
                                 said.textContent = '\u2713 ' + contacts.getAttribute('data-guardado-texto');
                             }
                         }
+                        // A slip in the domain of an email: asked, and one touch uses the one they surely meant.
+                        Object.keys(answer.maybe || {}).forEach(function(name) {
+                            var input = card.querySelector('[name="' + name + '"]');
+                            if (!input || !said || bad) {
+                                return;
+                            }
+                            var use = document.createElement('button');
+                            use.type = 'button';
+                            use.className = 'enlace';
+                            use.textContent = answer.maybe[name].use;
+                            use.addEventListener('click', function() {
+                                input.value = answer.maybe[name].value;
+                                input.dispatchEvent(new Event('change', {bubbles: true}));
+                            });
+                            said.textContent = answer.maybe[name].ask + ' ';
+                            said.appendChild(use);
+                        });
                         // The list above says it too, and each line is written as it was kept: «+34 600 000 002».
                         var list = document.querySelector('[data-datos-lista]');
                         (answer.list || []).forEach(function(adult) {
@@ -1236,6 +1254,7 @@
         if (boxes) {
             var save = boxes.form ? boxes.form.querySelector('[data-guardar]') : null;
             var label = save ? save.querySelector('span') : null;
+            var touched = false;
             var mark = function() {
                 var any = false;
                 Array.prototype.forEach.call(boxes.querySelectorAll('.es-casilla'), function(box) {
@@ -1244,12 +1263,26 @@
                     any = any || input.checked;
                 });
                 if (label) {
-                    // With nothing marked the button waits for one: «do not write to us» is never this button.
+                    // With nothing marked the button is «do not write to us any more», which is asked on the next page.
                     label.textContent = any ? save.getAttribute('data-guardar') : save.getAttribute('data-ninguno');
-                    save.disabled = !any;
+                }
+                // What was said of the way pressed in a mail is no longer what the boxes say.
+                Array.prototype.forEach.call(boxes.querySelectorAll('.es-cambia'), function(tag) {
+                    tag.hidden = touched;
+                });
+                var said = boxes.form ? boxes.form.querySelector('[data-queda]') : null;
+                if (said && touched) {
+                    said.textContent = said.getAttribute('data-queda');
                 }
             };
-            boxes.addEventListener('change', mark);
+            boxes.addEventListener('change', function() {
+                var title = document.getElementById('titulo');
+                touched = true;
+                if (title && boxes.hasAttribute('data-titulo')) {
+                    title.textContent = boxes.getAttribute('data-titulo');
+                }
+                mark();
+            });
             mark();
         }
 

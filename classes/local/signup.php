@@ -65,6 +65,7 @@ class signup {
                 'offerid' => optional_param("c{$i}offer", 0, PARAM_INT),
             ];
         }
+        $children = self::apart($children);
         // Brothers and sisters at home who would come later: a name and the year of birth.
         $siblings = [];
         for ($i = 0; $i < self::SIBLINGS; $i++) {
@@ -108,6 +109,32 @@ class signup {
         ];
         // The student who signs up for themselves: they are the adult and the one who would study.
         return $centre && self::for_self($centre, optional_param('para', '', PARAM_ALPHA)) ? self::as_self($data) : $data;
+    }
+
+    /**
+     * Two or more children written in one name («Ana y Luis»), each in its own row, as long as there are rows for them: the
+     * course chosen is of the first one.
+     *
+     * @param array[] $children As read() has them.
+     * @return array[]
+     */
+    public static function apart(array $children): array {
+        $blank = ['firstname' => '', 'tagname' => '', 'birthdate' => '', 'latinname' => '', 'offerid' => 0];
+        $out = [];
+        foreach ($children as $child) {
+            $names = entries::names((string) $child['firstname']);
+            if ($names) {
+                $child['firstname'] = array_shift($names);
+            }
+            $out[] = $child;
+            foreach ($names as $name) {
+                $out[] = ['firstname' => $name] + $blank;
+            }
+        }
+        // The rows left blank make room for them; what is written stays in its order.
+        $written = array_values(array_filter($out, fn($c) => array_filter($c)));
+        return count($out) === count($children) ? $out :
+            array_pad(array_slice($written, 0, self::CHILDREN), self::CHILDREN, $blank);
     }
 
     /**
@@ -189,7 +216,7 @@ class signup {
             $errors['a0phone'] = publiclang::str('pub_err_reach', $lang);
         }
         $offers = centres::offers($centre->id, true);
-        $any = false;
+        // Who would study is asked for, and never needed: they may be two or more, or not be told yet.
         foreach ($data['children'] as $i => $child) {
             if ($child['offerid'] && !isset($offers[$child['offerid']])) {
                 $errors["c{$i}offer"] = publiclang::str('pub_err_offer', $lang);
@@ -197,11 +224,6 @@ class signup {
             if (($child['birthdate'] ?? '') !== '' && !birthdays::clean($child['birthdate'], time())) {
                 $errors["c{$i}birth"] = publiclang::str('pub_birthdate_bad', $lang);
             }
-            $any = $any || $child['firstname'] !== '';
-        }
-        // At an event that is not about admissions (a party, a talk), who would study is not asked for.
-        if (!$any && $event->kind !== 'other' && empty($data['self'])) {
-            $errors['c0name'] = publiclang::str('pub_err_child', $lang);
         }
         // The questions of the form of the centre, if it has one.
         if (!empty($event->formid)) {
@@ -215,13 +237,9 @@ class signup {
         if ($slots && !isset($slots[$data['slot'] ?? 0])) {
             $errors['slot'] = publiclang::str('pub_err_slot', $lang);
         }
+        // The room is looked at under the lock of the act, with what this family already had (fits()).
         if ($data['people'] < 1 || $data['people'] > events::MAXPEOPLE) {
             $errors['people'] = publiclang::str('pub_err_people', $lang);
-        } else if (
-            empty($event->tailored) && !isset($errors['slot']) &&
-            !events::has_room($event, $data['people'], 0, (int) ($data['slot'] ?? 0))
-        ) {
-            $errors[$slots ? 'slot' : 'people'] = publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang);
         }
         if ($brief) {
             return $errors;
@@ -259,6 +277,10 @@ class signup {
         if (!$desk && !events::allowed_from($event, getremoteaddr())) {
             return ['form' => publiclang::str('pub_err_toomany', $lang)];
         }
+        if ($desk && userdate((int) $event->timestart, '%Y%m%d', 99, false) === userdate(time(), '%Y%m%d', 99, false)) {
+            // At the act itself, on its day: nobody who is at the door is told that there is no room.
+            return [];
+        }
         $already = 0;
         foreach ($data['adults'] as $adult) {
             // The same household save() will find: by an email it already has, never a phone alone.
@@ -273,6 +295,138 @@ class signup {
             return [$slots ? 'slot' : 'people' => publiclang::str($slots ? 'pub_err_slot_full' : 'pub_err_full', $lang)];
         }
         return [];
+    }
+
+    /** @var int The same family sent again within this, in seconds, is the same one, though it gave no email. */
+    const AGAIN = 600;
+
+    /**
+     * What a page of a form is known by together with what was written in it: pressed twice, or sent again by going back, it
+     * is the same.
+     *
+     * @param string $mark The mark of the page.
+     * @param array $data From read().
+     * @return string
+     */
+    protected static function fingerprint(string $mark, array $data): string {
+        return sha1(json_encode([$mark, array_intersect_key($data, array_flip(['adults', 'children', 'siblings', 'people', 'slot',
+            'days', 'periods', 'message', 'answers', 'tellme']))]));
+    }
+
+    /**
+     * Whether that page, with the same written in it, was already saved.
+     *
+     * @param string $mark
+     * @param array $data
+     * @param \stdClass $centre
+     * @return array|null The household, and whether the centre had it before; null the first time.
+     */
+    public static function again(string $mark, array $data, \stdClass $centre): ?array {
+        $kept = \cache::make('local_oksigeniaeguahe', 'signupmarks')->get(self::fingerprint($mark, $data));
+        $household = is_array($kept) ? households::get((int) $kept[0], (int) $centre->id) : null;
+        return $household ? [$household, (bool) $kept[1]] : null;
+    }
+
+    /**
+     * Keeps that a page was saved.
+     *
+     * @param string $mark
+     * @param array $data
+     * @param int $householdid
+     * @param bool $existed
+     */
+    public static function remember(string $mark, array $data, int $householdid, bool $existed): void {
+        \cache::make('local_oksigeniaeguahe', 'signupmarks')->set(self::fingerprint($mark, $data), [$householdid, $existed]);
+    }
+
+    /**
+     * The household of somebody who, a moment ago, sent the same with the same phone and the same name: never a second one.
+     *
+     * @param int $centreid
+     * @param array[] $adults Their phones normalised.
+     * @param int $now
+     * @return int|null
+     */
+    protected static function just_now(int $centreid, array $adults, int $now): ?int {
+        global $DB;
+        $first = $adults[0] ?? null;
+        if (!$first || empty($first['phone']) || trim((string) $first['firstname']) === '') {
+            return null;
+        }
+        $rows = $DB->get_records_sql(
+            'SELECT a.id, a.householdid, a.firstname
+               FROM {' . households::ADULTS . '} a
+               JOIN {' . households::T . '} h ON h.id = a.householdid
+              WHERE h.centreid = :centreid AND a.phone = :phone AND h.timecreated > :since
+           ORDER BY a.id ASC',
+            ['centreid' => $centreid, 'phone' => $first['phone'], 'since' => $now - self::AGAIN]
+        );
+        foreach ($rows as $row) {
+            if (recognise::plain((string) $row->firstname) === recognise::plain((string) $first['firstname'])) {
+                return (int) $row->householdid;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The address the mail of a sign-up goes to: to a family just made, its own; to one already known, the one written, when
+     * the centre had it, and else the one it lets the centre write to.
+     *
+     * @param array $data From read().
+     * @param string[] $before The addresses the family had.
+     * @param \stdClass $household
+     * @param bool $existed
+     * @return string|null Null, its own; empty, none.
+     */
+    public static function mail_to(array $data, array $before, \stdClass $household, bool $existed): ?string {
+        if (!$existed) {
+            return null;
+        }
+        $known = array_map(fn($e) => \core_text::strtolower($e), $before);
+        foreach ($data['adults'] as $adult) {
+            $email = households::email($adult['email'] ?? '');
+            if ($email !== null && in_array(\core_text::strtolower($email), $known, true)) {
+                return $email;
+            }
+        }
+        return households::recipient($household);
+    }
+
+    /**
+     * Whether whoever signs up is of the team of the centre, by the email of their account or the phones of their profile: it
+     * may be a test, and it is asked.
+     *
+     * @param array $data From read().
+     * @param \stdClass $centre
+     * @return bool
+     */
+    public static function is_team(array $data, \stdClass $centre): bool {
+        $adults = [];
+        foreach ($data['adults'] as $adult) {
+            $adults[] = (object) ['email' => households::email($adult['email'] ?? ''),
+                'phone' => phone::normalise((string) ($adult['phone'] ?? ''), $centre->country ?? null)];
+        }
+        return entries::is_team($centre, (object) ['adults' => $adults, 'email' => null, 'phone' => null]);
+    }
+
+    /**
+     * Each child a form brought with the course it asks for, one a line, for the history of the family.
+     *
+     * @param array[] $children firstname and offerid of each.
+     * @return string
+     */
+    public static function asked(array $children): string {
+        global $DB;
+        $out = [];
+        foreach ($children as $child) {
+            $offer = (int) $child['offerid'] ? $DB->get_record(centres::OFFERS, ['id' => (int) $child['offerid']]) : null;
+            if ($offer) {
+                $name = trim((string) $child['firstname']);
+                $out[] = ($name !== '' ? $name . ' · ' : '') . centres::offer_label($offer);
+            }
+        }
+        return implode("\n", $out);
     }
 
     /**
@@ -316,6 +470,8 @@ class signup {
         foreach ($adults as $adult) {
             $householdid = $householdid ?? households::find($centre->id, $adult['email'], null);
         }
+        // The same sent twice in a moment, only with a phone, is one family.
+        $householdid = $householdid ?? self::just_now((int) $centre->id, $adults, time());
         $channel = $entry ? entries::channel($entry) : (events::CHANNEL[$event->kind] ?? 'openday');
         $about = (object) (['lang' => $lang, 'firstchannel' => $channel, 'heardfrom' => $data['heardfrom'],
             'heardwho' => $data['heardwho'] ?? '',
@@ -335,19 +491,36 @@ class signup {
             $householdid = households::create($centre->id, $about);
         }
         $household = households::get($householdid, $centre->id);
+        // It had gone, or had every way closed, and here it is again.
+        $gone = $existed && $event->kind !== 'other' && ((int) ($household->outtime ?? 0) || ($known->children &&
+            !array_filter($known->children, fn($c) => $c->stage !== 'closed')));
+        outs::back($household, $centre);
         households::complete($household, $about);
         $tellme = $event->kind === 'other' && !empty($data['tellme']);
         $admitted = $existed && ($event->kind !== 'other' || $tellme) && households::admit($householdid);
+        if ($admitted || $gone) {
+            // The team hears of it as of a new one.
+            teamnotice::back($householdid);
+        }
         $tellme = $tellme && (!$existed || $admitted);
         // A form anyone can fill matched a family the centre already has: it never brings it an address of its own (the
         // family's mail would go there), never takes back a permission, and never changes what its children already
-        // have. A new address waits in a note for the team, which adds it if it is theirs.
-        $known = array_map(fn($e) => \core_text::strtolower($e), $before);
+        // have. A new address, or a new phone, waits in a note for the team, which adds it if it is theirs.
+        $emails = array_map(fn($e) => \core_text::strtolower($e), $before);
+        $phones = $existed ? array_filter(array_map(fn($a) => (string) $a->phone, $known->adults)) : [];
         $unverified = [];
         foreach ($adults as $i => $adult) {
-            if ($existed && (string) $adult['email'] !== '' && !in_array(\core_text::strtolower($adult['email']), $known, true)) {
-                $unverified[] = trim($adult['firstname'] . ' ' . ($adult['lastname'] ?? '')) . ' <' . $adult['email'] . '>';
+            $new = [];
+            if ($existed && (string) $adult['email'] !== '' && !in_array(\core_text::strtolower($adult['email']), $emails, true)) {
+                $new[] = $adult['email'];
                 $adult['email'] = null;
+            }
+            if ($existed && (string) $adult['phone'] !== '' && !in_array((string) $adult['phone'], $phones, true)) {
+                $new[] = phone::display((string) $adult['phone']);
+                $adult['phone'] = null;
+            }
+            if ($new) {
+                $unverified[] = trim($adult['firstname'] . ' ' . ($adult['lastname'] ?? '')) . ' <' . implode(', ', $new) . '>';
             }
             $adultid = households::add_adult($household, (object) $adult);
             if (!empty($adult['alumni']) && empty($data['self'])) {
@@ -356,7 +529,9 @@ class signup {
             // The permissions are asked of whoever fills the form, the first adult.
             if ($i === 0) {
                 foreach ($data['consents'] as $consentchannel => $granted) {
-                    if (!$existed || $granted) {
+                    // A way they gave no means for was not asked: nobody said no to it.
+                    $means = $consentchannel === 'email' ? (string) $adult['email'] !== '' : (string) $adult['phone'] !== '';
+                    if ($granted ? $means || !$existed : !$existed && $means) {
                         households::consent($household, $adultid, $consentchannel, (bool) $granted, 'form', $lang);
                     }
                 }
@@ -373,21 +548,25 @@ class signup {
                 implode(', ', $unverified)
             ));
         }
-        foreach ($data['children'] as $child) {
-            if ($child['firstname'] !== '') {
-                $childid = households::add_child(
-                    $household,
-                    $child['firstname'],
-                    (int) $child['offerid'],
-                    $child['tagname'] ?? '',
-                    $existed
-                );
-                if (($child['birthdate'] ?? '') !== '' && (!$existed || !self::has_birthdate($childid))) {
-                    households::set_birthdate($household, $childid, $child['birthdate']);
-                }
-                if (($child['latinname'] ?? '') !== '') {
-                    households::set_latin_name($household, $childid, $child['latinname']);
-                }
+        // A course without a name is a child too, who is named later; and whoever asks for a place or comes to see the centre
+        // comes for somebody, though nothing is said of them yet.
+        $children = array_filter($data['children'], fn($c) => $c['firstname'] !== '' || (int) $c['offerid']);
+        if (!$children && $event->kind !== 'other') {
+            $children = [['firstname' => '', 'offerid' => 0]];
+        }
+        foreach ($children as $child) {
+            $childid = households::add_child(
+                $household,
+                $child['firstname'],
+                (int) $child['offerid'],
+                $child['tagname'] ?? '',
+                $existed
+            );
+            if (($child['birthdate'] ?? '') !== '' && (!$existed || !self::has_birthdate($childid))) {
+                households::set_birthdate($household, $childid, $child['birthdate']);
+            }
+            if (($child['latinname'] ?? '') !== '') {
+                households::set_latin_name($household, $childid, $child['latinname']);
             }
         }
         if (siblings::on($centre)) {
@@ -405,27 +584,33 @@ class signup {
         if (!empty($event->tailored)) {
             // A visit of its own: what suits them waits for the team to propose the day.
             visits::request($household, $event, $data['days'] ?? [], $data['periods'] ?? [], $data['people']);
-        } else if (!$isform) {
+        } else if (!$isform && empty($data['full'])) {
             events::sign_up($event, $household->id, $data['people'], (int) ($data['slot'] ?? 0));
         }
         $form = !empty($event->formid) ? ($entry ?? entries::get((int) $event->formid, (int) $centre->id)) : null;
         $answered = $form ? forms::save_answers($household, $form, $data['answers'] ?? [], $centre->lang ?: 'es') : [];
-        $body = get_string('signedup_note', 'local_oksigeniaeguahe', (object) ['event' => $event->name,
-            'people' => $data['people']]);
+        // With no room left it wanted to come: it asks for it, and a person tells it if there is.
+        $body = get_string(empty($data['full']) ? 'signedup_note' : 'signedup_full_note', 'local_oksigeniaeguahe', (object) [
+            'event' => $event->name, 'people' => $data['people']]);
         if ($tellme) {
             $body .= ' ' . get_string('signedup_tellme', 'local_oksigeniaeguahe');
         }
+        // What they ask for that is not a text of theirs: the turn, and each child with its course.
+        $slot = (int) ($data['slot'] ?? 0) && empty($data['full']) ? events::when($event, (int) $data['slot']) : null;
+        $asked = implode("\n", array_filter([$slot ? panel::day_hour((int) $slot->timestart) : '', self::asked($data['children'])]));
+        $asked = $asked !== '' ? "\n" . $asked : '';
+        $body .= $isform ? '' : $asked;
         if ($data['message'] !== '') {
             $body .= "\n\n" . $data['message'];
         }
         if ($isform) {
-            $body = get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($event->name)) .
+            $body = get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($event->name)) . $asked .
                 ($data['message'] !== '' ? "\n\n" . $data['message'] : '');
         }
         $tailored = !empty($event->tailored);
         if ($tailored) {
             $body = get_string('visit_asked_note', 'local_oksigeniaeguahe', (object) ['people' => $data['people'],
-                'when' => visits::suits(visits::pending((int) $household->id), $lang)]) .
+                'when' => visits::suits(visits::pending((int) $household->id), $centre->lang ?: $lang)]) . $asked .
                 ($data['message'] !== '' ? "\n\n" . $data['message'] : '');
         }
         if ($answered) {
@@ -436,7 +621,7 @@ class signup {
             $household,
             $channel,
             $body,
-            $data['message'] !== '' || $tailored || $isform || $tellme,
+            $data['message'] !== '' || $tailored || $isform || $tellme || !empty($data['full']),
             null,
             $isform && $entry ? (int) $entry->id : 0,
             $origin

@@ -137,7 +137,8 @@ class report_ai {
                 'same point of the period before, and the months still to come have no families yet)' : ''),
             'sentence' => $data['sentence'] ?? '',
             'figures' => $figures,
-            'first answer (half the families within)' => $data['response'] ?: null,
+            'first answer of a person (those that still wait count too)' => $data['response'] ?: null,
+            'who the families of the campaign are' => $data['kinds'] ?? null,
             'way to enrolment' => array_map(
                 fn($s) => ['stop' => $s['name'], 'families' => $s['n'],
                 'campaign before at the same height' => $s['before'] === false ? null : $s['before']],
@@ -154,6 +155,8 @@ class report_ai {
             'where the families of the period really came from, by channel (the first contact, never an open day or a ' .
                 'form; families already of the centre counted apart)' => !empty($data['bychannel']['raw']) ?
                 $data['bychannel']['raw'] : null,
+            'families of the campaign that went, and contacts that were not families' => !empty($data['outs']['raw']) ?
+                $data['outs']['raw'] : [],
             'how the families of the campaign under way decide, so far' => !empty($data['decide']['raw']) ?
                 $data['decide']['raw'] + ['by the block of their channel and by who they are' => $data['decide']['rows']] :
                 null,

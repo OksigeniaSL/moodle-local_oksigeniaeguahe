@@ -98,7 +98,14 @@
         return true;
     };
     window.Eguahe = {gesto: gesture, quieto: still, decir: say, pedir: ask};
+    var loaded = Date.now();
     var hhmm = function() {
+        // The clock of the site, when the page says it: never the one of this device, which may be another.
+        var site = doc.querySelector('[data-reloj]');
+        if (site) {
+            var s = Math.floor((+site.getAttribute('data-reloj') + (Date.now() - loaded) / 1000) % 86400);
+            return Math.floor(s / 3600) + ':' + ('0' + Math.floor(s % 3600 / 60)).slice(-2);
+        }
         var d = new Date();
         return d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
     };
@@ -743,6 +750,14 @@
                         asSheet(fresh);
                     }
                     initFile(fresh);
+                    var failed = one('[data-fallo]', fresh);
+                    if (failed) {
+                        // It did not go: it says why, and what was written is there.
+                        failed.setAttribute('tabindex', '-1');
+                        failed.focus();
+                        failed.scrollIntoView({block: 'nearest'});
+                        return;
+                    }
                     emit('contestada', {ficha: fresh, nota: one('[data-turno]', fresh), url: url});
                     answered(url);
                     var title = one('[data-turno-titulo]', fresh);
@@ -1286,7 +1301,7 @@
             var button = one('.vino', row);
             row.classList.toggle('ya', came);
             if (button) {
-                var text = came ? say('panel_came_at', hhmm()) : say('panel_came_button');
+                var text = came ? say('panel_came_at_undo', hhmm()) : say('panel_came_button');
                 button.setAttribute('aria-pressed', came ? 'true' : 'false');
                 one('span', button).textContent = text;
                 button.setAttribute('aria-label', one('.quien a', row).textContent + ': ' + text);
@@ -1359,7 +1374,7 @@
                         });
                         if (row && !waits && !row.classList.contains('ya')) {
                             mark(row, true, true);
-                            one('.vino span', row).textContent = say('panel_came_at', data.came[id]);
+                            one('.vino span', row).textContent = say('panel_came_at_undo', data.came[id]);
                         }
                     });
                 }).catch(function() {
@@ -4251,6 +4266,12 @@
             what.items.forEach(function(x) {
                 piece('ocupado' + (String(x.guide) === guide && guide ? ' suyo' : ''), x.from, x.to, x.what);
             });
+            // What there is in the other calendars of the centre, faint.
+            (what.behind || []).forEach(function(x) {
+                if (!x.allday) {
+                    piece('fondo fondo-' + x.color, x.from, x.to, '');
+                }
+            });
             piece('puesta', at, at + long);
             marks.textContent = '';
             for (var m = Math.ceil(lo / 60) * 60; m <= hi - 15; m += 60) {
@@ -4277,6 +4298,33 @@
             clash.classList.toggle('no', Boolean(mine || shut));
             clash.textContent = mine ? give.getAttribute('data-ocupada').replace('QUIEN', name) : shut ? give.getAttribute('data-cerrado')
                 : other ? give.getAttribute('data-otra') : '';
+            var over = (what.behind || []).filter(function(x) {
+                return !x.allday && x.from < at + long && x.to > at;
+            })[0];
+            // By their names, under the ruler: the one it falls on, marked.
+            var seen = give.querySelector('[data-fondos]');
+            if (seen) {
+                seen.textContent = '';
+                (what.behind || []).forEach(function(x) {
+                    var li = document.createElement('li');
+                    li.className = 'fondo-' + x.color + (!x.allday && x.from < at + long && x.to > at ? ' choca' : '');
+                    var text = document.createElement('span');
+                    if (x.hour) {
+                        var when = document.createElement('b');
+                        when.textContent = x.hour;
+                        text.appendChild(when);
+                        text.appendChild(document.createTextNode(' '));
+                    }
+                    text.appendChild(document.createTextNode(x.title + (x.calendar ? ' · ' + x.calendar : '')));
+                    li.appendChild(text);
+                    seen.appendChild(li);
+                });
+                seen.hidden = !seen.children.length;
+            }
+            if (over && !mine && !shut) {
+                clash.textContent = give.getAttribute('data-fondo').replace('QUE', over.title + (over.calendar ? ' (' + over.calendar + ')' : '')) +
+                    (other ? ' ' + give.getAttribute('data-otra') : '');
+            }
             give.querySelector('[data-hora-dicha]').textContent = hour(at) + ' – ' + hour(at + long);
             range.setAttribute('aria-valuetext', hour(at) + ' – ' + hour(at + long));
             var told = give.querySelector('[type="checkbox"][name="tell"]');
@@ -4284,7 +4332,12 @@
             give.querySelector('[data-boton-texto]').textContent = give.getAttribute(told && told.checked ? 'data-boton-avisa' : 'data-boton-calla')
                 .replace('CUANDO', when);
         };
+        // Whether the hour was put by a person, or is the one it already had.
+        var put = give.hasAttribute('data-puesta');
         give.addEventListener('input', function(e) {
+            if (e.target === range) {
+                put = true;
+            }
             if (e.target.matches('[data-sitio-otro]') && e.target.value) {
                 Array.prototype.forEach.call(give.querySelectorAll('[data-sitio]'), function(chip) {
                     chip.checked = false;
@@ -4311,9 +4364,11 @@
                     }
                     return 0;
                 }).filter(Boolean)[0] : 0;
+                // The hour a person put stays, whatever the day; another is proposed only while nobody has put one.
+                var now = +range.value;
                 range.min = 0;
                 range.max = 1440;
-                range.value = free || range.value;
+                range.value = put || !free ? now : free;
             }
             draw();
         });
@@ -4321,6 +4376,7 @@
             var button = give.querySelector(x[0]);
             button.hidden = false;
             button.addEventListener('click', function() {
+                put = true;
                 range.value = +range.value + x[1];
                 draw();
             });

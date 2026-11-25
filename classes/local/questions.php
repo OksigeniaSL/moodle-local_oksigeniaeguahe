@@ -70,7 +70,8 @@ class questions {
             if ($contact->direction === 'out' && empty($contact->aim)) {
                 $since = [];
             } else if ($contact->direction === 'in' && trim((string) $contact->body) !== '') {
-                $since[] = (string) $contact->body;
+                // «¿Para cuándo buscan plaza?: 2027-28»: the question is of the form of the centre, not theirs.
+                $since[] = preg_replace('/^[^\n:]{1,200}[?؟]\s*:\s*/mu', '', (string) $contact->body);
             }
         }
         return self::of(implode("\n", $since));

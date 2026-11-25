@@ -62,7 +62,7 @@ if ($piece === 'acto') {
     if ($found) {
         [, $child, $centre] = $found;
         $lang = publiclang::choose($centre);
-        $name = familypage::label_name($child) ?: (string) $child->firstname;
+        $name = familypage::said_name($child, $lang);
         $file = drawings::file((int) $child->id);
         $picture = $file ? $file->get_content() : null;
         if ($piece === 'cuento') {

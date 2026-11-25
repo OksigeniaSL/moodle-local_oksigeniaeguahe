@@ -205,4 +205,59 @@ final class notices_test extends \advanced_testcase {
         $this->assertSame(0, settle::undo($this->centre, $batch, 2));
         $this->assertContains((int) $families['Ana']->id, $ids());
     }
+
+    /**
+     * A notice in the queue of the phones that goes nowhere goes by email when the family must know it, once; one that stopped
+     * being true does not; and an answer that did not go out leaves the family waiting.
+     */
+    public function test_done(): void {
+        global $DB;
+        $sink = $this->redirectEmails();
+        $start = time() + 5 * DAYSECS;
+        $ana = $this->family('Ana');
+        $event = appointments::give($ana, $this->centre, $start, 45, 0, 'Secretaría', 2, false)['event'];
+        $signup = \local_oksigeniaeguahe\local\familymail::signup($ana, (int) $event->id);
+        $queue = function (string $kind) use ($DB, $ana, $signup): int {
+            notices::log($ana, $kind, $signup, 'phone', 'inqueue');
+            return (int) $DB->get_field_sql('SELECT MAX(id) FROM {' . notices::T . '}');
+        };
+        $state = fn(int $id) => $DB->get_field(notices::T, 'state', ['id' => $id]);
+        $names = \local_oksigeniaeguahe\local\messaging::NOTICES;
+        $sink->clear();
+        $id = $queue('invitation');
+        $this->assertSame('inqueue', notices::of($ana, $this->centre)[1]['state']);
+        $this->assertTrue(notices::done((int) $ana->id, $names['invitation'], 'sent'));
+        $this->assertSame('sent', $state($id));
+        $this->assertCount(0, $sink->get_messages());
+        $this->assertTrue(notices::done((int) $ana->id, $names['invitation'], 'failed'), 'It may fail after it went.');
+        $this->assertSame('failed', $state($id));
+        $this->assertCount(1, $sink->get_messages(), 'Its day, by email.');
+        $this->assertFalse(notices::done((int) $ana->id, $names['invitation'], 'failed'), 'Nothing is left to say.');
+        $this->assertCount(1, $sink->get_messages());
+        // On two phones: it has gone nowhere only once it failed on both.
+        $id = $queue('confirmation');
+        $DB->set_field(notices::T, 'reason', notices::pieces(2), ['id' => $id]);
+        $this->assertTrue(notices::done((int) $ana->id, $names['confirmation'], 'failed'));
+        $this->assertSame('inqueue', $state($id));
+        $this->assertSame('', notices::of($ana, $this->centre)[1]['reason']);
+        $this->assertCount(1, $sink->get_messages());
+        notices::done((int) $ana->id, $names['confirmation'], 'expired');
+        $this->assertSame('skipped', $state($id));
+        $this->assertCount(2, $sink->get_messages());
+        $sink->clear();
+        $id = $queue('change');
+        notices::done((int) $ana->id, $names['change'], 'cancelled');
+        $this->assertSame('skipped', $state($id));
+        $this->assertCount(0, $sink->get_messages());
+        $this->assertFalse(notices::done((int) $ana->id, 'otra_cosa', 'failed'));
+        $this->assertFalse(notices::done(999999, $names['change'], 'failed'));
+        // An answer of the team that did not go out.
+        $this->assertSame(0, (int) $DB->get_field('local_oksigeniaeguahe_household', 'waitingsince', ['id' => $ana->id]));
+        $this->assertFalse(notices::done((int) $ana->id, $names['reply'], 'expired', time() - HOURSECS), 'None was in the queue.');
+        notices::log($ana, 'reply', null, 'phone', 'inqueue', notices::pieces(1));
+        $before = count(notices::of($ana, $this->centre));
+        notices::done((int) $ana->id, $names['reply'], 'expired', time() - HOURSECS);
+        $this->assertCount($before, notices::of($ana, $this->centre));
+        $this->assertGreaterThan(0, (int) $DB->get_field('local_oksigeniaeguahe_household', 'waitingsince', ['id' => $ana->id]));
+    }
 }

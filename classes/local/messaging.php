@@ -39,6 +39,9 @@ class messaging {
         'request' => 'request_received', 'received' => 'message_received', 'reply' => 'answer_waiting',
         'change' => 'visit_changed', 'thanks' => 'visit_thanks'];
 
+    /** @var int[] The families a notice goes to by email alone in this request: on their phones it did not go out. */
+    public static $bymail = [];
+
     /** @var array[] The messages kept in this request, by their id: [householdid, centreid]. */
     protected static $heard = [];
 
@@ -139,6 +142,105 @@ class messaging {
     }
 
     /**
+     * Whether a notice reaches a family on some phone it joined with: Marandu knows whether the notice is on there, whether
+     * that phone said no to admissions and whether WhatsApp lets it out (its 24 hours, its template). Before it says so, a
+     * phone joined is all there is to know.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $kind A kind of familymail.
+     * @return bool
+     */
+    public static function reaches(\stdClass $household, \stdClass $centre, string $kind): bool {
+        if (!isset(self::NOTICES[$kind]) || !self::joined($household, $centre)) {
+            return false;
+        }
+        try {
+            if (method_exists('\local_oksigeniamarandu\api', 'item_reaches')) {
+                return (bool) \local_oksigeniamarandu\api::item_reaches(
+                    self::COMPONENT,
+                    self::NOTICES[$kind],
+                    (int) $household->id
+                );
+            }
+            // At least, that the notice is on in some channel, and that every phone joined did not say no to admissions.
+            $channels = array_keys(array_filter(
+                \local_oksigeniamarandu\api::item_channels(self::COMPONENT, (int) $household->id),
+                fn($info) => !empty($info['joined'])
+            ));
+            $on = !method_exists('\local_oksigeniamarandu\api', 'notices_on') || array_filter(
+                $channels,
+                fn($channel) => \local_oksigeniamarandu\api::notices_on(self::COMPONENT, (string) $channel)
+            );
+            return $on && array_filter($channels, fn($channel) => !self::said_no((int) $household->id, (string) $channel));
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
+    /**
+     * Whether every phone of a family on a channel still says no to what admissions sends, as Marandu keeps it.
+     *
+     * @param int $householdid
+     * @param string $channel whatsapp or telegram.
+     * @return bool
+     */
+    public static function said_no(int $householdid, string $channel): bool {
+        if (!self::available() || !method_exists('\local_oksigeniamarandu\api', 'optout_state')) {
+            return false;
+        }
+        try {
+            $rows = array_filter(
+                \local_oksigeniamarandu\api::optout_state(self::COMPONENT, $householdid),
+                fn($row) => (string) ($row['channel'] ?? '') === $channel
+            );
+        } catch (\Throwable $e) {
+            return false;
+        }
+        return $rows && !array_filter($rows, fn($row) => empty($row['all']) && empty($row['scopes'][self::COMPONENT]));
+    }
+
+    /**
+     * Takes back what is still waiting in Marandu for a family and is no longer true: the act called off or moved, the family
+     * that does not come or erased its data.
+     *
+     * @param int $householdid
+     * @param string[] $kinds Kinds of familymail; empty, all of them.
+     */
+    public static function withdraw(int $householdid, array $kinds = []): void {
+        if (!self::available() || !method_exists('\local_oksigeniamarandu\api', 'notices_cancel')) {
+            return;
+        }
+        try {
+            \local_oksigeniamarandu\api::notices_cancel(self::COMPONENT, $householdid, array_values(array_intersect_key(
+                self::NOTICES,
+                array_flip($kinds)
+            )));
+        } catch (\Throwable $e) {
+            debugging('Eguahe: a notice in the queue was not taken back: ' . $e->getMessage(), DEBUG_DEVELOPER);
+        }
+    }
+
+    /**
+     * For how long a notice is worth sending: never after what it speaks of, and that of the day before only that day.
+     *
+     * @param string $kind
+     * @param \stdClass|null $signup
+     * @param int $now
+     * @return int Seconds.
+     */
+    public static function validfor(string $kind, ?\stdClass $signup, int $now): int {
+        $until = $now + 3 * DAYSECS;
+        if ($signup && !empty($signup->timestart) && in_array($kind, ['confirmation', 'reminder', 'invitation', 'change'], true)) {
+            $until = min($until, (int) $signup->timestart);
+            if ($kind === 'reminder') {
+                $until = min($until, usergetmidnight($now, \core_date::get_server_timezone()) + DAYSECS);
+            }
+        }
+        return max(15 * MINSECS, $until - $now);
+    }
+
+    /**
      * The same notice the family gets by email, on the phones it joined with, with the button to its page.
      *
      * @param string $kind A kind of familymail.
@@ -159,7 +261,7 @@ class messaging {
     ): int {
         if (
             !isset(self::NOTICES[$kind]) || !empty($centre->practice) || !writeby::phone_ok($household, $kind) ||
-                !self::joined($household, $centre) || (in_array($kind, actmail::KINDS, true) && actmail::is($signup))
+                !self::reaches($household, $centre, $kind) || (in_array($kind, actmail::KINDS, true) && actmail::is($signup))
         ) {
             // Of an act that is not a visit neither: the words of these notices are of one (actmail, by email).
             return 0;
@@ -182,6 +284,10 @@ class messaging {
             $hosts = centres::hosts((int) $centre->id, array_filter(array_map('intval', explode(',', (string) $signup->hosts))));
             $host = $hosts[0]->name ?? '';
         }
+        if (in_array((int) $household->id, self::$bymail, true)) {
+            // It did not go out on any phone: now it goes by email alone.
+            return 0;
+        }
         $params = [
             'confirmation' => [$name, $when],
             'reminder' => [$name, $when],
@@ -195,7 +301,8 @@ class messaging {
         try {
             $url = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => households::new_link($household, 'notice'),
                 'idioma' => $pagelang]);
-            $args = [self::COMPONENT, self::NOTICES[$kind], $params, $url, (int) $household->id, null, false, 3 * DAYSECS];
+            $args = [self::COMPONENT, self::NOTICES[$kind], $params, $url, (int) $household->id, null, false,
+                self::validfor($kind, $signup, time())];
             return \local_oksigeniamarandu\api::notify(...$args, ...($haslang ? ['lang' => $lang] : []));
         } catch (\Throwable $e) {
             return 0;
@@ -225,9 +332,49 @@ class messaging {
         }
     }
 
+    /** @var int The letters of an answer that fit inside a notice, when WhatsApp no longer allows a message and Marandu does not say. */
+    const INNOTICE = 200;
+
+    /**
+     * The letters of an answer that fit inside a notice.
+     *
+     * @return int
+     */
+    public static function innotice(): int {
+        if (method_exists('\local_oksigeniamarandu\api', 'value_limit')) {
+            try {
+                return (int) \local_oksigeniamarandu\api::value_limit(self::COMPONENT, self::NOTICES['reply']) ?: self::INNOTICE;
+            } catch (\Throwable $e) {
+                return self::INNOTICE;
+            }
+        }
+        return self::INNOTICE;
+    }
+
+    /** @var string Why the last answer by phone did not go: long (it does not fit in a notice) or empty. */
+    public static $why = '';
+
+    /**
+     * Whether an answer by WhatsApp goes now as a message, or inside a notice, with the letters that fit in it: after 24 hours
+     * without the family writing there.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     * @return bool
+     */
+    public static function window_open(\stdClass $household, int $now): bool {
+        global $DB;
+        return $DB->record_exists_select(
+            households::CONTACTS,
+            "householdid = ? AND direction = 'in' AND channel = 'whatsapp' AND timecreated > ?",
+            [$household->id, $now - DAYSECS]
+        );
+    }
+
     /**
      * What the team answers from the household, on the phones the family joined with: as a message when it can, or
-     * as the notice with the answer inside when WhatsApp no longer allows a message.
+     * as the notice with the answer inside when WhatsApp no longer allows a message. Never cut: an answer that does not fit
+     * in the notice does not go, and the team is told.
      *
      * @param \stdClass $household
      * @param \stdClass $centre
@@ -235,6 +382,7 @@ class messaging {
      * @return string|null The channel it went by, or null if it could not go.
      */
     public static function reply(\stdClass $household, \stdClass $centre, string $text): ?string {
+        self::$why = '';
         if (!empty($centre->practice) || !writeby::may_send($household, 'replyphone') || !self::joined($household, $centre)) {
             return null;
         }
@@ -259,7 +407,13 @@ class messaging {
                     $closed = (string) $line['channel'];
                 }
             }
-            if ($closed && self::notify('reply', $household, $centre, null, $lang, $text)) {
+            if ($closed && \core_text::strlen(trim(preg_replace('/\s+/u', ' ', $text))) > self::innotice()) {
+                self::$why = 'long';
+                return null;
+            }
+            $queued = $closed ? self::notify('reply', $household, $centre, null, $lang, $text) : 0;
+            if ($queued) {
+                notices::log($household, 'reply', null, 'phone', notices::onphone(), notices::pieces($queued));
                 return $closed;
             }
         } catch (\Throwable $e) {
@@ -331,9 +485,10 @@ class messaging {
             [$otherid, $othercentre] = self::$heard[$key];
             $other = $othercentre === (int) $household->centreid ? households::get($otherid, $othercentre) : null;
             $words = get_string('channel_' . $channel, self::COMPONENT);
+            // Never the name of the other family: it would stay here when that one erases its data. Where its words are, yes.
             households::note($household, 0, $other ?
                 get_string('msg_elsewhere_same', self::COMPONENT, (object) ['channel' => $words,
-                    'family' => panel::adults_line(households::full($other)->adults)]) :
+                    'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $other->id]))->out(false)]) :
                 get_string('msg_elsewhere', self::COMPONENT, $words));
             $hook->set_handled();
             return;

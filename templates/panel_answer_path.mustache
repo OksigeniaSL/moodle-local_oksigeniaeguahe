@@ -1,0 +1,44 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_answer_path
+
+    A path: how many got to each step, one family one mark. Full, they did; a ring, they did not; a small dot, it is not
+    known. Under each step, what its marks are, each with its families. When there are too many families to see one by
+    one (dots is false), the same as a bar.
+
+    Context variables required for this template:
+    * total - the families of the first step: every step is drawn on it
+    * dots - whether each family is a mark
+    * steps - name, n, url (its families, or nothing), parts (kind: yes, no or unknown; n), legend (kind, n, text, url) and
+      haslegend
+
+    Example context (json):
+    {"total": 58, "dots": true, "steps": [{"name": "Vinieron", "n": 41, "url": "#",
+        "parts": [{"kind": "yes", "n": 41}, {"kind": "no", "n": 5}, {"kind": "unknown", "n": 12}], "haslegend": true,
+        "legend": [{"kind": "no", "n": 5, "text": "no vinieron", "url": "#"}]}]}
+}}
+<ol class="qs-camino{{^dots}} qs-camino-barra{{/dots}}" style="--total: {{total}}">
+    {{#steps}}
+    <li class="qs-paso">
+        <span class="qs-paso-nombre">{{name}}</span>
+        <span class="qs-paso-n">{{#url}}<a href="{{url}}">{{n}}</a>{{/url}}{{^url}}{{n}}{{/url}}</span>
+        <span class="qs-pista" aria-hidden="true">{{#parts}}<i class="qs-tramo qs-{{kind}}" style="--n: {{n}}"></i>{{/parts}}</span>
+        {{#haslegend}}<span class="qs-leyenda">{{#legend}}{{#url}}<a href="{{url}}">{{/url}}{{^url}}<span>{{/url}}{{#kind}}<i class="qs-marca qs-{{kind}}" aria-hidden="true"></i>{{/kind}}{{#n}}<b>{{n}}</b> {{/n}}{{text}}{{#url}}</a>{{/url}}{{^url}}</span>{{/url}}{{/legend}}</span>{{/haslegend}}
+    </li>
+    {{/steps}}
+</ol>

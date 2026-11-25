@@ -93,13 +93,13 @@ class mobile {
             $said = renewal::answers($centre, (int) $household->id);
             $children = [];
             foreach (renewal::children($centre, (int) $household->id) as $childid => [$child, , $next]) {
-                $name = familypage::label_name($child) ?: (string) $child->firstname;
+                $name = familypage::said_name($child, $lang);
                 $state = (string) ($said[$childid]->answer ?? '');
                 $children[] = [
                     'id' => (int) $childid,
                     'key' => 'h' . $household->id . 'c' . $childid,
-                    'ask' => $s('pub_renewal_ask', (object) ['name' => $name, 'year' => $year,
-                        'course' => format_string($next->name)]),
+                    'ask' => familypage::sentence($s('pub_renewal_ask', (object) ['name' => $name, 'year' => $year,
+                        'course' => format_string($next->name)])),
                     'state' => $state,
                     'statetext' => $state !== '' ? $s('pub_renewal_' . $state . '_done', $name) : '',
                     'saved' => ['stay' => $s('pub_renewal_stay_done', $name), 'leave' => $s('pub_renewal_leave_done', $name),

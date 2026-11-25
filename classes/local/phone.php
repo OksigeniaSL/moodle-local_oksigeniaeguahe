@@ -110,6 +110,10 @@ class phone {
             if ($region['national'] !== '' && strpos($digits, $region['national']) === 0) {
                 $digits = substr($digits, strlen($region['national']));
             }
+            if (!empty($region['lengths']) && !in_array(strlen($digits), $region['lengths'], true)) {
+                // A digit missing, or a number of another country without its «+»: never taken for one nobody has.
+                return null;
+            }
             $digits = $region['code'] . $digits;
         }
         // E.164: up to 15 digits with the country code; nothing real is shorter than 8.
@@ -117,6 +121,24 @@ class phone {
             return null;
         }
         return '+' . $digits;
+    }
+
+    /**
+     * The first number in some words: «600 111 222 (madre)», «600 111 222 / 600 333 444».
+     *
+     * @param string $text
+     * @param string|null $country
+     * @return string|null
+     */
+    public static function first_in(string $text, ?string $country): ?string {
+        preg_match_all('/\+?\d[\d\s().-]{5,}\d/u', $text, $m);
+        foreach ($m[0] as $candidate) {
+            $phone = self::normalise($candidate, $country);
+            if ($phone !== null) {
+                return $phone;
+            }
+        }
+        return null;
     }
 
     /**

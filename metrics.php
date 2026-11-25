@@ -25,8 +25,13 @@
 
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\act_files;
+use local_oksigeniaeguahe\local\act_report;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\numbers_questions;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_answer;
+use local_oksigeniaeguahe\local\panel_answers;
 use local_oksigeniaeguahe\local\panel_metrics;
 use local_oksigeniaeguahe\local\panel_newstudents;
 use local_oksigeniaeguahe\local\publicpage;
@@ -39,7 +44,7 @@ $c = 'local_oksigeniaeguahe';
 $centre = centres::require_metrics($centreid);
 $canact = centres::can_act((int) $USER->id);
 $view = [
-    'campaign' => optional_param('campana', 'live', PARAM_ALPHANUM),
+    'campaign' => optional_param('campana', 'live', PARAM_ALPHANUMEXT),
     'course' => optional_param('curso', '', PARAM_TEXT),
     'compare' => optional_param('comparar', 1, PARAM_BOOL),
     'voice' => optional_param('voz', 'channel', PARAM_ALPHA),
@@ -52,7 +57,22 @@ $view = [
     // Without those already of the centre unless asked: the cards then count what the title counts, the new students.
     'withcentre' => optional_param('centro', 0, PARAM_BOOL),
 ];
+// The report of one act, the sheet of a question, or the questions of Numbers, which is how it opens; the sheets with all the
+// numbers, when one is asked for.
+$actkey = optional_param('acto', '', PARAM_ALPHANUM);
+$question = optional_param('pregunta', '', PARAM_ALPHA);
+$questions = optional_param('preguntas', 0, PARAM_BOOL) || !array_filter(
+    ['hoja', 'campana', 'curso', 'comparar', 'voz', 'vista', 'ensenar', 'entera', 'anio', 'centro'],
+    fn($name) => optional_param($name, null, PARAM_RAW) !== null
+);
 $url = panel_metrics::url($centre, $view);
+if ($actkey !== '') {
+    $url->param('acto', $actkey);
+} else if ($question !== '') {
+    $url->param('pregunta', $question);
+} else if ($questions) {
+    $url->param('preguntas', 1);
+}
 $PAGE->set_context(context_system::instance());
 panel::setup($url, get_string('tab_metrics', $c));
 
@@ -68,6 +88,11 @@ if ($action !== '') {
         // Each start in three fields; a day that does not read is left as it was.
         $starts = publicpage::date_params('start') ?: optional_param_array('start', [], PARAM_RAW_TRIMMED);
         panel_metrics::save_starts($centre, array_filter($starts, fn($d) => $d !== 'invalid'));
+    } else if ($action === 'actfile') {
+        // A person says whether an imported file is of an act, and of which day.
+        $import = optional_param('import', 0, PARAM_INT);
+        $day = publicpage::date_param('actday' . $import);
+        act_files::say($centre, $import, optional_param('is', 0, PARAM_BOOL), $day);
     } else if ($action === 'hours') {
         // The hours of a task of a campaign or an act, written by the centre, one gesture at a time.
         panel_newstudents::set_hours(
@@ -108,6 +133,25 @@ if ($action !== '') {
     redirect($url, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
+if ($actkey !== '' && ($report = act_report::build($centre, $actkey))) {
+    $back = (new moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id, 'preguntas' => 1]))->out(false);
+    panel::output($centre, 'metrics', $report['question'], 'panel_answer', panel_answer::act($report, panel::head(['title' => $report['answer'],
+        'ante' => $report['question'], 'sub' => implode(' · ', array_filter([$report['name'], $report['when'], $report['hours'], $report['place']])),
+        'back' => ['url' => $back, 'name' => get_string('tab_metrics', $c)]])));
+    die();
+}
+if ($question !== '' && ($answer = panel_answers::build($centre, $question, $view['campaign'], $canact))) {
+    panel::output($centre, 'metrics', $answer['head']['ante'], 'panel_answer', $answer);
+    die();
+}
+if ($questions || $question !== '') {
+    panel::output($centre, 'metrics', get_string('tab_metrics', $c), 'panel_questions', numbers_questions::context(
+        $centre,
+        $view['campaign'],
+        $canact
+    ));
+    die();
+}
 panel::output(
     centres::get((int) $centre->id),
     'metrics',

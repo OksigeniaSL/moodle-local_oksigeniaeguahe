@@ -118,14 +118,18 @@ final class arrival_test extends \advanced_testcase {
         $this->assertSame('other', arrival::block('print'));
         $this->assertSame('unmeasured', arrival::block('unmeasured'));
         $sum = arrival::by_channel([
-            ['voices' => ['channel' => arrival::channel_name('search')], 'step' => 5],
-            ['voices' => ['channel' => arrival::channel_name('direct')], 'step' => 2],
-            ['voices' => ['channel' => arrival::channel_name('campaign')], 'step' => 1],
-            ['voices' => ['channel' => arrival::channel_name('unmeasured')], 'step' => 5],
+            ['voices' => ['channel' => arrival::channel_name('search')], 'came' => true, 'enrolled' => true],
+            ['voices' => ['channel' => arrival::channel_name('direct')], 'came' => true],
+            ['voices' => ['channel' => arrival::channel_name('campaign')]],
+            ['voices' => ['channel' => arrival::channel_name('print')]],
+            ['voices' => ['channel' => arrival::channel_name('unmeasured')], 'enrolled' => true],
         ]);
-        $this->assertSame([2, 1, 1, 0, 1, 4], [$sum['own'], $sum['ownenrolled'], $sum['paid'], $sum['paidenrolled'],
-            $sum['unmeasured'], $sum['total']]);
-        $this->assertSame(['search', 'direct', 'campaign', 'unmeasured'], array_column($sum['rows'], 'key'));
+        $this->assertSame([2, 1, 1, 0, 1, 0, 1, 1, 5], [$sum['own'], $sum['ownenrolled'], $sum['paid'], $sum['paidenrolled'],
+            $sum['other'], $sum['otherenrolled'], $sum['unmeasured'], $sum['unmeasuredenrolled'], $sum['total']]);
+        // The sentence adds up: each block with its number.
+        $this->assertSame([2, 1, 1, 1, 5], array_map('intval', [$sum['own'], $sum['paid'], $sum['other'], $sum['unmeasured'],
+            $sum['own'] + $sum['paid'] + $sum['other'] + $sum['unmeasured']]));
+        $this->assertSame(['search', 'direct', 'campaign', 'print', 'unmeasured'], array_column($sum['rows'], 'key'));
         $this->assertSame(get_string('arrival_channel_profile', 'local_oksigeniaeguahe'), arrival::channel_name('profile'));
         $this->assertSame(get_string('arrival_ai_group', 'local_oksigeniaeguahe'), arrival::group('perplexity.ai'));
         $this->assertSame('instagram', arrival::group('instagram'));
@@ -259,7 +263,8 @@ final class arrival_test extends \advanced_testcase {
         $this->assertTrue($sheet['head'][2]['total']);
         $own = $sheet['blocks'][0]['rows'][0];
         $this->assertEquals(0.6, $own['enrolled']['p'], 'Against its own five, not against the two hundred.');
-        $this->assertSame('60 %', $own['enrolled']['pct']);
+        $this->assertSame('', $own['enrolled']['pct'], 'Of five, the number; a share needs ten.');
+        $this->assertStringContainsString('%', $sheet['blocks'][1]['rows'][0]['enrolled']['pct']);
         $this->assertEquals(0.03, $sheet['blocks'][1]['rows'][0]['visit']['p'], 'One family of two hundred is a sliver.');
         $this->assertSame(0, $sheet['blocks'][1]['rows'][0]['applied']['p']);
         $this->assertSame(get_string('bychannel_note_said', $c, 2), $own['said']);

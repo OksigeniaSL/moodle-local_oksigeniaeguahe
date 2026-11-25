@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe;
 
 use local_oksigeniaeguahe\local\appointments;
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
@@ -24,6 +25,7 @@ use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_agenda;
 use local_oksigeniaeguahe\local\panel_give;
 use local_oksigeniaeguahe\local\teamnotes;
+use local_oksigeniaeguahe\local\visits;
 
 /**
  * Tests for the appointments of the families: those given in Eguahe, the acts and those of a sheet, what is said of each and
@@ -277,5 +279,106 @@ final class appointments_test extends \advanced_testcase {
         $this->assertTrue(panel_agenda::pass($this->centre, true, $batch, 0, $event)['none']);
         appointments::undo($this->centre, $batch);
         $this->assertSame(['unknown', 'unknown', 'notcame'], [$states()[$ids['Ana']], $states()[$ids['Luis']], $states()[$ids['Eva']]]);
+    }
+
+    /**
+     * The same one sent twice is one; two to come of a family are asked about, and who already receives someone then is said.
+     */
+    public function test_twice(): void {
+        global $DB, $USER;
+        $member = (int) $DB->insert_record(centres::MEMBERS, (object) ['centreid' => $this->centre->id, 'userid' => $USER->id, 'timecreated' => time()]);
+        $start = time() + 3 * DAYSECS;
+        $one = appointments::give($this->family, $this->centre, $start, 45, $member, 'Secretaría', 2, false);
+        $two = appointments::give($this->family, $this->centre, $start, 45, $member, 'Secretaría', 2, true);
+        $this->assertTrue($two['again']);
+        $this->assertFalse($two['sent']);
+        $this->assertSame((int) $one['event']->id, (int) $two['event']->id);
+        $this->assertSame(1, $DB->count_records(events::T, ['householdid' => $this->family->id]));
+        $this->assertStringContainsString('Ana', appointments::taken($this->centre, $member, $start + 20 * MINSECS, $start + HOURSECS));
+        $this->assertSame('', appointments::taken($this->centre, $member, $start, $start + HOURSECS, (int) $one['event']->id));
+        $this->assertSame('', appointments::taken($this->centre, $member, $start + HOURSECS, $start + 2 * HOURSECS));
+        // Another one, of when there were two files.
+        $other = events::save((int) $this->centre->id, (object) ['kind' => 'visit', 'name' => 'Visita', 'timestart' => $start + 20 * DAYSECS,
+            'timeend' => $start + 20 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 0]);
+        $DB->set_field(events::T, 'householdid', $this->family->id, ['id' => $other]);
+        events::sign_up(events::get($other, (int) $this->centre->id), (int) $this->family->id, 1);
+        $this->assertCount(1, appointments::twins($this->family));
+    }
+
+    /**
+     * Called off, or said on their page that they do not come: what they asked for waits for a day again, and the visit is out of
+     * the week and of the calendar; one that already happened stays.
+     */
+    public function test_asks_again(): void {
+        global $DB;
+        $ask = fn() => $DB->insert_record(visits::REQUESTS, (object) ['centreid' => $this->centre->id, 'householdid' => $this->family->id, 'eventid' => 1,
+            'people' => 2, 'status' => 'pending', 'visitid' => 0, 'timecreated' => time(), 'timemodified' => time()]);
+        $request = $ask();
+        $status = fn() => $DB->get_field(visits::REQUESTS, 'status', ['id' => $request]);
+        $given = appointments::give($this->family, $this->centre, time() + DAYSECS, 45, 0, '', 2, false);
+        $this->assertTrue($given['asked']);
+        $this->assertSame('scheduled', $status());
+        appointments::off($this->family, $this->centre, (int) $given['event']->id, '', 2, false);
+        $this->assertSame('pending', $status());
+        $given = appointments::give($this->family, $this->centre, time() + DAYSECS, 45, 0, '', 2, false);
+        $this->assertCount(1, \local_oksigeniaeguahe\local\teamcalendar::items($this->centre));
+        events::unsign(events::get((int) $given['event']->id, (int) $this->centre->id), $this->family, 'No podemos ir', true);
+        $this->assertSame('pending', $status());
+        $this->assertGreaterThan(0, (int) $DB->get_field(events::T, 'cancelled', ['id' => $given['event']->id]));
+        $this->assertSame([], \local_oksigeniaeguahe\local\teamcalendar::items($this->centre));
+        // One that passed: from a page of before, it is not called off, nor who came lost.
+        $given = appointments::give($this->family, $this->centre, time() + DAYSECS, 45, 0, '', 2, false);
+        $event = $given['event'];
+        $signup = (int) $DB->get_field(events::SIGNUPS, 'id', ['eventid' => $event->id]);
+        $DB->update_record(events::T, (object) ['id' => $event->id, 'timestart' => time() - 2 * HOURSECS, 'timeend' => time() - HOURSECS]);
+        $event = events::get((int) $event->id, (int) $this->centre->id);
+        events::attend($event, $signup, true);
+        $this->assertFalse(appointments::off($this->family, $this->centre, (int) $event->id, '', 2, false));
+        events::cancel($event, $this->centre, 2, '', time());
+        $this->assertSame(1, $DB->count_records(events::SIGNUPS, ['eventid' => $event->id]));
+        $this->assertSame(0, (int) $DB->get_field(events::T, 'cancelled', ['id' => $event->id]));
+    }
+
+    /**
+     * Taken back that they came to one, the way stays when they came to another; and a visit of a sheet said to be missed takes
+     * it back too, with what was promised for it.
+     */
+    public function test_came_to_two(): void {
+        global $DB;
+        $child = fn() => $DB->get_field(households::CHILDREN, 'stage', ['householdid' => $this->family->id]);
+        $signups = [];
+        foreach ([2, 1] as $days) {
+            $event = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => time() - $days * DAYSECS,
+                'timeend' => time() - $days * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), (int) $this->centre->id);
+            $signups[] = [$event, events::sign_up($event, (int) $this->family->id, 1)];
+        }
+        foreach ($signups as [$event, $signup]) {
+            events::attend($event, $signup, true);
+        }
+        events::attend($signups[0][0], $signups[0][1], false);
+        $this->assertSame('visit', $child());
+        events::attend($signups[1][0], $signups[1][1], false);
+        $this->assertSame('inquiry', $child());
+        // The sheet.
+        $when = time() - DAYSECS;
+        $note = $this->note($when);
+        $body = teamnotes::visit_promise($when, true, 'es');
+        $promise = attend::promise($this->family, 2, $body, $when);
+        $done = fn() => (int) $DB->get_field(attend::PROMISES, 'timedone', ['id' => $promise]) > 0;
+        $key = appointments::mark($this->centre, [$note], 'came', 2);
+        $this->assertSame(['visit', true], [$child(), $done()]);
+        appointments::undo($this->centre, $key);
+        $this->assertSame(['inquiry', false], [$child(), $done()]);
+        appointments::mark($this->centre, [$note], 'came', 2);
+        appointments::mark($this->centre, [$note], 'notcame', 2);
+        $this->assertSame(['inquiry', true], [$child(), $done()]);
+    }
+
+    /**
+     * A day that is not one is today.
+     */
+    public function test_wrong_day(): void {
+        $context = panel_agenda::context($this->centre, true, '2026-13-45');
+        $this->assertTrue($context['isnow']);
     }
 }

@@ -240,4 +240,24 @@ final class renewal_test extends \advanced_testcase {
         $this->assertSame(get_string('panel_renewal_link', $c, (object) ['year' => '2028-29', 'answered' => 1, 'asked' => 2,
             'leave' => 1]), panel_renewal::link($centre, time())['text']);
     }
+
+    /**
+     * Once no child of a family goes on, its page no longer says that everything is ready for the first day.
+     */
+    public function test_page_of_whoever_goes(): void {
+        [$centre, , $other, , , , $hugo] = $this->centre();
+        renewal::set($centre, '2028-29', time() - 10, 0);
+        $before = \local_oksigeniaeguahe\local\familypage::context($other, $centre, 'es', 'x', false);
+        $this->assertNotFalse($before['settled']);
+        renewal::from_family($centre, $other, $hugo, 'leave', 'moved', null, 'es', time());
+        $after = \local_oksigeniaeguahe\local\familypage::context(
+            households::get((int) $other->id, (int) $centre->id),
+            $centre,
+            'es',
+            'x',
+            false
+        );
+        $this->assertFalse($after['settled']);
+        $this->assertNotSame($before['greeting'], $after['greeting']);
+    }
 }

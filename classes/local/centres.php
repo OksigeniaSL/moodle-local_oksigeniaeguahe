@@ -1170,7 +1170,10 @@ class centres {
         if ($other === '') {
             return $centre;
         }
-        $ofcentre = $kind === 'renewal' || !empty($household->incentre) || !empty($household->roster) ||
+        // Only of the staff: its child is new, and admissions is who it talks to.
+        $inside = !empty($household->incentre) &&
+            array_values(array_intersect(who::CENTRE, who::kinds((int) $centre->id, (int) $household->id))) !== ['staff'];
+        $ofcentre = $kind === 'renewal' || $inside || !empty($household->roster) ||
             $DB->record_exists_select(
                 households::CHILDREN,
                 "householdid = ? AND stage = 'enrolled' AND (lefttime IS NULL OR lefttime = 0)",

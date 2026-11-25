@@ -128,4 +128,31 @@ final class teamnotice_test extends \advanced_testcase {
         entries::receive($entry, $ad(1, time() - 10 * HOURSECS), '', null, true);
         $this->assertCount(1, teamnotice::arrived($cid, $start, time() + 1));
     }
+
+    /**
+     * A family that had gone and writes again is told of as a new one, and whoever is erased leaves no notice with its name.
+     */
+    public function test_back_and_erased(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->preventResetByRollback();
+        $this->setAdminUser();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $user = $this->getDataGenerator()->create_user();
+        centres::add_member($cid, (int) $user->id);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        households::add_adult($household, (object) ['firstname' => 'Zaida', 'email' => 'zaida@example.com']);
+        teamnotice::back((int) $household->id);
+        $this->assertGreaterThan(0, (int) $DB->get_field(households::T, 'cameback', ['id' => $household->id]));
+        $url = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false);
+        $note = fn(string $text, ?string $context) => $DB->insert_record('notifications', (object) ['useridfrom' => -20,
+            'useridto' => $user->id, 'subject' => 'Familia nueva', 'fullmessage' => $text, 'fullmessageformat' => FORMAT_PLAIN,
+            'smallmessage' => '', 'component' => 'local_oksigeniaeguahe', 'eventtype' => 'newfamily', 'contexturl' => $context,
+            'timecreated' => time()]);
+        $mine = $note("Zaida\n$url", $url);
+        $other = $note("Otra\n{$url}9", $url . '9');
+        households::erase($household);
+        $this->assertFalse($DB->record_exists('notifications', ['id' => $mine]));
+        $this->assertTrue($DB->record_exists('notifications', ['id' => $other]), 'The one of another family stays.');
+    }
 }

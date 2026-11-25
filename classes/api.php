@@ -20,6 +20,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\guide;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\share;
 
@@ -200,6 +201,80 @@ class api {
         }
         return $out;
     }
+    /**
+     * A phone as Marandu writes it, with the code of its country and with «+» or without it.
+     *
+     * @param string $phone
+     * @return string|null
+     */
+    protected static function number(string $phone): ?string {
+        $digits = preg_replace('/\D+/', '', $phone);
+        return $digits === '' ? null : phone::normalise('+' . $digits, null);
+    }
+
+    /**
+     * Whether a phone is of a family that is asking for a place in a centre of a person of the team (not one that is only in
+     * the roll of the centre), for the chat of Marandu to show its card.
+     *
+     * @param string $phone With its country code.
+     * @param int $userid
+     * @return bool
+     */
+    public static function chat_knows(string $phone, int $userid): bool {
+        global $DB;
+        $centres = array_filter(centres::for_user($userid), fn($c) => !centres::is_practice((int) $c->id));
+        $number = self::number($phone);
+        foreach ($number !== null ? $centres : [] as $centre) {
+            $homes = $DB->get_records_sql(
+                'SELECT DISTINCT h.id, h.incentre, h.waitingsince
+                   FROM {' . households::T . '} h
+                   JOIN {' . households::ADULTS . '} a ON a.householdid = h.id
+                  WHERE h.centreid = :centreid AND h.roster = 0 AND h.guest = 0 AND a.phone = :phone',
+                ['centreid' => $centre->id, 'phone' => $number]
+            );
+            foreach ($homes as $home) {
+                $stages = $DB->get_fieldset_select(households::CHILDREN, 'stage', 'householdid = ?', [$home->id]);
+                $open = array_diff($stages, ['enrolled', 'closed']);
+                if ($open || (int) $home->waitingsince || (!$stages && empty($home->incentre))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The families of admissions with a phone, of the centres that write to phones: the one last in touch first. For when
+     * somebody asks to join from it without a code.
+     *
+     * @param string $phone With its country code.
+     * @return int[] Household ids.
+     */
+    public static function phone_households(string $phone): array {
+        global $DB;
+        $number = self::number($phone);
+        if ($number === null) {
+            return [];
+        }
+        $rows = $DB->get_records_sql(
+            'SELECT h.id, h.centreid, MAX(h.lastcontact) AS lastcontact
+               FROM {' . households::T . '} h
+               JOIN {' . households::ADULTS . '} a ON a.householdid = h.id
+              WHERE a.phone = :phone
+           GROUP BY h.id, h.centreid
+           ORDER BY MAX(h.lastcontact) DESC, h.id DESC',
+            ['phone' => $number]
+        );
+        $out = [];
+        foreach ($rows as $row) {
+            $centre = centres::get((int) $row->centreid);
+            if ($centre && empty($centre->practice) && \local_oksigeniaeguahe\local\messaging::mode($centre) !== 'off') {
+                $out[] = (int) $row->id;
+            }
+        }
+        return $out;
+    }
+
     /**
      * The families a person of the team may start a conversation with, by name: for the conversations of Marandu,
      * which already find the families of the common record and the contacts of the chat, and not the ones that only

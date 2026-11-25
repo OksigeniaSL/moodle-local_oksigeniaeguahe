@@ -1,0 +1,9 @@
+{
+    "about": "What the label of an imported file says when it is of an act (an open day, a party, a visit), on a text in lower case and without accents, and the months it writes. Only a day with its month and its year is taken as its date; without one, a person is asked.",
+    "acts": "\\b(puertas abiertas|jornadas?|visitas?|fiestas?|charlas?|taller(es)?|feria|acto|evento|festival|open (day|house|morning|evening)|visits?|fair|party|talk|dias? abertos?|portas abertas|visitas?|festa|palestra|feira)\\b",
+    "months": {
+        "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+        "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+        "janeiro": 1, "fevereiro": 2, "marco": 3, "maio": 5, "junho": 6, "julho": 7, "setembro": 9, "outubro": 10, "novembro": 11, "dezembro": 12
+    }
+}

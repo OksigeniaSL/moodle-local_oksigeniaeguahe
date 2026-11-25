@@ -154,7 +154,7 @@ class invites {
         foreach ($households as $id => $household) {
             $stages = $children[$id] ?? [];
             // A family that left the centre is left in peace, unless the centre wants it invited.
-            $gone = in_array('left', $stages, true) && !in_array('enrolled', $stages, true);
+            $gone = in_array('left', $stages, true) && !array_diff($stages, ['left', 'closed']);
             $ok = $gone ? !empty($centre->invitegone) : (!$stages || array_diff($stages, ['closed']));
             $enrolled = in_array('enrolled', $stages, true);
             if ($ofcentre) {
@@ -281,6 +281,71 @@ class invites {
             (string) ($centre->lang ?? '') ?: current_language()
         ));
         return true;
+    }
+
+    /**
+     * The families that have the letter of an act and are not signed up to it: if it changes or is called off, nobody tells
+     * them by itself. Not those that said no, nor those that asked not to be written to or invited.
+     *
+     * @param \stdClass $event
+     * @return \stdClass[] Households, by id.
+     */
+    public static function with_letter(\stdClass $event): array {
+        global $DB;
+        $centre = centres::get((int) $event->centreid);
+        $rows = $DB->get_records_sql(
+            'SELECT h.*
+               FROM {' . households::T . '} h
+               JOIN {' . self::T . "} i ON i.householdid = h.id AND i.eventid = :eventid
+              WHERE h.noinvites = 0 AND COALESCE(i.reply, '') <> 'no' AND COALESCE(i.channel, '') IN ('', 'email', 'both')
+                    AND NOT EXISTS (SELECT 1 FROM {" . events::SIGNUPS . '} s WHERE s.eventid = i.eventid AND s.householdid = h.id)
+           ORDER BY h.id ASC',
+            ['eventid' => (int) $event->id]
+        );
+        return array_filter($rows, fn($h) => $centre && writeby::may_send($h, 'openinvite') && households::recipient($h) !== '' &&
+            self::by_mail($h, $centre, familymail::may_email($h)));
+    }
+
+    /**
+     * Tells one of them that the act changed, or that it is called off: a letter as the one it has.
+     *
+     * @param \stdClass $event As it is now.
+     * @param \stdClass $centre
+     * @param \stdClass $household
+     * @param string $kind change or cancelled.
+     * @param string $message What the team adds.
+     * @param int $userid
+     * @return bool
+     */
+    public static function tell_change(
+        \stdClass $event,
+        \stdClass $centre,
+        \stdClass $household,
+        string $kind,
+        string $message,
+        int $userid
+    ): bool {
+        if (!writeby::may_send($household, 'openinvite') || (int) $household->noinvites) {
+            return false;
+        }
+        $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
+        $letter = self::of_letter($event);
+        $letter->invited = true;
+        $token = households::new_link($household, 'letter');
+        [$subject, $html, $text, $images] = actmail::build($kind, $household, $centre, $event, $letter, $lang, $token, $message);
+        if (get_config(self::C, 'letterplain')) {
+            $html = '';
+        }
+        $sent = mail::send_rich($centre, households::recipient($household), $subject, $html, $text, $images);
+        notices::log($household, $kind, $letter, 'email', $sent ? 'sent' : 'failed', $sent ? '' : 'mail');
+        if ($sent) {
+            households::told($household, $userid, 'email', get_string(
+                $kind === 'change' ? 'invite_change_note' : 'invite_off_note',
+                self::C,
+                format_string($event->name)
+            ), true);
+        }
+        return $sent;
     }
 
     /**
@@ -433,7 +498,7 @@ class invites {
         foreach ($households as $household) {
             $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id,
                 'householdid' => $household->id, 'userid' => $userid, 'channel' => 'phone', 'bulkid' => $bulkid,
-                'timecreated' => $now]);
+                'said' => self::wording($event), 'timecreated' => $now]);
         }
         if (($answer['status'] ?? '') === 'queued') {
             self::told_by_phone($bulkid, $userid);
@@ -453,10 +518,26 @@ class invites {
         if (!$bulkid) {
             return;
         }
+        // Marandu says to which families it let it go; before it did, only whoever still takes the phones.
+        $released = self::state($bulkid)['released'] ?? null;
+        $released = is_array($released) ? array_map('intval', $released) : null;
         foreach ($DB->get_records(self::T, ['bulkid' => $bulkid]) as $row) {
+            if ($released !== null && !in_array((int) $row->householdid, $released, true)) {
+                // It did not go to this one: not invited by phone, and it may be, later.
+                if ($row->channel === 'phone') {
+                    $DB->delete_records(self::T, ['id' => $row->id]);
+                } else {
+                    $DB->update_record(self::T, (object) ['id' => $row->id, 'channel' => 'email', 'bulkid' => 0]);
+                }
+                continue;
+            }
             $household = $DB->get_record(households::T, ['id' => $row->householdid]);
             $event = $DB->get_record(events::T, ['id' => $row->eventid], 'id, name');
-            if ($household && $event) {
+            $centre = $household ? centres::get((int) $household->centreid) : null;
+            // Only of those it went to: not whoever, meanwhile, let go of the phones or of the invitations.
+            $went = $centre && ($released !== null || (!(int) $household->noinvites && writeby::phone_ok($household, 'openinvite') &&
+                messaging::joined($household, $centre)));
+            if ($went && $event) {
                 households::told($household, $userid, 'whatsapp', get_string(
                     'invite_note_phone',
                     self::C,
@@ -549,6 +630,89 @@ class invites {
                 $DB->delete_records(self::T, ['id' => $row->id]);
             }
         }
+    }
+
+    /**
+     * What an invitation by phone says of an act, to know whether it is still true.
+     *
+     * @param \stdClass $event
+     * @return string
+     */
+    protected static function wording(\stdClass $event): string {
+        return sha1(implode('|', [$event->name, (int) $event->timestart, (int) $event->timeend]));
+    }
+
+    /**
+     * An act was changed or called off: what waits for approval and is no longer true is taken back, so that approving it
+     * invites nobody to what is not. The families of that send can be invited again.
+     *
+     * @param \stdClass $event As it is now.
+     * @return int How many sends were taken back.
+     */
+    public static function withdraw_stale(\stdClass $event): int {
+        global $DB;
+        $taken = 0;
+        $rows = $DB->get_records_select(
+            self::T,
+            'eventid = ? AND bulkid > 0',
+            [(int) $event->id],
+            'bulkid ASC, id ASC',
+            'id, bulkid, userid, said'
+        );
+        $sends = [];
+        foreach ($rows as $row) {
+            $sends[(int) $row->bulkid] = $row;
+        }
+        foreach ($sends as $bulkid => $row) {
+            $true = empty($event->cancelled) && !empty($event->open) && ((string) $row->said === '' ||
+                (string) $row->said === self::wording($event));
+            if ($true || (self::state($bulkid)['status'] ?? '') !== 'pending') {
+                continue;
+            }
+            if (method_exists('\local_oksigeniamarandu\api', 'bulk_withdraw')) {
+                try {
+                    $why = get_string('invite_withdraw_reason', self::C);
+                    if (\local_oksigeniamarandu\api::bulk_withdraw(messaging::COMPONENT, $bulkid, $why)) {
+                        self::decided($bulkid, 'cancelled', (int) $row->userid);
+                        $taken++;
+                    }
+                } catch (\Throwable $e) {
+                    debugging('Eguahe: a send by phone was not taken back: ' . $e->getMessage(), DEBUG_DEVELOPER);
+                }
+            } else if (self::withdraw($bulkid, (int) $row->userid)) {
+                $taken++;
+            }
+        }
+        return $taken;
+    }
+
+    /**
+     * Whether one message of a send that waited for approval still goes to a family, and with which values.
+     *
+     * @param int $householdid
+     * @param int $bulkid
+     * @return array|bool True, as it was asked; false, it no longer goes; else params, its values as they are now.
+     */
+    public static function still(int $householdid, int $bulkid) {
+        global $DB;
+        $row = $DB->get_record(self::T, ['householdid' => $householdid, 'bulkid' => $bulkid], '*', IGNORE_MULTIPLE);
+        $household = $row ? $DB->get_record(households::T, ['id' => $householdid]) : null;
+        $event = $household ? events::get((int) $row->eventid, (int) $household->centreid) : null;
+        $centre = $event ? centres::get((int) $event->centreid) : null;
+        if (
+            !$centre || !empty($event->cancelled) || empty($event->open) || (int) $event->timestart <= time() ||
+                (int) $household->noinvites || !writeby::phone_ok($household, 'openinvite') ||
+                $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid])
+        ) {
+            return false;
+        }
+        if ((string) $row->said === '' || (string) $row->said === self::wording($event)) {
+            return true;
+        }
+        $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
+        $lang = method_exists('\local_oksigeniamarandu\api', 'language') ? \local_oksigeniamarandu\api::language($lang) : $lang;
+        $parts = publicpage::date_parts((int) $event->timestart, $lang);
+        return ['params' => [format_string($centre->name), format_string($event->name), $parts['long'] . ', ' . $parts['hour']]];
     }
 
     /**
@@ -722,6 +886,31 @@ class invites {
     }
 
     /**
+     * Two files of a family are one now: the letters still on their way to the one that is gone go to the one that stays.
+     *
+     * @param int $gone
+     * @param int $keep
+     */
+    public static function renumber(int $gone, int $keep): void {
+        global $DB;
+        foreach (\core\task\manager::get_adhoc_tasks(\local_oksigeniaeguahe\task\send_invites::class) as $task) {
+            $data = (array) $task->get_custom_data();
+            $changed = false;
+            foreach (['ids', 'centre'] as $list) {
+                $ids = array_map('intval', (array) ($data[$list] ?? []));
+                if (in_array($gone, $ids, true)) {
+                    $data[$list] = array_values(array_unique(array_map(fn($id) => $id === $gone ? $keep : $id, $ids)));
+                    $changed = true;
+                }
+            }
+            if ($changed) {
+                $task->set_custom_data($data);
+                $DB->set_field('task_adhoc', 'customdata', $task->get_custom_data_as_string(), ['id' => $task->get_id()]);
+            }
+        }
+    }
+
+    /**
      * The tasks in the background with the letters of an act.
      *
      * @param int $eventid
@@ -867,6 +1056,11 @@ class invites {
         $still = self::reachable($event, false, true) + ($chosen === null ? $theirs : array_intersect_key($theirs, array_flip($chosen)));
         foreach ($ids as $id) {
             if (empty($still[(int) $id]->reachemail)) {
+                // Said on the page of the act, and in the file of the family: never in silence.
+                $one = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);
+                if ($one && !$DB->record_exists(self::T, ['eventid' => $event->id, 'householdid' => $one->id, 'channel' => 'email'])) {
+                    notices::log($one, 'openinvite', $pseudo, 'email', 'skipped', self::why_not($event, $one));
+                }
                 continue;
             }
             $household = $DB->get_record(households::T, ['id' => (int) $id, 'centreid' => $centre->id]);
@@ -897,6 +1091,49 @@ class invites {
             $sent++;
         }
         return $sent;
+    }
+
+    /**
+     * Why the letter of an act did not go to a family it was queued for.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @return string One of notices::REASONS.
+     */
+    protected static function why_not(\stdClass $event, \stdClass $household): string {
+        global $DB;
+        if ($DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id])) {
+            return 'signedup';
+        }
+        if ((int) $household->noinvites) {
+            return 'noinvites';
+        }
+        $why = notices::why($household);
+        return in_array($why, ['silent', 'noemail', 'nopermission'], true) ? $why : 'changed';
+    }
+
+    /**
+     * Of the last letters of an act, those that were on their way and did not go, and why.
+     *
+     * @param int $eventid
+     * @return array|false text and names (name, url, note)
+     */
+    public static function skipped(int $eventid) {
+        global $DB;
+        $rows = $DB->get_records(notices::T, ['eventid' => $eventid, 'kind' => 'openinvite', 'state' => 'skipped'], 'id DESC');
+        $names = [];
+        foreach ($rows as $row) {
+            if (isset($names[$row->householdid]) || $DB->record_exists(self::T, ['eventid' => $eventid, 'householdid' => $row->householdid])) {
+                continue;
+            }
+            $adults = $DB->get_records(households::ADULTS, ['householdid' => $row->householdid], 'id ASC');
+            $names[$row->householdid] = ['name' => panel::adults_line($adults) ?: get_string('invitecheck_noname', self::C),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $row->householdid]))->out(false),
+                'note' => get_string('notice_why_' . ($row->reason ?: 'changed'), self::C)];
+        }
+        $n = count($names);
+        return $n ? ['text' => get_string($n === 1 ? 'invite_skipped_one' : 'invite_skipped', self::C, $n), 'names' => array_values($names)] :
+            false;
     }
 
     /**

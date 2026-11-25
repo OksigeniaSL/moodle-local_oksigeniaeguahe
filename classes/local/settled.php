@@ -69,13 +69,14 @@ class settled {
     }
 
     /**
-     * Whether a family left the centre: some enrolled child left and none stays.
+     * Whether a family left the centre: some enrolled child left, none stays and none asks for a place.
      *
      * @param \stdClass[] $children
      * @return bool
      */
     public static function gone(array $children): bool {
-        return self::left($children) && !self::enrolled($children);
+        return self::left($children) && !array_filter($children, fn($k) => $k->stage !== 'closed' &&
+            !($k->stage === 'enrolled' && (int) ($k->lefttime ?? 0)));
     }
 
     /**

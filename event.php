@@ -29,6 +29,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\channel;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invitecheck;
 use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_event;
@@ -107,6 +108,9 @@ if (data_submitted() && confirm_sesskey() && optional_param('invitar', 0, PARAM_
     if ($action === 'invitetest') {
         // To whoever is going to send it, to see how it arrives: it invites nobody.
         $out = invites::try_on($event, $centre, $USER);
+        if ($out) {
+            invitecheck::keep_tried($event, $centre, (int) $USER->id);
+        }
         invites::say(
             (int) $event->id,
             $out ? get_string('panel_invite_tested', $c, $USER->email) : get_string('panel_invite_tested_no', $c),
@@ -149,7 +153,23 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'cancel') {
     // The act is called off: every family signed up is told, and nothing more goes out for it.
     centres::require_act((int) $centre->id);
-    $told = events::cancel($event, $centre, (int) $USER->id, optional_param('message', '', PARAM_TEXT), time());
+    if ((int) $event->timeend <= time() || (int) $event->cancelled) {
+        // From a page of before: it already happened, or it is already called off.
+        redirect($url, get_string('event_cancelled_late', $c), null, \core\output\notification::NOTIFY_WARNING);
+    }
+    $letters = optional_param('letters', 0, PARAM_BOOL) ? array_keys(invites::with_letter($event)) : [];
+    $message = optional_param('message', '', PARAM_TEXT);
+    $told = events::cancel($event, $centre, (int) $USER->id, $message, time());
+    if ($letters) {
+        // And those that have its letter and had not said anything.
+        \local_oksigeniaeguahe\task\tell_invited::queue(
+            events::get((int) $event->id, (int) $centre->id),
+            'cancelled',
+            core_text::substr(trim($message), 0, 2000),
+            (int) $USER->id,
+            $letters
+        );
+    }
     redirect(
         new moodle_url('/local/oksigeniaeguahe/events.php', ['c' => $centre->id]),
         get_string('event_cancelled_done', $c, $told),

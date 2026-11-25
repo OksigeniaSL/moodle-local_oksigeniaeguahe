@@ -165,4 +165,26 @@ final class teamnotes_test extends \advanced_testcase {
             $this->assertTrue(get_string_manager()->string_exists('panel_example_' . $role, 'local_oksigeniaeguahe'), $role);
         }
     }
+
+    /**
+     * A call nobody picked up is not an answer: the family goes on waiting, and what was kept before is marked so.
+     */
+    public function test_tried_is_not_an_answer(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        $line = fn(string $body) => $DB->insert_record(households::CONTACTS, (object) ['householdid' => $household->id, 'centreid' => $cid,
+            'direction' => 'out', 'channel' => 'phone', 'body' => $body, 'entryid' => 0, 'userid' => 0, 'timecreated' => time()]);
+        $DB->insert_record(teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $household->id, 'mark' => sha1('a'), 'entryid' => 1,
+            'timecreated' => time()]);
+        $kind = teamnotes::TRIED[0];
+        $tried = $line(\local_oksigeniaeguahe\local\publiclang::str('teamnote_' . $kind, 'es') . ' · Llamar el lunes');
+        $said = $line('Quedamos en que vienen el martes');
+        $this->assertSame(1, teamnotes::mark_tried());
+        $this->assertSame('tried', $DB->get_field(households::CONTACTS, 'aim', ['id' => $tried]));
+        $this->assertNull($DB->get_field(households::CONTACTS, 'aim', ['id' => $said]));
+        $this->assertSame(0, teamnotes::mark_tried(), 'Once.');
+    }
 }

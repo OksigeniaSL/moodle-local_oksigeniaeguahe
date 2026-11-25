@@ -98,7 +98,7 @@ final class brief_test extends \advanced_testcase {
         // Empty, everything that is missing is said at once, and only of what is in sight.
         $data = brief::data($this->sent([], ''), $event, $question);
         $errors = brief::errors(signup::check($data, $event, $centre, 'es'), $question, $data);
-        $this->assertEqualsCanonicalizing(['a0first', 'a0phone', 'c0name', 'f' . $question->id], array_keys($errors));
+        $this->assertEqualsCanonicalizing(['a0first', 'a0phone', 'f' . $question->id], array_keys($errors));
         $context = brief::context(
             $event,
             $centre,
@@ -114,7 +114,7 @@ final class brief_test extends \advanced_testcase {
             'name'
         ));
         $this->assertSame('Teléfono o correo', $context['fields'][2]['error']);
-        $this->assertTrue($context['ask']['error']);
+        $this->assertSame('Falta elegir una', $context['ask']['error']);
 
         // With a phone, it is enough; the long question that is not in sight stops nobody.
         $data = $this->sent(['firstname' => 'Marta', 'phone' => '600 111 222'], 'Leo');
@@ -167,5 +167,85 @@ final class brief_test extends \advanced_testcase {
         $this->assertFalse(brief::person($mark, '', 7, '192.0.2.1', $now));
         $this->assertTrue(brief::person($mark, '', 7, '192.0.2.2', $now));
         $this->assertTrue(brief::person($mark, '', 8, '192.0.2.1', $now));
+    }
+
+    /**
+     * Only the name of the adult and a way to answer; the name of the student is for whoever wants to say it, and they may be
+     * two or more.
+     */
+    public function test_name_and_a_way(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        [$centre, $entry] = $this->form();
+        $event = forms::as_event($entry);
+        $data = brief::data($this->sent(['firstname' => 'Marta', 'email' => 'marta@example.com'], ''), $event, null);
+        $this->assertSame([], brief::errors(signup::check($data, $event, $centre, 'es', true), null, $data), 'Its question was not asked.');
+        $url = new \moodle_url('/local/oksigeniaeguahe/w.php');
+        $context = brief::context($event, $centre, 'es', $data, [], $url, entries::mark($entry), null);
+        $this->assertFalse($context['ask'], 'The web had its own buttons (sinpregunta).');
+        $this->assertSame('Basta con tu nombre y un teléfono o un correo.', $context['hint']);
+        $fields = array_column($context['fields'], null, 'name');
+        $this->assertSame('Tu nombre', $fields['a0first']['label']);
+        $this->assertSame('', $fields['c0name']['need']);
+        $this->assertCount(signup::CHILDREN - 1, $context['others']);
+        $this->assertFalse($context['others'][0]['open']);
+        $this->assertSame(['c1name', 'c1offer'], array_column($context['others'][0]['fields'], 'name'));
+        $data['children'][1]['firstname'] = 'Luis';
+        $context = brief::context($event, $centre, 'es', $data, [], $url, entries::mark($entry), null);
+        $this->assertTrue($context['others'][0]['open']);
+        $this->assertStringContainsString('Prueben en un minuto', $context['unsent']);
+
+        // Of an act, how many come is asked there too.
+        $start = time() + 5 * DAYSECS;
+        $act = events::get(events::save((int) $centre->id, (object) ['kind' => 'openday', 'name' => 'Jornada',
+            'timestart' => $start, 'timeend' => $start + HOURSECS, 'capacity' => 3, 'open' => 1]), (int) $centre->id);
+        $context = brief::context($act, $centre, 'es', $data, [], $url, events::mark($act), null);
+        $this->assertSame('people', $context['people']['name']);
+        // A person of the team is asked whether it is a test.
+        $context = brief::context($act, $centre, 'es', $data, ['team' => '¿Es una prueba?'], $url, events::mark($act), null);
+        $this->assertSame('Sí, es una prueba', $context['team']['yes']);
+        $this->assertTrue($context['hinterror']);
+    }
+
+    /**
+     * The options by the words the web may name them with, the same the server looks at.
+     */
+    public function test_words(): void {
+        $this->resetAfterTest();
+        [, $entry] = $this->form();
+        $words = brief::words(brief::question((int) $entry->id, 'es'), 'es');
+        $this->assertContains(['jornada-de-puertas-abiertas', 'un-dia-de-clase', 'por-videollamada'], $words);
+        $this->assertContains(['open-day', 'a-day-in-class', 'by-video-call'], $words);
+    }
+
+    /**
+     * An hour is an hour: what is refused does not make it longer.
+     */
+    public function test_an_hour(): void {
+        $this->resetAfterTest();
+        $now = time();
+        $mark = fn(int $at) => ($at - 10) . '-abc';
+        for ($i = 0; $i < brief::PERHOUR; $i++) {
+            $this->assertTrue(brief::person($mark($now), '', 7, '192.0.2.9', $now));
+        }
+        $this->assertFalse(brief::person($mark($now + 50 * MINSECS), '', 7, '192.0.2.9', $now + 50 * MINSECS));
+        $this->assertTrue(brief::person($mark($now + 61 * MINSECS), '', 7, '192.0.2.9', $now + 61 * MINSECS));
+    }
+
+    /**
+     * Where what nobody sees was filled, pressing again does nothing: how to reach the centre is said.
+     */
+    public function test_refused(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'phone' => '+34 900 000 014']);
+        $centre = centres::get($id);
+        $now = time();
+        $this->assertStringContainsString('+34 900 000 014', brief::refused(($now - 10) . '-a', 'x', $now, $centre, 'es'));
+        $this->assertStringContainsString('pulsar otra vez', brief::refused($now . '-a', '', $now, $centre, 'es'));
+        $this->assertStringContainsString('muchas inscripciones', brief::refused(($now - 10) . '-a', '', $now, $centre, 'es'));
+        $none = clone $centre;
+        $none->phone = '';
+        $none->email = '';
+        $this->assertSame('', brief::reach_words($none, 'es'));
     }
 }

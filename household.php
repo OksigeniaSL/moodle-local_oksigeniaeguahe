@@ -39,12 +39,14 @@ use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\notices;
+use local_oksigeniaeguahe\local\outs;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_agenda;
 use local_oksigeniaeguahe\local\panel_notices;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\renewal;
+use local_oksigeniaeguahe\local\settle;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
 use local_oksigeniaeguahe\local\ties;
@@ -57,6 +59,23 @@ $c = 'local_oksigeniaeguahe';
 
 require_login(null, false);
 $household = households::get($id, 0);
+if (!$household && ($joined = lookalike::now_in($id))) {
+    // It was put together with another: what was open, and the notices of before, lead to the one that stays. What was
+    // written there goes with it, to send it from here.
+    $household = households::get($joined, 0);
+    centres::require_work((int) $household->centreid);
+    $written = trim(optional_param('body', '', PARAM_TEXT));
+    if ($written !== '') {
+        $SESSION->local_oksigeniaeguahe_written[$joined] = ['body' => $written, 'next' => optional_param('next', '', PARAM_TEXT),
+            'day' => publicpage::date_param('nextday'), 'why' => ''];
+    }
+    redirect(
+        new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $joined], $written !== '' ? 'contestar' : null),
+        get_string($written !== '' ? 'lookalike_now_in_written' : 'lookalike_now_in', $c),
+        null,
+        \core\output\notification::NOTIFY_INFO
+    );
+}
 if (!$household) {
     throw new moodle_exception('invalidrecord', 'error');
 }
@@ -82,6 +101,13 @@ if (optional_param('typing', 0, PARAM_BOOL)) {
 $newlink = '';
 $prefill = '';
 $drafted = false;
+// What a person had written and did not go (the mail failed, the file was put together with another): it is here again.
+$written = [];
+if (isset($SESSION->local_oksigeniaeguahe_written[$household->id]) && $canact && !$action) {
+    $written = (array) $SESSION->local_oksigeniaeguahe_written[$household->id];
+    unset($SESSION->local_oksigeniaeguahe_written[$household->id]);
+    $prefill = (string) ($written['body'] ?? '');
+}
 $use = optional_param('use', 0, PARAM_INT);
 if ($use && $canact && data_submitted() && confirm_sesskey()) {
     // An answer of always chosen without the script: the file comes back with it in the answer.
@@ -173,6 +199,13 @@ if ($action && data_submitted() && confirm_sesskey()) {
     // What the team writes down by hand: the phone app counts as WhatsApp.
     $channel = ['mobile' => 'whatsapp'][$channel] ?? $channel;
     $channel = in_array($channel, lists::HAND_CHANNELS, true) ? $channel : 'other';
+    // Not sent: what was written, and what was left for later, stays in its place, with why.
+    $notsent = function (string $why) use ($household, $url) {
+        global $SESSION;
+        $SESSION->local_oksigeniaeguahe_written[$household->id] = ['body' => trim(optional_param('body', '', PARAM_TEXT)),
+            'next' => optional_param('next', '', PARAM_TEXT), 'day' => publicpage::date_param('nextday'), 'why' => $why];
+        redirect(new moodle_url($url, [], 'contestar'));
+    };
     // After answering: what comes next, promised with its day, and the answer kept as one of always if asked.
     $aftersend = function () use ($household, $body, $centre) {
         global $USER;
@@ -208,12 +241,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
     if (in_array($action, ['reply', 'replyphone'], true) && writeby::silent($household) && !writeby::wrote_after($household)) {
         // They asked not to be written to: a person may write anyway, once told and having said so.
         if (!optional_param('anyway', 0, PARAM_BOOL)) {
-            redirect(
-                new moodle_url($url, [], 'contestar'),
-                get_string('panel_writeby_need_anyway', $c),
-                null,
-                \core\output\notification::NOTIFY_WARNING
-            );
+            $notsent(get_string('panel_writeby_need_anyway', $c));
         }
         writeby::anyway((int) $household->id);
     }
@@ -278,8 +306,9 @@ if ($action && data_submitted() && confirm_sesskey()) {
             break;
         case 'merge':
             // A person says it is the same family written down twice: both go together in the older one.
+            // One of those proposed, or another of the centre found by hand.
             $other = households::get(required_param('other', PARAM_INT), (int) $centre->id);
-            if (!$other || !array_key_exists((int) $other->id, lookalike::of($household))) {
+            if (!$other || (int) $other->id === (int) $household->id) {
                 redirect(new moodle_url($url, [], 'misma-familia'));
             }
             $kept = lookalike::merge($household, $other, (int) $USER->id);
@@ -295,6 +324,16 @@ if ($action && data_submitted() && confirm_sesskey()) {
             listmatch::choose($household, required_param('fila', PARAM_INT), optional_param('nino', 0, PARAM_INT));
             redirect(new moodle_url($url, [], 'segun-lista'));
             break;
+        case 'listsay':
+            // What the list said by itself is not so, or it is: said by a person.
+            listmatch::say(
+                $household,
+                required_param('fila', PARAM_INT),
+                optional_param('si', 0, PARAM_BOOL),
+                (int) $USER->id
+            );
+            redirect(new moodle_url($url, [], 'segun-lista'));
+            break;
         case 'notsame':
             // Two different families: it is not asked again.
             lookalike::distinct((int) $centre->id, (int) $household->id, required_param('other', PARAM_INT), (int) $USER->id);
@@ -302,18 +341,23 @@ if ($action && data_submitted() && confirm_sesskey()) {
             break;
         case 'split':
             // Two families joined by mistake: the adults, children, sign-ups and lines chosen go to a new one.
-            // Each adult stays or goes (adultgo[id]); a page from before sent the ones that go (adults[]).
-            $goadults = array_keys(array_filter(optional_param_array('adultgo', [], PARAM_ALPHA), fn($v) => $v === 'go'));
+            // Each adult stays or goes (adultgo[id]), or is in both when it was; a page from before sent the ones that go (adults[]).
+            $said = optional_param_array('adultgo', [], PARAM_ALPHA);
+            $goadults = array_keys(array_filter($said, fn($v) => $v === 'go'));
             $choice = [
                 'adults' => array_values(array_unique(array_merge(
                     array_map('intval', $goadults),
                     optional_param_array('adults', [], PARAM_INT)
                 ))),
+                'both' => array_keys(array_filter($said, fn($v) => $v === 'both')),
                 'children' => optional_param_array('children', [], PARAM_ALPHA),
                 'signups' => optional_param_array('signups', [], PARAM_ALPHA),
                 'contacts' => optional_param_array('contacts', [], PARAM_INT),
                 'log' => optional_param('log', 0, PARAM_INT),
             ];
+            if (optional_param('hasthings', 0, PARAM_BOOL)) {
+                $choice['things'] = optional_param_array('things', [], PARAM_ALPHA);
+            }
             try {
                 $new = lookalike::split($household, $choice, (int) $USER->id);
             } catch (\moodle_exception $e) {
@@ -343,6 +387,33 @@ if ($action && data_submitted() && confirm_sesskey()) {
             );
             redirect(new moodle_url($url, [], 'relacion-' . $childid));
             break;
+        case 'out':
+            // They go, or they never were a family: why, with what they said and what stops with it.
+            $done = outs::set(
+                $household,
+                $centre,
+                optional_param('reason', '', PARAM_ALPHA),
+                optional_param('note', '', PARAM_TEXT),
+                optional_param('stops', '', PARAM_ALPHA),
+                (int) $USER->id
+            );
+            redirect(
+                new moodle_url($url, [], 'salida'),
+                get_string($done ? 'out_done' : 'out_pick', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
+            break;
+        case 'outundo':
+            // It was not so, or they want to go on.
+            outs::undo($household, $centre, (int) $USER->id);
+            redirect(new moodle_url($url, [], 'salida'), get_string('out_undone', $c));
+            break;
+        case 'outnotso':
+            // What the notes suggest is not so: it is not asked again.
+            outs::not_so($household);
+            redirect(new moodle_url($url, [], 'salida'));
+            break;
         case 'alumni':
             // A person of the team says whether an adult studied at the centre, or answers the question of the list.
             $adultid = required_param('adulto', PARAM_INT);
@@ -371,6 +442,11 @@ if ($action && data_submitted() && confirm_sesskey()) {
         case 'notambassador':
             // No longer: its invitation stops working, and nothing else changes.
             $DB->set_field(households::T, 'volunteer', 0, ['id' => $household->id]);
+            // And what was promised for the next campaign goes with it.
+            attend::withdraw($household, array_map(
+                fn($lang) => \local_oksigeniaeguahe\local\publiclang::str('promise_volunteer', $lang),
+                lists::LANGS
+            ), 0, (int) $USER->id);
             redirect(new moodle_url($url, [], 'embajadora'));
             break;
         case 'thanked':
@@ -424,7 +500,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 ob_end_clean();
             }
             if (!$sent) {
-                redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
+                $notsent(get_string('reply_failed', $c));
             }
             households::answered($household, (int) $USER->id, 'email', $body);
             try {
@@ -444,7 +520,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
             }
             $sentby = messaging::reply($household, $centre, $body);
             if ($sentby === null) {
-                redirect($url, get_string('reply_failed', $c), null, \core\output\notification::NOTIFY_ERROR);
+                $notsent(messaging::$why === 'long' ? get_string('reply_too_long', $c, messaging::innotice()) : get_string('reply_failed', $c));
             }
             households::answered($household, (int) $USER->id, $sentby, $body);
             $aftersend();
@@ -475,8 +551,27 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 MUST_EXIST
             );
             $stage = required_param('stage', PARAM_ALPHA);
+            // The step the page showed: if it is another one now, nothing is changed without seeing it.
+            $seen = optional_param('era', '', PARAM_ALPHA);
+            if ($seen !== '' && $seen !== $child->stage) {
+                redirect($url, get_string('panel_stage_moved', $c, (object) ['name' => panel::tag($child) ?: format_string($child->firstname),
+                    'stage' => get_string('stage_' . $child->stage, $c)]), null, \core\output\notification::NOTIFY_WARNING);
+            }
+            if ($stage === 'closed' && $child->stage === 'enrolled') {
+                // One that is at the centre does not «close»: it leaves, with its reason and its farewell.
+                redirect(new moodle_url($url, [], 'se-van'), get_string('panel_stage_leave', $c), null, \core\output\notification::NOTIFY_WARNING);
+            }
+            if ($stage === 'reopen') {
+                // Where it was when it was closed.
+                $stage = in_array((string) $child->closedstage, lists::STAGES, true) && $child->closedstage !== 'enrolled' ?
+                    (string) $child->closedstage : 'inquiry';
+            }
             if (in_array($stage, lists::STAGES, true)) {
                 households::set_stage($child, $stage, optional_param('reason', null, PARAM_ALPHA));
+                if ($stage === 'closed' && optional_param('stopwait', 0, PARAM_BOOL)) {
+                    // With its way closed it waits for nobody, and that is not an answer.
+                    settle::closed($household, (int) $USER->id);
+                }
             }
             redirect($url);
             break;
@@ -504,32 +599,32 @@ if ($action && data_submitted() && confirm_sesskey()) {
             if ($start <= time()) {
                 redirect($url, get_string('visit_err_when', $c), null, \core\output\notification::NOTIFY_ERROR);
             }
-            $event = visits::propose(
+            $given = appointments::give(
                 $household,
+                $centre,
                 $start,
                 optional_param('minutes', 45, PARAM_INT),
                 optional_param('guide', 0, PARAM_INT),
                 optional_param('place', '', PARAM_TEXT),
-                optional_param('people', 2, PARAM_INT)
+                optional_param('people', 2, PARAM_INT),
+                true
             );
-            $token = households::new_link($household, 'invitation');
-            $lang = $household->lang ?: $centre->lang;
-            $signup = familymail::signup($household, (int) $event->id);
-            $sent = false;
-            ob_start();
-            try {
-                $sent = $signup && familymail::send('invitation', $household, $centre, $signup, $lang, $token);
-            } catch (\Throwable $e) {
-                $sent = false;
-            } finally {
-                ob_end_clean();
+            if ($given['again']) {
+                redirect($url, get_string('give_done_again', $c));
             }
+            $event = $given['event'];
+            $sent = $given['sent'];
+            $token = $sent ? '' : households::new_link($household, 'invitation');
             $host = centres::hosts((int) $centre->id, array_filter([(int) $event->hosts]))[0] ?? null;
             $note = get_string('visit_proposed_note', $c, (object) [
                 'when' => userdate($start, get_string('strftimedaydatetime', 'langconfig')),
                 'guide' => $host ? $host->name : get_string('visit_guide_none', $c),
             ]);
-            households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', $note);
+            if ($sent || $given['asked']) {
+                households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', $note);
+            } else {
+                households::told($household, (int) $USER->id, 'other', $note);
+            }
             if ($sent) {
                 redirect($url, get_string('visit_proposed_sent', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             }
@@ -549,15 +644,28 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
 }
 
+$context = panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted);
+if ($written) {
+    $context['composer']['failed'] = (string) ($written['why'] ?? '');
+    $context['composer']['next'] = ['value' => (string) ($written['next'] ?? '')] + $context['composer']['next'];
+    $context['composer']['next']['date'] = ['labelled' => false, 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input(
+        'nextday',
+        (string) ($written['day'] ?? ''),
+        $centre,
+        'siguiente-dia'
+    );
+}
 panel::output(
     $centre,
     'inbox',
     panel::adults_line(households::full($household)->adults),
     'panel_household',
-    panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted) + [
+    $context + [
         // Its appointments, wherever they come from, and the pairs that may be one; and what it was sent.
         'citas' => panel_agenda::of_family(households::full($household), $centre, $canact, time()),
         'avisos' => panel_notices::context($household, $centre, $canact, time()),
+        // To put it together with another that Eguahe did not recognise.
+        'joinhand' => $canact ? lookalike::by_hand($household, \core_text::substr(optional_param('juntar', '', PARAM_TEXT), 0, 80)) : false,
         // Only signed up to an open act: it is not in admissions, and the team may take it there.
         'guest' => !empty($household->guest) ? ['may' => $canact, 'posturl' => $url->out(false), 'sesskey' => sesskey()] : false,
     ]

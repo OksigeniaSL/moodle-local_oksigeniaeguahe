@@ -215,4 +215,26 @@ final class messaging_test extends \advanced_testcase {
             'Marta'
         );
     }
+
+    /**
+     * How long a notice is true, whether WhatsApp lets a message through, and how much of an answer fits in a notice.
+     */
+    public function test_queue(): void {
+        global $DB;
+        $now = time();
+        $this->assertSame(3 * DAYSECS, messaging::validfor('request', null, $now));
+        $soon = (object) ['timestart' => $now + 2 * HOURSECS];
+        $this->assertSame(2 * HOURSECS, messaging::validfor('confirmation', $soon, $now));
+        $this->assertLessThanOrEqual(DAYSECS, messaging::validfor('reminder', (object) ['timestart' => $now + 2 * DAYSECS], $now));
+        $this->assertFalse(messaging::window_open($this->household, $now));
+        $DB->insert_record(households::CONTACTS, (object) ['householdid' => $this->household->id, 'centreid' => $this->centre->id,
+            'direction' => 'in', 'channel' => 'whatsapp', 'body' => 'Hola', 'userid' => 0, 'timecreated' => $now - HOURSECS]);
+        $this->assertTrue(messaging::window_open($this->household, $now));
+        $this->assertFalse(messaging::window_open($this->household, $now + DAYSECS));
+        $this->assertGreaterThanOrEqual(messaging::INNOTICE, messaging::innotice());
+        // Nothing breaks without a Marandu that can do it.
+        messaging::withdraw((int) $this->household->id, ['confirmation']);
+        $this->assertFalse(messaging::said_no((int) $this->household->id, 'whatsapp'));
+        $this->assertFalse(messaging::reaches($this->household, $this->centre, 'confirmation'));
+    }
 }

@@ -204,7 +204,7 @@ class vestibulo {
             'time' => (int) $local->format('G') + (int) $local->format('i') / 60,
             // For the day the board says: in the time of whoever looks, as the browser reads a date.
             'date' => $local->format('Y-m-d\\TH:i:00'),
-            'texts' => ['hello' => $say('vestibulo_hello'), 'and' => $say('vestibulo_and'), 'today' => $say('vestibulo_today'),
+            'texts' => ['hello' => $say('vestibulo_hello'), 'hi' => $say('vestibulo_hi'), 'and' => $say('vestibulo_and'), 'today' => $say('vestibulo_today'),
                 'days' => $days],
         ];
     }

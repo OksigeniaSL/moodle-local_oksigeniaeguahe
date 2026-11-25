@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe\task;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\roster;
 
 /**
@@ -41,6 +42,14 @@ class sync_roster extends \core\task\scheduled_task {
      * Brings them, centre by centre.
      */
     public function execute() {
+        foreach (centres::all() as $centre) {
+            try {
+                // The children Eguahe put in the common record, with their names and courses as they are now.
+                family::names((int) $centre->id);
+            } catch (\Throwable $e) {
+                mtrace('Eguahe: the names of centre ' . $centre->id . ' did not reach the record: ' . $e->getMessage());
+            }
+        }
         if (!roster::available()) {
             return;
         }

@@ -45,14 +45,14 @@
             "hassignups": true, "signups": [{"id": 1, "adults": "Marta Ruiz", "children": [{"drawingurl": "#", "hasdrawing": false, "tag": "Leo",
             "course": "Infantil 3 años"}], "people": "3 personas", "came": true, "cametext": "Vino 10:41", "url": "#",
             "search": "marta leo"}]}],
-        "canact": true, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "qrfile": "Jornada de puertas abiertas", "link": "https://example.com/v",
+        "canact": true, "reloj": 36000, "addurl": "#", "action": "https://example.com/event.php", "sesskey": "abc", "qr": "", "qrfile": "Jornada de puertas abiertas", "link": "https://example.com/v",
         "posterurl": "#", "posterurla3": "#", "deskurl": "#", "embed": "<iframe></iframe>", "doorposter": "#", "doorpostera5": "#", "kiturl": false, "labelsurl": "#", "labelsname": "Las etiquetas del sábado", "doorsound": false,
         "kind": "Jornada de puertas abiertas", "capacity": "120 personas",
-        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "cancelled": "",
+        "slots": "4 turnos", "questions": "", "open": true, "editurl": "#", "cancel": true, "letters": "Avisar también a las 12 familias que tienen la carta y no se han inscrito.", "cancelled": "",
         "before": false, "door": true, "opens": "", "signedsentence": "familias inscritas", "signedpeople": "87 de 120 personas", "signedpercent": 72
     }
 }}
-<div class="pagina puerta{{#past}} paso{{/past}}{{#before}} antes{{/before}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
+<div class="pagina puerta{{#past}} paso{{/past}}{{#before}} antes{{/before}}" data-puerta data-accion="{{action}}" data-sesskey="{{sesskey}}" data-reloj="{{reloj}}"{{#checkurl}} data-comprobar="{{checkurl}}" data-cada="{{checkevery}}"{{/checkurl}}>
     {{#back}}<nav class="migas" aria-label="{{#str}}panel_crumbs, local_oksigeniaeguahe{{/str}}"><a href="{{url}}">{{{i.atras}}}{{name}}</a></nav>{{/back}}
     <section class="banda" aria-labelledby="acto-t">
         <span class="etiqueta-b">{{band}}</span>
@@ -212,6 +212,7 @@
                         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cancel">
                         <p>{{#str}}event_cancel_help, local_oksigeniaeguahe{{/str}}</p>
                         <div class="campo"><label for="anular-mensaje">{{#str}}event_cancel_message, local_oksigeniaeguahe{{/str}}</label><textarea id="anular-mensaje" name="message" rows="3" maxlength="2000"></textarea></div>
+                        {{#letters}}<label class="casilla"><input type="checkbox" name="letters" value="1" checked> <span>{{letters}}</span></label>{{/letters}}
                         <button class="boton secundario pequeno" type="submit">{{#str}}event_cancel_do, local_oksigeniaeguahe{{/str}}</button>
                     </form>
                 </details>

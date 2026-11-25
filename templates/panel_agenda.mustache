@@ -24,9 +24,10 @@
     {
         "head": {"title": "Cuatro visitas esta semana", "sub": "La próxima, hoy a las 10:00.", "action": {"url": "#", "name": "Dar cita", "icon": ""} },
         "title": "Del 23 al 29 de noviembre", "prevurl": "#", "nexturl": "#", "todayurl": "#", "isnow": true, "sesskey": "abc", "markurl": "#",
+        "views": [{"key": "semana", "name": "Semana", "current": true, "url": "#"}], "view": "semana", "columns": 7, "compact": false, "hasbehind": false, "behindon": false, "behindurl": "#", "moved": [], "hasmoved": false, "stopped": "",
         "topass": {"n": 6, "text": "6 citas han pasado y no está anotado si vinieron", "url": "#"},
         "hasguides": true, "everyone": true, "everyoneurl": "#", "weekurl": "#", "actsurl": "#", "isweek": true, "canact": true, "guides": [{"id": 3, "first": "Lucía", "picture": "", "initials": "LM", "current": false, "url": "#"}],
-        "days": [{"key": "2026-11-23", "weekday": "lun", "day": "23", "month": "nov", "today": false, "past": true, "closed": false, "hasitems": true, "items": [{"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "unknown": true, "came": false, "notcame": false, "isact": false, "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}]}],
+        "calendars": [{"name": "Secretaría", "color": 1}], "days": [{"dayurl": "#", "pieces": [], "key": "2026-11-23", "weekday": "lun", "day": "23", "month": "nov", "today": false, "past": true, "closed": false, "hasitems": true, "items": [{"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "unknown": true, "came": false, "notcame": false, "isact": false, "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}]}],
         "hasasked": true, "asked": [{"id": "r3", "adults": "Mohamed El Amrani", "children": [{"tag": "Adam", "course": ""}], "since": "Desde el lunes", "suits": "Martes y jueves, por la tarde", "moveurl": "#", "url": "#"}],
         "undo": ""
     }
@@ -36,19 +37,34 @@
     {{> local_oksigeniaeguahe/panel_agenda_leaves }}
     {{#topass}}<p class="agenda-nota"><span>{{text}}</span><a class="boton secundario pequeno" href="{{url}}">{{#str}}agenda_pass, local_oksigeniaeguahe{{/str}}</a></p>{{/topass}}
     {{> local_oksigeniaeguahe/panel_agenda_undo }}
+    {{#stopped}}<p class="aviso-suave">{{{i.info}}}<span>{{stopped}}</span></p>{{/stopped}}
+    {{#hasmoved}}{{> local_oksigeniaeguahe/panel_calsync }}{{/hasmoved}}
     <div class="agenda-mesa{{#hasasked}} con-piden{{/hasasked}}">
         <section class="semana agenda" aria-labelledby="semana-t" data-agenda>
-            <header>
-                <div class="agenda-titulo"><h2 id="semana-t">{{title}}</h2>{{^isnow}}<a class="boton terciario pequeno" href="{{todayurl}}">{{#str}}agenda_today, local_oksigeniaeguahe{{/str}}</a>{{/isnow}}</div>
-                <nav class="agenda-paso" aria-label="{{#str}}agenda_weeks, local_oksigeniaeguahe{{/str}}"><a class="agenda-ir" href="{{prevurl}}" aria-label="{{#str}}agenda_prev, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a><a class="agenda-ir adelante" href="{{nexturl}}" aria-label="{{#str}}agenda_next, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a></nav>
-                {{#hasguides}}<nav class="agenda-equipo" aria-label="{{#str}}give_guide, local_oksigeniaeguahe{{/str}}"><a href="{{everyoneurl}}"{{#everyone}} aria-current="true"{{/everyone}}><span>{{#str}}agenda_everyone, local_oksigeniaeguahe{{/str}}</span></a>{{#guides}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{> local_oksigeniaeguahe/panel_face }}<span>{{first}}</span></a>{{/guides}}</nav>{{/hasguides}}
+            <header class="agenda-cabeza">
+                <div class="agenda-fila">
+                    <div class="agenda-titulo"><h2 id="semana-t">{{title}}</h2>{{^isnow}}<a class="boton terciario pequeno" href="{{todayurl}}">{{#str}}agenda_today, local_oksigeniaeguahe{{/str}}</a>{{/isnow}}</div>
+                    <nav class="agenda-paso" aria-label="{{#str}}agenda_weeks, local_oksigeniaeguahe{{/str}}"><a class="agenda-ir" href="{{prevurl}}" aria-label="{{#str}}agenda_prev, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a><a class="agenda-ir adelante" href="{{nexturl}}" aria-label="{{#str}}agenda_next, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a></nav>
+                    {{#hasbehind}}<a class="interruptor agenda-otros" role="switch" aria-checked="{{#behindon}}true{{/behindon}}{{^behindon}}false{{/behindon}}" href="{{behindurl}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}busy_switch, local_oksigeniaeguahe{{/str}}</span></a>{{/hasbehind}}
+                    <nav class="segmentos agenda-vistas" aria-label="{{#str}}agenda_views, local_oksigeniaeguahe{{/str}}">{{#views}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/views}}</nav>
+                </div>
+                <div class="agenda-fila">
+                    {{#hasguides}}<nav class="agenda-equipo" aria-label="{{#str}}give_guide, local_oksigeniaeguahe{{/str}}"><a href="{{everyoneurl}}"{{#everyone}} aria-current="true"{{/everyone}}><span>{{#str}}agenda_everyone, local_oksigeniaeguahe{{/str}}</span></a>{{#guides}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{> local_oksigeniaeguahe/panel_face }}<span>{{first}}</span></a>{{/guides}}</nav>{{/hasguides}}
+                    {{#behindon}}<ul class="agenda-leyenda">{{#calendars}}<li class="fondo-{{color}}">{{name}}</li>{{/calendars}}</ul>{{/behindon}}
+                </div>
             </header>
-            <ol class="dias-semana">
+            {{^days}}<p class="agenda-nada">{{#str}}agenda_still_none, local_oksigeniaeguahe{{/str}}</p>{{/days}}
+            <ol class="dias-semana vista-{{view}} columnas-{{columns}}">
                 {{#days}}
-                <li class="dia-s{{#today}} hoy{{/today}}{{#past}} pasado{{/past}}{{^hasitems}} vacio{{/hasitems}}{{#closed}} cerrado{{/closed}}">
-                    <span class="dia-s-nombre"><small>{{weekday}}</small><b>{{day}}</b>{{#today}}<span class="oculto">, {{#str}}panel_today_word, local_oksigeniaeguahe{{/str}}</span>{{/today}}</span>
+                <li id="dia-{{key}}" class="dia-s{{#out}} fuera{{/out}}{{#today}} hoy{{/today}}{{#past}} pasado{{/past}}{{^hasitems}} vacio{{/hasitems}}{{#hasbehind}} con-fondo{{/hasbehind}}{{#closed}} cerrado{{/closed}}">
+                    <span class="dia-s-nombre"><small>{{weekday}}</small><a class="dia-s-ir" href="{{dayurl}}" aria-label="{{weekday}} {{day}} {{month}}"><b>{{day}}</b></a><span class="dia-s-mes">{{month}}</span>{{#today}}<span class="oculto">, {{#str}}panel_today_word, local_oksigeniaeguahe{{/str}}</span>{{/today}}</span>
                     <div class="dia-s-cosas">
-                        {{#items}}{{> local_oksigeniaeguahe/panel_agenda_card }}{{/items}}
+                        {{#pieces}}
+                        <div class="rato{{#over}} sobre{{/over}} fondo-{{color}}">
+                            {{#behind}}<details class="detras fondo-{{color}}"><summary><span class="oculto">{{#str}}busy_title, local_oksigeniaeguahe{{/str}}: </span>{{#hour}}<b>{{hour}}</b> {{/hour}}{{title}}</summary>{{#calendar}}<p>{{calendar}}</p>{{/calendar}}</details>{{/behind}}
+                            {{#items}}{{#compact}}<a class="mes-cita{{#isact}} es-acto{{/isact}}{{#isoff}} anulada{{/isoff}}" href="{{url}}">{{#hour}}<b>{{hour}}</b> {{/hour}}{{#isact}}{{title}}{{/isact}}{{^isact}}{{adults}}{{/isact}}</a>{{/compact}}{{^compact}}{{> local_oksigeniaeguahe/panel_agenda_card }}{{/compact}}{{/items}}
+                        </div>
+                        {{/pieces}}
                         {{#addurl}}<a class="dia-mas" href="{{addurl}}">{{{i.mas1}}}<span class="oculto">{{#str}}give_title, local_oksigeniaeguahe{{/str}}: {{weekday}} {{day}}</span></a>{{/addurl}}
                         {{^hasitems}}<span class="nada">{{#closed}}{{#str}}agenda_closed, local_oksigeniaeguahe{{/str}}{{/closed}}{{^closed}}{{#str}}panel_nothing_day, local_oksigeniaeguahe{{/str}}{{/closed}}</span>{{/hasitems}}
                     </div>

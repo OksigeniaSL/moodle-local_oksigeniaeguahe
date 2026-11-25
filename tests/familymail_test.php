@@ -288,4 +288,46 @@ final class familymail_test extends \advanced_testcase {
         $this->assertStringStartsWith('<svg', events::qr_svg($event));
         $this->assertSame('', $DB->get_field(events::T, 'shortqr', ['id' => $this->event->id]));
     }
+
+    /**
+     * Whoever signed up a moment ago, the eve itself, has just read it: no reminder on top of its confirmation.
+     */
+    public function test_reminder_after_confirmation(): void {
+        global $DB;
+        [$household] = $this->family(true);
+        $sink = $this->redirectEmails();
+        $now = make_timestamp((int) date('Y'), (int) date('n'), (int) date('j'), 12, 0);
+        send_reminders::$testnow = $now;
+        \local_oksigeniaeguahe\local\notices::log($household, 'confirmation', familymail::signup($household, (int) $this->event->id), 'email', 'sent');
+        $DB->set_field(\local_oksigeniaeguahe\local\notices::T, 'timecreated', $now - HOURSECS, ['householdid' => $household->id]);
+        (new send_reminders())->execute();
+        $this->assertCount(0, $sink->get_messages());
+        $DB->set_field(\local_oksigeniaeguahe\local\notices::T, 'timecreated', $now - DAYSECS, ['householdid' => $household->id]);
+        $DB->set_field(events::SIGNUPS, 'reminded', 0, ['householdid' => $household->id]);
+        (new send_reminders())->execute();
+        $this->assertCount(1, $sink->get_messages());
+    }
+
+    /**
+     * A visit without its place leaves no hole in its letters, and one letter says what changed from what to what.
+     */
+    public function test_visit_without_place(): void {
+        global $DB;
+        $DB->set_field(events::T, 'place', '', ['id' => $this->event->id]);
+        $DB->set_field(centres::T, 'address', '', ['id' => $this->centre->id]);
+        $this->centre = centres::get((int) $this->centre->id);
+        [$household, $token] = $this->family(true);
+        foreach (['confirmation', 'reminder'] as $kind) {
+            [$subject, $html, $text] = familymail::build(
+                $kind,
+                $household,
+                $this->centre,
+                familymail::signup($household, (int) $this->event->id),
+                'es',
+                $token
+            );
+            $this->assertDoesNotMatchRegularExpression('/ ,|,\s*\.| · \s*$|\(\)/mu', $subject . "\n" . $text, $kind);
+            $this->assertStringNotContainsString('{$a', $html . $text);
+        }
+    }
 }

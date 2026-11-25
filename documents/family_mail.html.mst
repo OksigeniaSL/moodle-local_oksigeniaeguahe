@@ -143,7 +143,7 @@ u + #body a { color: inherit; text-decoration: none; }
   <p style="margin:0 0 12px; font-size:13px; line-height:18px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:{{c.sobre_acento}};">{{rotulo}}</p>
   <p class="eg-fecha" style="margin:0; font-size:36px; line-height:38px; font-weight:800; letter-spacing:-0.8px; color:{{c.sobre_acento}};">{{dia_semana}}<br>{{dia_mes}}</p>
   <p style="margin:18px 0 6px; font-size:19px; line-height:26px; font-weight:700; color:{{c.sobre_acento}};">{{acto}}</p>
-  <p style="margin:0; font-size:16px; line-height:25px; color:{{c.sobre_acento}};">{{hora}}<br>{{lugar}}{{#personas}}<br>{{personas}}{{/personas}}</p>
+  <p style="margin:0; font-size:16px; line-height:25px; color:{{c.sobre_acento}};">{{hora}}{{#lugar}}<br>{{lugar}}{{/lugar}}{{#personas}}<br>{{personas}}{{/personas}}</p>
   {{#boton}}
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
     <td align="center" bgcolor="{{c.sobre_acento}}" style="background-color:{{c.sobre_acento}}; border-radius:14px; mso-padding-alt:16px 28px;">
@@ -156,6 +156,15 @@ u + #body a { color: inherit; text-decoration: none; }
   {{/enlace}}
 </td></tr>
 {{/banda}}
+{{#boton_despues}}
+<tr><td class="eg-pad" style="padding:28px 40px 0;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+    <td class="eg-boton-td" align="center" bgcolor="{{c.vivo}}" style="background-color:{{c.vivo}}; border-radius:14px; mso-padding-alt:17px 30px;">
+      <a class="eg-boton-a" href="{{url}}" style="display:inline-block; padding:17px 30px; font-size:17px; line-height:20px; font-weight:700; color:{{c.sobre_vivo}}; text-decoration:none; border-radius:14px;">{{texto}}</a>
+    </td>
+  </tr></table>
+</td></tr>
+{{/boton_despues}}
 
 <!-- Who receives them, with their faces (the invitation) -->
 {{#anfitriones}}
@@ -228,7 +237,7 @@ u + #body a { color: inherit; text-decoration: none; }
 <tr><td class="eg-pad" style="padding:44px 40px 40px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="eg-linea" style="border-top:1px solid #E7DED3; padding-top:22px;">
     <p class="eg-tinta" style="margin:0; font-size:15px; line-height:22px; font-weight:700; color:#2B2226;">{{centro.nombre}}</p>
-    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}{{#centro.telefono}}<br><a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;"><span dir="ltr">{{centro.telefono}}</span></a>{{/centro.telefono}}{{#centro.correo}} · <a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a>{{/centro.correo}}</p>
+    <p class="eg-tinta-2" style="margin:4px 0 0; font-size:14px; line-height:22px; color:#5F5459;">{{centro.direccion}}{{#centro.telefono}}{{#centro.direccion}}<br>{{/centro.direccion}}<a class="eg-enlace" href="{{centro.telefono_url}}" style="color:{{c.acento_texto}}; text-decoration:none;"><span dir="ltr">{{centro.telefono}}</span></a>{{/centro.telefono}}{{#centro.correo}}{{#centro.separa}} · {{/centro.separa}}<a class="eg-enlace" href="mailto:{{centro.correo}}" style="color:{{c.acento_texto}}; text-decoration:none;">{{centro.correo}}</a>{{/centro.correo}}</p>
     <p class="eg-tinta-2" style="margin:14px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{pie.porque}} <a class="eg-enlace" href="{{pie.datos_url}}" style="color:{{c.acento_texto}}; text-decoration:underline;">{{pie.datos_texto}}</a></p>
     {{#pie.firma}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{{pie.firma}}}</p>{{/pie.firma}}
     {{#muestra_pie}}<p class="eg-tinta-2" style="margin:10px 0 0; font-size:13px; line-height:20px; color:#5F5459;">{{muestra_pie}}</p>{{/muestra_pie}}

@@ -1,0 +1,40 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_retired
+
+    In Numbers and in the reports: how many families of the campaign went, why, where they came from and how far they had come;
+    and the contacts that were not families, apart.
+
+    Example context (json):
+    {
+        "left": "De las 183 familias de la campaña, 12 se han retirado.", "hasrows": true, "bychannel": "De las que llegaron por cada canal se han retirado: Anuncios, 4 de 20.",
+        "rows": [{"name": "Ha elegido otro centro", "n": 7, "channels": "Anuncios: 4 · Boca a boca: 3", "steps": "después de venir: 5"}],
+        "never": "Además, 3 contactos no eran de una familia que buscara centro. No cuentan en ninguna otra cifra.",
+        "neverrows": [{"name": "Buscaba empleo", "n": 2}], "neverchannels": "Por dónde llegaron: Anuncios: 3.", "def": ""
+    }
+}}
+<p class="retiradas-frase">{{left}}</p>
+{{#hasrows}}
+<div class="tabla-caja" tabindex="0" role="region" aria-label="{{#str}}outs_title, local_oksigeniaeguahe{{/str}}"><table class="tabla-panel"><thead><tr><th scope="col">{{#str}}outs_col_reason, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}outs_col_n, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}outs_col_channels, local_oksigeniaeguahe{{/str}}</th><th scope="col">{{#str}}outs_col_steps, local_oksigeniaeguahe{{/str}}</th></tr></thead>
+<tbody>{{#rows}}<tr><th scope="row">{{name}}</th><td>{{n}}</td><td>{{channels}}</td><td>{{steps}}</td></tr>{{/rows}}</tbody></table></div>
+{{/hasrows}}
+{{#bychannel}}<p class="secundario">{{.}}</p>{{/bychannel}}
+{{#never}}<p class="retiradas-frase">{{never}}</p>
+<ul class="retiradas-nunca">{{#neverrows}}<li><b>{{n}}</b> {{name}}</li>{{/neverrows}}</ul>
+{{#neverchannels}}<p class="secundario">{{neverchannels}}</p>{{/neverchannels}}{{/never}}
+<p class="def">{{def}}</p>

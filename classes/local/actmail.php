@@ -139,18 +139,25 @@ class actmail {
      * @param string $token
      * @param string $lang
      * @param string $kind The mail it is in.
+     * @param bool $no Whether the link says they do not come: its page asks only that, with the act in sight.
      * @return string
      */
-    public static function answer_url(\stdClass $event, string $token, string $lang, string $kind = ''): string {
+    public static function answer_url(
+        \stdClass $event,
+        string $token,
+        string $lang,
+        string $kind = '',
+        bool $no = false
+    ): string {
         if ($token === '') {
             return '';
         }
         $open = !empty($event->open) && empty($event->tailored) && (int) ($event->free ?? 0) !== acts::FREE &&
             !events::slots((int) $event->id);
-        return $open ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $token, 'idioma' => $lang, 'no' => 1] +
-            ($kind !== '' ? ['de' => $kind] : [])))->out(false) :
-            (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false) . '#no-podemos-' .
-            (int) $event->id;
+        return $open ? (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'k' => $token, 'idioma' => $lang] +
+            ($kind !== '' ? ['de' => $kind] : []) + ($no ? ['no' => 1] : [])))->out(false) :
+            (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'action' => 'nopodemos',
+                'acto' => (int) $event->id]))->out(false);
     }
 
     /**
@@ -164,6 +171,7 @@ class actmail {
      * @param string $lang
      * @param string $token A link of the family; empty, none.
      * @param string $text What the team writes, for a change or when it is called off.
+     * @param string $to The address it goes to, when it is not the usual one.
      * @return array [subject, html, text, images]
      */
     public static function build(
@@ -174,7 +182,8 @@ class actmail {
         \stdClass $signup,
         string $lang,
         string $token,
-        string $text = ''
+        string $text = '',
+        string $to = ''
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $plain = fn(string $s) => trim(html_entity_decode($s, ENT_QUOTES, 'UTF-8'));
@@ -182,25 +191,33 @@ class actmail {
         $name = $plain(format_string($event->name));
         [$when, $day, $hour, $date] = self::when($signup, $lang);
         // Each is a paragraph: lines of words, and links [words, address].
-        $first = familymail::first_name($household);
+        $first = familymail::first_name($household, $to);
         $hello = $first !== '' ? $str('mail_letter_hello', $first) : $str('mail_letter_hello_noname');
         $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text)))));
         $links = [];
         $calendar = $token !== '' ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $event->id,
             'de' => $kind]))->out(false) : '';
-        if ($calendar !== '') {
+        if ($calendar !== '' && empty($signup->invited)) {
             $links[] = [$str('pub_add_calendar'), $calendar];
         }
         $address = trim((string) ($centre->address ?? ''));
         if ($address !== '') {
             $links[] = [$str('pub_how_get'), centres::map_url($centre)];
         }
-        $answer = self::answer_url($event, $token, $lang, $kind);
-        $cant = $answer !== '' ? [[$str('mail_act_cantcome'), [[$str('mail_cant_come_go'), $answer]]]] : [];
+        $answer = self::answer_url($event, $token, $lang, $kind, true);
+        // The letter spoke of what it is about; here, of its title: both, so it is known to be the same.
+        $topic = trim((string) strtok(acts::topic($event), ':'));
+        $about = $topic !== '' && \core_text::strpos(recognise::plain($name), recognise::plain($topic)) === false ?
+            publiclang::str('mail_letter_about', $lang, $topic) : '';
+        $withabout = fn(string $said) => $about === '' ? $said : rtrim($said, '.') . ',' . $about . '.';
+        // One that only has its letter says there whether it comes.
+        $cant = !empty($signup->invited) ? ($answer !== '' ? [[$str('mail_act_invited_answer'), [[$str('mail_act_invited_go'),
+            self::answer_url($event, $token, $lang, $kind)]]]] : []) :
+            ($answer !== '' ? [[$str('mail_act_cantcome'), [[$str('mail_cant_come_go'), $answer]]]] : []);
         $body = [];
         if ($kind === 'confirmation') {
             $body[] = [$hello, []];
-            $body[] = [self::saved($event, $lang), []];
+            $body[] = [$withabout(self::saved($event, $lang)), []];
             $body[] = [implode("\n", array_merge(self::lines($event, $signup, $centre, $lang), [publiclang::count(
                 'pub_people_one',
                 'pub_people_count',
@@ -211,8 +228,8 @@ class actmail {
             $body = array_merge($body, $cant);
         } else if ($kind === 'reminder') {
             $body[] = [$hello, []];
-            $body[] = [implode(' ', array_filter([$str('mail_act_tomorrow_' . $key, (object) ['when' => $when, 'event' => $name]),
-                acts::letter_place($event, $centre, $lang)])), []];
+            $body[] = [implode(' ', array_filter([$withabout($str('mail_act_tomorrow_' . $key, (object) ['when' => $when,
+                'event' => $name])), acts::letter_place($event, $centre, $lang)])), []];
             $body[] = ['', array_slice($links, 1)];
             $body = array_merge($body, $cant);
         } else if ($kind === 'change') {
@@ -240,14 +257,16 @@ class actmail {
             }
         }
         $body[] = [implode("\n", array_filter([$str('mail_letter_bye'), $plain(format_string($centre->name)),
-            trim((string) ($centre->phone ?? ''))], fn($l) => trim($l) !== '')), []];
+            familymail::ltr(trim((string) ($centre->phone ?? '')), $lang)], fn($l) => trim($l) !== '')), []];
         // Why it reaches them, how to change the ways and what is done with their data: small, at the end.
         $foot = [];
         if ($token !== '') {
             $foot[] = [$str('mail_act_ways'), writeby::url($token, $lang, '', $kind)];
         }
         $foot[] = [$str('pub_privacy_link'), publicpage::privacy_url($centre, $lang)->out(false)];
-        $why = $str('mail_act_why_' . $key, $name);
+        // After it, because they came: what they had said before is of no use. And one that only has its letter, because of it.
+        $why = $kind === 'thanks' ? $str('mail_act_why_came', $name) : (empty($signup->invited) ? $str('mail_act_why_' . $key, $name) :
+            $str('mail_act_why_invited', $name));
 
         $lines = [];
         $html = '';

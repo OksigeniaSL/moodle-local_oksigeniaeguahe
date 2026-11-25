@@ -29,8 +29,10 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\access;
 use local_oksigeniaeguahe\local\ages;
 use local_oksigeniaeguahe\local\alumni;
+use local_oksigeniaeguahe\local\birthdays;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\drawings;
+use local_oksigeniaeguahe\local\emailcheck;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
@@ -185,7 +187,7 @@ if ($action === 'drawing') {
         );
         // Back on their page, under the child, a line that says it arrived.
         if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
-            $back->param('dibujo', (int) $child->id);
+            $back->param('mandado', (int) $child->id);
         }
         if (optional_param('fetch', 0, PARAM_BOOL)) {
             if ($saved && !optional_param('quitar', 0, PARAM_BOOL)) {
@@ -205,7 +207,7 @@ if ($action === 'drawing') {
     publicpage::output(
         $centre,
         $lang,
-        publiclang::str('pub_drawing_title', $lang, familypage::label_name($child) ?: $child->firstname),
+        publiclang::str('pub_drawing_title', $lang, familypage::said_name($child, $lang)),
         'public_drawing',
         familypage::drawing_context($child, $lang, $token, optional_param('mal', 0, PARAM_BOOL)),
         $url
@@ -226,17 +228,41 @@ if ($action === 'cantcome' && data_submitted() && confirm_sesskey()) {
     // Not coming after all: the sign-up goes, and the centre reads it in their history.
     $event = $DB->get_record(events::T, ['id' => required_param('acto', PARAM_INT), 'centreid' => $centre->id]);
     $gone = false;
+    $had = $event ? $DB->get_record(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id]) : null;
     if ($event) {
         // Of a visit, somebody of the team reads it and offers another day; of a talk or a party, it is only known.
         $gone = events::unsign(
             $event,
             $household,
-            publiclang::str('pub_cantcome_note', $lang, format_string($event->name)),
+            publiclang::str('pub_cantcome_note', $centre->lang ?: $lang, format_string($event->name)),
             $event->kind !== 'other'
         );
     }
     redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang] +
-        ($gone ? ['novienen' => $event->kind === 'other' ? 'acto' : 'visita'] : [])));
+        ($gone ? ['novienen' => $event->kind === 'other' ? 'acto' : 'visita', 'acto' => (int) $event->id, 'n' => (int) $had->people,
+            'turno' => (int) $had->slotid] : [])));
+}
+
+if ($action === 'alfinal' && data_submitted() && confirm_sesskey()) {
+    // They come after all: as they were, while there is room.
+    familypage::come_after_all(
+        $household,
+        $centre,
+        required_param('acto', PARAM_INT),
+        optional_param('n', 1, PARAM_INT),
+        optional_param('turno', 0, PARAM_INT),
+        $lang
+    );
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
+}
+
+if ($action === 'nopodemos') {
+    // «We cannot come», pressed in a mail: that alone is asked, with the visit in sight.
+    $context = familypage::cantcome_context($household, $centre, optional_param('acto', 0, PARAM_INT), $lang, $token);
+    if ($context) {
+        publicpage::output($centre, $lang, $context['title'], 'public_cantcome', $context, $url);
+    }
+    redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]));
 }
 
 if ($action === 'renewal' && data_submitted() && confirm_sesskey()) {
@@ -463,11 +489,22 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         }
         $new[$field] = trim(optional_param('n_' . $field, '', PARAM_TEXT));
     }
+    $kept = (array) ($SESSION->local_oksigeniaeguahe_removed ?? []);
+    if (optional_param('deshacer', 0, PARAM_BOOL) && (int) ($kept[0] ?? 0) === (int) $household->id) {
+        // Whom they have just taken out, back as they were; nobody else is touched.
+        $rows = [];
+        $new = $kept[1];
+        unset($SESSION->local_oksigeniaeguahe_removed);
+    }
     $before = count(households::full($household)->adults);
     // A person they added here, taken out again.
     $remove = optional_param('quitar', 0, PARAM_INT);
+    $removed = $remove ? households::full($household)->adults[$remove] ?? null : null;
     if ($remove && households::remove_page_adult($household, $centre, $remove)) {
-        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'datos' => 1], 'datos'));
+        // Taken back with one touch, in this same browser.
+        $SESSION->local_oksigeniaeguahe_removed = [(int) $household->id, ['firstname' => (string) $removed->firstname,
+            'lastname' => (string) $removed->lastname, 'phone' => (string) $removed->phone, 'email' => (string) $removed->email]];
+        redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'quitado' => 1], 'datos'));
     }
     // What was written and cannot be kept says so, beside its field: the one there was stays.
     $bad = [];
@@ -487,6 +524,15 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
     foreach (['phone', 'email'] as $field) {
         if ($isbad($field, $new[$field])) {
             $bad['n_' . $field] = publiclang::str('pub_contacts_bad_' . $field, $lang);
+        }
+    }
+    // A slip in the domain of an email (gmial.com) is asked about, as on the sign-up: it is kept, and one touch uses the other.
+    $maybe = [];
+    foreach ($rows + [0 => $new] as $id => $row) {
+        $better = isset($bad[($id ? 'a' . $id : 'n') . '_email']) ? null : emailcheck::suggest($row['email']);
+        if ($better !== null) {
+            $maybe[($id ? 'a' . $id : 'n') . '_email'] = ['ask' => publiclang::str('pub_email_maybe', $lang, $better), 'value' => $better,
+                'use' => publiclang::str('pub_email_use', $lang)];
         }
     }
     $saved = households::family_contacts($household, $centre, $rows, $new);
@@ -518,7 +564,8 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
         @header('Cache-Control: no-store');
         // What the page lists now, to say it above and write each line as it is kept («+34 600 000 002»).
         echo json_encode(['saved' => $saved, 'added' => count($full->adults) > $before, 'url' => $back->out(false),
-            'list' => familypage::contact_list($full, $lang), 'bad' => (object) $bad]);
+            'list' => familypage::contact_list($full, $lang), 'bad' => (object) $bad,
+            'maybe' => (object) $maybe]);
         die();
     }
     redirect($back);
@@ -527,16 +574,39 @@ if ($action === 'datos' && data_submitted() && confirm_sesskey()) {
 if ($action === 'homename' && data_submitted() && confirm_sesskey()) {
     // What they call a child at home (the name of the label, the story and its voice) and when it was born.
     $childid = required_param('nino', PARAM_INT);
-    if (isset(households::full($household)->children[$childid])) {
-        households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
-        households::set_birthdate($household, $childid, publicpage::date_param('cumple'));
+    $child = households::full($household)->children[$childid] ?? null;
+    if ($child) {
+        if (familypage::label_name($child) === '') {
+            // Nobody had said how they are called: it is their name.
+            familypage::name_child($household, $childid, optional_param('casa', '', PARAM_TEXT));
+        } else {
+            households::set_home_name($household, $childid, optional_param('casa', '', PARAM_TEXT));
+        }
+        $birth = publicpage::date_param('cumple');
+        $badbirth = $birth !== '' && birthdays::clean($birth, time()) === null;
+        households::set_birthdate($household, $childid, $birth);
         if (optional_param('latina', null, PARAM_TEXT) !== null) {
             households::set_latin_name($household, $childid, optional_param('latina', '', PARAM_TEXT));
         }
     }
     redirect(new moodle_url(
         '/local/oksigeniaeguahe/f.php',
-        ['k' => $token, 'idioma' => $lang, 'casa' => $childid],
+        ['k' => $token, 'idioma' => $lang] + (empty($badbirth) ? ['casa' => $childid] : ['malafecha' => $childid]),
+        'quien-vendria'
+    ));
+}
+
+if ($action === 'otrohijo' && data_submitted() && confirm_sesskey()) {
+    // They may be two or more: another child, told here.
+    $childid = familypage::add_child(
+        $household,
+        $centre,
+        optional_param('nombre', '', PARAM_TEXT),
+        optional_param('curso', 0, PARAM_INT)
+    );
+    redirect(new moodle_url(
+        '/local/oksigeniaeguahe/f.php',
+        ['k' => $token, 'idioma' => $lang] + ($childid ? ['casa' => $childid] : []),
         'quien-vendria'
     ));
 }
@@ -555,8 +625,9 @@ if ($action === 'escribir') {
         $marked = optional_param_array('por', [], PARAM_ALPHA);
         $ways = $none ? [] : array_values(array_intersect(writeby::channels($centre), $marked));
         if (!$none && !$ways) {
-            // Nothing marked is not «do not write to us»: that has its own button. Back to choosing, nothing changed.
-            redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir', 'idioma' => $lang]));
+            // Nothing marked is asked before it is done: «shall we stop writing to you?».
+            redirect(new moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'action' => 'escribir', 'por' => 'none',
+                'idioma' => $lang]));
         }
         // Apart from the ways: whether they want to be invited to events.
         if (!$none && optional_param('evt', 0, PARAM_BOOL)) {
@@ -614,9 +685,12 @@ publicpage::output(
     'public_family',
     familypage::context($household, $centre, $lang, $token, $new, ['asked' => optional_param('asked', 0, PARAM_BOOL),
         'saved' => optional_param('saved', 0, PARAM_BOOL), 'hobbies' => optional_param('gustos', 0, PARAM_BOOL),
-        'home' => optional_param('casa', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
+        'home' => optional_param('casa', 0, PARAM_INT), 'badbirth' => optional_param('malafecha', 0, PARAM_INT), 'whyother' => optional_param('otro', 0, PARAM_BOOL),
         'de' => optional_param('de', '', PARAM_ALPHA), 'contacts' => optional_param('datos', 0, PARAM_BOOL),
-        'drawing' => optional_param('dibujo', 0, PARAM_INT), 'mailed' => optional_param('correo', 0, PARAM_BOOL),
-        'notcoming' => optional_param('novienen', '', PARAM_ALPHA)]),
+        'drawing' => optional_param('mandado', 0, PARAM_INT), 'mailed' => optional_param('correo', 0, PARAM_BOOL),
+        'removed' => optional_param('quitado', 0, PARAM_BOOL) && (int) ($SESSION->local_oksigeniaeguahe_removed[0] ?? 0) === (int) $household->id ?
+            $SESSION->local_oksigeniaeguahe_removed[1] : false,
+        'notcoming' => optional_param('novienen', '', PARAM_ALPHA), 'notevent' => optional_param('acto', 0, PARAM_INT),
+        'notpeople' => optional_param('n', 1, PARAM_INT), 'notslot' => optional_param('turno', 0, PARAM_INT)]),
     $url
 );

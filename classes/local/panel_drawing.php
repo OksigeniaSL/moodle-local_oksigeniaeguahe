@@ -50,7 +50,7 @@ class panel_drawing {
      */
     public static function context(\stdClass $child, int $eventid, bool $canact): array {
         $c = self::C;
-        $tag = panel::tag($child);
+        $tag = panel::called($child);
         $file = drawings::file((int) $child->id);
         $url = drawings::url((int) $child->id);
         $back = self::back($child, $eventid);

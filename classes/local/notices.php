@@ -40,7 +40,7 @@ class notices {
     const AGAIN = ['confirmation', 'reminder', 'change', 'invitation'];
 
     /** @var string[] Why one did not go. */
-    const REASONS = ['silent', 'nopermission', 'noemail', 'phone', 'mail'];
+    const REASONS = ['silent', 'nopermission', 'noemail', 'phone', 'mail', 'signedup', 'noinvites', 'changed', 'off'];
 
     /**
      * Keeps what happened with one.
@@ -63,7 +63,7 @@ class notices {
         int $userid = 0
     ): void {
         global $DB;
-        if (!in_array($kind, self::KINDS, true)) {
+        if (!in_array($kind, self::KINDS, true) && !($kind === 'reply' && $channel === 'phone')) {
             return;
         }
         $DB->insert_record(self::T, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
@@ -90,10 +90,120 @@ class notices {
         \stdClass $signup,
         string $lang
     ): bool {
-        $sent = messaging::notify($kind, $household, $centre, $signup, $lang) > 0;
-        $reason = $sent ? '' : self::why($household);
-        self::log($household, $kind, $signup, $sent ? 'phone' : 'email', $sent ? 'sent' : 'skipped', $reason);
-        return $sent;
+        $sent = messaging::notify($kind, $household, $centre, $signup, $lang);
+        $reason = $sent ? self::pieces($sent) : self::why($household);
+        self::log($household, $kind, $signup, $sent ? 'phone' : 'email', $sent ? self::onphone() : 'skipped', $reason);
+        return $sent > 0;
+    }
+
+    /**
+     * What is known of a notice just given to Marandu: in its queue, when Marandu tells afterwards how it went; else, sent.
+     *
+     * @return string
+     */
+    public static function onphone(): string {
+        return method_exists('\local_oksigeniamarandu\api', 'item_reaches') ? 'inqueue' : 'sent';
+    }
+
+    /**
+     * How many phones one is in the queue of, and how many of them it did not go out on, as it is kept while it is there: it has
+     * gone nowhere only when it failed on all of them.
+     *
+     * @param int $phones
+     * @param int $failed
+     * @return string
+     */
+    public static function pieces(int $phones, int $failed = 0): string {
+        return 'q' . max(1, $phones) . ($failed ? '-' . $failed : '');
+    }
+
+    /** @var string[] What the family must know: when it did not go out on any phone, it goes by email. */
+    const MUSTKNOW = ['confirmation', 'reminder', 'change', 'invitation'];
+
+    /**
+     * Marandu says how a notice it had in its queue went. What the family must know and went nowhere goes by email; an answer of
+     * the team that did not go out leaves the family waiting again, and says so.
+     *
+     * @param int $householdid
+     * @param string $notice Its name in Marandu.
+     * @param string $status sent, skipped, expired, failed or cancelled.
+     * @param int $queued When it was put in the queue.
+     * @param int $now
+     * @return bool Whether it was one of ours.
+     */
+    public static function done(int $householdid, string $notice, string $status, int $queued = 0, int $now = 0): bool {
+        global $DB;
+        $now = $now ?: time();
+        $kind = array_search($notice, messaging::NOTICES, true);
+        $household = $kind ? $DB->get_record(households::T, ['id' => $householdid]) : null;
+        if (!$household) {
+            return false;
+        }
+        $rows = $DB->get_records_select(
+            self::T,
+            "householdid = ? AND kind = ? AND channel = 'phone' AND state IN ('inqueue', 'sent') AND timecreated >= ?",
+            [$householdid, $kind, max(0, ($queued ?: $now - 3 * DAYSECS) - MINSECS)],
+            'timecreated ASC, id ASC',
+            '*',
+            0,
+            1
+        );
+        $row = reset($rows);
+        if (!$row) {
+            return false;
+        }
+        if ($status === 'sent') {
+            $DB->set_field(self::T, 'state', 'sent', ['id' => $row->id]);
+            return true;
+        }
+        if ($status === 'cancelled') {
+            // It stopped being true, and it was taken back.
+            $DB->update_record(self::T, (object) ['id' => $row->id, 'state' => 'skipped', 'reason' => 'off']);
+            return true;
+        }
+        [$phones, $failed] = array_map('intval', explode('-', substr((string) $row->reason, 1), 2)) + [0, 0];
+        if ($failed + 1 < $phones) {
+            // It may still go out on another of their phones, or it has.
+            $DB->set_field(self::T, 'reason', self::pieces($phones, $failed + 1), ['id' => $row->id]);
+            return true;
+        }
+        $DB->update_record(self::T, (object) ['id' => $row->id, 'state' => $status === 'failed' ? 'failed' : 'skipped', 'reason' => 'phone']);
+        if ($kind === 'reply') {
+            households::note($household, 0, get_string('reply_not_out', self::C));
+            if (!(int) $household->waitingsince) {
+                $DB->update_record(households::T, (object) ['id' => $householdid, 'waitingsince' => $queued ?: $now, 'waitingdayonly' => 0]);
+            }
+            return true;
+        }
+        $centre = centres::get((int) $household->centreid);
+        $signup = $centre ? familymail::signup($household, (int) $row->eventid) : null;
+        $mailed = $DB->record_exists_select(
+            self::T,
+            "householdid = ? AND kind = ? AND eventid = ? AND channel = 'email' AND state = 'sent' AND timecreated >= ?",
+            [$householdid, $kind, (int) $row->eventid, (int) $row->timecreated - MINSECS]
+        );
+        $still = $signup && (int) $signup->timestart > $now && ($kind !== 'reminder' ||
+            userdate((int) $signup->timestart, '%Y%m%d', 99, false) === userdate($now + DAYSECS, '%Y%m%d', 99, false));
+        if ($still && !$mailed && in_array($kind, self::MUSTKNOW, true)) {
+            messaging::$bymail[] = $householdid;
+            ob_start();
+            try {
+                familymail::send(
+                    $kind,
+                    $household,
+                    $centre,
+                    $signup,
+                    (string) ($household->lang ?: $centre->lang),
+                    $kind === 'reminder' ? null : households::new_link($household, $kind)
+                );
+            } catch (\Throwable $e) {
+                self::log($household, $kind, $signup, 'email', 'failed', 'mail');
+            } finally {
+                ob_end_clean();
+                messaging::$bymail = array_values(array_diff(messaging::$bymail, [$householdid]));
+            }
+        }
+        return true;
     }
 
     /**
@@ -158,10 +268,14 @@ class notices {
             }
         }
         foreach ($kept as $row) {
+            if (!in_array($row->kind, self::KINDS, true)) {
+                // An answer of the team in the queue of the phones: it is in their history, with what it said.
+                continue;
+            }
             $start = (int) ($signups[(int) $row->eventid]->timestart ?? 0);
             $out[] = self::row(['id' => (int) $row->id, 'kind' => $row->kind, 'eventid' => (int) $row->eventid,
                 'what' => format_string((string) $row->what), 'start' => (int) $row->timestart, 'channel' => $row->channel,
-                'state' => $row->state, 'reason' => (string) $row->reason, 'at' => (int) $row->timecreated,
+                'state' => $row->state, 'reason' => in_array($row->reason, self::REASONS, true) ? $row->reason : '', 'at' => (int) $row->timecreated,
                 'again' => in_array($row->kind, self::AGAIN, true) && $start > $now &&
                     self::may($household, $centre, $row->kind, actmail::is($signups[(int) $row->eventid] ?? null))], $signups);
         }
@@ -184,7 +298,7 @@ class notices {
         $email = $kind === 'reminder' ? writeby::email_now($household, $centre, $kind, $act) :
             writeby::email_ok($household, $centre, $kind, $act);
         return ($email && households::recipient($household) !== '') ||
-            (!$act && writeby::phone_ok($household, $kind) && messaging::joined($household, $centre));
+            (!$act && writeby::phone_ok($household, $kind) && messaging::reaches($household, $centre, $kind));
     }
 
     /**

@@ -258,6 +258,7 @@ class workdays {
         global $CFG, $DB;
         $url = self::address((string) ($centre->closedics ?? ''));
         if ($url === '' || !empty($centre->practice)) {
+            busy::replace((int) $centre->id, 'ics', [], $now ?: time());
             $centre->closeddays = null;
             $DB->set_field(centres::T, 'closeddays', null, ['id' => $centre->id]);
             return $url === '';
@@ -268,6 +269,10 @@ class workdays {
         $body = (string) $curl->get($url, [], ['CURLOPT_TIMEOUT' => 20, 'CURLOPT_CONNECTTIMEOUT' => 8,
             'CURLOPT_MAXFILESIZE' => self::MAXBYTES]);
         $good = !$curl->get_errno() && (int) ($curl->get_info()['http_code'] ?? 0) === 200;
+        if ($good && stripos($body, 'BEGIN:VCALENDAR') !== false && strlen($body) <= self::MAXBYTES) {
+            // What it says is also seen behind the appointments.
+            busy::replace((int) $centre->id, 'ics', busy::read_ics($body, $now ?: time()), $now ?: time());
+        }
         return self::keep($centre, $good ? $body : '', $now ?: time());
     }
 

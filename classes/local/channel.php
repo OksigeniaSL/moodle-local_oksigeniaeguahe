@@ -207,6 +207,11 @@ class channel {
             return;
         }
         $now = $now ?? time();
+        // An invitation by phone still waiting for approval that says what is no longer true is taken back.
+        $taken = messaging::available() ? invites::withdraw_stale($event) : 0;
+        if ($taken && !CLI_SCRIPT) {
+            \core\notification::info(get_string('invite_withdrawn', 'local_oksigeniaeguahe', format_string($event->name)));
+        }
         if (!self::ready()) {
             return;
         }

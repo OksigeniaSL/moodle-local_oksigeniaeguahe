@@ -55,32 +55,29 @@
         });
         put(parseInt(number.value, 10));
     };
-    // A long name of a field (a language, a narrow phone): smaller until it fits with air at its side, and in two lines
-    // if not even so.
+    // A long name of a field (a language, a narrow phone): smaller until it fits.
     var pen = document.createElement('canvas').getContext('2d');
     var fit = function(input) {
         var label = input.parentNode.querySelector('label');
         var text = label ? (label.getAttribute('data-nombre') || label.textContent).trim() : '';
-        var style = window.getComputedStyle(input);
-        var room = input.clientWidth - parseFloat(style.paddingInlineStart) - 12;
+        var style = label ? window.getComputedStyle(label) : null;
+        var room = label ? label.clientWidth : 0;
         if (!pen || !text || !(room > 0)) {
             return;
         }
-        var size = window.innerWidth > 420 ? 16 : 15;
-        var first = size;
+        var size = 12.5;
         var wide = function() {
-            pen.font = '500 ' + size + 'px ' + style.fontFamily;
-            return pen.measureText(text).width > room;
+            pen.font = style.fontWeight + ' ' + size + 'px ' + style.fontFamily;
+            return pen.measureText(text).width > room - 1;
         };
-        while (wide() && size > 13) {
+        while (wide() && size > 10.5) {
             size -= 0.5;
         }
-        if (size < first) {
+        if (size < 12.5) {
             input.parentNode.style.setProperty('--fb-rotulo', size + 'px');
         } else {
             input.parentNode.style.removeProperty('--fb-rotulo');
         }
-        input.parentNode.classList.toggle('fb-dos', wide());
     };
     // An email whose domain looks like a slip of a common one (gmial.com): «Did you mean…?», and one touch uses it.
     var distance = function(a, b) {
@@ -156,22 +153,91 @@
     };
     all('[data-fb]').forEach(function(form) {
         var names = function() {
-            all('.fb-campo input:not([type="number"])', form).forEach(fit);
+            all('.fb-campo:not(.fb-paso) input, .fb-campo select, .fb-campo textarea', form).forEach(fit);
         };
         names();
         window.addEventListener('resize', names);
+        // Another student, when it is asked for: its names are measured once they are in sight, and the first one takes the
+        // place of what was pressed.
+        all('.fb-otro', form).forEach(function(other) {
+            other.addEventListener('toggle', function() {
+                names();
+                var first = other.querySelector('input');
+                if (other.open && first && !first.value && other.contains(document.activeElement)) {
+                    first.focus();
+                }
+            });
+        });
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(names);
             document.fonts.addEventListener('loadingdone', names);
         }
-        var send = form.querySelector('.fb-enviar');
-        form.addEventListener('submit', function() {
-            send.disabled = true;
+        // What they write grows with it.
+        all('[data-crece]', form).forEach(function(area) {
+            var grow = function() {
+                area.style.height = 'auto';
+                area.style.height = Math.min(200, area.scrollHeight + 3) + 'px';
+            };
+            area.addEventListener('input', grow);
+            if (area.value) {
+                grow();
+            }
+        });
+        var buttons = all('button[type="submit"]', form);
+        var busy = function(is) {
+            buttons.forEach(function(button) {
+                button.disabled = is;
+            });
+        };
+        // Sent without leaving the page: if the site does not answer (it is being updated, the phone lost its signal), what
+        // was written stays and it is said. The page is saved once, however many times it arrives (signup::again()).
+        var note = form.querySelector('.fb-nota');
+        form.addEventListener('submit', function(e) {
+            if (!window.fetch || !window.AbortController) {
+                busy(true);
+                return;
+            }
+            e.preventDefault();
+            var data = new FormData(form);
+            if (e.submitter && e.submitter.name) {
+                data.append(e.submitter.name, e.submitter.value);
+            }
+            busy(true);
+            var stop = new AbortController();
+            var late = window.setTimeout(function() {
+                stop.abort();
+            }, 40000);
+            window.fetch(form.action, {method: 'POST', body: data, credentials: 'same-origin', signal: stop.signal}).then(function(r) {
+                // Only an answer of Eguahe: that of a site in maintenance is not.
+                if (!r.ok || !r.headers.get('X-Eguahe')) {
+                    return Promise.reject(r.status);
+                }
+                if (r.redirected) {
+                    window.location.href = r.url;
+                    return null;
+                }
+                return r.text().then(function(html) {
+                    window.EguaheLleno = null;
+                    document.open();
+                    document.write(html);
+                    document.close();
+                });
+            }).catch(function() {
+                busy(false);
+                if (note) {
+                    note.textContent = form.getAttribute('data-sin-enviar');
+                    note.classList.add('fb-mal');
+                    note.setAttribute('role', 'alert');
+                }
+            }).then(function() {
+                window.clearTimeout(late);
+            });
         });
         window.addEventListener('pageshow', function() {
-            send.disabled = false;
+            busy(false);
         });
         var needed = all('[data-hace-falta]', form);
+        var marked = all('[data-marca]', form);
         var options = all('.fb-opciones input', form);
         var ready = function(field) {
             var value = field.value.trim();
@@ -200,7 +266,11 @@
                     field.removeAttribute('aria-invalid');
                 }
             });
-            if (options.length) {
+            marked.forEach(function(field) {
+                field.parentNode.classList.toggle('fb-esta', ready(field));
+            });
+            // What the web chose by itself is neither missing nor filled.
+            if (options.length && !form.querySelector('.fb-opciones[data-de-serie]')) {
                 needs.opcion = options.some(function(option) {
                     return option.checked;
                 });
@@ -276,9 +346,9 @@
             done.textContent = said.done || '';
             detail.hidden = !said.answered;
             field('[data-fb-paso]').hidden = !said.coming;
-            if (field('[data-cal]')) {
-                field('[data-cal]').hidden = !said.coming;
-            }
+            all('[data-viene]', form).forEach(function(line) {
+                line.hidden = !said.coming;
+            });
             form.querySelector('.unir-botones').classList.remove('quiere-no');
             // Unless they have touched another meanwhile.
             if (mine === turn) {

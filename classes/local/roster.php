@@ -95,28 +95,63 @@ class roster {
 
     /**
      * Whether a family of the record is one Eguahe already has enrolled in this centre and not yet joined to it: an adult
-     * of it with the same email as one of a household with a child enrolled here and no family of the record.
+     * of it with the same email, or with the same phone (one the record vouches for), as one of a household with a child
+     * enrolled here and no family of the record.
      *
      * @param \stdClass $centre
      * @param \stdClass $family A household of Family.
      * @return bool
      */
     public static function awaiting(\stdClass $centre, \stdClass $family): bool {
+        return self::is_waiting($family, self::waiting($centre));
+    }
+
+    /**
+     * The emails and phones of the households of a centre with a child enrolled and no family of the record yet.
+     *
+     * @param \stdClass $centre
+     * @return array Key => true
+     */
+    protected static function waiting(\stdClass $centre): array {
         global $DB;
-        $emails = array_values(array_unique(array_filter(array_map(
-            fn($a) => \core_text::strtolower(trim((string) ($a->email ?? ''))),
-            $family->adults ?? []
-        ))));
-        if (!$emails) {
-            return false;
+        $rows = $DB->get_recordset_sql(
+            "SELECT a.id, a.email, a.phone
+               FROM {" . households::ADULTS . "} a
+               JOIN {" . households::T . "} h ON h.id = a.householdid
+              WHERE h.centreid = :centreid AND h.familylink = 0 AND h.roster = 0
+                    AND h.id IN (SELECT id FROM {" . households::T . "} WHERE " . listmatch::REAL . ")
+                    AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} c
+                                 WHERE c.householdid = h.id AND c.stage = :stage)",
+            ['centreid' => $centre->id, 'stage' => 'enrolled']
+        );
+        $out = [];
+        foreach ($rows as $row) {
+            foreach ([pseudonym::email((string) $row->email), pseudonym::phone((string) $row->phone)] as $key) {
+                if ($key !== null) {
+                    $out[$key] = true;
+                }
+            }
         }
-        [$in, $params] = $DB->get_in_or_equal($emails, SQL_PARAMS_NAMED);
-        $sql = "SELECT 1
-                  FROM {" . households::ADULTS . "} a
-                  JOIN {" . households::T . "} h ON h.id = a.householdid
-                 WHERE h.centreid = :centreid AND h.familylink = 0 AND h.roster = 0 AND LOWER(a.email) $in
-                       AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} c WHERE c.householdid = h.id AND c.stage = :stage)";
-        return $DB->record_exists_sql($sql, $params + ['centreid' => $centre->id, 'stage' => 'enrolled']);
+        $rows->close();
+        return $out;
+    }
+
+    /**
+     * Whether a family of the record has an adult of those that wait.
+     *
+     * @param \stdClass $family
+     * @param array $waiting From waiting().
+     * @return bool
+     */
+    protected static function is_waiting(\stdClass $family, array $waiting): bool {
+        foreach ($family->adults ?? [] as $adult) {
+            $email = pseudonym::email((string) ($adult->email ?? ''));
+            $phone = !empty($adult->phoneverified) ? pseudonym::phone((string) ($adult->phone ?? '')) : null;
+            if (($email !== null && isset($waiting[$email])) || ($phone !== null && isset($waiting[$phone]))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -507,6 +542,7 @@ class roster {
             [$in, $params] = $DB->get_in_or_equal(array_values(array_unique($from)));
             $centreof = $DB->get_records_select_menu(households::T, "id $in", $params, '', 'id, centreid');
         }
+        $waiting = self::waiting($centre);
         foreach ($families as $familyid => $family) {
             if (
                 isset($from[$familyid]) && isset($centreof[$from[$familyid]]) &&
@@ -526,7 +562,7 @@ class roster {
                 continue;
             }
             $household = self::household_of($centre, (int) $familyid, $family, $brought);
-            if (!$household && self::awaiting($centre, $family)) {
+            if (!$household && self::is_waiting($family, $waiting)) {
                 // A family Eguahe enrolled here, loaded by the management system of the centre and not yet joined by
                 // a person (family::hints()): never brought as a second household.
                 continue;
@@ -536,23 +572,106 @@ class roster {
                 $done['families']++;
             }
             foreach ($placed as [$child, $offer]) {
-                $mine = $DB->get_record(households::CHILDREN, ['centreid' => $centre->id,
-                    'familychild' => (int) $child->childid]);
+                $mine = $DB->get_record(
+                    households::CHILDREN,
+                    ['centreid' => $centre->id, 'familychild' => (int) $child->childid],
+                    '*',
+                    IGNORE_MULTIPLE
+                );
                 if (!$mine) {
-                    $id = households::add_child($household, trim((string) $child->firstname), (int) $offer->id);
-                    $DB->update_record(households::CHILDREN, (object) ['id' => $id, 'offerid' => $offer->id,
-                        'stage' => 'enrolled', 'stagetime' => $now, 'familychild' => (int) $child->childid,
-                        'roster' => $now, 'timemodified' => $now]);
+                    $mine = self::place_child($centre, $household, $child, $offer, $now);
                     $done['children']++;
-                } else if ((int) $mine->offerid !== (int) $offer->id && empty($mine->lefttime) && self::later($mine, $offer)) {
+                } else if (!empty($mine->lefttime)) {
+                    // Said to have gone: it is back when the record had let it go since, or has it in a later year.
+                    if (!empty($mine->familygone) || self::after($mine, $offer)) {
+                        family::back($mine);
+                        $DB->update_record(households::CHILDREN, (object) ['id' => $mine->id, 'offerid' => $offer->id,
+                            'timemodified' => $now]);
+                        $done['moved']++;
+                    }
+                } else if (
+                    $mine->stage === 'enrolled' && (int) $mine->offerid !== (int) $offer->id && self::later($mine, $offer)
+                ) {
                     $DB->update_record(households::CHILDREN, (object) ['id' => $mine->id, 'offerid' => $offer->id,
                         'timemodified' => $now]);
                     $done['moved']++;
+                }
+                // A student of two homes is one student: its key says so, wherever the students are counted.
+                $key = \core_text::substr(trim((string) ($child->sourcekey ?? '')), 0, 100);
+                if ($key !== '' && (string) ($mine->studentkey ?? '') !== $key) {
+                    $DB->set_field(households::CHILDREN, 'studentkey', $key, ['id' => $mine->id]);
                 }
             }
         }
         set_config('rostersync' . $centre->id, $now, 'local_oksigeniaeguahe');
         return $done;
+    }
+
+    /**
+     * A student of the roll that Eguahe does not know yet in its household: the child of it that was already enrolled, or
+     * that asked for that very year, with the same name; else, a new one, enrolled. One that asks for a place for another
+     * year goes on asking: it is only known that it is already there.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $household
+     * @param \stdClass $child Of the roll.
+     * @param \stdClass $offer
+     * @param int $now
+     * @return \stdClass The child of Eguahe.
+     */
+    protected static function place_child(
+        \stdClass $centre,
+        \stdClass $household,
+        \stdClass $child,
+        \stdClass $offer,
+        int $now
+    ): \stdClass {
+        global $DB;
+        $name = questions::normal(trim((string) $child->firstname));
+        $known = null;
+        foreach ($DB->get_records(households::CHILDREN, ['householdid' => $household->id, 'familychild' => 0], 'id ASC') as $one) {
+            if ($name !== '' && questions::normal(trim((string) $one->firstname)) === $name) {
+                $known = $one;
+                break;
+            }
+        }
+        $year = $known && (int) $known->offerid ? (string) $DB->get_field(
+            centres::OFFERS,
+            'schoolyear',
+            ['id' => $known->offerid]
+        ) : '';
+        if ($known && $known->stage !== 'enrolled' && $year !== '' && strcmp($year, (string) $offer->schoolyear) > 0) {
+            $DB->update_record(households::CHILDREN, (object) ['id' => $known->id, 'familychild' => (int) $child->childid,
+                'timemodified' => $now]);
+            $age = grades::age((string) $offer->name, $centre);
+            ties::set($household, (int) $known->id, $age !== null && $age <= who::NURSERY_AGE ? 'nursery' : 'student', true, 0);
+            return $DB->get_record(households::CHILDREN, ['id' => $known->id], '*', MUST_EXIST);
+        }
+        if (!$known) {
+            $id = households::add_child($household, trim((string) $child->firstname), (int) $offer->id);
+        } else {
+            $id = (int) $known->id;
+        }
+        $stays = $known && $known->stage === 'enrolled';
+        $DB->update_record(households::CHILDREN, (object) (['id' => $id, 'familychild' => (int) $child->childid,
+            'timemodified' => $now] + ($stays && strcmp($year, (string) $offer->schoolyear) > 0 ? [] : ['offerid' => $offer->id]) +
+            ($stays ? [] : ['stage' => 'enrolled', 'stagetime' => $now, 'closedreason' => null] +
+            // One that came through Eguahe started that year; one only of the roll was already a student.
+            ($known ? ['startyear' => trim((string) ($known->startyear ?? '')) ?: $offer->schoolyear] : ['roster' => $now]))));
+        return $DB->get_record(households::CHILDREN, ['id' => $id], '*', MUST_EXIST);
+    }
+
+    /**
+     * Whether a course is of a later school year than the one a child was in.
+     *
+     * @param \stdClass $child
+     * @param \stdClass $offer
+     * @return bool
+     */
+    protected static function after(\stdClass $child, \stdClass $offer): bool {
+        global $DB;
+        $was = (string) $DB->get_field(centres::OFFERS, 'schoolyear', ['id' => $child->offerid]);
+        return $was !== '' && strcmp((string) $offer->schoolyear, $was) > 0;
     }
 
     /**

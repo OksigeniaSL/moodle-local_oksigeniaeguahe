@@ -95,12 +95,12 @@ final class visits_test extends \advanced_testcase {
         [$household, $first] = signup::save($data, $this->event, $this->centre, 'es');
         $request = visits::pending((int) $household->id);
         $this->assertSame('1,3', $request->days);
-        $this->assertSame('lunes y miércoles, por la mañana', visits::suits($request, 'es'));
+        $this->assertSame('lunes o miércoles, por la mañana', visits::suits($request, 'es'));
         $this->assertSame(0, $DB->count_records(events::SIGNUPS, ['householdid' => $household->id]));
         $this->assertGreaterThan(0, (int) households::get((int) $household->id, (int) $this->centre->id)->waitingsince);
         $page = familypage::context($household, $this->centre, 'es', $first, true);
         $this->assertFalse($page['hasnext']);
-        $this->assertSame('Nos dijeron que les viene bien lunes y miércoles, por la mañana.', $page['novisit']);
+        $this->assertSame('Nos dijeron que les viene bien: lunes o miércoles, por la mañana.', $page['novisit']);
         [$subject] = familymail::build('request', $household, $this->centre, null, 'es', $first);
         $this->assertSame('Hemos recibido su petición de visita', $subject);
 
@@ -143,5 +143,18 @@ final class visits_test extends \advanced_testcase {
         $this->assertSame(0, $DB->count_records(households::LINKS, ['householdid' => $household->id]));
         $this->assertSame(0, $DB->count_records(visits::REQUESTS, ['householdid' => $household->id]));
         $this->assertFalse($DB->record_exists(events::T, ['id' => $visit->id]));
+    }
+
+    /**
+     * The name of a visit of its own is kept in the language of the centre, and the family reads it in its own.
+     */
+    public function test_name_in_each_language(): void {
+        global $DB;
+        $household = households::get(households::create((int) $this->centre->id, (object) ['lang' => 'en',
+            'firstchannel' => 'webform']), (int) $this->centre->id);
+        $this->assertSame('Visita al centro', visits::name($household, 0));
+        $this->assertSame('Visit to the school', visits::shown('Visita al centro', 'en'));
+        $this->assertSame('Visita con Lucía', visits::shown('Visit with Lucía', 'es'));
+        $this->assertSame('Jornada de puertas abiertas', visits::shown('Jornada de puertas abiertas', 'en'));
     }
 }

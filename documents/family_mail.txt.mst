@@ -2,7 +2,7 @@
     The plain text of the mail to a family, next to its HTML: the same texts in the same order, the links written out.
 }}{{#muestra}}[{{{muestra}}}]
 
-{{/muestra}}{{{titular}}}{{#nombres}} {{{nombres}}}{{/nombres}}
+{{/muestra}}{{{titular_texto}}}{{#nombres}} {{{nombres}}}{{/nombres}}
 
 {{{entradilla_texto}}}
 {{#aviso}}
@@ -20,7 +20,9 @@
 {{{dia_semana}}} {{{dia_mes}}}
 {{{acto}}}
 {{{hora}}}
+{{#lugar}}
 {{{lugar}}}
+{{/lugar}}
 {{#personas}}
 {{{personas}}}
 {{/personas}}
@@ -35,11 +37,16 @@
 {{{url_texto}}}
 {{/enlace}}
 {{/banda}}
+{{#boton_despues}}
+
+{{{texto}}}:
+{{{url_texto}}}
+{{/boton_despues}}
 {{#anfitriones}}
 
 {{{titulo_texto}}}
 {{#filas}}{{#personas}}
-{{{nombre}}} · {{{papel}}}
+{{{nombre}}}{{#papel}} · {{{papel}}}{{/papel}}
 {{#dice}}{{{dice}}}
 {{/dice}}{{/personas}}{{/filas}}
 {{/anfitriones}}
@@ -47,7 +54,7 @@
 
 {{{titulo_texto}}}
 {{#personas}}
-{{{nombre}}} · {{{papel}}}
+{{{nombre}}}{{#papel}} · {{{papel}}}{{/papel}}
 {{/personas}}
 {{/anfitriones_breve}}
 {{#secciones}}
@@ -73,8 +80,12 @@
 
 --
 {{{centro.nombre}}}
+{{#centro.direccion}}
 {{{centro.direccion}}}
-{{{centro.telefono}}} · {{{centro.correo}}}
+{{/centro.direccion}}
+{{#centro.contacto}}
+{{{centro.contacto}}}
+{{/centro.contacto}}
 
 {{{pie.porque}}}
 {{{pie.datos_texto}}}: {{{pie.datos_url}}}

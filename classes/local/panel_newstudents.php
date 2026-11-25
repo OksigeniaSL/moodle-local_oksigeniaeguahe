@@ -85,8 +85,11 @@ class panel_newstudents {
     /** @var string[] The usual tasks offered to add a line of hours. */
     const TASKS = ['meetings', 'social', 'saturdays', 'phone', 'whatsapp', 'desk', 'agency'];
 
-    /** @var int The months of a school year drawn, from its first one. */
-    const MONTHS = 10;
+    /** @var int The months of a school year drawn, from its first one: whoever leaves in July leaves too. */
+    const MONTHS = 12;
+
+    /** @var int «Of every hundred» is only said with a hundred behind; with fewer, the families themselves. */
+    const HUNDRED = 100;
 
     /** @var array Definitions gathered while building, read by the box of each number. */
     protected static $explain = [];
@@ -114,12 +117,13 @@ class panel_newstudents {
         $now = $now ?: time();
         $centreid = (int) $centre->id;
         self::$explain = [];
-        // The school years with new students: those whose lists say someone joined, without working them all out.
-        $years = metrics::years_with_joins($centreid);
+        // The school years with new students: those whose lists say someone joined, and the one Eguahe is filling, without
+        // working them all out. First, the latest the lists know.
+        $years = metrics::years_with_new($centreid);
         if (!$years) {
             return null;
         }
-        $year = in_array($schoolyear, $years, true) ? $schoolyear : $years[0];
+        $year = in_array($schoolyear, $years, true) ? $schoolyear : (metrics::years_with_joins($centreid)[0] ?? $years[0]);
         $o = metrics::origins($centreid, $year);
         $g = array_map(fn($x) => (int) $x['n'], $o['groups']);
         $total = (int) $o['total'];
@@ -139,6 +143,7 @@ class panel_newstudents {
                 'inner' => self::button('ex-inner', (string) $g['inner']),
                 'sibling' => self::button('ex-sibling', (string) $g['sibling']),
                 'staff' => self::staff_part($g['staff'], true),
+                'back' => $g['back'] ? get_string('panel_new_back_part', $c, self::button('ex-back', (string) $g['back'])) : '',
                 'fresh' => self::button('ex-newfamily', (string) $g['newfamily']),
                 'ad' => self::button('ex-ad', (string) $adstudents), 'total' => $total])),
         ] : false;
@@ -186,7 +191,8 @@ class panel_newstudents {
             ] : false,
             'moves' => $moves ?: false,
         ];
-        $year0 = panel_metrics::year($centre, $year);
+        // Its own ledger: without a list of that year there is none, never that of another one.
+        $year0 = in_array($year, array_map('strval', metrics::school_years($centreid)), true) ? panel_metrics::year($centre, $year) : null;
         $history = panel_metrics::history($centre);
         if ($year0) {
             $year0['ancha'] = true;
@@ -200,9 +206,10 @@ class panel_newstudents {
         $leaves = $moves ? (int) $moves['leaves'] : 0;
         return [
             'newstudents' => $newstudents,
-            'title' => get_string('panel_new_title', $c, (object) ['n' => self::one('panel_new_title_students', $total, $total),
-                'joins' => self::one('panel_new_title_joins', $joins, $joins),
-                'leaves' => self::one('panel_new_title_leaves', $leaves, $leaves), 'year' => $year]),
+            // The students that came with the course begun are among the new ones: said as a part of them, never added.
+            'title' => get_string($moves ? ($joins && $total ? 'panel_new_title' : 'panel_new_title_nojoins') : 'panel_new_title_alone', $c, (object) [
+                'n' => self::one('panel_new_title_students', $total, $total), 'start' => max(0, $total - $joins),
+                'joins' => $joins, 'leaves' => self::one('panel_new_title_leaves', $leaves, $leaves), 'year' => $year]),
             'years' => array_map(
                 fn($y) => ['name' => $y, 'url' => $url(['year' => $y])->out(false), 'current' => $y === $year],
                 $years
@@ -230,7 +237,8 @@ class panel_newstudents {
         $g = array_map(fn($x) => (int) $x['n'], $o['groups']);
         $total = (int) $o['total'];
         $fresh = $g['newfamily'] + $g['unknown'];
-        $pct = fn(int $n, int $of) => $of ? round(100 * $n / $of) . ' %' : '—';
+        // With fewer than ten behind, the numbers say it.
+        $pct = fn(int $n, int $of) => $of >= self::MIN ? round(100 * $n / $of) . ' %' : '—';
         $both = fn(string $con, string $sin) => '<span class="con">' . $con . '</span><span class="sin">' . $sin . '</span>';
         $courses = function (array $grades) use ($c): string {
             arsort($grades);
@@ -248,15 +256,15 @@ class panel_newstudents {
             range(0, $n - 1)
         ) : [];
         $rows = [];
-        foreach (['inner', 'sibling', 'staff'] as $key) {
-            if ($key === 'sibling' && !$o['hasroll'] && !$g['sibling']) {
+        foreach (['inner', 'sibling', 'staff', 'back'] as $key) {
+            if (($key === 'sibling' && !$o['hasroll'] && !$g['sibling']) || ($key === 'back' && !$g['back'])) {
                 continue;
             }
             // An empty shelf is not drawn (its number, in the sentences, still says what it is).
             if ($g[$key]) {
                 $rows[] = ['key' => $key, 'name' => get_string('panel_new_group_' . $key, $c),
                 'sub' => get_string('panel_new_group_' . $key . '_sub', $c), 'n' => $g[$key], 'pct' => $pct($g[$key], $total),
-                'pctnew' => '', 'centre' => true, 'explain' => 'ex-' . $key, 'courses' => $courses($o['groups'][$key]['grades']),
+                'pctnew' => '', 'centre' => $key !== 'back', 'explain' => 'ex-' . $key, 'courses' => $courses($o['groups'][$key]['grades']),
                 'bags' => $bags($key, $g[$key]), 'hasparts' => false, 'parts' => []];
             }
             self::define(
@@ -270,7 +278,7 @@ class panel_newstudents {
         }
         $parts = [];
         $partbags = [];
-        foreach (['own', 'ad', 'campaign', 'none'] as $by) {
+        foreach (metrics::BROUGHT as $by) {
             $n = (int) ($o['newby'][$by] ?? 0);
             if (!$n) {
                 continue;
@@ -358,7 +366,7 @@ class panel_newstudents {
         $value = (float) ($centre->hourvalue ?? 0);
         $written = self::written($centreid);
         $out = [];
-        foreach (metrics::publicity($centreid, $o, $from, $to) as $p) {
+        foreach (metrics::publicity($centreid, $o, $from, $to, $year) as $p) {
             $out[] = self::card(
                 $centre,
                 'import',
@@ -373,10 +381,12 @@ class panel_newstudents {
                 (int) $p['students'],
                 $p['spend'],
                 [],
-                $written['import'][(int) $p['id']] ?? [],
+                $p['id'] ? $written['import'][(int) $p['id']] ?? [] : [],
                 $value,
-                $canact
+                $canact && $p['id'] > 0,
+                $p['id'] ? '' : 'c' . substr(md5($p['label']), 0, 8)
             );
+            $out[count($out) - 1]['otheryear'] = $p['again'] ? self::one('panel_new_again', (int) $p['again'], (int) $p['again']) : '';
         }
         foreach (self::acts($centreid, $from, $to, $year) as $act) {
             $auto = [];
@@ -405,12 +415,23 @@ class panel_newstudents {
                 $value,
                 $canact
             );
-            // Families of the act that enrolled for another school year: said, so «none enrolled» is not misread.
-            $card['otheryear'] = $act['otheryear'] ? self::one(
-                'panel_new_act_other_year',
-                (int) $act['otheryear'],
-                (int) $act['otheryear']
-            ) : '';
+            // What the numbers of the act leave out, said: those that had enrolled before it, or for another school year, and
+            // those that only came to it.
+            $apart = [];
+            foreach (['before' => 'panel_new_act_before', 'otheryear' => 'panel_new_act_other_year', 'guests' => 'panel_new_act_guests'] as $key => $string) {
+                if ($act[$key]) {
+                    $apart[] = self::one($string, (int) $act[$key], (int) $act[$key]);
+                }
+            }
+            // A talk is not measured by enrolments: it says who came, with its own word, and no more.
+            if ($act['talk']) {
+                array_unshift($apart, get_string('panel_new_talk', $c));
+                $card['alldots'] = $card['newdots'] = [];
+                $card['allsentence'] = $card['newsentence'] = self::one('panel_new_talk_came', (int) $act['came'], (int) $act['came']);
+            }
+            $card['talk'] = $act['talk'];
+            $card['word'] = $act['word'];
+            $card['otheryear'] = implode(' ', $apart);
             $out[] = $card;
         }
         return $out;
@@ -435,6 +456,7 @@ class panel_newstudents {
      * @param array $lines Hours the centre wrote: task => hours.
      * @param float $value What an hour is worth, 0 when not given.
      * @param bool $canact
+     * @param string $name What tells it apart when it has no id (a campaign of ads of Eguahe).
      * @return array
      */
     protected static function card(
@@ -453,20 +475,22 @@ class panel_newstudents {
         array $auto,
         array $lines,
         float $value,
-        bool $canact
+        bool $canact,
+        string $name = ''
     ): array {
         $c = self::C;
-        $key = $scope . $id;
+        $key = $name !== '' ? $name : $scope . $id;
         $id2 = fn(string $w) => 'ex-' . $key . '-' . $w;
         $newcontacts = max(0, $contacts - $centrefams);
         $allin = $newin + $centrein;
         $both = fn(string $con, string $sin) => '<span class="con">' . $con . '</span><span class="sin">' . $sin . '</span>';
-        // Under ten families, one dot for each family, never a hundred that read as a share.
-        $all = $contacts < self::MIN ? self::few_dots($newin, $centrein, $contacts) : self::dots($newin, $centrein, $contacts);
-        $new = $newcontacts < self::MIN ? self::few_dots($newin, 0, $newcontacts) : self::dots($newin, 0, $newcontacts);
+        // Under a hundred families, one dot for each family, never a hundred that read as a share.
+        $all = $contacts < self::HUNDRED ? self::few_dots($newin, $centrein, $contacts) : self::dots($newin, $centrein, $contacts);
+        $new = $newcontacts < self::HUNDRED ? self::few_dots($newin, 0, $newcontacts) : self::dots($newin, 0, $newcontacts);
         $less = get_string('panel_new_less_than_one', $c);
-        $perall = $all['per'] === null ? $less : (string) $all['per'];
-        $pernew = $new['per'] === null ? $less : (string) $new['per'];
+        $of = fn(int $k, int $base) => get_string('panel_resp_of', $c, (object) ['n' => $k, 'of' => self::num($base)]);
+        $perall = $contacts < self::HUNDRED ? $of($allin, $contacts) : ($all['per'] === null ? $less : (string) $all['per']);
+        $pernew = $newcontacts < self::HUNDRED ? $of($newin, $newcontacts) : ($new['per'] === null ? $less : (string) $new['per']);
         $autoh = array_sum(array_column($auto, 'h'));
         $writh = array_sum($lines);
         $allh = $autoh + $writh;
@@ -528,7 +552,10 @@ class panel_newstudents {
         );
         self::define(
             $id2('per'),
-            $both(get_string('panel_ex_per_t', $c, $perall), get_string('panel_ex_per_t', $c, $pernew)),
+            $both(
+                get_string($contacts < self::HUNDRED ? 'panel_ex_per_few_t' : 'panel_ex_per_t', $c, $perall),
+                get_string($newcontacts < self::HUNDRED ? 'panel_ex_per_few_t' : 'panel_ex_per_t', $c, $pernew)
+            ),
             get_string('panel_ex_per_w', $c),
             $both(
                 get_string('panel_ex_per_h', $c, (object) ['k' => $allin, 'of' => self::num($contacts),
@@ -552,20 +579,21 @@ class panel_newstudents {
                 'centre' => self::one('panel_new_split_centre', $centrein, $centrein)]) : '',
             'newin' => $newin, 'allper' => $perall,
             'newper' => $pernew, 'alldots' => $all['list'], 'newdots' => $new['list'],
-            // «Of every 100» only with ten or more behind it; an act says who came, not who left their contact.
-            'allsentence' => $contacts < self::MIN ? self::few_sentence($act, false, $allin, $contacts, $contacts, $newin) : get_string(
+            // «Of every 100» only with a hundred behind it; an act says who came, not who left their contact.
+            'allsentence' => $contacts < self::HUNDRED ? self::few_sentence($act, false, $allin, $contacts, $contacts, $newin) : get_string(
                 'panel_new_hundred_all' . ($act ? '_act' : '') . (!$all['per'] ? '_less' : ($all['per'] === 1 ? '_one' : '')),
                 $c,
                 (object) ['n' => '<b>' . $perall . '</b>', 'k' => $allin, 'of' => self::num($contacts)]
             ),
-            'newsentence' => $newcontacts < self::MIN ? self::few_sentence($act, true, $newin, $newcontacts, $contacts) :
+            'newsentence' => $newcontacts < self::HUNDRED ? self::few_sentence($act, true, $newin, $newcontacts, $contacts) :
                 get_string(
                     'panel_new_hundred_new' . ($act ? '_act' : '') . (!$new['per'] ? '_less' : ($new['per'] === 1 ? '_one' : '')),
                     $c,
                     (object) ['n' => '<b>' . $pernew . '</b>', 'k' => $newin, 'of' => self::num($newcontacts)]
                 ),
             // Nothing to share out is a note, never a result.
-            'each' => $each, 'eachnone' => !$students, 'students' => $students, 'otheryear' => '',
+            'each' => $each, 'eachnone' => !$students, 'students' => $students, 'otheryear' => '', 'talk' => false,
+            'word' => get_string('panel_new_act', $c),
             'moneynone' => $spend === null, 'moneyvalue' => $spend === null ? '' : format_float((float) $spend, 2, true, true),
             'canspend' => $act && $canact,
             'steplabel' => get_string($act ? 'panel_new_came' : 'panel_new_left_contact', $c),
@@ -604,76 +632,76 @@ class panel_newstudents {
     }
 
     /**
-     * The acts of Eguahe between two times with families that came: how many came, of the centre, and enrolled.
+     * The acts of Eguahe between two times with families that came: how many came, of the centre, and enrolled after it. Who
+     * only came to it, without asking for a place, is said apart and is not a family of the campaign.
      *
      * @param int $centreid
      * @param int $from
      * @param int $to
-     * @param string $year Only the children enrolled for this school year count as enrolled (an open day in October
-     *                     fills the places of the next year, not of this one); empty, any.
-     * @return array[] id, name, time, length (hours), hosts, hosthours, came, centre, centrein, newin, students.
+     * @param string $year Only the acts of the campaign that fills this school year, and the children enrolled for it (an open
+     *                     day in October fills the places of the next year, not of this one); empty, any.
+     * @return array[] id, name, word, talk, time, length (hours), hosts, hosthours, came, guests, centre, centrein, newin,
+     *     students, before (families enrolled before it) and otheryear.
      */
     public static function acts(int $centreid, int $from, int $to, string $year = ''): array {
         global $DB;
-        $ofyear = $year === '' ? null : array_flip($DB->get_fieldset_select(
-            centres::OFFERS,
-            'id',
-            'centreid = ? AND schoolyear = ?',
-            [$centreid, $year]
-        ));
+        $centre = centres::get($centreid);
         $events = $DB->get_records_select(
             events::T,
-            "centreid = :centreid AND kind IN ('openday', 'other') AND timestart >= :from AND timestart < :to",
+            "centreid = :centreid AND kind IN ('openday', 'other') AND timestart >= :from AND timestart < :to AND cancelled = 0",
             ['centreid' => $centreid, 'from' => $from, 'to' => $to],
-            'timestart ASC'
+            'timestart ASC, id ASC'
         );
+        $years = array_values(array_unique(array_merge(facts::years($centreid), metrics::school_years($centreid), $year === '' ? [] : [$year])));
+        $facts = [];
         $out = [];
         foreach ($events as $event) {
-            $came = $DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ? AND attended > 0', [$event->id]);
+            $time = (int) $event->timestart;
+            if ($year !== '' && facts::year_at($centre, $time, $years) !== $year) {
+                continue;
+            }
+            $came = array_unique(array_map('intval', $DB->get_fieldset_select(
+                events::SIGNUPS,
+                'householdid',
+                'eventid = ? AND attended > 0',
+                [$event->id]
+            )));
             if (!$came) {
                 continue;
             }
+            $its = $year !== '' ? $year : facts::year_at($centre, $time, $years);
+            $facts[$its] = $facts[$its] ?? facts::read($centre, ['key' => 'year', 'year' => $its, 'since' => 0, 'until' => 0, 'import' => null]);
             [$in, $params] = $DB->get_in_or_equal($came);
-            $homes = $DB->get_records_select(households::T, "id $in", $params, '', 'id, incentre, roster, familylink');
-            $kids = $DB->get_records_select(households::CHILDREN, "householdid $in", $params, '', 'id, householdid, stage, roster,
-                offerid');
-            $enrolled = [];
-            $elsewhere = [];
-            foreach ($kids as $kid) {
-                if ($kid->stage !== 'enrolled' || !empty($kid->roster)) {
+            $guests = $DB->count_records_select(households::T, "id $in AND guest = 1 AND COALESCE(outreason, '') = ''", $params);
+            // The families of the roll are of the centre, and Eguahe did not bring them.
+            $roster = $DB->count_records_select(households::T, "id $in AND roster > 0 AND guest = 0", $params);
+            $row = ['id' => (int) $event->id, 'name' => (string) $event->name, 'word' => acts::team_word($event),
+                'talk' => $event->kind === 'other', 'time' => $time, 'came' => $roster, 'guests' => $guests, 'centre' => $roster,
+                'centrein' => 0, 'newin' => 0, 'students' => 0, 'before' => 0, 'otheryear' => 0];
+            foreach ($came as $id) {
+                $f = $facts[$its][$id] ?? null;
+                if (!$f) {
                     continue;
                 }
-                if ($ofyear === null || isset($ofyear[(int) $kid->offerid])) {
-                    $enrolled[(int) $kid->householdid][] = (int) $kid->id;
-                } else {
-                    // Enrolled for another school year: it counts in the sheet of that year, and this one says so.
-                    $elsewhere[(int) $kid->householdid] = true;
+                $row['came']++;
+                $inside = in_array($f['who'], who::CENTRE, true);
+                $row['centre'] += $inside ? 1 : 0;
+                $in = array_filter($f['kids'], fn($k) => $k['stage'] === 'enrolled' && !$k['left']);
+                $mine = array_filter($in, fn($k) => $year === '' || $k['year'] === $year);
+                // Only what was done from the act on can have to do with it.
+                $after = array_filter($mine, fn($k) => $k['stagetime'] >= $time);
+                if ($after) {
+                    $row[$inside ? 'centrein' : 'newin']++;
+                    $row['students'] += $inside ? 0 : count($after);
+                } else if ($mine) {
+                    $row['before']++;
+                } else if (array_filter($in, fn($k) => $k['stagetime'] >= $time)) {
+                    $row['otheryear']++;
                 }
             }
-            $centre = 0;
-            $centrein = 0;
-            $newin = 0;
-            $students = 0;
-            foreach ($homes as $home) {
-                // Of the centre by what was known of them (they said so, or came from its roll), never because the team
-                // joined their file with the common record after enrolling: that would take the new student away.
-                $ofcentre = !empty($home->incentre) || !empty($home->roster);
-                $centre += $ofcentre ? 1 : 0;
-                if (!empty($enrolled[(int) $home->id])) {
-                    if ($ofcentre) {
-                        $centrein++;
-                    } else {
-                        $newin++;
-                        $students += count($enrolled[(int) $home->id]);
-                    }
-                }
-            }
-            $length = max(0, ((int) $event->timeend - (int) $event->timestart) / HOURSECS);
+            $length = max(0, ((int) $event->timeend - $time) / HOURSECS);
             $hosts = count(array_filter(explode(',', (string) ($event->hosts ?? ''))));
-            $out[] = ['id' => (int) $event->id, 'name' => (string) $event->name, 'time' => (int) $event->timestart,
-                'length' => $length, 'hosts' => max(1, $hosts), 'hosthours' => round($length * max(1, $hosts), 1),
-                'came' => count($homes), 'centre' => $centre, 'centrein' => $centrein, 'newin' => $newin, 'students' => $students,
-                'otheryear' => count(array_diff_key($elsewhere, $enrolled))];
+            $out[] = $row + ['length' => $length, 'hosts' => max(1, $hosts), 'hosthours' => round($length * max(1, $hosts), 1)];
         }
         return $out;
     }
@@ -688,14 +716,17 @@ class panel_newstudents {
      * @return array|null
      */
     protected static function moves(\stdClass $centre, string $year, int $now): ?array {
+        global $DB;
         $c = self::C;
         $centreid = (int) $centre->id;
         $m = metrics::movements($centreid, $year);
-        $prev = sprintf('%d-%02d', (int) substr($year, 0, 4) - 1, ((int) substr($year, 0, 4)) % 100);
-        $before = metrics::movements($centreid, $prev);
+        $before = metrics::movements($centreid, metrics::year_before($year));
         if (!$m['totals']['joins'] && !$m['totals']['leaves'] && !$m['bymonth']) {
             return null;
         }
+        // The year before, up to the same day: a month half way is set against the same half.
+        $sameday = (new \DateTimeImmutable('@' . $now))->setTimezone(\core_date::get_server_timezone_object())->modify('-1 year')
+            ->getTimestamp();
         $start = imports::year_start($year);
         $first = new \DateTimeImmutable('@' . $start);
         $first = $first->setTimezone(\core_date::get_server_timezone_object())->modify('first day of this month');
@@ -717,19 +748,24 @@ class panel_newstudents {
             $row = ['key' => $key, 'time' => $month->getTimestamp(), 'joins' => (int) ($by[$key]['joins'] ?? 0),
                 'leaves' => (int) ($by[$key]['leaves'] ?? 0), 'bjoins' => (int) ($bb[$prevkey]['joins'] ?? 0),
                 'bleaves' => (int) ($bb[$prevkey]['leaves'] ?? 0), 'future' => $key > $nowmonth, 'current' => $key === $nowmonth];
+            if ($row['current']) {
+                foreach (['joins' => 'bjoins', 'leaves' => 'bleaves'] as $what => $field) {
+                    $row[$field] = count(array_filter($before['dated'], fn($d) => $d[1] === $what && $d[0] <= $sameday &&
+                        userdate($d[0], '%Y-%m') === $prevkey));
+                }
+            }
             $most = max($most, $row['joins'], $row['leaves'], $row['bjoins'], $row['bleaves']);
             $rows[] = $row;
         }
-        $joins = 0;
-        $leaves = 0;
+        // All of them, with a date or without: the ledger and the title say the same.
+        $joins = (int) $m['totals']['joins'];
+        $leaves = (int) $m['totals']['leaves'];
         $bleaves = 0;
         $months = [];
         foreach ($rows as $row) {
             $short = userdate($row['time'], '%b');
             $full = userdate($row['time'], '%B');
             if (!$row['future']) {
-                $joins += $row['joins'];
-                $leaves += $row['leaves'];
                 $bleaves += $row['bleaves'];
             }
             $id = 'ex-m-' . $row['key'];
@@ -802,7 +838,9 @@ class panel_newstudents {
                 'n' => (int) $r['count']], $m['from']), false);
         }
         $done = !array_filter($rows, fn($r) => $r['future'] || $r['current']);
-        $diff = $leaves - $bleaves;
+        // Only what has its day is set against the year before at the same point.
+        $dated = $leaves - (int) $m['undated'];
+        $diff = $dated - $bleaves;
         $topname = $top ? $top['name'] : '';
         $topn = $top ? $top['leaves'] : 0;
         $stagetext = $topname !== '' && $topn ? ' ' . get_string(
@@ -810,6 +848,11 @@ class panel_newstudents {
             $c,
             (object) ['stage' => s($topname), 'n' => $topn]
         ) : '';
+        $listed = (int) $DB->get_field_sql(
+            'SELECT MAX(timecreated) FROM {' . imports::T . '} WHERE centreid = ? AND id IN (SELECT importid FROM {' . metrics::STUDENTS .
+                '} WHERE centreid = ? AND schoolyear = ?)',
+            [$centreid, $centreid, $year]
+        );
         self::define(
             'ex-m-joins',
             self::one('panel_ex_joins_t', $joins, $joins),
@@ -825,12 +868,17 @@ class panel_newstudents {
             $before['bymonth'] ? get_string('panel_ex_leaves_c', $c, $bleaves) : ''
         );
         return [
-            'cut' => $done ? get_string('panel_new_moves_cut_done', $c, $year) : get_string('panel_new_moves_cut', $c),
+            'cut' => ($done ? get_string('panel_new_moves_cut_done', $c, $year) . ' ' : '') . ($listed ? get_string(
+                'panel_new_moves_cut',
+                $c,
+                userdate($listed, get_string('strftimedate', 'langconfig'))
+            ) : ''),
+            'undated' => $m['undated'] ? self::one('panel_new_undated', (int) $m['undated'], (int) $m['undated']) : false,
             'joins' => $joins, 'leaves' => $leaves, 'exjoins' => 'ex-m-joins', 'exleaves' => 'ex-m-leaves',
-            'bleaves' => $bleaves, 'hasbefore' => (bool) $before['bymonth'], 'topstage' => $topname, 'topn' => $topn,
+            'dated' => $dated, 'bleaves' => $bleaves, 'hasbefore' => (bool) $before['bymonth'], 'topstage' => $topname, 'topn' => $topn,
             'trend' => $done ? get_string('panel_new_trend_done', $c, (object) ['joins' => $joins, 'leaves' => $leaves]) .
                 $stagetext : ($before['bymonth'] ? get_string('panel_new_trend_' . ($diff > 0 ? 'more' : ($diff < 0 ? 'less' :
-                'same')), $c, (object) ['leaves' => $leaves, 'diff' => abs($diff), 'before' => $bleaves]) . $stagetext : ''),
+                'same')), $c, (object) ['leaves' => $dated, 'diff' => abs($diff), 'before' => $bleaves]) . $stagetext : ''),
             'months' => $months, 'stages' => $stagerows, 'lists' => $lists, 'def' => get_string('panel_new_moves_def', $c),
         ];
     }
@@ -857,22 +905,26 @@ class panel_newstudents {
             $base = (int) ($sumk($ads, 'contactsn') - $sumk($ads, 'centre'));
             $per = $base ? 100 * $newin / $base : 0;
             if ($base >= self::MIN && ($per < 5 || $per >= 10)) {
+                $spent = array_filter($ads, fn($k) => !$k['moneynone']);
                 $items[] = $kind($per < 5 ? 'flojo' : 'fuerte') + ['anchor' => 'publicidad',
-                    'text' => get_string($per >= 10 ? 'panel_new_c_ads_good' : ('panel_new_c_ads' . ($newin === 0 ? '_none' :
-                        ($per < 1 ? '_less' : (round($per) == 1 ? '_one' : '')))), $c, (object) ['n' => '<b>' . round($per) . '</b>']),
-                    'why' => get_string('panel_new_c_ads_why', $c, (object) ['k' => $newin, 'of' => self::num($base),
-                        'money' => centres::money($centre, $sumk($ads, 'moneyn')), 'hours' => self::hours($sumk($ads, 'hoursn'))])];
+                    'text' => get_string('panel_new_c_ads' . (!$newin ? '_none' : ($newin === 1 ? '_one' : '')), $c, (object) [
+                        'k' => '<b>' . $newin . '</b>', 'of' => self::num($base), 'share' => panel_metrics::share($newin, $base, true)]),
+                    'why' => get_string('panel_new_c_ads_why', $c, (object) ['money' => $spent ? centres::money($centre, $sumk($ads, 'moneyn')) :
+                        get_string('panel_new_money_none', $c), 'hours' => self::hours($sumk($ads, 'hoursn'))]) .
+                        ($spent && count($spent) < count($ads) ? ' ' . get_string('panel_new_c_ads_partly', $c, (object) [
+                        'n' => count($spent), 'of' => count($ads)]) : '')];
             }
         }
         foreach ($acts as $act) {
             $base = (int) $act['contactsn'] - (int) $act['centre'];
             $per = $base ? 100 * (int) $act['newin'] / $base : 0;
-            if ($base >= self::MIN && $per >= 10) {
+            if (empty($act['talk']) && $base >= self::MIN && $per >= 10) {
                 $items[] = $kind('fuerte') + ['anchor' => 'publicidad', 'text' => get_string('panel_new_c_act', $c, (object) [
-                    'act' => $act['label'], 'n' => '<b>' . round($per) . '</b>']), 'why' => get_string(
+                    'act' => $act['label'], 'k' => '<b>' . $act['newin'] . '</b>', 'of' => $base,
+                    'share' => panel_metrics::share((int) $act['newin'], $base, true)]), 'why' => get_string(
                         'panel_new_c_act_why',
                         $c,
-                        (object) ['k' => $act['newin'], 'of' => $base, 'hours' => $act['hours']]
+                        (object) ['hours' => $act['hours']]
                     )];
             }
         }
@@ -885,11 +937,11 @@ class panel_newstudents {
                     'staff' => self::staff_part($g['staff'])])];
         }
         if (
-            $moves && $moves['hasbefore'] && $moves['leaves'] !== $moves['bleaves'] &&
-            max($moves['leaves'], $moves['bleaves']) >= self::MIN
+            $moves && $moves['hasbefore'] && $moves['dated'] !== $moves['bleaves'] &&
+            max($moves['dated'], $moves['bleaves']) >= self::MIN
         ) {
-            $items[] = $kind('tendencia') + ['anchor' => 'altas-y-bajas', 'text' => get_string($moves['leaves'] > $moves['bleaves'] ?
-                'panel_new_c_leaves_more' : 'panel_new_c_leaves_less', $c, (object) ['n' => '<b>' . $moves['leaves'] . '</b>',
+            $items[] = $kind('tendencia') + ['anchor' => 'altas-y-bajas', 'text' => get_string($moves['dated'] > $moves['bleaves'] ?
+                'panel_new_c_leaves_more' : 'panel_new_c_leaves_less', $c, (object) ['n' => '<b>' . $moves['dated'] . '</b>',
                 'before' => $moves['bleaves']]), 'why' => $moves['topstage'] !== '' ? get_string(
                     'panel_new_c_leaves_why',
                     $c,

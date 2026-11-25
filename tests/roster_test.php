@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel_renewal;
 use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\roster;
+use local_oksigeniaeguahe\local\ties;
 
 /**
  * The families already at the centre, from its roll (0.61.0): where the course of each student comes from, what each
@@ -227,5 +228,70 @@ final class roster_test extends \advanced_testcase {
         $this->assertSame(1, roster::sync($centre, time())['families']);
         $child = $DB->get_record(households::CHILDREN, ['familychild' => 14]);
         $this->assertSame(['Mateo', 'enrolled'], [$child->firstname, $child->stage]);
+    }
+
+    /**
+     * A child that asks for a place for another year goes on asking, though the roll has it in its nursery; one enrolled with a
+     * phone and no email is not brought again; a student of two homes is one; and one that went and is there in a later year is
+     * back.
+     */
+    public function test_what_they_ask_for(): void {
+        global $DB;
+        [$centre] = $this->centre();
+        $cid = (int) $centre->id;
+        $nursery = centres::save_offer($cid, (object) ['schoolyear' => '2026-27', 'name' => 'Guardería 2 años', 'places' => 20,
+            'active' => 1, 'sortorder' => 0]);
+        $infantil = centres::save_offer($cid, (object) ['schoolyear' => '2026-27', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        $next = centres::save_offer($cid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 25,
+            'active' => 1, 'sortorder' => 0]);
+        $family = function (string $name, ?string $email, ?string $phone, string $child, int $offer) use ($cid): \stdClass {
+            $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+            households::add_adult($household, (object) ['firstname' => $name, 'lastname' => 'Ejemplo', 'email' => $email,
+                'phone' => $phone]);
+            households::add_child($household, $child, $offer);
+            return $household;
+        };
+        $leo = $family('Ana', 'ana@example.com', '+34600001001', 'Leo', $next);
+        $DB->set_field(households::T, 'familylink', 203, ['id' => $leo->id]);
+        $mia = $family('Pino', null, '+34600001002', 'Mía', $infantil);
+        $DB->set_field(households::CHILDREN, 'stage', 'enrolled', ['householdid' => $mia->id]);
+        $adult = fn(string $name, string $email, string $phone) => (object) ['adultid' => 1, 'userid' => null, 'firstname' => $name,
+            'lastname' => 'Ejemplo', 'email' => $email, 'phone' => $phone, 'phoneverified' => true, 'status' => 'active'];
+        $child = fn(int $id, string $key, string $name, string $group) => (object) ['childid' => $id, 'userid' => null,
+            'sourcekey' => $key, 'firstname' => $name, 'lastname' => null, 'group' => $group, 'status' => 'active',
+            'timeleft' => null];
+        $of = fn(int $id, \stdClass $child, \stdClass $adult) => (object) ['familyid' => $id, 'status' => 'active',
+            'source' => 'csv', 'sourcekey' => "csv:f$id", 'timeclosed' => null, 'children' => [$child], 'adults' => [$adult]];
+        roster::$testfamilies = [
+            201 => $of(201, $child(51, 'csv:55', 'Noa', 'INF 3ºA'), $adult('Eva', 'madre@example.com', '+34600001003')),
+            202 => $of(202, $child(52, 'csv:55', 'Noa', 'INF 3ºA'), $adult('Luis', 'padre@example.com', '+34600001004')),
+            203 => $of(203, $child(53, 'csv:56', 'Leo', 'GUA 2A'), $adult('Ana', 'ana@example.com', '+34600001001')),
+            204 => $of(204, $child(54, 'csv:57', 'Mía', 'INF 3ºA'), $adult('Pino', 'pino@example.com', '+34600001002')),
+        ];
+        roster::set_source($centre, 'family', '', '2026-27');
+        roster::set_map($centre, 'INF 3ºA', 'Infantil 3 años');
+        roster::set_map($centre, 'GUA 2A', 'Guardería 2 años');
+        $now = time();
+        $this->assertSame(2, roster::sync($centre, $now)['families'], 'The two homes of Noa, and not Mía again.');
+        $kid = $DB->get_record(households::CHILDREN, ['householdid' => $leo->id]);
+        $this->assertSame([(string) $next, 'inquiry', '53'], [$kid->offerid, $kid->stage, $kid->familychild]);
+        $this->assertTrue(isset(ties::of((int) $leo->id)[(int) $kid->id]['nursery']));
+        $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $leo->id]), 'A family of the centre.');
+        $this->assertSame(1, $DB->count_records(households::CHILDREN, ['centreid' => $cid, 'firstname' => 'Mía']));
+        $noa = $DB->get_records(households::CHILDREN, ['centreid' => $cid, 'firstname' => 'Noa'], 'id ASC');
+        $this->assertSame(['csv:55', 'csv:55'], array_values(array_column($noa, 'studentkey')), 'The same student.');
+        $this->assertSame(0, roster::sync($centre, $now)['moved']);
+        $this->assertSame((string) $next, $DB->get_field(households::CHILDREN, 'offerid', ['id' => $kid->id]));
+        // Noa goes; the roll still has her this year, and a person said it: she is gone. In a later year, she is back.
+        $first = reset($noa);
+        $DB->update_record(households::CHILDREN, (object) ['id' => $first->id, 'lefttime' => $now]);
+        roster::sync($centre, $now);
+        $this->assertNotEmpty($DB->get_field(households::CHILDREN, 'lefttime', ['id' => $first->id]));
+        roster::set_source($centre, 'family', '', '2027-28');
+        roster::sync($centre, $now);
+        $back = $DB->get_record(households::CHILDREN, ['id' => $first->id]);
+        $this->assertSame(['0', (string) $next], [$back->lefttime, $back->offerid]);
+        $this->assertNotEmpty($nursery);
     }
 }

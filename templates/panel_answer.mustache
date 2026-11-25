@@ -1,0 +1,130 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_answer
+
+    The answer to one question of «Cifras», on one sheet that reads from top to bottom and prints as it is: the question, the
+    answer in a sentence, what is worth doing, and the detail in blocks, always in the same shapes (a path, bars, a list
+    of what has happened, columns in time, a table). What is not known is written beside its block, with its button. At the
+    foot, where the data comes from.
+
+    Context variables required for this template:
+    * head - of panel_head (ante is the question; title, the answer)
+    * print - the words of its button
+    * facts - n, what, url, more: the three or four figures of the answer, or an empty list
+    * todo - title and items (n, text, url, do), or false
+    * blocks - id, title, lead, def (how it is counted), and any of:
+      path (of panel_answer_path), apart (n, text, url: who is told aside); lines (text, url);
+      bars: groups of title and rows (name, n, v from 0 to 1, part (text) or nothing, unknown, url);
+      list: rows of n, what, when, url, do, strong;
+      columns: rows of label, n, v, g (the one before, 0 to 1) and said, with keys (now, before) or false;
+      table: cols (name) and rows (name, when, url, current, cells: col (its name), n, text, v, url, missing);
+      words: rows of text, n and url;
+      note - what is not known: text, url, do; or false
+    * detail - url and name: the detailed sheet of Numbers, or false
+    * sources - name, when, what, with hassources
+
+    Example context (json):
+    {
+        "head": {"title": "Vinieron 41 de las 58 familias inscritas.", "sub": "", "back": {"url": "#", "name": "Cifras"}, "ante": "¿Cómo fue?",
+            "what": "", "help": "", "action": false, "origen": false},
+        "print": "Imprimir o guardar en PDF",
+        "facts": [{"n": "58", "what": "familias inscritas", "url": "#", "more": ""}],
+        "todo": {"title": "Lo que conviene hacer", "items": [{"n": "18", "text": "esperan respuesta", "url": "#", "do": "Verlas"}]},
+        "blocks": [{"id": "camino", "title": "Del cartel a la plaza", "lead": "", "def": "", "lines": [{"text": "17 no vinieron.", "url": "#"}], "path": false, "apart": [{"n": "12", "text": "ya son del centro",
+            "url": "#"}], "hasapart": true, "bars": {"groups": [{"title": "Por dónde", "rows": [{"name": "Anuncios", "n": 34, "v": 1, "part": "",
+            "unknown": false, "url": "#"}]}]}, "list": {"rows": [{"n": "3", "what": "escribieron", "when": "", "url": "#", "do": "Verlas",
+            "strong": false}]}, "columns": {"keys": {"now": "Esta", "before": "La anterior"}, "rows": [{"label": "sept", "n": 3, "v": 1, "g": 0.5,
+            "said": "Septiembre: 3"}]}, "table": {"cols": [{"name": "Inscritas"}], "rows": [{"name": "Puertas abiertas", "when": "14 mar 2026", "url": "#", "current": false,
+            "cells": [{"col": "Inscritas", "n": "40", "text": "", "v": 1, "url": "#", "missing": ""}]}]}, "words": {"rows": [{"text": "El comedor", "n": 5, "url": false}]},
+            "note": {"text": "De 12 no consta si vinieron.", "url": "#", "do": "Anotarlo"} }],
+        "detail": {"url": "#", "name": "Verlo con todos sus números"},
+        "hassources": true,
+        "sources": [{"name": "Eguahe", "when": "hoy", "what": "58 familias"}]
+    }
+}}
+<div class="pagina pagina-informe pagina-respuesta">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    <p class="qs-imprimir"><button class="boton secundario" type="button" data-imprimir hidden>{{{i.imprimir}}}{{print}}</button></p>
+    <article class="informe qs-informe" id="informe">
+        {{#facts.0}}
+        <ul class="qs-cifras">{{#facts}}<li>{{#url}}<a href="{{url}}">{{/url}}{{^url}}<span>{{/url}}<b>{{n}}</b> <span>{{what}}</span>{{#url}}</a>{{/url}}{{^url}}</span>{{/url}}{{#more}}<small>{{more}}</small>{{/more}}</li>{{/facts}}</ul>
+        {{/facts.0}}
+        {{#todo}}
+        <section class="inf-nota qs-hacer" aria-labelledby="qs-hacer">
+            <h2 id="qs-hacer">{{title}}</h2>
+            <ul>{{#items}}<li>{{#n}}<b>{{n}}</b> {{/n}}<span>{{text}} <a href="{{url}}">{{do}}</a></span></li>{{/items}}</ul>
+        </section>
+        {{/todo}}
+        {{#blocks}}
+        <section class="inf-seccion qs-bloque{{#note}} qs-con-nota{{/note}}" aria-labelledby="qs-{{id}}">
+            <div class="qs-cuerpo">
+                <h2 id="qs-{{id}}">{{title}}</h2>
+                {{#lead}}<p class="inf-seccion-frase">{{lead}}</p>{{/lead}}
+                {{#path}}{{> local_oksigeniaeguahe/panel_answer_path }}{{/path}}
+                {{#lines}}<p class="qs-linea"><a href="{{url}}">{{text}}</a></p>{{/lines}}
+                {{#hasapart}}<p class="qs-aparte">{{#str}}qs_apart, local_oksigeniaeguahe{{/str}} {{#apart}}{{#url}}<a href="{{url}}"><b>{{n}}</b> {{text}}</a>{{/url}}{{^url}}<span><b>{{n}}</b> {{text}}</span>{{/url}}{{/apart}}</p>{{/hasapart}}
+                {{#bars}}
+                <div class="qs-barras">
+                    {{#groups}}
+                    <div class="qs-barras-grupo">
+                        <h3>{{title}}</h3>
+                        <ul>
+                            {{#rows}}
+                            <li{{#unknown}} class="qs-no-consta"{{/unknown}}>{{#url}}<a class="qs-barra" href="{{url}}">{{/url}}{{^url}}<span class="qs-barra">{{/url}}<span class="qs-barra-nombre">{{name}}</span><b class="qs-barra-n">{{n}}</b><span class="qs-barra-pista" aria-hidden="true">{{#v}}<i style="--v: {{v}}"></i>{{/v}}</span>{{#part}}<span class="qs-barra-parte">{{part}}</span>{{/part}}{{#url}}</a>{{/url}}{{^url}}</span>{{/url}}</li>
+                            {{/rows}}
+                        </ul>
+                    </div>
+                    {{/groups}}
+                </div>
+                {{/bars}}
+                {{#columns}}
+                <ol class="qs-columnas">{{#rows}}<li><span class="qs-columna" aria-hidden="true">{{#g}}<i class="qs-columna-antes" style="--v: {{g}}"></i>{{/g}}<i class="qs-columna-ahora" style="--v: {{v}}"></i></span><b aria-hidden="true">{{n}}</b><span class="qs-columna-rotulo" aria-hidden="true">{{label}}</span><span class="oculto">{{said}}</span></li>{{/rows}}</ol>
+                {{#keys}}<p class="qs-claves"><span><i class="qs-clave-ahora" aria-hidden="true"></i>{{now}}</span><span><i class="qs-clave-antes" aria-hidden="true"></i>{{before}}</span></p>{{/keys}}
+                {{/columns}}
+                {{#list}}
+                <ul class="qs-hechos">
+                    {{#rows}}
+                    <li{{#strong}} class="qs-hecho-fuerte"{{/strong}}><b>{{n}}</b> <span>{{what}}{{#when}} <span class="qs-hecho-cuando">{{when}}</span>{{/when}}{{#url}} <a href="{{url}}">{{do}}</a>{{/url}}</span></li>
+                    {{/rows}}
+                </ul>
+                {{/list}}
+                {{#words}}
+                <ul class="qs-dichos">{{#rows}}<li>{{#url}}<a href="{{url}}">{{text}}</a>{{/url}}{{^url}}{{text}}{{/url}}{{#n}} <b>{{n}}</b>{{/n}}</li>{{/rows}}</ul>
+                {{/words}}
+                {{#table}}
+                <div class="qs-tabla-caja">
+                    <table class="qs-tabla">
+                        <thead><tr><td></td>{{#cols}}<th scope="col">{{name}}</th>{{/cols}}</tr></thead>
+                        <tbody>{{#rows}}<tr{{#current}} class="qs-fila-esta"{{/current}}><th scope="row">{{#url}}<a href="{{url}}">{{name}}</a>{{/url}}{{^url}}{{name}}{{/url}}{{#when}} <span>{{when}}</span>{{/when}}</th>{{#cells}}<td data-col="{{col}}">{{#missing}}<a class="qs-celda-falta" href="{{url}}">{{missing}}</a>{{/missing}}{{^missing}}<b>{{n}}</b>{{#text}} <span>{{text}}</span>{{/text}}{{#v}}<i class="qs-celda-barra" style="--v: {{v}}" aria-hidden="true"></i>{{/v}}{{/missing}}</td>{{/cells}}</tr>{{/rows}}</tbody>
+                    </table>
+                </div>
+                {{/table}}
+                {{#def}}<p class="inf-def">{{def}}</p>{{/def}}
+            </div>
+            {{#note}}<aside class="qs-nota"><p>{{text}}</p>{{#url}}<a href="{{url}}">{{do}}</a>{{/url}}</aside>{{/note}}
+        </section>
+        {{/blocks}}
+        {{#detail}}<p class="qs-linea"><a href="{{url}}">{{name}}</a></p>{{/detail}}
+        {{#hassources}}
+        <details class="qs-fuentes"><summary>{{#str}}qs_sources, local_oksigeniaeguahe{{/str}}</summary>
+            <ul>{{#sources}}<li><b>{{name}}</b> <span>{{when}}</span> <span>{{what}}</span></li>{{/sources}}</ul>
+        </details>
+        <p class="qs-fuentes-papel" aria-hidden="true">{{#str}}qs_sources, local_oksigeniaeguahe{{/str}}: {{#sources}}{{name}} ({{when}}; {{what}}). {{/sources}}</p>
+        {{/hassources}}
+    </article>
+</div>

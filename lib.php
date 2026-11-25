@@ -91,7 +91,7 @@ function local_oksigeniaeguahe_oksigeniamarandu_notices(): array {
         'request_received' => ['examples' => ['Los Almendros School'], 'perweek' => 0.1],
         'message_received' => ['examples' => ['Los Almendros School'], 'perweek' => 0.1],
         'answer_waiting' => ['examples' => ['Los Almendros School', 'Yes, there is a canteen with its own kitchen.'],
-            'perweek' => 0.2],
+            'perweek' => 0.2, 'valuelimit' => 700],
         'visit_changed' => ['examples' => ['Los Almendros School', 'Saturday 21 November, from 11:00 to 13:00, in the hall'],
             'perweek' => 0.05],
         'visit_thanks' => ['examples' => ['Los Almendros School', 'Lucía Medina'], 'perweek' => 0.2],
@@ -142,20 +142,16 @@ function local_oksigeniaeguahe_work_week(int $centreid, int $now): string {
     global $DB;
     $c = 'local_oksigeniaeguahe';
     $since = $now - 7 * DAYSECS;
-    $new = $DB->count_records_select(
-        'local_oksigeniaeguahe_household',
-        'centreid = ? AND incentre = 0 AND guest = 0 AND timecreated >= ?',
-        [$centreid, $since]
-    );
-    $came = (int) $DB->count_records_sql(
-        'SELECT COUNT(DISTINCT s.householdid)
-           FROM {local_oksigeniaeguahe_signup} s
-           JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
-          WHERE e.centreid = ? AND s.attended >= ? AND e.kind <> ?',
-        [$centreid, $since, 'other']
-    );
+    $centre = \local_oksigeniaeguahe\local\centres::get($centreid);
+    if (!$centre) {
+        return '';
+    }
+    [$new, $came] = \local_oksigeniaeguahe\local\facts::week($centre, $since, $now);
     $looked = (int) $DB->count_records_sql(
-        'SELECT COUNT(DISTINCT householdid) FROM {local_oksigeniaeguahe_seen} WHERE centreid = ? AND kind = ? AND timecreated >= ?',
+        'SELECT COUNT(DISTINCT s.householdid)
+           FROM {local_oksigeniaeguahe_seen} s
+           JOIN {local_oksigeniaeguahe_household} h ON h.id = s.householdid
+          WHERE s.centreid = ? AND s.kind = ? AND s.timecreated >= ? AND h.guest = 0',
         [$centreid, 'open', $since]
     );
     $parts = [];
@@ -191,16 +187,8 @@ function local_oksigeniaeguahe_oksigenia_work(int $userid): array {
         $id = (int) $centre->id;
         $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $id]);
         $waiting = \local_oksigeniaeguahe\local\households::waiting_count($id);
-        $today = (int) $DB->count_records_sql(
-            'SELECT COUNT(DISTINCT s.householdid)
-                                                 FROM {local_oksigeniaeguahe_signup} s
-                                                 JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
-                                            LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
-                                                WHERE e.centreid = :centreid AND s.attended = 0
-                                                      AND COALESCE(t.timestart, e.timestart) >= :start
-                                                      AND COALESCE(t.timestart, e.timestart) < :end',
-            ['centreid' => $id, 'start' => $start, 'end' => $start + DAYSECS]
-        );
+        // The same ones the inbox says that come today.
+        $today = count(\local_oksigeniaeguahe\local\panel_inbox::coming_today($id, $now));
         $promised = \local_oksigeniaeguahe\local\attend::due($id, $now);
         $due = count($promised);
         $alerts = [];
@@ -313,6 +301,63 @@ function local_oksigeniaeguahe_marandu_optout(
         return;
     }
     \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out, $source);
+}
+
+/**
+ * Oksigenia Marandu says a phone of a family has joined: when it is the new one they were asked on, the old one lets go.
+ *
+ * @param int $itemid The household.
+ * @param string $channel whatsapp or telegram.
+ * @param int $time When.
+ */
+function local_oksigeniaeguahe_marandu_joined(int $itemid, string $channel, int $time = 0): void {
+    \local_oksigeniaeguahe\local\writeby::joined($itemid, $channel);
+}
+
+/**
+ * Oksigenia Marandu says how a notice of a family that was in its queue went. A failed may come after a sent.
+ *
+ * @param string $notice The notice.
+ * @param int $itemid The household.
+ * @param string $channel whatsapp or telegram.
+ * @param string $status sent, skipped, expired, failed or cancelled.
+ * @param string $why Why, when it did not go.
+ * @param int $queued When it was put in the queue.
+ * @param string $area
+ */
+function local_oksigeniaeguahe_marandu_notice_done(
+    string $notice,
+    int $itemid,
+    string $channel = '',
+    string $status = '',
+    string $why = '',
+    int $queued = 0,
+    string $area = ''
+): void {
+    \local_oksigeniaeguahe\local\notices::done($itemid, $notice, $status, $queued);
+}
+
+/**
+ * The families of admissions that gave a phone, for when somebody writes «ALTA» from it without a code.
+ *
+ * @param string $phone With its country code.
+ * @return int[] The households, the one that was last in touch first.
+ */
+function local_oksigeniaeguahe_oksigeniamarandu_phone_items(string $phone): array {
+    return \local_oksigeniaeguahe\api::phone_households($phone);
+}
+
+/**
+ * Oksigenia Marandu is about to let out one message of a send to many that waited for approval: whether it still goes to this
+ * family, and with which values.
+ *
+ * @param int $bulkid The send.
+ * @param string $notice The notice.
+ * @param int $itemid The household.
+ * @return array|bool True, as it was asked; false, it no longer goes; else params and url, as they are now.
+ */
+function local_oksigeniaeguahe_marandu_bulk_item(int $bulkid, string $notice, int $itemid) {
+    return \local_oksigeniaeguahe\local\invites::still($itemid, $bulkid);
 }
 
 /**

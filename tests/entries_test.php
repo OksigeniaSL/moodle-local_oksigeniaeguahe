@@ -383,4 +383,106 @@ final class entries_test extends \advanced_testcase {
             'days' => [], 'periods' => [], 'answers' => [],
         ];
     }
+
+    /**
+     * By a tool that gives no identifier, what a family writes again is heard, the same day or months later; the very same
+     * thing sent again is not, nor what came before this was told apart.
+     */
+    public function test_second_message_without_id(): void {
+        global $DB;
+        $entry = entries::get(entries::create((int) $this->centre->id, 'hook', 'Otra herramienta'), (int) $this->centre->id);
+        $send = fn(string $words) => entries::receive($entry, ['Nombre' => 'Eva Marrero', 'Email' => 'eva@example.com', 'Comentarios' => $words]);
+        [$household, $new] = $send('¿Tienen plaza?');
+        $this->assertTrue($new);
+        [, $again] = $send('¿Tienen plaza?');
+        $this->assertFalse($again, 'The very same.');
+        [$same, $second] = $send('¿Tienen comedor? Necesito respuesta');
+        $this->assertTrue($second);
+        $this->assertEquals($household->id, $same->id);
+        $this->assertSame(2, $DB->count_records(households::CONTACTS, ['householdid' => $household->id, 'direction' => 'in']));
+        // Kept with the key of before: the same words are still the same.
+        $DB->delete_records(entries::ARRIVALS, ['entryid' => $entry->id]);
+        $read = entries::$lastread;
+        $old = hash('sha256', implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->keytime]));
+        $DB->insert_record(entries::ARRIVALS, (object) ['centreid' => $entry->centreid, 'entryid' => $entry->id, 'externalid' => $old,
+            'householdid' => $household->id, 'timecreated' => time()]);
+        [, $third] = $send('¿Tienen plaza?');
+        $this->assertFalse($third);
+    }
+
+    /**
+     * A person of the team may be a parent too: with a child or words it comes in, with a note; with nothing, it is a test.
+     */
+    public function test_team_who_is_a_parent(): void {
+        global $DB;
+        $user = $this->getDataGenerator()->create_user(['email' => 'profe@example.com']);
+        centres::add_member((int) $this->centre->id, (int) $user->id);
+        $entry = entries::get(entries::create((int) $this->centre->id, 'google', 'Formulario'), (int) $this->centre->id);
+        [$none] = entries::receive($entry, ['Nombre' => 'Prueba', 'Email' => 'profe@example.com']);
+        $this->assertNull($none);
+        [$household, $new] = entries::receive($entry, ['Nombre' => 'Ana Sosa', 'Email' => 'profe@example.com',
+            'Nombre del alumno' => 'Leo', 'Curso' => 'Infantil 3 años']);
+        $this->assertTrue($new);
+        $this->assertTrue($DB->record_exists_select(
+            households::CONTACTS,
+            "householdid = ? AND direction = 'note' AND " . $DB->sql_like('body', '?'),
+            [$household->id, '%team%']
+        ));
+    }
+
+    /**
+     * Two phones or two emails in one place: the first that works, and all of it kept.
+     */
+    public function test_two_in_one_place(): void {
+        $entry = entries::get(entries::create((int) $this->centre->id, 'google', 'Formulario'), (int) $this->centre->id);
+        $read = entries::read($entry, $this->centre, ['Nombre' => 'Ana Sosa', 'Teléfono' => '600 111 222 (madre) / 600 333 444',
+            'Email' => 'ana@example.com, otra@example.com']);
+        $this->assertSame('+34600111222', $read->phone);
+        $this->assertSame('ana@example.com', $read->email);
+        $said = implode("\n", $read->lines);
+        $this->assertStringContainsString('600 333 444', $said);
+        $this->assertStringContainsString('otra@example.com', $said);
+    }
+
+    /**
+     * The link of a form the centre closed still says whose it was.
+     */
+    public function test_closed_form(): void {
+        global $DB;
+        $entry = entries::get(entries::create((int) $this->centre->id, 'form', 'La web'), (int) $this->centre->id);
+        $this->assertNull(entries::closed_by_token((string) $entry->token));
+        $DB->set_field(entries::T, 'active', 0, ['id' => $entry->id]);
+        $this->assertNull(entries::by_token((string) $entry->token));
+        $this->assertEquals($this->centre->id, entries::closed_by_token((string) $entry->token)->id);
+        $this->assertNull(entries::closed_by_token('nada'));
+    }
+
+    /**
+     * Whoever erased its data and writes again later comes in, by a form that sends its hour apart, with none, or with its
+     * own; an old row of a sheet does not bring it back.
+     */
+    public function test_back_after_erasing(): void {
+        global $DB;
+        $cid = (int) $this->centre->id;
+        $google = entries::get(entries::create($cid, 'google', 'Formulario'), $cid);
+        $sheet = entries::get(entries::create($cid, 'google', 'Hoja del equipo'), $cid);
+        $DB->set_field(entries::T, 'teamsheet', 1, ['id' => $sheet->id]);
+        $sheet = entries::get((int) $sheet->id, $cid);
+        $row = ['Nombre y apellidos' => 'Eva Sanz', 'Correo' => 'eva.vuelve@example.com', 'Mensaje' => '¿Hay comedor?'];
+        $erase = function (\stdClass $household) use ($DB): void {
+            households::erase($household);
+            $DB->set_field(households::GONE, 'timecreated', time() - HOURSECS, []);
+        };
+        [$household] = entries::receive($google, $row, 'uno');
+        $erase($household);
+        [$old] = entries::receive($sheet, $row, '', null, true);
+        $this->assertNull($old, 'A row without its date may be from before.');
+        [$old] = entries::receive($google, $row, 'dos', time() - 2 * DAYSECS);
+        $this->assertNull($old, 'Sent before erasing.');
+        [$now] = entries::receive($google, $row, 'tres', time());
+        $this->assertNotNull($now, 'Sent after erasing, with its hour apart.');
+        $erase($now);
+        [$now] = entries::receive($google, $row, 'cuatro');
+        $this->assertNotNull($now, 'Sent now, without any hour.');
+    }
 }

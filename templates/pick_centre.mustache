@@ -20,13 +20,13 @@
     For someone who works for several centres: which one.
 
     Example context (json):
-    {"hascentres": true, "centres": [{"name": "Colegio de ejemplo", "url": "#", "waiting": 3}], "manageurl": "#"}
+    {"hascentres": true, "centres": [{"name": "Colegio de ejemplo", "url": "#", "waiting": 3, "waitingtext": "3 familias esperan respuesta"}], "manageurl": "#"}
 }}
 <div class="eguahe">
     <h2>{{#str}}pick_centre, local_oksigeniaeguahe{{/str}}</h2>
     {{#hascentres}}
     <ul class="eguahe-centres">
-        {{#centres}}<li><a href="{{url}}">{{name}}</a> <span class="eguahe-quiet">{{#str}}inbox_waiting, local_oksigeniaeguahe, {{waiting}}{{/str}}</span></li>{{/centres}}
+        {{#centres}}<li><a href="{{url}}">{{name}}</a> <span class="eguahe-quiet">{{waitingtext}}</span></li>{{/centres}}
     </ul>
     {{/hascentres}}
     {{^hascentres}}<p>{{#str}}no_centres, local_oksigeniaeguahe{{/str}}</p>{{/hascentres}}

@@ -49,12 +49,14 @@ class panel_channels {
      *
      * @param \stdClass $centre
      * @param int $now
-     * @param array|null $live The families of the campaign under way, when the caller has them already.
      * @return array|false
      */
-    public static function context(\stdClass $centre, int $now, ?array $live = null) {
+    public static function context(\stdClass $centre, int $now) {
         $c = self::C;
         $bounds = self::bounds($now);
+        // Every family that came, whichever campaign it was of: two years are more than one campaign.
+        $families = facts::group(facts::everyone($centre, $now), 'campaign');
+        $undated = facts::sum(array_filter($families, fn($f) => $f['first'] >= $bounds[0] && $f['first'] < $bounds[24]))['undated'];
         $months = [];
         for ($i = 12; $i < 24; $i++) {
             $months[] = ['key' => userdate($bounds[$i], '%Y-%m'), 'label' => userdate($bounds[$i], '%b'),
@@ -62,8 +64,8 @@ class panel_channels {
         }
         $voices = [];
         foreach (self::VOICES as $voice) {
-            $events = $voice === 'know' ? self::know($centre, $bounds) : ($voice === 'arrive' ?
-                self::arrive($centre, $bounds, $live) : self::talk($centre, $bounds));
+            $events = $voice === 'know' ? self::know($families, $bounds) : ($voice === 'arrive' ?
+                self::arrive($families, $bounds) : self::talk($centre, $bounds));
             $built = self::voice($voice, $events, $bounds, $months);
             if ($built) {
                 $voices[] = $built;
@@ -78,7 +80,7 @@ class panel_channels {
         return [
             'title' => get_string('panel_ct_title', $c),
             'cut' => get_string('panel_ct_cut', $c, (object) ['from' => userdate($bounds[12], $monthyear),
-                'to' => userdate($bounds[23], $monthyear)]),
+                'to' => userdate($bounds[23], $monthyear)]) . ($undated ? ' ' . get_string('report_pace_undated', $c, $undated) : ''),
             'nowlabel' => get_string('panel_ct_now', $c),
             'beforelabel' => get_string('panel_ct_before', $c),
             'uplabel' => get_string('panel_ct_up_label', $c),
@@ -132,31 +134,24 @@ class panel_channels {
     /**
      * How families heard of the centre, as they said it, by when they came; a network, with its name.
      *
-     * @param \stdClass $centre
+     * @param array[] $families
      * @param int[] $bounds
      * @return array[] Each with key, name, group and time.
      */
-    protected static function know(\stdClass $centre, array $bounds): array {
-        global $DB;
+    protected static function know(array $families, array $bounds): array {
         $c = self::C;
         $out = [];
-        $rows = $DB->get_records_select(
-            households::T,
-            'centreid = ? AND incentre = 0 AND guest = 0 AND heardfrom IS NOT NULL AND timecreated >= ? AND timecreated < ?',
-            [$centre->id, $bounds[0], $bounds[24]],
-            '',
-            'id, heardfrom, heardnet, timecreated'
-        );
-        foreach ($rows as $h) {
-            $heard = in_array($h->heardfrom, lists::HEARD_FROM, true) ? $h->heardfrom : 'other';
-            $net = trim((string) ($h->heardnet ?? ''));
-            if (in_array($heard, ['social', 'referral'], true) && $net !== '') {
+        foreach ($families as $f) {
+            if ($f['heard'] === '' || $f['first'] < $bounds[0] || $f['first'] >= $bounds[24]) {
+                continue;
+            }
+            $heard = in_array($f['heard'], lists::HEARD_FROM, true) ? $f['heard'] : 'other';
+            if (in_array($heard, ['social', 'referral'], true) && $f['net'] !== '') {
                 // Each network, and each centre that recommends them, its own row.
-                $out[] = ['key' => $heard . ':' . \core_text::strtolower($net), 'name' => $net,
-                    'group' => get_string('heard_' . $heard, $c), 'time' => (int) $h->timecreated];
+                $out[] = ['key' => $heard . ':' . \core_text::strtolower($f['net']), 'name' => $f['net'],
+                    'group' => get_string('heard_' . $heard, $c), 'time' => $f['first']];
             } else {
-                $out[] = ['key' => $heard, 'name' => get_string('heard_' . $heard, $c), 'group' => '',
-                    'time' => (int) $h->timecreated];
+                $out[] = ['key' => $heard, 'name' => get_string('heard_' . $heard, $c), 'group' => '', 'time' => $f['first']];
             }
         }
         return $out;
@@ -165,15 +160,13 @@ class panel_channels {
     /**
      * Where the first contact of each family came from: the entry and its place, or the channel.
      *
-     * @param \stdClass $centre
+     * @param array[] $families
      * @param int[] $bounds
-     * @param array|null $live The families of the campaign under way, if already counted.
      * @return array[]
      */
-    protected static function arrive(\stdClass $centre, array $bounds, ?array $live = null): array {
+    protected static function arrive(array $families, array $bounds): array {
         $out = [];
-        $live = $live ?? panel_metrics::families($centre, panel_metrics::campaigns($centre)['live']);
-        foreach ($live as $f) {
+        foreach ($families as $f) {
             if ($f['first'] >= $bounds[0] && $f['first'] < $bounds[24]) {
                 $name = (string) $f['voices']['first'];
                 $out[] = ['key' => \core_text::strtolower($name), 'name' => $name, 'group' => '', 'time' => $f['first']];

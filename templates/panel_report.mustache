@@ -71,14 +71,15 @@
             <dl class="inf-cifras">
                 {{#figures}}
                 <div class="inf-cifra inf-cifra-{{key}}{{#trend}} {{trend}}{{/trend}}">
-                    <dt>{{label}}</dt>
+                    <dt>{{label}}{{#note}} <small>{{.}}</small>{{/note}}</dt>
                     <dd class="inf-cifra-valor"><b>{{value}}</b>{{#trendtext}}<span class="inf-tendencia">{{trendtext}}</span>{{/trendtext}}</dd>
                     {{#hasbefore}}<dd class="inf-antes"><span>{{beforelabel}}</span> <b>{{before}}</b></dd>{{/hasbefore}}
                     {{#hasago}}<dd class="inf-antes inf-hace-un-ano"><span>{{agolabel}}</span> <b>{{ago}}</b></dd>{{/hasago}}
                 </div>
                 {{/figures}}
             </dl>
-            {{#response}}<p class="inf-respuesta{{#slower}} mas-lenta{{/slower}}"><b>{{value}}</b> <span>{{text}}</span></p>{{/response}}
+            {{#kinds}}<p class="inf-seccion-frase">{{.}}</p>{{/kinds}}
+            {{#response}}<p class="inf-respuesta{{#slower}} mas-lenta{{/slower}}">{{#value}}<b>{{value}}</b> {{/value}}<span>{{text}}</span></p>{{/response}}
         </section>
         {{/data}}
 
@@ -112,6 +113,7 @@
                 </li>
                 {{/steps}}
             </ol>
+            {{#note}}<p class="inf-def">{{.}}</p>{{/note}}
             {{#compare}}<p class="inf-clave"><span class="inf-clave-ahora">{{#str}}report_col_now, local_oksigeniaeguahe{{/str}}</span> <span class="inf-clave-antes">{{#str}}report_col_before_campaign, local_oksigeniaeguahe{{/str}}</span></p>{{/compare}}
             <p class="inf-def">{{def}}</p>
         </section>
@@ -215,6 +217,13 @@
             {{/figures.0}}
         </section>
         {{/data.decide}}
+
+        {{#data.outs}}
+        <section class="inf-seccion inf-retiradas" aria-labelledby="inf-retiradas">
+            <h2 id="inf-retiradas">{{#str}}outs_title, local_oksigeniaeguahe{{/str}}</h2>
+            {{> local_oksigeniaeguahe/panel_retired}}
+        </section>
+        {{/data.outs}}
 
         {{#data.voices}}
         <section class="inf-seccion inf-voces" aria-labelledby="inf-voces">

@@ -117,7 +117,8 @@ final class settled_test extends \advanced_testcase {
         $this->assertSame('Leo tiene su sitio en Infantil 3 años.', $page['lead']);
         $this->assertTrue($page['pegs']['came']);
         $this->assertSame('Desde ahora los acompaña el equipo del centro.', $page['settled']['team']);
-        $this->assertSame('Gracias por venir, Marta y Andrés', $page['settled']['thanks']['text']);
+        // They never came to see it: nobody thanks them for coming.
+        $this->assertSame('Gracias por contar con nosotros, Marta y Andrés', $page['settled']['thanks']['text']);
         $this->assertSame('settledask', $page['wallask']['do']);
         $this->assertSame('¿Qué les quedó por preguntar antes del primer día?', $page['wallask']['title']);
         $this->assertStringContainsString('Lucía', $page['wallask']['button']);
@@ -235,6 +236,9 @@ final class settled_test extends \advanced_testcase {
         global $DB;
         [$centre, $household, $leo] = $this->family();
         $now = time();
+        // Her sister asks for a place: the family goes only when neither is.
+        $noa = $DB->get_record(households::CHILDREN, ['householdid' => $household->id, 'firstname' => 'Noa'], '*', MUST_EXIST);
+        households::set_stage($noa, 'closed', 'moved');
         $this->assertSame(1, settled::leave($household, (int) get_admin()->id, 'moved', 'Se mudan en junio', $now));
         $child = $DB->get_record(households::CHILDREN, ['id' => $leo]);
         $this->assertSame('moved', $child->leftreason);

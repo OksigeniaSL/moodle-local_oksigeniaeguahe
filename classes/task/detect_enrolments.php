@@ -18,6 +18,7 @@ namespace local_oksigeniaeguahe\task;
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\listmatch;
+use local_oksigeniaeguahe\local\listnews;
 
 /**
  * Each morning, after the list of the centre came in during the night, the families of Eguahe that enrolled a child or
@@ -47,6 +48,8 @@ class detect_enrolments extends \core\task\scheduled_task {
                 if ($enrolled || $incentre || $asked) {
                     mtrace("Eguahe: centre {$centre->id}, {$enrolled} enrolled, {$incentre} of the centre, {$asked} to ask.");
                 }
+                // A list that came cut short during the night is told, once.
+                listnews::tell($centre, time());
             } catch (\Throwable $e) {
                 mtrace('Eguahe: the list of centre ' . $centre->id . ' failed: ' . $e->getMessage());
             }

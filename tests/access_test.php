@@ -129,4 +129,21 @@ final class access_test extends \advanced_testcase {
             'email' => '']);
         $this->assertSame(['otra@example.com'], array_map(fn($m) => $m->to, $sink->get_messages()));
     }
+
+    /**
+     * An email changed on the page a few days ago gets no code yet, and the page says that, not that there is none.
+     */
+    public function test_email_changed_lately(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'email' => 'centro@example.com']);
+        $centre = centres::get($cid);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        $adult = households::add_adult($household, (object) ['firstname' => 'Ana', 'email' => 'ana.nueva@example.com']);
+        $DB->set_field(households::ADULTS, 'emailpage', time() - HOURSECS, ['id' => $adult]);
+        $text = fn() => access::page_context($household, $centre, 'es', 'x', 'download', [])['text'];
+        $this->assertStringStartsWith('Han cambiado su correo hace poco', $text());
+        $DB->set_field(households::ADULTS, 'email', null, ['id' => $adult]);
+        $this->assertStringNotContainsString('Han cambiado', $text());
+    }
 }

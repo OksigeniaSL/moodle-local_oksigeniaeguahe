@@ -122,7 +122,7 @@ class panel_centre {
             'emailsettled' => (string) ($centre->emailsettled ?? ''),
             // The visits and acts in the calendar the team already shares (only whoever runs the centre opens this page).
             'calendar' => empty($centre->practice) ? ['ics' => teamcalendar::url($centre),
-                'script' => teamcalendar::script($centre)] : false,
+                'script' => teamcalendar::script($centre)] + calsync::context($centre, time()) : false,
             'notify' => empty($centre->practice) ? self::notify($centre) : false,
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
@@ -807,6 +807,18 @@ class panel_centre {
         // A new link for the calendar of the team: the one before stops working.
         if (optional_param('calrenew', 0, PARAM_BOOL)) {
             teamcalendar::key((int) $centre->id, true);
+        }
+        // The calendar the appointments go to, and those seen behind: one touch each.
+        $main = optional_param('calmain', null, PARAM_RAW_TRIMMED);
+        if ($main !== null) {
+            calsync::choose($centre, $main);
+        }
+        $behind = optional_param('calbehind', '', PARAM_RAW_TRIMMED);
+        if ($behind !== '') {
+            calsync::toggle_behind($centre, $behind);
+        }
+        if (optional_param('calrefill', 0, PARAM_BOOL)) {
+            calsync::refill($centre);
         }
         // One person in or out of those who hear of each new family.
         $notify = optional_param('notifytoggle', 0, PARAM_INT);

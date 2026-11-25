@@ -547,9 +547,9 @@ final class panel_test extends \advanced_testcase {
      * far they got and where they came from; without a start date there is nothing to compare.
      */
     public function test_metrics(): void {
-        $this->assertSame(get_string('panel_frac_1_4', 'local_oksigeniaeguahe'), panel_metrics::fraction(5, 21));
-        $this->assertSame(get_string('panel_frac_all', 'local_oksigeniaeguahe'), panel_metrics::fraction(7, 7));
-        $this->assertSame(get_string('panel_frac_none', 'local_oksigeniaeguahe'), panel_metrics::fraction(0, 7));
+        $this->assertSame(get_string('panel_frac_1_4', 'local_oksigeniaeguahe'), panel_metrics::fraction(6, 24));
+        $this->assertSame(get_string('panel_frac_all', 'local_oksigeniaeguahe'), panel_metrics::fraction(17, 17));
+        $this->assertSame('', panel_metrics::fraction(0, 7), 'With fewer than ten, only the numbers.');
         [$low, $high] = panel_metrics::wilson(10, 40);
         $this->assertTrue($low < 0.25 && $high > 0.25 && $low > 0.1 && $high < 0.4);
 
@@ -567,13 +567,14 @@ final class panel_test extends \advanced_testcase {
             households::set_stage($child, $stage, $stage === 'closed' ? 'moved' : null);
         }
         $context = panel_metrics::context($centre, ['campaign' => 'live'], true);
-        $this->assertSame([3, 2, 1, 1, 1], array_column($context['reach']['steps'], 'n'));
+        // Of the four, one wrote and went; the one «at visit» came, and whoever enrolled without coming did not.
+        $this->assertSame([4, 1, 1, 1, 1], array_column($context['reach']['steps'], 'n'));
         $this->assertFalse($context['reach']['compare']);
         $this->assertNotSame('', $context['reach']['closed']);
-        // By channel, every family that came, the one that went elsewhere too; the other voices only those still open.
+        // In every voice, every family that came, the one that went elsewhere too.
         $this->assertSame(4, array_sum(array_column($context['channels']['rows'], 'n')));
         $first = panel_metrics::context($centre, ['campaign' => 'live', 'voice' => 'first'], true);
-        $this->assertSame(3, array_sum(array_column($first['channels']['rows'], 'n')));
+        $this->assertSame(4, array_sum(array_column($first['channels']['rows'], 'n')));
         $this->assertSame(
             get_string('panel_places_free_of', 'local_oksigeniaeguahe', (object) ['free' => 24, 'places' => 25]),
             $context['places'][0]['free']
@@ -821,5 +822,28 @@ final class panel_test extends \advanced_testcase {
         // Erasing the family erases what was promised to it.
         households::erase(households::get((int) $household->id, $centreid));
         $this->assertSame(0, $DB->count_records(attend::PROMISES, ['householdid' => $household->id]));
+    }
+
+    /**
+     * Those who come today, in «My work», are those of the week: also by the sheet of the team, never to a talk, nor whoever
+     * has come already.
+     */
+    public function test_work_today(): void {
+        global $DB, $CFG;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        require_once($CFG->dirroot . '/local/oksigeniaeguahe/lib.php');
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        $at = usergetmidnight(time()) + DAYSECS - 5;
+        $act = events::get(events::save($cid, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => $at, 'timeend' => $at + HOURSECS,
+            'capacity' => 0, 'open' => 1]), $cid);
+        events::sign_up($act, (int) $household->id, 1);
+        $today = fn() => json_encode(local_oksigeniaeguahe_oksigenia_work(2));
+        $said = get_string('work_today_one', 'local_oksigeniaeguahe', 1);
+        $this->assertStringNotContainsString($said, $today());
+        $DB->insert_record(\local_oksigeniaeguahe\local\teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $household->id,
+            'mark' => sha1('hoy'), 'entryid' => 3, 'contactid' => 0, 'visit' => $at, 'dayonly' => 0, 'seen' => time(), 'timecreated' => time()]);
+        $this->assertStringContainsString($said, $today());
     }
 }

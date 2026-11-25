@@ -180,4 +180,27 @@ final class writeby_ask_test extends \advanced_testcase {
         writeby::set($household, ['email', 'whatsapp'], 'family');
         $this->assertFalse(writeby::askable($household, $this->centre));
     }
+
+    /**
+     * Joined is the phone they are asked on now, not an old one: whoever gave another is asked on the new one.
+     */
+    public function test_joined_on_the_phone_of_now(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $cid = \local_oksigeniaeguahe\local\centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = \local_oksigeniaeguahe\local\centres::get($cid);
+        $household = \local_oksigeniaeguahe\local\households::get(
+            \local_oksigeniaeguahe\local\households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']),
+            $cid
+        );
+        $adult = \local_oksigeniaeguahe\local\households::add_adult($household, (object) ['firstname' => 'Ana', 'phone' => '+34600111601']);
+        \local_oksigeniaeguahe\local\households::consent($household, $adult, 'whatsapp', true, 'family', 'es');
+        $phone = new \ReflectionMethod(\local_oksigeniaeguahe\local\writeby::class, 'ask_phone');
+        $now = $phone->invoke(null, $household, $centre);
+        $joined = new \ReflectionMethod(\local_oksigeniaeguahe\local\writeby::class, 'phone_joined');
+        $this->assertTrue($joined->invoke(null, ['joined' => true, 'numbers' => [$now]], $household, $centre));
+        $this->assertFalse($joined->invoke(null, ['joined' => true, 'numbers' => ['+34600111699']], $household, $centre));
+        $this->assertTrue($joined->invoke(null, ['joined' => true, 'numbers' => null], $household, $centre), 'A Marandu that does not say.');
+        $this->assertFalse($joined->invoke(null, ['joined' => false, 'numbers' => [$now]], $household, $centre));
+    }
 }

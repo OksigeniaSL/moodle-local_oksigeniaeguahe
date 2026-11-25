@@ -1331,6 +1331,240 @@ button.pastilla {
     cursor: pointer;
 }
 
+/* The families that go, or never were: in the file and in Numbers */
+.salida {
+    margin: 12px 0 0;
+}
+
+.salida-dicha {
+    margin: 0 0 6px;
+}
+
+/* Why they go: one touch each, under what it stops. */
+.salida-hoja {
+    display: grid;
+    gap: 14px;
+    padding: 14px 16px 12px;
+    border-radius: 4px 4px 12px 12px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+}
+
+.salida-hoja > .ayuda,
+.salida-hoja > .aviso-suave {
+    margin: 0;
+}
+
+.salida-grupo {
+    display: grid;
+    gap: 8px;
+}
+
+.salida-grupo + .salida-grupo {
+    padding-top: 12px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.salida-t {
+    margin: 0;
+    font-weight: 700;
+}
+
+.salida-tramo {
+    display: grid;
+    gap: 5px;
+}
+
+.salida-deja {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.salida-toques {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.salida-toque {
+    min-height: 44px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 22px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 650;
+    text-align: start;
+    cursor: pointer;
+}
+
+.salida-toque:hover {
+    border-color: var(--eg-accion);
+    background: var(--eg-hundido);
+}
+
+.salida-toque:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.salida-antes > summary {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.salida-antes[open] {
+    padding-bottom: 6px;
+}
+
+.salida-para {
+    margin: 12px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.salida-para legend {
+    margin: 0 0 6px;
+    padding: 0;
+    font-weight: 700;
+}
+
+.salida-para .pastillas {
+    flex-wrap: wrap;
+    overflow: visible;
+}
+
+.salida-para .pastilla {
+    gap: 8px;
+    min-height: 44px;
+    border-color: var(--eg-borde);
+    color: var(--eg-tinta);
+    white-space: normal;
+    cursor: pointer;
+}
+
+.salida-para input {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--eg-accion);
+}
+
+.salida-propuesta form {
+    margin-inline-start: 8px;
+}
+
+.retiradas-frase {
+    margin: 0 0 10px;
+    font-size: 1.0625rem;
+}
+
+.retiradas-nunca {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+/* Looked over before an invitation goes: a list that is ticked off; what has to be looked at goes first in sight, on a note. */
+.repaso-t {
+    margin: 18px 0 4px;
+    font-size: 1.0625rem;
+}
+
+.repaso {
+    display: grid;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+}
+
+.repaso-fila {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 10px 12px;
+}
+
+.repaso-fila + .repaso-fila {
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.repaso-marca {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
+.repaso-marca .ic {
+    width: 16px;
+    height: 16px;
+}
+
+.repaso-fila > div {
+    padding-top: 2px;
+}
+
+.repaso-fila.mira {
+    margin: 3px 0;
+    border-top-color: transparent;
+    border-radius: 4px;
+    background: #fff3bf;
+    color: #3b2f12;
+}
+
+.repaso-fila.mira + .repaso-fila {
+    border-top-color: transparent;
+}
+
+.repaso-fila.mira > div {
+    font-weight: 650;
+}
+
+.repaso-fila.mira .repaso-marca {
+    box-shadow: inset 0 0 0 1.5px #3b2f12;
+    color: #3b2f12;
+}
+
+.repaso-fila.mira a,
+.repaso-fila.mira .secundario {
+    color: #3b2f12;
+}
+
+.repaso-fila summary {
+    min-height: 28px;
+    cursor: pointer;
+}
+
+.repaso-nombres {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 2px 20px;
+    margin: 6px 0 0;
+    padding: 0;
+    font-weight: 400;
+    list-style: none;
+}
+
+.repaso-saludo {
+    font-style: italic;
+}
+
 /* What ties a child to the centre, under its name in the file: one touch each */
 .relacion {
     margin: 10px 0 0;
@@ -1359,7 +1593,7 @@ button.pastilla {
 
 .relacion .pastilla {
     gap: 6px;
-    min-height: 34px;
+    min-height: 40px;
     padding: 0 12px;
     white-space: normal;
     text-align: start;
@@ -6787,6 +7021,11 @@ button.sin-usar-fila {
     margin-inline-end: 12px;
 }
 
+/* The one of before carries the name of its campaign: it breaks when it does not fit. */
+.leyenda .clave-lapiz {
+    white-space: normal;
+}
+
 .clave-ahora,
 .clave-antes,
 .clave-llegaron {
@@ -10678,7 +10917,8 @@ html.modo-lamina {
 
     /* Paper, whatever the screen: the light tokens of the panel on the body (the skins set theirs there, and their
        night too), white paper and no desk. */
-    html.pl-panel-report body.panel.panel {
+    html.pl-panel-report body.panel.panel,
+    html.pl-panel-answer body.panel.panel {
         --eg-papel: #fbf7f1;
         --eg-superficie: #fff;
         --eg-tinta: #2b2226;
@@ -10702,16 +10942,20 @@ html.modo-lamina {
     }
 
     html.pl-panel-report body.panel.panel::before,
-    html.pl-panel-report body.panel.panel::after {
+    html.pl-panel-answer body.panel.panel::before,
+    html.pl-panel-report body.panel.panel::after,
+    html.pl-panel-answer body.panel.panel::after {
         display: none;
     }
 
-    html.pl-panel-report {
+    html.pl-panel-report,
+    html.pl-panel-answer {
         background: #fff;
         color-scheme: light;
     }
 
-    html.pl-panel-report body .pagina-informe {
+    html.pl-panel-report body .pagina-informe,
+    html.pl-panel-answer body .pagina-informe {
         --inf-lapiz: rgba(43, 34, 38, 0.22);
         --inf-nota: #fff5cf;
         --inf-nota-borde: #e3cf85;
@@ -10834,6 +11078,1239 @@ html.modo-lamina {
 
     .inf-atencion a::after {
         content: none;
+    }
+}
+
+/* ==================== 11.5.4 Numbers, by questions ==================== */
+/* «Cifras» is a list of questions, each with its answer in a sentence, and behind each one a sheet (the paper of the reports,
+   11.5.3) that reads from top to bottom and prints as it is. In every drawing, one family is one mark: full, it did; a
+   ring, it did not; a small dot in pencil, it is not known. What is not known goes beside its block, as a note on the
+   margin with its button. No colour says good or bad. */
+.qs-camino {
+    --qs-marca: 13px;
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-paso {
+    display: grid;
+    grid-template-columns: 10.5rem minmax(0, 1fr) 3.2rem;
+    gap: 2px 16px;
+    align-items: center;
+}
+
+.qs-paso-nombre {
+    line-height: 1.25;
+}
+
+.qs-paso-n {
+    grid-column: 3;
+    font-size: 1.25rem;
+    font-weight: 780;
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+}
+
+.qs-paso-n a {
+    color: inherit;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.16em;
+}
+
+.qs-pista {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    height: var(--qs-marca);
+}
+
+/* A few families are a few marks together, never spread over the whole sheet. */
+.qs-camino:not(.qs-camino-barra) .qs-pista {
+    /* stylelint-disable-next-line csstree/validator */
+    max-width: calc(var(--total) * 22px);
+}
+
+.qs-tramo {
+    flex: none;
+    /* stylelint-disable-next-line csstree/validator */
+    width: calc(100% * var(--n) / var(--total));
+    /* stylelint-disable-next-line csstree/validator */
+    background-size: calc(100% / var(--n)) 100%;
+}
+
+.qs-yes {
+    background-image: radial-gradient(circle closest-side, var(--inf-serie) 84%, transparent 90%);
+}
+
+.qs-no {
+    background-image: radial-gradient(circle closest-side, transparent 52%, var(--inf-lapiz-fuerte) 58% 82%, transparent 88%);
+}
+
+.qs-unknown {
+    background-image: radial-gradient(circle closest-side, var(--inf-lapiz-fuerte) 36%, transparent 42%);
+}
+
+/* Too many families to see one by one: the same, as a bar. */
+.qs-camino-barra .qs-yes {
+    background: var(--inf-serie);
+}
+
+.qs-camino-barra .qs-no {
+    background: none;
+    box-shadow: inset 0 0 0 1.5px var(--inf-lapiz-fuerte);
+}
+
+.qs-camino-barra .qs-unknown {
+    background: repeating-linear-gradient(-45deg, var(--inf-lapiz-fuerte) 0 1.5px, transparent 1.5px 5px);
+}
+
+.qs-leyenda {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 18px;
+    font-size: 0.9375rem;
+}
+
+.qs-leyenda > a,
+.qs-leyenda > span {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    min-height: 32px;
+    color: var(--inf-tinta);
+    text-decoration: none;
+}
+
+.qs-leyenda > a:hover,
+.qs-leyenda > a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.qs-marca {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ---------- The questions ---------- */
+.pagina-preguntas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+}
+
+.pagina-preguntas > .cabeza {
+    margin-bottom: 0;
+}
+
+.pagina-preguntas .lamina {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px 24px 22px;
+    transform: none;
+}
+
+.pagina-preguntas .lamina h2 {
+    margin: 0;
+}
+
+.qs-pregunta {
+    font-size: 1.1875rem;
+    font-weight: 750;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+}
+
+.qs-respuesta {
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+    line-height: 1.4;
+}
+
+.qs-falta {
+    color: var(--inf-lapiz-texto);
+}
+
+/* The last act: its leaf, the question and the answer, and its path under them. */
+.qs-ultimo {
+    display: grid;
+    gap: 14px;
+}
+
+.qs-ultimo-ir {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    color: inherit;
+    text-decoration: none;
+}
+
+.qs-ultimo .qs-hoja {
+    width: 76px;
+    min-height: 84px;
+    border-top: 6px solid var(--inf-serie);
+}
+
+.qs-ultimo .qs-hoja b {
+    font-size: 2.125rem;
+}
+
+.qs-dice {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.qs-ultimo .qs-pregunta {
+    color: var(--eg-acento);
+    font-size: 1.0625rem;
+}
+
+.qs-ultimo .qs-respuesta {
+    font-size: 1.75rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+}
+
+.qs-ultimo-ir:hover .qs-pregunta,
+.qs-ultimo-ir:focus-visible .qs-pregunta,
+.qs-una a:hover,
+.qs-una a:focus-visible,
+.qs-anteriores a:hover .qs-nombre,
+.qs-anteriores a:focus-visible .qs-nombre {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+}
+
+.qs-ultimo-camino {
+    padding-inline-start: 94px;
+}
+
+.qs-ultimo > .qs-falta {
+    margin: 0;
+    padding-inline-start: 94px;
+}
+
+.qs-ultimo > .qs-falta a {
+    font-weight: 650;
+}
+
+.qs-anteriores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 0 28px;
+    margin: 0;
+    padding: 6px 0 0;
+    border-top: 1px dashed var(--inf-lapiz);
+    list-style: none;
+}
+
+.qs-anteriores a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+.qs-nombre {
+    font-weight: 700;
+}
+
+.qs-cuentas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9375rem;
+}
+
+.qs-cuentas b {
+    color: var(--inf-tinta);
+}
+
+.qs-anteriores .qs-falta {
+    font-size: 0.9375rem;
+    font-style: italic;
+}
+
+.qs-todos {
+    margin: 0;
+}
+
+/* The rest of the questions: each one with its answer beside it. */
+.qs-cuaderno {
+    display: grid;
+    gap: 14px;
+}
+
+.qs-anos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.qs-anos .pastilla {
+    min-height: 44px;
+    background: var(--piel-hoja, var(--eg-superficie));
+}
+
+.qs-anos .pastilla[aria-current] {
+    background: var(--eg-accion);
+}
+
+.pagina-preguntas .qs-grupo {
+    gap: 4px;
+}
+
+.qs-lista {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-lista li + li {
+    border-top: 1px dashed var(--inf-lapiz);
+}
+
+.qs-una {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 9fr);
+    gap: 4px 28px;
+    align-items: baseline;
+    padding: 14px 0 13px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.qs-una .qs-pregunta a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* The whole row is touched, not only its words. */
+.qs-una {
+    position: relative;
+}
+
+.qs-una .qs-pregunta a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.qs-falta-ir {
+    position: relative;
+    font-weight: 650;
+}
+
+/* Every number, to its families. */
+.qs-nums {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 18px;
+    margin-top: 4px;
+    font-size: 0.9375rem;
+}
+
+.qs-nums > * {
+    position: relative;
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    min-height: 30px;
+    color: var(--inf-lapiz-texto);
+    text-decoration: none;
+}
+
+.qs-nums b {
+    color: var(--inf-tinta);
+}
+
+.qs-nums a:hover,
+.qs-nums a:focus-visible {
+    color: var(--inf-tinta);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.qs-otras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 0;
+    padding: 4px 2px;
+}
+
+/* ---------- The sheet of an answer ---------- */
+.qs-imprimir {
+    display: flex;
+    justify-content: flex-end;
+    margin: -6px 0 12px;
+}
+
+.qs-cifras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-cifras li > * {
+    display: grid;
+    gap: 2px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.qs-cifras b {
+    font-size: 2.75rem;
+    font-weight: 780;
+    letter-spacing: -0.035em;
+    line-height: 1;
+}
+
+.qs-cifras li > * > span {
+    color: var(--inf-lapiz-texto);
+    line-height: 1.3;
+}
+
+.qs-cifras a:hover span,
+.qs-cifras a:focus-visible span {
+    color: var(--inf-tinta);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.qs-hacer {
+    position: relative;
+    padding: 18px 20px 16px;
+    border: 1px solid var(--inf-nota-borde);
+    border-radius: 3px;
+    background: var(--inf-nota);
+    color: var(--inf-nota-tinta);
+}
+
+.qs-hacer ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 4px 32px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-hacer li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 12px;
+    align-items: baseline;
+    padding: 6px 0;
+}
+
+.qs-hacer li > span:first-child {
+    grid-column: 1 / -1;
+}
+
+.qs-hacer b {
+    font-size: 1.75rem;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.qs-hacer a,
+.qs-hechos a {
+    display: inline-block;
+    padding: 8px 4px;
+    margin: -8px 0;
+    color: inherit;
+    font-weight: 700;
+}
+
+/* A block, and its note on the margin: what is not known, with its button. */
+.qs-bloque {
+    gap: 14px;
+}
+
+.qs-informe > .qs-bloque:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.qs-cuerpo {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.qs-cuerpo > .inf-seccion-frase {
+    margin-top: -8px;
+}
+
+.qs-nota {
+    display: grid;
+    gap: 6px;
+    align-self: start;
+    padding: 2px 0 2px 16px;
+    border-inline-start: 3px solid var(--inf-nota-borde);
+    font-size: 0.9375rem;
+}
+
+.qs-nota p {
+    margin: 0;
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-nota a {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 40px;
+    font-weight: 700;
+}
+
+@media (min-width: 1200px) {
+    .qs-con-nota {
+        grid-template-columns: minmax(0, 1fr) 13.5rem;
+        gap: 14px 36px;
+    }
+}
+
+.qs-linea {
+    margin: 0;
+}
+
+.qs-linea a {
+    color: var(--inf-tinta);
+    text-underline-offset: 0.18em;
+}
+
+.qs-cifras small {
+    display: block;
+    margin-top: 2px;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.875rem;
+    line-height: 1.3;
+}
+
+.qs-dichos a {
+    color: inherit;
+}
+
+.qs-tabla tbody th > span {
+    display: block;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9375rem;
+    font-weight: 400;
+}
+
+/* The files a person has to place: last, folded, one line each. */
+.qs-ficheros {
+    padding: 2px 4px;
+}
+
+.qs-ficheros > summary {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 22px;
+    background: var(--piel-hoja, var(--eg-superficie));
+    box-shadow: inset 0 0 0 1.5px var(--eg-linea);
+    cursor: pointer;
+}
+
+.qs-ficheros > summary span {
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-fichero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    align-items: baseline;
+    margin-top: 8px;
+    padding: 10px 18px;
+    border-radius: 3px;
+    background: var(--piel-hoja, var(--eg-superficie));
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+}
+
+.qs-fichero-que {
+    flex: 1 1 22rem;
+    min-width: 0;
+}
+
+.qs-fichero .enlace,
+.qs-fichero-si > summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--eg-acento);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+    list-style: none;
+}
+
+.qs-fichero-si > summary::-webkit-details-marker {
+    display: none;
+}
+
+.qs-fichero-si[open] {
+    order: 2;
+    flex: 1 0 100%;
+}
+
+.qs-fichero-si > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.qs-aparte {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px dashed var(--inf-lapiz);
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-aparte a {
+    color: var(--inf-tinta);
+    text-underline-offset: 0.18em;
+}
+
+/* Bars, in as many groups as fit side by side. */
+.qs-barras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px 40px;
+}
+
+.qs-barras-grupo > h3 {
+    margin: 0 0 4px;
+}
+
+.qs-barras-grupo > ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-barra {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 12px;
+    align-items: baseline;
+    padding: 7px 0 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.qs-barra-nombre {
+    overflow-wrap: anywhere;
+}
+
+.qs-barra-n {
+    font-size: 1.0625rem;
+    font-variant-numeric: tabular-nums;
+}
+
+a.qs-barra:hover .qs-barra-nombre,
+a.qs-barra:focus-visible .qs-barra-nombre {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.qs-barra-pista {
+    grid-column: 1 / -1;
+    height: 9px;
+    background: linear-gradient(var(--inf-lapiz), var(--inf-lapiz)) 0 100% / 100% 1px no-repeat;
+}
+
+.qs-barra-pista i {
+    display: block;
+    /* stylelint-disable-next-line csstree/validator */
+    width: calc(var(--v) * 100%);
+    min-width: 3px;
+    height: 100%;
+    border-radius: 0 3px 3px 0;
+    background: var(--inf-serie);
+}
+
+.qs-no-consta .qs-barra-nombre {
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-no-consta .qs-barra-pista i {
+    background: repeating-linear-gradient(-45deg, var(--inf-lapiz-fuerte) 0 1.5px, transparent 1.5px 5px);
+}
+
+.qs-barra-parte {
+    grid-column: 1 / -1;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9375rem;
+}
+
+/* What has happened: one line each, the number first. */
+.qs-hechos {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-hechos li {
+    display: grid;
+    grid-template-columns: minmax(3rem, auto) minmax(0, 1fr);
+    gap: 2px 16px;
+    align-items: baseline;
+    padding: 9px 0;
+}
+
+.qs-hechos li + li {
+    border-top: 1px dashed var(--inf-lapiz);
+}
+
+.qs-hechos b {
+    font-size: 1.375rem;
+    font-weight: 780;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    text-align: end;
+}
+
+.qs-hechos a {
+    margin-inline-start: 6px;
+    color: var(--eg-acento);
+}
+
+.qs-hecho-cuando {
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-hecho-fuerte > span {
+    font-weight: 700;
+}
+
+.qs-hecho-fuerte .qs-hecho-cuando {
+    font-weight: 400;
+}
+
+/* Columns in time, with the ones before in pencil. */
+.qs-columnas {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-columnas li {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+}
+
+.qs-columna {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 120px;
+    margin-top: 22px;
+    border-bottom: 1.5px solid var(--inf-lapiz-fuerte);
+}
+
+.qs-columna i {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    /* stylelint-disable-next-line csstree/validator */
+    height: calc(var(--v) * 100%);
+    border-radius: 3px 3px 0 0;
+    transform: translateX(-50%);
+}
+
+.qs-columna-antes {
+    width: 74%;
+    max-width: 40px;
+    border: 1.5px solid var(--inf-lapiz-fuerte);
+    border-bottom: 0;
+    box-sizing: border-box;
+}
+
+.qs-columna-ahora {
+    width: 44%;
+    max-width: 24px;
+    min-height: 2px;
+    background: var(--inf-serie);
+}
+
+.qs-columnas li > b {
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.qs-columna-rotulo {
+    color: var(--inf-lapiz-texto);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+.qs-claves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    margin: 0;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.875rem;
+}
+
+.qs-claves span {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+}
+
+.qs-claves i {
+    width: 11px;
+    height: 13px;
+    border-radius: 2px 2px 0 0;
+}
+
+.qs-clave-ahora {
+    background: var(--inf-serie);
+}
+
+.qs-clave-antes {
+    border: 1.5px solid var(--inf-lapiz-fuerte);
+    box-sizing: border-box;
+}
+
+/* What they said. */
+.qs-dichos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-dichos li {
+    padding: 7px 12px;
+    border-radius: 4px 14px 14px 14px;
+    background: var(--eg-hundido);
+}
+
+.qs-dichos b {
+    margin-inline-start: 4px;
+}
+
+/* The same, beside others: this one in ink, over the rest. */
+.qs-tabla-caja {
+    overflow-x: auto;
+}
+
+.qs-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.qs-tabla th,
+.qs-tabla td {
+    padding: 10px 14px 10px 0;
+    border-bottom: 1px dashed var(--inf-lapiz);
+    font-weight: 400;
+    text-align: start;
+    vertical-align: top;
+}
+
+.qs-tabla thead th {
+    padding-top: 0;
+    border-bottom: 1.5px solid var(--inf-tinta);
+    color: var(--inf-lapiz-texto);
+    font-size: 0.9375rem;
+}
+
+.qs-tabla thead td {
+    border-bottom: 1.5px solid var(--inf-tinta);
+}
+
+.qs-tabla tbody th {
+    width: 34%;
+}
+
+.qs-tabla td > span {
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-tabla td > b {
+    font-size: 1.0625rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.qs-celda-barra {
+    display: block;
+    /* stylelint-disable-next-line csstree/validator */
+    width: calc(var(--v) * 100%);
+    height: 6px;
+    margin-top: 5px;
+    border-radius: 0 3px 3px 0;
+    background: var(--inf-lapiz);
+}
+
+.qs-fila-esta th,
+.qs-fila-esta td > b {
+    font-weight: 780;
+}
+
+.qs-fila-esta .qs-celda-barra {
+    background: var(--inf-serie);
+}
+
+.qs-celda-falta {
+    color: var(--inf-lapiz-texto);
+    font-style: italic;
+}
+
+.qs-fuentes {
+    padding-top: 8px;
+    border-top: 1px solid var(--inf-lapiz);
+}
+
+.qs-fuentes > summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.qs-fuentes ul {
+    display: grid;
+    gap: 6px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-fuentes li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    color: var(--inf-lapiz-texto);
+}
+
+.qs-fuentes b {
+    color: var(--inf-tinta);
+}
+
+.qs-fuentes-papel {
+    display: none;
+}
+
+@media (max-width: 719px) {
+    .pagina-preguntas .lamina {
+        padding: 16px 16px 18px;
+    }
+
+    .qs-camino {
+        --qs-marca: 11px;
+        gap: 14px;
+    }
+
+    .qs-paso {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .qs-paso-n {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .qs-pista {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .qs-leyenda {
+        grid-column: 1 / -1;
+    }
+
+    .qs-leyenda > a,
+    .qs-leyenda > span {
+        min-height: 40px;
+    }
+
+    .qs-ultimo-ir {
+        gap: 14px;
+    }
+
+    .qs-anteriores {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .qs-ultimo .qs-respuesta {
+        font-size: 1.375rem;
+    }
+
+    .qs-ultimo .qs-hoja {
+        width: 60px;
+        min-height: 68px;
+    }
+
+    .qs-ultimo .qs-hoja b {
+        font-size: 1.625rem;
+    }
+
+    .qs-ultimo-camino,
+    .qs-ultimo > .qs-falta {
+        padding-inline-start: 0;
+    }
+
+    .qs-una {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .qs-nums > * {
+        min-height: 40px;
+    }
+
+    .qs-cifras {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .qs-hacer li {
+        grid-template-columns: 2.6rem minmax(0, 1fr);
+    }
+
+    .qs-hechos li {
+        grid-template-columns: 2.4rem minmax(0, 1fr);
+    }
+
+    .qs-hacer ul {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The same beside others, one under the other: never a table to push sideways. */
+    .qs-tabla,
+    .qs-tabla tbody,
+    .qs-tabla tr,
+    .qs-tabla tbody th {
+        display: block;
+        width: auto;
+    }
+
+    .qs-tabla thead {
+        display: none;
+    }
+
+    .qs-tabla tr {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2px 12px;
+        padding: 12px 0;
+        border-bottom: 1px dashed var(--inf-lapiz);
+    }
+
+    .qs-tabla tbody th,
+    .qs-tabla tbody td {
+        padding: 0;
+        border: 0;
+    }
+
+    .qs-tabla tbody th {
+        grid-column: 1 / -1;
+        padding-bottom: 4px;
+        font-weight: 700;
+    }
+
+    .qs-tabla tbody td::after {
+        content: attr(data-col);
+        display: block;
+        color: var(--inf-lapiz-texto);
+        font-size: 0.875rem;
+    }
+}
+
+@media print {
+    .qs-imprimir,
+    .qs-hacer a,
+    .qs-hechos a,
+    .qs-nota a {
+        display: none;
+    }
+
+    .qs-bloque,
+    .qs-hacer {
+        break-inside: avoid;
+    }
+
+    .qs-cifras {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .qs-cifras b {
+        font-size: 2rem;
+    }
+
+    .qs-hacer {
+        border-color: #999;
+        background: none;
+    }
+
+    .qs-fuentes {
+        display: none;
+    }
+
+    .qs-fuentes-papel {
+        display: block;
+        color: var(--inf-lapiz-texto);
+        font-size: 0.8125rem;
+    }
+
+    .qs-informe {
+        gap: 5mm;
+    }
+
+    .qs-bloque {
+        gap: 3mm;
+        padding-top: 4mm;
+    }
+
+    .qs-cuerpo {
+        gap: 3mm;
+    }
+
+    .qs-barras {
+        grid-template-columns: repeat(auto-fit, minmax(44mm, 1fr));
+        gap: 4mm 7mm;
+    }
+
+    .qs-barra {
+        padding: 3px 0 4px;
+    }
+
+    .qs-hechos li {
+        padding: 3px 0;
+    }
+
+    .qs-hacer ul {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .qs-camino {
+        gap: 6px;
+    }
+
+    .qs-leyenda > a,
+    .qs-leyenda > span {
+        min-height: 0;
+    }
+
+    .qs-tabla th,
+    .qs-tabla td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .qs-tramo,
+    .qs-marca,
+    .qs-barra-pista i,
+    .qs-columna i,
+    .qs-celda-barra,
+    .qs-claves i {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* What the list of the centre did: what a person has to say, on a note; the rest, in rows. */
+.lista-dijo .contestadas-grupo > .secundario {
+    margin: -4px 0 4px;
+}
+
+.lista-dijo .contestada {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 24px;
+    align-items: center;
+}
+
+.lista-dijo .contestada form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Three classes: the paper of the skin, which loads later, has two. */
+.pagina.lista-dijo .contestadas-grupo.dijo-ask,
+.pagina.lista-dijo .contestadas-grupo.dijo-nota {
+    background: #fff3bf none;
+    color: #3b2f12;
+}
+
+.lista-dijo .dijo-ask .secundario,
+.lista-dijo .dijo-nota .secundario,
+.lista-dijo .dijo-ask .cita-familia,
+.lista-dijo .dijo-ask .enlace,
+.lista-dijo .dijo-ask h2,
+.lista-dijo .dijo-nota h2 {
+    color: #3b2f12;
+}
+
+.lista-dijo .dijo-ask .contestada {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.lista-dijo .dijo-ask .contestada form {
+    justify-content: flex-start;
+}
+
+.pagina.lista-dijo .dijo-ask .boton.secundario,
+.pagina.lista-dijo .dijo-nota .boton.secundario {
+    border-color: #3b2f12;
+    background: #fffaf0;
+    color: #3b2f12;
+}
+
+@media (max-width: 719px) {
+    .lista-dijo .contestada {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lista-dijo .contestada form {
+        justify-content: flex-start;
     }
 }
 
@@ -13423,6 +14900,71 @@ button.padron-pomo-no::after {
     margin: 8px 0;
 }
 
+/* Looking for another file to put together with this one: a row each; touched, what it does and its two ways out. */
+.juntar-una {
+    margin: 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.juntar-una > summary {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 4px 0;
+    color: var(--eg-tinta);
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.juntar-una > summary:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.juntar-una[open] {
+    margin: 4px 0 8px;
+    padding: 0 14px 14px;
+    border: 1px solid var(--piel-hoja-borde);
+    border-radius: var(--piel-radio);
+    background: var(--piel-fila);
+}
+
+.confirmar .juntar-una > form {
+    gap: 8px 16px;
+    margin: 0;
+}
+
+.juntar-una > form p {
+    flex: 1 1 100%;
+    margin: 0;
+}
+
+.confirmar + .confirmar,
+.confirmar + .secundario {
+    margin-top: 12px;
+}
+
+/* At the door, only what is needed to greet them: the rest, folded. */
+.ap-mas {
+    grid-column: 1 / -1;
+}
+
+.ap-mas > summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.ap-mas-campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px 20px;
+}
+
 /* Separating two families joined by mistake: who and what goes, in groups. */
 .separar form {
     display: grid;
@@ -13572,6 +15114,242 @@ button.padron-pomo-no::after {
     align-items: center;
     gap: 8px 12px;
     margin: 0;
+}
+
+/* Whether the script is heard of: a lamp on, one that blinks no more, or one still to be lit. */
+.cal-estado {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--eg-hundido);
+}
+
+.cal-estado b {
+    font-weight: 600;
+}
+
+.cal-luz {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 10px 2px rgba(241, 184, 74, 0.55);
+}
+
+.cal-estado-tarde .cal-luz,
+.cal-estado-espera .cal-luz {
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+}
+
+.cal-estado-tarde {
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+}
+
+/* Each calendar once: a leaf with its name, its hatching when it is seen behind, and what can be done with it. */
+.cal-cuales {
+    display: grid;
+    gap: 10px;
+}
+
+.cal-cuales > .rotulo-p,
+.cal-cuales > .ayuda {
+    margin: 0;
+}
+
+.cal-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cal-uno {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+    align-content: start;
+    padding: 16px 16px 12px;
+    border-radius: 4px 4px 12px 12px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea), 0 2px 8px -4px rgba(43, 34, 38, 0.35);
+    overflow: hidden;
+}
+
+/* The strip at the head of the leaf: hatched as its hours are in the week, or whole in the one of the appointments. */
+.cal-uno::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 7px;
+    background: var(--eg-linea);
+}
+
+.cal-uno-fondo::before {
+    background: repeating-linear-gradient(-45deg, var(--fondo) 0 1.5px, transparent 1.5px 5px), var(--eg-hundido);
+}
+
+.cal-uno-citas::before {
+    background: var(--eg-accion);
+}
+
+.cal-uno > b {
+    flex: 1 0 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.cal-uno .enlace {
+    min-height: 40px;
+    font-size: 0.875rem;
+}
+
+.cal-uno-aqui {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    font-weight: 650;
+}
+
+.cal-uno-aqui .ic {
+    width: 18px;
+    height: 18px;
+}
+
+/* The setting up, open until the script is heard of. */
+.cal-montar {
+    border-block-start: 1px solid var(--eg-linea);
+    padding-block-start: 4px;
+}
+
+.cal-montar > summary,
+.cal-codigo > summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 650;
+    cursor: pointer;
+    list-style: none;
+}
+
+.cal-montar > summary::-webkit-details-marker,
+.cal-codigo > summary::-webkit-details-marker {
+    display: none;
+}
+
+.cal-montar > summary::after,
+.cal-codigo > summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-inline-start: auto;
+    border: solid currentcolor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.cal-codigo > summary::after {
+    margin-inline-start: 2px;
+}
+
+.cal-montar[open] > summary::after,
+.cal-codigo[open] > summary::after {
+    transform: rotate(-135deg);
+}
+
+.cal-montar > summary:focus-visible,
+.cal-codigo > summary:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.cal-montar > summary .ic {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+
+.cal-montar > :not(summary) {
+    margin-block: 4px 10px;
+}
+
+.cal-pasos {
+    display: grid;
+    gap: 14px;
+    padding: 0;
+    list-style: none;
+    counter-reset: paso;
+}
+
+.cal-pasos > li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+    min-height: 34px;
+    padding-inline-start: 46px;
+    counter-increment: paso;
+}
+
+.cal-pasos > li::before {
+    content: counter(paso);
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px var(--eg-borde);
+    font-weight: 700;
+}
+
+.cal-pasos > li > span {
+    flex: 1 1 16rem;
+    min-width: 0;
+}
+
+.cal-codigo {
+    flex: 1 0 100%;
+}
+
+.cal-codigo > summary {
+    justify-content: start;
+    font-size: 0.9375rem;
+}
+
+.cal-codigo textarea,
+.cal-montar textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 8px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.cal-montar .codigo-web {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
 }
 
 /* The code of the act for a page of the web of the centre, under the rest of what is shared. */
@@ -23313,6 +25091,29 @@ html {
     border-top: 1px solid var(--eg-linea);
 }
 
+/* What the last lists did: each with its answers. */
+.lista-dijo .contestada {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+}
+
+.segun-lista form,
+.lista-dijo .contestada form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.lista-dijo .contestadas-grupo > .secundario {
+    padding-bottom: 10px;
+}
+
+@media (max-width: 719px) {
+    .lista-dijo .contestada {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 @media (max-width: 719px) {
     .su-aviso {
         grid-template-columns: 30px minmax(0, 1fr);
@@ -23559,5 +25360,764 @@ html {
         width: auto;
         padding-inline: 14px;
         white-space: normal;
+    }
+}
+
+/* The calendar of the appointments: how many days, what there is behind and what was changed in the calendar */
+.agenda > header.agenda-cabeza {
+    display: grid;
+    gap: 12px;
+}
+
+.agenda-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+    min-width: 0;
+}
+
+.agenda-fila > .agenda-otros {
+    margin-inline-start: auto;
+}
+
+.agenda-fila > .agenda-paso + .agenda-vistas {
+    margin-inline-start: auto;
+}
+
+.agenda-titulo h2::first-letter {
+    text-transform: uppercase;
+}
+
+.agenda-fila > .agenda-equipo {
+    margin-inline-start: 0;
+}
+
+/* The other calendars: a lamp, and the colour of each. */
+.agenda-fila > .agenda-leyenda {
+    margin-inline-start: auto;
+}
+
+.agenda-otros {
+    min-height: 44px;
+    border-color: var(--eg-borde);
+    border-radius: 22px;
+    text-decoration: none;
+}
+
+.agenda-otros[aria-checked="true"] > .lampara {
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 12px 2px rgba(241, 184, 74, 0.55);
+}
+
+.agenda-otros:focus-visible,
+.dia-s-ir:focus-visible,
+.agenda-vistas a:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.agenda-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.agenda-leyenda li {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+}
+
+/* Their hatching, as the hours shut off on a plan: never the look of an appointment. */
+.fondo-0 {
+    --fondo: var(--eg-tinta-2);
+}
+
+.fondo-1 {
+    --fondo: var(--eg-serie-1);
+}
+
+.fondo-2 {
+    --fondo: var(--eg-serie-2);
+}
+
+.fondo-3 {
+    --fondo: var(--eg-acento);
+}
+
+.agenda-leyenda li::before,
+.detras > summary::before,
+.rato.sobre::before,
+.dc-fondos li::before,
+.dc-pista .fondo::before,
+.dc-dia.con-fondo > span::after {
+    content: '';
+    background: repeating-linear-gradient(-45deg, var(--fondo, var(--eg-tinta-2)) 0 1.5px, transparent 1.5px 5px);
+    opacity: 0.6;
+}
+
+.agenda-leyenda li::before {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1.5px var(--fondo);
+}
+
+/* A stretch of a day: what there is behind, and over it the appointments that fall on it. */
+.dia-s-cosas {
+    align-content: start;
+}
+
+.rato {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.rato.sobre {
+    isolation: isolate;
+    padding: 6px 6px 8px;
+    border-radius: 12px;
+}
+
+.rato.sobre::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0.28;
+    box-shadow: inset 0 0 0 1.5px var(--fondo);
+}
+
+.detras {
+    min-width: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.detras > summary {
+    position: relative;
+    display: block;
+    min-height: 28px;
+    padding: 5px 6px 5px 22px;
+    overflow: hidden;
+    border-radius: 7px;
+    cursor: pointer;
+    list-style: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[dir="rtl"] .detras > summary {
+    padding: 5px 22px 5px 6px;
+}
+
+.detras > summary::-webkit-details-marker {
+    display: none;
+}
+
+.detras > summary::before {
+    position: absolute;
+    inset-block: 5px;
+    inset-inline-start: 6px;
+    width: 9px;
+    border-radius: 3px;
+}
+
+.detras > summary b {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+.detras > summary:hover {
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+}
+
+.detras > summary:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 1px;
+}
+
+.detras[open] > summary {
+    color: var(--eg-tinta);
+    white-space: normal;
+}
+
+.detras > p {
+    margin: 0 6px 5px 22px;
+}
+
+[dir="rtl"] .detras > p {
+    margin: 0 22px 5px 6px;
+}
+
+.sobre > .detras > summary {
+    width: fit-content;
+    max-width: 100%;
+    background: var(--eg-superficie);
+}
+
+/* What was said of a day of nothing goes when there is something behind it. */
+.agenda .dia-s.con-fondo .nada {
+    display: none;
+}
+
+/* Two weeks: the same leaf twice, with less of each. */
+.agenda .dias-semana.vista-quincena,
+.agenda .dias-semana.vista-mes {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0;
+    border-block-start: 1px solid var(--eg-linea);
+}
+
+.agenda .dias-semana.vista-quincena.columnas-5,
+.agenda .dias-semana.vista-mes.columnas-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.agenda .vista-quincena .dia-s,
+.agenda .vista-mes .dia-s {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 6px;
+    min-height: 128px;
+    padding: 8px;
+    border-block-end: 1px solid var(--eg-linea);
+    border-inline-end: 1px solid var(--eg-linea);
+    border-radius: 0;
+}
+
+.agenda .vista-quincena .dia-s {
+    min-height: 190px;
+}
+
+.agenda .columnas-5 .dia-s:nth-child(5n),
+.agenda .columnas-7 .dia-s:nth-child(7n) {
+    border-inline-end: 0;
+}
+
+.agenda .vista-semana .dia-s:nth-child(n),
+.agenda .vista-agenda .dia-s:nth-child(n) {
+    border-inline-end: 0;
+}
+
+.vista-quincena .dia-s-nombre,
+.vista-mes .dia-s-nombre {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    justify-content: flex-start;
+    padding: 0;
+}
+
+.dia-s-ir {
+    color: inherit;
+    text-decoration: none;
+}
+
+.dia-s-ir:hover b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.dia-s-mes {
+    display: none;
+}
+
+.agenda .vista-quincena .cita-e {
+    gap: 2px 6px;
+    padding: 7px 9px 8px;
+}
+
+.agenda .vista-quincena .cita-e .secundario,
+.agenda .vista-quincena .cita-e .lleva,
+.agenda .vista-quincena .cita-e .cita-marcas,
+.agenda .vista-quincena .cita-e .cita-origen {
+    display: none;
+}
+
+.agenda .vista-quincena .cita-familia {
+    font-size: 0.9375rem;
+}
+
+/* A month: one line for each, and its weekday only over the first row. */
+.vista-mes.columnas-5 .dia-s:nth-child(n + 6) .dia-s-nombre small,
+.vista-mes.columnas-7 .dia-s:nth-child(n + 8) .dia-s-nombre small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.vista-mes .dia-s-cosas {
+    gap: 4px;
+}
+
+.vista-mes .rato {
+    gap: 3px;
+}
+
+.vista-mes .rato.sobre {
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.vista-mes .detras > summary {
+    min-height: 24px;
+    padding-block: 3px;
+    font-size: 0.75rem;
+}
+
+.vista-mes .detras > summary::before {
+    inset-block: 4px;
+}
+
+.agenda .vista-mes .dia-s .nada {
+    display: none;
+}
+
+.agenda .vista-mes .dia-mas {
+    min-height: 32px;
+    border-color: transparent;
+    opacity: 0;
+}
+
+.agenda .vista-mes .dia-s:hover .dia-mas,
+.agenda .vista-mes .dia-mas:focus-visible {
+    border-color: var(--eg-borde);
+    opacity: 1;
+}
+
+.vista-mes .dia-s.fuera .dia-s-nombre b {
+    color: var(--eg-tinta-2);
+    font-size: 1.125rem;
+}
+
+.mes-cita {
+    display: block;
+    padding: 4px 8px;
+    overflow: hidden;
+    border-radius: 7px;
+    border-inline-start: 4px solid var(--eg-accion);
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea);
+    color: var(--eg-tinta);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    line-height: 1.3;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mes-cita b {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+.mes-cita:hover {
+    box-shadow: inset 0 0 0 1.5px var(--eg-accion);
+}
+
+.mes-cita:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 1px;
+}
+
+.mes-cita.es-acto {
+    border-inline-start-style: double;
+}
+
+.mes-cita.anulada {
+    border-color: var(--eg-borde);
+    color: var(--eg-tinta-2);
+    text-decoration: line-through;
+}
+
+/* The list of what is ahead: each day its leaf, each appointment its line. */
+.agenda .dias-semana.vista-agenda {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+}
+
+.agenda .vista-agenda .dia-s {
+    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 18px;
+    min-height: 0;
+    padding: 14px 0;
+    border-block-start: 1px solid var(--eg-linea);
+    border-radius: 0;
+}
+
+.agenda .dias-semana.vista-agenda .dia-s .dia-s-nombre {
+    display: grid;
+    gap: 2px;
+    grid-auto-flow: row;
+    justify-content: center;
+    align-content: start;
+    justify-items: center;
+    padding: 4px 0 0;
+}
+
+.vista-agenda .dia-s-mes {
+    display: block;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+}
+
+.agenda .vista-agenda .dia-mas {
+    display: none;
+}
+
+.agenda-nada {
+    margin: 0;
+    padding: 24px 0 8px;
+    color: var(--eg-tinta-2);
+}
+
+@media (min-width: 720px) {
+    .agenda .vista-agenda .cita-e {
+        grid-template-columns: 70px minmax(0, 1fr) auto;
+        grid-template-areas: "hora que lleva";
+        gap: 4px 16px;
+        align-items: center;
+        padding: 10px 14px;
+    }
+
+    .agenda .vista-agenda .cita-e .que {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 14px;
+        align-items: center;
+    }
+}
+
+@media (min-width: 1180px) {
+    .agenda .dias-semana.vista-semana .dia-s {
+        grid-template-rows: auto 1fr;
+    }
+
+    .agenda .vista-agenda .dia-s,
+    .agenda .vista-mes .dia-s {
+        padding-inline: 8px;
+    }
+}
+
+/* What a person changed in the calendar, for another to say: the same note as what is left to be said. */
+.cal-movidas {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+}
+
+.cal-movida {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 4px;
+    background: #fff3bf;
+    box-shadow: 0 8px 16px -12px rgba(40, 25, 15, 0.6);
+    color: #3b2f12;
+}
+
+.cal-movida > svg {
+    flex: none;
+    width: 26px;
+    height: 26px;
+}
+
+.cal-movida > p {
+    flex: 1 1 320px;
+    margin: 0;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.cal-salidas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.cal-salidas .boton {
+    border-color: #3b2f12;
+    background: transparent;
+    color: #3b2f12;
+}
+
+.cal-salidas .boton.principal {
+    background: #3b2f12;
+    color: #fff3bf;
+}
+
+.cal-salidas .boton.terciario {
+    border-color: transparent;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
+}
+
+/* Giving one: the hours of the others on the ruler, and by their names under it. */
+.dc-pista .fondo {
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1.5px var(--fondo);
+}
+
+.dc-pista .fondo::before {
+    position: absolute;
+    inset: 0;
+    opacity: 0.45;
+}
+
+.dc-dia.con-fondo > span::after {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 5px;
+}
+
+.dc-fondos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin: 8px 0 18px;
+    padding: 0;
+    list-style: none;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.dc-fondos[hidden] {
+    display: none;
+}
+
+.dc-fondos li {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+}
+
+.dc-fondos li::before {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1.5px var(--fondo);
+}
+
+.dc-fondos b {
+    font-variant-numeric: tabular-nums;
+}
+
+.dc-fondos .choca {
+    color: var(--eg-tinta);
+    font-weight: 700;
+}
+
+@media (max-width: 719px) {
+    .agenda-fila {
+        gap: 10px;
+    }
+
+    .agenda-fila > .agenda-titulo {
+        flex: 1 1 0;
+    }
+
+    .agenda-fila > .agenda-vistas {
+        display: flex;
+        order: 1;
+        flex: 1 1 100%;
+        margin: 0;
+    }
+
+    .agenda-fila > .agenda-otros {
+        order: 2;
+        margin: 0;
+    }
+
+    .agenda-fila > .agenda-leyenda {
+        margin: 0;
+    }
+
+    .agenda-vistas a {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 0;
+        padding: 0 4px;
+        font-size: 0.9375rem;
+    }
+
+    /* Two weeks, one day under another, without those that have nothing. */
+    .agenda .dias-semana.vista-quincena,
+    .agenda .dias-semana.vista-quincena.columnas-5 {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        border: 0;
+    }
+
+    .agenda .vista-quincena .dia-s {
+        grid-template-columns: 56px minmax(0, 1fr);
+        grid-template-rows: auto;
+        gap: 12px;
+        min-height: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .agenda .vista-quincena .dia-s-nombre {
+        display: grid;
+        gap: 0;
+        justify-items: center;
+    }
+
+    .agenda .vista-quincena .dia-s.vacio.pasado,
+    .agenda .vista-quincena .dia-s.cerrado.vacio {
+        display: none;
+    }
+
+    /* A month on the phone: a mark for each, and the day is touched. */
+    .agenda .vista-mes .dia-s.dia-s,
+    .agenda .vista-mes .dia-s.pasado.vacio,
+    .agenda .vista-mes .dia-s.cerrado.vacio {
+        position: relative;
+        display: grid;
+        gap: 2px;
+        min-height: 62px;
+        padding: 4px 3px;
+    }
+
+    .vista-mes .dia-s-nombre {
+        display: grid;
+        gap: 0;
+        justify-items: center;
+    }
+
+    .vista-mes .dia-s-nombre b {
+        font-size: 1.125rem;
+    }
+
+    .vista-mes .dia-s.hoy .dia-s-nombre b {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+
+    .vista-mes .dia-s-ir::after {
+        content: '';
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+    }
+
+    .vista-mes .dia-s-cosas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        align-content: flex-start;
+        justify-content: center;
+    }
+
+    .vista-mes .rato {
+        display: contents;
+    }
+
+    .mes-cita,
+    .mes-cita.es-acto {
+        width: 10px;
+        height: 10px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: var(--eg-accion);
+        box-shadow: none;
+        color: transparent;
+        font-size: 0;
+    }
+
+    .mes-cita.es-acto {
+        border-radius: 3px;
+    }
+
+    .mes-cita.anulada {
+        background: transparent;
+        box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+    }
+
+    .vista-mes .detras > summary {
+        width: 14px;
+        min-height: 10px;
+        height: 10px;
+        padding: 0;
+        color: transparent;
+        font-size: 0;
+    }
+
+    .vista-mes .detras > summary::before {
+        inset: 0;
+        width: auto;
+    }
+
+    .vista-mes .detras > p,
+    .agenda .vista-mes .dia-mas {
+        display: none;
+    }
+
+    .agenda .vista-agenda .dia-s {
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .cal-movidas {
+        margin-bottom: 12px;
+    }
+
+    .cal-movida {
+        gap: 6px 10px;
+        padding: 10px 12px;
+        font-size: 0.9375rem;
+    }
+
+    .cal-movida > svg {
+        align-self: flex-start;
+        width: 22px;
+        height: 22px;
+    }
+
+    .cal-movida > p {
+        flex: 1 1 0;
+        line-height: 1.3;
+    }
+
+    .cal-salidas {
+        flex: 1 1 100%;
+        gap: 4px 6px;
+    }
+
+    .cal-salidas .boton {
+        min-height: 44px;
+        padding-inline: 12px;
+        font-size: 0.875rem;
+    }
+
+    .cal-salidas .boton.terciario {
+        padding-inline: 6px;
     }
 }

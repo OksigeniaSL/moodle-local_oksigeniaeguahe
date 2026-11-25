@@ -74,6 +74,7 @@ class panel_report {
             $data['figures'][$i]['hasbefore'] = $figure['before'] !== false;
             $data['figures'][$i]['hasago'] = $figure['ago'] !== false;
             $data['figures'][$i]['trendtext'] = self::trend($figure['trend']);
+            $data['figures'][$i]['note'] = $figure['note'] ?? false;
         }
         $data = self::scales($data);
         $ai = $report->ai;
@@ -102,8 +103,8 @@ class panel_report {
             'kind' => $report->kind,
             'hot' => $report->kind === 'hot',
             'data' => $data + ['attention' => false, 'funnel' => false, 'pace' => false, 'channels' => false,
-                'places' => false, 'acts' => false, 'voices' => false, 'bychannel' => false, 'decide' => false,
-                'gone' => false, 'started' => false, 'referred' => false,
+                'places' => false, 'acts' => false, 'voices' => false, 'bychannel' => false, 'decide' => false, 'outs' => false,
+                'gone' => false, 'started' => false, 'referred' => false, 'kinds' => false,
                 'forecast' => false, 'grow' => false, 'response' => false] + [
                 'hasattention' => !empty($data['attention']), 'haschannels' => !empty($data['channels']),
                 'hasplaces' => !empty($data['places']), 'hasforecast' => !empty($data['forecast']),

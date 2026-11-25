@@ -24,6 +24,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\lists;
+use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\writeby;
 
@@ -56,12 +57,20 @@ class household_form extends \moodleform {
 
         if ($isnew) {
             $mform->addElement('header', 'howheader', get_string('form_how', $c));
-            $mform->addElement('select', 'channel', get_string('channel', $c), lists::options(
+            $mform->addElement('select', 'channel', get_string('channel', $c), ['' => get_string('choosedots')] + lists::options(
                 lists::HAND_CHANNELS,
                 'channel_'
             ));
             $mform->addElement('select', 'eventid', get_string('form_event', $c), self::event_options($centre));
             $mform->setDefault('eventid', (int) ($this->_customdata['eventid'] ?? 0));
+            foreach (array_keys(self::event_options($centre)) as $eventid) {
+                // The turns of each act that has them.
+                $slots = $eventid ? self::slot_options((int) $eventid) : [];
+                if ($slots) {
+                    $mform->addElement('select', 'slot' . $eventid, get_string('form_slot', $c), $slots);
+                    $mform->hideIf('slot' . $eventid, 'eventid', 'neq', $eventid);
+                }
+            }
             $mform->addElement('advcheckbox', 'came', get_string('form_came', $c));
             $mform->hideIf('came', 'eventid', 'eq', 0);
             $mform->addElement('text', 'people', get_string('form_people', $c), ['size' => 3]);
@@ -111,6 +120,13 @@ class household_form extends \moodleform {
             $mform->setType("childbirth{$i}", PARAM_RAW_TRIMMED);
         }
 
+        if (!$isnew) {
+            // How it came in, to put it right.
+            $mform->addElement('select', 'firstchannel', get_string('channel', $c), lists::options(
+                self::first_channels((string) ($this->_customdata['firstchannel'] ?? '')),
+                'channel_'
+            ));
+        }
         $mform->addElement('header', 'aboutheader', get_string('form_about', $c));
         $mform->addElement('select', 'municipality', get_string('municipality', $c), self::place_options($centre));
         $mform->addElement('text', 'municipalityother', get_string('form_place_other', $c), ['size' => 30]);
@@ -163,6 +179,37 @@ class household_form extends \moodleform {
             }
         }
         return $options;
+    }
+
+    /**
+     * The ways a family can have come in, to put it right: those a person notes (the ads, by the network they bring), and
+     * the one it has.
+     *
+     * @param string $has
+     * @return string[]
+     */
+    public static function first_channels(string $has): array {
+        $list = array_diff(lists::HAND_CHANNELS, array_keys(lists::HAND_ADS));
+        return array_values(array_unique(array_merge($list, in_array($has, lists::CHANNELS, true) ? [$has] : [])));
+    }
+
+    /**
+     * The turns of an act, with how many places are left in each.
+     *
+     * @param int $eventid
+     * @return array id => the hour and what is left; 0, none chosen; empty when it has no turns.
+     */
+    public static function slot_options(int $eventid): array {
+        $slots = events::slots($eventid);
+        if (!$slots) {
+            return [];
+        }
+        $out = [0 => get_string('form_noslot', 'local_oksigeniaeguahe')];
+        foreach ($slots as $slot) {
+            $out[$slot->id] = panel::hour((int) $slot->timestart) . '–' . panel::hour((int) $slot->timeend) . ((int) $slot->capacity ?
+                ' · ' . panel::free_of(max(0, (int) $slot->capacity - (int) $slot->people), (int) $slot->capacity) : '');
+        }
+        return $out;
     }
 
     /**
@@ -243,7 +290,12 @@ class household_form extends \moodleform {
                 $errors["childbirth{$i}"] = get_string('form_err_birthdate', $c);
             }
         }
-        if (trim($data['email0'] ?? '') === '' && trim($data['phone0'] ?? '') === '') {
+        if (empty($this->_customdata['householdid']) && !in_array($data['channel'] ?? '', lists::HAND_CHANNELS, true)) {
+            // Otherwise it stays «Other» for good, and the numbers with it.
+            $errors['channel'] = get_string('form_err_channel', $c);
+        }
+        $door = !empty($this->_customdata['door']);
+        if (!$door && trim($data['email0'] ?? '') === '' && trim($data['phone0'] ?? '') === '') {
             $errors['phone0'] = get_string('form_err_reach', $c);
         }
         return $errors;

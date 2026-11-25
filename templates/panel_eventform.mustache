@@ -58,11 +58,14 @@
         <section class="apartado aviso-cambio" aria-labelledby="aviso-t" tabindex="-1" data-aviso-cambio>
             <header><h2 id="aviso-t">{{title}}</h2></header>
             <dl class="cambios">{{#changes}}<div><dt>{{what}}</dt><dd><s>{{from}}</s> <span aria-hidden="true">→</span><span class="oculto">{{#str}}panel_changes_to, local_oksigeniaeguahe{{/str}}</span> <b>{{to}}</b></dd></div>{{/changes}}</dl>
+            {{#hasfamilies}}
             <p class="secundario">{{who}}</p>
             <figure class="carta-aviso">
                 <blockquote><p><b>{{greeting}}</b> {{message}}</p><p class="firma-carta">{{sign}}</p></blockquote>
                 <figcaption class="def">{{example}}</figcaption>
             </figure>
+            {{/hasfamilies}}
+            {{#letters}}<label class="casilla"><input type="checkbox" name="letters" value="1" checked> <span>{{letters}}</span></label>{{/letters}}
             <div class="acciones">
                 <button class="boton principal" type="submit" name="notify" value="1">{{{i.enviado}}}{{tell}}</button>
                 <button class="boton secundario" type="submit" name="notify" value="0">{{#str}}panel_save_quiet, local_oksigeniaeguahe{{/str}}</button>

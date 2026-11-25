@@ -366,16 +366,16 @@ class arrival {
      * measured apart; and, among the channels with enough families behind them, the one that enrols most and least. For
      * Numbers and the reports, with no channel given more than was measured.
      *
-     * @param array[] $families Each with voices.channel (its name), step and, when known, who, basis and adlater.
+     * @param array[] $families Each with voices.channel (its name), came, applied, enrolled and, when known, who, basis and adlater.
      * @param array[] $centre The families already of the centre that came in the same time, the same way: only set
      *     against the others, never in their numbers.
      * @return array rows (key, name, group, n, visited, applied, enrolled, said, adlater, who: who::count() of the
-     *     families and those of the centre), own, ownenrolled, paid, paidenrolled, unmeasured, other, total, adlater, who,
-     *     and best and worst (name and frac) or false.
+     *     families and those of the centre), own, ownenrolled, paid, paidenrolled, unmeasured, unmeasuredenrolled, other,
+     *     otherenrolled, total, adlater, who, and best and worst (name and frac) or false.
      */
     public static function by_channel(array $families, array $centre = []): array {
-        $out = ['rows' => [], 'own' => 0, 'ownenrolled' => 0, 'paid' => 0, 'paidenrolled' => 0, 'unmeasured' => 0, 'other' => 0,
-            'total' => count($families), 'adlater' => 0, 'best' => false, 'worst' => false,
+        $out = ['rows' => [], 'own' => 0, 'ownenrolled' => 0, 'paid' => 0, 'paidenrolled' => 0, 'unmeasured' => 0,
+            'unmeasuredenrolled' => 0, 'other' => 0, 'otherenrolled' => 0, 'total' => count($families), 'adlater' => 0, 'best' => false, 'worst' => false,
             'who' => who::count(array_merge($families, $centre))];
         foreach (self::CHANNELS as $key) {
             $name = self::channel_name($key);
@@ -384,11 +384,11 @@ class arrival {
             if (!$here && !$theirs) {
                 continue;
             }
-            $enrolled = count(array_filter($here, fn($f) => $f['step'] >= 5));
+            $enrolled = count(array_filter($here, fn($f) => !empty($f['enrolled'])));
             $adlater = $key === 'campaign' ? 0 : count(array_filter($here, fn($f) => !empty($f['adlater'])));
             $out['rows'][] = ['key' => $key, 'name' => $name, 'group' => self::block($key), 'n' => count($here),
-                'visited' => count(array_filter($here, fn($f) => $f['step'] >= 2)),
-                'applied' => count(array_filter($here, fn($f) => $f['step'] >= 3)), 'enrolled' => $enrolled,
+                'visited' => count(array_filter($here, fn($f) => !empty($f['came']))),
+                'applied' => count(array_filter($here, fn($f) => !empty($f['applied']))), 'enrolled' => $enrolled,
                 'said' => count(array_filter($here, fn($f) => in_array($f['basis'] ?? '', ['said', 'noted'], true))),
                 'adlater' => $adlater, 'who' => who::count(array_merge($here, $theirs))];
             $out['adlater'] += $adlater;
@@ -400,8 +400,10 @@ class arrival {
                 $out['paidenrolled'] += $enrolled;
             } else if ($key === 'unmeasured') {
                 $out['unmeasured'] += count($here);
+                $out['unmeasuredenrolled'] += $enrolled;
             } else {
                 $out['other'] += count($here);
+                $out['otherenrolled'] += $enrolled;
             }
         }
         // What works better and worse, whatever the channel: the share of its families that enrolled, only with enough of
@@ -410,7 +412,7 @@ class arrival {
         $out['rows'] = array_values(array_filter($out['rows'], fn($r) => $r['n'] || array_sum(array_column($r['who'], 'n'))));
         if (count($fair) >= 2) {
             usort($fair, fn($a, $b) => $b['enrolled'] * $a['n'] <=> $a['enrolled'] * $b['n'] ?: $b['n'] <=> $a['n']);
-            $frac = fn($r) => round(100 * $r['enrolled'] / $r['n']) . ' %';
+            $frac = fn($r) => panel_metrics::percent($r['enrolled'], $r['n']);
             $best = $fair[0];
             $worst = $fair[count($fair) - 1];
             if ($best['enrolled'] * $worst['n'] !== $worst['enrolled'] * $best['n']) {
@@ -436,7 +438,7 @@ class arrival {
             $out[] = get_string('panel_bychannel_whoall', $c, $who);
         }
         $out[] = get_string('panel_bychannel_rest', $c, (object) array_intersect_key($sum, array_flip(['own', 'ownenrolled',
-            'paid', 'paidenrolled', 'unmeasured', 'total'])));
+            'paid', 'paidenrolled', 'other', 'otherenrolled', 'unmeasured', 'unmeasuredenrolled', 'total'])));
         if ($sum['best']) {
             $out[] = get_string('panel_bychannel_best', $c, (object) ['fair' => self::FAIR, 'best' => $sum['best']['name'],
                 'bestfrac' => $sum['best']['frac'], 'worst' => $sum['worst']['name'], 'worstfrac' => $sum['worst']['frac']]);
@@ -509,12 +511,13 @@ class arrival {
                 // Each step against the families of its own channel, never against the biggest one; one family is a sliver.
                 $step = fn(string $key) => ['n' => $r[$key], 'p' => $r[$key] ? max(0.03, round($r[$key] / $r['n'], 4)) : 0];
                 $rows[] = ['name' => $r['name'], 'n' => $r['n'], 'visit' => $step('visited'), 'applied' => $step('applied'),
-                    'enrolled' => $step('enrolled') + ['pct' => $r['n'] ? round(100 * $r['enrolled'] / $r['n']) . ' %' : ''],
+                    'enrolled' => $step('enrolled') + ['pct' => $r['n'] >= facts::FEW ?
+                        panel_metrics::percent($r['enrolled'], $r['n']) : ''],
                     'kinds' => self::kinds($r['who']),
                     'said' => $r['said'] ? get_string('bychannel_note_said', $c, $r['said']) : false,
                     'adlater' => $r['adlater'] ? get_string('bychannel_note_adlater', $c, $r['adlater']) : false];
             }
-            $blocks[] = ['name' => $name, 'sum' => get_string('bychannel_block_sum', $c, (object) ['n' => $n,
+            $blocks[] = ['name' => $name, 'sum' => get_string('bychannel_block_sum' . ($n === 1 ? '_one' : ''), $c, (object) ['n' => $n,
                 'enrolled' => $enrolled]), 'rows' => $rows];
         }
         if (count($head) > 1) {
@@ -586,6 +589,16 @@ class arrival {
             return 'own';
         }
         return $channel === 'campaign' ? 'paid' : ($channel === 'unmeasured' ? 'unmeasured' : 'other');
+    }
+
+    /**
+     * What brought a new student, by the channel of its family: the centre's own work, an ad, other ways, or nothing known.
+     *
+     * @param string $channel One of CHANNELS.
+     * @return string own, ad, other or none.
+     */
+    public static function brought(string $channel): string {
+        return ['own' => 'own', 'paid' => 'ad', 'other' => 'other', 'unmeasured' => 'none'][self::block($channel)];
     }
 
     /**

@@ -330,4 +330,24 @@ final class writeby_test extends \advanced_testcase {
         $this->assertSame('', $team['askagain']);
         $this->assertCount(3, $team['trail']);
     }
+
+    /**
+     * Whoever asked not to be written to is asked once whether they are again; a page with nothing marked says what its
+     * button does.
+     */
+    public function test_asked_again(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $household = $this->family();
+        $DB->set_field(centres::T, 'messaging', 'off', ['id' => $household->centreid]);
+        $centre = centres::get((int) $household->centreid);
+        writeby::set($household, [], 'family');
+        $silent = households::get((int) $household->id, (int) $centre->id);
+        $page = writeby::page_context($silent, $centre, 'es', 'x', '', '');
+        $this->assertFalse($page['nonebutton'] ?? false, 'It is how they are.');
+        $this->assertSame('¿Volvemos a escribirles por correo?', $page['title']);
+        $this->assertSame('Sí, por correo', $page['choosing']['button']);
+        $this->assertSame('No escribirnos más', $page['choosing']['nobox']);
+    }
 }

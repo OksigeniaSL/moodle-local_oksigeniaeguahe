@@ -130,6 +130,19 @@ class entries {
     }
 
     /**
+     * The centre of a form it closed, to say so to whoever still has its link.
+     *
+     * @param string $token
+     * @return \stdClass|null
+     */
+    public static function closed_by_token(string $token): ?\stdClass {
+        global $DB;
+        $token = clean_param($token, PARAM_ALPHANUM);
+        $entry = $token === '' ? null : $DB->get_record(self::T, ['token' => $token, 'active' => 0, 'kind' => 'form']);
+        return $entry ? (centres::get((int) $entry->centreid) ?: null) : null;
+    }
+
+    /**
      * The entries of a centre: the doors families come in by, without its surveys.
      *
      * @param int $centreid
@@ -308,11 +321,15 @@ class entries {
         }
         $read = self::read($entry, $centre, $answers);
         self::$lastread = $read;
-        if (self::is_test($read->email) || self::is_team($centre, $read)) {
+        $byteam = self::is_team($centre, $read);
+        if (self::is_test($read->email) || ($byteam && !$read->children && !$read->lines)) {
             // A test, or a person of the team trying it: the entry works, and nobody comes in.
             self::tested($entry);
             return [null, false, null];
         }
+        // When it was sent, as far as it is known: a form, a mail or another tool sends now; an old row without its date does not say.
+        $given = (int) ($time ?: ($read->time ?: 0));
+        $given = $given ?: ($past || !empty($entry->teamsheet) ? 0 : time());
         // A day given to come is not when they first wrote: never later than now, and before the visit.
         $now = time();
         if (!$time && $read->appointment) {
@@ -329,15 +346,27 @@ class entries {
             // Nobody to answer: nothing comes in.
             return [null, false, null];
         }
-        $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid :
-            implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->keytime]));
+        $who = implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->keytime]);
+        $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid : $who);
+        $same = null;
+        if ($externalid === '' && empty($entry->teamsheet)) {
+            // Not a row of the sheet of the team: what it says is part of what it is known by, with its moment. A family that
+            // writes again, the same day or months later, is heard again; the very same thing sent again is not.
+            $same = hash('sha256', $who);
+            $moment = $read->time && !$read->dayonly ? $read->time : userdate($time, '%Y%m%d', 99, false);
+            $key = hash('sha256', implode('|', [$who, $moment, json_encode([$read->lines, $read->children])]));
+            $daykey = hash('sha256', implode('|', [$who, userdate($time, '%Y%m%d', 99, false), json_encode([$read->lines, $read->children])]));
+        }
         // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
         // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
         $arrival = self::ad_arrival($entry, $read);
         // A contact of an ad is also known by who left it and the very moment, so that it is the same one with its
         // identifier and without it (a sheet that lost the title of that column).
         $keys = array_merge([$key], $arrival !== null ? self::ad_keys($read) : []);
-        $arrived = self::arrived($entry, $read, $keys, $arrival !== null);
+        // The same row that only had its day, now with its hour.
+        $look = isset($daykey) && !in_array($daykey, $keys, true) ? array_merge($keys, [$daykey]) : $keys;
+        $arrived = self::arrived($entry, $read, $look, $arrival !== null) ??
+            ($same !== null && $arrival === null ? self::arrived_same($entry, $read, $same) : null);
         // A sheet the team keeps, as a person said in the entry (never from its headings): a phone finds the family and
         // what the team writes is read. A form anyone can fill finds a family only by an email it already has, never
         // brings it a new address, and never changes what the team did.
@@ -368,7 +397,7 @@ class entries {
             $contacts[] = (string) ($adult->email ?? '');
             $contacts[] = (string) ($adult->phone ?? '');
         }
-        if (households::erased_before((int) $centre->id, array_filter($contacts), (int) ($read->time ?: 0))) {
+        if (households::erased_before((int) $centre->id, array_filter($contacts), $given)) {
             return [null, false, null];
         }
         $channel = $arrival !== null ? 'meta' : ($read->channel ?? ($read->teamsheet ? 'other' : self::channel($entry)));
@@ -387,10 +416,16 @@ class entries {
                 $DB->update_record(households::T, (object) ['id' => $householdid, 'timecreated' => $time, 'lastcontact' => $time]);
             }
         }
-        if ($existed) {
-            households::admit($householdid);
-        }
+        $admitted = $existed && households::admit($householdid);
         $household = households::get($householdid, (int) $centre->id);
+        if (!$trusted && ($admitted || ($existed && (int) ($household->outtime ?? 0) && $time > (int) $household->outtime))) {
+            // The guest of an act that asks for a place, or a family that had gone: the team hears of it as of a new one.
+            teamnotice::back($householdid);
+        }
+        if ($existed && (!$trusted || $arrival !== null) && $time > (int) ($household->outtime ?? 0)) {
+            // It had gone, and it writes by a form or an ad again. A row of the team's sheet is not that.
+            outs::back($household, $centre);
+        }
         households::complete($household, $about);
         $adultid = self::people($household, $read, $byphone, $existed && !$trusted);
         foreach ($adultid ? $read->consents : [] as $consent) {
@@ -401,7 +436,10 @@ class entries {
             // A row the team wrote in its sheet is not something the family said: nobody waits because of it.
             self::note_row($entry, $household, $channel, $said, $time, (string) $read->detail, $dayonly);
         } else {
-            $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) . $said);
+            // What it asks for that is not a text of theirs (the child, its course, the hour) is read there too.
+            $asked = signup::asked(array_map(fn($c) => ['firstname' => $c[0], 'offerid' => $c[1]], $read->children));
+            $body = trim(get_string('entry_arrived', 'local_oksigeniaeguahe', format_string($entry->name)) .
+                ($asked !== '' ? "\n" . $asked : '') . $said);
             // Something from long ago is kept, but does not wait for an answer.
             $awaits = !$past || $time > time() - self::PASTDAYS * DAYSECS;
             households::received(
@@ -419,6 +457,10 @@ class entries {
         }
         if ($trusted && ($read->team || $read->staff || $read->appointment)) {
             self::$noted = teamnotes::apply($household, (array) $read + ['entryid' => (int) $entry->id, 'past' => $past]);
+        }
+        if ($byteam && !$trusted && !$existed) {
+            // A person of the team may be a parent too: it comes in, and somebody says whether it was a test.
+            households::note($household, 0, get_string('entry_by_team', 'local_oksigeniaeguahe'));
         }
         self::keep_keys($entry, $keys, (int) $household->id);
         $lastdayonly = $time >= (int) $entry->lastreceived ? ($dayonly ? 1 : 0) : (int) ($entry->lastdayonly ?? 0);
@@ -500,6 +542,36 @@ class entries {
                         return (object) ['householdid' => (int) $id];
                     }
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a message without an identifier came before under the key it had when what it says was not part of it: by the
+     * same words in the history of its family.
+     *
+     * @param \stdClass $entry
+     * @param \stdClass $read
+     * @param string $key
+     * @return \stdClass|null With its householdid.
+     */
+    protected static function arrived_same(\stdClass $entry, \stdClass $read, string $key): ?\stdClass {
+        global $DB;
+        $row = $DB->get_record(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key], 'id, householdid', IGNORE_MULTIPLE);
+        if (!$row) {
+            return null;
+        }
+        $said = trim(implode("\n", $read->lines));
+        $lines = $DB->get_fieldset_select(
+            households::CONTACTS,
+            'body',
+            'householdid = ? AND entryid = ?',
+            [$row->householdid, $entry->id]
+        );
+        foreach ($lines as $line) {
+            if ($said === '' || strpos((string) $line, $said) !== false) {
+                return $row;
             }
         }
         return null;
@@ -641,7 +713,7 @@ class entries {
                     continue;
                 }
             }
-            $id = households::add_adult($household, $adult);
+            $id = households::add_adult($household, $adult, !$guarded);
             $first = $first ?: $id;
         }
         if ($held) {
@@ -788,6 +860,11 @@ class entries {
             switch ($role) {
                 case 'email':
                     $email = households::email($value);
+                    if (!$email && preg_match('/[^\s<>()\/;,|]+@[^\s<>()\/;,|]+\.[^\s<>()\/;,|.]+/u', $value, $m)) {
+                        // Two in one place, or one with a word beside it: the first that can be written to, and all of it kept.
+                        $email = households::email($m[0]);
+                        $r->lines[] = $email && !isset($people[$who]['email']) ? $line : '';
+                    }
                     if ($email && !isset($people[$who]['email'])) {
                         $people[$who]['email'] = $email;
                     } else if (!$email || $people[$who]['email'] !== $email) {
@@ -797,7 +874,12 @@ class entries {
                     break;
                 case 'phone':
                     $phone = phone::normalise(preg_replace('/^p:/i', '', $value), $centre->country ?? null);
-                    if ($phone && !preg_match('/\p{L}{3,}/u', $value) && !isset($people[$who]['phone'])) {
+                    $within = !$phone || preg_match('/\p{L}{3,}/u', $value) ? phone::first_in($value, $centre->country ?? null) : null;
+                    if ($within !== null && !isset($people[$who]['phone'])) {
+                        // Two in one place, or one with a word beside it: the first that can be called, and all of it kept.
+                        $people[$who]['phone'] = $within;
+                        $r->lines[] = $line;
+                    } else if ($phone && !preg_match('/\p{L}{3,}/u', $value) && !isset($people[$who]['phone'])) {
                         $people[$who]['phone'] = $phone;
                     } else if ($phone && !preg_match('/\p{L}{3,}/u', $value)) {
                         if ($people[$who]['phone'] !== $phone) {
@@ -826,11 +908,7 @@ class entries {
                     }
                     break;
                 case 'childname':
-                    foreach (preg_split('/\s*(?:,|;|\s+y\s+|\s+e\s+|\s+and\s+)\s*/u', $value) as $name) {
-                        if (trim($name) !== '') {
-                            $names[] = trim($name);
-                        }
-                    }
+                    $names = array_merge($names, self::names($value));
                     break;
                 case 'grade':
                     $year = recognise::schoolyear($value) ?? (preg_match('/^\d{4}\s*[-\/]\s*\d{2,4}$/', $value) ?
@@ -999,6 +1077,7 @@ class entries {
         foreach (array_slice($names, count($grades)) as $name) {
             $r->children[] = [self::child_name($name, $r->lastname), 0];
         }
+        $r->lines = array_values(array_filter($r->lines, fn($l) => $l !== ''));
         $r->children = array_values(array_filter($r->children, fn($c) => $c[0] !== '' || $c[1]));
         if ($r->children) {
             [$r->child, $r->offerid] = $r->children[0];
@@ -1140,6 +1219,17 @@ class entries {
     }
 
     /**
+     * The names written in one place: «Ana y Luis» are two.
+     *
+     * @param string $value
+     * @return string[]
+     */
+    public static function names(string $value): array {
+        $names = array_map('trim', preg_split('/\s*(?:,|;|\s+y\s+|\s+e\s+|\s+and\s+)\s*/u', $value));
+        return array_values(array_filter($names, fn($name) => $name !== ''));
+    }
+
+    /**
      * The first name of a child, without the surname of the family: only what is needed of a minor.
      *
      * @param string $name
@@ -1219,24 +1309,7 @@ class entries {
      * @return string One of lists::HEARD_FROM.
      */
     public static function heard(string $value): string {
-        $plain = recognise::plain($value);
-        $words = [
-            'centremessage' => '(mensaje|circular|comunicado|correo|aviso) del (centro|cole|colegio|escuela)',
-            'centrefamilies' => 'familias? del (centro|cole)|ya (somos|estamos)|hermanos? en el',
-            'social' => 'redes|instagram|facebook|tiktok|social|youtube',
-            'search' => 'google|internet|busca|search|web|pagina',
-            'family' => 'amig|famil|recomend|conocid|boca|friend|vecin',
-            'ad' => 'anuncio|publicidad|\bads?\b|cartel|folleto|valla',
-            'press' => 'prensa|radio|periodico|revista|television|\btv\b|press|news',
-            'passingby' => 'pasando|pase|cerca|barrio|calle',
-            'fair' => 'feria|fair|jornada|salon',
-        ];
-        foreach ($words as $key => $re) {
-            if (preg_match('/' . $re . '/', $plain)) {
-                return $key;
-            }
-        }
-        return 'other';
+        return heard::read($value);
     }
 
     /**
@@ -1488,6 +1561,7 @@ class entries {
      * @return array As receive() gives it.
      */
     public static function from_email(\stdClass $entry, string $raw, bool $past = false): array {
+        global $DB;
         if (stripos($raw, self::TESTMAIL) !== false) {
             // A test sent to the mailbox of the centre: the whole way works, and nobody comes in.
             self::tested($entry);
@@ -1509,10 +1583,26 @@ class entries {
                 $trusted[] = $domain;
             }
         }
+        if (inbound::nobody_wrote($mail, $trusted)) {
+            // The answer of a mailbox, a newsletter: nobody wrote it, and nobody waits.
+            return [null, false, null];
+        }
+        $answers = inbound::answers($mail, $trusted, $centre ?: null);
+        if (!$answers) {
+            // Sent on by somebody of the centre, and nothing in it says whose it is: the team hears of it, once.
+            if ($centre && $mail['messageid'] !== '') {
+                $key = hash('sha256', 'id:' . $mail['messageid']);
+                if (!$DB->record_exists(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key])) {
+                    self::keep_keys($entry, [$key], 0);
+                    teamnotice::lost_mail($centre, $entry, $mail['subject'], $mail['from']);
+                }
+            }
+            return [null, false, null];
+        }
         // From anyone else, a phone written in the text never finds a family the centre already has.
         return self::receive(
             $entry,
-            inbound::answers($mail, $trusted),
+            $answers,
             $mail['messageid'],
             $mail['time'] ?: null,
             $past,

@@ -46,7 +46,11 @@
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitego">
         <section class="bloque">
             <h2 class="invitar-pregunta">{{question}}</h2>
-            <ul class="sobres-f">{{#going}}<li class="sobre-f va"><input type="hidden" name="para[]" value="{{id}}"><span class="sobre-cara"><b>{{name}}</b>{{#courses}}<small>{{courses}}</small>{{/courses}}</span><span class="franqueo" aria-hidden="true">{{{i.check}}}</span></li>{{/going}}</ul>
+            {{#review}}
+            <h3 class="repaso-t">{{#str}}invitecheck_title, local_oksigeniaeguahe{{/str}}</h3>
+            <ul class="repaso">{{#rows}}<li class="repaso-fila{{^ok}} mira{{/ok}}"><span class="repaso-marca" aria-hidden="true">{{#ok}}{{{i.check}}}{{/ok}}{{^ok}}{{{i.ojo}}}{{/ok}}</span><div>{{#hasnames}}<details{{#open}} open{{/open}}><summary>{{text}}</summary><ul class="repaso-nombres">{{#names}}<li><a href="{{url}}">{{name}}</a>{{#note}} <span class="secundario">{{note}}</span>{{/note}}</li>{{/names}}</ul></details>{{/hasnames}}{{^hasnames}}{{text}}{{/hasnames}}</div></li>{{/rows}}</ul>
+            {{/review}}
+            <ul class="sobres-f">{{#going}}<li class="sobre-f va"><input type="hidden" name="para[]" value="{{id}}"><span class="sobre-cara"><b>{{name}}</b>{{#courses}}<small>{{courses}}</small>{{/courses}}{{#greeting}}<small class="repaso-saludo">{{greeting}}</small>{{/greeting}}</span><span class="franqueo" aria-hidden="true">{{{i.check}}}</span></li>{{/going}}</ul>
             {{#slow}}<p class="secundario">{{slow}}</p>{{/slow}}
             {{#cost}}<p class="secundario">{{cost}}{{#approval}} {{approval}}{{/approval}}</p>{{/cost}}
         </section>

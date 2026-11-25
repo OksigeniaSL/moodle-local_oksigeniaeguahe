@@ -37,8 +37,11 @@ class teamnotes {
     /** @var string */
     const DATA = '/local/oksigeniaeguahe/data/team-notes.json';
 
+    /** @var string[] Gestures of a person who tried to speak with the family and did not: it answers nothing. */
+    const TRIED = ['noanswer', 'wrongnumber'];
+
     /** @var string[] Gestures that say a person of the team was in touch: the family no longer waits. */
-    const TOUCH = ['contacted', 'noanswer', 'wrongnumber', 'invited', 'infosent', 'familycalls', 'callback', 'visitbooked',
+    const TOUCH = ['contacted', 'invited', 'infosent', 'familycalls', 'callback', 'visitbooked',
         'attended', 'absent', 'cancelled', 'stage', 'closed'];
 
     /** @var array|null */
@@ -380,6 +383,9 @@ class teamnotes {
             $what = [];
             $channel = null;
             $when = $time;
+            // A call nobody answered is only that, unless something else in the same words did reach them.
+            $tried = $gestures && !array_filter($gestures, fn($g) => !in_array($g['kind'], self::TRIED, true) &&
+                in_array($g['kind'], ['contacted', 'familycalls', 'invited', 'infosent'], true));
             foreach ($gestures as $gesture) {
                 $kind = $gesture['kind'];
                 $moment = (int) ($gesture['time'] ?? $time);
@@ -501,8 +507,10 @@ class teamnotes {
                 'entryid' => 0,
                 'detail' => null,
                 'userid' => $userid,
-                // The sheet never writes at what time the team did it: the hour of the row is of something else.
-                'dayonly' => $stable && $when <= time() ? 1 : 0,
+                'aim' => $channel !== null && $tried ? 'tried' : null,
+                // The sheet never writes at what time the team did it: the hour of the row is of something else, and without
+                // a day in it the hour is that of the load.
+                'dayonly' => 1,
                 'timecreated' => min($when, time()),
             ]);
             $note = (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
@@ -544,6 +552,40 @@ class teamnotes {
     }
 
     /**
+     * The lines taken before a call that nobody answered was told apart: they were kept as an answer of the team. By what the
+     * sheet said, which is the first thing of the line, in any language of the plugin.
+     *
+     * @return int How many were marked.
+     */
+    public static function mark_tried(): int {
+        global $DB;
+        $words = [];
+        foreach (lists::LANGS as $lang) {
+            foreach (self::TRIED as $kind) {
+                $words[publiclang::str('teamnote_' . $kind, $lang)] = true;
+            }
+        }
+        $n = 0;
+        $rows = $DB->get_recordset_select(
+            households::CONTACTS,
+            "direction = 'out' AND entryid = 0 AND aim IS NULL AND channel = 'phone'",
+            [],
+            'id ASC',
+            'id, householdid, body'
+        );
+        foreach ($rows as $row) {
+            $gestures = array_filter(array_map('trim', explode('. ', explode(' · ', (string) $row->body)[0])), fn($w) => $w !== '');
+            $only = $gestures && !array_filter($gestures, fn($w) => !isset($words[rtrim($w, '.')]));
+            if ($only && $DB->record_exists(self::T, ['householdid' => $row->householdid])) {
+                $DB->update_record(households::CONTACTS, (object) ['id' => $row->id, 'aim' => 'tried', 'dayonly' => 1]);
+                $n++;
+            }
+        }
+        $rows->close();
+        return $n;
+    }
+
+    /**
      * The visit a sheet gives, in words: «Visita citada el jueves 19», with its hour when the sheet says it.
      *
      * @param int $moment
@@ -566,7 +608,7 @@ class teamnotes {
      * @param string $lang
      * @return string
      */
-    protected static function visit_promise(int $moment, bool $exact, string $lang): string {
+    public static function visit_promise(int $moment, bool $exact, string $lang): string {
         return $exact ? get_string_manager()->get_string(
             'teamnote_visit_promise',
             self::C,

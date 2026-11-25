@@ -16,9 +16,11 @@
 
 namespace local_oksigeniaeguahe;
 
+use local_oksigeniaeguahe\local\atycards;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\roster;
 use local_oksigeniaeguahe\local\settled;
@@ -195,5 +197,147 @@ final class family_test extends \advanced_testcase {
         $this->assertNull(\local_oksigeniafamily\api::family_by_key(family::SOURCE, family::key('h', (int) $household->id)));
         $this->assertFalse(panel_household::context($household, $centre, true, '', time())['family']);
         $this->assertSame(0, $DB->count_records_select(households::CHILDREN, 'familychild > 0'));
+    }
+
+    /**
+     * Separated, whoever goes no longer sees in the app the family that stays, and its child goes to its own; put together, the
+     * file that stays is of the family that was made for the other.
+     */
+    public function test_separated_and_together(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $api = family::API;
+        [$centre, $household] = $this->household(['Leo', 'Sara']);
+        $luis = households::add_adult($household, (object) ['firstname' => 'Luis', 'email' => 'luis@example.com']);
+        $kids = array_values(households::full($household)->children);
+        households::set_stage($kids[0], 'enrolled');
+        households::set_stage($kids[1], 'enrolled');
+        $familyid = $api::family_by_key(family::SOURCE, family::key('h', (int) $household->id));
+        $active = fn(string $table, int $id) => $DB->count_records('local_oksigeniafamily_' . $table, ['familyid' => $id, 'status' => 'active']);
+        $this->assertSame([2, 2], [$active('adult', $familyid), $active('child', $familyid)]);
+        $new = \local_oksigeniaeguahe\local\lookalike::split(
+            households::get((int) $household->id, (int) $centre->id),
+            ['adults' => [$luis], 'children' => [(int) $kids[1]->id => 'go']],
+            2
+        );
+        $this->assertSame([1, 1], [$active('adult', $familyid), $active('child', $familyid)]);
+        $theirs = $api::family_by_key(family::SOURCE, family::key('h', (int) $new->id));
+        $this->assertNotNull($theirs);
+        $this->assertSame([1, 1], [$active('adult', $theirs), $active('child', $theirs)]);
+        // Two files: the older one, of nobody in the record yet, and the one Eguahe made a family for.
+        $older = households::get(households::create((int) $centre->id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), (int) $centre->id);
+        $DB->set_field(households::T, 'timecreated', 5, ['id' => $older->id]);
+        $older = households::get((int) $older->id, 0);
+        $kept = \local_oksigeniaeguahe\local\lookalike::merge($older, households::get((int) $new->id, 0), 2);
+        $this->assertSame([(int) $older->id, $theirs], [(int) $kept->id, (int) $kept->familylink]);
+        // A «no» of one of them is not over the family a person confirmed for the other.
+        $one = households::get(households::create((int) $centre->id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), 0);
+        $two = households::get(households::create((int) $centre->id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), 0);
+        $DB->set_field(households::T, 'familylink', -1, ['id' => $one->id]);
+        $DB->set_field(households::T, 'familylink', $familyid, ['id' => $two->id]);
+        $this->assertSame($familyid, (int) \local_oksigeniaeguahe\local\lookalike::merge($one, $two, 2)->familylink);
+    }
+
+    /**
+     * Two files of the same family put together, the one that goes being the one in the record: it stays its family there, a
+     * brother goes to it, whoever sees it in the app goes on seeing it, and leaving takes the child out.
+     */
+    public function test_put_together(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $api = '\local_oksigeniafamily\api';
+        [$centre, $keep, $offer] = $this->household(['Teo']);
+        $gone = households::get(households::create((int) $centre->id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), 0);
+        households::add_adult($gone, (object) ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'email' => 'ana@example.com',
+            'phone' => '+34600000001']);
+        households::add_child($gone, 'Teo', $offer);
+        $DB->set_field(households::T, 'timecreated', time() - DAYSECS, ['id' => $keep->id]);
+        $keep = households::get((int) $keep->id, 0);
+        // Nothing hints: the family is not in the record before.
+        households::set_stage(array_values(households::full($gone)->children)[0], 'enrolled');
+        $familyid = $api::family_by_key(family::SOURCE, family::key('h', (int) $gone->id));
+        $kept = lookalike::merge($keep, $gone, 2);
+        $this->assertSame((int) $keep->id, (int) $kept->id);
+        $this->assertSame((int) $familyid, (int) $kept->familylink);
+        $api::set_adult_user(
+            (int) $DB->get_field('local_oksigeniafamily_adult', 'id', ['familyid' => $familyid]),
+            (int) $this->getDataGenerator()->create_user()->id
+        );
+        $userid = (int) $DB->get_field('local_oksigeniafamily_adult', 'userid', ['familyid' => $familyid]);
+        $this->assertArrayHasKey((int) $kept->id, atycards::households_of($userid));
+        // A brother, to the same family.
+        $kid = households::add_child($kept, 'Noa', $offer);
+        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $kid]), 'enrolled');
+        $this->assertSame(2, $DB->count_records('local_oksigeniafamily_child', ['familyid' => $familyid, 'status' => 'active']));
+        settled::leave(households::get((int) $kept->id, 0), 2, 'moved', '', time());
+        $this->assertSame(0, $DB->count_records('local_oksigeniafamily_child', ['familyid' => $familyid, 'status' => 'active']));
+        settled::stay(households::get((int) $kept->id, 0), time());
+        $this->assertSame(2, $DB->count_records('local_oksigeniafamily_child', ['familyid' => $familyid, 'status' => 'active']));
+        $this->assertSame(2, $DB->count_records('local_oksigeniafamily_child', ['familyid' => $familyid]), 'Nobody twice.');
+
+        // One said «it is not that family», the other that it is.
+        $this->assertSame(7, family::merged((object) ['id' => 0, 'centreid' => $centre->id, 'familylink' => -1], (object) [
+            'id' => 0, 'centreid' => $centre->id, 'familylink' => 7]));
+        $this->assertSame(-1, family::merged((object) ['id' => 0, 'centreid' => $centre->id, 'familylink' => 0], (object) [
+            'id' => 0, 'centreid' => $centre->id, 'familylink' => -1]));
+    }
+
+    /**
+     * A child enrolled goes to the record with its name and its course, as they are later; and never to a family that closed.
+     */
+    public function test_name_and_closed_family(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $api = '\local_oksigeniafamily\api';
+        [$centre, $household] = $this->household(['Leo']);
+        $kid = array_values(households::full($household)->children)[0];
+        households::set_stage($kid, 'enrolled');
+        $id = (int) $DB->get_field(households::CHILDREN, 'familychild', ['id' => $kid->id]);
+        $named = fn() => $DB->get_record('local_oksigeniafamily_child', ['id' => $id]);
+        $this->assertSame(['Leo', 'Infantil 3 años'], [$named()->firstname, $named()->groupname]);
+        $DB->set_field(households::CHILDREN, 'firstname', 'Leonardo', ['id' => $kid->id]);
+        $this->assertSame(1, family::names((int) $centre->id));
+        $this->assertSame('Leonardo', $named()->firstname);
+        $this->assertSame(0, family::names((int) $centre->id));
+
+        [$centre, $household] = $this->household(['Noa'], 'iris@example.com');
+        $closed = $api::create_family('manual');
+        $api::add_adult($closed, ['firstname' => 'Iris', 'email' => 'iris@example.com']);
+        family::confirm($household, $closed);
+        $api::close_family($closed);
+        households::set_stage(array_values(households::full($household)->children)[0], 'enrolled');
+        $this->assertSame(0, $DB->count_records('local_oksigeniafamily_child', ['familyid' => $closed]));
+        $this->assertSame(0, (int) $DB->get_field(households::T, 'familylink', ['id' => $household->id]));
+    }
+
+    /**
+     * A child of the management system said to have gone: what the record does is only known, and when the record has it
+     * again, it is back.
+     */
+    public function test_back(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $api = '\local_oksigeniafamily\api';
+        [$centre, $household] = $this->household(['Leo']);
+        centres::update((int) $centre->id, (object) ['familyfrom' => 'records']);
+        $theirs = $api::create_family('cifra', 'cifra:77');
+        $api::add_adult($theirs, ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'email' => 'ana@example.com']);
+        $childid = $api::add_child($theirs, null, 'cifra:123');
+        $api::set_child_details('cifra:123', 'Leo', 'Ejemplo', 'INF 3ºA');
+        $kid = array_values(households::full($household)->children)[0];
+        households::set_stage($kid, 'enrolled');
+        family::confirm($household, $theirs);
+        settled::leave(households::get((int) $household->id, 0), 2, 'moved', '', time());
+        $left = fn() => (int) $DB->get_field(households::CHILDREN, 'lefttime', ['id' => $kid->id]);
+        $this->assertGreaterThan(0, $left());
+        $api::unlink_child($childid, 'import');
+        $this->assertGreaterThan(0, $left());
+        $api::add_child($theirs, null, 'cifra:123');
+        $this->assertSame(0, $left(), 'It is with us again.');
+        $this->assertSame('0', (string) $DB->get_field(households::CHILDREN, 'familygone', ['id' => $kid->id]));
     }
 }

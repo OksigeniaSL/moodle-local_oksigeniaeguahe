@@ -31,7 +31,7 @@
         "head": {"title": "Importar lo que ya pasó", "sub": "Tal como venga.", "back": {"url": "#", "name": "Cifras"}, "ante": "", "action": false},
         "preview": false, "action": "#", "sesskey": "abc", "draft": 1, "accept": ".xlsx,.csv",
         "kinds": [{"value": "contacts", "name": "Contactos de una campaña"}],
-        "hasimports": true, "imports": [{"id": 4, "question": "¿Quitamos lo importado?", "label": "Contactos 2026-27", "kind": "Contactos", "rows": "188 filas", "file": "c.xlsx", "when": "el 3 de octubre", "deleteurl": "#"}],
+        "hasimports": true, "imports": [{"id": 4, "question": "¿Quitamos lo importado?", "label": "Contactos 2026-27", "kind": "Contactos", "rows": "188 filas", "file": "c.xlsx", "when": "el 3 de octubre", "shared": "2 datos son de muchas familias a la vez: no unen a ninguna.", "deleteurl": "#"}],
         "sheets": [], "count": "", "canbring": false, "keyshelp": ""
     }
 }}
@@ -61,6 +61,8 @@
                 <div class="campo"><label for="curso-{{index}}">{{#str}}panel_school_year, local_oksigeniaeguahe{{/str}}</label><input id="curso-{{index}}" name="schoolyear[{{index}}]" value="{{schoolyear}}"></div>
                 {{#isroll}}<label class="casilla"><input type="checkbox" name="part[{{index}}]" value="1"{{#part}} checked{{/part}}> {{#str}}panel_import_part, local_oksigeniaeguahe{{/str}}</label>{{/isroll}}{{/none}}
             </div>
+            {{#twice}}<div class="aviso-suave ya-esta">{{{i.info}}}<div><p>{{text}}</p><label class="casilla"><input type="radio" name="twice[{{index}}]" value="{{id}}"{{^both}} checked{{/both}}> {{#str}}panel_import_twice_instead, local_oksigeniaeguahe{{/str}}</label> <label class="casilla"><input type="radio" name="twice[{{index}}]" value="both"{{#both}} checked{{/both}}> {{#str}}panel_import_twice_both, local_oksigeniaeguahe{{/str}}</label></div></div>{{/twice}}
+            {{#hasshared}}<div class="aviso-suave compartidos">{{{i.info}}}<div><p>{{#str}}panel_import_shared, local_oksigeniaeguahe{{/str}}</p><ul>{{#shared}}<li>{{text}}</li>{{/shared}}</ul></div></div>{{/hasshared}}
             <div class="columnas-destino">
                 <div class="destino queda"><h3>{{#str}}panel_cols_kept, local_oksigeniaeguahe{{/str}}</h3>{{#haskept}}<ul>{{#kept}}<li>{{c}}</li>{{/kept}}</ul>{{/haskept}}{{^haskept}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/haskept}}</div>
                 <div class="destino en-clave"><h3>{{#str}}panel_cols_keys, local_oksigeniaeguahe{{/str}}</h3>{{#haskeys}}<ul>{{#keys}}<li>{{c}}</li>{{/keys}}</ul>{{/haskeys}}{{^haskeys}}<p class="secundario">{{#str}}panel_cols_none, local_oksigeniaeguahe{{/str}}</p>{{/haskeys}}</div>
@@ -81,7 +83,7 @@
     <section class="apartado ya-importado" aria-labelledby="ya-t">
         <header><h2 id="ya-t">{{#str}}panel_imported_before, local_oksigeniaeguahe{{/str}}</h2></header>
         {{#hasimports}}
-        <ul class="importados">{{#imports}}<li class="importado"><span class="que"><b>{{label}}</b><span class="secundario">{{kind}} · {{rows}} · {{file}}</span></span><span class="secundario cuando">{{when}}</span><details class="confirmar en-linea"><summary class="boton terciario pequeno">{{{i.borrar}}}<span class="oculto">{{label}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</summary><form method="post" action="{{deleteurl}}"><p><b>{{question}}</b></p><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="import" value="{{id}}"><button class="boton peligro pequeno" type="submit" name="action" value="delete">{{#str}}import_delete_yes, local_oksigeniaeguahe{{/str}}</button><button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}import_delete_no, local_oksigeniaeguahe{{/str}}</button></form></details></li>{{/imports}}</ul>
+        <ul class="importados">{{#imports}}<li class="importado"><span class="que"><b>{{label}}</b><span class="secundario">{{kind}} · {{rows}} · {{file}}</span>{{#shared}}<span class="secundario">{{shared}}</span>{{/shared}}</span><span class="secundario cuando">{{when}}</span><details class="confirmar en-linea"><summary class="boton terciario pequeno">{{{i.borrar}}}<span class="oculto">{{label}}</span>{{#str}}panel_remove, local_oksigeniaeguahe{{/str}}</summary><form method="post" action="{{deleteurl}}"><p><b>{{question}}</b></p><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="import" value="{{id}}"><button class="boton peligro pequeno" type="submit" name="action" value="delete">{{#str}}import_delete_yes, local_oksigeniaeguahe{{/str}}</button><button class="boton secundario pequeno" type="button" data-cerrar="1">{{#str}}import_delete_no, local_oksigeniaeguahe{{/str}}</button></form></details></li>{{/imports}}</ul>
         {{/hasimports}}
         {{^hasimports}}<p class="secundario">{{#str}}panel_imported_none, local_oksigeniaeguahe{{/str}}</p>{{/hasimports}}
     </section>

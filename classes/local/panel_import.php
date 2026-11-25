@@ -32,6 +32,9 @@ class panel_import {
     /** @var string The files a sheet can come in. */
     const ACCEPT = '.xlsx,.xls,.ods,.csv,.tsv,.txt';
 
+    /** @var int The contacts several students share said one by one, before how many more there are. */
+    const SHARED = 8;
+
     /**
      * The context of the page.
      *
@@ -53,12 +56,13 @@ class panel_import {
                 'rows' => get_string((int) $import->rowcount === 1 ? 'panel_rows_one' : 'panel_rows', $c, (int) $import->rowcount),
                 'file' => s(trim((string) $import->filename . ($import->sheet ? ' · ' . $import->sheet : ''))),
                 'when' => panel::when_words((int) $import->timecreated, $now),
+                'shared' => self::shared_line($import),
                 'deleteurl' => $url->out(false),
                 'question' => get_string('import_delete_confirm', $c, (object) ['label' => s($import->label),
                     'rows' => (int) $import->rowcount]),
             ];
         }
-        $sheets = $preview ? self::sheets($preview) : [];
+        $sheets = $preview ? self::sheets($centre, $preview, $now) : [];
         $bring = count(array_filter($sheets, fn($s) => !$s['none'] && !$s['health']));
         return [
             'head' => panel::head([
@@ -87,16 +91,21 @@ class panel_import {
     /**
      * What Eguahe makes of each sheet of the file given: what it is, how it is called, its school year and its columns.
      *
+     * @param \stdClass $centre
      * @param \stdClass $preview filename, path, draft, and what was chosen (kinds, labels, years) when looking again.
+     * @param int $now
      * @return array
      */
-    protected static function sheets(\stdClass $preview): array {
+    protected static function sheets(\stdClass $centre, \stdClass $preview, int $now): array {
         $c = self::C;
         $chosen = array_filter($preview->kinds ?? [], fn($k) => $k === 'none' || in_array($k, recognise::KINDS, true));
         $out = [];
         $list = fn(array $columns) => array_map(fn($col) => ['c' => $col], array_values($columns));
-        foreach (imports::preview($preview->path, $preview->filename, $chosen) as $sheet) {
+        $read = imports::preview($preview->path, $preview->filename, $chosen, (int) $centre->id, $preview->labels ?? []);
+        foreach ($read as $sheet) {
             $kind = $sheet['kind'] ?? 'none';
+            $shared = self::shared($sheet['shared']);
+            $twice = $sheet['twice'] ? self::twice($sheet['twice'], $preview->twice[$sheet['index']] ?? '', $now) : false;
             $out[] = [
                 'index' => $sheet['index'],
                 'name' => $sheet['name'],
@@ -118,8 +127,68 @@ class panel_import {
                 'haskeys' => (bool) $sheet['keys'],
                 'hasremoved' => (bool) $sheet['removed'],
                 'health' => (bool) $sheet['health'],
+                'shared' => $shared,
+                'hasshared' => (bool) $shared,
+                'twice' => $twice,
             ];
         }
         return $out;
+    }
+
+    /**
+     * The contacts several students share, said before they come in: what is done with each. Only the first ones, and how
+     * many more there are.
+     *
+     * @param array[] $shared As imports::preview() gives them.
+     * @return array[]
+     */
+    protected static function shared(array $shared): array {
+        $out = [];
+        foreach (array_slice($shared, 0, self::SHARED) as $one) {
+            $out[] = ['text' => get_string('panel_import_shared_' . $one['what'] . ($one['never'] ? '_never' : ''), self::C, (object) [
+                'value' => $one['what'] === 'phone' ? phone::display($one['value']) : $one['value'], 'n' => (int) $one['students']])];
+        }
+        $more = count($shared) - count($out);
+        if ($more > 0) {
+            $out[] = ['text' => get_string($more === 1 ? 'panel_import_shared_more_one' : 'panel_import_shared_more', self::C, $more)];
+        }
+        return $out;
+    }
+
+    /**
+     * What an import already there says of a sheet that would bring the same contacts again: it takes its place, unless the
+     * centre wants both.
+     *
+     * @param array $twice The import and whether its rows are the same.
+     * @param string $chosen both, or anything else.
+     * @param int $now
+     * @return array
+     */
+    protected static function twice(array $twice, string $chosen, int $now): array {
+        [$import, $same] = $twice;
+        return ['id' => (int) $import->id, 'both' => $chosen === 'both', 'text' => get_string(
+            $same ? 'panel_import_twice_same' : 'panel_import_twice_like',
+            self::C,
+            (object) ['label' => $import->label, 'rows' => (int) $import->rowcount,
+                'when' => panel::when_words((int) $import->timecreated, $now)]
+        )];
+    }
+
+    /**
+     * How many contacts of an import join no family, or only with something else in common.
+     *
+     * @param \stdClass $import
+     * @return string
+     */
+    protected static function shared_line(\stdClass $import): string {
+        $info = imports::info($import);
+        $parts = [];
+        foreach (['never', 'doubt'] as $what) {
+            $n = (int) ($info[$what] ?? 0);
+            if ($n) {
+                $parts[] = get_string('panel_import_' . $what . ($n === 1 ? '_one' : ''), self::C, $n);
+            }
+        }
+        return implode(' ', $parts);
     }
 }

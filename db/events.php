@@ -30,4 +30,8 @@ $observers = [
         'eventname' => '\local_oksigeniafamily\event\child_unlinked',
         'callback' => '\local_oksigeniaeguahe\local\family::unlinked',
     ],
+    [
+        'eventname' => '\local_oksigeniafamily\event\child_linked',
+        'callback' => '\local_oksigeniaeguahe\local\family::linked',
+    ],
 ];

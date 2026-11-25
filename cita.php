@@ -35,7 +35,7 @@ require_login(null, false);
 
 $c = 'local_oksigeniaeguahe';
 $day = optional_param('dia', '', PARAM_RAW_TRIMMED);
-$day = preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) ? $day : '';
+$day = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) && checkdate((int) $d[2], (int) $d[3], (int) $d[1]) ? $day : '';
 $hid = optional_param('h', 0, PARAM_INT);
 if (!$hid) {
     // From the week: whose it is, first.
@@ -65,11 +65,23 @@ $url = new moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $household->id]
 $file = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]);
 panel::setup($url, get_string($off ? 'give_off_title' : ($event ? 'give_move_title' : 'give_title'), $c));
 $values = [];
+// Moved in the calendar of the team: it comes with that day and hour, and how long.
+$at = $event ? optional_param('a', 0, PARAM_INT) : 0;
+if ($at > time()) {
+    $values = ['start' => $at, 'minutes' => max(15, min(240, optional_param('m', 45, PARAM_INT)))];
+}
 if (data_submitted() && confirm_sesskey()) {
     if ($off) {
         $tell = optional_param('tell', 0, PARAM_BOOL);
-        appointments::off($household, $centre, (int) $event->id, optional_param('message', '', PARAM_TEXT), (int) $USER->id, (bool) $tell);
-        redirect($file, get_string($tell ? 'give_off_done_told' : 'give_off_done', $c));
+        $done = appointments::off(
+            $household,
+            $centre,
+            (int) $event->id,
+            optional_param('message', '', PARAM_TEXT),
+            (int) $USER->id,
+            (bool) $tell
+        );
+        redirect($file, get_string($done ? ($tell ? 'give_off_done_told' : 'give_off_done') : 'give_off_late', $c));
     }
     $values = panel_give::posted($centre, time());
     if ($values['error'] === '') {
@@ -96,13 +108,37 @@ if (data_submitted() && confirm_sesskey()) {
                 (bool) $values['tell']
             );
             $sent = $given['sent'];
+            if ($given['again']) {
+                // The same one sent twice: it was already given, and told.
+                redirect($file, get_string('give_done_again', $c));
+            }
         }
-        // Who does it answers the family, with its day in the history; and whether it was told by the centre.
-        households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', get_string($event ? 'give_moved_note' : 'give_note', $c, userdate(
+        $clash = \local_oksigeniaeguahe\local\busy::clash(
+            (int) $centre->id,
+            $values['start'],
+            $values['start'] + $values['minutes'] * MINSECS
+        );
+        $taken = appointments::taken(
+            $centre,
+            (int) $values['guide'],
+            $values['start'],
+            $values['start'] + $values['minutes'] * MINSECS,
+            (int) ($event->id ?? $given['event']->id)
+        );
+        $line = get_string($event ? 'give_moved_note' : 'give_note', $c, userdate(
             $values['start'],
             get_string('strftimedaydatetime', 'langconfig')
-        )));
-        redirect($file, get_string($sent ? 'give_done_told' : ($values['tell'] ? 'give_done_untold' : 'give_done'), $c));
+        ));
+        if (!$event && ($sent || $given['asked'])) {
+            // Who gives what it asked for, or writes to it, answers the family, with its day in the history.
+            households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', $line);
+        } else {
+            // Changing one, or giving one without telling it, does not answer what else it asked.
+            households::told($household, (int) $USER->id, $sent ? 'email' : 'other', $line);
+        }
+        $late = \local_oksigeniaeguahe\local\calsync::stopped($centre, time());
+        redirect($file, implode(' ', array_filter([get_string($sent ? 'give_done_told' : ($values['tell'] ? 'give_done_untold' : 'give_done'), $c),
+            $taken, $clash, $late])));
     }
 }
 panel::output($centre, 'inbox', get_string('give_title', $c), 'panel_give', panel_give::context(

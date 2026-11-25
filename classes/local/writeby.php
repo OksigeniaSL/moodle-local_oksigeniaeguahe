@@ -176,6 +176,13 @@ class writeby {
         if (in_array($kind, self::MUSTKNOW, true) || !array_intersect($ways, self::joined_on($household, $centre))) {
             return true;
         }
+        if (
+            isset(messaging::NOTICES[$kind]) && (in_array((int) $household->id, messaging::$bymail, true) ||
+                !messaging::reaches($household, $centre, $kind))
+        ) {
+            // The phone is joined, and this notice does not go out there: by email, or nothing would reach them.
+            return true;
+        }
         return !isset(messaging::NOTICES[$kind]) && $kind !== 'writeby' && $kind !== 'openinvite';
     }
 
@@ -335,10 +342,11 @@ class writeby {
      *
      * @param \stdClass $household
      * @param \stdClass $centre
-     * @return array joined, asked, declined and ends (the last three digits of the phone it is asked on).
+     * @return array joined, asked, declined, ends (the last three digits of the phone it is asked on), numbers (the phones
+     *     joined, when Marandu says which) and failed (the question could not be sent to that phone).
      */
     public static function whatsapp(\stdClass $household, \stdClass $centre): array {
-        $out = ['joined' => false, 'asked' => 0, 'declined' => 0, 'ends' => ''];
+        $out = ['joined' => false, 'asked' => 0, 'declined' => 0, 'ends' => '', 'numbers' => null, 'failed' => false];
         if (messaging::mode($centre) === 'off' || !method_exists('\local_oksigeniamarandu\api', 'ask_to_join')) {
             return $out;
         }
@@ -348,7 +356,51 @@ class writeby {
             return $out;
         }
         return $info ? ['joined' => !empty($info['joined']), 'asked' => (int) ($info['asked'] ?? 0),
-            'declined' => (int) ($info['declined'] ?? 0), 'ends' => substr(self::ask_phone($household, $centre), -3)] : $out;
+            'declined' => (int) ($info['declined'] ?? 0), 'ends' => substr(self::ask_phone($household, $centre), -3),
+            'numbers' => isset($info['numbers']) ? array_map('strval', (array) $info['numbers']) : null,
+            'failed' => !empty($info['failed'])] : $out;
+    }
+
+    /**
+     * Whether the phone of the file is joined: another one of theirs may be, the one they had before.
+     *
+     * @param array $state As whatsapp() gives it.
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return bool
+     */
+    protected static function phone_joined(array $state, \stdClass $household, \stdClass $centre): bool {
+        return $state['joined'] && ($state['numbers'] === null ||
+            in_array(self::ask_phone($household, $centre), $state['numbers'], true));
+    }
+
+    /**
+     * A phone of a family has joined: when it is the new one it was asked on, the old one it had joined before lets go.
+     *
+     * @param int $householdid
+     * @param string $channel whatsapp or telegram.
+     */
+    public static function joined(int $householdid, string $channel): void {
+        global $DB;
+        $household = $channel === 'whatsapp' ? $DB->get_record(households::T, ['id' => $householdid]) : null;
+        $centre = $household ? centres::get((int) $household->centreid) : null;
+        $old = trim((string) ($household->swapphone ?? ''));
+        if (!$centre || $old === '' || !method_exists('\local_oksigeniamarandu\api', 'unlink_number')) {
+            return;
+        }
+        $state = self::whatsapp($household, $centre);
+        $new = self::ask_phone($household, $centre);
+        if ($new === '' || $state['numbers'] === null || !in_array($new, $state['numbers'], true)) {
+            return;
+        }
+        $DB->set_field(households::T, 'swapphone', null, ['id' => $household->id]);
+        foreach (array_diff(explode(',', $old), [$new]) as $number) {
+            try {
+                \local_oksigeniamarandu\api::unlink_number(messaging::COMPONENT, (int) $household->id, $number);
+            } catch (\Throwable $e) {
+                debugging('Eguahe: an old phone was not let go: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
     }
 
     /**
@@ -375,8 +427,8 @@ class writeby {
     }
 
     /**
-     * Whether a family that has just marked WhatsApp on its page can be asked there, with one touch: it gave its phone, it
-     * has not joined and was not asked before. Only for its own touch of a moment ago: never because a page is opened, nor
+     * Whether a family that has just marked WhatsApp on its page can be asked there, with one touch: it gave its phone, that
+     * phone has not joined (another one may have, which it had before) and was not asked before. Only for its own touch of a moment ago: never because a page is opened, nor
      * for what the team notes.
      *
      * @param \stdClass $household
@@ -398,7 +450,7 @@ class writeby {
         $state = self::whatsapp($household, $centre);
         $time = (int) $household->writebytime;
         // Said no, or never answered for a week, and now marks it again: it is asked again (Marandu says how often).
-        return !$state['joined'] && (!$state['asked'] || ($state['asked'] < $now - WEEKSECS && $time > $state['asked'])) &&
+        return !self::phone_joined($state, $household, $centre) && (!$state['asked'] || ($state['asked'] < $now - WEEKSECS && $time > $state['asked'])) &&
             (!$state['declined'] || $state['declined'] < $time);
     }
 
@@ -415,6 +467,12 @@ class writeby {
             return '';
         }
         \cache::make('local_oksigeniaeguahe', 'writebyconfirm')->set('ask_' . (int) $household->id, time());
+        $state = self::whatsapp($household, $centre);
+        if ($state['joined'] && $state['numbers']) {
+            // Another phone of theirs is joined: kept, to let go of it once the new one says yes.
+            global $DB;
+            $DB->set_field(households::T, 'swapphone', \core_text::substr(implode(',', $state['numbers']), 0, 255), ['id' => $household->id]);
+        }
         try {
             $answer = (string) \local_oksigeniamarandu\api::ask_to_join(
                 messaging::COMPONENT,
@@ -829,7 +887,11 @@ class writeby {
             // The phones marked and not joined yet: one step is left, a button for each.
             $joins = [];
             $joined = self::joined_on($household, $centre);
-            $state = in_array('whatsapp', $ways, true) ? self::whatsapp($household, $centre) : ['asked' => 0, 'ends' => ''];
+            $state = in_array('whatsapp', $ways, true) ? self::whatsapp($household, $centre) : ['asked' => 0, 'ends' => '', 'failed' => false];
+            if (!empty($state['failed'])) {
+                // It could not go out to that phone: said, with its button.
+                $state['asked'] = 0;
+            }
             foreach (self::join_links($household, $centre, $ways) as $channel => $link) {
                 $query = [];
                 parse_str((string) parse_url($link, PHP_URL_QUERY), $query);
@@ -869,6 +931,10 @@ class writeby {
                     $text .= ' ' . $str('pub_writeby_none_act', (object) ['event' => format_string($act->eventname),
                         'date' => publicpage::date_parts((int) $act->timestart, $lang)['long']]);
                 }
+            } else if (!empty($state['failed'])) {
+                // The question did not go out to their phone: what they can do.
+                $context['title'] = $str('pub_known_failed', $state['ends']);
+                $text = $str('pub_known_failed_text');
             } else if ($state['asked']) {
                 // Asked on WhatsApp: one touch there; with Telegram to join too, its step below.
                 $context['title'] = $str('pub_known_asked');
@@ -959,7 +1025,8 @@ class writeby {
             'address' => $channels[0] === 'email' ? households::recipient($household) : '',
         ] : false;
         if ($only) {
-            $context['title'] = $str('pub_writeby_only_title_' . $channels[0]);
+            // Whoever asked not to be written to is asked whether they are again; the others are told.
+            $context['title'] = $str((self::silent($household) ? 'pub_writeby_q_again_' : 'pub_writeby_only_title_') . $channels[0]);
             $context['nowpill'] = false;
             $marked = $channels;
         }
@@ -977,14 +1044,19 @@ class writeby {
                 $channels
             ),
             'icon' => self::icon('check'),
-            'button' => $marked ? $str('pub_writeby_save') : $str('pub_writeby_pick_one'),
+            'button' => $only && self::silent($household) ? $str('pub_writeby_yes_again_' . $channels[0]) :
+                ($marked ? $str('pub_writeby_save') : $str('pub_writeby_opt_none')),
             'save' => $str('pub_writeby_save'),
-            'nobox' => $str('pub_writeby_pick_one'),
+            'nobox' => $str('pub_writeby_opt_none'),
+            // What the page says once a box is touched: no longer what was pressed in a mail.
+            'picktitle' => $str('pub_writeby_pick_title'),
+            'pickmeans' => $str('pub_writeby_means_pick'),
             'next' => array_diff(array_intersect($marked, self::PHONES), self::joined_on($household, $centre)) ?
                 $str('pub_writeby_next') : '',
         ];
         // Beside the boxes, «do not write to us any more»; not when the boxes already say it (nothing left marked).
-        $context['nonebutton'] = $marked ? ['icon' => self::icon('none'), 'label' => $str('pub_writeby_opt_none'),
+        // Nor for whoever asked for it already: it is how they are.
+        $context['nonebutton'] = $marked && !self::silent($household) ? ['icon' => self::icon('none'), 'label' => $str('pub_writeby_opt_none'),
             'ask' => $str('pub_writeby_or_none'), 'small' => $str('pub_writeby_none_small')] : false;
         return $context;
     }
@@ -1036,6 +1108,11 @@ class writeby {
                     get_string('channel_' . $channel, 'local_oksigeniaeguahe')
                 ));
             }
+            return;
+        }
+        if (!$out && messaging::said_no($householdid, $channel)) {
+            // It joined the messages of another plugin (the canteen): it still says no to what admissions sends, and nothing
+            // of what it chose here changes.
             return;
         }
         $now = self::now($household, $centre);

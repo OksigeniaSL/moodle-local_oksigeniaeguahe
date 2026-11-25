@@ -225,6 +225,29 @@ class chatpanel {
     }
 
     /**
+     * The next appointment of a family: of Eguahe, or of the sheet the team keeps.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $full households::full()
+     * @param int $now
+     * @return array|null start, dayonly, title and act (whether it is a talk or a party, not a visit).
+     */
+    public static function next(\stdClass $household, \stdClass $full, int $now): ?array {
+        $acts = [];
+        foreach ($full->signups as $signup) {
+            $acts[(int) $signup->eventid] = actmail::is($signup);
+        }
+        foreach (appointments::of($household, $now) as $one) {
+            // A day without its hour is still to come on that day.
+            if ($one['state'] === 'coming' && ((int) $one['start'] > $now || $one['dayonly'])) {
+                return ['start' => (int) $one['start'], 'dayonly' => (bool) $one['dayonly'], 'title' => $one['title'],
+                    'act' => !empty($acts[(int) $one['eventid']])];
+            }
+        }
+        return null;
+    }
+
+    /**
      * A household of Eguahe as the chat shows it.
      *
      * @param \stdClass $centre
@@ -255,15 +278,13 @@ class chatpanel {
         }
         $kind = $asking && $incentre ? 'both' : ($incentre ? 'centre' : (!empty($household->guest) ? 'guest' : 'asking'));
         $next = false;
-        foreach ($full->signups as $signup) {
-            $start = (int) $signup->timestart;
-            if ($start > $now && empty($signup->attended)) {
-                $next = ['nexttitle' => get_string(actmail::is($signup) ? 'chat_next_act' : 'chat_next_title', 'local_oksigeniaeguahe'),
-                    'weekday' => rtrim(userdate($start, '%a'), '.'), 'day' => userdate($start, '%d', 99, false),
-                    'month' => rtrim(userdate($start, '%b'), '.'), 'event' => format_string($signup->eventname),
-                    'when' => self::upper(userdate($start, '%A')) . ', ' . panel::hour($start)];
-                break;
-            }
+        $coming = self::next($household, $full, $now);
+        if ($coming) {
+            $start = (int) $coming['start'];
+            $next = ['nexttitle' => get_string($coming['act'] ? 'chat_next_act' : 'chat_next_title', $c),
+                'weekday' => rtrim(userdate($start, '%a'), '.'), 'day' => userdate($start, '%d', 99, false),
+                'month' => rtrim(userdate($start, '%b'), '.'), 'event' => $coming['title'],
+                'when' => self::upper(userdate($start, '%A')) . ($coming['dayonly'] ? '' : ', ' . panel::hour($start))];
         }
         $waiting = false;
         if ($since = (int) $household->waitingsince) {

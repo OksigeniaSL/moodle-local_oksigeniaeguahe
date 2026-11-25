@@ -120,19 +120,19 @@ class chatcontext {
         $lines[] = get_string($asking && $incentre ? 'chatctx_both' : ($incentre ? 'chatctx_incentre' : 'chatctx_asking'), $c);
 
         // The visits: the ones they came to and the next one.
-        $next = null;
-        foreach ($full->signups as $signup) {
-            $start = (int) $signup->timestart;
-            if (!empty($signup->attended)) {
-                $lines[] = get_string('chatctx_came', $c, (object) ['event' => format_string($signup->eventname),
-                    'day' => panel::day_hour($start)]);
-            } else if ($start > $now && !$next) {
-                $next = $signup;
+        // Those of the sheet the team keeps too: whoever has one is not offered another.
+        $when = fn(int $start, bool $dayonly) => $dayonly ? userdate($start, get_string('strftimedaydate', 'langconfig')) :
+            panel::day_hour($start);
+        foreach (appointments::of($household, $now) as $one) {
+            if ($one['state'] === 'came') {
+                $lines[] = get_string('chatctx_came', $c, (object) ['event' => $one['title'],
+                    'day' => $when((int) $one['start'], (bool) $one['dayonly'])]);
             }
         }
+        $next = chatpanel::next($household, $full, $now);
         if ($next) {
-            $lines[] = get_string('chatctx_next', $c, (object) ['event' => format_string($next->eventname),
-                'day' => panel::day_hour((int) $next->timestart)]);
+            $lines[] = get_string('chatctx_next', $c, (object) ['event' => $next['title'],
+                'day' => $when($next['start'], $next['dayonly'])]);
         }
 
         // What the team has to know before writing.

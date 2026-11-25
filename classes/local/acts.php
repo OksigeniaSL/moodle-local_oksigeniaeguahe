@@ -476,6 +476,19 @@ class acts {
     }
 
     /**
+     * What an act is about, in the middle of a sentence: «sobre el sueño de los niños», though it was written with a capital;
+     * a name keeps its own.
+     *
+     * @param \stdClass $act
+     * @return string
+     */
+    public static function topic(\stdClass $act): string {
+        $topic = format_string(trim((string) ($act->topic ?? '')), true, ['escape' => false]);
+        $articles = '/^(El|La|Los|Las|Un|Una|Lo|Cómo|Qué|Por qué|Cuándo|The|A|An|How|What|Why|O|Os|As|Um|Uma|Como|Que|Porque)\s/u';
+        return preg_match($articles, $topic) ? \core_text::strtolower(\core_text::substr($topic, 0, 1)) . \core_text::substr($topic, 1) : $topic;
+    }
+
+    /**
      * The first sentence of the letter: when, who and what about.
      *
      * @param \stdClass $act
@@ -527,7 +540,7 @@ class acts {
         // It begins a paragraph, whatever it begins with in each language.
         $lead = \core_text::strtoupper(\core_text::substr($lead, 0, 1)) . \core_text::substr($lead, 1);
         if ($topic !== '') {
-            return $lead . publiclang::str('mail_letter_about', $lang, format_string($topic, true, ['escape' => false])) . '.';
+            return $lead . publiclang::str('mail_letter_about', $lang, self::topic($act)) . '.';
         }
         return $named !== '' ? $lead . publiclang::str('mail_letter_named', $lang, $named) : $lead . '.';
     }

@@ -147,6 +147,8 @@ class provider implements
             'privacy:metadata:preference:density'
         );
         $collection->add_user_preference('local_oksigeniaeguahe_helpskin', 'privacy:metadata:preference:helpskin');
+        $collection->add_user_preference(\local_oksigeniaeguahe\local\panel_agenda::PREF, 'privacy:metadata:preference:agendaview');
+        $collection->add_user_preference(\local_oksigeniaeguahe\local\busy::PREF, 'privacy:metadata:preference:behind');
         return $collection;
     }
 
@@ -164,6 +166,19 @@ class provider implements
                 $density,
                 get_string('privacy:metadata:preference:density', 'local_oksigeniaeguahe')
             );
+        }
+        foreach (
+            [\local_oksigeniaeguahe\local\panel_agenda::PREF => 'agendaview', \local_oksigeniaeguahe\local\busy::PREF => 'behind'] as $name => $said
+        ) {
+            $value = get_user_preferences($name, null, $userid);
+            if ($value !== null) {
+                writer::export_user_preference(
+                    'local_oksigeniaeguahe',
+                    $name,
+                    (string) $value,
+                    get_string('privacy:metadata:preference:' . $said, 'local_oksigeniaeguahe')
+                );
+            }
         }
         $skin = get_user_preferences('local_oksigeniaeguahe_helpskin', null, $userid);
         if ($skin !== null) {

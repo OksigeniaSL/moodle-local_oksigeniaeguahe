@@ -502,7 +502,8 @@ class access {
             'nowhere' => false, 'back' => ['url' => $action, 'label' => $str('pub_code_back')]];
         if (!$emails) {
             // Without an email, the centre does it with them.
-            $out['text'] = $str('pub_code_none');
+            // One changed on the page in the last days is theirs, and the code does not go there yet.
+            $out['text'] = $str(self::emails($household) ? 'pub_code_recent' : 'pub_code_none');
             $out['nowhere'] = publicpage::reach($centre, $lang);
             return $out;
         }

@@ -64,16 +64,30 @@ if (data_submitted()) {
         [$changes, $reached] = panel_eventform::changes($centre, $old, $values);
         if ($changes && $notify < 0) {
             // Nothing is saved or sent before the team sees what reaches the families.
-            $notice = panel_eventform::notice($centre, $changes, $reached, $values);
+            $notice = panel_eventform::notice($centre, $changes, $reached, $values, $old);
         } else {
+            $before = $id ? events::get((int) $id, (int) $centre->id) : null;
+            $letters = $before && $notify > 0 && optional_param('letters', 0, PARAM_BOOL) ?
+                array_keys(\local_oksigeniaeguahe\local\invites::with_letter($before)) : [];
             $saved = events::save((int) $centre->id, panel_eventform::data($values, $old));
             $good = panel_eventform::pictures($saved, $values);
             $told = $changes && $notify > 0 ? panel_eventform::tell(
                 $centre,
                 events::get($saved, (int) $centre->id),
                 $reached,
-                (int) $USER->id
+                (int) $USER->id,
+                $old
             ) : 0;
+            if ($changes && $letters) {
+                // And those that have its letter with the day it had, a few at a time.
+                \local_oksigeniaeguahe\task\tell_invited::queue(
+                    events::get($saved, (int) $centre->id),
+                    'change',
+                    '',
+                    (int) $USER->id,
+                    $letters
+                );
+            }
             redirect(
                 new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $saved] + ($id ? [] : ['nuevo' => 1])),
                 !$good ? get_string('event_picture_no', $c) : ($told ? get_string(

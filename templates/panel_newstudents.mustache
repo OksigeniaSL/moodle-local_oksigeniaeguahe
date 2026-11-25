@@ -134,7 +134,7 @@
             <ol class="an-campanas">
                 {{#campaigns}}
                 <li class="an-campana{{#act}} an-acto{{/act}}">
-                    <p class="an-campana-cab"><b>{{label}}</b><span>{{when}}</span>{{#act}}<span class="an-sello-acto">{{#str}}panel_new_act, local_oksigeniaeguahe{{/str}}</span>{{/act}}</p>
+                    <p class="an-campana-cab"><b>{{label}}</b><span>{{when}}</span>{{#act}}<span class="an-sello-acto">{{word}}</span>{{/act}}</p>
                     <ol class="an-camino">
                         <li><button type="button" class="an-toque" data-explica="{{ex.contacts}}"><b>{{contacts}}</b><span>{{steplabel}}{{#centrenote}}<span class="con"> · {{centrenote}}</span>{{/centrenote}}</span></button></li>
                         {{#centre}}<li class="an-resta sin"><button type="button" class="an-toque" data-explica="{{ex.centre}}"><b><span class="sin">−</span>{{centre}}</b><span>{{#str}}panel_new_were_centre, local_oksigeniaeguahe{{/str}}</span></button></li>
@@ -193,7 +193,7 @@
         <div class="an-heroe an-heroe-doble">
             <button type="button" class="an-toque" data-explica="{{exjoins}}"><b class="an-mas">+{{joins}}</b><span>{{#str}}panel_new_joins, local_oksigeniaeguahe{{/str}}</span></button>
             <button type="button" class="an-toque" data-explica="{{exleaves}}"><b class="an-menos">−{{leaves}}</b><span>{{#str}}panel_new_leaves, local_oksigeniaeguahe{{/str}}</span></button>
-            <p class="an-tendencia">{{trend}}</p>
+            <p class="an-tendencia">{{trend}}{{#undated}} {{.}}{{/undated}}</p>
         </div>
         <div class="an-cuerpo">
             <div class="an-mueve-dibujo">

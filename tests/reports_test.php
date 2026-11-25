@@ -20,8 +20,10 @@ use local_oksigeniaeguahe\local\ai;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\panel_report;
 use local_oksigeniaeguahe\local\report_ai;
+use local_oksigeniaeguahe\local\report_data;
 use local_oksigeniaeguahe\local\reports;
 use local_oksigeniaeguahe\task\make_reports;
 
@@ -247,5 +249,37 @@ final class reports_test extends \advanced_testcase {
         $future = array_filter($cold->data['pace']['rows'], fn($r) => $r['future']);
         $this->assertNotEmpty($future);
         $this->assertFalse(reset($future)['n']);
+    }
+
+    /**
+     * Without a campaign before, nothing is known of what may come: no course is said to be left with free places; a family
+     * in two files and in Eguahe is one; and the children of families of the centre are told apart.
+     */
+    public function test_nothing_made_up(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer = centres::save_offer($id, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 2, 'active' => 1]);
+        $centre = centres::get($id);
+        $now = time();
+        [$from, $to] = reports::current($centre, 'hot', $now);
+        $new = $this->family($id, $offer, $from + 60);
+        $inside = $this->family($id, $offer, $from + 120);
+        $DB->set_field(households::T, 'incentre', 1, ['id' => $inside->id]);
+        foreach ([$new, $inside] as $family) {
+            households::set_stage($DB->get_record(households::CHILDREN, ['householdid' => $family->id]), 'enrolled');
+        }
+        $DB->set_field(households::ADULTS, 'phone', '+34600112299', ['householdid' => $new->id]);
+        foreach (['Anuncios', 'Jornada de otoño'] as $label) {
+            $path = make_request_directory() . '/l' . random_string(5) . '.csv';
+            file_put_contents($path, "date,Teléfono,platform,campaign_name\n" . userdate($from + 30, '%Y-%m-%d', 99, false) . ",+34600112299,ig,A\n");
+            imports::import_file($id, $path, 'c.csv', [0 => ['kind' => 'contacts', 'label' => $label, 'schoolyear' => '', 'partial' => 0]], 2);
+        }
+        $data = report_data::build($centre, 'hot', $from, $to, time() + 5);
+        $figures = array_column($data['figures'], null, 'key');
+        $this->assertSame(['1', '1'], [$figures['arrived']['value'], $figures['enrolled']['value']]);
+        $this->assertSame(get_string('report_enrolled_centre_one', 'local_oksigeniaeguahe', 1), $figures['enrolled']['note']);
+        $this->assertNotContains('course', array_column($data['attention'], 'kind'));
     }
 }

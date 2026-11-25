@@ -99,7 +99,7 @@ class panel_event {
                 // Their drawing, asked for while they are young; one already sent is always seen.
                 $hasdrawing = (bool) drawings::file((int) $child->id);
                 $draws = $hasdrawing || ages::young_course($child->offer ? (string) $child->offer->name : '', $centre);
-                $children[] = ['tag' => panel::tag($child), 'course' => $child->offer ? format_string($child->offer->name) :
+                $children[] = ['tag' => panel::called($child), 'course' => $child->offer ? format_string($child->offer->name) :
                     get_string('panel_nocourse', $c),
                     'drawingurl' => $canact && $draws ? (new \moodle_url(
                         '/local/oksigeniaeguahe/drawing.php',
@@ -116,7 +116,7 @@ class panel_event {
                 // Apart from the families of the admissions: those of the centre, its team, and whoever only comes to this.
                 'aside' => self::aside($signup->household, $centre),
                 'came' => $arrived,
-                'cametext' => $arrived ? get_string('panel_came_at', $c, panel::hour((int) $signup->attended)) :
+                'cametext' => $arrived ? get_string($canact ? 'panel_came_at_undo' : 'panel_came_at', $c, panel::hour((int) $signup->attended)) :
                     get_string('panel_came_button', $c),
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $signup->householdid]))->out(false),
                 'search' => \core_text::strtolower(panel::adults_line($signup->household->adults) . ' ' .
@@ -258,10 +258,15 @@ class panel_event {
             'canact' => $canact,
             'addurl' => $canact && !$tailored && !$family ? (new \moodle_url(
                 '/local/oksigeniaeguahe/edit.php',
-                ['c' => $centre->id, 'eventid' => $event->id]
+                // Without signing up: at the door, short, and back to it.
+                ['c' => $centre->id, 'eventid' => $event->id] + ((int) $event->timeend > $now && panel::days_between((int) $event->timestart, $now) >= 0 ?
+                    ['puerta' => 1] : [])
             ))->out(false) : '',
             'action' => $url->out(false),
             'sesskey' => sesskey(),
+            // The clock of the site, in seconds of the day: what is marked here says its hour.
+            'reloj' => (int) userdate($now, '%H', 99, false) * HOURSECS + (int) userdate($now, '%M', 99, false) * MINSECS +
+                (int) userdate($now, '%S', 99, false),
             'nowturn' => $nowturn,
             'checkurl' => !$tailored && !$family ? (new \moodle_url($url, ['check' => 1]))->out(false) : '',
             'checkevery' => 30,
@@ -305,6 +310,13 @@ class panel_event {
                 'id' => $event->id]))->out(false) : '',
             // Calling it off, before it happens: the families are told and nothing more goes out for it.
             'cancel' => $canact && !(int) ($event->cancelled ?? 0) && (int) $event->timeend >= $now,
+            // Those that have its letter and are not signed up, to be told too if it is called off.
+            'letters' => $canact && !(int) ($event->cancelled ?? 0) && (int) $event->timeend >= $now &&
+                ($letters = count(invites::with_letter($event))) ? get_string(
+                    $letters === 1 ? 'event_cancel_letters_one' : 'event_cancel_letters',
+                    $c,
+                    $letters
+                ) : '',
             'cancelled' => (int) ($event->cancelled ?? 0) ? get_string(
                 'event_cancelled_on',
                 $c,
@@ -494,6 +506,8 @@ class panel_event {
             'said' => $state ? (string) ($state['said'] ?? '') : '',
             'withdraw' => $state && ($state['status'] ?? '') === 'pending' && $canact ? ['bulk' => $bulk] : false,
             // Those that have not gone out yet, and until when they will be going.
+            // Those that were on their way and did not go, and why.
+            'skipped' => invites::skipped((int) $event->id),
             'going' => $left ? ['text' => self::invite_left($left, invites::last_at($left, max($now, $next)), $now),
                 'stop' => $canact] : false,
             'notice' => invites::said((int) $event->id),
@@ -582,6 +596,7 @@ class panel_event {
         string $group = '',
         bool $check = false
     ) {
+        global $USER;
         $now = $now ?: time();
         if (!invites::fits($event, $now)) {
             return false;
@@ -652,6 +667,11 @@ class panel_event {
                 ))))];
         }
         usort($whom, fn($a, $b) => strcoll(\core_text::strtolower($a['name']), \core_text::strtolower($b['name'])));
+        // Looked over before it goes: how each family is greeted, what looks wrong, who gets none and why.
+        $review = $check && $canact && $n ? invitecheck::of($event, $centre, $chosen, (int) $USER->id, $now) : false;
+        foreach ($review ? $whom : [] as $i => $one) {
+            $whom[$i]['greeting'] = $review['greetings'][$one['id']] ?? '';
+        }
         $text = [get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', $c, $can)];
         if ($phones($all)) {
             $text[] = get_string('panel_invite_ways', $c, (object) ['email' => $mails($all), 'phone' => count($phones($all))]);
@@ -689,6 +709,7 @@ class panel_event {
                 'slow' => $mails($chosen) > invites::BATCH ? get_string('panel_invite_slow', $c, (object) [
                     'n' => (int) round(invites::BATCH * HOURSECS / invites::PAUSE), 'from' => invites::DAYTIME[0],
                     'until' => invites::DAYTIME[1]]) : '',
+                'review' => $review,
                 'going' => array_values(array_filter($whom, fn($w) => $w['checked'])),
                 'back' => $here($group !== '' ? ['gusto' => $group] : [])] : false,
         ];

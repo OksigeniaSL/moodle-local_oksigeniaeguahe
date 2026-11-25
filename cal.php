@@ -27,6 +27,7 @@
 define('NO_MOODLE_COOKIES', true);
 require(__DIR__ . '/../../config.php');
 
+use local_oksigeniaeguahe\local\calsync;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\teamcalendar;
 
@@ -36,6 +37,29 @@ $format = optional_param('f', '', PARAM_ALPHA);
 $centre = $centreid ? centres::get($centreid) : null;
 if (!$centre || !empty($centre->practice) || !teamcalendar::key_ok($centreid, $key)) {
     http_response_code(404);
+    die();
+}
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    // The script of the calendar: what there is in it, and what it has to do.
+    $body = (string) file_get_contents('php://input', false, null, 0, teamcalendar::MAXBYTES + 1);
+    $said = strlen($body) <= teamcalendar::MAXBYTES ? json_decode($body, true) : null;
+    @header('Cache-Control: no-store');
+    @header('Content-Type: application/json; charset=utf-8');
+    if (!is_array($said)) {
+        http_response_code(400);
+        die();
+    }
+    // One at a time: two runs at once would both create the same one.
+    $lock = \core\lock\lock_config::get_lock_factory('local_oksigeniaeguahe_calsync')->get_lock('centre' . $centreid, 5);
+    if (!$lock) {
+        http_response_code(409);
+        die();
+    }
+    try {
+        echo json_encode(calsync::receive($centre, $said, time()), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } finally {
+        $lock->release();
+    }
     die();
 }
 $items = teamcalendar::items($centre);

@@ -77,4 +77,24 @@ final class phone_test extends \basic_testcase {
         $this->assertSame('+55 11 912 345 678', phone::display('+5511912345678'));
         $this->assertSame('612', phone::display('612'), 'Not a number in E.164: as it is.');
     }
+
+    /**
+     * A digit missing, or a number of another country without its «+», is not taken for one nobody has.
+     */
+    public function test_wrong_length(): void {
+        $this->assertNull(phone::normalise('60070001', 'ES'));
+        $this->assertNull(phone::normalise('595981123456', 'ES'));
+        $this->assertNull(phone::normalise('123456', 'ES'));
+        $this->assertSame('+34600333444', phone::normalise('34600333444', 'ES'), 'With its code and without the «+».');
+        $this->assertSame('+595981123456', phone::normalise('+595 981 123 456', 'ES'));
+    }
+
+    /**
+     * Two in one place, or one with a word beside it: the first that can be called.
+     */
+    public function test_first_in(): void {
+        $this->assertSame('+34600111222', phone::first_in('600 111 222 (madre)', 'ES'));
+        $this->assertSame('+34600111222', phone::first_in('madre 600111222 / padre 600333444', 'ES'));
+        $this->assertNull(phone::first_in('sin teléfono', 'ES'));
+    }
 }

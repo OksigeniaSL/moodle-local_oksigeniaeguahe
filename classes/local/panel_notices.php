@@ -80,6 +80,9 @@ class panel_notices {
             case 'sent':
                 $text = get_string('notice_sent_' . $one['channel'], self::C, panel::when_words($one['at'], $now));
                 break;
+            case 'inqueue':
+                $text = get_string('notice_inqueue', self::C, panel::when_words($one['at'], $now));
+                break;
             case 'queued':
                 $text = get_string('notice_queued', self::C, panel_agenda::day($one['due']));
                 break;

@@ -118,7 +118,7 @@ class appnotices {
      */
     public static function visit_tomorrow(\stdClass $household, \stdClass $centre, \stdClass $signup): int {
         $hour = publicpage::date_parts((int) $signup->timestart, $household->lang ?: ($centre->lang ?: 'es'))['hour'];
-        $a = (object) ['event' => format_string((string) $signup->eventname), 'hour' => $hour];
+        $a = (object) ['event' => format_string(visits::shown((string) $signup->eventname, (string) ($household->lang ?: ($centre->lang ?: 'es')))), 'hour' => $hour];
         return self::send($household, $centre, 'visitsoon', actmail::is($signup) ? 'appnotice_act' : 'appnotice_visit', $a, 'visita');
     }
 

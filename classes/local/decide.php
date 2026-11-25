@@ -38,16 +38,16 @@ class decide {
     const LOOKED = 120 * DAYSECS;
 
     /** @var int The cases a median needs before it is said. */
-    const MIN = 5;
+    const MIN = facts::FEW;
 
     /**
      * What each family of the campaign did, from what Eguahe keeps of it: its words, the acts it came to, its children
      * and their courses, and the past campaigns imported by the centre.
      *
      * @param \stdClass $centre
-     * @param array[] $families Of panel_metrics, with id, first, step and enrolledat; only those of Eguahe count.
+     * @param array[] $families Of facts, with id, first, visits, enrolledat, closed and kids; only those of Eguahe count.
      * @param int $since When this campaign started: what came before is an earlier one.
-     * @return array id => first, words, visits, tovisit and toenrol (days or null), returning, otherchild, latejoin.
+     * @return array id => first, words, visits, answered, tovisit and toenrol (days or null), returning, otherchild, latejoin.
      */
     public static function facts(\stdClass $centre, array $families, int $since): array {
         global $DB;
@@ -56,32 +56,27 @@ class decide {
             return [];
         }
         $words = [];
-        $visits = [];
+        $answered = [];
         $children = [];
-        $keys = [];
         foreach (array_chunk($ids, 500) as $chunk) {
             [$in, $params] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
             $rows = $DB->get_recordset_select(
                 households::CONTACTS,
-                "householdid $in AND direction = 'in' AND channel <> :page",
+                "householdid $in AND channel <> :page AND (direction = 'in' OR (direction = 'out' AND aim IS NULL))",
                 $params + ['page' => lists::PAGE],
-                'timecreated ASC',
-                'id, householdid, timecreated'
+                'timecreated ASC, id ASC',
+                'id, householdid, direction, timecreated'
             );
             foreach ($rows as $row) {
-                $words[(int) $row->householdid][] = (int) $row->timecreated;
+                if ($row->direction === 'in') {
+                    $words[(int) $row->householdid][] = (int) $row->timecreated;
+                } else {
+                    $answered[(int) $row->householdid] = true;
+                }
             }
             $rows->close();
-            $rows = $DB->get_recordset_sql("SELECT s.id, s.householdid, e.timestart
-                                              FROM {" . events::SIGNUPS . "} s
-                                              JOIN {" . events::T . "} e ON e.id = s.eventid
-                                             WHERE s.householdid $in AND s.attended > 0 AND e.kind <> 'other'", $params);
-            foreach ($rows as $row) {
-                $visits[(int) $row->householdid][] = (int) $row->timestart;
-            }
-            $rows->close();
-            $rows = $DB->get_recordset_sql("SELECT c.id, c.householdid, c.stage, c.stagetime, o.id AS offerid, o.schoolyear,
-                                                   o.firstday
+            $rows = $DB->get_recordset_sql("SELECT c.id, c.householdid, c.stage, c.stagetime, c.timecreated, o.id AS offerid,
+                                                   o.schoolyear, o.firstday
                                               FROM {" . households::CHILDREN . "} c
                                          LEFT JOIN {" . centres::OFFERS . "} o ON o.id = c.offerid
                                              WHERE c.householdid $in AND c.roster = 0", $params);
@@ -89,16 +84,10 @@ class decide {
                 $children[(int) $row->householdid][] = $row;
             }
             $rows->close();
-            $rows = $DB->get_recordset_select(households::ADULTS, "householdid $in", $params, '', 'id, householdid, email, phone');
-            foreach ($rows as $row) {
-                $keys[(int) $row->householdid][] = $row->email ? pseudonym::email((string) $row->email) : null;
-                $keys[(int) $row->householdid][] = $row->phone ? pseudonym::phone((string) $row->phone) : null;
-            }
-            $rows->close();
         }
         // The families that left a contact in a campaign imported by the centre, before this one.
         $before = [];
-        $tokens = (new pseudonym((int) $centre->id))->find_each('household', $keys);
+        $tokens = facts::tokens((int) $centre->id, $ids);
         $all = array_values(array_unique(array_merge([], ...array_values($tokens))));
         foreach (array_chunk($all, 500) as $chunk) {
             [$in, $params] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
@@ -121,26 +110,19 @@ class decide {
                 continue;
             }
             $first = min(array_filter([(int) $f['first'], $words[$id][0] ?? 0]));
-            $came = $visits[$id] ?? [];
+            $came = array_values(array_filter($f['visits'] ?? [], fn($t) => $t > 0));
             sort($came);
             $firstvisit = $came ? $came[0] : 0;
             $mine = $children[$id] ?? [];
-            // A child of an earlier school year that was not enrolled, and another one asking later.
-            $years = [];
-            foreach ($mine as $child) {
-                if ((string) $child->schoolyear !== '') {
-                    $years[(string) $child->schoolyear][] = $child->stage;
-                }
-            }
-            ksort($years);
+            // A child that asked before this campaign, for an earlier school year, and was not enrolled; and another one that
+            // asks now. Two children asking at the same time, each for its year, are not that.
             $other = false;
-            $seenopen = false;
-            foreach ($years as $stages) {
-                if ($seenopen) {
-                    $other = true;
-                    break;
+            foreach ($mine as $child) {
+                if ((int) $child->timecreated >= $since || $child->stage === 'enrolled' || (string) $child->schoolyear === '') {
+                    continue;
                 }
-                $seenopen = !in_array('enrolled', $stages, true);
+                $other = $other || (bool) array_filter($mine, fn($k) => $k->id !== $child->id &&
+                    strcmp((string) $k->schoolyear, (string) $child->schoolyear) > 0);
             }
             // Enrolled once its course had started, having come to look months before.
             $late = false;
@@ -154,7 +136,9 @@ class decide {
             $out[$id] = [
                 'first' => $first,
                 'words' => count($words[$id] ?? []),
-                'visits' => count($came),
+                // At least one when it came and the day is not known.
+                'visits' => max(count($came), empty($f['came']) ? 0 : 1),
+                'answered' => !empty($answered[$id]),
                 'tovisit' => $firstvisit && $firstvisit >= $first ? $days($first, $firstvisit) : null,
                 'toenrol' => (int) $f['enrolledat'] > 0 ? $days($first, (int) $f['enrolledat']) : null,
                 'returning' => $first < $since || (bool) array_intersect_key(array_flip($tokens[$id] ?? []), $before),
@@ -171,11 +155,12 @@ class decide {
      * @param array[] $families Of panel_metrics, each with id and step.
      * @param array $facts From facts().
      * @param int $now
-     * @return array n, quiet (families old enough to tell), stayed, multi, multienrolled, once, onceenrolled, tovisit and
-     *     toenrol (lists of days), returning, returningenrolled, otherchild, otherchildenrolled, latejoin.
+     * @return array n, quiet (families old enough to tell, but those that went with their reason), stayed (and, of them,
+     *     unanswered: those nobody of the centre wrote to), multi, multienrolled, once, onceenrolled, tovisit and toenrol (lists
+     *     of days), returning, returningenrolled, otherchild, otherchildenrolled, latejoin.
      */
     public static function add(array $families, array $facts, int $now): array {
-        $out = ['n' => 0, 'quiet' => 0, 'stayed' => 0, 'multi' => 0, 'multienrolled' => 0, 'once' => 0, 'onceenrolled' => 0,
+        $out = ['n' => 0, 'quiet' => 0, 'stayed' => 0, 'unanswered' => 0, 'multi' => 0, 'multienrolled' => 0, 'once' => 0, 'onceenrolled' => 0,
             'tovisit' => [], 'toenrol' => [], 'returning' => 0, 'returningenrolled' => 0, 'otherchild' => 0,
             'otherchildenrolled' => 0, 'latejoin' => 0];
         foreach ($families as $f) {
@@ -183,12 +168,15 @@ class decide {
             if (!$x) {
                 continue;
             }
-            $enrolled = $f['step'] >= 5;
+            $enrolled = !empty($f['enrolled']);
             $out['n']++;
-            if ($x['first'] <= $now - self::QUIET) {
+            if ($x['first'] <= $now - self::QUIET && empty($f['closed'])) {
                 $out['quiet']++;
-                // Nothing after their first word: no other message, no visit, no step, no enrolling.
-                $out['stayed'] += $x['words'] <= 1 && !$x['visits'] && $f['step'] <= 1 && !$enrolled ? 1 : 0;
+                // Nothing after their first word: no other message, no visit, no step, no enrolling. What the centre did is
+                // told too: one that nobody answered did not stay by itself.
+                $stayed = $x['words'] <= 1 && !$x['visits'] && empty($f['came']) && empty($f['applied']) && !$enrolled;
+                $out['stayed'] += $stayed ? 1 : 0;
+                $out['unanswered'] += $stayed && !$x['answered'] ? 1 : 0;
             }
             if ($x['visits'] >= 2) {
                 $out['multi']++;
@@ -246,7 +234,8 @@ class decide {
      */
     public static function summary(\stdClass $centre, array $families, int $since, int $now) {
         $c = self::C;
-        $families = array_values(array_filter($families, fn($f) => (int) ($f['id'] ?? 0) > 0));
+        // Only those that live in Eguahe: a file does not say what they did.
+        $families = array_values(array_filter($families, fn($f) => (int) ($f['id'] ?? 0) > 0 && facts::lives($f + ['sources' => ['eguahe']])));
         $facts = self::facts($centre, $families, $since);
         if (!$facts) {
             return false;
@@ -279,7 +268,8 @@ class decide {
             $visit = self::middle($sum['tovisit']);
             $enrol = self::middle($sum['toenrol']);
             $rows[] = ['name' => $name, 'n' => $sum['n'],
-                'stayed' => $sum['quiet'] ? round(100 * $sum['stayed'] / $sum['quiet']) . ' %' : '—',
+                'stayed' => $sum['quiet'] >= facts::FEW ? panel_metrics::percent($sum['stayed'], $sum['quiet']) :
+                    ($sum['quiet'] ? get_string('panel_resp_of', $c, (object) ['n' => $sum['stayed'], 'of' => $sum['quiet']]) : '—'),
                 'stayedbar' => $sum['quiet'] ? ['p' => $sum['stayed'] ? max(0.03, round($sum['stayed'] / $sum['quiet'], 4)) : 0]
                     : false,
                 'tovisit' => $visit ? get_string('decide_days', $c, $visit['median']) : '—',
@@ -300,8 +290,8 @@ class decide {
             }
         }
         return ['lines' => array_map(fn($l) => ['text' => $l], $lines), 'rows' => $rows, 'groups' => $groups,
-            'figures' => self::figures($all), 'def' => get_string('decide_def', $c, self::QUIET / DAYSECS),
-            'how' => arrival::how(get_string('decide_def', $c, self::QUIET / DAYSECS)), 'fold' => false,
+            'figures' => self::figures($all), 'def' => get_string('decide_def', $c, (object) ['days' => self::QUIET / DAYSECS, 'min' => self::MIN]),
+            'how' => arrival::how(get_string('decide_def', $c, (object) ['days' => self::QUIET / DAYSECS, 'min' => self::MIN])), 'fold' => false,
             'raw' => self::raw($all)];
     }
 
@@ -317,11 +307,9 @@ class decide {
         $c = self::C;
         $out = [];
         if ($sum['quiet']) {
-            $out[] = ['fig' => round(100 * $sum['stayed'] / $sum['quiet']) . ' %', 'text' => get_string(
-                'decide_fig_stayed',
-                $c,
-                (object) ['n' => $sum['stayed'], 'of' => $sum['quiet'], 'days' => self::QUIET / DAYSECS]
-            ), 'ruler' => false];
+            $out[] = ['fig' => $sum['quiet'] >= facts::FEW ? panel_metrics::percent($sum['stayed'], $sum['quiet']) :
+                get_string('panel_resp_of', $c, (object) ['n' => $sum['stayed'], 'of' => $sum['quiet']]), 'text' => self::stayed($sum, 'decide_fig_stayed'),
+                'ruler' => false];
         }
         // The days, on one ruler for both: from 0 to a round number past the longest middle half.
         $mids = [];
@@ -343,9 +331,7 @@ class decide {
                 'mid' => round($m['median'] / $top, 4), 'max' => get_string('decide_days', $c, $top)]];
         }
         if ($sum['multi']) {
-            $out[] = ['fig' => $sum['multi'], 'text' => get_string('decide_fig_multi', $c, (object) [
-                'frac' => panel_metrics::fraction($sum['multienrolled'], $sum['multi']),
-                'oncefrac' => panel_metrics::fraction($sum['onceenrolled'], $sum['once'])]), 'ruler' => false];
+            $out[] = ['fig' => $sum['multi'], 'text' => self::multi($sum, 'decide_fig_multi'), 'ruler' => false];
         }
         foreach (['returning', 'otherchild'] as $key) {
             if ($sum[$key]) {
@@ -369,8 +355,7 @@ class decide {
         $c = self::C;
         $out = [];
         if ($sum['quiet']) {
-            $out[] = get_string('decide_stayed', $c, (object) ['n' => $sum['stayed'], 'of' => $sum['quiet'],
-                'pct' => round(100 * $sum['stayed'] / $sum['quiet']) . ' %', 'days' => self::QUIET / DAYSECS]);
+            $out[] = self::stayed($sum, 'decide_stayed');
         }
         foreach (['tovisit', 'toenrol'] as $key) {
             $m = self::middle($sum[$key]);
@@ -379,9 +364,7 @@ class decide {
             }
         }
         if ($sum['multi']) {
-            $out[] = get_string('decide_multi', $c, (object) ['n' => $sum['multi'],
-                'frac' => panel_metrics::fraction($sum['multienrolled'], $sum['multi']),
-                'oncefrac' => panel_metrics::fraction($sum['onceenrolled'], $sum['once'])]);
+            $out[] = self::multi($sum, 'decide_multi');
         }
         foreach (['returning', 'otherchild'] as $key) {
             if ($sum[$key]) {
@@ -395,6 +378,36 @@ class decide {
     }
 
     /**
+     * Those that stayed in their first word, with how many of them nobody of the centre answered.
+     *
+     * @param array $sum From add().
+     * @param string $key The string.
+     * @return string
+     */
+    protected static function stayed(array $sum, string $key): string {
+        $said = $sum['stayed'] - ($sum['unanswered'] ?? 0);
+        $out = get_string($key, self::C, (object) ['n' => $sum['stayed'], 'of' => $sum['quiet'],
+            'days' => self::QUIET / DAYSECS]);
+        return $out . ($sum['stayed'] ? ' ' . get_string('decide_stayed_split', self::C, (object) ['without' => $sum['unanswered'] ?? 0,
+            'with' => $said]) : '');
+    }
+
+    /**
+     * Those that came more than once, with how many enrolled, against those that came once: only the numbers, with a share
+     * when there are ten or more behind.
+     *
+     * @param array $sum From add().
+     * @param string $key The string.
+     * @return string
+     */
+    protected static function multi(array $sum, string $key): string {
+        $out = get_string($key, self::C, (object) ['n' => $sum['multi'], 'enrolled' => $sum['multienrolled'],
+            'share' => panel_metrics::share($sum['multienrolled'], $sum['multi'], true)]);
+        return $out . ($sum['once'] ? ' ' . get_string('decide_once', self::C, (object) ['n' => $sum['once'],
+            'enrolled' => $sum['onceenrolled'], 'share' => panel_metrics::share($sum['onceenrolled'], $sum['once'], true)]) : '');
+    }
+
+    /**
      * The sum for the AI of the reports, with words for each figure.
      *
      * @param array $sum From add().
@@ -404,7 +417,8 @@ class decide {
         $visit = self::middle($sum['tovisit']);
         $enrol = self::middle($sum['toenrol']);
         return ['families' => $sum['n'], 'old enough to tell (three weeks)' => $sum['quiet'],
-            'stayed in their first word' => $sum['stayed'],
+            'stayed in their first word (but those that went with a reason)' => $sum['stayed'],
+            'of them, those nobody of the centre answered' => $sum['unanswered'] ?? 0,
             'days from the first word to the first visit (median, middle half)' => $visit,
             'days from the first word to enrolling (median, middle half)' => $enrol,
             'came more than once' => $sum['multi'], 'came more than once and enrolled' => $sum['multienrolled'],

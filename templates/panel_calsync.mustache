@@ -1,0 +1,30 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_calsync
+
+    What was moved or deleted in the calendar of the team and nobody has said anything about yet, each with its three ways out.
+
+    Example context (json):
+    {
+        "moved": [{"id": 5, "what": "Ana Ruiz", "text": "En el calendario, la cita de Ana Ruiz pasó del jueves 26 a las 10:00 al viernes 27 a las 11:00.", "deleted": false, "changeurl": "#", "offurl": "#", "keep": true, "action": "#", "sesskey": "abc"}]
+    }
+}}
+<ul class="cal-movidas">{{#moved}}
+    <li class="cal-movida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/>{{#deleted}}<path d="M9.5 13l5 4M14.5 13l-5 4"/>{{/deleted}}{{^deleted}}<path d="M8.5 15h6.5M12.8 12.8L15 15l-2.2 2.2"/>{{/deleted}}</svg><p>{{text}}</p>
+        <div class="cal-salidas">{{#changeurl}}<a class="boton principal pequeno" href="{{changeurl}}">{{#str}}calsync_change, local_oksigeniaeguahe{{/str}}</a>{{/changeurl}}{{#offurl}}<a class="boton secundario pequeno" href="{{offurl}}">{{#str}}calsync_off, local_oksigeniaeguahe{{/str}}</a>{{/offurl}}{{#keep}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="calkeep"><input type="hidden" name="event" value="{{id}}"><button class="boton terciario pequeno" type="submit">{{#str}}calsync_keep, local_oksigeniaeguahe{{/str}}</button></form>{{/keep}}</div></li>
+{{/moved}}</ul>

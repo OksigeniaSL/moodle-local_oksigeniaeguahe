@@ -99,7 +99,7 @@ class panel_renewal {
                     $rows[] = [
                         'id' => (int) $child->id,
                         'kind' => $kind,
-                        'tag' => panel::tag($child),
+                        'tag' => panel::called($child),
                         'adults' => $adults,
                         'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $householdid]))->out(false) .
                             '#sigue-' . (int) $child->id,

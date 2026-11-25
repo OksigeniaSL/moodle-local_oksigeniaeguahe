@@ -201,7 +201,37 @@ class renewal {
                 $out[(int) $child->id] = [$child, $offer, $next[$age + 1]];
             }
         }
-        return $out;
+        return $householdid ? $out : self::once($centre, $out);
+    }
+
+    /**
+     * Each student once: its mother and its father may be two families of the common record, and both are asked, but it is
+     * one child, with the answer of whichever gave it.
+     *
+     * @param \stdClass $centre
+     * @param array $children As children() gives them.
+     * @return array
+     */
+    protected static function once(\stdClass $centre, array $children): array {
+        $by = [];
+        foreach ($children as $id => $row) {
+            $key = trim((string) ($row[0]->studentkey ?? ''));
+            if ($key !== '') {
+                $by[$key][] = $id;
+            }
+        }
+        $twins = array_filter($by, fn($ids) => count($ids) > 1);
+        if (!$twins) {
+            return $children;
+        }
+        $said = self::answers($centre);
+        foreach ($twins as $ids) {
+            $keep = array_values(array_filter($ids, fn($id) => isset($said[$id])))[0] ?? $ids[0];
+            foreach (array_diff($ids, [$keep]) as $id) {
+                unset($children[$id]);
+            }
+        }
+        return $children;
     }
 
     /**
@@ -312,7 +342,7 @@ class renewal {
         if (!self::answer($centre, $household, $childid, $answer, $reason, $note, 0, $now)) {
             return false;
         }
-        $a = (object) ['name' => familypage::label_name($asked[0]) ?: trim((string) $asked[0]->firstname),
+        $a = (object) ['name' => familypage::said_name($asked[0], $lang),
             'year' => (string) $centre->renewalyear, 'course' => format_string($asked[2]->name)];
         if ($answer !== $was) {
             households::received(
@@ -370,7 +400,7 @@ class renewal {
         }
         if ($answer !== $was) {
             households::note($household, $userid, get_string('renewal_noted_' . $answer, 'local_oksigeniaeguahe', (object) [
-                'name' => panel::tag($asked[0]), 'year' => (string) $centre->renewalyear]));
+                'name' => familypage::said_name($asked[0], current_language()), 'year' => (string) $centre->renewalyear]));
         }
         return true;
     }
@@ -416,7 +446,7 @@ class renewal {
         $answers = self::answers($centre, (int) $household->id);
         $date = fn(int $t) => userdate($t, get_string('strftimedate', 'langconfig'));
         foreach ($children as $childid => [$child]) {
-            $name = panel::tag($child);
+            $name = familypage::said_name($child, current_language());
             $row = $answers[$childid] ?? null;
             if ($row && $row->answer === 'leave') {
                 $out[] = ['kind' => 'leave', 'text' => get_string(
@@ -445,7 +475,7 @@ class renewal {
             }
         }
         foreach ($DB->get_records_select(households::CHILDREN, 'householdid = ? AND lefttime > 0', [$household->id]) as $gone) {
-            $out[] = ['kind' => 'left', 'text' => get_string('renewal_sign_left', $c, (object) ['name' => panel::tag($gone),
+            $out[] = ['kind' => 'left', 'text' => get_string('renewal_sign_left', $c, (object) ['name' => familypage::said_name($gone, current_language()),
                 'day' => $date((int) $gone->lefttime)]), 'time' => (int) $gone->lefttime];
         }
         return $out;

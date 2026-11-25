@@ -60,8 +60,8 @@ class panel_start {
                 $adults = panel::adults_line($child->adults);
                 $rows[] = [
                     'id' => (int) $child->id,
-                    'tag' => panel::tag($child),
-                    'name' => (string) $child->firstname,
+                    'tag' => panel::called($child),
+                    'name' => trim((string) $child->firstname) !== '' ? (string) $child->firstname : panel::called($child),
                     'adults' => $adults,
                     'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $child->householdid]))->out(false),
                     'started' => $on,

@@ -90,6 +90,9 @@ class panel_give {
         $agenda = appointments::agenda($centre, $first->getTimestamp(), $to->getTimestamp(), $now);
         $people = households::some((int) $centre->id, array_column($agenda, 'householdid'));
         $closed = workdays::closed($centre);
+        // What there is in the other calendars of the centre, to see that an hour falls on something.
+        $starts = array_map(fn($i) => $first->modify("+$i days")->getTimestamp(), range(0, self::DAYS - 1));
+        $behind = busy::by_day((int) $centre->id, $starts);
         $guide = $values['guide'] ?? ($event ? (int) (array_values(array_filter(explode(',', (string) $event->hosts)))[0] ?? 0) : 0);
         $minutes = $values['minutes'] ?? ($event ? (int) round(($event->timeend - $event->timestart) / MINSECS) : 45);
         $data = [];
@@ -113,11 +116,13 @@ class panel_give {
                 $items[$one['kind'] === 'act' ? 'a' . $one['eventid'] . '-' . $from : $one['id']] = ['from' => $from,
                     'to' => min(1440, $from + (int) round(($one['end'] - $one['start']) / MINSECS)), 'guide' => $one['guideid'], 'what' => $what];
             }
-            $data[$key] = ['open' => $open ? [self::HOURS] : [], 'items' => array_values($items)];
+            $data[$key] = ['open' => $open ? [self::HOURS] : [], 'items' => array_values($items),
+                'behind' => $behind[$day->getTimestamp()] ?? []];
             $days[] = ['key' => $key, 'weekday' => userdate($day->getTimestamp(), '%a'), 'day' => $day->format('j'),
                 'month' => userdate($day->getTimestamp(), '%b'), 'closed' => !$open, 'today' => $i === 0,
                 'when' => get_string('agenda_when', self::C, userdate($day->getTimestamp(), '%A') . ' ' . $day->format('j')),
-                'n' => count($items), 'has' => (bool) $items,
+                'n' => count($items), 'has' => (bool) $items, 'behind' => $data[$key]['behind'],
+                'hasbehind' => (bool) $data[$key]['behind'],
                 'first' => $open ? self::first($data[$key], $minutes, $guide, $i === 0 ? intdiv($now - $first->getTimestamp(), MINSECS) + 60 : 0) : ''];
         }
         $replaces = false;
@@ -151,7 +156,7 @@ class panel_give {
         }
         $children = [];
         foreach ($full->children as $child) {
-            $children[] = ['tag' => panel::tag($child), 'course' => !empty($child->offer) ? format_string($child->offer->name) : ''];
+            $children[] = ['tag' => panel::called($child), 'course' => !empty($child->offer) ? format_string($child->offer->name) : ''];
         }
         return [
             'head' => panel::head(['title' => get_string($off ? 'give_off_title' : ($event ? 'give_move_title' : 'give_title'), self::C),
@@ -170,6 +175,8 @@ class panel_give {
                 'anular' => 1]))->out(false) : '',
             'days' => $days,
             'min' => $min,
+            // The hour it has, or the one that was sent: another day keeps it.
+            'puesta' => $start > 0,
             'data' => json_encode($data, JSON_UNESCAPED_UNICODE),
             'chosenday' => $start ? userdate($start, '%Y-%m-%d', $zone->getName(), false) : '',
             'chosenmin' => $start ? (int) userdate($start, '%H', $zone->getName(), false) * 60 + (int) userdate($start, '%M', $zone->getName(), false) : '',
@@ -189,6 +196,8 @@ class panel_give {
             ) : '', 'why' => $ways && !$silent ? '' : get_string($silent ? 'give_tell_silent' : 'give_tell_none', self::C),
                 'checked' => $values['tell'] ?? (bool) ($ways && !$silent)],
             'replaces' => $replaces,
+            // What the other calendars say is old: an hour that looks free may not be.
+            'stopped' => $off ? '' : calsync::stopped($centre, $now),
             'error' => !empty($values['error']) ? get_string($values['error'], self::C) : '',
         ];
     }
@@ -207,6 +216,11 @@ class panel_give {
             for ($at = max($open, self::FIRST, (int) (ceil($from / 30) * 30)); $at + $minutes <= $close; $at += 30) {
                 $taken = array_filter($day['items'], fn($o) => $o['from'] < $at + $minutes && $o['to'] > $at &&
                     (!$guide || !$o['guide'] || $o['guide'] === $guide));
+                // Better on an hour with nothing else in the calendars of the centre.
+                $taken = $taken ?: array_filter(
+                    $day['behind'] ?? [],
+                    fn($o) => !$o['allday'] && $o['from'] < $at + $minutes && $o['to'] > $at
+                );
                 if (!$taken) {
                     return panel::hour(make_timestamp(2026, 1, 1, intdiv($at, 60), $at % 60));
                 }

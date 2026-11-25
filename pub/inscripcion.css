@@ -275,10 +275,6 @@
     font-size: 1.0625rem;
 }
 
-.unir-cal {
-    margin: 0 0 14px;
-}
-
 .unir-si svg,
 .unir-no svg {
     display: none;
@@ -442,6 +438,24 @@
 }
 
 /* Not of the admission: apart from its ways. */
+.unir-calendario {
+    margin: 4px 0 0;
+}
+
+.unir-calendario a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--c-acento-texto);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.unir-calendario[hidden] {
+    display: none;
+}
+
 .unir-eventos {
     display: flex;
     gap: 12px;

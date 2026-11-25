@@ -1,0 +1,68 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_outs
+
+    In the file of a family: that it went or never was one, with who and why, and taking it back; or the reasons to say it, one touch
+    each, in two groups and by what they stop; and what the notes of the team suggest.
+
+    Example context (json):
+    {
+        "is": false, "canact": true, "action": "#", "sesskey": "abc", "ahead": "",
+        "proposal": {"reason": "mistake", "name": "Se equivocó", "text": "Dicen que se equivocaron de formulario", "when": "12 nov", "stops": "Deja de recibir todo"},
+        "groups": [{"key": "left", "name": "Eran una familia y se retiran", "stops": [{"name": "Deja de recibir todo", "reasons": [{"value": "notinterested",
+            "name": "No le interesa"}]}]}]
+    }
+}}
+<div class="salida" id="salida">
+    {{#is}}
+    <p class="salida-dicha"><b>{{title}}: {{reason}}</b>{{#note}} «{{note}}»{{/note}}<br><span class="secundario">{{when}} · {{stops}}</span></p>
+    {{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="outundo"><button class="enlace" type="submit">{{#str}}out_undo, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
+    {{/is}}
+    {{^is}}
+    {{#proposal}}
+    <div class="aviso-suave salida-propuesta"><span>{{#str}}out_proposal, local_oksigeniaeguahe{{/str}} «{{text}}» <span class="secundario">({{when}})</span></span>
+        <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="out"><input type="hidden" name="reason" value="{{reason}}"><button class="boton secundario pequeno" type="submit">{{name}} · {{stops}}</button></form>
+        <form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="outnotso"><button class="enlace" type="submit">{{#str}}out_notso, local_oksigeniaeguahe{{/str}}</button></form></div>
+    {{/proposal}}
+    <details class="cerrar-con-motivo salida-decir">
+        <summary class="enlace">{{#str}}out_say, local_oksigeniaeguahe{{/str}}</summary>
+        <form class="salida-hoja" method="post" action="{{action}}">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="out">
+            {{#ahead}}<p class="aviso-suave"><span>{{ahead}}</span></p>{{/ahead}}
+            <details class="salida-antes">
+                <summary>{{#str}}out_before, local_oksigeniaeguahe{{/str}}</summary>
+                <div class="campo"><label for="salida-dijo">{{#str}}out_note, local_oksigeniaeguahe{{/str}}</label><input id="salida-dijo" name="note" maxlength="255" placeholder="{{#str}}out_note_example, local_oksigeniaeguahe{{/str}}"></div>
+                <fieldset class="salida-para"><legend>{{#str}}out_stops, local_oksigeniaeguahe{{/str}}</legend><span class="pastillas">
+                    <label class="pastilla"><input type="radio" name="stops" value="" checked>{{#str}}out_stops_auto, local_oksigeniaeguahe{{/str}}</label>
+                    <label class="pastilla"><input type="radio" name="stops" value="all">{{#str}}out_stops_all, local_oksigeniaeguahe{{/str}}</label>
+                    <label class="pastilla"><input type="radio" name="stops" value="invites">{{#str}}out_stops_invites, local_oksigeniaeguahe{{/str}}</label>
+                    <label class="pastilla"><input type="radio" name="stops" value="none">{{#str}}out_stops_none, local_oksigeniaeguahe{{/str}}</label></span></fieldset>
+            </details>
+            {{#groups}}
+            <div class="salida-grupo" role="group" aria-labelledby="salida-{{key}}">
+                <p class="salida-t" id="salida-{{key}}">{{name}}</p>
+                {{#stops}}
+                <div class="salida-tramo"><span class="salida-deja">{{name}}</span><span class="salida-toques">{{#reasons}}<button class="salida-toque" type="submit" name="reason" value="{{value}}">{{name}}</button>{{/reasons}}</span></div>
+                {{/stops}}
+            </div>
+            {{/groups}}
+            <p class="ayuda">{{#str}}out_help_touch, local_oksigeniaeguahe{{/str}}</p>
+        </form>
+    </details>
+    {{/is}}
+</div>

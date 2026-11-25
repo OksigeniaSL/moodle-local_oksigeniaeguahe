@@ -1,5 +1,5 @@
 /* The form of Eguahe, the same inside the web of a centre (breve.css) and on its own page (inscripcion.css): the name of
-   each field is written in it and rises when it is used; a field that is ready draws its mark. Every class begins with
+   each field is at the top of it, all of them at the same height; a field that is ready draws its mark. Every class begins with
    «fb», so it can live beside the styles of the pages. Only still things for whoever asks for less movement. */
 .fb {
     --fb-papel: #fff;
@@ -125,7 +125,8 @@
 }
 
 .fb-campo input,
-.fb-campo select {
+.fb-campo select,
+.fb-campo textarea {
     display: block;
     width: 100%;
     height: 54px;
@@ -142,6 +143,16 @@
     text-overflow: ellipsis;
 }
 
+.fb-campo textarea {
+    height: auto;
+    min-height: 54px;
+    max-height: 200px;
+    padding-top: 23px;
+    resize: none;
+    overflow: auto;
+    font-weight: 500;
+}
+
 .fb-campo input[dir="ltr"] {
     text-align: start;
 }
@@ -153,10 +164,11 @@
 .fb-campo label {
     position: absolute;
     inset-block-start: 7px;
-    inset-inline: 15px 38px;
+    inset-inline: 15px 8px;
     overflow: hidden;
     color: var(--fb-tinta-2);
-    font-size: 12.5px;
+    /* A long name (a language, a narrow phone) gets smaller until it fits (formulario.js). */
+    font-size: var(--fb-rotulo, 12.5px);
     font-weight: 650;
     line-height: 16px;
     white-space: nowrap;
@@ -164,32 +176,16 @@
     pointer-events: none;
 }
 
-/* Not used yet, its name is written where they will write. */
-.fb-campo input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
-    inset-block-start: 17px;
-    inset-inline-end: 10px;
-    color: var(--fb-tinta-2);
-    /* A long name gets smaller until it fits with air at its side (formulario.js). */
-    font-size: var(--fb-rotulo, 16px);
-    font-weight: 500;
-    line-height: 20px;
-}
-
-/* Too long even so: in two lines. */
-.fb-campo.fb-dos input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
-    inset-block-start: 10px;
-    line-height: 17px;
-    white-space: normal;
-}
-
 .fb-campo input:focus,
-.fb-campo select:focus {
+.fb-campo select:focus,
+.fb-campo textarea:focus {
     border-color: var(--c-acento);
     outline: 0;
     box-shadow: 0 0 0 1px var(--c-acento), 0 10px 22px -10px var(--c-acento), 0 4px 10px rgba(26, 22, 20, 0.1);
 }
 
 .fb-campo input:focus ~ label:not(.fb-mal),
+.fb-campo textarea:focus ~ label:not(.fb-mal),
 .fb-campo select:focus ~ label:not(.fb-mal) {
     color: var(--c-acento-texto);
 }
@@ -206,10 +202,10 @@
     background-position: left 13px center;
 }
 
-/* Ready: its mark, drawn in the colour of the centre. */
+/* Ready: its mark, drawn in the colour of the centre, beside what is written. */
 .fb-campo .fb-listo {
     position: absolute;
-    inset-block-start: 16px;
+    inset-block-start: 25px;
     inset-inline-end: 12px;
     width: 22px;
     height: 22px;
@@ -291,18 +287,20 @@
     align-items: center;
     justify-content: center;
     min-width: 132px;
+    max-width: 100%;
     min-height: 50px;
-    padding: 0 22px;
+    padding: 6px 22px;
     border: 2px solid var(--borde-boton, transparent);
     border-radius: 14px;
     background: var(--boton, var(--c-acento));
     box-shadow: 0 7px 12px -6px var(--borde-boton, var(--c-acento)), 0 2px 4px rgba(26, 22, 20, 0.16);
     color: var(--sobre-boton, var(--c-sobre-acento));
-    font: 700 16px/1 'Eg Sans', system-ui, sans-serif;
+    font: 700 16px/1.15 'Eg Sans', system-ui, sans-serif;
     cursor: pointer;
 }
 
 .fb-enviar svg {
+    flex: none;
     width: 19px;
     height: 19px;
 }
@@ -362,16 +360,42 @@
     }
 
     .fb-campo input,
-    .fb-campo select {
+    .fb-campo select,
+    .fb-campo textarea {
         padding-inline-start: 11px;
     }
 
     .fb-campo label {
         inset-inline-start: 12px;
     }
+}
 
-    .fb-campo input:placeholder-shown:not(:focus) ~ label:not(.fb-mal) {
-        font-size: var(--fb-rotulo, 15px);
+/* On a phone an email and what they write are read whole. */
+@media (max-width: 480px) {
+    .fb-campos {
+        grid-auto-flow: row dense;
+    }
+
+    .fb-ancho {
+        grid-column: auto;
+    }
+
+    .fb-entero {
+        grid-column: 1 / -1;
+    }
+}
+
+/* The narrowest phones, inside the window of a web: a list says all of what it has chosen. */
+@media (max-width: 360px) {
+    .fb-campo select {
+        padding-inline-end: 25px;
+        background-position: right 9px center;
+        background-size: 10px 7px;
+        font-size: 15px;
+    }
+
+    [dir="rtl"] .fb-campo select {
+        background-position: left 9px center;
     }
 }
 
@@ -384,7 +408,7 @@
     }
 
     .fb-campo label {
-        transition: inset-block-start 0.16s ease, font-size 0.16s ease, color 0.16s ease;
+        transition: color 0.16s ease;
     }
 
     .fb-opciones svg {
@@ -472,6 +496,56 @@
     }
 }
 
+/* They may be two or more: the next student, folded until it is asked for. */
+.fb-otro {
+    grid-column: 1 / -1;
+    margin-block: -5px;
+}
+
+.fb-otro + .fb-otro {
+    display: none;
+}
+
+.fb-otro[open] + .fb-otro {
+    display: block;
+}
+
+.fb-otro > summary {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 4px;
+    border-radius: 6px;
+    color: var(--c-acento-texto);
+    font-size: 15px;
+    font-weight: 650;
+    list-style: none;
+    cursor: pointer;
+}
+
+.fb-otro > summary::-webkit-details-marker {
+    display: none;
+}
+
+.fb-otro > summary::before {
+    content: "+";
+    font-size: 20px;
+    line-height: 1;
+}
+
+.fb-otro[open] > summary::before {
+    content: "\2212";
+}
+
+.fb-otro > summary:focus-visible {
+    outline: 2px solid var(--c-acento-texto);
+}
+
+.fb-otro > .fb-campos {
+    margin: 4px 0 8px;
+}
+
 /* A long button: what is said beside it goes to its own line before it gets squeezed. */
 .fb-pie {
     flex-wrap: wrap;
@@ -483,6 +557,29 @@
 
 .fb-enviar {
     flex: 1 0 auto;
+}
+
+/* Whether it is a test, for a person of the team. */
+.fb-equipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fb-equipo button {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 2px solid var(--c-acento);
+    border-radius: 14px;
+    background: var(--fb-papel);
+    color: var(--fb-tinta);
+    font: 700 15px/1.2 'Eg Sans', system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.fb-equipo button:focus-visible {
+    outline: 2px solid var(--c-acento-texto);
+    outline-offset: 2px;
 }
 
 /* A slip in the domain of an email, pointed out as it is written. */

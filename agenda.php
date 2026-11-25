@@ -25,6 +25,8 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\appointments;
+use local_oksigeniaeguahe\local\busy;
+use local_oksigeniaeguahe\local\calsync;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\panel;
@@ -42,6 +44,12 @@ $url = new moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id] 
 $title = get_string($pass ? 'agenda_pass_title' : 'tab_events', 'local_oksigeniaeguahe');
 panel::setup($url, $title);
 $action = optional_param('action', '', PARAM_ALPHA);
+if (data_submitted() && confirm_sesskey() && $action === 'calkeep') {
+    // Moved or deleted in the calendar of the team: left as it was.
+    centres::require_act((int) $centre->id);
+    $done = calsync::restore($centre, required_param('event', PARAM_INT));
+    redirect($url, $done ? get_string('calsync_kept', 'local_oksigeniaeguahe') : '');
+}
 if (data_submitted() && confirm_sesskey() && in_array($action, ['mark', 'undo'], true)) {
     // Who came to the ones that passed, several at once; and taking it back.
     centres::require_act((int) $centre->id);
@@ -81,9 +89,23 @@ if ($pass) {
         $act ?: null
     ));
 }
+// Each person finds it as they left it: how many days, and whether the other calendars are behind.
+$view = optional_param('vista', '', PARAM_ALPHA);
+if (in_array($view, panel_agenda::VIEWS, true)) {
+    set_user_preference(panel_agenda::PREF, $view);
+} else {
+    $view = (string) get_user_preferences(panel_agenda::PREF, 'semana');
+}
+$behind = optional_param('fondo', -1, PARAM_INT);
+if ($behind >= 0) {
+    set_user_preference(busy::PREF, $behind ? 1 : 0);
+}
 panel::output($centre, 'events', $title, 'panel_agenda', panel_agenda::context(
     $centre,
     $canact,
     optional_param('semana', '', PARAM_RAW_TRIMMED),
-    optional_param('guia', 0, PARAM_INT)
+    optional_param('guia', 0, PARAM_INT),
+    0,
+    $view,
+    (bool) (int) get_user_preferences(busy::PREF, 1)
 ));

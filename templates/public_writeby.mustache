@@ -127,8 +127,8 @@
         {{#nowpill}}<p class="es-ahora">{{{icon}}}{{text}}</p>{{/nowpill}}
         {{#only}}<input type="hidden" name="por[]" value="{{value}}">{{#address}}<p class="es-direccion" dir="ltr">{{address}}</p>{{/address}}{{/only}}
         {{^only}}
-        <p>{{means}}</p>
-        <fieldset class="es-casillas">
+        <p data-queda="{{pickmeans}}">{{means}}</p>
+        <fieldset class="es-casillas" data-titulo="{{picktitle}}">
             <legend class="oculto">{{legend}}</legend>
             {{#boxes}}<label class="es-casilla{{#checked}} es-on{{/checked}}{{#pressed}} es-pulsada{{/pressed}}"><input type="checkbox" name="por[]" value="{{value}}"{{#checked}} checked{{/checked}}><span class="es-cas-ico">{{{icon}}}</span><span class="es-cas-t"><b>{{label}}{{#tag}}<span class="es-cambia">{{tag}}</span>{{/tag}}</b><small>{{line}}</small></span><span class="es-caja" aria-hidden="true">{{{check}}}</span></label>{{/boxes}}
         </fieldset>

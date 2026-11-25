@@ -101,6 +101,7 @@ class familymail {
      * @param string|null $token The private link of the family, when it is known (only at the moment it is made).
      * @param string $text What a person of the team writes, for a reply.
      * @param string|null $choose A link of the family for choosing how they are written to, when the mail has none.
+     * @param string $to The address it goes to, when it is not the usual one: whoever reads it is who is greeted.
      * @return array [subject, html, text, images]
      */
     public static function build(
@@ -111,7 +112,8 @@ class familymail {
         string $lang,
         ?string $token = null,
         string $text = '',
-        ?string $choose = null
+        ?string $choose = null,
+        string $to = ''
     ): array {
         global $CFG, $DB;
         // A student who comes on their own is written to as one person.
@@ -131,7 +133,7 @@ class familymail {
         // Of an act that is not a visit: a plain letter of its own, about the act.
         $act = actmail::act($kind, $signup, $centre);
         if ($act) {
-            return actmail::build($kind, $household, $centre, $act, $signup, $lang, (string) ($token ?? $choose ?? ''), $text);
+            return actmail::build($kind, $household, $centre, $act, $signup, $lang, (string) ($token ?? $choose ?? ''), $text, $to);
         }
         $images = [];
         $embed = function (string $data, string $name, string $mime) use (&$images): string {
@@ -151,12 +153,22 @@ class familymail {
             fn($n) => $n !== ''
         ));
         $names = familypage::join($tags, $lang);
+        // Those who would still come to the centre: nobody already in it, waiting for a place, closed or gone is shown where
+        // it would leave its backpack, nor told how to ask for a place.
+        $coming = array_filter($full->children, fn($c) => in_array($c->stage, ['inquiry', 'visit', 'application', 'admitted'], true));
+        $asking = array_filter($coming, fn($c) => in_array($c->stage, ['inquiry', 'visit'], true)) ||
+            (!$full->children && empty($household->incentre));
+        $comingtags = array_values(array_filter(
+            array_map([familypage::class, 'label_name'], array_values($coming)),
+            fn($n) => $n !== ''
+        ));
+        $comingnames = familypage::join($comingtags, $lang);
         // A request has no day yet: what suits them stands for it.
         $signup = $signup ?? (object) ['timestart' => time(), 'timeend' => time(), 'place' => '', 'hosts' => '',
             'eventid' => 0, 'eventname' => '', 'people' => 0];
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
         $hours = familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang);
-        $place = trim(implode(' · ', array_filter([$signup->place ? format_string($signup->place) : '',
+        $place = trim(implode(' · ', array_filter([$signup->place ? publicpage::text($signup->place) : '',
             (string) ($centre->address ?? '')])));
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
         $hosts = $ids ? centres::hosts((int) $centre->id, $ids) : [];
@@ -232,25 +244,28 @@ class familymail {
         $strongwhen = $rlm . $str('mail_date_when', (object) ['date' => $strong, 'when' => s($when)]);
         $plainwhen = $rlm . $str('mail_date_when', (object) ['date' => $plain, 'when' => $when]);
         // The centre in a sentence, with its article: «al Colegio Los Arces», «del Colegio Los Arces».
-        $to = share::to_centre($centre, $lang);
+        $tocentre = share::to_centre($centre, $lang);
         $from = share::from_centre($centre, $lang);
         // Why they get it, by the moment: they signed up, came, wrote, asked for a visit or are a family of the centre.
         $why = ['thanks' => 'mail_why_came', 'received' => 'mail_why_wrote', 'reply' => 'mail_why_wrote',
             'request' => 'mail_why_request', 'renewal' => 'mail_why_family'][$kind] ?? 'mail_why';
+        // Written by the team on its own, and not to answer them: never «because you wrote to us».
+        $told = $kind === 'reply' && empty($household->waitingsince);
+        $why = $told ? 'mail_why_touch' : $why;
         // A visit of their own, which the centre gave them: nobody signed up to it, and there is no place to pass on.
         $own = $signup->eventid && (int) $DB->get_field(events::T, 'householdid', ['id' => $signup->eventid]) > 0;
         $why = $own && $why === 'mail_why' ? 'mail_why_visit' : $why;
-        $older = ages::older(array_values($full->children), $centre);
-        $lead = function (string $date) use ($host, $tags, $names, $str, $older): string {
-            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
-                ($older ? '_older' : '') . (count($tags) > 1 ? '_many' : ''));
-            return $str($key, (object) ['date' => $date, 'host' => s($host), 'names' => s($names)]);
+        $older = ages::older(array_values($coming), $centre);
+        $lead = function (string $date) use ($host, $comingtags, $comingnames, $str, $older): string {
+            $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$comingtags ? '_nochild' :
+                ($older ? '_older' : '') . (count($comingtags) > 1 ? '_many' : ''));
+            return $str($key, (object) ['date' => $date, 'host' => s($host), 'names' => s($comingnames)]);
         };
         $band = [
             'rotulo' => $str('pub_band_visit'),
             'dia_semana' => $ucfirst($parts['weekday']),
             'dia_mes' => $parts['daymonth'],
-            'acto' => format_string($signup->eventname),
+            'acto' => publicpage::text(visits::shown((string) $signup->eventname, $lang)),
             'hora' => $open ? $str('mail_hours_open', $lower($hours)) : $hours .
                 (!empty($signup->slotid) ? ' · ' . $str('pub_your_turn') : ''),
             'lugar' => $place,
@@ -261,7 +276,8 @@ class familymail {
         $phonelink = '<a class="eg-enlace" dir="ltr" href="tel:' . s($tel) . '" style="color:' .
             s(self::colours($colour)['acento_texto']) . '; text-decoration:underline; white-space:nowrap;">' . s($phone) . '</a>';
         // Not coming after all: one touch on their page, where the visit has its «We cannot come»; or a call.
-        $cantgo = $pageurl && $signup->eventid ? $pageurl . '#no-podemos-' . (int) $signup->eventid : '';
+        $cantgo = $token && $signup->eventid ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang,
+            'de' => $kind, 'action' => 'nopodemos', 'acto' => (int) $signup->eventid]))->out(false) : '';
         $cantcome = $cantgo ? [
             'titulo' => $str('mail_cant_come'),
             'texto' => $str('mail_cant_come_' . ($own ? 'own' : 'page') . ($phone !== '' ? '_phone' : ''), $phonelink),
@@ -286,22 +302,24 @@ class familymail {
                 array_keys(centres::brand($centre))
             ),
             'centro' => [
-                'nombre' => format_string($centre->name),
+                'nombre' => publicpage::text($centre->name),
                 'placa' => $plate[0],
                 'placa_ancho' => $plate[1],
                 'placa_alto' => $plate[2],
                 'nombre_visible' => true,
                 // Without a logo, its initials on its colour, as at the head of its pages.
-                'iniciales' => publicpage::initials(format_string($centre->name)),
+                'iniciales' => publicpage::initials(publicpage::text($centre->name)),
                 'direccion' => $address,
                 'telefono' => $phone,
                 'telefono_url' => $tel !== '' ? 'tel:' . $tel : '',
                 'correo' => (string) ($centre->email ?? ''),
+                'separa' => $address !== '' || $phone !== '',
+                'contacto' => implode(' · ', array_filter([$phone, trim((string) ($centre->email ?? ''))])),
             ],
             'nombres' => $names,
             'etiquetas_filas' => $rows,
             'pie' => [
-                'porque' => $str($why, $kind === 'renewal' ? $from : $to),
+                'porque' => $str($why, $kind === 'renewal' ? $from : $tocentre),
                 'datos_texto' => $str('pub_privacy_link'),
                 'datos_url' => publicpage::privacy_url($centre, $lang)->out(false),
                 'firma' => $credit ? $str('mail_credit', $creditlink) : '',
@@ -316,11 +334,11 @@ class familymail {
             $context['titular'] = $str('mail_writeby_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
-            $context['pie']['porque'] = $str('mail_writeby_why', $to);
+            $context['pie']['porque'] = $str('mail_writeby_why', $tocentre);
             $changeurl = $token ? writeby::url($token, $lang, '', $kind) : '';
             $ways = writeby::words(writeby::chosen($household) ?: ['email'], $lang);
             $context += [
-                'asunto' => $str('mail_writeby_subject', (object) ['ways' => $ways, 'centre' => format_string($centre->name)]),
+                'asunto' => $str('mail_writeby_subject', (object) ['ways' => $ways, 'centre' => publicpage::text($centre->name)]),
                 'preencabezado' => $str('mail_writeby_preheader'),
                 'entradilla' => $str('mail_writeby_lead', $ways),
                 'entradilla_texto' => $str('mail_writeby_lead', $ways),
@@ -341,9 +359,9 @@ class familymail {
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
                 'secciones' => $cantcome ? [$cantcome] : null,
-                // Of a talk or a party there is no place to speak of.
-                'nota' => $str($DB->get_field(events::T, 'kind', ['id' => $signup->eventid]) === 'other' ? 'mail_note_confirm_act' :
-                    'mail_note_confirm'),
+                // Of a talk or a party there is no place to speak of; nor for whoever has asked for one already.
+                'nota' => $str(!$asking || $DB->get_field(events::T, 'kind', ['id' => $signup->eventid]) === 'other' ?
+                    'mail_note_confirm_act' : 'mail_note_confirm'),
             ];
         } else if ($kind === 'received') {
             // A family that wrote through a form or an entry: it was received, and a person will answer.
@@ -359,7 +377,7 @@ class familymail {
             // What they have just asked for, in the words of the form: «Pedir cita».
             $asked = forms::asked_for((int) $household->id, time());
             $received = ($asked !== '' ? $str('mail_received_said', $asked) . ' ' : '') . $received;
-            $first = self::first_name($household);
+            $first = self::first_name($household, $to);
             $context['titular'] = $first !== '' ? $str('mail_received_titular_name', $first) : $str('mail_received_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
@@ -374,36 +392,43 @@ class familymail {
                     'url_texto' => $pageurl] : null,
                 'anfitriones_breve' => $answer ? ['titulo' => $str($one ? 'mail_received_who' : 'mail_received_who_many'),
                     'personas' => array_map(fn($h) => $faceof($h, $bytesof($h)), $answer)] : null,
-                'nota' => $str('pub_no_place_form') . ' ' . $str('mail_note_confirm_act'),
+                'nota' => ($asking ? $str('pub_no_place_form') . ' ' : '') . $str('mail_note_confirm_act'),
             ];
         } else if ($kind === 'reply') {
-            // What a person of the team writes, as it was written, with its page below.
+            // What a person of the team writes, as it was written, with its page below: to answer them, or on its own.
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
-            $context['titular'] = $str('mail_reply_titular');
+            $context['titular'] = $str($told ? 'mail_told_titular' : 'mail_reply_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
-                'asunto' => $str('mail_reply_subject', $from),
+                'asunto' => $str($told ? 'mail_told_subject' : 'mail_reply_subject', $from),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', $text), 0, 120),
                 'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
                 'entradilla_texto' => trim($text),
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
-                'nota' => $str('mail_note_reply'),
+                // Never twice: what the team wrote may say already that they can answer.
+                'nota' => self::says_answer($text, $lang) ? null : $str('mail_note_reply'),
             ];
         } else if ($kind === 'change') {
-            // The team changed the hour, the place or who receives them: what it is now, with its band and calendar.
+            // The team changed the hour, the place or who receives them: what it is now, with its band and calendar. With no
+            // words of its own, what the data says.
+            if (trim($text) === '') {
+                $message = panel_eventform::message($household, $centre, $signup, $lang);
+                $text = trim($message['greeting'] . "\n\n" . $message['text']);
+            }
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
             $context['titular'] = $str('mail_change_titular');
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
                 'asunto' => $own ? $str('mail_change_subject_visit', (object) ['date' => $plain, 'when' => $when]) :
-                    $str('mail_change_subject', format_string($signup->eventname)),
+                    $str('mail_change_subject', publicpage::text(visits::shown((string) $signup->eventname, $lang))),
                 'preencabezado' => \core_text::substr(preg_replace('/\s+/', ' ', end($paragraphs) ?: $text), 0, 120),
                 'entradilla' => implode('<br><br>', array_map(fn($p) => nl2br(s($p), false), $paragraphs)),
                 'entradilla_texto' => trim($text),
-                'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
+                // What it is now comes first, in its band; their page, after it.
+                'boton_despues' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
                 'anfitriones_breve' => $faces ? ['titulo' => $str('pub_receives'), 'personas' => $faces] : null,
@@ -411,11 +436,13 @@ class familymail {
             ];
         } else if ($kind === 'cancelled') {
             // The centre called the act off: said plainly, with whatever the team added, and the way to write back.
-            $a = (object) ['event' => format_string($signup->eventname),
+            $a = (object) ['event' => publicpage::text(visits::shown((string) $signup->eventname, $lang)),
                 'when' => publicpage::date_parts((int) $signup->timestart, $lang)['long']];
             $lead = $str($own ? 'mail_cancelled_lead_visit' : 'mail_cancelled_lead', $a);
             $paragraphs = array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text))));
-            $context['titular'] = $str($own ? 'mail_cancelled_titular_visit' : 'mail_cancelled_titular');
+            $openday = $DB->get_field(events::T, 'kind', ['id' => $signup->eventid]) === 'openday';
+            $context['titular'] = $str($own ? 'mail_cancelled_titular_visit' : ($openday ? 'mail_cancelled_titular_openday' :
+                'mail_cancelled_titular'));
             $context['etiquetas_filas'] = [];
             $context['nombres'] = '';
             $context += [
@@ -428,7 +455,8 @@ class familymail {
                 'entradilla_texto' => $lead . ($paragraphs ? "\n\n" . implode("\n\n", $paragraphs) : ''),
                 'boton_principal' => $pageurl ? ['texto' => $str('mail_open_page'), 'url' => $pageurl,
                     'url_texto' => $pageurl] : null,
-                'nota' => $str('mail_note_reply'),
+                // Of their own visit, the words above already say how to ask for another day.
+                'nota' => $own || self::says_answer($text, $lang) ? null : $str('mail_note_reply'),
             ];
         } else if ($kind === 'thanks') {
             // After the visit: thanks, and the one open question; or, if the centre turned it on, the survey, which asks
@@ -441,7 +469,9 @@ class familymail {
                 'n' => $count];
             $key = $survey ? 'mail_thanks_survey' : ($host !== '' ? 'mail_thanks_ask_host' : 'mail_thanks_ask_team');
             $text = $str($key, $a);
-            $leadtext = s($str('pub_lead_after_short'));
+            // Whoever is already of the centre was known before coming.
+            $known = !empty($household->incentre) || array_filter($full->children, fn($c) => $c->stage === 'enrolled');
+            $leadtext = s($str($known ? 'mail_thanks_lead_known' : 'pub_lead_after_short'));
             $go = $pageurl ? $pageurl . ($survey ? '#como-fue' : '#pregunta') : '';
             // How to ask for a place, as the centre wrote it and as their page says it.
             $offers = centres::offers((int) $centre->id);
@@ -453,7 +483,7 @@ class familymail {
             $applytext = trim(($apply['when'] ? trim($apply['when']['line'] . ' ' . $apply['when']['day']) . '. ' : '') .
                 $apply['how']);
             // Only where the centre offers it after the visit, or the team already sent it.
-            $offered = households::offered_apply($household, $centre, true);
+            $offered = $asking && households::offered_apply($household, $centre, true);
             $applysection = $offered && $applytext !== '' && $apply['next'] === '' ? [
                 'titulo' => $apply['label'],
                 'texto' => ($apply['when'] ? '<strong>' . s(trim($apply['when']['line'] . ' ' . $apply['when']['day'])) .
@@ -475,7 +505,7 @@ class familymail {
             ] : null;
             $context['titular'] = $str($tags ? 'pub_thanks' : 'pub_thanks_nochild');
             $context += [
-                'asunto' => $str('mail_thanks_subject', $to),
+                'asunto' => $str('mail_thanks_subject', $tocentre),
                 'preencabezado' => $str($survey ? 'mail_thanks_preheader_survey' : 'mail_thanks_preheader'),
                 'entradilla' => $leadtext,
                 'entradilla_texto' => html_to_text($leadtext, 0, false),
@@ -495,8 +525,8 @@ class familymail {
             $year = (string) ($centre->renewalyear ?? '');
             $until = (int) ($centre->renewaluntil ?? 0);
             // Only the children asked about, not a younger one still on its way in.
-            $asked = array_map(fn($row) => familypage::label_name($row[0]), renewal::children($centre, (int) $household->id));
-            $a = (object) ['names' => familypage::join(array_values(array_filter($asked)) ?: $tags, $lang), 'year' => $year,
+            $asked = array_column(renewal::children($centre, (int) $household->id), 0);
+            $a = (object) ['names' => familypage::said_names($asked ?: array_values($full->children), $lang), 'year' => $year,
                 'until' => $until ? publicpage::date_parts($until - DAYSECS, $lang)['daymonth'] : ''];
             $leadkey = $year === '' ? 'mail_renewal_lead_noyear' : ($until ? 'mail_renewal_lead' : 'mail_renewal_lead_nodate');
             $context['titular'] = $year !== '' ? $str('mail_renewal_titular', $year) : $str('mail_renewal_titular_noyear');
@@ -504,7 +534,7 @@ class familymail {
             $context['nombres'] = '';
             $context += [
                 'asunto' => $str('mail_renewal_subject' . ($year !== '' ? '' : '_noyear'), (object) [
-                    'centre' => format_string($centre->name), 'year' => $year]),
+                    'centre' => publicpage::text($centre->name), 'year' => $year]),
                 'preencabezado' => $str('mail_renewal_preheader', $a),
                 'entradilla' => s($str($leadkey, $a)),
                 'entradilla_texto' => $str($leadkey, $a),
@@ -564,13 +594,13 @@ class familymail {
             ];
         } else {
             $context += [
-                'asunto' => $str('mail_invite_subject', (object) ['centre' => $to, 'date' => $plain, 'when' => $when]),
-                'preencabezado' => $host !== '' ? $str('mail_invite_preheader', (object) ['names' => $names,
+                'asunto' => $str('mail_invite_subject', (object) ['centre' => $tocentre, 'date' => $plain, 'when' => $when]),
+                'preencabezado' => $host !== '' && $comingtags ? $str('mail_invite_preheader', (object) ['names' => $comingnames,
                     'host' => $hosts[0]->name, 'hour' => $parts['hour']]) : $ucfirst($plain) . ', ' . $lower($hours) . '.',
                 'entradilla' => $lead($strongwhen),
                 'entradilla_texto' => html_to_text($lead(s($plainwhen)), 0, false),
                 'banda' => $band + ['boton' => $calendar, 'enlace' => $map],
-                'anfitriones' => $portraits ? ['titulo' => $str('pub_receives'), 'sub' => $str('pub_receives_sub'),
+                'anfitriones' => $portraits ? ['titulo' => $str('pub_receives'), 'sub' => familypage::receives_sub($hosts, true, $lang),
                     'filas' => array_map(
                         fn($row) => ['personas' => $row, 'hueco' => count($row) === 1],
                         array_chunk($portraits, 2)
@@ -580,6 +610,12 @@ class familymail {
                     'url' => $pageurl, 'url_texto' => $pageurl]]] : null,
                 'nota' => $phone !== '' ? $str('mail_invite_note', $phone) : $str('mail_invite_note_nophone'),
             ];
+        }
+        // The labels are pictures, which many mail programs do not show until they are asked to: the heading is read whole
+        // without them, and the text of each is its name. In plain text, the names go after the comma.
+        $context['titular_texto'] = $context['titular'];
+        if ($context['etiquetas_filas']) {
+            $context['titular'] = preg_replace('/[,،]\s*$/u', '', $context['titular']);
         }
         // The plain text keeps the band and the headings in capitals, and writes the links out.
         foreach (['banda' => 'rotulo', 'anfitriones' => 'titulo', 'anfitriones_breve' => 'titulo'] as $part => $field) {
@@ -627,8 +663,8 @@ class familymail {
             (($signup->kind ?? '') === 'other' && (int) $signup->timeend > (int) $signup->timestart));
         $when = $long ? \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1) :
             $str('mail_at_hour', $parts['hour']);
-        $event = $plain(format_string($signup->eventname));
-        $centrename = $plain(format_string($centre->name));
+        $event = $plain(publicpage::text(visits::shown((string) $signup->eventname, $lang)));
+        $centrename = $plain(publicpage::text($centre->name));
         $url = (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $signup->token, 'idioma' => $lang] +
             ($token !== '' ? ['k' => $token, 'de' => 'openinvite'] : [])))->out(false);
         $ids = array_filter(array_map('intval', explode(',', (string) ($signup->hosts ?? ''))));
@@ -653,7 +689,7 @@ class familymail {
         $join = $free ? $str($free === acts::FREE_ASKS ? 'mail_letter_free_asks' : 'mail_letter_free') : '';
         $go = $str($free === acts::FREE_ASKS ? 'mail_letter_come' : ($free ? 'mail_letter_see' : 'mail_letter_go'));
         $after = implode("\n", array_filter([$str('mail_letter_bye'), $host ? $host->name : '', $host ? (string) $host->role : '',
-            $centrename, trim((string) ($centre->phone ?? ''))], fn($l) => trim($l) !== ''));
+            $centrename, self::ltr(trim((string) ($centre->phone ?? '')), $lang)], fn($l) => trim($l) !== ''));
         // Why it reaches them and how to say no, small, at the end.
         $small = trim(($ofcentre ? '' : $str('mail_letter_why', $plain(acts::by_centre($centre, $lang))) . ' ') .
             (!empty($centre->email) && validate_email($centre->email) ? $str('mail_letter_stop') : ''));
@@ -672,16 +708,41 @@ class familymail {
     }
 
     /**
+     * A phone in a plain letter, read from left to right also inside Arabic.
+     *
+     * @param string $phone
+     * @param string $lang
+     * @return string
+     */
+    public static function ltr(string $phone, string $lang): string {
+        return $phone !== '' && lists::dir($lang) === 'rtl' ? "\u{2066}" . $phone . "\u{2069}" : $phone;
+    }
+
+    /**
+     * Whether some words of the team already say that the mail can be answered.
+     *
+     * @param string $text
+     * @param string $lang
+     * @return bool
+     */
+    protected static function says_answer(string $text, string $lang): bool {
+        $mail = ['es' => 'est[ea] (correo|mensaje)', 'en' => 'this (e-?mail|message)', 'pt' => 'est[ea] (e-?mail|mensagem)',
+            'pt_br' => 'est[ea] (e-?mail|mensagem)', 'ar' => 'هذا البريد|هذه الرسالة'][$lang] ?? '';
+        return $mail !== '' && preg_match('/' . $mail . '/iu', $text);
+    }
+
+    /**
      * The first name of the adult a family is written to, as it is said: never in capitals, never an address.
      *
      * @param \stdClass $household
+     * @param string $to The address it goes to, when it is not the usual one.
      * @return string Empty when there is none to say.
      */
-    public static function first_name(\stdClass $household): string {
-        $email = households::recipient($household);
+    public static function first_name(\stdClass $household, string $to = ''): string {
+        $email = $to !== '' ? $to : households::recipient($household);
         foreach (households::full($household)->adults as $adult) {
             // Without an address to write to (they left only a phone), the first one.
-            if ($email !== '' && (string) $adult->email !== $email) {
+            if ($email !== '' && \core_text::strtolower((string) $adult->email) !== \core_text::strtolower($email)) {
                 continue;
             }
             return greeting::name((string) $adult->firstname, trim((string) $adult->lastname) !== '');
@@ -737,9 +798,13 @@ class familymail {
         // The same notice on the phones the family joined with, when the site has Marandu and they did not take them out.
         // Of an act that is not a visit, the phones have no words yet: theirs are of a visit. It goes by email.
         $act = actmail::act($kind, $signup, $centre) !== null;
+        if (in_array($kind, ['change', 'cancelled'], true)) {
+            // What is still waiting for the phones speaks of the day it was.
+            messaging::withdraw((int) $household->id, ['confirmation', 'reminder', 'invitation', 'change']);
+        }
         $phones = $kind !== 'reply' && !$act ? messaging::notify($kind, $household, $centre, $signup, $lang, $text) : 0;
         if ($phones) {
-            notices::log($household, $kind, $signup, 'phone', 'sent');
+            notices::log($household, $kind, $signup, 'phone', notices::onphone(), notices::pieces($phones));
         }
         // By email only if they marked it (or never chose); else, while no phone they marked is joined, and what they must
         // know.
@@ -759,7 +824,17 @@ class familymail {
         }
         // Every mail carries how to choose the way they are written to, with its own link if the mail has none.
         $choose = $token === null && $kind !== 'writeby' ? households::new_link($household, 'writeby') : null;
-        [$subject, $html, $plain, $images] = self::build($kind, $household, $centre, $signup, $lang, $token, $text, $choose);
+        [$subject, $html, $plain, $images] = self::build(
+            $kind,
+            $household,
+            $centre,
+            $signup,
+            $lang,
+            $token,
+            $text,
+            $choose,
+            $to === null ? '' : $email
+        );
         $link = (string) ($token ?? $choose ?? '');
         // The letter of an invitation says how to stop in its own words; the header that says it too, which sends it to
         // «Promotions», only where the site wants it (letterunsubscribe). And as plain text only, with letterplain.
@@ -799,6 +874,7 @@ class familymail {
         string $token
     ): string {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
+        $event = (object) (['name' => visits::shown((string) $event->name, $lang)] + (array) $event);
         $tags = array_values(array_filter(array_map(
             [familypage::class, 'label_name'],
             array_values(households::full($household)->children)
@@ -809,13 +885,13 @@ class familymail {
         if ($event->kind === 'other') {
             // A talk, a workshop, a party: how many come and where to say they do not, and nothing of a visit.
             $when = events::when($event, (int) $signup->slotid);
-            $answer = actmail::answer_url($event, $token, $lang);
+            $answer = actmail::answer_url($event, $token, $lang, '', true);
             return events::ics($event, $centre, implode("\n", [
                 publiclang::count('pub_people_one', 'pub_people_count', (int) $signup->people, $lang) . '.',
                 $str('ics_act_answer', $answer),
             ]), $when, ['uid' => 'visita-' . $event->id . '-familia-' . $household->id, 'url' => $answer,
                 'alarm' => $str('ics_alarm', (object) ['hour' => publicpage::date_parts((int) $when->timestart, $lang)['hour'],
-                'centre' => format_string($centre->name)])]);
+                'centre' => publicpage::text($centre->name)])]);
         }
         $lines = [];
         if ($tags) {
@@ -843,7 +919,7 @@ class familymail {
             'uid' => 'visita-' . $event->id . '-familia-' . $household->id,
             'url' => $link,
             'alarm' => $str('ics_alarm', (object) ['hour' => publicpage::date_parts((int) $when->timestart, $lang)['hour'],
-                'centre' => format_string($centre->name)]),
+                'centre' => publicpage::text($centre->name)]),
         ]);
     }
 

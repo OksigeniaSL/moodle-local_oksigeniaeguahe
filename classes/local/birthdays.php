@@ -190,6 +190,10 @@ class birthdays {
         $offers = $DB->get_records(centres::OFFERS, ['centreid' => $centre->id]);
         $out = [];
         foreach (households::full($household)->children as $child) {
+            if (familypage::label_name($child) === '') {
+                // Nobody is wished anything by no name.
+                continue;
+            }
             if (trim((string) ($child->birthdate ?? '')) === '') {
                 continue;
             }

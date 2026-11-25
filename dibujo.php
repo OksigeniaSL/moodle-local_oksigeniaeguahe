@@ -92,7 +92,7 @@ if ($action === 'mandado' || $action === 'guardado') {
 }
 
 share::count($household, $centre, 'opened', 'dibujo');
-$name = familypage::label_name($child) ?: (string) $child->firstname;
+$name = familypage::said_name($child, $lang);
 $here = new moodle_url($url, ['idioma' => $lang]);
 $strokes = drawings::strokes_file($childid);
 $title = publiclang::str('pub_drawing_title', $lang, $name);

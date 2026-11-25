@@ -37,6 +37,9 @@ class teamcalendar {
     /** @var int What is shown after today: a year. */
     const AFTER = 365 * DAYSECS;
 
+    /** @var int How much the script may say at once. */
+    const MAXBYTES = 3145728;
+
     /**
      * The secret of the link of a centre, made the first time it is asked for.
      *
@@ -96,9 +99,10 @@ class teamcalendar {
             ['centreid' => $centre->id, 'from' => $now - self::BEFORE, 'to' => $now + self::AFTER],
             'timestart ASC'
         );
+        // Whoever receives, also one the families do not see: it is the calendar of the team.
         $hosts = [];
-        foreach (centres::hosts((int) $centre->id) as $host) {
-            $hosts[(int) $host->memberid] = $host->name;
+        foreach (centres::members((int) $centre->id) as $member) {
+            $hosts[(int) $member->memberid] = fullname($member);
         }
         $offers = $DB->get_records_menu(centres::OFFERS, ['centreid' => $centre->id], '', 'id, name');
         $address = trim((string) ($centre->address ?? ''));
@@ -114,7 +118,8 @@ class teamcalendar {
             if ((int) $event->householdid) {
                 // A visit of one family: who they are and who would come.
                 $household = households::get((int) $event->householdid, (int) $centre->id);
-                if (!$household) {
+                if (!$household || !$DB->record_exists('local_oksigeniaeguahe_signup', ['eventid' => $event->id])) {
+                    // Nobody comes to it any more.
                     continue;
                 }
                 $full = households::full($household);
@@ -154,7 +159,8 @@ class teamcalendar {
                 'uid' => 'eguahe-' . $centre->id . '-' . $event->id,
                 'title' => $title,
                 'start' => (int) $event->timestart,
-                'end' => max((int) $event->timeend, (int) $event->timestart + HOURSECS / 2),
+                // What it lasts, whatever it is; half an hour when nobody wrote until when.
+                'end' => (int) $event->timeend > (int) $event->timestart ? (int) $event->timeend : (int) $event->timestart + 30 * MINSECS,
                 'location' => implode(', ', array_filter([$event->place ? format_string($event->place) : '', $address])),
                 'description' => implode("\n", $lines),
                 'updated' => (int) ($event->timemodified ?? $event->timecreated),
@@ -228,9 +234,9 @@ class teamcalendar {
     }
 
     /**
-     * The script of Google the centre pastes once in the account of its calendar (script.google.com): every ten minutes
-     * it copies the visits and acts into that calendar, changes what changed and takes out of the days to come what is
-     * no longer there. Each event it makes carries its tag, and it never touches another one.
+     * The script of Google the centre pastes once, with an account that can write in the calendar of admissions and see the
+     * ones to show behind: every ten minutes it says what there is and does what Eguahe answers (calsync). Which calendars
+     * are chosen in the settings, with a touch: nothing in it has to be changed.
      *
      * @param \stdClass $centre
      * @return string
@@ -238,53 +244,123 @@ class teamcalendar {
     public static function script(\stdClass $centre): string {
         $feed = self::url($centre, 'json');
         return <<<JS
-// Eguahe → Google Calendar: the visits and acts of admissions, every ten minutes.
-// 1. In script.google.com, with the account of the calendar: a new project, paste this and save.
-// 2. Below, the calendar: 'primary' is the main one of the account; for another one, its ID (its settings,
-//    «Integrate calendar»).
-// 3. Run «install» once and accept: from then on it goes by itself.
-const FEED = '{$feed}';
-const CALENDAR = 'primary';
+// Eguahe and Google Calendar, both ways, every ten minutes.
+// 1. In script.google.com, with an account that can change the calendar of admissions: a new project, paste this and save.
+// 2. Run «install» once and accept. Which calendars, in the settings of Eguahe.
+const EGUAHE = '{$feed}';
+
+function say(body) {
+  const answer = UrlFetchApp.fetch(EGUAHE, {method: 'post', contentType: 'application/json', payload: JSON.stringify(body)});
+  return JSON.parse(answer.getContentText());
+}
+
+function at(date) {
+  return Math.floor(date.getTime() / 1000);
+}
 
 function sync() {
-  const data = JSON.parse(UrlFetchApp.fetch(FEED).getContentText());
-  const cal = CALENDAR === 'primary' ? CalendarApp.getDefaultCalendar() : CalendarApp.getCalendarById(CALENDAR);
-  const now = new Date(data.now * 1000);
+  // One at a time: two runs at once would write the same one twice.
+  const lock = typeof LockService === 'undefined' ? null : LockService.getScriptLock();
+  if (lock && !lock.tryLock(1000)) {
+    return;
+  }
+  try {
+    while (run()) {
+      Utilities.sleep(1000);
+    }
+  } finally {
+    if (lock) {
+      lock.releaseLock();
+    }
+  }
+}
+
+function run() {
+  const store = PropertiesService.getScriptProperties();
+  const last = JSON.parse(store.getProperty('eguahe') || '{"calendar": "", "behind": []}');
+  const now = Date.now();
+  const from = new Date(now - 30 * 86400000);
+  const to = new Date(now + 365 * 86400000);
+  const soon = new Date(now + 90 * 86400000);
+  const body = {calendar: last.calendar, events: [], behind: [], erased: last.erased || [], calendars: CalendarApp.getAllCalendars().map(function(c) {
+    return {id: c.getId(), name: c.getName()};
+  })};
+  const behind = function(cal, e) {
+    const allday = e.isAllDayEvent();
+    const day = function(date) {
+      return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    };
+    body.behind.push({calendar: cal.getName(), title: String(e.getVisibility()) === 'PRIVATE' ? '' : e.getTitle(), allday: allday,
+      start: allday ? day(e.getAllDayStartDate()) : at(e.getStartTime()), end: allday ? day(e.getAllDayEndDate()) : at(e.getEndTime())});
+  };
   const mine = {};
-  cal.getEvents(new Date(data.from * 1000), new Date(data.to * 1000)).forEach(function(e) {
-    const tag = e.getTag('eguahe');
-    if (tag) {
-      mine[tag] = e;
+  const cal = last.calendar ? CalendarApp.getCalendarById(last.calendar) : null;
+  if (last.calendar && !cal) {
+    throw new Error('The calendar chosen in Eguahe cannot be seen with this account.');
+  }
+  if (cal) {
+    cal.getEvents(from, to).forEach(function(e) {
+      const tag = e.getTag('eguahe');
+      if (tag) {
+        mine[tag] = mine[tag] || [];
+        body.events.push({uid: tag, n: mine[tag].length, start: at(e.getStartTime()), end: at(e.getEndTime())});
+        mine[tag].push(e);
+      } else if (e.getStartTime() < soon && e.getEndTime().getTime() > now - 7 * 86400000) {
+        behind(cal, e);
+      }
+    });
+  }
+  last.behind.forEach(function(id) {
+    const other = CalendarApp.getCalendarById(id);
+    if (other) {
+      other.getEvents(new Date(now - 7 * 86400000), soon).forEach(function(e) {
+        behind(other, e);
+      });
     }
   });
-  const seen = {};
-  data.items.forEach(function(it) {
-    seen[it.uid] = true;
-    const start = new Date(it.start * 1000);
-    const end = new Date(it.end * 1000);
-    const e = mine[it.uid];
-    if (!e) {
-      cal.createEvent(it.title, start, end, {location: it.location, description: it.description}).setTag('eguahe', it.uid);
+  const told = say(body);
+  (cal && told.calendar === last.calendar ? told.ops : []).forEach(function(op) {
+    const e = (mine[op.uid] || [])[op.n || 0];
+    if (op.do === 'delete') {
+      if (e) {
+        e.deleteEvent();
+      }
       return;
     }
-    if (e.getTitle() !== it.title) {
-      e.setTitle(it.title);
+    const start = new Date(op.start * 1000);
+    const end = new Date(op.end * 1000);
+    if (op.do === 'create' && !e) {
+      cal.createEvent(op.title, start, end, {location: op.location, description: op.description}).setTag('eguahe', op.uid);
+      return;
     }
-    if (e.getStartTime().getTime() !== start.getTime() || e.getEndTime().getTime() !== end.getTime()) {
+    if (!e) {
+      return;
+    }
+    if (op.do === 'set') {
       e.setTime(start, end);
     }
-    if (e.getLocation() !== it.location) {
-      e.setLocation(it.location);
+    if (e.getTitle() !== op.title) {
+      e.setTitle(op.title);
     }
-    if (e.getDescription() !== it.description) {
-      e.setDescription(it.description);
+    if (e.getLocation() !== op.location) {
+      e.setLocation(op.location);
     }
-  });
-  Object.keys(mine).forEach(function(tag) {
-    if (!seen[tag] && mine[tag].getStartTime() > now) {
-      mine[tag].deleteEvent();
+    if (e.getDescription() !== op.description) {
+      e.setDescription(op.description);
     }
   });
+  // Families that erased their data: their visits of long ago too.
+  const erase = cal && told.calendar === last.calendar ? told.erase || [] : [];
+  if (erase.length) {
+    cal.getEvents(new Date(now - 1100 * 86400000), from).forEach(function(e) {
+      if (erase.indexOf(e.getTag('eguahe')) >= 0) {
+        e.deleteEvent();
+      }
+    });
+  }
+  store.setProperty('eguahe', JSON.stringify({calendar: told.calendar, behind: told.behind, erased: erase}));
+  // Just chosen in Eguahe: at once, without waiting for the next time.
+  return told.calendar !== last.calendar || told.behind.join() !== last.behind.join();
 }
 
 function install() {

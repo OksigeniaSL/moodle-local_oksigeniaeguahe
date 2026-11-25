@@ -44,6 +44,9 @@ class family {
     /** @var bool|null Only for the tests: whether the common record is there, whatever the site says. */
     public static $testavailable = null;
 
+    /** @var bool Whether it is Eguahe itself that is taking a child out of the record, or putting it back. */
+    protected static $own = false;
+
     /**
      * Whether the site has the common family record, recent enough for Eguahe, and working.
      *
@@ -142,7 +145,7 @@ class family {
     protected static function family_of(\stdClass $household): int {
         global $DB;
         $api = self::API;
-        // The family a person confirmed: found among the open ones of the record when they said so.
+        // The family a person confirmed, still open (open_link()).
         $linked = (int) ($household->familylink ?? 0);
         if ($linked > 0) {
             return $linked;
@@ -160,6 +163,112 @@ class family {
                 'sourcekey' => self::SOURCE . ':a' . $adult->id]);
         }
         return $familyid;
+    }
+
+    /**
+     * The family a person said this household is, when it is still open in the record: one that closed since is forgotten,
+     * and the file asks again.
+     *
+     * @param \stdClass $household Changed in place.
+     */
+    protected static function open_link(\stdClass $household): void {
+        global $DB;
+        $linked = (int) ($household->familylink ?? 0);
+        if ($linked <= 0) {
+            return;
+        }
+        $status = $DB->get_field('local_oksigeniafamily_family', 'status', ['id' => $linked]);
+        if ($status !== 'active') {
+            $DB->set_field(households::T, 'familylink', 0, ['id' => $household->id]);
+            $household->familylink = 0;
+        }
+    }
+
+    /**
+     * Two households put together: the family of the record the one that stays has from now on. What a person said it is
+     * wins over «it is not that one» of the other; without it, the one Eguahe made for the household that goes, unless
+     * the one that stays has its own.
+     *
+     * @param \stdClass $keep
+     * @param \stdClass $gone
+     * @return int As familylink keeps it: a family, -1 or 0.
+     */
+    public static function merged(\stdClass $keep, \stdClass $gone): int {
+        $k = (int) ($keep->familylink ?? 0);
+        $g = (int) ($gone->familylink ?? 0);
+        if ($k > 0 || $g > 0) {
+            return $k > 0 ? $k : $g;
+        }
+        if (self::available() && !centres::is_practice((int) $keep->centreid)) {
+            $api = self::API;
+            try {
+                if (!$api::family_by_key(self::SOURCE, self::key('h', (int) $keep->id))) {
+                    $own = (int) $api::family_by_key(self::SOURCE, self::key('h', (int) $gone->id));
+                    if ($own) {
+                        return $own;
+                    }
+                }
+            } catch (\Throwable $e) {
+                debugging('Eguahe: Family did not say the family of household ' . $gone->id . ': ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+        }
+        return min($k, $g);
+    }
+
+    /**
+     * The name and the course of a child Eguahe put in the record, as it has them now: the other plugins read them there.
+     *
+     * @param \stdClass $child
+     * @return bool Whether they changed.
+     */
+    public static function details(\stdClass $child): bool {
+        global $DB;
+        $api = self::API;
+        $id = (int) ($child->familychild ?? 0);
+        if (!$id || !self::available() || !method_exists($api, 'set_child_details')) {
+            return false;
+        }
+        $key = (string) $DB->get_field('local_oksigeniafamily_child', 'sourcekey', ['id' => $id]);
+        if (!self::ours($key)) {
+            return false;
+        }
+        $course = (int) $child->offerid ? (string) $DB->get_field(centres::OFFERS, 'name', ['id' => $child->offerid]) : '';
+        return (bool) $api::set_child_details($key, trim((string) $child->firstname), null, format_string($course));
+    }
+
+    /**
+     * The names and courses of the children of a centre Eguahe put in the record, brought up to date.
+     *
+     * @param int $centreid
+     * @return int How many changed.
+     */
+    public static function names(int $centreid): int {
+        global $DB;
+        if (!self::available() || centres::is_practice($centreid)) {
+            return 0;
+        }
+        $n = 0;
+        $rows = $DB->get_records_select(
+            households::CHILDREN,
+            "centreid = ? AND familychild > 0 AND roster = 0 AND stage = 'enrolled' AND lefttime = 0",
+            [$centreid],
+            'id ASC',
+            'id, firstname, offerid, familychild'
+        );
+        foreach ($rows as $child) {
+            $n += self::details($child) ? 1 : 0;
+        }
+        return $n;
+    }
+
+    /**
+     * Whether a key of the record is of a child Eguahe put in it: this one's, or the one of a file put together with its.
+     *
+     * @param string $key
+     * @return bool
+     */
+    protected static function ours(string $key): bool {
+        return (bool) preg_match('/^' . self::SOURCE . ':c\d+$/', $key);
     }
 
     /**
@@ -181,13 +290,31 @@ class family {
             // them once it is there (hints()), so the same child is never in the record twice.
             return 0;
         }
+        self::open_link($household);
         if ((int) ($household->familylink ?? 0) === 0 && self::hints(households::full($household))) {
             // The family may already be in the record and nobody said yet: nothing is made, the file asks first.
             return 0;
         }
         $api = self::API;
-        $id = (int) $api::add_child(self::family_of($household), null, self::key('c', (int) $child->id));
+        $familyid = self::family_of($household);
+        $key = self::key('c', (int) $child->id);
+        $had = (int) $DB->get_field(households::CHILDREN, 'familychild', ['id' => $child->id]);
+        if ($had && ($was = $DB->get_record('local_oksigeniafamily_child', ['id' => $had, 'familyid' => $familyid]))) {
+            if (!self::ours((string) $was->sourcekey)) {
+                // The management system of the centre has it there already: never a second time.
+                return $had;
+            }
+            // Of a file put together with this one: the same child, with the key it had.
+            $key = (string) $was->sourcekey;
+        }
+        self::$own = true;
+        try {
+            $id = (int) $api::add_child($familyid, null, $key);
+        } finally {
+            self::$own = false;
+        }
         $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'familychild' => $id, 'familygone' => 0]);
+        self::details($DB->get_record(households::CHILDREN, ['id' => $child->id], '*', MUST_EXIST));
         return $id;
     }
 
@@ -204,16 +331,19 @@ class family {
             return;
         }
         // Only a child Eguahe put in the record: one the management system brought leaves by it, never by a word here.
-        $key = $DB->get_field('local_oksigeniafamily_child', 'sourcekey', ['id' => $id]);
-        if ($key !== self::key('c', (int) $child->id)) {
+        $key = (string) $DB->get_field('local_oksigeniafamily_child', 'sourcekey', ['id' => $id]);
+        if (!self::ours($key)) {
             return;
         }
         $api = self::API;
+        self::$own = true;
         try {
             // A child already out of it stays as it is; one the record deleted after its time is no longer there.
             $api::unlink_child($id, 'manual');
         } catch (\dml_missing_record_exception $e) {
             $DB->set_field(households::CHILDREN, 'familychild', 0, ['id' => $child->id]);
+        } finally {
+            self::$own = false;
         }
     }
 
@@ -225,11 +355,48 @@ class family {
      */
     public static function unlinked(\core\event\base $event): void {
         global $DB;
-        $child = $DB->get_record(households::CHILDREN, ['familychild' => (int) $event->objectid]);
-        if (!$child || $child->stage !== 'enrolled' || !empty($child->lefttime) || !empty($child->familygone)) {
+        if (self::$own) {
             return;
         }
+        $child = $DB->get_record(households::CHILDREN, ['familychild' => (int) $event->objectid], '*', IGNORE_MULTIPLE);
+        if (!$child || $child->stage !== 'enrolled' || !empty($child->familygone)) {
+            return;
+        }
+        // Of one a person already said has gone, it is only known, for when it comes back.
         $DB->set_field(households::CHILDREN, 'familygone', $event->timecreated ?: time(), ['id' => $child->id]);
+    }
+
+    /**
+     * The centre put a child back in the common record, after it had taken it out: if its family had been said to have gone,
+     * it is with us again.
+     *
+     * @param \core\event\base $event \local_oksigeniafamily\event\child_linked
+     */
+    public static function linked(\core\event\base $event): void {
+        global $DB;
+        if (self::$own) {
+            return;
+        }
+        $child = $DB->get_record(households::CHILDREN, ['familychild' => (int) $event->objectid], '*', IGNORE_MULTIPLE);
+        if ($child && !empty($child->familygone)) {
+            self::back($child);
+        }
+    }
+
+    /**
+     * A child the record had let go is in it again: nobody has to say whether it left, and one said to have gone is back.
+     *
+     * @param \stdClass $child
+     */
+    public static function back(\stdClass $child): void {
+        global $DB;
+        $left = !empty($child->lefttime);
+        $DB->update_record(households::CHILDREN, (object) (['id' => $child->id, 'familygone' => 0, 'timemodified' => time()] +
+            ($left ? ['lefttime' => 0, 'leftreason' => null, 'leftnote' => null] : [])));
+        $household = $left ? households::get((int) $child->householdid, (int) $child->centreid) : null;
+        if ($household) {
+            households::note($household, 0, get_string('family_back_note', 'local_oksigeniaeguahe', panel::tag($child)));
+        }
     }
 
     /**

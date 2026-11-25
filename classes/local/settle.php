@@ -176,6 +176,31 @@ class settle {
     }
 
     /**
+     * The way of the children of a family was closed by a person: it no longer waits, which is not an answer. Only when none
+     * goes on.
+     *
+     * @param \stdClass $household Changed in place.
+     * @param int $userid
+     * @return bool
+     */
+    public static function closed(\stdClass $household, int $userid): bool {
+        global $DB;
+        $open = $DB->record_exists_select(
+            households::CHILDREN,
+            "householdid = ? AND stage <> 'closed' AND NOT (stage = 'enrolled' AND COALESCE(lefttime, 0) > 0)",
+            [$household->id]
+        );
+        if ($open || !(int) $DB->get_field(households::T, 'waitingsince', ['id' => $household->id])) {
+            return false;
+        }
+        $DB->update_record(households::T, (object) ['id' => $household->id, 'waitingsince' => 0, 'waitingdayonly' => 0, 'timemodified' => time()]);
+        $household->waitingsince = 0;
+        $household->waitingdayonly = 0;
+        households::note($household, $userid, get_string('settle_note_closed', self::C));
+        return true;
+    }
+
+    /**
      * Takes it back: they wait again, since when they did, unless something happened since.
      *
      * @param \stdClass $centre

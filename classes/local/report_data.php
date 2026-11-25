@@ -67,35 +67,50 @@ class report_data {
     public static function build(\stdClass $centre, string $kind, int $from, int $to, int $now): array {
         $c = self::C;
         $id = (int) $centre->id;
-        $all = self::families($centre);
+        $all = array_values(facts::everyone($centre, $now));
+        // The campaign under way and the imported ones: each family once, the first time it came.
+        $new = array_values(array_filter($all, fn($f) => $f['group'] === 'campaign'));
+        $live = panel_metrics::campaigns($centre, $now)['live'];
+        $mineoflive = facts::families($centre, $live, $now);
         $length = $to - $from;
         $back = $kind === 'hot' ? $length : 0;
         // A period under way is compared with the same point of the one before, never with it whole.
         $sofar = $now < $to;
         $end = min($to, $now);
         $year = self::year_before($from);
-        $covered = self::covered($id, $all, $year, $from);
-        $mine = self::window($id, $all, $from, $end);
-        $before = $back ? self::window($id, $all, $from - $back, $end - $back) : null;
-        $ago = self::window($id, $all, $year, self::year_before($end));
+        $covered = self::covered($id, $new, $year, $from);
+        $mine = self::window($centre, $kind, $all, $from, $end);
+        $before = $back ? self::window($centre, $kind, $all, panel_metrics::days_after($from, -7), panel_metrics::days_after($end, -7)) : null;
+        $ago = self::window($centre, $kind, $all, $year, self::year_before($end));
         $figures = [];
         foreach (self::FIGURES as $key) {
             $compare = $before ? $before[$key] : ($covered[$key] ? $ago[$key] : null);
+            // A balance by the list is never set against one without it.
+            if ($key === 'net' && $compare !== null && ($before ?? $ago)['listed'] !== $mine['listed']) {
+                $compare = null;
+            }
             $figures[] = [
                 'key' => $key,
                 'value' => $key === 'net' ? self::signed($mine[$key]) : (string) $mine[$key],
                 'n' => $mine[$key],
-                'label' => get_string('report_fig_' . $key . ($mine[$key] === 1 || $mine[$key] === -1 ? '_one' : ''), $c),
+                'label' => get_string('report_fig_' . $key . ($key === 'net' ? ($mine['listed'] ? '_list' : '') :
+                    ($mine[$key] === 1 ? '_one' : '')), $c),
+                'note' => $key === 'enrolled' && $mine['notes'] !== '' ? $mine['notes'] : ($key === 'arrived' && $mine['undated'] ?
+                    get_string('report_arrived_undated' . ($mine['undated'] === 1 ? '_one' : ''), $c, $mine['undated']) : ($key === 'came' && $mine['noday'] ?
+                    get_string('report_came_noday' . ($mine['noday'] === 1 ? '_one' : ''), $c, $mine['noday']) : false)),
                 'before' => $compare === null ? false : ($key === 'net' ? self::signed($compare) : (string) $compare),
                 'beforelabel' => $compare === null ? false : get_string('report_before_' . ($kind === 'hot' ? 'week' : 'year') .
                     ($sofar ? '_sofar' : ''), $c),
-                'ago' => $before && $covered[$key] ? ($key === 'net' ? self::signed($ago[$key]) : (string) $ago[$key]) : false,
+                'ago' => $before && $covered[$key] && ($key !== 'net' || $ago['listed'] === $mine['listed']) ?
+                    ($key === 'net' ? self::signed($ago[$key]) : (string) $ago[$key]) : false,
                 'agolabel' => $before && $covered[$key] ? get_string('report_ago', $c) : false,
                 'trend' => $compare === null ? false : self::trend($mine[$key], $compare),
             ];
         }
-        $response = self::response($id, $from, $end);
-        $responsebefore = self::response($id, $from - max($length, 4 * WEEKSECS), $from);
+        $ids = fn(int $a, int $b) => facts::ids(array_filter($new, fn($f) => facts::lives($f) &&
+            $f['first'] >= $a && $f['first'] < $b));
+        $response = panel_metrics::said(metrics::response($id, $ids($from, $end), $now));
+        $responsebefore = panel_metrics::said(metrics::response($id, $ids($from - max($length, 4 * WEEKSECS), $from), $now));
         $cifras = panel_metrics::context($centre, ['campaign' => 'live', 'compare' => 1], false, $now);
         // The channels in time are already in Cifras: not counted twice.
         $channels = $cifras['channelstime'] ?? panel_channels::context($centre, $now);
@@ -110,49 +125,46 @@ class report_data {
             'sofar' => $sofar ? get_string('report_sofar', $c, self::day($now)) : false,
             'sentence' => self::sentence($kind, $mine, $before ?? ($covered['arrived'] ? $ago : null)),
             'figures' => $figures,
-            'response' => $response === null ? false : self::response_words($response, $responsebefore),
+            'response' => $response['asked'] ? self::response_words($response, $responsebefore) : false,
             'attention' => $kind === 'hot' ? self::attention($centre, $cifras, $now) : false,
             'funnel' => self::funnel($cifras),
-            'pace' => $kind === 'hot' ? self::weeks($id, $all, $to, $covered['arrived']) : self::months($all, $from, $to, $now),
+            'pacefrom' => $kind === 'hot' ? panel_metrics::days_after($to, -7 * self::WEEKS) : $from,
+            'pace' => $kind === 'hot' ? self::weeks($new, $to, $covered['arrived']) : self::months($new, $from, $to, $now),
             'channels' => self::channels($channels),
             'places' => self::places($cifras),
             'acts' => self::acts($id, $from, $to),
-            'voices' => self::voices($id, $all, $from, $to),
+            'voices' => self::voices($id, $new, $from, $to),
             'bychannel' => self::by_channel($centre, $all, $from, $to),
+            'kinds' => panel_metrics::kinds_sentence(facts::read($centre, $live, $now), $live, get_string('report_kinds_now', $c)),
             // How the families of the campaign under way decide, so far.
             'decide' => decide::summary(
                 $centre,
-                array_values(array_filter($all, fn($f) => !empty($f['live']))),
-                (int) ($centre->campaignstart ?? 0) ?: (int) strtotime('-12 months', $end),
+                $mineoflive,
+                (int) $live['since'],
                 $end
             ),
-            'gone' => $kind === 'cold' && $cifras['gone'] ? ['text' => $cifras['gone']['text'],
-                'reasons' => $cifras['gone']['reasons'] ?? []] : false,
+            // Those that go, of the campaign under way, and the contacts that were not families.
+            'outs' => outs::summary(
+                $centre,
+                $mineoflive,
+                (int) $live['since']
+            ) ?: false,
+            // Those that left in the course of the report, whichever school year they were enrolled for.
+            'gone' => $kind === 'cold' ? array_intersect_key(
+                panel_metrics::gone($centre, $from, $end, panel_metrics::course_name($from)),
+                ['text' => 1, 'reasons' => 1]
+            ) : false,
             'started' => $kind === 'cold' && $cifras['started'] ? ['text' => $cifras['started']['text']] : false,
             'referred' => $cifras['referred'] ? ['text' => $cifras['referred']['text']] : false,
             'forecast' => $kind === 'cold' ? self::forecast($centre) : false,
             'grow' => $kind === 'cold' ? self::grow($centre) : false,
         ];
+        // Those of the sheet of the team carry the day of their visit: said by the chart that has them.
+        $undated = facts::sum(array_filter($new, fn($f) => $f['first'] >= $data['pacefrom'] && $f['first'] < $to))['undated'];
+        $data['pace']['note'] = $undated ? get_string('report_pace_undated', $c, $undated) : false;
         $data['advice'] = self::advice($centre, $data, $mine, $covered['arrived'] ? $ago : null, $channels, $now);
         $data['definitions'] = self::definitions($kind);
         return $data;
-    }
-
-    /**
-     * Every family the centre knows of a campaign, the one under way and the imported ones: when it came, how far it
-     * got, when it enrolled and where it came from.
-     *
-     * @param \stdClass $centre
-     * @return array
-     */
-    protected static function families(\stdClass $centre): array {
-        $all = [];
-        foreach (panel_metrics::campaigns($centre) as $campaign) {
-            foreach (panel_metrics::families($centre, $campaign) as $family) {
-                $all[] = $family + ['live' => !$campaign['import']];
-            }
-        }
-        return $all;
     }
 
     /**
@@ -188,33 +200,76 @@ class report_data {
     }
 
     /**
-     * What happened in a period: the families that came in, those that came to see the centre, the children enrolled,
-     * those that left, the net, and the families that looked at their page.
+     * What happened in a period: the new families that came in, those that came to see the centre (on the day they came), the
+     * children of new families enrolled, those that left and the balance. The children of families already of the centre are
+     * said apart: they go on, the campaign did not bring them. With the list of the school year, the balance is its joins and
+     * its leaves; without it, the enrolled of new families less those that left.
      *
-     * @param int $centreid
+     * @param \stdClass $centre
+     * @param string $kind hot or cold.
      * @param array $all
      * @param int $from
      * @param int $to
-     * @return int[]
+     * @return array arrived, came, enrolled, ofcentre, left, net, listed (whether the balance is of the list) and notes
      */
-    protected static function window(int $centreid, array $all, int $from, int $to): array {
+    protected static function window(\stdClass $centre, string $kind, array $all, int $from, int $to): array {
         global $DB;
-        $arrived = count(array_filter($all, fn($f) => $f['first'] >= $from && $f['first'] < $to));
-        $came = (int) $DB->count_records_sql(
-            'SELECT COUNT(DISTINCT s.householdid)
-                                                FROM {' . events::SIGNUPS . '} s
-                                                JOIN {' . events::T . '} e ON e.id = s.eventid
-                                               WHERE e.centreid = ? AND s.attended >= ? AND s.attended < ? AND e.kind <> ?',
-            [$centreid, $from, $to, 'other']
-        );
-        $enrolled = $DB->count_records_select(
+        $c = self::C;
+        $inside = fn(int $time) => $time >= $from && $time < $to;
+        $new = array_filter($all, fn($f) => $f['group'] === 'campaign');
+        $enrolled = 0;
+        $ofcentre = 0;
+        $years = [];
+        foreach ($all as $f) {
+            foreach ($f['kids'] as $kid) {
+                if ($kid['stage'] !== 'enrolled' || !$inside($kid['stagetime'])) {
+                    continue;
+                }
+                // For the school year of the child: a family may be new for one and of the centre for the next.
+                if (in_array(who::kind((int) $centre->id, (int) $f['id'], $kid['year']), who::CENTRE, true)) {
+                    $ofcentre++;
+                } else {
+                    $enrolled++;
+                    $years[$kid['year']] = ($years[$kid['year']] ?? 0) + 1;
+                }
+            }
+        }
+        $left = $DB->count_records_select(
             households::CHILDREN,
-            "centreid = ? AND stage = 'enrolled' AND roster = 0 AND stagetime >= ? AND stagetime < ?",
-            [$centreid, $from, $to]
+            "centreid = ? AND stage = 'enrolled' AND lefttime >= ? AND lefttime < ?",
+            [$centre->id, max(1, $from), $to]
         );
-        $left = $DB->count_records_select(households::CHILDREN, 'centreid = ? AND lefttime >= ? AND lefttime < ?', [$centreid,
-            $from, $to]);
-        return ['arrived' => $arrived, 'came' => $came, 'enrolled' => $enrolled, 'left' => $left, 'net' => $enrolled - $left];
+        $net = $enrolled - $left;
+        $listed = false;
+        $year = panel_metrics::course_name(reports::current($centre, 'cold', $from)[0]);
+        if (in_array($year, metrics::school_years((int) $centre->id), true)) {
+            $m = metrics::movements((int) $centre->id, $year);
+            if ($m['hasroll']) {
+                $listed = true;
+                $net = $kind === 'cold' ? (int) $m['totals']['net'] : array_sum(array_map(
+                    fn($d) => $inside($d[0]) ? ($d[1] === 'joins' ? 1 : -1) : 0,
+                    $m['dated']
+                ));
+            }
+        }
+        ksort($years);
+        $notes = [];
+        if (count($years) > 1) {
+            foreach ($years as $of => $n) {
+                $notes[] = get_string('report_enrolled_year' . ((string) $of === '' ? '_none' : ''), $c, (object) ['n' => $n, 'year' => $of]);
+            }
+        }
+        if ($ofcentre) {
+            $notes[] = get_string('report_enrolled_centre' . ($ofcentre === 1 ? '_one' : ''), $c, $ofcentre);
+        }
+        // Those that came and nothing says which day: in no period, and said.
+        $noday = count(array_filter($new, fn($f) => $inside($f['first']) && !empty($f['came']) && !array_filter($f['visits'], fn($t) => $t > 0) &&
+            facts::lives($f)));
+        return ['noday' => $noday, 'undated' => count(array_filter($new, fn($f) => $inside($f['first']) && !$f['dated'])),
+            'arrived' => count(array_filter($new, fn($f) => $inside($f['first']))),
+            'came' => count(array_filter($new, fn($f) => (bool) array_filter($f['visits'], $inside))),
+            'enrolled' => $enrolled, 'ofcentre' => $ofcentre, 'left' => $left, 'net' => $net, 'listed' => $listed,
+            'notes' => implode('; ', $notes)];
     }
 
     /**
@@ -284,7 +339,7 @@ class report_data {
         if (!$mine['arrived'] && !$mine['came'] && !$mine['enrolled'] && !$mine['left']) {
             return get_string('report_sentence_quiet_' . $kind, $c);
         }
-        $text = get_string('report_sentence_' . $kind . ($mine['arrived'] === 1 ? '_one' : ''), $c, $a);
+        $text = get_string('report_sentence_' . $kind . ($mine['arrived'] ? ($mine['arrived'] === 1 ? '_one' : '') : '_none'), $c, $a);
         if ($before !== null) {
             $text .= ' ' . get_string('report_sentence_before_' . $kind . ($before['arrived'] === 1 ? '_one' : ''), $c, $a);
         }
@@ -292,69 +347,19 @@ class report_data {
     }
 
     /**
-     * Half the families that came in in a period had their first answer within this time (seconds); null without any.
-     * What only has its day measures no hours: such a first message or answer is left out.
+     * The first answer in a sentence, with those that still wait for it, and how it was in the weeks before.
      *
-     * @param int $centreid
-     * @param int $from
-     * @param int $to
-     * @return float|null
-     */
-    protected static function response(int $centreid, int $from, int $to): ?float {
-        global $DB;
-        $rows = $DB->get_records_sql(
-            "SELECT i.householdid, MIN(i.timecreated) AS asked
-               FROM {" . households::CONTACTS . "} i
-              WHERE i.centreid = :centreid AND i.direction = 'in' AND i.channel <> 'page'
-           GROUP BY i.householdid
-             HAVING MIN(i.timecreated) >= :since AND MIN(i.timecreated) < :until",
-            ['centreid' => $centreid, 'since' => $from, 'until' => $to]
-        );
-        $times = [];
-        foreach (array_chunk($rows, 500, true) as $chunk) {
-            [$in, $params] = $DB->get_in_or_equal(array_keys($chunk), SQL_PARAMS_NAMED);
-            $lines = $DB->get_recordset_select(
-                households::CONTACTS,
-                "householdid $in AND direction <> 'note' AND channel <> 'page'",
-                $params,
-                'householdid ASC, timecreated ASC, id ASC',
-                'id, householdid, direction, dayonly, timecreated'
-            );
-            $asked = [];
-            $done = [];
-            foreach ($lines as $line) {
-                $id = (int) $line->householdid;
-                if ($line->direction === 'in') {
-                    $asked[$id] = $asked[$id] ?? $line;
-                } else if (isset($asked[$id]) && !isset($done[$id])) {
-                    $done[$id] = true;
-                    if (!$line->dayonly && !$asked[$id]->dayonly) {
-                        $times[] = (int) $line->timecreated - (int) $asked[$id]->timecreated;
-                    }
-                }
-            }
-            $lines->close();
-        }
-        if (!$times) {
-            return null;
-        }
-        sort($times);
-        $n = count($times);
-        return $n % 2 ? (float) $times[intdiv($n, 2)] : ($times[$n / 2 - 1] + $times[$n / 2]) / 2;
-    }
-
-    /**
-     * The first answer in a sentence: half the families had it within this time, and in the weeks before.
-     *
-     * @param float $now
-     * @param float|null $before
+     * @param array $now From metrics::response().
+     * @param array $before
      * @return array value, before, slower and text.
      */
-    protected static function response_words(float $now, ?float $before): array {
-        $a = (object) ['value' => self::hours($now), 'before' => $before === null ? '' : self::hours($before)];
-        return ['value' => $a->value, 'before' => $before === null ? false : $a->before,
-            'slower' => $before !== null && $now > 1.25 * $before && $now > DAYSECS,
-            'text' => get_string('report_response' . ($before === null ? '' : '_before'), self::C, $a)];
+    protected static function response_words(array $now, array $before): array {
+        $both = $now['median'] !== null && $before['median'] !== null;
+        $a = (object) ['value' => $now['median'] === null ? '' : panel_metrics::hours_words((float) $now['median']),
+            'before' => $before['median'] === null ? '' : panel_metrics::hours_words((float) $before['median'])];
+        return ['value' => $a->value, 'before' => $both ? $a->before : false,
+            'slower' => $both && $now['median'] > 1.25 * $before['median'] && $now['median'] > 24,
+            'text' => panel_metrics::response_sentence($now, true) . ($both ? ' ' . get_string('report_response_before', self::C, $a) : '')];
     }
 
     /**
@@ -439,11 +444,12 @@ class report_data {
                 'room' => $capacity])];
         }
         foreach ($cifras['places'] ?: [] as $course) {
-            if (isset($course['high'], $course['places']) && $course['places'] && $course['high'] < $course['places']) {
+            // Only when there is something to expect by: without a campaign before, nothing is known of what may come.
+            if (($course['high'] ?? false) !== false && $course['places'] && $course['high'] < $course['places']) {
                 $out[] = ['kind' => 'course', 'count' => $course['places'] - $course['high'], 'late' => false,
-                    'url' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $id]))->out(false),
-                    'text' => get_string('report_att_course', $c, (object) ['name' => $course['name'],
-                    'free' => $course['places'] - $course['high']])];
+                    'url' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $id, 'pregunta' => 'places']))->out(false),
+                    'text' => get_string('report_att_course' . ($course['places'] - $course['high'] === 1 ? '_one' : ''), $c, (object) [
+                    'name' => $course['name'], 'free' => $course['places'] - $course['high']])];
             }
         }
         return $out;
@@ -471,22 +477,22 @@ class report_data {
     /**
      * The families that came in each of the last weeks, and in the same weeks a year before when they were counted.
      *
-     * @param int $centreid
      * @param array $all
      * @param int $to
      * @param bool $covered
      * @return array
      */
-    protected static function weeks(int $centreid, array $all, int $to, bool $covered): array {
+    protected static function weeks(array $all, int $to, bool $covered): array {
         $rows = [];
         for ($i = self::WEEKS; $i >= 1; $i--) {
-            $start = $to - $i * WEEKSECS;
-            $end = $start + WEEKSECS;
+            // Weeks of the calendar: the change of the hour never moves a day.
+            $start = panel_metrics::days_after($to, -7 * $i);
+            $end = panel_metrics::days_after($start, 7);
             $agostart = self::year_before($start);
             $rows[] = ['label' => self::day($start),
                 'n' => count(array_filter($all, fn($f) => $f['first'] >= $start && $f['first'] < $end)),
                 'before' => $covered ? count(array_filter($all, fn($f) => $f['first'] >= $agostart &&
-                    $f['first'] < $agostart + WEEKSECS)) : false];
+                    $f['first'] < panel_metrics::days_after($agostart, 7))) : false];
         }
         return self::scaled($rows, get_string('report_pace_weeks', self::C), $covered);
     }
@@ -605,41 +611,64 @@ class report_data {
             return false;
         }
         [$in, $params] = $DB->get_in_or_equal(array_keys($events));
-        $signed = $DB->get_records_sql_menu("SELECT eventid, COUNT(DISTINCT householdid) FROM {" . events::SIGNUPS . "}
-                                              WHERE eventid $in GROUP BY eventid", $params);
-        $came = $DB->get_records_sql_menu("SELECT eventid, COUNT(DISTINCT householdid) FROM {" . events::SIGNUPS . "}
-                                            WHERE eventid $in AND attended > 0 GROUP BY eventid", $params);
         $told = $DB->get_records_sql_menu("SELECT eventid, COUNT(DISTINCT householdid) FROM {" . surveys::T . "}
                                             WHERE eventid $in GROUP BY eventid", $params);
-        // Who the families of each act are: those that came, or those signed up while it is still to come.
+        // Who the families of each act are: those signed up, those that came, whether anybody said who did, and those that only
+        // came to it.
         $people = [];
-        $rs = $DB->get_recordset_sql("SELECT id, eventid, householdid, attended FROM {" . events::SIGNUPS . "}
-                                       WHERE eventid $in", $params);
+        $marked = [];
+        $guests = [];
+        $rs = $DB->get_recordset_sql("SELECT s.id, s.eventid, s.householdid, s.attended, s.missed, h.guest, h.outreason
+                                        FROM {" . events::SIGNUPS . "} s
+                                        JOIN {" . households::T . "} h ON h.id = s.householdid
+                                       WHERE s.eventid $in", $params);
         foreach ($rs as $r) {
+            $marked[(int) $r->eventid] = !empty($marked[(int) $r->eventid]) || (int) $r->attended || (int) $r->missed;
+            if ((int) $r->guest) {
+                if (trim((string) $r->outreason) === '') {
+                    $guests[(int) $r->eventid][(int) $r->householdid] = true;
+                }
+                continue;
+            }
             $people[(int) $r->eventid][(int) $r->householdid] = !empty($people[(int) $r->eventid][(int) $r->householdid]) ||
                 (int) $r->attended > 0;
         }
         $rs->close();
+        $centre = centres::get($centreid);
         $rows = [];
         $own = ['n' => 0, 'came' => 0];
         foreach ($events as $event) {
-            if ($event->tailored) {
-                $own['n']++;
-                $own['came'] += (int) ($came[$event->id] ?? 0) ? 1 : 0;
+            $mine = $people[(int) $event->id] ?? [];
+            if ($event->tailored || (int) $event->householdid) {
+                // What each family asked for, and the visits of its own.
+                if ((int) $event->householdid && !(int) $event->cancelled) {
+                    $own['n']++;
+                    $own['came'] += array_filter($mine) ? 1 : 0;
+                }
                 continue;
             }
-            $s = (int) ($signed[$event->id] ?? 0);
-            $k = (int) ($came[$event->id] ?? 0);
+            if ((int) $event->cancelled) {
+                continue;
+            }
+            $s = count($mine);
+            $k = count(array_filter($mine));
+            $only = count($guests[(int) $event->id] ?? []);
             $hour = userdate((int) $event->timestart, get_string('strftimetime', 'langconfig'));
             $when = self::day((int) $event->timestart) . ', ' . $hour;
             $past = $event->timestart < time();
-            $those = array_keys(array_filter($people[(int) $event->id] ?? [], fn($came) => $came || !$past));
-            $who = who::sentence(who::count(array_map(fn($id) => ['who' => who::kind($centreid, $id),
-                'also' => who::kinds($centreid, $id)], $those)), false, false);
+            $nobody = $past && ($s || $only) && empty($marked[(int) $event->id]);
+            $those = array_keys(array_filter($mine, fn($came) => $came || !$past));
+            $year = facts::year_at($centre, (int) $event->timestart, facts::years($centreid));
+            $who = who::sentence(who::count(array_map(fn($id) => ['who' => who::kind($centreid, $id, $year),
+                'also' => who::kinds($centreid, $id, $year)], $those)), false, false);
+            $said = array_filter([$nobody ? get_string('report_act_unmarked', $c) : ($who !== '' ? get_string($past ?
+                'report_act_who_came' : 'report_act_who_signed', $c, $who) : ''), $only ? get_string('report_act_guests' .
+                ($only === 1 ? '_one' : ''), $c, $only) : '']);
             $rows[] = ['name' => format_string($event->name), 'when' => $when, 'signed' => $s,
-                'who' => $who !== '' ? get_string($past ? 'report_act_who_came' : 'report_act_who_signed', $c, $who) : false,
+                'who' => $said ? implode(' ', $said) : false,
                 'came' => $k, 'told' => (int) ($told[$event->id] ?? 0),
-                'rate' => $s && $event->timestart < time() ? get_string('report_rate', $c, (int) round(100 * $k / $s)) : false];
+                // With fewer than ten, the two numbers at its side say it.
+                'rate' => $s >= facts::FEW && $past && !$nobody ? get_string('report_rate', $c, (int) round(100 * $k / $s)) : false];
         }
         return ['rows' => $rows, 'own' => $own['n'] ? get_string(
             'report_acts_own' . ($own['n'] === 1 ? '_one' : ''),
@@ -660,11 +689,11 @@ class report_data {
      */
     protected static function by_channel(\stdClass $centre, array $all, int $from, int $to) {
         $c = 'local_oksigeniaeguahe';
-        $mine = array_values(array_filter($all, fn($f) => $f['first'] >= $from && $f['first'] < $to &&
-            ($f['voices']['channel'] ?? '') !== ''));
+        $inside = fn(string $group) => array_values(array_filter($all, fn($f) => $f['group'] === $group &&
+            $f['first'] >= $from && $f['first'] < $to && ($f['voices']['channel'] ?? '') !== ''));
+        $mine = $inside('campaign');
         // Those already of the centre that came in the period, set against the others.
-        $theirs = array_values(array_filter(panel_metrics::everyone($centre), fn($f) => in_array($f['who'], who::CENTRE, true) &&
-            $f['first'] >= $from && $f['first'] < $to));
+        $theirs = $inside('centre');
         if (!$mine && !$theirs) {
             return false;
         }
@@ -675,8 +704,8 @@ class report_data {
         foreach ($sum['rows'] as $r) {
             $note = arrival::row_note($r);
             $blocks[$r['group']]['rows'][] = ['line' => get_string($r['n'] === 1 ? 'panel_bychannel_line_one' :
-                'panel_bychannel_line', $c, (object) (array_diff_key($r, ['who' => 1]) + ['frac' => $r['n'] ?
-                round(100 * $r['enrolled'] / $r['n']) . ' %' : '0 %'])) . ($note !== '' ? ' ' . $note : '')];
+                'panel_bychannel_line', $c, (object) (array_diff_key($r, ['who' => 1]) + ['share' =>
+                panel_metrics::share($r['enrolled'], $r['n'], true)])) . ($note !== '' ? ' ' . $note : '')];
         }
         $out = [];
         foreach (['own', 'paid', 'other', 'unmeasured'] as $group) {
@@ -714,7 +743,7 @@ class report_data {
                 if ($f['voices']['said'] !== '') {
                     $heard[$f['voices']['said']] = ($heard[$f['voices']['said']] ?? 0) + 1;
                 }
-                if (!empty($f['live'])) {
+                if (facts::lives($f)) {
                     $ids[] = (int) $f['id'];
                 }
             }
@@ -812,23 +841,30 @@ class report_data {
             ));
         }
         // Families that wrote in the last weeks and have not come to see the centre yet, with an act ahead to invite them.
-        $next = $DB->get_record_select(
+        $next = current($DB->get_records_select(
             events::T,
             'centreid = ? AND tailored = 0 AND open = 1 AND timestart > ?',
             [$id, $now],
+            'timestart ASC, id ASC',
             '*',
-            IGNORE_MULTIPLE
-        );
+            0,
+            1
+        ));
         if ($next) {
-            $notyet = (int) $DB->count_records_sql("SELECT COUNT(1) FROM {" . households::T . "} h
-                                                     WHERE h.centreid = ? AND h.incentre = 0 AND h.guest = 0 AND h.timecreated >= ?
-                                                       AND NOT EXISTS (SELECT 1 FROM {" . events::SIGNUPS . "} s
-                                                                         JOIN {" . events::T . "} v ON v.id = s.eventid
-                                                                        WHERE s.householdid = h.id AND v.kind <> 'other')
-                                                       AND EXISTS (SELECT 1 FROM {" . households::CHILDREN . "} k
-                                                                    WHERE k.householdid = h.id
-                                                                      AND k.stage = 'inquiry')", [$id,
-                $now - 6 * WEEKSECS]);
+            // Only those the invitation can reach: never whoever asked for no invitations, or not to be written to.
+            $reachable = array_flip(array_map(fn($h) => (int) $h->id, invites::eligible($next)));
+            $signed = array_flip($DB->get_fieldset_sql(
+                "SELECT DISTINCT s.householdid
+                   FROM {" . events::SIGNUPS . "} s
+                   JOIN {" . events::T . "} v ON v.id = s.eventid
+                  WHERE v.centreid = ? AND v.kind <> 'other'",
+                [$id]
+            ));
+            $notyet = count(array_filter(
+                facts::families($centre, facts::live($centre, $now), $now),
+                fn($f) => $f['first'] >= $now - 6 * WEEKSECS && $f['step'] === 1 && !$f['closed'] && isset($reachable[$f['id']]) &&
+                    !isset($signed[$f['id']])
+            ));
             if ($notyet >= 3) {
                 $a = (object) ['n' => $notyet, 'name' => format_string($next->name), 'when' => self::day((int) $next->timestart)];
                 $add('invite', $a, new \moodle_url('/local/oksigeniaeguahe/event.php', ['c' => $id, 'id' => $next->id]));

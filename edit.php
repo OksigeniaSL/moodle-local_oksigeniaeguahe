@@ -30,11 +30,13 @@ use local_oksigeniaeguahe\local\alumni;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\listmatch;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_familyform;
 use local_oksigeniaeguahe\local\phone;
+use local_oksigeniaeguahe\local\ties;
 use local_oksigeniaeguahe\local\writeby;
 
 require_login(null, false);
@@ -45,6 +47,8 @@ $eventid = optional_param('eventid', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_act($centreid);
+// At the door of an act, who comes without having signed up: short, and back to it.
+$door = !$id && optional_param('puerta', 0, PARAM_BOOL) ? events::get($eventid, $centreid) : null;
 // From the week: whoever is written down is given an appointment next.
 $give = [];
 if (!$id && optional_param('cita', 0, PARAM_BOOL)) {
@@ -66,16 +70,23 @@ $household = $id ? households::get($id, (int) $centre->id) : null;
 if ($id && !$household) {
     throw new moodle_exception('invalidrecord', 'error');
 }
-$url = new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []) + $give);
+$url = new moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []) + $give +
+    ($door ? ['eventid' => $door->id, 'puerta' => 1] : []));
 panel::setup($url, get_string($household ? 'household_edit' : 'household_new', $c));
-$back = $household ? new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]) :
-    new moodle_url('/local/oksigeniaeguahe/' . ($give ? 'cita.php' : 'index.php'), ['c' => $centre->id]);
+if ($door) {
+    $back = new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $door->id], 'puerta');
+} else if ($household) {
+    $back = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]);
+} else {
+    $back = new moodle_url('/local/oksigeniaeguahe/' . ($give ? 'cita.php' : 'index.php'), ['c' => $centre->id]);
+}
 
-$form = new household_form($url, ['centre' => $centre, 'householdid' => $id, 'eventid' => $eventid]);
+$form = new household_form($url, ['centre' => $centre, 'householdid' => $id, 'eventid' => $eventid, 'door' => (bool) $door,
+    'firstchannel' => $household ? (string) $household->firstchannel : '']);
 if ($household) {
     $full = households::full($household);
     $defaults = ['c' => $centre->id, 'id' => $household->id, 'lang' => $household->lang, 'heardfrom' => $household->heardfrom,
-        'heardnet' => $household->heardnet, 'incentre' => $household->incentre];
+        'heardnet' => $household->heardnet, 'incentre' => $household->incentre, 'firstchannel' => $household->firstchannel];
     $places = centres::municipalities($centre);
     if ($household->municipality && isset($places[$household->municipality])) {
         $defaults['municipality'] = $household->municipality;
@@ -120,7 +131,7 @@ if ($data = $form->get_data()) {
     $adnetwork = lists::HAND_ADS[$channel] ?? '';
     $channel = $adnetwork !== '' ? 'meta' : $channel;
     $act = !empty($data->eventid) ? events::get((int) $data->eventid, (int) $centre->id) : null;
-    $about = (object) ['lang' => $data->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
+    $about = (object) ['lang' => $data->lang ?: $centre->lang, 'heardfrom' => $data->heardfrom, 'municipality' => null,
         'heardnet' => $data->heardfrom === 'social' ? centres::network($centre, (string) ($data->heardnet ?? '')) : '',
         'municipalityname' => null, 'firstchannel' => $channel, 'incentre' => !empty($data->incentre),
         // Noted at a talk or a party, with no child: of that act, not of the admissions.
@@ -145,19 +156,41 @@ if ($data = $form->get_data()) {
     }
     $transaction = $DB->start_delegated_transaction();
     $notice = get_string('household_saved', $c);
+    $existing = null;
     if ($household) {
         $now = time();
+        // «Already of the centre» is not taken out while a mark of the file, a list or the roll says it: there it is changed.
+        $marked = ties::any((int) $household->id) || (int) ($household->roster ?? 0) ||
+            $DB->record_exists(listmatch::T, ['householdid' => $household->id, 'kind' => 'incentre']);
+        if (!$about->incentre && (int) $household->incentre && $marked) {
+            $about->incentre = true;
+            $notice = get_string('household_incentre_marked', $c);
+        }
+        if ($about->heardnet === '' && $about->heardfrom === $household->heardfrom && $about->heardfrom !== 'social') {
+            // Which centre recommended them is not in this form: it stays.
+            $about->heardnet = (string) $household->heardnet;
+        }
         $DB->update_record(households::T, (object) ['id' => $household->id, 'lang' => $about->lang,
             'heardfrom' => $about->heardfrom ?: null, 'heardnet' => $about->heardnet !== '' ? $about->heardnet : null,
             'municipality' => $about->municipality,
             'municipalityname' => $about->municipalityname, 'incentre' => $about->incentre ? 1 : 0, 'timemodified' => $now]);
+        $first = (string) ($data->firstchannel ?? '');
+        if ($first !== '' && $first !== $household->firstchannel && in_array($first, household_form::first_channels((string) $household->firstchannel), true)) {
+            // How it came in, put right: and the line of who wrote it down, with it.
+            $DB->set_field(households::T, 'firstchannel', $first, ['id' => $household->id]);
+            $lines = $DB->get_records(households::CONTACTS, ['householdid' => $household->id], 'timecreated ASC, id ASC', '*', 0, 1);
+            $line = reset($lines);
+            if ($line && $line->direction === 'in' && (int) $line->userid && $line->channel === $household->firstchannel) {
+                $DB->set_field(households::CONTACTS, 'channel', $first, ['id' => $line->id]);
+            }
+        }
         foreach ($adults as $adult) {
             if ($adult->id && $DB->record_exists(households::ADULTS, ['id' => $adult->id, 'householdid' => $household->id])) {
                 $adult->timemodified = $now;
                 $DB->update_record(households::ADULTS, $adult);
                 alumni::match($household, $adult);
             } else {
-                households::add_adult($household, $adult);
+                households::write_down($household, $adult, (int) $USER->id);
             }
         }
     } else {
@@ -170,11 +203,15 @@ if ($data = $form->get_data()) {
             $household = households::get($existing, (int) $centre->id);
             households::complete($household, $about);
             $notice = get_string('household_found', $c);
+            if (empty($about->guest)) {
+                // Whoever had only come to a talk, and now is written down for anything else, is of the admissions.
+                households::admit((int) $household->id);
+            }
         } else {
             $household = households::get(households::create((int) $centre->id, $about), (int) $centre->id);
         }
         foreach ($adults as $i => $adult) {
-            $adultid = households::add_adult($household, $adult);
+            $adultid = $existing ? households::write_down($household, $adult, (int) $USER->id) : households::add_adult($household, $adult);
             if ($i === 0) {
                 foreach (['email', 'whatsapp', 'phone'] as $way) {
                     if (!empty($data->{'consent' . $way})) {
@@ -207,7 +244,7 @@ if ($data = $form->get_data()) {
     for ($i = 0; $i < household_form::CHILDREN; $i++) {
         $name = trim((string) $data->{"childname{$i}"});
         $childid = (int) $data->{"childid{$i}"};
-        $offerid = (int) $data->{"offerid{$i}"};
+        $offerid = (int) ($data->{"offerid{$i}"} ?? 0);
         $tag = trim((string) ($data->{"childtag{$i}"} ?? ''));
         if ($childid && $DB->record_exists(households::CHILDREN, ['id' => $childid, 'householdid' => $household->id])) {
             if ($name !== '') {
@@ -217,19 +254,48 @@ if ($data = $form->get_data()) {
             }
         } else if ($name !== '') {
             $childid = households::add_child($household, $name, $offerid, $tag);
+            // Written down by a person: one whose way had stopped, or that had left, asks again; and what is asked for one that
+            // is already at the centre is told, for a person.
+            $child = $DB->get_record(households::CHILDREN, ['id' => $childid]);
+            if (!households::ask_again($household, $child, $offerid, (int) $USER->id) && $offerid && (int) $child->offerid !== $offerid) {
+                $offers = centres::offers((int) $centre->id);
+                households::note($household, (int) $USER->id, get_string('child_asks_kept', $c, (object) ['name' => format_string($child->firstname),
+                    'asks' => isset($offers[$offerid]) ? centres::offer_label($offers[$offerid]) : '—',
+                    'has' => isset($offers[$child->offerid]) ? centres::offer_label($offers[$child->offerid]) : '—',
+                    'step' => get_string('stage_' . $child->stage, $c)]));
+            }
+            if ($offerid) {
+                households::admit((int) $household->id);
+            }
         }
         if ($childid && $name !== '') {
             // The date of birth; empty takes it out.
-            households::set_birthdate($household, $childid, publicpage::date_param("childbirth{$i}"));
+            $birth = publicpage::date_param("childbirth{$i}");
+            households::set_birthdate($household, $childid, $birth);
+            // By its date it would be in another course: said now, not only in the file.
+            $offer = $offerid ? ($offers[$offerid] ?? (centres::offers((int) $centre->id)[$offerid] ?? null)) : null;
+            $hint = $birth !== '' ? \local_oksigeniaeguahe\local\panel_household::course_hint($birth, $offer, $centre) : '';
+            if ($hint !== '') {
+                $notice .= ' ' . format_string($name) . ': ' . $hint . '.';
+            }
         }
     }
     if (!empty($data->eventid) && ($event = events::get((int) $data->eventid, (int) $centre->id))) {
-        $signupid = events::sign_up($event, (int) $household->id, max(1, (int) $data->people));
+        // In its turn, when it has turns: the one chosen, if it is of this act.
+        $slots = events::slots((int) $event->id);
+        $slot = isset($slots[(int) ($data->{'slot' . $event->id} ?? 0)]) ? (int) $data->{'slot' . $event->id} : 0;
+        $signupid = events::sign_up($event, (int) $household->id, max(1, (int) $data->people), $slot);
+        if ($slots && !$slot && !$DB->get_field(households::SIGNUPS, 'slotid', ['id' => $signupid])) {
+            $notice .= ' ' . get_string('household_noslot', $c);
+        }
         if (!empty($data->came)) {
             events::attend($event, $signupid, true);
         }
     }
     $transaction->allow_commit();
+    if ($door) {
+        redirect(new moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $door->id], 's' . ($signupid ?? 0)), $notice);
+    }
     if ($give) {
         redirect(new moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $household->id] + array_diff_key($give, ['cita' => 1])), $notice);
     }
@@ -248,5 +314,5 @@ panel::output(
     'inbox',
     get_string($household ? 'household_edit' : 'household_new', $c),
     'panel_familyform',
-    panel_familyform::context($form, $centre, $household, $url, $back)
+    panel_familyform::context($form, $centre, $household, $url, $back, $door)
 );

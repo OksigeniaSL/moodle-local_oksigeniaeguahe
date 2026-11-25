@@ -141,10 +141,22 @@ class ties {
         $centre = centres::get((int) $household->centreid);
         $lang = (string) ($centre->lang ?? '') ?: current_language();
         $strings = get_string_manager();
-        households::note($household, $userid, $strings->get_string('tie_noted_' . ($on ? 'on' : 'off'), self::C, (object) [
+        $line = $strings->get_string('tie_noted_' . ($on ? 'on' : 'off'), self::C, (object) [
             'what' => $strings->get_string('tie_' . $kind, self::C, null, $lang),
-            'name' => $of ? panel::tag($child) : '',
-        ], $lang));
+            'name' => $of ? panel::called($child) : '',
+        ], $lang);
+        // Several in a row are one line of the history: what the family said stays in sight.
+        $last = $DB->get_records(households::CONTACTS, ['householdid' => $household->id], 'timecreated DESC, id DESC', '*', 0, 1);
+        $last = reset($last);
+        $marks = trim(preg_replace('/\{[^}]*\}.*$/s', '', (string) $strings->get_string('tie_noted_on', self::C, null, $lang)));
+        if (
+            $last && $last->direction === 'note' && (int) $last->userid === $userid && (int) $last->timecreated > $now - 10 * MINSECS &&
+                $marks !== '' && strpos((string) $last->body, $marks) === 0
+        ) {
+            $DB->update_record(households::CONTACTS, (object) ['id' => $last->id, 'body' => $last->body . "\n" . $line, 'timecreated' => $now]);
+        } else {
+            households::note($household, $userid, $line);
+        }
         return true;
     }
 
@@ -160,14 +172,30 @@ class ties {
             $DB->set_field(self::T, 'made', 1, ['id' => key($other)]);
             return;
         }
-        if (
-            (int) ($household->roster ?? 0) ||
-            $DB->record_exists(listmatch::T, ['householdid' => $household->id, 'kind' => 'incentre'])
-        ) {
+        if ($DB->record_exists(listmatch::T, ['householdid' => $household->id, 'kind' => 'incentre'])) {
+            // The list says so too: from now on it is for it that it is one of the centre, and it stops with it.
+            listmatch::reckon($household);
+            return;
+        }
+        if ((int) ($household->roster ?? 0)) {
             return;
         }
         $household->incentre = 0;
         $DB->set_field(households::T, 'incentre', 0, ['id' => $household->id]);
+    }
+
+    /**
+     * What the list had made a family of the centre for went, and a person marked it too: it is for that mark now.
+     *
+     * @param int $householdid
+     */
+    public static function answers_for(int $householdid): void {
+        global $DB;
+        $rows = $DB->get_records(self::T, ['householdid' => $householdid], 'made DESC, id ASC', 'id, made', 0, 1);
+        $first = reset($rows);
+        if ($first && !(int) $first->made) {
+            $DB->set_field(self::T, 'made', 1, ['id' => $first->id]);
+        }
     }
 
     /**
@@ -179,31 +207,6 @@ class ties {
     public static function any(int $householdid): bool {
         global $DB;
         return $DB->record_exists(self::T, ['householdid' => $householdid]);
-    }
-
-    /**
-     * Two families put together: what was marked of both, once, and of the child that stays.
-     *
-     * @param int $keep The household that stays; what was of the other is already of it.
-     * @param array $children Child of the other household => the same child in this one.
-     */
-    public static function merged(int $keep, array $children): void {
-        global $DB;
-        foreach ($children as $from => $to) {
-            $DB->set_field(self::T, 'childid', $to, ['householdid' => $keep, 'childid' => $from]);
-        }
-        $seen = [];
-        foreach ($DB->get_records(self::T, ['householdid' => $keep], 'id ASC') as $row) {
-            $key = $row->childid . ':' . $row->kind;
-            if (isset($seen[$key])) {
-                $DB->delete_records(self::T, ['id' => $row->id]);
-                if ((int) $row->made) {
-                    $DB->set_field(self::T, 'made', 1, ['id' => $seen[$key]]);
-                }
-            } else {
-                $seen[$key] = (int) $row->id;
-            }
-        }
     }
 
     /**
@@ -270,7 +273,11 @@ class ties {
             if ($kind === 'nursery' && !$nursery && !$on) {
                 continue;
             }
-            $rows[] = ['kind' => $kind, 'name' => get_string('tie_' . $kind, self::C), 'on' => $on, 'next' => $on ? 0 : 1,
+            // Of whom it is said: of this child, or of its family.
+            $tag = panel::tag($child);
+            $name = in_array($kind, self::CHILD, true) && $tag !== '' ? get_string('tie_' . $kind . '_of', self::C, $tag) :
+                get_string('tie_' . $kind, self::C);
+            $rows[] = ['kind' => $kind, 'name' => $name, 'on' => $on, 'next' => $on ? 0 : 1,
                 // Said of one adult: it is changed there, where it says who.
                 'fixed' => $kind === 'alumni' && $on && $byadult];
         }

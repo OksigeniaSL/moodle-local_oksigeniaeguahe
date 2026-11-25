@@ -99,6 +99,20 @@ class siblings {
      */
     public static function remove(\stdClass $household, int $id): void {
         global $DB;
+        $sibling = self::get($household, $id);
+        if (!$sibling) {
+            return;
+        }
+        $centre = centres::get((int) $household->centreid);
+        if ($centre && (int) $sibling->notify) {
+            // What was promised for when its turn came goes with it.
+            $bodies = [];
+            foreach (lists::LANGS as $lang) {
+                $bodies[] = publiclang::str('promise_sibling', $lang, (object) ['name' => $sibling->firstname,
+                    'year' => self::year_label($centre, self::turn_year($centre, $sibling))]);
+            }
+            attend::withdraw($household, $bodies);
+        }
         $DB->delete_records(self::T, ['id' => $id, 'householdid' => $household->id]);
     }
 
@@ -221,14 +235,35 @@ class siblings {
                FROM {' . households::CHILDREN . '} c
               WHERE c.centreid = :centreid AND c.lefttime > 0
                     AND NOT EXISTS (SELECT 1 FROM {' . households::CHILDREN . '} s
-                                     WHERE s.householdid = c.householdid AND s.stage = :stage AND s.lefttime = 0)',
-            ['centreid' => $centre->id, 'stage' => 'enrolled']
+                                     WHERE s.householdid = c.householdid AND s.stage <> :closed
+                                           AND (s.stage <> :stage OR COALESCE(s.lefttime, 0) = 0))',
+            ['centreid' => $centre->id, 'stage' => 'enrolled', 'closed' => 'closed']
         );
+        // Nor is a family whose ways all stopped, unless it asked to be told.
+        $closed = array_map('intval', $DB->get_fieldset_sql(
+            'SELECT DISTINCT c.householdid
+               FROM {' . households::CHILDREN . '} c
+              WHERE c.centreid = :centreid AND c.stage = :closed
+                    AND NOT EXISTS (SELECT 1 FROM {' . households::CHILDREN . '} s
+                                     WHERE s.householdid = c.householdid AND s.stage <> :closed2)',
+            ['centreid' => $centre->id, 'closed' => 'closed', 'closed2' => 'closed']
+        ));
         $out = [];
+        $homes = [];
         foreach ($DB->get_records(self::T, ['centreid' => $centre->id, 'confirmed' => 0], 'birthyear ASC, id ASC') as $sibling) {
-            if (!in_array($sibling->householdid, $gone) && self::in_turn($centre, $sibling, $now)) {
-                $out[$sibling->householdid][] = $sibling;
+            $id = (int) $sibling->householdid;
+            if (in_array($id, array_map('intval', $gone), true) || !self::in_turn($centre, $sibling, $now)) {
+                continue;
             }
+            if (!(int) $sibling->notify && in_array($id, $closed, true)) {
+                continue;
+            }
+            $homes[$id] = $homes[$id] ?? $DB->get_record(households::T, ['id' => $id]);
+            if (!$homes[$id] || writeby::silent($homes[$id]) || outs::is_out($homes[$id])) {
+                // They asked not to be written to, or said they do not go on.
+                continue;
+            }
+            $out[$sibling->householdid][] = $sibling;
         }
         return $out;
     }

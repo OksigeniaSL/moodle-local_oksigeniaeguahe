@@ -87,7 +87,7 @@ class events {
         $events = $DB->get_records_sql('SELECT e.*, COUNT(s.id) AS signedup, COALESCE(SUM(s.people), 0) AS people,
                                                COALESCE(SUM(CASE WHEN s.attended > 0 THEN 1 ELSE 0 END), 0) AS came
                                           FROM {' . self::T . '} e
-                                     LEFT JOIN {local_oksigeniaeguahe_signup} s ON s.eventid = e.id
+                                     LEFT JOIN {local_oksigeniaeguahe_signup} s ON s.eventid = e.id AND s.' . households::NOTSAMPLE . '
                                          WHERE e.centreid = :centreid
                                       GROUP BY e.id, e.centreid, e.kind, e.name, e.place, e.timestart, e.timeend, e.capacity,
                                                e.token, e.open, e.cancelled, e.timecreated, e.timemodified
@@ -169,6 +169,10 @@ class events {
             // Another day or hour: the reminder of the day before goes again, for the new day.
             if ((int) $was->timestart !== (int) $row->timestart) {
                 $DB->set_field(self::SIGNUPS, 'reminded', 0, ['eventid' => $row->id, 'slotid' => 0]);
+                // What still waits for their phones says the day it was, whether they are told of the new one or not.
+                foreach ($DB->get_fieldset_select(self::SIGNUPS, 'householdid', 'eventid = ? AND slotid = 0', [$row->id]) as $id) {
+                    messaging::withdraw((int) $id, ['confirmation', 'reminder', 'invitation', 'change']);
+                }
             }
         } else {
             // An open act is published without its sign-up link, unless the team asks for it.
@@ -328,7 +332,7 @@ class events {
     public static function people(int $eventid): int {
         global $DB;
         return (int) $DB->get_field_sql('SELECT COALESCE(SUM(people), 0) FROM {local_oksigeniaeguahe_signup}
-                                          WHERE eventid = :eventid', ['eventid' => $eventid]);
+                                          WHERE eventid = :eventid AND ' . households::NOTSAMPLE, ['eventid' => $eventid]);
     }
 
     /**
@@ -352,6 +356,41 @@ class events {
                 $slot->people - $already + $people <= $slot->capacity);
         }
         return !$event->capacity || self::people($event->id) - $already + $people <= $event->capacity;
+    }
+
+    /**
+     * Why an act takes no more sign-ups: it was called off, it is over, there is no room left or the centre closed it.
+     *
+     * @param \stdClass $event
+     * @param int $now
+     * @return string off, over, full or closed.
+     */
+    public static function closed_state(\stdClass $event, int $now): string {
+        if (!empty($event->cancelled)) {
+            return 'off';
+        }
+        if ((int) $event->timeend < $now) {
+            return 'over';
+        }
+        return (int) $event->capacity && self::people((int) $event->id) >= (int) $event->capacity ? 'full' : 'closed';
+    }
+
+    /**
+     * Whether an act still open has no room left for anybody: in all of its turns, when it has them.
+     *
+     * @param \stdClass $event
+     * @param int $now
+     * @return bool
+     */
+    public static function is_full(\stdClass $event, int $now): bool {
+        if (empty($event->open) || !empty($event->cancelled) || !empty($event->tailored) || (int) $event->timeend < $now) {
+            return false;
+        }
+        $slots = self::slots((int) $event->id);
+        if ($slots) {
+            return !array_filter($slots, fn($s) => (int) $s->timeend >= $now && (!(int) $s->capacity || (int) $s->people < (int) $s->capacity));
+        }
+        return (int) $event->capacity && self::people((int) $event->id) >= (int) $event->capacity;
     }
 
     /** @var int How many people one sign-up may bring. */
@@ -385,10 +424,7 @@ class events {
      */
     public static function allowed_from(\stdClass $event, string $ip): bool {
         $cache = \cache::make('local_oksigeniaeguahe', 'signupsfrom');
-        $key = sha1($ip . '|' . (int) $event->id . '|' . get_site_identifier());
-        $count = (int) $cache->get($key) + 1;
-        $cache->set($key, $count);
-        return $count <= self::PERHOUR;
+        return brief::within($cache, sha1($ip . '|' . (int) $event->id . '|' . get_site_identifier()), self::PERHOUR, time());
     }
 
     /**
@@ -408,10 +444,21 @@ class events {
             $householdid, 'no']);
         if ($event->kind !== 'other') {
             households::admit($householdid);
+            if ((int) $event->timeend > time() && ($household = households::get($householdid, 0))) {
+                // To see the centre, a family whose ways had all stopped: they ask again.
+                households::back_on_its_way($household);
+            }
         }
         $current = $DB->get_record(self::SIGNUPS, ['eventid' => $event->id, 'householdid' => $householdid]);
         if ($current) {
             $slot = $slotid ?: (int) $current->slotid;
+            if ((int) $current->slotid && $slot !== (int) $current->slotid && ($household = households::get($householdid, 0))) {
+                // The turn it had, in its history.
+                $hour = fn(int $id) => panel::hour((int) self::when($event, $id)->timestart);
+                households::note($household, 0, get_string('event_slot_changed', 'local_oksigeniaeguahe', (object) [
+                    'event' => format_string($event->name), 'was' => $hour((int) $current->slotid), 'now' => $hour($slot),
+                    'before' => (int) $current->people, 'people' => $people]));
+            }
             // Another turn: the reminder goes again, for its hour.
             $DB->update_record(self::SIGNUPS, (object) (['id' => $current->id, 'people' => $people, 'slotid' => $slot] +
                 ($slot !== (int) $current->slotid ? ['reminded' => 0] : [])));
@@ -453,7 +500,8 @@ class events {
         foreach ($signups as $signup) {
             $signup->household = $households[$signup->householdid] ?? null;
         }
-        return array_filter($signups, fn($s) => $s->household !== null);
+        // A made-up family (writeby_sample) is not in the list of an act.
+        return array_filter($signups, fn($s) => $s->household !== null && (int) ($s->household->guest ?? 0) !== households::SAMPLE);
     }
 
     /**
@@ -472,11 +520,17 @@ class events {
         global $DB;
         $message = \core_text::substr(trim($message), 0, 2000);
         $told = 0;
-        foreach ($DB->get_records(self::SIGNUPS, ['eventid' => $event->id]) as $row) {
+        if ((int) $event->timeend <= $now || (int) ($event->cancelled ?? 0)) {
+            // It already happened: from a page of before, nothing is called off nor who came to it is lost.
+            return 0;
+        }
+        foreach ($DB->get_records(self::SIGNUPS, ['eventid' => $event->id], 'id ASC') as $row) {
             $household = households::get((int) $row->householdid, (int) $centre->id);
-            if (!$household) {
+            if (!$household || (int) $row->attended) {
+                // Who already came, came.
                 continue;
             }
+            messaging::withdraw((int) $household->id, ['confirmation', 'reminder', 'invitation', 'change']);
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $signup = familymail::signup($household, (int) $event->id);
             // What a family must know goes whenever it has an address, also if it chose only a phone.
@@ -511,6 +565,10 @@ class events {
             $DB->delete_records(self::SIGNUPS, ['id' => $row->id]);
         }
         $DB->update_record(self::T, (object) ['id' => $event->id, 'cancelled' => $now, 'open' => 0, 'timemodified' => $now]);
+        if ((int) ($event->householdid ?? 0)) {
+            // The family that asked for it waits for another day.
+            visits::back_to_asking((int) $event->householdid, (int) $event->id);
+        }
         // Out of the centre's channel too, also what was already posted.
         channel::sync(self::get((int) $event->id, (int) $centre->id), $now);
         return $told;
@@ -532,6 +590,13 @@ class events {
             return false;
         }
         $DB->delete_records(self::SIGNUPS, ['id' => $row->id]);
+        if ((int) ($event->householdid ?? 0) === (int) $household->id) {
+            // A visit of its own with nobody in it is not one: out of the week and of the calendar; and if it had asked for
+            // it, it asks again.
+            $DB->update_record(self::T, (object) ['id' => $event->id, 'cancelled' => time(), 'open' => 0, 'timemodified' => time()]);
+            visits::back_to_asking((int) $household->id, (int) $event->id);
+        }
+        messaging::withdraw((int) $household->id, ['confirmation', 'reminder', 'invitation', 'change']);
         // Invited by a letter: what it said there is that it does not come.
         $DB->set_field_select(invites::T, 'reply', 'no', 'eventid = ? AND householdid = ? AND reply = ?', [(int) $event->id,
             (int) $household->id, 'yes']);
@@ -565,6 +630,7 @@ class events {
         $DB->set_field('local_oksigeniaeguahe_signup', 'attended', $came ? $when : 0, ['id' => $signup->id]);
         if ($came && !(int) $signup->attended && $event->kind !== 'other') {
             // What each child was before, so that taking the mark back takes the way back too.
+            $DB->set_field(self::SIGNUPS, 'missed', 0, ['id' => $signup->id]);
             $was = [];
             foreach ($DB->get_records(households::CHILDREN, ['householdid' => $signup->householdid]) as $child) {
                 if (lists::further((string) $child->stage, 'visit')) {
@@ -574,14 +640,9 @@ class events {
             $DB->set_field(self::SIGNUPS, 'wasstages', $was ? implode(',', $was) : null, ['id' => $signup->id]);
             households::advance((int) $signup->householdid, 'visit');
         } else if (!$came && (int) $signup->attended) {
-            // A mark by mistake: each child that is still where the mark left it goes back to where it was.
-            foreach (array_filter(explode(',', (string) ($signup->wasstages ?? ''))) as $pair) {
-                [$childid, $stage] = array_pad(explode(':', $pair, 2), 2, '');
-                $child = $DB->get_record(households::CHILDREN, ['id' => (int) $childid, 'householdid' => $signup->householdid]);
-                if ($child && $child->stage === 'visit' && in_array($stage, lists::STAGES, true)) {
-                    households::set_stage($child, $stage);
-                }
-            }
+            // A mark by mistake: each child that is still where the mark left it goes back to where it was, unless they came
+            // another time.
+            appointments::not_come((int) $signup->householdid, 's' . $signup->id, (string) ($signup->wasstages ?? ''));
             $DB->set_field(self::SIGNUPS, 'wasstages', null, ['id' => $signup->id]);
         }
     }

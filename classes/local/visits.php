@@ -58,7 +58,7 @@ class visits {
             'status' => 'pending',
             'timemodified' => time(),
         ];
-        $current = $DB->get_record(self::REQUESTS, ['householdid' => $household->id, 'status' => 'pending']);
+        $current = self::pending((int) $household->id);
         if ($current) {
             $row->id = $current->id;
             $DB->update_record(self::REQUESTS, $row);
@@ -76,7 +76,44 @@ class visits {
      */
     public static function pending(int $householdid): ?\stdClass {
         global $DB;
-        return $DB->get_record(self::REQUESTS, ['householdid' => $householdid, 'status' => 'pending']) ?: null;
+        // Of two (a family that was in two files), the last one.
+        $rows = $DB->get_records(
+            self::REQUESTS,
+            ['householdid' => $householdid, 'status' => 'pending'],
+            'timemodified DESC, id DESC',
+            '*',
+            0,
+            1
+        );
+        return reset($rows) ?: null;
+    }
+
+    /**
+     * A visit that was given to who asked for one is called off, or the family does not come: what it asked for waits for a
+     * day again, unless it has another visit to come.
+     *
+     * @param int $householdid
+     * @param int $eventid The visit.
+     */
+    public static function back_to_asking(int $householdid, int $eventid): void {
+        global $DB;
+        foreach ($DB->get_records(self::REQUESTS, ['householdid' => $householdid, 'visitid' => $eventid, 'status' => 'scheduled'], 'id ASC') as $row) {
+            $other = $DB->get_records_select(
+                events::T,
+                'householdid = ? AND id <> ? AND cancelled = 0 AND timestart > ?',
+                [$householdid, $eventid, time()],
+                'timestart ASC, id ASC',
+                'id',
+                0,
+                1
+            );
+            if ($other) {
+                $DB->update_record(self::REQUESTS, (object) ['id' => $row->id, 'visitid' => key($other), 'timemodified' => time()]);
+            } else {
+                $DB->update_record(self::REQUESTS, (object) ['id' => $row->id, 'visitid' => 0,
+                    'status' => self::pending($householdid) ? 'withdrawn' : 'pending', 'timemodified' => time()]);
+            }
+        }
     }
 
     /**
@@ -104,7 +141,7 @@ class visits {
             ))->format($time) :
                 userdate($time, '%A');
         }
-        $when = $names ? familypage::join($names, $lang) : publiclang::str('visit_anyday', $lang);
+        $when = $names ? familypage::join($names, $lang, 'pub_or') : publiclang::str('visit_anyday', $lang);
         if (count($periods) === 1) {
             $when .= ', ' . publiclang::str('visit_period_' . reset($periods), $lang);
         }
@@ -166,6 +203,7 @@ class visits {
         if ($request) {
             $DB->update_record(self::REQUESTS, (object) ['id' => $request->id, 'status' => 'scheduled', 'visitid' => $eventid,
                 'timemodified' => time()]);
+            $DB->set_field(self::REQUESTS, 'status', 'withdrawn', ['householdid' => $household->id, 'status' => 'pending']);
         }
         foreach (array_keys($old) as $oldid) {
             $DB->set_field(self::REQUESTS, 'visitid', $eventid, ['householdid' => $household->id, 'visitid' => $oldid]);
@@ -175,7 +213,8 @@ class visits {
     }
 
     /**
-     * The name the family reads of a visit of its own: who guides them.
+     * The name of a visit of its own, as it is kept: who guides them, in the language of the centre, whose week and screens
+     * say it. The family reads it in its own, with shown().
      *
      * @param \stdClass $household
      * @param int $guide
@@ -183,8 +222,32 @@ class visits {
      */
     public static function name(\stdClass $household, int $guide): string {
         $host = $guide ? (centres::hosts((int) $household->centreid, [$guide])[0] ?? null) : null;
-        $lang = $household->lang ?: 'es';
+        $lang = (string) (centres::get((int) $household->centreid)->lang ?? '') ?: ($household->lang ?: 'es');
         return $host ? publiclang::str('visit_name', $lang, $host->first) : publiclang::str('visit_name_team', $lang);
+    }
+
+    /**
+     * The name of an act as a family reads it: that of a visit of its own, in its language; any other, as it was written.
+     *
+     * @param string $name
+     * @param string $lang
+     * @return string
+     */
+    public static function shown(string $name, string $lang): string {
+        foreach (lists::LANGS as $code) {
+            if ($name === publiclang::str('visit_name_team', $code)) {
+                return publiclang::str('visit_name_team', $lang);
+            }
+            [$before, $after] = explode('|', publiclang::str('visit_name', $code, '|'), 2) + [1 => ''];
+            $before = preg_replace('/[\x{2066}-\x{2069}]/u', '', $before);
+            $after = preg_replace('/[\x{2066}-\x{2069}]/u', '', $after);
+            $plain = preg_replace('/[\x{2066}-\x{2069}]/u', '', $name);
+            if ($before !== '' && strpos($plain, $before) === 0 && ($after === '' || substr($plain, -strlen($after)) === $after)) {
+                $host = trim(substr($plain, strlen($before), strlen($plain) - strlen($before) - strlen($after)));
+                return $host !== '' ? publiclang::str('visit_name', $lang, $host) : $name;
+            }
+        }
+        return $name;
     }
 
     /**

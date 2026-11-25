@@ -139,7 +139,7 @@ class appointments {
                    FROM {local_oksigeniaeguahe_signup} s
                    JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
               LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
-                  WHERE s.centreid = :centreid AND e.tailored = 0 AND " . str_replace('x.start', $start, $where) . "
+                  WHERE s.centreid = :centreid AND s." . households::NOTSAMPLE . " AND e.tailored = 0 AND " . str_replace('x.start', $start, $where) . "
                ORDER BY timestart ASC, s.id ASC",
                 $params
             );
@@ -158,7 +158,7 @@ class appointments {
             $rows = $DB->get_records_sql(
                 "SELECT s.id, s.householdid, s.entryid, s.contactid, s.visit, s.dayonly, s.state
                    FROM {local_oksigeniaeguahe_teamnote} s
-                  WHERE s.centreid = :centreid AND s.visit > 0 AND s.replacedby = 0 AND (s.state IS NULL OR s.state <> 'note') AND " .
+                  WHERE s.centreid = :centreid AND s." . households::NOTSAMPLE . " AND s.visit > 0 AND s.replacedby = 0 AND (s.state IS NULL OR s.state <> 'note') AND " .
                     str_replace('x.start', 's.visit', $where) . "
                ORDER BY s.visit ASC, s.id ASC",
                 $params
@@ -262,15 +262,8 @@ class appointments {
             $one = self::one((int) $centre->id, (string) $row->item, $now);
             // Something else was said since: that one stays.
             if ($one && $one['state'] === $row->state) {
+                // With the way each child had, unless it went on since or they came another time.
                 self::put($one, in_array($row->was, self::STATES, true) ? (string) $row->was : 'unknown', $now);
-                foreach (array_filter(explode(',', (string) $row->stages)) as $was) {
-                    // The way each child had, unless it went on since.
-                    [$childid, $stage] = explode(':', $was);
-                    $child = $DB->get_record(households::CHILDREN, ['id' => (int) $childid, 'stage' => 'visit']);
-                    if ($child) {
-                        households::set_stage($child, $stage);
-                    }
-                }
                 $n++;
             }
             $DB->delete_records(self::T, ['id' => $row->id]);
@@ -298,8 +291,21 @@ class appointments {
             $DB->set_field(events::SIGNUPS, 'missed', $state === 'notcame' ? $now : 0, ['id' => $number]);
             return '';
         }
+        $note = $DB->get_record(teamnotes::T, ['id' => $number], '*', MUST_EXIST);
         $DB->update_record(teamnotes::T, (object) ['id' => $number, 'state' => $state === 'unknown' ? null : $state, 'statetime' => $now]);
+        self::promise_of($note, $state);
         $was = [];
+        if ($state !== 'came' && (string) $note->state === 'came') {
+            $marks = $DB->get_records(
+                self::T,
+                ['householdid' => $note->householdid, 'item' => $one['id'], 'state' => 'came'],
+                'timecreated DESC, id DESC',
+                'id, stages',
+                0,
+                1
+            );
+            self::not_come((int) $note->householdid, $one['id'], $marks ? (string) reset($marks)->stages : '');
+        }
         if ($state === 'came') {
             foreach ($DB->get_records(households::CHILDREN, ['householdid' => $one['householdid']]) as $child) {
                 if (lists::further((string) $child->stage, 'visit')) {
@@ -309,6 +315,88 @@ class appointments {
             }
         }
         return implode(',', $was);
+    }
+
+    /**
+     * What the team promised with a visit of a sheet («Su visita, a las 8:44») is done once it is said whether they came; and is
+     * open again when that is taken back.
+     *
+     * @param \stdClass $note
+     * @param string $state
+     */
+    protected static function promise_of(\stdClass $note, string $state): void {
+        global $DB;
+        $household = households::get((int) $note->householdid, (int) $note->centreid);
+        if (!$household) {
+            return;
+        }
+        $bodies = [];
+        foreach (array_keys(get_string_manager()->get_list_of_translations(true)) as $lang) {
+            $bodies[] = teamnotes::visit_promise((int) $note->visit, true, $lang);
+            $bodies[] = teamnotes::visit_promise((int) $note->visit, false, $lang);
+        }
+        if ($state !== 'unknown') {
+            attend::withdraw($household, $bodies, (int) $note->visit);
+            return;
+        }
+        foreach ($DB->get_records(attend::PROMISES, ['householdid' => $household->id, 'doneby' => 0], 'id ASC') as $promise) {
+            if ((int) $promise->timedone && in_array((string) $promise->body, $bodies, true) && abs((int) $promise->dueday - (int) $note->visit) < DAYSECS) {
+                $DB->set_field(attend::PROMISES, 'timedone', 0, ['id' => $promise->id]);
+            }
+        }
+    }
+
+    /**
+     * It is taken back that a family came to one: each child that is still at the visit goes back to the step it had, unless
+     * they came another time, which is what moved it then.
+     *
+     * @param int $householdid
+     * @param string $item s and the sign-up, or n and the note.
+     * @param string $stages The step each child had, as childid:stage, by commas.
+     */
+    public static function not_come(int $householdid, string $item, string $stages): void {
+        global $DB;
+        if ($stages === '') {
+            return;
+        }
+        $number = (int) substr($item, 1);
+        $other = $DB->get_records_sql(
+            "SELECT s.id, s.wasstages
+               FROM {local_oksigeniaeguahe_signup} s
+               JOIN {local_oksigeniaeguahe_event} e ON e.id = s.eventid
+              WHERE s.householdid = ? AND s.attended > 0 AND e.kind <> 'other' AND s.id <> ?
+           ORDER BY s.attended ASC, s.id ASC",
+            [$householdid, $item[0] === 's' ? $number : 0],
+            0,
+            1
+        );
+        if ($other) {
+            $row = reset($other);
+            $DB->set_field(events::SIGNUPS, 'wasstages', trim($row->wasstages . ',' . $stages, ','), ['id' => $row->id]);
+            return;
+        }
+        $marks = $DB->get_records_sql(
+            "SELECT m.id, m.stages
+               FROM {" . self::T . "} m
+               JOIN {" . teamnotes::T . "} n ON n.householdid = m.householdid AND n.state = 'came'
+              WHERE m.householdid = ? AND m.state = 'came' AND n.id <> ? AND m.item = " . $DB->sql_concat("'n'", 'n.id') . "
+           ORDER BY m.timecreated DESC, m.id DESC",
+            [$householdid, $item[0] === 'n' ? $number : 0],
+            0,
+            1
+        );
+        if ($marks) {
+            $row = reset($marks);
+            $DB->set_field(self::T, 'stages', trim($row->stages . ',' . $stages, ','), ['id' => $row->id]);
+            return;
+        }
+        foreach (array_filter(explode(',', $stages)) as $pair) {
+            [$childid, $stage] = array_pad(explode(':', $pair, 2), 2, '');
+            $child = $DB->get_record(households::CHILDREN, ['id' => (int) $childid, 'householdid' => $householdid]);
+            if ($child && $child->stage === 'visit' && in_array($stage, lists::STAGES, true)) {
+                households::set_stage($child, $stage);
+            }
+        }
     }
 
     /**
@@ -323,7 +411,8 @@ class appointments {
      * @param string $place
      * @param int $people
      * @param bool $tell Whether the family is told by the centre; no when it was settled on the phone.
-     * @return array event, replaced (the one it takes the place of, as agenda() gives it, or null) and sent
+     * @return array event, replaced (the one it takes the place of, as agenda() gives it, or null), sent, asked (whether it had
+     *     asked for one) and again (whether it was already given just like this: nothing is done twice)
      */
     public static function give(
         \stdClass $household,
@@ -340,9 +429,18 @@ class appointments {
             $replaced = $one['kind'] === 'visit' && $one['state'] === 'coming' && $one['start'] > time() ?
                 $one : $replaced;
         }
+        $asked = visits::pending((int) $household->id) !== null;
+        if ($replaced && $replaced['start'] === $start && $replaced['end'] === $start + max(15, $minutes) * MINSECS) {
+            $event = events::get((int) $replaced['eventid'], (int) $centre->id);
+            if ((string) $event->hosts === ($guide ? (string) $guide : '') && trim((string) $event->place) === trim($place)) {
+                // Sent twice (a second touch, the page loaded again): it is that one.
+                return ['event' => $event, 'replaced' => null, 'sent' => false, 'asked' => $asked, 'again' => true];
+            }
+        }
         $event = visits::propose($household, $start, $minutes, $guide, $place, $people);
         self::receives($event, $guide);
-        return ['event' => $event, 'replaced' => $replaced, 'sent' => $tell && self::send($household, $centre, $event, 'invitation')];
+        return ['event' => $event, 'replaced' => $replaced, 'sent' => $tell && self::send($household, $centre, $event, 'invitation'),
+            'asked' => $asked, 'again' => false];
     }
 
     /**
@@ -373,6 +471,7 @@ class appointments {
         if (!$event) {
             return null;
         }
+        $old = panel_eventform::values($event);
         events::save((int) $centre->id, (object) ['id' => (int) $event->id, 'kind' => 'visit', 'name' => \core_text::substr(
             visits::name($household, $guide),
             0,
@@ -383,7 +482,7 @@ class appointments {
         // The reminder goes for the new day, and nothing said of the old one stands.
         $DB->set_field(events::SIGNUPS, 'reminded', 0, ['eventid' => $event->id, 'householdid' => $household->id]);
         $DB->set_field(events::SIGNUPS, 'missed', 0, ['eventid' => $event->id, 'householdid' => $household->id]);
-        return $tell ? self::send($household, $centre, events::get((int) $event->id, (int) $centre->id), 'change') : false;
+        return $tell ? self::send($household, $centre, events::get((int) $event->id, (int) $centre->id), 'change', $old) : false;
     }
 
     /**
@@ -423,7 +522,8 @@ class appointments {
         global $DB;
         $now = $now ?: time();
         $event = $DB->get_record(events::T, ['id' => $eventid, 'householdid' => $household->id, 'cancelled' => 0]);
-        if (!$event) {
+        if (!$event || (int) $event->timeend <= $now || $DB->record_exists_select(events::SIGNUPS, 'eventid = ? AND attended > 0', [$eventid])) {
+            // It already happened.
             return false;
         }
         if ($tell) {
@@ -431,7 +531,9 @@ class appointments {
             return true;
         }
         $DB->delete_records(events::SIGNUPS, ['eventid' => $event->id]);
+        messaging::withdraw((int) $household->id, ['confirmation', 'reminder', 'invitation', 'change']);
         $DB->update_record(events::T, (object) ['id' => $event->id, 'cancelled' => $now, 'open' => 0, 'timemodified' => $now]);
+        visits::back_to_asking((int) $household->id, (int) $event->id);
         households::note($household, $userid, get_string('appt_off_note', self::C, panel::when_words((int) $event->timestart, $now)));
         return true;
     }
@@ -443,12 +545,19 @@ class appointments {
      * @param \stdClass $centre
      * @param \stdClass $event
      * @param string $kind invitation or change.
+     * @param array|null $old The visit as it was, from panel_eventform::values(), for a change.
      * @return bool
      */
-    protected static function send(\stdClass $household, \stdClass $centre, \stdClass $event, string $kind): bool {
+    protected static function send(
+        \stdClass $household,
+        \stdClass $centre,
+        \stdClass $event,
+        string $kind,
+        ?array $old = null
+    ): bool {
         global $USER;
         if ($kind === 'change') {
-            return (bool) panel_eventform::tell($centre, $event, [(int) $household->id], (int) $USER->id);
+            return (bool) panel_eventform::tell($centre, $event, [(int) $household->id], (int) $USER->id, $old);
         }
         $signup = familymail::signup($household, (int) $event->id);
         if (!$signup) {
@@ -472,8 +581,37 @@ class appointments {
     }
 
     /**
+     * Who else a person of the team receives at an hour, in words; empty when nobody.
+     *
+     * @param \stdClass $centre
+     * @param int $guide
+     * @param int $start
+     * @param int $end
+     * @param int $but The visit that is being changed, which is not counted.
+     * @return string
+     */
+    public static function taken(\stdClass $centre, int $guide, int $start, int $end, int $but = 0): string {
+        if (!$guide) {
+            return '';
+        }
+        $names = [];
+        foreach (self::agenda($centre, $start - DAYSECS, $end) as $one) {
+            if (
+                $one['guideid'] !== $guide || $one['state'] === 'off' || $one['dayonly'] || $one['eventid'] === $but ||
+                    $one['start'] >= $end || $one['end'] <= $start
+            ) {
+                continue;
+            }
+            $household = $one['kind'] === 'act' ? null : households::get($one['householdid'], (int) $centre->id);
+            $names[$one['kind'] === 'act' ? $one['title'] : ($household ? panel::adults_line(households::full($household)->adults) : '')] = $one['guide'];
+        }
+        $names = array_filter($names, fn($guide, $name) => $name !== '', ARRAY_FILTER_USE_BOTH);
+        return $names ? get_string('give_taken', self::C, (object) ['guide' => reset($names), 'who' => panel::and_list(array_keys($names))]) : '';
+    }
+
+    /**
      * Those of a family that may be one and the same: close in time and from different places (one given in Eguahe, another
-     * written in a sheet). A person says it.
+     * written in a sheet), or two given in Eguahe and both to come (a family that was in two files). A person says it.
      *
      * @param \stdClass $household
      * @param int $now
@@ -485,7 +623,8 @@ class appointments {
         foreach ($all as $i => $a) {
             foreach (array_slice($all, $i + 1) as $b) {
                 $days = abs(panel::days_between($a['start'], $b['start']));
-                if ($a['source'] !== $b['source'] && $days <= self::NEAR && !self::are_apart($household, $a['id'], $b['id'])) {
+                $two = $a['kind'] === 'visit' && $b['kind'] === 'visit' && $a['state'] === 'coming' && $b['state'] === 'coming';
+                if (($two || ($a['source'] !== $b['source'] && $days <= self::NEAR)) && !self::are_apart($household, $a['id'], $b['id'])) {
                     $out[] = ['a' => $a, 'b' => $b, 'days' => $days];
                 }
             }
@@ -574,11 +713,23 @@ class appointments {
     public static function week(\stdClass $centre, int $monday, int $now = 0): array {
         $zone = \core_date::get_server_timezone_object();
         $first = (new \DateTimeImmutable('@' . $monday))->setTimezone($zone)->setTime(0, 0);
-        $first = $first->modify('-' . ((int) $first->format('N') - 1) . ' days');
-        $items = self::agenda($centre, $first->getTimestamp(), $first->modify('+7 days')->getTimestamp(), $now);
+        return self::days($centre, $first->modify('-' . ((int) $first->format('N') - 1) . ' days'), 7, $now);
+    }
+
+    /**
+     * Some days of the team in a row: each, whether the centre is open and what there is in it.
+     *
+     * @param \stdClass $centre
+     * @param \DateTimeImmutable $first The start of the first day.
+     * @param int $n
+     * @param int $now
+     * @return array[] day (its start), open and items, as agenda() gives them.
+     */
+    public static function days(\stdClass $centre, \DateTimeImmutable $first, int $n, int $now = 0): array {
+        $items = self::agenda($centre, $first->getTimestamp(), $first->modify('+' . $n . ' days')->getTimestamp(), $now);
         $closed = workdays::closed($centre);
         $out = [];
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < $n; $i++) {
             $day = $first->modify("+$i days");
             $next = $first->modify('+' . ($i + 1) . ' days')->getTimestamp();
             $out[] = ['day' => $day->getTimestamp(), 'open' => workdays::is_open($centre, $day, $closed),

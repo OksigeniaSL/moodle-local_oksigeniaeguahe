@@ -31,6 +31,9 @@ use local_oksigeniaeguahe\local\notices;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class send_reminders extends \core\task\scheduled_task {
+    /** @var int Whoever had the confirmation less than this ago, in seconds, has just read it. */
+    const JUST = 4 * HOURSECS;
+
     /** @var int The hour of the day before from which reminders go. */
     const FROMHOUR = 9;
 
@@ -70,6 +73,15 @@ class send_reminders extends \core\task\scheduled_task {
                 continue;
             }
             $DB->set_field('local_oksigeniaeguahe_signup', 'reminded', $now, ['id' => $row->id]);
+            $told = $DB->record_exists_select(
+                notices::T,
+                "householdid = ? AND eventid = ? AND kind IN ('confirmation', 'invitation') AND state = 'sent' AND timecreated > ?",
+                [$row->householdid, $row->eventid, $now - self::JUST]
+            );
+            if ($told) {
+                // Signed up a moment ago, the eve itself: the confirmation they have just had is the reminder.
+                continue;
+            }
             $household = $DB->get_record(households::T, ['id' => $row->householdid]);
             $centre = $household ? centres::get((int) $household->centreid) : null;
             if (!$household || !$centre) {

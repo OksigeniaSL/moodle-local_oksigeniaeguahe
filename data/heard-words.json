@@ -1,0 +1,17 @@
+{
+    "about": "How a family heard of the centre, from what it wrote in a form that is not of Eguahe, on a text in lower case and without accents. The answers Eguahe itself offers are read first, in every language; then these, the first that matches. The website of the centre is where they were, not how they heard of it.",
+    "words": [
+        {"re": "\\b(mensaje|circular|comunicado|correo|aviso|boletin)\\b.{0,12}\\b(del|de la|de este|de nuestro)\\b.{0,12}\\b(centro|cole|colegio|escuela|guarderia)|message from (the|this) (school|centre|center)|(mensagem|comunicado|aviso|e-?mail) d[ao] (escola|colegio|centro)", "heard": "centremessage"},
+        {"re": "\\b(guarderia|escuela infantil|otro (centro|colegio|cole)|otra escuela|creche|nursery|another (school|centre|center)|outr[oa] (escola|colegio|centro))\\b", "heard": "referral"},
+        {"re": "\\bfamilias? del (centro|cole|colegio|escuela)|\\bya (somos|estamos|son|estan)\\b|\\bhermanos? en el\\b|\\b(padres|madres) del (centro|cole|colegio)|families (of|at|from) (the|this) (school|centre|center)|familias d[ao] (escola|colegio|centro)", "heard": "centrefamilies"},
+        {"re": "chat ?gpt|openai|gemini|copilot|perplexity|\\bclaude\\b|deepseek|\\bgrok\\b|inteligencia artificial|artificial intelligence|\\b(una?|la|el|um|uma|an?) ?(ia|ai)\\b|^(ia|ai)$|asistente de ia|ai assistant|assistente de ia", "heard": "ai"},
+        {"re": "\\bredes\\b|instagram|facebook|tiktok|youtube|\\bsocial\\b|\\btwitter\\b|linkedin|whatsapp|telegram", "heard": "social"},
+        {"re": "\\b(anuncio|anuncios|publicidad|publicidade|ads?|advert\\w*|cartel|carteles|folleto|folletos|valla|flyer|leaflet|poster|cartaz|outdoor|anuncie)\\b", "heard": "ad"},
+        {"re": "\\b(web|pagina|site|website|sitio)\\b.{0,14}\\b(del|de la|of the|d[ao])\\b.{0,12}\\b(centro|cole|colegio|escuela|school|centre|center|escola|guarderia)|^(la |su |your |a )?(pagina )?web$|school'?s? (web ?site|web page)", "heard": "other"},
+        {"re": "google|internet|\\bbusca|buscador|search|\\bbing\\b|yahoo|online|\\bweb\\b", "heard": "search"},
+        {"re": "amig|famil|recomend|conocid|\\bboca\\b|friend|relative|vecin|vizinh|parent[es]|word of mouth|neighbou?r", "heard": "family"},
+        {"re": "prensa|radio|periodico|revista|television|\\btv\\b|press|newspaper|magazine|imprensa|jornal|revista", "heard": "press"},
+        {"re": "pasando|\\bpase\\b|\\bpaso\\b|cerca|barrio|\\bcalle\\b|passing|nearby|neighbou?rhood|passando|perto|bairro", "heard": "passingby"},
+        {"re": "\\bferia|\\bfair\\b|\\bsalon\\b|\\bfeira\\b|jornada", "heard": "fair"}
+    ]
+}

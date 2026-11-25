@@ -28,8 +28,10 @@ require(__DIR__ . '/../../config.php');
 use local_oksigeniaeguahe\local\acts;
 use local_oksigeniaeguahe\local\brief;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\entries;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
+use local_oksigeniaeguahe\local\familypage;
 use local_oksigeniaeguahe\local\forms;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\invites;
@@ -53,8 +55,10 @@ publicpage::$embedded = (bool) $embedded;
 // All of it in sight, for the window the web of the centre opens (brief).
 $brief = $embedded && optional_param('breve', 0, PARAM_BOOL);
 $button = $brief ? optional_param('boton', '', PARAM_ALPHANUM) : '';
+// The web already asked its question by its own buttons: it is not asked again.
+$noquestion = $brief && optional_param('sinpregunta', 0, PARAM_BOOL);
 if ($brief) {
-    $url->params(['breve' => 1] + ($button !== '' ? ['boton' => $button] : []));
+    $url->params(['breve' => 1] + ($button !== '' ? ['boton' => $button] : []) + ($noquestion ? ['sinpregunta' => 1] : []));
 }
 
 $event = events::by_token($token);
@@ -143,6 +147,9 @@ $lang = publiclang::choose($centre);
 $another = optional_param('otra', 0, PARAM_BOOL);
 if ($another) {
     $url->param('otra', 1);
+    // This device forgets whose letter it was.
+    setcookie(joinpage::COOKIE, '', ['expires' => 1, 'path' => parse_url($CFG->wwwroot . '/local/oksigeniaeguahe/', PHP_URL_PATH),
+        'secure' => is_moodle_cookie_secure(), 'httponly' => true, 'samesite' => 'Lax']);
 }
 $saying = data_submitted() !== false && optional_param('known', 0, PARAM_BOOL);
 $kept = $desk || $embedded ? '' : ($saying ? optional_param('fam', '', PARAM_RAW_TRIMMED) : '');
@@ -163,14 +170,22 @@ if ($saying && optional_param('ajax', 0, PARAM_BOOL) && (!$known || !$event->ope
     die();
 }
 if (!$event->open || $event->timeend < time()) {
-    // Of a talk or a party, what happened to it; of a visit, that there is no room and how to come another day.
-    $act = $event->kind === 'other' ? (!empty($event->cancelled) ? 'off' : ($event->timeend < time() ? 'over' : 'closed')) : '';
+    // What happened to it: called off, over, closed or with no room left; of a visit, also how to come another day.
+    $state = events::closed_state($event, time());
     publicpage::message(
         $centre,
         $lang,
-        $act !== '' ? format_string($event->name) : publiclang::str('pub_closed_title', $lang),
-        publiclang::str($act !== '' ? 'pub_act_' . $act : 'pub_closed', $lang),
-        $url
+        publicpage::text($event->name),
+        publiclang::str(
+            ($event->kind === 'other' ? 'pub_act_' : 'pub_day_') . $state,
+            $lang,
+            publicpage::date_parts((int) $event->timestart, $lang)['daymonth']
+        ),
+        $url,
+        true,
+        null,
+        // And the other days there are to come.
+        familypage::open_days($centre, $lang, (int) $event->id)
     );
 }
 
@@ -256,7 +271,7 @@ $data['answers'] = forms::read((int) $event->formid);
 // Inside a web, the form alone; everywhere else, the whole page, with all the questions of the centre.
 $brief = $brief && empty($event->tailored) && !$desk;
 $question = null;
-if ($brief) {
+if ($brief && !$noquestion) {
     $question = brief::question((int) $event->formid, (string) ($centre->lang ?: 'es'));
     if ($question && !data_submitted()) {
         // The web says which of the options was pressed there.
@@ -268,7 +283,12 @@ if ($brief) {
     }
 }
 $data = brief::data($data, $event, $question, !$brief);
+// No room left for anybody: said when the page opens, and whoever wanted to come is kept, for the team to find them one.
+$full = !$desk && events::is_full($event, time());
+$data['full'] = $full;
 $errors = [];
+$again = null;
+$testing = '';
 if (data_submitted()) {
     // The page carries its own mark (events::mark()): inside the web of the centre there is no session of this site.
     if (!events::mark_ok($event, optional_param('sesskey', '', PARAM_RAW_TRIMMED))) {
@@ -276,8 +296,13 @@ if (data_submitted()) {
         $errors['form'] = publiclang::str('pub_err_session', $lang);
     } else {
         $errors = brief::errors(signup::check($data, $event, $centre, $lang, true), $question, $data, !$brief);
+        if ($full) {
+            // There is no turn to choose.
+            unset($errors['slot']);
+        }
+        $again = $errors ? null : signup::again(optional_param('sesskey', '', PARAM_RAW_TRIMMED), $data, $centre);
         if (
-            !$errors && !brief::person(
+            !$errors && !$again && !brief::person(
                 optional_param('sesskey', '', PARAM_RAW_TRIMMED),
                 optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
                 (int) $event->id,
@@ -286,18 +311,47 @@ if (data_submitted()) {
                 $desk
             )
         ) {
-            $errors['form'] = publiclang::str(
-                brief::refusal(optional_param('sesskey', '', PARAM_RAW_TRIMMED), time()),
+            $errors['form'] = brief::refused(
+                optional_param('sesskey', '', PARAM_RAW_TRIMMED),
+                optional_param(brief::TRAP, '', PARAM_RAW_TRIMMED),
+                time(),
+                $centre,
                 $lang
             );
         }
+        $testing = optional_param('prueba', '', PARAM_ALPHA);
+        if (!$errors && !$again && !$desk && $testing === '' && signup::is_team($data, $centre)) {
+            // A person of the team, perhaps trying it, perhaps coming too: asked, never thrown away.
+            $errors['team'] = publiclang::str('pub_team_ask', $lang);
+        }
     }
     $lock = null;
-    if (!$errors) {
-        // The room again, now under the lock of the act: two families sending at once never take its last place twice.
+    if (!$errors && !$again && ($testing === 'si' || array_filter($data['adults'], fn($a) => entries::is_test($a['email'])))) {
+        // A test of the sign-up: it works, and no family is kept.
+        if ($brief) {
+            brief::output($centre, $lang, publiclang::str('pub_test_title', $lang), ['sent' => [
+                'title' => publiclang::str('pub_test_title', $lang), 'text' => publiclang::str('pub_test_text', $lang),
+                'url' => '', 'more' => '']]);
+        }
+        publicpage::message(
+            $centre,
+            $lang,
+            publiclang::str('pub_test_title', $lang),
+            publiclang::str('pub_test_text', $lang),
+            $url
+        );
+    }
+    if (!$errors && !$again) {
+        // The room, under the lock of the act: two families sending at once never take its last place twice, and pressed
+        // twice, the second waits for the first.
         $lock = events::lock($event);
-        $errors = signup::fits($data, $event, $centre, $lang, $desk);
-        if ($errors && $lock) {
+        $again = signup::again(optional_param('sesskey', '', PARAM_RAW_TRIMMED), $data, $centre);
+        $errors = $again ? [] : signup::fits($data, $event, $centre, $lang, $desk);
+        // Whoever had its place already changes it, full as it is; the others ask to be told.
+        $full = $full && (isset($errors['people']) || isset($errors['slot']));
+        $data['full'] = $full;
+        $errors = $full ? [] : $errors;
+        if (($errors || $again) && $lock) {
             $lock->release();
             $lock = null;
         }
@@ -306,25 +360,40 @@ if (data_submitted()) {
         $origin = $piece !== '' ? publiclang::str('share_origin_' . $piece, (string) $centre->lang) : $network;
         $origin = $desk ? ($where !== '' ? publiclang::str('door_origin', (string) $centre->lang, $where) :
             publiclang::str('desk_origin', (string) $centre->lang)) : $origin;
-        $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
-        [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
-        if ($lock) {
-            $lock->release();
-            $lock = null;
+        $to = '';
+        if ($again) {
+            // The same page sent again: the same answer, and nothing is saved or sent twice.
+            [$household, $existed] = $again;
+            $link = $existed ? null : households::new_link($household);
+        } else {
+            $said = $data;
+            $data = $ambassador ? share::told_by($data, $ambassador, $lang) : $data;
+            [$household, $link, $before, $existed] = signup::save($data, $event, $centre, $lang, null, $origin);
+            signup::remember(optional_param('sesskey', '', PARAM_RAW_TRIMMED), $said, (int) $household->id, $existed);
+            if ($lock) {
+                $lock->release();
+                $lock = null;
+            }
+            if ($testing === 'no') {
+                households::note($household, 0, get_string('signup_by_team', 'local_oksigeniaeguahe'));
+            }
+            if ($ambassador && !$existed) {
+                // One more family that came by its invitation: a number for the ambassador, never which family.
+                share::count($ambassador, $centre, 'arrived', 'familia');
+            }
+            // A family already known: whoever filled the form may not be that family, so its page is not shown here and
+            // the link goes only to an address it had.
+            $to = signup::mail_to($data, $before, $household, $existed);
         }
-        if ($ambassador && !$existed) {
-            // One more family that came by its invitation: a number for the ambassador, never which family.
-            share::count($ambassador, $centre, 'arrived', 'familia');
-        }
-        // A family already known: whoever filled the form may not be that family, so its page is not shown here and
-        // the link goes only to the email it had.
-        $to = $existed ? (string) ($before[0] ?? '') : null;
         // The sign-up is kept already: if the mail of the site fails or says something, the family still gets its
         // page.
         $sent = false;
         ob_start();
         try {
-            if ($to !== '' && !empty($event->tailored)) {
+            if ($full) {
+                // Not signed up: that it arrived, and that a person answers.
+                $sent = $to !== '' && familymail::send('received', $household, $centre, null, $lang, $link, $to);
+            } else if ($to !== '' && !empty($event->tailored)) {
                 $sent = familymail::send('request', $household, $centre, null, $lang, $link, $to);
             } else if ($to !== '' && ($signup = familymail::signup($household, (int) $event->id))) {
                 $sent = familymail::send('confirmation', $household, $centre, $signup, $lang, $link, $to);
@@ -355,6 +424,19 @@ if (data_submitted()) {
                 ]] + knownpage::context($centre, $lang, $data['children'], $signup, $sent),
                 $url
             );
+        }
+        if ($full) {
+            // What they asked for is kept, and nobody is expected: never «you have a place».
+            $title = publiclang::str('pub_full_saved', $lang);
+            if ($brief) {
+                brief::output($centre, $lang, $title, ['sent' => ['title' => $title,
+                    'text' => publiclang::str('pub_full_saved_text', $lang), 'url' => '', 'more' => '']]);
+            }
+            publicpage::message($centre, $lang, $title, publiclang::str('pub_full_saved_text', $lang), $url, false, null, $existed ? [] :
+                [['name' => publiclang::str('pub_sent_open', $lang), 'when' => '', 'url' => (new moodle_url(
+                    '/local/oksigeniaeguahe/f.php',
+                    ['k' => $link, 'new' => 1, 'idioma' => $lang]
+                ))->out(false)]]);
         }
         if ($brief) {
             // Two lines in the same place; the page of a family already known is never offered here.

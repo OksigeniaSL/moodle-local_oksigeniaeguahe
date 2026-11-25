@@ -151,6 +151,27 @@ ALU_eeeeee5555,HOG_eeeeee0000,2026-27,Infantil 3 años,A,2026-09-01,2027-01-10,,
     }
 
     /**
+     * A list with the day each student came into the centre, years ago: those were there already, and only the days of the
+     * school year itself are its joins and its start.
+     */
+    public function test_old_dates_are_not_joins(): void {
+        $centreid = $this->centre();
+        $csv = "student,household,school_year,grade,date_in\n";
+        $n = 0;
+        foreach (['2023-09-07' => 12, '2024-09-09' => 10, '2025-09-08' => 9, '2026-09-07' => 8, '2026-11-03' => 2] as $day => $many) {
+            for ($i = 0; $i < $many; $i++) {
+                $csv .= sprintf("ALU_%010d,HOG_%010d,2026-27,2.º de Primaria,%s\n", ++$n, $n, $day);
+            }
+        }
+        imports::import($centreid, 'students', '2026-27', 's.csv', $csv, 2);
+        $m = metrics::movements($centreid, '2026-27');
+        $this->assertSame(['start' => 39, 'new' => 0, 'joins' => 2, 'leaves' => 0, 'now' => 41, 'net' => 2], $m['totals']);
+        $this->assertSame('2026-09-07', userdate($m['start'], '%Y-%m-%d', 99, false));
+        $this->assertSame([2, 0], [count($m['dated']), $m['undated']]);
+        $this->assertSame(['2025-26', '2025'], [metrics::year_before('2026-27'), metrics::year_before('2026')]);
+    }
+
+    /**
      * A school year with new students shows its ledger, and the sum adds up: the roll of the first day already holds the
      * new ones, so the ledger starts from those who were already of the centre.
      */

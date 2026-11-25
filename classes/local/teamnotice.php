@@ -95,6 +95,13 @@ class teamnotice {
      */
     public static function arrived(int $centreid, int $from, int $to): array {
         global $DB;
+        // The guest of an act that now asks for a place, or a family that had gone, came on its own that day.
+        $back = $DB->get_records_select(
+            households::T,
+            'centreid = :centreid AND roster = 0 AND guest = 0 AND cameback > :from AND cameback <= :to',
+            ['centreid' => $centreid, 'from' => $from, 'to' => $to],
+            'cameback ASC, id ASC'
+        );
         $homes = $DB->get_records_select(
             households::T,
             'centreid = :centreid AND roster = 0 AND guest = 0 AND timecreated > :from AND timecreated <= :to',
@@ -102,7 +109,7 @@ class teamnotice {
             'timecreated ASC, id ASC'
         );
         if (!$homes) {
-            return [];
+            return $back;
         }
         [$in, $params] = $DB->get_in_or_equal(array_keys($homes), SQL_PARAMS_NAMED);
         // An entry leaves the family its link in the same moment it comes in.
@@ -130,7 +137,43 @@ class teamnotice {
             }
             $came = max((int) $h->timecreated, (int) $first->entryid ? (int) ($links[$h->id] ?? 0) : 0);
             return $came > $from && $came <= $to;
-        });
+        }) + $back;
+    }
+
+    /**
+     * A family that was not in admissions asks for a place on its own: the team hears of it as of a new one.
+     *
+     * @param int $householdid
+     */
+    public static function back(int $householdid): void {
+        global $DB;
+        $DB->set_field(households::T, 'cameback', time(), ['id' => $householdid]);
+    }
+
+    /**
+     * A family erased its data: the notices of the bell that said it came go too.
+     *
+     * @param int $householdid
+     * @return int How many.
+     */
+    public static function forget(int $householdid): int {
+        global $DB;
+        $url = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $householdid]))->out(false);
+        $like = $DB->sql_like('fullmessage', ':mention', false);
+        $mine = fn($row) => $row->contexturl === $url || preg_match('/' . preg_quote($url, '/') . '(?!\d)/', (string) $row->fullmessage);
+        $rows = array_filter($DB->get_records_select(
+            'notifications',
+            "component = :component AND eventtype = :type AND $like",
+            ['component' => self::C, 'type' => 'newfamily', 'mention' => '%' . $DB->sql_like_escape($url) . '%'],
+            'id ASC',
+            'id, contexturl, fullmessage'
+        ), $mine);
+        if ($rows) {
+            [$in, $params] = $DB->get_in_or_equal(array_keys($rows));
+            $DB->delete_records_select('message_popup_notifications', "notificationid $in", $params);
+            $DB->delete_records_select('notifications', "id $in", $params);
+        }
+        return count($rows);
     }
 
     /**
@@ -278,6 +321,52 @@ class teamnotice {
                 } finally {
                     force_current_language($lang);
                 }
+            }
+        }
+        return $sent;
+    }
+
+    /**
+     * Tells the team that a message was sent on to the mailbox and nothing in it says whose it is: it is not lost in silence.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass $entry
+     * @param string $subject Of the message.
+     * @param string $from Who sent it on.
+     * @return int How many notices were sent.
+     */
+    public static function lost_mail(\stdClass $centre, \stdClass $entry, string $subject, string $from): int {
+        if (!empty($centre->practice)) {
+            return 0;
+        }
+        $sent = 0;
+        $url = (new \moodle_url('/local/oksigeniaeguahe/edit.php', ['c' => $centre->id]))->out(false);
+        foreach (self::recipients($centre) as $member) {
+            $user = \core_user::get_user((int) $member->id);
+            if (!$user || !empty($user->suspended) || !empty($user->deleted)) {
+                continue;
+            }
+            $lang = force_current_language($user->lang ?: ($centre->lang ?: 'es'));
+            try {
+                $words = get_string('teamnotice_lost', self::C, (object) ['subject' => $subject !== '' ? $subject : '—', 'from' => $from,
+                    'entry' => format_string($entry->name, true, ['escape' => false])]);
+                $message = new \core\message\message();
+                $message->component = 'local_oksigeniaeguahe';
+                $message->name = 'entrysilent';
+                $message->userfrom = \core_user::get_noreply_user();
+                $message->userto = $user;
+                $message->subject = get_string('teamnotice_lost_subject', self::C);
+                $message->fullmessage = $words . "\n\n" . $url;
+                $message->fullmessageformat = FORMAT_PLAIN;
+                $message->fullmessagehtml = '<p>' . s($words) . '</p><p><a href="' . s($url) . '">' .
+                    s(get_string('household_new', self::C)) . '</a></p>';
+                $message->smallmessage = $message->subject;
+                $message->notification = 1;
+                $message->contexturl = $url;
+                $message->contexturlname = get_string('household_new', self::C);
+                $sent += message_send($message) ? 1 : 0;
+            } finally {
+                force_current_language($lang);
             }
         }
         return $sent;

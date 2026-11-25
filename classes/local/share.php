@@ -387,7 +387,7 @@ class share {
         if ($strokes === '') {
             return false;
         }
-        $name = familypage::label_name($child) ?: (string) $child->firstname;
+        $name = familypage::said_name($child, $lang);
         $logo = centres::logo((int) $centre->id);
         $title = publiclang::str('pub_drawing_title', $lang, $name);
         $s = fn(string $id) => publiclang::str('share_video_' . $id, $lang);

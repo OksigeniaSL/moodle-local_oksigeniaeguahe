@@ -39,7 +39,7 @@
     <span class="hora"><span class="que-hizo">{{verb}}</span> <span class="cuando-fue">{{said}}</span></span>
     <div class="quien">
         <a class="nombres" href="{{url}}" data-abre-hoja>{{adults}}{{#alumni}} <span class="birrete-fila" title="{{#str}}alumni_row, local_oksigeniaeguahe{{/str}}">{{{i.birrete}}}<span class="oculto">{{#str}}alumni_row, local_oksigeniaeguahe{{/str}}</span></span>{{/alumni}}</a>
-        <span class="hijos">{{#children}}<span class="nino"><span class="etq" translate="no" dir="auto">{{tag}}</span><span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
+        <span class="hijos">{{#children}}<span class="nino">{{#tag}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/tag}}<span class="curso">{{course}}{{#stage}} · {{stage}}{{/stage}}</span></span>{{/children}}</span>
         {{#asks}}<span class="pide"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span class="oculto">{{#str}}panel_ai_reads, local_oksigeniaeguahe{{/str}}: </span><span dir="auto">{{asks}}</span></span>{{/asks}}
         <span class="meta">{{#fromai}}<span class="sello-ia sello-ia-corto" aria-hidden="true">{{#str}}panel_ai_stamp_short, local_oksigeniaeguahe{{/str}}</span><span class="oculto">{{fromai}}. </span>{{/fromai}}{{{viaicon}}}<span>{{via}}</span></span>
         {{#visit}}<span class="visita-hoy">{{text}}</span>{{/visit}}

@@ -30,7 +30,6 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
-use local_oksigeniaeguahe\local\joinpage;
 use local_oksigeniaeguahe\local\publiclang;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\seen;
@@ -39,14 +38,25 @@ $token = optional_param('k', '', PARAM_ALPHANUMEXT);
 $eventid = optional_param('e', 0, PARAM_INT);
 publicpage::setup(new moodle_url('/local/oksigeniaeguahe/ics.php'));
 
-// From the page of an act, by its letter: what the page keeps of it, signed for this act.
-$kept = optional_param('fam', '', PARAM_RAW_TRIMMED);
-$act = $kept !== '' ? events::by_token(optional_param('t', '', PARAM_ALPHANUM)) : null;
-$mine = $act ? joinpage::family_of($act, $kept) : null;
-if ($mine) {
-    $eventid = (int) $act->id;
-    // The file says where to tell that they cannot come after all: a link of that act and nothing else.
-    $token = households::new_link($mine, 'letter');
+// The act alone, with nothing of a family: for whoever says it comes on the page of its letter.
+$acttoken = optional_param('t', '', PARAM_ALPHANUM);
+if ($acttoken !== '') {
+    $event = events::by_token($acttoken);
+    $centre = $event && empty($event->tailored) && empty($event->cancelled) && empty($event->householdid) ?
+        centres::get((int) $event->centreid) : null;
+    if (!$centre) {
+        require_once($CFG->libdir . '/filelib.php');
+        send_header_404();
+        die();
+    }
+    publicpage::practice_gate($centre, null);
+    $lang = publiclang::choose($centre);
+    publicpage::headers();
+    @header('Content-Type: text/calendar; charset=utf-8');
+    @header('Content-Disposition: attachment; filename="' . clean_filename(publicpage::text($event->name)) . '.ics"');
+    echo events::ics($event, $centre, '', null, ['uid' => 'acto-' . $event->id, 'alarm' => publiclang::str('ics_alarm', $lang, (object) [
+        'hour' => publicpage::date_parts((int) $event->timestart, $lang)['hour'], 'centre' => publicpage::text($centre->name)])]);
+    die();
 }
 $household = households::by_link($token);
 // A link unused for months stops working here too, as on the page of the family.

@@ -88,6 +88,10 @@
                 return r.json();
             })
             .then(function(j) {
+                if (key !== last) {
+                    // Another conversation was opened meanwhile: this answer is of the one before.
+                    return;
+                }
                 out.removeAttribute('aria-busy');
                 if (j.error === 'login') {
                     window.location.reload();
@@ -96,6 +100,9 @@
                 out.innerHTML = j.html || '';
             })
             .catch(function() {
+                if (key !== last) {
+                    return;
+                }
                 out.removeAttribute('aria-busy');
                 last = null;
                 say(root.getAttribute('data-failed'));

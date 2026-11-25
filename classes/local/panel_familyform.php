@@ -38,6 +38,7 @@ class panel_familyform {
      * @param \stdClass|null $household Null for a new family.
      * @param \moodle_url $action
      * @param \moodle_url $back
+     * @param \stdClass|null $door The act at whose door it is written down.
      * @return array
      */
     public static function context(
@@ -45,7 +46,8 @@ class panel_familyform {
         \stdClass $centre,
         ?\stdClass $household,
         \moodle_url $action,
-        \moodle_url $back
+        \moodle_url $back,
+        ?\stdClass $door = null
     ): array {
         $c = self::C;
         $values = $form->values();
@@ -145,10 +147,10 @@ class panel_familyform {
             // To write each mobile in groups when it is left, and say when it looks short.
             'tel' => phone::for_page((string) ($centre->country ?? '')),
             'head' => panel::head([
-                'back' => ['url' => $back->out(false), 'name' => $isnew ? get_string('tab_inbox', $c) :
-                    panel::adults_line(households::full($household)->adults)],
-                'title' => get_string($isnew ? 'household_new' : 'household_edit', $c),
-                'sub' => $isnew ? get_string('panel_ff_sub', $c) : '',
+                'back' => ['url' => $back->out(false), 'name' => $door ? format_string($door->name) : ($isnew ? get_string('tab_inbox', $c) :
+                    panel::adults_line(households::full($household)->adults))],
+                'title' => $door ? get_string('panel_walk_in', $c) : get_string($isnew ? 'household_new' : 'household_edit', $c),
+                'sub' => $door ? format_string($door->name) : ($isnew ? get_string('panel_ff_sub', $c) : ''),
             ]),
             'action' => $action->out(false),
             'sesskey' => sesskey(),
@@ -160,9 +162,19 @@ class panel_familyform {
             'children' => $children,
             'adults' => $adults,
             'channels' => $options(lists::options(lists::HAND_CHANNELS, 'channel_'), $value('channel')),
+            'hasfirstchannels' => !$isnew,
+            'doorlang' => (string) $centre->lang,
+            'channelerror' => $errors['channel'] ?? '',
+            // Of a family that is there: how it came in, to put it right.
+            'firstchannels' => $isnew ? [] : $options(lists::options(
+                household_form::first_channels((string) $household->firstchannel),
+                'channel_'
+            ), $value('firstchannel') ?: (string) $household->firstchannel),
+            // At the door of an act: who it is, the child, the course and how many, and nothing else.
+            'door' => $door ? ['id' => (int) $door->id, 'name' => format_string($door->name)] : false,
             'events' => $options(household_form::event_options($centre), $value('eventid') ?: '0'),
             'eventleaves' => self::event_leaves($centre, $value('eventid') ?: '0'),
-            'peoplecount' => self::counter((int) ($value('people') !== '' ? $value('people') : 1), events::MAXPEOPLE),
+            'peoplecount' => self::counter((int) ($door && !$form->is_submitted() ? 2 : ($value('people') !== '' ? $value('people') : 1)), events::MAXPEOPLE),
             'hasevents' => count(household_form::event_options($centre)) > 1,
             'came' => !empty($values['came']),
             'people' => $value('people') !== '' ? $value('people') : '1',
@@ -194,13 +206,20 @@ class panel_familyform {
      */
     public static function event_leaves(\stdClass $centre, string $chosen): array {
         $out = [['value' => 0, 'name' => get_string('form_noevent', self::C), 'leaf' => false, 'hour' => '',
-            'selected' => $chosen === '0']];
+            'selected' => $chosen === '0', 'slots' => [], 'hasslots' => false]];
         foreach (events::for_centre((int) $centre->id) as $event) {
-            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored)) {
+            if ($event->timeend >= time() - DAYSECS && empty($event->householdid) && empty($event->tailored) && empty($event->cancelled)) {
                 $out[] = ['value' => (int) $event->id, 'name' => format_string($event->name),
                     'leaf' => panel::leaf((int) $event->timestart),
                     'hour' => userdate((int) $event->timestart, get_string('strftimetime', 'langconfig')),
-                    'selected' => (string) $event->id === $chosen];
+                    'selected' => (string) $event->id === $chosen,
+                    // Its turns, to choose one.
+                    'slots' => array_map(
+                        fn($id, $name) => ['value' => $id, 'eventid' => (int) $event->id, 'name' => $name, 'selected' => !$id],
+                        array_keys(household_form::slot_options((int) $event->id)),
+                        household_form::slot_options((int) $event->id)
+                    )];
+                $out[count($out) - 1]['hasslots'] = (bool) $out[count($out) - 1]['slots'];
             }
         }
         return $out;
@@ -276,7 +295,10 @@ class panel_familyform {
             return ['households' => []];
         }
         $full = households::full($household);
-        $tags = array_map(fn($child) => panel::tag($child), array_values($full->children));
+        $tags = array_values(array_filter(
+            array_map(fn($child) => panel::tag($child), array_values($full->children)),
+            fn($tag) => $tag !== ''
+        ));
         $last = array_pop($tags);
         $children = $tags ? get_string('andlist', $c, (object) ['list' => implode(', ', $tags), 'last' => $last]) : (string) $last;
         return ['households' => [[

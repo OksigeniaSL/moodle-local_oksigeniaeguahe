@@ -36,9 +36,10 @@ class familypage {
      *
      * @param string[] $names
      * @param string $lang
+     * @param string $word The word before the last one: pub_and, or pub_or.
      * @return string
      */
-    public static function join(array $names, string $lang): string {
+    public static function join(array $names, string $lang, string $word = 'pub_and'): string {
         $names = array_values($names);
         if (lists::dir($lang) === 'rtl') {
             // Each name keeps its own direction, so «Lucía و Andrés» reads in the order of the sentence.
@@ -48,7 +49,7 @@ class familypage {
             return $names[0] ?? '';
         }
         // In Arabic «و» is written joined to the word after it, and the comma is the Arabic one.
-        $and = publiclang::str('pub_and', $lang) . ($lang === 'ar' ? '' : ' ');
+        $and = publiclang::str($word, $lang) . ($lang === 'ar' && $word === 'pub_and' ? '' : ' ');
         $comma = $lang === 'ar' ? '، ' : ', ';
         return implode($comma, array_slice($names, 0, -1)) . ' ' . $and . end($names);
     }
@@ -66,11 +67,13 @@ class familypage {
         $lang = $lang !== '' ? $lang : ((string) ($full->lang ?? '') ?: 'es');
         foreach ($full->adults as $adult) {
             $phone = (string) $adult->phone !== '' ? phone::display((string) $adult->phone) : '';
+            // A phone is read from left to right, also inside Arabic.
+            $shown = $phone !== '' && lists::dir($lang) === 'rtl' ? "\u{2066}" . $phone . "\u{2069}" : $phone;
             $row = $said[(int) $adult->id] ?? null;
             $studied = $row && (int) $row->said === alumni::YES ? ((string) $row->year !== '' ?
                 publiclang::str('pub_alumni_with_year', $lang, (string) $row->year) : publiclang::str('pub_alumni', $lang)) : '';
             $out[] = ['id' => (int) $adult->id, 'name' => trim($adult->firstname . ' ' . $adult->lastname),
-                'reach' => array_values(array_filter([$phone, (string) $adult->email, $studied])), 'phone' => $phone,
+                'reach' => array_values(array_filter([$shown, (string) $adult->email, $studied])), 'phone' => $phone,
                 'email' => (string) $adult->email, 'alumni' => $studied !== ''];
         }
         return $out;
@@ -140,13 +143,15 @@ class familypage {
         $silent = writeby::silent($household);
         $pending = [];
         $links = writeby::join_links($household, $centre, $now);
-        $asked = isset($links['whatsapp']) && writeby::whatsapp($household, $centre)['asked'];
+        $state = isset($links['whatsapp']) ? writeby::whatsapp($household, $centre) : ['asked' => 0, 'failed' => false, 'ends' => ''];
+        $asked = $state['asked'] && !$state['failed'];
         foreach ($links as $channel => $link) {
-            $pending[] = ['label' => $channel === 'whatsapp' && $asked ? publiclang::str('pub_writeby_asked_line', $lang) :
+            $pending[] = ['label' => $channel === 'whatsapp' && $state['failed'] ? publiclang::str('pub_known_failed', $lang, $state['ends']) .
+                ' ' . publiclang::str('pub_known_failed_text', $lang) : ($channel === 'whatsapp' && $asked ? publiclang::str('pub_writeby_asked_line', $lang) :
                 publiclang::str('pub_writeby_missing', $lang, publiclang::str(
                     'pub_writeby_' . $channel,
                     $lang
-                )), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
+                ))), 'url' => $link, 'icon' => writeby::icon($channel), 'open' => publiclang::str('pub_writeby_open_' .
                 $channel, $lang)];
         }
         return [
@@ -164,7 +169,7 @@ class familypage {
                 $now
             ),
             'haspills' => (bool) $now,
-            // The ways the centre has and they did not mark, at sight to add with one touch: «+ Telegram» (Enrique).
+            // The ways the centre has and they did not mark, at sight to add with one touch: «+ Telegram».
             'others' => $silent ? [] : array_values(array_map(
                 fn($c) => ['icon' => writeby::icon($c),
                 'label' => publiclang::str('pub_writeby_' . $c, $lang), 'url' => writeby::url($token, $lang, $c, 'page')],
@@ -173,7 +178,7 @@ class familypage {
             'nothing' => publiclang::str('pub_writeby_now_nothing', $lang),
             'noinvites' => (int) $household->noinvites ? publiclang::str('pub_noinvites_line', $lang) : '',
             'pending' => $pending,
-            'change' => publiclang::str('pub_writeby_change_link', $lang),
+            'change' => publiclang::str($now || $silent ? 'pub_writeby_change_link' : 'pub_writeby_choose_link', $lang),
             // The step left, small, on the wall: «Falta unir WhatsApp y Telegram», its buttons and «Cambiarlo».
             'reminder' => !$pending ? '' : ($asked && count($links) === 1 ? publiclang::str('pub_writeby_asked_line', $lang) :
                 publiclang::str('pub_writeby_reminder', $lang, writeby::words(
@@ -193,6 +198,136 @@ class familypage {
     public static function label_name(\stdClass $child): string {
         $tag = trim((string) ($child->tagname ?? ''));
         return $tag !== '' ? $tag : (preg_split('/\s+/', trim((string) $child->firstname))[0] ?? '');
+    }
+
+    /**
+     * How a child is called in a sentence for its family: by its name, or «su hijo» while it is not told.
+     *
+     * @param \stdClass $child
+     * @param string $lang
+     * @return string
+     */
+    public static function said_name(\stdClass $child, string $lang): string {
+        return self::label_name($child) ?: publiclang::str('pub_your_child', $lang);
+    }
+
+    /**
+     * What is said under «Who receives you»: one person or several, and with their faces only when there are.
+     *
+     * @param \stdClass[] $hosts From centres::hosts().
+     * @param bool $before Whether it is still to come.
+     * @param string $lang
+     * @return string
+     */
+    public static function receives_sub(array $hosts, bool $before, string $lang): string {
+        $key = $before ? 'pub_receives_sub' : 'pub_received_sub';
+        if (count($hosts) === 1) {
+            return publiclang::str($key . '_one', $lang);
+        }
+        $faces = !array_filter($hosts, fn($h) => !$h->photo);
+        return publiclang::str($key . ($before && !$faces ? '_nofaces' : ''), $lang);
+    }
+
+    /**
+     * Some children in a sentence for their family: by their names, or «su hijo» and «sus hijos» when one is not told.
+     *
+     * @param \stdClass[] $children
+     * @param string $lang
+     * @return string
+     */
+    public static function said_names(array $children, string $lang): string {
+        $names = array_values(array_filter(array_map([self::class, 'label_name'], $children), fn($n) => $n !== ''));
+        if (!$names || count($names) < count($children)) {
+            return publiclang::str(count($children) > 1 ? 'pub_your_children' : 'pub_your_child', $lang);
+        }
+        return self::join($names, $lang);
+    }
+
+    /**
+     * A sentence with its first letter as a sentence has it: one may begin with «su hijo».
+     *
+     * @param string $sentence
+     * @return string
+     */
+    public static function sentence(string $sentence): string {
+        return \core_text::strtoupper(\core_text::substr($sentence, 0, 1)) . \core_text::substr($sentence, 1);
+    }
+
+    /**
+     * The family tells, on its page, the name of a child nobody had named.
+     *
+     * @param \stdClass $household
+     * @param int $childid
+     * @param string $name
+     * @return bool Whether it was kept.
+     */
+    public static function name_child(\stdClass $household, int $childid, string $name): bool {
+        global $DB;
+        $name = \core_text::substr(trim(preg_replace('/\s+/u', ' ', $name)), 0, 100);
+        $child = $DB->get_record(households::CHILDREN, ['id' => $childid, 'householdid' => $household->id]);
+        if ($name === '' || !$child || trim((string) $child->firstname) !== '') {
+            return false;
+        }
+        $DB->update_record(households::CHILDREN, (object) ['id' => $child->id, 'firstname' => $name, 'timemodified' => time()]);
+        return true;
+    }
+
+    /** @var int How many children a family may have on its page before it has to write for another one. */
+    const MAXCHILDREN = 8;
+
+    /**
+     * Another child of the family, told on its page: in its history, and a person answers, as it asks for a place.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $name
+     * @param int $offerid 0, not decided yet.
+     * @return int The child; 0 when nothing was told or they are too many.
+     */
+    public static function add_child(\stdClass $household, \stdClass $centre, string $name, int $offerid): int {
+        global $DB;
+        $name = trim(preg_replace('/\s+/u', ' ', $name));
+        $offer = centres::offers((int) $centre->id, true)[$offerid] ?? null;
+        $before = $DB->get_records(households::CHILDREN, ['householdid' => $household->id]);
+        if ($name === '' || count($before) >= self::MAXCHILDREN) {
+            return 0;
+        }
+        $childid = households::add_child($household, $name, $offer ? (int) $offer->id : 0);
+        if (!isset($before[$childid])) {
+            $lang = in_array($centre->lang, lists::LANGS, true) ? $centre->lang : 'es';
+            households::received($household, lists::PAGE, publiclang::str(
+                'pub_child_added_note',
+                $lang,
+                (object) ['name' => $name, 'course' => $offer ? publicpage::text($offer->name) . ' · ' . $offer->schoolyear :
+                    publiclang::str('pub_breve_course_none', $lang)]
+            ), true);
+        }
+        return $childid;
+    }
+
+    /**
+     * What the form for another child needs, folded under those there are.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $action
+     * @return array
+     */
+    protected static function newchild_context(\stdClass $centre, string $lang, string $action): array {
+        [$grouped, $loose] = grades::grouped(array_values(centres::offers((int) $centre->id, true)), $centre);
+        $option = fn($o, bool $year) => ['value' => (int) $o->id, 'name' => publicpage::text($o->name) . ($year ? ' · ' . $o->schoolyear : '')];
+        return [
+            'open' => publiclang::str('pub_add_child', $lang),
+            'action' => $action,
+            'sesskey' => sesskey(),
+            'name' => publiclang::str('pub_breve_child', $lang),
+            'course' => publiclang::str('pub_breve_course', $lang),
+            'none' => publiclang::str('pub_breve_course_none', $lang),
+            'hascourses' => $grouped || $loose,
+            'groups' => array_map(fn($g) => ['label' => $g['label'], 'options' => array_map(fn($o) => $option($o, false), $g['offers'])], $grouped),
+            'options' => array_map(fn($o) => $option($o, true), $loose),
+            'save' => publiclang::str('pub_home_save', $lang),
+        ];
     }
 
     /**
@@ -274,6 +409,18 @@ class familypage {
             $host = $hosts[0]->name;
         }
         $greeting = $upcoming || !$attended ? 'pub_wait' : 'pub_thanks';
+        // Who is still getting to know the centre: nobody asks yet somebody who applied, was admitted or is of the centre to
+        // come and see it. A visit that nobody wrote down whether they came to is neither one nor the other.
+        $early = empty($household->incentre) && !array_filter(
+            $children,
+            fn($c) => !in_array($c->stage, ['inquiry', 'visit', 'closed'], true)
+        );
+        $noted = $upcoming ? [] : self::noted_visits($household, $now);
+        $booked = in_array('coming', $noted, true);
+        $seen = $attended || $noted || array_filter($visits, fn($s) => (int) $s->timeend < $now && empty($s->missed));
+        if (!$upcoming && !$pending && !$attended && !$booked && (!$early || $seen)) {
+            $greeting = 'pub_roster';
+        }
         // After «Enrolled», the last moment of the page: that is it, who carries them from now on, and it stays still.
         $enrolled = settled::enrolled($children);
         // A family that was already at the centre, brought from its roll: never «All set», which is for those who just
@@ -289,11 +436,10 @@ class familypage {
         } else if ($issettled) {
             $offer = $offers[$enrolled[0]->offerid] ?? null;
             if (count($enrolled) > 1) {
-                $all = self::join(array_map([self::class, 'label_name'], $enrolled), $lang);
-                $lead = s(publiclang::str('pub_settled_many', $lang, $all));
+                $lead = s(self::sentence(publiclang::str('pub_settled_many', $lang, self::said_names($enrolled, $lang))));
             } else if ($offer) {
-                $a = (object) ['name' => self::label_name($enrolled[0]), 'course' => format_string($offer->name)];
-                $lead = s(publiclang::str('pub_settled_one', $lang, $a));
+                $a = (object) ['name' => self::said_name($enrolled[0], $lang), 'course' => publicpage::text($offer->name)];
+                $lead = s(self::sentence(publiclang::str('pub_settled_one', $lang, $a)));
             } else {
                 $lead = s(publiclang::str('pub_settled_nocourse', $lang));
             }
@@ -317,13 +463,22 @@ class familypage {
         } else if (!empty($household->guest)) {
             // Only signed up to an act: nothing of coming to see the centre.
             $lead = s(publiclang::str('pub_guest_lead', $lang));
+        } else if (!$early) {
+            // Asking for a place already, or of the centre: how that goes is told here.
+            $lead = s(publiclang::str(empty($household->incentre) ? 'pub_lead_waitlist' : 'pub_roster_lead', $lang));
+        } else if ($seen) {
+            // They had a visit, and nobody wrote down whether they came.
+            $lead = '';
+        } else if ((int) $household->waitingsince) {
+            // They wrote, and what they wait for is an answer: who gives it and until when.
+            $lead = s(self::answer_line($household, $centre, $lang));
         } else {
             // With an act ahead, the act is what there is now: coming to see the centre waits in its own line, further down.
             $lead = $coming ? '' : s(publiclang::str('pub_lead_novisit', $lang));
         }
         $visitrow = function (\stdClass $s) use ($lang, $token, $ucfirst, $centre, $household): array {
             $parts = publicpage::date_parts((int) $s->timestart, $lang);
-            $name = format_string($s->eventname);
+            $name = publicpage::text(visits::shown((string) $s->eventname, $lang));
             // An act open to all can be passed on to whoever looks for a centre, with the text of the family.
             $act = (object) ['id' => $s->eventid, 'open' => $s->eventopen ?? 0, 'token' => $s->eventtoken ?? '',
                 'tailored' => $s->eventtailored ?? 0, 'householdid' => $s->eventhousehold ?? 0, 'timeend' => $s->timeend];
@@ -331,7 +486,7 @@ class familypage {
             $share = share::act_open($act) && $told && !empty($told->linkout) ? ['url' => share::act_url($household, $act)->out(false),
                 'label' => publiclang::str('pub_act_share', $lang), 'title' => $name,
                 'text' => publiclang::str('share_act_text', $lang, (object) ['act' => $name, 'when' => $parts['long'],
-                    'centre' => format_string($centre->name)]),
+                    'centre' => publicpage::text($centre->name)]),
                 'copied' => publiclang::str('share_copied', $lang)] : false;
             return [
                 'share' => $share,
@@ -350,7 +505,7 @@ class familypage {
                 'name' => $name,
                 'hours' => self::hours((int) $s->timestart, (int) $s->timeend, $lang),
                 'turn' => !empty($s->slotid),
-                'place' => trim(implode(' · ', array_unique(array_filter([$s->place ? format_string($s->place) : '',
+                'place' => trim(implode(' · ', array_unique(array_filter([$s->place ? publicpage::text($s->place) : '',
                     (string) ($centre->address ?? '')])))),
                 'people' => publiclang::count('pub_people_one', 'pub_people_count', (int) $s->people, $lang),
                 // How it is told: its picture, what it is about, who gives it and for whom.
@@ -373,7 +528,7 @@ class familypage {
         $answers = [];
         foreach (forms::answers_of((int) $household->id) as $answer) {
             $answers[$answer->fieldid . ':' . $answer->label] = $answers[$answer->fieldid . ':' . $answer->label] ??
-                ['label' => format_string($answer->label), 'value' => (string) $answer->value];
+                ['label' => publicpage::text($answer->label), 'value' => (string) $answer->value];
         }
         $answers = array_values($answers);
         // The notices on the phone too, when the site has Marandu and the centre wants them.
@@ -382,31 +537,36 @@ class familypage {
         foreach ($children as $child) {
             $offer = $offers[$child->offerid] ?? null;
             $tag = trim((string) ($child->tagname ?? ''));
+            $named = self::label_name($child) !== '';
+            $said = self::said_name($child, $lang);
+            $coursetext = $offer ? publiclang::str('pub_course_year', $lang, (object) ['course' => publicpage::text($offer->name),
+                'year' => s($offer->schoolyear)]) : publiclang::str('pub_course_unknown', $lang);
             $birth = trim((string) ($child->birthdate ?? ''));
             $birthday = $birth !== '' ? publicpage::date_parts(birthdays::next($birth, $now)[0], $lang)['daymonth'] : '';
             $drawing = drawings::file((int) $child->id);
             $childrows[] = [
-                'name' => $child->firstname,
+                // Not named yet: its course in its place, and their page asks for the name.
+                'name' => $named ? (trim((string) $child->firstname) !== '' ? $child->firstname : $tag) : $coursetext,
                 // Their drawing, small, to see it big; and sending it, or another one.
                 'drawing' => $drawing ? $link(['dibujo' => $child->id, 't' => $drawing->get_timemodified()]) : '',
                 // Its strokes, for it to draw itself once.
                 'drawingstrokes' => $drawing && ($strokes = drawings::strokes_file((int) $child->id)) ?
                     $link(['trazos' => $child->id, 't' => $strokes->get_timemodified()]) : '',
-                'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $child->firstname),
+                'drawingalt' => publiclang::str('pub_drawing_alt', $lang, $tag !== '' ? $tag : $said),
                 // Asked for while they are young; one already sent can always change.
-                'drawingsend' => !$allclosed && ($drawing || ages::young($child, $offers, $centre)) ?
+                'drawingsend' => !$allclosed && !$isgone && ($drawing || ($named && ages::young($child, $offers, $centre))) ?
                     $link(['action' => 'drawing', 'nino' => $child->id, 'idioma' => $lang]) : '',
-                // Asked as a question, with their name: «¿Nos envían un dibujo hecho por Leo?» (Enrique).
+                // Asked as a question, with their name: «¿Nos envían un dibujo hecho por Leo?».
                 'drawingsendname' => publiclang::str(
                     $drawing ? 'pub_drawing_ask_other' : 'pub_drawing_ask',
                     $lang,
-                    $tag !== '' ? $tag : $child->firstname
+                    $tag !== '' ? $tag : ($named ? $child->firstname : $said)
                 ),
                 // Their drawing, sent to someone: that drawing alone, by its own link.
                 'drawingshare' => $drawing ? ['url' => share::drawing_url($household, $child, $lang)->out(false),
                     'label' => publiclang::str('pub_drawing_share', $lang),
-                    'title' => publiclang::str('pub_drawing_title', $lang, $tag !== '' ? $tag : $child->firstname),
-                    'text' => publiclang::str('share_drawing_text', $lang, $tag !== '' ? $tag : $child->firstname),
+                    'title' => publiclang::str('pub_drawing_title', $lang, $tag !== '' ? $tag : ($named ? $child->firstname : $said)),
+                    'text' => publiclang::str('share_drawing_text', $lang, $tag !== '' ? $tag : ($named ? $child->firstname : $said)),
                     'copied' => publiclang::str('share_copied_drawing', $lang),
                     // With its strokes, the drawing goes as a video to keep (pub/dibujo-video.js).
                     'video' => share::video(
@@ -421,26 +581,29 @@ class familypage {
                 // Stories to read together at home, from the library of the centre, by the age of its course.
                 'tales' => tales::url($centre, $offer ? (string) $offer->name : '') ?? '',
                 'talesname' => publiclang::str('pub_tales', $lang),
-                'course' => $offer ? publiclang::str('pub_course_year', $lang, (object) ['course' => format_string($offer->name),
-                    'year' => s($offer->schoolyear)]) : publiclang::str('pub_course_unknown', $lang),
-                'ontag' => $tag !== '' && $tag !== $child->firstname ? publiclang::str('pub_on_tag', $lang, $tag) : '',
+                'course' => $named ? $coursetext : '',
+                'ontag' => $tag !== '' && trim((string) $child->firstname) !== '' && $tag !== $child->firstname ? publiclang::str('pub_on_tag', $lang, $tag) : '',
                 // What they call them at home, which the family can change: the name of the label, the story and its
                 // voice, and the birthday.
                 'birthline' => $birthday !== '' ? publiclang::str('pub_birthday_line', $lang, $birthday) : '',
                 'home' => $isgone || $allclosed ? false : ['id' => (int) $child->id, 'value' => $tag,
                     'action' => $link(['action' => 'homename', 'idioma' => $lang]), 'sesskey' => sesskey(),
-                    'open' => publiclang::str($tag !== '' || $birth !== '' ? 'pub_home_change' : 'pub_home_open', $lang),
-                    'label' => publiclang::str('pub_tagname', $lang), 'hint' => publiclang::str('pub_tagname_hint', $lang),
+                    'open' => publiclang::str(!$named ? 'pub_home_name' : ($tag !== '' || $birth !== '' ? 'pub_home_change' :
+                        'pub_home_open'), $lang),
+                    'label' => publiclang::str($named ? 'pub_tagname' : 'pub_child_name', $lang),
+                    'hint' => publiclang::str($named ? 'pub_tagname_hint' : 'pub_child_name_hint', $lang),
                     'birth' => $birth, 'birthlabel' => publiclang::str('pub_birthdate', $lang),
                     // The date of birth in three fields, in the order of the country of the centre.
                     'birthdate' => ['describedby' => 'cumple-' . (int) $child->id . '-ayuda'] +
                         publicpage::date_input('cumple', $birth, $lang, $centre, 'cumple-' . (int) $child->id),
                     'birthhint' => publiclang::str('pub_birthdate_hint', $lang),
                     // A name in another script: in Latin letters too, for the voice.
-                    'latin' => namevoices::latin($tag !== '' ? $tag : (string) $child->firstname) ? false :
+                    'latin' => !$named || namevoices::latin($tag !== '' ? $tag : (string) $child->firstname) ? false :
                         ['value' => (string) ($child->latinname ?? ''), 'label' => publiclang::str('pub_latinname', $lang),
                         'hint' => publiclang::str('pub_latinname_hint', $lang)],
                     'save' => publiclang::str('pub_home_save', $lang),
+                    // A day that does not exist is never kept as if it did.
+                    'bad' => (int) ($flags['badbirth'] ?? 0) === (int) $child->id ? publiclang::str('pub_birthdate_bad', $lang) : '',
                     'saved' => (int) ($flags['home'] ?? 0) === (int) $child->id ? publiclang::str('pub_home_saved', $lang) :
                         ((int) ($flags['drawing'] ?? 0) === (int) $child->id ? publiclang::str('pub_drawing_received', $lang) :
                         '')],
@@ -464,7 +627,11 @@ class familypage {
         $address = trim((string) ($centre->address ?? ''));
         // After the visit: one open question on the wall or, if the centre turned on the survey of that event, the
         // survey in the band with the open question first; never both waiting at once.
-        $last = !$upcoming && !$pending ? surveys::last_visit($household, $now) : null;
+        $last = surveys::last_visit($household, $now);
+        if ($last && ($upcoming || $pending) && ((string) $last->kind !== 'other' || !surveys::is_open($last, $now) || !surveys::form($last))) {
+            // With a visit ahead, only the survey of a talk or a party, which is not about it.
+            $last = null;
+        }
         $surveyform = $last && surveys::is_open($last, $now) ? surveys::form($last) : null;
         $told = $last ? surveys::answers((int) $last->id, (int) $household->id) : [];
         $by = $joined ? 'pub_by_messages' : (isset($channels['email']) ? 'pub_by_email' : (isset($channels['whatsapp']) ?
@@ -547,6 +714,14 @@ class familypage {
             // A family that says a child does not go on is not asked to tell others how good it was.
             $settled = ['volunteer' => false, 'volunteered' => '', 'ambassador' => false] + $settled;
         }
+        // Every one of them does not go on: no «all set», nor what they were left to ask before a first day.
+        if ($issettled && $renewal && !array_filter($renewal['children'], fn($c) => $c['state'] !== 'leave')) {
+            $issettled = false;
+            $isroster = true;
+            $settled = false;
+            $ask = $first ? $ask : false;
+            $lead = '';
+        }
         // The band of the centre's colour says what comes next: the visit, the day they will be offered, how to ask for
         // a place once they came, or, with no visit yet, how to write. Never on the quiet page.
         $band = false;
@@ -560,10 +735,18 @@ class familypage {
         } else if (!$issettled && !$isgone && !$isroster && $attended) {
             // They came, and the team will send them how to ask for a place when it is time: their page waits.
             $band = false;
-        } else if (!$issettled && !$isgone && !$isroster && empty($household->guest)) {
-            $band = ['isnext' => true];
+        } else if (
+            !$issettled && !$isgone && !$isroster && $early && !$booked && empty($household->guest) &&
+                !((int) $household->waitingsince && !$seen)
+        ) {
+            // Whoever has just written waits for an answer, which the page says under its heading: nothing of visits yet.
+            $band = ['isnext' => true, 'seen' => (bool) $seen];
         }
         $survey = $surveyform ? self::survey_context($centre, $surveyform, $last, $lang, $token, $told, $ask, $flags) : false;
+        if ($survey && ($issettled || $names === '')) {
+            // With no name after it, no comma.
+            $survey['farewell'] = publiclang::str('pub_howitwent_thanks', $lang);
+        }
         $stories = self::stories($household, $centre, $lang, $token, $now);
         $birthdays = $isgone ? [] : self::birthday_cards($household, $centre, $lang, $token, $now);
         // Closed because they chose another centre: why, if they want to say, in one tap; and the thanks once said.
@@ -577,7 +760,7 @@ class familypage {
             $band = false;
         }
         // What it all costs, when the centre shows it: from the start, or once they came (costs).
-        $costs = !$allclosed && empty($household->guest) && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
+        $costs = !$allclosed && !$isgone && empty($household->guest) && costs::shown($centre, (bool) $attended) ? costs::page($centre, $lang) : false;
         // A child on the waiting list: said plainly, with nothing of the places of the course.
         $waitlist = self::waitlist_context($children, $offers, $lang);
         // One thing of now, at the head of the page; the rest under «Also on your page», each in a line that opens.
@@ -604,7 +787,9 @@ class familypage {
             'acts' => array_map($visitrow, $coming),
         ], $upcoming ? $visitrow($upcoming[0]) : null, $lang);
         $hello = $issettled ? publiclang::str('pub_settled', $lang) : publiclang::str(($isgone ? 'pub_gone' :
-            ($isroster ? 'pub_roster' : ($allclosed ? 'pub_metus' : $greeting))) . ($tags ? '' : '_nochild'), $lang);
+            // To whoever has just said they do not come, hello: nobody is expecting them now.
+            ($isroster || (!empty($flags['notcoming']) && !$upcoming) ? 'pub_roster' : ($allclosed ? 'pub_metus' : $greeting))) .
+            ($tags ? '' : '_nochild'), $lang);
         if (!empty($household->guest) && !$upcoming) {
             $hello = self::guest_hello($household, $lang);
         }
@@ -650,7 +835,9 @@ class familypage {
             'emailed' => $new && !empty($flags['mailed']) ? publiclang::str('pub_done_emailed', $lang) : '',
             // They just said they do not come: thanked, with what comes next.
             'notcoming' => in_array($flags['notcoming'] ?? '', ['visita', 'acto'], true) ?
-                publiclang::str('pub_cantcome_told_' . $flags['notcoming'], $lang) : '',
+                self::notcoming_context($household, $centre, $lang, $token, $flags) : false,
+            // An act the centre called off, while its day has not passed: never as if it had not been.
+            'calledoff' => self::calledoff($household, $centre, $lang, $now),
             // The living hall: their hooks wait with their names, and once they came their backpacks hang.
             'hall' => $hall,
             'outcome' => !$issettled && !$isgone && $outcome !== '' ? ['title' => publiclang::str('pub_outcome', $lang),
@@ -662,16 +849,15 @@ class familypage {
             // The miniature of the centre with the way in; for a big act, the one with where to park.
             'miniature' => self::miniature_context($centre, $upcoming[0] ?? null, $lang),
             'mapurl' => centres::map_url($centre),
-            'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : ($year !== '' ?
-                publiclang::str('pub_next_year', $lang, s($year)) : publiclang::str('pub_next_noyear', $lang)),
+            'nextline' => $pending ? publiclang::str('pub_pending_title', $lang) : self::next_line($centre, $year, $lang, $now),
             'novisit' => $pending ? publiclang::str('pub_pending_line', $lang, visits::suits($pending, $lang)) :
-                publiclang::str($attended ? 'pub_novisit_after' : ($coming && empty($household->guest) ? 'pub_lead_novisit' :
+                publiclang::str($seen ? 'pub_novisit_after' : ($coming && empty($household->guest) ? 'pub_lead_novisit' :
                     'pub_novisit'), $lang),
             'bandnext' => publiclang::str($pending ? 'pub_band_visit' : 'pub_band_next', $lang),
             'hashosts' => (bool) $hosts,
             // Before the visit, who will receive them; after it, who did.
             'receivestitle' => publiclang::str($upcoming || !$attended ? 'pub_receives' : 'pub_received', $lang),
-            'receivessub' => publiclang::str($upcoming || !$attended ? 'pub_receives_sub' : 'pub_received_sub', $lang),
+            'receivessub' => self::receives_sub($hosts, $upcoming || !$attended, $lang),
             'hosts' => self::hosts($hosts),
             // The guide of the centre: it waves by the greeting before their visit, and introduces who receives them.
             'guidehello' => $upcoming && !($issettled || $isgone || $isroster || $allclosed) ? guide::hello($centre, $lang) :
@@ -687,12 +873,19 @@ class familypage {
             'hasanswers' => (bool) $answers,
             'answerstitle' => publiclang::str('pub_answers', $lang),
             'haschildren' => (bool) $childrows,
-            // Once they have their place, the children are at the centre, no longer who would come.
-            'whocomes' => publiclang::str($enrolled ? 'pub_who_is_here' : 'pub_who_comes', $lang),
+            // Once they have their place, the children are at the centre, no longer who would come; nor once they left, or chose
+            // another one.
+            'whocomes' => publiclang::str($isgone || $allclosed ? 'pub_who_were' : ($enrolled ? 'pub_who_is_here' : 'pub_who_comes'), $lang),
             'children' => $childrows,
+            // They may be two or more: another one, told here.
+            'newchild' => $isgone || $allclosed || !empty($household->guest) || !empty($household->self) ||
+                count($children) >= self::MAXCHILDREN ? false :
+                self::newchild_context($centre, $lang, $link(['action' => 'otrohijo', 'idioma' => $lang])),
             'adults' => $adults,
-            // Their contact data, changed by themselves, and another person of the family (Enrique).
-            'contactedit' => self::contacts_context($full, $lang, $token, !empty($flags['contacts'])),
+            // Their contact data, changed by themselves, and another person of the family.
+            'contactedit' => ['removed' => !empty($flags['removed']) ? ['text' => publiclang::str('pub_contacts_removed', $lang, (string)
+                $flags['removed']['firstname']), 'undo' => publiclang::str('pub_contacts_undo', $lang)] : false] +
+                self::contacts_context($full, $lang, $token, !empty($flags['contacts']) || !empty($flags['removed'])),
             // How they are written to, in one block where the notices on the phone were: one word, kept everywhere.
             'writeby' => self::writeby_strip($household, $centre, $lang, $token),
             'downloadurl' => $link(['action' => 'download']),
@@ -703,6 +896,237 @@ class familypage {
             'measure' => seen::from_team($centre) ? false : ['url' => $link(['action' => 'seen']), 'sesskey' => sesskey(),
                 'de' => seen::via((string) ($flags['de'] ?? ''))],
         ];
+    }
+
+    /**
+     * The appointments the team keeps in its sheet for a family, still to come or that nobody said they missed: its page
+     * never says it has had none.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     * @return string[] The state of each.
+     */
+    protected static function noted_visits(\stdClass $household, int $now): array {
+        $notes = array_filter(appointments::of($household, $now), fn($one) => $one['kind'] === 'note');
+        return array_values(array_intersect(array_column($notes, 'state'), ['came', 'unknown', 'coming']));
+    }
+
+    /**
+     * Who answers them and until when, as the page of a form says it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return string
+     */
+    protected static function answer_line(\stdClass $household, \stdClass $centre, string $lang): string {
+        $days = workdays::promise($centre, max((int) $household->waitingsince, time() - DAYSECS), $lang);
+        $answer = centres::answerers($centre, $household);
+        return count($answer) === 1 ? publiclang::str('pub_answer_line_host', $lang, (object) ['host' => $answer[0]->first, 'days' => $days]) :
+            publiclang::str('pub_answer_line', $lang, $days);
+    }
+
+    /**
+     * What comes next for a family that has not come yet: asking for a place, as it is today.
+     *
+     * @param \stdClass $centre
+     * @param string $year
+     * @param string $lang
+     * @param int $now
+     * @return string
+     */
+    protected static function next_line(\stdClass $centre, string $year, string $lang, int $now): string {
+        $apply = self::apply_context($centre, $year, $lang, $now);
+        if (!$apply['open']) {
+            return $year !== '' ? publiclang::str('pub_next_year', $lang, s($year)) : publiclang::str('pub_next_noyear', $lang);
+        }
+        $until = (int) ($centre->applyuntil ?? 0);
+        return publiclang::str('pub_next_open' . ($until ? '' : '_nodate'), $lang, (object) ['year' => s($year),
+            'until' => $until ? publicpage::date_parts($until, $lang)['daymonth'] : '']);
+    }
+
+    /**
+     * The next open days and visits with room a family may sign up to, three at most.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param int $but One that is not listed.
+     * @param int $householdid Nor those this family is signed up to already.
+     * @return array[] name, when and url.
+     */
+    public static function open_days(\stdClass $centre, string $lang, int $but = 0, int $householdid = 0): array {
+        global $DB;
+        $out = [];
+        $now = time();
+        $signed = $householdid ? array_flip($DB->get_fieldset_select(households::SIGNUPS, 'eventid', 'householdid = ?', [$householdid])) : [];
+        foreach (events::for_centre((int) $centre->id) as $event) {
+            if (
+                count($out) < 3 && (int) $event->id !== $but && !isset($signed[$event->id]) && empty($event->cancelled) &&
+                    $event->kind !== 'other' && !empty($event->open) && empty($event->tailored) &&
+                    (int) $event->timestart > $now && empty($event->householdid) && !events::is_full($event, $now)
+            ) {
+                $out[] = ['name' => publicpage::text($event->name), 'when' => publicpage::date_parts((int) $event->timestart, $lang)['long'],
+                    'url' => (new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'idioma' => $lang]))->out(false)];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * They have just said they do not come: that it is noted, with how to come after all and, of a visit, the other days
+     * there are.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param string $token
+     * @param array $flags notcoming, notevent, notpeople and notslot.
+     * @return array
+     */
+    protected static function notcoming_context(
+        \stdClass $household,
+        \stdClass $centre,
+        string $lang,
+        string $token,
+        array $flags
+    ): array {
+        global $DB;
+        $event = $DB->get_record(events::T, ['id' => (int) ($flags['notevent'] ?? 0), 'centreid' => $centre->id]);
+        $slot = (int) ($flags['notslot'] ?? 0);
+        $slots = $event ? events::slots((int) $event->id) : [];
+        $start = $slot && isset($slots[$slot]) ? (int) $slots[$slot]->timestart : (int) ($event->timestart ?? 0);
+        $now = time();
+        $can = $event && $start > $now && empty($event->cancelled) && ((int) ($event->householdid ?? 0) === (int) $household->id ||
+            !empty($event->open));
+        $others = $flags['notcoming'] === 'visita' ? self::open_days($centre, $lang, (int) ($event->id ?? 0), (int) $household->id) : [];
+        return [
+            'text' => $start ? publiclang::str('pub_cantcome_noted', $lang, publicpage::date_parts($start, $lang)['long']) : '',
+            'next' => publiclang::str('pub_cantcome_told_' . $flags['notcoming'], $lang),
+            'undo' => $can ? ['action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
+                'sesskey' => sesskey(), 'eventid' => (int) $event->id, 'people' => max(1, (int) ($flags['notpeople'] ?? 1)), 'slot' => $slot,
+                'label' => publiclang::str('pub_cantcome_undo', $lang)] : false,
+            'others' => $others,
+            'hasothers' => (bool) $others,
+            'otherstitle' => publiclang::str('pub_cantcome_others', $lang),
+        ];
+    }
+
+    /**
+     * They come after all, as they had said before: only to what is still to come and has room.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $eventid
+     * @param int $people
+     * @param int $slotid
+     * @param string $lang
+     * @return bool
+     */
+    public static function come_after_all(
+        \stdClass $household,
+        \stdClass $centre,
+        int $eventid,
+        int $people,
+        int $slotid,
+        string $lang
+    ): bool {
+        global $DB;
+        $event = $DB->get_record(events::T, ['id' => $eventid, 'centreid' => $centre->id]);
+        $people = max(1, min(events::MAXPEOPLE, $people));
+        $own = $event && (int) ($event->householdid ?? 0) === (int) $household->id;
+        if (
+            !$event || !empty($event->cancelled) || (int) $event->timestart <= time() || (!$own && (int) ($event->householdid ?? 0)) ||
+                (!$own && !events::has_room($event, $people, 0, $slotid))
+        ) {
+            return false;
+        }
+        events::sign_up($event, (int) $household->id, $people, $slotid);
+        households::received($household, lists::PAGE, publiclang::str(
+            'pub_cantcome_undone_note',
+            in_array($centre->lang, lists::LANGS, true) ? $centre->lang : $lang,
+            publicpage::text($event->name)
+        ), false);
+        return true;
+    }
+
+    /**
+     * «We cannot come», pressed in a mail: one question, with the visit in sight.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param int $eventid
+     * @param string $lang
+     * @param string $token
+     * @return array|null Null when they are not signed up to it, or it is over.
+     */
+    public static function cantcome_context(
+        \stdClass $household,
+        \stdClass $centre,
+        int $eventid,
+        string $lang,
+        string $token
+    ): ?array {
+        foreach (households::full($household)->signups as $signup) {
+            if ((int) $signup->eventid !== $eventid || (int) $signup->timeend < time()) {
+                continue;
+            }
+            $parts = publicpage::date_parts((int) $signup->timestart, $lang);
+            return [
+                'title' => publiclang::str('pub_known_ask_no', $lang, $parts['long']),
+                'name' => publicpage::text(visits::shown((string) $signup->eventname, $lang)),
+                'when' => self::sentence($parts['long']) . ' · ' . self::hours((int) $signup->timestart, (int) $signup->timeend, $lang),
+                'place' => trim(implode(' · ', array_unique(array_filter([$signup->place ? publicpage::text($signup->place) : '',
+                    (string) ($centre->address ?? '')])))),
+                'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
+                'sesskey' => sesskey(),
+                'eventid' => $eventid,
+                'no' => publiclang::str('pub_cantcome', $lang),
+                'yes' => publiclang::str('pub_known_yes_after', $lang),
+                'back' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false),
+            ];
+        }
+        return null;
+    }
+
+    /**
+     * The acts the family had signed up to and the centre called off, until their day: what it was, with the words of the
+     * team. Not one it signed up to again, nor a visit of its own that was given another day.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param int $now
+     * @return array[]
+     */
+    protected static function calledoff(\stdClass $household, \stdClass $centre, string $lang, int $now): array {
+        global $DB;
+        $rows = $DB->get_records_sql(
+            'SELECT e.id, e.name, e.kind, e.timestart, MAX(n.timestart) AS turn
+               FROM {' . notices::T . '} n
+               JOIN {' . events::T . '} e ON e.id = n.eventid
+              WHERE n.householdid = :h AND n.kind = :kind AND e.centreid = :centreid AND e.cancelled > 0 AND e.timestart > :now
+           GROUP BY e.id, e.name, e.kind, e.timestart
+           ORDER BY e.timestart ASC, e.id ASC',
+            ['h' => $household->id, 'kind' => 'cancelled', 'centreid' => $centre->id, 'now' => $now]
+        );
+        $out = [];
+        foreach ($rows as $row) {
+            $name = publicpage::text(visits::shown((string) $row->name, $lang));
+            // What the team wrote with it, the last of them.
+            $line = $DB->get_records_select(
+                households::CONTACTS,
+                "householdid = ? AND direction = 'out' AND aim = 'many' AND " . $DB->sql_like('body', '?'),
+                [$household->id, '%' . $DB->sql_like_escape($row->name) . "%\n\n%"],
+                'timecreated DESC, id DESC',
+                'id, body',
+                0,
+                1
+            );
+            $said = $line ? trim(explode("\n\n", (string) reset($line)->body, 2)[1] ?? '') : '';
+            $out[] = ['text' => publiclang::str('pub_calledoff', $lang, (object) ['event' => $name,
+                'date' => publicpage::date_parts((int) ($row->turn ?: $row->timestart), $lang)['long']]), 'said' => $said];
+        }
+        return $out;
     }
 
     /**
@@ -758,7 +1182,9 @@ class familypage {
             $add($band['open'] ? 50 : 110, 'band', $band, ['kicker' => $s('pub_band_apply'), 'title' => $band['summary'],
                 'state' => $band['year']]);
         } else if ($band) {
-            $add(120, 'band', $band, ['kicker' => $s('pub_band_next'), 'title' => $s('pub_novisit')]);
+            // With an act ahead, what comes next is the act: coming to see the centre is one more thing, after it.
+            $add(120, 'band', $band, ['kicker' => empty($p['acts']) ? $s('pub_band_next') : '', 'title' => !empty($band['seen']) ?
+                $s('pub_band_again') : $s(empty($p['acts']) ? 'pub_novisit' : 'pub_band_meet')]);
         }
         foreach ($p['acts'] ?? [] as $act) {
             $add(25, 'act', $act, ['kicker' => $act['kind'], 'title' => $act['name'], 'state' => $act['long'] . ' · ' .
@@ -775,7 +1201,7 @@ class familypage {
         }
         if ($p['renewal']) {
             $states = array_column($p['renewal']['children'], 'state');
-            $answer = fn($c) => $s('pub_more_renewal_' . $c['state'], $c['peg']['name']);
+            $answer = fn($c) => $s('pub_more_renewal_' . $c['state'], $c['said']);
             $answers = array_map($answer, $p['renewal']['children']);
             $add(in_array('none', $states, true) ? 40 : 130, 'renewal', $p['renewal'], ['title' => $p['renewal']['title'],
                 'state' => implode(' · ', $answers)]);
@@ -895,16 +1321,22 @@ class familypage {
      */
     protected static function waitlist_context(array $children, array $offers, string $lang) {
         $lines = [];
+        $waiting = false;
         foreach ($children as $child) {
             if ($child->stage !== 'waitlist') {
                 continue;
             }
+            $waiting = true;
             $offer = $offers[$child->offerid] ?? null;
-            $name = self::label_name($child) ?: (string) $child->firstname;
-            $lines[] = $offer ? publiclang::str('pub_waitlist_line', $lang, (object) ['name' => $name,
-                'course' => format_string($offer->name), 'year' => s($offer->schoolyear)]) : $name;
+            $name = self::label_name($child);
+            if ($offer) {
+                $lines[] = publiclang::str('pub_waitlist_line' . ($name !== '' ? '' : '_noname'), $lang, (object) ['name' => $name,
+                    'course' => publicpage::text($offer->name), 'year' => s($offer->schoolyear)]);
+            } else if ($name !== '') {
+                $lines[] = $name;
+            }
         }
-        if (!$lines) {
+        if (!$waiting) {
             return false;
         }
         return ['title' => publiclang::str('pub_waitlist_title', $lang), 'lines' => $lines,
@@ -1139,7 +1571,7 @@ class familypage {
                 'changetext' => publiclang::str('pub_hobbies_change', $lang),
                 'options' => array_map(fn($key) => ['key' => $key, 'label' => hobbies::name($key, $lang),
                 'checked' => in_array($key, $mine['keys'], true),
-                // Which one, once marked: «¿Qué deporte?», with examples (Enrique).
+                // Which one, once marked: «¿Qué deporte?», with examples.
                 'which' => publiclang::str('pub_hobby_which_' . $key, $lang),
                 'example' => publiclang::str('pub_hobby_example_' . $key, $lang),
                 'detail' => (string) ($mine['details'][$key] ?? '')], $order)];
@@ -1229,8 +1661,8 @@ class familypage {
         return [
             'do' => $do,
             'title' => publiclang::str($asked ? 'pub_after_more' : $title, $lang),
-            'help' => publiclang::str($do === 'goneask' ? 'pub_gone_help' : ($do === 'firstdayask' ? 'pub_firstday_help' :
-                'pub_after_help'), $lang),
+            'help' => publiclang::str(['goneask' => 'pub_gone_help', 'firstdayask' => 'pub_firstday_help',
+                'settledask' => 'pub_settled_help'][$do] ?? 'pub_after_help', $lang),
             'sent' => $asked ? publiclang::str($host ? 'pub_after_sent_host' : 'pub_after_sent_team', $lang, $first) : '',
             'justsent' => !empty($flags['asked']),
             'button' => $host ? publiclang::str('pub_after_send_host', $lang, $first) : publiclang::str('pub_after_send', $lang),
@@ -1318,19 +1750,21 @@ class familypage {
         foreach ($children as $childid => [$child, , $next]) {
             $row = $answers[$childid] ?? null;
             $answer = $row ? (string) $row->answer : '';
-            $name = self::label_name($child) ?: trim((string) $child->firstname);
+            $name = self::label_name($child);
+            $said = self::said_name($child, $lang);
             // What hangs for its age in the course that comes, on the hook of that course.
             $object = ages::hanging((object) (['offerid' => $next->id] + (array) $child), $offers, $centre);
             $rows[] = [
                 'id' => $childid,
                 'state' => $answer !== '' ? $answer : 'none',
-                'nextcourse' => format_string($next->name) . ' · ' . $year,
+                'nextcourse' => publicpage::text($next->name) . ' · ' . $year,
                 'peg' => ['name' => $name, 'object' => $object],
-                'question' => publiclang::str('pub_renewal_ask', $lang, (object) ['name' => $name, 'year' => $year,
-                    'course' => format_string($next->name)]),
+                'said' => self::sentence($said),
+                'question' => self::sentence(publiclang::str('pub_renewal_ask', $lang, (object) ['name' => $said, 'year' => $year,
+                    'course' => publicpage::text($next->name)])),
                 'options' => array_map(fn($key) => ['key' => $key, 'label' => publiclang::str('pub_renewal_' . $key, $lang),
                     'pressed' => $answer === $key], renewal::ANSWERS),
-                'done' => $answer !== '' ? publiclang::str('pub_renewal_' . $answer . '_done', $lang, $name) : '',
+                'done' => $answer !== '' ? publiclang::str('pub_renewal_' . $answer . '_done', $lang, $said) : '',
                 'why' => $answer === 'leave' ? [
                     'label' => publiclang::str('pub_renewal_why', $lang),
                     'reasons' => array_values(array_map(fn($key) => ['key' => $key,
@@ -1404,7 +1838,11 @@ class familypage {
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false)],
             'volunteered' => $volunteered ? publiclang::str('pub_volunteer_done', $lang) : '',
             'ambassador' => $volunteered ? self::ambassador_context($household, $centre, $lang, $token) : false,
-            'thanks' => $firsts ? ['text' => publiclang::str('pub_settled_thanks', $lang, self::join($firsts, $lang)),
+            // Who never came to see it before enrolling is not thanked for coming.
+            'thanks' => $firsts ? ['text' => publiclang::str($hosts || array_filter(
+                $full->signups,
+                fn($s) => !actmail::is($s) && !empty($s->attended)
+            ) ? 'pub_settled_thanks' : 'pub_settled_thanks_novisit', $lang, self::join($firsts, $lang)),
                 'who' => $host ? $host->first : '', 'photo' => $host && $host->photo ? $host->photo->out(false) : '',
                 'initials' => $host ? $host->initials : '', 'hashost' => (bool) $host] : false,
         ];
@@ -1519,7 +1957,7 @@ class familypage {
      * @return array
      */
     public static function drawing_context(\stdClass $child, string $lang, string $token, bool $failed): array {
-        $name = self::label_name($child) ?: (string) $child->firstname;
+        $name = self::said_name($child, $lang);
         $action = new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang, 'action' => 'drawing',
             'nino' => $child->id]);
         $file = drawings::file((int) $child->id);
@@ -1573,8 +2011,11 @@ class familypage {
             return false;
         }
         $lang = in_array($centre->lang, lists::LANGS, true) ? $centre->lang : 'es';
-        $name = self::label_name($child) ?: (string) $child->firstname;
-        households::received($household, lists::PAGE, publiclang::str('pub_drawing_sent_note', $lang, $name), false);
+        households::received($household, lists::PAGE, publiclang::str(
+            'pub_drawing_sent_note',
+            $lang,
+            self::said_name($child, $lang)
+        ), false);
         return true;
     }
 

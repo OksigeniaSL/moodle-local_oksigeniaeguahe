@@ -480,7 +480,7 @@ class panel {
                 $out[$key] = get_string($key, self::C);
             }
         }
-        $keys = ['panel_came_at', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now',
+        $keys = ['panel_came_at_undo', 'panel_came_button', 'panel_came_count', 'inbox_waiting', 'inbox_waiting_one', 'panel_howto_now',
             'help_see', 'panel_tel_check'];
         foreach ($keys as $key) {
             $out[$key] = get_string($key, self::C);
@@ -1072,6 +1072,16 @@ class panel {
     public static function tag(\stdClass $child): string {
         $tag = trim((string) ($child->tagname ?? ''));
         return $tag !== '' ? $tag : trim((string) $child->firstname);
+    }
+
+    /**
+     * The same name, where something has to be said: «Sin nombre» while the family has not told it.
+     *
+     * @param \stdClass $child
+     * @return string
+     */
+    public static function called(\stdClass $child): string {
+        return self::tag($child) ?: get_string('chat_child_noname', self::C);
     }
 
     /**

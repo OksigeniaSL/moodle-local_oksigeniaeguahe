@@ -629,6 +629,17 @@ display: grid; }
     }
 
     /**
+     * A name or a place as it was written, for a template or a mail, which escape it themselves: «Música & danza», never
+     * «Música &amp;amp; danza».
+     *
+     * @param string|null $text
+     * @return string
+     */
+    public static function text(?string $text): string {
+        return format_string((string) $text, true, ['escape' => false]);
+    }
+
+    /**
      * The headers of every public page.
      */
     public static function headers(): void {
@@ -637,6 +648,8 @@ display: grid; }
             header_remove('X-Frame-Options');
         }
         @header('Content-Type: text/html; charset=utf-8');
+        // A form sent without leaving its page tells this answer from that of a site in maintenance (formulario.js).
+        @header('X-Eguahe: 1');
         @header('Referrer-Policy: no-referrer');
         @header('X-Robots-Tag: noindex, nofollow');
         @header('X-Content-Type-Options: nosniff');
@@ -689,6 +702,7 @@ display: grid; }
      * @param \moodle_url $url
      * @param bool $hook Whether the empty hook is shown (not after erasing).
      * @param array|null $button A button that opens apart: url and label.
+     * @param array[] $others Where else to go: name, when and url of each.
      */
     public static function message(
         ?\stdClass $centre,
@@ -697,11 +711,13 @@ display: grid; }
         string $text,
         \moodle_url $url,
         bool $hook = true,
-        ?array $button = null
+        ?array $button = null,
+        array $others = []
     ): void {
         $centre = $centre ?? (object) ['id' => 0, 'name' => format_string(get_site()->fullname), 'colour' => null];
         self::output($centre, $lang, $title, 'public_message', ['title' => $title, 'text' => $text, 'hook' => $hook,
-            'button' => $button] + self::reach($centre, $lang), $url);
+            'button' => $button, 'others' => $others, 'hasothers' => (bool) $others,
+            'otherstitle' => $others && $others[0]['when'] !== '' ? publiclang::str('pub_cantcome_others', $lang) : ''] + self::reach($centre, $lang), $url);
     }
 
     /**

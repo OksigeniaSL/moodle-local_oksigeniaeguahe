@@ -197,7 +197,7 @@ final class signup_test extends \advanced_testcase {
         $errors = signup::check($data, $this->event, $this->centre, 'es');
         $this->assertArrayHasKey('a0first', $errors);
         $this->assertArrayHasKey('a0email', $errors);
-        $this->assertArrayHasKey('c0name', $errors);
+        $this->assertArrayNotHasKey('c0name', $errors, 'The name of the student is for whoever wants to say it.');
 
         $this->assertArrayHasKey('people', signup::check($this->data(['people' => 11]), $this->event, $this->centre, 'es'));
         antispam::$testpass = false;
@@ -257,6 +257,10 @@ final class signup_test extends \advanced_testcase {
         $child = $DB->get_record(households::CHILDREN, ['householdid' => $enrolled->id]);
         households::set_stage($child, 'enrolled');
 
+        // With a visit to come, not yet.
+        (new task\erase_inactive())->execute();
+        $this->assertNotNull(households::get($old->id, $this->centre->id));
+        $DB->set_field(events::T, 'timeend', time() - HOURSECS, ['id' => $this->event->id]);
         (new task\erase_inactive())->execute();
         $this->assertNull(households::get($old->id, $this->centre->id));
         $this->assertNotNull(households::get($enrolled->id, $this->centre->id));
@@ -288,9 +292,10 @@ final class signup_test extends \advanced_testcase {
 
         $more = $this->data(['slot' => $slots[0]->id, 'people' => 2]);
         $more['adults'][0] = ['firstname' => 'Ana', 'lastname' => '', 'email' => 'ana@example.com', 'phone' => ''];
-        $this->assertArrayHasKey('slot', signup::check($more, $event, $this->centre, 'es'), 'The first turn is full.');
-        $more['slot'] = $slots[1]->id;
         $this->assertSame([], signup::check($more, $event, $this->centre, 'es'));
+        $this->assertArrayHasKey('slot', signup::fits($more, $event, $this->centre, 'es'), 'The first turn is full.');
+        $more['slot'] = $slots[1]->id;
+        $this->assertSame([], signup::fits($more, $event, $this->centre, 'es'));
 
         $when = events::when($event, (int) $slots[1]->id);
         $this->assertEquals($start + HOURSECS, $when->timestart);
@@ -384,5 +389,196 @@ final class signup_test extends \advanced_testcase {
         $this->assertStringContainsString('LOCATION:Colegio de ejemplo\\, Entrada principal', $ics);
         $this->assertStringNotContainsString('Eguahe', $ics);
         $this->assertStringContainsString('DTSTART:' . gmdate('Ymd\THis\Z', (int) $this->event->timestart), $ics);
+    }
+
+    /**
+     * The name of the student is not needed: a course without it is a child, nothing at all is one too, two in one name are
+     * two, and two courses without a name are two children.
+     */
+    public function test_students_without_name(): void {
+        global $DB;
+        $primary = centres::save_offer((int) $this->centre->id, (object) ['schoolyear' => '2027-28', 'name' => '1.º de Primaria',
+            'places' => 4, 'active' => 1, 'sortorder' => 1]);
+        $family = function (int $n, array $children): array {
+            return $this->data(['adults' => [['firstname' => 'Persona ' . $n, 'lastname' => '', 'email' => "p$n@example.com", 'phone' => ''],
+                ['firstname' => '', 'lastname' => '', 'email' => '', 'phone' => '']], 'children' => $children]);
+        };
+        $kids = fn(\stdClass $h) => array_map(fn($c) => [$c->firstname, (int) $c->offerid, $c->stage], array_values(
+            $DB->get_records(households::CHILDREN, ['householdid' => $h->id], 'id ASC')
+        ));
+        $blank = ['firstname' => '', 'offerid' => 0];
+        [$one] = signup::save($family(1, [$blank]), $this->event, $this->centre, 'es');
+        $this->assertSame([['', 0, 'inquiry']], $kids($one), 'Whoever comes, comes for somebody.');
+        [$two] = signup::save(
+            $family(2, [['firstname' => '', 'offerid' => $this->offerid], ['firstname' => '', 'offerid' => $primary]]),
+            $this->event,
+            $this->centre,
+            'es'
+        );
+        $this->assertSame([['', $this->offerid, 'inquiry'], ['', $primary, 'inquiry']], $kids($two));
+        $apart = signup::apart([['firstname' => 'Ana y Luis', 'tagname' => '', 'birthdate' => '', 'latinname' => '',
+            'offerid' => $primary], $blank, $blank, $blank]);
+        $this->assertSame([['Ana', $primary], ['Luis', 0]], array_map(
+            fn($c) => [$c['firstname'], (int) $c['offerid']],
+            array_slice($apart, 0, 2)
+        ));
+        $this->assertCount(signup::CHILDREN, $apart);
+        [$three] = signup::save($family(3, $apart), $this->event, $this->centre, 'es');
+        $this->assertSame([['Ana', $primary, 'inquiry'], ['Luis', 0, 'inquiry']], $kids($three));
+        // Named later, it is the same child.
+        signup::save($family(2, [['firstname' => 'Noa', 'offerid' => $primary]]), $this->event, $this->centre, 'es');
+        $this->assertSame([['', $this->offerid, 'inquiry'], ['Noa', $primary, 'inquiry']], $kids($two));
+        // A talk asks for nobody, and makes nobody up.
+        $talk = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'other', 'name' => 'Charla',
+            'timestart' => time() + DAYSECS, 'timeend' => time() + DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), (int) $this->centre->id);
+        [$guest] = signup::save($family(4, [$blank]), $talk, $this->centre, 'es');
+        $this->assertSame([], $kids($guest));
+    }
+
+    /**
+     * The room counts what the family already had: with the act full, it may bring fewer; and at the door, on its day, nobody
+     * is told that there is none.
+     */
+    public function test_room_of_those_who_have_it(): void {
+        $event = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'openday', 'name' => 'Jornada',
+            'timestart' => time() + MINSECS, 'timeend' => time() + 3 * HOURSECS, 'capacity' => 4, 'open' => 1]), (int) $this->centre->id);
+        $data = $this->data(['people' => 4]);
+        signup::save($data, $event, $this->centre, 'es');
+        $fewer = $this->data(['people' => 3]);
+        $this->assertSame([], signup::check($fewer, $event, $this->centre, 'es'));
+        $this->assertSame([], signup::fits($fewer, $event, $this->centre, 'es'));
+        $other = $this->data(['people' => 1]);
+        $other['adults'][0] = ['firstname' => 'Eva', 'lastname' => '', 'email' => 'eva@example.com', 'phone' => ''];
+        $this->assertArrayHasKey('people', signup::fits($other, $event, $this->centre, 'es'));
+        if (userdate((int) $event->timestart, '%Y%m%d', 99, false) === userdate(time(), '%Y%m%d', 99, false)) {
+            $this->assertSame([], signup::fits($other, $event, $this->centre, 'es', true));
+        }
+    }
+
+    /**
+     * The mail of a family already known goes to the address written, when it had it, and else to the one it lets the centre
+     * write to; never to the first one that said no.
+     */
+    public function test_mail_to(): void {
+        $id = (int) $this->centre->id;
+        $home = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $abel = households::add_adult($home, (object) ['firstname' => 'Abel', 'email' => 'abel@example.com']);
+        $bea = households::add_adult($home, (object) ['firstname' => 'Bea', 'email' => 'bea@example.com']);
+        households::consent($home, $abel, 'email', false, 'form', 'es');
+        households::consent($home, $bea, 'email', true, 'form', 'es');
+        $data = fn(string $email) => $this->data(['adults' => [['firstname' => 'Bea', 'lastname' => '', 'email' => $email, 'phone' => '']]]);
+        $before = ['abel@example.com', 'bea@example.com'];
+        $this->assertNull(signup::mail_to($data('bea@example.com'), $before, $home, false));
+        $this->assertSame('bea@example.com', signup::mail_to($data('Bea@Example.com'), $before, $home, true));
+        $this->assertSame('bea@example.com', signup::mail_to($data('otra@example.com'), $before, $home, true));
+    }
+
+    /**
+     * The same page sent twice is one sign-up; and the same person, with only its phone, a moment later, is the same family.
+     */
+    public function test_never_twice(): void {
+        global $DB;
+        $data = $this->data();
+        $data['adults'][0]['email'] = '';
+        $this->assertNull(signup::again('123-abc', $data, $this->centre));
+        [$household, , , $existed] = signup::save($data, $this->event, $this->centre, 'es');
+        $this->assertFalse($existed);
+        signup::remember('123-abc', $data, (int) $household->id, $existed);
+        [$again, $knew] = signup::again('123-abc', $data, $this->centre);
+        $this->assertEquals($household->id, $again->id);
+        $this->assertFalse($knew);
+        $other = $data;
+        $other['message'] = 'Otra cosa';
+        $this->assertNull(signup::again('123-abc', $other, $this->centre), 'Something else was written.');
+        $this->assertNull(signup::again('124-abc', $data, $this->centre), 'Another page.');
+
+        [$second, , , $existed] = signup::save($other, $this->event, $this->centre, 'es');
+        $this->assertEquals($household->id, $second->id, 'Only a phone, a moment ago, with the same name.');
+        $this->assertTrue($existed, 'Its page is not shown.');
+        $DB->set_field(households::T, 'timecreated', time() - HOURSECS, ['id' => $household->id]);
+        [$third] = signup::save($other, $this->event, $this->centre, 'es');
+        $this->assertNotEquals($household->id, $third->id, 'Later, a phone alone finds nobody.');
+    }
+
+    /**
+     * What a form brings to a family that was there and it did not have, an address or a phone, waits in a note; and a way
+     * they gave no means for is not written down as a no.
+     */
+    public function test_new_contact_waits(): void {
+        global $DB;
+        $data = $this->data();
+        $data['adults'][0]['phone'] = '';
+        $data['consents'] = ['email' => 1, 'whatsapp' => 0, 'phone' => 0];
+        [$household] = signup::save($data, $this->event, $this->centre, 'es');
+        $adult = $DB->get_record(households::ADULTS, ['householdid' => $household->id]);
+        $this->assertSame(['email' => true], households::permissions((int) $household->id)[$adult->id]);
+        signup::save($this->data(), $this->event, $this->centre, 'es');
+        $this->assertSame('', (string) $DB->get_field(households::ADULTS, 'phone', ['id' => $adult->id]));
+        $notes = implode("\n", $DB->get_fieldset_select(
+            households::CONTACTS,
+            'body',
+            "householdid = ? AND direction = 'note'",
+            [$household->id]
+        ));
+        $this->assertStringContainsString('an email address or a phone', $notes);
+        $this->assertStringContainsString('+34 600 111 222', $notes);
+    }
+
+    /**
+     * A person of the team may be trying the form, and is asked: never thrown away.
+     */
+    public function test_is_team(): void {
+        $user = $this->getDataGenerator()->create_user(['email' => 'equipo@example.com', 'phone1' => '600 999 888']);
+        centres::add_member((int) $this->centre->id, (int) $user->id);
+        $this->assertFalse(signup::is_team($this->data(), $this->centre));
+        $data = $this->data();
+        $data['adults'][0]['email'] = 'equipo@example.com';
+        $this->assertTrue(signup::is_team($data, $this->centre));
+        $data = $this->data();
+        $data['adults'][0]['phone'] = '600999888';
+        $this->assertTrue(signup::is_team($data, $this->centre));
+    }
+
+    /**
+     * What an act that takes no more sign-ups says of itself.
+     */
+    public function test_closed_state(): void {
+        $now = time();
+        $this->assertSame('closed', events::closed_state($this->event, $now));
+        $this->assertSame('over', events::closed_state($this->event, $now + 5 * DAYSECS));
+        $full = clone $this->event;
+        $full->capacity = 3;
+        signup::save($this->data(), $this->event, $this->centre, 'es');
+        $this->assertSame('full', events::closed_state($full, $now));
+        $off = clone $this->event;
+        $off->cancelled = $now;
+        $this->assertSame('off', events::closed_state($off, $now));
+    }
+
+    /**
+     * An act with no room left keeps whoever wanted to come, waiting for a person, and signs up nobody; the history says the
+     * children and the turn they asked for.
+     */
+    public function test_full_act(): void {
+        global $DB;
+        $cid = (int) $this->centre->id;
+        $event = events::get(events::save($cid, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => time() + 5 * DAYSECS,
+            'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 2, 'open' => 1]), $cid);
+        $this->assertFalse(events::is_full($event, time()));
+        $first = $this->data(['people' => 2, 'children' => [['firstname' => 'Leo', 'offerid' => $this->offerid]]]);
+        $first['adults'][0] = ['firstname' => 'Ana', 'lastname' => '', 'email' => 'ana.llena@example.com', 'phone' => ''];
+        [$one] = signup::save($first, $event, $this->centre, 'es');
+        $body = $DB->get_field(households::CONTACTS, 'body', ['householdid' => $one->id, 'direction' => 'in']);
+        $this->assertStringContainsString('Leo · Infantil 3 años', $body);
+        $this->assertTrue(events::is_full($event, time()));
+        $second = $this->data(['people' => 3, 'full' => true, 'message' => '']);
+        $second['adults'][0] = ['firstname' => 'Luis', 'lastname' => '', 'email' => 'luis.llena@example.com', 'phone' => ''];
+        [$two] = signup::save($second, $event, $this->centre, 'es');
+        $this->assertFalse($DB->record_exists(events::SIGNUPS, ['householdid' => $two->id]));
+        $this->assertGreaterThan(0, (int) $DB->get_field(households::T, 'waitingsince', ['id' => $two->id]));
+        $this->assertSame(1, $DB->count_records_select(households::CONTACTS, 'householdid = ? AND ' .
+            $DB->sql_like('body', '?'), [$two->id, '%no place left%']));
+        $DB->set_field(events::T, 'cancelled', time(), ['id' => $event->id]);
+        $this->assertFalse(events::is_full(events::get((int) $event->id, $cid), time()), 'Called off is not full.');
     }
 }

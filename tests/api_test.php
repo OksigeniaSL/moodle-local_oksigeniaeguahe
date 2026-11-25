@@ -159,4 +159,39 @@ final class api_test extends \advanced_testcase {
         // Another person, not of the centre, finds nothing.
         $this->assertSame([], api::chat_candidates((int) $other->id, 'ines', 10));
     }
+
+    /**
+     * The chat knows the phone of a family that asks for a place; not that of one enrolled, of the roll or of nobody.
+     */
+    public function test_chat_knows(): void {
+        global $DB, $USER;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        centres::add_member($cid, (int) $USER->id);
+        $offer = centres::save_offer($cid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 0, 'active' => 1]);
+        $family = function (string $phone, string $stage, int $roster = 0) use ($DB, $cid, $offer): int {
+            $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+            households::add_adult($household, (object) ['firstname' => 'Ana', 'phone' => $phone]);
+            $child = households::add_child($household, 'Leo', $offer);
+            households::set_stage($DB->get_record(households::CHILDREN, ['id' => $child]), $stage);
+            $DB->set_field(households::T, 'roster', $roster, ['id' => $household->id]);
+            $DB->set_field(households::T, 'incentre', $stage === 'enrolled' ? 1 : 0, ['id' => $household->id]);
+            return (int) $household->id;
+        };
+        $asking = $family('+34600111401', 'inquiry');
+        $family('+34600111402', 'enrolled');
+        $family('+34600111403', 'inquiry', 1);
+        $user = (int) $USER->id;
+        $this->assertTrue(api::chat_knows('34600111401', $user));
+        $this->assertTrue(api::chat_knows('+34 600 111 401', $user));
+        $this->assertFalse(api::chat_knows('+34600111402', $user));
+        $this->assertFalse(api::chat_knows('+34600111403', $user));
+        $this->assertFalse(api::chat_knows('+34600111499', $user));
+        $this->assertFalse(api::chat_knows('', $user));
+        $nobody = $this->getDataGenerator()->create_user();
+        $this->assertFalse(api::chat_knows('+34600111401', (int) $nobody->id), 'Only of their own centres.');
+        $mode = \local_oksigeniaeguahe\local\messaging::mode(centres::get($cid));
+        $this->assertSame($mode === 'off' ? [] : [$asking], api::phone_households('34600111401'));
+    }
 }

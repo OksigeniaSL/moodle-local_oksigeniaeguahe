@@ -86,11 +86,12 @@ final class actmail_test extends \advanced_testcase {
             }
             $this->assertStringStartsWith('Hola, Ana:', $text);
             $this->assertStringContainsString('Respira', $text);
-            $this->assertStringContainsString('Les escribimos porque nos dijeron que vienen a la charla.', $text);
+            $this->assertStringContainsString($kind === 'thanks' ? 'Les escribimos porque vinieron a «Respira».' :
+                'Les escribimos porque nos dijeron que vienen a la charla.', $text);
             $this->assertStringNotContainsString('[[', $words . strip_tags($html));
         }
         $this->assertSame('Les guardamos sitio: charla del 4 de diciembre', $said['confirmation'][0]);
-        $this->assertStringContainsString('Les guardamos sitio en la charla «Respira».', $said['confirmation'][1]);
+        $this->assertStringContainsString('Les guardamos sitio en la charla «Respira», sobre respiración y atención.', $said['confirmation'][1]);
         $this->assertStringContainsString('de 15:00 a 17:00', $said['confirmation'][1], 'Never «come when you like».');
         $this->assertStringContainsString('Es en la Biblioteca del Colegio de ejemplo, Calle Mayor 3.', $said['confirmation'][1]);
         $this->assertStringContainsString('Para 2 personas.', $said['confirmation'][1]);

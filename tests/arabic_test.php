@@ -112,4 +112,13 @@ final class arabic_test extends \advanced_testcase {
         $this->assertStringNotContainsString('Getafe', publiclang::str('mail_why_wrote', 'ar', 'Colegio de ejemplo (Getafe)'));
         $this->assertNotSame('', $subject);
     }
+
+    /**
+     * A browser in Arabic gets the pages in Arabic, and the corner offers it.
+     */
+    public function test_browser(): void {
+        $this->assertSame('ar', \local_oksigeniaeguahe\local\publiclang::from_header('ar-MA,ar;q=0.9,fr;q=0.5'));
+        $codes = array_column(\local_oksigeniaeguahe\local\publiclang::switcher('es', new \moodle_url('/local/oksigeniaeguahe/j.php')), 'code');
+        $this->assertContains('ar', $codes);
+    }
 }

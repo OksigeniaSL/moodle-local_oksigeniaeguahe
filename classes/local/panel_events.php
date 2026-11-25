@@ -138,12 +138,16 @@ class panel_events {
     public static function came(\stdClass $centre, int $now, bool $canact = false): array {
         global $DB;
         $c = self::C;
+        // When they came: the hour of the act, whenever it was marked, or the mark of whoever was there before it began.
+        $when = 'CASE WHEN s.attended < COALESCE(t.timestart, e.timestart) THEN s.attended ELSE COALESCE(t.timestart, e.timestart) END';
         $rows = $DB->get_records_sql(
-            'SELECT s.id, s.householdid, s.attended, e.name
+            'SELECT s.id, s.householdid, ' . $when . ' AS came, e.name
                FROM {' . households::SIGNUPS . '} s
                JOIN {' . events::T . '} e ON e.id = s.eventid
-              WHERE s.centreid = :centreid AND s.attended >= :since AND s.attended <= :now AND e.kind <> :other
-           ORDER BY s.attended DESC, s.id DESC',
+          LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
+              WHERE s.centreid = :centreid AND s.attended > 0 AND e.kind <> :other
+                    AND ' . $when . ' >= :since AND ' . $when . ' <= :now
+           ORDER BY came DESC, s.id DESC',
             ['centreid' => (int) $centre->id, 'since' => $now - self::CAME, 'now' => $now, 'other' => 'other'],
             0,
             200
@@ -167,7 +171,7 @@ class panel_events {
                 'adults' => panel::adults_line($household->adults),
                 'tag' => $child ? panel::tag($child) : '',
                 'what' => get_string('panel_came_recent', $c, (object) ['act' => format_string($row->name),
-                    'when' => panel::when_words((int) $row->attended, $now)]),
+                    'when' => panel::when_words((int) $row->came, $now)]),
                 'state' => $sent ? get_string('panel_came_apply_sent', $c, userdate(
                     $sent,
                     get_string('strftimedaydate', 'langconfig')

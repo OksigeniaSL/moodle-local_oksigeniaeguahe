@@ -57,7 +57,9 @@ final class teamcalendar_test extends \advanced_testcase {
         events::sign_up($openday, (int) $family('Ana')->id, 2);
         events::sign_up($openday, (int) $family('Luis')->id, 1);
         $own = $act('Visita de una familia', ['kind' => 'visit']);
-        $DB->set_field('local_oksigeniaeguahe_event', 'householdid', $family('Marta')->id, ['id' => $own->id]);
+        $marta = (int) $family('Marta')->id;
+        $DB->set_field('local_oksigeniaeguahe_event', 'householdid', $marta, ['id' => $own->id]);
+        events::sign_up($own, $marta, 1);
         $cancelled = $act('Charla anulada');
         $DB->set_field('local_oksigeniaeguahe_event', 'cancelled', 1, ['id' => $cancelled->id]);
         $act('Pidan su visita', ['kind' => 'visit', 'tailored' => 1]);

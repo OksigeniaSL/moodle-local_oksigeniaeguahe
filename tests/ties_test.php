@@ -93,8 +93,8 @@ final class ties_test extends \advanced_testcase {
         $this->assertSame('nursery', who::kind($cid, $id));
         $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $id]));
         $this->assertTrue(alumni::in_family($id));
-        $counts = who::count([['who' => 'nursery', 'also' => who::kinds($cid, $id), 'step' => 1],
-            ['who' => who::kind($cid, (int) $other->id), 'also' => who::kinds($cid, (int) $other->id), 'step' => 1]]);
+        $counts = who::count([['who' => 'nursery', 'also' => who::kinds($cid, $id), 'enrolled' => false],
+            ['who' => who::kind($cid, (int) $other->id), 'also' => who::kinds($cid, (int) $other->id), 'enrolled' => false]]);
         $this->assertSame([1, 1, 1, 0], [who::centre($counts), $counts['nursery']['n'], $counts['new']['n'], $counts['staff']['n']]);
         $this->assertSame(1, $counts['staff']['all']);
         $c = 'local_oksigeniaeguahe';
@@ -107,6 +107,13 @@ final class ties_test extends \advanced_testcase {
         $file = panel_household::context(households::get($id, $cid), $this->centre, true);
         $rows = array_column($file['children'][0]['ties']['rows'], 'on', 'kind');
         $this->assertSame(['nursery' => true, 'student' => false, 'sibling' => false, 'staff' => true, 'alumni' => true], $rows);
+        // Whoever is only of the staff talks to admissions; with a child inside, to the office.
+        centres::update($cid, (object) ['email' => 'admisiones@example.com', 'emailsettled' => 'secretaria@example.com']);
+        $centre = centres::get($cid);
+        $this->assertSame('secretaria@example.com', centres::for_family($centre, households::get($id, $cid))->email);
+        [$works, $kid] = $this->family('luz@example.com', 'Iria');
+        ties::set($works, $kid, 'staff', true, 2);
+        $this->assertSame('admisiones@example.com', centres::for_family($centre, households::get((int) $works->id, $cid))->email);
         // The list of families to download.
         $down = array_column(export::families($this->centre), 'ties', 'child');
         $this->assertStringContainsString(get_string('who_staff', $c), implode('|', $down));
@@ -168,7 +175,7 @@ final class ties_test extends \advanced_testcase {
             $new
         ), 'kind', 'id'));
         $origins = metrics::origins((int) $this->centre->id, '2027-28');
-        $this->assertSame([1, 1, 1, 2, 0], array_map(fn($g) => $g['n'], array_values($origins['groups'])));
+        $this->assertSame(['inner' => 1, 'back' => 0, 'sibling' => 1, 'staff' => 1, 'newfamily' => 2, 'unknown' => 0], array_map(fn($g) => $g['n'], $origins['groups']));
     }
 
     /**
@@ -186,5 +193,16 @@ final class ties_test extends \advanced_testcase {
         $this->assertSame(1, (int) $kept->incentre);
         households::erase($kept);
         $this->assertSame(0, $DB->count_records(ties::T));
+    }
+
+    /**
+     * Several marks in a row are one line of the history.
+     */
+    public function test_one_line(): void {
+        global $DB;
+        [$household, $child] = $this->family('ana@example.com');
+        ties::set($household, $child, 'student', true, 2);
+        ties::set($household, $child, 'sibling', true, 2);
+        $this->assertSame(1, $DB->count_records(households::CONTACTS, ['householdid' => $household->id, 'direction' => 'note']));
     }
 }

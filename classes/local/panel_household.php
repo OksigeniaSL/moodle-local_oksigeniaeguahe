@@ -151,7 +151,12 @@ class panel_household {
         $lines = array_keys(array_filter($history, fn($one) => empty($one['visit'])));
         $old = array_slice($history, 0, count($lines) > 2 ? $lines[count($lines) - 2] : 0);
         $suggestions = attend::suggest($full);
-        $composer = self::composer($composermode, $joined, $email, $phone) + ['greeting' => $prefill !== '' ? $prefill :
+        $composer = self::composer($composermode, $joined, $email, $phone);
+        if ($joined && writeby::joined_on($full, $centre) === ['whatsapp'] && !messaging::window_open($full, $now)) {
+            // Said before writing: after 24 hours without a message of theirs, it goes inside a notice, with room for a few lines.
+            $composer['notes'][] = get_string('panel_whatsapp_closed', $c, messaging::innotice());
+        }
+        $composer += ['greeting' => $prefill !== '' ? $prefill :
             self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
             'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
                 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
@@ -168,7 +173,6 @@ class panel_household {
             questions::asked($contacts)
         ) : [];
         $owner = attend::owner($household, (int) $USER->id);
-        $open = attend::open_promise((int) $household->id);
         $untold = self::untold($full, $offers);
         $pending = visits::pending((int) $household->id);
         // A conversation of the chat already open with them (Marandu 0.52): «Contestar» goes there, never twice.
@@ -199,7 +203,11 @@ class panel_household {
             'owner' => $owner,
             'takeurl' => $url->out(false),
             'ownedbyme' => $owner && $owner['mine'],
-            'promise' => $open ? attend::promise_context($open, $now, (int) $USER->id) : null,
+            // All that was promised, each with its «Done»: a new one never hides the one before.
+            'promises' => array_map(
+                fn($one) => attend::promise_context($one, $now, (int) $USER->id),
+                attend::open_promises((int) $household->id)
+            ),
             'typing' => attend::typing((int) $household->id, (int) $USER->id),
             'children' => self::children($full, $offers, $canact),
             'historyold' => $old,
@@ -230,6 +238,8 @@ class panel_household {
             // Two families joined by mistake, separated again by a person.
             'split' => lookalike::split_context($household, $full, $canact),
             'leave' => self::leave($household, $full, $canact),
+            // They go, or they never were a family.
+            'outs' => outs::context($household, $full, $contacts, $canact, $now),
             'renewal' => self::renewal($household, $centre, $canact, $now),
             'signs' => $signs,
             'hassigns' => (bool) $signs,
@@ -369,7 +379,7 @@ class panel_household {
             }
             $rows[] = [
                 'id' => (int) $childid,
-                'tag' => panel::tag($child),
+                'tag' => panel::called($child),
                 'next' => get_string('panel_renewal_next_one', $c, format_string($next->name)),
                 'said' => $said !== '' ? $said : get_string($open ? 'panel_renewal_unanswered' : 'panel_renewal_closed', $c),
                 'note' => $row && trim((string) $row->note) !== '' ? (string) $row->note : '',
@@ -426,7 +436,7 @@ class panel_household {
         }
         // The common family record of the centre says some left: a person says whether they did.
         $said = $gone ? [] : family::gone($children);
-        $saidnames = self::list_words(array_map(fn($k) => panel::tag($k), $said));
+        $saidnames = self::said_words($said);
         return [
             'gone' => (bool) $gone,
             'familysays' => $said ? get_string('panel_family_gone' . (count($said) > 1 ? '_many' : ''), $c, $saidnames) : '',
@@ -489,7 +499,7 @@ class panel_household {
             'hashints' => (bool) $found,
             'linked' => $linked > 0 ? get_string('panel_family_linked', $c) : '',
             'waiting' => $waiting ? get_string('panel_family_waiting', $c) : '',
-            'in' => $in ? get_string('panel_family_in', $c, self::list_words(array_map(fn($k) => panel::tag($k), $in))) : '',
+            'in' => $in ? get_string('panel_family_in', $c, self::said_words($in)) : '',
             'canact' => $canact,
             'action' => $action,
             'sesskey' => sesskey(),
@@ -533,7 +543,7 @@ class panel_household {
      * @param \stdClass $centre
      * @return string
      */
-    protected static function course_hint(string $birthdate, ?\stdClass $offer, \stdClass $centre): string {
+    public static function course_hint(string $birthdate, ?\stdClass $offer, \stdClass $centre): string {
         $fits = birthdays::courses($birthdate, $centre, time());
         if (!$fits || ($offer && in_array((int) $offer->id, array_map(fn($o) => (int) $o->id, $fits), true))) {
             return '';
@@ -559,7 +569,7 @@ class panel_household {
             return false;
         }
         $c = self::C;
-        $a = (object) ['names' => self::list_words(array_map(fn($k) => panel::tag($k), $step['children'])),
+        $a = (object) ['names' => self::said_words($step['children']),
             'day' => userdate($step['day'], get_string('strftimedateshort', 'langconfig'))];
         $lines = [];
         $gifted = [];
@@ -578,7 +588,7 @@ class panel_household {
         }
         // The piece of their age waits on their page, from the day itself; a family still deciding has none.
         if ($gifted) {
-            $names = self::list_words(array_map(fn($k) => panel::tag($k), $gifted));
+            $names = self::said_words($gifted);
             $lines[] = get_string('panel_birthday_gift_' . $step['step'], $c, $names);
         }
         return [
@@ -688,8 +698,8 @@ class panel_household {
         $offers = centres::offers((int) $household->centreid);
         $one = count($waiting) === 1;
         $offer = $offers[$waiting[0]->offerid] ?? null;
-        $a = (object) ['name' => panel::tag($waiting[0]), 'course' => $offer ? format_string($offer->name) : '',
-            'names' => self::list_words(array_map(fn($k) => panel::tag($k), $waiting))];
+        $a = (object) ['name' => self::said_words([$waiting[0]]), 'course' => $offer ? format_string($offer->name) : '',
+            'names' => self::said_words($waiting)];
         $key = $one && $a->course !== '' ? 'panel_waitlist_message_one' : 'panel_waitlist_message_many';
         return [
             'sentence' => get_string('panel_waitlist', $c),
@@ -722,7 +732,7 @@ class panel_household {
             return false;
         }
         $c = self::C;
-        $names = fn(array $kids) => self::list_words(array_map(fn($k) => panel::tag($k), $kids));
+        $names = fn(array $kids) => self::said_words($kids);
         $a = (object) ['names' => $names($step['children']), 'stories' => $names($step['stories']),
             'day' => $step['first'] ? userdate($step['first'], get_string('strftimedate', 'langconfig')) : ''];
         $why = 'panel_story_' . $step['step'] . ($step['step'] === 'story' && !$step['first'] ? '_why_nodate' : '_why');
@@ -850,7 +860,7 @@ class panel_household {
             $enrolled = settled::enrolled(array_values($full->children));
             if ((int) $sibling->notify) {
                 $why = get_string($enrolled ? 'panel_sibling_why_asked_enrolled' : 'panel_sibling_why_asked', $c, (object) [
-                    'who' => $enrolled ? panel::tag($enrolled[0]) : '',
+                    'who' => $enrolled ? self::said_words([$enrolled[0]]) : '',
                     'day' => userdate((int) $sibling->notify, get_string('strftimedate', 'langconfig'))]);
             } else {
                 $why = get_string($sibling->source === 'team' ? 'panel_sibling_why_team' : 'panel_sibling_why_signup', $c);
@@ -942,7 +952,7 @@ class panel_household {
         // Before the time opens, «they will be able to, from…»; never «they can already».
         $from = (int) ($centre->applyfrom ?? 0);
         $soon = $from && time() < usergetmidnight($from);
-        $kids = self::list_words(array_map(fn($k) => panel::tag($k), $open ?: $full->children));
+        $kids = self::said_words($open ?: $full->children);
         $fromday = $from ? userdate($from, get_string('strftimedate', 'langconfig')) : '';
         $parts = [!empty($household->self) ? get_string(
             $soon ? 'panel_apply_msg_self_soon' : 'panel_apply_msg_self',
@@ -979,6 +989,10 @@ class panel_household {
      */
     protected static function writeby_context(\stdClass $household, \stdClass $centre, \moodle_url $url): array {
         $context = writeby::team_context($household, $centre, $url->out(false));
+        if (!$context['silent'] && !writeby::now($household, $centre) && households::recipient($household) !== '') {
+            // It gave its email and no permission for notices: what it asked is answered there all the same.
+            $context['now'] = get_string('panel_writeby_onlyanswer', self::C);
+        }
         $context['warn'] = $context['silent'] && !$context['wrote'] ? $context['since'] : '';
         $context['askurl'] = $context['askagain'] !== '' ? (new \moodle_url($url, ['preguntar' => 1]))->out(false) : '';
         return $context;
@@ -995,10 +1009,21 @@ class panel_household {
     public static function writeby_question(\stdClass $full, \stdClass $centre): string {
         $c = self::C;
         $enrolled = array_filter($full->children, fn($k) => (string) $k->stage === 'enrolled' && empty($k->lefttime));
-        return self::greeting($full) . get_string('panel_writeby_ask_msg', $c, self::list_words(array_map(
-            fn($k) => panel::tag($k),
-            $enrolled ?: $full->children
-        )));
+        return self::greeting($full) . get_string('panel_writeby_ask_msg', $c, self::said_words($enrolled ?: $full->children));
+    }
+
+    /**
+     * Some children in a sentence, by their names; «su hijo» or «sus hijos» while one has none.
+     *
+     * @param \stdClass[] $children
+     * @return string
+     */
+    protected static function said_words(array $children): string {
+        $tags = array_values(array_filter(array_map([panel::class, 'tag'], $children), fn($tag) => $tag !== ''));
+        if (count($tags) < count($children)) {
+            return get_string(count($children) > 1 ? 'pub_your_children' : 'pub_your_child', self::C);
+        }
+        return self::list_words($tags);
     }
 
     /**
@@ -1033,7 +1058,7 @@ class panel_household {
         }
         foreach ($full->children as $child) {
             if (empty($offers[$child->offerid])) {
-                $out[] = get_string('panel_untold_course', $c, panel::tag($child));
+                $out[] = get_string('panel_untold_course', $c, self::said_words([$child]));
             }
         }
         return $out;
@@ -1124,11 +1149,12 @@ class panel_household {
                 'id' => $child->id,
                 'hanging' => panel::hanging($i, $tag, $offer ? (string) $offer->name : '', $centre),
                 'drawing' => $drawing ? $drawing->out(false) : '',
-                'drawingalt' => get_string('panel_drawing_alt', $c, $tag),
+                'drawingalt' => get_string('panel_drawing_alt', $c, panel::called($child)),
                 // Their drawing, asked for while they are young; one already sent is always seen and can change.
                 'drawingpage' => $canact && ($drawing || ages::young($child, $offers, $centre)) ?
                     (new \moodle_url('/local/oksigeniaeguahe/drawing.php', ['child' => $child->id]))->out(false) : '',
-                'name' => trim((string) $child->firstname) !== '' ? $child->firstname : $tag,
+                'name' => trim((string) $child->firstname) !== '' ? $child->firstname : ($tag !== '' ? $tag :
+                    get_string('chat_child_noname', $c)),
                 'tagline' => trim((string) $child->tagname) !== '' && $child->tagname !== $child->firstname ?
                     get_string('panel_on_label', $c, $child->tagname) : '',
                 // Their birthday and age, when the family gave the date; and the course it is of by its age, when
@@ -1141,6 +1167,10 @@ class panel_household {
                     'year' => s($offer->schoolyear)]) : get_string('panel_nocourse', $c),
                 'steps' => $steps,
                 'closed' => $child->stage === 'closed',
+                // The step this page shows, so that a touch on a page of before changes nothing unseen.
+                'stage' => (string) $child->stage,
+                // One at the centre does not close: it leaves, below.
+                'canclose' => $child->stage !== 'enrolled',
                 'reason' => $child->stage === 'closed' && $child->closedreason ?
                     get_string('closed_' . $child->closedreason, $c) : '',
                 'waitlist' => $child->stage === 'waitlist',
@@ -1223,7 +1253,15 @@ class panel_household {
             } else {
                 $kind = $person ? 'equipo' : 'sistema';
                 $who = $person ? fullname($person) : 'Eguahe';
-                $how = happened::words(happened::kind($contact, isset($answers[(int) $contact->id])), $via);
+                $did = happened::kind($contact, isset($answers[(int) $contact->id]));
+                if ($did === 'told' && $channel === 'other') {
+                    // Noted by a person, and nothing sent: an appointment given or changed without telling them.
+                    $how = get_string('panel_noted_only', $c);
+                } else if (in_array($did, ['told', 'answered'], true) && in_array($channel, ['phone', 'walkin'], true)) {
+                    $how = get_string('panel_talked_' . $channel, $c);
+                } else {
+                    $how = happened::words($did, $via);
+                }
             }
             $out[] = [
                 'family' => $kind === 'familia',

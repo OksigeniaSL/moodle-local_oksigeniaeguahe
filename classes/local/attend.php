@@ -175,6 +175,29 @@ class attend {
     }
 
     /**
+     * What was promised with some words, still open, is not any more: what it was for is gone, or happened.
+     *
+     * @param \stdClass $household
+     * @param string[] $bodies
+     * @param int $day Only those of this day (any moment of it); 0, any.
+     * @param int $userid Who said it; 0, nobody.
+     * @return int How many.
+     */
+    public static function withdraw(\stdClass $household, array $bodies, int $day = 0, int $userid = 0): int {
+        global $DB;
+        $n = 0;
+        $bodies = array_map(fn($body) => \core_text::substr(trim(preg_replace('/\s+/u', ' ', (string) $body)), 0, 255), $bodies);
+        $due = $day ? (new \DateTime('@' . $day))->setTimezone(\core_date::get_user_timezone_object())->setTime(0, 0)->getTimestamp() : 0;
+        foreach ($DB->get_records(self::PROMISES, ['householdid' => $household->id, 'timedone' => 0], 'id ASC') as $promise) {
+            if (in_array((string) $promise->body, $bodies, true) && (!$due || abs((int) $promise->dueday - $due) < DAYSECS)) {
+                $DB->update_record(self::PROMISES, (object) ['id' => $promise->id, 'timedone' => time(), 'doneby' => $userid]);
+                $n++;
+            }
+        }
+        return $n;
+    }
+
+    /**
      * The open promise of a family that comes first: the one due earliest, then the one without a day.
      *
      * @param int $householdid
@@ -191,6 +214,21 @@ class attend {
             1
         );
         return reset($open) ?: null;
+    }
+
+    /**
+     * Everything promised to a family and still open, what is due first.
+     *
+     * @param int $householdid
+     * @return \stdClass[]
+     */
+    public static function open_promises(int $householdid): array {
+        global $DB;
+        return array_values($DB->get_records(
+            self::PROMISES,
+            ['householdid' => $householdid, 'timedone' => 0],
+            'CASE WHEN dueday = 0 THEN 1 ELSE 0 END, dueday ASC, id ASC'
+        ));
     }
 
     /**
@@ -334,20 +372,47 @@ class attend {
     }
 
     /**
-     * Takes a family out of the answers of always of its centre, when it erases its data: those kept before the gaps
-     * were made may still name it.
+     * Takes a family out of the answers of always of its centre, when it erases its data: those kept before the gaps were
+     * made may still name it. Only by what is surely theirs (an email, a phone, a name with its surname): a first name alone
+     * may be of someone of the team («Pregunten por Marta») or a word («al sol del patio»).
      *
      * @param \stdClass $household
      */
     public static function forget_family(\stdClass $household): void {
         global $DB;
-        $full = households::full($household);
-        foreach ($DB->get_records(self::REPLIES, ['centreid' => $household->centreid]) as $reply) {
-            $body = self::without_family((string) $reply->body, $full);
-            $title = self::without_family((string) $reply->title, $full);
+        $gaps = [];
+        foreach ($DB->get_records(households::ADULTS, ['householdid' => $household->id], 'id ASC') as $adult) {
+            $gaps[trim((string) $adult->email)] = '';
+            $gaps[trim((string) $adult->phone)] = '';
+            if (trim((string) $adult->phone) !== '') {
+                $gaps[phone::display((string) $adult->phone)] = '';
+            }
+            if (trim((string) $adult->firstname) !== '' && trim((string) $adult->lastname) !== '') {
+                $gaps[trim($adult->firstname) . ' ' . trim($adult->lastname)] = '{names}';
+            }
+        }
+        foreach ($DB->get_records(households::CHILDREN, ['householdid' => $household->id], 'id ASC') as $child) {
+            if (strpos(trim((string) $child->firstname), ' ') !== false) {
+                $gaps[trim((string) $child->firstname)] = '{children}';
+            }
+        }
+        unset($gaps['']);
+        foreach (centres::members((int) $household->centreid) as $member) {
+            unset($gaps[fullname($member)]);
+        }
+        uksort($gaps, fn($a, $b) => \core_text::strlen($b) <=> \core_text::strlen($a));
+        $clean = function (string $text) use ($gaps): string {
+            foreach ($gaps as $name => $gap) {
+                $text = preg_replace('/(?<![\p{L}\p{N}])' . preg_quote((string) $name, '/') . '(?![\p{L}\p{N}])/iu', $gap, $text);
+            }
+            return (string) $text;
+        };
+        foreach ($gaps ? $DB->get_records(self::REPLIES, ['centreid' => $household->centreid], 'id ASC') : [] as $reply) {
+            $body = $clean((string) $reply->body);
+            $title = $clean((string) $reply->title);
             if ($body !== (string) $reply->body || $title !== (string) $reply->title) {
-                $DB->update_record(self::REPLIES, (object) ['id' => $reply->id, 'body' => $body,
-                    'title' => \core_text::substr($title, 0, 100),
+                $DB->update_record(self::REPLIES, (object) ['id' => $reply->id, 'body' => trim(preg_replace('/[ \t]{2,}/u', ' ', $body)),
+                    'title' => \core_text::substr(trim(preg_replace('/[ \t]{2,}/u', ' ', $title)), 0, 100),
                     'words' => implode(' ', self::words($title . ' ' . $body)), 'timemodified' => time()]);
             }
         }

@@ -43,6 +43,12 @@ $messageproviders = [
         'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
         'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
     ]],
+    // For the team: the list of the centre came cut short.
+    'listheld' => ['defaults' => [
+        'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        'airnotifier' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+    ]],
     // For the team: a family came on its own. By mail too, as the forms of a web did.
     'newfamily' => ['defaults' => [
         'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,

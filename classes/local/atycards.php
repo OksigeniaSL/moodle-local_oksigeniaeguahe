@@ -132,7 +132,7 @@ class atycards {
         // Whether each child goes on next year, while the centre asks and nobody said it.
         if (renewal::open($centre, $now)) {
             $said = renewal::answers($centre, (int) $household->id);
-            // The last day to answer, as a day (the end of it), not an hour; urgent only in its last days (Aty).
+            // The last day to answer, as a day (the end of it), not an hour; urgent only in its last days.
             $until = (int) ($centre->renewaluntil ?? 0);
             $due = $until ? ['date' => usergetmidnight($until - 1) + DAYSECS - 60, 'kind' => 'due'] : [];
             $urgent = $until && $until - $now <= self::URGENT;
@@ -140,9 +140,9 @@ class atycards {
                 if (isset($said[$childid])) {
                     continue;
                 }
-                $name = familypage::label_name($child) ?: (string) $child->firstname;
+                $name = familypage::said_name($child, $lang);
                 // Answered inside the app (output\mobile), as an account of Aty cannot open the site in a browser.
-                $rows[] = ['title' => $s('aty_renewal', (object) ['name' => $name, 'year' => s((string) $centre->renewalyear)]),
+                $rows[] = ['title' => familypage::sentence($s('aty_renewal', (object) ['name' => $name, 'year' => s((string) $centre->renewalyear)])),
                     'detail' => $s('aty_renewal_detail'), 'urgent' => $urgent, 'actionlabel' => $s('aty_answer'),
                     'method' => 'mobile_renewal_view', 'args' => ['h' => (int) $household->id],
                     'pagetitle' => $s('app_renewal_title')] + $due;
@@ -152,7 +152,8 @@ class atycards {
         $full = households::full($household);
         foreach ($full->signups as $signup) {
             if ((int) $signup->timeend >= $now) {
-                $rows[] = ['title' => format_string($signup->eventname), 'detail' => actmail::is($signup) ? '' : $s('aty_visit'),
+                $title = visits::shown((string) $signup->eventname, (string) ($household->lang ?: $centre->lang));
+                $rows[] = ['title' => format_string($title), 'detail' => actmail::is($signup) ? '' : $s('aty_visit'),
                     'date' => (int) $signup->timestart, 'time' => true] + $open('visita');
                 break;
             }

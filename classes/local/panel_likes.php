@@ -48,7 +48,7 @@ class panel_likes {
     const COURSES = 8;
 
     /**
-     * The sheets, for the campaign under way; an imported one has none.
+     * The sheets of a campaign, of the families that live in Eguahe.
      *
      * @param \stdClass $centre
      * @param array $campaign
@@ -57,14 +57,13 @@ class panel_likes {
      * @return array|false
      */
     public static function context(\stdClass $centre, array $campaign, array $mine, int $now) {
-        if ($campaign['import']) {
+        $c = self::C;
+        $lives = array_filter($mine, [facts::class, 'lives']);
+        if ($mine && !$lives) {
+            // A campaign that is only in files: nothing of what they do is known.
             return false;
         }
-        $c = self::C;
-        $ids = array_values(array_filter(array_map(fn($f) => (int) ($f['id'] ?? 0), array_filter(
-            $mine,
-            fn($f) => !$f['closed']
-        ))));
+        $ids = facts::ids(array_filter($lives, fn($f) => !$f['closed']));
         $c4 = self::count_rows(seen::each($ids));
         $opened = count($c4['opens']);
         $start = (int) ($campaign['start'] ?: $c4['first']);

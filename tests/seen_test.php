@@ -266,7 +266,7 @@ final class seen_test extends \advanced_testcase {
         $this->assertFalse($likes['firstday']);
 
         // An imported campaign has none of it.
-        $this->assertFalse(panel_likes::context($centre, ['import' => (object) ['id' => 1]] + $campaign, [], $now));
+        $this->assertFalse(panel_likes::context($centre, $campaign, [['id' => 0, 'sources' => [1], 'closed' => false]], $now));
         // And the sheet of the families of Cifras carries it.
         $page = panel_metrics::context($centre, ['sheet' => 'familias'], true, $now);
         $this->assertSame(6, $page['likes']['pages']['opened']);

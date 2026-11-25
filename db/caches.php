@@ -42,6 +42,12 @@ $definitions = [
         'simpledata' => true,
         'ttl' => 1500,
     ],
+    // The families whose notes say they may have gone, for the inbox.
+    'outs' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'ttl' => 1500,
+    ],
     // The codes sent to each family in the last day: at most five, so a code cannot be guessed by asking for new ones.
     'codessent' => [
         'mode' => cache_store::MODE_APPLICATION,
@@ -69,6 +75,12 @@ $definitions = [
         'simplekeys' => true,
         'simpledata' => true,
         'ttl' => 3600,
+    ],
+    // What each page of a form already saved, for a day: pressed twice, or sent again by going back, it is the same family.
+    'signupmarks' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'ttl' => 86400,
     ],
     // Where the way drawn on each version of a miniature starts and ends (guide::way()), by the hash of the picture.
     'miniatureways' => [

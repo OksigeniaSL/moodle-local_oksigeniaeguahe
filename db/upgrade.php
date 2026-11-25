@@ -2037,5 +2037,275 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026122700, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026122800) {
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('calsync', XMLDB_TYPE_TEXT, null, null, null, null, null, 'closeddays');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_calsync');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('eventid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('timestart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timeend', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('ask', XMLDB_TYPE_CHAR, '8', null, null, null, null);
+        $table->add_field('askstart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('askend', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('asktime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('restore', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('eventid', XMLDB_KEY_FOREIGN, ['eventid'], 'local_oksigeniaeguahe_event', ['id']);
+        $table->add_index('centreid', XMLDB_INDEX_NOTUNIQUE, ['centreid']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_busy');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('source', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('calendar', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_field('title', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('timestart', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timeend', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('allday', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_index('centrestart', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'timestart']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026122800, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026122900) {
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        $after = 'noinvites';
+        foreach (
+            ['outreason' => [XMLDB_TYPE_CHAR, '16'], 'outtime' => null, 'outuserid' => null, 'outnote' => [XMLDB_TYPE_CHAR, '255'],
+                'outstep' => [XMLDB_TYPE_INTEGER, '2'], 'outstops' => [XMLDB_TYPE_CHAR, '8'], 'outwas' => [XMLDB_TYPE_TEXT, null],
+                'outasked' => null] as $name => $type
+        ) {
+            [$kind, $length] = $type ?? [XMLDB_TYPE_INTEGER, '10'];
+            $number = $kind === XMLDB_TYPE_INTEGER;
+            $field = new xmldb_field($name, $kind, $length, null, $number ? XMLDB_NOTNULL : null, null, $number ? '0' : null, $after);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+            $after = $name;
+        }
+        upgrade_plugin_savepoint(true, 2026122900, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026122904) {
+        // What each row of a list keeps to work out the families again, and what the list did by itself, to take it back.
+        foreach (['student' => 'birthyear', 'pastcontact' => 'birthyear'] as $name => $after) {
+            $table = new xmldb_table('local_oksigeniaeguahe_' . $name);
+            $field = new xmldb_field('marks', XMLDB_TYPE_TEXT, null, null, null, null, null, $after);
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_import');
+        $field = new xmldb_field('info', XMLDB_TYPE_TEXT, null, null, null, null, null, 'partial');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_importkey');
+        $field = new xmldb_field('live', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'token');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_listmatch');
+        $field = new xmldb_field('was', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'marked');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('said', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'was');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $field = new xmldb_field('studentkey', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'familychild');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // What the lists had already said, put right; the next one that comes in works out the rest.
+        // A student whose list said the day it came to the centre, years before that school year, was there from its start.
+        $years = $DB->get_fieldset_sql('SELECT DISTINCT schoolyear FROM {local_oksigeniaeguahe_student}');
+        foreach ($years as $year) {
+            $start = strlen($year) > 4 ? make_timestamp((int) substr($year, 0, 4), 9, 1, 12) :
+                make_timestamp((int) substr($year, 0, 4), 3, 1, 12);
+            $DB->execute(
+                'UPDATE {local_oksigeniaeguahe_student} SET timein = ? WHERE schoolyear = ? AND timein > 0 AND timein < ?',
+                [$start - HOURSECS, $year, $start - 60 * DAYSECS]
+            );
+        }
+        // Before it was kept, which child made a family one of the centre: the one its history says the list found.
+        $notes = ['Familia del centro según la lista:', 'A family of the centre according to the list:',
+            'Família do centro segundo a lista:', 'Família da escola segundo a lista:'];
+        $like = [];
+        $params = [];
+        foreach ($notes as $i => $note) {
+            $like[] = $DB->sql_like('body', ':n' . $i);
+            $params['n' . $i] = $DB->sql_like_escape($note) . '%';
+        }
+        $rows = $DB->get_records('local_oksigeniaeguahe_listmatch', ['kind' => 'incentre', 'marked' => 0], 'id ASC');
+        $seen = [];
+        foreach ($rows as $row) {
+            $made = !isset($seen[$row->householdid]) && !$DB->record_exists(
+                'local_oksigeniaeguahe_listmatch',
+                ['householdid' => $row->householdid, 'kind' => 'incentre', 'marked' => 1]
+            ) && $DB->record_exists_select(
+                'local_oksigeniaeguahe_contact',
+                "householdid = :h AND direction = 'note' AND (" . implode(' OR ', $like) . ')',
+                ['h' => $row->householdid] + $params
+            );
+            $seen[$row->householdid] = true;
+            $DB->set_field('local_oksigeniaeguahe_listmatch', 'marked', $made ? 1 : 2, ['id' => $row->id]);
+        }
+        // A child the list enrolled was enrolled the day it joined, not the night it was said; and one whose family was put
+        // together with another is the child that stayed.
+        $rows = $DB->get_records_select('local_oksigeniaeguahe_listmatch', "kind = 'enrolled' AND childid > 0", [], 'id ASC');
+        foreach ($rows as $row) {
+            $child = $DB->get_record('local_oksigeniaeguahe_child', ['id' => $row->childid]);
+            if (!$child) {
+                $others = $DB->get_fieldset_select(
+                    'local_oksigeniaeguahe_child',
+                    'id',
+                    "householdid = :h AND stage = 'enrolled' AND id NOT IN (SELECT childid FROM {local_oksigeniaeguahe_listmatch}
+                      WHERE householdid = :h2 AND kind = 'enrolled')",
+                    ['h' => $row->householdid, 'h2' => $row->householdid]
+                );
+                $DB->set_field(
+                    'local_oksigeniaeguahe_listmatch',
+                    'childid',
+                    count($others) === 1 ? (int) reset($others) : 0,
+                    ['id' => $row->id]
+                );
+            } else if (
+                $child->stage === 'enrolled' && (int) $row->timein > 0 && (int) $row->timein < (int) $child->stagetime &&
+                    abs((int) $child->stagetime - (int) $row->done) < HOURSECS
+            ) {
+                $DB->set_field('local_oksigeniaeguahe_child', 'stagetime', (int) $row->timein, ['id' => $child->id]);
+                $DB->set_field('local_oksigeniaeguahe_listmatch', 'was', 'application:0', ['id' => $row->id]);
+            }
+        }
+        // What was said before is not told as news of the last night.
+        $last = $DB->get_records_sql('SELECT centreid, MAX(id) AS id FROM {local_oksigeniaeguahe_listmatch} GROUP BY centreid');
+        foreach ($last as $row) {
+            $known = (string) get_config('local_oksigeniaeguahe', 'momentsknown_' . $row->centreid);
+            set_config(
+                'momentsknown_' . $row->centreid,
+                ($known === '' ? '' : $known . ',') . 'list-' . $row->id,
+                'local_oksigeniaeguahe'
+            );
+        }
+        upgrade_plugin_savepoint(true, 2026122904, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026122940) {
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $field = new xmldb_field('closedstage', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'closedreason');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_mergelog');
+        $field = new xmldb_field('goneid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'householdid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $index = new xmldb_index('goneid', XMLDB_INDEX_NOTUNIQUE, ['goneid']);
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_calsync');
+        $field = new xmldb_field('creating', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'restore');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // What was kept of families put together, of files that are no longer there.
+        $DB->delete_records_select(
+            'local_oksigeniaeguahe_mergelog',
+            'householdid NOT IN (SELECT id FROM {local_oksigeniaeguahe_household})'
+        );
+        // A visit of its own whose family said on its page that it does not come was left with nobody in it: called off.
+        $DB->execute(
+            'UPDATE {local_oksigeniaeguahe_event}
+                SET cancelled = ?, open = 0
+              WHERE householdid > 0 AND cancelled = 0 AND timestart > ?
+                    AND id NOT IN (SELECT eventid FROM {local_oksigeniaeguahe_signup})',
+            [time(), time()]
+        );
+        upgrade_plugin_savepoint(true, 2026122940, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026122951) {
+        // The key of each student of the roll, and when each campaign started.
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $field = new xmldb_field('studentkey', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'familychild');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('campaigns', XMLDB_TYPE_TEXT, null, null, null, null, null, 'campaignstart');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // The act each imported file is of, when a person says it.
+        $table = new xmldb_table('local_oksigeniaeguahe_import');
+        $field = new xmldb_field('act', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'campaignstart');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('acttime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'act');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // The made-up families were told by their date: the first of January of 2000.
+        $DB->set_field('local_oksigeniaeguahe_household', 'guest', 2, ['timecreated' => 946684800]);
+        // What a family had got to when a person said it went is already kept: it goes to its children.
+        $rows = $DB->get_recordset_select(
+            'local_oksigeniaeguahe_household',
+            'outwas IS NOT NULL',
+            [],
+            '',
+            'id, outwas'
+        );
+        foreach ($rows as $row) {
+            $was = json_decode((string) $row->outwas, true);
+            foreach (is_array($was) ? (array) ($was['children'] ?? []) : [] as $childid => $before) {
+                $DB->set_field_select(
+                    'local_oksigeniaeguahe_child',
+                    'closedstage',
+                    \core_text::substr((string) ($before[0] ?? ''), 0, 20),
+                    "id = ? AND householdid = ? AND stage = 'closed'",
+                    [(int) $childid, $row->id]
+                );
+            }
+        }
+        $rows->close();
+        upgrade_plugin_savepoint(true, 2026122951, 'local', 'oksigeniaeguahe');
+    }
+
+    if ($oldversion < 2026122960) {
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        foreach (
+            [new xmldb_field('cameback', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'outasked'),
+                new xmldb_field('swapphone', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'cameback')] as $field
+        ) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        $table = new xmldb_table('local_oksigeniaeguahe_invite');
+        $field = new xmldb_field('said', XMLDB_TYPE_CHAR, '40', null, null, null, null, 'bulkid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // A call of the sheet of the team that nobody answered is no answer to the family.
+        \local_oksigeniaeguahe\local\teamnotes::mark_tried();
+        upgrade_plugin_savepoint(true, 2026122960, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -1,0 +1,99 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_questions
+
+    Numbers by questions (numbers_questions): what the centre wants to know, each with its answer in a sentence and the way to
+    its detail; what is not known; and the imported files a person has to say whether they are of an act, and of which day. The
+    last act goes first and large, with its path; the rest of the acts, as leaves of the calendar.
+
+    Example context (json):
+    {
+        "head": {"title": "Cifras", "sub": "Datos a las 10:52 de hoy.", "back": false, "ante": "", "what": "", "help": "", "origen": false, "action": false},
+        "years": [{"key": "live", "name": "2027-28", "url": "#", "current": true}], "hasyears": true,
+        "act": {"key": "act-e12", "question": "¿Cómo fue la jornada del sábado 21?", "answer": "Vinieron 41 de las 58 familias inscritas.", "url": "#",
+            "leaf": {"dow": "sáb", "day": "21", "month": "nov", "year": "2026"}, "warn": "De 14 no consta si vinieron.", "empty": false, "missing": false,
+            "path": {"total": 58, "dots": true, "steps": [{"name": "Vinieron", "n": 41, "url": "#", "parts": [{"kind": "yes", "n": 41}],
+                "haslegend": false, "legend": []}]} },
+        "hasacts": true,
+        "acts": [{"key": "act-e11", "question": "¿Cómo fue la jornada del 17 de octubre?", "answer": "Vinieron 22 de las 30.", "url": "#",
+            "name": "Jornada de otoño", "counts": [{"n": 30, "what": "inscritas"}], "aside": "", "leaf": {"dow": "sáb", "day": "17", "month": "oct", "year": "2026"}, "warn": "", "empty": false, "missing": false}],
+        "groups": [{"key": "year", "name": "La campaña 2027-28", "questions": [{"key": "outs", "question": "¿Por qué se van?",
+            "answer": "6 se han retirado.", "url": "#", "empty": false, "missing": false, "warn": "", "recent": false,
+            "nums": [{"name": "La distancia", "n": 3, "url": "#", "noids": ""}]}]}],
+        "sheets": [{"name": "La campaña", "url": "#"}], "hasask": true, "asking": "1 fichero", "ask": [{"import": 7, "label": "Fiesta (anuncios)", "text": "¿Es de un acto?", "rows": 180, "action": "#", "sesskey": "abc",
+            "date": {"id": "acto-7", "first": "acto-7d", "form": false, "child": false, "invalid": false, "labelled": true, "arialabel": false,
+                "describedby": false, "mirror": false, "value": "", "parts": [{"key": "d", "id": "acto-7d", "name": "actday7d", "label": "Día",
+                "value": "", "size": 2, "months": false}]} }]
+    }
+}}
+<div class="pagina pagina-preguntas pagina-informe" data-preguntas>
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#hasyears}}<nav class="qs-anos" aria-label="{{#str}}panel_campaign, local_oksigeniaeguahe{{/str}}">{{#years}}<a class="pastilla" href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/years}}</nav>{{/hasyears}}
+    {{#act}}
+    <section class="lamina qs-actos" aria-labelledby="preguntas-acts">
+        <h2 id="preguntas-acts">{{#str}}nq_group_acts, local_oksigeniaeguahe{{/str}}</h2>
+        <div class="qs-ultimo">
+            <a class="qs-ultimo-ir" href="{{url}}">
+                {{#leaf}}<span class="hoja-cal qs-hoja" aria-hidden="true"><small>{{dow}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}
+                <span class="qs-dice"><span class="qs-pregunta">{{question}}</span> <span class="qs-respuesta">{{answer}}</span></span>
+            </a>
+            {{#path}}<div class="qs-ultimo-camino">{{> local_oksigeniaeguahe/panel_answer_path }}</div>{{/path}}
+        </div>
+        {{#hasacts}}
+        <ul class="qs-anteriores">
+            {{#acts}}
+            <li><a href="{{url}}">
+                {{#leaf}}<span class="hoja-cal qs-hoja" aria-hidden="true"><small>{{month}}</small><b>{{day}}</b><span>{{year}}</span></span>{{/leaf}}
+                <span class="qs-dice"><span class="qs-nombre">{{name}}</span>
+                    <span class="qs-cuentas">{{#counts}}<span><b>{{n}}</b> {{what}}</span>{{/counts}}</span>
+                    {{#aside}}<span class="qs-falta">{{aside}}</span>{{/aside}}</span>
+            </a></li>
+            {{/acts}}
+        </ul>
+        {{/hasacts}}
+    </section>
+    {{/act}}
+    {{#groups}}
+    <section class="lamina qs-grupo" aria-labelledby="preg-{{key}}" id="preguntas-{{key}}">
+        <h2 id="preg-{{key}}">{{name}}</h2>
+        <ul class="qs-lista">
+            {{#questions}}
+            <li><div class="qs-una"><span class="qs-pregunta">{{#url}}<a href="{{url}}">{{question}}</a>{{/url}}{{^url}}{{question}}{{/url}}</span>
+                <span class="qs-respuesta">{{^empty}}{{answer}}{{/empty}}{{#missing}}<span class="qs-falta">{{text}}</span>{{#url}} <a class="qs-falta-ir" href="{{url}}">{{link}}</a>{{/url}}{{/missing}}{{#warn}} <span class="qs-falta">{{warn}}</span>{{/warn}}{{#nums.0}}<span class="qs-nums">{{#nums}}{{#url}}<a href="{{url}}"><b>{{n}}</b> {{name}}</a>{{/url}}{{^url}}<span><b>{{n}}</b> {{name}}</span>{{/url}}{{/nums}}</span>{{/nums.0}}</span></div></li>
+            {{/questions}}
+        </ul>
+    </section>
+    {{/groups}}
+    <nav class="qs-anos" aria-label="{{#str}}qs_detail, local_oksigeniaeguahe{{/str}}">{{#sheets}}<a class="pastilla" href="{{url}}">{{name}}</a>{{/sheets}}</nav>
+    {{#hasask}}
+    <details class="qs-ficheros" id="preguntas-ficheros">
+        <summary><b>{{#str}}nq_ask_title, local_oksigeniaeguahe{{/str}}</b> <span>{{asking}}</span></summary>
+        {{#ask}}
+        <form method="post" action="{{action}}" class="qs-fichero">
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="actfile"><input type="hidden" name="import" value="{{import}}">
+            <span class="qs-fichero-que">{{text}}</span>
+            <details class="qs-fichero-si">
+                <summary>{{#str}}nq_ask_is, local_oksigeniaeguahe{{/str}}</summary>
+                <div><span class="rotulo-p" id="acto-{{import}}-l">{{#str}}nq_ask_day, local_oksigeniaeguahe{{/str}}</span>{{#date}}{{> local_oksigeniaeguahe/public_date }}{{/date}}<button class="boton secundario pequeno" type="submit" name="is" value="1">{{#str}}nq_ask_yes, local_oksigeniaeguahe{{/str}}</button></div>
+            </details>
+            <button class="enlace" type="submit" name="is" value="0">{{#str}}nq_ask_no, local_oksigeniaeguahe{{/str}}</button>
+        </form>
+        {{/ask}}
+    </details>
+    {{/hasask}}
+</div>

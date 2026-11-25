@@ -406,4 +406,111 @@ final class invites_test extends \advanced_testcase {
         $ids = array_merge(...array_map(fn($d) => array_column($d['rows'], 'id'), $context['days']));
         $this->assertSame([(string) $household->id], $ids);
     }
+
+    /**
+     * An act that changes or is called off: those that have its letter are said, and told only when a person says so; not those
+     * that said no, nor signed up, nor asked for no more invitations.
+     */
+    public function test_letters_of_before(): void {
+        global $DB;
+        $this->preventResetByRollback();
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $centre = centres::get(centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']));
+        $centreid = (int) $centre->id;
+        $event = events::get(events::save($centreid, (object) ['kind' => 'other', 'name' => 'Charla', 'timestart' => time() + 5 * DAYSECS,
+            'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $centreid);
+        $families = [];
+        foreach (['Ana', 'Eva', 'Luis', 'Pau', 'Rosa'] as $name) {
+            $id = households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
+            $household = households::get($id, $centreid);
+            $adult = households::add_adult($household, (object) ['firstname' => $name, 'email' => \core_text::strtolower($name) . '@example.org']);
+            households::consent($household, $adult, 'email', true, 'form', 'es');
+            $DB->insert_record(invites::T, (object) ['centreid' => $centreid, 'eventid' => $event->id, 'householdid' => $id, 'userid' => 2,
+                'channel' => 'email', 'bulkid' => 0, 'timecreated' => time()]);
+            $families[$name] = $household;
+        }
+        $DB->set_field(invites::T, 'reply', 'no', ['householdid' => $families['Eva']->id]);
+        events::sign_up($event, (int) $families['Luis']->id, 1);
+        $DB->set_field(households::T, 'noinvites', 5, ['id' => $families['Pau']->id]);
+        $this->assertSame([(int) $families['Ana']->id, (int) $families['Rosa']->id], array_map('intval', array_keys(invites::with_letter($event))));
+        // Said before saving a change of day, also when nobody is signed up.
+        $old = \local_oksigeniaeguahe\local\panel_eventform::values($event);
+        $new = ['day' => userdate(time() + 6 * DAYSECS, '%Y-%m-%d', 99, false)] + $old;
+        [$changes, $reached] = \local_oksigeniaeguahe\local\panel_eventform::changes($centre, $old, $new);
+        $this->assertNotEmpty($changes);
+        $this->assertSame([(int) $families['Luis']->id], $reached);
+        $notice = \local_oksigeniaeguahe\local\panel_eventform::notice($centre, $changes, $reached, $new);
+        $this->assertStringContainsString('2', $notice['letters']);
+        $sink = $this->redirectEmails();
+        \local_oksigeniaeguahe\task\tell_invited::queue($event, 'change', '', 2, [(int) $families['Ana']->id, (int) $families['Pau']->id]);
+        $this->runAdhocTasks(\local_oksigeniaeguahe\task\tell_invited::class);
+        $to = array_map(fn($m) => $m->to, $sink->get_messages());
+        $this->assertSame(['ana@example.org'], $to);
+        $this->assertStringContainsString('Charla', quoted_printable_decode($sink->get_messages()[0]->body));
+        $sink->close();
+    }
+
+    /**
+     * What is said before a change counts only those it will reach.
+     */
+    public function test_change_counted(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $centre = centres::get(centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']));
+        $centreid = (int) $centre->id;
+        $event = events::get(events::save($centreid, (object) ['kind' => 'openday', 'name' => 'Jornada', 'timestart' => time() + 5 * DAYSECS,
+            'timeend' => time() + 5 * DAYSECS + HOURSECS, 'capacity' => 0, 'open' => 1]), $centreid);
+        $ids = [];
+        foreach (['ana', 'eva'] as $name) {
+            $id = households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
+            households::add_adult(households::get($id, $centreid), (object) (['firstname' => $name] + ($name === 'ana' ?
+                ['email' => 'ana@example.org'] : ['phone' => '+34600111222'])));
+            events::sign_up($event, $id, 1);
+            $ids[] = $id;
+        }
+        $values = \local_oksigeniaeguahe\local\panel_eventform::values($event);
+        $notice = \local_oksigeniaeguahe\local\panel_eventform::notice($centre, [], $ids, $values);
+        $this->assertStringContainsString(get_string('panel_notice_by_email', 'local_oksigeniaeguahe', 1), $notice['who']);
+        $this->assertStringContainsString(get_string('panel_notice_neither_one', 'local_oksigeniaeguahe', 1), $notice['who']);
+    }
+
+    /**
+     * A send by phone asks, as each one goes, whether it still does: not of an act called off, not to whoever signed up or
+     * does not want invitations, and with the day as it is now.
+     */
+    public function test_still(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(households::create($id, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $id);
+        $adult = households::add_adult($household, (object) ['firstname' => 'Ana', 'phone' => '+34600111501']);
+        households::consent($household, $adult, 'whatsapp', true, 'family', 'es');
+        $DB->set_field(households::T, 'writeby', 'whatsapp', ['id' => $household->id]);
+        $start = time() + 9 * DAYSECS;
+        $event = events::get(events::save($id, (object) ['kind' => 'other', 'name' => 'Festival', 'timestart' => $start,
+            'timeend' => $start + HOURSECS, 'capacity' => 0, 'open' => 1]), $id);
+        $wording = new \ReflectionMethod(invites::class, 'wording');
+        $row = $DB->insert_record(invites::T, (object) ['centreid' => $id, 'eventid' => $event->id, 'householdid' => $household->id,
+            'userid' => 0, 'channel' => 'phone', 'bulkid' => 77, 'said' => $wording->invoke(null, $event), 'timecreated' => time()]);
+        $still = fn() => invites::still((int) $household->id, 77);
+        if (\local_oksigeniaeguahe\local\writeby::phone_ok(households::get((int) $household->id, $id), 'openinvite')) {
+            $this->assertTrue($still());
+            $DB->update_record(events::T, (object) ['id' => $event->id, 'timestart' => $start + DAYSECS, 'timeend' => $start + DAYSECS + HOURSECS]);
+            $this->assertIsArray($still());
+            $this->assertStringContainsString('Festival', implode(' ', $still()['params']));
+        }
+        $this->assertFalse(invites::still((int) $household->id, 78));
+        events::sign_up($event, (int) $household->id, 1);
+        $this->assertFalse($still(), 'It has said it comes.');
+        $DB->delete_records(events::SIGNUPS, ['eventid' => $event->id]);
+        $DB->set_field(events::T, 'cancelled', time(), ['id' => $event->id]);
+        $this->assertFalse($still(), 'Called off.');
+        $DB->set_field(events::T, 'cancelled', 0, ['id' => $event->id]);
+        $DB->set_field(households::T, 'noinvites', 1, ['id' => $household->id]);
+        $this->assertFalse($still());
+        $this->assertTrue($DB->record_exists(invites::T, ['id' => $row]));
+    }
 }

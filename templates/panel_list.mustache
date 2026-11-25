@@ -1,0 +1,64 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_list
+
+    What the last lists of the centre did by themselves (lista.php): what they ask, the children they enrolled and the
+    families they found to be of the centre, each with «It is not so»; and, on top, a list that came cut short.
+
+    Example context (json):
+    {
+        "i": {"info": ""},
+        "head": {"back": {"url": "#", "name": "Bandeja"}, "title": "Lo que dijo la lista", "sub": "Lo que hizo sola la última lista"},
+        "canact": true, "sesskey": "abc", "action": "#",
+        "hasheld": true, "held": [{"label": "Lista 2026-27", "text": "La lista llegó con 12 alumnos.", "accepted": false}],
+        "groups": [{"key": "enrolled", "name": "Matriculados por la lista", "help": "La lista los tiene como alta.",
+            "families": [{"id": 4, "adults": "Ana Ruiz", "url": "#", "householdid": 3, "when": "Hoy a las 4:10", "children": [{"tag": "Leo"}], "text": "En 1.º de Primaria", "ask": false, "undo": true}]}]
+    }
+}}
+<div class="pagina pagina-contestadas lista-dijo">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#hasheld}}
+    <section class="bloque contestadas-grupo dijo-nota">
+        <header><h2>{{#str}}listnews_held_title, local_oksigeniaeguahe{{/str}}</h2></header>
+        {{#held}}
+        <div class="contestada">
+            <span class="contestada-quien"><span>{{text}}</span>{{#accepted}}<span class="secundario">{{#str}}listnews_accepted, local_oksigeniaeguahe{{/str}}</span>{{/accepted}}</span>
+            {{#canact}}{{^accepted}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="accept"><input type="hidden" name="list" value="{{label}}"><button class="boton secundario pequeno" type="submit">{{#str}}listnews_accept, local_oksigeniaeguahe{{/str}}</button></form>{{/accepted}}{{/canact}}
+        </div>
+        {{/held}}
+    </section>
+    {{/hasheld}}
+    {{#groups}}
+    <section class="bloque contestadas-grupo dijo-{{key}}">
+        <header><h2>{{name}}</h2></header>
+        <p class="secundario">{{help}}</p>
+        {{#families}}
+        <div class="contestada">
+            <span class="contestada-quien"><span class="contestada-nombre"><a class="cita-familia" href="{{url}}">{{adults}}</a>{{#children}} <span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{#text}}<span>{{text}}</span>{{/text}}{{#ask}}<span>{{text}}</span>{{/ask}}<span class="secundario">{{when}}</span></span>
+            {{#canact}}
+            {{#ask}}
+            {{#which}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="child"><input type="hidden" name="familia" value="{{householdid}}"><input type="hidden" name="fila" value="{{id}}">{{#children}}<button class="boton secundario pequeno" type="submit" name="nino" value="{{id}}">{{name}}</button> {{/children}}<button class="enlace" type="submit" name="nino" value="0">{{#str}}panel_fromlist_none, local_oksigeniaeguahe{{/str}}</button></form>{{/which}}
+            {{^which}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="say"><input type="hidden" name="familia" value="{{householdid}}"><input type="hidden" name="fila" value="{{id}}"><button class="boton secundario pequeno" type="submit" name="si" value="1">{{yes}}</button> <button class="boton secundario pequeno" type="submit" name="si" value="0">{{no}}</button></form>{{/which}}
+            {{/ask}}
+            {{#undo}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="say"><input type="hidden" name="familia" value="{{householdid}}"><input type="hidden" name="fila" value="{{id}}"><button class="boton secundario pequeno" type="submit" name="si" value="0">{{#str}}listnews_notso, local_oksigeniaeguahe{{/str}}</button></form>{{/undo}}
+            {{/canact}}
+        </div>
+        {{/families}}
+    </section>
+    {{/groups}}
+</div>

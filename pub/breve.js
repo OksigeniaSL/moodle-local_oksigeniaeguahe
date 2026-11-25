@@ -48,6 +48,33 @@
                 window.parent.postMessage({eguahe: 'close'}, '*');
             }
         });
+        // Another button of the web, with the form already open: its option, without loading the page again.
+        var slug = function(words) {
+            return String(words || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        };
+        window.addEventListener('message', function(e) {
+            var said = e.data;
+            var set = document.querySelector('.fb-opciones');
+            if (e.source !== window.parent || !said || said.eguahe !== 'option' || !set) {
+                return;
+            }
+            var word = slug(said.o);
+            var found = -1;
+            JSON.parse(set.getAttribute('data-palabras') || '[]').forEach(function(labels) {
+                labels.forEach(function(label, i) {
+                    if (word && found < 0 && ('-' + label + '-').indexOf('-' + word) !== -1) {
+                        found = i;
+                    }
+                });
+            });
+            var option = set.querySelectorAll('input')[found];
+            if (option) {
+                set.setAttribute('data-de-serie', '');
+                option.checked = true;
+                option.dispatchEvent(new Event('change', {bubbles: true}));
+            }
+        });
         if (document.body.hasAttribute('data-enviado')) {
             window.parent.postMessage({eguahe: 'sent'}, '*');
         }

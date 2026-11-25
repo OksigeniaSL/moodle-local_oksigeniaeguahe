@@ -136,8 +136,8 @@ final class whyother_test extends \advanced_testcase {
         }
         $r = metrics::response((int) $this->centre->id);
         $this->assertSame(2, $r['answered']);
-        $this->assertSame(['median' => 2.0, 'count' => 1], $r['bychannel']['email']);
-        $this->assertSame(['median' => 40.0, 'count' => 1], $r['bychannel']['whatsapp']);
+        $this->assertSame(['median' => 2.0, 'count' => 1, 'asked' => 1, 'answered' => 1], $r['bychannel']['email']);
+        $this->assertSame(['median' => 40.0, 'count' => 1, 'asked' => 1, 'answered' => 1], $r['bychannel']['whatsapp']);
         $this->assertSame(['weekmorning', 'weekend'], array_keys($r['byband']));
     }
 }

@@ -20,7 +20,9 @@ namespace local_oksigeniaeguahe\local;
  * The keys that join the same family, or the same student, across the files a centre imports, without keeping who
  * they are. An email, a phone, a student code or a child's name becomes a keyed hash (HMAC-SHA256 with a secret of
  * the centre that never leaves the site), and the hash points to a token (HOG_…, ALU_…). The value itself is never
- * stored. When a row joins two tokens (the email of one and the phone of the other), they become one.
+ * stored. When a row joins two tokens of a student (the code of one and the name of the other), they become one. Which
+ * families are one is worked out from all the rows at once (listhomes): an email or a phone that students of different
+ * surnames share never joins them by itself.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -51,6 +53,22 @@ class pseudonym {
     /** @var array A token that was joined to another => the other, for this import. */
     protected $joined = [];
 
+    /** @var array Kind => hash => token of the keys still to be written, together. */
+    protected $pending = [];
+
+    /** @var array Kind => hash => token of the keys whose token changed, still to be written. */
+    protected $changed = [];
+
+    /** @var int The length of a key as the rows keep it: enough to tell them apart, and shorter. */
+    const SHORT = 24;
+
+    /** @var int The length of a word of a name as the rows keep it. */
+    const WORD = 12;
+
+    /** @var string[] The words of a name that join it, never a surname by themselves. */
+    const PARTICLES = ['de', 'del', 'la', 'las', 'los', 'el', 'y', 'i', 'e', 'da', 'das', 'do', 'dos', 'di', 'della', 'du', 'des',
+        'van', 'von', 'der', 'den', 'ten', 'ter', 'bin', 'ben', 'ibn', 'al'];
+
     /**
      * For a centre.
      *
@@ -79,14 +97,38 @@ class pseudonym {
     }
 
     /**
-     * A phone as a key: its last nine digits, so the same number with or without its country prefix is one.
+     * A phone as a key: its last nine digits, so the same number with or without its country prefix is one. A number
+     * written to fill the box (000000000, 600000000, 123456789) is of nobody.
      *
      * @param string $value
      * @return string|null
      */
     public static function phone(string $value): ?string {
         $digits = preg_replace('/\D/', '', $value);
-        return strlen($digits) >= 9 ? 'phone:' . substr($digits, -9) : null;
+        if (strlen($digits) < 9) {
+            return null;
+        }
+        $nine = substr($digits, -9);
+        if (
+            preg_match('/^(\d)\1{8}$/', $nine) || preg_match('/^\d0{8}$/', $nine) || in_array($nine, ['123456789', '012345678',
+            '234567890', '987654321', '876543210'], true)
+        ) {
+            return null;
+        }
+        return 'phone:' . $nine;
+    }
+
+    /**
+     * The words of a name that say who someone is: without accents, in lower case, without the ones that only join.
+     *
+     * @param string $value
+     * @return string[]
+     */
+    public static function words(string $value): array {
+        return array_values(array_unique(array_filter(
+            explode(' ', grades::plain($value)),
+            fn($w) => strlen($w) > 1 && !ctype_digit($w) && !in_array($w, self::PARTICLES, true)
+        )));
     }
 
     /**
@@ -102,6 +144,16 @@ class pseudonym {
         }
         sort($words);
         return 'name:' . implode(' ', $words);
+    }
+
+    /**
+     * A whole name as a key with its words in their order, for brothers and sisters whose names have the same words.
+     *
+     * @param string $value
+     * @return string|null
+     */
+    public static function ordered(string $value): ?string {
+        return self::name($value) === null ? null : 'ordered:' . grades::plain($value);
     }
 
     /**
@@ -135,6 +187,186 @@ class pseudonym {
      */
     public function keyhash(string $kind, string $key): string {
         return $this->hash($kind, $key);
+    }
+
+    /**
+     * The keys of an email or a phone as the rows of the lists keep them.
+     *
+     * @param array $keys Keys from email() and phone(); nulls are skipped.
+     * @return string[]
+     */
+    public function shorts(array $keys): array {
+        return array_values(array_unique(array_map(
+            fn($k) => substr($this->hash('household', $k), 0, self::SHORT),
+            array_filter($keys)
+        )));
+    }
+
+    /**
+     * The words of a name as the rows of the lists keep them: never the words.
+     *
+     * @param string[] $words From words().
+     * @return string[]
+     */
+    public function wordmarks(array $words): array {
+        return array_values(array_unique(array_map(fn($w) => substr($this->hash('word', $w), 0, self::WORD), $words)));
+    }
+
+    /**
+     * Reads at once the tokens of many keys, for a list about to come in.
+     *
+     * @param string $kind household or student.
+     * @param array $keys
+     */
+    public function warm(string $kind, array $keys): void {
+        global $DB;
+        $hashes = [];
+        foreach (array_unique(array_filter($keys)) as $key) {
+            $hash = $this->hash($kind, $key);
+            if (!isset($this->cache[$kind . ':' . $hash])) {
+                $hashes[$hash] = true;
+            }
+        }
+        foreach (array_chunk(array_keys($hashes), 500) as $chunk) {
+            [$in, $params] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
+            $found = $DB->get_records_select_menu(
+                self::T,
+                "centreid = :centreid AND kind = :kind AND keyhash $in",
+                $params + ['centreid' => $this->centreid, 'kind' => $kind],
+                '',
+                'keyhash, token'
+            );
+            foreach ($found as $hash => $token) {
+                $this->cache[$kind . ':' . $hash] = $token;
+            }
+        }
+    }
+
+    /**
+     * A token for the family of a row while the list comes in: the one its first key already had, or a new one. It never
+     * makes two families one: that is worked out afterwards, with all the rows (listhomes::settle()).
+     *
+     * @param array $keys Keys from email() and phone(), already read (warm()).
+     * @return string|null Null without any key.
+     */
+    public function home(array $keys): ?string {
+        $hashes = array_values(array_unique(array_map(fn($k) => $this->hash('household', $k), array_filter($keys))));
+        if (!$hashes) {
+            return null;
+        }
+        $token = null;
+        foreach ($hashes as $hash) {
+            $token = $token ?? $this->cache['household:' . $hash] ?? null;
+        }
+        $token = $token ?? self::KINDS['household']['prefix'] . random_string(16);
+        foreach ($hashes as $hash) {
+            if (!isset($this->cache['household:' . $hash])) {
+                $this->cache['household:' . $hash] = $token;
+                $this->pending['household'][$hash] = $token;
+            }
+        }
+        return $token;
+    }
+
+    /**
+     * The token a key already has, read before (warm()).
+     *
+     * @param string $kind
+     * @param string $key
+     * @return string|null
+     */
+    public function had(string $kind, string $key): ?string {
+        return $this->cache[$kind . ':' . $this->hash($kind, $key)] ?? null;
+    }
+
+    /**
+     * Gives a key its token, to be written with the others (flush()).
+     *
+     * @param string $kind
+     * @param string $key
+     * @param string|null $token Null, the key is nobody's.
+     */
+    public function give(string $kind, string $key, ?string $token): void {
+        $hash = $this->hash($kind, $key);
+        $was = $this->cache[$kind . ':' . $hash] ?? null;
+        if ($was === $token) {
+            return;
+        }
+        if (isset($this->pending[$kind][$hash])) {
+            if ($token === null) {
+                unset($this->pending[$kind][$hash]);
+            } else {
+                $this->pending[$kind][$hash] = $token;
+            }
+        } else if ($was !== null) {
+            $this->changed[$kind][$hash] = $token;
+        } else if (array_key_exists($hash, $this->changed[$kind] ?? [])) {
+            $this->changed[$kind][$hash] = $token;
+        } else {
+            $this->pending[$kind][$hash] = $token;
+        }
+        if ($token === null) {
+            unset($this->cache[$kind . ':' . $hash]);
+        } else {
+            $this->cache[$kind . ':' . $hash] = $token;
+        }
+    }
+
+    /**
+     * Writes the keys given while a list came in.
+     */
+    public function flush(): void {
+        global $DB;
+        $rows = [];
+        foreach ($this->pending as $kind => $hashes) {
+            foreach ($hashes as $hash => $token) {
+                $rows[] = (object) ['centreid' => $this->centreid, 'kind' => $kind, 'keyhash' => $hash, 'token' => $token,
+                    'timecreated' => time()];
+            }
+        }
+        if ($rows) {
+            $DB->insert_records(self::T, $rows);
+        }
+        foreach ($this->changed as $kind => $hashes) {
+            foreach ($hashes as $hash => $token) {
+                $where = ['centreid' => $this->centreid, 'kind' => $kind, 'keyhash' => $hash];
+                if ($token === null) {
+                    $DB->delete_records(self::T, $where);
+                } else {
+                    $DB->set_field(self::T, 'token', $token, $where);
+                }
+            }
+        }
+        $this->pending = [];
+        $this->changed = [];
+    }
+
+    /**
+     * A token for a new student.
+     *
+     * @return string
+     */
+    public static function newstudent(): string {
+        return self::KINDS['student']['prefix'] . random_string(16);
+    }
+
+    /**
+     * Makes two students one, everywhere.
+     *
+     * @param string $from
+     * @param string $to
+     */
+    public function one_student(string $from, string $to): void {
+        $this->merge('student', $from, $to);
+    }
+
+    /**
+     * A token for a new family.
+     *
+     * @return string
+     */
+    public static function newhome(): string {
+        return self::KINDS['household']['prefix'] . random_string(16);
     }
 
     /**

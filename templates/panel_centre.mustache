@@ -62,7 +62,7 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script"}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
+        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script", "heard": true, "late": false, "state": "Las citas van a «Admisiones».", "emptied": "", "hascalendars": true, "calendars": [{"id": "a", "name": "Admisiones", "main": true, "behind": false, "color": 0}, {"id": "b", "name": "Secretaría", "main": false, "behind": true, "color": 1}]}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
         "closedwords": "16 días cerrados por delante; el próximo, el martes 8 de diciembre de 2026.",
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
@@ -416,10 +416,47 @@
                     <span class="aj-lectura"><span>{{#str}}panel_cal_read, local_oksigeniaeguahe{{/str}}</span></span></summary>
                 <div class="aj-cuerpo">
                     <p>{{#str}}panel_cal_lead, local_oksigeniaeguahe{{/str}}</p>
-                    <div class="campo codigo-web"><label for="cal-guion">{{{i.codigo}}}{{#str}}panel_cal_google, local_oksigeniaeguahe{{/str}}</label><textarea id="cal-guion" readonly rows="6" spellcheck="false" dir="ltr">{{script}}</textarea><span class="ayuda">{{#str}}panel_cal_google_help, local_oksigeniaeguahe{{/str}}</span>
-                        <button class="boton terciario pequeno" type="button" data-copiar="{{script}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button></div>
-                    <div class="campo codigo-web"><label for="cal-enlace">{{#str}}panel_cal_link, local_oksigeniaeguahe{{/str}}</label><textarea id="cal-enlace" readonly rows="2" spellcheck="false" dir="ltr">{{ics}}</textarea><span class="ayuda">{{#str}}panel_cal_link_help, local_oksigeniaeguahe{{/str}}</span>
-                        <button class="boton terciario pequeno" type="button" data-copiar="{{ics}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div>
+                    <p class="cal-estado{{#late}} cal-estado-tarde{{/late}}{{^heard}} cal-estado-espera{{/heard}}"><span class="cal-luz" aria-hidden="true"></span><b>{{state}}</b></p>
+                    {{#emptied}}<p class="aviso-suave"><span>{{emptied}} <button class="enlace" type="submit" name="calrefill" value="1" formaction="{{action}}#aj-calendario">{{#str}}calsync_refill, local_oksigeniaeguahe{{/str}}</button></span></p>{{/emptied}}
+                    {{#hascalendars}}
+                    <div class="cal-cuales">
+                        <h3 class="rotulo-p" id="cal-cuales-t">{{#str}}calsync_list, local_oksigeniaeguahe{{/str}}</h3>
+                        <ul class="cal-lista" aria-labelledby="cal-cuales-t">
+                            {{#calendars}}
+                            <li class="cal-uno{{#main}} cal-uno-citas{{/main}}{{#behind}} cal-uno-fondo fondo-{{color}}{{/behind}}">
+                                <b>{{name}}</b>
+                                {{#main}}<span class="cal-uno-aqui">{{{i.check}}}{{#str}}calsync_here, local_oksigeniaeguahe{{/str}}</span>{{/main}}
+                                {{^main}}
+                                <button class="interruptor" type="submit" name="calbehind" value="{{id}}" formaction="{{action}}#aj-calendario" aria-pressed="{{#behind}}true{{/behind}}{{^behind}}false{{/behind}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}calsync_seen, local_oksigeniaeguahe{{/str}}<span class="oculto">: {{name}}</span></span></button>
+                                <button class="{{#chosen}}enlace{{/chosen}}{{^chosen}}boton secundario pequeno{{/chosen}}" type="submit" name="calmain" value="{{id}}" formaction="{{action}}#aj-calendario">{{#str}}calsync_use, local_oksigeniaeguahe{{/str}}<span class="oculto">: {{name}}</span></button>
+                                {{/main}}
+                            </li>
+                            {{/calendars}}
+                        </ul>
+                        <p class="ayuda">{{#str}}calsync_behind_help, local_oksigeniaeguahe{{/str}}</p>
+                    </div>
+                    {{/hascalendars}}
+                    <details class="cal-montar"{{^heard}} open{{/heard}}>
+                        <summary>{{{i.codigo}}}<span>{{#str}}panel_cal_setup, local_oksigeniaeguahe{{/str}}</span></summary>
+                        <ol class="cal-pasos">
+                            <li><span>{{#str}}panel_cal_step_copy, local_oksigeniaeguahe{{/str}}</span>
+                                <button class="boton secundario pequeno" type="button" data-copiar="{{script}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_code, local_oksigeniaeguahe{{/str}}</button>
+                                <details class="cal-codigo"><summary>{{#str}}panel_cal_code, local_oksigeniaeguahe{{/str}}</summary>
+                                    <textarea id="cal-guion" aria-label="{{#str}}panel_cal_setup, local_oksigeniaeguahe{{/str}}" readonly rows="8" spellcheck="false" dir="ltr">{{script}}</textarea></details></li>
+                            <li><span>{{#str}}panel_cal_step_paste, local_oksigeniaeguahe{{/str}}</span>
+                                <a class="boton secundario pequeno" href="https://script.google.com/home/projects/create" target="_blank" rel="noopener noreferrer">{{#str}}panel_cal_open, local_oksigeniaeguahe{{/str}}</a></li>
+                            <li><span>{{#str}}panel_cal_step_choose, local_oksigeniaeguahe{{/str}}</span></li>
+                        </ol>
+                        <p class="ayuda">{{#str}}panel_cal_every, local_oksigeniaeguahe{{/str}}</p>
+                    </details>
+                    <details class="cal-montar">
+                        <summary>{{{i.enlace}}}<span>{{#str}}panel_cal_link, local_oksigeniaeguahe{{/str}}</span></summary>
+                        <div class="codigo-web">
+                            <textarea id="cal-enlace" aria-label="{{#str}}panel_cal_link, local_oksigeniaeguahe{{/str}}" readonly rows="2" spellcheck="false" dir="ltr">{{ics}}</textarea>
+                            <button class="boton secundario pequeno" type="button" data-copiar="{{ics}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button>
+                            <span class="ayuda">{{#str}}panel_cal_link_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                    </details>
                     <p class="cal-nuevo"><button class="boton secundario pequeno" type="submit" name="calrenew" value="1" formaction="{{action}}#aj-calendario">{{#str}}panel_cal_renew, local_oksigeniaeguahe{{/str}}</button> <span class="secundario">{{#str}}panel_cal_renew_help, local_oksigeniaeguahe{{/str}}</span></p>
                 </div>
             </details>

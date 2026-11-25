@@ -110,10 +110,11 @@ if (!$email || trim((string) $options['name']) === '') {
     cli_error('An --email and a --name are needed.');
 }
 $lang = (string) $options['lang'] ?: ((string) $centre->lang ?: 'es');
-$id = households::create((int) $centre->id, (object) ['lang' => $lang, 'firstchannel' => 'email']);
-// A date long past: out of every campaign and of the numbers.
+$id = households::create((int) $centre->id, (object) ['lang' => $lang, 'firstchannel' => 'email',
+    'guest' => households::SAMPLE]);
+// Marked as made up: out of the inbox, the acts, the numbers, the reports and the downloads. And a date long past.
 $DB->update_record(households::T, (object) ['id' => $id, 'timecreated' => 946684800, 'lastcontact' => time()]);
-$household = $DB->get_record(households::T, ['id' => $id]);
+$household = households::get($id, (int) $centre->id);
 $adult = households::add_adult($household, (object) ['firstname' => trim((string) $options['name']),
     'lastname' => '(muestra)', 'email' => $email, 'phone' => trim((string) $options['phone']) ?: null]);
 households::consent($household, $adult, 'email', true, 'team', $lang);

@@ -445,6 +445,7 @@
         var f = Math.min(H / (lines.length * 1.15), W / (longest * 0.44 + 0.4));
         var t = el('div', '', 'font:700 ' + f.toFixed(1) + 'px/1.08 "Eg Mano",Caveat,cursive;color:' + ctx.L.tiza + ';opacity:.92;text-shadow:0 0 ' + (f * 0.05).toFixed(1) + 'px rgba(255,255,255,.35)');
         t.textContent = text;
+        t.dir = 'auto';
         t.style.whiteSpace = 'pre-line';
         b.appendChild(t);
       });
@@ -462,7 +463,11 @@
   // (U+2068…U+2069), so one in Arabic keeps the commas and the «y» in their place. A text without names: the day.
   function helloText(names, opts) {
     var T = opts.texts || TEXTS;
-    if (!names || !names.length) {
+    // A child whose name nobody has said yet is not greeted with a hole.
+    var all = (names || []).length;
+    names = (names || []).filter(function (n) { return !!n; });
+    if (!names.length) {
+      if (all && T.hi) { return T.hi; }
       var d = new Date(opts.date || Date.now());
       return fill(T.today, { day: T.days[d.getDay()] });
     }
@@ -564,7 +569,7 @@
       bottles(host, ctx, s.botellas_m.base, s.botellas_m.separacion, pl.kids, bright, true);
       later.push(function () {
         cards(host, ctx, s.tarjeta.centro_m, s.tarjeta.ancho_m, s.tarjeta.alto_m, pl.kids, pl.kids.map(function (c) { return c.tag; }));
-        if (pl.muda && s.caja_muda) { boxLabel(host, ctx, s.caja_muda.centro_m, s.caja_muda.ancho_m, s.caja_muda.alto_m, pl.kids.map(function (c) { return c.tag; }).join(' · ')); }
+        if (pl.muda && s.caja_muda) { boxLabel(host, ctx, s.caja_muda.centro_m, s.caja_muda.ancho_m, s.caja_muda.alto_m, pl.kids.map(function (c) { return c.tag; }).filter(function (n) { return !!n; }).join(' · ')); }
       });
     });
     names.forEach(function (f) { f(); });

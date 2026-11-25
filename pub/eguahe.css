@@ -1056,6 +1056,17 @@ textarea {
     border-radius: 14px;
     background: var(--eg-superficie);
 }
+.aviso.en-heroe p + p,
+.aviso.en-heroe .no-podemos {
+    margin-top: 6px;
+}
+
+/* One under the other, each with room for a finger. */
+.otros-dias a {
+    display: block;
+    padding: 9px 0;
+}
+
 /* ---------- The visit: a band in the centre's colour ---------- */
 .banda {
     background: var(--c-acento);
@@ -3950,6 +3961,11 @@ textarea.renglones:focus-visible {
     font-weight: 650;
 }
 
+.foto-dibujo input[type="file"] {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .dibujo-tomar {
     display: grid;
     gap: 16px;
@@ -5393,10 +5409,16 @@ button.enlace span {
     margin: 0;
 }
 
-/* Not coming after all: a quiet link beside the others of the visit. */
+/* Not coming after all: a quiet link beside the others of the visit, underlined as they are. */
 .banda .no-podemos {
     display: inline;
     margin: 0;
+}
+
+.banda .no-podemos button {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 3px;
 }
 
 /* ---------- One thing of now, and the rest under «Also on your page» ----------
@@ -6511,6 +6533,30 @@ html {
     animation: es-traza 0.7s ease-out forwards 0.9s;
 }
 
+@media (max-width: 640px) {
+    .es-hecho .titular {
+        font-size: 1.9rem;
+        line-height: 1.12;
+    }
+
+    .es-nota {
+        padding: 26px 22px 20px;
+    }
+
+    .es-mano {
+        gap: 10px;
+    }
+
+    .es-mano svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    .es-firma {
+        padding-inline-start: 40px;
+    }
+}
+
 .es-mano.es-pendiente svg path {
     stroke-dasharray: 6 9;
     stroke-dashoffset: 0;
@@ -6518,7 +6564,9 @@ html {
 }
 
 .es-firma {
-    margin-top: 12px;
+    /* Under the words, not under the mark before them. */
+    margin: 12px 0 0;
+    padding-inline-start: 58px;
     font-size: 0.875rem;
     color: #6b5f63;
 }

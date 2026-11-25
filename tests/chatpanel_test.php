@@ -86,4 +86,26 @@ final class chatpanel_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         $this->assertTrue(chatpanel::find((int) $user->id, 'ana@example.com', '')['nobody']);
     }
+
+    /**
+     * A day the team noted in its sheet is the next visit too, here and in what the chat is told.
+     */
+    public function test_next_of_the_sheet(): void {
+        global $DB, $USER;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        centres::add_member($cid, (int) $USER->id);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $cid);
+        households::add_adult($household, (object) ['firstname' => 'Ana', 'phone' => '+34600111333']);
+        $this->assertNull(chatpanel::next($household, households::full($household), time()));
+        $DB->insert_record(\local_oksigeniaeguahe\local\teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $household->id,
+            'mark' => sha1('cita'), 'entryid' => 3, 'contactid' => 0, 'visit' => time() + 4 * DAYSECS, 'dayonly' => 0, 'seen' => time(),
+            'timecreated' => time()]);
+        $next = chatpanel::next($household, households::full($household), time());
+        $this->assertNotNull($next);
+        $this->assertFalse($next['act']);
+        $lines = \local_oksigeniaeguahe\local\chatcontext::lines('+34600111333', (int) $USER->id, time());
+        $this->assertStringContainsString(\local_oksigeniaeguahe\local\panel::day_hour($next['start']), implode("\n", $lines));
+    }
 }

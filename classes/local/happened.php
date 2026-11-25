@@ -33,11 +33,15 @@ class happened {
      *
      * @param \stdClass $line A contact.
      * @param bool $answers Whether it answers something the family had asked.
-     * @return string wrote, called, camein, signed, left, spoke, noted, answered, told, invited or sent.
+     * @return string wrote, called, camein, signed, left, spoke, noted, answered, told, tried, invited or sent.
      */
     public static function kind(\stdClass $line, bool $answers = true): string {
         if ($line->direction === 'out') {
             $told = !$answers || (string) ($line->aim ?? '') === 'told';
+            if ((string) ($line->aim ?? '') === 'tried') {
+                // A call nobody answered.
+                return 'tried';
+            }
             return !(int) $line->userid ? 'sent' : (self::to_many($line) ? 'invited' : ($told ? 'told' : 'answered'));
         }
         if ($line->direction !== 'in' || households::is_hand_note($line)) {

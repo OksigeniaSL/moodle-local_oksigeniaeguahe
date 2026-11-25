@@ -175,6 +175,10 @@ class story {
             if ($child->stage !== 'enrolled' || !empty($child->lefttime) || !$gives || !self::is_new($child, $offer)) {
                 continue;
             }
+            if (familypage::label_name($child) === '') {
+                // It is told with its name, and nobody has said it yet.
+                continue;
+            }
             // Without its own first day, around when the course usually starts; never for good.
             $first = firstdays::of($offer, $centre) ?: firstdays::usual($offer, $offers, $centre);
             if (

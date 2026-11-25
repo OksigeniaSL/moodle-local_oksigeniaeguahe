@@ -47,7 +47,11 @@ if (!$centre) {
         $list[] = ['name' => format_string($each->name), 'url' => (new moodle_url(
             '/local/oksigeniaeguahe/index.php',
             ['c' => $each->id]
-        ))->out(false), 'waiting' => households::waiting_count((int) $each->id)];
+        ))->out(false), 'waiting' => ($n = households::waiting_count((int) $each->id)), 'waitingtext' => get_string(
+            $n === 1 ? 'inbox_waiting_one' : 'inbox_waiting',
+            $c,
+            $n
+        )];
     }
     echo $OUTPUT->header();
     echo $OUTPUT->render_from_template('local_oksigeniaeguahe/pick_centre', ['centres' => $list, 'hascentres' => (bool) $list,
@@ -89,6 +93,7 @@ $view = ['course' => optional_param('curso', 0, PARAM_INT), 'stage' => optional_
     'siblings' => optional_param('hermanos', 0, PARAM_BOOL), 'volunteers' => optional_param('voluntarias', 0, PARAM_BOOL),
     'starting' => optional_param('primerdia', 0, PARAM_BOOL), 'birthdays' => optional_param('cumple', 0, PARAM_BOOL),
     'density' => $density, 'places' => optional_param('plazas', '', PARAM_TEXT),
+    'outs' => optional_param('salidas', 0, PARAM_BOOL), 'list' => optional_param('f', '', PARAM_ALPHANUMEXT),
     'alumni' => optional_param('antiguos', 0, PARAM_BOOL), 'query' => optional_param('q', '', PARAM_TEXT),
     'limit' => optional_param('n', 0, PARAM_INT)];
 $url = new moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id] + ($all ? ['all' => 1] : []));

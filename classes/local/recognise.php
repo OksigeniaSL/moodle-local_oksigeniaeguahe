@@ -77,7 +77,7 @@ class recognise {
         'guardianname' => ['\btutor', 'padre', 'madre', 'responsable', 'guardian', 'parent', '\bpai\b', '\bmae\b',
             'progenitor', 'relacion con', 'parentesco', 'relationship', 'custodia'],
         'studentid' => ['^cial$', '^nia$', 'idnumber', '^id number$', 'id alumno', 'student id',
-            'codigo (de )?alumno', 'expediente n', 'numero de expediente', '^usuario$', '^username$', '^login$',
+            'codigo (de )?alumno', 'expediente n', '(numero|no|n) (de )?expediente', '^expediente$', '^usuario$', '^username$', '^login$',
             '^user$'],
         'fullname' => ['nombre (y|completo)', 'full ?name', 'nome completo', 'nombre.*acompan', 'name.*accompan',
             'nome.*acompanh'],
@@ -435,6 +435,15 @@ class recognise {
             }
         }
         $kind = $kind ?? self::kind($columns, $sheet['name'], $filename);
+        if (in_array($kind, ['joins', 'leaves', 'roll'], true) && !array_intersect(['fullname', 'childname', 'firstname', 'surname'], $roles)) {
+            // In a list of students, «Alumno» is its name.
+            foreach ($columns as $j => $col) {
+                if ($col['role'] === null && preg_match('/^(alumn[oa]|estudiante|student|pupil|alun[oa])$/', self::plain($col['title']))) {
+                    $columns[$j]['role'] = 'fullname';
+                    break;
+                }
+            }
+        }
         $columns = self::emails($columns, $body, $kind);
         $data = [];
         foreach ($body as $row) {

@@ -72,11 +72,11 @@ class knownpage {
             // With an older child, the classrooms for all, as on the page of a family.
             $key = ($host !== '' ? 'pub_lead_host' : 'pub_lead_team') . (!$tags ? '_nochild' :
                 (ages::older($kids, $centre, $offers) ? '_older' : '') . (count($tags) > 1 ? '_many' : ''));
-            $place = trim(implode(' · ', array_filter([$signup->place ? format_string($signup->place) : '',
+            $place = trim(implode(' · ', array_filter([$signup->place ? publicpage::text($signup->place) : '',
                 (string) ($centre->address ?? '')])));
             // Of a talk or a party: that they have a place, and nothing of who receives them.
             $event = ['lead' => $act ? s(actmail::saved($act, $lang)) : publiclang::str($key, $lang, $a), 'weekday' => $parts['weekday'],
-                'daymonth' => $parts['daymonth'], 'name' => format_string($signup->eventname),
+                'daymonth' => $parts['daymonth'], 'name' => publicpage::text($signup->eventname),
                 'hours' => familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang), 'place' => $place];
         }
         return [

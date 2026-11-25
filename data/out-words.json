@@ -1,0 +1,14 @@
+{
+    "about": "What the notes of the team say when a family goes or never was one, on a text in lower case and without accents: only a proposal, that a person confirms. The first that matches is the one.",
+    "words": [
+        {"re": "\\b(se|me|nos) equivoc|\\bse confundi|por (error|equivocacion)|\\bno (queria|era su intencion) (rellenar|enviar|pedir)|\\bby mistake\\b|\\bwrong (number|form)\\b|\\bpor engano\\b|\\benganou", "reason": "mistake"},
+        {"re": "(busca|buscaba|buscaban|queria|queria|pensaba|ofert|bolsa)[^.]{0,40}\\b(empleo|trabajo)\\b|\\bcurriculum\\b|\\bcurriculo\\b|looking for (a )?(job|work)|(procura|procurava)[^.]{0,30}(emprego|trabalho)", "reason": "job"},
+        {"re": "\\b(el|la|su) (nino|nina|hij[oa]|sobrin[oa]|niet[oa])\\b[^.]{0,40}(movil|telefono|jugando|le dio)|\\bsin darse cuenta\\b|\\bsin querer\\b|\\bno (fue|ha sido) (ella|el|ellos)\\b|accidentally", "reason": "someoneelse"},
+        {"re": "(pensaba|creia|pensaban|creian)[^.]{0,50}\\b(otr[oa]|lugo|galicia|peninsula|ciudad|sitio|isla|pais)\\b|\\bwrong (city|school)\\b", "reason": "elsewhere"},
+        {"re": "\\bspam\\b|\\bpublicidad\\b.{0,20}\\b(empresa|comercial)\\b|\\bes un comercial\\b", "reason": "spam"},
+        {"re": "\\b(no|ya no) (le|les|esta|estan|me|nos)? ?(interesa|interesad)|\\bno (quiere|quieren) (mas |saber|informacion|la cita|seguir|nada)|\\bnot interested\\b|\\bsem interesse\\b|\\bnao (tem|tem mais|esta) interesse", "reason": "notinterested"},
+        {"re": "\\b(ya (tiene|tienen|esta|estan|lo tiene|la tiene)|ha(n)? elegido|se (va|van|queda|quedan)|matricul\\w+) [^.]{0,30}\\b(otro|otra) (cole|colegio|centro|escuela)|\\bya tienen? (cole|colegio|centro|plaza)\\b|\\bother school\\b|\\boutra escola\\b", "reason": "othercentre"},
+        {"re": "\\b(vive|viven) (muy )?(lejos|en (la )?(peninsula|otra isla))|\\b(queda|esta) (muy )?lejos\\b|\\btoo far\\b|\\bmuito longe\\b", "reason": "far"},
+        {"re": "\\b(muy|demasiado) caro\\b|\\bno (puede|pueden) (pagar|permitirse)|\\bpor el (precio|coste)\\b|\\btoo expensive\\b|\\bmuito caro\\b", "reason": "cost"}
+    ]
+}

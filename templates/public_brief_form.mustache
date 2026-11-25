@@ -18,7 +18,7 @@
     @template local_oksigeniaeguahe/public_brief_form
 
     The form of Eguahe, the same inside the web of a centre (public_brief) and on its own page (public_join): what is
-    needed to answer, all of it in sight; and, once sent, two lines in the same place. What is wrong takes the place of the
+    needed to answer, all of it in sight; another child, folded (others); and, once sent, two lines in the same place. What is wrong takes the place of the
     name of its field, so nothing moves. On its own page (whole) it asks besides how many come (people), the questions of a
     form of the centre (questions, as public_questions) and a line to tick (tellme), and folds what they want to write (the
     field with fold) and how their data is treated (info; inside a web, a link).
@@ -27,10 +27,13 @@
     {
         "action": "#", "mark": "1", "trap": "web2", "self": false, "sent": false,
         "ask": {"name": "f7", "label": "¿Cómo quieren conocernos?", "error": false,
-            "options": [{"id": "o0", "value": "Un día de clase", "label": "Un día de clase", "checked": true}]},
-        "fields": [{"id": "b0", "name": "a0first", "label": "Su nombre", "value": "", "error": "", "type": "text", "autocomplete": "name", "inputmode": "", "ltr": false, "select": false, "last": false, "need": "nombre", "peg": false, "fold": false},
-            {"id": "b1", "name": "c0offer", "label": "Curso", "value": "", "error": "", "type": "text", "autocomplete": "off", "inputmode": "", "ltr": false, "last": true, "need": "", "peg": false, "fold": false,
+            "words": "[]", "given": false, "options": [{"id": "o0", "value": "Un día de clase", "label": "Un día de clase", "checked": true}]},
+        "unsent": "Ahora mismo no se puede enviar.", "team": false,
+        "fields": [{"id": "b0", "name": "a0first", "label": "Tu nombre", "value": "", "error": "", "type": "text", "autocomplete": "name", "inputmode": "", "ltr": false, "select": false, "last": false, "need": "nombre", "mark": false, "peg": false, "fold": false, "area": false, "wide": false},
+            {"id": "b1", "name": "c0offer", "label": "Curso", "value": "", "error": "", "type": "text", "autocomplete": "off", "inputmode": "", "ltr": false, "last": true, "need": "", "mark": false, "peg": false, "fold": false, "area": false, "wide": false,
                 "select": {"none": "Aún no lo sabemos", "groups": [{"label": "Infantil", "options": [{"value": 3, "name": "Infantil 3 años", "selected": false}]}], "options": []} }],
+        "hasothers": true, "others": [{"open": false, "title": "Otro alumno", "fields": [{"id": "c1name", "name": "c1name", "label": "Nombre del alumno", "value": "", "error": "",
+            "type": "text", "autocomplete": "off", "inputmode": "", "ltr": false, "select": false, "last": false, "need": "", "mark": true, "peg": false, "area": false, "wide": false}]}],
         "whole": true, "people": {"name": "people", "label": "Cuántos vienen", "value": 2, "min": 1, "max": 12, "less": "Uno menos", "more": "Uno más"},
         "hasquestions": false, "questions": [], "emailcheck": {"domains": "gmail.com outlook.com", "maybe": "¿Quisieron decir {$a}?", "use": "Sí, usar ese"},
         "tellme": {"name": "tellme", "label": "Queremos que nos cuenten del centro", "checked": false},
@@ -48,40 +51,42 @@
 </div>
 {{/sent}}
 {{^sent}}
-<form method="post" action="{{action}}" novalidate data-fb{{#emailcheck}} data-dominios="{{domains}}" data-quisieron="{{maybe}}" data-usar="{{use}}"{{/emailcheck}}>
+<form method="post" action="{{action}}" novalidate data-fb data-sin-enviar="{{unsent}}"{{#emailcheck}} data-dominios="{{domains}}" data-quisieron="{{maybe}}" data-usar="{{use}}"{{/emailcheck}}>
     <input type="hidden" name="sesskey" value="{{mark}}"><input type="hidden" name="llegadasent" value="1">
     {{#arrival}}<input type="hidden" name="llegada{{key}}" value="{{value}}">{{/arrival}}
     {{#self}}<input type="hidden" name="para" value="yo">{{/self}}
     <div class="fb-trampa" aria-hidden="true"><label>Web <input name="{{trap}}" tabindex="-1" autocomplete="off"></label></div>
     {{#ask}}
-    <fieldset class="fb-opciones">
-        <legend{{#error}} class="fb-mal"{{/error}}>{{label}}</legend>
+    <fieldset class="fb-opciones" data-palabras="{{words}}"{{#given}} data-de-serie{{/given}}>
+        <legend>{{label}}{{#error}} <span class="fb-mal">{{error}}</span>{{/error}}</legend>
         {{#options}}<label for="{{id}}"><input type="radio" id="{{id}}" name="{{name}}" value="{{value}}"{{#checked}} checked{{/checked}}><span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{label}}</span></label>{{/options}}
     </fieldset>
     {{/ask}}
     <div class="fb-campos">
         {{#fields}}{{^fold}}
-        <p class="fb-campo{{#last}} fb-ancho{{/last}}{{#select}} fb-lista{{/select}}">
-            {{#select}}<select id="{{id}}" name="{{name}}"{{#need}} data-hace-falta="{{need}}"{{/need}}{{#error}} aria-invalid="true"{{/error}}><option value="0">{{none}}</option>{{#groups}}<optgroup label="{{label}}">{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options}}</optgroup>{{/groups}}{{#options}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/options}}</select>{{/select}}
-            {{^select}}<input id="{{id}}" name="{{name}}" type="{{type}}" value="{{value}}" placeholder=" " autocomplete="{{autocomplete}}"{{#inputmode}} inputmode="{{inputmode}}"{{/inputmode}}{{#ltr}} dir="ltr"{{/ltr}}{{#need}} data-hace-falta="{{need}}"{{/need}}{{#peg}} data-child="0"{{/peg}}{{#error}} aria-invalid="true"{{/error}}>{{/select}}
-            {{#error}}<label for="{{id}}" class="fb-mal" data-nombre="{{label}}"><span class="fb-oculto">{{label}}: </span>{{error}}</label>{{/error}}{{^error}}<label for="{{id}}">{{label}}</label>{{/error}}
-            <svg class="fb-listo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11"/><path d="M7 12.5l3.4 3.4L17 9"/></svg>
-        </p>
+        {{> local_oksigeniaeguahe/public_brief_field }}
         {{/fold}}{{/fields}}
-        {{#whole}}{{#people}}
+        {{#others}}
+        <details class="fb-otro"{{#open}} open{{/open}}>
+            <summary><span>{{title}}</span></summary>
+            <div class="fb-campos">{{#fields}}{{> local_oksigeniaeguahe/public_brief_field }}{{/fields}}</div>
+        </details>
+        {{/others}}
+        {{#people}}
         <p class="fb-campo fb-paso" data-fb-paso>
             <label for="unir-{{name}}">{{label}}</label>
             <button class="fb-mas-menos" type="button" data-fb-menos aria-label="{{less}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>
             <input id="unir-{{name}}" name="{{name}}" type="number" inputmode="numeric" min="{{min}}" max="{{max}}" value="{{value}}">
             <button class="fb-mas-menos" type="button" data-fb-mas aria-label="{{more}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
         </p>
-        {{/people}}{{/whole}}
+        {{/people}}
     </div>
     {{#hasquestions}}<div class="fb-preguntas">{{> local_oksigeniaeguahe/public_join_questions }}</div>{{/hasquestions}}
     {{#whole}}{{#tellme}}<label class="fb-linea" for="unir-{{name}}"><input type="checkbox" id="unir-{{name}}" name="{{name}}" value="1"{{#checked}} checked{{/checked}}><span>{{label}}</span></label>{{/tellme}}{{/whole}}
     <div class="fb-pie">
         <p class="fb-nota{{#hinterror}} fb-mal{{/hinterror}}"{{#hinterror}} role="alert"{{/hinterror}}>{{hint}}{{^whole}} <a href="{{privacyurl}}" target="_blank" rel="noopener">{{privacy}}</a>{{/whole}}</p>
-        <button class="fb-enviar" type="submit"><span>{{send}}</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+        {{#team}}<span class="fb-equipo"><button type="submit" name="prueba" value="si">{{yes}}</button> <button type="submit" name="prueba" value="no">{{no}}</button></span>{{/team}}
+        {{^team}}<button class="fb-enviar" type="submit"><span>{{send}}</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>{{/team}}
     </div>
     {{#whole}}
     <div class="fb-plegados">

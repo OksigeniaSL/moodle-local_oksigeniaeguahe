@@ -88,13 +88,16 @@ class panel_inbox {
         // The families where someone studied at the centre, also those already of the centre, when asked.
         $alumni = alumni::families($centreid);
         $onlyalumni = !empty($view['alumni']) && $alumni;
+        // The families behind a number of Numbers.
+        $numbers = !empty($view['list']) ? familylists::of($centre, (string) $view['list'], $now) : null;
         // A filter that picks some families fetches exactly those, never the first of the list that happen to be them.
         $picked = null;
         foreach (
             [$onlyalumni ? array_keys($alumni) : null, $onlystarting ? array_keys($starting) : null,
                 $onlybirthdays ? array_keys($birthdays) : null, $onlysiblings ? array_keys($due) : null,
                 $onlyvolunteers ? $DB->get_fieldset_select(households::T, 'id', 'centreid = ? AND volunteer > 0', [$centreid]) :
-                null] as $ids
+                null,
+                !empty($view['outs']) ? array_keys(outs::proposals($centreid, $now)) : null, $numbers ? $numbers['ids'] : null] as $ids
         ) {
             if ($ids !== null) {
                 $ids = array_map('intval', $ids);
@@ -116,8 +119,10 @@ class panel_inbox {
             $list = households::some($centreid, $picked, $limit);
             $found = count($picked);
         } else {
-            $list = households::inbox($centreid, $waitingonly, $limit, false, $course, $stage);
-            $found = households::inbox_count($centreid, $waitingonly, $course, $stage);
+            // What was promised and is due, and who comes today, are always there, whatever the family is.
+            $also = array_map('intval', array_keys(attend::due($centreid, $now) + self::coming_today($centreid, $now)));
+            $list = households::inbox($centreid, $waitingonly, $limit, false, $course, $stage, $also);
+            $found = households::inbox_count($centreid, $waitingonly, $course, $stage, $also);
         }
         $shown = count($list);
         $list = array_filter($list, function ($household) use ($course, $stage) {
@@ -147,12 +152,19 @@ class panel_inbox {
             $sub = self::longest($centreid, $now);
         }
 
+        // Opened from a number: what it is, and how many.
+        if ($numbers) {
+            $title = $numbers['title'];
+            $sub = get_string('familylist_count' . (count($numbers['ids']) === 1 ? '_one' : ''), $c, count($numbers['ids']));
+        }
+
         // The list as cards or as a ledger: what the person chose, else by how many families there are.
         $density = in_array($view['density'] ?? '', ['fichas', 'lista'], true) ? $view['density'] :
             (string) get_user_preferences(self::DENSITY, '', $userid);
         $density = in_array($density, ['fichas', 'lista'], true) ? $density : (count($list) >= self::LEDGER ? 'lista' : 'fichas');
         $base = ['c' => $centreid] + ($all ? ['all' => 1] : []) + ($course ? ['curso' => $course] : []) +
-            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []) + ($query !== '' ? ['q' => $query] : []);
+            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []) + ($numbers ? ['f' => (string) $view['list']] : []) +
+            ($query !== '' ? ['q' => $query] : []);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         // The search, a form that asks the server (Enter); on the page, what is on the screen filters as one writes.
         $hidden = [];
@@ -262,7 +274,7 @@ class panel_inbox {
             // The school years with places, as leaves, when there is more than one; the one of the campaign first chosen.
             'placesyears' => $places['years'],
             'hasplacesyears' => count($places['years']) > 1,
-            'path' => self::path($centreid),
+            'path' => self::path($centreid, $now),
             // The first day of the courses, without its questions (they are notes of today).
             'firstday' => $firstday ? ['url' => $firstday['url'], 'text' => $firstday['text']] : false,
             // Who goes on next school year: how many answered while the centre asks, or the way in to ask.
@@ -328,10 +340,27 @@ class panel_inbox {
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
                 'sesskey' => sesskey()] : false];
         }
+        // A family that erased its data had a visit to come: without its name, the hour that is free again.
+        foreach (households::gone_visits($centreid, $now) as $start) {
+            $key = 'gonevisit-' . $start;
+            if (!moments::knows($centreid, $key)) {
+                $out[] = ['leaf' => panel::leaf($start), 'blank' => false, 'title' => get_string('gonevisit_title', $c),
+                    'short' => self::short('gonevisit_title'), 'text' => get_string('gonevisit_text', $c, panel_agenda::day($start) . ', ' .
+                        panel::hour($start)), 'url' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centreid,
+                        'semana' => userdate($start, '%Y-%m-%d', \core_date::get_server_timezone(), false)]))->out(false),
+                    'link' => get_string('panel_today_look', $c), 'known' => centres::can_act((int) $USER->id) ? ['key' => $key,
+                    'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
+                    'sesskey' => sesskey()] : false];
+            }
+        }
         foreach ($asks as $ask) {
             // A course without a day yet: its leaf blank, waiting to be written.
             $out[] = ['leaf' => $ask['leaf'], 'blank' => !$ask['leaf'], 'title' => '', 'text' => $ask['text'], 'url' => $ask['url'],
                 'link' => get_string('panel_today_look', $c), 'known' => false];
+        }
+        // What the last lists of the centre did by themselves, and one that came cut short.
+        foreach (listnews::notes($centre, centres::can_act((int) $USER->id)) as $note) {
+            $out[] = $note;
         }
         $notes = [
             'starting' => ['panel_story_inbox', 'panel_story_inbox_one', 'panel_story_inbox_text', 'primerdia'],
@@ -361,6 +390,14 @@ class panel_inbox {
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $maybe[0]], 'quien-escribe'))
                     ->out(false),
                 'link' => get_string('alumni_inbox_see', $c), 'known' => false];
+        }
+        // What the notes say of those that may have gone: a person says.
+        $outs = centres::can_act((int) $USER->id) ? count(outs::proposals($centreid, $now)) : 0;
+        if ($outs) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('outs_inbox_title', $c),
+                'short' => self::short('outs_inbox_title'),
+                'text' => $outs === 1 ? get_string('outs_inbox_one', $c) : get_string('outs_inbox', $c, $outs),
+                'url' => $url(['c' => $centreid, 'salidas' => 1]), 'link' => get_string('outs_inbox_see', $c), 'known' => false];
         }
         // The same family written down twice, from the families of the last half year: a person says if it is.
         $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);
@@ -600,9 +637,12 @@ class panel_inbox {
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'espera',
                     'day' => self::waits_since((int) $household->waitingsince, $days),
                     'sub' => $days >= 2 ? get_string('panel_ago_days', $c, $days) : '', 'answered' => false, 'rows' => []];
-            } else if (settled::gone($household->children)) {
+            } else if (settled::gone($household->children) || outs::is_out($household)) {
                 // They left: last, behind the line of those in the centre.
                 $key = 'sefueron';
+                if (outs::is_out($household)) {
+                    $row['via'] = get_string('out_' . $household->outreason, $c) . ' · ' . $row['via'];
+                }
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'sefueron',
                     'day' => get_string('panel_group_gone', $c), 'sub' => '', 'answered' => true, 'rows' => []];
             } else if (settled::in_centre($household->children)) {
@@ -611,6 +651,14 @@ class panel_inbox {
                 $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'encentro',
                     'day' => get_string('panel_group_incentre', $c), 'sub' => get_string('panel_group_incentre_sub', $c),
                     'answered' => true, 'rows' => []];
+            } else if ($household->children && !array_filter($household->children, fn($k) => $k->stage !== 'closed')) {
+                // The way of every child stopped: with why, behind those that go on.
+                $key = 'cerradas';
+                $why = array_unique(array_map(fn($k) => get_string('closed_' . ($k->closedreason ?: 'other'), $c), $household->children));
+                $row['via'] = implode(' · ', $why) . ' · ' . $row['via'];
+                $groups[$key] = $groups[$key] ?? ['key' => $key, 'kind' => 'contestadas',
+                    'day' => get_string('panel_group_closed', $c), 'sub' => get_string('panel_group_closed_sub', $c), 'answered' => true,
+                    'rows' => []];
             } else if (!$row['answer']) {
                 // They wait for nothing, but nobody answered them either: never among the answered ones. Nobody of the
                 // team wrote to them, or someone did and they have said nothing.
@@ -627,7 +675,7 @@ class panel_inbox {
         }
         // Today first, then the waiting days from the oldest, then those nobody wrote to, then the answered ones.
         $last = ['prometido' => -2000000, 'hoy' => -1000000, 'sinescribir' => 800000, 'escritas' => 900000, 'contestadas' => 1000000,
-            'encentro' => 2000000, 'sefueron' => 3000000];
+            'cerradas' => 1500000, 'encentro' => 2000000, 'sefueron' => 3000000];
         $order = fn($key) => $last[$key] ?? -(int) substr($key, 6);
         uksort($groups, fn($a, $b) => $order($a) <=> $order($b));
         return array_values(array_map(fn($g) => $g + ['count' => count($g['rows'])], $groups));
@@ -656,29 +704,45 @@ class panel_inbox {
     }
 
     /**
-     * The families that come today, to a visit or an event: the hour, and the hour with who receives them.
+     * The families that come today to see the centre, to a visit or an open day, or with an appointment of the sheet of the
+     * team: the hour, and the hour with who receives them. Not those of which it was said that they came or did not.
      *
      * @param int $centreid
      * @param int $now
      * @return array Household id => text and hour.
      */
-    protected static function coming_today(int $centreid, int $now): array {
+    public static function coming_today(int $centreid, int $now): array {
         global $DB;
         $zone = \core_date::get_user_timezone_object();
-        $start = (new \DateTime('@' . $now))->setTimezone($zone)->setTime(0, 0)->getTimestamp();
+        $day = (new \DateTimeImmutable('@' . $now))->setTimezone($zone)->setTime(0, 0);
+        $start = $day->getTimestamp();
+        $end = $day->modify('+1 day')->getTimestamp();
         $rows = $DB->get_records_sql(
             'SELECT s.id, s.householdid, COALESCE(t.timestart, e.timestart) AS timestart, e.hosts
                                         FROM {local_oksigeniaeguahe_signup} s
                                         JOIN {' . events::T . '} e ON e.id = s.eventid
                                    LEFT JOIN {local_oksigeniaeguahe_slot} t ON t.id = s.slotid
-                                       WHERE e.centreid = :centreid AND s.attended = 0 AND e.cancelled = 0
+                                       WHERE e.centreid = :centreid AND s.attended = 0 AND s.missed = 0 AND e.cancelled = 0
                                              AND e.kind <> :act
                                              AND COALESCE(t.timestart, e.timestart) >= :start
-                                             AND COALESCE(t.timestart, e.timestart) < :end',
+                                             AND COALESCE(t.timestart, e.timestart) < :end
+                                    ORDER BY timestart DESC, s.id DESC',
             // To see the centre: a talk is not that.
-            ['centreid' => $centreid, 'start' => $start, 'end' => $start + DAYSECS, 'act' => 'other']
+            ['centreid' => $centreid, 'start' => $start, 'end' => $end, 'act' => 'other']
         );
         $out = [];
+        foreach (
+            $DB->get_records_select(
+                teamnotes::T,
+                "centreid = ? AND visit >= ? AND visit < ? AND dayonly = 0 AND replacedby = 0 AND (state IS NULL OR state = '')",
+                [$centreid, $start, $end],
+                'visit DESC, id DESC',
+                'id, householdid, visit'
+            ) as $row
+        ) {
+            $hour = panel::hour((int) $row->visit);
+            $out[$row->householdid] = ['hour' => $hour, 'text' => get_string('panel_coming_at', self::C, (object) ['hour' => $hour, 'who' => ''])];
+        }
         foreach ($rows as $row) {
             $hosts = $row->hosts ? centres::hosts($centreid, array_map('intval', explode(',', (string) $row->hosts))) : [];
             $hour = panel::hour((int) $row->timestart);
@@ -748,7 +812,7 @@ class panel_inbox {
             $hour = $dayonly ? '' : panel::hour($moment);
             $did = $line ? happened::kind($line, $info['answer'] !== null) : 'noted';
             // Waiting, it was the family who did something: a line of the team would be the note it was written in.
-            $did = $waiting && in_array($did, ['answered', 'told', 'invited', 'sent', 'noted'], true) ? 'wrote' : $did;
+            $did = $waiting && in_array($did, ['answered', 'told', 'tried', 'invited', 'sent', 'noted'], true) ? 'wrote' : $did;
             $today1 = $today[$household->id] ?? null;
             $today1 = is_array($today1) || $today1 === null ? $today1 : ['text' => $today1, 'hour' => ''];
             $verb = $today1 && $today1['hour'] !== '' ? happened::verb('appointment') : happened::verb($did);
@@ -891,44 +955,35 @@ class panel_inbox {
     }
 
     /**
-     * The way of the campaign: how many families are at each step, each counted where its most advanced child is
-     * (the waiting list, in the step of the place); the families already of the centre and the closed ways do not count.
+     * The way of the campaign: of the families it attracted (the same ones Numbers counts), how many are at each step, each
+     * counted where it is now (the waiting list, in the step of the place), and how many went.
      *
      * @param int $centreid
+     * @param int $now
      * @return array|null total, sentence, def, steps; null without families.
      */
-    public static function path(int $centreid): ?array {
-        global $DB;
+    public static function path(int $centreid, int $now = 0): ?array {
         $c = self::C;
-        $rows = $DB->get_recordset_sql(
-            'SELECT c.id, c.householdid, c.stage
-                                          FROM {' . households::CHILDREN . '} c
-                                          JOIN {' . households::T . '} h ON h.id = c.householdid
-                                         WHERE h.centreid = :centreid AND h.incentre = 0 AND h.guest = 0 AND c.stage <> :closed',
-            ['centreid' => $centreid, 'closed' => 'closed']
-        );
-        $furthest = [];
-        foreach ($rows as $row) {
-            $step = lists::STAGE_STEP[$row->stage] ?? 1;
-            $furthest[$row->householdid] = max($furthest[$row->householdid] ?? 0, $step);
-        }
-        $rows->close();
-        if (!$furthest) {
+        $centre = centres::get($centreid);
+        $families = $centre ? facts::families($centre, facts::live($centre, $now), $now) : [];
+        if (!$families) {
             return null;
         }
-        $counts = array_count_values($furthest);
+        $sums = facts::sum($families);
+        $counts = array_count_values(array_column(array_filter($families, fn($f) => !$f['closed'] && !$f['went']), 'step'));
         $steps = [];
         foreach (panel_household::PATH as $i => $key) {
             $n = (int) ($counts[$i + 1] ?? 0);
             $steps[] = ['key' => $key, 'name' => get_string($key === 'admitted' ? 'panel_stage_place' : 'stage_' . $key, $c),
                 'n' => $n, 'line' => get_string('panel_path_' . $key . ($n === 1 ? '_one' : ''), $c, $n)];
         }
-        $total = count($furthest);
-        return ['total' => $total, 'sentence' => get_string(
-            $total === 1 ? 'panel_path_total_one' : 'panel_path_total',
+        $gone = $sums['closed'] + $sums['went'];
+        return ['total' => $sums['n'], 'gone' => $gone, 'sentence' => get_string(
+            $sums['n'] === 1 ? 'panel_path_total_one' : 'panel_path_total',
             $c,
-            $total
-        ), 'def' => get_string('panel_path_def', $c), 'steps' => $steps];
+            $sums['n']
+        ) . ($gone ? ' ' . get_string('panel_path_gone' . ($gone === 1 ? '_one' : ''), $c, $gone) : ''),
+            'def' => get_string('panel_path_def', $c), 'steps' => $steps];
     }
 
     /**
@@ -941,7 +996,7 @@ class panel_inbox {
     protected static function next_events(\stdClass $centre, int $now): array {
         $out = [];
         foreach (events::for_centre((int) $centre->id) as $event) {
-            if (empty($event->tailored) && empty($event->householdid) && $event->timeend >= $now) {
+            if (empty($event->tailored) && empty($event->householdid) && empty($event->cancelled) && $event->timeend >= $now) {
                 $out[] = $event;
             }
         }
@@ -1074,6 +1129,16 @@ class panel_inbox {
             ))->out(false) . '#plazas'];
         }
         $counts = households::offer_counts((int) $centre->id);
+        // Of those that ask for each course and are not enrolled, the children whose family came to see the centre.
+        $visited = [];
+        $read = facts::read($centre, ['key' => 'year', 'year' => $year, 'since' => 0, 'until' => 0, 'import' => null], $now);
+        foreach (facts::group($read, 'campaign') as $f) {
+            foreach ($f['came'] ? $f['kids'] : [] as $kid) {
+                if ($kid['mine'] && !in_array($kid['stage'], ['closed', 'enrolled'], true)) {
+                    $visited[$kid['offerid']] = ($visited[$kid['offerid']] ?? 0) + 1;
+                }
+            }
+        }
         $list = [];
         foreach ($offers as $offer) {
             if ((string) $offer->schoolyear !== $year) {
@@ -1101,8 +1166,7 @@ class panel_inbox {
                     $centre
                 ) : false,
                 'interested' => array_sum($bystage) - ($bystage['closed'] ?? 0) - $enrolled,
-                'visited' => ($bystage['visit'] ?? 0) + ($bystage['application'] ?? 0) + ($bystage['admitted'] ?? 0) +
-                    ($bystage['waitlist'] ?? 0),
+                'visited' => (int) ($visited[$offer->id] ?? 0),
                 'enrolled' => $enrolled,
             ];
         }

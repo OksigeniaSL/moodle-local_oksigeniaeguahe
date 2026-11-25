@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261227" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261229" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -34,10 +34,12 @@
         <FIELD NAME="skin" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The skin of the panel of the team: vestibulo, mostrador or cinematico; null, the one its offer suggests"/>
         <FIELD NAME="arrive" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="How families get in on the day: the door, whom they give their name to"/>
         <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the campaign of admissions under way started, as the centre wrote it; 0 if it did not"/>
+        <FIELD NAME="campaigns" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="When the campaign of each school year started, as the centre wrote it, JSON; null without any"/>
         <FIELD NAME="labelsheets" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The sheets of labels of the centre: its favourites of each kind and how much its printer moves each, JSON"/>
         <FIELD NAME="replydays" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="Working days the team usually takes to answer a family, as the families read it"/>
         <FIELD NAME="closedics" TYPE="char" LENGTH="500" NOTNULL="false" SEQUENCE="false" COMMENT="The address of a calendar (.ics) whose whole days are the days the centre closes"/>
         <FIELD NAME="closeddays" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What that calendar said the last time it was read: days, read and failed, as JSON"/>
+        <FIELD NAME="calsync" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The calendar of the team the appointments go to, those seen behind and what the script said last (JSON)"/>
         <FIELD NAME="library" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The library of Ayvurenda whose stories to read at home the families get, by its slug"/>
         <FIELD NAME="handover" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The member of the team who carries the families once enrolled; 0, a place or nobody"/>
         <FIELD NAME="handoverplace" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the families are carried once enrolled when nobody is named: the office of students and its phone"/>
@@ -138,7 +140,7 @@
         <FIELD NAME="waitingsince" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Since when the household waits for a person to answer; 0 when nobody is owed an answer"/>
         <FIELD NAME="waitingdayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether of since when it waits only the day is known"/>
         <FIELD NAME="lastcontact" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="guest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when it only signed up to an open act (a talk, a party) and asked for nothing else: it is not in admissions"/>
+        <FIELD NAME="guest" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when it only signed up to an open act (a talk, a party) and asked for nothing else: it is not in admissions; 2 when it is made up, to see the mails and the pages as a family does: it is nowhere else"/>
         <FIELD NAME="volunteer" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family said yes to telling another family how it went; 0, they did not"/>
         <FIELD NAME="heardwho" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Which family of the centre told them about it, if they said so; never a link between households"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team thanked the family that told them about the centre; 0, not yet"/>
@@ -160,6 +162,16 @@
         <FIELD NAME="writebyfrom" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Who changed it: family, team or messaging (the word that stops the notices on the phone)"/>
         <FIELD NAME="writebynone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time it asked not to be written to, kept after it chooses again"/>
         <FIELD NAME="noinvites" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it said it does not want invitations to events; 0, it has not. All else of the admission goes on"/>
+        <FIELD NAME="cameback" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came on its own after not being in admissions (the guest of an act that asks for a place, or a family that had gone): the team hears of it as of a new one"/>
+        <FIELD NAME="swapphone" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The phones it had joined on WhatsApp when it was asked on a new one: they let go once the new one says yes"/>
+        <FIELD NAME="outreason" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false" COMMENT="Why it went, or why it never was a family (outs); empty, neither"/>
+        <FIELD NAME="outtime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="outuserid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who of the team said it"/>
+        <FIELD NAME="outnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What they said, in a line"/>
+        <FIELD NAME="outstep" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="How far it had come"/>
+        <FIELD NAME="outstops" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="What stopped with it: all, invites or none"/>
+        <FIELD NAME="outwas" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it was before, to take it back (JSON)"/>
+        <FIELD NAME="outasked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When a person said that what the notes suggest is not so"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -207,12 +219,14 @@
         <FIELD NAME="offerid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The offer asked for; 0 while unknown"/>
         <FIELD NAME="stage" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="inquiry" SEQUENCE="false" COMMENT="One of the stages of stages.php, each with its fixed definition"/>
         <FIELD NAME="closedreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why the way stopped, when stage is closed"/>
+        <FIELD NAME="closedstage" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="The step it had when its way stopped, to open it again there"/>
         <FIELD NAME="stagetime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="started" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the team marked on the first day that the child started; 0, not marked"/>
         <FIELD NAME="lefttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When an enrolled child left the centre, as the team noted it; 0, still there"/>
         <FIELD NAME="leftreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why they left, from the short list: what Cifras counts"/>
         <FIELD NAME="leftnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A line from whoever heard it, to read"/>
         <FIELD NAME="familychild" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The child in the common family record (local_oksigeniafamily) once enrolled; 0, none"/>
+        <FIELD NAME="studentkey" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The key of the student in the common family record, when the roll brought it: the same student of two families is one"/>
         <FIELD NAME="familygone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the common family record said this child left, for a person to confirm; 0, it did not"/>
         <FIELD NAME="roster" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came from the roll of the centre (the common family record), already a student; 0, it came through Eguahe"/>
         <FIELD NAME="startyear" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" COMMENT="The school year it started at the centre, once enrolled through Eguahe: what is only for new children (the story, the eve, the first day) is for that year"/>
@@ -327,7 +341,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who wrote it; 0 for the household or the system"/>
         <FIELD NAME="asks" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What a message of the family asks or tells, in a line for the team, by the AI of the centre; null, not read yet; empty, nothing to say"/>
         <FIELD NAME="dayonly" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether only its day is known (a date without its hour): no hour is ever said of it"/>
-        <FIELD NAME="aim" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Of what a person of the centre sent, when it answers nobody: many (sent to many at once: an invitation) or told (something they had not asked: a change in their visit)"/>
+        <FIELD NAME="aim" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Of what a person of the centre sent, when it answers nobody: many (sent to many at once: an invitation), told (something they had not asked: a change in their visit) or tried (a call nobody answered)"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -388,7 +402,10 @@
         <FIELD NAME="rowcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who imported it"/>
         <FIELD NAME="campaignstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="For a campaign: when it started, as the centre wrote it; 0 if it did not"/>
+        <FIELD NAME="act" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Of contacts: whether a person said that it is of an act (yes) or that it is not (no); null, nobody said"/>
+        <FIELD NAME="acttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The day of that act, when a person said it; 0, nobody said"/>
         <FIELD NAME="partial" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when a list of a school year holds only a part of the centre (its nursery, one stage): its students are known to be there, but it is not the whole list"/>
+        <FIELD NAME="info" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A number of its rows, to know the same file again, and how many contacts of it join no family, JSON"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -422,6 +439,7 @@
         <FIELD NAME="student" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Token of the child named in the contact, to find it later among the students"/>
         <FIELD NAME="incentre" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when the family was already at the centre"/>
         <FIELD NAME="birthyear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Year of birth of the child, never the day"/>
+        <FIELD NAME="marks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Keyed hashes of its contacts, to work out again which rows are one family; null for what came in before they were kept, JSON"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -449,6 +467,7 @@
         <FIELD NAME="movement" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="roll" SEQUENCE="false" COMMENT="roll (on the list of the year), join (new) or leave"/>
         <FIELD NAME="otherschool" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The school a new student came from, or the one a student left for"/>
         <FIELD NAME="birthyear" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Year of birth, never the day"/>
+        <FIELD NAME="marks" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Keyed hashes of its contacts and of the words of its name, to work out again which rows are one family and which child it is; null for what came in before they were kept, JSON"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -541,6 +560,7 @@
         <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="household or student"/>
         <FIELD NAME="keyhash" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="HMAC-SHA256 with a secret of the centre"/>
         <FIELD NAME="token" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="live" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1, of a family: some row that keeps its marks has it; when none does any more, it goes"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -814,6 +834,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who sent the invitations"/>
         <FIELD NAME="channel" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="email, phone (WhatsApp or Telegram, through Marandu) or both; empty, email"/>
         <FIELD NAME="bulkid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The send to many of Marandu that carries it by phone, with its approval"/>
+        <FIELD NAME="said" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="What the message of that send says of the act, as a hash, to know whether it is still true"/>
         <FIELD NAME="opened" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family looked at the page its letter opens, for the first time"/>
         <FIELD NAME="reply" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="yes or no, as the family answered; empty, not answered"/>
         <FIELD NAME="replied" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it answered last"/>
@@ -989,6 +1010,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The household that stayed"/>
+        <FIELD NAME="goneid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The household that was put in it, to lead there whoever opens the old one"/>
         <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON: the other household as it was and the ids of what came from it"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who put them together"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -998,6 +1020,9 @@
         <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
         <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="goneid" UNIQUE="false" FIELDS="goneid"/>
+      </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_hours" COMMENT="The hours of the team a centre writes for a campaign of ads or an act, by task: meetings, social networks, Saturdays, the phone">
       <FIELDS>
@@ -1118,12 +1143,14 @@
         <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="schoolyear" TYPE="char" LENGTH="9" NOTNULL="true" DEFAULT="-" SEQUENCE="false"/>
         <FIELD NAME="student" TYPE="char" LENGTH="40" NOTNULL="true" DEFAULT="-" SEQUENCE="false" COMMENT="The token of the student in the imported lists, never a name"/>
-        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="ask" SEQUENCE="false" COMMENT="enrolled, incentre, former, ask or none"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="ask" SEQUENCE="false" COMMENT="enrolled, incentre, former, inside (a child of the family already there, whose place for another year is still asked for), ask (which child), maybe (whether it is of this family), gone (the list no longer says it) or none"/>
         <FIELD NAME="grade" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timein" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="childid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="done" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was settled; 0, a person has to say"/>
         <FIELD NAME="marked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Of a child already there: 1, it was this that made the family one of the centre; 2, it already was; 0, not known"/>
+        <FIELD NAME="was" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="Of a child the list enrolled by itself: the step it was at and since when, to take it back"/>
+        <FIELD NAME="said" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 when a person said it: the list never changes it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -1157,6 +1184,46 @@
         <INDEX NAME="householdadult" UNIQUE="false" FIELDS="householdid, adultid"/>
         <INDEX NAME="token" UNIQUE="false" FIELDS="token"/>
         <INDEX NAME="importid" UNIQUE="false" FIELDS="importid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_calsync" COMMENT="What the calendar of the team has of each act or visit, and what a person changed there, to be asked">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The hour both last said"/>
+        <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="ask" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="moved or deleted in the calendar, to be asked; empty, nothing"/>
+        <FIELD NAME="askstart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="askend" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="asktime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="restore" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 to put the calendar back as it was"/>
+        <FIELD NAME="creating" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the script was told to write it, until it says it is there"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="eventid" TYPE="foreign" FIELDS="eventid" REFTABLE="local_oksigeniaeguahe_event" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centreid" UNIQUE="false" FIELDS="centreid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_busy" COMMENT="What there is in the other calendars of a centre, to see it behind the appointments">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="source" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="script or ics"/>
+        <FIELD NAME="calendar" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="title" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timestart" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timeend" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="allday" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrestart" UNIQUE="false" FIELDS="centreid, timestart"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_tie" COMMENT="What ties a child or its family to the centre, as a person of the team marked it">
