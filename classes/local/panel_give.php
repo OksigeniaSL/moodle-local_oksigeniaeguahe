@@ -85,7 +85,16 @@ class panel_give {
         $now = $now ?: time();
         $zone = \core_date::get_server_timezone_object();
         $faces = panel_agenda::faces($centre);
-        $first = (new \DateTimeImmutable('@' . $now))->setTimezone($zone)->setTime(0, 0);
+        $today = (new \DateTimeImmutable('@' . $now))->setTimezone($zone)->setTime(0, 0);
+        // Fifteen days from today, or from the week of the day it has or that was asked for.
+        $asked = (string) ($values['from'] ?? '');
+        if ($asked === '') {
+            $at = $values['start'] ?? ($event ? (int) $event->timestart : 0);
+            $asked = $at ? userdate($at, '%Y-%m-%d', $zone->getName(), false) : (string) ($values['day'] ?? '');
+            $near = $today->modify('+' . (self::DAYS - 1) . ' days')->format('Y-m-d');
+            $asked = $asked > $near ? (new \DateTimeImmutable($asked, $zone))->modify('monday this week')->format('Y-m-d') : '';
+        }
+        $first = $asked > $today->format('Y-m-d') ? (new \DateTimeImmutable($asked, $zone))->setTime(0, 0) : $today;
         $to = $first->modify('+' . self::DAYS . ' days');
         $agenda = appointments::agenda($centre, $first->getTimestamp(), $to->getTimestamp(), $now);
         $people = households::some((int) $centre->id, array_column($agenda, 'householdid'));
@@ -119,11 +128,12 @@ class panel_give {
             $data[$key] = ['open' => $open ? [self::HOURS] : [], 'items' => array_values($items),
                 'behind' => $behind[$day->getTimestamp()] ?? []];
             $days[] = ['key' => $key, 'weekday' => userdate($day->getTimestamp(), '%a'), 'day' => $day->format('j'),
-                'month' => userdate($day->getTimestamp(), '%b'), 'closed' => !$open, 'today' => $i === 0,
+                'month' => userdate($day->getTimestamp(), '%b'), 'closed' => !$open, 'today' => $key === $today->format('Y-m-d'),
                 'when' => get_string('agenda_when', self::C, userdate($day->getTimestamp(), '%A') . ' ' . $day->format('j')),
                 'n' => count($items), 'has' => (bool) $items, 'behind' => $data[$key]['behind'],
                 'hasbehind' => (bool) $data[$key]['behind'],
-                'first' => $open ? self::first($data[$key], $minutes, $guide, $i === 0 ? intdiv($now - $first->getTimestamp(), MINSECS) + 60 : 0) : ''];
+                'first' => $open ? self::first($data[$key], $minutes, $guide, $key === $today->format('Y-m-d') ?
+                    intdiv($now - $today->getTimestamp(), MINSECS) + 60 : 0) : ''];
         }
         $replaces = false;
         foreach (appointments::of($full, $now) as $one) {
@@ -142,7 +152,7 @@ class panel_give {
         $chosen = $start ? userdate($start, '%Y-%m-%d', $zone->getName(), false) : '';
         // Or the one it comes from, in the week.
         foreach ($chosen === '' ? $days : [] as $day) {
-            $chosen = $day['key'] === ($values['day'] ?? '') && $day['first'] !== '' ? $day['key'] : $chosen;
+            $chosen = $day['key'] === ($values['day'] ?? '') && ($day['first'] !== '' || $day['closed']) ? $day['key'] : $chosen;
         }
         foreach ($days as $day) {
             $chosen = $chosen === '' && $day['first'] !== '' ? $day['key'] : $chosen;
@@ -154,6 +164,9 @@ class panel_give {
                 $min = (int) $m[1] * 60 + (int) $m[2];
             }
         }
+        $min = $min ?: self::FIRST;
+        $window = fn(\DateTimeImmutable $day) => (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $full->id] +
+            ($event ? ['id' => $event->id] : []) + ['desde' => max($day, $today)->format('Y-m-d')], 'dias'))->out(false);
         $children = [];
         foreach ($full->children as $child) {
             $children[] = ['tag' => panel::called($child), 'course' => !empty($child->offer) ? format_string($child->offer->name) : ''];
@@ -174,6 +187,8 @@ class panel_give {
             'offurl' => $event && !$off ? (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $full->id, 'id' => $event->id,
                 'anular' => 1]))->out(false) : '',
             'days' => $days,
+            'laterurl' => $window($first->modify('+14 days')),
+            'earlierurl' => $first > $today ? $window($first->modify('-14 days')) : '',
             'min' => $min,
             // The hour it has, or the one that was sent: another day keeps it.
             'puesta' => $start > 0,

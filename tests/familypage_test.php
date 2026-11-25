@@ -219,5 +219,15 @@ final class familypage_test extends \advanced_testcase {
         $this->assertStringContainsString('Cuando abra', $closed);
         $open = $next(['applyfrom' => time() - DAYSECS]);
         $this->assertStringContainsString('está abierta hasta el', $open);
+        // The course of the child that asks, whatever comes before: one that left, or a later brother.
+        foreach (['2026-27', '2027-28'] as $year) {
+            $offers[$year] = centres::save_offer($cid, (object) ['schoolyear' => $year, 'name' => 'Infantil 3 años', 'places' => 25, 'active' => 1]);
+        }
+        $left = households::add_child($household, 'Leo', $offers['2026-27']);
+        households::set_stage($DB->get_record(households::CHILDREN, ['id' => $left]), 'closed', 'other');
+        households::add_child($household, 'Mía', $offers['2027-28']);
+        $DB->update_record(centres::T, (object) ['id' => $cid, 'applyfrom' => time() + 9 * DAYSECS]);
+        $page = familypage::context(households::get((int) $household->id, $cid), centres::get($cid), 'es', 'x', false);
+        $this->assertStringContainsString('2027-28', $page['nextline']);
     }
 }

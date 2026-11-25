@@ -375,6 +375,37 @@ class writeby {
     }
 
     /**
+     * A family moved its WhatsApp to another number: whoever had the old one in its record has the new one, and the history
+     * says it. With the old one in nobody, only the note.
+     *
+     * @param int $householdid
+     * @param string $from
+     * @param string $to
+     */
+    public static function number_changed(int $householdid, string $from, string $to): void {
+        global $DB;
+        $household = $DB->get_record(households::T, ['id' => $householdid]);
+        $centre = $household ? centres::get((int) $household->centreid) : null;
+        $old = phone::normalise($from, $centre->country ?? null);
+        $new = phone::normalise($to, $centre->country ?? null);
+        if (!$centre || !$old || !$new || $old === $new) {
+            return;
+        }
+        $adults = $DB->get_records(households::ADULTS, ['householdid' => $household->id]);
+        $has = array_filter($adults, fn($a) => (string) $a->phone === $new);
+        foreach ($has ? [] : array_filter($adults, fn($a) => (string) $a->phone === $old) as $adult) {
+            $DB->update_record(households::ADULTS, (object) ['id' => $adult->id, 'phone' => $new]);
+        }
+        $lang = (string) ($centre->lang ?? '') ?: current_language();
+        households::note($household, 0, get_string_manager()->get_string(
+            'writeby_noted_number',
+            self::C,
+            (object) ['old' => phone::display($old), 'new' => phone::display($new)],
+            $lang
+        ));
+    }
+
+    /**
      * A phone of a family has joined: when it is the new one it was asked on, the old one it had joined before lets go.
      *
      * @param int $householdid

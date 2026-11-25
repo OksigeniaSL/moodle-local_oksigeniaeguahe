@@ -609,9 +609,11 @@ class listmatch {
             true
         ));
         // Only a child that asked for a course of the year of the list: a brother or sister asking for a later year, or a
-        // child with no course asked for, is never taken for the student.
+        // child with no course asked for, is never taken for the student. One whose way was closed, or whose family had gone, only
+        // when the list names it and it joined after that: the list is what there is now.
         $same = array_filter($me['children'], fn($k) => (string) ($facts['offers'][$k->offerid]->schoolyear ?? '') === $join['year'] &&
-            $k->stage !== 'closed' && !(int) $k->lefttime && !isset($taken[(int) $k->id]));
+            !(int) $k->lefttime && !isset($taken[(int) $k->id]) && ($k->stage !== 'closed' || ((int) $k->stagetime &&
+            $join['timein'] > (int) $k->stagetime && self::named($k, $s, $facts) === true)));
         $pool = $age === null ? $same : array_filter($same, fn($k) => grades::age(
             (string) $facts['offers'][$k->offerid]->name,
             $facts['centre']
@@ -620,6 +622,10 @@ class listmatch {
         if (!$child && !$pool && $known) {
             // A child that came by Eguahe and only goes on to another course.
             return '';
+        }
+        if ($child && $child->stage === 'closed' && outs::is_out($household)) {
+            outs::undo($household, $facts['centre'], 0, $facts['now']);
+            $child = $DB->get_record(households::CHILDREN, ['id' => $child->id]);
         }
         $open = array_filter($by[$s['student']] ?? [], fn($r) => $r->kind === 'ask' && !(int) $r->done &&
             (string) $r->schoolyear === $join['year']);

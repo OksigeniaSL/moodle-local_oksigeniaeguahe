@@ -50,6 +50,7 @@
                 </div>
                 <div class="agenda-fila">
                     {{#hasguides}}<nav class="agenda-equipo" aria-label="{{#str}}give_guide, local_oksigeniaeguahe{{/str}}"><a href="{{everyoneurl}}"{{#everyone}} aria-current="true"{{/everyone}}><span>{{#str}}agenda_everyone, local_oksigeniaeguahe{{/str}}</span></a>{{#guides}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{> local_oksigeniaeguahe/panel_face }}<span>{{first}}</span></a>{{/guides}}</nav>{{/hasguides}}
+                    {{#haskinds}}<nav class="segmentos agenda-clases" aria-label="{{#str}}agenda_kinds, local_oksigeniaeguahe{{/str}}">{{#kinds}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{name}}</a>{{/kinds}}</nav>{{/haskinds}}
                     {{#behindon}}<ul class="agenda-leyenda">{{#calendars}}<li class="fondo-{{color}}">{{name}}</li>{{/calendars}}</ul>{{/behindon}}
                 </div>
             </header>

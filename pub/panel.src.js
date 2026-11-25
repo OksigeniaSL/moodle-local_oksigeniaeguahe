@@ -4260,7 +4260,7 @@
                 i.textContent = text || '';
                 track.appendChild(i);
             };
-            open.forEach(function(x) {
+            what.open.forEach(function(x) {
                 piece('abierto', x[0], x[1]);
             });
             what.items.forEach(function(x) {
@@ -4295,8 +4295,10 @@
                 return at >= x[0] && at + long <= x[1];
             });
             var name = (one('guide') || document.body).getAttribute('data-nombre') || '';
+            var closedday = Boolean(day && days[day.value] && !what.open.length);
             clash.classList.toggle('no', Boolean(mine || shut));
-            clash.textContent = mine ? give.getAttribute('data-ocupada').replace('QUIEN', name) : shut ? give.getAttribute('data-cerrado')
+            clash.textContent = mine ? give.getAttribute('data-ocupada').replace('QUIEN', name)
+                : closedday ? give.getAttribute('data-dia-cerrado') : shut ? give.getAttribute('data-cerrado')
                 : other ? give.getAttribute('data-otra') : '';
             var over = (what.behind || []).filter(function(x) {
                 return !x.allday && x.from < at + long && x.to > at;

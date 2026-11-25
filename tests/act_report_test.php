@@ -88,7 +88,8 @@ final class act_report_test extends \advanced_testcase {
      * @return \stdClass
      */
     protected function act(int $daysago, string $kind = 'openday'): \stdClass {
-        $start = $this->now - $daysago * DAYSECS;
+        // At noon: what is the eve does not depend on the hour it is run at.
+        $start = usergetmidnight($this->now) - $daysago * DAYSECS + 12 * HOURSECS;
         return events::get(events::save((int) $this->centre->id, (object) ['kind' => $kind, 'name' => 'Puertas abiertas',
             'timestart' => $start, 'timeend' => $start + 2 * HOURSECS, 'capacity' => 0, 'open' => 1]), (int) $this->centre->id);
     }

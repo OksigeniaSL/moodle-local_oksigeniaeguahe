@@ -485,4 +485,71 @@ final class entries_test extends \advanced_testcase {
         [$now] = entries::receive($google, $row, 'cuatro');
         $this->assertNotNull($now, 'Sent now, without any hour.');
     }
+
+    /**
+     * What came with the versions before is the same one now, though its phone or its email are read otherwise; an old row of a
+     * person of the team stays out; and a form sent whole again brings nothing, whatever the courses of the centre are today.
+     */
+    public function test_sent_whole_again(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $offer = centres::save_offer($cid, (object) ['schoolyear' => '2027-28', 'name' => 'Infantil 3 años', 'places' => 0, 'active' => 1]);
+        $sheet = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        entries::update($sheet, (object) ['name' => $sheet->name, 'acknowledge' => 0, 'active' => 1, 'teamsheet' => 1]);
+        $sheet = entries::get((int) $sheet->id, $cid);
+        $day = entries::read($sheet, centres::get($cid), ['FECHA' => '12/11/2026'])->keytime;
+        // As 0.125.4 kept each: the phone with the code of the country whatever its length, or none; one email or none.
+        foreach (
+            [['Ana', 'Gil', '60011122', 'a@gmail.com', '+3460011122', 'a@gmail.com'],
+                ['Eva', 'Sosa', '600 111 333 / 600 111 444', '', '', ''],
+                ['Luis', 'Ramos', '600111555 (madre)', '', '', ''],
+                ['Rosa', 'León', '33612345678', 'r@gmail.com; s@gmail.com', '+3433612345678', ''],
+            ] as [$first, $last, $phone, $email, $oldphone, $oldemail]
+        ) {
+            $id = households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'other']);
+            $key = hash('sha256', implode('|', ['who', $oldemail, $oldphone, $first, $last, '', $day]));
+            $DB->insert_record(entries::ARRIVALS, (object) ['centreid' => $cid, 'entryid' => $sheet->id, 'householdid' => $id,
+                'externalid' => $key, 'timecreated' => time()]);
+            $row = array_filter(['FECHA' => '12/11/2026', 'Tutor 1' => "$first $last", 'TELÉFONO' => $phone, 'E-MAIL tutor 1' => $email,
+                'ASISTENCIA' => 'FALSE']);
+            [$household, $new] = entries::receive($sheet, $row, '', null, true);
+            $this->assertFalse($new, $first);
+            $this->assertSame($id, (int) $household->id, $first);
+            if ($first === 'Luis') {
+                households::add_adult($household, (object) ['firstname' => 'Luis', 'lastname' => 'Ramos', 'phone' => null, 'email' => null]);
+                entries::receive($sheet, $row, '', null, true);
+                $this->assertSame('+34600111555', $DB->get_field(households::ADULTS, 'phone', ['householdid' => $id]));
+            }
+        }
+        // A person of the team in an old row.
+        $mary = $this->getDataGenerator()->create_user(['firstname' => 'Mary', 'lastname' => 'Medina', 'email' => 'mary@example.com']);
+        centres::add_member($cid, (int) $mary->id);
+        $this->assertNull(entries::receive($sheet, ['FECHA' => '12/11/2026', 'Tutor 1' => 'Mary Medina',
+            'E-MAIL tutor 1' => 'mary@example.com', 'NOMBRE ALUMNO' => 'Leo', 'ASISTENCIA' => 'FALSE'], '', null, true)[0]);
+        // A form: with its moment, and with no date at all.
+        $form = entries::get(entries::create($cid, 'google', 'Formulario'), $cid);
+        $rows = [['Marca temporal' => '9/11/2026 10:43:26', 'Nombre y apellidos' => 'Noa Díaz', 'Email' => 'noa@gmail.com',
+            'Nombre del alumno' => 'Mía', 'Curso' => 'Infantil 3 años'],
+            ['Nombre y apellidos' => 'Pino Vera', 'Email' => 'pino@gmail.com', 'Nombre del alumno' => 'Teo', 'Curso' => 'Infantil 3 años']];
+        foreach ($rows as $row) {
+            $this->assertTrue(entries::receive($form, $row)[1]);
+        }
+        $DB->set_field(centres::OFFERS, 'active', 0, ['id' => $offer]);
+        $count = fn() => $DB->count_records(households::CONTACTS, ['centreid' => $cid, 'direction' => 'in']);
+        $said = $count();
+        foreach ($rows as $row) {
+            $this->assertFalse(entries::receive($form, $row, '', null, true)[1]);
+        }
+        $this->assertSame($said, $count());
+        // Another day: what has no date comes back as the same one all the same.
+        $first = (int) $DB->get_field_sql('SELECT MIN(id) FROM {' . entries::ARRIVALS . '} WHERE householdid =
+            (SELECT MAX(householdid) FROM {' . entries::ARRIVALS . '} WHERE entryid = ?)', [$form->id]);
+        $DB->delete_records(entries::ARRIVALS, ['id' => $first]);
+        $this->assertFalse(entries::receive($form, $rows[1], '', null, true)[1]);
+        $this->assertSame($said, $count());
+        // A family that writes again, with other words, is heard.
+        $this->assertTrue(entries::receive($form, $rows[1] + ['Mensaje' => '¿Hay comedor?'])[1]);
+        $this->assertSame($said + 1, $count());
+    }
 }

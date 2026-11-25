@@ -107,5 +107,6 @@ panel::output($centre, 'events', $title, 'panel_agenda', panel_agenda::context(
     optional_param('guia', 0, PARAM_INT),
     0,
     $view,
-    (bool) (int) get_user_preferences(busy::PREF, 1)
+    (bool) (int) get_user_preferences(busy::PREF, 1),
+    optional_param('que', '', PARAM_ALPHA)
 ));

@@ -368,6 +368,28 @@
     .fb-campo label {
         inset-inline-start: 12px;
     }
+
+    /* The mark goes up beside the name of the field: the two together in the line leave no room for a phone number. */
+    .fb-campo .fb-listo {
+        inset-block-start: 7px;
+        inset-inline-end: 9px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .fb-campo.fb-esta input {
+        padding-inline-end: 10px;
+    }
+
+    .fb-campo.fb-esta label:not(.fb-mal) {
+        inset-inline-end: 28px;
+    }
+}
+
+@media (max-width: 375px) {
+    .fb-campos {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 /* On a phone an email and what they write are read whole. */

@@ -64,6 +64,22 @@ final class writeby_test extends \advanced_testcase {
     }
 
     /**
+     * Its WhatsApp is another number now: the record has it, with a note; another family with none of it only has the note.
+     */
+    public function test_number_changed(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $household = $this->family();
+        local_oksigeniaeguahe_marandu_number_changed((int) $household->id, '+34600111222', '+34600999888', 'household');
+        $this->assertSame('+34600999888', $DB->get_field(households::ADULTS, 'phone', ['householdid' => $household->id]));
+        $this->assertCount(1, $this->notes($household));
+        local_oksigeniaeguahe_marandu_number_changed((int) $household->id, '+34600111222', '+34600777666', 'household');
+        $this->assertSame('+34600999888', $DB->get_field(households::ADULTS, 'phone', ['householdid' => $household->id]));
+        local_oksigeniaeguahe_marandu_number_changed((int) $household->id, '+34600999888', '+34600555444', 'team');
+        $this->assertSame('+34600999888', $DB->get_field(households::ADULTS, 'phone', ['householdid' => $household->id]));
+    }
+
+    /**
      * The notes of the team about a family.
      *
      * @param \stdClass $household

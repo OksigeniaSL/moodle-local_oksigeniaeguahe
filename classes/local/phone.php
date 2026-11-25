@@ -69,9 +69,10 @@ class phone {
      *
      * @param string $raw As typed.
      * @param string|null $country The country of the centre (ISO 3166-1 alpha-2), for numbers without their code.
+     * @param bool $anylength Whatever its length, as it was read before: only to know a row again.
      * @return string|null
      */
-    public static function normalise(string $raw, ?string $country): ?string {
+    public static function normalise(string $raw, ?string $country, bool $anylength = false): ?string {
         $raw = trim($raw);
         if ($raw === '') {
             return null;
@@ -110,7 +111,7 @@ class phone {
             if ($region['national'] !== '' && strpos($digits, $region['national']) === 0) {
                 $digits = substr($digits, strlen($region['national']));
             }
-            if (!empty($region['lengths']) && !in_array(strlen($digits), $region['lengths'], true)) {
+            if (!$anylength && !empty($region['lengths']) && !in_array(strlen($digits), $region['lengths'], true)) {
                 // A digit missing, or a number of another country without its «+»: never taken for one nobody has.
                 return null;
             }

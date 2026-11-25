@@ -520,10 +520,16 @@ class familypage {
                     'label' => publiclang::str('pub_cantcome', $lang)],
             ];
         };
+        // The school year they ask a place for: of a child that asks, before one that left, is at the centre or is closed.
         $year = '';
+        $past = '';
         foreach ($children as $child) {
-            $year = $year ?: (string) ($offers[$child->offerid]->schoolyear ?? '');
+            $of = (string) ($offers[$child->offerid]->schoolyear ?? '');
+            $asks = !in_array($child->stage, ['enrolled', 'closed'], true) && !(int) ($child->lefttime ?? 0);
+            $year = $asks && $of !== '' && ($year === '' || $of < $year) ? $of : $year;
+            $past = $past ?: $of;
         }
+        $year = $year ?: $past;
         // What they answered in the forms of the centre, the last answer to each question.
         $answers = [];
         foreach (forms::answers_of((int) $household->id) as $answer) {

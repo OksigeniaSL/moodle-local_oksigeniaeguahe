@@ -65,6 +65,13 @@ final class inbound_test extends \advanced_testcase {
         $this->assertStringContainsString('cuándo es la próxima jornada', $body);
         [, $again] = entries::from_email($entry, $raw);
         $this->assertFalse($again, 'The same email comes in once.');
+        // A computer with a wrong clock: it came now.
+        foreach (['Tue, 01 Jan 2019 10:00:00 +0100', 'Tue, 01 Jan 2030 10:00:00 +0100'] as $i => $date) {
+            [$wrong] = entries::from_email($entry, "From: Carla Tres <carla$i@example.com>\r\nDate: $date\r\nMessage-ID: <reloj-$i>\r\n" .
+                "Subject: Plaza\r\n\r\nHola, quiero pedir plaza.\r\n");
+            $this->assertEqualsWithDelta(time(), (int) $wrong->timecreated, 60);
+            $this->assertEqualsWithDelta(time(), (int) $wrong->waitingsince, 60);
+        }
     }
 
     /**

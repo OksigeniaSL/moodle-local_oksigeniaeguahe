@@ -26,6 +26,7 @@ use local_oksigeniaeguahe\local\moments;
 use local_oksigeniaeguahe\local\pseudonym;
 use local_oksigeniaeguahe\local\ties;
 use local_oksigeniaeguahe\local\who;
+use local_oksigeniaeguahe\local\writeby;
 
 /**
  * What the list of the centre says of the families of Eguahe: a child enrolled, a family of the centre, or a question.
@@ -399,6 +400,39 @@ final class listmatch_test extends \advanced_testcase {
         listmatch::choose($twins, $asks[0]['id'], $kid);
         $this->assertSame(['Leo' => 'enrolled', 'Mía' => 'waitlist'], $this->steps($twins));
         $this->assertSame(5, metrics::origins($cid, '2026-27')['total']);
+    }
+
+    /**
+     * A family that had gone, and whose child the list names among those that joined after: it is back, and enrolled. With another
+     * name, or joining before it went, a person is asked and nothing changes.
+     */
+    public function test_gone_and_in_the_list(): void {
+        global $DB;
+        [$cid, $o] = $this->world();
+        $centre = centres::get($cid);
+        $p = $o['1.º de Primaria 2026-27'];
+        $out = function (string $email, string $name, string $when) use ($cid, $centre, $p, $DB): \stdClass {
+            $household = $this->home($cid, $email, [$name => $p]);
+            $adult = (int) $DB->get_field(households::ADULTS, 'id', ['householdid' => $household->id]);
+            households::consent($household, $adult, 'email', true, 'form', 'es');
+            \local_oksigeniaeguahe\local\outs::set($household, $centre, 'notinterested', '', 'all', 2, strtotime($when));
+            $DB->set_field(households::CHILDREN, 'stagetime', strtotime($when), ['householdid' => $household->id]);
+            return households::get((int) $household->id, $cid);
+        };
+        $back = $out('una@gmail.com', 'Mía', '2026-09-01');
+        $other = $out('dos@gmail.com', 'Pablo', '2026-09-01');
+        $after = $out('tres@gmail.com', 'Noa', '2026-09-20');
+        $csv = "Nombre,Apellidos,Nivel,Correo electrónico,Fecha de alta\nMía,Ruiz Sosa,1.º de Primaria,una@gmail.com,07/09/2026\n" .
+            "Hugo,Ruiz Paz,1.º de Primaria,dos@gmail.com,07/09/2026\nNoa,Ruiz Gil,1.º de Primaria,tres@gmail.com,07/09/2026\n";
+        imports::import($cid, 'joins', '2026-27', 'a.csv', $csv, 2);
+        $this->assertSame(['Mía' => 'enrolled'], $this->steps($back));
+        $now = households::get((int) $back->id, $cid);
+        $this->assertFalse(\local_oksigeniaeguahe\local\outs::is_out($now));
+        $this->assertFalse(writeby::silent($now), 'What was stopped with it is as it was.');
+        foreach ([$other, $after] as $still) {
+            $this->assertSame(['closed'], array_values($this->steps($still)));
+            $this->assertTrue(\local_oksigeniaeguahe\local\outs::is_out(households::get((int) $still->id, $cid)));
+        }
     }
 
     /**

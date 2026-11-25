@@ -57,6 +57,7 @@ class panel_agenda {
      * @param int $now
      * @param string $view One of VIEWS.
      * @param bool $behind Whether what there is in the other calendars is shown.
+     * @param string $only Only the appointments (citas) or the acts of the centre (actos); empty, everything.
      * @return array
      */
     public static function context(
@@ -66,9 +67,12 @@ class panel_agenda {
         int $guide = 0,
         int $now = 0,
         string $view = 'semana',
-        bool $behind = true
+        bool $behind = true,
+        string $only = ''
     ): array {
         $now = $now ?: time();
+        $only = in_array($only, ['citas', 'actos'], true) ? $only : '';
+        $seen = ['act' => false, 'visit' => false];
         $view = in_array($view, self::VIEWS, true) ? $view : 'semana';
         $zone = \core_date::get_server_timezone_object();
         $at = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $week, $d) && checkdate((int) $d[2], (int) $d[3], (int) $d[1]) ?
@@ -81,11 +85,10 @@ class panel_agenda {
         $people = households::some((int) $centre->id, array_column($all, 'householdid'));
         $faces = self::faces($centre);
         $today = userdate($now, '%Y-%m-%d', 99, false);
-        $keep = $view === 'semana' ? [] : ['vista' => $view];
+        $keep = ($view === 'semana' ? [] : ['vista' => $view]) + array_filter(['que' => $only]);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id] + $params + $keep))->out(false);
         $key = fn(int $time) => userdate($time, '%Y-%m-%d', $zone->getName(), false);
         $give = fn(array $more) => (new \moodle_url('/local/oksigeniaeguahe/cita.php', ['c' => $centre->id] + $more))->out(false);
-        $until = $key($now + (panel_give::DAYS - 1) * DAYSECS);
         $has = busy::has((int) $centre->id);
         $others = $has && $behind ? busy::by_day((int) $centre->id, array_column($days, 'day')) : [];
         // An act nobody has signed up to yet is there too.
@@ -101,6 +104,12 @@ class panel_agenda {
                 }
             }
             usort($cards, fn($a, $b) => ($a['start'] ?? 0) <=> ($b['start'] ?? 0));
+            foreach ($cards as $card) {
+                $seen[!empty($card['isact']) ? 'act' : 'visit'] = true;
+            }
+            if ($only !== '') {
+                $cards = array_values(array_filter($cards, fn($card) => !empty($card['isact']) === ($only === 'actos')));
+            }
             $other = $others[$day['day']] ?? [];
             if ($view === 'agenda' ? !$cards : ($i % 7 > 4 && $view === 'semana' && !$day['open'] && !$cards)) {
                 continue;
@@ -111,8 +120,9 @@ class panel_agenda {
                 'out' => $view === 'mes' && ($day['day'] < $first || $day['day'] > $last),
                 'behind' => $other, 'hasbehind' => (bool) $other, 'pieces' => self::weave($cards, $other, (int) $day['day']),
                 'dayurl' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id, 'vista' => 'semana',
-                    'semana' => $key($day['day'])] + array_filter(['guia' => $guide]), 'dia-' . $key($day['day'])))->out(false),
-                'addurl' => $canact && $day['open'] && $key($day['day']) >= $today && $key($day['day']) <= $until ?
+                    'semana' => $key($day['day'])] + array_filter(['guia' => $guide, 'que' => $only]), 'dia-' . $key($day['day'])))->out(false),
+                // A weekend with an act in it may have an appointment too.
+                'addurl' => $canact && ($day['open'] || $cards) && $key($day['day']) >= $today ?
                     $give(['dia' => $key($day['day'])]) : ''];
         }
         $calendars = [];
@@ -131,7 +141,13 @@ class panel_agenda {
         foreach (self::VIEWS as $one) {
             $views[] = ['key' => $one, 'name' => get_string('agenda_view_' . $one, self::C), 'current' => $one === $view,
                 'url' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id, 'vista' => $one] +
-                    ($at->format('Y-m-d') === $today ? [] : ['semana' => $at->format('Y-m-d')]) + array_filter(['guia' => $guide])))->out(false)];
+                    ($at->format('Y-m-d') === $today ? [] : ['semana' => $at->format('Y-m-d')]) + array_filter(['guia' => $guide, 'que' => $only])))->out(false)];
+        }
+        $kinds = [];
+        foreach (['' => 'all', 'citas' => 'visits', 'actos' => 'acts'] as $one => $name) {
+            $kinds[] = ['name' => get_string('agenda_kind_' . $name, self::C), 'current' => $one === $only,
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/agenda.php', ['c' => $centre->id, 'semana' => $at->format('Y-m-d')] +
+                    ($view === 'semana' ? [] : ['vista' => $view]) + array_filter(['guia' => $guide, 'que' => $one])))->out(false)];
         }
         $asked = [];
         $waiting = appointments::asked($centre);
@@ -153,7 +169,7 @@ class panel_agenda {
         }
         return [
             'head' => ['action' => $canact ? ['url' => $give([]), 'name' => get_string('give_title', self::C), 'icon' => panel::icons()['mas1'] ?? ''] : false] + self::ahead(
-                $guide ? array_filter($all, fn($o) => $o['guideid'] === $guide) : $all,
+                self::own($guide ? array_filter($all, fn($o) => $o['guideid'] === $guide) : $all, $centre),
                 $people,
                 $key($first) <= $today && $today <= $key($last),
                 $now,
@@ -170,6 +186,9 @@ class panel_agenda {
             'nexturl' => $url(['semana' => $after->format('Y-m-d')] + array_filter(['guia' => $guide])),
             'todayurl' => $url([]),
             'views' => $views,
+            // Everything, the appointments or the acts; offered where there are both.
+            'kinds' => $kinds,
+            'haskinds' => $only !== '' || ($seen['act'] && $seen['visit']),
             'view' => $view,
             'compact' => $view === 'mes',
             'columns' => $columns,
@@ -272,10 +291,22 @@ class panel_agenda {
             $out[] = ['id' => 'a' . $event->id, 'isact' => true, 'families' => 0, 'people' => 0, 'came' => 0, 'topass' => 0, 'state' => '',
                 'statename' => '', 'adults' => '', 'children' => [], 'moveurl' => '', 'offurl' => '', 'passtext' => '', 'passurl' => '',
                 'familiestext' => get_string('cal_families', self::C, 0), 'start' => $one['start'], 'end' => $one['end'], 'guideid' => $guide,
-                'url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false)] +
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false)] + self::of_act($event) +
                 self::when($one) + self::where($one, $faces);
         }
         return $out;
+    }
+
+    /**
+     * What tells an act apart from the appointment of one family: what it is (a talk, an open day) and the room it has.
+     *
+     * @param \stdClass|null $event
+     * @return array word, room (a text, or empty), capacity, hasfill, fill (of it, in hundredths) and peopletext
+     */
+    protected static function of_act(?\stdClass $event): array {
+        $room = $event ? (int) $event->capacity : 0;
+        return ['word' => $event ? acts::team_word($event) : '', 'room' => $room ? get_string('cal_room', self::C, $room) : '',
+            'capacity' => $room, 'hasfill' => $room > 0, 'fill' => 0, 'peopletext' => '', 'sheettext' => ''];
     }
 
     /**
@@ -493,7 +524,8 @@ class panel_agenda {
                     'start' => $one['start'], 'end' => $one['end'], 'statename' => '', 'adults' => '', 'children' => [], 'moveurl' => '', 'offurl' => '', 'url' => (new \moodle_url(
                         '/local/oksigeniaeguahe/event.php',
                         ['id' => $one['eventid']]
-                    ))->out(false)] + self::when($one) + self::where($one, $faces);
+                    ))->out(false)] + self::of_act(events::get((int) $one['eventid'], (int) $centre->id) ?: null) + self::when($one) +
+                    self::where($one, $faces);
             }
             $act = &$out[$acts[$key]];
             $act['families']++;
@@ -503,9 +535,67 @@ class panel_agenda {
             $act['passtext'] = $canact && $act['topass'] ? get_string('agenda_acttopass' . ($act['topass'] === 1 ? '_one' : ''), self::C, $act['topass']) : '';
             $act['passurl'] = $act['passtext'] !== '' ? self::passurl((int) $centre->id, (int) $one['eventid']) : '';
             $act['familiestext'] = get_string($act['families'] === 1 ? 'cal_families_one' : 'cal_families', self::C, $act['families']);
+            $act['peopletext'] = get_string($act['people'] === 1 ? 'cal_people_one' : 'cal_people', self::C, $act['people']);
+            $act['hasfill'] = $act['capacity'] > 0;
+            $act['fill'] = $act['capacity'] ? (int) min(100, round(100 * $act['people'] / $act['capacity'])) : 0;
             unset($act);
         }
-        return $out;
+        return self::fold($out, $items, $centre);
+    }
+
+    /**
+     * The appointments and the acts, without those the sheet of the team has on the day of an open day: they come to it.
+     *
+     * @param array $items As appointments::agenda() gives them.
+     * @param \stdClass $centre
+     * @return array
+     */
+    protected static function own(array $items, \stdClass $centre): array {
+        $day = fn(int $time) => userdate($time, '%Y-%m-%d', 99, false);
+        $open = [];
+        foreach ($items as $one) {
+            if ($one['kind'] === 'act' && !isset($open[$one['eventid']])) {
+                $event = events::get((int) $one['eventid'], (int) $centre->id);
+                $open[$one['eventid']] = $event && $event->kind === 'openday' && !(int) $event->cancelled ? $day($one['start']) : '';
+            }
+        }
+        $open = array_filter($open);
+        return $open ? array_filter($items, fn($o) => $o['kind'] !== 'note' || $o['source'] !== 'sheet' || !$o['dayonly'] ||
+            !in_array($day($o['start']), $open, true)) : $items;
+    }
+
+    /**
+     * Those the sheet of the team has on the day of an open day, without an hour: they come to it, and are in its card.
+     *
+     * @param array[] $cards
+     * @param array $items As appointments::agenda() gives them.
+     * @param \stdClass $centre
+     * @return array[]
+     */
+    protected static function fold(array $cards, array $items, \stdClass $centre): array {
+        $open = null;
+        foreach ($cards as $i => $card) {
+            $event = !empty($card['isact']) ? events::get((int) substr($card['id'], 1), (int) $centre->id) : null;
+            if ($event && $event->kind === 'openday' && !(int) $event->cancelled) {
+                $open = $open ?? $i;
+            }
+        }
+        if ($open === null) {
+            return $cards;
+        }
+        $signed = [];
+        $sheet = [];
+        foreach ($items as $one) {
+            if ($one['kind'] === 'act') {
+                $signed[$one['householdid']] = true;
+            } else if ($one['kind'] === 'note' && $one['source'] === 'sheet' && $one['dayonly']) {
+                $sheet[$one['id']] = $one['householdid'];
+            }
+        }
+        $more = count(array_unique(array_filter($sheet, fn($id) => !isset($signed[$id]))));
+        $cards[$open]['sheet'] = $more;
+        $cards[$open]['sheettext'] = $more ? get_string($more === 1 ? 'cal_act_sheet_one' : 'cal_act_sheet', self::C, $more) : '';
+        return array_values(array_filter($cards, fn($card) => !isset($sheet[$card['id']])));
     }
 
     /**

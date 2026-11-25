@@ -75,6 +75,59 @@ final class appointments_test extends \advanced_testcase {
     }
 
     /**
+     * A day the centre closes may be chosen, said so; and the days go on past the first fifteen, where the one it has is.
+     */
+    public function test_days(): void {
+        $now = (new \DateTimeImmutable('2026-11-25 09:00', \core_date::get_server_timezone_object()))->getTimestamp();
+        $full = households::full($this->family);
+        $one = panel_give::context($full, $this->centre, null, [], false, $now);
+        $days = array_column($one['days'], null, 'key');
+        $this->assertSame(['2026-11-25', '2026-12-09'], [array_key_first($days), array_key_last($days)]);
+        $this->assertTrue($days['2026-11-28']['closed'], 'A Saturday.');
+        $this->assertSame('', $one['earlierurl']);
+        $this->assertStringContainsString('desde=2026-12-09', $one['laterurl']);
+        // The Saturday that was asked for is the one chosen, at an hour.
+        $saturday = panel_give::context($full, $this->centre, null, ['day' => '2026-11-28'], false, $now);
+        $this->assertSame(['2026-11-28'], array_column(array_filter($saturday['days'], fn($d) => $d['current']), 'key'));
+        $this->assertSame(panel_give::FIRST, $saturday['min']);
+        // Later: from that day, and back to today at most.
+        $later = panel_give::context($full, $this->centre, null, ['from' => '2026-12-09'], false, $now);
+        $this->assertSame('2026-12-09', $later['days'][0]['key']);
+        $this->assertFalse($later['days'][0]['today']);
+        $this->assertStringContainsString('desde=2026-11-25', $later['earlierurl']);
+        $this->assertSame('2026-11-25', panel_give::context($full, $this->centre, null, ['from' => '2026-10-01'], false, $now)['days'][0]['key']);
+        // One that is three weeks away, or a day of the week that far: from its Monday.
+        $far = panel_give::context($full, $this->centre, null, ['day' => '2026-12-16'], false, $now);
+        $this->assertSame('2026-12-14', $far['days'][0]['key']);
+        $this->assertSame(['2026-12-16'], array_column(array_filter($far['days'], fn($d) => $d['current']), 'key'));
+    }
+
+    /**
+     * The families the sheet of the team has on the day of an open day, without an hour, are in its card.
+     */
+    public function test_open_day_of_the_sheet(): void {
+        $zone = \core_date::get_server_timezone_object();
+        $at = (new \DateTimeImmutable('2026-11-21 10:00', $zone))->getTimestamp();
+        $event = events::get(events::save((int) $this->centre->id, (object) ['kind' => 'openday', 'name' => 'Puertas abiertas', 'timestart' => $at,
+            'timeend' => $at + 2 * HOURSECS, 'capacity' => 0, 'open' => 1]), (int) $this->centre->id);
+        events::sign_up($event, (int) $this->family->id, 2);
+        $other = households::get(households::create((int) $this->centre->id, (object) ['lang' => 'es', 'firstchannel' => 'phone']), (int) $this->centre->id);
+        $day = (new \DateTimeImmutable('2026-11-21 12:00', $zone))->getTimestamp();
+        // Both in the sheet: the one that signed up is not counted twice. One with its hour is an appointment.
+        $this->note($day, true);
+        $own = $this->family;
+        $this->family = $other;
+        $this->note($day, true);
+        $this->note($at + 6 * HOURSECS);
+        $this->family = $own;
+        $week = panel_agenda::context($this->centre, true, '2026-11-18', 0, $at + 4 * DAYSECS);
+        $saturday = array_values(array_filter($week['days'], fn($d) => $d['key'] === '2026-11-21'))[0];
+        $this->assertSame([true, false], array_map(fn($c) => (bool) $c['isact'], array_values($saturday['items'])));
+        $this->assertSame(1, $saturday['items'][0]['sheet']);
+        $this->assertNotSame('', $saturday['items'][0]['sheettext']);
+    }
+
+    /**
      * Given to any family, it says the one it takes the place of; moved and called off, with nobody told.
      */
     public function test_give(): void {

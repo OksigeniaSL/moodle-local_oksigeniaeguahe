@@ -315,6 +315,20 @@ function local_oksigeniaeguahe_marandu_joined(int $itemid, string $channel, int 
 }
 
 /**
+ * Oksigenia Marandu says a family moved its WhatsApp to another number: its record has the new one, with a note.
+ *
+ * @param int $itemid The household.
+ * @param string $from
+ * @param string $to
+ * @param string $area
+ */
+function local_oksigeniaeguahe_marandu_number_changed(int $itemid, string $from, string $to, string $area = ''): void {
+    if ($area === '' || $area === 'household') {
+        \local_oksigeniaeguahe\local\writeby::number_changed($itemid, $from, $to);
+    }
+}
+
+/**
  * Oksigenia Marandu says how a notice of a family that was in its queue went. A failed may come after a sent.
  *
  * @param string $notice The notice.

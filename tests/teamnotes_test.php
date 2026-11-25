@@ -158,6 +158,104 @@ final class teamnotes_test extends \advanced_testcase {
     }
 
     /**
+     * The same words of a family in a renamed column, or in a row copied to another tab, are not said or done again; the same
+     * words in two columns of one row are two.
+     */
+    public function test_same_words_elsewhere(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $entry = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        entries::update($entry, (object) ['name' => $entry->name, 'acknowledge' => 0, 'active' => 1, 'teamsheet' => 1]);
+        $entry = entries::get((int) $entry->id, $cid);
+        $ad = ['id' => 'l:9', 'created_time' => '2026-11-06T10:00:00+00:00', 'platform' => 'ig', 'campaign_name' => 'Captación',
+            'Nombre y apellidos' => 'Lucía Ramos', 'Teléfono' => '34600111222', 'Priority' => 'No contesta'];
+        [$household] = entries::receive($entry, $ad, '', null, true);
+        $tried = fn() => $DB->count_records(households::CONTACTS, ['householdid' => $household->id, 'direction' => 'out']);
+        $this->assertSame(1, $tried());
+        $since = (int) households::get((int) $household->id, $cid)->waitingsince;
+        // Copied to the tab of the visits, with the same words under another title; and the column renamed.
+        $copy = ['Tutor 1' => 'Lucía Ramos', 'TELÉFONO' => '600111222', 'OBSERVACIONES' => 'No contesta'];
+        entries::receive($entry, $copy, '', null, true);
+        $renamed = $ad;
+        unset($renamed['Priority']);
+        entries::receive($entry, $renamed + ['Respuesta 1' => 'No contesta'], '', null, true);
+        $this->assertSame(1, $tried());
+        $this->assertSame($since, (int) households::get((int) $household->id, $cid)->waitingsince);
+        // A second call in its own column is another one, once.
+        $again = $copy + ['Respuesta 2' => 'No contesta'];
+        entries::receive($entry, $again, '', null, true);
+        $this->assertSame(2, $tried());
+        entries::receive($entry, $again, '', null, true);
+        $this->assertSame(2, $tried());
+        // Other words are news.
+        entries::receive($entry, $again + ['Respuesta 3' => 'Contestador'], '', null, true);
+        $this->assertSame(3, $tried());
+    }
+
+    /**
+     * The day of a call nobody answered is not an appointment, nor is one the sheet had said before; with its hour, it is.
+     */
+    public function test_day_of_a_call(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $entry = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        entries::update($entry, (object) ['name' => $entry->name, 'acknowledge' => 0, 'active' => 1, 'teamsheet' => 1]);
+        $entry = entries::get((int) $entry->id, $cid);
+        $visits = fn(int $id) => array_map(fn($n) => (string) $n->state, array_values($DB->get_records_select(
+            teamnotes::T,
+            'householdid = ? AND visit > 0',
+            [$id],
+            'id ASC'
+        )));
+        entries::receive($entry, ['Hora' => '11:00', 'FECHA' => '20/11/2026', 'Tutor 1' => 'Rosa León', 'TELÉFONO' => '600111000'], '', null, true);
+        $row = ['Hora' => '', 'FECHA' => '12/11/2026', 'Tutor 1' => 'Lucía Ramos', 'TELÉFONO' => '600111222', 'ASISTENCIA' => 'FALSE'];
+        [$household] = entries::receive($entry, $row, '', null, true);
+        $this->assertSame([''], $visits((int) $household->id), 'A day alone, in the column of the visits.');
+        entries::receive($entry, $row + ['OBSERVACIONES' => 'Contestador'], '', null, true);
+        $this->assertSame(['note'], $visits((int) $household->id));
+        $other = ['Hora' => '', 'FECHA' => '12/11/2026', 'Tutor 1' => 'Pablo Ortega', 'TELÉFONO' => '600111333', 'ASISTENCIA' => 'FALSE'];
+        [$second] = entries::receive($entry, $other + ['OBSERVACIONES' => 'Viene a PPAA 21 Nov'], '', null, true);
+        $this->assertSame([], $visits((int) $second->id));
+        [$third] = entries::receive($entry, ['Hora' => '10:00', 'FECHA' => '13/11/2026', 'Tutor 1' => 'Eva Díaz', 'TELÉFONO' => '600111444',
+            'OBSERVACIONES' => 'No contesta'], '', null, true);
+        $this->assertSame([''], $visits((int) $third->id), 'With its hour it was given.');
+    }
+
+    /**
+     * What an earlier version repeated is taken out, once, and whoever stopped waiting because of it waits again.
+     */
+    public function test_repeated(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $centre = centres::get($cid);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'meta']), $cid);
+        households::received($household, 'meta', '¿Hay plaza?', true, time() - 3 * DAYSECS);
+        $asked = (int) households::get((int) $household->id, $cid)->waitingsince;
+        $line = fn(string $body, int $when) => $DB->insert_record(households::CONTACTS, (object) ['householdid' => $household->id,
+            'centreid' => $cid, 'direction' => 'out', 'channel' => 'phone', 'body' => $body, 'entryid' => 0, 'userid' => 0, 'aim' => 'tried',
+            'timecreated' => $when]);
+        $words = \local_oksigeniaeguahe\local\publiclang::str('teamnote_noanswer', 'es');
+        $first = $line($words . ' · Priority: No contesta', time() - 2 * DAYSECS);
+        // Read today, with the day of its row and who attended them.
+        $start = $line('Hola', usergetmidnight(time()) + 60);
+        $twice = $line($words . ' · OBSERVACIONES: No contesta', time() - 5 * DAYSECS);
+        $DB->set_field(households::CONTACTS, 'userid', 2, ['id' => $twice]);
+        $other = $line($words . ' · OBSERVACIONES: Contestador', time());
+        $DB->set_field(households::T, 'waitingsince', 0, ['id' => $household->id]);
+        $look = teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, false);
+        $this->assertSame([$twice], $look['lines']);
+        $this->assertSame([(int) $household->id => $asked], $look['waiting']);
+        $this->assertTrue($DB->record_exists(households::CONTACTS, ['id' => $twice]), 'Only looked at.');
+        teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, true);
+        $this->assertSame([true, false, true], array_map(fn($id) => $DB->record_exists(households::CONTACTS, ['id' => $id]), [$first, $twice, $other]));
+        $this->assertSame($asked, (int) households::get((int) $household->id, $cid)->waitingsince);
+        $this->assertSame([], teamnotes::repeated($centre, 'OBSERVACIONES', usergetmidnight(time()), time() + DAYSECS, true)['lines']);
+    }
+
+    /**
      * What says who someone is is never shown as it came: each of those kinds of column has its example in words.
      */
     public function test_examples_of_personal_roles(): void {

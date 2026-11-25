@@ -36,6 +36,9 @@ require_login(null, false);
 $c = 'local_oksigeniaeguahe';
 $day = optional_param('dia', '', PARAM_RAW_TRIMMED);
 $day = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $day, $d) && checkdate((int) $d[2], (int) $d[3], (int) $d[1]) ? $day : '';
+// The fifteen days that are looked at.
+$from = optional_param('desde', '', PARAM_RAW_TRIMMED);
+$from = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $from, $d) && checkdate((int) $d[2], (int) $d[3], (int) $d[1]) ? $from : '';
 $hid = optional_param('h', 0, PARAM_INT);
 if (!$hid) {
     // From the week: whose it is, first.
@@ -145,6 +148,6 @@ panel::output($centre, 'inbox', get_string('give_title', $c), 'panel_give', pane
     households::full($household),
     $centre,
     $event ?: null,
-    $values ?: ($day !== '' ? ['day' => $day] : []),
+    $values + array_filter(['day' => $day, 'from' => $from]),
     (bool) $off
 ));

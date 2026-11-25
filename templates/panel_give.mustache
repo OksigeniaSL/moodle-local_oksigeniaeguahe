@@ -37,12 +37,13 @@
     {{^off}}
     <form class="bloque dar-cita" method="post" action="{{action}}" data-dar-cita{{#puesta}} data-puesta{{/puesta}} data-dias="{{data}}" data-alas="{{#str}}agenda_at, local_oksigeniaeguahe, {"day": "DIA", "hour": "HORA"}{{/str}}"
         data-boton-avisa="{{#current}}{{#str}}agenda_movetell, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}{{^current}}{{#str}}agenda_gotell, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}" data-boton-calla="{{#current}}{{#str}}agenda_movequiet, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}{{^current}}{{#str}}agenda_goquiet, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}"
-        data-ocupada="{{#str}}agenda_busy, local_oksigeniaeguahe, QUIEN{{/str}}" data-otra="{{#str}}agenda_busyother, local_oksigeniaeguahe{{/str}}" data-cerrado="{{#str}}agenda_shut, local_oksigeniaeguahe{{/str}}" data-fondo="{{#str}}busy_clash, local_oksigeniaeguahe, QUE{{/str}}">
+        data-ocupada="{{#str}}agenda_busy, local_oksigeniaeguahe, QUIEN{{/str}}" data-otra="{{#str}}agenda_busyother, local_oksigeniaeguahe{{/str}}" data-cerrado="{{#str}}agenda_shut, local_oksigeniaeguahe{{/str}}" data-dia-cerrado="{{#str}}give_dayclosed, local_oksigeniaeguahe{{/str}}" data-fondo="{{#str}}busy_clash, local_oksigeniaeguahe, QUE{{/str}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}">
         {{#replaces}}<p class="dc-sustituye">{{{i.info}}}<span>{{#str}}give_replaces, local_oksigeniaeguahe, {{day}}{{/str}}</span></p>{{/replaces}}
-        <fieldset class="dc-dias">
+        <fieldset class="dc-dias" id="dias">
             <legend>{{#str}}give_day, local_oksigeniaeguahe{{/str}}</legend>
-            <div class="dc-hojas">{{#days}}<label class="dc-dia{{#hasbehind}} con-fondo{{/hasbehind}}" for="dia-{{key}}"><input type="radio" id="dia-{{key}}" name="day" value="{{key}}" data-cuando="{{when}}"{{#closed}} disabled{{/closed}}{{#current}} checked{{/current}}><span><small>{{weekday}}</small><b>{{day}}</b><i>{{month}}</i></span>{{#has}}<em><span class="oculto">{{#str}}agenda_dayhas, local_oksigeniaeguahe{{/str}} </span>{{n}}</em>{{/has}}</label>{{/days}}</div>
+            <div class="dc-hojas">{{#days}}<label class="dc-dia{{#hasbehind}} con-fondo{{/hasbehind}}{{#closed}} cerrado{{/closed}}" for="dia-{{key}}"><input type="radio" id="dia-{{key}}" name="day" value="{{key}}" data-cuando="{{when}}"{{#current}} checked{{/current}}><span><small>{{weekday}}</small><b>{{day}}</b><i>{{month}}</i></span>{{#has}}<em><span class="oculto">{{#str}}agenda_dayhas, local_oksigeniaeguahe{{/str}} </span>{{n}}</em>{{/has}}{{#closed}}<span class="oculto">{{#str}}agenda_closed, local_oksigeniaeguahe{{/str}}</span>{{/closed}}</label>{{/days}}</div>
+            <p class="dc-ventana">{{#earlierurl}}<a class="boton secundario" href="{{earlierurl}}">{{#str}}give_earlier, local_oksigeniaeguahe{{/str}}</a>{{/earlierurl}}<a class="boton secundario" href="{{laterurl}}">{{#str}}give_later, local_oksigeniaeguahe{{/str}}</a></p>
         </fieldset>
         <div class="dc-hora">
             <label for="dc-min">{{#str}}give_min, local_oksigeniaeguahe{{/str}}</label>

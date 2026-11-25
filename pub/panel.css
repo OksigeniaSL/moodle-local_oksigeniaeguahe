@@ -23890,10 +23890,6 @@ html {
     font-weight: 750;
 }
 
-.dia-s.cerrado {
-    opacity: 0.75;
-}
-
 /* An appointment as written in the notebook. */
 .cita-e {
     position: relative;
@@ -23964,9 +23960,124 @@ html {
     font-weight: 650;
 }
 
-.cita-acto {
-    background: var(--eg-acento-suave);
+/* An act of the centre, as its poster: a band with its word and its hours, the name large, how many come and how many fit.
+   An appointment is a card of a person. Told apart by what they are made of, not only by colour. */
+.cita-e.cartel,
+.agenda .dias-semana .cita-e.cartel {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde), 0 6px 12px -9px var(--eg-sombra);
 }
+
+.cartel-banda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px 10px;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 6px 11px;
+    background: var(--c-acento);
+    color: var(--c-sobre-acento);
+}
+
+.cartel-que {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.cartel-hora {
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.cartel-cuerpo {
+    display: grid;
+    gap: 4px;
+    padding: 9px 11px 11px;
+}
+
+.cartel .cita-familia {
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+}
+
+.cartel-gente {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.cartel-gente b {
+    color: var(--eg-tinta);
+}
+
+.cartel-aforo {
+    display: block;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(var(--eg-tinta-rgb), 0.14);
+    overflow: hidden;
+}
+
+.cartel-aforo i {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--eg-accion);
+}
+
+.cartel .lleva {
+    position: absolute;
+    inset-block-end: 9px;
+    inset-inline-end: 10px;
+}
+
+.agenda-clases {
+    margin-inline-start: auto;
+}
+
+@media (max-width: 719px) {
+    .agenda-clases {
+        margin-inline-start: 0;
+    }
+}
+
+.agenda-fila > .agenda-clases + .agenda-leyenda {
+    margin-inline-start: 0;
+}
+
+/* In the list of what is ahead, the poster lies down. */
+@media (min-width: 720px) {
+    .agenda .dias-semana.vista-agenda .cita-e.cartel {
+        display: grid;
+        grid-template-areas: none;
+        grid-template-columns: 210px minmax(0, 1fr);
+        align-items: stretch;
+    }
+
+    .agenda .vista-agenda .cartel-banda {
+        flex-direction: column;
+        justify-content: center;
+        padding: 12px 16px;
+    }
+
+    .agenda .vista-agenda .cartel-hora {
+        font-size: 1.125rem;
+    }
+
+    .agenda .vista-agenda .cartel-cuerpo {
+        padding: 12px 18px;
+    }
+}
+
 
 .cita-came,
 .cita-notcame {
@@ -24331,11 +24442,20 @@ html {
     outline-offset: 3px;
 }
 
-.dc-dia input:disabled {
-    cursor: default;
+.dc-ventana {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    margin: 10px 0 0;
 }
 
-.dc-dia input:disabled + span {
+/* Later always at its end, also when there is nothing before. */
+.dc-ventana > :last-child {
+    margin-inline-start: auto;
+}
+
+.dc-dia.cerrado input:not(:checked) + span {
     border-style: dashed;
     background: transparent;
     color: var(--eg-tinta-2);
@@ -25735,9 +25855,26 @@ html {
     outline-offset: 1px;
 }
 
+/* In the month, an act is a filled strip with its name; an appointment, a line. */
 .mes-cita.es-acto {
-    border-inline-start-style: double;
+    border-radius: 3px;
+    border-inline-start: 0;
+    background: var(--c-acento);
+    box-shadow: none;
+    color: var(--c-sobre-acento);
+    white-space: normal;
 }
+
+.mes-cita.es-acto:hover {
+    box-shadow: inset 0 0 0 2px var(--c-sobre-acento);
+}
+
+.mes-cita.es-acto.anulada {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+    color: var(--eg-tinta-2);
+}
+
 
 .mes-cita.anulada {
     border-color: var(--eg-borde);
@@ -26052,8 +26189,12 @@ html {
         font-size: 0;
     }
 
+    /* On a phone, an act is a bar and an appointment a dot. */
     .mes-cita.es-acto {
+        width: 22px;
         border-radius: 3px;
+        background: var(--c-acento);
+        box-shadow: inset 0 0 0 1px var(--eg-borde);
     }
 
     .mes-cita.anulada {

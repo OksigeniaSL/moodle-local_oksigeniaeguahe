@@ -34,6 +34,9 @@ class panel_newstudents {
     /** @var int Families or students a conclusion needs behind it: with fewer, a percentage misleads. */
     const MIN = 10;
 
+    /** @var int Enrolments a strength needs behind it. */
+    const FEW = 5;
+
     /**
      * A string with a number in it, in the singular when the number is one (its key ending in _one, if there is one).
      *
@@ -906,7 +909,8 @@ class panel_newstudents {
             $per = $base ? 100 * $newin / $base : 0;
             if ($base >= self::MIN && ($per < 5 || $per >= 10)) {
                 $spent = array_filter($ads, fn($k) => !$k['moneynone']);
-                $items[] = $kind($per < 5 ? 'flojo' : 'fuerte') + ['anchor' => 'publicidad',
+                // With a handful of them behind, it is only where it goes.
+                $items[] = $kind($per < 5 ? 'flojo' : ($newin >= self::FEW ? 'fuerte' : 'tendencia')) + ['anchor' => 'publicidad',
                     'text' => get_string('panel_new_c_ads' . (!$newin ? '_none' : ($newin === 1 ? '_one' : '')), $c, (object) [
                         'k' => '<b>' . $newin . '</b>', 'of' => self::num($base), 'share' => panel_metrics::share($newin, $base, true)]),
                     'why' => get_string('panel_new_c_ads_why', $c, (object) ['money' => $spent ? centres::money($centre, $sumk($ads, 'moneyn')) :

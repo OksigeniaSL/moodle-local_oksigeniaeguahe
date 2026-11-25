@@ -18,18 +18,35 @@
     @template local_oksigeniaeguahe/panel_agenda_card
 
     An appointment as it is written in the week: its hour, the family with the labels of its children, where and with whom,
-    and what is known of it. One that has passed and nobody said whether they came asks for it there. An act with many
-    families is one.
+    and what is known of it. One that has passed and nobody said whether they came asks for it there. An act of the centre is
+    not a card of a person: a poster, with its word and its hours on a band, how many come and how many fit.
 
     Example context (json):
-    {"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "isunknown": true, "isact": false, "canact": true, "markurl": "#", "sesskey": "abc", "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}
+    {"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "isunknown": true, "isact": false, "word": "", "room": "", "familiestext": "", "peopletext": "", "sheettext": "", "hasfill": false, "fill": 0, "passurl": "", "passtext": "", "canact": true, "markurl": "#", "sesskey": "abc", "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}
 }}
-<div class="cita cita-e cita-{{state}}{{#isact}} cita-acto{{/isact}}{{#twin}} cita-doble{{/twin}}" id="cita-{{id}}" data-cita="{{id}}">
+{{#isact}}
+<div class="cita cita-e cita-acto cartel" id="cita-{{id}}" data-cita="{{id}}">
+    <div class="cartel-banda">
+        <span class="cartel-que">{{word}}</span>
+        <span class="cartel-hora">{{#dayonly}}{{#str}}agenda_nohour, local_oksigeniaeguahe{{/str}}{{/dayonly}}{{^dayonly}}{{hour}}{{#hourend}}–{{hourend}}{{/hourend}}{{/dayonly}}</span>
+    </div>
+    <div class="cartel-cuerpo">
+        <a class="cita-familia" href="{{url}}">{{title}}</a>
+        <span class="cartel-gente"><b>{{familiestext}}</b>{{#peopletext}} <span>{{peopletext}}</span>{{/peopletext}}{{#room}} <span>{{room}}</span>{{/room}}</span>
+        {{#sheettext}}<span class="secundario">{{sheettext}}</span>{{/sheettext}}
+        {{#hasfill}}<span class="cartel-aforo" aria-hidden="true"><i style="width: {{fill}}%"></i></span>{{/hasfill}}
+        {{#place}}<span class="secundario">{{place}}</span>{{/place}}
+        {{#passurl}}<a class="enlace" href="{{passurl}}">{{passtext}}</a>{{/passurl}}
+    </div>
+    {{#guide}}<span class="lleva">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/guide}}
+</div>
+{{/isact}}
+{{^isact}}
+<div class="cita cita-e cita-{{state}}{{#twin}} cita-doble{{/twin}}" id="cita-{{id}}" data-cita="{{id}}">
     <span class="hora">{{#dayonly}}<span class="sin-hora">{{#str}}agenda_nohour, local_oksigeniaeguahe{{/str}}</span>{{/dayonly}}{{^dayonly}}{{hour}}{{/dayonly}}</span>
     <div class="que">
-        <a class="cita-familia" href="{{url}}">{{#isact}}{{title}}{{/isact}}{{^isact}}{{adults}}{{/isact}}</a>
-        {{^isact}}<span class="cita-hijos">{{#children}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{/isact}}
-        {{#isact}}<span class="secundario">{{familiestext}}</span>{{#passurl}}<a class="enlace" href="{{passurl}}">{{passtext}}</a>{{/passurl}}{{/isact}}
+        <a class="cita-familia" href="{{url}}">{{adults}}</a>
+        <span class="cita-hijos">{{#children}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>
         {{#place}}<span class="secundario">{{place}}</span>{{/place}}
         {{#sourcename}}<span class="cita-origen">{{sourcename}}</span>{{/sourcename}}
         {{#iscame}}<span class="cita-sello">{{{i.check}}}{{#str}}agenda_came, local_oksigeniaeguahe{{/str}}</span>{{/iscame}}
@@ -43,3 +60,4 @@
     </div>
     {{#guide}}<span class="lleva">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/guide}}
 </div>
+{{/isact}}

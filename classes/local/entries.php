@@ -41,6 +41,9 @@ class entries {
     /** @var int Something that comes in later than this after it happened does not wait for an answer. */
     const PASTDAYS = 7;
 
+    /** @var int What comes by itself dated longer ago than this has a wrong clock, or was sent again: it came now. */
+    const OLD = 60 * DAYSECS;
+
     /** @var string The email of a test: whatever comes through an entry with it only says the entry works. */
     const TESTMAIL = 'prueba@eguahe.test';
 
@@ -341,21 +344,36 @@ class entries {
             $time = min($read->time, $now);
         }
         $time = $time ?: $now;
+        if (!$past && empty($entry->teamsheet)) {
+            // What comes now with a wrong clock, or years late: it came now.
+            $time = $time > $now || $time < $now - self::OLD ? $now : $time;
+            $given = $given > $now || $given < $now - self::OLD ? $now : $given;
+        }
         $externalid = $externalid !== '' ? $externalid : $read->externalid;
         if ($read->email === null && $read->phone === null && $read->firstname === '') {
             // Nobody to answer: nothing comes in.
             return [null, false, null];
         }
-        $who = implode('|', ['who', $read->email, $read->phone, $read->firstname, $read->lastname, $read->child, $read->keytime]);
+        $whois = fn($email, $phone) => implode('|', ['who', $email, $phone, $read->firstname, $read->lastname, $read->child, $read->keytime]);
+        $who = $whois($read->email, $read->phone);
+        // As the versions before read its phone and its email: what came then is the same one now.
+        $whowas = $whois($read->was[0], $read->was[1]);
         $key = hash('sha256', $externalid !== '' ? 'id:' . $externalid : $who);
-        $same = null;
+        $same = [];
+        $also = [];
+        if ($externalid === '') {
+            $same = array_unique([hash('sha256', $who), hash('sha256', $whowas)]);
+        }
         if ($externalid === '' && empty($entry->teamsheet)) {
-            // Not a row of the sheet of the team: what it says is part of what it is known by, with its moment. A family that
-            // writes again, the same day or months later, is heard again; the very same thing sent again is not.
-            $same = hash('sha256', $who);
-            $moment = $read->time && !$read->dayonly ? $read->time : userdate($time, '%Y%m%d', 99, false);
-            $key = hash('sha256', implode('|', [$who, $moment, json_encode([$read->lines, $read->children])]));
-            $daykey = hash('sha256', implode('|', [$who, userdate($time, '%Y%m%d', 99, false), json_encode([$read->lines, $read->children])]));
+            // Not a row of the sheet of the team: its moment is part of what it is known by or, without it, its day and what it
+            // says, as it is written (never as the courses of the centre are today). A family that writes again, the same day or
+            // months later, is heard again; the very same thing sent again is not.
+            $told = json_encode($read->raw);
+            $day = userdate($time, '%Y%m%d', 99, false);
+            $daykey = hash('sha256', implode('|', [$who, $day, $told]));
+            $key = $read->time && !$read->dayonly ? hash('sha256', implode('|', [$who, $read->time, ''])) : $daykey;
+            // What is sent whole again and again (a sheet) and does not say its day came once, whatever the day.
+            $also = [hash('sha256', implode('|', [$who, 'any', $told]))];
         }
         // A contact of a Meta ad counts as Meta, with its platform and campaign as where it arrived from, also when it
         // comes through a sheet the ads fill; a sheet of the team says the way they came in its own column.
@@ -364,9 +382,10 @@ class entries {
         // identifier and without it (a sheet that lost the title of that column).
         $keys = array_merge([$key], $arrival !== null ? self::ad_keys($read) : []);
         // The same row that only had its day, now with its hour.
-        $look = isset($daykey) && !in_array($daykey, $keys, true) ? array_merge($keys, [$daykey]) : $keys;
+        $look = array_values(array_unique(array_merge($keys, isset($daykey) ? [$daykey] : $same, $past ? $also : [])));
         $arrived = self::arrived($entry, $read, $look, $arrival !== null) ??
-            ($same !== null && $arrival === null ? self::arrived_same($entry, $read, $same) : null);
+            (isset($daykey) && $arrival === null ? self::arrived_same($entry, $read, $same, $past) : null);
+        $keys = array_merge($keys, $also);
         // A sheet the team keeps, as a person said in the entry (never from its headings): a phone finds the family and
         // what the team writes is read. A form anyone can fill finds a family only by an email it already has, never
         // brings it a new address, and never changes what the team did.
@@ -381,6 +400,9 @@ class entries {
             // same row (a second call, the day of the visit) comes in, once; who they are and their courses stay as the
             // team and the family left them in Eguahe.
             $household = $arrived->householdid ? households::get((int) $arrived->householdid, (int) $entry->centreid) : null;
+            if ($household && $trusted) {
+                self::better_phone($household, $read);
+            }
             if ($household && $trusted && ($read->team || $read->staff || $read->appointment)) {
                 $transaction = $DB->start_delegated_transaction();
                 self::$noted = teamnotes::apply($household, (array) $read + ['entryid' => (int) $entry->id, 'past' => $past]);
@@ -390,6 +412,10 @@ class entries {
             return [$household, false, null];
         }
 
+        if ($byteam && $past) {
+            // An old row of a person of the team is the test it was.
+            return [null, false, null];
+        }
         // A family that erased its data does not come back with an old row (a sheet sent again, a phone corrected):
         // only what it sent after erasing comes in.
         $contacts = [];
@@ -487,7 +513,9 @@ class entries {
             return [];
         }
         $out = [];
-        foreach ($read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]] as $adult) {
+        $adults = $read->adults ?: [(object) ['email' => $read->email, 'phone' => $read->phone]];
+        $adults[] = (object) ['email' => $read->was[0], 'phone' => $read->was[1]];
+        foreach ($adults as $adult) {
             foreach (array_filter([(string) $adult->email, (string) $adult->phone]) as $who) {
                 $out[] = hash('sha256', 'ad:' . $who . '|' . $read->time);
             }
@@ -553,14 +581,17 @@ class entries {
      *
      * @param \stdClass $entry
      * @param \stdClass $read
-     * @param string $key
+     * @param string[] $keys
+     * @param bool $past Whether it is sent again with the rest: then its words are not looked at.
      * @return \stdClass|null With its householdid.
      */
-    protected static function arrived_same(\stdClass $entry, \stdClass $read, string $key): ?\stdClass {
+    protected static function arrived_same(\stdClass $entry, \stdClass $read, array $keys, bool $past): ?\stdClass {
         global $DB;
-        $row = $DB->get_record(self::ARRIVALS, ['entryid' => $entry->id, 'externalid' => $key], 'id, householdid', IGNORE_MULTIPLE);
-        if (!$row) {
-            return null;
+        [$in, $params] = $DB->get_in_or_equal($keys, SQL_PARAMS_NAMED);
+        $rows = $DB->get_records_select(self::ARRIVALS, "entryid = :entry AND externalid $in", $params + ['entry' => $entry->id], 'id ASC');
+        $row = reset($rows);
+        if (!$row || $past) {
+            return $row ?: null;
         }
         $said = trim(implode("\n", $read->lines));
         $lines = $DB->get_fieldset_select(
@@ -575,6 +606,32 @@ class entries {
             }
         }
         return null;
+    }
+
+    /**
+     * The phone of a row of the team's sheet that versions before read wrong, or not at all, now that it is read: whoever has it
+     * wrong, or has none and is called the same, has it.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $read
+     */
+    protected static function better_phone(\stdClass $household, \stdClass $read): void {
+        global $DB;
+        $was = (string) ($read->was[1] ?? '');
+        if ((string) $read->phone === '' || $was === $read->phone) {
+            return;
+        }
+        $adults = $DB->get_records(households::ADULTS, ['householdid' => $household->id], 'id ASC');
+        if (array_filter($adults, fn($a) => (string) $a->phone === $read->phone)) {
+            return;
+        }
+        foreach ($adults as $adult) {
+            $same = recognise::plain((string) $adult->firstname) === recognise::plain($read->firstname);
+            if ($was !== '' ? (string) $adult->phone === $was : $same && (string) $adult->phone === '') {
+                $DB->update_record(households::ADULTS, (object) ['id' => $adult->id, 'phone' => $read->phone]);
+                return;
+            }
+        }
     }
 
     /**
@@ -822,9 +879,10 @@ class entries {
             'incentre' => 0, 'alumni' => 0, 'heardfrom' => null, 'place' => [], 'time' => 0, 'externalid' => '', 'ads' => [],
             'adults' => [], 'children' => [], 'team' => [], 'staff' => [], 'hour' => '', 'channel' => null,
             'appointment' => 0, 'appointmenthour' => false, 'monthfirst' => false, 'teamsheet' => false, 'people' => 0,
-            'otherschool' => '', 'dayonly' => false, 'keytime' => 0, 'datecolumn' => ''];
+            'otherschool' => '', 'dayonly' => false, 'keytime' => 0, 'datecolumn' => '', 'raw' => [], 'was' => [null, null]];
         $detail = [];
         $people = [];
+        $before = [];
         $grades = [];
         $names = [];
         $schoolyear = '';
@@ -857,9 +915,13 @@ class entries {
             $plainq = recognise::plain((string) $question);
             $who = preg_match('/(\d)\D*$/', $plainq, $m) ? max(1, (int) $m[1]) :
                 (preg_match('/acompan|accompan|companion/', $plainq) ? 2 : 1);
+            if (!in_array($role, ['date', 'hour', 'ids', 'team', 'staff'], true)) {
+                $r->raw[] = $value;
+            }
             switch ($role) {
                 case 'email':
                     $email = households::email($value);
+                    $before[$who]['email'] = $before[$who]['email'] ?? ($email ?: null);
                     if (!$email && preg_match('/[^\s<>()\/;,|]+@[^\s<>()\/;,|]+\.[^\s<>()\/;,|.]+/u', $value, $m)) {
                         // Two in one place, or one with a word beside it: the first that can be written to, and all of it kept.
                         $email = households::email($m[0]);
@@ -874,6 +936,8 @@ class entries {
                     break;
                 case 'phone':
                     $phone = phone::normalise(preg_replace('/^p:/i', '', $value), $centre->country ?? null);
+                    $before[$who]['phone'] = $before[$who]['phone'] ?? (preg_match('/\p{L}{3,}/u', $value) ? null :
+                        phone::normalise(preg_replace('/^p:/i', '', $value), $centre->country ?? null, true));
                     $within = !$phone || preg_match('/\p{L}{3,}/u', $value) ? phone::first_in($value, $centre->country ?? null) : null;
                     if ($within !== null && !isset($people[$who]['phone'])) {
                         // Two in one place, or one with a word beside it: the first that can be called, and all of it kept.
@@ -1059,6 +1123,16 @@ class entries {
             $one = $r->adults[0];
             [$r->firstname, $r->lastname, $r->email, $r->phone] = [$one->firstname, $one->lastname, $one->email, $one->phone];
             $r->fullname = trim($one->firstname . ' ' . $one->lastname);
+        }
+        // How the first of them was read by the versions before, to know again what came then.
+        ksort($before);
+        foreach (array_unique(array_merge(array_keys($people), array_keys($before))) as $i) {
+            $named = !empty($people[$i]['firstname']) || !empty($people[$i]['fullname']);
+            $had = [$before[$i]['email'] ?? null, $before[$i]['phone'] ?? null];
+            if ($named || array_filter($had)) {
+                $r->was = $had;
+                break;
+            }
         }
         // The children: each course asked, with the name written in the same place, in order.
         $years = array_values(array_unique(array_map(fn($o) => (string) $o->schoolyear, centres::offers(

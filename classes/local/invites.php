@@ -1109,6 +1109,10 @@ class invites {
             return 'noinvites';
         }
         $why = notices::why($household);
+        if ($why === 'nopermission' && familymail::may_email($household)) {
+            // It did allow its email: something else changed (a child enrolled, a family of the centre now).
+            return 'changed';
+        }
         return in_array($why, ['silent', 'noemail', 'nopermission'], true) ? $why : 'changed';
     }
 

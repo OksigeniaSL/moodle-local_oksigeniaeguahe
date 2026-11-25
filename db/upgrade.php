@@ -2136,7 +2136,7 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
             $start = strlen($year) > 4 ? make_timestamp((int) substr($year, 0, 4), 9, 1, 12) :
                 make_timestamp((int) substr($year, 0, 4), 3, 1, 12);
             $DB->execute(
-                'UPDATE {local_oksigeniaeguahe_student} SET timein = ? WHERE schoolyear = ? AND timein > 0 AND timein < ?',
+                "UPDATE {local_oksigeniaeguahe_student} SET timein = ? WHERE schoolyear = ? AND movement = 'roll' AND timein > 0 AND timein < ?",
                 [$start - HOURSECS, $year, $start - 60 * DAYSECS]
             );
         }
@@ -2262,7 +2262,25 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
         // The made-up families were told by their date: the first of January of 2000.
-        $DB->set_field('local_oksigeniaeguahe_household', 'guest', 2, ['timecreated' => 946684800]);
+        // Never one a real family was put together with.
+        $DB->set_field_select(
+            'local_oksigeniaeguahe_household',
+            'guest',
+            2,
+            "timecreated = ? AND id NOT IN (SELECT householdid FROM {local_oksigeniaeguahe_mergelog})
+                AND EXISTS (SELECT 1 FROM {local_oksigeniaeguahe_adult} a
+                             WHERE a.householdid = {local_oksigeniaeguahe_household}.id AND a.lastname = ?)",
+            [946684800, '(muestra)']
+        );
+        // One a real family was put together with is from when that family first wrote.
+        $rows = $DB->get_records('local_oksigeniaeguahe_household', ['timecreated' => 946684800, 'guest' => 0], '', 'id');
+        foreach ($rows as $row) {
+            $first = (int) $DB->get_field_sql(
+                'SELECT MIN(timecreated) FROM {local_oksigeniaeguahe_contact} WHERE householdid = ? AND timecreated > ?',
+                [$row->id, 946684800]
+            );
+            $DB->set_field('local_oksigeniaeguahe_household', 'timecreated', $first ?: time(), ['id' => $row->id]);
+        }
         // What a family had got to when a person said it went is already kept: it goes to its children.
         $rows = $DB->get_recordset_select(
             'local_oksigeniaeguahe_household',

@@ -189,6 +189,152 @@ class teamnotes {
     }
 
     /**
+     * What a line of a sheet is, wherever it is written: its gestures and its words.
+     *
+     * @param array $gestures
+     * @param string $value
+     * @return string
+     */
+    protected static function line_key(array $gestures, string $value): string {
+        // Whether a day in it is a visit depends on the column: it is not what tells one line from another.
+        $kinds = [];
+        foreach ($gestures as $g) {
+            if ($g['kind'] !== 'visitbooked') {
+                $kinds[] = $g['kind'] . ':' . ($g['channel'] ?? '') . ':' . ($g['stage'] ?? $g['reason'] ?? '');
+            }
+        }
+        return implode(',', $kinds) . '|' . self::plain($value);
+    }
+
+    /**
+     * Whether what a row says makes of its day, without an hour, something else than an appointment: they only called and
+     * nobody answered, or they come to an open day that is another day.
+     *
+     * @param array $lines question, value and gestures.
+     * @param int $day
+     * @return bool
+     */
+    protected static function no_visit(array $lines, int $day): bool {
+        $gestures = array_merge([], ...array_map(fn($line) => $line[2], $lines));
+        $kinds = array_column($gestures, 'kind');
+        if (array_intersect($kinds, ['attended', 'visitbooked', 'contacted', 'familycalls', 'infosent', 'stage'])) {
+            return false;
+        }
+        $date = fn(int $time) => userdate($time, '%Y-%m-%d', 99, false);
+        foreach ($gestures as $g) {
+            if ($g['kind'] === 'openday' && !empty($g['time']) && $date((int) $g['time']) !== $date($day)) {
+                return true;
+            }
+        }
+        return (bool) array_intersect($kinds, ['noanswer', 'wrongnumber']);
+    }
+
+    /**
+     * The lines a sheet has already left in the history of a family, by what each one is.
+     *
+     * @param int $householdid
+     * @param int $around
+     * @return array[] line_key() => ids of its lines, the oldest first.
+     */
+    public static function lines_before(int $householdid, int $around): array {
+        global $DB;
+        $out = [];
+        $rows = $DB->get_records_select(
+            households::CONTACTS,
+            "householdid = ? AND entryid = 0 AND direction IN ('note', 'out')",
+            [$householdid],
+            'id ASC',
+            'id, body, direction'
+        );
+        foreach ($rows as $row) {
+            // As each one is written: what was understood, the title of its column and its words.
+            if (!preg_match('/^(?:.* · )?([^:·\n]{1,80}): (.+)$/su', (string) $row->body, $m)) {
+                continue;
+            }
+            $gestures = self::read($m[1], $m[2], $around) ?? [];
+            $marked = array_values(array_filter($gestures, fn($g) => !in_array($g['kind'], ['alumni', 'notalumni'], true)));
+            $out[self::line_key($marked, $m[2])][] = (int) $row->id;
+        }
+        return $out;
+    }
+
+    /**
+     * The lines of a column that a family already had under another name, on a day a sheet was read again: for
+     * cli/sheet_repeated.php. Taken out with $run, and whoever stopped waiting because of them waits again.
+     *
+     * @param \stdClass $centre
+     * @param string $title The column that was read as new; empty, any.
+     * @param int $from When it was read.
+     * @param int $to
+     * @param bool $run
+     * @return array lines (ids), titles (title => how many) and waiting (household id => since)
+     */
+    public static function repeated(\stdClass $centre, string $title, int $from, int $to, bool $run): array {
+        global $DB;
+        $out = ['lines' => [], 'titles' => [], 'waiting' => []];
+        // A line has the day of its row, not the one it was read: what was written that day is told by where it is in the table.
+        $edge = fn(int $time) => (int) $DB->get_field_sql('SELECT MIN(id) FROM {' . households::CONTACTS . '} WHERE timecreated >= ?', [$time]);
+        $first = $edge($from);
+        $last = $edge($to);
+        $like = $DB->sql_like('body', ':title', false);
+        $rows = !$first ? [] : $DB->get_records_select(
+            households::CONTACTS,
+            "centreid = :centre AND entryid = 0 AND direction IN ('note', 'out') AND id >= :first AND id < :last AND $like",
+            ['centre' => $centre->id, 'first' => $first, 'last' => $last ?: PHP_INT_MAX, 'title' => '%' . $DB->sql_like_escape($title) . ':%'],
+            'id ASC'
+        );
+        $families = [];
+        foreach ($rows as $row) {
+            if (!preg_match('/^(?:.* · )?([^:·\n]{1,80}): (.+)$/su', (string) $row->body, $m) || ($title !== '' && trim($m[1]) !== $title)) {
+                continue;
+            }
+            $gestures = array_values(array_filter(self::read($m[1], $m[2], (int) $row->timecreated) ?? [], fn($g) =>
+                !in_array($g['kind'], ['alumni', 'notalumni'], true)));
+            $same = self::lines_before((int) $row->householdid, (int) $row->timecreated)[self::line_key($gestures, $m[2])] ?? [];
+            // Of the ones there are, the first stays; one of the same moment is another column of the same row.
+            $older = array_filter($same, fn($id) => $id < (int) $row->id && !isset($rows[$id]));
+            if ($older) {
+                $out['lines'][] = (int) $row->id;
+                $out['titles'][trim($m[1])] = ($out['titles'][trim($m[1])] ?? 0) + 1;
+                $families[(int) $row->householdid][] = (int) $row->id;
+            }
+        }
+        foreach ($families as $householdid => $ids) {
+            $household = households::get($householdid, (int) $centre->id);
+            if (!$household || (int) $household->waitingsince) {
+                continue;
+            }
+            [$in, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'x', false);
+            $asked = (int) $DB->get_field_sql(
+                'SELECT MAX(timecreated) FROM {' . households::CONTACTS . "} WHERE householdid = :h AND direction = 'in' AND userid = 0
+                    AND channel <> 'event'",
+                ['h' => $householdid]
+            );
+            $answered = $asked && $DB->record_exists_select(
+                households::CONTACTS,
+                "householdid = :h AND direction = 'out' AND aim IS NULL AND timecreated >= :since AND id $in",
+                ['h' => $householdid, 'since' => usergetmidnight($asked)] + $params
+            );
+            $closed = $DB->count_records_select(households::CHILDREN, "householdid = ? AND stage <> 'closed'", [$householdid]) === 0 &&
+                $DB->record_exists(households::CHILDREN, ['householdid' => $householdid]);
+            if ($asked && !$answered && !$closed) {
+                $out['waiting'][$householdid] = $asked;
+            }
+        }
+        if ($run) {
+            $transaction = $DB->start_delegated_transaction();
+            foreach ($out['lines'] as $id) {
+                $DB->delete_records(households::CONTACTS, ['id' => $id]);
+            }
+            foreach ($out['waiting'] as $householdid => $since) {
+                $DB->update_record(households::T, (object) ['id' => $householdid, 'waitingsince' => $since, 'timemodified' => time()]);
+            }
+            $transaction->allow_commit();
+        }
+        return $out;
+    }
+
+    /**
      * The day written in a text («13/11», «23/11/2026», «21 nov»), at noon; 0 when there is none. Without its year, the
      * one that leaves it closest after the row.
      *
@@ -340,6 +486,17 @@ class teamnotes {
             $lines[] = [$question, $value, $gestures];
         }
         $appointment = (int) ($row['appointment'] ?? 0);
+        if ($appointment && empty($row['appointmenthour']) && self::no_visit($lines, $appointment)) {
+            // The day of a call nobody answered, or of telling them of an open day: nobody was given an appointment then.
+            $DB->set_field_select(
+                self::T,
+                'state',
+                'note',
+                'householdid = ? AND entryid = ? AND visit = ? AND dayonly = 1 AND state IS NULL AND replacedby = 0',
+                [$household->id, $entryid, $appointment]
+            );
+            $appointment = 0;
+        }
         if ($appointment) {
             $lines[] = ['', '', [['kind' => 'visitbooked', 'time' => $appointment,
                 'exact' => !empty($row['appointmenthour']), 'row' => true]]];
@@ -347,6 +504,8 @@ class teamnotes {
         foreach ($names as $name) {
             $lines[] = ['', $name, [['kind' => 'by', 'time' => $time]]];
         }
+        $inrow = [];
+        $before = null;
         foreach ($lines as [$question, $value, $gestures]) {
             // Someone of the family studied at the centre: said again each time the sheet comes, and never a new line
             // for a note already written before Eguahe knew these words.
@@ -378,6 +537,20 @@ class teamnotes {
                     $visit = self::seen_again(reset($known), $household, $given, $entryid, $lang);
                 }
                 continue;
+            }
+            if ($question !== '' && !$given) {
+                // The same words, with the same gesture, in another column or another tab (one renamed, a row copied): it is not
+                // said again, nor done again. In two columns of one row (two calls nobody answered) it is said twice.
+                $key = self::line_key($marked, $value);
+                $inrow[$key] = ($inrow[$key] ?? 0) + 1;
+                $before = $before ?? self::lines_before((int) $household->id, $time);
+                $same = $before[$key] ?? [];
+                if (count($same) >= $inrow[$key]) {
+                    $counts['already'] = ($counts['already'] ?? 0) + 1;
+                    $DB->insert_record(self::T, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+                        'mark' => $mark, 'contactid' => $same[$inrow[$key] - 1], 'timecreated' => time()]);
+                    continue;
+                }
             }
             $said = $question !== '' ? trim($question) . ': ' . $value : $value;
             $what = [];
