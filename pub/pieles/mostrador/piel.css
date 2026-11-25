@@ -973,7 +973,15 @@ body.piel-mostrador::after {
 
 .piel-mostrador .medida {
     background:
-        linear-gradient(to bottom, transparent 38px, var(--margen) 38px, var(--margen) 40px, transparent 40px),
+        linear-gradient(to right, transparent 6px, var(--margen) 6px, var(--margen) 8px, transparent 8px),
+        var(--ruido),
+        var(--papel-b);
+}
+
+[dir="rtl"] .piel-mostrador .medida,
+[dir="rtl"].piel-mostrador .medida {
+    background:
+        linear-gradient(to left, transparent 6px, var(--margen) 6px, var(--margen) 8px, transparent 8px),
         var(--ruido),
         var(--papel-b);
 }

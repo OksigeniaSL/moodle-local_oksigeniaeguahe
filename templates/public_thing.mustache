@@ -262,20 +262,20 @@
 </div>
 {{/costs}}
 {{#tell}}
-<form class="hoja-pregunta contar-mas" id="contar" method="post" action="{{action}}">
+<form class="hoja-pregunta contar-mas" id="contar" method="post" action="{{action}}" data-contar>
     <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="contar">
     {{^fold}}<h3>{{title}}</h3>{{/fold}}
     <p class="muted">{{help}}</p>
     {{#heard}}
-    <fieldset>
+    <fieldset class="contar-pregunta">
         <legend>{{label}}</legend>
-        <div class="fichas-papel">{{#options}}<label class="ficha-papel"><input type="radio" name="heardfrom" value="{{value}}"><span class="palabra">{{name}}</span></label>{{/options}}</div>
+        <div class="fichas-papel">{{#options}}<label class="ficha-papel" for="{{id}}"><input type="radio" id="{{id}}" name="heardfrom" value="{{value}}"><span class="palabra">{{name}}</span></label>{{/options}}</div>
     </fieldset>
     {{/heard}}
     {{#place}}
-    <div class="campo"><label for="contar-donde">{{label}}</label><select id="contar-donde" name="municipality"><option value="">{{choose}}</option>{{#options}}<option value="{{value}}">{{name}}</option>{{/options}}<option value="other">{{other}}</option><option value="moving">{{moving}}</option></select></div>
+    <div class="campo contar-pregunta"><label for="contar-donde">{{label}}</label><select id="contar-donde" name="municipality"><option value="">{{choose}}</option>{{#options}}<option value="{{value}}">{{name}}</option>{{/options}}<option value="other">{{other}}</option><option value="moving">{{moving}}</option></select></div>
     {{/place}}
-    <div class="acciones"><button class="boton secundario" type="submit">{{save}}</button></div>
+    <div class="acciones" data-sin-guion><button class="boton secundario" type="submit">{{save}}</button></div>
 </form>
 {{/tell}}
 {{#whyother}}

@@ -28,10 +28,11 @@
 }}
 <div class="respuestas-acto">
     <h3>{{#str}}panel_replies, local_oksigeniaeguahe{{/str}}</h3>
+    <div class="respuestas-tira" aria-hidden="true">{{#groups}}<span class="respuestas-{{key}}" style="flex-grow: {{n}}"></span>{{/groups}}</div>
     {{#groups}}
-    <details class="respuestas-{{key}}"{{#open}} open{{/open}}>
-        <summary>{{name}} <b>{{n}}</b></summary>
-        <ul>{{#rows}}<li><a href="{{url}}">{{name}}</a>{{#when}} <span class="secundario">{{when}}</span>{{/when}}</li>{{/rows}}</ul>
+    <details class="respuestas-grupo respuestas-{{key}}"{{#open}} open{{/open}}>
+        <summary><b>{{n}}</b><span>{{name}}</span>{{{i.chev}}}</summary>
+        <ul>{{#rows}}<li><a href="{{url}}">{{name}}</a>{{#when}}<span class="secundario">{{when}}</span>{{/when}}</li>{{/rows}}</ul>
     </details>
     {{/groups}}
     <p class="secundario">{{#str}}panel_replies_help, local_oksigeniaeguahe{{/str}}</p>

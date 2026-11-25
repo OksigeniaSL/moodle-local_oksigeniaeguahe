@@ -21664,29 +21664,1290 @@ html {
     flex: 1 1 260px;
 }
 
-/* What the families invited to an act said. */
+/* What the families invited to an act said: the parts of a strip, and the names of each. Its colour never says it alone. */
 .respuestas-acto {
     display: grid;
-    gap: 6px;
-    margin-top: 14px;
+    gap: 0;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--eg-linea);
 }
 
 .respuestas-acto h3 {
-    margin: 0;
+    margin: 0 0 10px;
     font-size: 1rem;
 }
 
-.respuestas-acto summary {
-    cursor: pointer;
-    padding: 6px 0;
+.respuestas-tira {
+    display: flex;
+    gap: 3px;
+    height: 12px;
+    margin-bottom: 6px;
 }
 
-.respuestas-acto ul {
-    margin: 0 0 8px;
+.respuestas-tira span {
+    flex: 1 1 0;
+    min-width: 12px;
+    border-radius: 6px;
+    background: var(--tono);
+}
+
+.respuestas-yes {
+    --tono: var(--eg-salvia, #5e7f6a);
+}
+
+.respuestas-no {
+    --tono: var(--eg-tinta-2);
+}
+
+.respuestas-opened {
+    --tono: var(--eg-madera, #b98256);
+}
+
+.respuestas-none {
+    --tono: var(--eg-linea);
+}
+
+.respuestas-grupo {
+    border-bottom: 1px solid var(--eg-linea);
+}
+
+.respuestas-grupo summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 46px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.respuestas-grupo summary::-webkit-details-marker {
+    display: none;
+}
+
+.respuestas-grupo summary::before {
+    content: '';
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--tono);
+}
+
+.respuestas-grupo summary b {
+    min-width: 1.2em;
+    font-size: 1.125rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.respuestas-grupo summary span {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.respuestas-grupo summary svg {
+    flex: none;
+    transition: transform 0.2s ease;
+}
+
+.respuestas-grupo[open] summary svg {
+    transform: rotate(180deg);
+}
+
+.respuestas-grupo ul {
+    margin: 0 0 10px;
     padding: 0;
     list-style: none;
 }
 
-.respuestas-acto li {
+.respuestas-grupo li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 5px 0 5px 22px;
+}
+
+.respuestas-grupo li .secundario {
+    font-size: 0.8125rem;
+}
+
+.respuestas-acto > .secundario {
+    margin: 10px 0 14px;
+    font-size: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .respuestas-grupo summary svg {
+        transition: none;
+    }
+}
+
+/* The line of what an act is about: one line of the same paper. */
+.acto-tema-campo input {
+    min-height: 34px;
+    padding: 0 4px;
+    border: 0;
+    border-bottom: 1px solid var(--eg-borde);
+    border-radius: 0;
+    background: none;
+    line-height: 30px;
+}
+
+.acto-tema-campo input:focus-visible {
+    border-radius: 4px;
+}
+
+/* Whether its link is offered, with what it does under it. */
+.sin-enlace {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    margin: 4px 0 14px;
+}
+
+.sin-enlace .interruptor {
+    border-color: var(--eg-borde);
+}
+
+/* ---------- The appointments: the week of the team, who came, and giving one ---------- */
+.agenda-hojas {
+    display: flex;
+    gap: 6px;
+    margin: 0 0 16px;
+}
+
+.agenda-hojas a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: var(--eg-hundido);
+    color: var(--eg-tinta);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.agenda-hojas a[aria-current] {
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.agenda-hojas a:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.agenda-nota {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 18px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    background: #fff3bf;
+    box-shadow: 0 8px 16px -12px rgba(40, 25, 15, 0.6);
+    color: #3b2f12;
+    font-weight: 650;
+}
+
+.agenda-nota .boton {
+    border-color: #3b2f12;
+    background: transparent;
+    color: #3b2f12;
+}
+
+.agenda-hecho {
+    position: sticky;
+    z-index: 6;
+    top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    align-items: center;
+    width: fit-content;
+    margin: 0 auto 14px;
+    padding: 6px 8px 6px 18px;
+    border-radius: 999px;
+    background: var(--eg-tinta);
+    box-shadow: 0 14px 26px -14px rgba(0, 0, 0, 0.6);
+    color: var(--eg-superficie);
+    font-weight: 650;
+}
+
+.agenda-hecho[hidden] {
+    display: none;
+}
+
+.agenda-hecho .boton {
+    border-color: currentcolor;
+    color: inherit;
+}
+
+.agenda > header {
+    align-items: center;
+}
+
+.agenda-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 10px;
+    align-items: center;
+    min-width: 0;
+}
+
+.agenda-paso {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.agenda-ir {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 50%;
+    color: var(--eg-tinta);
+}
+
+.agenda-ir.adelante svg,
+[dir="rtl"] .agenda-ir:not(.adelante) svg {
+    transform: rotate(180deg);
+}
+
+[dir="rtl"] .agenda-ir.adelante svg {
+    transform: none;
+}
+
+.agenda-equipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-inline-start: auto;
+}
+
+.agenda-equipo a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 14px 4px 8px;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+    text-decoration: none;
+}
+
+.agenda-equipo a > span:only-child {
+    padding-inline-start: 6px;
+}
+
+.agenda-equipo a[aria-current] {
+    border-color: var(--eg-accion);
+    font-weight: 750;
+}
+
+.dia-s.cerrado {
+    opacity: 0.75;
+}
+
+/* An appointment as written in the notebook. */
+.cita-e {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "hora lleva" "que que";
+    gap: 4px 8px;
+    padding: 9px 11px 10px;
+    border-radius: 8px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1px var(--eg-linea), 0 5px 10px -9px var(--eg-sombra);
+}
+
+.cita-e .hora {
+    grid-area: hora;
+    font-variant-numeric: tabular-nums;
+}
+
+.cita-e .que {
+    grid-area: que;
+}
+
+.cita-e .lleva {
+    grid-area: lleva;
+}
+
+.cita-familia {
+    color: inherit;
+    font-weight: 750;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.cita-familia:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.cita-hijos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+}
+
+.cita-hijos:empty {
+    display: none;
+}
+
+.cita-e .cita-familia::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+}
+
+.cita-e .cita-marcas,
+.cita-e .lleva {
+    position: relative;
+    z-index: 1;
+}
+
+.cita-origen {
+    padding: 1px 8px;
+    border: 1px dashed var(--eg-borde);
+    border-radius: 999px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+.cita-acto {
+    background: var(--eg-acento-suave);
+}
+
+.cita-came,
+.cita-notcame {
+    background: transparent;
+}
+
+.cita-notcame .cita-familia {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.cita-off {
+    opacity: 0.6;
+}
+
+.cita-sello {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    color: var(--eg-acento);
+    font-size: 0.8125rem;
+    font-weight: 750;
+}
+
+.cita-sello svg {
+    width: 15px;
+    height: 15px;
+}
+
+.cita-sello.no {
+    color: var(--eg-tinta-2);
+}
+
+.cita-unknown {
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+}
+
+.cita-marcas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.cita-marcas button,
+.pasada-marcas button {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 4px 12px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 999px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cita-marcas svg,
+.pasada-marcas svg {
+    width: 16px;
+    height: 16px;
+}
+
+.cita-pregunta {
+    align-self: center;
+    margin-inline-end: 4px;
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.cita-marcas button[aria-pressed="true"],
+.pasada-marcas button[aria-pressed="true"] {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.cita-e .cita-marcas button {
+    min-width: 44px;
+}
+
+.cita-marcas button:hover,
+.pasada-marcas button:hover {
+    border-color: var(--eg-accion);
+    background: var(--eg-acento-suave);
+}
+
+.cita-marcas button:focus-visible,
+.pasada-marcas button:focus-visible,
+.agenda-ir:focus-visible,
+.agenda-equipo a:focus-visible,
+.dc-paso:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+/* Those that asked and have no day: notes stuck beside the notebook. */
+.agenda-piden {
+    margin-top: 26px;
+}
+
+.agenda-piden h2 {
+    margin: 0 0 12px;
+    font-size: 1.125rem;
+}
+
+.agenda-piden ul {
+    display: grid;
+    /* stylelint-disable-next-line csstree/validator */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pide {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    align-content: start;
+    padding: 14px 16px 16px;
+    border-radius: 3px;
+    background: #fff3bf;
+    box-shadow: 0 12px 20px -14px rgba(40, 25, 15, 0.7);
+    color: #3b2f12;
+    transform: rotate(-0.6deg);
+}
+
+.pide:nth-child(2n) {
+    transform: rotate(0.7deg);
+}
+
+.pide .secundario,
+.pide-cuando {
+    color: inherit;
+    font-size: 0.875rem;
+}
+
+.pide .boton {
+    margin-top: 4px;
+    border-color: #3b2f12;
+    background: transparent;
+    color: #3b2f12;
+}
+
+@media (min-width: 1180px) {
+    .agenda .cita-pregunta {
+        flex: 1 1 100%;
+    }
+
+    .agenda .dias-semana {
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+
+    .agenda .dia-s {
+        min-height: 260px;
+        padding: 10px 8px;
+    }
+}
+
+/* Who came. */
+.pasada {
+    display: grid;
+    gap: 18px;
+}
+
+.pasada-dia > header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.pasada-dia h2 {
+    font-size: 1.125rem;
+}
+
+.pasada-fila {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) 36px auto;
+    gap: 8px 16px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--eg-linea);
+    transition: opacity 0.25s ease;
+}
+
+.pasada-fila.dicha {
+    opacity: 0.45;
+}
+
+.pasada-fila .hora {
+    font-weight: 780;
+    font-variant-numeric: tabular-nums;
+}
+
+.pasada-quien .secundario {
+    display: block;
+    font-size: 0.875rem;
+}
+
+.pasada-marcas {
+    display: flex;
+    gap: 6px;
+}
+
+.pasada-marcas button {
+    min-height: 44px;
+}
+
+.pasada-marcas .quiza {
+    border-color: transparent;
+    background: transparent;
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.pasada-fin {
+    padding: 26px 0;
+    font-size: 1.25rem;
+    font-weight: 750;
+    text-align: center;
+}
+
+.pasada-fin[hidden] {
+    display: none;
+}
+
+/* Giving one: the day, its hours and with whom, on the same sheet. */
+.dar-cita {
+    display: grid;
+    gap: 24px 36px;
+}
+
+.dc-anulada {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.dar-cita fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.dar-cita legend,
+.dc-hora > label,
+.dc-cuantos label {
+    display: block;
+    margin: 0 0 10px;
+    padding: 0;
+    font-size: 1.0625rem;
+    font-weight: 750;
+}
+
+.dc-sustituye {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.dc-hojas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 8px;
+}
+
+.dc-dia {
+    position: relative;
+    cursor: pointer;
+}
+
+.dc-dia input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.dc-dia > span {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    overflow: hidden;
+    padding-bottom: 7px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 8px;
+    background: var(--eg-superficie);
+    line-height: 1.15;
+}
+
+.dc-dia small {
+    width: 100%;
+    margin-bottom: 4px;
     padding: 4px 0;
+    border-bottom: 1.5px solid var(--eg-borde);
+    background: var(--eg-hundido);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.dc-dia b {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.dc-dia i {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-style: normal;
+}
+
+.dc-dia em {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: -7px;
+    inset-inline-end: -5px;
+    min-width: 22px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--eg-tinta);
+    color: var(--eg-superficie);
+    pointer-events: none;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 750;
+    text-align: center;
+}
+
+.dc-dia input:checked + span {
+    border-color: var(--eg-accion);
+    box-shadow: 0 0 0 2px var(--eg-accion);
+}
+
+.dc-dia input:checked + span small {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.dc-dia input:focus-visible + span {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 3px;
+}
+
+.dc-dia input:disabled {
+    cursor: default;
+}
+
+.dc-dia input:disabled + span {
+    border-style: dashed;
+    background: transparent;
+    color: var(--eg-tinta-2);
+}
+
+.dc-cual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+}
+
+.dc-cual b {
+    font-size: 2rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.dc-paso {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: 50%;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    cursor: pointer;
+}
+
+.dc-paso[hidden] {
+    display: none;
+}
+
+.dc-paso svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+}
+
+.dc-regla {
+    position: relative;
+    padding-top: 4px;
+}
+
+.dc-pista {
+    position: absolute;
+    inset-inline: 15px;
+    top: 8px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--eg-hundido);
+}
+
+.dc-pista i {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--de);
+    width: calc(var(--a) - var(--de));
+    border-radius: 6px;
+}
+
+.dc-pista .abierto {
+    background: var(--eg-acento-suave);
+}
+
+/* What there is already that day: of who receives, whole; of another, faint. */
+.dc-pista .ocupado {
+    overflow: hidden;
+    padding: 3px 5px;
+    border-inline-start: 3px solid var(--eg-tinta-2);
+    background: var(--eg-linea);
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 650;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.dc-pista .ocupado.suyo {
+    border-color: var(--eg-accion);
+    background: var(--eg-accion);
+    color: var(--eg-sobre-accion);
+}
+
+.dc-pista .puesta {
+    z-index: 2;
+    border: 2.5px solid var(--eg-acento);
+    background: transparent;
+    box-shadow: 0 0 0 2px var(--eg-superficie);
+}
+
+.dc-regla input {
+    position: relative;
+    z-index: 3;
+    appearance: none;
+    display: block;
+    width: 100%;
+    height: 52px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.dc-regla input::-webkit-slider-runnable-track {
+    height: 52px;
+    background: transparent;
+}
+
+.dc-regla input::-moz-range-track {
+    height: 52px;
+    background: transparent;
+}
+
+.dc-regla input::-webkit-slider-thumb {
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    margin-top: 36px;
+    border: 4px solid var(--eg-superficie);
+    border-radius: 50%;
+    background: var(--eg-acento);
+    box-shadow: 0 2px 6px rgba(20, 12, 8, 0.5);
+}
+
+.dc-regla input::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 4px solid var(--eg-superficie);
+    border-radius: 50%;
+    background: var(--eg-acento);
+    box-shadow: 0 2px 6px rgba(20, 12, 8, 0.5);
+    transform: translateY(22px);
+}
+
+.dc-regla input:focus-visible {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+    border-radius: 10px;
+}
+
+.dc-marcas {
+    position: relative;
+    height: 20px;
+    margin: 18px 15px 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.dc-marcas span {
+    position: absolute;
+    inset-inline-start: var(--de);
+    width: 30px;
+    margin-inline-start: -15px;
+    text-align: center;
+}
+
+.dc-choque {
+    min-height: 1.5em;
+    margin: 8px 0 10px;
+    color: var(--eg-tinta-2);
+    font-weight: 650;
+}
+
+.dc-choque.no {
+    color: var(--eg-error);
+}
+
+.dc-fichas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dc-fichas legend {
+    float: inline-start;
+    width: 100%;
+}
+
+.dc-caras .pastilla-r {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding-inline-start: 8px;
+}
+
+.dc-sitio {
+    flex: 1 1 180px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px;
+    border: 0;
+    border-bottom: 1.5px dotted var(--eg-borde);
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+
+.dc-con {
+    display: grid;
+    gap: 22px;
+    align-content: start;
+}
+
+.dc-cuantos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+}
+
+.dc-cuantos label {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.dc-cuantos input {
+    width: 3.2em;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 750;
+    text-align: center;
+    appearance: textfield;
+}
+
+.dc-cuantos input::-webkit-inner-spin-button {
+    appearance: none;
+}
+
+.dc-pie {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 18px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.dc-avisar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+    cursor: pointer;
+}
+
+.dc-avisar input:focus-visible + .interruptor {
+    outline: 3px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.dc-avisar .interruptor {
+    border-color: var(--eg-borde);
+}
+
+.dc-avisar input:checked + .interruptor .lampara {
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 12px 2px rgba(241, 184, 74, 0.55);
+}
+
+.dc-noavisa {
+    margin: 0;
+}
+
+.dc-anular {
+    margin-top: 18px;
+}
+
+.dc-anular summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.dc-anular form {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    margin-top: 14px;
+}
+
+.dc-anular .campo {
+    width: 100%;
+}
+
+@media (min-width: 900px) {
+    .dar-cita {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    }
+
+    .dc-sustituye,
+    .dc-dias,
+    .dc-pie,
+    .dar-anular > * {
+        grid-column: 1 / -1;
+    }
+
+    .dc-hojas {
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+}
+
+/* On the file of a family. */
+.sus-citas > header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.su-cita {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: 4px 14px;
+    align-items: start;
+    padding: 12px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.su-cita-dia {
+    display: grid;
+    justify-items: center;
+    padding: 5px 0;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 8px;
+    line-height: 1.1;
+}
+
+.su-cita-dia small {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.su-cita-dia b {
+    font-size: 1.375rem;
+    font-weight: 800;
+}
+
+.su-cita-que {
+    display: grid;
+    gap: 3px;
+    justify-items: start;
+    min-width: 0;
+}
+
+.su-cita-estado {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.su-cita-coming .su-cita-dia {
+    border-color: var(--eg-accion);
+}
+
+.su-cita-off .su-cita-que > b,
+.su-cita-notcame .su-cita-que > b {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.citas-gemelas {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    margin: 6px 0 12px;
+    padding: 14px;
+    border-radius: 10px;
+    background: #fff3bf;
+    color: #3b2f12;
+}
+
+.citas-gemelas p {
+    margin: 0;
+}
+
+.citas-gemelas .secundario,
+.citas-gemelas .enlace {
+    color: inherit;
+}
+
+.citas-gemelas .boton {
+    border-color: #3b2f12;
+    background: transparent;
+    color: #3b2f12;
+}
+
+.gemelas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.gemelas form {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    align-content: space-between;
+    padding: 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.gemela b::first-letter,
+.pasada-dia h2::first-letter,
+.dc-anulada b::first-letter {
+    text-transform: uppercase;
+}
+
+.gemela b {
+    display: block;
+}
+
+.dc-anulada b {
+    display: inline-block;
+}
+
+.gemela {
+    display: grid;
+    gap: 2px;
+}
+
+@media (max-width: 719px) {
+    .agenda > header {
+        gap: 8px;
+    }
+
+    .agenda-titulo {
+        flex: 1 1 0;
+    }
+
+    .agenda > header h2 {
+        font-size: 1.0625rem;
+    }
+
+    .agenda-titulo .boton.terciario.pequeno {
+        padding-inline: 0;
+    }
+
+    /* The week is what is looked for: what goes before it takes the least. */
+    .agenda-nota {
+        flex-wrap: nowrap;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        font-size: 0.9375rem;
+        line-height: 1.3;
+    }
+
+    .agenda-nota .boton {
+        flex: none;
+    }
+
+    .agenda-hojas {
+        margin-bottom: 12px;
+    }
+
+    .agenda .dia-s.pasado.vacio,
+    .agenda .dia-s.cerrado.vacio {
+        display: none;
+    }
+
+    .agenda {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .agenda > header {
+        min-width: 0;
+    }
+
+    /* The team, on one row that slides; it fades where there is more. */
+    .agenda-equipo {
+        flex: 1 1 100%;
+        flex-wrap: nowrap;
+        min-width: 0;
+        margin: 0;
+        padding-inline-end: 34px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+        mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+    }
+
+    [dir="rtl"] .agenda-equipo {
+        -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+        mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+    }
+
+    .agenda-equipo::-webkit-scrollbar {
+        display: none;
+    }
+
+    .agenda-equipo a {
+        flex: none;
+    }
+
+    .pasada-fila {
+        grid-template-columns: 52px minmax(0, 1fr) 36px;
+    }
+
+    .pasada-marcas {
+        grid-column: 1 / -1;
+    }
+
+    .pasada-marcas button {
+        flex: 1 1 0;
+        padding-inline: 6px;
+    }
+
+    .gemelas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .su-cita {
+        grid-template-columns: 52px minmax(0, 1fr);
+    }
+
+    .su-cita-mandos {
+        grid-column: 2;
+    }
+
+    .dc-pie .boton {
+        width: 100%;
+    }
+}
+
+/* An appointment of which only the day is known. */
+.hora .sin-hora {
+    font-family: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0;
 }

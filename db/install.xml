@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261221" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
+<XMLDB PATH="local/oksigeniaeguahe/db" VERSION="20261223" COMMENT="XMLDB file for Moodle local/oksigeniaeguahe"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -297,6 +297,7 @@
         <FIELD NAME="people" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="reminded" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the reminder of the day before was looked at; 0 not yet"/>
         <FIELD NAME="attended" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came; 0 if it has not"/>
+        <FIELD NAME="missed" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When a person said that it did not come; 0, nobody said it"/>
         <FIELD NAME="thanked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the thanks after the visit was looked at; 0 not yet"/>
         <FIELD NAME="wasstages" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The way each child had before «Ha venido» moved it to the visit, as childid:stage separated by commas, to undo it"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -1014,6 +1015,28 @@
         <INDEX NAME="line" UNIQUE="true" FIELDS="centreid, scope, scopeid, task"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_apptmark" COMMENT="What the team said of the appointments that passed, several at once, to take it back">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="batch" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="The time they were all said"/>
+        <FIELD NAME="item" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="The appointment: s and the sign-up, or n and the note of a sheet"/>
+        <FIELD NAME="was" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="What was known before"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="What was said"/>
+        <FIELD NAME="stages" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The way each child had before a note said that they came, as childid:stage separated by commas"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who said it"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="householdid" TYPE="foreign" FIELDS="householdid" REFTABLE="local_oksigeniaeguahe_household" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centrebatch" UNIQUE="false" FIELDS="centreid, batch"/>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+      </INDEXES>
+    </TABLE>
     <TABLE NAME="local_oksigeniaeguahe_teamnote" COMMENT="What was taken from a sheet the team keeps for a household (a call, a visit, an observation), so that sending the sheet again adds only what is new">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
@@ -1027,6 +1050,8 @@
         <FIELD NAME="seen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time the sheet gave that visit"/>
         <FIELD NAME="replacedby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The visit the same row gave later, in its place; 0, it stands"/>
         <FIELD NAME="body" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What its line said, while it says that the visit changed"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="What a person said of that visit: came, notcame, or note (it is not an appointment: another one is); empty, nothing"/>
+        <FIELD NAME="statetime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it was said"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

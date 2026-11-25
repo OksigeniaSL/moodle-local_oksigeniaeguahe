@@ -122,6 +122,7 @@
         </div>
         {{/relay}}
         <div class="col col-propuesta">
+            {{#citas}}{{> local_oksigeniaeguahe/panel_appts }}{{/citas}}
             {{#proposal}}
             <section class="apartado propuesta" aria-labelledby="prop-t">
                 <header><h2 id="prop-t">{{#str}}panel_proposal, local_oksigeniaeguahe{{/str}}</h2></header>
@@ -291,6 +292,7 @@
             </section>
             {{/canact}}
         </div>
+        {{^guest}}
         <section class="pared-hijos" aria-label="{{#str}}panel_children, local_oksigeniaeguahe{{/str}}">
             <div class="riel" aria-hidden="true"></div>
             <div class="hijos-lista">
@@ -473,6 +475,7 @@
             {{/applysend}}
             {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
         </section>
+        {{/guest}}
         <div class="col col-lado">
             <section class="apartado" id="quien-escribe">
                 <header><h2>{{#str}}panel_who_writes, local_oksigeniaeguahe{{/str}}</h2>{{#canact}}<a class="enlace" href="{{editurl}}">{{{i.lapiz}}}{{#str}}panel_change, local_oksigeniaeguahe{{/str}}</a>{{/canact}}</header>

@@ -382,73 +382,11 @@
             });
         });
 
-        // Where they live: another place, or moving to the area, asks where.
-        var where = document.getElementById('municipality');
-        var far = document.querySelector('.lejos');
-        if (where && far) {
-            var label = far.querySelector('label');
-            var place = function() {
-                var value = where.value;
-                far.hidden = value !== 'other' && value !== 'moving' && !far.querySelector('input').value;
-                label.textContent = label.getAttribute(value === 'moving' ? 'data-moving' : 'data-other');
-            };
-            where.addEventListener('change', place);
-            place();
-        }
-
-        // Another family of the centre told them: which one, if they want to say, to thank them.
-        var told = document.querySelector('[data-quien-cuenta]');
-        var who = document.querySelector('.quien-cuenta');
-        if (told && who) {
-            var tell = function() {
-                who.hidden = told.value !== told.getAttribute('data-quien-cuenta') && !who.querySelector('input').value;
-            };
-            told.addEventListener('change', tell);
-            tell();
-        }
-        // On a network: which one, picked from those of the centre or written.
-        var net = document.querySelector('[data-cual-red]');
-        var which = document.querySelector('.cual-red');
-        if (net && which) {
-            var name = function() {
-                which.hidden = net.value !== net.getAttribute('data-cual-red') && !which.querySelector('input').value;
-            };
-            net.addEventListener('change', name);
-            name();
-        }
-
         // The label writes itself: with the first letter of a name, the backpack arrives at its hook.
         var rail = document.querySelector('.perchas[data-live]');
-        var visible = function(selector) {
-            return all(selector).filter(function(el) {
-                return !el.hidden;
-            });
-        };
-        // A student signing up for themselves («Para mí»): their own name on the label, and the rows of a family hidden.
-        var selfMode = function() {
-            var mark = document.querySelector('[data-para]');
-            return !!mark && mark.getAttribute('data-para') === 'yo';
-        };
         var labelName = function(i) {
-            if (selfMode() && String(i) === '0') {
-                var me = document.getElementById('a0first');
-                return me ? me.value.trim().split(/\s+/)[0] : '';
-            }
-            var tag = document.getElementById('c' + i + 'tag');
             var name = document.getElementById('c' + i + 'name');
-            var written = tag ? tag.value.trim() : '';
-            return written || (name ? name.value.trim().split(/\s+/)[0] : '');
-        };
-        var courses = function() {
-            var one = visible('.nino').length === 1;
-            var legend = document.querySelector('fieldset.cursos legend');
-            if (legend) {
-                legend.textContent = one ? (document.querySelector('[data-course-label="0"]') || legend).textContent :
-                    legend.getAttribute('data-many');
-            }
-            all('[data-course-label]').forEach(function(courseLabel) {
-                courseLabel.classList.toggle('oculto', one);
-            });
+            return name ? name.value.trim().split(/\s+/)[0] : '';
         };
         var update = function(i) {
             var now = labelName(i);
@@ -470,177 +408,52 @@
                 }
                 fit(peg);
             }
-            var name = document.getElementById('c' + i + 'name');
-            var tag = document.getElementById('c' + i + 'tag');
-            if (name && tag) {
-                tag.placeholder = name.value.trim().split(/\s+/)[0] || '';
-            }
-            var courseLabel = document.querySelector('[data-course-label="' + i + '"]');
-            if (courseLabel) {
-                courseLabel.textContent = selfMode() && courseLabel.getAttribute('data-self') ?
-                    courseLabel.getAttribute('data-self') :
-                    (now ? courseLabel.getAttribute('data-with').replace('{name}', now) : courseLabel.getAttribute('data-without'));
-            }
-            // The course that fits the year of birth (the year it starts less its age), while they have not chosen one
-            // themselves; they can always choose another.
-            var year = document.getElementById('c' + i + 'birthy');
-            var select = document.getElementById('c' + i + 'offer');
-            var born = year ? year.value.trim() : '';
-            if (select && /^\d{4}$/.test(born) && (select.value === '0' || select.getAttribute('data-auto') === '1')) {
-                var fits = Array.prototype.filter.call(select.options, function(option) {
-                    return option.getAttribute('data-born') === born;
-                });
-                if (fits.length === 1) {
-                    select.value = fits[0].value;
-                    select.setAttribute('data-auto', '1');
-                }
-            }
-            courses();
         };
         document.addEventListener('input', function(e) {
             var i = e.target.getAttribute('data-child');
             if (i !== null) {
                 update(i);
-            } else if (e.target.id === 'a0first' && selfMode()) {
-                update(0);
             }
         });
 
-        // A course chosen by hand is theirs: the date no longer moves it.
-        document.addEventListener('change', function(e) {
-            if (/^c\d+offer$/.test(e.target.id || '')) {
-                e.target.removeAttribute('data-auto');
-            }
-        });
-
-        // Someone else: the next row that waits, with its hook and its course.
-        all('[data-add]').forEach(function(button) {
-            button.addEventListener('click', function() {
-                var kind = button.getAttribute('data-add');
-                var next = all('.' + kind).filter(function(row) {
-                    return row.hidden;
-                })[0];
-                if (!next) {
-                    return;
-                }
-                var i = next.getAttribute('data-i');
-                next.hidden = false;
-                if (kind === 'nino') {
-                    var peg = rail ? rail.querySelector('.percha[data-i="' + i + '"]') : null;
-                    var course = document.querySelector('.curso[data-i="' + i + '"]');
-                    if (peg) {
-                        peg.hidden = false;
-                        rail.className = rail.className.replace(/\bn\d\b/, 'n' + visible('.nino').length);
-                    }
-                    if (course) {
-                        course.hidden = false;
-                    }
-                    courses();
-                    document.getElementById('c' + i + 'name').focus();
-                } else {
-                    next.querySelector('input').focus();
-                }
-                if (!all('.' + kind).some(function(row) {
-                    return row.hidden;
-                })) {
-                    button.hidden = true;
-                }
-            });
-        });
-
-        // Sending: the button says so, and does not send twice.
-        var form = document.getElementById('eg-form');
-        // An email whose domain looks like a slip of a common one (gmial.com): «Did you mean…?», and one tap uses it.
-        var domains = form && form.getAttribute('data-dominios') ? form.getAttribute('data-dominios').split(' ') : [];
-        var distance = function(a, b) {
-            var row = [];
-            for (var j = 0; j <= b.length; j++) {
-                row[j] = j;
-            }
-            for (var i = 1; i <= a.length; i++) {
-                var prev = row[0];
-                row[0] = i;
-                for (var k = 1; k <= b.length; k++) {
-                    var keep = row[k];
-                    row[k] = Math.min(row[k] + 1, row[k - 1] + 1, prev + (a[i - 1] === b[k - 1] ? 0 : 1));
-                    prev = keep;
-                }
-            }
-            return row[b.length];
-        };
-        var meant = function(email) {
-            var at = email.lastIndexOf('@');
-            var domain = at === -1 ? '' : email.slice(at + 1).trim().toLowerCase();
-            if (!domain || domains.indexOf(domain) !== -1) {
-                return '';
-            }
-            var best = '';
-            var least = Infinity;
-            domains.forEach(function(known) {
-                var d = distance(domain, known);
-                if (d < least) {
-                    least = d;
-                    best = known;
-                }
-            });
-            return least > 0 && least <= (domain.length < 8 ? 1 : 2) ? email.slice(0, at) + '@' + best : '';
-        };
-        all('input[type="email"]', form || document.createElement('div')).forEach(function(input) {
-            if (!domains.length) {
+        // To know them a little more: each answer is kept as it is given, and a thank-you takes its place.
+        all('[data-contar]').forEach(function(sheet) {
+            if (!window.fetch) {
                 return;
             }
-            var note = document.createElement('p');
-            note.className = 'quisieron';
-            note.hidden = true;
-            note.setAttribute('aria-live', 'polite');
-            input.parentNode.insertBefore(note, input.nextSibling);
-            var check = function() {
-                var better = meant(input.value);
-                note.textContent = '';
-                note.hidden = !better;
-                if (!better) {
-                    return;
-                }
-                var words = form.getAttribute('data-quisieron').split('{$a}');
-                var shown = document.createElement('bdi');
-                shown.dir = 'ltr';
-                shown.textContent = better;
-                note.appendChild(document.createTextNode(words[0] || ''));
-                note.appendChild(shown);
-                note.appendChild(document.createTextNode(words[1] || ''));
-                var use = document.createElement('button');
-                use.type = 'button';
-                use.className = 'quisieron-usar';
-                use.textContent = form.getAttribute('data-usar');
-                use.addEventListener('click', function() {
-                    input.value = better;
-                    check();
-                    input.focus();
-                });
-                note.appendChild(document.createTextNode(' '));
-                note.appendChild(use);
-            };
-            input.addEventListener('change', check);
-            input.addEventListener('blur', check);
-            check();
-        });
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                var submit = form.querySelector('button[type="submit"]');
-                if (submit.getAttribute('aria-disabled') === 'true') {
-                    e.preventDefault();
-                    return;
-                }
-                submit.setAttribute('aria-disabled', 'true');
-                submit.innerHTML = '<span class="giro" aria-hidden="true"></span>';
-                submit.appendChild(document.createTextNode(submit.getAttribute('data-sending')));
+            all('[data-sin-guion]', sheet).forEach(function(el) {
+                el.hidden = true;
             });
-        }
-        var summary = document.getElementById('resumen');
-        if (summary) {
-            summary.focus();
-        }
-
+            sheet.addEventListener('change', function(e) {
+                var question = e.target.closest('.contar-pregunta');
+                var data = new FormData();
+                if (!question || !e.target.value) {
+                    return;
+                }
+                all('input[type="hidden"]', sheet).forEach(function(input) {
+                    data.append(input.name, input.value);
+                });
+                data.append(e.target.name, e.target.value);
+                data.append('fetch', '1');
+                window.fetch(sheet.getAttribute('action'), {method: 'POST', body: data, credentials: 'same-origin'}).then(function(r) {
+                    return r.ok ? r.json() : Promise.reject(new Error(r.status));
+                }).then(function(said) {
+                    if (!said.saved) {
+                        throw new Error('contar');
+                    }
+                    var thanks = question.querySelector('.contar-gracias') || document.createElement('p');
+                    thanks.className = 'contar-gracias';
+                    thanks.setAttribute('role', 'status');
+                    question.appendChild(thanks);
+                    thanks.textContent = said.thanks;
+                }).catch(function() {
+                    // It is sent as always, with its button.
+                    all('[data-sin-guion]', sheet).forEach(function(el) {
+                        el.hidden = false;
+                    });
+                });
+            });
+        });
         // Questions that wait for an answer: shown when the question they depend on has it, hidden with it.
         var plain = function(text) {
             return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();

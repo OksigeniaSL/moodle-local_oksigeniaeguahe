@@ -1,0 +1,45 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_agenda_card
+
+    An appointment as it is written in the week: its hour, the family with the labels of its children, where and with whom,
+    and what is known of it. One that has passed and nobody said whether they came asks for it there. An act with many
+    families is one.
+
+    Example context (json):
+    {"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "isunknown": true, "isact": false, "canact": true, "markurl": "#", "sesskey": "abc", "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}
+}}
+<div class="cita cita-e cita-{{state}}{{#isact}} cita-acto{{/isact}}{{#twin}} cita-doble{{/twin}}" id="cita-{{id}}" data-cita="{{id}}">
+    <span class="hora">{{#dayonly}}<span class="sin-hora">{{#str}}agenda_nohour, local_oksigeniaeguahe{{/str}}</span>{{/dayonly}}{{^dayonly}}{{hour}}{{/dayonly}}</span>
+    <div class="que">
+        <a class="cita-familia" href="{{url}}">{{#isact}}{{title}}{{/isact}}{{^isact}}{{adults}}{{/isact}}</a>
+        {{^isact}}<span class="cita-hijos">{{#children}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{/isact}}
+        {{#isact}}<span class="secundario">{{familiestext}}</span>{{/isact}}
+        {{#place}}<span class="secundario">{{place}}</span>{{/place}}
+        {{#sourcename}}<span class="cita-origen">{{sourcename}}</span>{{/sourcename}}
+        {{#iscame}}<span class="cita-sello">{{{i.check}}}{{#str}}agenda_came, local_oksigeniaeguahe{{/str}}</span>{{/iscame}}
+        {{#isnotcame}}<span class="cita-sello no">{{#str}}agenda_notcame, local_oksigeniaeguahe{{/str}}</span>{{/isnotcame}}{{#isoff}}<span class="cita-sello no">{{statename}}</span>{{/isoff}}
+        {{#canact}}{{#isunknown}}<form class="cita-marcas" method="post" action="{{markurl}}" data-marca>
+            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mark"><input type="hidden" name="ids[]" value="{{id}}">
+            <span class="cita-pregunta">{{#str}}agenda_didcome, local_oksigeniaeguahe{{/str}}</span>
+            <button type="submit" name="state" value="came">{{#str}}yes{{/str}}<span class="oculto">, {{adults}}</span></button>
+            <button type="submit" name="state" value="notcame">{{#str}}no{{/str}}<span class="oculto">, {{adults}}</span></button>
+        </form>{{/isunknown}}{{/canact}}
+    </div>
+    {{#guide}}<span class="lleva">{{> local_oksigeniaeguahe/panel_face }}<span class="oculto">{{#str}}panel_guides, local_oksigeniaeguahe, {{first}}{{/str}}</span></span>{{/guide}}
+</div>

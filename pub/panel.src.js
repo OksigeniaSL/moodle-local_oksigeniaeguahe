@@ -4004,4 +4004,243 @@
             }
         });
     });
+
+    // ---------- The appointments: what is said of one is kept at the touch, and can be taken back; and giving one, with the
+    // hour on the ruler of its day. ----------
+    (function() {
+        // The person chosen, in sight on the row that slides.
+        var chosen = document.querySelector('.agenda-equipo [aria-current]');
+        if (chosen && chosen.parentNode.scrollWidth > chosen.parentNode.clientWidth) {
+            chosen.parentNode.scrollLeft += chosen.getBoundingClientRect().left - chosen.parentNode.getBoundingClientRect().left - 40;
+        }
+        var done = document.querySelector('[data-hecho]');
+        var send = function(form, more) {
+            var data = new FormData(form);
+            Object.keys(more).forEach(function(key) {
+                data.set(key, more[key]);
+            });
+            data.set('fetch', '1');
+            return window.fetch(form.getAttribute('action') || window.location.href, {method: 'POST', body: data, credentials: 'same-origin'})
+                .then(function(r) {
+                    return r.ok ? r.json() : Promise.reject(new Error(r.status));
+                }).then(function(said) {
+                    return said.ok ? said : Promise.reject(new Error('agenda'));
+                });
+        };
+        var said = {};
+        var tell = function(text, key) {
+            if (!done) {
+                return;
+            }
+            done.querySelector('[data-hecho-texto]').textContent = text;
+            done.querySelector('[name="key"]').value = key || '';
+            done.querySelector('button').hidden = !key;
+            done.hidden = !text;
+        };
+        var end = function(left) {
+            var fin = document.querySelector('[data-fin]');
+            if (fin) {
+                fin.hidden = left > 0;
+            }
+        };
+        document.addEventListener('submit', function(e) {
+            var form = e.target;
+            if (!window.fetch || !form.matches('[data-marca]') || !e.submitter) {
+                return;
+            }
+            e.preventDefault();
+            var button = e.submitter;
+            var ids = Array.prototype.map.call(form.querySelectorAll('[name="ids[]"], [name="idlist"]'), function(input) {
+                return input.value;
+            }).join(',').split(',');
+            var more = {};
+            more[button.name] = button.value;
+            button.disabled = true;
+            send(form, more).then(function(r) {
+                var rows = ids.map(function(id) {
+                    return document.querySelector('[data-cita="' + id + '"]');
+                }).filter(Boolean);
+                said[r.key] = rows;
+                rows.forEach(function(row) {
+                    row.classList.add('dicha');
+                    Array.prototype.forEach.call(row.querySelectorAll('[data-marca] button'), function(b) {
+                        b.disabled = true;
+                        if (b.value === button.value) {
+                            b.setAttribute('aria-pressed', 'true');
+                        }
+                    });
+                });
+                button.disabled = !button.closest('header');
+                tell(r.said, r.key);
+                end(r.left);
+            }).catch(function() {
+                // As always, with its page.
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = button.name;
+                hidden.value = button.value;
+                form.appendChild(hidden);
+                form.submit();
+            });
+        });
+        if (done && window.fetch) {
+            done.addEventListener('submit', function(e) {
+                var key = done.querySelector('[name="key"]').value;
+                if (!said[key]) {
+                    return;
+                }
+                e.preventDefault();
+                send(done, {}).then(function(r) {
+                    said[key].forEach(function(row) {
+                        row.classList.remove('dicha');
+                        Array.prototype.forEach.call(row.querySelectorAll('[data-marca] button'), function(b) {
+                            b.disabled = false;
+                            b.removeAttribute('aria-pressed');
+                        });
+                    });
+                    delete said[key];
+                    tell('', '');
+                    end(r.left);
+                }).catch(function() {
+                    done.submit();
+                });
+            });
+        }
+
+        var give = document.querySelector('[data-dar-cita]');
+        if (!give) {
+            return;
+        }
+        var days = JSON.parse(give.getAttribute('data-dias') || '{}');
+        var range = give.querySelector('[name="min"]');
+        var track = give.querySelector('[data-pista]');
+        var marks = give.querySelector('[data-marcas]');
+        var clash = give.querySelector('[data-choque]');
+        var one = function(name) {
+            var input = give.querySelector('[name="' + name + '"]:checked');
+            return input || null;
+        };
+        var hour = function(m) {
+            return Math.floor(m / 60) + ':' + (m % 60 < 10 ? '0' : '') + m % 60;
+        };
+        var draw = function() {
+            var day = one('day');
+            var what = (day && days[day.value]) || {open: [], items: []};
+            var long = +((one('minutes') || {}).value || 45);
+            var guide = (one('guide') || {}).value || '';
+            var open = what.open.length ? what.open : [[480, 1080]];
+            var lo = Math.min.apply(null, open.map(function(x) {
+                return x[0];
+            }).concat(what.items.map(function(x) {
+                return x.from;
+            })));
+            var hi = Math.max.apply(null, open.map(function(x) {
+                return x[1];
+            }).concat(what.items.map(function(x) {
+                return x.to;
+            })));
+            range.min = lo;
+            range.max = hi - 15;
+            var at = +range.value;
+            var pos = function(m) {
+                return Math.round((m - lo) / (hi - 15 - lo) * 1000) / 10;
+            };
+            track.textContent = '';
+            var piece = function(cls, from, to, text) {
+                var i = document.createElement('i');
+                i.className = cls;
+                i.style.setProperty('--de', pos(from) + '%');
+                i.style.setProperty('--a', Math.min(100, pos(to)) + '%');
+                i.textContent = text || '';
+                track.appendChild(i);
+            };
+            open.forEach(function(x) {
+                piece('abierto', x[0], x[1]);
+            });
+            what.items.forEach(function(x) {
+                piece('ocupado' + (String(x.guide) === guide && guide ? ' suyo' : ''), x.from, x.to, x.what);
+            });
+            piece('puesta', at, at + long);
+            marks.textContent = '';
+            for (var m = Math.ceil(lo / 60) * 60; m <= hi - 15; m += 60) {
+                var span = document.createElement('span');
+                span.style.setProperty('--de', pos(m) + '%');
+                span.textContent = m / 60;
+                marks.appendChild(span);
+            }
+            var mine = null;
+            var other = null;
+            what.items.forEach(function(x) {
+                if (x.from < at + long && x.to > at) {
+                    if (guide && String(x.guide) === guide) {
+                        mine = x;
+                    } else {
+                        other = x;
+                    }
+                }
+            });
+            var shut = !open.some(function(x) {
+                return at >= x[0] && at + long <= x[1];
+            });
+            var name = (one('guide') || document.body).getAttribute('data-nombre') || '';
+            clash.classList.toggle('no', Boolean(mine || shut));
+            clash.textContent = mine ? give.getAttribute('data-ocupada').replace('QUIEN', name) : shut ? give.getAttribute('data-cerrado')
+                : other ? give.getAttribute('data-otra') : '';
+            give.querySelector('[data-hora-dicha]').textContent = hour(at) + ' – ' + hour(at + long);
+            range.setAttribute('aria-valuetext', hour(at) + ' – ' + hour(at + long));
+            var told = give.querySelector('[type="checkbox"][name="tell"]');
+            var when = give.getAttribute('data-alas').replace('DIA', day ? day.getAttribute('data-cuando') : '').replace('HORA', hour(at));
+            give.querySelector('[data-boton-texto]').textContent = give.getAttribute(told && told.checked ? 'data-boton-avisa' : 'data-boton-calla')
+                .replace('CUANDO', when);
+        };
+        give.addEventListener('input', function(e) {
+            if (e.target.matches('[data-sitio-otro]') && e.target.value) {
+                Array.prototype.forEach.call(give.querySelectorAll('[data-sitio]'), function(chip) {
+                    chip.checked = false;
+                });
+            }
+            draw();
+        });
+        give.addEventListener('change', function(e) {
+            if (e.target.matches('[data-sitio]')) {
+                give.querySelector('[data-sitio-otro]').value = '';
+            }
+            if (e.target.name === 'day') {
+                // Another day: its first free hour with who receives.
+                var what = days[e.target.value];
+                var long = +((one('minutes') || {}).value || 45);
+                var guide = (one('guide') || {}).value || '';
+                var free = what ? what.open.map(function(x) {
+                    for (var m = x[0]; m + long <= x[1]; m += 15) {
+                        if (m >= 540 && !what.items.some(function(y) {
+                            return (!guide || !y.guide || String(y.guide) === guide) && y.from < m + long && y.to > m;
+                        })) {
+                            return m;
+                        }
+                    }
+                    return 0;
+                }).filter(Boolean)[0] : 0;
+                range.min = 0;
+                range.max = 1440;
+                range.value = free || range.value;
+            }
+            draw();
+        });
+        [['[data-menos]', -15], ['[data-mas]', 15]].forEach(function(x) {
+            var button = give.querySelector(x[0]);
+            button.hidden = false;
+            button.addEventListener('click', function() {
+                range.value = +range.value + x[1];
+                draw();
+            });
+        });
+        Array.prototype.forEach.call(give.querySelectorAll('[data-gente]'), function(button) {
+            var number = give.querySelector('[name="people"]');
+            button.hidden = false;
+            button.addEventListener('click', function() {
+                number.value = Math.max(1, Math.min(+number.max || 20, (parseInt(number.value, 10) || 1) + (+button.getAttribute('data-gente'))));
+            });
+        });
+        draw();
+    })();
 })();

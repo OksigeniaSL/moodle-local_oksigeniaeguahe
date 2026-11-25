@@ -136,7 +136,7 @@ class panel {
     /** @var array The sections of the bar, in order: key => [string, icon, page]. */
     const SECTIONS = [
         'inbox' => ['tab_inbox', 'bandeja', '/local/oksigeniaeguahe/index.php'],
-        'events' => ['tab_events', 'actos', '/local/oksigeniaeguahe/events.php'],
+        'events' => ['tab_events', 'actos', '/local/oksigeniaeguahe/agenda.php'],
         'entries' => ['tab_entries', 'entradas', '/local/oksigeniaeguahe/entries.php'],
         'metrics' => ['tab_metrics', 'cifras', '/local/oksigeniaeguahe/metrics.php'],
         'forecast' => ['tab_forecast', 'prevision', '/local/oksigeniaeguahe/forecast.php'],

@@ -1,0 +1,100 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+/**
+ * Giving an appointment to a family, changing it or calling it off.
+ *
+ * @package    local_oksigeniaeguahe
+ * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require(__DIR__ . '/../../config.php');
+
+use local_oksigeniaeguahe\local\appointments;
+use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\events;
+use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_give;
+
+require_login(null, false);
+
+$household = households::get(required_param('h', PARAM_INT), 0);
+if (!$household) {
+    throw new moodle_exception('invalidrecord', 'error');
+}
+$centre = centres::require_work((int) $household->centreid);
+centres::require_act((int) $centre->id);
+$c = 'local_oksigeniaeguahe';
+$id = optional_param('id', 0, PARAM_INT);
+$event = $id ? $DB->get_record(events::T, ['id' => $id, 'householdid' => $household->id, 'cancelled' => 0]) : null;
+if ($id && !$event) {
+    throw new moodle_exception('invalidrecord', 'error');
+}
+$off = $event && optional_param('anular', 0, PARAM_BOOL);
+$url = new moodle_url('/local/oksigeniaeguahe/cita.php', ['h' => $household->id] + ($event ? ['id' => $event->id] : []) +
+    ($off ? ['anular' => 1] : []));
+$file = new moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]);
+panel::setup($url, get_string($off ? 'give_off_title' : ($event ? 'give_move_title' : 'give_title'), $c));
+$values = [];
+if (data_submitted() && confirm_sesskey()) {
+    if ($off) {
+        $tell = optional_param('tell', 0, PARAM_BOOL);
+        appointments::off($household, $centre, (int) $event->id, optional_param('message', '', PARAM_TEXT), (int) $USER->id, (bool) $tell);
+        redirect($file, get_string($tell ? 'give_off_done_told' : 'give_off_done', $c));
+    }
+    $values = panel_give::posted($centre, time());
+    if ($values['error'] === '') {
+        if ($event) {
+            $sent = appointments::move(
+                $household,
+                $centre,
+                (int) $event->id,
+                $values['start'],
+                $values['minutes'],
+                $values['guide'],
+                $values['place'],
+                (bool) $values['tell']
+            );
+        } else {
+            $given = appointments::give(
+                $household,
+                $centre,
+                $values['start'],
+                $values['minutes'],
+                $values['guide'],
+                $values['place'],
+                $values['people'],
+                (bool) $values['tell']
+            );
+            $sent = $given['sent'];
+        }
+        // Who does it answers the family, with its day in the history; and whether it was told by the centre.
+        households::answered($household, (int) $USER->id, $sent ? 'email' : 'other', get_string($event ? 'give_moved_note' : 'give_note', $c, userdate(
+            $values['start'],
+            get_string('strftimedaydatetime', 'langconfig')
+        )));
+        redirect($file, get_string($sent ? 'give_done_told' : ($values['tell'] ? 'give_done_untold' : 'give_done'), $c));
+    }
+}
+panel::output($centre, 'inbox', get_string('give_title', $c), 'panel_give', panel_give::context(
+    households::full($household),
+    $centre,
+    $event ?: null,
+    $values,
+    (bool) $off
+));

@@ -156,12 +156,11 @@
                 <summary><h2>{{#str}}panel_to_share, local_oksigeniaeguahe{{/str}}</h2>{{{i.chev}}}</summary>
                 {{#linkout}}
                 <div class="qr-caja"><span class="qr">{{{qr}}}</span><div class="qr-texto"><span class="corto" dir="ltr">{{link}}</span><span class="secundario">{{#str}}panel_share_help, local_oksigeniaeguahe{{/str}}</span><button class="enlace" type="button" data-copiar="{{link}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button></div></div>
-                {{#linkmay}}<form class="sin-enlace" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="linkout"><button class="enlace" type="submit" name="linkout" value="0">{{#str}}panel_link_stop, local_oksigeniaeguahe{{/str}}</button></form>{{/linkmay}}
                 {{/linkout}}
                 {{^linkout}}
                 <p>{{#str}}panel_nolink, local_oksigeniaeguahe{{/str}}</p>
-                {{#linkmay}}<form class="sin-enlace" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="linkout"><button class="boton secundario pequeno" type="submit" name="linkout" value="1">{{#str}}panel_link_offer, local_oksigeniaeguahe{{/str}}</button><span class="secundario">{{#str}}panel_link_what, local_oksigeniaeguahe{{/str}}</span></form>{{/linkmay}}
                 {{/linkout}}
+                {{#linkmay}}<form class="sin-enlace" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="linkout"><button class="interruptor" type="submit" name="linkout" value="{{#linkout}}0{{/linkout}}{{^linkout}}1{{/linkout}}" aria-pressed="{{#linkout}}true{{/linkout}}{{^linkout}}false{{/linkout}}"><span class="lampara" aria-hidden="true"></span><span>{{#str}}panel_link_offer, local_oksigeniaeguahe{{/str}}</span></button><span class="secundario">{{#str}}panel_link_what, local_oksigeniaeguahe{{/str}}</span></form>{{/linkmay}}
                 {{^tailored}}
                 <div class="cabeza-acciones">
                     <a class="boton secundario pequeno" href="{{posterurl}}" target="_blank" rel="noopener">{{{i.imprimir}}}{{#str}}panel_poster_a4, local_oksigeniaeguahe{{/str}}</a>

@@ -1,0 +1,74 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_give
+
+    Giving a family an appointment, or changing the one it has: the day on its leaf, the hour on the ruler of that day, with
+    what there is in it already, how long, who receives them, where, and whether they are told. The button says what it does.
+
+    Example context (json):
+    {
+        "head": {"back": {"url": "#", "name": "Ana Ruiz"}, "title": "Una cita para Ana Ruiz"}, "action": "#", "sesskey": "abc", "id": "", "current": false, "replaces": false, "data": "{}",
+        "days": [{"key": "2026-11-26", "weekday": "jue", "day": "26", "month": "nov", "when": "el jueves 26", "first": "10:00", "closed": false, "current": true, "n": 2, "has": true}],
+        "min": 600, "minutes": [{"value": 45, "label": "45 min", "current": true}], "hasguides": true,
+        "guides": [{"id": 3, "first": "Lucía", "picture": "", "initials": "LM", "current": true}],
+        "places": [{"n": 0, "value": "Secretaría", "name": "Secretaría", "current": true}], "place": "", "people": 2, "peoplemax": 10,
+        "tell": {"can": true, "how": "Avisar a la familia por correo y por WhatsApp", "why": "", "checked": true}, "off": false, "offurl": "", "error": ""
+    }
+}}
+<div class="pagina pagina-cita">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#error}}<p class="aviso-suave error" role="alert">{{{i.info}}}<span>{{error}}</span></p>{{/error}}
+    {{^off}}
+    <form class="bloque dar-cita" method="post" action="{{action}}" data-dar-cita data-dias="{{data}}" data-alas="{{#str}}agenda_at, local_oksigeniaeguahe, {"day": "DIA", "hour": "HORA"}{{/str}}"
+        data-boton-avisa="{{#current}}{{#str}}agenda_movetell, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}{{^current}}{{#str}}agenda_gotell, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}" data-boton-calla="{{#current}}{{#str}}agenda_movequiet, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}{{^current}}{{#str}}agenda_goquiet, local_oksigeniaeguahe, CUANDO{{/str}}{{/current}}"
+        data-ocupada="{{#str}}agenda_busy, local_oksigeniaeguahe, QUIEN{{/str}}" data-otra="{{#str}}agenda_busyother, local_oksigeniaeguahe{{/str}}" data-cerrado="{{#str}}agenda_shut, local_oksigeniaeguahe{{/str}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{#replaces}}<p class="dc-sustituye">{{{i.info}}}<span>{{#str}}give_replaces, local_oksigeniaeguahe, {{day}}{{/str}}</span></p>{{/replaces}}
+        <fieldset class="dc-dias">
+            <legend>{{#str}}give_day, local_oksigeniaeguahe{{/str}}</legend>
+            <div class="dc-hojas">{{#days}}<label class="dc-dia" for="dia-{{key}}"><input type="radio" id="dia-{{key}}" name="day" value="{{key}}" data-cuando="{{when}}"{{#closed}} disabled{{/closed}}{{#current}} checked{{/current}}><span><small>{{weekday}}</small><b>{{day}}</b><i>{{month}}</i></span>{{#has}}<em><span class="oculto">{{#str}}agenda_dayhas, local_oksigeniaeguahe{{/str}} </span>{{n}}</em>{{/has}}</label>{{/days}}</div>
+        </fieldset>
+        <div class="dc-hora">
+            <label for="dc-min">{{#str}}give_min, local_oksigeniaeguahe{{/str}}</label>
+            <p class="dc-cual"><button class="dc-paso" type="button" data-menos aria-label="{{#str}}agenda_earlier, local_oksigeniaeguahe{{/str}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><b data-hora-dicha></b><button class="dc-paso" type="button" data-mas aria-label="{{#str}}agenda_later, local_oksigeniaeguahe{{/str}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button></p>
+            <div class="dc-regla"><div class="dc-pista" aria-hidden="true" data-pista></div><input id="dc-min" type="range" name="min" min="480" max="1080" step="15" value="{{min}}"><div class="dc-marcas" aria-hidden="true" data-marcas></div></div>
+            <p class="dc-choque" role="status" data-choque></p>
+            <fieldset class="dc-fichas"><legend>{{#str}}give_long, local_oksigeniaeguahe{{/str}}</legend>{{#minutes}}<span class="tipo-acto"><input class="oculto" type="radio" id="dura-{{value}}" name="minutes" value="{{value}}"{{#current}} checked{{/current}}><label class="pastilla-r" for="dura-{{value}}">{{label}}</label></span>{{/minutes}}</fieldset>
+        </div>
+        <div class="dc-con">
+            {{#hasguides}}<fieldset class="dc-fichas dc-caras"><legend>{{#str}}give_guide, local_oksigeniaeguahe{{/str}}</legend>{{#guides}}<span class="tipo-acto"><input class="oculto" type="radio" id="con-{{id}}" name="guide" value="{{id}}" data-nombre="{{first}}"{{#current}} checked{{/current}}><label class="pastilla-r" for="con-{{id}}">{{> local_oksigeniaeguahe/panel_face }}{{first}}</label></span>{{/guides}}</fieldset>{{/hasguides}}
+            <fieldset class="dc-fichas dc-donde"><legend>{{#str}}give_place, local_oksigeniaeguahe{{/str}}</legend>{{#places}}<span class="tipo-acto"><input class="oculto" type="radio" id="sitio-{{n}}" name="placechip" value="{{value}}" data-sitio{{#current}} checked{{/current}}><label class="pastilla-r" for="sitio-{{n}}">{{name}}</label></span>{{/places}}<input class="dc-sitio" name="place" value="{{place}}" maxlength="255" placeholder="{{#str}}agenda_otherplace, local_oksigeniaeguahe{{/str}}" aria-label="{{#str}}agenda_otherplace, local_oksigeniaeguahe{{/str}}" data-sitio-otro></fieldset>
+            <p class="dc-cuantos"><label for="dc-people">{{#str}}give_people, local_oksigeniaeguahe{{/str}}</label><button class="dc-paso" type="button" data-gente="-1" aria-label="{{#str}}agenda_less, local_oksigeniaeguahe{{/str}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button><input id="dc-people" name="people" type="number" inputmode="numeric" min="1" max="20" value="{{people}}"><button class="dc-paso" type="button" data-gente="1" aria-label="{{#str}}agenda_more, local_oksigeniaeguahe{{/str}}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button></p>
+        </div>
+        <div class="dc-pie">
+            {{#tell}}<input type="hidden" name="tell" value="0">{{#can}}<label class="dc-avisar" for="dc-tell"><input class="oculto" type="checkbox" id="dc-tell" name="tell" value="1"{{#checked}} checked{{/checked}}><span class="interruptor"><span class="lampara" aria-hidden="true"></span><span>{{how}}</span></span></label>{{/can}}{{^can}}<p class="secundario dc-noavisa">{{why}}</p>{{/can}}{{/tell}}
+            <button class="boton principal" type="submit" data-boton>{{{i.events}}}<span data-boton-texto>{{#str}}give_title, local_oksigeniaeguahe{{/str}}</span></button>
+        </div>
+    </form>
+    {{#offurl}}<p class="dc-anular"><a class="enlace" href="{{offurl}}">{{#str}}give_off_title, local_oksigeniaeguahe{{/str}}</a></p>{{/offurl}}
+    {{/off}}
+    {{#off}}
+    <form class="bloque dar-cita dar-anular" method="post" action="{{action}}">
+        <input type="hidden" name="sesskey" value="{{sesskey}}">
+        {{#current}}<p class="dc-anulada"><b>{{day}}</b> <span>{{hour}}{{#place}} · {{place}}{{/place}}</span></p>{{/current}}
+        {{#tell}}{{#can}}<div class="campo"><label for="dc-off">{{#str}}give_off_message, local_oksigeniaeguahe{{/str}}</label><textarea id="dc-off" name="message" rows="2" maxlength="1000" data-crece></textarea></div>{{/can}}{{/tell}}
+        <div class="dc-pie">{{#tell}}<input type="hidden" name="tell" value="0">{{#can}}<label class="dc-avisar" for="dc-offtell"><input class="oculto" type="checkbox" id="dc-offtell" name="tell" value="1"{{#checked}} checked{{/checked}}><span class="interruptor"><span class="lampara" aria-hidden="true"></span><span>{{how}}</span></span></label>{{/can}}{{^can}}<p class="secundario dc-noavisa">{{why}}</p>{{/can}}{{/tell}}
+        <button class="boton principal" type="submit">{{#str}}give_off_go, local_oksigeniaeguahe{{/str}}</button></div>
+    </form>
+    {{/off}}
+</div>

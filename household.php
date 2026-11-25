@@ -26,6 +26,7 @@
 require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\alumni;
+use local_oksigeniaeguahe\local\appointments;
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\household_ai;
 use local_oksigeniaeguahe\local\centres;
@@ -37,6 +38,7 @@ use local_oksigeniaeguahe\local\lookalike;
 use local_oksigeniaeguahe\local\lists;
 use local_oksigeniaeguahe\local\messaging;
 use local_oksigeniaeguahe\local\panel;
+use local_oksigeniaeguahe\local\panel_agenda;
 use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\renewal;
@@ -142,6 +144,12 @@ if ($action && data_submitted() && confirm_sesskey()) {
         $body = '';
     }
     $channel = optional_param('channel', 'other', PARAM_ALPHA);
+    if ($action === 'keep' || $action === 'apart') {
+        // Which of two appointments is the one, or that they are two.
+        [$one, $other] = array_pad(explode(',', optional_param('pair', '', PARAM_TAGLIST)), 2, '');
+        appointments::$action($household, ...($action === 'keep' ? [$centre, $one, $other, (int) $USER->id] : [$one, $other, (int) $USER->id]));
+        redirect($url);
+    }
     if ($action === 'admit') {
         // A guest of an act, now a family of the admissions: the team says so.
         if (households::admit((int) $household->id)) {
@@ -521,6 +529,8 @@ panel::output(
     'panel_household',
     panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted) + [
         // Only signed up to an open act: it is not in admissions, and the team may take it there.
+        // Its appointments, wherever they come from, and the pairs that may be one.
+        'citas' => panel_agenda::of_family(households::full($household), $centre, $canact, time()),
         'guest' => !empty($household->guest) ? ['may' => $canact, 'posturl' => $url->out(false), 'sesskey' => sesskey()] : false,
     ]
 );

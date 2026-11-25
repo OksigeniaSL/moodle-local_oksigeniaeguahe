@@ -1,0 +1,25 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_agenda_leaves
+
+    The two leaves of open days and visits: the week, with the appointments, and the acts.
+
+    Example context (json):
+    {"weekurl": "#", "actsurl": "#", "isweek": true}
+}}
+<nav class="agenda-hojas" aria-label="{{#str}}tab_events, local_oksigeniaeguahe{{/str}}"><a href="{{weekurl}}"{{#isweek}} aria-current="page"{{/isweek}}>{{#str}}agenda_week, local_oksigeniaeguahe{{/str}}</a><a href="{{actsurl}}"{{^isweek}} aria-current="page"{{/isweek}}>{{#str}}agenda_acts, local_oksigeniaeguahe{{/str}}</a></nav>

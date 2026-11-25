@@ -990,21 +990,6 @@ textarea {
     height: 18px;
 }
 
-.error-riel {
-    color: var(--eg-error);
-    font-weight: 650;
-    display: flex;
-    gap: 6px;
-    align-items: flex-start;
-}
-
-.error-riel svg {
-    width: 18px;
-    height: 18px;
-    margin-top: 3px;
-    flex: none;
-}
-
 @media (min-width: 960px) {
     .pared {
         padding-top: 48px;
@@ -1727,28 +1712,6 @@ html[lang="pt-BR"] .persona .dice::after {
         align-items: start;
     }
 
-    .inscripcion .resumen-acto {
-        position: sticky;
-        top: 24px;
-    }
-}
-
-.resumen-acto {
-    display: grid;
-    gap: 18px;
-    align-content: start;
-}
-
-.resumen-acto .cuando {
-    font-size: var(--eg-fluido-16);
-    line-height: 1.02;
-    letter-spacing: -0.03em;
-    font-weight: 780;
-}
-
-.resumen-acto .cuando span {
-    display: block;
-    color: var(--c-acento-texto);
 }
 
 .caras-mini {
@@ -2148,27 +2111,6 @@ legend .opc {
     font-weight: 650;
 }
 
-.nota-plaza {
-    color: var(--eg-tinta-2);
-    font-size: 0.9375rem;
-}
-/* How an act is told: its poster stuck on the wall, what it is about, who gives it and for whom. */
-.acto-cuando {
-    margin-top: 6px;
-    font-size: 1.125rem;
-    font-weight: 700;
-    line-height: 1.3;
-}
-
-.acto-cuando::first-letter {
-    text-transform: uppercase;
-}
-
-.acto-cuando > span {
-    display: block;
-    font-weight: 400;
-}
-
 .acto-contado {
     display: flow-root;
     margin-top: 12px;
@@ -2299,41 +2241,10 @@ legend .opc {
         max-height: 400px;
     }
 
-    /* A wide one takes nearly half of the wall, and the rest is written beside it. */
-    .saludo-arriba.con-cartel.con-apaisado {
-        --cartel-ancho: min(45vw, 820px);
-
-        min-height: calc(var(--cartel-ancho) * var(--cartel-razon, 0.56) + 40px);
-        padding-inline-end: calc(var(--g) + var(--cartel-ancho) + 44px);
-    }
-
-    .saludo-arriba.con-cartel.con-apaisado .acto-cartel.apaisado {
-        width: var(--cartel-ancho);
-        max-width: none;
-        box-sizing: border-box;
-    }
-
-    .saludo-arriba.con-cartel.con-apaisado .acto-cartel img {
-        width: 100%;
-        max-height: none;
-    }
-
-    .con-apaisado .titular {
-        font-size: calc(var(--eg-fluido-1) * 0.76);
-        overflow-wrap: anywhere;
-    }
-
-    .con-apaisado .titular.largo {
-        font-size: calc(var(--eg-fluido-1) * 0.52);
-    }
-
     .acto-cuenta {
         font-size: 1.0625rem;
     }
 
-    .acto-cuando {
-        font-size: var(--eg-fluido-11);
-    }
 }
 
 /* In the band of the visit, on the page of the family. */
@@ -2367,21 +2278,6 @@ legend .opc {
     display: block;
     width: 100%;
     height: auto;
-}
-
-/* For who came by the letter of an invitation: how they want to be written to, quiet at the foot. */
-.vias-invitada {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 22px;
-    margin-top: 20px;
-    font-size: 0.9375rem;
-}
-
-.vias-invitada a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
 }
 
 /* ---------- Loose messages, the question before erasing, the page of text ---------- */
@@ -2665,7 +2561,6 @@ fieldset.mal .fichas .ficha {
 .nino[hidden],
 .adulto[hidden],
 .hermano[hidden],
-.quien-cuenta[hidden],
 .percha[hidden],
 .curso[hidden],
 .anadir-nino[hidden],
@@ -4663,14 +4558,10 @@ html[lang="ar"] body * {
 }
 
 /* A note of the centre in another script, in a column written from right to left: its own order, the column's edge. */
-[dir="rtl"] p[dir="auto"],
-[dir="rtl"] .lugar-acto {
+[dir="rtl"] p[dir="auto"] {
     text-align: right;
 }
 
-.lugar-acto {
-    display: inline-block;
-}
 
 /* ---------- What a family shares: the drawing sent to someone. Stuck on the wall of the centre with two strips of paper
    tape and the label of its name on its corner, as its preview shows it; under it, the gift of the centre and sending it
@@ -5778,29 +5669,6 @@ button.enlace span {
     font-weight: 600;
 }
 
-/* An email that looks like a slip of a common one: what they surely meant, under it, and one tap to use it. */
-.quisieron {
-    margin: 6px 0 0;
-    color: var(--eg-tinta);
-    font-size: 0.9375rem;
-}
-
-.quisieron bdi {
-    font-weight: 700;
-}
-
-.quisieron-usar {
-    min-height: 32px;
-    padding: 2px 10px;
-    border: 1.5px solid currentcolor;
-    border-radius: 999px;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-weight: 650;
-    cursor: pointer;
-}
-
 /* A family whose every way is closed: what hung stands on a shelf, off its knob, a little leaning, with a short
    shadow where it touches the wood. The shelf runs under all of them. */
 .perchas.apoyadas {
@@ -5987,23 +5855,6 @@ html {
     scrollbar-color: var(--eg-barra) transparent;
 }
 
-/* A student signing up for themselves («Para mí»): no rows for children, other adults or brothers and sisters. */
-[data-para="yo"] .para-familia,
-[data-para="yo"] .para-familia[hidden] {
-    display: none;
-}
-
-.para-quien .fichas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.para-quien a.ficha {
-    color: inherit;
-    text-decoration: none;
-}
-
 /* ---------- The brand of the centre, whole ----------
    When the centre wrote its colours (body.con-marca), its pages are its own: the white of its signs by day and a dark
    of its own at night, the wall in a tint of its colour, the titles in its colour with the line of its signs under
@@ -6142,35 +5993,6 @@ html {
 
 .con-marca .invitacion-titulo::after {
     background: var(--m-raya-dia);
-}
-
-/* The day of the act, on a panel in the tint of the brand: the name of the day in the accent, the date in the colour
-   of the titles, the hour in ink */
-.con-marca .resumen-acto {
-    /* A sticker: by day and at night, the same colours of the day (a bright yellow also at night) */
-    --eg-tinta: var(--m-tarjeta-tinta);
-    --eg-tinta-2: var(--m-tarjeta-tinta-2);
-    --c-acento-texto: var(--m-tarjeta-titulo);
-    padding: 26px 28px 28px;
-    border-radius: var(--radio);
-    background: var(--m-relleno);
-    color: var(--eg-tinta);
-}
-
-.con-marca .resumen-acto .cuando {
-    color: var(--m-tarjeta-titulo);
-}
-
-@media (min-width: 960px) {
-    /* «21 de noviembre» in one line inside the panel */
-    .con-marca .resumen-acto .cuando {
-        /* stylelint-disable-next-line csstree/validator */
-        font-size: clamp(1.9rem, 3.1vw, 2.75rem);
-    }
-}
-
-.con-marca .resumen-acto .cuando span {
-    color: var(--m-tarjeta-acento);
 }
 
 /* On the solid band of the visit everything stays on the colour of the centre */
@@ -6951,9 +6773,6 @@ html {
     margin-top: 10px;
 }
 
-.fichas-sueltas {
-    margin-top: 10px;
-}
 
 .persona-datos .campo-promocion {
     clear: both;
@@ -7036,4 +6855,79 @@ html {
     font-size: 1.25rem;
     font-weight: 700;
     overflow-wrap: anywhere;
+}
+
+/* To know them a little more: two questions of the same size, each kept as it is answered. */
+.contar-pregunta {
+    min-width: 0;
+    margin: 16px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.contar-mas .contar-pregunta legend,
+.contar-pregunta > label {
+    display: block;
+    margin: 0 0 10px;
+    padding: 0;
+    color: var(--eg-tinta);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.contar-mas .contar-pregunta legend::after {
+    display: none;
+}
+
+.contar-mas .fichas-papel {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.contar-mas .ficha-papel {
+    flex: none;
+    max-width: 100%;
+}
+
+.contar-mas .ficha-papel .palabra {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 0.9375rem;
+    line-height: 1.2;
+}
+
+.contar-pregunta select {
+    width: 100%;
+}
+
+.contar-gracias {
+    margin: 16px 0 0;
+    color: var(--c-acento-texto);
+    font-weight: 700;
+}
+
+.contar-mas .acciones {
+    margin-top: 18px;
+}
+
+.contar-mas .acciones[hidden] {
+    display: none;
+}
+
+@media (max-width: 719px) {
+    .contar-mas {
+        padding: 14px 12px 16px;
+    }
+
+    .contar-mas .fichas-papel {
+        gap: 7px 6px;
+    }
+
+    .contar-mas .ficha-papel .palabra {
+        padding: 8px 11px;
+        font-size: 0.875rem;
+    }
 }

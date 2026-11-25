@@ -51,6 +51,8 @@ final class howto {
         'left' => ['inbox', 'index.php', ''],
         'sibling' => ['inbox', 'index.php', ''],
         'tailored' => ['inbox', 'index.php', ''],
+        'moveappointment' => ['events', 'agenda.php', ''],
+        'whocame' => ['events', 'agenda.php', ''],
         'ambassador' => ['inbox', 'index.php', ''],
         'familylabels' => ['inbox', 'index.php', ''],
         'drawing' => ['inbox', 'index.php', ''],

@@ -1,0 +1,65 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_agenda
+
+    The week of the team: the notebook with each day and its appointments; a note with those that have passed and nobody
+    said whether they came; and, stuck beside it, the families that asked for a visit and have no day.
+
+    Example context (json):
+    {
+        "head": {"title": "Cuatro visitas esta semana", "sub": "La próxima, hoy a las 10:00.", "action": {"url": "#", "name": "Dar cita", "icon": ""} },
+        "title": "Del 23 al 29 de noviembre", "prevurl": "#", "nexturl": "#", "todayurl": "#", "isnow": true, "sesskey": "abc", "markurl": "#",
+        "topass": {"n": 6, "text": "6 citas han pasado y no está anotado si vinieron", "url": "#"},
+        "hasguides": true, "everyone": true, "everyoneurl": "#", "weekurl": "#", "actsurl": "#", "isweek": true, "canact": true, "guides": [{"id": 3, "first": "Lucía", "picture": "", "initials": "LM", "current": false, "url": "#"}],
+        "days": [{"key": "2026-11-23", "weekday": "lun", "day": "23", "month": "nov", "today": false, "past": true, "closed": false, "hasitems": true, "items": [{"id": "s4", "hour": "10:00", "hourend": "10:45", "dayonly": false, "adults": "Ana Ruiz", "children": [{"tag": "Leo", "course": "Infantil 3 años"}], "kind": "visit", "title": "", "place": "Secretaría", "guide": {"first": "Lucía", "picture": "", "initials": "LM"}, "state": "unknown", "statename": "Sin anotar si vinieron", "unknown": true, "came": false, "notcame": false, "isact": false, "source": "eguahe", "sourcename": "", "people": 2, "url": "#", "moveurl": "#", "offurl": "#", "twin": false}]}],
+        "hasasked": true, "asked": [{"id": "r3", "adults": "Mohamed El Amrani", "children": [{"tag": "Adam", "course": ""}], "since": "Desde el lunes", "suits": "Martes y jueves, por la tarde", "moveurl": "#", "url": "#"}],
+        "undo": ""
+    }
+}}
+<div class="pagina pagina-agenda">
+    {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{> local_oksigeniaeguahe/panel_agenda_leaves }}
+    {{#topass}}<p class="agenda-nota"><span>{{text}}</span><a class="boton secundario pequeno" href="{{url}}">{{#str}}agenda_pass, local_oksigeniaeguahe{{/str}}</a></p>{{/topass}}
+    {{> local_oksigeniaeguahe/panel_agenda_undo }}
+    <div class="agenda-mesa{{#hasasked}} con-piden{{/hasasked}}">
+        <section class="semana agenda" aria-labelledby="semana-t" data-agenda>
+            <header>
+                <div class="agenda-titulo"><h2 id="semana-t">{{title}}</h2>{{^isnow}}<a class="boton terciario pequeno" href="{{todayurl}}">{{#str}}agenda_today, local_oksigeniaeguahe{{/str}}</a>{{/isnow}}</div>
+                <nav class="agenda-paso" aria-label="{{#str}}agenda_weeks, local_oksigeniaeguahe{{/str}}"><a class="agenda-ir" href="{{prevurl}}" aria-label="{{#str}}agenda_prev, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a><a class="agenda-ir adelante" href="{{nexturl}}" aria-label="{{#str}}agenda_next, local_oksigeniaeguahe{{/str}}">{{{i.atras}}}</a></nav>
+                {{#hasguides}}<nav class="agenda-equipo" aria-label="{{#str}}give_guide, local_oksigeniaeguahe{{/str}}"><a href="{{everyoneurl}}"{{#everyone}} aria-current="true"{{/everyone}}><span>{{#str}}agenda_everyone, local_oksigeniaeguahe{{/str}}</span></a>{{#guides}}<a href="{{url}}"{{#current}} aria-current="true"{{/current}}>{{> local_oksigeniaeguahe/panel_face }}<span>{{first}}</span></a>{{/guides}}</nav>{{/hasguides}}
+            </header>
+            <ol class="dias-semana">
+                {{#days}}
+                <li class="dia-s{{#today}} hoy{{/today}}{{#past}} pasado{{/past}}{{^hasitems}} vacio{{/hasitems}}{{#closed}} cerrado{{/closed}}">
+                    <span class="dia-s-nombre"><small>{{weekday}}</small><b>{{day}}</b>{{#today}}<span class="oculto">, {{#str}}panel_today_word, local_oksigeniaeguahe{{/str}}</span>{{/today}}</span>
+                    <div class="dia-s-cosas">
+                        {{#items}}{{> local_oksigeniaeguahe/panel_agenda_card }}{{/items}}
+                        {{^hasitems}}<span class="nada">{{#closed}}{{#str}}agenda_closed, local_oksigeniaeguahe{{/str}}{{/closed}}{{^closed}}{{#str}}panel_nothing_day, local_oksigeniaeguahe{{/str}}{{/closed}}</span>{{/hasitems}}
+                    </div>
+                </li>
+                {{/days}}
+            </ol>
+        </section>
+        {{#hasasked}}
+        <section class="agenda-piden" aria-labelledby="piden-t">
+            <h2 id="piden-t">{{#str}}agenda_asked, local_oksigeniaeguahe{{/str}}</h2>
+            <ul>{{#asked}}<li class="pide"><a class="cita-familia" href="{{url}}">{{adults}}</a><span class="cita-hijos">{{#children}}<span class="etq" translate="no" dir="auto">{{tag}}</span>{{/children}}</span>{{#suits}}<span class="pide-cuando">{{suits}}</span>{{/suits}}<span class="secundario">{{since}}</span><a class="boton secundario pequeno" href="{{moveurl}}">{{#str}}agenda_giveday, local_oksigeniaeguahe{{/str}}</a></li>{{/asked}}</ul>
+        </section>
+        {{/hasasked}}
+    </div>
+</div>

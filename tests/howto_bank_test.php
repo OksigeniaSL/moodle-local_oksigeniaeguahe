@@ -36,7 +36,7 @@ final class howto_bank_test extends \advanced_testcase {
     /** @var string[][] What also answers a need: the card of a setting that holds another, or a task beside it. */
     private const ALSO = ['set:replydays' => ['set:contact'], 'set:guide' => ['set:miniature'],
         'set:team' => ['set:hosts'], 'share' => ['poster'], 'eventlabels' => ['familylabels'],
-        'familylabels' => ['eventlabels']];
+        'familylabels' => ['eventlabels'], 'changeevent' => ['moveappointment']];
 
     /** @var float[] How much of each part the first answer has to get right, at least. */
     private const AT_LEAST = ['tune' => 0.88, 'held' => 0.72];
