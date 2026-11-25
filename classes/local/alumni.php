@@ -455,7 +455,19 @@ class alumni {
             'centreid = :centreid AND token IS NOT NULL AND said = :yes',
             ['centreid' => $centreid, 'yes' => self::YES]
         ), true);
-        $families = array_keys(self::families($centreid));
+        return $out + self::family_tokens($centreid, array_keys(self::families($centreid)));
+    }
+
+    /**
+     * Some families of Eguahe in the imported lists, found by their emails and phones.
+     *
+     * @param int $centreid
+     * @param int[] $families
+     * @return array token => true
+     */
+    public static function family_tokens(int $centreid, array $families): array {
+        global $DB;
+        $out = [];
         if (!$families) {
             return $out;
         }

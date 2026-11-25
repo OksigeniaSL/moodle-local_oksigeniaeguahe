@@ -151,11 +151,12 @@ final class listmatch_test extends \advanced_testcase {
         // Counted and said, the really new first.
         $counts = who::count([['who' => 'new', 'step' => 5], ['who' => 'new', 'step' => 1], ['who' => 'nursery', 'step' => 5],
             ['who' => 'centre', 'step' => 1], ['who' => 'alumni', 'step' => 2]]);
-        $this->assertSame(['n' => 2, 'enrolled' => 1], $counts['new']);
+        $this->assertSame(['n' => 2, 'enrolled' => 1, 'all' => 2], $counts['new']);
         $this->assertSame(1, $counts['nursery']['n']);
         $c = 'local_oksigeniaeguahe';
         $this->assertSame(get_string('who_part_new', $c, (object) ['n' => 2, 'enrolled' => 1]) . '; ' .
-            get_string('who_part_centre_nursery', $c, (object) ['n' => 2, 'nursery' => 1]) . '; ' .
+            get_string('who_part_centre_parts', $c, (object) ['n' => 2, 'parts' => get_string('who_bit_nursery', $c, 1) . ', ' .
+                get_string('who_bit_centre', $c, 1)]) . '; ' .
             get_string('who_part_alumni', $c, 1), who::sentence($counts, false));
         $this->assertSame('', who::sentence(who::count([])));
     }

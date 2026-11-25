@@ -165,7 +165,10 @@ class listmatch {
                 }
                 $counts[self::enrol($centre, $household, $s, $offers, $year) === 'enrolled' ? 0 : 2]++;
             }
-            if ($unmark && !$older && !$DB->record_exists(self::T, ['householdid' => $household->id, 'kind' => 'incentre'])) {
+            if (
+                $unmark && !$older && !$DB->record_exists(self::T, ['householdid' => $household->id, 'kind' => 'incentre']) &&
+                !ties::any((int) $household->id)
+            ) {
                 $DB->set_field(households::T, 'incentre', 0, ['id' => $household->id]);
                 $household->incentre = 0;
             }

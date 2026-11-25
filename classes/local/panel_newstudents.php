@@ -123,7 +123,7 @@ class panel_newstudents {
         $o = metrics::origins($centreid, $year);
         $g = array_map(fn($x) => (int) $x['n'], $o['groups']);
         $total = (int) $o['total'];
-        $centren = $g['inner'] + $g['sibling'];
+        $centren = $g['inner'] + $g['sibling'] + $g['staff'];
         $moves = self::moves($centre, $year, $now);
         $campaigns = self::campaigns($centre, $year, $o, $canact);
         $ads = array_values(array_filter($campaigns, fn($k) => !$k['act']));
@@ -138,6 +138,7 @@ class panel_newstudents {
             'is' => self::glue(get_string('panel_new_is_text', $c, (object) ['centre' => self::button('ex-centre', (string) $centren),
                 'inner' => self::button('ex-inner', (string) $g['inner']),
                 'sibling' => self::button('ex-sibling', (string) $g['sibling']),
+                'staff' => self::staff_part($g['staff'], true),
                 'fresh' => self::button('ex-newfamily', (string) $g['newfamily']),
                 'ad' => self::button('ex-ad', (string) $adstudents), 'total' => $total])),
         ] : false;
@@ -154,7 +155,7 @@ class panel_newstudents {
             get_string(
                 'panel_ex_centre_w',
                 $c,
-                (object) ['inner' => $g['inner'], 'sibling' => $g['sibling']]
+                (object) ['inner' => $g['inner'], 'sibling' => $g['sibling'], 'staff' => self::staff_part($g['staff'])]
             ),
             get_string('panel_ex_centre_h', $c),
             get_string('panel_ex_centre_c', $c)
@@ -247,8 +248,8 @@ class panel_newstudents {
             range(0, $n - 1)
         ) : [];
         $rows = [];
-        foreach (['inner', 'sibling'] as $key) {
-            if ($key === 'sibling' && !$o['hasroll']) {
+        foreach (['inner', 'sibling', 'staff'] as $key) {
+            if ($key === 'sibling' && !$o['hasroll'] && !$g['sibling']) {
                 continue;
             }
             // An empty shelf is not drawn (its number, in the sentences, still says what it is).
@@ -330,8 +331,8 @@ class panel_newstudents {
             'heronewtext' => get_string('panel_new_hero_origins_new', $c, $total),
             'rows' => $rows,
             'table' => $table,
-            'fold' => get_string('panel_new_fold', $c, (object) ['n' => $g['inner'] + $g['sibling'], 'inner' => $g['inner'],
-                'sibling' => $g['sibling']]),
+            'fold' => get_string('panel_new_fold', $c, (object) ['n' => $g['inner'] + $g['sibling'] + $g['staff'],
+                'inner' => $g['inner'], 'sibling' => $g['sibling'], 'staff' => self::staff_part($g['staff'])]),
             'unfoldurl' => $url(['withcentre' => 1])->out(false),
             'nosiblings' => !$o['hasroll'],
             'alumni' => self::alumni_line($o, $total),
@@ -589,6 +590,17 @@ class panel_newstudents {
             'ex' => ['contacts' => $id2('contacts'), 'centre' => $id2('centre'), 'in' => $id2('in'), 'per' => $id2('per'),
                 'each' => $id2('each'), 'money' => $id2('money'), 'hours' => $id2('hours')],
         ];
+    }
+
+    /**
+     * Those of the staff, after the brothers and sisters in a sentence; nothing when there are none.
+     *
+     * @param int $n
+     * @param bool $touch To touch, for its explanation.
+     * @return string
+     */
+    protected static function staff_part(int $n, bool $touch = false): string {
+        return $n ? get_string('panel_new_staff_part', self::C, $touch ? self::button('ex-staff', (string) $n) : $n) : '';
     }
 
     /**
@@ -865,11 +877,12 @@ class panel_newstudents {
             }
         }
         $g = array_map(fn($x) => (int) $x['n'], $o['groups']);
-        $centren = $g['inner'] + $g['sibling'];
+        $centren = $g['inner'] + $g['sibling'] + $g['staff'];
         if ($o['total'] >= self::MIN && $centren * 2 > $o['total']) {
             $items[] = $kind('fuerte') + ['anchor' => 'de-donde', 'text' => get_string('panel_new_c_inside', $c, (object) [
                 'n' => '<b>' . get_string('panel_new_x_of_y', $c, (object) ['x' => $centren, 'y' => $o['total']]) . '</b>']),
-                'why' => get_string('panel_new_c_inside_why', $c, (object) ['inner' => $g['inner'], 'sibling' => $g['sibling']])];
+                'why' => get_string('panel_new_c_inside_why', $c, (object) ['inner' => $g['inner'], 'sibling' => $g['sibling'],
+                    'staff' => self::staff_part($g['staff'])])];
         }
         if (
             $moves && $moves['hasbefore'] && $moves['leaves'] !== $moves['bleaves'] &&

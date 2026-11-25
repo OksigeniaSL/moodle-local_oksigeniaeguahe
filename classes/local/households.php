@@ -1089,6 +1089,8 @@ class households {
         $data['likes'] = hobbies::export((int) $household->id);
         // Who studied at the centre, as they or the team said it.
         $data['studied_at_the_centre'] = alumni::export((int) $household->id);
+        // What ties them to the centre, as the team marked it.
+        $data['relation_with_the_centre'] = ties::export((int) $household->id);
         // What was counted of what they did on their page and with the mails.
         $data['what_was_counted'] = seen::export((int) $household->id);
         // A visit of its own: when they said it suits them.
@@ -1195,7 +1197,7 @@ class households {
         foreach (
             [self::CONSENTS, self::CONTACTS, self::SIGNUPS, self::CHILDREN, self::ADULTS, self::LINKS, visits::REQUESTS,
                 forms::ANSWERS, attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, renewal::T,
-                alumni::T, access::T, appointments::T, notices::T, settle::T] as $table
+                alumni::T, access::T, appointments::T, notices::T, settle::T, ties::T] as $table
         ) {
             $DB->delete_records($table, ['householdid' => $household->id]);
         }

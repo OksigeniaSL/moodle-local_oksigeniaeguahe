@@ -471,7 +471,7 @@ class metrics {
      *
      * @param int $centreid
      * @param string $schoolyear
-     * @return array total, hasroll, groups (inner, sibling, newfamily, unknown: n and by grade), newby (own, ad, campaign, none),
+     * @return array total, hasroll, groups (inner, sibling, staff, newfamily, unknown: n and by grade), newby (own, ad, campaign, none),
      *     kinds (student => group) and homes (student => household keys).
      */
     protected static function origins_of(int $centreid, string $schoolyear): array {
@@ -541,20 +541,47 @@ class metrics {
         }
         $contacts->close();
         $groups = [];
-        foreach (['inner', 'sibling', 'newfamily', 'unknown'] as $key) {
+        foreach (['inner', 'sibling', 'staff', 'newfamily', 'unknown'] as $key) {
             $groups[$key] = ['n' => 0, 'grades' => []];
         }
         $newby = ['own' => 0, 'ad' => 0, 'campaign' => 0, 'none' => 0];
         $kinds = [];
         $partof = [];
+        // And what who knows the families marked: the children who were already there, those with brothers or sisters and
+        // those of the staff, found in the lists by the emails and phones of their family.
+        $inside = ties::inside($centreid);
+        $marked = [];
+        foreach (
+            $inside ? $DB->get_records_select(
+                listmatch::T,
+                "centreid = ? AND schoolyear = ? AND kind = 'enrolled' AND childid > 0",
+                [$centreid, $schoolyear],
+                '',
+                'id, student, childid'
+            ) : [] as $row
+        ) {
+            if (isset($inside[(int) $row->childid])) {
+                $marked[$row->student] = true;
+            }
+        }
+        $tied = ['sibling' => [], 'staff' => []];
+        foreach (ties::families($centreid) as $id => $what) {
+            foreach (array_keys(array_intersect_key($tied, $what)) as $kind) {
+                $tied[$kind][] = $id;
+            }
+        }
+        $tied = array_map(fn($ids) => alumni::family_tokens($centreid, $ids), $tied);
+        $centre += $tied['sibling'] + $tied['staff'];
         foreach (array_keys($new) as $student) {
             $mine = array_keys($homes[$student] ?? []);
-            if (isset($inner[$student])) {
+            if (isset($inner[$student]) || isset($marked[$student])) {
                 $kind = 'inner';
             } else if (!$mine) {
                 $kind = 'unknown';
-            } else if (array_intersect_key(array_flip($mine), $centre)) {
+            } else if (array_intersect_key(array_flip($mine), array_diff_key($centre, $tied['staff']) + $tied['sibling'])) {
                 $kind = 'sibling';
+            } else if (array_intersect_key(array_flip($mine), $tied['staff'])) {
+                $kind = 'staff';
             } else {
                 $kind = 'newfamily';
                 $by = array_intersect_key(array_flip($mine), $ads) ? 'ad' :
@@ -605,8 +632,9 @@ class metrics {
 
     /**
      * The children Eguahe has enrolled for a school year who are not yet on an imported list of that year (the list
-     * did not find them, or there is none): new students too. Of a family already at the centre (it said so, or it came
-     * from its roll), a brother or sister; else a new family, by an ad (it came by Meta or by a paid link), another
+     * did not find them, or there is none): new students too. One already there (the team marked it), an inner step; of a
+     * family already at the centre (it said so, or it came from its roll), a brother or sister, or of its staff; else a new
+     * family, by an ad (it came by Meta or by a paid link), another
      * campaign or act (it came to one), or nothing counted.
      *
      * @param int $centreid
@@ -635,6 +663,7 @@ class metrics {
             "centreid = ? AND schoolyear = ? AND kind = 'enrolled' AND childid > 0",
             [$centreid, $schoolyear]
         ));
+        $inside = ties::inside($centreid);
         // What brought each family is its first contact, as Numbers counts it by channel: an ad, the centre's own work, or
         // nothing measured. An open day it came to is a door, never what brought it.
         $centre = centres::get($centreid);
@@ -648,7 +677,9 @@ class metrics {
                 (in_array($channel, arrival::OWN, true) ? 'own' : 'none');
             $out['eg' . $row->id] = [
                 'home' => 'eg:h' . $row->householdid,
-                'kind' => !empty($row->incentre) || !empty($row->roster) ? 'sibling' : 'newfamily',
+                // A child already there goes on; of its family, children inside before someone who works there.
+                'kind' => isset($inside[(int) $row->id]) ? 'inner' : (empty($row->incentre) && empty($row->roster) ? 'newfamily' :
+                    (who::kind($centreid, (int) $row->householdid) === 'staff' ? 'staff' : 'sibling')),
                 'by' => $by,
                 'grade' => format_string((string) $row->grade),
             ];

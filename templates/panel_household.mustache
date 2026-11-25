@@ -304,6 +304,18 @@
                         <span class="nombre">{{name}}</span>
                         <span class="secundario">{{#tagline}}{{tagline}} · {{/tagline}}{{course}}</span>
                         {{#birthline}}<span class="secundario">{{birthline}}{{#coursehint}} · {{coursehint}}{{/coursehint}}</span>{{/birthline}}
+                        {{#ties}}
+                        {{#canact}}
+                        <form class="relacion" id="relacion-{{id}}" method="post" action="{{action}}" aria-label="{{#str}}tie_title, local_oksigeniaeguahe{{/str}}: {{name}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="tie"><input type="hidden" name="child" value="{{id}}">
+                            <p class="rotulo-p">{{#str}}tie_title, local_oksigeniaeguahe{{/str}}</p>
+                            <div class="pastillas">{{#rows}}{{#fixed}}<span class="pastilla" aria-current="true">{{{i.check}}}{{name}}</span>{{/fixed}}{{^fixed}}<button class="pastilla" type="submit" name="tie" value="{{kind}}" formaction="{{action}}&amp;on={{next}}" aria-pressed="{{#on}}true{{/on}}{{^on}}false{{/on}}">{{#on}}{{{i.check}}}{{/on}}{{name}}</button>{{/fixed}}{{/rows}}</div>
+                            {{#list}}<p class="secundario">{{list}}</p>{{/list}}
+                            <p class="ayuda">{{#str}}tie_help, local_oksigeniaeguahe{{/str}}</p>
+                        </form>
+                        {{/canact}}
+                        {{^canact}}{{#hassaid}}<p class="relacion" id="relacion-{{id}}"><span class="rotulo-p">{{#str}}tie_title, local_oksigeniaeguahe{{/str}}</span> <span class="pastillas">{{#said}}<span class="pastilla" aria-current="true">{{name}}</span>{{/said}}</span>{{#list}} <span class="secundario">{{list}}</span>{{/list}}</p>{{/hassaid}}{{/canact}}
+                        {{/ties}}
                         {{#drawing}}<a href="{{drawingpage}}"><img class="dibujo-mini" src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}
                         {{^drawing}}{{#drawingpage}}<a class="enlace su-dibujo" href="{{drawingpage}}">{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}</a>{{/drawingpage}}{{/drawing}}
                         {{^closed}}

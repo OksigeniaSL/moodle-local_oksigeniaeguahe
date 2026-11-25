@@ -471,7 +471,8 @@ class panel_event {
             return get_string('panel_aside_team', self::C);
         }
         if (!empty($household->incentre) || !empty($household->roster)) {
-            return get_string('panel_aside_centre', self::C);
+            $kind = who::kind((int) $centre->id, (int) $household->id);
+            return get_string(in_array($kind, ['nursery', 'staff'], true) ? 'panel_aside_' . $kind : 'panel_aside_centre', self::C);
         }
         return !empty($household->guest) ? get_string('panel_aside_guest', self::C) : '';
     }

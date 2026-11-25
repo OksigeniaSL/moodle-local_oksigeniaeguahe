@@ -1331,6 +1331,46 @@ button.pastilla {
     cursor: pointer;
 }
 
+/* What ties a child to the centre, under its name in the file: one touch each */
+.relacion {
+    margin: 10px 0 0;
+}
+
+.relacion .rotulo-p,
+.relacion .ayuda,
+.relacion .secundario {
+    margin: 0 0 6px;
+}
+
+.relacion .ayuda {
+    margin: 6px 0 0;
+}
+
+.relacion .pastillas {
+    flex-wrap: wrap;
+    overflow: visible;
+}
+
+.relacion button.pastilla[aria-pressed="false"] {
+    border-color: var(--eg-borde);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+}
+
+.relacion .pastilla {
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 12px;
+    white-space: normal;
+    text-align: start;
+}
+
+.relacion .pastilla .ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+
 .pastilla[aria-current],
 button.pastilla[aria-pressed="true"] {
     border-color: var(--eg-accion);

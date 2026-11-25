@@ -82,7 +82,7 @@ final class origins_test extends \advanced_testcase {
         $this->assertSame(5, $o['total']);
         $this->assertTrue($o['hasroll']);
         $this->assertSame(
-            ['inner' => 1, 'sibling' => 1, 'newfamily' => 2, 'unknown' => 1],
+            ['inner' => 1, 'sibling' => 1, 'staff' => 0, 'newfamily' => 2, 'unknown' => 1],
             array_map(fn($g) => $g['n'], $o['groups'])
         );
         $this->assertSame(['own' => 0, 'ad' => 1, 'campaign' => 0, 'none' => 1], $o['newby']);

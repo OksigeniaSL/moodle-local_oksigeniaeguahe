@@ -64,6 +64,7 @@ final class howto {
         'samefamily' => ['inbox', 'index.php', ''],
         'applysend' => ['inbox', 'index.php', ''],
         'alumni' => ['inbox', 'index.php', ''],
+        'ties' => ['inbox', 'index.php', ''],
         'writeby' => ['inbox', 'index.php', ''],
         'chatfamily' => ['inbox', 'index.php', ''],
         'desk' => ['events', 'events.php', ''],

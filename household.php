@@ -47,6 +47,7 @@ use local_oksigeniaeguahe\local\panel_household;
 use local_oksigeniaeguahe\local\renewal;
 use local_oksigeniaeguahe\local\settled;
 use local_oksigeniaeguahe\local\siblings;
+use local_oksigeniaeguahe\local\ties;
 use local_oksigeniaeguahe\local\visits;
 use local_oksigeniaeguahe\local\writeby;
 
@@ -329,6 +330,18 @@ if ($action && data_submitted() && confirm_sesskey()) {
             // The common record said they left; a person says they are still here.
             family::still_here($household);
             redirect(new moodle_url($url, [], 'se-van'));
+            break;
+        case 'tie':
+            // What ties a child to the centre, as who knows the family says it: one touch marks it, another takes it out.
+            $childid = required_param('child', PARAM_INT);
+            ties::set(
+                $household,
+                $childid,
+                required_param('tie', PARAM_ALPHA),
+                optional_param('on', 0, PARAM_BOOL),
+                (int) $USER->id
+            );
+            redirect(new moodle_url($url, [], 'relacion-' . $childid));
             break;
         case 'alumni':
             // A person of the team says whether an adult studied at the centre, or answers the question of the list.

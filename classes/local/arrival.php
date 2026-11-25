@@ -556,7 +556,7 @@ class arrival {
     protected static function kinds(array $who): array {
         $c = 'local_oksigeniaeguahe';
         $out = [];
-        $centre = $who['nursery']['n'] + $who['centre']['n'];
+        $centre = who::centre($who);
         foreach (
             ['new' => $who['new'], 'centre' => ['n' => $centre, 'enrolled' => 0], 'former' => $who['former'],
                 'alumni' => $who['alumni']] as $kind => $count
@@ -567,7 +567,7 @@ class arrival {
             $apart = $kind === 'centre';
             $more = $count['enrolled'] ? get_string('bychannel_with_enrolled', $c, $count['enrolled']) : '';
             if ($apart) {
-                $more = $who['nursery']['n'] ? get_string('bychannel_kind_nursery', $c, $who['nursery']['n']) : '';
+                $more = who::centre_parts($who);
             }
             $out[] = ['n' => $count['n'], 'name' => get_string($apart ? 'bychannel_kind_centre' : 'who_' . $kind, $c),
                 'enrolled' => $more, 'apart' => $apart];

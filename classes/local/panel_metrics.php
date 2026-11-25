@@ -140,6 +140,7 @@ class panel_metrics {
             // What was measured when it arrived: the site or the source, AI assistants together.
             $measured = arrival::of($h)[0];
             $out[$h->id] = ['id' => (int) $h->id, 'who' => who::kind((int) $centre->id, (int) $h->id),
+                'also' => who::kinds((int) $centre->id, (int) $h->id),
                 'first' => (int) $h->timecreated, 'step' => 1, 'closed' => true,
                 'enrolledat' => 0, 'course' => '', 'coursename' => '', 'moving' => !empty($h->moving),
                 'voices' => ['first' => '', 'last' => '', 'said' => $said,

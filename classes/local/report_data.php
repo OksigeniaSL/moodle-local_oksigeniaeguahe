@@ -634,7 +634,8 @@ class report_data {
             $when = self::day((int) $event->timestart) . ', ' . $hour;
             $past = $event->timestart < time();
             $those = array_keys(array_filter($people[(int) $event->id] ?? [], fn($came) => $came || !$past));
-            $who = who::sentence(who::count(array_map(fn($id) => ['who' => who::kind($centreid, $id)], $those)), false, false);
+            $who = who::sentence(who::count(array_map(fn($id) => ['who' => who::kind($centreid, $id),
+                'also' => who::kinds($centreid, $id)], $those)), false, false);
             $rows[] = ['name' => format_string($event->name), 'when' => $when, 'signed' => $s,
                 'who' => $who !== '' ? get_string($past ? 'report_act_who_came' : 'report_act_who_signed', $c, $who) : false,
                 'came' => $k, 'told' => (int) ($told[$event->id] ?? 0),
@@ -687,8 +688,9 @@ class report_data {
             'came' => $r['visited'], 'applied' => $r['applied'], 'enrolled' => $r['enrolled'],
             'only from what they said' => $r['said'], 'left their contact in an ad later' => $r['adlater'],
             'really new' => $r['who']['new']['n'], 'really new that enrolled' => $r['who']['new']['enrolled'],
-            'already of the centre, set apart' => $r['who']['nursery']['n'] + $r['who']['centre']['n'],
-            'of them with a child in its nursery' => $r['who']['nursery']['n'],
+            'already of the centre, set apart' => who::centre($r['who']),
+            'of them with a child in its nursery' => $r['who']['nursery']['all'],
+            'of them of its staff' => $r['who']['staff']['all'],
             'had children at the centre before' => $r['who']['former']['n'],
             'of former students' => $r['who']['alumni']['n']], $sum['rows']);
         return ['sentence' => arrival::by_channel_text($sum), 'blocks' => $out, 'sheet' => arrival::sheet($sum), 'raw' => $raw];

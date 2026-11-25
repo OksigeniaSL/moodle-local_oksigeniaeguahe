@@ -1092,6 +1092,11 @@ class panel_household {
         $c = self::C;
         $out = [];
         $centre = centres::get((int) $full->centreid);
+        // What ties them to the centre: what the team marked, who studied there and what its lists say.
+        $marked = ties::of((int) $full->id);
+        $nursery = ties::has_nursery($centre, $offers);
+        $studied = array_filter(alumni::of((int) $full->id), fn($row) => (int) $row->said === alumni::YES);
+        $list = ties::from_list((int) $full->id, $centre);
         foreach (array_values($full->children) as $i => $child) {
             $offer = $offers[$child->offerid] ?? null;
             $at = lists::STAGE_STEP[$child->stage] ?? 1;
@@ -1144,6 +1149,7 @@ class panel_household {
                 'reasons' => $reasons,
                 'canact' => $canact,
                 'label' => get_string('panel_way_of', $c, $tag),
+                'ties' => ties::context($full, $child, $marked, $nursery, (bool) $studied, (bool) array_diff_key($studied, [0 => 1]), $list),
             ];
         }
         return $out;

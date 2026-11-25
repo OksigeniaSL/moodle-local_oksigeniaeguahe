@@ -41,7 +41,7 @@ class export {
         $out = [];
         foreach (
             ['family', 'emails', 'phones', 'child', 'home', 'birth', 'course', 'stage', 'since', 'arrived', 'channel',
-                'entry', 'heard', 'measured', 'place', 'moving', 'alumni', 'waiting'] as $key
+                'entry', 'heard', 'measured', 'place', 'moving', 'ties', 'alumni', 'waiting'] as $key
         ) {
             $out[$key] = get_string('export_col_' . $key, self::C);
         }
@@ -79,6 +79,9 @@ class export {
             $studied[(int) $r->householdid][] = (int) $r->adultid;
         }
         $studiedrows->close();
+        // Who each family is for the centre, when it is not new, and the children who are already there.
+        $who = who::all_of_centre((int) $centre->id);
+        $inside = ties::inside((int) $centre->id);
         // The form or bridge of the centre each family first came in by, with its place («La web del colegio · Web ·
         // Infantil»).
         $entrynames = $DB->get_records_menu(entries::T, ['centreid' => $centre->id], '', 'id, name');
@@ -130,10 +133,13 @@ class export {
                 }, $studied[(int) $household->id] ?? []))),
                 'waiting' => $date((int) $household->waitingsince),
             ];
+            $ties = array_map([who::class, 'name'], $who[(int) $household->id] ?? []);
             $children = $childrenof[(int) $household->id] ?? [null];
             foreach ($children as $child) {
                 $offer = $child ? ($offers[$child->offerid] ?? null) : null;
                 $row = $family + [
+                    'ties' => implode('; ', array_merge($child && isset($inside[(int) $child->id]) ?
+                        [get_string('tie_already', $c)] : [], $ties)),
                     'child' => $child ? trim($child->firstname . ' ' . ($child->lastname ?? '')) : '',
                     'home' => $child ? trim((string) ($child->tagname ?? '')) : '',
                     'birth' => $child ? trim((string) ($child->birthdate ?? '')) : '',
