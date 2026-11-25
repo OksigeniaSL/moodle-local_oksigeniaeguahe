@@ -18,8 +18,9 @@ namespace local_oksigeniaeguahe\local;
 
 /**
  * The first name of somebody as it is said in a greeting. What people write in a form of an ad is not always that: letters
- * of fancy («ᴄʀɪsᴛɪɴᴀ», «𝑰𝒓𝒆𝒏𝒆»), a user name («DaviRambreu»), a word of the form. The letters become plain ones; what does
- * not look like the name of a person is left out, and the greeting goes without it.
+ * of fancy («ᴄʀɪsᴛɪɴᴀ», «𝑰𝒓𝒆𝒏𝒆»), a user name («DaviRambreu»), a word of the form, their business («Barbería»). The letters
+ * become plain ones; what does not look like the name of a person is left out, and the greeting goes without it. What they
+ * wrote stays in the file: that it is their business is something the team knows by it.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -57,12 +58,30 @@ class greeting {
                 $m[1]
             ), \core_text::strtotitle($name));
         }
+        $business = self::business();
         foreach (explode(' ', $name) as $i => $word) {
-            if (!self::looks_like_one($word, $i > 0)) {
+            if (isset($business[grades::plain($word)]) || !self::looks_like_one($word, $i > 0)) {
                 return '';
             }
         }
         return $name;
+    }
+
+    /**
+     * The words that name a business, not a person (data/business-words.json), in plain letters.
+     *
+     * @return array word => true
+     */
+    protected static function business(): array {
+        static $words = null;
+        if ($words === null) {
+            $words = [];
+            $said = json_decode((string) file_get_contents(__DIR__ . '/../../data/business-words.json'), true);
+            foreach (is_array($said) ? $said : [] as $list) {
+                $words += is_array($list) ? array_fill_keys($list, true) : [];
+            }
+        }
+        return $words;
     }
 
     /**

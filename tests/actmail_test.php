@@ -203,7 +203,9 @@ final class actmail_test extends \advanced_testcase {
                 'McKenna' => 'McKenna', 'Anne-Marie' => 'Anne-Marie', 'Aarón' => 'Aarón', 'Lee' => 'Lee', 'Noa' => 'Noa',
                 'Иван' => 'Иван', 'أحمد' => 'أحمد', 'Rhys' => 'Rhys', 'DaviRambreu' => '', 'DianelisMedina' => '', 'I’m' => '',
                 'Roo' => '', 'Fanii' => '', 'Saraa' => '', 'Sch' => '', 'M.' => '', 'ana@example.com' => '', 'ana22' => '',
-                '' => ''] as $raw => $said
+                'Barberia' => '', 'Barbería El Paso' => '', 'PELUQUERÍA' => '', 'Salon Ana' => '', 'Talleres' => '', 'Óptica' => '',
+                'Pilar' => 'Pilar', 'Mercedes' => 'Mercedes', 'Rosa' => 'Rosa', 'Barbara' => 'Barbara', 'Salomé' => 'Salomé',
+                'Estela' => 'Estela', 'Clinton' => 'Clinton', 'Paz' => 'Paz', '' => ''] as $raw => $said
         ) {
             $this->assertSame($said, greeting::name((string) $raw), (string) $raw);
         }
