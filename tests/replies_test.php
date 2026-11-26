@@ -163,6 +163,30 @@ final class replies_test extends \advanced_testcase {
     }
 
     /**
+     * Documents of admission sent by mail: their names in the line, and asking for a place proposed; confirmed, each child
+     * still asking or visiting asks for a place. The little pictures of a signature are not files.
+     */
+    public function test_documents(): void {
+        global $DB;
+        households::add_child($this->family, 'Leo', 0);
+        $raw = "From: Ana <ana@familia-ejemplo.es>\r\nSubject: Documentación de admisión\r\nDate: " . date('r') . "\r\n" .
+            "Message-ID: <d1@x>\r\nContent-Type: multipart/mixed; boundary=\"b\"\r\n\r\n" .
+            "--b\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nLes mando la solicitud y el DNI.\r\n" .
+            "--b\r\nContent-Type: application/pdf; name=\"solicitud.pdf\"\r\nContent-Disposition: attachment; filename=\"solicitud.pdf\"\r\n" .
+            "Content-Transfer-Encoding: base64\r\n\r\nJVBERi0=\r\n" .
+            "--b\r\nContent-Type: image/png; name=\"image001.png\"\r\nContent-Disposition: inline; filename=\"image001.png\"\r\n\r\nx\r\n--b--\r\n";
+        $this->assertSame(['solicitud.pdf'], replies::attachments($raw));
+        $this->assertTrue(replies::take($this->centre, \local_oksigeniaeguahe\local\inbound::parse($raw), time(), 0, replies::attachments($raw)));
+        $body = $DB->get_field_select(households::CONTACTS, 'body', 'householdid = ? AND direction = ?', [$this->family->id, 'in']);
+        $this->assertStringContainsString('solicitud.pdf', $body);
+        $card = replies::context($this->family, true);
+        $this->assertSame(get_string('replies_confirm_doc', 'local_oksigeniaeguahe'), $card['items'][0]['yes']);
+        $this->assertTrue(replies::confirm($this->family, $card['items'][0]['id'], true, 2));
+        $stages = $DB->get_fieldset_select(households::CHILDREN, 'stage', 'householdid = ?', [$this->family->id]);
+        $this->assertSame(['application'], array_values($stages));
+    }
+
+    /**
      * What a text says: they come, they do not, or it does not say (or says both); and the own text, without the quote.
      */
     public function test_says_and_own_text(): void {

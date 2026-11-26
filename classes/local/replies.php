@@ -155,7 +155,8 @@ class replies {
             }
             foreach ($box->since((int) $last, $last ? 0 : $now - self::FIRST) as $uid) {
                 $out['read']++;
-                $out['kept'] += self::take($centre, inbound::parse($box->fetch($uid, self::MAXBYTES)), $now, (int) $s['since']) ? 1 : 0;
+                $raw = $box->fetch($uid, self::MAXBYTES);
+                $out['kept'] += self::take($centre, inbound::parse($raw), $now, (int) $s['since'], self::attachments($raw)) ? 1 : 0;
                 $last = max((int) $last, $uid);
             }
             $s['uids'][$folder] = [$validity, $last];
@@ -192,9 +193,11 @@ class replies {
      * @param array $mail As inbound::parse() gives it.
      * @param int $now
      * @param int $since Before this, mail was answered from the mailbox itself: it goes to the file without waiting.
+     * @param string[] $files The names of the files it carries (attachments()): said in its line, and documents of admission
+     *     proposed as asking for a place.
      * @return bool Whether it was taken in.
      */
-    public static function take(\stdClass $centre, array $mail, int $now, int $since = 0): bool {
+    public static function take(\stdClass $centre, array $mail, int $now, int $since = 0, array $files = []): bool {
         global $DB;
         $from = \core_text::strtolower(trim((string) ($mail['from'] ?? '')));
         if (
@@ -226,6 +229,11 @@ class replies {
         if ($text === '') {
             $text = trim((string) $mail['subject']);
         }
+        $said = $text;
+        if ($files) {
+            // The files stay in the mailbox; their names, in the line, so the team knows what came.
+            $text = trim($text . "\n\n" . get_string('replies_attached', self::C, implode(', ', $files)));
+        }
         $time = (int) $mail['time'] ?: $now;
         households::received($household, 'email', $text, $time >= $since, min($time, $now), 0, \core_text::substr(
             (string) $mail['subject'],
@@ -236,7 +244,10 @@ class replies {
             'SELECT MAX(id) FROM {' . households::CONTACTS . '} WHERE householdid = ? AND direction = ?',
             [$household->id, 'in']
         );
-        [$eventid, $proposal] = self::proposal($household, (string) $mail['subject'], $text, $now);
+        [$eventid, $proposal] = self::proposal($household, (string) $mail['subject'], $said, $now);
+        if ($proposal === '' && self::documents($household, (string) $mail['subject'] . ' ' . $said, $files)) {
+            $proposal = 'doc';
+        }
         $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'householdid' => $household->id, 'contactid' => $contactid,
             'msgkey' => $key, 'eventid' => $eventid, 'proposal' => $proposal, 'state' => '', 'timecreated' => $now]);
         return true;
@@ -360,6 +371,53 @@ class replies {
     }
 
     /**
+     * The names of the files a mail carries: what goes as an attachment, and documents (a PDF, an image of a document), never
+     * the little pictures of a signature.
+     *
+     * @param string $raw The whole message.
+     * @return string[]
+     */
+    public static function attachments(string $raw): array {
+        $out = [];
+        $flat = preg_replace("/\r?\n[ \t]+/", ' ', str_replace("\r\n", "\n", $raw));
+        preg_match_all('/^content-(?:disposition|type):[^\n]*?\b(?:file)?name\*?=\s*"?([^";\n]+)"?/im', $flat, $m);
+        foreach ($m[1] as $name) {
+            $name = trim((string) iconv_mime_decode(trim($name), ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8'));
+            $name = preg_replace("/^utf-8''/i", '', rawurldecode($name));
+            if ($name === '' || preg_match('/^(image|outlook|logo)[\w-]*\.(png|gif|jpe?g)$/i', $name)) {
+                continue;
+            }
+            $out[$name] = \core_text::substr(clean_param($name, PARAM_FILE), 0, 80);
+        }
+        return array_values(array_filter($out));
+    }
+
+    /**
+     * Whether what a family sent by mail are the documents of asking for a place: files, with words of it or a PDF, from a
+     * family with a child still asking or visiting.
+     *
+     * @param \stdClass $household
+     * @param string $text Its subject and its text.
+     * @param string[] $files
+     * @return bool
+     */
+    protected static function documents(\stdClass $household, string $text, array $files): bool {
+        global $DB;
+        if (!$files) {
+            return false;
+        }
+        $plain = \core_text::strtolower(\core_text::specialtoascii($text));
+        $words = (bool) preg_match('/documentaci|solicitud|matricul|inscripci|admisi|impreso|formulario|certificado|\bdni\b|' .
+            'libro de familia|empadronamiento|documents?|application|form|matricula|candidatura/', $plain);
+        $pdf = (bool) array_filter($files, fn($f) => preg_match('/\.pdf$/i', $f));
+        if (!$words && !$pdf) {
+            return false;
+        }
+        [$in, $params] = $DB->get_in_or_equal(['inquiry', 'visit']);
+        return $DB->record_exists_select(households::CHILDREN, 'householdid = ? AND stage ' . $in, array_merge([$household->id], $params));
+    }
+
+    /**
      * Whether a text says they come or not: yes, no, or empty when it says neither, or both.
      *
      * @param string $text
@@ -383,12 +441,21 @@ class replies {
         global $DB;
         $rows = $DB->get_records_select(
             self::T,
-            "householdid = ? AND eventid > 0 AND proposal <> '' AND state = ''",
+            "householdid = ? AND proposal <> '' AND state = ''",
             [$household->id],
             'id DESC'
         );
         $out = [];
         foreach ($rows as $row) {
+            if ($row->proposal === 'doc') {
+                // Only while a child is still asking or visiting: once on, there is nothing to confirm.
+                [$in, $params] = $DB->get_in_or_equal(['inquiry', 'visit']);
+                if ($DB->record_exists_select(households::CHILDREN, 'householdid = ? AND stage ' . $in, array_merge([$household->id], $params))) {
+                    $out[] = ['id' => (int) $row->id, 'text' => get_string('replies_seems_doc', self::C),
+                        'yes' => get_string('replies_confirm_doc', self::C), 'canact' => $canact];
+                }
+                continue;
+            }
             $event = $DB->get_record(events::T, ['id' => $row->eventid], 'id, name, timestart, open');
             if (!$event || (int) $event->timestart <= time()) {
                 continue;
@@ -415,7 +482,14 @@ class replies {
         if (!$row) {
             return false;
         }
-        if ($right) {
+        if ($right && $row->proposal === 'doc') {
+            // What they sent is the asking for a place: each child that was still asking or visiting, now asking for a place.
+            foreach ($DB->get_records(households::CHILDREN, ['householdid' => $household->id]) as $child) {
+                if (in_array($child->stage, ['inquiry', 'visit'], true)) {
+                    households::set_stage($child, 'application');
+                }
+            }
+        } else if ($right) {
             $event = $DB->get_record(events::T, ['id' => $row->eventid]);
             $time = (int) $DB->get_field(households::CONTACTS, 'timecreated', ['id' => $row->contactid]) ?: time();
             if (!$event || !invites::reply($event, $household, $row->proposal, 0, $time)) {
