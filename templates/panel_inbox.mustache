@@ -91,8 +91,8 @@
             <summary class="hoy-t" id="hoy-t"><span class="hoy-rotulo">{{#str}}panel_today_also, local_oksigeniaeguahe{{/str}}</span><span class="hoy-titulos">{{todaytitles}}</span><span class="hoy-flecha" aria-hidden="true">{{{i.chev}}}</span></summary>
             <ul class="hoy-notas">
                 {{#today}}<li class="hoy-nota">
-                    {{#leaf}}<span class="hoja-cal" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}{{#blank}}<span class="hoja-cal pd-hoja-vacia" aria-hidden="true"></span>{{/blank}}
-                    <p>{{#title}}<b>{{title}}.</b> {{/title}}{{text}} <a class="enlace" href="{{url}}">{{link}}</a></p>
+                    {{#leaf}}<span class="hoja-cal" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><span>{{month}}</span></span>{{/leaf}}{{#blank}}<span class="hoja-cal pd-hoja-vacia" aria-hidden="true"></span>{{/blank}}{{#stamp}}<span class="sello-devuelto sello-nota" aria-hidden="true">{{#str}}bounce_stamp, local_oksigeniaeguahe{{/str}}</span>{{/stamp}}
+                    <p>{{#title}}<b>{{title}}{{#stop}}.{{/stop}}</b> {{/title}}{{text}} <a class="enlace" href="{{url}}">{{link}}</a></p>
                     {{#known}}<form class="hoy-sabido" action="{{action}}" method="post"><input type="hidden" name="c" value="{{centreid}}"><input type="hidden" name="key" value="{{key}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><button class="enlace" type="submit">{{#str}}moment_known, local_oksigeniaeguahe{{/str}}</button></form>{{/known}}
                 </li>{{/today}}
             </ul>

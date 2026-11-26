@@ -443,8 +443,11 @@ class bounces {
                 'since' => userdate((int) $row->timebounced, get_string('strftimedatetimeshort', 'langconfig')),
                 'what' => trim((string) $row->what) !== '' ? (string) $row->what : false,
                 'tries' => (int) $row->tries ? get_string('bounce_tries', $c, (int) $row->tries) : false,
-                'say' => get_string('bounce_say_' . $row->kind, $c, (object) ['email' => $adult->email,
-                    'centre' => $centre ? share::from_centre($centre, current_language()) : '']),
+                'sayhtml' => str_replace(s($adult->email), '<b dir="ltr">' . s($adult->email) . '</b>', s(get_string(
+                    'bounce_say_' . $row->kind,
+                    $c,
+                    (object) ['email' => $adult->email, 'centre' => $centre ? share::from_centre($centre, current_language()) : '']
+                ))),
                 'code' => trim($row->status . ' ' . $row->diag)];
         }
         if (!$out) {

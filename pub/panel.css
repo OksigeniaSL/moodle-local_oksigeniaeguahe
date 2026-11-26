@@ -14919,62 +14919,446 @@ button.padron-pomo-no::after {
     cursor: pointer;
 }
 
-/* How the letter of an act is going: six numbers in a row, the ones back in the colour of a warning when there are some. */
+/* How the letter of an act is going: six numbers, the way of the letter above (sent, on their way, back) and what the
+   families did below (opened, coming, not coming). The ones back are pressed as a stamp only when there are some, and
+   lead to their names. No colour of state: the stamp is the panel's own. */
 .carta-cuenta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 14px;
-    margin: 0 0 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 4px 0 14px;
     padding: 0;
     list-style: none;
 }
 
-.carta-cuenta b {
-    font-size: 1.15em;
+.carta-cuenta li {
+    display: grid;
+    align-content: start;
+    min-width: 0;
+    padding: 7px 10px 6px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
 }
 
-/* The mail of a family that comes back: each address with why, the phones to call, what to say and the four answers. */
-.correo-devuelto {
+.carta-cuenta b {
+    font-size: 1.5rem;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+.carta-cuenta span {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+}
+
+.carta-cero b {
+    color: var(--eg-tinta-2);
+    font-weight: 600;
+}
+
+.carta-bounced:not(.carta-cero) {
+    padding: 0;
+    background: transparent;
+}
+
+.carta-bounced:not(.carta-cero) a {
+    display: grid;
+    align-content: start;
+    height: 100%;
+    padding: 5px 8px 4px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 8px;
+    color: var(--eg-sello);
+    text-decoration: none;
+    transform: rotate(-2deg);
+}
+
+.carta-bounced:not(.carta-cero) span {
+    color: var(--eg-sello);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.carta-bounced a:hover,
+.carta-bounced a:focus-visible {
+    background: var(--eg-acento-suave);
+}
+
+/* How long the families took to react, on a ruler from a minute to a week: a dot each (filled, it answered; hollow, it
+   only opened the letter) and the line within which half of them did. The sentence says it; the ruler only shows it. */
+.carta-ritmo {
+    display: grid;
+    gap: 4px;
     margin: 0 0 14px;
 }
 
-.devuelto-una + .devuelto-una {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--eg-linea);
+.carta-ritmo p {
+    margin: 0;
 }
 
-.devuelto-llamar {
+.carta-ritmo b {
+    white-space: nowrap;
+}
+
+.carta-ritmo .secundario {
+    font-size: 0.8125rem;
+}
+
+.carta-regla {
+    position: relative;
+    height: 46px;
+    margin: 4px 12px 0 6px;
+}
+
+.carta-regla::before,
+.carta-regla::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--eg-linea);
+}
+
+/* The end of the ruler, a week. */
+.carta-regla::after {
+    top: 10px;
+    left: auto;
+    width: 2px;
+    height: 12px;
+    background: var(--eg-borde);
+}
+
+.carta-regla small {
+    position: absolute;
+    top: 22px;
+    padding-top: 6px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.carta-regla small::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    width: 1px;
+    height: 7px;
+    background: var(--eg-borde);
+}
+
+.carta-regla-mitad {
+    position: absolute;
+    top: 1px;
+    width: 3px;
+    height: 28px;
+    margin-left: -1.5px;
+    border-radius: 2px;
+    background: var(--eg-accion);
+}
+
+.carta-regla i {
+    position: absolute;
+    top: 9px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border: 2px solid var(--eg-serie-1);
+    border-radius: 50%;
+    background: var(--eg-superficie);
+}
+
+.carta-regla i.dijo {
+    background: var(--eg-serie-1);
+}
+
+/* When the letters went, said once when they went together. */
+.carta-salio {
+    margin: -4px 0 8px;
+    color: var(--eg-tinta-2);
+}
+
+/* Each family: when its letter went, and how long after it opened it and answered. */
+.carta-traza {
+    flex: 1 1 100%;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+}
+
+/* Those whose letter came back: hatched in the colour of the stamp, never a colour of state. */
+.respuestas-bounced {
+    --tono: repeating-linear-gradient(135deg, var(--eg-sello) 0 2px, transparent 2px 5px);
+}
+
+.respuestas-tira .respuestas-bounced,
+.respuestas-bounced summary::before {
+    box-shadow: inset 0 0 0 1.5px var(--eg-sello);
+}
+
+/* The mail of a family that comes back, read by someone on the phone: the stamp and what it is; each address with why;
+   the phones as big numbers to dial; what to say, in a large letter, with the address in bold to spell it out; and, on
+   hanging up, the right address or one of three answers, each saying what it does. */
+.devuelto {
+    display: grid;
+    gap: 12px;
+    margin: 0 0 16px;
+    padding: 14px 16px 10px;
+    border-radius: 14px;
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-sello), 0 6px 16px -10px var(--eg-sombra);
+}
+
+.devuelto-cabeza {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 8px;
+    align-items: center;
+    gap: 6px 12px;
+    margin: 0;
+    font-size: 1.0625rem;
+}
+
+.sello-devuelto {
+    display: inline-block;
+    flex: none;
+    padding: 2px 8px 1px;
+    border: 2px solid var(--eg-sello);
+    border-radius: 6px;
+    color: var(--eg-sello);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    transform: rotate(-4deg);
+}
+
+.sello-nota {
+    transform: rotate(-6deg);
+}
+
+.devuelto-una {
+    display: grid;
+    gap: 10px;
+}
+
+.devuelto-una + .devuelto-una {
+    padding-top: 14px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+.devuelto-que {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.devuelto-dir {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    text-decoration: underline wavy var(--eg-sello);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px;
+}
+
+.devuelto-cuando {
+    margin: -6px 0 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.devuelto-cuando b {
+    color: var(--eg-tinta);
+}
+
+.devuelto-tels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.devuelto-tels li {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.devuelto-tel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0 12px;
+    min-height: 58px;
+    padding: 8px 14px;
+    border-radius: var(--radio-boton);
+    background: var(--eg-superficie);
+    box-shadow: inset 0 0 0 1.5px var(--eg-borde);
+    color: var(--eg-tinta);
+    text-decoration: none;
+}
+
+.devuelto-tel:hover,
+.devuelto-tel:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--eg-acento);
+}
+
+.devuelto-tel .ic {
+    grid-row: span 2;
+    width: 24px;
+    height: 24px;
+    color: var(--eg-acento);
+}
+
+.devuelto-tel span {
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.25;
+}
+
+.devuelto-tel b {
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.devuelto-sintel {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+}
+
+.devuelto-sintel .ic {
+    flex: none;
+    margin-top: 2px;
 }
 
 .devuelto-frase {
-    margin: 8px 0;
-    padding: 8px 12px;
-    border-radius: 10px;
+    padding: 10px 14px 12px;
+    border-radius: 12px;
     background: var(--eg-hundido);
+}
+
+.devuelto-frase p {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+}
+
+.devuelto-frase .devuelto-frase-t {
+    margin-bottom: 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.devuelto-frase b {
+    overflow-wrap: anywhere;
+}
+
+.devuelto-dijo {
+    margin: 4px 0 -4px;
+    font-weight: 700;
 }
 
 .devuelto-bueno {
     display: flex;
     flex-wrap: wrap;
     align-items: end;
-    gap: 6px 10px;
-    margin: 8px 0 4px;
+    gap: 8px 10px;
+    margin: 0;
 }
 
 .devuelto-bueno label {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    flex: 1 1 220px;
     gap: 2px;
     min-width: 0;
-    flex: 1 1 220px;
+    font-size: 0.9375rem;
 }
 
 .devuelto-bueno input {
     width: 100%;
+}
+
+.devuelto-otras {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.devuelto-r {
+    display: grid;
+    align-content: center;
+    gap: 1px;
+    min-height: 58px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--eg-borde);
+    border-radius: var(--radio-boton);
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.devuelto-r b {
+    font-size: 0.9375rem;
+}
+
+.devuelto-r span {
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+}
+
+.devuelto-r:hover {
+    border-color: var(--eg-acento);
+}
+
+.devuelto-codigo summary {
+    font-size: 0.875rem;
+}
+
+.devuelto-codigo p {
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 400px) {
+    .carta-cuenta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .devuelto {
+        padding: 12px 12px 8px;
+    }
+
+    .devuelto-otras {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .devuelto-r {
+        min-height: 52px;
+    }
 }
 
 /* Looking for another file to put together with this one: a row each; touched, what it does and its two ways out. */

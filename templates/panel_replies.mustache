@@ -17,22 +17,33 @@
 {{!
     @template local_oksigeniaeguahe/panel_replies
 
-    What the families invited to an act said, by name: who comes, who does not this time, who opened it and said nothing,
-    and who has not opened it.
+    What the families invited to an act said, by name: those whose letter came back, to call; who comes, who does not
+    this time, who opened it and said nothing, and who has not opened it. Each with when its letter went and how long after
+    it opened it and answered; above, how long they took, on a ruler, and the time within which half of them reacted.
 
     Example context (json):
     {
         "groups": [{"key": "yes", "name": "Vienen", "n": 1, "open": true,
-            "rows": [{"name": "Ana Ruiz", "when": "hoy a las 12:10", "url": "#"}] }]
+            "rows": [{"name": "Ana Ruiz", "when": "", "trace": "Salió el lunes a las 18:02 · la abrieron 12 min después", "url": "#"}] }],
+        "pace": {"half": "7 de 10 han reaccionado: la mitad, en <b>3 h 10 min</b> o menos.", "halfat": 57,
+            "dots": [{"at": 15, "said": true}], "ticks": [{"at": 25, "label": "10 min"}], "legend": "Cada punto es una familia."}
     }
 }}
 <div class="respuestas-acto">
     <h3>{{#str}}panel_replies, local_oksigeniaeguahe{{/str}}</h3>
+    {{#went}}<p class="carta-salio">{{went}}</p>{{/went}}
+    {{#pace}}
+    <div class="carta-ritmo">
+        <p>{{{half}}}</p>
+        <div class="carta-regla" aria-hidden="true">{{#ticks}}<small style="left: {{at}}%">{{label}}</small>{{/ticks}}<span class="carta-regla-mitad" style="left: {{halfat}}%"></span>{{#dots}}<i{{#said}} class="dijo"{{/said}} style="left: {{at}}%"></i>{{/dots}}</div>
+        <p class="secundario">{{legend}}</p>
+    </div>
+    {{/pace}}
     <div class="respuestas-tira" aria-hidden="true">{{#groups}}<span class="respuestas-{{key}}" style="flex-grow: {{n}}"></span>{{/groups}}</div>
     {{#groups}}
-    <details class="respuestas-grupo respuestas-{{key}}"{{#open}} open{{/open}}>
+    <details class="respuestas-grupo respuestas-{{key}}"{{#open}} open{{/open}}{{#anchor}} id="{{anchor}}"{{/anchor}}>
         <summary><b>{{n}}</b><span>{{name}}</span>{{{i.chev}}}</summary>
-        <ul>{{#rows}}<li><a href="{{url}}">{{name}}</a>{{#when}}<span class="secundario">{{when}}</span>{{/when}}</li>{{/rows}}</ul>
+        <ul>{{#rows}}<li><a href="{{url}}">{{name}}</a>{{#when}}<span class="secundario">{{when}}</span>{{/when}}{{#trace}}<span class="carta-traza">{{trace}}</span>{{/trace}}</li>{{/rows}}</ul>
     </details>
     {{/groups}}
     <p class="secundario">{{#str}}panel_replies_help, local_oksigeniaeguahe{{/str}}</p>

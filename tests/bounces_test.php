@@ -122,7 +122,7 @@ final class bounces_test extends \advanced_testcase {
         $card = bounces::context($household, households::full($household), true);
         $this->assertCount(1, $card['addresses']);
         $this->assertSame('tel:+34600111222', $card['phones'][0]['href']);
-        $this->assertStringContainsString('Colegio de ejemplo', $card['addresses'][0]['say']);
+        $this->assertStringContainsString('Colegio de ejemplo', $card['addresses'][0]['sayhtml']);
     }
 
     /**

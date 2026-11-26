@@ -28,7 +28,7 @@
         "i": {"atras": "", "info": "", "check": "", "enviado": "", "buscar": "", "birrete": ""},
         "title": "Invitar a «Charla para familias»", "sub": "2 familias que aún no son del centro pueden recibir la invitación por correo.",
         "back": {"url": "#", "name": "Charla para familias"}, "going": false, "said": "", "withdraw": false, "notice": false,
-        "posturl": "https://example.com/event.php", "sesskey": "abc", "group": "", "permit": {"text": "3 familias no tienen todavía el permiso de correo."}, "texts": "{}", "check": false, "some": "", "none": "",
+        "posturl": "https://example.com/event.php", "sesskey": "abc", "group": "", "permit": {"text": "3 familias no tienen todavía el permiso de correo.", "names": [{"name": "Ana Ruiz", "url": "#"}]}, "texts": "{}", "check": false, "some": "", "none": "",
         "count": "Marcadas: 2 de 2", "goes": "Va a 2 familias, por correo.", "many": false, "cost": "", "approval": "",
         "rows": [{"name": "Piden", "chips": [{"key": "curso-a", "name": "Infantil 3 años", "n": 1, "ids": "2", "current": false, "cap": false}]}],
         "whom": [{"id": 1, "name": "Andrea Hernández", "courses": "1.º de Bachillerato", "checked": true, "email": true, "phone": false, "search": "andrea hernández"},
@@ -41,7 +41,7 @@
     {{> local_oksigeniaeguahe/panel_head }}
     {{> local_oksigeniaeguahe/panel_invite_state }}
     {{#none}}<p class="aviso-suave">{{{i.info}}}<span>{{none}}</span></p>{{/none}}
-    {{^check}}{{#permit}}<form class="aviso-suave invitar-permiso" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitepermit">{{{i.info}}}<span>{{text}}</span> <button class="boton secundario pequeno" type="submit">{{#str}}invite_permit_button, local_oksigeniaeguahe{{/str}}</button></form>{{/permit}}{{/check}}
+    {{^check}}{{#permit}}<form class="aviso-suave invitar-permiso" method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitepermit">{{{i.info}}}<div><span>{{text}}</span> <button class="boton secundario pequeno" type="submit">{{#str}}invite_permit_button, local_oksigeniaeguahe{{/str}}</button><details><summary>{{#str}}invite_permit_who, local_oksigeniaeguahe{{/str}}</summary><ul class="repaso-nombres">{{#names}}<li><a href="{{url}}">{{name}}</a></li>{{/names}}</ul></details></div></form>{{/permit}}{{/check}}
     {{#check}}
     <form class="invitar-confirmar" method="post" action="{{posturl}}">
         <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitego">

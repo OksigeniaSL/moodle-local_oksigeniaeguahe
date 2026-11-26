@@ -538,7 +538,9 @@ class panel_event {
         $done = invites::count((int) $event->id);
         $tally = [];
         foreach ($done ? invites::tally((int) $event->id) : [] as $key => $n) {
-            $tally[] = ['key' => $key, 'n' => $n, 'label' => get_string('panel_tally_' . $key, self::C)];
+            // The ones back lead to their names, to call them.
+            $tally[] = ['key' => $key, 'n' => $n, 'label' => get_string('panel_tally_' . $key, self::C),
+                'url' => $key === 'bounced' && $n ? '#devueltas' : ''];
         }
         return self::invite_state($event, $canact, $now) + [
             'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
@@ -563,6 +565,7 @@ class panel_event {
      * @return array|false
      */
     protected static function replies(\stdClass $event, int $now) {
+        global $DB;
         $c = self::C;
         $all = invites::replies((int) $event->id);
         if (!array_filter($all)) {
@@ -572,24 +575,116 @@ class panel_event {
         $back = array_fill_keys(bounces::of_act((int) $event->id), 0);
         $all = ['bounced' => $back] + $all;
         $people = households::some((int) $event->centreid, array_keys($back + $all['yes'] + $all['no'] + $all['opened'] + $all['none']));
+        // When each letter went, and when the family opened it and answered: to learn at what time it is best to send.
+        $times = $DB->get_records_select(
+            invites::T,
+            'eventid = ? AND ' . households::NOTSAMPLE,
+            [$event->id],
+            '',
+            'householdid, timecreated, opened, reply, replied'
+        );
+        // Sent together (within a quarter of an hour), the time is said once, above.
+        $sent = array_filter(array_map(fn($one) => (int) $one->timecreated, $times));
+        $together = $sent && max($sent) - min($sent) < 900;
         $groups = [];
         foreach ($all as $key => $list) {
             $rows = [];
             foreach ($list as $id => $time) {
                 if (isset($people[$id])) {
                     $when = $time ? panel::when_words($time, $now) : '';
-                    $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $key === 'none' && $when !== '' ?
-                        get_string('panel_replies_sent', $c, $when) : $when,
+                    $trace = $key !== 'bounced' && isset($times[$id]) ? self::trace($times[$id], $now, $together) : '';
+                    $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $trace !== '' ? '' : ($key === 'none' &&
+                        $when !== '' ? get_string('panel_replies_sent', $c, $when) : $when), 'trace' => $trace,
                         'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id], $key === 'bounced' ?
                             'correo-devuelto' : null))->out(false)];
                 }
             }
             if ($rows) {
                 $groups[] = ['key' => $key, 'name' => get_string('panel_replies_' . $key, $c), 'n' => count($rows), 'rows' => $rows,
-                    'open' => in_array($key, ['bounced', 'yes', 'no'], true)];
+                    'open' => in_array($key, ['bounced', 'yes', 'no'], true), 'anchor' => $key === 'bounced' ? 'devueltas' : ''];
             }
         }
-        return $groups ? ['groups' => $groups] : false;
+        return $groups ? ['groups' => $groups, 'pace' => self::pace($times),
+            'went' => $together ? get_string('panel_replies_went', $c, panel::when_words(min($sent), $now)) : ''] : false;
+    }
+
+    /**
+     * When the letter of a family went, and how long after it opened it and answered.
+     *
+     * @param \stdClass $one The invite: timecreated, opened, reply, replied.
+     * @param int $now
+     * @param bool $together All the letters went at once: the time is said above, not here.
+     * @return string
+     */
+    protected static function trace(\stdClass $one, int $now, bool $together): string {
+        $c = self::C;
+        $sent = (int) $one->timecreated;
+        if (!$sent) {
+            return '';
+        }
+        $parts = $together ? [] : [get_string('panel_trace_went', $c, panel::when_words($sent, $now))];
+        if ((int) $one->opened >= $sent) {
+            $parts[] = get_string('panel_trace_opened', $c, self::lapse((int) $one->opened - $sent));
+        }
+        if ((int) $one->replied >= $sent && in_array((string) $one->reply, ['yes', 'no'], true)) {
+            $parts[] = get_string('panel_trace_said', $c, self::lapse((int) $one->replied - $sent));
+        }
+        $text = implode(' · ', $parts);
+        return $together ? \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1) : $text;
+    }
+
+    /**
+     * How long the families took to react to the letter (to open it or to answer, the first), on a ruler from one minute to
+     * a week: one dot each, and the time within which half of them did.
+     *
+     * @param \stdClass[] $times The invites of the act.
+     * @return array|false
+     */
+    protected static function pace(array $times) {
+        $c = self::C;
+        $dots = [];
+        foreach ($times as $one) {
+            $sent = (int) $one->timecreated;
+            $first = array_filter([(int) $one->opened, (int) $one->replied], fn($t) => $t >= $sent && $t > 0);
+            if ($sent && $first) {
+                $dots[] = ['secs' => min($first) - $sent, 'said' => in_array((string) $one->reply, ['yes', 'no'], true)];
+            }
+        }
+        if (count($dots) < 2) {
+            return false;
+        }
+        usort($dots, fn($a, $b) => $a['secs'] <=> $b['secs']);
+        $half = $dots[(int) ceil(count($dots) / 2) - 1]['secs'];
+        $mark = "\u{1}";
+        $text = s(get_string('panel_pace', $c, (object) ['n' => count($dots), 'of' => count($times), 'half' => $mark]));
+        $at = fn(int $secs) => round(100 * log(max(1, $secs / 60)) / log(7 * 24 * 60), 1);
+        return ['half' => str_replace($mark, '<b>' . s(self::lapse($half)) . '</b>', $text), 'halfat' => $at($half),
+            'dots' => array_map(fn($d) => ['at' => min(100, $at($d['secs'])), 'said' => $d['said']], $dots),
+            'ticks' => [['at' => $at(600), 'label' => self::lapse(600)], ['at' => $at(3600), 'label' => self::lapse(3600)],
+                ['at' => $at(86400), 'label' => get_string('panel_pace_day', $c)]],
+            'legend' => get_string('panel_pace_legend', $c)];
+    }
+
+    /**
+     * A while, in the words of a clock: minutes; hours and minutes while it is a few; hours; days.
+     *
+     * @param int $seconds
+     * @return string
+     */
+    protected static function lapse(int $seconds): string {
+        $c = self::C;
+        $m = max(1, (int) round($seconds / 60));
+        if ($m < 60) {
+            return get_string('panel_lapse_min', $c, $m);
+        }
+        $h = intdiv($m, 60);
+        if ($h < 6 && $m % 60) {
+            return get_string('panel_lapse_hmin', $c, (object) ['h' => $h, 'm' => $m % 60]);
+        }
+        if ($h < 48) {
+            return get_string('panel_lapse_h', $c, (int) round($m / 60));
+        }
+        return get_string('panel_lapse_days', $c, (int) round($m / 1440));
     }
 
     /**
@@ -696,10 +791,17 @@ class panel_event {
             $text[] = get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done);
         }
         // Those left out only for never saying yes to email: a person who knows they left their contact gives it here.
-        $nopermission = $canact ? count(invites::permittable($event, $centre)) : 0;
+        $permittable = $canact ? invites::permittable($event, $centre) : [];
+        $nopermission = count($permittable);
         $permittext = get_string($nopermission === 1 ? 'invite_permit_one' : 'invite_permit', $c, $nopermission);
+        // Whom it is given to, by name, before it is given.
+        $permitnames = [];
+        foreach ($permittable as $id => [$one]) {
+            $permitnames[] = ['name' => panel::adults_line(households::full($one)->adults) ?: get_string('household_noname', $c),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false)];
+        }
         return self::invite_state($event, $canact, $now) + [
-            'permit' => $nopermission ? ['text' => $permittext] : false,
+            'permit' => $nopermission ? ['text' => $permittext, 'names' => $permitnames] : false,
             'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
                 'name' => format_string($event->name)],
             'title' => get_string('panel_invite_to', $c, panel::quote(format_string($event->name))),

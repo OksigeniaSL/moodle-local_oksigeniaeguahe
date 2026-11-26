@@ -403,7 +403,7 @@ class panel_inbox {
         // The mail that comes back: to call those families and ask for the right address.
         $tocall = bounces::to_call($centreid);
         if ($tocall) {
-            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('bounce_inbox_title', $c),
+            $out[] = ['leaf' => false, 'blank' => false, 'stamp' => true, 'title' => get_string('bounce_inbox_title', $c),
                 'short' => self::short('bounce_inbox_title'),
                 'text' => count($tocall) === 1 ? get_string('bounce_inbox_one', $c) : get_string('bounce_inbox_many', $c, count($tocall)),
                 'url' => count($tocall) === 1 ? (new \moodle_url(
@@ -441,6 +441,10 @@ class panel_inbox {
                 'url' => $moment['url'], 'link' => $moment['link'], 'known' => $canact ? ['key' => $moment['key'],
                 'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
                 'sesskey' => sesskey()] : false];
+        }
+        // The title closes with its stop, unless it already ends in one («Have they gone?»).
+        foreach ($out as $i => $item) {
+            $out[$i]['stop'] = !preg_match('/[.?!…:]$/u', (string) ($item['title'] ?? ''));
         }
         return $out;
     }
