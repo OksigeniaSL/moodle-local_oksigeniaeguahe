@@ -347,7 +347,8 @@ class numbers_questions {
         // When it is best to send the letters of the acts: in the campaign going on, always; in one past, if it had any.
         $letters = $wanted('letters') ? letters::figures($centre, (int) $campaign['since'], $live ? 0 : (int) $campaign['until'], $now) : null;
         if ($letters && ($live || $letters['sent'])) {
-            $row = self::one('letters', get_string('nq_letters', $c), letters::sentence($letters), (new \moodle_url(
+            $ways = letters::ways($centre, (int) $campaign['since'], $live ? 0 : (int) $campaign['until'], $now);
+            $row = self::one('letters', get_string('nq_letters', $c), letters::sentence($letters, $ways), (new \moodle_url(
                 '/local/oksigeniaeguahe/events.php',
                 ['c' => $centre->id]
             ))->out(false), ['text' => get_string('nq_letters_none', $c), 'url' => (new \moodle_url(

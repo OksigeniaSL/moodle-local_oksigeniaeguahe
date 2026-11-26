@@ -143,6 +143,17 @@ if (data_submitted() && confirm_sesskey() && optional_param('invitar', 0, PARAM_
     }
     redirect(new moodle_url($url, ['invitar' => 1] + $params));
 }
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitephone') {
+    // The letter, also by phone, to those that have it by mail and have said nothing: seen and confirmed on the page.
+    centres::require_act((int) $centre->id);
+    $sent = invites::queue_phone_too($event, $centre, (int) $USER->id, time());
+    invites::say((int) $event->id, $sent['phone'] ? ($sent['said'] !== '' ? $sent['said'] : get_string(
+        'panel_invite_going_phone',
+        $c,
+        $sent['phone']
+    )) : get_string('panel_invite_nobody', $c), !$sent['phone']);
+    redirect(new moodle_url($url, [], 'invitar-telefono'));
+}
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitestop') {
     // The letters that have not gone out yet, stopped: those families can be invited again.
     centres::require_act((int) $centre->id);
@@ -249,6 +260,13 @@ panel::output(
     'events',
     format_string($event->name),
     'panel_event',
-    panel_event::context($event, $centre, $canact, 0, optional_param('nuevo', 0, PARAM_BOOL)),
+    panel_event::context(
+        $event,
+        $centre,
+        $canact,
+        0,
+        optional_param('nuevo', 0, PARAM_BOOL),
+        optional_param('telefono', 0, PARAM_BOOL)
+    ),
     true
 );

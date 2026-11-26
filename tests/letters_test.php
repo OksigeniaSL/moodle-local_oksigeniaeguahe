@@ -69,7 +69,7 @@ final class letters_test extends \advanced_testcase {
         $household = households::create((int) $this->centre->id, (object) ['lang' => 'es', 'firstchannel' => 'webform']);
         $DB->insert_record(invites::T, (object) ['centreid' => $this->centre->id, 'eventid' => $this->eventid, 'householdid' => $household,
             'userid' => 2, 'channel' => 'email', 'bulkid' => 0, 'opened' => $opened ? $sent + $opened : 0, 'reply' => $reply,
-            'replied' => $reply !== '' ? $sent + $opened + 60 : 0, 'timecreated' => $sent]);
+            'replied' => $reply !== '' ? $sent + $opened + 60 : 0, 'mailsent' => $sent, 'timecreated' => $sent]);
         return $household;
     }
 

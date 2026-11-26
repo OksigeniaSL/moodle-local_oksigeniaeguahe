@@ -37,6 +37,9 @@ class invites {
     /** @var string The notice of Marandu that carries the invitation to a phone. */
     const NOTICE = 'act_invitation';
 
+    /** @var string Where the permission to write by phone to a number that did not join comes from (Enrique, 22-11 and 26-11). */
+    const IMPLIED = 'eguahe:invite';
+
     /** @var string Instead of something they like: only the families of former students of the centre. */
     const ALUMNI = 'antiguos';
 
@@ -152,6 +155,8 @@ class invites {
             $DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id])
         ));
         $phones = $centre && self::by_phone($centre);
+        // A number that did not join may get it too, where Marandu writes to one: whoever said nothing about it lets it come.
+        $numbers = $phones && self::numbers_ready() ? self::numbers($centreid) : [];
         // Who lets the centre write by email, read once for the whole centre (one query per family does not scale).
         $allowed = households::emailable($centreid);
         // Those whose invitation is already on its way, waiting for the task.
@@ -177,8 +182,9 @@ class invites {
                 continue;
             }
             $household->reachemail = !empty($emails[$id]) && self::by_mail($household, $centre, !empty($allowed[$id]));
+            $household->number = $numbers[$id] ?? '';
             $household->reachphone = $phones && writeby::phone_ok($household, 'openinvite') &&
-                messaging::joined($household, $centre);
+                ($household->number !== '' || messaging::joined($household, $centre));
             if ($household->reachemail && isset($twice[$id]) && !self::first_of($household, $twice[$id], $households, $event)) {
                 // Two files of the same people: one letter, and none if either said no more of them.
                 $household->reachemail = false;
@@ -467,7 +473,8 @@ class invites {
                 $centre,
                 array_intersect_key($eligible, array_flip($phone)),
                 $userid,
-                $now
+                $now,
+                array_filter(array_map(fn($h) => (string) ($h->number ?? ''), array_intersect_key($eligible, array_flip($phone))))
             ));
         }
         if ($email) {
@@ -485,34 +492,48 @@ class invites {
 
     /**
      * Asks Marandu to send the invitation to the phones of some families: it goes now, or waits for whoever approves
-     * it. Each family is kept as invited by phone with the send, to not ask twice.
+     * it. Each family is kept as invited by phone with the send, to not ask twice; one that has the letter by mail already,
+     * by both. The message carries a link of the family that, as the one of the letter, opens the act and nothing else.
      *
      * @param \stdClass $event
      * @param \stdClass $centre
      * @param \stdClass[] $households
      * @param int $userid
      * @param int $now
+     * @param string[] $numbers household id => its number, for those that did not join a phone: written to by permission.
      * @return array phone, status and said.
      */
-    protected static function request(\stdClass $event, \stdClass $centre, array $households, int $userid, int $now): array {
+    protected static function request(
+        \stdClass $event,
+        \stdClass $centre,
+        array $households,
+        int $userid,
+        int $now,
+        array $numbers = []
+    ): array {
         global $DB;
         $items = [];
+        $links = [];
         $name = format_string($centre->name);
         foreach ($households as $household) {
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             $plang = method_exists('\local_oksigeniamarandu\api', 'language') ?
                 \local_oksigeniamarandu\api::language($lang) : $lang;
             $parts = publicpage::date_parts((int) $event->timestart, $plang);
-            $items[] = [
+            // A message may be passed on, as a letter: its link opens the act and answers for it, never the page of the family.
+            $token = households::new_link($household, 'letter');
+            $links[(int) $household->id] = (int) (access::link($token)->id ?? 0);
+            $item = [
                 'itemid' => (int) $household->id,
                 'params' => [$name, format_string($event->name), $parts['long'] . ', ' . $parts['hour']],
-                // A message is meant to be passed on: it carries a signature that only counts who opened it, never the
-                // private link of the family.
-                'url' => new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'idioma' => $lang,
-                    'ih' => (int) $household->id, 'is' => share::signature('invited', (int) $household->id, (int) $event->id),
-                    'de' => 'openinvite']),
+                'url' => new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'idioma' => $lang, 'k' => $token,
+                    'de' => 'telefono']),
                 'lang' => $plang,
             ];
+            if (($numbers[(int) $household->id] ?? '') !== '') {
+                $item += ['phone' => $numbers[(int) $household->id], 'implied' => self::IMPLIED];
+            }
+            $items[] = $item;
         }
         $label = get_string('invite_bulk_label', self::C, (object) ['event' => format_string($event->name),
             'date' => userdate((int) $event->timestart, get_string('strftimedateshort', 'langconfig'))]);
@@ -524,15 +545,168 @@ class invites {
         }
         $bulkid = (int) ($answer['id'] ?? 0);
         foreach ($households as $household) {
-            $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id,
-                'householdid' => $household->id, 'userid' => $userid, 'channel' => 'phone', 'bulkid' => $bulkid,
-                'said' => self::wording($event), 'timecreated' => $now]);
+            $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);
+            if ($row) {
+                $DB->update_record(self::T, (object) ['id' => $row->id, 'channel' => 'both', 'bulkid' => $bulkid,
+                    'said' => self::wording($event), 'phonelink' => $links[(int) $household->id]]);
+            } else {
+                $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id,
+                    'householdid' => $household->id, 'userid' => $userid, 'channel' => 'phone', 'bulkid' => $bulkid,
+                    'said' => self::wording($event), 'phonelink' => $links[(int) $household->id], 'timecreated' => $now]);
+            }
         }
         if (($answer['status'] ?? '') === 'queued') {
             self::told_by_phone($bulkid, $userid);
         }
         return ['phone' => count($households), 'status' => (string) ($answer['status'] ?? ''),
             'said' => self::state($bulkid)['said'] ?? ''];
+    }
+
+    /**
+     * Whether Marandu writes by phone to a number that did not join, with the permission of the plugin.
+     *
+     * @return bool
+     */
+    public static function numbers_ready(): bool {
+        try {
+            return method_exists('\local_oksigeniamarandu\api', 'bulk_phones') && \local_oksigeniamarandu\api::bulk_phones();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * The number of each family of a centre, as it was written down: the first adult that has one.
+     *
+     * @param int $centreid
+     * @return string[] household id => number with its country.
+     */
+    public static function numbers(int $centreid): array {
+        global $DB;
+        $out = [];
+        $adults = $DB->get_records_select(
+            households::ADULTS,
+            "centreid = ? AND phone IS NOT NULL AND phone <> ''",
+            [$centreid],
+            'id ASC',
+            'id, householdid, phone'
+        );
+        foreach ($adults as $adult) {
+            $number = trim((string) $adult->phone);
+            if (!isset($out[(int) $adult->householdid]) && preg_match('/^\+\d{8,15}$/', $number)) {
+                $out[(int) $adult->householdid] = $number;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The families of an act that have its letter by mail and may have it by phone too: they have not answered it, are not
+     * signed up, let the centre invite them and have not said not by phone (saying nothing lets it come).
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @return array households (those it goes to, by id), numbers (by id, of those that did not join), joined, waiting (with
+     *     a number, while Marandu cannot write to one), nophone and notphone (how many).
+     */
+    public static function phone_too(\stdClass $event, \stdClass $centre): array {
+        global $DB;
+        $out = ['households' => [], 'numbers' => [], 'joined' => 0, 'waiting' => 0, 'nophone' => 0, 'notphone' => 0];
+        if (!self::fits($event, time()) || !self::by_phone($centre)) {
+            return $out;
+        }
+        $rows = $DB->get_records_select(
+            self::T,
+            "eventid = ? AND (channel IS NULL OR channel IN ('', 'email')) AND COALESCE(reply, '') = '' AND " . households::NOTSAMPLE,
+            [$event->id],
+            'id ASC',
+            'id, householdid'
+        );
+        $signed = array_flip($DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id]));
+        $ready = self::numbers_ready();
+        $numbers = self::numbers((int) $centre->id);
+        foreach ($rows as $row) {
+            $id = (int) $row->householdid;
+            $household = isset($signed[$id]) ? null : $DB->get_record(households::T, ['id' => $id, 'centreid' => $centre->id]);
+            if (!$household || (int) $household->guest || (int) $household->noinvites || !writeby::may_send($household, 'openinvite')) {
+                continue;
+            }
+            if (!writeby::phone_ok($household, 'openinvite')) {
+                $out['notphone']++;
+            } else if (messaging::joined($household, $centre)) {
+                $out['joined']++;
+                $out['households'][$id] = $household;
+            } else if (!isset($numbers[$id])) {
+                $out['nophone']++;
+            } else if ($ready) {
+                $out['households'][$id] = $household;
+                $out['numbers'][$id] = $numbers[$id];
+            } else {
+                $out['waiting']++;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * What sending by phone the letter of those that have it by mail would be: Marandu's quote.
+     *
+     * @param \stdClass $centre
+     * @param array $too From phone_too().
+     * @return array|null
+     */
+    public static function phone_quote(\stdClass $centre, array $too): ?array {
+        $ids = array_keys($too['households']);
+        if (!$ids) {
+            return null;
+        }
+        try {
+            return $too['numbers'] ? \local_oksigeniamarandu\api::bulk_quote(messaging::COMPONENT, self::NOTICE, $ids, '', $too['numbers']) :
+                \local_oksigeniamarandu\api::bulk_quote(messaging::COMPONENT, self::NOTICE, $ids);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * The letter of an act, by phone too, to the families that have it by mail (phone_too()).
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param int $userid
+     * @param int $now
+     * @return array phone, status and said.
+     */
+    public static function queue_phone_too(\stdClass $event, \stdClass $centre, int $userid, int $now): array {
+        $too = self::phone_too($event, $centre);
+        if (!$too['households']) {
+            return ['phone' => 0, 'status' => '', 'said' => ''];
+        }
+        return self::request($event, $centre, $too['households'], $userid, $now, $too['numbers']);
+    }
+
+    /**
+     * How the message of each family of a send by phone is doing, as Marandu says: queued, waiting, sent, delivered, read,
+     * failed, nowhatsapp or skipped, with why.
+     *
+     * @param int $bulkid
+     * @return array household id => [status, time, why]
+     */
+    public static function phone_states(int $bulkid): array {
+        if (!$bulkid || !method_exists('\local_oksigeniamarandu\api', 'bulk_items')) {
+            return [];
+        }
+        try {
+            $out = [];
+            foreach (\local_oksigeniamarandu\api::bulk_items($bulkid) as $item) {
+                $item = (array) $item;
+                $out[(int) $item['itemid']] = ['status' => (string) ($item['status'] ?? ''), 'time' => (int) ($item['time'] ?? 0),
+                    'why' => (string) ($item['why'] ?? '')];
+            }
+            return $out;
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -564,8 +738,11 @@ class invites {
             $centre = $household ? centres::get((int) $household->centreid) : null;
             // Only of those it went to: not whoever, meanwhile, let go of the phones or of the invitations.
             $went = $centre && ($released !== null || (!(int) $household->noinvites && writeby::phone_ok($household, 'openinvite') &&
-                messaging::joined($household, $centre)));
+                (messaging::joined($household, $centre) || ((int) $row->phonelink && self::numbers_ready()))));
             if ($went && $event) {
+                if (!(int) ($row->phonesent ?? 0)) {
+                    $DB->set_field(self::T, 'phonesent', time(), ['id' => $row->id]);
+                }
                 households::told($household, $userid, 'whatsapp', get_string(
                     'invite_note_phone',
                     self::C,
@@ -1275,11 +1452,11 @@ class invites {
                 continue;
             }
             if ($row) {
-                $DB->set_field(self::T, 'channel', 'both', ['id' => $row->id]);
+                $DB->update_record(self::T, (object) ['id' => $row->id, 'channel' => 'both', 'mailsent' => $now]);
             } else {
                 $DB->insert_record(self::T, (object) ['centreid' => $centre->id, 'eventid' => $event->id,
                     'householdid' => $household->id, 'userid' => $userid, 'channel' => 'email', 'bulkid' => 0,
-                    'timecreated' => $now]);
+                    'mailsent' => $now, 'timecreated' => $now]);
             }
             households::told($household, $userid, 'email', $note, true);
             $sent++;
@@ -1374,13 +1551,54 @@ class invites {
      * @param \stdClass $event
      * @param \stdClass $household
      * @param int $now
+     * @param string $via The way it came by: email or phone, as way_of() says.
      */
-    public static function opened(\stdClass $event, \stdClass $household, int $now = 0): void {
+    public static function opened(\stdClass $event, \stdClass $household, int $now = 0, string $via = ''): void {
         global $DB;
         $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);
         if ($row && !(int) $row->opened) {
             $DB->set_field(self::T, 'opened', $now ?: time(), ['id' => $row->id]);
         }
+        self::note_way($event, $household, $via);
+    }
+
+    /**
+     * The way a family came to the page of its letter: by the message of its phone when the link it opened is the one that
+     * message carries; by its mail if not.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @param string $kept What the page keeps of the letter (joinpage::letter_of()).
+     * @return string email or phone; empty when it is no letter of this act.
+     */
+    public static function way_of(\stdClass $event, \stdClass $household, string $kept): string {
+        global $DB;
+        $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id], 'id, phonelink, channel');
+        if (!$row || !preg_match('/^(\d+)\./', $kept, $m)) {
+            return '';
+        }
+        return (int) $row->phonelink && (int) $row->phonelink === (int) $m[1] ? 'phone' : ((string) $row->channel === 'phone' ? 'phone' : 'email');
+    }
+
+    /**
+     * The way a family first came to its letter, kept once: what worked.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @param string $via email or phone.
+     */
+    public static function note_way(\stdClass $event, \stdClass $household, string $via): void {
+        global $DB;
+        if (!in_array($via, ['email', 'phone'], true)) {
+            return;
+        }
+        $DB->set_field_select(
+            self::T,
+            'via',
+            $via,
+            "eventid = ? AND householdid = ? AND (via IS NULL OR via = '')",
+            [$event->id, $household->id]
+        );
     }
 
     /**
@@ -1463,12 +1681,19 @@ class invites {
      */
     public static function tally(int $eventid): array {
         global $DB;
-        $rows = $DB->get_records_select(self::T, 'eventid = ? AND ' . households::NOTSAMPLE, [$eventid], '', 'id, opened, reply');
+        $rows = $DB->get_records_select(self::T, 'eventid = ? AND ' . households::NOTSAMPLE, [$eventid], '', 'id, opened, reply, channel, via');
         [$queued] = self::on_the_way($eventid);
-        return ['sent' => count($rows), 'queued' => $queued, 'bounced' => count(bounces::of_act($eventid)),
+        $out = ['sent' => count($rows), 'queued' => $queued, 'bounced' => count(bounces::of_act($eventid)),
             'opened' => count(array_filter($rows, fn($r) => (int) $r->opened || (string) $r->reply !== '')),
             'yes' => count(array_filter($rows, fn($r) => $r->reply === 'yes')),
             'no' => count(array_filter($rows, fn($r) => $r->reply === 'no'))];
+        // By more than one way: how many went by phone, and by which way they came.
+        $phone = count(array_filter($rows, fn($r) => in_array((string) $r->channel, ['phone', 'both'], true)));
+        if ($phone) {
+            $out += ['phone' => $phone, 'viaemail' => count(array_filter($rows, fn($r) => (string) $r->via === 'email')),
+                'viaphone' => count(array_filter($rows, fn($r) => (string) $r->via === 'phone'))];
+        }
+        return $out;
     }
 
     /**

@@ -2388,5 +2388,32 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026122970, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123000) {
+        // The invitation to an act by more than one way: when it went by mail and by phone, the link the message carries, and
+        // the way the family opened it.
+        $table = new xmldb_table('local_oksigeniaeguahe_invite');
+        foreach (
+            [
+                new xmldb_field('mailsent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timecreated'),
+                new xmldb_field('phonesent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'mailsent'),
+                new xmldb_field('phonelink', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'phonesent'),
+                new xmldb_field('via', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'phonelink'),
+            ] as $field
+        ) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        // What went before, without its time: the time the row was made. A letter answered with no letter before it (opened
+        // and answered at the moment it was made) went by no way.
+        $DB->execute("UPDATE {local_oksigeniaeguahe_invite} SET mailsent = timecreated WHERE (channel IS NULL OR channel IN ('', 'email', 'both'))
+            AND mailsent = 0 AND NOT (opened = timecreated AND replied = timecreated)");
+        $DB->execute("UPDATE {local_oksigeniaeguahe_invite} SET phonesent = timecreated WHERE channel IN ('phone', 'both') AND phonesent = 0");
+        // Opened before there was more than one way: by the only one it had.
+        $DB->execute("UPDATE {local_oksigeniaeguahe_invite} SET via = 'email' WHERE opened > 0 AND (channel IS NULL OR channel IN ('', 'email'))");
+        $DB->execute("UPDATE {local_oksigeniaeguahe_invite} SET via = 'phone' WHERE opened > 0 AND channel = 'phone'");
+        upgrade_plugin_savepoint(true, 2026123000, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

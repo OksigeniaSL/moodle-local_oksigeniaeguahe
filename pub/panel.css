@@ -23399,8 +23399,18 @@ html {
     margin-top: 14px;
 }
 
-.invitar-estado > span {
+.invitar-estado > span,
+.invitar-estado > div {
     flex: 1 1 220px;
+}
+
+/* The letter by phone too: what it is, and when it is looked over, by whom and what it costs. */
+.invitar-telefono > div > p {
+    margin: 0;
+}
+
+.invitar-telefono .repaso-nombres {
+    margin: 8px 0 12px;
 }
 
 .invitar-estado.con-error,

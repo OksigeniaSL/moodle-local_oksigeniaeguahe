@@ -82,20 +82,36 @@ class letters {
      * @param int $since
      * @param int $until 0 for until now.
      * @param int $now
+     * @param string $way email (the letters by mail) or phone (the messages): each counted from when it went, and opened or
+     *     answered only when the family came by it.
      * @return array sent, back, arrived, opened, yes, ripe, ripeopened, half, byhour and byday (rows of each, with its key
      *     and name), best and worst (of the hours), daybest and dayworst, and first (the time the first went).
      */
-    public static function figures(\stdClass $centre, int $since, int $until, int $now): array {
+    public static function figures(\stdClass $centre, int $since, int $until, int $now, string $way = 'email'): array {
         global $DB;
         $until = $until ?: $now;
-        $rows = array_values(array_filter($DB->get_records_select(
+        $field = $way === 'phone' ? 'phonesent' : 'mailsent';
+        $rows = [];
+        $found = $DB->get_records_select(
             invites::T,
-            'centreid = ? AND channel = ? AND timecreated >= ? AND timecreated <= ? AND ' . households::NOTSAMPLE,
-            [$centre->id, 'email', $since, $until],
-            'timecreated ASC, id ASC',
-            'id, eventid, householdid, opened, reply, replied, timecreated'
-        ), [self::class, 'went']));
-        $back = self::back($rows);
+            "centreid = ? AND $field > 0 AND $field >= ? AND $field <= ? AND " . households::NOTSAMPLE,
+            [$centre->id, $since, $until],
+            "$field ASC, id ASC",
+            "id, eventid, householdid, opened, reply, replied, via, $field AS timecreated"
+        );
+        foreach ($found as $row) {
+            // What the family did by the other way is not this way's: with two, each counts what came by it.
+            $mine = $way === 'phone' ? (string) $row->via === 'phone' : (string) $row->via !== 'phone';
+            if (!$mine) {
+                $row->opened = 0;
+                $row->reply = '';
+                $row->replied = 0;
+            }
+            if (self::went($row)) {
+                $rows[] = $row;
+            }
+        }
+        $back = $way === 'phone' ? [] : self::back($rows);
         $all = self::empty();
         $byhour = [];
         $byday = [];
@@ -135,23 +151,45 @@ class letters {
     }
 
     /**
+     * The letters by each way, side by side, when some went by phone too: what worked.
+     *
+     * @param \stdClass $centre
+     * @param int $since
+     * @param int $until
+     * @param int $now
+     * @return array[] Empty without any by phone; if not, the mail and the phone, each as figures() gives it, with key and name.
+     */
+    public static function ways(\stdClass $centre, int $since, int $until, int $now): array {
+        $phone = self::figures($centre, $since, $until, $now, 'phone');
+        if (!$phone['sent']) {
+            return [];
+        }
+        $mail = self::figures($centre, $since, $until, $now);
+        return [$mail + ['key' => 'email', 'name' => get_string('letters_way_email', self::C)],
+            $phone + ['key' => 'phone', 'name' => get_string('letters_way_phone', self::C)]];
+    }
+
+    /**
      * The answer of the question, in a sentence or two: how many went and opened, and the hour they open best, when there are
      * letters enough to say it.
      *
      * @param array $f From figures().
+     * @param array $ways From ways(): by mail and by phone, when some went by phone.
      * @return string Empty with no letter.
      */
-    public static function sentence(array $f): string {
+    public static function sentence(array $f, array $ways = []): string {
         $c = self::C;
         if (!$f['sent']) {
             return '';
         }
+        $both = $ways ? ' ' . get_string('letters_ways', $c, (object) ['phone' => $ways[1]['opened'], 'phoneof' => $ways[1]['arrived'],
+            'mail' => $ways[0]['opened'], 'mailof' => $ways[0]['arrived']]) : '';
         if (!$f['ripe']) {
             $out = [get_string($f['sent'] === 1 ? 'letters_sent_one' : 'letters_sent', $c, $f['sent']) . ($f['back'] ?
                 get_string($f['back'] === 1 ? 'letters_back_one' : 'letters_back', $c, $f['back']) : '') . '.',
                 get_string($f['opened'] ? ($f['opened'] === 1 ? 'letters_sofar_one' : 'letters_sofar') : 'letters_sofar_none', $c, $f['opened']),
                 get_string('letters_wait', $c)];
-            return implode(' ', $out);
+            return implode(' ', $out) . $both;
         }
         $a = (object) ['ripe' => $f['ripe'], 'opened' => $f['ripeopened'], 'share' => panel_metrics::share($f['ripeopened'], $f['ripe'], true)];
         if ($f['ripe'] === 1) {
@@ -166,7 +204,7 @@ class letters {
                 'worst' => \core_text::strtolower($f['worst']['name']), 'worstp' => panel_metrics::percent($f['worst']['ripeopened'], $f['worst']['ripe'])]) :
                 get_string('letters_even', $c);
         }
-        return implode(' ', $out);
+        return implode(' ', $out) . $both;
     }
 
     /**

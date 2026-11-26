@@ -298,7 +298,10 @@ class panel_answers {
             $step('qs_letters_yes', $f['yes'], [['kind' => 'yes', 'n' => $f['yes']]]),
         ];
         $fair = $f['best'] !== null || $f['daybest'] !== null;
-        return [panel_answer::block('cartas', get_string('qs_letters_title', $c), ['lead' => $f['sent'] <= panel_answer::DOTS ?
+        $ways = letters::ways($w->centre, (int) $w->campaign['since'], $w->campaign['key'] === 'live' ? 0 : (int) $w->campaign['until'], $w->now);
+        return [$ways ? panel_answer::block('vias', get_string('qs_letters_by_way', $c), ['table' => self::letters_table($ways),
+            'def' => get_string('qs_letters_ways_def', $c)]) : null,
+            panel_answer::block('cartas', get_string('qs_letters_title', $c), ['lead' => $f['sent'] <= panel_answer::DOTS ?
             get_string('qs_dot', $c) : '', 'path' => panel_answer::path($f['sent'], $steps), 'def' => get_string('qs_letters_def', $c)]),
             $f['byhour'] ? panel_answer::block('hora', get_string('qs_letters_by_hour', $c), ['table' => self::letters_table($f['byhour']),
             'note' => $fair ? false : panel_answer::note(get_string('qs_letters_fair', $c, letters::FAIR), '', '')]) : null,

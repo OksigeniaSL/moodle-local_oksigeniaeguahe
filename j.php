@@ -213,10 +213,12 @@ if ($known && $saying) {
     if ($kept) {
         $pressed();
     }
+    // By which of its ways the letter came: what worked.
+    $way = invites::way_of($event, $family, $letter);
     if ($kept && optional_param('opened', 0, PARAM_BOOL)) {
         // The page says a person looked at it, never the team that looks at it.
         if (!seen::from_team($centre)) {
-            invites::opened($event, $family);
+            invites::opened($event, $family, 0, $way);
         }
     } else if ($kept && optional_param('ask', 0, PARAM_BOOL)) {
         // They marked WhatsApp a moment ago: asked there, apart from what they touch, which never waits for Meta.
@@ -226,6 +228,9 @@ if ($known && $saying) {
         $first = !$DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $family->id]);
         $kept = joinpage::said($event, $centre, $family);
         $last = joinpage::last_way($centre, $family);
+        if (!seen::from_team($centre)) {
+            invites::note_way($event, $family, $way);
+        }
         if ($lock) {
             $lock->release();
         }

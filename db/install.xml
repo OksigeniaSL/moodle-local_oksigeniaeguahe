@@ -839,6 +839,10 @@
         <FIELD NAME="reply" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="yes or no, as the family answered; empty, not answered"/>
         <FIELD NAME="replied" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it answered last"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="mailsent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the letter went by mail, if it did; timecreated is when the first way went"/>
+        <FIELD NAME="phonesent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it went by phone, if it did"/>
+        <FIELD NAME="phonelink" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The link of the family that the message by phone carries, to know it was opened from there"/>
+        <FIELD NAME="via" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The way the family first opened it: email or phone; empty, not known"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

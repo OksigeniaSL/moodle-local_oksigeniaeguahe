@@ -60,6 +60,7 @@ class panel_event {
      * @param bool $canact
      * @param int $now
      * @param bool $fresh Whether it was just made.
+     * @param bool $phonecheck Whether sending its letter by phone too is being looked over.
      * @return array
      */
     public static function context(
@@ -67,7 +68,8 @@ class panel_event {
         \stdClass $centre,
         bool $canact,
         int $now = 0,
-        bool $fresh = false
+        bool $fresh = false,
+        bool $phonecheck = false
     ): array {
         $now = $now ?: time();
         $c = self::C;
@@ -235,7 +237,7 @@ class panel_event {
             'requests' => $requests,
             'hasrequests' => (bool) $requests,
             'own' => (bool) $family,
-            'invite' => self::invite_card($event, $canact, $now),
+            'invite' => self::invite_card($event, $canact, $now, $phonecheck),
             // Just made: what comes next.
             'fresh' => $fresh && $canact ? [
                 'invite' => invites::fits($event, $now) ? (new \moodle_url(
@@ -495,9 +497,10 @@ class panel_event {
      * @param \stdClass $event
      * @param bool $canact
      * @param int $now
-     * @return array notice, going, said, withdraw, posturl and sesskey, for panel_invite_state.
+     * @param bool $phonecheck Whether sending the letter by phone too is being looked over.
+     * @return array notice, going, said, withdraw, phonetoo, posturl and sesskey, for panel_invite_state.
      */
-    protected static function invite_state(\stdClass $event, bool $canact, int $now): array {
+    protected static function invite_state(\stdClass $event, bool $canact, int $now, bool $phonecheck = false): array {
         $bulk = invites::last_bulk((int) $event->id);
         $state = invites::state($bulk);
         [$left, $next] = invites::on_the_way((int) $event->id);
@@ -515,6 +518,8 @@ class panel_event {
             // Stopped before it reached everyone: it goes on from where it was.
             'paused' => !$left && $paused ? ['text' => $pausedtext, 'resume' => $canact] : false,
             'notice' => invites::said((int) $event->id),
+            // The letter by mail, also by phone, to those that have it and have said nothing yet.
+            'phonetoo' => $canact && !$left ? self::phone_card($event, $phonecheck) : false,
             'posturl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
         ];
@@ -527,9 +532,10 @@ class panel_event {
      * @param \stdClass $event
      * @param bool $canact
      * @param int $now
+     * @param bool $phonecheck Whether sending it by phone too is being looked over.
      * @return array|false
      */
-    protected static function invite_card(\stdClass $event, bool $canact, int $now) {
+    protected static function invite_card(\stdClass $event, bool $canact, int $now, bool $phonecheck = false) {
         if (!invites::fits($event, $now)) {
             return false;
         }
@@ -542,7 +548,7 @@ class panel_event {
             $tally[] = ['key' => $key, 'n' => $n, 'label' => get_string('panel_tally_' . $key, self::C),
                 'url' => $key === 'bounced' && $n ? '#devueltas' : ''];
         }
-        return self::invite_state($event, $canact, $now) + [
+        return self::invite_state($event, $canact, $now, $phonecheck) + [
             'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
                 get_string('panel_invite_noone', self::C),
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', self::C, $done) : '',
@@ -581,8 +587,13 @@ class panel_event {
             'eventid = ? AND ' . households::NOTSAMPLE,
             [$event->id],
             '',
-            'householdid, timecreated, opened, reply, replied'
+            'householdid, timecreated, opened, reply, replied, channel, via, mailsent, phonesent, bulkid'
         );
+        // How the message by phone of each family is doing, as the mail service of the phones says.
+        $states = [];
+        foreach (array_unique(array_filter(array_map(fn($one) => (int) $one->bulkid, $times))) as $bulkid) {
+            $states += invites::phone_states($bulkid);
+        }
         // Sent together (within a quarter of an hour), the time is said once, above.
         $sent = array_filter(array_map(fn($one) => (int) $one->timecreated, $times));
         $together = $sent && max($sent) - min($sent) < 900;
@@ -592,7 +603,7 @@ class panel_event {
             foreach ($list as $id => $time) {
                 if (isset($people[$id])) {
                     $when = $time ? panel::when_words($time, $now) : '';
-                    $trace = $key !== 'bounced' && isset($times[$id]) ? self::trace($times[$id], $now, $together) : '';
+                    $trace = $key !== 'bounced' && isset($times[$id]) ? self::trace($times[$id], $now, $together, $states[$id] ?? null) : '';
                     $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $trace !== '' ? '' : ($key === 'none' &&
                         $when !== '' ? get_string('panel_replies_sent', $c, $when) : $when), 'trace' => $trace,
                         'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id], $key === 'bounced' ?
@@ -609,28 +620,98 @@ class panel_event {
     }
 
     /**
-     * When the letter of a family went, and how long after it opened it and answered.
+     * When the letter of a family went, by mail and by phone, and how long after it opened it and answered, from the way it
+     * came by.
      *
-     * @param \stdClass $one The invite: timecreated, opened, reply, replied.
+     * @param \stdClass $one The invite: timecreated, mailsent, phonesent, opened, via, reply, replied.
      * @param int $now
      * @param bool $together All the letters went at once: the time is said above, not here.
+     * @param array|null $phone How its message by phone is doing (invites::phone_states()).
      * @return string
      */
-    protected static function trace(\stdClass $one, int $now, bool $together): string {
+    protected static function trace(\stdClass $one, int $now, bool $together, ?array $phone = null): string {
         $c = self::C;
-        $sent = (int) $one->timecreated;
         if (!letters::went($one)) {
             return '';
         }
-        $parts = $together ? [] : [get_string('panel_trace_went', $c, panel::when_words($sent, $now))];
-        if ((int) $one->opened >= $sent) {
-            $parts[] = get_string('panel_trace_opened', $c, letters::lapse((int) $one->opened - $sent));
+        $mail = (int) ($one->mailsent ?? 0) ?: ((string) ($one->channel ?? '') === 'phone' ? 0 : (int) $one->timecreated);
+        $sms = (int) ($one->phonesent ?? 0);
+        $parts = $together || !$mail ? [] : [get_string('panel_trace_went', $c, panel::when_words($mail, $now))];
+        if ($sms) {
+            $state = $phone['status'] ?? '';
+            $parts[] = get_string('panel_trace_phone', $c, panel::when_words($sms, $now)) . (in_array(
+                $state,
+                ['waiting', 'delivered', 'read', 'failed', 'nowhatsapp', 'skipped'],
+                true
+            ) ? ' (' . get_string('panel_trace_phone_' . $state, $c) . ')' : '');
         }
-        if ((int) $one->replied >= $sent && in_array((string) $one->reply, ['yes', 'no'], true)) {
-            $parts[] = get_string('panel_trace_said', $c, letters::lapse((int) $one->replied - $sent));
+        // From the way it came by, and said only when there were two.
+        $via = (string) ($one->via ?? '');
+        $from = $via === 'phone' && $sms ? $sms : ($mail ?: $sms);
+        $by = $mail && $sms && in_array($via, ['email', 'phone'], true) ? '_' . $via : '';
+        if ((int) $one->opened >= $from && $from) {
+            $parts[] = get_string('panel_trace_opened' . $by, $c, letters::lapse((int) $one->opened - $from));
+        }
+        if ((int) $one->replied >= $from && $from && in_array((string) $one->reply, ['yes', 'no'], true)) {
+            $parts[] = get_string('panel_trace_said', $c, letters::lapse((int) $one->replied - $from));
         }
         $text = implode(' · ', $parts);
-        return $together ? \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1) : $text;
+        return panel::upper_first($text);
+    }
+
+    /**
+     * The letter of an act, also by phone, to the families that have it by mail and have said nothing yet: how many, and, when
+     * it is looked over, who by which way, what it costs and who approves it.
+     *
+     * @param \stdClass $event
+     * @param bool $check
+     * @return array|false
+     */
+    protected static function phone_card(\stdClass $event, bool $check) {
+        $c = self::C;
+        $centre = centres::get((int) $event->centreid);
+        $too = $centre ? invites::phone_too($event, $centre) : null;
+        $n = $too ? count($too['households']) : 0;
+        if (!$n && !($too['waiting'] ?? 0)) {
+            return false;
+        }
+        $see = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'telefono' => 1], 'invitar-telefono');
+        $out = ['text' => $n ? get_string($n === 1 ? 'panel_phonetoo_one' : 'panel_phonetoo', $c, $n) :
+            get_string($too['waiting'] === 1 ? 'panel_phonetoo_waiting_one' : 'panel_phonetoo_waiting', $c, $too['waiting']),
+            'url' => $n && !$check ? $see->out(false) : '', 'check' => false];
+        if ($check && $n) {
+            $lines = [];
+            $joined = $too['joined'];
+            $numbers = count($too['numbers']);
+            foreach (
+                [
+                    ['panel_phonetoo_joined', $joined],
+                    ['panel_phonetoo_numbers', $numbers],
+                    ['panel_phonetoo_waiting', $too['waiting']],
+                    ['panel_phonetoo_nophone', $too['nophone']],
+                    ['panel_phonetoo_notphone', $too['notphone']],
+                ] as [$key, $count]
+            ) {
+                if ($count) {
+                    $lines[] = ['text' => get_string($key . ($count === 1 ? '_one' : ''), $c, $count)];
+                }
+            }
+            $quote = invites::phone_quote($centre, $too);
+            if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
+                $lines[] = ['text' => get_string((int) $quote['whatsapp'] === 1 ? 'panel_invite_cost_one' : 'panel_invite_cost', $c, (object) [
+                    'n' => (int) $quote['whatsapp'], 'cost' => self::money($centre, (float) ($quote['cost'] ?? 0), (string) ($quote['currency'] ?? ''))])];
+            }
+            if ($quote && (int) ($quote['skipped'] ?? 0) > 0) {
+                $skipped = (int) $quote['skipped'];
+                $lines[] = ['text' => get_string($skipped === 1 ? 'panel_phonetoo_skipped_one' : 'panel_phonetoo_skipped', $c, $skipped)];
+            }
+            $lines[] = ['text' => $quote && !empty($quote['approval']) ? get_string('panel_invite_approval', $c, implode(
+                ' · ',
+                array_map('strval', (array) ($quote['approvers'] ?? []))
+            )) : get_string('panel_phonetoo_now', $c)];
+            $out['check'] = ['lines' => $lines, 'go' => get_string($n === 1 ? 'panel_phonetoo_go_one' : 'panel_phonetoo_go', $c, $n)];
+        }
+        return $out;
     }
 
     /**
