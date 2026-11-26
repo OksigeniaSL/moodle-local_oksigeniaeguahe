@@ -647,12 +647,15 @@ class panel_event {
         }
         $mail = (int) ($one->mailsent ?? 0) ?: ((string) ($one->channel ?? '') === 'phone' ? 0 : (int) $one->timecreated);
         $sms = (int) ($one->phonesent ?? 0);
-        $parts = $together || !$mail ? [] : [get_string('panel_trace_went', $c, panel::when_words($mail, $now))];
+        // With two ways, each says by where it went; the second, the same day, only its hour.
+        $parts = $together || !$mail ? [] : [get_string($sms ? 'panel_trace_went_email' : 'panel_trace_went', $c, panel::when_words($mail, $now))];
         if ($sms) {
             $state = $phone['status'] ?? '';
             // By WhatsApp or by Telegram when it is known; by either, only when it is not.
             $channel = in_array($phone['channel'] ?? '', ['whatsapp', 'telegram'], true) ? '_' . $phone['channel'] : '';
-            $parts[] = get_string('panel_trace_phone' . $channel, $c, panel::when_words($sms, $now)) . (in_array(
+            $at = $mail && !$together && panel::days_between($mail, $sms) === 0 ? get_string('panel_trace_at', $c, panel::hour($sms)) :
+                panel::when_words($sms, $now);
+            $parts[] = get_string('panel_trace_phone' . $channel, $c, $at) . (in_array(
                 $state,
                 ['waiting', 'delivered', 'read', 'failed', 'nowhatsapp', 'skipped'],
                 true

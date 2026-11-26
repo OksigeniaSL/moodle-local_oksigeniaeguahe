@@ -420,12 +420,14 @@ class panel {
             'howtohere' => howto::here($section, $centre, centres::can_manage((int) $centre->id)),
             'centreid' => (int) $centre->id,
             'awayurl' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id, 'away' => 1]))->out(false),
-            'untildate' => self::date_input('until', '', $centre, 'fuera-hasta'),
+            // Away until a day: its leaf, small and filled, and the sentence; if not, a line of the menu that opens a day.
+            'awaymin' => userdate(time() + DAYSECS, '%Y-%m-%d', 99, false),
             'away' => ($until = attend::away_until((int) $centre->id, (int) $USER->id)) ? get_string(
                 'panel_you_away',
                 self::C,
-                userdate($until, get_string('strftimedateshort', 'langconfig'))
+                publicpage::date_parts($until, current_language())['long']
             ) : '',
+            'awaysheet' => $until ? ['month' => userdate($until, '%b'), 'day' => (int) userdate($until, '%d', 99, false)] : false,
             'jsstrings' => json_encode(self::js_strings(), JSON_UNESCAPED_UNICODE),
             'credit' => $credit ? get_string('panel_credit_after', self::C, \html_writer::link(
                 $credit['url'],

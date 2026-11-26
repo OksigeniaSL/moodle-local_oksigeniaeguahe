@@ -43,9 +43,7 @@
         "morecurrent": false, "door": false,
         "me": {"name": "Andrés Rivas", "first": "Andrés", "picture": "", "initials": "AR"},
         "moodleurl": "#", "logouturl": "#", "hasnotices": false, "notices": [],
-        "awayurl": "", "away": "", "untildate": {"id": "fuera-hasta", "first": "fuera-hastad", "form": false, "child": false,
-            "invalid": false, "labelled": true, "arialabel": false, "describedby": false, "mirror": false, "value": "",
-            "parts": [{"key": "d", "id": "fuera-hastad", "name": "untild", "label": "Día", "value": "", "size": 2, "months": false}]}, "sesskey": "abc", "howtourl": "#", "centreid": 1, "howtohere": {"label": "Lo más común en «Bandeja»", "has": true, "none": "", "ask": false,
+        "awayurl": "", "away": "", "awaysheet": false, "awaymin": "2026-11-27", "sesskey": "abc", "howtourl": "#", "centreid": 1, "howtohere": {"label": "Lo más común en «Bandeja»", "has": true, "none": "", "ask": false,
             "answers": [{"key": "answer", "setting": false, "kind": "Tarea", "text": "Contestar a una familia", "value": "",
             "sub": "En la bandeja, abrir la ficha de la familia.", "wait": false, "url": "#", "go": "Ir", "help": false}]}, "credit": "Eguahe, de <a href=\"#\">Oksigenia</a>", "footnote": "Datos de ejemplo.", "demo": {"plans": "#"}, "jsstrings": "{}"
     }
@@ -86,8 +84,8 @@
             {{#awayurl}}
             <form class="fuera" method="post" action="{{awayurl}}">
                 <input type="hidden" name="sesskey" value="{{sesskey}}">
-                {{#away}}<p class="secundario">{{away}}</p><button class="boton terciario pequeno" type="submit" name="back" value="1">{{#str}}panel_back_here, local_oksigeniaeguahe{{/str}}</button>{{/away}}
-                {{^away}}<label id="fuera-hasta-l" for="{{untildate.first}}">{{#str}}panel_away_label, local_oksigeniaeguahe{{/str}}</label>{{#untildate}}{{> local_oksigeniaeguahe/public_date }}{{/untildate}}<button class="boton terciario pequeno" type="submit">{{#str}}panel_away_save, local_oksigeniaeguahe{{/str}}</button>{{/away}}
+                {{#away}}<div class="fuera-hoja">{{#awaysheet}}<span class="hoja-mini" aria-hidden="true"><span>{{month}}</span><b>{{day}}</b></span>{{/awaysheet}}<p>{{away}}</p></div><button class="boton terciario pequeno" type="submit" name="back" value="1">{{#str}}panel_back_sooner, local_oksigeniaeguahe{{/str}}</button>{{/away}}
+                {{^away}}<details class="fuera-irse"><summary>{{{i.actos}}}{{#str}}panel_away_go, local_oksigeniaeguahe{{/str}}</summary><div class="fuera-dia"><label for="fuera-hasta">{{#str}}panel_away_label, local_oksigeniaeguahe{{/str}}</label><input type="date" id="fuera-hasta" name="until" min="{{awaymin}}" required><button class="boton terciario pequeno" type="submit">{{#str}}panel_away_save, local_oksigeniaeguahe{{/str}}</button></div></details>{{/away}}
             </form>
             {{/awayurl}}
         </div>

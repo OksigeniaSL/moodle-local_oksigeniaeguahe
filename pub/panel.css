@@ -13371,8 +13371,87 @@ a.qs-barra:focus-visible .qs-barra-nombre {
 .menu-barra .menu .fuera {
     display: grid;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 4px 0 0;
     border-block-start: 1px solid var(--eg-linea);
+}
+
+/* «I am going away for a few days…»: a line of the menu like the others; its day, only once opened. */
+.menu-barra .menu .fuera-irse > summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    color: var(--eg-tinta);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+}
+
+.menu-barra .menu .fuera-irse > summary::-webkit-details-marker {
+    display: none;
+}
+
+.menu-barra .menu .fuera-irse > summary:hover {
+    background: var(--eg-hundido);
+}
+
+.menu-barra .menu .fuera-irse[open] > summary {
+    background: var(--eg-hundido);
+}
+
+.menu-barra .menu .fuera-dia {
+    display: grid;
+    gap: 6px;
+    padding: 8px 12px 4px;
+}
+
+/* Away: the leaf of the day, small and filled, its sentence and «I am back sooner». */
+.menu-barra .menu .fuera-hoja {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 12px 0;
+}
+
+.fuera-hoja p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.hoja-mini {
+    display: grid;
+    flex: none;
+    width: 40px;
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--eg-papel);
+    box-shadow: 0 0 0 1px var(--eg-borde);
+    text-align: center;
+}
+
+.hoja-mini span {
+    padding: 1px 0;
+    background: var(--eg-acento, var(--eg-tinta));
+    color: var(--eg-papel);
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.hoja-mini b {
+    padding: 2px 0 3px;
+    color: var(--eg-tinta);
+    font-size: 1.125rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.menu-barra .menu .fuera > .boton {
+    justify-self: start;
+    margin: 4px 12px 8px;
 }
 
 .menu-barra .menu .fuera input {
@@ -15446,6 +15525,11 @@ button.padron-pomo-no::after {
 @media (max-width: 400px) {
     .carta-cuenta {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* The three of the letter by phone add up: in one row, also on a phone. */
+    .invitar-telefono .carta-cuenta {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
