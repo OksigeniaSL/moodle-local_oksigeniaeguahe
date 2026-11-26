@@ -13407,6 +13407,11 @@ a.qs-barra:focus-visible .qs-barra-nombre {
     padding: 8px 12px 4px;
 }
 
+/* No day, nothing to tell: «Let the team know» only once a day is chosen (the field is required). */
+.menu-barra .menu .fuera-dia input:invalid + button {
+    display: none;
+}
+
 /* Away: the leaf of the day, small and filled, its sentence and «I am back sooner». */
 .menu-barra .menu .fuera-hoja {
     display: flex;
