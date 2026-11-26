@@ -144,6 +144,15 @@ $tasks = [
         'dayofweek' => '*',
     ],
     [
+        'classname' => '\\local_oksigeniaeguahe\\task\\tidy_sheets',
+        'blocking' => 0,
+        'minute' => '40',
+        'hour' => '4',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\read_bounces',
         'blocking' => 0,
         'minute' => '*/15',

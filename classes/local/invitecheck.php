@@ -29,8 +29,8 @@ class invitecheck {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] Why a family gets no letter, in the order it is said. */
-    const WHY = ['invited', 'signedup', 'centre', 'closed', 'silent', 'noinvites', 'bounced', 'noemail', 'nopermission',
-        'sameaddress'];
+    const WHY = ['invited', 'signedup', 'centre', 'closed', 'silent', 'noinvites', 'bounced', 'centremail', 'twin', 'noemail',
+        'nopermission', 'sameaddress'];
 
     /**
      * The whole of it.
@@ -63,8 +63,9 @@ class invitecheck {
             }
         }
         $rows = [];
-        $add = function (bool $ok, string $text, array $names = [], bool $open = false) use (&$rows): void {
-            $rows[] = ['ok' => $ok, 'text' => $text, 'names' => $names, 'hasnames' => (bool) $names, 'open' => $open];
+        $add = function (bool $ok, string $text, array $names = [], bool $open = false, bool $permit = false) use (&$rows): void {
+            $rows[] = ['ok' => $ok, 'text' => $text, 'names' => $names, 'hasnames' => (bool) $names, 'open' => $open,
+                'permit' => $permit];
         };
         // The letter itself.
         $tried = self::tried($event, $centre, $userid);
@@ -87,7 +88,8 @@ class invitecheck {
         $add($reply !== '', $reply !== '' ? self::str('invitecheck_reply', $reply) : self::str('invitecheck_noreply'));
         // And whom it does not.
         foreach (self::left_out($event, $centre, $chosen) as $why => $ids) {
-            $add(true, self::count('invitecheck_out_' . $why, count($ids)), self::names($ids));
+            $permit = $why === 'nopermission' && invites::permittable($event, $centre);
+            $add(true, self::count('invitecheck_out_' . $why, count($ids)), self::names($ids), false, $permit);
         }
         return ['rows' => $rows, 'wrong' => (bool) array_filter($rows, fn($row) => !$row['ok']), 'greetings' => $greetings];
     }
@@ -183,20 +185,25 @@ class invitecheck {
         $invited = array_flip($DB->get_fieldset_select(invites::T, 'householdid', 'eventid = ?', [$event->id])) + invites::queued((int) $event->id);
         $signed = array_flip($DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id]));
         $allowed = households::emailable($centreid);
-        $withemail = $DB->get_records_select_menu(
+        $adults = $DB->get_records_select(
             households::ADULTS,
             "centreid = ? AND COALESCE(email, '') <> ''",
             [$centreid],
             '',
-            'id, householdid'
+            'id, householdid, email'
         );
-        $with = array_flip($withemail);
-        // The families whose every address comes back.
-        $failing = bounces::failing(array_keys($withemail));
+        $with = array_flip(array_column($adults, 'householdid'));
+        // The families whose every address comes back, or is of the centre itself.
+        $failing = bounces::failing(array_keys($adults));
+        $own = invites::centre_addresses($centre);
         $back = [];
-        foreach ($withemail as $adultid => $householdid) {
-            $back[$householdid] = ($back[$householdid] ?? true) && isset($failing[(int) $adultid]);
+        $ours = [];
+        foreach ($adults as $adult) {
+            $back[$adult->householdid] = ($back[$adult->householdid] ?? true) && isset($failing[(int) $adult->id]);
+            $ours[$adult->householdid] = ($ours[$adult->householdid] ?? true) &&
+                invites::of_centre_address((string) $adult->email, $own);
         }
+        $twins = invites::newer_twins($centreid);
         $stages = [];
         foreach ($DB->get_records(households::CHILDREN, ['centreid' => $centreid], 'id ASC', 'id, householdid, stage, lefttime') as $child) {
             $stages[$child->householdid][] = $child->stage === 'enrolled' && $child->lefttime ? 'left' : $child->stage;
@@ -222,6 +229,10 @@ class invitecheck {
                 $why = 'noinvites';
             } else if (!empty($back[$id])) {
                 $why = 'bounced';
+            } else if (!empty($ours[$id])) {
+                $why = 'centremail';
+            } else if (isset($twins[$id])) {
+                $why = 'twin';
             } else if (!isset($with[$id])) {
                 $why = 'noemail';
             } else {

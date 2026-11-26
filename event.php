@@ -69,6 +69,23 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     $DB->set_field(events::T, 'outcome', $outcome === '' ? null : core_text::substr($outcome, 0, 600), ['id' => $event->id]);
     redirect(new moodle_url($url, [], 'como-fue'));
 }
+$permitnow = optional_param('action', '', PARAM_ALPHA) === 'invitepermit' ||
+    (optional_param('action', '', PARAM_ALPHA) === 'invitego' && optional_param('permit', 0, PARAM_BOOL));
+if (data_submitted() && confirm_sesskey() && $permitnow) {
+    // The email permission, given by a person who knows those families left their contact to be written to.
+    centres::require_act((int) $centre->id);
+    $given = invites::permit($event, $centre, (int) $USER->id);
+    invites::say((int) $event->id, get_string($given === 1 ? 'invite_permit_done_one' : 'invite_permit_done', $c, $given));
+    redirect(new moodle_url($url, ['invitar' => 1]));
+}
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'inviteresume') {
+    // A letter that was stopped, on its way again to those it had not reached.
+    centres::require_act((int) $centre->id);
+    $sent = invites::resume($event, $centre, (int) $USER->id);
+    $n = $sent['email'] + $sent['phone'];
+    invites::say((int) $event->id, $n ? get_string('panel_invite_resumed', $c, $n) : get_string('panel_invite_nobody', $c), !$n);
+    redirect(new moodle_url($url, ['invitar' => 1]));
+}
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitego') {
     // Seen and confirmed: the invitation to the families that are not of the centre yet, once, and only these.
     centres::require_act((int) $centre->id);

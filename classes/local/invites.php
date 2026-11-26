@@ -130,15 +130,18 @@ class invites {
             'centreid = ? AND email IS NOT NULL AND email <> ?',
             [$centreid, ''],
             '',
-            'id, householdid'
+            'id, householdid, email'
         );
-        // An address whose mail comes back gets no letter until a person says the right one.
+        // An address whose mail comes back gets no letter until a person says the right one, and one of the centre itself none.
         $failing = bounces::failing(array_keys($adults));
+        $own = $centre ? self::centre_addresses($centre) : ['domains' => [], 'emails' => []];
         foreach ($adults as $adult) {
-            if (!isset($failing[(int) $adult->id])) {
+            if (!isset($failing[(int) $adult->id]) && !self::of_centre_address((string) $adult->email, $own)) {
                 $emails[$adult->householdid] = true;
             }
         }
+        // Two files that may be the same family, and nobody said yet: one letter, to the older.
+        $twins = self::newer_twins($centreid);
         $done = array_flip(array_merge(
             $DB->get_fieldset_select(
                 self::T,
@@ -183,6 +186,26 @@ class invites {
             if ($household->reachemail || $household->reachphone) {
                 $out[$id] = $household;
             }
+        }
+        // Of two files that may be one family, the older gets it; the newer, only if the older cannot.
+        foreach ($twins as $newer => $older) {
+            if (isset($out[$newer]) && (isset($out[$older]) || isset($done[$older]) || isset($queued[$older]))) {
+                unset($out[$newer]);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Of two files of a centre that may be the same family and nobody has said, the newer: the older gets the letter.
+     *
+     * @param int $centreid
+     * @return array household id => the older one
+     */
+    public static function newer_twins(int $centreid): array {
+        $out = [];
+        foreach (lookalike::pairs($centreid, time() - lookalike::NEAR) as [$newer, $older]) {
+            $out[(int) $newer] = (int) $older;
         }
         return $out;
     }
@@ -884,10 +907,175 @@ class invites {
     public static function stop(int $eventid): int {
         global $DB;
         [$n] = self::on_the_way($eventid);
+        // Who was left, to send it to them later with «Resume».
+        $left = self::paused($eventid);
+        foreach (self::tasks($eventid) as $task) {
+            $left = array_merge($left, array_map('intval', (array) ($task->get_custom_data()->ids ?? [])));
+        }
+        set_config('paused_' . $eventid, $left ? json_encode(array_values(array_unique($left))) : null, self::C);
         foreach (self::tasks($eventid) as $task) {
             $DB->delete_records('task_adhoc', ['id' => $task->get_id()]);
         }
         return $n;
+    }
+
+    /**
+     * The families whose letter was stopped before it went out, kept to send it later.
+     *
+     * @param int $eventid
+     * @return int[]
+     */
+    public static function paused(int $eventid): array {
+        $ids = json_decode((string) get_config(self::C, 'paused_' . $eventid), true);
+        return is_array($ids) ? array_values(array_map('intval', $ids)) : [];
+    }
+
+    /**
+     * The letter that was stopped, on its way again to those it had not reached, at the same pace; whoever signed up, was
+     * invited or asked for no more since is left out, as always.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param int $userid
+     * @return array As queue().
+     */
+    public static function resume(\stdClass $event, \stdClass $centre, int $userid): array {
+        $ids = self::paused((int) $event->id);
+        set_config('paused_' . $event->id, null, self::C);
+        return $ids ? self::queue($event, $centre, $userid, time(), '', $ids) : ['email' => 0, 'phone' => 0, 'status' => '', 'said' => ''];
+    }
+
+    /**
+     * The families left out only because they never said yes to email, given it by a person of the team who knows they left
+     * their contact to be written to: each adult with an address and no word on email yet. Never one who said no, nor a family
+     * that asked not to be written to or chose other ways. A line in the history says who gave it.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param int $userid
+     * @return int How many families.
+     */
+    public static function permit(\stdClass $event, \stdClass $centre, int $userid): int {
+        $n = 0;
+        foreach (self::permittable($event, $centre) as [$household, $adults]) {
+            foreach ($adults as $adult) {
+                households::consent($household, $adult, 'email', true, 'team', (string) ($household->lang ?: $centre->lang));
+            }
+            households::note($household, $userid, get_string('invite_permit_note', self::C));
+            $n++;
+        }
+        return $n;
+    }
+
+    /**
+     * The families a person can give the email permission in the step of the letter: left out only for never saying yes, with
+     * an adult with an address who never said a word on email; never a family that asked not to be written to.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @return array household id => [the household, the ids of its adults].
+     */
+    public static function permittable(\stdClass $event, \stdClass $centre): array {
+        global $DB;
+        $out = [];
+        foreach (invitecheck::left_out($event, $centre, [])['nopermission'] ?? [] as $id) {
+            $household = $DB->get_record(households::T, ['id' => $id, 'centreid' => $centre->id]);
+            if (!$household || writeby::silent($household) || (int) $household->noinvites) {
+                continue;
+            }
+            $ways = writeby::chosen($household);
+            if ($ways !== null && !in_array('email', $ways, true)) {
+                continue;
+            }
+            $said = households::permissions((int) $household->id);
+            $adults = [];
+            foreach (households::full($household)->adults as $adult) {
+                if (trim((string) $adult->email) !== '' && !array_key_exists('email', $said[$adult->id] ?? [])) {
+                    $adults[] = (int) $adult->id;
+                }
+            }
+            if ($adults) {
+                $out[(int) $id] = [$household, $adults];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * The addresses of the centre itself: those of its team and the ones of its own domain (never a public one, as gmail.com).
+     *
+     * @param \stdClass $centre
+     * @return array domains and emails, lowercase.
+     */
+    public static function centre_addresses(\stdClass $centre): array {
+        $emails = [];
+        $domains = [];
+        foreach ([(string) ($centre->email ?? ''), (string) ($centre->emailsettled ?? '')] as $email) {
+            $email = \core_text::strtolower(trim($email));
+            if ($email === '' || strpos($email, '@') === false) {
+                continue;
+            }
+            $emails[] = $email;
+            $domain = substr($email, strrpos($email, '@') + 1);
+            // A public provider, or a domain kept for examples, is never the centre's own.
+            if (!in_array($domain, emailcheck::DOMAINS, true) && !mail::reserved($email)) {
+                $domains[] = $domain;
+            }
+        }
+        foreach (centres::members((int) $centre->id) as $member) {
+            if (trim((string) $member->email) !== '') {
+                $emails[] = \core_text::strtolower(trim((string) $member->email));
+            }
+        }
+        return ['domains' => array_values(array_unique($domains)), 'emails' => array_values(array_unique($emails))];
+    }
+
+    /**
+     * Whether an address is of the centre itself: one of its team, or of its domain or one under it.
+     *
+     * @param string $email
+     * @param array $own From centre_addresses().
+     * @return bool
+     */
+    public static function of_centre_address(string $email, array $own): bool {
+        $email = \core_text::strtolower(trim($email));
+        if (in_array($email, $own['emails'], true)) {
+            return true;
+        }
+        $domain = substr($email, (int) strrpos($email, '@') + 1);
+        foreach ($own['domains'] as $mine) {
+            if ($domain === $mine || substr($domain, -strlen('.' . $mine)) === '.' . $mine) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Where the letter of a family goes: the address it would get mail at, but never one of the centre itself nor one whose
+     * mail comes back; empty if it has no other.
+     *
+     * @param \stdClass $household
+     * @param \stdClass $centre
+     * @return string
+     */
+    public static function letter_address(\stdClass $household, \stdClass $centre): string {
+        $own = self::centre_addresses($centre);
+        $adults = households::full($household)->adults;
+        $failing = bounces::failing(array_keys($adults));
+        $permissions = households::permissions((int) $household->id);
+        $first = '';
+        foreach ($adults as $adult) {
+            $email = trim((string) $adult->email);
+            if ($email === '' || isset($failing[(int) $adult->id]) || self::of_centre_address($email, $own)) {
+                continue;
+            }
+            if (!empty($permissions[$adult->id]['email'])) {
+                return $email;
+            }
+            $first = $first ?: $email;
+        }
+        return $first;
     }
 
     /**
@@ -1082,7 +1270,8 @@ class invites {
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
             // The letter may be passed on: its link opens the page of the act and nothing else.
             $token = households::new_link($household, 'letter');
-            if (!familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token, null, $words)) {
+            $to = self::letter_address($household, $centre);
+            if ($to === '' || !familymail::send('openinvite', $household, $centre, $pseudo, $lang, $token, $to, $words)) {
                 continue;
             }
             if ($row) {
@@ -1118,7 +1307,8 @@ class invites {
         }
         $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
         $token = households::new_link($household, 'letter');
-        if (!familymail::send('openinvite', $household, $centre, self::of_letter($event), $lang, $token)) {
+        $to = self::letter_address($household, $centre);
+        if ($to === '' || !familymail::send('openinvite', $household, $centre, self::of_letter($event), $lang, $token, $to)) {
             return false;
         }
         households::told($household, 0, 'email', get_string('invite_note_again', self::C, format_string($event->name)), true);

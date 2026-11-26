@@ -501,6 +501,8 @@ class panel_event {
         $bulk = invites::last_bulk((int) $event->id);
         $state = invites::state($bulk);
         [$left, $next] = invites::on_the_way((int) $event->id);
+        $paused = count(invites::paused((int) $event->id));
+        $pausedtext = get_string($paused === 1 ? 'panel_invite_paused_one' : 'panel_invite_paused', self::C, $paused);
         return [
             // What Marandu says of the last send by phone, in its own words: waiting, approved, turned down and why.
             'said' => $state ? (string) ($state['said'] ?? '') : '',
@@ -510,6 +512,8 @@ class panel_event {
             'skipped' => invites::skipped((int) $event->id),
             'going' => $left ? ['text' => self::invite_left($left, invites::last_at($left, max($now, $next)), $now),
                 'stop' => $canact] : false,
+            // Stopped before it reached everyone: it goes on from where it was.
+            'paused' => !$left && $paused ? ['text' => $pausedtext, 'resume' => $canact] : false,
             'notice' => invites::said((int) $event->id),
             'posturl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
@@ -691,7 +695,11 @@ class panel_event {
         if ($done) {
             $text[] = get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', $c, $done);
         }
+        // Those left out only for never saying yes to email: a person who knows they left their contact gives it here.
+        $nopermission = $canact ? count(invites::permittable($event, $centre)) : 0;
+        $permittext = get_string($nopermission === 1 ? 'invite_permit_one' : 'invite_permit', $c, $nopermission);
         return self::invite_state($event, $canact, $now) + [
+            'permit' => $nopermission ? ['text' => $permittext] : false,
             'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
                 'name' => format_string($event->name)],
             'title' => get_string('panel_invite_to', $c, panel::quote(format_string($event->name))),

@@ -24,10 +24,12 @@
     {
         "i": {"info": "", "enviado": ""}, "notice": {"text": "La carta se ha mandado a elena@example.com.", "error": false}, "posturl": "https://example.com/event.php", "sesskey": "abc",
         "going": {"text": "Quedan 3 cartas por salir. Las últimas, hoy a las 18:02.", "stop": true},
-        "said": "Espera a que la dirección lo apruebe.", "withdraw": {"bulk": 4}
+        "said": "Espera a que la dirección lo apruebe.", "withdraw": {"bulk": 4},
+        "paused": {"text": "La carta está parada: quedan 12 familias por recibirla.", "resume": true}
     }
 }}
 {{#notice}}<p class="aviso-suave invitar-estado{{#error}} con-error{{/error}}" role="{{#error}}alert{{/error}}{{^error}}status{{/error}}" data-aviso>{{{i.info}}}<span>{{text}}</span></p>{{/notice}}
 {{#going}}<div class="aviso-suave invitar-estado">{{{i.enviado}}}<span>{{text}}</span>{{#stop}}<form method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="invitestop"><button class="boton secundario pequeno" type="submit">{{#str}}panel_invite_stop, local_oksigeniaeguahe{{/str}}</button></form>{{/stop}}</div>{{/going}}
+{{#paused}}<div class="aviso-suave invitar-estado">{{{i.info}}}<span>{{text}}</span>{{#resume}}<form method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="inviteresume"><button class="boton principal pequeno" type="submit">{{#str}}panel_invite_resume, local_oksigeniaeguahe{{/str}}</button></form>{{/resume}}</div>{{/paused}}
 {{#said}}<div class="aviso-suave invitar-estado">{{{i.info}}}<span>{{said}}</span>{{#withdraw}}<form method="post" action="{{posturl}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="withdraw"><input type="hidden" name="bulk" value="{{bulk}}"><button class="boton secundario pequeno" type="submit">{{#str}}panel_invite_withdraw, local_oksigeniaeguahe{{/str}}</button></form>{{/withdraw}}</div>{{/said}}
 {{#skipped}}<div class="aviso-suave invitar-estado">{{{i.info}}}<details><summary>{{text}}</summary><ul class="repaso-nombres">{{#names}}<li><a href="{{url}}">{{name}}</a> <span class="secundario">{{note}}</span></li>{{/names}}</ul></details></div>{{/skipped}}
