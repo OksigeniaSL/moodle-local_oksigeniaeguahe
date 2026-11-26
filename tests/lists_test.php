@@ -20,6 +20,8 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\imports;
 use local_oksigeniaeguahe\local\listhomes;
 use local_oksigeniaeguahe\local\listnews;
+use local_oksigeniaeguahe\local\liststudents;
+use local_oksigeniaeguahe\local\grades;
 use local_oksigeniaeguahe\local\metrics;
 use local_oksigeniaeguahe\local\pseudonym;
 
@@ -331,5 +333,35 @@ final class lists_test extends \advanced_testcase {
         $said = imports::preview($this->csv($rows), 'lista.csv', [0 => 'roll'], $cid)[0]['shared'];
         $this->assertSame([['699000002', 6, true], ['699000001', 2, false]], array_map(fn($s) => [$s['value'], $s['students'],
             $s['never']], $said));
+    }
+
+    /**
+     * Two students of different courses under one key in one list (a list before had made them one): each gets its own, and the
+     * one whose other years fit its course keeps it. A row written twice stays as it is.
+     */
+    public function test_one_a_year(): void {
+        global $DB;
+        $cid = $this->centre();
+        $rows = $this->rows(22);
+        $rows[0][2] = '1º Primaria';
+        $rows[1][2] = '3º Primaria';
+        $this->night($cid, $rows);
+        $list = array_values($DB->get_records(metrics::STUDENTS, ['centreid' => $cid], 'id ASC'));
+        [$young, $old, $other] = [$list[0], $list[1], $list[2]];
+        $token = $old->student;
+        $DB->set_field(metrics::STUDENTS, 'student', $token, ['id' => $young->id]);
+        // The year before, the one in 3.º was in 2.º.
+        $DB->insert_record(metrics::STUDENTS, (object) ['centreid' => $cid, 'importid' => $old->importid + 100, 'student' => $token,
+            'schoolyear' => '2025-26', 'grade' => grades::label($cid, '2º Primaria'), 'movement' => 'roll']);
+        // And a row written twice.
+        $copy = clone $other;
+        unset($copy->id);
+        $DB->insert_record(metrics::STUDENTS, $copy);
+
+        $this->assertSame(1, liststudents::one_a_year($cid));
+        $this->assertSame($token, $DB->get_field(metrics::STUDENTS, 'student', ['id' => $old->id]));
+        $this->assertNotSame($token, $DB->get_field(metrics::STUDENTS, 'student', ['id' => $young->id]));
+        $this->assertSame(2, $DB->count_records(metrics::STUDENTS, ['student' => $other->student]));
+        $this->assertSame(0, liststudents::one_a_year($cid));
     }
 }

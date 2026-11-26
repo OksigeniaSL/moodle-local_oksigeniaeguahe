@@ -175,6 +175,8 @@ class imports {
      */
     public static function settle(int $centreid): void {
         global $DB;
+        // Never two students under one key in one list, whatever a list before had joined.
+        liststudents::one_a_year($centreid);
         $shared = listhomes::settle($centreid);
         foreach ($DB->get_records(self::T, ['centreid' => $centreid], '', 'id, info') as $import) {
             [$never, $doubt] = $shared[$import->id] ?? [0, 0];

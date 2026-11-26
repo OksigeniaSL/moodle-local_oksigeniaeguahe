@@ -256,12 +256,84 @@ class liststudents {
         if ($mine === null || $mine === $theirs) {
             return;
         }
-        $rows = $DB->get_records(self::T, ['centreid' => $centreid, 'student' => $old], 'id ASC', 'id, grade, schoolyear');
+        $rows = $DB->get_records(self::T, ['centreid' => $centreid, 'student' => $old], 'id ASC', 'id, importid, grade, schoolyear');
+        // Where the one that leaves already has its row, a row of the same age is another student of its course.
+        $has = [];
+        foreach ($DB->get_records(self::T, ['centreid' => $centreid, 'student' => $token], '', 'id, importid, schoolyear') as $one) {
+            $has[$one->importid . '|' . $one->schoolyear] = true;
+        }
         foreach ($rows as $one) {
             $age = grades::age((string) $one->grade, $centre);
-            if ($age !== null && $age + (int) substr($row['year'], 0, 4) - (int) substr((string) $one->schoolyear, 0, 4) === $mine) {
+            $where = $one->importid . '|' . $one->schoolyear;
+            if (
+                $age !== null && !isset($has[$where]) &&
+                $age + (int) substr($row['year'], 0, 4) - (int) substr((string) $one->schoolyear, 0, 4) === $mine
+            ) {
                 $DB->set_field(self::T, 'student', $token, ['id' => $one->id]);
+                $has[$where] = true;
             }
         }
+    }
+
+    /**
+     * One row of a student in each list: two rows of the same list and year with one key are two students, whatever made them
+     * one before (a namesake, two that were put together). The one that fits the course of its other years keeps the key, and
+     * each of the others gets its own. A row written twice (the same course and year of birth) is left as it is.
+     *
+     * @param int $centreid
+     * @return int How many rows got a key of their own.
+     */
+    public static function one_a_year(int $centreid): int {
+        global $DB;
+        $twice = $DB->get_records_sql(
+            'SELECT MIN(id) AS id, importid, schoolyear, student
+               FROM {' . self::T . '}
+              WHERE centreid = ?
+           GROUP BY importid, schoolyear, student
+             HAVING COUNT(1) > 1',
+            [$centreid]
+        );
+        if (!$twice) {
+            return 0;
+        }
+        $centre = centres::get($centreid) ?: null;
+        $split = 0;
+        foreach ($twice as $pair) {
+            $all = $DB->get_records(
+                self::T,
+                ['centreid' => $centreid, 'student' => $pair->student],
+                'id ASC',
+                'id, importid, schoolyear, grade, birthyear'
+            );
+            $here = array_filter($all, fn($r) => (int) $r->importid === (int) $pair->importid && $r->schoolyear === $pair->schoolyear);
+            $others = array_diff_key($all, $here);
+            $year = (int) substr((string) $pair->schoolyear, 0, 4);
+            $fits = function (\stdClass $r) use ($others, $centre, $year): int {
+                $age = grades::age((string) $r->grade, $centre);
+                $n = 0;
+                foreach ($others as $o) {
+                    $theirs = grades::age((string) $o->grade, $centre);
+                    $n += (int) ($age !== null && $theirs !== null &&
+                        $theirs + $year - (int) substr((string) $o->schoolyear, 0, 4) === $age);
+                }
+                return $n;
+            };
+            $keep = null;
+            $best = -1;
+            foreach ($here as $r) {
+                if ($fits($r) > $best) {
+                    [$keep, $best] = [$r, $fits($r)];
+                }
+            }
+            foreach ($here as $r) {
+                $same = $r->grade === $keep->grade && (!(int) $r->birthyear || !(int) $keep->birthyear ||
+                    (int) $r->birthyear === (int) $keep->birthyear);
+                if ((int) $r->id !== (int) $keep->id && !$same) {
+                    $DB->set_field(self::T, 'student', pseudonym::newstudent(), ['id' => $r->id]);
+                    $split++;
+                }
+            }
+        }
+        return $split;
     }
 }

@@ -6771,6 +6771,7 @@ $string['twice_note'] = 'The same child was here twice: “{$a->one}” and “{
 $string['twice_pair'] = '“{$a->one}” ({$a->onewas}) and “{$a->other}” ({$a->otherwas})';
 $string['twice_same'] = 'Same child';
 $string['twice_title'] = 'This may be the same child twice';
+$string['twice_told_child'] = 'The other line said of {$a->name}: {$a->way}.';
 $string['twice_top'] = 'This record may have the same child twice.';
 $string['twice_undo'] = 'Undo';
 $string['twice_undone'] = 'They are two lines again.';

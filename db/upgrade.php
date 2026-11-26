@@ -2346,5 +2346,16 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026122966, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026122967) {
+        // Two students of different courses under one key in one list: each with its own.
+        foreach ($DB->get_fieldset_select('local_oksigeniaeguahe_centre', 'id', '1 = 1') as $centreid) {
+            \local_oksigeniaeguahe\local\liststudents::one_a_year((int) $centreid);
+        }
+        // The same child written twice in one file before the names were matched as they came in: put together now, each with
+        // its line in the history and a month to undo it.
+        \local_oksigeniaeguahe\local\lookalike::join_all_twice();
+        upgrade_plugin_savepoint(true, 2026122967, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

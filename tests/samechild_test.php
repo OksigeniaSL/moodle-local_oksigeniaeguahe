@@ -146,6 +146,10 @@ final class samechild_test extends \advanced_testcase {
         }
         $this->assertSame(1, $DB->count_records(households::CHILDREN, ['householdid' => $h->id]));
         $this->assertSame(2, $DB->count_records(lookalike::TWICE, ['householdid' => $h->id]));
+        // All of them at once, as the update does.
+        [$other] = $this->file([['Dafne', 0, 'visit', ''], ['Dafne Cano', 0, 'inquiry', ''], ['Leo', 0, 'inquiry', '']]);
+        $this->assertSame(1, lookalike::join_all_twice());
+        $this->assertSame(2, $DB->count_records(households::CHILDREN, ['householdid' => $other->id]));
         households::erase($h);
         $this->assertSame(0, $DB->count_records(lookalike::TWICE, ['householdid' => $h->id]));
     }

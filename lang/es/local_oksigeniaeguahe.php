@@ -6771,6 +6771,7 @@ $string['twice_note'] = 'El mismo niño estaba dos veces: «{$a->one}» y «{$a-
 $string['twice_pair'] = '«{$a->one}» ({$a->onewas}) y «{$a->other}» ({$a->otherwas})';
 $string['twice_same'] = 'Es el mismo';
 $string['twice_title'] = 'Puede ser el mismo niño dos veces';
+$string['twice_told_child'] = 'La otra línea decía de {$a->name}: {$a->way}.';
 $string['twice_top'] = 'En esta ficha puede estar dos veces el mismo niño.';
 $string['twice_undo'] = 'Deshacer';
 $string['twice_undone'] = 'Vuelven a ser dos líneas.';

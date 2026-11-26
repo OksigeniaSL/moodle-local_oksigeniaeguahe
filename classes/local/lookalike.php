@@ -392,7 +392,7 @@ class lookalike {
         $told = [];
         $short = trim((string) $keep->firstname);
         $long = trim((string) $gone->firstname);
-        self::one_child($keep, $gone, $years, $log, $told);
+        self::one_child($keep, $gone, $years, $log, $told, 'twice_told_child');
         if (\core_text::strlen($long) > \core_text::strlen($short) && households::same_name($short, $long)) {
             self::change($log, households::CHILDREN, $keep, ['firstname' => $long] +
                 (trim((string) $keep->tagname) === '' ? ['tagname' => $short] : []));
@@ -434,6 +434,33 @@ class lookalike {
         who::reset();
         $transaction->allow_commit();
         return true;
+    }
+
+    /**
+     * Every child written down twice in one file, in every centre, put together as its file proposes, a pair at a time.
+     *
+     * @param int $userid Who says so; 0, Eguahe.
+     * @return int How many pairs.
+     */
+    public static function join_all_twice(int $userid = 0): int {
+        global $DB;
+        $ids = $DB->get_fieldset_sql(
+            'SELECT householdid FROM {' . households::CHILDREN . '} GROUP BY householdid HAVING COUNT(1) > 1'
+        );
+        $done = 0;
+        foreach ($ids as $id) {
+            $household = $DB->get_record(households::T, ['id' => $id]);
+            if (!$household) {
+                continue;
+            }
+            for ($round = 0; $round < 10 && ($found = self::twice($household)); $round++) {
+                if (!self::join_twice($household, (int) $found[0][0]->id, (int) $found[0][1]->id, $userid)) {
+                    break;
+                }
+                $done++;
+            }
+        }
+        return $done;
     }
 
     /**
@@ -1254,8 +1281,16 @@ class lookalike {
      * @param array $years Offer id => its school year.
      * @param array $log
      * @param string[] $told What could not be there twice, in lines.
+     * @param string $said The string that says what the other line had.
      */
-    protected static function one_child(\stdClass $match, \stdClass $child, array $years, array &$log, array &$told): void {
+    protected static function one_child(
+        \stdClass $match,
+        \stdClass $child,
+        array $years,
+        array &$log,
+        array &$told,
+        string $said = 'lookalike_told_child'
+    ): void {
         global $DB;
         $fill = ['timemodified' => time()];
         foreach (['firstname', 'birthdate', 'tagname', 'latinname', 'familychild', 'startyear'] as $field) {
@@ -1282,7 +1317,7 @@ class lookalike {
             ((int) $loser->offerid && (int) $loser->offerid !== (int) ($fill['offerid'] ?? $match->offerid)) ||
                 $loser->stage !== $winner->stage || (int) $loser->lefttime !== (int) $winner->lefttime
         ) {
-            $told[] = get_string('lookalike_told_child', self::C, (object) ['name' => panel::tag($match) ?: panel::tag($child) ?: '—',
+            $told[] = get_string($said, self::C, (object) ['name' => panel::tag($match) ?: panel::tag($child) ?: '—',
                 'way' => self::way_words($loser)]);
         }
         $log['samechildren'][] = ['into' => (int) $match->id, 'id' => (int) $child->id] + (array) $child;
