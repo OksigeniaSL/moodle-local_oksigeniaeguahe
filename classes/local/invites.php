@@ -132,8 +132,12 @@ class invites {
             '',
             'id, householdid'
         );
+        // An address whose mail comes back gets no letter until a person says the right one.
+        $failing = bounces::failing(array_keys($adults));
         foreach ($adults as $adult) {
-            $emails[$adult->householdid] = true;
+            if (!isset($failing[(int) $adult->id])) {
+                $emails[$adult->householdid] = true;
+            }
         }
         $done = array_flip(array_merge(
             $DB->get_fieldset_select(
@@ -1095,6 +1099,33 @@ class invites {
     }
 
     /**
+     * The letter of an act once more to a family that had it and did not get it (its mail came back, and now it has the right
+     * address): only while the act is to come and the family still lets the centre write to it.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $household
+     * @return bool Whether it went.
+     */
+    public static function send_again(\stdClass $event, \stdClass $household): bool {
+        global $DB;
+        $centre = centres::get((int) $household->centreid);
+        if (
+            !$centre || (int) $event->centreid !== (int) $centre->id || !self::fits($event, time()) || (int) $household->noinvites ||
+                !writeby::may_send($household, 'openinvite') || !self::by_mail($household, $centre, familymail::may_email($household)) ||
+                $DB->record_exists(events::SIGNUPS, ['eventid' => $event->id, 'householdid' => $household->id])
+        ) {
+            return false;
+        }
+        $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
+        $token = households::new_link($household, 'letter');
+        if (!familymail::send('openinvite', $household, $centre, self::of_letter($event), $lang, $token)) {
+            return false;
+        }
+        households::told($household, 0, 'email', get_string('invite_note_again', self::C, format_string($event->name)), true);
+        return true;
+    }
+
+    /**
      * Why the letter of an act did not go to a family it was queued for.
      *
      * @param \stdClass $event
@@ -1232,6 +1263,22 @@ class invites {
                 'reply' => $reply, 'replied' => $now]);
         }
         return true;
+    }
+
+    /**
+     * How the letter of an act is going, in numbers: sent, on their way, back, opened, and who comes and who does not.
+     *
+     * @param int $eventid
+     * @return int[] sent, queued, bounced, opened, yes and no.
+     */
+    public static function tally(int $eventid): array {
+        global $DB;
+        $rows = $DB->get_records_select(self::T, 'eventid = ? AND ' . households::NOTSAMPLE, [$eventid], '', 'id, opened, reply');
+        [$queued] = self::on_the_way($eventid);
+        return ['sent' => count($rows), 'queued' => $queued, 'bounced' => count(bounces::of_act($eventid)),
+            'opened' => count(array_filter($rows, fn($r) => (int) $r->opened || (string) $r->reply !== '')),
+            'yes' => count(array_filter($rows, fn($r) => $r->reply === 'yes')),
+            'no' => count(array_filter($rows, fn($r) => $r->reply === 'no'))];
     }
 
     /**

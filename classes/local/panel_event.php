@@ -532,11 +532,17 @@ class panel_event {
         $can = count(invites::eligible($event));
         $any = $can || invites::of_centre($event);
         $done = invites::count((int) $event->id);
+        $tally = [];
+        foreach ($done ? invites::tally((int) $event->id) : [] as $key => $n) {
+            $tally[] = ['key' => $key, 'n' => $n, 'label' => get_string('panel_tally_' . $key, self::C)];
+        }
         return self::invite_state($event, $canact, $now) + [
             'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
                 get_string('panel_invite_noone', self::C),
             'done' => $done ? get_string($done === 1 ? 'panel_invite_done_one' : 'panel_invite_done', self::C, $done) : '',
             'replies' => self::replies($event, $now),
+            'tally' => $tally,
+            'hastally' => (bool) $tally,
             'url' => $any && $canact ? (new \moodle_url(
                 '/local/oksigeniaeguahe/event.php',
                 ['id' => $event->id, 'invitar' => 1]
@@ -558,7 +564,10 @@ class panel_event {
         if (!array_filter($all)) {
             return false;
         }
-        $people = households::some((int) $event->centreid, array_keys($all['yes'] + $all['no'] + $all['opened'] + $all['none']));
+        // Those whose letter came back, to call: by name, first.
+        $back = array_fill_keys(bounces::of_act((int) $event->id), 0);
+        $all = ['bounced' => $back] + $all;
+        $people = households::some((int) $event->centreid, array_keys($back + $all['yes'] + $all['no'] + $all['opened'] + $all['none']));
         $groups = [];
         foreach ($all as $key => $list) {
             $rows = [];
@@ -567,12 +576,13 @@ class panel_event {
                     $when = $time ? panel::when_words($time, $now) : '';
                     $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $key === 'none' && $when !== '' ?
                         get_string('panel_replies_sent', $c, $when) : $when,
-                        'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id]))->out(false)];
+                        'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id], $key === 'bounced' ?
+                            'correo-devuelto' : null))->out(false)];
                 }
             }
             if ($rows) {
                 $groups[] = ['key' => $key, 'name' => get_string('panel_replies_' . $key, $c), 'n' => count($rows), 'rows' => $rows,
-                    'open' => in_array($key, ['yes', 'no'], true)];
+                    'open' => in_array($key, ['bounced', 'yes', 'no'], true)];
             }
         }
         return $groups ? ['groups' => $groups] : false;

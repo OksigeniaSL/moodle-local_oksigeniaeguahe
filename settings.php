@@ -74,6 +74,20 @@ if ($hassiteconfig) {
             '',
             PARAM_URL
         ));
+        // The mail that comes back, read in the mailbox of the outgoing mail of the site (bounces).
+        $settings->add(new admin_setting_configcheckbox(
+            'local_oksigeniaeguahe/bounces',
+            get_string('bounces', 'local_oksigeniaeguahe'),
+            get_string('bounces_desc', 'local_oksigeniaeguahe') . \local_oksigeniaeguahe\local\bounces::last_words(),
+            1
+        ));
+        $settings->add(new admin_setting_configtext(
+            'local_oksigeniaeguahe/bounceshost',
+            get_string('bounceshost', 'local_oksigeniaeguahe'),
+            get_string('bounceshost_desc', 'local_oksigeniaeguahe'),
+            '',
+            PARAM_HOST
+        ));
         // The chats of the centre that show the family beside a conversation (chat.php, a dashboard app of Chatwoot).
         $settings->add(new admin_setting_configtextarea(
             'local_oksigeniaeguahe/chatorigins',

@@ -1302,5 +1302,35 @@
         <INDEX NAME="householdid" UNIQUE="false" FIELDS="householdid"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_bounce" COMMENT="An address of an adult whose mail came back, with why and what did not arrive, and what a person heard when calling">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="adultid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="emailkey" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="sha1 of the address that came back, to know when it changed"/>
+        <FIELD NAME="kind" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="gone" SEQUENCE="false" COMMENT="gone (it does not exist), full (the mailbox is full) or refused"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="12" NOTNULL="false" SEQUENCE="false" COMMENT="The code of the server, as 5.1.1"/>
+        <FIELD NAME="diag" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="What the server said"/>
+        <FIELD NAME="what" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The subject of what did not arrive"/>
+        <FIELD NAME="sent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When what did not arrive was sent"/>
+        <FIELD NAME="timebounced" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The last time it came back"/>
+        <FIELD NAME="times" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="How many times it came back"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="10" NOTNULL="true" DEFAULT="open" SEQUENCE="false" COMMENT="open, noanswer, fixed, nomail or leave"/>
+        <FIELD NAME="tries" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Calls nobody answered"/>
+        <FIELD NAME="saidby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who said the state"/>
+        <FIELD NAME="timesaid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="householdid" UNIQUE="false" FIELDS="householdid"/>
+        <INDEX NAME="adultid" UNIQUE="false" FIELDS="adultid, emailkey"/>
+        <INDEX NAME="centrestate" UNIQUE="false" FIELDS="centreid, state"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

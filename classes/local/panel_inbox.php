@@ -97,7 +97,8 @@ class panel_inbox {
                 $onlybirthdays ? array_keys($birthdays) : null, $onlysiblings ? array_keys($due) : null,
                 $onlyvolunteers ? $DB->get_fieldset_select(households::T, 'id', 'centreid = ? AND volunteer > 0', [$centreid]) :
                 null,
-                !empty($view['outs']) ? array_keys(outs::proposals($centreid, $now)) : null, $numbers ? $numbers['ids'] : null] as $ids
+                !empty($view['outs']) ? array_keys(outs::proposals($centreid, $now)) : null, $numbers ? $numbers['ids'] : null,
+                !empty($view['bounced']) ? bounces::to_call($centreid) : null] as $ids
         ) {
             if ($ids !== null) {
                 $ids = array_map('intval', $ids);
@@ -398,6 +399,19 @@ class panel_inbox {
                 'short' => self::short('outs_inbox_title'),
                 'text' => $outs === 1 ? get_string('outs_inbox_one', $c) : get_string('outs_inbox', $c, $outs),
                 'url' => $url(['c' => $centreid, 'salidas' => 1]), 'link' => get_string('outs_inbox_see', $c), 'known' => false];
+        }
+        // The mail that comes back: to call those families and ask for the right address.
+        $tocall = bounces::to_call($centreid);
+        if ($tocall) {
+            $out[] = ['leaf' => false, 'blank' => false, 'title' => get_string('bounce_inbox_title', $c),
+                'short' => self::short('bounce_inbox_title'),
+                'text' => count($tocall) === 1 ? get_string('bounce_inbox_one', $c) : get_string('bounce_inbox_many', $c, count($tocall)),
+                'url' => count($tocall) === 1 ? (new \moodle_url(
+                    '/local/oksigeniaeguahe/household.php',
+                    ['id' => $tocall[0]],
+                    'correo-devuelto'
+                ))->out(false) : $url(['c' => $centreid, 'devueltos' => 1]),
+                'link' => get_string('bounce_inbox_see', $c), 'known' => false];
         }
         // The same family written down twice, from the families of the last half year: a person says if it is.
         $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);

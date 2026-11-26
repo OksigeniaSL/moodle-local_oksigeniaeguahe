@@ -339,6 +339,22 @@ if ($action && data_submitted() && confirm_sesskey()) {
             lookalike::distinct((int) $centre->id, (int) $household->id, required_param('other', PARAM_INT), (int) $USER->id);
             redirect(new moodle_url($url, [], 'misma-familia'));
             break;
+        case 'bounce':
+            // What a person heard when calling because the mail came back.
+            $done = \local_oksigeniaeguahe\local\bounces::say(
+                $household,
+                required_param('devuelto', PARAM_INT),
+                required_param('dijo', PARAM_ALPHA),
+                (int) $USER->id,
+                optional_param('correo', '', PARAM_RAW_TRIMMED)
+            );
+            redirect(
+                new moodle_url($url, [], 'quien-escribe'),
+                get_string($done ? 'bounce_done' : 'bounce_notdone', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
+            break;
         case 'twice':
             // A person says two lines of the file are the same child: they become one, with everything of both.
             $done = lookalike::join_twice($household, required_param('uno', PARAM_INT), required_param('otro', PARAM_INT), (int) $USER->id);

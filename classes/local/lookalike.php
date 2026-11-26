@@ -41,7 +41,7 @@ class lookalike {
     const MOVED = [households::CONSENTS, households::CONTACTS, households::LINKS, visits::REQUESTS, forms::ANSWERS,
         attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, entries::ARRIVALS, roster::T, events::T,
         renewal::T, listmatch::T, teamnotes::T, alumni::T, access::T, appointments::T,
-        notices::T, settle::T, ties::T, self::TWICE];
+        notices::T, settle::T, ties::T, self::TWICE, bounces::T];
 
     /** @var string Two lines of one household that a person said are the same child (joined, with what undoes it) or two. */
     const TWICE = 'local_oksigeniaeguahe_samechild';

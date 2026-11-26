@@ -2357,5 +2357,36 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026122967, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026122970) {
+        // The mail that comes back, by address, with why and what a person heard when calling.
+        $table = new xmldb_table('local_oksigeniaeguahe_bounce');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('adultid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('emailkey', XMLDB_TYPE_CHAR, '40', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('kind', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'gone');
+        $table->add_field('status', XMLDB_TYPE_CHAR, '12', null, null, null, null);
+        $table->add_field('diag', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('what', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('sent', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timebounced', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('times', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '1');
+        $table->add_field('state', XMLDB_TYPE_CHAR, '10', null, XMLDB_NOTNULL, null, 'open');
+        $table->add_field('tries', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('saidby', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timesaid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('householdid', XMLDB_INDEX_NOTUNIQUE, ['householdid']);
+        $table->add_index('adultid', XMLDB_INDEX_NOTUNIQUE, ['adultid', 'emailkey']);
+        $table->add_index('centrestate', XMLDB_INDEX_NOTUNIQUE, ['centreid', 'state']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026122970, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

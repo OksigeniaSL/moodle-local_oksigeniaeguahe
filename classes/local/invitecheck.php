@@ -29,7 +29,8 @@ class invitecheck {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] Why a family gets no letter, in the order it is said. */
-    const WHY = ['invited', 'signedup', 'centre', 'closed', 'silent', 'noinvites', 'noemail', 'nopermission', 'sameaddress'];
+    const WHY = ['invited', 'signedup', 'centre', 'closed', 'silent', 'noinvites', 'bounced', 'noemail', 'nopermission',
+        'sameaddress'];
 
     /**
      * The whole of it.
@@ -182,7 +183,20 @@ class invitecheck {
         $invited = array_flip($DB->get_fieldset_select(invites::T, 'householdid', 'eventid = ?', [$event->id])) + invites::queued((int) $event->id);
         $signed = array_flip($DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id]));
         $allowed = households::emailable($centreid);
-        $with = array_flip($DB->get_fieldset_select(households::ADULTS, 'householdid', "centreid = ? AND COALESCE(email, '') <> ''", [$centreid]));
+        $withemail = $DB->get_records_select_menu(
+            households::ADULTS,
+            "centreid = ? AND COALESCE(email, '') <> ''",
+            [$centreid],
+            '',
+            'id, householdid'
+        );
+        $with = array_flip($withemail);
+        // The families whose every address comes back.
+        $failing = bounces::failing(array_keys($withemail));
+        $back = [];
+        foreach ($withemail as $adultid => $householdid) {
+            $back[$householdid] = ($back[$householdid] ?? true) && isset($failing[(int) $adultid]);
+        }
         $stages = [];
         foreach ($DB->get_records(households::CHILDREN, ['centreid' => $centreid], 'id ASC', 'id, householdid, stage, lefttime') as $child) {
             $stages[$child->householdid][] = $child->stage === 'enrolled' && $child->lefttime ? 'left' : $child->stage;
@@ -206,6 +220,8 @@ class invitecheck {
                 $why = 'silent';
             } else if ((int) $household->noinvites) {
                 $why = 'noinvites';
+            } else if (!empty($back[$id])) {
+                $why = 'bounced';
             } else if (!isset($with[$id])) {
                 $why = 'noemail';
             } else {

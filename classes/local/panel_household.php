@@ -234,6 +234,7 @@ class panel_household {
             // The same family written down twice (the mother on one side, the father on the other), for a person to say.
             'lookalike' => lookalike::context($household, $canact),
             'twice' => lookalike::twice_context($household, $canact),
+            'bounces' => bounces::context($household, $full, $canact),
             // What the list of the centre says: the children it enrolled, a family of the centre, or which child it was.
             'fromlist' => listmatch::context($household, $full, $canact),
             // Two families joined by mistake, separated again by a person.

@@ -349,6 +349,28 @@ class households {
     }
 
     /**
+     * The right address of an adult, said by a person (after a call, because the mail came back).
+     *
+     * @param \stdClass $household
+     * @param int $adultid
+     * @param string $email
+     * @param int $userid
+     * @return bool
+     */
+    public static function set_adult_email(\stdClass $household, int $adultid, string $email, int $userid): bool {
+        global $DB;
+        $email = self::email($email);
+        $adult = $DB->get_record(self::ADULTS, ['id' => $adultid, 'householdid' => $household->id]);
+        if (!$adult || $email === null || $email === \core_text::strtolower(trim((string) $adult->email))) {
+            return false;
+        }
+        // Said by the team, not on its page: the page does not trust it for its codes until a week passes.
+        $DB->update_record(self::ADULTS, (object) ['id' => $adultid, 'email' => $email, 'emailpage' => 0, 'timemodified' => time()]);
+        alumni::match($household, (object) (['email' => $email] + (array) $adult));
+        return true;
+    }
+
+    /**
      * An adult a person of the team writes down in a family that was already there: what it did not say yet is written in
      * the one it is; another one with the phone of the home is another one; and what cannot be there twice stays in a note.
      *
@@ -978,6 +1000,10 @@ class households {
                 access::changed($household, $centre, $adult, $fields);
             }
         }
+        if ($changed) {
+            // An address that came back, changed by the family: said right, and what did not arrive goes again.
+            bounces::changed($household, 0);
+        }
         $lang = (string) ($household->lang ?: ($centre->lang ?? 'es'));
         $teamlang = (string) ($centre->lang ?? '') ?: current_language();
         $other = $clean($new);
@@ -1053,10 +1079,18 @@ class households {
      */
     public static function recipient(\stdClass $household): string {
         $permissions = self::permissions((int) $household->id);
+        $adults = self::full($household)->adults;
+        // An address whose mail comes back is the last choice.
+        $failing = bounces::failing(array_keys($adults));
         $first = '';
-        foreach (self::full($household)->adults as $adult) {
+        $last = '';
+        foreach ($adults as $adult) {
             $email = trim((string) $adult->email);
             if ($email === '') {
+                continue;
+            }
+            if (isset($failing[(int) $adult->id])) {
+                $last = $last ?: $email;
                 continue;
             }
             if (!empty($permissions[$adult->id]['email'])) {
@@ -1064,7 +1098,7 @@ class households {
             }
             $first = $first ?: $email;
         }
-        return $first;
+        return $first ?: $last;
     }
 
     /**
@@ -1563,6 +1597,7 @@ class households {
             'b' => $household->id]);
         $DB->delete_records(lookalike::LOG, ['householdid' => $household->id]);
         $DB->delete_records(lookalike::TWICE, ['householdid' => $household->id]);
+        $DB->delete_records(bounces::T, ['householdid' => $household->id]);
         $DB->delete_records(listmatch::T, ['householdid' => $household->id]);
         $DB->delete_records(teamnotes::T, ['householdid' => $household->id]);
         // What came through an entry stays only as a key without the family, so that sending the old answers again does
@@ -1686,6 +1721,7 @@ class households {
         // What was kept of files put together, when the file is gone.
         $DB->delete_records_select(lookalike::LOG, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         $DB->delete_records_select(lookalike::TWICE, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
+        $DB->delete_records_select(bounces::T, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         // The private links opened from the app of Aty (app.php) last two days: whoever wants the page again comes from
         // the app, which makes another.
         $DB->delete_records_select(self::LINKS, 'reason = ? AND timecreated < ?', ['app', $now - 2 * DAYSECS]);

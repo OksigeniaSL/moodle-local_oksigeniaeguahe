@@ -193,6 +193,8 @@ if ($data = $form->get_data()) {
                 households::write_down($household, $adult, (int) $USER->id);
             }
         }
+        // An address that came back, now changed: said right, and what did not arrive goes again.
+        \local_oksigeniaeguahe\local\bounces::changed($household, (int) $USER->id);
     } else {
         // The same family, if any of its adults was there already.
         $existing = null;

@@ -14919,6 +14919,64 @@ button.padron-pomo-no::after {
     cursor: pointer;
 }
 
+/* How the letter of an act is going: six numbers in a row, the ones back in the colour of a warning when there are some. */
+.carta-cuenta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin: 0 0 12px;
+    padding: 0;
+    list-style: none;
+}
+
+.carta-cuenta b {
+    font-size: 1.15em;
+}
+
+/* The mail of a family that comes back: each address with why, the phones to call, what to say and the four answers. */
+.correo-devuelto {
+    margin: 0 0 14px;
+}
+
+.devuelto-una + .devuelto-una {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.devuelto-llamar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+}
+
+.devuelto-frase {
+    margin: 8px 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--eg-hundido);
+}
+
+.devuelto-bueno {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 6px 10px;
+    margin: 8px 0 4px;
+}
+
+.devuelto-bueno label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 220px;
+}
+
+.devuelto-bueno input {
+    width: 100%;
+}
+
 /* Looking for another file to put together with this one: a row each; touched, what it does and its two ways out. */
 .juntar-una {
     margin: 0;
