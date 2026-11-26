@@ -125,6 +125,8 @@ class panel_centre {
             'calendar' => empty($centre->practice) ? ['ics' => teamcalendar::url($centre),
                 'script' => teamcalendar::script($centre)] + calsync::context($centre, time()) : false,
             'notify' => empty($centre->practice) ? self::notify($centre) : false,
+            // How the letters to the families go out: by the mail of the site, or by a service of its own.
+            'mailer' => empty($centre->practice) ? self::mailer($centre) : false,
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
             'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
@@ -872,6 +874,40 @@ class panel_centre {
     }
 
     /**
+     * The card of how the letters go out: the way chosen, what it needs, what the last trial said; never a secret.
+     *
+     * @param \stdClass $centre
+     * @return array
+     */
+    public static function mailer(\stdClass $centre): array {
+        $c = self::C;
+        $s = mailer::settings((int) $centre->id);
+        $kind = $s['kind'];
+        $kinds = [];
+        foreach (mailer::KINDS as $key) {
+            $kinds[] = ['key' => $key, 'name' => get_string('mailer_kind_' . $key, $c), 'pressed' => $key === $kind];
+        }
+        return [
+            'reading' => mailer::reading($centre),
+            'kinds' => $kinds,
+            'service' => $kind !== 'site' ? [
+                'from' => (string) $s['from'],
+                'fromname' => (string) $s['fromname'],
+                'smtp' => $kind === 'smtp' ? ['host' => (string) $s['host'], 'port' => (int) $s['port'], 'user' => (string) $s['user'],
+                    'haspass' => (string) $s['pass'] !== '', 'secures' => array_map(fn($one) => ['value' => $one,
+                    'name' => get_string('mailer_secure_' . $one, $c), 'selected' => $one === $s['secure']], mailer::SECURE)] : false,
+                'mailjet' => $kind === 'mailjet' ? ['key' => (string) $s['key'], 'hassecret' => (string) $s['secret'] !== '',
+                    'hook' => mailer::hook_url($centre)] : false,
+                'error' => !empty($s['on']) ? '' : (string) $s['error'],
+                'tested' => !empty($s['on']) && $s['tested'] ? get_string('mailer_tested', $c, userdate(
+                    (int) $s['tested'],
+                    get_string('strftimedatetimeshort', 'langconfig')
+                )) : '',
+            ] : false,
+        ];
+    }
+
+    /**
      * Saves everything that was posted, with the logo and the photos.
      *
      * @param \stdClass $centre
@@ -896,6 +932,27 @@ class panel_centre {
         }
         if (optional_param('calrefill', 0, PARAM_BOOL)) {
             calsync::refill($centre);
+        }
+        // How the letters go out: the way chosen, and what was written for it, tried with a letter to whoever saves it.
+        $kind = optional_param('mailerkind', '', PARAM_ALPHA);
+        if ($kind !== '' && empty($centre->practice)) {
+            mailer::choose($centre, $kind);
+        }
+        if (optional_param('mailersave', 0, PARAM_BOOL) && empty($centre->practice)) {
+            $said = mailer::save($centre, [
+                'from' => optional_param('mailerfrom', '', PARAM_RAW_TRIMMED),
+                'fromname' => optional_param('mailerfromname', '', PARAM_TEXT),
+                'host' => optional_param('mailerhost', '', PARAM_HOST),
+                'port' => optional_param('mailerport', 587, PARAM_INT),
+                'secure' => optional_param('mailersecure', 'tls', PARAM_ALPHA),
+                'user' => optional_param('maileruser', '', PARAM_RAW_TRIMMED),
+                'pass' => optional_param('mailerpass', '', PARAM_RAW),
+                'key' => optional_param('mailerkey', '', PARAM_ALPHANUMEXT),
+                'secret' => optional_param('mailersecret', '', PARAM_ALPHANUMEXT),
+            ], $USER);
+            if ($said !== '') {
+                $problems[] = $said;
+            }
         }
         // One person in or out of those who hear of each new family.
         $notify = optional_param('notifytoggle', 0, PARAM_INT);

@@ -18,7 +18,7 @@ namespace local_oksigeniaeguahe\local;
 
 /**
  * Emails to families, who are not users of Moodle: in their language, from the no-reply address of the site with the
- * name of the centre, and only what they asked for.
+ * name of the centre (or by the service of sending of the centre, mailer), and only what they asked for.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -77,6 +77,7 @@ class mail {
      * @param string $text
      * @param array $images A list of data, cid, name, mime.
      * @param string $unsubscribe The address of unsubscribing with one click from the mail program, if the mail has one.
+     * @param string $way By which way (mailer::KINDS), to try one; empty, the one of the centre.
      * @return bool Whether it was sent.
      */
     public static function send_rich(
@@ -86,9 +87,11 @@ class mail {
         string $html,
         string $text,
         array $images = [],
-        string $unsubscribe = ''
+        string $unsubscribe = '',
+        string $way = ''
     ): bool {
         global $CFG;
+        mailer::$last = '';
         if (!validate_email($email)) {
             return false;
         }
@@ -108,22 +111,29 @@ class mail {
             $subject = "[DIVERTED {$email}] {$subject}";
             $email = $CFG->divertallemailsto;
         }
-        $mail = get_mailer();
+        // By the service of the centre, when it has one at work; if not, by the mail of the site.
+        $way = $way !== '' ? $way : mailer::way($centre);
+        if ($way === 'mailjet') {
+            mailer::$last = mailer::by_api($centre, mailer::message($centre, $email, $subject, $html, $text, $images, $unsubscribe));
+            return mailer::$last === '';
+        }
+        $mail = $way === 'smtp' ? mailer::smtp($centre) : get_mailer();
         if (!$mail) {
             return false;
         }
-        $noreply = \core_user::get_noreply_user()->email;
-        $mail->Sender = $noreply;
-        $mail->From = $noreply;
-        $mail->FromName = str_replace(["\r", "\n", '"'], ' ', format_string($centre->name));
+        [$from, $fromname] = $way === 'smtp' ? mailer::from($centre) : [\core_user::get_noreply_user()->email,
+            str_replace(["\r", "\n", '"'], ' ', format_string($centre->name))];
+        $mail->Sender = $from;
+        $mail->From = $from;
+        $mail->FromName = $fromname;
         if (!empty($centre->email) && validate_email($centre->email)) {
             $mail->addReplyTo($centre->email, $mail->FromName);
         }
         $mail->addAddress($email);
-        // The prefix of the subject and the headers the site puts on all its mail, as Moodle does.
-        $prefix = trim((string) ($CFG->emailsubjectprefix ?? ''));
+        // The prefix of the subject and the headers the site puts on all its mail, as Moodle does; by a service, its own.
+        $prefix = $way === 'site' ? trim((string) ($CFG->emailsubjectprefix ?? '')) : '';
         $mail->Subject = str_replace(["\r", "\n"], ' ', ($prefix !== '' ? $prefix . ' ' : '') . $subject);
-        foreach (array_filter(array_map('trim', explode("\n", (string) ($CFG->emailheaders ?? '')))) as $header) {
+        foreach ($way === 'site' ? array_filter(array_map('trim', explode("\n", (string) ($CFG->emailheaders ?? '')))) : [] as $header) {
             $mail->addCustomHeader($header);
         }
         if ($unsubscribe !== '') {
@@ -144,8 +154,8 @@ class mail {
             $mail->addStringEmbeddedImage($image['data'], $image['cid'], $image['name'], 'base64', $image['mime']);
         }
         // Signed with the DKIM key of the site, as Moodle signs its own: without it, a site that signs its mail sends this
-        // one unsigned, and it may end in spam.
-        if (!empty($CFG->emaildkimselector)) {
+        // one unsigned, and it may end in spam. A service signs with its own.
+        if ($way === 'site' && !empty($CFG->emaildkimselector)) {
             $domain = substr((string) strrchr($mail->From, '@'), 1);
             $pempath = "{$CFG->dataroot}/dkim/{$domain}/{$CFG->emaildkimselector}.private";
             if ($domain !== '' && file_exists($pempath)) {
@@ -157,7 +167,12 @@ class mail {
                 $mail->DKIM_extraHeaders = $unsubscribe !== '' ? ['List-Unsubscribe', 'List-Unsubscribe-Post'] : [];
             }
         }
-        return (bool) $mail->send();
+        $sent = (bool) $mail->send();
+        if ($way === 'smtp') {
+            mailer::$last = $sent ? '' : \core_text::substr(clean_param((string) $mail->ErrorInfo, PARAM_TEXT), 0, 255);
+            $mail->smtpClose();
+        }
+        return $sent;
     }
 
     /**

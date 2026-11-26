@@ -63,7 +63,8 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script", "heard": true, "late": false, "state": "Las citas van a «Admisiones».", "emptied": "", "hascalendars": true, "calendars": [{"id": "a", "name": "Admisiones", "main": true, "behind": false, "color": 0}, {"id": "b", "name": "Secretaría", "main": false, "behind": true, "color": 1}]}, "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
+        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script", "heard": true, "late": false, "state": "Las citas van a «Admisiones».", "emptied": "", "hascalendars": true, "calendars": [{"id": "a", "name": "Admisiones", "main": true, "behind": false, "color": 0}, {"id": "b", "name": "Secretaría", "main": false, "behind": true, "color": 1}]}, "mailer": {"reading": "Con el correo del sitio.", "kinds": [{"key": "site", "name": "Con el correo del sitio", "pressed": false}, {"key": "mailjet", "name": "Mailjet", "pressed": true}], "service": {"from": "admisiones@example.com", "fromname": "", "smtp": false, "mailjet": {"key": "abc", "hassecret": true, "hook": "https://example.com/mailjet.php"}, "error": "", "tested": "Funciona: la prueba salió el 26/11/26."} },
+        "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
         "closedwords": "16 días cerrados por delante; el próximo, el martes 8 de diciembre de 2026.",
         "replyread": "Contestamos en 2 días laborables",
         "hastales": false, "libraries": [], "logo": "", "logodark": "", "logopngs": [], "logopngscript": "#", "logoplate": false, "familylight": false, "hasminiature": false, "guide": {"on": true, "picture": {"src": "#", "srcset": "#"}, "where": "Secretaría", "hello": "", "hellodefault": "¡Hola! Los acompaño en su visita."}, "miniatures": [{"area": "miniature", "url": "", "title": "El camino", "help": "Para la página de la familia."}], "initial": "C", "hanging": {"name": "Leo", "style": ""},
@@ -156,6 +157,7 @@
                 <li><a href="#aj-aspecto">{{#str}}panel_how_families_see_index, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}{{#lacks.contacto}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.contacto}}</a></li>
                 {{#calendar}}<li><a href="#aj-calendario">{{#str}}panel_cal_card, local_oksigeniaeguahe{{/str}}</a></li>{{/calendar}}
+                {{#mailer}}<li><a href="#aj-cartas">{{#str}}mailer_card, local_oksigeniaeguahe{{/str}}</a></li>{{/mailer}}
                 <li><a href="#aj-miniatura">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}{{#lacks.miniatura}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.miniatura}}</a></li>
                 <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pedir">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</a></li>
@@ -477,6 +479,47 @@
                 </div>
             </details>
             {{/calendar}}
+
+            {{! ===== How the letters to the families go out: the mail of the site, or a service of its own ===== }}
+            {{#mailer}}
+            <details class="apartado aj-plegado" id="aj-cartas">
+                <summary><h2 id="aj-cartas-t">{{#str}}mailer_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
+                    <span class="aj-lectura"><span>{{reading}}</span></span></summary>
+                <div class="aj-cuerpo">
+                    <p>{{#str}}mailer_lead, local_oksigeniaeguahe{{/str}}</p>
+                    <div class="segmentos" role="group" aria-label="{{#str}}mailer_card, local_oksigeniaeguahe{{/str}}">{{#kinds}}<button type="submit" name="mailerkind" value="{{key}}" formaction="{{action}}#aj-cartas" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{name}}</button>{{/kinds}}</div>
+                    {{#service}}
+                    <div class="cartas-servicio">
+                        <label for="c-cartas-de">{{#str}}mailer_from, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-de" type="email" name="mailerfrom" value="{{from}}" size="30" dir="ltr" autocomplete="off">
+                        <label for="c-cartas-nombre">{{#str}}mailer_fromname, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-nombre" type="text" name="mailerfromname" value="{{fromname}}" size="30" autocomplete="off" aria-describedby="c-cartas-nombre-a"><span class="ayuda" id="c-cartas-nombre-a">{{#str}}mailer_fromname_help, local_oksigeniaeguahe{{/str}}</span>
+                        {{#smtp}}
+                        <label for="c-cartas-host">{{#str}}mailer_host, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-host" type="text" name="mailerhost" value="{{host}}" size="30" dir="ltr" autocomplete="off">
+                        <label for="c-cartas-puerto">{{#str}}mailer_port, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-puerto" type="number" name="mailerport" value="{{port}}" min="1" max="65535" dir="ltr">
+                        <label for="c-cartas-seguro">{{#str}}mailer_secure, local_oksigeniaeguahe{{/str}}</label><select class="aj-hueco" id="c-cartas-seguro" name="mailersecure">{{#secures}}<option value="{{value}}"{{#selected}} selected{{/selected}}>{{name}}</option>{{/secures}}</select>
+                        <label for="c-cartas-usuario">{{#str}}mailer_user, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-usuario" type="text" name="maileruser" value="{{user}}" size="30" dir="ltr" autocomplete="off">
+                        <label for="c-cartas-clave">{{#str}}mailer_pass, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-clave" type="password" name="mailerpass" value="" size="30" dir="ltr" autocomplete="new-password"{{#haspass}} placeholder="{{#str}}mailer_kept, local_oksigeniaeguahe{{/str}}"{{/haspass}}>
+                        {{/smtp}}
+                        {{#mailjet}}
+                        <label for="c-cartas-api">{{#str}}mailer_key, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-api" type="text" name="mailerkey" value="{{key}}" size="34" dir="ltr" autocomplete="off">
+                        <label for="c-cartas-secreto">{{#str}}mailer_secret, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-cartas-secreto" type="password" name="mailersecret" value="" size="34" dir="ltr" autocomplete="new-password"{{#hassecret}} placeholder="{{#str}}mailer_kept, local_oksigeniaeguahe{{/str}}"{{/hassecret}}>
+                        {{#hook}}
+                        <div class="codigo-web cartas-gancho">
+                            <label for="c-cartas-gancho">{{#str}}mailer_hook, local_oksigeniaeguahe{{/str}}</label>
+                            <textarea id="c-cartas-gancho" readonly rows="2" spellcheck="false" dir="ltr">{{hook}}</textarea>
+                            <button class="boton secundario pequeno" type="button" data-copiar="{{hook}}" hidden>{{{i.copiar}}}{{#str}}panel_copy_link, local_oksigeniaeguahe{{/str}}</button>
+                            <span class="ayuda">{{#str}}mailer_hook_help, local_oksigeniaeguahe{{/str}}</span>
+                        </div>
+                        {{/hook}}
+                        {{/mailjet}}
+                    </div>
+                    <p class="ayuda">{{#str}}mailer_trial_help, local_oksigeniaeguahe{{/str}}</p>
+                    <p><button class="boton principal pequeno" type="submit" name="mailersave" value="1" formaction="{{action}}#aj-cartas">{{{i.check}}}{{#str}}mailer_save, local_oksigeniaeguahe{{/str}}</button></p>
+                    {{#error}}<p class="aviso-suave con-error" role="alert">{{{i.info}}}<span>{{error}}</span></p>{{/error}}
+                    {{#tested}}<p class="aviso-suave" role="status">{{{i.check}}}<span>{{tested}}</span></p>{{/tested}}
+                    {{/service}}
+                </div>
+            </details>
+            {{/mailer}}
 
             {{! ===== The miniature of the centre: the way in, drawn ===== }}
             <details class="apartado aj-plegado" id="aj-miniatura">

@@ -23561,6 +23561,44 @@ html {
     flex: 1 1 220px;
 }
 
+/* How the letters go out: each field beside its name; on a phone, under it. */
+.cartas-servicio {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 8px 12px;
+    align-items: center;
+    margin: 14px 0 8px;
+}
+
+.cartas-servicio > .ayuda {
+    grid-column: 2;
+    margin-top: -4px;
+}
+
+.cartas-servicio .cartas-gancho {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 6px;
+}
+
+#aj-cartas .segmentos {
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin-top: 10px;
+}
+
+@media (max-width: 560px) {
+    .cartas-servicio {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .cartas-servicio > .ayuda {
+        grid-column: 1;
+        margin-top: 0;
+    }
+}
+
 /* The letter by phone too: for how many, and, looked over, three boxes that always add up, why, and what it costs. */
 .invitar-telefono {
     display: block;
