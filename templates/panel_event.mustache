@@ -147,7 +147,7 @@
                 <h2>{{#str}}panel_invite_title, local_oksigeniaeguahe{{/str}}</h2>
                 <p>{{text}}</p>
                 {{#done}}<p class="secundario">{{done}}</p>{{/done}}
-                {{#hastally}}<ul class="carta-cuenta">{{#tally}}<li class="carta-{{key}}{{^n}} carta-cero{{/n}}">{{#url}}<a href="{{url}}">{{/url}}<b>{{n}}</b><span>{{label}}</span>{{#url}}</a>{{/url}}</li>{{/tally}}</ul>{{/hastally}}
+                {{#hastally}}<ul class="carta-cuenta">{{#tally}}<li class="carta-{{key}}{{^n}} carta-cero{{/n}}">{{#url}}<a href="{{url}}">{{/url}}<b>{{n}}</b><span>{{label}}</span>{{#url}}</a>{{/url}}</li>{{/tally}}</ul>{{/hastally}}{{#tallyways}}<p class="carta-vias">{{tallyways}}</p>{{/tallyways}}
                 {{> local_oksigeniaeguahe/panel_invite_state }}
                 {{#replies}}{{> local_oksigeniaeguahe/panel_replies }}{{/replies}}
                 {{#url}}<div><a class="boton principal" href="{{url}}">{{{i.correo}}}{{#str}}panel_invite_prepare, local_oksigeniaeguahe{{/str}}</a></div>{{/url}}

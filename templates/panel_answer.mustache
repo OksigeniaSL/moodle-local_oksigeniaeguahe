@@ -114,7 +114,7 @@
                     </table>
                 </div>
                 {{/table}}
-                {{#rates}}<ul class="qs-tasas">{{#rows}}<li class="qs-tasa{{#soon}} qs-tasa-pronto{{/soon}}"><span>{{name}}</span><b>{{pct}}</b><span class="qs-tasa-pista" aria-hidden="true">{{^soon}}<i style="--v: {{v}}"></i>{{/soon}}</span><small>{{line}}</small></li>{{/rows}}</ul>{{/rates}}
+                {{#rates}}<ul class="qs-tasas">{{#rows}}<li class="qs-tasa{{#soon}} qs-tasa-pronto{{/soon}}"><span>{{name}}</span><b>{{pct}}</b><span class="qs-tasa-pista" aria-hidden="true">{{^soon}}<i style="--v: {{v}}"></i>{{/soon}}</span><small>{{#parts}}<span>{{text}}</span>{{^last}} · {{/last}}{{/parts}}</small></li>{{/rows}}</ul>{{/rates}}
                 {{#def}}<p class="inf-def">{{def}}</p>{{/def}}
             </div>
             {{#note}}<aside class="qs-nota"><p>{{text}}</p>{{#url}}<a href="{{url}}">{{do}}</a>{{/url}}</aside>{{/note}}

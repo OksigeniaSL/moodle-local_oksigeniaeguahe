@@ -337,7 +337,7 @@ class panel_answers {
                 $table[] = ['name' => $row['name'], 'when' => '', 'url' => false, 'current' => false, 'cells' => [$cell($cols[0], 0),
                     $cell($cols[1], ''), $cell($cols[2], ''), $cell($cols[3], '')]];
                 $rates[] = ['name' => $row['name'], 'pct' => '', 'v' => 0, 'soon' => true,
-                    'line' => get_string('qs_letters_line_letters', $c, 0)];
+                    'parts' => [['text' => get_string('qs_letters_line_letters', $c, 0), 'last' => true]]];
                 continue;
             }
             $pct = $row['ripe'] ? panel_metrics::percent($row['ripeopened'], $row['ripe']) : '';
@@ -354,8 +354,14 @@ class panel_answers {
                 $row['half'] !== null ? get_string('qs_letters_line_half', $c, letters::lapse($row['half'])) : '',
                 get_string('qs_letters_line_yes', $c, $row['yes']),
             ]);
+            // Each datum whole: the line breaks only between them.
+            $line = array_values($line);
+            $parts = [];
+            foreach ($line as $i => $text) {
+                $parts[] = ['text' => $text, 'last' => $i === count($line) - 1];
+            }
             $rates[] = ['name' => $row['name'], 'pct' => $row['ripe'] ? $pct : get_string('qs_letters_soon', $c), 'v' => round($row['rate'], 3),
-                'soon' => !$row['ripe'], 'line' => implode(' · ', $line)];
+                'soon' => !$row['ripe'], 'parts' => $parts];
         }
         return ['table' => ['cols' => array_map(fn($col) => ['name' => get_string($col, $c)], $cols), 'rows' => $table],
             'rates' => ['rows' => $rates]];

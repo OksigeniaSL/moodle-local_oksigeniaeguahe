@@ -545,11 +545,15 @@ class panel_event {
         $any = $can || invites::of_centre($event);
         $done = invites::count((int) $event->id);
         $tally = [];
-        foreach ($done ? invites::tally((int) $event->id) : [] as $key => $n) {
+        $counted = $done ? invites::tally((int) $event->id) : [];
+        foreach (array_diff_key($counted, array_flip(['phone', 'viaemail', 'viaphone'])) as $key => $n) {
             // The ones back lead to their names, to call them.
             $tally[] = ['key' => $key, 'n' => $n, 'label' => get_string('panel_tally_' . $key, self::C),
                 'url' => $key === 'bounced' && $n ? '#devueltas' : ''];
         }
+        // By more than one way: a line below the tally, as in Numbers; the tally is the way of the letter.
+        $ways = isset($counted['phone']) ? get_string('panel_tally_ways', self::C, (object) ['phone' => $counted['phone'],
+            'viaphone' => $counted['viaphone'], 'viaemail' => $counted['viaemail']]) : '';
         return self::invite_state($event, $canact, $now, $phonecheck) + [
             'text' => $can ? get_string($can === 1 ? 'panel_invite_can_one' : 'panel_invite_can', self::C, $can) :
                 get_string('panel_invite_noone', self::C),
@@ -557,6 +561,7 @@ class panel_event {
             'replies' => self::replies($event, $now),
             'tally' => $tally,
             'hastally' => (bool) $tally,
+            'tallyways' => $ways,
             'url' => $any && $canact ? (new \moodle_url(
                 '/local/oksigeniaeguahe/event.php',
                 ['id' => $event->id, 'invitar' => 1]
@@ -669,8 +674,9 @@ class panel_event {
     }
 
     /**
-     * The letter of an act, also by phone, to the families that have it by mail and have said nothing yet: how many, and, when
-     * it is looked over, who by which way, what it costs and who approves it.
+     * The letter of an act, also by phone, to the families that have it by mail and have said nothing yet: for how many, and,
+     * when it is looked over, how many will get it, how many have no phone and how many cannot, which always add up; why;
+     * what it costs and who approves it.
      *
      * @param \stdClass $event
      * @param bool $check
@@ -680,46 +686,58 @@ class panel_event {
         $c = self::C;
         $centre = centres::get((int) $event->centreid);
         $too = $centre ? invites::phone_too($event, $centre) : null;
-        $n = $too ? count($too['households']) : 0;
-        if (!$n && !($too['waiting'] ?? 0)) {
+        $total = $too ? count($too['households']) + $too['waiting'] + $too['nophone'] + $too['notphone'] : 0;
+        if (!$total) {
             return false;
         }
         $see = new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id, 'telefono' => 1], 'invitar-telefono');
-        $out = ['text' => $n ? get_string($n === 1 ? 'panel_phonetoo_one' : 'panel_phonetoo', $c, $n) :
-            get_string($too['waiting'] === 1 ? 'panel_phonetoo_waiting_one' : 'panel_phonetoo_waiting', $c, $too['waiting']),
-            'url' => $n && !$check ? $see->out(false) : '', 'check' => false];
-        if ($check && $n) {
-            $lines = [];
-            $joined = $too['joined'];
-            $numbers = count($too['numbers']);
-            foreach (
-                [
-                    ['panel_phonetoo_joined', $joined],
-                    ['panel_phonetoo_numbers', $numbers],
-                    ['panel_phonetoo_waiting', $too['waiting']],
-                    ['panel_phonetoo_nophone', $too['nophone']],
-                    ['panel_phonetoo_notphone', $too['notphone']],
-                ] as [$key, $count]
-            ) {
-                if ($count) {
-                    $lines[] = ['text' => get_string($key . ($count === 1 ? '_one' : ''), $c, $count)];
-                }
-            }
-            $quote = invites::phone_quote($centre, $too);
-            if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
-                $lines[] = ['text' => get_string((int) $quote['whatsapp'] === 1 ? 'panel_invite_cost_one' : 'panel_invite_cost', $c, (object) [
-                    'n' => (int) $quote['whatsapp'], 'cost' => self::money($centre, (float) ($quote['cost'] ?? 0), (string) ($quote['currency'] ?? ''))])];
-            }
-            if ($quote && (int) ($quote['skipped'] ?? 0) > 0) {
-                $skipped = (int) $quote['skipped'];
-                $lines[] = ['text' => get_string($skipped === 1 ? 'panel_phonetoo_skipped_one' : 'panel_phonetoo_skipped', $c, $skipped)];
-            }
+        $out = ['title' => get_string('panel_phonetoo_title', $c),
+            'text' => get_string($total === 1 ? 'panel_phonetoo_for_one' : 'panel_phonetoo_for', $c, $total),
+            'url' => $check ? '' : $see->out(false), 'check' => false];
+        if (!$check) {
+            return $out;
+        }
+        $quote = invites::phone_quote($centre, $too);
+        $will = $quote ? (int) ($quote['whatsapp'] ?? 0) + (int) ($quote['whatsappfree'] ?? 0) + (int) ($quote['telegram'] ?? 0) : 0;
+        $cannot = $total - $will - $too['nophone'];
+        $why = [];
+        if ($too['nophone']) {
+            $why[] = ['text' => get_string('panel_phonetoo_why_nophone', $c)];
+        }
+        if ($too['waiting']) {
+            $why[] = ['text' => get_string('panel_phonetoo_why_waiting', $c)];
+        } else if ($too['households'] && !$will) {
+            // Not one of them reached: it is the messaging of the centre, never their numbers.
+            $why[] = ['text' => get_string('panel_phonetoo_why_off', $c)];
+        } else if ($quote && (int) ($quote['skipped'] ?? 0)) {
+            $why[] = ['text' => get_string('panel_phonetoo_why_cannot', $c)];
+        }
+        if ($too['notphone']) {
+            $key = $too['notphone'] === 1 ? 'panel_phonetoo_why_notphone_one' : 'panel_phonetoo_why_notphone';
+            $why[] = ['text' => get_string($key, $c, $too['notphone'])];
+        }
+        $lines = [];
+        if ($quote && (int) ($quote['whatsapp'] ?? 0) > 0) {
+            $lines[] = ['text' => get_string((int) $quote['whatsapp'] === 1 ? 'panel_invite_cost_one' : 'panel_invite_cost', $c, (object) [
+                'n' => (int) $quote['whatsapp'], 'cost' => self::money($centre, (float) ($quote['cost'] ?? 0), (string) ($quote['currency'] ?? ''))])];
+        }
+        if ($will) {
             $lines[] = ['text' => $quote && !empty($quote['approval']) ? get_string('panel_invite_approval', $c, implode(
                 ' · ',
                 array_map('strval', (array) ($quote['approvers'] ?? []))
             )) : get_string('panel_phonetoo_now', $c)];
-            $out['check'] = ['lines' => $lines, 'go' => get_string($n === 1 ? 'panel_phonetoo_go_one' : 'panel_phonetoo_go', $c, $n)];
         }
+        $out['check'] = [
+            'boxes' => [
+                ['key' => 'go', 'n' => $will, 'label' => get_string('panel_phonetoo_box_will', $c)],
+                ['key' => 'nophone', 'n' => $too['nophone'], 'label' => get_string('panel_phonetoo_box_nophone', $c)],
+                ['key' => 'cannot', 'n' => $cannot, 'label' => get_string('panel_phonetoo_box_cannot', $c)],
+            ],
+            'why' => $why,
+            'lines' => $lines,
+            'note' => get_string('panel_phonetoo_note', $c),
+            'go' => $will ? get_string($will === 1 ? 'panel_phonetoo_go_one' : 'panel_phonetoo_go', $c, $will) : '',
+        ];
         return $out;
     }
 

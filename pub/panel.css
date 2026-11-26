@@ -12050,6 +12050,10 @@ a.qs-barra:focus-visible .qs-barra-nombre {
     font-size: 0.875rem;
 }
 
+.qs-tasa small span {
+    white-space: nowrap;
+}
+
 @media (max-width: 40rem) {
     .qs-con-tasas .qs-tabla-caja {
         display: none;
@@ -23468,13 +23472,54 @@ html {
     flex: 1 1 220px;
 }
 
-/* The letter by phone too: what it is, and when it is looked over, by whom and what it costs. */
-.invitar-telefono > div > p {
-    margin: 0;
+/* The letter by phone too: for how many, and, looked over, three boxes that always add up, why, and what it costs. */
+.invitar-telefono {
+    display: block;
 }
 
-.invitar-telefono .repaso-nombres {
-    margin: 8px 0 12px;
+.invitar-telefono h3 {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0 0 6px;
+    font-size: 1rem;
+}
+
+.invitar-telefono > p {
+    margin: 0 0 10px;
+}
+
+.invitar-telefono .carta-cuenta {
+    margin-top: 10px;
+}
+
+/* On the sunken card, the boxes on paper: else they melt into it. */
+.invitar-telefono .carta-cuenta li {
+    background: var(--eg-papel);
+}
+
+.carta-go:not(.carta-cero) {
+    box-shadow: inset 0 0 0 2px var(--eg-tinta);
+}
+
+.invitar-telefono p.invitar-telefono-por {
+    margin: 0 0 6px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.invitar-telefono p.invitar-telefono-linea {
+    margin: 0 0 6px;
+}
+
+.invitar-telefono form {
+    margin-top: 10px;
+}
+
+.carta-vias {
+    margin: -6px 0 14px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
 }
 
 .invitar-estado.con-error,
