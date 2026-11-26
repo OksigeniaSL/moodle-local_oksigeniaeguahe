@@ -15104,6 +15104,40 @@ button.padron-pomo-no::after {
     box-shadow: inset 0 0 0 1.5px var(--eg-sello);
 }
 
+/* What is still to be set, at the top of the settings: the slips of «Para abrir las admisiones», each with the icon of
+   its card, the card and what it lacks, and the way to it; the first, with its button. */
+.aj-falta {
+    margin: 0 0 18px;
+}
+
+.aj-falta .abrir-cab {
+    margin-bottom: 2px;
+}
+
+.aj-falta-lead {
+    margin: 0 0 12px;
+    color: var(--eg-tinta-2);
+}
+
+.aj-falta .abrir-n .ic {
+    width: 16px;
+    height: 16px;
+}
+
+/* In the index, the cards that lack something: a dashed word, as what is still to do elsewhere. */
+.indice-falta {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 0 7px;
+    border: 1.5px dashed var(--eg-borde);
+    border-radius: 999px;
+    color: var(--eg-tinta-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.5;
+    vertical-align: 1px;
+}
+
 /* The mail of a family that comes back, read by someone on the phone: the stamp and what it is; each address with why;
    the phones as big numbers to dial; what to say, in a large letter, with the address in bold to spell it out; and, on
    hanging up, the right address or one of three answers, each saying what it does. */

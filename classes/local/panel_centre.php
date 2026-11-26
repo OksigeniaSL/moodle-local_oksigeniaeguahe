@@ -86,6 +86,7 @@ class panel_centre {
             $providers[] = ['value' => $id, 'name' => $provider, 'selected' => (int) $centre->aiprovider === $id];
         }
         $brand = centres::brand_colours((string) ($centre->brandcolours ?? ''));
+        $missing = self::missing($centre);
         return [
             // The families already at the centre: set up here, once, and not in «Who goes on».
             'roster' => roster::available() ? panel_renewal::settings_roster($centre, $picked) : false,
@@ -160,6 +161,11 @@ class panel_centre {
             'initial' => \core_text::strtoupper(\core_text::substr($name, 0, 1)),
             'hanging' => panel::hanging(0, get_string('panel_sample_tag', $c), '', $centre),
             'hosts' => self::hosts($centre),
+            // What is still to be set and shows, at the top of the page, each with the way to it.
+            'missing' => $missing,
+            // The cards that lack something, marked in the index.
+            'lacks' => $missing ? $missing['lacks'] : [],
+            'noplace' => empty($centre->handover) && trim((string) ($centre->handoverplace ?? '')) === '',
             // In a site shared by several centres, someone new gets an account from here.
             'newaccounts' => onlyeguahe::on(),
             'canadd' => empty($centre->practice),
@@ -310,6 +316,77 @@ class panel_centre {
             $key = 'panel_js_colour_ok';
         }
         return get_string($key, self::C);
+    }
+
+    /**
+     * What is still to be set in a centre and the families or Numbers would miss: nobody who receives them, how to get in,
+     * the miniature, who is responsible for their data, the places, the area, where they are taken once enrolled and when
+     * the campaign began. Each with the card it is set in, its icon and what it lacks. Nothing for a centre of practice or a
+     * demo.
+     *
+     * @param \stdClass $centre
+     * @return array|false items (name, what, icon, url, go, first), n, and lacks (the cards that lack something)
+     */
+    public static function missing(\stdClass $centre) {
+        global $DB;
+        if (!empty($centre->practice)) {
+            return false;
+        }
+        $c = self::C;
+        $id = (int) $centre->id;
+        $lacks = [];
+        // What the families miss most, first: who receives them, how to get in, the miniature; then the rest.
+        if (!$DB->record_exists(centres::MEMBERS, ['centreid' => $id, 'public' => 1])) {
+            $lacks['reciben'] = get_string('panel_missing_hosts', $c);
+        }
+        if (trim((string) ($centre->arrive ?? '')) === '') {
+            $lacks['contacto'] = get_string('panel_missing_arrive', $c);
+        }
+        if (centres::miniature($id) === null) {
+            $lacks['miniatura'] = get_string('panel_missing_miniature', $c);
+        }
+        if (trim((string) $centre->controller) === '' || trim((string) $centre->rightscontact) === '') {
+            $lacks['datos'] = get_string('panel_missing_data', $c);
+        }
+        $years = $DB->get_fieldset_select(centres::OFFERS, 'DISTINCT schoolyear', 'centreid = ?', [$id]);
+        $year = $years ? panel_inbox::campaign_school_year($centre, array_values($years), time()) : '';
+        if (
+            $year !== '' && $DB->record_exists(centres::OFFERS, ['centreid' => $id, 'schoolyear' => $year, 'active' => 1]) &&
+                !$DB->record_exists_select(centres::OFFERS, 'centreid = ? AND schoolyear = ? AND active = 1 AND places > 0', [$id, $year])
+        ) {
+            $lacks['oferta'] = get_string('panel_missing_places', $c, $year);
+        }
+        if (trim((string) $centre->municipalities) === '') {
+            $lacks['zona'] = get_string('panel_missing_area', $c);
+        }
+        if (empty($centre->handover) && trim((string) ($centre->handoverplace ?? '')) === '') {
+            $lacks['despues'] = get_string('panel_missing_place', $c);
+        }
+        // Each card of the index: its name and the icon of its slip.
+        $cards = ['oferta' => ['panel_offer_places', 'birrete'], 'reciben' => ['panel_who_receives', 'persona'],
+            'contacto' => ['panel_contact_card', 'plano'], 'miniatura' => ['panel_miniature_card', 'imagen'],
+            'despues' => ['panel_after_enrolment', 'fuera'], 'datos' => ['centre_data', 'candado'],
+            'zona' => ['panel_the_area', 'globo']];
+        $items = [];
+        foreach ($lacks as $anchor => $what) {
+            $items[] = ['name' => get_string($cards[$anchor][0], $c), 'what' => $what, 'icon' => panel::icon($cards[$anchor][1]),
+                'url' => (new \moodle_url('/local/oksigeniaeguahe/centre.php', ['id' => $id], 'aj-' . $anchor))->out(false),
+                'go' => get_string('panel_missing_go', $c)];
+        }
+        if (empty($centre->campaignstart)) {
+            $items[] = ['name' => get_string('tab_metrics', $c), 'what' => get_string('panel_missing_start', $c),
+                'icon' => panel::icon('cifras'), 'url' => (new \moodle_url(
+                    '/local/oksigeniaeguahe/metrics.php',
+                    ['c' => $id],
+                    'inicios'
+                ))->out(false), 'go' => get_string('panel_missing_go_metrics', $c)];
+        }
+        if (!$items) {
+            return false;
+        }
+        // The first one to do, with its button, as the next step of «Para abrir las admisiones».
+        $items[0]['first'] = true;
+        return ['items' => $items, 'n' => count($items), 'lacks' => array_fill_keys(array_keys($lacks), true)];
     }
 
     /**

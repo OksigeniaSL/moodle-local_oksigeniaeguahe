@@ -57,6 +57,7 @@
         "i": {"check": "", "subir": "", "info": "", "mas1": "", "enviado": "", "reloj": "", "whatsapp": "", "correo": "",
             "telefono": "", "plano": "", "globo": "", "persona": "", "cerrar": ""},
         "head": {"title": "Ajustes del centro", "sub": "", "back": false, "ante": "", "action": false},
+        "missing": {"n": 2, "items": [{"name": "Quién recibe a las familias", "what": "Nadie sale todavía para ellas", "icon": "", "url": "#aj-reciben", "go": "Ponerlo", "first": true}, {"name": "La dirección y el contacto", "what": "Falta «Cómo llegar»", "icon": "", "url": "#aj-contacto", "go": "Ponerlo", "first": false}]}, "lacks": {"reciben": true, "contacto": true}, "noplace": false,
         "action": "/local/oksigeniaeguahe/centre.php?id=1", "sesskey": "abc",
         "name": "Colegio de ejemplo", "colour": "#1f5a4e", "brandcolours": "", "brand": [], "hasbrand": false, "brandslots": [{"n": 1, "code": "#ffffff", "set": false}], "lightvars": "", "darkvars": "", "colourguard": "Se lee bien.",
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
@@ -124,6 +125,21 @@
 }}
 <div class="pagina pagina-ajustes">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
+    {{#missing}}
+    <section class="abrir-admisiones aj-falta" aria-labelledby="aj-falta-t">
+        <header class="abrir-cab"><h2 id="aj-falta-t">{{#str}}panel_missing_title, local_oksigeniaeguahe{{/str}}</h2><span class="abrir-cuenta">{{n}}</span></header>
+        <p class="aj-falta-lead">{{#str}}panel_missing_lead, local_oksigeniaeguahe{{/str}}</p>
+        <ul class="abrir-pasos">
+            {{#items}}
+            <li class="abrir-paso{{#first}} siguiente{{/first}}">
+                <span class="abrir-n" aria-hidden="true">{{{icon}}}</span>
+                <span class="abrir-que"><b>{{name}}</b><span>{{what}}</span></span>
+                <a class="{{#first}}boton principal pequeno{{/first}}{{^first}}enlace{{/first}}" href="{{url}}">{{go}}<span class="oculto"> · {{name}}</span></a>
+            </li>
+            {{/items}}
+        </ul>
+    </section>
+    {{/missing}}
     <form class="ajustes" method="post" action="{{action}}" enctype="multipart/form-data" novalidate data-ajustes>
         <input type="hidden" name="sesskey" value="{{sesskey}}">
         {{! Enter in a field presses the first button of the form: this one, which only saves, and never a gesture after it. }}
@@ -131,26 +147,26 @@
         <nav class="indice-ajustes" aria-label="{{#str}}panel_settings_index, local_oksigeniaeguahe{{/str}}">
             <p class="indice-t">{{#str}}panel_settings_daily, local_oksigeniaeguahe{{/str}}</p>
             <ol>
-                <li><a href="#aj-oferta">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}</a></li>
-                <li><a href="#aj-reciben">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-oferta">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}{{#lacks.oferta}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.oferta}}</a></li>
+                <li><a href="#aj-reciben">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}{{#lacks.reciben}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.reciben}}</a></li>
                 {{#hasmessaging}}<li><a href="#aj-canal">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</a></li>{{/hasmessaging}}
             </ol>
             <p class="indice-t">{{#str}}panel_settings_once, local_oksigeniaeguahe{{/str}}</p>
             <ol>
                 <li><a href="#aj-aspecto">{{#str}}panel_how_families_see_index, local_oksigeniaeguahe{{/str}}</a></li>
-                <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-contacto">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}{{#lacks.contacto}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.contacto}}</a></li>
                 {{#calendar}}<li><a href="#aj-calendario">{{#str}}panel_cal_card, local_oksigeniaeguahe{{/str}}</a></li>{{/calendar}}
-                <li><a href="#aj-miniatura">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-miniatura">{{#str}}panel_miniature_card, local_oksigeniaeguahe{{/str}}{{#lacks.miniatura}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.miniatura}}</a></li>
                 <li><a href="#aj-pais">{{#str}}panel_country_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-pedir">{{#str}}panel_apply_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-quien">{{#str}}panel_whoapplies_card, local_oksigeniaeguahe{{/str}}</a></li>
                 {{#notify}}<li><a href="#aj-avisos">{{#str}}panel_notify_card, local_oksigeniaeguahe{{/str}}</a></li>{{/notify}}
                 <li><a href="#aj-cifras">{{#str}}panel_metricsfor_card, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-cuesta">{{#str}}panel_costs_card, local_oksigeniaeguahe{{/str}}</a></li>
-                <li><a href="#aj-despues">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-despues">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}{{#lacks.despues}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.despues}}</a></li>
                 {{#roster}}<li><a href="#padron">{{#str}}panel_roster, local_oksigeniaeguahe{{/str}}</a></li>{{/roster}}
-                <li><a href="#aj-datos">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}</a></li>
-                <li><a href="#aj-zona">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}</a></li>
+                <li><a href="#aj-datos">{{#str}}centre_data, local_oksigeniaeguahe{{/str}}{{#lacks.datos}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.datos}}</a></li>
+                <li><a href="#aj-zona">{{#str}}panel_the_area, local_oksigeniaeguahe{{/str}}{{#lacks.zona}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.zona}}</a></li>
                 <li><a href="#aj-redes">{{#str}}panel_networks, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-panel">{{#str}}centre_skin, local_oksigeniaeguahe{{/str}}</a></li>
                 <li><a href="#aj-compartir">{{#str}}centre_share, local_oksigeniaeguahe{{/str}}</a></li>
@@ -380,7 +396,7 @@
             {{! ===== Address and contact: a visiting card ===== }}
             <details class="apartado aj-plegado" id="aj-contacto">
                 <summary><h2 id="aj-contacto-t">{{#str}}panel_contact_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura">{{#address}}<span>{{address}}</span>{{/address}}{{#phone}}<span dir="ltr">{{phone}}</span>{{/phone}}{{#email}}<span dir="ltr">{{email}}</span>{{/email}}<span>{{replyread}}</span></span></summary>
+                    <span class="aj-lectura">{{#address}}<span>{{address}}</span>{{/address}}{{#phone}}<span dir="ltr">{{phone}}</span>{{/phone}}{{#email}}<span dir="ltr">{{email}}</span>{{/email}}<span>{{replyread}}</span>{{^arrive}}<span>{{#str}}panel_read_noarrive, local_oksigeniaeguahe{{/str}}</span>{{/arrive}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-visita">
                         <div class="aj-visita-fila"><span class="aj-visita-ic" aria-hidden="true">{{{i.plano}}}</span><label class="oculto" for="c-dir">{{#str}}centre_address, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-dir" name="address" value="{{address}}" placeholder="{{#str}}centre_address, local_oksigeniaeguahe{{/str}}" autocomplete="off"></div>
@@ -413,7 +429,7 @@
             {{#calendar}}
             <details class="apartado aj-plegado" id="aj-calendario">
                 <summary><h2 id="aj-calendario-t">{{#str}}panel_cal_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura"><span>{{#str}}panel_cal_read, local_oksigeniaeguahe{{/str}}</span></span></summary>
+                    <span class="aj-lectura">{{#heard}}<span>{{state}}</span>{{/heard}}{{^heard}}<span>{{#str}}panel_cal_read_none, local_oksigeniaeguahe{{/str}}</span>{{/heard}}</span></summary>
                 <div class="aj-cuerpo">
                     <p>{{#str}}panel_cal_lead, local_oksigeniaeguahe{{/str}}</p>
                     <p class="cal-estado{{#late}} cal-estado-tarde{{/late}}{{^heard}} cal-estado-espera{{/heard}}"><span class="cal-luz" aria-hidden="true"></span><b>{{state}}</b></p>
@@ -633,7 +649,7 @@
             {{! ===== After enrolling: who carries them, the first day, the name in a sentence, the siblings ===== }}
             <details class="apartado aj-plegado" id="aj-despues">
                 <summary><h2 id="aj-despues-t">{{#str}}panel_after_enrolment, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura">{{#handover}}{{#selected}}<span>{{#value}}{{name}}{{/value}}{{^value}}{{#handoverplace}}{{handoverplace}}{{/handoverplace}}{{^handoverplace}}{{name}}{{/handoverplace}}{{/value}}</span>{{/selected}}{{/handover}}{{#firstdayleaf}}<span>{{#str}}panel_read_firstday, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/firstdayleaf}}{{#siblingages}}{{#selected}}{{#value}}<span>{{#str}}panel_read_siblings, local_oksigeniaeguahe, {{value}}{{/str}}</span>{{/value}}{{/selected}}{{/siblingages}}</span></summary>
+                    <span class="aj-lectura">{{#handover}}{{#selected}}<span>{{#value}}{{name}}{{/value}}{{^value}}{{#handoverplace}}{{handoverplace}}{{/handoverplace}}{{^handoverplace}}{{name}}{{/handoverplace}}{{/value}}</span>{{/selected}}{{/handover}}{{#noplace}}<span>{{#str}}panel_read_noplace, local_oksigeniaeguahe{{/str}}</span>{{/noplace}}{{#firstdayleaf}}<span>{{#str}}panel_read_firstday, local_oksigeniaeguahe{{/str}} {{day}} {{month}}</span>{{/firstdayleaf}}{{#siblingages}}{{#selected}}{{#value}}<span>{{#str}}panel_read_siblings, local_oksigeniaeguahe, {{value}}{{/str}}</span>{{/value}}{{/selected}}{{/siblingages}}</span></summary>
                 <div class="aj-cuerpo">
                     <div class="aj-elige-fila aj-elige-caras">
                         <input type="hidden" name="handover" value="{{#handover}}{{#selected}}{{value}}{{/selected}}{{/handover}}">
