@@ -41,7 +41,13 @@ class lookalike {
     const MOVED = [households::CONSENTS, households::CONTACTS, households::LINKS, visits::REQUESTS, forms::ANSWERS,
         attend::PROMISES, surveys::T, seen::T, hobbies::T, siblings::T, invites::T, entries::ARRIVALS, roster::T, events::T,
         renewal::T, listmatch::T, teamnotes::T, alumni::T, access::T, appointments::T,
-        notices::T, settle::T, ties::T];
+        notices::T, settle::T, ties::T, self::TWICE];
+
+    /** @var string Two lines of one household that a person said are the same child (joined, with what undoes it) or two. */
+    const TWICE = 'local_oksigeniaeguahe_samechild';
+
+    /** @var int How long a child put together with its other line can be separated again from its file. */
+    const TWICE_UNDO = 30 * DAYSECS;
 
     /** @var int Two families asking for the same course look alike only if they came within this time of each other. */
     const NEAR = 180 * DAYSECS;
@@ -300,6 +306,283 @@ class lookalike {
     }
 
     /**
+     * The lines of a household that may be the same child written down twice: both with a name, the same words or one name
+     * starting the other («Dafne» and «Dafne Cano»), the same birthday when both have one, never one already at the centre and
+     * the other asking for a later year, and nobody said they are two. A shorter name that could be either of two is not
+     * proposed until one of them is settled.
+     *
+     * @param \stdClass $household
+     * @return \stdClass[][] Pairs [older line, newer line], the older first.
+     */
+    public static function twice(\stdClass $household): array {
+        global $DB;
+        $children = array_values($DB->get_records(households::CHILDREN, ['householdid' => $household->id], 'id ASC'));
+        if (count($children) < 2) {
+            return [];
+        }
+        $apart = [];
+        foreach ($DB->get_records(self::TWICE, ['householdid' => $household->id, 'same' => 0], '', 'id, childa, childb') as $row) {
+            $apart[min((int) $row->childa, (int) $row->childb) . ':' . max((int) $row->childa, (int) $row->childb)] = true;
+        }
+        $years = $DB->get_records_menu(centres::OFFERS, ['centreid' => $household->centreid], '', 'id, schoolyear');
+        $year = fn($k) => (string) ($years[(int) $k->offerid] ?? '');
+        $settled = fn($k) => $k->stage === 'enrolled' && !(int) ($k->lefttime ?? 0);
+        $open = fn($k) => !in_array($k->stage, ['enrolled', 'closed'], true);
+        $exact = [];
+        $close = [];
+        foreach ($children as $i => $a) {
+            foreach (array_slice($children, $i + 1) as $b) {
+                if (trim((string) $a->firstname) === '' || trim((string) $b->firstname) === '' || isset($apart[$a->id . ':' . $b->id])) {
+                    continue;
+                }
+                $da = trim((string) $a->birthdate);
+                $db = trim((string) $b->birthdate);
+                if (
+                    ($da !== '' && $db !== '' && $da !== $db) ||
+                    ($settled($a) && $open($b) && $year($b) > $year($a) && $year($a) !== '') ||
+                    ($settled($b) && $open($a) && $year($a) > $year($b) && $year($b) !== '')
+                ) {
+                    continue;
+                }
+                if (self::name_key((string) $a->firstname) === self::name_key((string) $b->firstname)) {
+                    $exact[] = [$a, $b];
+                } else if (households::same_name((string) $a->firstname, (string) $b->firstname)) {
+                    $close[] = [$a, $b];
+                }
+            }
+        }
+        // «Dafne» with «Dafne Cano» and «Dafne López» could be either: not said until one of them is.
+        $count = [];
+        foreach ($close as [$a, $b]) {
+            $count[$a->id] = ($count[$a->id] ?? 0) + 1;
+            $count[$b->id] = ($count[$b->id] ?? 0) + 1;
+        }
+        $close = array_filter($close, fn($p) => $count[$p[0]->id] === 1 && $count[$p[1]->id] === 1);
+        return array_merge($exact, array_values($close));
+    }
+
+    /**
+     * Two lines of one household are the same child: they become the older one, with what only the other knew, the way that
+     * went furthest, and everything that named the other (sign-ups, marks, ties, the lists, the answer about next year, the
+     * drawing). The fuller of two names that start the same stays, and the shorter one is how it is called at home. A line in
+     * its history says it, and it can be undone for a month.
+     *
+     * @param \stdClass $household
+     * @param int $one
+     * @param int $other
+     * @param int $userid
+     * @return bool Whether they were put together.
+     */
+    public static function join_twice(\stdClass $household, int $one, int $other, int $userid): bool {
+        global $DB;
+        if ($one === $other) {
+            return false;
+        }
+        $transaction = $DB->start_delegated_transaction();
+        $keep = $DB->get_record(households::CHILDREN, ['id' => min($one, $other), 'householdid' => $household->id]);
+        $gone = $DB->get_record(households::CHILDREN, ['id' => max($one, $other), 'householdid' => $household->id]);
+        if (!$keep || !$gone) {
+            $transaction->allow_commit();
+            return false;
+        }
+        $before = [panel::tag($keep) ?: '—', panel::tag($gone) ?: '—'];
+        $years = $DB->get_records_menu(centres::OFFERS, ['centreid' => $household->centreid], '', 'id, schoolyear');
+        $log = ['v' => 1, 'keep' => (int) $keep->id, 'samechildren' => [], 'changed' => [], 'deleted' => [],
+            'drawing' => drawings::file((int) $keep->id) ? 0 : (drawings::file((int) $gone->id) ? 1 : 0)];
+        $told = [];
+        $short = trim((string) $keep->firstname);
+        $long = trim((string) $gone->firstname);
+        self::one_child($keep, $gone, $years, $log, $told);
+        if (\core_text::strlen($long) > \core_text::strlen($short) && households::same_name($short, $long)) {
+            self::change($log, households::CHILDREN, $keep, ['firstname' => $long] +
+                (trim((string) $keep->tagname) === '' ? ['tagname' => $short] : []));
+        }
+        $map = [(int) $gone->id => (int) $keep->id];
+        foreach ($DB->get_records(households::SIGNUPS, ['householdid' => $household->id]) as $row) {
+            if ((string) $row->wasstages !== '') {
+                self::change($log, households::SIGNUPS, $row, ['wasstages' => self::renumber($row->wasstages, $map)]);
+            }
+        }
+        foreach ($DB->get_records(appointments::T, ['householdid' => $household->id]) as $row) {
+            if ((string) $row->stages !== '') {
+                self::change($log, appointments::T, $row, ['stages' => self::renumber($row->stages, $map)]);
+            }
+        }
+        $kinds = [];
+        foreach ($DB->get_records(ties::T, ['householdid' => $household->id], 'id ASC') as $row) {
+            if ((int) $row->childid === (int) $gone->id) {
+                if (isset($kinds[$row->kind])) {
+                    self::drop($log, ties::T, $row);
+                    continue;
+                }
+                self::change($log, ties::T, $row, ['childid' => (int) $keep->id]);
+            }
+            if ((int) $row->childid === (int) $keep->id) {
+                $kinds[$row->kind] = true;
+            }
+        }
+        foreach ($DB->get_records(listmatch::T, ['householdid' => $household->id, 'childid' => $gone->id]) as $row) {
+            self::change($log, listmatch::T, $row, ['childid' => (int) $keep->id]);
+        }
+        $DB->insert_record(self::TWICE, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+            'childa' => (int) $keep->id, 'childb' => (int) $gone->id, 'same' => 1,
+            'data' => json_encode($log, JSON_UNESCAPED_UNICODE), 'userid' => $userid, 'timecreated' => time()]);
+        households::note($household, $userid, trim(get_string('twice_note', self::C, (object) ['one' => $before[0],
+            'other' => $before[1], 'way' => self::way_words($DB->get_record(households::CHILDREN, ['id' => $keep->id]))]) .
+            ($told ? "\n" . implode("\n", $told) : '')));
+        self::forget((int) $household->centreid);
+        who::reset();
+        $transaction->allow_commit();
+        return true;
+    }
+
+    /**
+     * Two lines of one household that a person said are two children: never proposed again.
+     *
+     * @param \stdClass $household
+     * @param int $one
+     * @param int $other
+     * @param int $userid
+     */
+    public static function not_twice(\stdClass $household, int $one, int $other, int $userid): void {
+        global $DB;
+        $ids = $DB->get_fieldset_select(
+            households::CHILDREN,
+            'id',
+            'householdid = ? AND id IN (?, ?)',
+            [$household->id, $one, $other]
+        );
+        if (count($ids) !== 2) {
+            return;
+        }
+        $DB->insert_record(self::TWICE, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+            'childa' => min($one, $other), 'childb' => max($one, $other), 'same' => 0, 'userid' => $userid,
+            'timecreated' => time()]);
+    }
+
+    /**
+     * Separates again a child put together with its other line: the other comes back as it was, with what was its own, and
+     * what changed in the one that stayed goes back, unless it was changed again since.
+     *
+     * @param \stdClass $household
+     * @param int $id The row of the joining.
+     * @param int $userid
+     * @return bool
+     */
+    public static function undo_twice(\stdClass $household, int $id, int $userid): bool {
+        global $DB;
+        $row = $DB->get_record(self::TWICE, ['id' => $id, 'householdid' => $household->id, 'same' => 1]);
+        $log = $row ? json_decode((string) $row->data, true) : null;
+        if (!$row || !is_array($log) || (int) $row->timecreated < time() - self::TWICE_UNDO) {
+            return false;
+        }
+        $transaction = $DB->start_delegated_transaction();
+        foreach ((array) ($log['samechildren'] ?? []) as $child) {
+            unset($child['into']);
+            $child['householdid'] = (int) $household->id;
+            self::again(households::CHILDREN, $child);
+        }
+        foreach ((array) ($log['changed'] ?? []) as $table => $rows) {
+            foreach ((array) $rows as $rowid => $change) {
+                $now = $DB->get_record($table, ['id' => (int) $rowid]);
+                if (!$now) {
+                    continue;
+                }
+                $back = [];
+                foreach ((array) ($change['now'] ?? []) as $field => $value) {
+                    // Only what is still as the joining left it.
+                    if ((string) ($now->$field ?? '') === (string) $value) {
+                        $back[$field] = $change['was'][$field] ?? null;
+                    }
+                }
+                if ($back) {
+                    $DB->update_record($table, (object) (['id' => (int) $rowid] + $back));
+                }
+            }
+        }
+        foreach ((array) ($log['deleted'] ?? []) as $table => $rows) {
+            foreach ((array) $rows as $deleted) {
+                self::again($table, (array) $deleted);
+            }
+        }
+        if (!empty($log['drawing'])) {
+            // The drawing it took from the other: the other has it still.
+            drawings::delete((int) $row->childa);
+        }
+        $DB->delete_records(self::TWICE, ['id' => $row->id]);
+        $names = array_map(
+            fn($k) => panel::tag($k) ?: '—',
+            $DB->get_records_list(households::CHILDREN, 'id', [(int) $row->childa, (int) $row->childb], 'id ASC')
+        );
+        households::note($household, $userid, get_string('twice_undone_note', self::C, implode(' · ', $names)));
+        // Said once by a person: not proposed again.
+        self::not_twice($household, (int) $row->childa, (int) $row->childb, $userid);
+        self::forget((int) $household->centreid);
+        who::reset();
+        $transaction->allow_commit();
+        return true;
+    }
+
+    /**
+     * What the file of a household shows of a child written down twice: each pair that may be one, and any two to put together
+     * by hand; and the last ones put together, to separate them again.
+     *
+     * @param \stdClass $household
+     * @param bool $canact
+     * @return array|false
+     */
+    public static function twice_context(\stdClass $household, bool $canact) {
+        global $DB;
+        if (!$canact) {
+            return false;
+        }
+        $c = self::C;
+        $action = (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id], 'mismo-nino'))->out(false);
+        $line = function (\stdClass $a, \stdClass $b) use ($c): array {
+            return ['one' => (int) $a->id, 'other' => (int) $b->id, 'names' => get_string('twice_pair', $c, (object) [
+                'one' => panel::tag($a) ?: get_string('chat_child_noname', $c), 'onewas' => self::way_words($a),
+                'other' => panel::tag($b) ?: get_string('chat_child_noname', $c), 'otherwas' => self::way_words($b)])];
+        };
+        $proposed = array_map(fn($p) => $line($p[0], $p[1]), self::twice($household));
+        $said = [];
+        foreach ($proposed as $p) {
+            $said[$p['one'] . ':' . $p['other']] = true;
+        }
+        $apart = [];
+        foreach ($DB->get_records(self::TWICE, ['householdid' => $household->id, 'same' => 0], '', 'id, childa, childb') as $row) {
+            $apart[min((int) $row->childa, (int) $row->childb) . ':' . max((int) $row->childa, (int) $row->childb)] = true;
+        }
+        $children = array_values($DB->get_records(households::CHILDREN, ['householdid' => $household->id], 'id ASC'));
+        $hand = [];
+        foreach ($children as $i => $a) {
+            foreach (array_slice($children, $i + 1) as $b) {
+                if (!isset($said[$a->id . ':' . $b->id]) && !isset($apart[$a->id . ':' . $b->id])) {
+                    $hand[] = $line($a, $b);
+                }
+            }
+        }
+        $joined = [];
+        foreach (
+            $DB->get_records_select(
+                self::TWICE,
+                'householdid = ? AND same = 1 AND timecreated >= ?',
+                [$household->id, time() - self::TWICE_UNDO],
+                'timecreated DESC, id DESC'
+            ) as $row
+        ) {
+            $joined[] = ['id' => (int) $row->id, 'text' => get_string('twice_joined', $c, userdate(
+                (int) $row->timecreated,
+                get_string('strftimedatetimeshort', 'langconfig')
+            ))];
+        }
+        if (!$proposed && !$hand && !$joined) {
+            return false;
+        }
+        return ['proposed' => $proposed, 'hasproposed' => (bool) $proposed, 'hand' => $hand, 'hashand' => (bool) $hand,
+            'joined' => $joined, 'hasjoined' => (bool) $joined, 'action' => $action, 'sesskey' => sesskey()];
+    }
+
+    /**
      * The households that may be written down twice, for the inbox: pairs where at least one came since a time.
      *
      * @param int $centreid
@@ -353,7 +636,11 @@ class lookalike {
      */
     public static function forget_drawings(int $householdid): void {
         global $DB;
-        foreach ($DB->get_fieldset_select(self::LOG, 'data', 'householdid = ?', [$householdid]) as $data) {
+        $logs = array_merge(
+            $DB->get_fieldset_select(self::LOG, 'data', 'householdid = ?', [$householdid]),
+            $DB->get_fieldset_select(self::TWICE, 'data', 'householdid = ? AND same = 1', [$householdid])
+        );
+        foreach ($logs as $data) {
             foreach ((array) (json_decode((string) $data, true)['samechildren'] ?? []) as $row) {
                 if (!empty($row['id']) && !$DB->record_exists(households::CHILDREN, ['id' => (int) $row['id']])) {
                     drawings::delete((int) $row['id']);
@@ -952,54 +1239,69 @@ class lookalike {
                 $DB->set_field(households::CHILDREN, 'householdid', $keep, ['id' => $child->id]);
                 continue;
             }
-            $fill = ['timemodified' => time()];
-            foreach (['firstname', 'birthdate', 'tagname', 'latinname', 'familychild', 'startyear'] as $field) {
-                if (trim((string) $match->$field) === '' || (string) $match->$field === '0') {
-                    if (trim((string) $child->$field) !== '' && (string) $child->$field !== '0') {
-                        $fill[$field] = $child->$field;
-                    }
-                }
-            }
-            $winner = self::way($match, $child, $years);
-            $loser = $winner === $child ? $match : $child;
-            if ($winner === $child) {
-                foreach (
-                    ['offerid', 'stage', 'stagetime', 'closedreason', 'closedstage', 'started', 'lefttime', 'leftreason', 'leftnote',
-                        'familygone', 'roster'] as $field
-                ) {
-                    $fill[$field] = $child->$field;
-                }
-            }
-            if (!(int) $winner->offerid && (int) $loser->offerid) {
-                $fill['offerid'] = $loser->offerid;
-            }
-            if (
-                ((int) $loser->offerid && (int) $loser->offerid !== (int) ($fill['offerid'] ?? $match->offerid)) ||
-                    $loser->stage !== $winner->stage || (int) $loser->lefttime !== (int) $winner->lefttime
-            ) {
-                $told[] = get_string('lookalike_told_child', self::C, (object) ['name' => panel::tag($match) ?: panel::tag($child) ?: '—',
-                    'way' => self::way_words($loser)]);
-            }
-            $log['samechildren'][] = ['into' => (int) $match->id, 'id' => (int) $child->id] + (array) $child;
-            self::change($log, households::CHILDREN, $match, $fill);
-            // Its answer about next year: the last of the two for the same year.
-            foreach ($DB->get_records(renewal::T, ['childid' => $child->id]) as $row) {
-                $mine = $DB->get_record(renewal::T, ['childid' => $match->id, 'schoolyear' => $row->schoolyear]);
-                if ($mine && (int) $mine->timemodified >= (int) $row->timemodified) {
-                    self::drop($log, renewal::T, $row);
-                    continue;
-                }
-                if ($mine) {
-                    self::drop($log, renewal::T, $mine);
-                }
-                self::change($log, renewal::T, $row, ['childid' => $match->id]);
-            }
-            // Its drawing, unless this one already has one; the other one's stays kept with it, to have it back.
-            self::copy_drawing((int) $child->id, (int) $match->id);
-            $DB->delete_records(households::CHILDREN, ['id' => $child->id]);
+            self::one_child($match, $child, $years, $log, $told);
             $same[(int) $child->id] = (int) $match->id;
         }
         return $same;
+    }
+
+    /**
+     * Two lines of the same child become the first one, with what only the other knew of it and one way: the course and its
+     * step go together. The other goes, kept whole in the log.
+     *
+     * @param \stdClass $match The one that stays.
+     * @param \stdClass $child The one that goes.
+     * @param array $years Offer id => its school year.
+     * @param array $log
+     * @param string[] $told What could not be there twice, in lines.
+     */
+    protected static function one_child(\stdClass $match, \stdClass $child, array $years, array &$log, array &$told): void {
+        global $DB;
+        $fill = ['timemodified' => time()];
+        foreach (['firstname', 'birthdate', 'tagname', 'latinname', 'familychild', 'startyear'] as $field) {
+            if (trim((string) $match->$field) === '' || (string) $match->$field === '0') {
+                if (trim((string) $child->$field) !== '' && (string) $child->$field !== '0') {
+                    $fill[$field] = $child->$field;
+                }
+            }
+        }
+        $winner = self::way($match, $child, $years);
+        $loser = $winner === $child ? $match : $child;
+        if ($winner === $child) {
+            foreach (
+                ['offerid', 'stage', 'stagetime', 'closedreason', 'closedstage', 'started', 'lefttime', 'leftreason', 'leftnote',
+                    'familygone', 'roster'] as $field
+            ) {
+                $fill[$field] = $child->$field;
+            }
+        }
+        if (!(int) $winner->offerid && (int) $loser->offerid) {
+            $fill['offerid'] = $loser->offerid;
+        }
+        if (
+            ((int) $loser->offerid && (int) $loser->offerid !== (int) ($fill['offerid'] ?? $match->offerid)) ||
+                $loser->stage !== $winner->stage || (int) $loser->lefttime !== (int) $winner->lefttime
+        ) {
+            $told[] = get_string('lookalike_told_child', self::C, (object) ['name' => panel::tag($match) ?: panel::tag($child) ?: '—',
+                'way' => self::way_words($loser)]);
+        }
+        $log['samechildren'][] = ['into' => (int) $match->id, 'id' => (int) $child->id] + (array) $child;
+        self::change($log, households::CHILDREN, $match, $fill);
+        // Its answer about next year: the last of the two for the same year.
+        foreach ($DB->get_records(renewal::T, ['childid' => $child->id]) as $row) {
+            $mine = $DB->get_record(renewal::T, ['childid' => $match->id, 'schoolyear' => $row->schoolyear]);
+            if ($mine && (int) $mine->timemodified >= (int) $row->timemodified) {
+                self::drop($log, renewal::T, $row);
+                continue;
+            }
+            if ($mine) {
+                self::drop($log, renewal::T, $mine);
+            }
+            self::change($log, renewal::T, $row, ['childid' => $match->id]);
+        }
+        // Its drawing, unless this one already has one; the other one's stays kept with it, to have it back.
+        self::copy_drawing((int) $child->id, (int) $match->id);
+        $DB->delete_records(households::CHILDREN, ['id' => $child->id]);
     }
 
     /**

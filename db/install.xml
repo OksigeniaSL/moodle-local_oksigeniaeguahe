@@ -1282,5 +1282,25 @@
         <INDEX NAME="householdwhat" UNIQUE="false" FIELDS="householdid, what"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_samechild" COMMENT="Two lines of one household that a person of the team said are the same child, put together with what undoes it, or two children: never proposed again">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="childa" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The lower id of the two: the line that stays"/>
+        <FIELD NAME="childb" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The higher id of the two: the line that went"/>
+        <FIELD NAME="same" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1, put together; 0, two children"/>
+        <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What undoes it, as JSON: the line that went as it was, and what changed"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Who said it"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="householdid" UNIQUE="false" FIELDS="householdid"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

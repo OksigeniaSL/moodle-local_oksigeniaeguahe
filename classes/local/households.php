@@ -1562,6 +1562,7 @@ class households {
         $DB->delete_records_select(lookalike::T, 'householda = :a OR householdb = :b', ['a' => $household->id,
             'b' => $household->id]);
         $DB->delete_records(lookalike::LOG, ['householdid' => $household->id]);
+        $DB->delete_records(lookalike::TWICE, ['householdid' => $household->id]);
         $DB->delete_records(listmatch::T, ['householdid' => $household->id]);
         $DB->delete_records(teamnotes::T, ['householdid' => $household->id]);
         // What came through an entry stays only as a key without the family, so that sending the old answers again does
@@ -1684,6 +1685,7 @@ class households {
         }
         // What was kept of files put together, when the file is gone.
         $DB->delete_records_select(lookalike::LOG, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
+        $DB->delete_records_select(lookalike::TWICE, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         // The private links opened from the app of Aty (app.php) last two days: whoever wants the page again comes from
         // the app, which makes another.
         $DB->delete_records_select(self::LINKS, 'reason = ? AND timecreated < ?', ['app', $now - 2 * DAYSECS]);

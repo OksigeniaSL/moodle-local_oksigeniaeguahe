@@ -14900,6 +14900,25 @@ button.padron-pomo-no::after {
     margin: 8px 0;
 }
 
+/* The same child written down twice in one file: the two answers apart, and putting two together by hand, a row each. */
+.mismo-nino-respuestas,
+.mismo-nino-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin: 6px 0 10px;
+}
+
+.mismo-nino-mano,
+.mismo-nino-hecho {
+    margin: 8px 0 0;
+}
+
+.mismo-nino-mano > summary {
+    cursor: pointer;
+}
+
 /* Looking for another file to put together with this one: a row each; touched, what it does and its two ways out. */
 .juntar-una {
     margin: 0;

@@ -339,6 +339,30 @@ if ($action && data_submitted() && confirm_sesskey()) {
             lookalike::distinct((int) $centre->id, (int) $household->id, required_param('other', PARAM_INT), (int) $USER->id);
             redirect(new moodle_url($url, [], 'misma-familia'));
             break;
+        case 'twice':
+            // A person says two lines of the file are the same child: they become one, with everything of both.
+            $done = lookalike::join_twice($household, required_param('uno', PARAM_INT), required_param('otro', PARAM_INT), (int) $USER->id);
+            redirect(
+                new moodle_url($url, [], 'mismo-nino'),
+                get_string($done ? 'twice_done' : 'twice_gone', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
+            break;
+        case 'nottwice':
+            // Two children: it is not asked again.
+            lookalike::not_twice($household, required_param('uno', PARAM_INT), required_param('otro', PARAM_INT), (int) $USER->id);
+            redirect(new moodle_url($url, [], 'mismo-nino'));
+            break;
+        case 'untwice':
+            $done = lookalike::undo_twice($household, required_param('vez', PARAM_INT), (int) $USER->id);
+            redirect(
+                new moodle_url($url, [], 'mismo-nino'),
+                get_string($done ? 'twice_undone' : 'twice_gone', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
+            break;
         case 'split':
             // Two families joined by mistake: the adults, children, sign-ups and lines chosen go to a new one.
             // Each adult stays or goes (adultgo[id]), or is in both when it was; a page from before sent the ones that go (adults[]).
