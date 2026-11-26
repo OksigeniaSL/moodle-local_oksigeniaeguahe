@@ -67,6 +67,8 @@ final class invitecheck_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
         $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES', 'email' => 'hola@example.com']);
+        // The letter by mail alone: what goes by phone is looked over elsewhere (ways_test).
+        centres::update($id, (object) ['messaging' => 'off']);
         $this->centre = centres::get($id);
         $f = ['Ana' => $this->family('Ana'), 'Info' => $this->family('Info'), 'Eva' => $this->family('Eva')];
         $this->family('Carlos', 'visit', false);

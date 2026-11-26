@@ -745,11 +745,34 @@ class invites {
     }
 
     /**
+     * By which of the phones the message of a family went, when it is known: WhatsApp when it went to its number by permission,
+     * or the only one it joined; empty when it joined both.
+     *
+     * @param int $householdid
+     * @param array|null $state Of phone_states().
+     * @return string whatsapp, telegram or empty.
+     */
+    public static function phone_channel(int $householdid, ?array $state): string {
+        if (!empty($state['implied'])) {
+            return 'whatsapp';
+        }
+        try {
+            $ways = method_exists('\local_oksigeniamarandu\api', 'item_channels') ?
+                (array) \local_oksigeniamarandu\api::item_channels(messaging::COMPONENT, $householdid) : [];
+        } catch (\Throwable $e) {
+            $ways = [];
+        }
+        $on = array_keys(array_filter(['whatsapp' => !empty($ways['whatsapp']['joined']) || !empty($ways['whatsapp']['implied']),
+            'telegram' => !empty($ways['telegram']['joined'])]));
+        return count($on) === 1 ? $on[0] : '';
+    }
+
+    /**
      * How the message of each family of a send by phone is doing, as Marandu says: queued, waiting, sent, delivered, read,
      * failed, nowhatsapp or skipped, with why.
      *
      * @param int $bulkid
-     * @return array household id => [status, time, why]
+     * @return array household id => [status, time, why, implied (written to a number that did not join: by WhatsApp)]
      */
     public static function phone_states(int $bulkid): array {
         if (!$bulkid || !method_exists('\local_oksigeniamarandu\api', 'bulk_items')) {
@@ -760,7 +783,7 @@ class invites {
             foreach (\local_oksigeniamarandu\api::bulk_items($bulkid) as $item) {
                 $item = (array) $item;
                 $out[(int) $item['itemid']] = ['status' => (string) ($item['status'] ?? ''), 'time' => (int) ($item['time'] ?? 0),
-                    'why' => (string) ($item['why'] ?? '')];
+                    'why' => (string) ($item['why'] ?? ''), 'implied' => !empty($item['implied'])];
             }
             return $out;
         } catch (\Throwable $e) {

@@ -164,8 +164,10 @@ class panel_event {
         $hosts = $event->hosts ? centres::hosts((int) $centre->id, array_map('intval', explode(',', (string) $event->hosts))) : [];
         $detail = [];
         if (!$tailored) {
-            $detail[] = get_string('panel_hours', $c, (object) ['from' => panel::hour((int) $event->timestart),
-                'to' => panel::hour((int) $event->timeend)]);
+            // With no end, or ending as it starts: the hour it starts, alone.
+            $detail[] = (int) $event->timeend > (int) $event->timestart ? get_string('panel_hours', $c, (object) [
+                'from' => panel::hour((int) $event->timestart), 'to' => panel::hour((int) $event->timeend)]) :
+                get_string('panel_hours_at', $c, panel::hour((int) $event->timestart));
         }
         if (trim((string) $event->place) !== '') {
             $detail[] = format_string($event->place);
@@ -603,7 +605,11 @@ class panel_event {
             foreach ($list as $id => $time) {
                 if (isset($people[$id])) {
                     $when = $time ? panel::when_words($time, $now) : '';
-                    $trace = $key !== 'bounced' && isset($times[$id]) ? self::trace($times[$id], $now, $together, $states[$id] ?? null) : '';
+                    $phone = isset($times[$id]) && (int) $times[$id]->phonesent ? ($states[$id] ?? []) + ['channel' => invites::phone_channel(
+                        $id,
+                        $states[$id] ?? null
+                    )] : null;
+                    $trace = $key !== 'bounced' && isset($times[$id]) ? self::trace($times[$id], $now, $together, $phone) : '';
                     $rows[] = ['name' => panel::adults_line($people[$id]->adults), 'when' => $trace !== '' ? '' : ($key === 'none' &&
                         $when !== '' ? get_string('panel_replies_sent', $c, $when) : $when), 'trace' => $trace,
                         'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id], $key === 'bounced' ?
@@ -639,7 +645,9 @@ class panel_event {
         $parts = $together || !$mail ? [] : [get_string('panel_trace_went', $c, panel::when_words($mail, $now))];
         if ($sms) {
             $state = $phone['status'] ?? '';
-            $parts[] = get_string('panel_trace_phone', $c, panel::when_words($sms, $now)) . (in_array(
+            // By WhatsApp or by Telegram when it is known; by either, only when it is not.
+            $channel = in_array($phone['channel'] ?? '', ['whatsapp', 'telegram'], true) ? '_' . $phone['channel'] : '';
+            $parts[] = get_string('panel_trace_phone' . $channel, $c, panel::when_words($sms, $now)) . (in_array(
                 $state,
                 ['waiting', 'delivered', 'read', 'failed', 'nowhatsapp', 'skipped'],
                 true
@@ -649,6 +657,7 @@ class panel_event {
         $via = (string) ($one->via ?? '');
         $from = $via === 'phone' && $sms ? $sms : ($mail ?: $sms);
         $by = $mail && $sms && in_array($via, ['email', 'phone'], true) ? '_' . $via : '';
+        $by = $by === '_phone' && in_array($phone['channel'] ?? '', ['whatsapp', 'telegram'], true) ? '_' . $phone['channel'] : $by;
         if ((int) $one->opened >= $from && $from) {
             $parts[] = get_string('panel_trace_opened' . $by, $c, letters::lapse((int) $one->opened - $from));
         }

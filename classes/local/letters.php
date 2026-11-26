@@ -135,6 +135,11 @@ class letters {
         }
         $out = self::finish($all) + ['first' => $rows ? (int) $rows[0]->timecreated : 0];
         ksort($byhour);
+        // Every hour between the first and the last, an hour with none too: they read as a clock.
+        for ($span = $byhour ? min(array_keys($byhour)) : 0; $byhour && $span < max(array_keys($byhour)); $span += self::SPAN) {
+            $byhour[$span] = $byhour[$span] ?? self::empty();
+        }
+        ksort($byhour);
         $out['byhour'] = [];
         foreach ($byhour as $span => $one) {
             $out['byhour'][] = self::finish($one) + ['key' => $span, 'name' => self::span($span)];
@@ -170,26 +175,37 @@ class letters {
     }
 
     /**
-     * The answer of the question, in a sentence or two: how many went and opened, and the hour they open best, when there are
-     * letters enough to say it.
+     * The answer of the question, in a sentence or two: the hour they open best, when there are letters enough to say it, and
+     * how many went and opened.
      *
      * @param array $f From figures().
      * @param array $ways From ways(): by mail and by phone, when some went by phone.
      * @return string Empty with no letter.
      */
     public static function sentence(array $f, array $ways = []): string {
+        $said = self::said($f, $ways);
+        return trim($said['head'] . ' ' . $said['rest']);
+    }
+
+    /**
+     * The answer in two: what is asked (head), and what it rests on (rest).
+     *
+     * @param array $f From figures().
+     * @param array $ways From ways().
+     * @return array head and rest; both empty with no letter.
+     */
+    public static function said(array $f, array $ways = []): array {
         $c = self::C;
         if (!$f['sent']) {
-            return '';
+            return ['head' => '', 'rest' => ''];
         }
-        $both = $ways ? ' ' . get_string('letters_ways', $c, (object) ['phone' => $ways[1]['opened'], 'phoneof' => $ways[1]['arrived'],
+        $both = $ways ? get_string('letters_ways', $c, (object) ['phone' => $ways[1]['opened'], 'phoneof' => $ways[1]['arrived'],
             'mail' => $ways[0]['opened'], 'mailof' => $ways[0]['arrived']]) : '';
         if (!$f['ripe']) {
-            $out = [get_string($f['sent'] === 1 ? 'letters_sent_one' : 'letters_sent', $c, $f['sent']) . ($f['back'] ?
-                get_string($f['back'] === 1 ? 'letters_back_one' : 'letters_back', $c, $f['back']) : '') . '.',
-                get_string($f['opened'] ? ($f['opened'] === 1 ? 'letters_sofar_one' : 'letters_sofar') : 'letters_sofar_none', $c, $f['opened']),
-                get_string('letters_wait', $c)];
-            return implode(' ', $out) . $both;
+            $went = get_string($f['sent'] === 1 ? 'letters_sent_one' : 'letters_sent', $c, $f['sent']) . ($f['back'] ?
+                get_string($f['back'] === 1 ? 'letters_back_one' : 'letters_back', $c, $f['back']) : '') . '.';
+            $sofar = get_string($f['opened'] ? ($f['opened'] === 1 ? 'letters_sofar_one' : 'letters_sofar') : 'letters_sofar_none', $c, $f['opened']);
+            return ['head' => $went . ' ' . $sofar, 'rest' => trim(get_string('letters_wait', $c) . ' ' . $both)];
         }
         $a = (object) ['ripe' => $f['ripe'], 'opened' => $f['ripeopened'], 'share' => panel_metrics::share($f['ripeopened'], $f['ripe'], true)];
         if ($f['ripe'] === 1) {
@@ -197,14 +213,16 @@ class letters {
         } else {
             $key = !$f['ripeopened'] ? 'letters_ripe_none' : ($f['ripeopened'] === 1 ? 'letters_ripe_opened_one' : 'letters_ripe');
         }
-        $out = [get_string($key, $c, $a)];
+        $ripe = get_string($key, $c, $a);
+        $compare = '';
         if ($f['best'] && $f['worst']) {
-            $out[] = $f['best']['rate'] - $f['worst']['rate'] >= self::APART / 100 ? get_string('letters_compare', $c, (object) [
+            $compare = $f['best']['rate'] - $f['worst']['rate'] >= self::APART / 100 ? get_string('letters_compare', $c, (object) [
                 'best' => \core_text::strtolower($f['best']['name']), 'bestp' => panel_metrics::percent($f['best']['ripeopened'], $f['best']['ripe']),
                 'worst' => \core_text::strtolower($f['worst']['name']), 'worstp' => panel_metrics::percent($f['worst']['ripeopened'], $f['worst']['ripe'])]) :
                 get_string('letters_even', $c);
         }
-        return implode(' ', $out) . $both;
+        // The hour, when it can be said, is the answer; how many, what it rests on.
+        return $compare !== '' ? ['head' => $compare, 'rest' => trim($ripe . ' ' . $both)] : ['head' => $ripe, 'rest' => $both];
     }
 
     /**

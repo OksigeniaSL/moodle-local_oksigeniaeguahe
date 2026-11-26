@@ -65,6 +65,13 @@ class panel_answers {
         // Of the campaign, the same title its sheet has, and who they are below.
         $title = $key === 'campaign' ? $view['head']['title'] : $row['answer'];
         $sub = $key === 'campaign' ? $view['head']['sub'] : ($key === 'students' ? $cut : $name . ' · ' . $cut);
+        if ($key === 'letters') {
+            // The answer first, large: at what time; what it rests on, below.
+            $until = $of['key'] === 'live' ? 0 : (int) $of['until'];
+            $said = letters::said(letters::figures($centre, (int) $of['since'], $until, $now), letters::ways($centre, (int) $of['since'], $until, $now));
+            $title = $said['head'];
+            $sub = trim($said['rest'] . ' ' . $sub);
+        }
         $head = panel::head(['title' => $title, 'ante' => $row['question'], 'sub' => $sub, 'back' => ['url' => $back,
             'name' => get_string('tab_metrics', $c)]]);
         return ['head' => $head, 'print' => get_string('qs_print', $c), 'facts' => [], 'todo' => false,
@@ -299,21 +306,22 @@ class panel_answers {
         ];
         $fair = $f['best'] !== null || $f['daybest'] !== null;
         $ways = letters::ways($w->centre, (int) $w->campaign['since'], $w->campaign['key'] === 'live' ? 0 : (int) $w->campaign['until'], $w->now);
-        return [$ways ? panel_answer::block('vias', get_string('qs_letters_by_way', $c), ['table' => self::letters_table($ways),
-            'def' => get_string('qs_letters_ways_def', $c)]) : null,
+        return [$ways ? panel_answer::block('vias', get_string('qs_letters_by_way', $c), self::letters_table($ways) +
+            ['def' => get_string('qs_letters_ways_def', $c)]) : null,
             panel_answer::block('cartas', get_string('qs_letters_title', $c), ['lead' => $f['sent'] <= panel_answer::DOTS ?
             get_string('qs_dot', $c) : '', 'path' => panel_answer::path($f['sent'], $steps), 'def' => get_string('qs_letters_def', $c)]),
-            $f['byhour'] ? panel_answer::block('hora', get_string('qs_letters_by_hour', $c), ['table' => self::letters_table($f['byhour']),
-            'note' => $fair ? false : panel_answer::note(get_string('qs_letters_fair', $c, letters::FAIR), '', '')]) : null,
-            $f['byday'] ? panel_answer::block('dia', get_string('qs_letters_by_day', $c), ['table' => self::letters_table($f['byday'])]) : null];
+            $f['byhour'] ? panel_answer::block('hora', get_string('qs_letters_by_hour', $c), self::letters_table($f['byhour']) +
+            ['note' => $fair ? false : panel_answer::note(get_string('qs_letters_fair', $c, letters::FAIR), '', '')]) : null,
+            $f['byday'] ? panel_answer::block('dia', get_string('qs_letters_by_day', $c), self::letters_table($f['byday'])) : null];
     }
 
     /**
      * The letters of each hour or day, in a row: how many arrived, how many were opened within two days of those that had
-     * them, the time half of them reacted within, and how many come.
+     * them, the time half of them reacted within, and how many come. On a phone, each row in three lines (rates): the hour
+     * and what is asked, a bar, and the rest small.
      *
      * @param array[] $rows Of letters::figures().
-     * @return array
+     * @return array table and rates, for a block.
      */
     protected static function letters_table(array $rows): array {
         $c = self::C;
@@ -321,16 +329,36 @@ class panel_answers {
         $most = max(array_merge([1], array_column($rows, 'arrived')));
         $cell = fn(string $col, $n, string $text = '', float $v = 0) => ['col' => get_string($col, $c), 'n' => $n, 'text' => $text,
             'v' => round($v, 3), 'url' => '', 'missing' => ''];
-        return ['cols' => array_map(fn($col) => ['name' => get_string($col, $c)], $cols), 'rows' => array_map(fn($row) => ['name' => $row['name'],
-            'when' => '', 'url' => false, 'current' => false, 'cells' => [
+        $table = [];
+        $rates = [];
+        foreach ($rows as $row) {
+            if (!$row['arrived']) {
+                // An hour with no letter: it is said, so the hours read as a clock.
+                $table[] = ['name' => $row['name'], 'when' => '', 'url' => false, 'current' => false, 'cells' => [$cell($cols[0], 0),
+                    $cell($cols[1], ''), $cell($cols[2], ''), $cell($cols[3], '')]];
+                $rates[] = ['name' => $row['name'], 'pct' => '', 'v' => 0, 'soon' => true,
+                    'line' => get_string('qs_letters_line_letters', $c, 0)];
+                continue;
+            }
+            $pct = $row['ripe'] ? panel_metrics::percent($row['ripeopened'], $row['ripe']) : '';
+            $table[] = ['name' => $row['name'], 'when' => '', 'url' => false, 'current' => false, 'cells' => [
                 $cell($cols[0], $row['arrived'], '', $row['arrived'] / $most),
                 $row['ripe'] ? $cell($cols[1], $row['ripeopened'], get_string('qs_letters_of', $c, (object) ['ripe' => $row['ripe'],
-                    'percent' => panel_metrics::percent($row['ripeopened'], $row['ripe'])]), $row['rate']) :
-                    $cell($cols[1], '', get_string('qs_letters_soon', $c)),
-                $row['half'] !== null ? $cell($cols[2], letters::lapse($row['half'])) :
-                    $cell($cols[2], '', get_string('qs_letters_few', $c, letters::HALF)),
+                    'percent' => $pct]), $row['rate']) : $cell($cols[1], '', get_string('qs_letters_soon', $c)),
+                $row['half'] !== null ? $cell($cols[2], letters::lapse($row['half'])) : $cell($cols[2], '', get_string('qs_letters_few', $c)),
                 $cell($cols[3], $row['yes'], '', $row['arrived'] ? $row['yes'] / $row['arrived'] : 0),
-            ]], $rows)];
+            ]];
+            $line = array_filter([
+                $row['ripe'] ? get_string('qs_letters_line_of', $c, (object) ['opened' => $row['ripeopened'], 'ripe' => $row['ripe']]) : '',
+                get_string($row['arrived'] === 1 ? 'qs_letters_line_letters_one' : 'qs_letters_line_letters', $c, $row['arrived']),
+                $row['half'] !== null ? get_string('qs_letters_line_half', $c, letters::lapse($row['half'])) : '',
+                get_string('qs_letters_line_yes', $c, $row['yes']),
+            ]);
+            $rates[] = ['name' => $row['name'], 'pct' => $row['ripe'] ? $pct : get_string('qs_letters_soon', $c), 'v' => round($row['rate'], 3),
+                'soon' => !$row['ripe'], 'line' => implode(' · ', $line)];
+        }
+        return ['table' => ['cols' => array_map(fn($col) => ['name' => get_string($col, $c)], $cols), 'rows' => $table],
+            'rates' => ['rows' => $rates]];
     }
 
     /**

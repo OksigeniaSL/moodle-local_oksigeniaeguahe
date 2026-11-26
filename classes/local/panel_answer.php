@@ -186,7 +186,7 @@ class panel_answer {
      */
     public static function block(string $id, string $title, array $with): array {
         $with += ['lead' => '', 'def' => '', 'path' => false, 'apart' => [], 'lines' => [], 'bars' => false, 'list' => false, 'columns' => false, 'table' => false,
-            'words' => false, 'note' => false];
+            'words' => false, 'note' => false, 'rates' => false];
         return ['id' => $id, 'title' => $title, 'hasapart' => (bool) $with['apart']] + $with;
     }
 

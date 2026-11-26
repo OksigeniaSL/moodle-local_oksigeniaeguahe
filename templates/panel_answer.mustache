@@ -71,7 +71,7 @@
         </section>
         {{/todo}}
         {{#blocks}}
-        <section class="inf-seccion qs-bloque{{#note}} qs-con-nota{{/note}}" aria-labelledby="qs-{{id}}">
+        <section class="inf-seccion qs-bloque{{#note}} qs-con-nota{{/note}}{{#rates}} qs-con-tasas{{/rates}}" aria-labelledby="qs-{{id}}">
             <div class="qs-cuerpo">
                 <h2 id="qs-{{id}}">{{title}}</h2>
                 {{#lead}}<p class="inf-seccion-frase">{{lead}}</p>{{/lead}}
@@ -114,6 +114,7 @@
                     </table>
                 </div>
                 {{/table}}
+                {{#rates}}<ul class="qs-tasas">{{#rows}}<li class="qs-tasa{{#soon}} qs-tasa-pronto{{/soon}}"><span>{{name}}</span><b>{{pct}}</b><span class="qs-tasa-pista" aria-hidden="true">{{^soon}}<i style="--v: {{v}}"></i>{{/soon}}</span><small>{{line}}</small></li>{{/rows}}</ul>{{/rates}}
                 {{#def}}<p class="inf-def">{{def}}</p>{{/def}}
             </div>
             {{#note}}<aside class="qs-nota"><p>{{text}}</p>{{#url}}<a href="{{url}}">{{do}}</a>{{/url}}</aside>{{/note}}

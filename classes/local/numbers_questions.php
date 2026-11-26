@@ -333,6 +333,10 @@ class numbers_questions {
             ), 'id'));
         }
         $warn = $by['unmeasured'] ? get_string('panel_unknown_channel' . ($by['unmeasured'] === 1 ? '_one' : ''), $c, $by['unmeasured']) : '';
+        if (!$rows && $mine && $warn !== '') {
+            // Families there are, and of none is it known: that is the answer, never «no family has come yet».
+            [$answer, $warn] = [$warn, ''];
+        }
         $out[] = ['nums' => array_values(array_filter($nums, fn($n) => $n['n']))] +
             self::one('channels', get_string('nq_channels', $c), $answer, $url(['hoja' => 'campana'], 'por-donde'), $form, $warn);
         // Whether they are answered in time.

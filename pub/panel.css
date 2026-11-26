@@ -11996,6 +11996,70 @@ a.qs-barra:focus-visible .qs-barra-nombre {
     background: var(--inf-serie);
 }
 
+/* The letters by hour or day on a phone: each row in three lines, the hour with what is asked, its bar, and the rest small. */
+.qs-tasas {
+    display: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qs-tasa {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--inf-lapiz);
+}
+
+.qs-tasa > b {
+    font-size: 1.0625rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.qs-tasa-pista {
+    grid-column: 1 / -1;
+    display: block;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--inf-lapiz);
+}
+
+.qs-tasa-pista i {
+    display: block;
+    /* stylelint-disable-next-line csstree/validator */
+    width: calc(var(--v) * 100%);
+    height: 100%;
+    background: var(--inf-serie);
+}
+
+.qs-tasa-pronto > b {
+    color: var(--inf-lapiz-texto);
+    font-weight: 400;
+}
+
+.qs-tasa-pronto .qs-tasa-pista {
+    box-shadow: none;
+    border: 1.5px dashed var(--inf-lapiz-fuerte);
+}
+
+.qs-tasa small {
+    grid-column: 1 / -1;
+    color: var(--inf-lapiz-texto);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 40rem) {
+    .qs-con-tasas .qs-tabla-caja {
+        display: none;
+    }
+
+    .qs-con-tasas .qs-tasas {
+        display: block;
+    }
+}
+
 .qs-celda-falta {
     color: var(--inf-lapiz-texto);
     font-style: italic;
