@@ -385,3 +385,17 @@ function local_oksigeniaeguahe_marandu_bulk_item(int $bulkid, string $notice, in
 function local_oksigeniaeguahe_marandu_bulk_decided(int $id, string $status, int $userid): void {
     \local_oksigeniaeguahe\local\invites::decided($id, $status, $userid);
 }
+
+/**
+ * A family answered «no» to the invitation of an act that reached it by phone: it does not come to that act, and nothing
+ * else. The way stays open; only a word to stop (BAJA, STOP) takes it away, and that comes by marandu_optout.
+ *
+ * @param int $bulkid The send to many the invitation went in.
+ * @param int $itemid The family.
+ * @param string $answer no.
+ * @param int $time When it answered.
+ * @return string|null What to answer the family there, in its language; null for nothing.
+ */
+function local_oksigeniaeguahe_marandu_bulk_answer(int $bulkid, int $itemid, string $answer, int $time): ?string {
+    return \local_oksigeniaeguahe\local\invites::answered_by_phone($bulkid, $itemid, $answer, $time);
+}

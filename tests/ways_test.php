@@ -143,4 +143,40 @@ final class ways_test extends \advanced_testcase {
         $this->assertSame(1, $tally['viaphone']);
         $this->assertSame(1, $tally['viaemail']);
     }
+    /**
+     * A family of example gets it by phone only when it is named, never with the others.
+     */
+    public function test_sample_only(): void {
+        global $DB;
+        if (!invites::by_phone($this->centre)) {
+            $this->markTestSkipped('The messaging of phones is not on this site.');
+        }
+        $sample = $this->invited('Enrique', '+34600111009', time() - HOURSECS);
+        $DB->set_field(households::T, 'guest', households::SAMPLE, ['id' => $sample->id]);
+        $all = invites::phone_too($this->event, $this->centre);
+        $this->assertSame(0, $all['waiting'] + count($all['households']));
+        $only = invites::phone_too($this->event, $this->centre, [(int) $sample->id]);
+        $this->assertSame(1, $only['waiting'] + count($only['households']));
+        $this->assertSame([], invites::phone_too($this->event, $this->centre, [])['households']);
+    }
+
+    /**
+     * «No», written to the invitation by phone: they do not come to that act, as said on the page of the letter, and nothing
+     * else; the ways stay as they were.
+     */
+    public function test_answered_by_phone(): void {
+        global $DB;
+        $sent = time() - HOURSECS;
+        $family = $this->invited('Ana', '+34600111001', $sent, ['channel' => 'both', 'bulkid' => 41, 'phonesent' => $sent]);
+        $before = writeby::chosen($family);
+        $this->assertNull(invites::answered_by_phone(99, (int) $family->id, 'no', time()));
+        $this->assertNull(invites::answered_by_phone(41, (int) $family->id, 'yes', time()));
+        $said = invites::answered_by_phone(41, (int) $family->id, 'no', time());
+        $this->assertStringContainsString('Respira', (string) $said);
+        $row = $DB->get_record(invites::T, ['householdid' => $family->id]);
+        $this->assertSame('no', $row->reply);
+        $this->assertSame('phone', $row->via);
+        $this->assertSame($before, writeby::chosen(households::get((int) $family->id, (int) $this->centre->id)));
+        $this->assertSame('no', invites::answer((int) $this->event->id, (int) $family->id));
+    }
 }

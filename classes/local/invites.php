@@ -501,6 +501,7 @@ class invites {
      * @param int $userid
      * @param int $now
      * @param string[] $numbers household id => its number, for those that did not join a phone: written to by permission.
+     * @param bool $sample One family of example, for a person of the centre to see it: it goes at once, at any hour.
      * @return array phone, status and said.
      */
     protected static function request(
@@ -509,23 +510,21 @@ class invites {
         array $households,
         int $userid,
         int $now,
-        array $numbers = []
+        array $numbers = [],
+        bool $sample = false
     ): array {
         global $DB;
         $items = [];
         $links = [];
-        $name = format_string($centre->name);
         foreach ($households as $household) {
             $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?: 'es');
-            $plang = method_exists('\local_oksigeniamarandu\api', 'language') ?
-                \local_oksigeniamarandu\api::language($lang) : $lang;
-            $parts = publicpage::date_parts((int) $event->timestart, $plang);
+            [$plang, $params] = self::phone_params($event, $centre, $lang);
             // A message may be passed on, as a letter: its link opens the act and answers for it, never the page of the family.
             $token = households::new_link($household, 'letter');
             $links[(int) $household->id] = (int) (access::link($token)->id ?? 0);
             $item = [
                 'itemid' => (int) $household->id,
-                'params' => [$name, format_string($event->name), $parts['long'] . ', ' . $parts['hour']],
+                'params' => $params,
                 'url' => new \moodle_url('/local/oksigeniaeguahe/j.php', ['t' => $event->token, 'idioma' => $lang, 'k' => $token,
                     'de' => 'telefono']),
                 'lang' => $plang,
@@ -538,7 +537,9 @@ class invites {
         $label = get_string('invite_bulk_label', self::C, (object) ['event' => format_string($event->name),
             'date' => userdate((int) $event->timestart, get_string('strftimedateshort', 'langconfig'))]);
         try {
-            $answer = \local_oksigeniamarandu\api::bulk_request(messaging::COMPONENT, self::NOTICE, $items, $userid, $label);
+            $answer = $sample && count($items) === 1 ?
+                \local_oksigeniamarandu\api::bulk_request(messaging::COMPONENT, self::NOTICE, $items, $userid, $label, '', true) :
+                \local_oksigeniamarandu\api::bulk_request(messaging::COMPONENT, self::NOTICE, $items, $userid, $label);
         } catch (\Throwable $e) {
             debugging('Eguahe: the invitation by phone was not asked for: ' . $e->getMessage(), DEBUG_DEVELOPER);
             return ['phone' => 0, 'status' => '', 'said' => ''];
@@ -560,6 +561,20 @@ class invites {
         }
         return ['phone' => count($households), 'status' => (string) ($answer['status'] ?? ''),
             'said' => self::state($bulkid)['said'] ?? ''];
+    }
+
+    /**
+     * What the message of an act says, in the language of a family: the centre, the act, and its day and hour.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array [the language for Marandu, the three values]
+     */
+    public static function phone_params(\stdClass $event, \stdClass $centre, string $lang): array {
+        $plang = method_exists('\local_oksigeniamarandu\api', 'language') ? \local_oksigeniamarandu\api::language($lang) : $lang;
+        $parts = publicpage::date_parts((int) $event->timestart, $plang);
+        return [$plang, [format_string($centre->name), format_string($event->name), $parts['long'] . ', ' . $parts['hour']]];
     }
 
     /**
@@ -606,29 +621,38 @@ class invites {
      *
      * @param \stdClass $event
      * @param \stdClass $centre
+     * @param int[]|null $only Only these families, a family of example among them too (to see it as a family would); null
+     *     for all of the act.
      * @return array households (those it goes to, by id), numbers (by id, of those that did not join), joined, waiting (with
      *     a number, while Marandu cannot write to one), nophone and notphone (how many).
      */
-    public static function phone_too(\stdClass $event, \stdClass $centre): array {
+    public static function phone_too(\stdClass $event, \stdClass $centre, ?array $only = null): array {
         global $DB;
         $out = ['households' => [], 'numbers' => [], 'joined' => 0, 'waiting' => 0, 'nophone' => 0, 'notphone' => 0];
-        if (!self::fits($event, time()) || !self::by_phone($centre)) {
+        if (!self::fits($event, time()) || !self::by_phone($centre) || $only === []) {
             return $out;
         }
-        $rows = $DB->get_records_select(
-            self::T,
-            "eventid = ? AND (channel IS NULL OR channel IN ('', 'email')) AND COALESCE(reply, '') = '' AND " . households::NOTSAMPLE,
-            [$event->id],
-            'id ASC',
-            'id, householdid'
-        );
+        $where = "eventid = ? AND (channel IS NULL OR channel IN ('', 'email')) AND COALESCE(reply, '') = ''";
+        $params = [$event->id];
+        if ($only !== null) {
+            [$in, $more] = $DB->get_in_or_equal(array_map('intval', $only));
+            $where .= ' AND householdid ' . $in;
+            $params = array_merge($params, $more);
+        } else {
+            $where .= ' AND ' . households::NOTSAMPLE;
+        }
+        $rows = $DB->get_records_select(self::T, $where, $params, 'id ASC', 'id, householdid');
         $signed = array_flip($DB->get_fieldset_select(events::SIGNUPS, 'householdid', 'eventid = ?', [$event->id]));
         $ready = self::numbers_ready();
         $numbers = self::numbers((int) $centre->id);
         foreach ($rows as $row) {
             $id = (int) $row->householdid;
             $household = isset($signed[$id]) ? null : $DB->get_record(households::T, ['id' => $id, 'centreid' => $centre->id]);
-            if (!$household || (int) $household->guest || (int) $household->noinvites || !writeby::may_send($household, 'openinvite')) {
+            $example = $only !== null && (int) ($household->guest ?? 0) === households::SAMPLE;
+            if (
+                !$household || ((int) $household->guest && !$example) || (int) $household->noinvites ||
+                    !writeby::may_send($household, 'openinvite')
+            ) {
                 continue;
             }
             if (!writeby::phone_ok($household, 'openinvite')) {
@@ -675,14 +699,49 @@ class invites {
      * @param \stdClass $centre
      * @param int $userid
      * @param int $now
+     * @param int[]|null $only Only these families, as phone_too() takes them.
      * @return array phone, status and said.
      */
-    public static function queue_phone_too(\stdClass $event, \stdClass $centre, int $userid, int $now): array {
-        $too = self::phone_too($event, $centre);
+    public static function queue_phone_too(\stdClass $event, \stdClass $centre, int $userid, int $now, ?array $only = null): array {
+        $too = self::phone_too($event, $centre, $only);
         if (!$too['households']) {
             return ['phone' => 0, 'status' => '', 'said' => ''];
         }
-        return self::request($event, $centre, $too['households'], $userid, $now, $too['numbers']);
+        // One family of example, named: to see it now, as a family would, whatever the hour.
+        $one = count($too['households']) === 1 ? reset($too['households']) : null;
+        $sample = $only !== null && $one && (int) $one->guest === households::SAMPLE;
+        return self::request($event, $centre, $too['households'], $userid, $now, $too['numbers'], $sample);
+    }
+
+    /**
+     * A family answered the invitation by phone, writing: a «no» is «we do not come» to that act, as on the page of the
+     * letter, and nothing more; it does not stop the way, which only a word to stop does.
+     *
+     * @param int $bulkid
+     * @param int $householdid
+     * @param string $answer no.
+     * @param int $time
+     * @return string|null The answer to the family, in its language; null when it is no invitation of this send.
+     */
+    public static function answered_by_phone(int $bulkid, int $householdid, string $answer, int $time): ?string {
+        global $DB;
+        if ($answer !== 'no' || !$bulkid) {
+            return null;
+        }
+        $row = $DB->get_record(self::T, ['bulkid' => $bulkid, 'householdid' => $householdid]);
+        $event = $row ? $DB->get_record(events::T, ['id' => $row->eventid]) : null;
+        $household = $event ? households::get($householdid, (int) $event->centreid) : null;
+        if (!$household) {
+            return null;
+        }
+        $centre = centres::get((int) $event->centreid);
+        $lang = in_array($household->lang, lists::LANGS, true) ? $household->lang : ($centre->lang ?? 'es');
+        if (!self::reply($event, $household, 'no', 0, $time ?: time())) {
+            // Already over, closed or called off: nothing to note, and nothing that would read wrong.
+            return null;
+        }
+        self::note_way($event, $household, 'phone');
+        return publiclang::str('invite_phone_no_answer', $lang, publicpage::text($event->name));
     }
 
     /**
