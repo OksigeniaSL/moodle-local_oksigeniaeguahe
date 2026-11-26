@@ -23581,6 +23581,20 @@ html {
     gap: 6px;
 }
 
+.cartas-respuestas {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--eg-linea);
+}
+
+/* An answer by mail that seems to say whether they come: to confirm with a touch. */
+.carta-respuesta form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 #aj-cartas .segmentos {
     flex-wrap: wrap;
     max-width: 100%;

@@ -235,6 +235,8 @@ class panel_household {
             'lookalike' => lookalike::context($household, $canact),
             'twice' => lookalike::twice_context($household, $canact),
             'bounces' => bounces::context($household, $full, $canact),
+            // An answer by mail to an invitation, with what it seems to say, to confirm.
+            'mailreplies' => replies::context($household, $canact),
             // What the list of the centre says: the children it enrolled, a family of the centre, or which child it was.
             'fromlist' => listmatch::context($household, $full, $canact),
             // Two families joined by mistake, separated again by a person.

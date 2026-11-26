@@ -162,6 +162,15 @@ $tasks = [
         'dayofweek' => '*',
     ],
     [
+        'classname' => '\\local_oksigeniaeguahe\\task\\read_replies',
+        'blocking' => 0,
+        'minute' => '7,22,37,52',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\notify_team',
         'blocking' => 0,
         'minute' => '*/5',

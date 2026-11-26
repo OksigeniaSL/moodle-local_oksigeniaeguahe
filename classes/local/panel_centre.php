@@ -887,8 +887,13 @@ class panel_centre {
         foreach (mailer::KINDS as $key) {
             $kinds[] = ['key' => $key, 'name' => get_string('mailer_kind_' . $key, $c), 'pressed' => $key === $kind];
         }
+        $r = replies::settings((int) $centre->id);
         return [
             'reading' => mailer::reading($centre),
+            'readreplies' => replies::reading($centre),
+            // The answers of the families by mail, from the mailbox the letters say to answer to.
+            'replies' => ['host' => (string) $r['host'], 'port' => (int) $r['port'], 'user' => (string) $r['user'] !== '' ? (string) $r['user'] :
+                (string) $centre->email, 'haspass' => (string) $r['pass'] !== '', 'error' => empty($r['on']) ? (string) $r['error'] : ''],
             'kinds' => $kinds,
             'service' => $kind !== 'site' ? [
                 'from' => (string) $s['from'],
@@ -950,6 +955,18 @@ class panel_centre {
                 'key' => optional_param('mailerkey', '', PARAM_ALPHANUMEXT),
                 'secret' => optional_param('mailersecret', '', PARAM_ALPHANUMEXT),
             ], $USER);
+            if ($said !== '') {
+                $problems[] = $said;
+            }
+        }
+        // The mailbox the families answer to: kept and tried; read only if it opens.
+        if (optional_param('repliessave', 0, PARAM_BOOL) && empty($centre->practice)) {
+            $said = replies::save($centre, [
+                'host' => optional_param('replieshost', '', PARAM_HOST),
+                'port' => optional_param('repliesport', 993, PARAM_INT),
+                'user' => optional_param('repliesuser', '', PARAM_RAW_TRIMMED),
+                'pass' => optional_param('repliespass', '', PARAM_RAW),
+            ]);
             if ($said !== '') {
                 $problems[] = $said;
             }

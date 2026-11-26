@@ -63,7 +63,7 @@
         "lang": [{"value": "es", "name": "Español", "selected": true}], "countries": [{"value": "ES", "name": "España", "selected": true}],
         "currencies": [{"value": "", "name": "La de su país (Euro)", "selected": true}],
         "systems": [{"value": "", "name": "El de su país: España", "selected": true}], "address": "Calle Mayor, 1", "phone": "", "tel": "{}",
-        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script", "heard": true, "late": false, "state": "Las citas van a «Admisiones».", "emptied": "", "hascalendars": true, "calendars": [{"id": "a", "name": "Admisiones", "main": true, "behind": false, "color": 0}, {"id": "b", "name": "Secretaría", "main": false, "behind": true, "color": 1}]}, "mailer": {"reading": "Con el correo del sitio.", "kinds": [{"key": "site", "name": "Con el correo del sitio", "pressed": false}, {"key": "mailjet", "name": "Mailjet", "pressed": true}], "service": {"from": "admisiones@example.com", "fromname": "", "smtp": false, "mailjet": {"key": "abc", "hassecret": true, "hook": "https://example.com/mailjet.php"}, "error": "", "tested": "Funciona: la prueba salió el 26/11/26."} },
+        "email": "", "emailsettled": "", "calendar": {"ics": "https://example.com/cal.php", "script": "// script", "heard": true, "late": false, "state": "Las citas van a «Admisiones».", "emptied": "", "hascalendars": true, "calendars": [{"id": "a", "name": "Admisiones", "main": true, "behind": false, "color": 0}, {"id": "b", "name": "Secretaría", "main": false, "behind": true, "color": 1}]}, "mailer": {"reading": "Con el correo del sitio.", "readreplies": "El buzón de las respuestas no se lee.", "replies": {"host": "", "port": 993, "user": "admisiones@example.com", "haspass": false, "error": ""}, "kinds": [{"key": "site", "name": "Con el correo del sitio", "pressed": false}, {"key": "mailjet", "name": "Mailjet", "pressed": true}], "service": {"from": "admisiones@example.com", "fromname": "", "smtp": false, "mailjet": {"key": "abc", "hassecret": true, "hook": "https://example.com/mailjet.php"}, "error": "", "tested": "Funciona: la prueba salió el 26/11/26."} },
         "welcome": "", "arrive": "", "replydays": [{"value": 2, "name": "2 días laborables", "selected": true}], "closedics": "https://example.com/cerrado.ics",
         "closedwords": "16 días cerrados por delante; el próximo, el martes 8 de diciembre de 2026.",
         "replyread": "Contestamos en 2 días laborables",
@@ -484,7 +484,7 @@
             {{#mailer}}
             <details class="apartado aj-plegado" id="aj-cartas">
                 <summary><h2 id="aj-cartas-t">{{#str}}mailer_card, local_oksigeniaeguahe{{/str}}</h2><span class="aj-cambiar">{{#str}}panel_offer_change, local_oksigeniaeguahe{{/str}}</span><span class="aj-cerrar">{{#str}}closebuttontitle, core{{/str}}</span>
-                    <span class="aj-lectura"><span>{{reading}}</span></span></summary>
+                    <span class="aj-lectura"><span>{{reading}}</span><span>{{readreplies}}</span></span></summary>
                 <div class="aj-cuerpo">
                     <p>{{#str}}mailer_lead, local_oksigeniaeguahe{{/str}}</p>
                     <div class="segmentos" role="group" aria-label="{{#str}}mailer_card, local_oksigeniaeguahe{{/str}}">{{#kinds}}<button type="submit" name="mailerkind" value="{{key}}" formaction="{{action}}#aj-cartas" aria-pressed="{{#pressed}}true{{/pressed}}{{^pressed}}false{{/pressed}}">{{name}}</button>{{/kinds}}</div>
@@ -517,6 +517,20 @@
                     {{#error}}<p class="aviso-suave con-error" role="alert">{{{i.info}}}<span>{{error}}</span></p>{{/error}}
                     {{#tested}}<p class="aviso-suave" role="status">{{{i.check}}}<span>{{tested}}</span></p>{{/tested}}
                     {{/service}}
+                    {{#replies}}
+                    <div class="cartas-respuestas">
+                        <h3 class="rotulo-p">{{#str}}replies_title, local_oksigeniaeguahe{{/str}}</h3>
+                        <p class="ayuda">{{#str}}replies_lead, local_oksigeniaeguahe{{/str}}</p>
+                        <div class="cartas-servicio">
+                            <label for="c-resp-host">{{#str}}replies_host, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-resp-host" type="text" name="replieshost" value="{{host}}" placeholder="imap.gmail.com" size="30" dir="ltr" autocomplete="off">
+                            <label for="c-resp-puerto">{{#str}}mailer_port, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-resp-puerto" type="number" name="repliesport" value="{{port}}" min="1" max="65535" dir="ltr">
+                            <label for="c-resp-usuario">{{#str}}replies_user, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-resp-usuario" type="text" name="repliesuser" value="{{user}}" size="30" dir="ltr" autocomplete="off">
+                            <label for="c-resp-clave">{{#str}}replies_pass, local_oksigeniaeguahe{{/str}}</label><input class="aj-hueco" id="c-resp-clave" type="password" name="repliespass" value="" size="30" dir="ltr" autocomplete="new-password"{{#haspass}} placeholder="{{#str}}mailer_kept, local_oksigeniaeguahe{{/str}}"{{/haspass}}>
+                        </div>
+                        <p><button class="boton secundario pequeno" type="submit" name="repliessave" value="1" formaction="{{action}}#aj-cartas">{{#str}}replies_save, local_oksigeniaeguahe{{/str}}</button></p>
+                        {{#error}}<p class="aviso-suave con-error" role="alert">{{{i.info}}}<span>{{error}}</span></p>{{/error}}
+                    </div>
+                    {{/replies}}
                 </div>
             </details>
             {{/mailer}}

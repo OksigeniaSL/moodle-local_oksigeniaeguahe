@@ -2415,5 +2415,29 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026123000, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123200) {
+        // The answers of the families by mail, taken in once, with what they seem to say of an invitation.
+        $table = new xmldb_table('local_oksigeniaeguahe_mailreply');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('centreid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('householdid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('contactid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('msgkey', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('eventid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('proposal', XMLDB_TYPE_CHAR, '3', null, null, null, null);
+        $table->add_field('state', XMLDB_TYPE_CHAR, '10', null, null, null, null);
+        $table->add_field('saidby', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timesaid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('centreid', XMLDB_KEY_FOREIGN, ['centreid'], 'local_oksigeniaeguahe_centre', ['id']);
+        $table->add_index('centremsg', XMLDB_INDEX_UNIQUE, ['centreid', 'msgkey']);
+        $table->add_index('householdid', XMLDB_INDEX_NOTUNIQUE, ['householdid']);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2026123200, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

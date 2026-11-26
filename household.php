@@ -339,6 +339,21 @@ if ($action && data_submitted() && confirm_sesskey()) {
             lookalike::distinct((int) $centre->id, (int) $household->id, required_param('other', PARAM_INT), (int) $USER->id);
             redirect(new moodle_url($url, [], 'misma-familia'));
             break;
+        case 'mailreply':
+            // What an answer by mail seemed to say of an invitation: right, noted as on the page of the letter; or not that.
+            $done = \local_oksigeniaeguahe\local\replies::confirm(
+                $household,
+                required_param('respuesta', PARAM_INT),
+                optional_param('bien', 0, PARAM_BOOL),
+                (int) $USER->id
+            );
+            redirect(
+                $url,
+                get_string($done ? 'replies_done' : 'bounce_notdone', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
+            break;
         case 'bounce':
             // What a person heard when calling because the mail came back.
             $done = \local_oksigeniaeguahe\local\bounces::say(

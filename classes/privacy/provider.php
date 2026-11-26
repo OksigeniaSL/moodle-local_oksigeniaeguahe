@@ -49,7 +49,7 @@ class provider implements
     const OTHERS = ['local_oksigeniaeguahe_promise' => 'doneby', 'local_oksigeniaeguahe_household' => 'ownerid',
         'local_oksigeniaeguahe_notsame' => 'userid', 'local_oksigeniaeguahe_mergelog' => 'userid',
         'local_oksigeniaeguahe_samechild' => 'userid',
-        'local_oksigeniaeguahe_bounce' => 'saidby',
+        'local_oksigeniaeguahe_bounce' => 'saidby', 'local_oksigeniaeguahe_mailreply' => 'saidby',
         'local_oksigeniaeguahe_hours' => 'userid', 'local_oksigeniaeguahe_apptmark' => 'userid',
         'local_oksigeniaeguahe_notice' => 'userid', 'local_oksigeniaeguahe_settle' => 'userid',
         'local_oksigeniaeguahe_tie' => 'userid'];
@@ -140,6 +140,10 @@ class provider implements
             'saidby' => 'privacy:metadata:bounce:saidby',
             'timesaid' => 'privacy:metadata:bounce:timesaid',
         ], 'privacy:metadata:bounce');
+        $collection->add_database_table('local_oksigeniaeguahe_mailreply', [
+            'saidby' => 'privacy:metadata:mailreply:saidby',
+            'timesaid' => 'privacy:metadata:mailreply:timesaid',
+        ], 'privacy:metadata:mailreply');
         $collection->add_database_table('local_oksigeniaeguahe_samechild', [
             'data' => 'privacy:metadata:samechild:data',
             'userid' => 'privacy:metadata:samechild:userid',

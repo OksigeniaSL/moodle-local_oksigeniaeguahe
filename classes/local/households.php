@@ -859,10 +859,11 @@ class households {
      * @param int $userid
      * @param string $channel
      * @param string $body What was said, in a few words.
+     * @param int $time When; now if not given (an answer sent from the mailbox of the centre has its own).
      */
-    public static function answered(\stdClass $household, int $userid, string $channel, string $body): void {
+    public static function answered(\stdClass $household, int $userid, string $channel, string $body, int $time = 0): void {
         global $DB;
-        $time = time();
+        $time = $time ?: time();
         attend::answered_by($household, $userid);
         self::contact($household, 'out', $channel, $body, $userid, $time);
         $DB->update_record(self::T, (object) ['id' => $household->id, 'waitingsince' => 0, 'waitingdayonly' => 0,
@@ -880,10 +881,11 @@ class households {
      * @param string $channel
      * @param string $body
      * @param bool $sent Whether it went to many at once: it does not count as being in touch.
+     * @param int $time When; now if not given.
      */
-    public static function told(\stdClass $household, int $userid, string $channel, string $body, bool $sent = false): void {
+    public static function told(\stdClass $household, int $userid, string $channel, string $body, bool $sent = false, int $time = 0): void {
         global $DB;
-        $time = time();
+        $time = $time ?: time();
         self::contact($household, 'out', $channel, $body, $userid, $time, 0, '', '', false, $sent ? 'many' : 'told');
         // What the centre sends to many at once (an invitation) does not count as being in touch: it does not keep the
         // data of a family that never answers any longer.
@@ -1598,6 +1600,7 @@ class households {
         $DB->delete_records(lookalike::LOG, ['householdid' => $household->id]);
         $DB->delete_records(lookalike::TWICE, ['householdid' => $household->id]);
         $DB->delete_records(bounces::T, ['householdid' => $household->id]);
+        $DB->delete_records(replies::T, ['householdid' => $household->id]);
         $DB->delete_records(listmatch::T, ['householdid' => $household->id]);
         $DB->delete_records(teamnotes::T, ['householdid' => $household->id]);
         // What came through an entry stays only as a key without the family, so that sending the old answers again does
@@ -1722,6 +1725,7 @@ class households {
         $DB->delete_records_select(lookalike::LOG, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         $DB->delete_records_select(lookalike::TWICE, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         $DB->delete_records_select(bounces::T, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
+        $DB->delete_records_select(replies::T, 'householdid NOT IN (SELECT id FROM {' . self::T . '})');
         // The private links opened from the app of Aty (app.php) last two days: whoever wants the page again comes from
         // the app, which makes another.
         $DB->delete_records_select(self::LINKS, 'reason = ? AND timecreated < ?', ['app', $now - 2 * DAYSECS]);

@@ -1336,5 +1336,28 @@
         <INDEX NAME="centrestate" UNIQUE="false" FIELDS="centreid, state"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_oksigeniaeguahe_mailreply" COMMENT="A mail of a family taken in from the mailbox of answers of its centre, once, and what it seems to say of an invitation, for a person to confirm">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="centreid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="householdid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="contactid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The line of its history it became"/>
+        <FIELD NAME="msgkey" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="sha256 of the centre and the Message-ID, to take it in once"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The act it answers the invitation of; 0, none"/>
+        <FIELD NAME="proposal" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" COMMENT="yes or no, as it seems to say; empty, nothing"/>
+        <FIELD NAME="state" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Empty while it waits; done or dismissed, said by a person"/>
+        <FIELD NAME="saidby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timesaid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="centreid" TYPE="foreign" FIELDS="centreid" REFTABLE="local_oksigeniaeguahe_centre" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="centremsg" UNIQUE="true" FIELDS="centreid, msgkey"/>
+        <INDEX NAME="householdid" UNIQUE="false" FIELDS="householdid"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

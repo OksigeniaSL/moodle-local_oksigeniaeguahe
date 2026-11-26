@@ -75,6 +75,20 @@ class imapread {
     }
 
     /**
+     * The folder of the mail sent, by its mark, whatever it is called («[Gmail]/Enviados», «Sent Mail», «Sent»).
+     *
+     * @return string Empty when the mailbox has none.
+     */
+    public function sent(): string {
+        foreach (preg_split('/\r?\n/', $this->command('LIST "" "*"')) as $line) {
+            if (preg_match('/^\* LIST \(([^)]*)\) (?:"[^"]*"|NIL) (.+)$/i', trim($line), $m) && preg_match('/\\\\Sent\b/i', $m[1])) {
+                return trim($m[2], '"');
+            }
+        }
+        return '';
+    }
+
+    /**
      * Opens a folder only to read.
      *
      * @param string $folder
@@ -95,6 +109,22 @@ class imapread {
     public function returned(int $after, int $since): array {
         $from = 'OR FROM "mailer-daemon" FROM "postmaster"';
         $where = $after ? 'UID ' . ($after + 1) . ':* ' . $from : 'SINCE ' . date('j-M-Y', $since) . ' ' . $from;
+        $answer = $this->command('UID SEARCH ' . $where);
+        $found = preg_match('/^\* SEARCH ?([\d ]*)/mi', $answer, $m) ? trim($m[1]) : '';
+        $uids = array_map('intval', preg_split('/\s+/', $found, -1, PREG_SPLIT_NO_EMPTY));
+        // «n:*» gives the last one even when it is older.
+        return array_values(array_filter($uids, fn($uid) => $uid > $after));
+    }
+
+    /**
+     * All the mail of the folder open: after a number, or since a day.
+     *
+     * @param int $after The last number read; 0 for none.
+     * @param int $since A time; 0 when there is a number.
+     * @return int[]
+     */
+    public function since(int $after, int $since): array {
+        $where = $after ? 'UID ' . ($after + 1) . ':*' : 'SINCE ' . date('j-M-Y', $since);
         $answer = $this->command('UID SEARCH ' . $where);
         $found = preg_match('/^\* SEARCH ?([\d ]*)/mi', $answer, $m) ? trim($m[1]) : '';
         $uids = array_map('intval', preg_split('/\s+/', $found, -1, PREG_SPLIT_NO_EMPTY));
