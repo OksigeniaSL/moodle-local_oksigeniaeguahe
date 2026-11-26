@@ -619,15 +619,15 @@ class panel_event {
     protected static function trace(\stdClass $one, int $now, bool $together): string {
         $c = self::C;
         $sent = (int) $one->timecreated;
-        if (!$sent) {
+        if (!letters::went($one)) {
             return '';
         }
         $parts = $together ? [] : [get_string('panel_trace_went', $c, panel::when_words($sent, $now))];
         if ((int) $one->opened >= $sent) {
-            $parts[] = get_string('panel_trace_opened', $c, self::lapse((int) $one->opened - $sent));
+            $parts[] = get_string('panel_trace_opened', $c, letters::lapse((int) $one->opened - $sent));
         }
         if ((int) $one->replied >= $sent && in_array((string) $one->reply, ['yes', 'no'], true)) {
-            $parts[] = get_string('panel_trace_said', $c, self::lapse((int) $one->replied - $sent));
+            $parts[] = get_string('panel_trace_said', $c, letters::lapse((int) $one->replied - $sent));
         }
         $text = implode(' · ', $parts);
         return $together ? \core_text::strtoupper(\core_text::substr($text, 0, 1)) . \core_text::substr($text, 1) : $text;
@@ -643,6 +643,7 @@ class panel_event {
     protected static function pace(array $times) {
         $c = self::C;
         $dots = [];
+        $times = array_filter($times, [letters::class, 'went']);
         foreach ($times as $one) {
             $sent = (int) $one->timecreated;
             $first = array_filter([(int) $one->opened, (int) $one->replied], fn($t) => $t >= $sent && $t > 0);
@@ -658,33 +659,11 @@ class panel_event {
         $mark = "\u{1}";
         $text = s(get_string('panel_pace', $c, (object) ['n' => count($dots), 'of' => count($times), 'half' => $mark]));
         $at = fn(int $secs) => round(100 * log(max(1, $secs / 60)) / log(7 * 24 * 60), 1);
-        return ['half' => str_replace($mark, '<b>' . s(self::lapse($half)) . '</b>', $text), 'halfat' => $at($half),
+        return ['half' => str_replace($mark, '<b>' . s(letters::lapse($half)) . '</b>', $text), 'halfat' => $at($half),
             'dots' => array_map(fn($d) => ['at' => min(100, $at($d['secs'])), 'said' => $d['said']], $dots),
-            'ticks' => [['at' => $at(600), 'label' => self::lapse(600)], ['at' => $at(3600), 'label' => self::lapse(3600)],
+            'ticks' => [['at' => $at(600), 'label' => letters::lapse(600)], ['at' => $at(3600), 'label' => letters::lapse(3600)],
                 ['at' => $at(86400), 'label' => get_string('panel_pace_day', $c)]],
             'legend' => get_string('panel_pace_legend', $c)];
-    }
-
-    /**
-     * A while, in the words of a clock: minutes; hours and minutes while it is a few; hours; days.
-     *
-     * @param int $seconds
-     * @return string
-     */
-    protected static function lapse(int $seconds): string {
-        $c = self::C;
-        $m = max(1, (int) round($seconds / 60));
-        if ($m < 60) {
-            return get_string('panel_lapse_min', $c, $m);
-        }
-        $h = intdiv($m, 60);
-        if ($h < 6 && $m % 60) {
-            return get_string('panel_lapse_hmin', $c, (object) ['h' => $h, 'm' => $m % 60]);
-        }
-        if ($h < 48) {
-            return get_string('panel_lapse_h', $c, (int) round($m / 60));
-        }
-        return get_string('panel_lapse_days', $c, (int) round($m / 1440));
     }
 
     /**

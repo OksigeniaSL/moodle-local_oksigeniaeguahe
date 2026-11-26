@@ -29,7 +29,7 @@ class panel_answers {
     const C = 'local_oksigeniaeguahe';
 
     /** @var string[] The questions with a sheet. */
-    const KEYS = ['campaign', 'channels', 'answers', 'outs', 'places', 'students', 'likes'];
+    const KEYS = ['campaign', 'channels', 'answers', 'letters', 'outs', 'places', 'students', 'likes'];
 
     /**
      * The sheet of a question.
@@ -68,8 +68,8 @@ class panel_answers {
         $head = panel::head(['title' => $title, 'ante' => $row['question'], 'sub' => $sub, 'back' => ['url' => $back,
             'name' => get_string('tab_metrics', $c)]]);
         return ['head' => $head, 'print' => get_string('qs_print', $c), 'facts' => [], 'todo' => false,
-            'blocks' => array_values(array_filter($blocks)), 'detail' => ['url' => $row['detail'],
-            'name' => get_string('qs_detail', $c)]] + self::sources($with);
+            'blocks' => array_values(array_filter($blocks)), 'detail' => $row['detail'] !== '' ? ['url' => $row['detail'],
+            'name' => get_string('qs_detail', $c)] : false] + ($key === 'letters' ? ['sources' => [], 'hassources' => false] : self::sources($with));
     }
 
     /**
@@ -275,6 +275,59 @@ class panel_answers {
             $open ? panel_answer::block('esperan', get_string('familylist_unanswered', $c), ['list' => ['rows' => $open]]) : null,
             $groups ? panel_answer::block('cuando', get_string('qs_when', $c), ['bars' => ['groups' => $groups],
                 'def' => get_string('panel_resp_bands_def', $c)]) : null];
+    }
+
+    /**
+     * When it is best to send the letters of the acts: how many went, arrived, were opened and brought families, and the
+     * same by the hour and the day they went.
+     *
+     * @param \stdClass $w
+     * @return array[]
+     */
+    protected static function of_letters(\stdClass $w): array {
+        $c = self::C;
+        $f = letters::figures($w->centre, (int) $w->campaign['since'], $w->campaign['key'] === 'live' ? 0 : (int) $w->campaign['until'], $w->now);
+        $back = (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $w->centre->id, 'devueltos' => 1]))->out(false);
+        $step = fn(string $name, int $n, array $parts, array $legend = []) => ['name' => get_string($name, $c), 'n' => $n, 'url' => false,
+            'parts' => array_values(array_filter($parts, fn($p) => $p['n'])), 'legend' => $legend];
+        $steps = [
+            $step('qs_letters_sent', $f['sent'], [['kind' => 'yes', 'n' => $f['sent']]]),
+            $step('qs_letters_arrived', $f['arrived'], [['kind' => 'yes', 'n' => $f['arrived']], ['kind' => 'no', 'n' => $f['back']]], $f['back'] ?
+                [['kind' => 'no', 'n' => $f['back'], 'text' => get_string('qs_letters_back', $c), 'url' => $back]] : []),
+            $step('qs_letters_opened', $f['opened'], [['kind' => 'yes', 'n' => $f['opened']]]),
+            $step('qs_letters_yes', $f['yes'], [['kind' => 'yes', 'n' => $f['yes']]]),
+        ];
+        $fair = $f['best'] !== null || $f['daybest'] !== null;
+        return [panel_answer::block('cartas', get_string('qs_letters_title', $c), ['lead' => $f['sent'] <= panel_answer::DOTS ?
+            get_string('qs_dot', $c) : '', 'path' => panel_answer::path($f['sent'], $steps), 'def' => get_string('qs_letters_def', $c)]),
+            $f['byhour'] ? panel_answer::block('hora', get_string('qs_letters_by_hour', $c), ['table' => self::letters_table($f['byhour']),
+            'note' => $fair ? false : panel_answer::note(get_string('qs_letters_fair', $c, letters::FAIR), '', '')]) : null,
+            $f['byday'] ? panel_answer::block('dia', get_string('qs_letters_by_day', $c), ['table' => self::letters_table($f['byday'])]) : null];
+    }
+
+    /**
+     * The letters of each hour or day, in a row: how many arrived, how many were opened within two days of those that had
+     * them, the time half of them reacted within, and how many come.
+     *
+     * @param array[] $rows Of letters::figures().
+     * @return array
+     */
+    protected static function letters_table(array $rows): array {
+        $c = self::C;
+        $cols = ['qs_letters_col_sent', 'qs_letters_col_opened', 'qs_letters_col_half', 'qs_letters_yes'];
+        $most = max(array_merge([1], array_column($rows, 'arrived')));
+        $cell = fn(string $col, $n, string $text = '', float $v = 0) => ['col' => get_string($col, $c), 'n' => $n, 'text' => $text,
+            'v' => round($v, 3), 'url' => '', 'missing' => ''];
+        return ['cols' => array_map(fn($col) => ['name' => get_string($col, $c)], $cols), 'rows' => array_map(fn($row) => ['name' => $row['name'],
+            'when' => '', 'url' => false, 'current' => false, 'cells' => [
+                $cell($cols[0], $row['arrived'], '', $row['arrived'] / $most),
+                $row['ripe'] ? $cell($cols[1], $row['ripeopened'], get_string('qs_letters_of', $c, (object) ['ripe' => $row['ripe'],
+                    'percent' => panel_metrics::percent($row['ripeopened'], $row['ripe'])]), $row['rate']) :
+                    $cell($cols[1], '', get_string('qs_letters_soon', $c)),
+                $row['half'] !== null ? $cell($cols[2], letters::lapse($row['half'])) :
+                    $cell($cols[2], '', get_string('qs_letters_few', $c, letters::HALF)),
+                $cell($cols[3], $row['yes'], '', $row['arrived'] ? $row['yes'] / $row['arrived'] : 0),
+            ]], $rows)];
     }
 
     /**

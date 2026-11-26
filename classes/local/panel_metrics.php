@@ -202,9 +202,10 @@ class panel_metrics {
     public static function percent(int $part, int $whole): string {
         $p = $whole ? 100 * $part / $whole : 0;
         if ($p > 0 && $p < 0.1) {
-            return '< ' . format_float(0.1, 1) . ' %';
+            return '< ' . format_float(0.1, 1) . "\u{00A0}%";
         }
-        return format_float($p > 99 && $p < 100 ? floor($p) : $p, $p < 10 && $p != floor($p) ? 1 : 0) . ' %';
+        // The sign never goes to the next line alone.
+        return format_float($p > 99 && $p < 100 ? floor($p) : $p, $p < 10 && $p != floor($p) ? 1 : 0) . "\u{00A0}%";
     }
 
     /**

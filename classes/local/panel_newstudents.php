@@ -241,7 +241,7 @@ class panel_newstudents {
         $total = (int) $o['total'];
         $fresh = $g['newfamily'] + $g['unknown'];
         // With fewer than ten behind, the numbers say it.
-        $pct = fn(int $n, int $of) => $of >= self::MIN ? round(100 * $n / $of) . ' %' : '—';
+        $pct = fn(int $n, int $of) => $of >= self::MIN ? round(100 * $n / $of) . "\u{00A0}%" : '—';
         $both = fn(string $con, string $sin) => '<span class="con">' . $con . '</span><span class="sin">' . $sin . '</span>';
         $courses = function (array $grades) use ($c): string {
             arsort($grades);
