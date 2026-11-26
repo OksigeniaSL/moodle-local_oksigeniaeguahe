@@ -43,10 +43,16 @@ class replies {
 
     /** @var string[] Saying they cannot come, in the languages of the families, without accents and in small letters. */
     const NO = [
-        '/\bno (podemos|puedo|podremos|podre|podra|podran|podriamos|iremos|vamos a (poder )?ir|asistiremos|asistire|estaremos|estare)\b/',
-        '/\b(imposible|esta vez no|no nos (viene|va) bien|no sera posible|lamentablemente no|no podemos asistir)\b/',
+        '/\bno (podemos|puedo|podremos|podre|podra|podran|podriamos|iremos|vamos a (poder )?ir|vamos a poder|asistiremos|asistire|' .
+            'acudiremos|estaremos|estare)\b/',
+        '/\b(imposible|esta vez no|no nos (viene|va) bien|no (nos )?(sera|es) posible|lamentablemente no|no podemos asistir)\b/',
+        // A wish that does not happen: «me hubiese encantado asistir, pero…», «nos gustaría ir, pero…».
+        '/\b(me|nos) (hubiese|hubiera|habria) (encantado|gustado) (ir|asistir|venir|acudir|estar)\b/',
+        '/\b(me|nos) (encantaria|gustaria) (mucho )?(ir|asistir|venir|acudir|estar)( alli)? pero\b/',
         '/\b(can ?not|can\'?t|won\'?t be able to|will not be able to|unable to) (come|attend|make it|go)\b/',
+        '/\b(we|i)( would|\'d) (have )?(loved|liked) to (come|attend|go|be there) but\b/',
         '/\bnao (podemos|posso|poderemos|vamos|iremos|conseguimos)\b/',
+        '/\b(gostariamos|gostaria) (muito )?de (ir|estar|participar) mas\b/',
     ];
 
     /** @var string[] Saying they come. */
@@ -278,6 +284,8 @@ class replies {
         $text = self::own_text((string) $mail['text']);
         $time = min((int) $mail['time'] ?: $now, $now);
         $answered = 0;
+        $id = (string) $mail['messageid'] !== '' ? $mail['messageid'] : $time . '|' . $mail['subject'];
+        $done = [];
         foreach (array_unique($to) as $email) {
             $adults = $DB->get_records_select(
                 households::ADULTS,
@@ -290,9 +298,15 @@ class replies {
             );
             $adult = reset($adults);
             $household = $adult ? households::get((int) $adult->householdid, (int) $centre->id) : null;
-            $key = hash('sha256', $centre->id . '|sent|' . $email . '|' . ((string) $mail['messageid'] !== '' ? $mail['messageid'] :
-                $time . '|' . $mail['subject']));
-            if (!$household || $text === '' || $DB->record_exists(self::T, ['centreid' => $centre->id, 'msgkey' => $key])) {
+            if (!$household || $text === '' || isset($done[(int) $household->id])) {
+                continue;
+            }
+            // One line for each family, though it went to two of its adults; 0.133.2 kept it by address.
+            $done[(int) $household->id] = true;
+            $key = hash('sha256', $centre->id . '|sent|h' . $household->id . '|' . $id);
+            $old = hash('sha256', $centre->id . '|sent|' . $email . '|' . $id);
+            [$in, $params] = $DB->get_in_or_equal([$key, $old]);
+            if ($DB->record_exists_select(self::T, 'centreid = ? AND msgkey ' . $in, array_merge([$centre->id], $params))) {
                 continue;
             }
             $waiting = (int) $household->waitingsince;
@@ -424,7 +438,7 @@ class replies {
      * @return string
      */
     public static function says(string $text): string {
-        $plain = ' ' . preg_replace('/[^a-z0-9\' ]+/', ' ', \core_text::strtolower(\core_text::specialtoascii($text))) . ' ';
+        $plain = ' ' . preg_replace('/ +/', ' ', preg_replace('/[^a-z0-9\' ]+/', ' ', \core_text::strtolower(\core_text::specialtoascii($text)))) . ' ';
         $no = (bool) array_filter(self::NO, fn($re) => preg_match($re, $plain));
         $yes = (bool) array_filter(self::YES, fn($re) => preg_match($re, $plain));
         return $no && !$yes ? 'no' : ($yes && !$no ? 'yes' : '');

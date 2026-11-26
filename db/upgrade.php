@@ -2439,5 +2439,29 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026123200, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123203) {
+        // A mail the team sent from the mailbox to two adults of one family was taken in twice: one line is kept.
+        $sql = "SELECT c.id, c.householdid, c.timecreated, c.body
+                  FROM {local_oksigeniaeguahe_contact} c
+                 WHERE c.channel = 'email' AND c.direction = 'out' AND c.userid = 0 AND c.aim = 'told'
+                       AND c.householdid IN (SELECT r.householdid FROM {local_oksigeniaeguahe_mailreply} r WHERE r.state = 'sent')
+              ORDER BY c.id ASC";
+        $seen = [];
+        $extra = [];
+        $rows = $DB->get_recordset_sql($sql);
+        foreach ($rows as $row) {
+            $key = $row->householdid . '|' . $row->timecreated . '|' . sha1((string) $row->body);
+            if (isset($seen[$key])) {
+                $extra[] = (int) $row->id;
+            }
+            $seen[$key] = true;
+        }
+        $rows->close();
+        foreach (array_chunk($extra, 500) as $ids) {
+            $DB->delete_records_list('local_oksigeniaeguahe_contact', 'id', $ids);
+        }
+        upgrade_plugin_savepoint(true, 2026123203, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

@@ -40,6 +40,9 @@ class invites {
     /** @var string Where the permission to write by phone to a number that did not join comes from (Enrique, 22-11 and 26-11). */
     const IMPLIED = 'eguahe:invite';
 
+    /** @var int[] While a send by phone is being asked for: household id => the act, before its rows carry its number. */
+    protected static $asking = [];
+
     /** @var string Instead of something they like: only the families of former students of the centre. */
     const ALUMNI = 'antiguos';
 
@@ -536,6 +539,8 @@ class invites {
         }
         $label = get_string('invite_bulk_label', self::C, (object) ['event' => format_string($event->name),
             'date' => userdate((int) $event->timestart, get_string('strftimedateshort', 'langconfig'))]);
+        // A send that goes at once (a sample, or one under the threshold) may ask still() before its number is in the rows.
+        self::$asking = array_fill_keys(array_map(fn($h) => (int) $h->id, $households), (int) $event->id);
         try {
             $answer = $sample && count($items) === 1 ?
                 \local_oksigeniamarandu\api::bulk_request(messaging::COMPONENT, self::NOTICE, $items, $userid, $label, '', true) :
@@ -543,6 +548,8 @@ class invites {
         } catch (\Throwable $e) {
             debugging('Eguahe: the invitation by phone was not asked for: ' . $e->getMessage(), DEBUG_DEVELOPER);
             return ['phone' => 0, 'status' => '', 'said' => ''];
+        } finally {
+            self::$asking = [];
         }
         $bulkid = (int) ($answer['id'] ?? 0);
         foreach ($households as $household) {
@@ -974,7 +981,8 @@ class invites {
     }
 
     /**
-     * Whether one message of a send that waited for approval still goes to a family, and with which values.
+     * Whether one message of a send still goes to a family, and with which values: after waiting for approval, or at once,
+     * while it is being asked for.
      *
      * @param int $householdid
      * @param int $bulkid
@@ -983,6 +991,11 @@ class invites {
     public static function still(int $householdid, int $bulkid) {
         global $DB;
         $row = $DB->get_record(self::T, ['householdid' => $householdid, 'bulkid' => $bulkid], '*', IGNORE_MULTIPLE);
+        if (!$row && isset(self::$asking[$householdid])) {
+            // Asked while the send is made: the row of its act, or none yet (only by phone), as it will be written.
+            $row = $DB->get_record(self::T, ['householdid' => $householdid, 'eventid' => self::$asking[$householdid]]) ?:
+                (object) ['eventid' => self::$asking[$householdid], 'said' => ''];
+        }
         $household = $row ? $DB->get_record(households::T, ['id' => $householdid]) : null;
         $event = $household ? events::get((int) $row->eventid, (int) $household->centreid) : null;
         $centre = $event ? centres::get((int) $event->centreid) : null;

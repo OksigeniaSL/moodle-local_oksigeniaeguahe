@@ -146,14 +146,15 @@ final class replies_test extends \advanced_testcase {
 
     /**
      * What the team answered from the mailbox itself: to the file, and the family that waited since before it stops waiting;
-     * once.
+     * once, though it went to two of its adults.
      */
     public function test_sent_from_the_mailbox(): void {
         global $DB;
         households::received($this->family, 'email', '¿Hay comedor?', true, time() - 2 * HOURSECS);
         $this->assertNotEquals(0, (int) $DB->get_field(households::T, 'waitingsince', ['id' => $this->family->id]));
+        households::add_adult($this->family, (object) ['firstname' => 'Luis', 'lastname' => 'Ejemplo', 'email' => 'luis@familia-ejemplo.es']);
         $raw = "From: Admisiones <admisiones@colegio-ejemplo.es>\r\nTo: Ana <ana@familia-ejemplo.es>, otro@ejemplo.es\r\n" .
-            "Subject: Re: comedor\r\nDate: " . date('r', time() - HOURSECS) . "\r\nMessage-ID: <s1@x>\r\n" .
+            "Cc: luis@familia-ejemplo.es\r\nSubject: Re: comedor\r\nDate: " . date('r', time() - HOURSECS) . "\r\nMessage-ID: <s1@x>\r\n" .
             "Content-Type: text/plain; charset=utf-8\r\n\r\nSí, hay comedor.\r\n\r\n> ¿Hay comedor?\r\n";
         $this->assertSame(1, replies::take_sent($this->centre, $raw, time()));
         $this->assertSame(0, (int) $DB->get_field(households::T, 'waitingsince', ['id' => $this->family->id]));
@@ -195,6 +196,10 @@ final class replies_test extends \advanced_testcase {
         $this->assertSame('yes', replies::says('Sí, contad con nosotros.'));
         $this->assertSame('', replies::says('¿Hay aparcamiento?'));
         $this->assertSame('', replies::says('No podemos el martes, pero iremos el jueves.'));
+        $this->assertSame('no', replies::says("Buenos días!\n\nMe hubiese encantado asistir, pero tenemos un compromiso ese día."));
+        $this->assertSame('no', replies::says('Nos gustaría mucho ir, pero coincide con un viaje.'));
+        $this->assertSame('no', replies::says("We'd have loved to come, but we are away."));
+        $this->assertSame('', replies::says('Nos gustaría ir. ¿Hay que llevar algo?'));
         $this->assertSame('Gracias.', replies::own_text("Gracias.\n\nOn Thu, Nov 26, 2026 at 6:11 PM Colegio wrote:\n> Hola"));
         $this->assertSame('Vale.', replies::own_text("Vale.\n-- \nAna"));
     }

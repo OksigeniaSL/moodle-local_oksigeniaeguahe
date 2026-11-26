@@ -161,6 +161,33 @@ final class ways_test extends \advanced_testcase {
     }
 
     /**
+     * Asked by the messaging while the send is being made, before its rows carry its number: it goes, as for the act it is
+     * for; asked for a send it is not in, it does not.
+     */
+    public function test_still_while_asked(): void {
+        $family = $this->invited('Ana', '+34600111001', time() - HOURSECS);
+        $this->assertFalse(invites::still((int) $family->id, 55));
+        $asking = new class extends invites {
+            /**
+             * Says which families a send is being asked for.
+             *
+             * @param int[] $families household id => act.
+             */
+            public static function asking(array $families): void {
+                self::$asking = $families;
+            }
+        };
+        $asking::asking([(int) $family->id => (int) $this->event->id]);
+        try {
+            $this->assertNotFalse(invites::still((int) $family->id, 55));
+            $this->assertFalse(invites::still((int) $family->id + 1, 55), 'Not in the send.');
+        } finally {
+            $asking::asking([]);
+        }
+        $this->assertFalse(invites::still((int) $family->id, 55));
+    }
+
+    /**
      * «No», written to the invitation by phone: they do not come to that act, as said on the page of the letter, and nothing
      * else; the ways stay as they were.
      */
