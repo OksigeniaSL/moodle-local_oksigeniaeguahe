@@ -123,6 +123,8 @@ class ties {
             return false;
         }
         $now = time();
+        // Already at the centre before this mark, or no longer after it: its place is kept, or goes back to where it was.
+        $was = $of ? continuing::kind($of) !== '' : false;
         if ($on) {
             $made = (int) $DB->get_field(households::T, 'incentre', ['id' => $household->id]) ? 0 : 1;
             $DB->insert_record(self::T, (object) ($where + ['centreid' => (int) $household->centreid, 'made' => $made,
@@ -138,6 +140,14 @@ class ties {
             }
         }
         who::reset();
+        if ($of && in_array($kind, self::CHILD, true)) {
+            $is = continuing::kind($of) !== '';
+            if ($is && !$was) {
+                continuing::reserve($of);
+            } else if ($was && !$is) {
+                continuing::release($of);
+            }
+        }
         $centre = centres::get((int) $household->centreid);
         $lang = (string) ($centre->lang ?? '') ?: current_language();
         $strings = get_string_manager();

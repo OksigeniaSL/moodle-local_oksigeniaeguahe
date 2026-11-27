@@ -55,7 +55,15 @@
             "course": "Infantil 3 años · curso 2027-28", "label": "Por dónde va Leo", "closed": false, "stage": "visit", "canclose": true, "reason": "",
             "waitlist": false, "incentre": "", "canact": true,
             "steps": [{"value": "inquiry", "name": "Consulta", "here": true, "done": false, "last": false}],
-            "reasons": [{"value": "moved", "name": "Se ha mudado"}]}],
+            "reasons": [{"value": "moved", "name": "Se ha mudado"}], "cont": false},
+            {"id": 2, "hanging": {"name": "Sara", "style": ""}, "drawing": "", "drawingalt": "", "drawingpage": "", "name": "Sara", "tagline": "", "birthline": "", "coursehint": "",
+            "course": "Infantil 3 años · curso 2027-28", "label": "Por dónde va Sara", "closed": false, "stage": "admitted", "canclose": true, "reason": "",
+            "waitlist": false, "incentre": "", "canact": true, "steps": [], "reasons": [],
+            "cont": {"from": "Está en la guardería del centro.", "state": "No sigue · cambio de ciudad", "ask": "¿Sigue en Infantil 3 años?",
+                "stay": false, "unsure": false, "leave": true, "note": "Se van a otra isla", "reason": "moved", "said": "Lo anotó Lucía Medina el 27 de noviembre",
+                "reasons": [{"value": "moved", "name": "Cambio de ciudad", "selected": true}, {"value": "unknown", "name": "No lo sabemos", "selected": false}],
+                "canact": true}
+            }],
         "hasold": true, "oldlabel": "2 mensajes anteriores",
         "historyold": [{"family": true, "team": false, "system": false, "who": "La familia", "how": "llegó por la web", "when": "el jueves", "body": "«¿Tienen comedor?»"}],
         "history": [{"family": true, "team": false, "system": false, "who": "Daniel Ortega", "how": "escribió por WhatsApp", "when": "el viernes", "body": "«Mejor por la tarde.»"}],
@@ -331,6 +339,40 @@
                         {{/ties}}
                         {{#drawing}}<a href="{{drawingpage}}"><img class="dibujo-mini" src="{{drawing}}" alt="{{drawingalt}}" loading="lazy"></a>{{/drawing}}
                         {{^drawing}}{{#drawingpage}}<a class="enlace su-dibujo" href="{{drawingpage}}">{{#str}}panel_drawing_link, local_oksigeniaeguahe{{/str}}</a>{{/drawingpage}}{{/drawing}}
+                        {{#cont}}
+                        {{! A continuing child: already at the centre, its place kept; the only question is whether it goes on. The three
+                            answers together, each kept with one touch; «No sigue» unfolds why, as chips, and a line. }}
+                        <div class="continua" id="continua-{{id}}" role="group" aria-labelledby="continua-t-{{id}}">
+                            <p class="continua-t" id="continua-t-{{id}}"><span class="sello-continua">{{#str}}cont_title, local_oksigeniaeguahe{{/str}}</span> <span>{{from}}</span></p>
+                            <p class="continua-estado">{{state}}</p>
+                            {{#said}}<p class="ayuda continua-dicho">{{said}}</p>{{/said}}
+                            {{#canact}}
+                            <form class="continua-f" method="post" action="{{action}}">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cont"><input type="hidden" name="child" value="{{id}}">
+                                <p class="rotulo-p" id="continua-p-{{id}}">{{ask}}</p>
+                                <div class="segmentos" role="group" aria-labelledby="continua-p-{{id}}">
+                                    <button type="submit" name="answer" value="stay" aria-pressed="{{#stay}}true{{/stay}}{{^stay}}false{{/stay}}">{{#str}}cont_yes, local_oksigeniaeguahe{{/str}}</button>
+                                    <button type="submit" name="answer" value="unsure" aria-pressed="{{#unsure}}true{{/unsure}}{{^unsure}}false{{/unsure}}">{{#str}}cont_unsure, local_oksigeniaeguahe{{/str}}</button>
+                                    <button type="submit" name="answer" value="leave" aria-pressed="{{#leave}}true{{/leave}}{{^leave}}false{{/leave}}">{{#str}}cont_no, local_oksigeniaeguahe{{/str}}</button>
+                                </div>
+                            </form>
+                            {{#leave}}
+                            <form class="continua-por" method="post" action="{{action}}">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cont"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="answer" value="leave"><input type="hidden" name="note" value="{{note}}">
+                                <p class="rotulo-p" id="continua-por-{{id}}">{{#str}}cont_why, local_oksigeniaeguahe{{/str}}</p>
+                                <div class="pastillas" role="group" aria-labelledby="continua-por-{{id}}">{{#reasons}}<button class="pastilla" type="submit" name="reason" value="{{value}}" aria-pressed="{{#selected}}true{{/selected}}{{^selected}}false{{/selected}}">{{#selected}}{{{i.check}}}{{/selected}}{{name}}</button>{{/reasons}}</div>
+                            </form>
+                            <form class="continua-nota" method="post" action="{{action}}">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cont"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="answer" value="leave"><input type="hidden" name="reason" value="{{reason}}">
+                                <label class="rotulo-p" for="cont-nota-{{id}}">{{#str}}cont_note, local_oksigeniaeguahe{{/str}}</label>
+                                <div class="continua-linea"><input id="cont-nota-{{id}}" name="note" type="text" maxlength="255" value="{{note}}"><button class="boton secundario pequeno" type="submit">{{#str}}cont_note_save, local_oksigeniaeguahe{{/str}}</button></div>
+                            </form>
+                            {{/leave}}
+                            {{/canact}}
+                            <p class="ayuda">{{#str}}cont_help, local_oksigeniaeguahe{{/str}}</p>
+                        </div>
+                        {{/cont}}
+                        {{^cont}}
                         {{^closed}}
                         <form class="camino" method="post" action="{{action}}" aria-label="{{label}}">
                             <input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="era" value="{{stage}}">
@@ -358,6 +400,7 @@
                         <p class="cerrado">{{#str}}stage_closed, local_oksigeniaeguahe{{/str}}{{#reason}} · {{reason}}{{/reason}}</p>
                         {{#canact}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="stage"><input type="hidden" name="child" value="{{id}}"><input type="hidden" name="era" value="{{stage}}"><button class="enlace" type="submit" name="stage" value="reopen">{{#str}}panel_reopen, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}
                         {{/closed}}
+                        {{/cont}}
                     </div>
                 </div>
                 {{/children}}

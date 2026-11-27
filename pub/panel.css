@@ -1580,18 +1580,97 @@ button.pastilla {
     margin: 6px 0 0;
 }
 
-.relacion .pastillas {
+/* A continuing child: already at the centre, its place kept; in place of the way of asking for one. */
+.continua {
+    min-width: 0;
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid var(--eg-borde);
+    border-radius: var(--piel-radio, 12px);
+    background: var(--eg-superficie);
+    overflow-wrap: anywhere;
+}
+
+.continua > p,
+.continua form .rotulo-p {
+    margin: 0 0 6px;
+}
+
+.continua form {
+    margin: 10px 0 0;
+}
+
+.continua .continua-dicho {
+    margin: -2px 0 6px;
+}
+
+.continua .ayuda {
+    margin: 8px 0 0;
+}
+
+.continua-t {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 8px;
+}
+
+.sello-continua {
+    display: inline-block;
+    padding: 1px 8px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    color: var(--eg-tinta);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.continua-estado {
+    font-weight: 700;
+}
+
+.continua-f .segmentos {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin: 0;
+}
+
+.continua-f .segmentos button {
+    flex: 1 1 auto;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+}
+
+.relacion .pastillas,
+.continua-por .pastillas {
     flex-wrap: wrap;
     overflow: visible;
 }
 
-.relacion button.pastilla[aria-pressed="false"] {
+.continua-linea {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.continua-linea input {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.relacion button.pastilla[aria-pressed="false"],
+.continua-por button.pastilla[aria-pressed="false"] {
     border-color: var(--eg-borde);
     background: var(--eg-superficie);
     color: var(--eg-tinta);
 }
 
-.relacion .pastilla {
+.relacion .pastilla,
+.continua-por .pastilla {
     gap: 6px;
     min-height: 40px;
     padding: 0 12px;
@@ -1599,7 +1678,8 @@ button.pastilla {
     text-align: start;
 }
 
-.relacion .pastilla .ic {
+.relacion .pastilla .ic,
+.continua-por .pastilla .ic {
     width: 16px;
     height: 16px;
     flex: none;
@@ -13027,6 +13107,11 @@ a.qs-barra:focus-visible .qs-barra-nombre {
     .lista[data-densidad="lista"] .fila {
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas: "hora lleva" "quien quien";
+    }
+
+    /* With something promised too: the desktop rule weighs more than this one, and the day was left without a column. */
+    .lista[data-densidad="lista"] .fila.con-promesa {
+        grid-template-areas: "hora lleva" "quien quien" "promesa promesa";
     }
 
     .lista[data-densidad="lista"] .fila .quien {

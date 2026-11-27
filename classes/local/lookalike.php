@@ -1293,7 +1293,7 @@ class lookalike {
     ): void {
         global $DB;
         $fill = ['timemodified' => time()];
-        foreach (['firstname', 'birthdate', 'tagname', 'latinname', 'familychild', 'startyear'] as $field) {
+        foreach (['firstname', 'birthdate', 'tagname', 'latinname', 'familychild', 'startyear', 'contlist'] as $field) {
             if (trim((string) $match->$field) === '' || (string) $match->$field === '0') {
                 if (trim((string) $child->$field) !== '' && (string) $child->$field !== '0') {
                     $fill[$field] = $child->$field;
@@ -1305,7 +1305,7 @@ class lookalike {
         if ($winner === $child) {
             foreach (
                 ['offerid', 'stage', 'stagetime', 'closedreason', 'closedstage', 'started', 'lefttime', 'leftreason', 'leftnote',
-                    'familygone', 'roster'] as $field
+                    'familygone', 'roster', 'contstage', 'contanswer', 'contreason', 'contnote', 'contby', 'conttime'] as $field
             ) {
                 $fill[$field] = $child->$field;
             }

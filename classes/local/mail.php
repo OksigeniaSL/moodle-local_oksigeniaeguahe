@@ -136,6 +136,8 @@ class mail {
         foreach ($way === 'site' ? array_filter(array_map('trim', explode("\n", (string) ($CFG->emailheaders ?? '')))) : [] as $header) {
             $mail->addCustomHeader($header);
         }
+        // Moodle's mailer leaves a header of plain ASCII as it is, also through PHP's mail(): the link arrives whole, which
+        // a bare PHPMailer would encode past 47 characters.
         if ($unsubscribe !== '') {
             // Unsubscribing from the mail program itself, with one click (RFC 8058), as Gmail, Yahoo and Outlook expect.
             $mail->addCustomHeader('List-Unsubscribe', '<' . $unsubscribe . '>');

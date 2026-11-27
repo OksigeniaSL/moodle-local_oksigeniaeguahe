@@ -339,7 +339,8 @@ final class lookalike_test extends \advanced_testcase {
         $this->assertCount(1, $full->adults);
         $this->assertCount(1, $full->children);
         $child = reset($full->children);
-        $this->assertSame([$primaria, 'visit'], [(int) $child->offerid, $child->stage], 'The later year, with its own step.');
+        // Marked as already a student, its place is kept (a continuing student): the later year, with its own step.
+        $this->assertSame([$primaria, 'admitted'], [(int) $child->offerid, $child->stage], 'The later year, with its own step.');
         $signup = $DB->get_record(households::SIGNUPS, ['householdid' => $kept->id]);
         $this->assertSame([true, 0, 3], [(int) $signup->attended > 0, (int) $signup->missed, (int) $signup->people]);
         $this->assertSame(1, $DB->count_records(\local_oksigeniaeguahe\local\siblings::T, ['householdid' => $kept->id]));

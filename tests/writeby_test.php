@@ -67,7 +67,9 @@ final class writeby_test extends \advanced_testcase {
      * Its WhatsApp is another number now: the record has it, with a note; another family with none of it only has the note.
      */
     public function test_number_changed(): void {
-        global $DB;
+        global $CFG, $DB;
+        // The callback lives in lib.php, which a run of this file alone has not loaded.
+        require_once($CFG->dirroot . '/local/oksigeniaeguahe/lib.php');
         $this->resetAfterTest();
         $household = $this->family();
         local_oksigeniaeguahe_marandu_number_changed((int) $household->id, '+34600111222', '+34600999888', 'household');

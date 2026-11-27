@@ -1205,6 +1205,8 @@ class panel_household {
         $list = ties::from_list((int) $full->id, $centre);
         foreach (array_values($full->children) as $i => $child) {
             $offer = $offers[$child->offerid] ?? null;
+            $kind = isset($marked[(int) $child->id]['nursery']) ? 'nursery' : (isset($marked[(int) $child->id]['student']) ?
+                'student' : '');
             $at = lists::STAGE_STEP[$child->stage] ?? 1;
             $steps = [];
             foreach (self::PATH as $j => $stage) {
@@ -1261,6 +1263,8 @@ class panel_household {
                 'canact' => $canact,
                 'label' => get_string('panel_way_of', $c, $tag),
                 'ties' => ties::context($full, $child, $marked, $nursery, (bool) $studied, (bool) array_diff_key($studied, [0 => 1]), $list),
+                // Already at the centre: it goes on, with its place kept, in place of the way of asking for one.
+                'cont' => $kind !== '' && !(int) $child->roster ? continuing::context($child, $kind, $offer, $canact) : false,
             ];
         }
         return $out;

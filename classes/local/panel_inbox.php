@@ -88,12 +88,17 @@ class panel_inbox {
         // The families where someone studied at the centre, also those already of the centre, when asked.
         $alumni = alumni::families($centreid);
         $onlyalumni = !empty($view['alumni']) && $alumni;
+        // The families with a continuing child, already at the centre, when asked: what secretaría asks them is whether it
+        // goes on.
+        $continuing = continuing::families($centreid);
+        $onlycont = !empty($view['continuing']) && $continuing;
         // The families behind a number of Numbers.
         $numbers = !empty($view['list']) ? familylists::of($centre, (string) $view['list'], $now) : null;
         // A filter that picks some families fetches exactly those, never the first of the list that happen to be them.
         $picked = null;
         foreach (
-            [$onlyalumni ? array_keys($alumni) : null, $onlystarting ? array_keys($starting) : null,
+            [$onlyalumni ? array_keys($alumni) : null, $onlycont ? array_keys($continuing) : null,
+                $onlystarting ? array_keys($starting) : null,
                 $onlybirthdays ? array_keys($birthdays) : null, $onlysiblings ? array_keys($due) : null,
                 $onlyvolunteers ? $DB->get_fieldset_select(households::T, 'id', 'centreid = ? AND volunteer > 0', [$centreid]) :
                 null,
@@ -164,7 +169,8 @@ class panel_inbox {
             (string) get_user_preferences(self::DENSITY, '', $userid);
         $density = in_array($density, ['fichas', 'lista'], true) ? $density : (count($list) >= self::LEDGER ? 'lista' : 'fichas');
         $base = ['c' => $centreid] + ($all ? ['all' => 1] : []) + ($course ? ['curso' => $course] : []) +
-            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []) + ($numbers ? ['f' => (string) $view['list']] : []) +
+            ($stage ? ['etapa' => $stage] : []) + ($onlyalumni ? ['antiguos' => 1] : []) + ($onlycont ? ['continuacion' => 1] : []) +
+            ($numbers ? ['f' => (string) $view['list']] : []) +
             ($query !== '' ? ['q' => $query] : []);
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
         // The search, a form that asks the server (Enter); on the page, what is on the screen filters as one writes.
@@ -250,9 +256,9 @@ class panel_inbox {
             'densityurls' => ['fichas' => $url($base + ['vista' => 'fichas']), 'lista' => $url($base + ['vista' => 'lista'])],
             'checkurl' => $url(['c' => $centreid, 'check' => 1]),
             'checkevery' => self::CHECK,
-            'filters' => self::filters($centre, $base, $course, $stage, $now, count($alumni)),
+            'filters' => self::filters($centre, $base, $course, $stage, $now, count($alumni), count($continuing)),
             // The filters stay folded unless one is chosen.
-            'filtering' => $course || $stage !== '' || $onlyalumni,
+            'filtering' => $course || $stage !== '' || $onlyalumni || $onlycont,
             'today' => $today,
             'hastoday' => (bool) $today,
             'todaycount' => count($today),
@@ -829,6 +835,8 @@ class panel_inbox {
         // The families of former students, with their mortarboard by the name.
         $first = reset($list);
         $alumni = $first ? alumni::families((int) $first->centreid) : [];
+        // The children already at the centre: in the line, where they are as continuing, never a way of asking.
+        $inside = $first ? ties::inside((int) $first->centreid) : [];
         $rows = [];
         foreach ($list as $household) {
             $info = $latest[$household->id] ?? ['last' => null, 'said' => null, 'answer' => null, 'line' => null];
@@ -877,7 +885,9 @@ class panel_inbox {
                 $children[] = [
                     'tag' => panel::tag($child),
                     'course' => $child->offer ? format_string($child->offer->name) : get_string('panel_nocourse', $c),
-                    'stage' => $child->stage !== 'inquiry' ? get_string('stage_' . $child->stage, $c) : '',
+                    'stage' => isset($inside[(int) $child->id]) && !(int) ($child->roster ?? 0) ?
+                        continuing::word((string) $child->stage) :
+                        ($child->stage !== 'inquiry' ? get_string('stage_' . $child->stage, $c) : ''),
                 ];
                 $search[] = $child->firstname . ' ' . $child->tagname;
                 $courses[] = 'o' . (int) $child->offerid;
@@ -945,6 +955,7 @@ class panel_inbox {
      * @param string $stage
      * @param int $now
      * @param int $alumni How many families of former students the centre has.
+     * @param int $continuing How many families with a continuing child it has.
      * @return array courses, stages
      */
     protected static function filters(
@@ -953,7 +964,8 @@ class panel_inbox {
         int $course,
         string $stage,
         int $now,
-        int $alumni = 0
+        int $alumni = 0,
+        int $continuing = 0
     ): array {
         $c = self::C;
         $url = fn(array $params) => (new \moodle_url('/local/oksigeniaeguahe/index.php', $params))->out(false);
@@ -975,11 +987,19 @@ class panel_inbox {
         }
         // The families of former students of the centre, also those already of it: links, never filtered in the page.
         $only = !empty($base['antiguos']);
-        $families = $alumni ? [
-            ['name' => get_string('panel_all_families', $c), 'url' => $url(array_diff_key($base, ['antiguos' => 1])),
-                'current' => !$only],
-            ['name' => get_string('alumni_filter', $c, $alumni), 'url' => $url(['antiguos' => 1] + $base), 'current' => $only],
+        $cont = !empty($base['continuacion']);
+        $families = $alumni || $continuing ? [
+            ['name' => get_string('panel_all_families', $c), 'url' => $url(array_diff_key($base, ['antiguos' => 1,
+                'continuacion' => 1])), 'current' => !$only && !$cont],
         ] : [];
+        if ($alumni) {
+            $families[] = ['name' => get_string('alumni_filter', $c, $alumni), 'url' => $url(['antiguos' => 1] +
+                array_diff_key($base, ['continuacion' => 1])), 'current' => $only];
+        }
+        if ($continuing) {
+            $families[] = ['name' => get_string('cont_filter', $c, $continuing), 'url' => $url(['continuacion' => 1] +
+                array_diff_key($base, ['antiguos' => 1])), 'current' => $cont];
+        }
         return ['courses' => $courses, 'stages' => $stages, 'families' => $families, 'hasfamilies' => (bool) $families];
     }
 
@@ -1158,6 +1178,8 @@ class panel_inbox {
             ))->out(false) . '#plazas'];
         }
         $counts = households::offer_counts((int) $centre->id);
+        // The places kept for continuing children who have not said yet: taken until they say no.
+        $reserved = continuing::reserved((int) $centre->id);
         // Of those that ask for each course and are not enrolled, the children whose family came to see the centre.
         $visited = [];
         $read = facts::read($centre, ['key' => 'year', 'year' => $year, 'since' => 0, 'until' => 0, 'import' => null], $now);
@@ -1175,21 +1197,23 @@ class panel_inbox {
             }
             $bystage = $counts[$offer->id] ?? [];
             $enrolled = (int) ($bystage['enrolled'] ?? 0);
+            $kept = (int) ($reserved[$offer->id] ?? 0);
             $total = (int) $offer->places;
             $list[] = [
                 'name' => format_string($offer->name),
-                'free' => max(0, $total - $enrolled),
+                'free' => max(0, $total - $enrolled - $kept),
                 'total' => $total,
-                'freetext' => panel::free_of(max(0, $total - $enrolled), $total),
+                'freetext' => panel::free_of(max(0, $total - $enrolled - $kept), $total),
+                'kept' => $kept ? get_string($kept === 1 ? 'cont_kept_one' : 'cont_kept', self::C, $kept) : false,
                 'rail' => $total > 0 ? panel::rail(
                     $total,
-                    $enrolled,
+                    $enrolled + $kept,
                     object: panel::hanging_object((string) $offer->name, $centre)
                 ) :
                     '',
                 'ropero' => $total > 0 ? vestibulo::ropero(
                     $total,
-                    $enrolled,
+                    $enrolled + $kept,
                     (int) ($bystage['waitlist'] ?? 0),
                     (string) $offer->name,
                     $centre

@@ -275,7 +275,8 @@ final class roster_test extends \advanced_testcase {
         $now = time();
         $this->assertSame(2, roster::sync($centre, $now)['families'], 'The two homes of Noa, and not Mía again.');
         $kid = $DB->get_record(households::CHILDREN, ['householdid' => $leo->id]);
-        $this->assertSame([(string) $next, 'inquiry', '53'], [$kid->offerid, $kid->stage, $kid->familychild]);
+        // In the nursery of the centre, as the roll says: a continuing child, its place kept.
+        $this->assertSame([(string) $next, 'admitted', '53'], [$kid->offerid, $kid->stage, $kid->familychild]);
         $this->assertTrue(isset(ties::of((int) $leo->id)[(int) $kid->id]['nursery']));
         $this->assertSame(1, (int) $DB->get_field(households::T, 'incentre', ['id' => $leo->id]), 'A family of the centre.');
         $this->assertSame(1, $DB->count_records(households::CHILDREN, ['centreid' => $cid, 'firstname' => 'Mía']));

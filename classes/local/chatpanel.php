@@ -269,7 +269,13 @@ class chatpanel {
             $name = familypage::label_name($child) ?: get_string('chat_child_noname', $c);
             $course = isset($offers[$child->offerid]) ? format_string($offers[$child->offerid]) :
                 get_string('panel_nocourse', $c);
-            $children[] = self::child($name, $course, (string) $child->stage, !empty($child->lefttime));
+            $children[] = self::child(
+                $name,
+                $course,
+                (string) $child->stage,
+                !empty($child->lefttime),
+                !(int) $child->roster && continuing::kind((int) $child->id) !== ''
+            );
             if ($child->stage === 'enrolled' && empty($child->lefttime)) {
                 $incentre = true;
             } else if (!in_array($child->stage, ['enrolled', 'closed'], true)) {
@@ -333,10 +339,15 @@ class chatpanel {
      * @param string $course
      * @param string $stage
      * @param bool $left
+     * @param bool $continuing Already at the centre: its place kept, it goes on or it does not, never a way of asking.
      * @return array
      */
-    public static function child(string $name, string $course, string $stage, bool $left): array {
+    public static function child(string $name, string $course, string $stage, bool $left, bool $continuing = false): array {
         $c = self::C;
+        if ($continuing && !($stage === 'enrolled' && $left)) {
+            return ['name' => $name, 'course' => $course, 'state' => $stage === 'closed' ? 'closed' : 'enrolled',
+                'stagename' => continuing::word($stage), 'hastrack' => false, 'track' => [], 'tracklabel' => ''];
+        }
         if ($stage === 'enrolled') {
             return ['name' => $name, 'course' => $course, 'state' => $left ? 'left' : 'enrolled',
                 'stagename' => get_string($left ? 'chat_left' : 'chat_enrolled_in', $c), 'hastrack' => false, 'track' => [],

@@ -17,6 +17,7 @@
 namespace local_oksigeniaeguahe\task;
 
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\continuing;
 use local_oksigeniaeguahe\local\listmatch;
 use local_oksigeniaeguahe\local\listnews;
 
@@ -48,6 +49,13 @@ class detect_enrolments extends \core\task\scheduled_task {
                 if ($enrolled || $incentre || $asked) {
                     mtrace("Eguahe: centre {$centre->id}, {$enrolled} enrolled, {$incentre} of the centre, {$asked} to ask.");
                 }
+                // The children of the list that ask for the next course go on: their place is kept.
+                $continuing = continuing::from_lists($centre, true);
+                if ($continuing['marked'] || $continuing['confirmed']) {
+                    mtrace("Eguahe: centre {$centre->id}, " . count($continuing['marked']) . ' continuing, ' .
+                        count($continuing['confirmed']) . ' went on.');
+                }
+                continuing::sync_all((int) $centre->id);
                 // A list that came cut short during the night is told, once.
                 listnews::tell($centre, time());
             } catch (\Throwable $e) {

@@ -112,7 +112,9 @@ final class samechild_test extends \advanced_testcase {
         $this->assertSame($a, (int) $child->id, 'The older line stays.');
         $this->assertSame('Dafne Cano', $child->firstname);
         $this->assertSame('Dafne', $child->tagname);
-        $this->assertSame('visit', $child->stage);
+        // The other line was in the nursery: a continuing child, its place kept, which is further than the visit.
+        $this->assertSame('admitted', $child->stage);
+        $this->assertSame('inquiry', $child->contstage, 'Where it was, to go back if the mark is taken away.');
         $this->assertSame($this->infantil, (int) $child->offerid);
         $this->assertSame('2024-05-10', $child->birthdate);
         $this->assertSame($a, (int) $DB->get_field(ties::T, 'childid', ['householdid' => $h->id]));
@@ -129,7 +131,7 @@ final class samechild_test extends \advanced_testcase {
         $this->assertEmpty($back[$a]->tagname);
         $this->assertSame(0, (int) $back[$a]->offerid);
         $this->assertSame('Dafne Cano', $back[$b]->firstname);
-        $this->assertSame('inquiry', $back[$b]->stage);
+        $this->assertSame(['admitted', 'inquiry'], [$back[$b]->stage, $back[$b]->contstage], 'As it was: its place kept.');
         $this->assertSame($b, (int) $DB->get_field(ties::T, 'childid', ['householdid' => $h->id]));
         $this->assertSame($b . ':inquiry', $DB->get_field(households::SIGNUPS, 'wasstages', ['householdid' => $h->id]));
         $this->assertSame([], lookalike::twice($h), 'Undone by a person: they are two.');

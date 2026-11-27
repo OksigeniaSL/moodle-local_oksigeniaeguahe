@@ -2520,5 +2520,27 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026123401, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123600) {
+        // A child already at the centre that goes on (continuing): where it was, whether it goes on and who said it.
+        $table = new xmldb_table('local_oksigeniaeguahe_child');
+        $fields = [
+            new xmldb_field('contstage', XMLDB_TYPE_CHAR, '20', null, null, null, null, 'startyear'),
+            new xmldb_field('contanswer', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'contstage'),
+            new xmldb_field('contreason', XMLDB_TYPE_CHAR, '30', null, null, null, null, 'contanswer'),
+            new xmldb_field('contnote', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'contreason'),
+            new xmldb_field('contby', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'contnote'),
+            new xmldb_field('conttime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'contby'),
+            new xmldb_field('contlist', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'conttime'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        // Those already marked as in its nursery or already its students: their place is kept for them.
+        \local_oksigeniaeguahe\local\continuing::sync_all();
+        upgrade_plugin_savepoint(true, 2026123600, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

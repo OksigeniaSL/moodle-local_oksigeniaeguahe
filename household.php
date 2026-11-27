@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\appointments;
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\household_ai;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\continuing;
 use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
@@ -685,6 +686,18 @@ if ($action && data_submitted() && confirm_sesskey()) {
                 }
             }
             redirect($url);
+            break;
+        case 'cont':
+            // A continuing child: whether it goes on, as the family said it.
+            continuing::answer(
+                $household,
+                required_param('child', PARAM_INT),
+                required_param('answer', PARAM_ALPHA),
+                optional_param('reason', '', PARAM_ALPHA),
+                optional_param('note', '', PARAM_TEXT),
+                (int) $USER->id
+            );
+            redirect(new moodle_url($url, [], 'continua-' . required_param('child', PARAM_INT)));
             break;
         case 'link':
             // The new link is shown once, to send it to the family; all the ones before stop working.

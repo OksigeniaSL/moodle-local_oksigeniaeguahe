@@ -182,7 +182,7 @@
                     <div class="plazas">
                         {{#places}}
                         <div class="curso-plazas">
-                            <div class="cab"><b>{{name}}</b><span class="libres">{{freetext}}</span></div>
+                            <div class="cab"><b>{{name}}</b><span class="libres">{{freetext}}{{#kept}} · {{kept}}{{/kept}}</span></div>
                             <div class="riel-caja"{{#ropero}} data-ropero="{{.}}"{{/ropero}}>{{{rail}}}</div>
                             <span class="tres"><span><b>{{interested}}</b> {{#str}}panel_interested, local_oksigeniaeguahe{{/str}}</span><span><b>{{visited}}</b> {{#str}}panel_visited, local_oksigeniaeguahe{{/str}}</span><span><b>{{enrolled}}</b> {{#str}}panel_enrolled, local_oksigeniaeguahe{{/str}}</span></span>
                         </div>

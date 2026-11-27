@@ -233,6 +233,13 @@
         <FIELD NAME="familygone" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the common family record said this child left, for a person to confirm; 0, it did not"/>
         <FIELD NAME="roster" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it came from the roll of the centre (the common family record), already a student; 0, it came through Eguahe"/>
         <FIELD NAME="startyear" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" COMMENT="The school year it started at the centre, once enrolled through Eguahe: what is only for new children (the story, the eve, the first day) is for that year"/>
+        <FIELD NAME="contstage" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="A child already at the centre that goes on (continuing): the step it had when it was marked so, to go back there if the mark is taken away"/>
+        <FIELD NAME="contanswer" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Whether it goes on, as the family said: stay, unsure or leave; empty, not said yet"/>
+        <FIELD NAME="contreason" TYPE="char" LENGTH="30" NOTNULL="false" SEQUENCE="false" COMMENT="Why it does not go on, from the short list of leaving"/>
+        <FIELD NAME="contnote" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="A line from whoever heard it"/>
+        <FIELD NAME="contby" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The person of the team who noted the answer"/>
+        <FIELD NAME="conttime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the answer was noted"/>
+        <FIELD NAME="contlist" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the list of the centre marked it as continuing by itself; never again after a person takes it away"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

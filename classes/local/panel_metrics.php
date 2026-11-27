@@ -1465,6 +1465,8 @@ class panel_metrics {
             $offers
         ))), $now);
         $counts = households::offer_counts((int) $centre->id);
+        // The places kept for continuing children who have not said yet are taken, as those of the enrolled.
+        $reserved = continuing::reserved((int) $centre->id);
         // How the families of the campaign before that were still on their way at this week ended.
         $rate = null;
         if ($before && $previous && $previous['start'] && $campaign['start']) {
@@ -1486,7 +1488,7 @@ class panel_metrics {
                 continue;
             }
             $places = (int) $offer->places;
-            $taken = (int) ($counts[$offer->id]['enrolled'] ?? 0);
+            $taken = (int) ($counts[$offer->id]['enrolled'] ?? 0) + (int) ($reserved[$offer->id] ?? 0);
             $waiting = (int) ($counts[$offer->id]['waitlist'] ?? 0);
             $active = 0;
             foreach (['inquiry', 'visit', 'application', 'admitted'] as $stage) {

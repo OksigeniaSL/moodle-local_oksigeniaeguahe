@@ -145,7 +145,8 @@ class export {
                     'home' => $child ? trim((string) ($child->tagname ?? '')) : '',
                     'birth' => $child ? trim((string) ($child->birthdate ?? '')) : '',
                     'course' => $offer ? format_string($offer->name) . ' · ' . $offer->schoolyear : '',
-                    'stage' => $child ? get_string('stage_' . $child->stage, $c) : '',
+                    'stage' => $child ? (isset($inside[(int) $child->id]) && !(int) ($child->roster ?? 0) ?
+                        continuing::word((string) $child->stage) : get_string('stage_' . $child->stage, $c)) : '',
                     'since' => $child ? $date((int) $child->stagetime) : '',
                 ];
                 $rows[] = array_map(fn($k) => self::cell((string) $row[$k]), array_combine($keys, $keys));

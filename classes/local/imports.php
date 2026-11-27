@@ -481,6 +481,7 @@ class imports {
         if (array_intersect($kinds, ['roll', 'joins', 'leaves'])) {
             try {
                 listmatch::detect(centres::get($centreid), time());
+                continuing::from_lists(centres::get($centreid), true);
             } catch (\Throwable $e) {
                 debugging('Eguahe: the list was not crossed with the families: ' . $e->getMessage(), DEBUG_DEVELOPER);
             }
