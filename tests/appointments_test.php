@@ -23,6 +23,7 @@ use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_agenda;
+use local_oksigeniaeguahe\local\panel_inbox;
 use local_oksigeniaeguahe\local\panel_give;
 use local_oksigeniaeguahe\local\teamnotes;
 use local_oksigeniaeguahe\local\visits;
@@ -240,7 +241,7 @@ final class appointments_test extends \advanced_testcase {
      * The screens of the team: the week with its cards, saying who came and giving one, with the first free hour of each day.
      */
     public function test_screens(): void {
-        global $USER;
+        global $DB, $USER;
         centres::add_member((int) $this->centre->id, (int) $USER->id);
         $monday = strtotime('next monday 10:00', time() + 7 * DAYSECS);
         $member = array_key_first(panel_agenda::faces($this->centre));
@@ -265,6 +266,15 @@ final class appointments_test extends \advanced_testcase {
         events::sign_up(events::get($act, (int) $this->centre->id), (int) $this->family->id, 2);
         $pass = panel_agenda::pass($this->centre, true);
         $this->assertSame([1, $note], [$pass['n'], $pass['days'][0]['idlist']]);
+        // The inbox says that of the act nobody said whether they came, until it is said.
+        $unmarked = panel_agenda::unmarked_acts($this->centre, time());
+        $this->assertSame([[$act, 1]], array_map(fn($a) => [$a['id'], $a['n']], $unmarked));
+        $title = get_string('unmarked_title', 'local_oksigeniaeguahe');
+        $this->assertContains($title, array_column(panel_inbox::context($this->centre, true, (int) $USER->id, true)['today'], 'title'));
+        $signup = (int) $DB->get_field(households::SIGNUPS, 'id', ['eventid' => $act]);
+        appointments::mark($this->centre, ['s' . $signup], 'came', (int) $USER->id);
+        $this->assertSame([], panel_agenda::unmarked_acts($this->centre, time()));
+        $this->assertNotContains($title, array_column(panel_inbox::context($this->centre, true, (int) $USER->id, true)['today'], 'title'));
         $key = appointments::mark($this->centre, [$note], 'came', (int) $USER->id);
         $this->assertSame($key, panel_agenda::pass($this->centre, true, $key)['undo']);
         $this->assertTrue(panel_agenda::pass($this->centre, true)['none']);

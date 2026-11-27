@@ -393,6 +393,29 @@ class panel_agenda {
     }
 
     /**
+     * The acts of the last days with families of whom nobody said whether they came: what the numbers of each act count on.
+     * The most recent first; one where everybody is said is not there.
+     *
+     * @param \stdClass $centre
+     * @param int $now
+     * @return array[] id, start, name, n (how many are not said, as its page counts them) and sheet (whether the centre
+     *     keeps a sheet of the team, where it can be marked too).
+     */
+    public static function unmarked_acts(\stdClass $centre, int $now): array {
+        global $DB;
+        $by = [];
+        foreach (appointments::agenda($centre, $now - self::BACK * DAYSECS, $now, $now) as $one) {
+            if ($one['kind'] === 'act' && $one['state'] === 'unknown' && $one['eventid']) {
+                $by[$one['eventid']] = ['id' => (int) $one['eventid'], 'start' => (int) $one['start'], 'name' => $one['title'],
+                    'n' => ($by[$one['eventid']]['n'] ?? 0) + 1];
+            }
+        }
+        $sheet = $by && $DB->record_exists(entries::T, ['centreid' => $centre->id, 'teamsheet' => 1]);
+        usort($by, fn($a, $b) => $b['start'] <=> $a['start']);
+        return array_map(fn($act) => $act + ['sheet' => $sheet], $by);
+    }
+
+    /**
      * Where it is said who came to an act.
      *
      * @param int $centreid

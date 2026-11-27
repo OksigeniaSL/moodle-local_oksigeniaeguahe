@@ -419,6 +419,24 @@ class panel_inbox {
                 ))->out(false) : $url(['c' => $centreid, 'devueltos' => 1]),
                 'link' => get_string('bounce_inbox_see', $c), 'known' => false];
         }
+        // An act of the last days with families of whom nobody said whether they came: what its numbers count on. It goes by
+        // itself once all are said, whether here or in the sheet of the team.
+        foreach (panel_agenda::unmarked_acts($centre, $now) as $act) {
+            $key = 'unmarked-' . $act['id'];
+            if (moments::knows($centreid, $key)) {
+                continue;
+            }
+            $a = (object) ['act' => $act['name'], 'n' => $act['n'],
+                'day' => userdate($act['start'], get_string('strftimedateshort', 'langconfig'))];
+            $out[] = ['leaf' => panel::leaf($act['start']), 'blank' => false, 'title' => get_string('unmarked_title', $c),
+                'short' => self::short('unmarked_title'),
+                'text' => get_string($act['n'] === 1 ? 'unmarked_text_one' : 'unmarked_text', $c, $a) .
+                    ($act['sheet'] ? ' ' . get_string('unmarked_sheet', $c) : ''),
+                'url' => panel_agenda::passurl($centreid, $act['id']), 'link' => get_string('unmarked_link', $c),
+                'known' => centres::can_act((int) $USER->id) ? ['key' => $key,
+                    'action' => (new \moodle_url('/local/oksigeniaeguahe/moment.php'))->out(false), 'centreid' => $centreid,
+                    'sesskey' => sesskey()] : false];
+        }
         // The thanks after a visit, when a person sends them: those that came and have not had them.
         $thanks = centres::can_act((int) $USER->id) && !(prepared::after_visit($centreid)->auto ?? 0) ?
             prepared::due_households($centre, $now) : [];
