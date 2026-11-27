@@ -424,6 +424,7 @@ class prepared {
             'current' => $open === 'new' || $current ? ['id' => $current ? (int) $current->id : 0,
                 'name' => $current ? format_string($current->name) : '', 'text' => self::to_words($body, $lang),
                 'auto' => $current && $current->auto, 'after' => $current && $current->aftervisit, 'paras' => $paras,
+                'othername' => self::other_name($centre, $current),
                 'survey' => $current && $current->auto ? get_string('prepared_survey_example', $c) : ''] : false,
             'greeting' => $example['greeting'],
             'sign' => format_string($centre->name),
@@ -464,8 +465,10 @@ class prepared {
         if ($id === null) {
             return null;
         }
-        $auto = optional_param('pmauto', null, PARAM_INT);
-        $after = optional_param('pmafter', null, PARAM_INT);
+        // After the visit: 0, by hand; 1, proposed in the file of each family that came; 2, sent by itself.
+        $choice = optional_param('pmafter', null, PARAM_INT);
+        $after = $choice === null ? null : ($choice > 0 ? 1 : 0);
+        $auto = $choice === null ? null : ($choice === 2 ? 1 : 0);
         return self::save(
             $centre,
             (int) $id,
@@ -662,5 +665,17 @@ class prepared {
         }
         $name = \core_text::substr(trim((string) strtok($text, "\n")), 0, 40);
         return self::save($centre, 0, $name, $text);
+    }
+
+    /**
+     * The name of the message that is the one after a visit, when it is not this one: choosing it here takes it from that.
+     *
+     * @param \stdClass $centre
+     * @param \stdClass|null $current
+     * @return string Empty, none or this one.
+     */
+    protected static function other_name(\stdClass $centre, ?\stdClass $current): string {
+        $after = self::after_visit((int) $centre->id);
+        return $after && (!$current || (int) $after->id !== (int) $current->id) ? format_string($after->name) : '';
     }
 }

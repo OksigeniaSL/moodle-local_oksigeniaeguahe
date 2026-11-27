@@ -40,7 +40,7 @@
             "current": true, "url": "#"}],
         "newurl": "#",
         "gaps": [{"key": "children", "word": "los niños", "label": "Los niños", "icon": "", "example": "Vera y Leo"}],
-        "current": {"id": 1, "name": "Gracias por la visita", "text": "Gracias por venir con [los niños].", "auto": true, "after": true,
+        "current": {"id": 1, "name": "Gracias por la visita", "text": "Gracias por venir con [los niños].", "auto": true, "after": true, "othername": "",
             "paras": [{"bits": [{"text": "Gracias por venir con ", "fill": false, "gap": false}, {"text": "Vera y Leo", "fill": true, "gap": false}]}],
             "survey": ""},
         "greeting": "Hola, Marta y Daniel:", "sign": "Colegio de ejemplo · Secretaría",
@@ -79,11 +79,17 @@
                 <p class="ayuda pm-huecos-a" id="pm-huecos-a" data-pm-sinjs>{{#str}}prepared_gaps_nojs, local_oksigeniaeguahe{{/str}} {{#gaps}}<span class="pm-corchete" dir="auto">[{{word}}]</span> {{/gaps}}</p>
                 <p class="ayuda pm-huecos-a" data-pm-conjs hidden>{{#str}}prepared_gaps_help, local_oksigeniaeguahe{{/str}}</p>
             </div>
-            <div class="aj-modos pm-sola" role="group" aria-label="{{#str}}prepared_after, local_oksigeniaeguahe{{/str}}">
-                <button class="aj-modo" type="submit" name="pmafter" value="{{#after}}0{{/after}}{{^after}}1{{/after}}" formaction="{{action}}" aria-pressed="{{#after}}true{{/after}}{{^after}}false{{/after}}"><b>{{#str}}prepared_after, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_after_text, local_oksigeniaeguahe{{/str}}</span></button>
-            </div>
-            <div class="aj-modos pm-sola" role="group" aria-label="{{#str}}prepared_auto, local_oksigeniaeguahe{{/str}}">
-                <button class="aj-modo" type="submit" name="pmauto" value="{{#auto}}0{{/auto}}{{^auto}}1{{/auto}}" formaction="{{action}}" aria-pressed="{{#auto}}true{{/auto}}{{^auto}}false{{/auto}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}prepared_auto, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_auto_text, local_oksigeniaeguahe{{/str}}</span></button>
+            {{! After the visit, one choice of three: nothing, proposed in the envelope of the file, or sent on its own (which
+                is also proposed). Only one message of the centre can be proposed or sent: choosing it here takes it from the
+                other. pmafter: 0, 1 or 2. }}
+            <div class="aj-frase pm-tras">
+                <p class="pm-tras-t" id="pm-tras-t">{{#str}}prepared_after_title, local_oksigeniaeguahe{{/str}}</p>
+                <div class="aj-modos" role="group" aria-labelledby="pm-tras-t">
+                    <button class="aj-modo" type="submit" name="pmafter" value="0" formaction="{{action}}" aria-pressed="{{#after}}false{{/after}}{{^after}}true{{/after}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}prepared_after_none, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_after_none_text, local_oksigeniaeguahe{{/str}}</span></button>
+                    <button class="aj-modo" type="submit" name="pmafter" value="1" formaction="{{action}}" aria-pressed="{{#after}}{{#auto}}false{{/auto}}{{^auto}}true{{/auto}}{{/after}}{{^after}}false{{/after}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}prepared_after_offer, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_after_offer_text, local_oksigeniaeguahe{{/str}}</span></button>
+                    <button class="aj-modo" type="submit" name="pmafter" value="2" formaction="{{action}}" aria-pressed="{{#auto}}true{{/auto}}{{^auto}}false{{/auto}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}prepared_after_auto, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_auto_text, local_oksigeniaeguahe{{/str}}</span></button>
+                </div>
+                {{#othername}}<p class="ayuda">{{#str}}prepared_after_other, local_oksigeniaeguahe, {{othername}}{{/str}}</p>{{/othername}}
             </div>
             <div class="aj-dorso-pie pm-pie">
                 <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button>

@@ -27425,8 +27425,24 @@ html {
     white-space: nowrap;
 }
 
-.pm-sola .aj-modo {
-    width: 100%;
+.pm-tras {
+    display: grid;
+    gap: 8px;
+}
+
+.pm-tras-t {
+    margin: 0;
+    font-weight: 650;
+}
+
+/* One under the other: three cards side by side would not fit the column of the desk. */
+.pm-tras .aj-modos {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+
+.pm-tras .ayuda {
+    margin: 0;
 }
 
 .pm-pie {
