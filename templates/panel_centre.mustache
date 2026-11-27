@@ -150,6 +150,7 @@
             <ol>
                 <li><a href="#aj-oferta">{{#str}}panel_offer_places, local_oksigeniaeguahe{{/str}}{{#lacks.oferta}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.oferta}}</a></li>
                 <li><a href="#aj-reciben">{{#str}}panel_who_receives, local_oksigeniaeguahe{{/str}}{{#lacks.reciben}}<span class="indice-falta">{{#str}}panel_missing_mark, local_oksigeniaeguahe{{/str}}</span>{{/lacks.reciben}}</a></li>
+                {{#prepared}}<li><a href="#aj-preparados">{{#str}}prepared_card, local_oksigeniaeguahe{{/str}}</a></li>{{/prepared}}
                 {{#hasmessaging}}<li><a href="#aj-canal">{{#str}}centre_messaging, local_oksigeniaeguahe{{/str}}</a></li>{{/hasmessaging}}
             </ol>
             <p class="indice-t">{{#str}}panel_settings_once, local_oksigeniaeguahe{{/str}}</p>
@@ -269,6 +270,9 @@
                     {{/canadd}}
                 </ul>
             </section>
+
+            {{! ===== What is said often, ready for the file of each family ===== }}
+            {{#prepared}}{{> local_oksigeniaeguahe/panel_prepared }}{{/prepared}}
 
             {{! ===== Telegram and WhatsApp: three choices, and the channel ===== }}
             {{#hasmessaging}}

@@ -1,0 +1,109 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_prepared
+
+    «Mensajes preparados» in the settings, inside the form of panel_centre: the messages of the centre as cards in a file
+    box, and the open one on the desk, with its name, its text on the notebook paper and, beside it, the letter as one
+    family of example will read it. The gaps are pieces: without JavaScript they are their words in brackets in the
+    textarea ([los niños]); with it, panel.js shows them as pieces in an editable box, inserts them from the buttons and
+    rewrites the letter as one types. The greeting and the foot are Eguahe's, so the text has neither.
+
+    Context variables required for this template:
+    * list - id, name, firstbits (its first line: text, and gap when it is a gap, its word without brackets), auto, uses
+      (what it says under the name), current, url
+    * newurl - the address of a new message
+    * gaps - key, word (in brackets in the text), label, icon, example (its value in the letter of example)
+    * current - id, name, text (with the words of the gaps in brackets), auto, paras (bits: text, fill, gap), survey;
+      or false when there are no messages yet
+    * greeting, sign - the greeting and the foot of the letter of example
+    * family - who the family of example is
+    * action - where the buttons send the form
+
+    Example context (json):
+    {
+        "list": [{"id": 1, "name": "Gracias por la visita", "firstbits": [{"text": "Gracias por venir con ", "gap": false}, {"text": "los niños", "gap": true}], "auto": true, "uses": "Sale sola tras cada visita",
+            "current": true, "url": "#"}],
+        "newurl": "#",
+        "gaps": [{"key": "children", "word": "los niños", "label": "Los niños", "icon": "", "example": "Vera y Leo"}],
+        "current": {"id": 1, "name": "Gracias por la visita", "text": "Gracias por venir con [los niños].", "auto": true, "after": true,
+            "paras": [{"bits": [{"text": "Gracias por venir con ", "fill": false, "gap": false}, {"text": "Vera y Leo", "fill": true, "gap": false}]}],
+            "survey": ""},
+        "greeting": "Hola, Marta y Daniel:", "sign": "Colegio de ejemplo · Secretaría",
+        "family": "Marta y Daniel vinieron con Vera y Leo el sábado 21 de noviembre.",
+        "action": "#"
+    }
+}}
+<section class="apartado pm" id="aj-preparados" aria-labelledby="aj-preparados-t">
+    <header><h2 id="aj-preparados-t">{{#str}}prepared_card, local_oksigeniaeguahe{{/str}}</h2><span class="secundario">{{#str}}prepared_help, local_oksigeniaeguahe{{/str}}</span></header>
+    <ul class="pm-fichero">
+        {{#list}}
+        <li><a class="pm-carta" href="{{url}}"{{#current}} aria-current="true"{{/current}}>
+            <b class="pm-carta-nombre">{{name}}</b>
+            <span class="pm-carta-linea">{{#firstbits}}{{#gap}}<span class="pm-mini">{{text}}</span>{{/gap}}{{^gap}}{{text}}{{/gap}}{{/firstbits}}</span>
+            <span class="pm-carta-pie">{{#auto}}<span class="lampara" aria-hidden="true"></span>{{/auto}}{{uses}}</span>
+        </a></li>
+        {{/list}}
+        <li><a class="pm-carta pm-carta-nueva" href="{{newurl}}">{{{i.mas1}}}<span>{{#str}}prepared_new, local_oksigeniaeguahe{{/str}}</span></a></li>
+    </ul>
+    {{#current}}
+    <div class="pm-mesa" data-pm>
+        <input type="hidden" name="pmid" value="{{id}}">
+        <div class="pm-hoja">
+            <div class="aj-frase">
+                <label for="pm-nombre">{{#str}}prepared_name, local_oksigeniaeguahe{{/str}}</label>
+                <input class="aj-hueco pm-nombre" id="pm-nombre" name="pmname" value="{{name}}" size="30" autocomplete="off">
+            </div>
+            <div class="aj-frase">
+                <label for="pm-texto" id="pm-texto-t">{{#str}}prepared_text, local_oksigeniaeguahe{{/str}}</label>
+                <textarea class="aj-cuaderno pm-texto" id="pm-texto" name="pmtext" rows="7" data-pm-texto>{{text}}</textarea>
+                <div class="aj-cuaderno pm-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="pm-texto-t" aria-describedby="pm-huecos-a" spellcheck="true" data-pm-editor hidden></div>
+            </div>
+            <div class="pm-huecos" role="group" aria-labelledby="pm-huecos-t">
+                <p class="pm-huecos-t" id="pm-huecos-t">{{#str}}prepared_gaps, local_oksigeniaeguahe{{/str}}</p>
+                {{#gaps}}<button class="pm-pieza" type="button" data-hueco="{{word}}" data-ejemplo="{{example}}" hidden>{{{icon}}}<span>{{label}}</span></button>{{/gaps}}
+                <p class="ayuda pm-huecos-a" id="pm-huecos-a" data-pm-sinjs>{{#str}}prepared_gaps_nojs, local_oksigeniaeguahe{{/str}} {{#gaps}}<span class="pm-corchete" dir="auto">[{{word}}]</span> {{/gaps}}</p>
+                <p class="ayuda pm-huecos-a" data-pm-conjs hidden>{{#str}}prepared_gaps_help, local_oksigeniaeguahe{{/str}}</p>
+            </div>
+            <div class="aj-modos pm-sola" role="group" aria-label="{{#str}}prepared_after, local_oksigeniaeguahe{{/str}}">
+                <button class="aj-modo" type="submit" name="pmafter" value="{{#after}}0{{/after}}{{^after}}1{{/after}}" formaction="{{action}}" aria-pressed="{{#after}}true{{/after}}{{^after}}false{{/after}}"><b>{{#str}}prepared_after, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_after_text, local_oksigeniaeguahe{{/str}}</span></button>
+            </div>
+            <div class="aj-modos pm-sola" role="group" aria-label="{{#str}}prepared_auto, local_oksigeniaeguahe{{/str}}">
+                <button class="aj-modo" type="submit" name="pmauto" value="{{#auto}}0{{/auto}}{{^auto}}1{{/auto}}" formaction="{{action}}" aria-pressed="{{#auto}}true{{/auto}}{{^auto}}false{{/auto}}"><span class="lampara" aria-hidden="true"></span><b>{{#str}}prepared_auto, local_oksigeniaeguahe{{/str}}</b><span>{{#str}}prepared_auto_text, local_oksigeniaeguahe{{/str}}</span></button>
+            </div>
+            <div class="aj-dorso-pie pm-pie">
+                <button class="boton principal pequeno" type="submit" name="guardar" value="1" formaction="{{action}}" data-guardar>{{{i.check}}}{{#str}}panel_offer_save, local_oksigeniaeguahe{{/str}}</button>
+                <details class="aj-quitar">
+                    <summary>{{#str}}prepared_remove, local_oksigeniaeguahe{{/str}}</summary>
+                    <button class="boton peligro pequeno" type="submit" name="pmremove" value="{{id}}" formaction="{{action}}">{{#str}}prepared_remove_confirm, local_oksigeniaeguahe{{/str}}</button>
+                </details>
+            </div>
+        </div>
+        <figure class="pm-vista" aria-labelledby="pm-vista-t">
+            <figcaption class="pm-vista-t" id="pm-vista-t"><b>{{#str}}prepared_preview, local_oksigeniaeguahe{{/str}}</b> <span>{{family}}</span></figcaption>
+            <div class="pm-carta-papel">
+                <span class="pm-carta-franja" aria-hidden="true"></span>
+                <p class="pm-saludo">{{greeting}}</p>
+                <div class="pm-cuerpo" data-pm-vista>{{#paras}}<p>{{#bits}}{{#fill}}<span class="pm-relleno">{{text}}</span>{{/fill}}{{^fill}}{{#gap}}<span class="pm-falta">{{text}}</span>{{/gap}}{{^gap}}{{text}}{{/gap}}{{/fill}}{{/bits}}</p>{{/paras}}</div>
+                {{#survey}}<p class="pm-encuesta">{{survey}}</p>{{/survey}}
+                <p class="pm-firma">{{sign}}</p>
+            </div>
+            <p class="ayuda pm-vista-a">{{#str}}prepared_preview_help, local_oksigeniaeguahe{{/str}}</p>
+        </figure>
+    </div>
+    {{/current}}
+</section>

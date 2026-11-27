@@ -127,6 +127,13 @@
         <div class="col col-propuesta">
             {{#sheetnow}}{{> local_oksigeniaeguahe/panel_sheetnow }}{{/sheetnow}}
             {{#citas}}{{> local_oksigeniaeguahe/panel_appts }}{{/citas}}
+            {{#actssaid}}
+            <section class="apartado actos-dicho" id="actos-dicho" aria-labelledby="actos-dicho-t">
+                <header><h2 id="actos-dicho-t">{{#str}}panel_actssaid_title, local_oksigeniaeguahe{{/str}}</h2></header>
+                <ul class="actos-dicho-lista">{{#rows}}<li><span class="actos-dicho-acto"><b>{{name}}</b> <span class="secundario">{{when}}</span></span><span class="actos-dicho-dicho">{{said}}</span>{{#canact}}<form class="en-linea" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="actsaid"><input type="hidden" name="evento" value="{{id}}"><span class="segmentos"><button type="submit" name="dijo" value="yes" aria-pressed="{{#yes}}true{{/yes}}{{^yes}}false{{/yes}}">{{#str}}panel_actssaid_go, local_oksigeniaeguahe{{/str}}</button><button type="submit" name="dijo" value="no" aria-pressed="{{#no}}true{{/no}}{{^no}}false{{/no}}">{{#str}}panel_actssaid_notgo, local_oksigeniaeguahe{{/str}}</button></span></form>{{/canact}}</li>{{/rows}}</ul>
+                <p class="ayuda">{{#str}}panel_actssaid_help, local_oksigeniaeguahe{{/str}}</p>
+            </section>
+            {{/actssaid}}
             {{#avisos}}{{> local_oksigeniaeguahe/panel_notices }}{{/avisos}}
             {{#proposal}}
             <section class="apartado propuesta" aria-labelledby="prop-t">
@@ -236,12 +243,12 @@
                     <form class="paso" id="contestar" method="post" action="{{action}}" data-canales="1" data-redactor{{#composer}} data-latido="{{typingurl}}"{{/composer}}>
                         <input type="hidden" name="sesskey" value="{{sesskey}}">
                         {{#composer}}
-                        {{#hassuggestions}}
+                        {{^prepared}}{{#hassuggestions}}
                         <div class="ya-dijisteis" role="group" aria-labelledby="yd-t">
                             <span class="rotulo-p" id="yd-t">{{#str}}panel_said_before, local_oksigeniaeguahe{{/str}}</span>
                             {{#suggestions}}<button class="sugerencia" type="submit" name="use" value="{{id}}" data-texto="{{text}}"><b>{{title}}</b><span>{{uses}}</span></button>{{/suggestions}}
                         </div>
-                        {{/hassuggestions}}
+                        {{/hassuggestions}}{{/prepared}}
                         {{#draft}}
                         <details class="borrador">
                             <summary>{{#str}}panel_draft_of, local_oksigeniaeguahe, {"who": "{{who}}", "when": "{{when}}"}{{/str}}</summary>
@@ -269,9 +276,10 @@
                             <p class="ayuda" data-pr-ayuda hidden>{{#str}}panel_asked_help, local_oksigeniaeguahe{{/str}}</p>
                         </div>
                         {{/hasasked}}
+                        {{#prepared}}{{> local_oksigeniaeguahe/panel_prepared_pick }}{{/prepared}}
                         <div class="campo{{#ai}}{{#drafted}} ia-escrito{{/drafted}}{{/ai}}"><label for="borrador">{{#str}}panel_what_you_say, local_oksigeniaeguahe{{/str}}</label>{{#ai}}{{#drafted}}<p class="ia-nota" id="ia-nota"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#str}}panel_ai_drafted, local_oksigeniaeguahe{{/str}}</span></p>{{/drafted}}{{/ai}}<textarea id="borrador"{{#ai}}{{#drafted}} aria-describedby="ia-nota"{{/drafted}}{{/ai}} name="body" rows="{{rows}}" data-tecla="r" data-tecla-que="{{#str}}panel_answer, local_oksigeniaeguahe{{/str}}">{{greeting}}</textarea><span class="ayuda">{{#str}}panel_what_you_say_help, local_oksigeniaeguahe{{/str}}</span></div>
                         {{#ai}}<button class="ia-borrador" type="submit" name="ia" value="1" formaction="{{action}}#contestar"><span class="ia-marca" aria-hidden="true">{{{i.ia}}}</span><span>{{#drafted}}{{#str}}panel_ai_draft_again, local_oksigeniaeguahe{{/str}}{{/drafted}}{{^drafted}}{{#str}}panel_ai_draft, local_oksigeniaeguahe{{/str}}{{/drafted}}</span></button>{{/ai}}
-                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}</label>
+                                <label class="casilla guardar-respuesta"><input type="checkbox" name="savereply" value="1"> {{#prepared}}{{#str}}prepared_keep, local_oksigeniaeguahe{{/str}}{{/prepared}}{{^prepared}}{{#str}}panel_keep_reply, local_oksigeniaeguahe{{/str}}{{/prepared}}</label>
                         {{#next}}
                         <div class="campo siguiente">
                             <label for="siguiente">{{#str}}panel_next, local_oksigeniaeguahe{{/str}} <span class="opcional">{{#str}}panel_optional, local_oksigeniaeguahe{{/str}}</span></label>
@@ -490,6 +498,28 @@
             {{! How to ask for a place goes in an envelope under the children: its address written, the stamp in the centre's
                 colour, and once sent the postmark over the stamp and the day beside it. The envelope is a drawing; the
                 link says it all. }}
+            {{#hassobres}}<div class="sobres">{{/hassobres}}
+            {{#thankssend}}
+            <a class="sobre-plaza sobre-gracias{{#sent}} mandado{{/sent}}" href="{{url}}">
+                <svg class="sobre-dibujo" viewBox="0 0 88 58" aria-hidden="true" focusable="false">
+                    <rect class="sobre-papel" x="3" y="5" width="80" height="49" rx="3"/>
+                    <path class="sobre-renglon" d="M14 34.5h33M14 41.5h40M14 48.5h23"/>
+                    <rect class="sobre-sello" x="62" y="11" width="15" height="18" rx="1"/>
+                    <rect class="sobre-sello-dibujo" x="64.6" y="13.6" width="9.8" height="12.8" rx="0.6"/>
+                    <g class="sobre-matasellos">
+                        <circle cx="61" cy="24" r="10.5"/>
+                        <circle cx="61" cy="24" r="7"/>
+                        <path d="M24 17.5q3-2.6 6 0t6 0 6 0 6 0M24 22.5q3-2.6 6 0t6 0 6 0 6 0M24 27.5q3-2.6 6 0t6 0 6 0 6 0"/>
+                    </g>
+                </svg>
+                <span class="sobre-texto">
+                    <b>{{#sent}}{{#str}}prepared_thanks_again, local_oksigeniaeguahe{{/str}}{{/sent}}{{^sent}}{{#str}}prepared_thanks_send, local_oksigeniaeguahe{{/str}}{{/sent}}</b>
+                    <span class="sobre-lleva">«{{name}}». {{inside}}</span>
+                    {{#auto}}<span class="sobre-sola"><span class="lampara" aria-hidden="true"></span>{{auto}}</span>{{/auto}}
+                    {{#sent}}<span class="sobre-cuando">{{sent}}</span>{{/sent}}
+                </span>
+            </a>
+            {{/thankssend}}
             {{#applysend}}
             <a class="sobre-plaza{{#sent}} mandado{{/sent}}" href="{{url}}">
                 <svg class="sobre-dibujo" viewBox="0 0 88 58" aria-hidden="true" focusable="false">
@@ -510,6 +540,7 @@
                 </span>
             </a>
             {{/applysend}}
+            {{#hassobres}}</div>{{/hassobres}}
             {{#labelsurl}}<p class="etiquetas-enlace"><a class="enlace" href="{{labelsurl}}">{{{i.etiqueta}}}{{#str}}panel_labels_theirs, local_oksigeniaeguahe{{/str}}</a></p>{{/labelsurl}}
             {{#twice}}{{^hasproposed}}<span id="mismo-nino"></span>{{/hasproposed}}
             {{#hasjoined}}{{#joined}}<form class="mismo-nino-hecho" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="vez" value="{{id}}"><span class="secundario">{{text}}</span> <button class="enlace" type="submit" name="action" value="untwice">{{#str}}twice_undo, local_oksigeniaeguahe{{/str}}</button></form>{{/joined}}{{/hasjoined}}

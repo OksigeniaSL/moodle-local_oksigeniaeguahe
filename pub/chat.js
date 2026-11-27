@@ -36,6 +36,7 @@
         origins = [];
     }
     var last = null;
+    var lastasked = null;
     var say = function(text) {
         out.innerHTML = '';
         var p = document.createElement('p');
@@ -63,6 +64,7 @@
             return;
         }
         last = key;
+        lastasked = [contact, channel];
         if (!email && !phone) {
             say(root.getAttribute('data-none'));
             return;
@@ -108,6 +110,31 @@
                 say(root.getAttribute('data-failed'));
             });
     };
+    // What a message seems to say of an invitation, confirmed or not here, beside the conversation: the file of the family is
+    // told, and the family is asked again to show it as it is now.
+    out.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (!form || !form.hasAttribute('data-chat-responder')) {
+            return;
+        }
+        e.preventDefault();
+        var body = new FormData(form);
+        if (e.submitter && e.submitter.name) {
+            body.append(e.submitter.name, e.submitter.value);
+        }
+        out.setAttribute('aria-busy', 'true');
+        fetch(form.action, {method: 'POST', body: body, credentials: 'same-origin'})
+            .catch(function() {
+                return null;
+            })
+            .then(function() {
+                out.removeAttribute('aria-busy');
+                if (lastasked) {
+                    last = null;
+                    ask(lastasked[0], lastasked[1]);
+                }
+            });
+    });
     window.addEventListener('message', function(e) {
         if (origins.indexOf(e.origin) === -1 || typeof e.data !== 'string') {
             return;

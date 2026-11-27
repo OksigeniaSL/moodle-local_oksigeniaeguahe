@@ -76,8 +76,13 @@ class send_thanks extends \core\task\scheduled_task {
                     continue;
                 }
             }
-            $lang = $household->lang ?: $centre->lang;
             $act = \local_oksigeniaeguahe\local\actmail::is($signup);
+            $own = \local_oksigeniaeguahe\local\prepared::after_visit((int) $centre->id);
+            if (!$act && $own && $own->auto) {
+                // The centre wrote its own thanks after a visit, and it goes by itself: that one, never both.
+                continue;
+            }
+            $lang = $household->lang ?: $centre->lang;
             if (!\local_oksigeniaeguahe\local\writeby::email_now($household, $centre, 'thanks', $act)) {
                 // Without the email allowed, only on the phones the family joined with.
                 notices::phones('thanks', $household, $centre, $signup, $lang);
@@ -89,6 +94,11 @@ class send_thanks extends \core\task\scheduled_task {
                 notices::log($household, 'thanks', $signup, 'email', 'failed', 'mail');
                 mtrace('Eguahe: thanks not sent (' . $e->getMessage() . ')');
             }
+        }
+        // The prepared thanks of the centres that send them by themselves, from 9 to 20.
+        $own = \local_oksigeniaeguahe\local\prepared::send_due($now);
+        if ($own) {
+            mtrace('Eguahe: prepared thanks sent: ' . $own);
         }
     }
 }

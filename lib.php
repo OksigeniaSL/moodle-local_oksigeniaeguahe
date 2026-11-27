@@ -309,6 +309,20 @@ function local_oksigeniaeguahe_marandu_optout(
 }
 
 /**
+ * Oksigenia Marandu passes each new message written in the chat of the centre by a phone (joined or not): it goes to the
+ * history of the families with that phone, and what it seems to say of an invitation is proposed to confirm (Marandu 0.69).
+ *
+ * @param string $phone Digits with the country code, without «+».
+ * @param string $text
+ * @param int $time When the family wrote it.
+ * @param string $url The conversation.
+ * @param int $messageid Of the chat, to know it again.
+ */
+function local_oksigeniaeguahe_marandu_chat_in(string $phone, string $text, int $time, string $url, int $messageid): void {
+    \local_oksigeniaeguahe\local\chatin::take($phone, $text, $time, $url, $messageid);
+}
+
+/**
  * Oksigenia Marandu says a phone of a family has joined: when it is the new one they were asked on, the old one lets go.
  *
  * @param int $itemid The household.

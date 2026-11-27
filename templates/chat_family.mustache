@@ -82,6 +82,7 @@
         {{#owner}}<p class="chat-atiende"><span class="chat-inicial{{#you}} tu{{/you}}" aria-hidden="true">{{initials}}</span><span>{{#you}}{{#str}}chat_owner_you, local_oksigeniaeguahe{{/str}}{{/you}}{{^you}}{{#str}}chat_owner, local_oksigeniaeguahe, {{name}}{{/str}}{{/you}}</span></p>{{/owner}}
         {{#noowner}}<p class="chat-atiende chat-atiende-nadie"><span class="chat-inicial" aria-hidden="true"></span><span>{{#str}}chat_owner_nobody, local_oksigeniaeguahe{{/str}}</span></p>{{/noowner}}
     </div>
+    {{#replies}}{{#items}}<div class="chat-respuesta" role="group"><p>{{text}}</p>{{#canact}}<form method="post" action="{{action}}" data-chat-responder><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="mailreply"><input type="hidden" name="respuesta" value="{{id}}"><button class="boton principal pequeno" type="submit" name="bien" value="1">{{yes}}</button> <button class="boton secundario pequeno" type="submit" name="bien" value="0">{{#str}}replies_not_that, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}</div>{{/items}}{{/replies}}
     {{#next}}
     <div class="chat-visita">
         <span class="chat-hoja" aria-hidden="true"><small>{{weekday}}</small><b>{{day}}</b><small>{{month}}</small></span>

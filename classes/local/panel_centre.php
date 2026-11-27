@@ -127,6 +127,8 @@ class panel_centre {
             'notify' => empty($centre->practice) ? self::notify($centre) : false,
             // How the letters to the families go out: by the mail of the site, or by a service of its own.
             'mailer' => empty($centre->practice) ? self::mailer($centre) : false,
+            // What the team says often, ready for the file of each family.
+            'prepared' => prepared::settings_context($centre, optional_param('pm', '', PARAM_ALPHANUM)),
             'welcome' => (string) $centre->welcome,
             'arrive' => (string) ($centre->arrive ?? ''),
             'replydays' => array_map(fn($d) => ['value' => $d, 'name' => get_string($d === 1 ? 'panel_replydays_one' :
@@ -922,6 +924,14 @@ class panel_centre {
         global $DB, $USER;
         $c = self::C;
         $problems = [];
+        // A prepared message: kept, made the one after a visit or sent by itself, or removed; back to it, when its buttons
+        // were the ones touched (their address names it).
+        $pm = prepared::from_form($centre);
+        $open = optional_param('pm', '', PARAM_ALPHANUM);
+        if ($pm !== null && $open !== '') {
+            self::$back = ['params' => $pm ? ['pm' => $pm] : [], 'anchor' => 'aj-preparados',
+                'quiet' => !optional_param('guardar', 0, PARAM_BOOL)];
+        }
         // A new link for the calendar of the team: the one before stops working.
         if (optional_param('calrenew', 0, PARAM_BOOL)) {
             teamcalendar::key((int) $centre->id, true);

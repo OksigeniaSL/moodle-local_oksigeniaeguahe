@@ -22700,6 +22700,50 @@ html {
 }
 
 /* ---------- The next visit, as a leaf of a calendar ---------- */
+/* What a message seems to say of an invitation, beside the conversation, to confirm with a touch. */
+.chat-respuesta {
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--eg-aviso-suave, var(--eg-hundido));
+    box-shadow: inset 3px 0 0 var(--eg-acento);
+}
+
+.chat-respuesta p {
+    margin: 0 0 6px;
+    font-size: 0.875rem;
+}
+
+.chat-respuesta form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* The acts a family is invited to, and what it said of each, in its file. */
+.actos-dicho-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.actos-dicho-lista li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--eg-linea);
+}
+
+.actos-dicho-acto {
+    flex: 1 1 14em;
+}
+
+.actos-dicho-dicho {
+    font-weight: 650;
+}
+
 .chat-visita {
     display: flex;
     gap: 12px;
@@ -27151,4 +27195,463 @@ html {
     .cal-salidas .boton.terciario {
         padding-inline: 6px;
     }
+}
+
+/* ==================== Prepared messages (panel_prepared, panel_prepared_pick, the envelope of the thanks) ==================== */
+/* In the settings: the messages of the centre are cards in a file box; the open one lies on the desk with its letter
+  beside it, as one family of example will read it. In the composer of a family file: the same cards, small, above «Lo
+  que se les dice». The gaps are pieces, never codes: a small label with its icon, like the name tags of the house. Only
+  variables of the panel, so the night and the skins come by themselves. */
+.pm-fichero {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pm-fichero > li {
+    display: flex;
+    min-width: 0;
+}
+
+.pm-carta {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    width: 100%;
+    min-height: 104px;
+    padding: 14px 16px 12px;
+    border: 1.5px solid var(--eg-linea);
+    border-radius: 4px 4px 14px 14px;
+    background-color: var(--eg-superficie);
+    background-image: linear-gradient(var(--eg-acento-suave), var(--eg-acento-suave));
+    background-repeat: no-repeat;
+    background-size: 100% 6px;
+    color: var(--eg-tinta);
+    text-decoration: none;
+    box-shadow: 0 1px 2px var(--eg-sombra);
+}
+
+.pm-carta:hover {
+    border-color: var(--eg-borde);
+}
+
+.pm-carta:focus-visible {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 3px;
+}
+
+/* The open one is pulled out of the box: its ink edge on top, a little lifted, and joined to the desk below. */
+.pm-carta[aria-current="true"] {
+    border-color: var(--eg-acento);
+    background-image: linear-gradient(var(--eg-acento), var(--eg-acento));
+    box-shadow: 0 6px 14px var(--eg-sombra);
+    transform: translateY(-3px);
+}
+
+.pm-carta-nombre {
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.pm-carta-linea {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.pm-mini {
+    padding: 0 4px;
+    white-space: nowrap;
+    border: 1px solid var(--eg-acento);
+    border-radius: 4px;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+    font-weight: 650;
+}
+
+.pm-carta-pie {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.pm-carta-pie .lampara {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 6px 1px rgba(241, 184, 74, 0.5);
+}
+
+.pm-carta-nueva {
+    place-content: center;
+    justify-items: center;
+    border-style: dashed;
+    border-color: var(--eg-borde);
+    background: transparent;
+    box-shadow: none;
+    color: var(--eg-acento);
+    font-weight: 700;
+}
+
+.pm-carta-nueva svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* The desk: the open message on the left, its letter on the right; one under the other when there is no room. */
+.pm-mesa {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 20px 28px;
+    margin-top: 18px;
+    padding: 20px;
+    border-radius: 14px;
+    background: var(--eg-hundido);
+}
+
+.pm-hoja {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-width: 0;
+}
+
+.pm-nombre {
+    width: 100%;
+    font-size: 1.125rem;
+}
+
+.pm-editor {
+    min-height: calc(32px * 7 + 12px);
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    cursor: text;
+}
+
+.pm-editor:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--eg-acento);
+}
+
+/* A gap, in the text and on its button: a small label with its icon. It is one piece: it is moved or deleted whole. */
+.pm-hueco,
+.pm-pieza {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 9px 0 7px;
+    border: 1.5px solid var(--eg-acento);
+    border-radius: 7px;
+    background: var(--eg-acento-suave);
+    color: var(--eg-acento);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 26px;
+    white-space: nowrap;
+    vertical-align: 1px;
+}
+
+.pm-hueco svg,
+.pm-pieza svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.pm-hueco {
+    margin-inline: 1px;
+    cursor: default;
+    user-select: all;
+}
+
+.pm-huecos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.pm-huecos-t {
+    flex: 1 1 100%;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+.pm-pieza {
+    min-height: 40px;
+    padding-inline: 10px 12px;
+    border-style: dashed;
+    background: var(--eg-superficie);
+    cursor: pointer;
+}
+
+.pm-pieza::before {
+    content: "+";
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+.pm-pieza:hover {
+    border-style: solid;
+    background: var(--eg-acento-suave);
+}
+
+.pm-pieza:focus-visible {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.pm-huecos-a {
+    flex: 1 1 100%;
+    margin: 0;
+}
+
+.pm-corchete {
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.pm-sola .aj-modo {
+    width: 100%;
+}
+
+.pm-pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* The letter of example: white paper with the band of the centre on top, as the email arrives. */
+.pm-vista {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    margin: 0;
+}
+
+.pm-vista-t {
+    display: grid;
+    gap: 2px;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.pm-vista-t b {
+    color: var(--eg-tinta);
+    font-size: 0.9375rem;
+}
+
+.pm-carta-papel {
+    position: relative;
+    overflow: hidden;
+    padding: 26px 24px 20px;
+    border-radius: 6px;
+    background: #fff;
+    color: #2b2226;
+    box-shadow: 0 1px 2px var(--eg-sombra), 0 10px 24px var(--eg-sombra);
+    font-size: 0.9688rem;
+    line-height: 1.55;
+}
+
+.pm-carta-franja {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 6px;
+    background: var(--c-acento, var(--eg-acento));
+}
+
+.pm-carta-papel p {
+    margin: 0 0 12px;
+}
+
+.pm-saludo {
+    font-weight: 650;
+}
+
+/* What comes from each family is underlined in pencil, only here: in the email it is plain text. */
+.pm-relleno {
+    background: linear-gradient(transparent 62%, rgba(207, 169, 200, 0.45) 62%);
+    font-weight: 600;
+}
+
+.pm-falta {
+    padding: 0 4px;
+    border: 1.5px dashed #8c8086;
+    border-radius: 5px;
+    color: #5f5459;
+    white-space: nowrap;
+}
+
+.pm-encuesta {
+    padding-top: 10px;
+    border-top: 1px solid #e7ded3;
+    color: #5f5459;
+    font-size: 0.875rem;
+}
+
+.pm-carta-papel .pm-firma {
+    margin: 16px 0 0;
+    color: #5f5459;
+    font-size: 0.875rem;
+}
+
+.pm-vista-a {
+    margin: 0;
+}
+
+@media (max-width: 899.98px) {
+    .pm-mesa {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 16px 14px;
+    }
+}
+
+/* ---- In the composer of a family file ---- */
+.pm-usar {
+    display: grid;
+    gap: 8px;
+}
+
+.pm-usar .rotulo-p {
+    margin: 0;
+}
+
+.pm-usar-cartas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+    gap: 8px;
+}
+
+.pm-ficha {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    min-width: 0;
+    min-height: 56px;
+    padding: 9px 14px 9px;
+    border: 1.5px solid var(--eg-linea);
+    border-top: 4px solid var(--eg-acento-suave);
+    border-radius: 4px 4px 12px 12px;
+    background: var(--eg-superficie);
+    color: var(--eg-tinta);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.pm-ficha b {
+    font-size: 0.9375rem;
+}
+
+.pm-ficha span {
+    overflow: hidden;
+    color: var(--eg-tinta-2);
+    font-size: 0.8125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pm-ficha:hover {
+    border-color: var(--eg-borde);
+    border-top-color: var(--eg-acento);
+}
+
+.pm-ficha:focus-visible {
+    outline: 2px solid var(--eg-acento);
+    outline-offset: 2px;
+}
+
+.pm-ficha[aria-pressed="true"] {
+    border-color: var(--eg-acento);
+    border-top-color: var(--eg-acento);
+    background: var(--eg-acento-suave);
+}
+
+.pm-usar-ajustes {
+    justify-self: start;
+    font-size: 0.875rem;
+}
+
+.pm-elegido {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.pm-elegido > svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    color: var(--eg-acento);
+}
+
+.pm-elegido > span {
+    flex: 1 1 10rem;
+    min-width: 0;
+}
+
+.pm-elegido b {
+    color: var(--eg-tinta);
+}
+
+.pm-aviso {
+    margin: 0;
+}
+
+/* ---- The envelope of the thanks, beside the one of how to ask for a place ---- */
+.sobres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 28px;
+}
+
+.sobre-plaza .sobre-lleva {
+    display: block;
+    color: var(--eg-tinta-2);
+    font-size: 0.875rem;
+}
+
+.sobre-plaza .sobre-sola {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--eg-tinta);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.sobre-sola .lampara {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 40% 35%, #fff6d8, #f1b84a 60%, #d48e1f);
+    box-shadow: 0 0 6px 1px rgba(241, 184, 74, 0.5);
+}
+
+/* ---- In «Hoy, además»: a small envelope beside the note of the thanks ---- */
+.sobre-nota {
+    flex: none;
+    width: 44px;
+    height: 29px;
 }

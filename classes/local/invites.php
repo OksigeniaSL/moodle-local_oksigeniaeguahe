@@ -1742,9 +1742,17 @@ class invites {
      * @param string $reply yes or no.
      * @param int $people How many come; 0, as many adults as the family has.
      * @param int $now
+     * @param int $userid Who of the team noted it (they said it by phone, at the desk, in the chat); 0, the family itself.
      * @return bool Whether it was kept; false when there is no room left, or nothing is open.
      */
-    public static function reply(\stdClass $event, \stdClass $household, string $reply, int $people = 0, int $now = 0): bool {
+    public static function reply(
+        \stdClass $event,
+        \stdClass $household,
+        string $reply,
+        int $people = 0,
+        int $now = 0,
+        int $userid = 0
+    ): bool {
         global $DB;
         $now = $now ?: time();
         if (!in_array($reply, ['yes', 'no'], true) || empty($event->open) || !empty($event->cancelled) || $event->timeend < $now) {
@@ -1770,24 +1778,25 @@ class invites {
             if (!$already) {
                 // What they said, in their history, once: nobody has to answer it.
                 households::received($household, 'event', get_string('invite_yes_note', self::C, (object) ['event' => $name,
-                    'people' => $people]), false, $now, 0, '', '', false);
+                    'people' => $people]), false, $now, 0, '', '', false, false, $userid);
             }
         } else if (self::answer((int) $event->id, (int) $household->id) !== 'no') {
             $line = get_string('invite_no_note', self::C, $name);
             if ($already) {
                 events::unsign($event, $household, $line, false);
             } else {
-                households::note($household, 0, $line);
+                households::note($household, $userid, $line);
             }
         }
         $row = $DB->get_record(self::T, ['eventid' => $event->id, 'householdid' => $household->id]);
         if ($row) {
-            $DB->update_record(self::T, (object) ['id' => $row->id, 'opened' => (int) $row->opened ?: $now, 'reply' => $reply,
-                'replied' => $now]);
+            // What a person noted is not the family opening its letter.
+            $DB->update_record(self::T, (object) ['id' => $row->id, 'opened' => $userid ? (int) $row->opened : ((int) $row->opened ?: $now),
+                'reply' => $reply, 'replied' => $now]);
         } else {
             // From a letter sent by hand, or the one tried on: kept all the same.
             $DB->insert_record(self::T, (object) ['centreid' => $event->centreid, 'eventid' => $event->id, 'householdid' =>
-                $household->id, 'userid' => 0, 'channel' => 'email', 'bulkid' => 0, 'opened' => $now, 'timecreated' => $now,
+                $household->id, 'userid' => 0, 'channel' => 'email', 'bulkid' => 0, 'opened' => $userid ? 0 : $now, 'timecreated' => $now,
                 'reply' => $reply, 'replied' => $now]);
         }
         return true;

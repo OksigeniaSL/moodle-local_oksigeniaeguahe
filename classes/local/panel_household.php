@@ -36,6 +36,46 @@ class panel_household {
     const ANSWERS = ['mobile', 'email', 'phone'];
 
     /**
+     * The acts still to come a family is invited to or signed up for, and what it said of each: they come, they do not, or
+     * nothing yet. A person notes what they said elsewhere.
+     *
+     * @param \stdClass $household
+     * @param bool $canact
+     * @param \moodle_url $url
+     * @param int $now
+     * @return array|false
+     */
+    protected static function acts_said(\stdClass $household, bool $canact, \moodle_url $url, int $now) {
+        global $DB;
+        $c = self::C;
+        $rows = $DB->get_records_sql(
+            "SELECT e.id, e.name, e.timestart, i.reply, s.id AS signupid
+               FROM {" . events::T . "} e
+          LEFT JOIN {" . invites::T . "} i ON i.eventid = e.id AND i.householdid = :h1
+          LEFT JOIN {" . events::SIGNUPS . "} s ON s.eventid = e.id AND s.householdid = :h2
+              WHERE e.centreid = :centre AND e.open = 1 AND COALESCE(e.cancelled, 0) = 0 AND e.timestart > :now
+                    AND e.kind IN ('openday', 'other') AND COALESCE(e.tailored, 0) = 0 AND (i.id IS NOT NULL OR s.id IS NOT NULL)
+           ORDER BY e.timestart ASC",
+            ['h1' => $household->id, 'h2' => $household->id, 'centre' => $household->centreid, 'now' => $now]
+        );
+        if (!$rows) {
+            return false;
+        }
+        $out = [];
+        foreach ($rows as $row) {
+            $said = (string) $row->reply !== '' ? (string) $row->reply : ($row->signupid ? 'yes' : '');
+            $out[] = ['id' => (int) $row->id, 'name' => format_string($row->name), 'when' => userdate(
+                (int) $row->timestart,
+                get_string('strftimedaydate', 'langconfig')
+            ) . ', ' . panel::hour((int) $row->timestart),
+                'said' => get_string('panel_actssaid_' . ($said !== '' ? $said : 'none'), $c), 'yes' => $said === 'yes',
+                'no' => $said === 'no'];
+        }
+        return ['rows' => $out, 'canact' => $canact, 'action' => (new \moodle_url($url, [], 'actos-dicho'))->out(false),
+            'sesskey' => sesskey()];
+    }
+
+    /**
      * What the sheet of the team says of a family now, column by column, with since when each thing is there.
      *
      * @param \stdClass $household
@@ -66,6 +106,7 @@ class panel_household {
      * @param int $now
      * @param string $prefill What the answer starts with, when an answer of always was chosen without the script.
      * @param bool $drafted Whether the AI of the centre has just written it (household_ai::draft()).
+     * @param int $prepared The prepared message the answer was written with, if one was chosen.
      * @return array
      */
     public static function context(
@@ -75,7 +116,8 @@ class panel_household {
         string $newlink = '',
         int $now = 0,
         string $prefill = '',
-        bool $drafted = false
+        bool $drafted = false,
+        int $prepared = 0
     ): array {
         global $DB, $USER;
         $now = $now ?: time();
@@ -181,7 +223,12 @@ class panel_household {
             self::greeting($full), 'draft' => null, 'hassuggestions' => (bool) $suggestions, 'suggestions' => $suggestions,
             'next' => ['value' => '', 'day' => '', 'date' => ['labelled' => false,
                 'arialabel' => get_string('panel_next_day', $c)] + panel::date_input('nextday', '', $centre, 'siguiente-dia')],
-            'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false)];
+            'typingurl' => (new \moodle_url($url, ['typing' => 1]))->out(false),
+            // What the team says often, written for this family, to use with a touch.
+            'prepared' => $canact ? prepared::pick_context($centre, $full, $prepared, centres::can_manage(
+                (int) $centre->id,
+                (int) $USER->id
+            ), $url->out(false), $now) : false];
         // The answer is as tall as what is written in it, with room to write: a message come written is read whole.
         $written = (string) $composer['greeting'];
         $lines = 0;
@@ -198,6 +245,7 @@ class panel_household {
         $pending = visits::pending((int) $household->id);
         // A conversation of the chat already open with them (Marandu 0.52): «Contestar» goes there, never twice.
         $chat = $canact ? messaging::conversation_url($household, $centre) : null;
+        $thankssend = $canact ? prepared::thanks_context($centre, $full, $url->out(false), $now) : false;
         return [
             'head' => panel::head([
                 'back' => ['url' => (new \moodle_url('/local/oksigeniaeguahe/index.php', ['c' => $centre->id]))->out(false),
@@ -273,6 +321,12 @@ class panel_household {
             'siblings' => self::siblings($household, $centre, $canact, $now),
             'thanks' => $canact ? self::thanks($household, $full) : false,
             'applysend' => $canact ? self::apply_send($household, $full, $centre) : false,
+            // The thanks after a visit: to send them, going by themselves, or sent.
+            'thankssend' => $thankssend,
+            // The acts still to come they are invited to or signed up for: what they said, noted by a person with a touch,
+            // whatever the way they said it (the chat, the phone, the desk).
+            'actssaid' => self::acts_said($household, $canact, $url, $now),
+            'hassobres' => $thankssend || ($canact && self::apply_send($household, $full, $centre)),
             'labelsurl' => $full->children ? (new \moodle_url('/local/oksigeniaeguahe/labels.php', ['c' => $centre->id,
                 'household' => $household->id]))->out(false) : '',
             'noproposal' => $pending ? get_string('panel_noproposal_diary', $c) : '',

@@ -475,10 +475,37 @@ class replies {
                 continue;
             }
             $name = format_string($event->name);
-            $out[] = ['id' => (int) $row->id, 'text' => get_string('replies_seems_' . $row->proposal, self::C, $name),
+            // By where it came: an answer by mail, in the chat, or what a person noted of a call or at the desk.
+            $way = in_array((string) ($row->way ?? ''), ['chat', 'team'], true) ? '_' . $row->way : '';
+            $out[] = ['id' => (int) $row->id, 'text' => get_string('replies_seems_' . $row->proposal . $way, self::C, $name),
                 'yes' => get_string('replies_confirm_' . $row->proposal, self::C), 'canact' => $canact];
         }
         return $out ? ['items' => $out] : false;
+    }
+
+    /**
+     * What a person of the team noted the family said elsewhere (a call, at the desk): when it seems to say they come or do
+     * not to an invitation, it is proposed in the file, to confirm with a touch, as an answer by mail.
+     *
+     * @param \stdClass $household
+     * @param string $text
+     * @param int $now
+     * @return bool Whether there is something to confirm.
+     */
+    public static function propose_noted(\stdClass $household, string $text, int $now): bool {
+        global $DB;
+        [$eventid, $proposal] = self::proposal($household, '', $text, $now);
+        if ($proposal === '') {
+            return false;
+        }
+        $contactid = (int) $DB->get_field_sql(
+            'SELECT MAX(id) FROM {' . households::CONTACTS . '} WHERE householdid = ? AND direction = ?',
+            [$household->id, 'in']
+        );
+        $DB->insert_record(self::T, (object) ['centreid' => $household->centreid, 'householdid' => $household->id,
+            'contactid' => $contactid, 'msgkey' => hash('sha256', $household->centreid . '|team|' . $contactid . '|' . $now),
+            'eventid' => $eventid, 'proposal' => $proposal, 'state' => '', 'way' => 'team', 'timecreated' => $now]);
+        return true;
     }
 
     /**
@@ -506,10 +533,15 @@ class replies {
         } else if ($right) {
             $event = $DB->get_record(events::T, ['id' => $row->eventid]);
             $time = (int) $DB->get_field(households::CONTACTS, 'timecreated', ['id' => $row->contactid]) ?: time();
-            if (!$event || !invites::reply($event, $household, $row->proposal, 0, $time)) {
+            $way = (string) ($row->way ?? '');
+            if (!$event || !invites::reply($event, $household, $row->proposal, 0, $time, $way === '' || $way === 'email' ? 0 : $userid)) {
                 return false;
             }
-            invites::note_way($event, $household, 'email');
+            if ($way === '' || $way === 'email') {
+                invites::note_way($event, $household, 'email');
+            } else if ($way === 'chat') {
+                invites::note_way($event, $household, 'phone');
+            }
         }
         $DB->update_record(self::T, (object) ['id' => $row->id, 'state' => $right ? 'done' : 'dismissed', 'saidby' => $userid,
             'timesaid' => time()]);

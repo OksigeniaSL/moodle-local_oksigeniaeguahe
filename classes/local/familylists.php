@@ -130,9 +130,13 @@ class familylists {
                 'when' => userdate($act['time'], get_string('strftimedateshort', 'langconfig')),
                 'what' => get_string('actr_num_' . $m[2], $c)])];
         }
+        if ($key === 'thanks') {
+            // Those that came and have not had the thanks of the centre yet.
+            return ['ids' => self::clean(prepared::due_households($centre, $now)), 'title' => get_string('familylist_thanks', $c)];
+        }
         if (preg_match('/^visits-([a-z]+)$/', $key, $m) && in_array($m[1], self::OFVISITS, true)) {
             return ['ids' => self::clean(numbers_questions::visit_outcomes($centre, $now)[$m[1]]),
-                'title' => get_string('familylist_visits_' . $m[1], $c)];
+            'title' => get_string('familylist_visits_' . $m[1], $c)];
         }
         if (preg_match('/^year-([0-9_]*)-([a-z]+)(?:_([a-z]+))?$/', $key, $m)) {
             $year = str_replace('_', '-', $m[1]);

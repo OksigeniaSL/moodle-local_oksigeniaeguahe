@@ -318,6 +318,10 @@ class chatpanel {
                 userdate((int) $household->writebytime, get_string('strftimedateshort', 'langconfig'))
             )] : false,
             'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            // What a message seems to say of an invitation, to confirm here with a touch, as in its file.
+            'replies' => replies::context($household, centres::can_act($userid)),
+            'action' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $household->id]))->out(false),
+            'sesskey' => sesskey(),
         ];
     }
 

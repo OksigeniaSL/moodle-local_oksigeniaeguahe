@@ -30,6 +30,7 @@ use local_oksigeniaeguahe\local\appointments;
 use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\household_ai;
 use local_oksigeniaeguahe\local\centres;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\family;
 use local_oksigeniaeguahe\local\familymail;
 use local_oksigeniaeguahe\local\households;
@@ -107,6 +108,26 @@ if (isset($SESSION->local_oksigeniaeguahe_written[$household->id]) && $canact &&
     $written = (array) $SESSION->local_oksigeniaeguahe_written[$household->id];
     unset($SESSION->local_oksigeniaeguahe_written[$household->id]);
     $prefill = (string) ($written['body'] ?? '');
+}
+// A prepared message chosen without the script: the file comes back with it written; «Quitarlo», without it.
+$picked = optional_param('prepared', null, PARAM_INT);
+if ($picked !== null && $canact && data_submitted() && confirm_sesskey()) {
+    redirect(new moodle_url($url, $picked ? ['preparado' => $picked] : [], 'contestar'));
+}
+// A prepared message in the composer: chosen, or the thanks after a visit from its envelope.
+$chosen = optional_param('preparado', 0, PARAM_INT) ?: (optional_param('gracias', 0, PARAM_BOOL) ?
+    (int) (\local_oksigeniaeguahe\local\prepared::after_visit((int) $centre->id)->id ?? 0) : 0);
+$message = $chosen && $canact && $prefill === '' ? \local_oksigeniaeguahe\local\prepared::get((int) $centre->id, $chosen) : null;
+if ($message) {
+    $full = households::full($household);
+    $filled = \local_oksigeniaeguahe\local\prepared::fill(
+        $message,
+        \local_oksigeniaeguahe\local\prepared::values($centre, $full, time()),
+        (string) ($household->lang ?: $centre->lang)
+    );
+    $prefill = panel_household::greeting($full) . "\n\n" . $filled['text'];
+} else {
+    $chosen = 0;
 }
 $use = optional_param('use', 0, PARAM_INT);
 if ($use && $canact && data_submitted() && confirm_sesskey()) {
@@ -206,9 +227,20 @@ if ($action && data_submitted() && confirm_sesskey()) {
             'next' => optional_param('next', '', PARAM_TEXT), 'day' => publicpage::date_param('nextday'), 'why' => $why];
         redirect(new moodle_url($url, [], 'contestar'));
     };
+    // A prepared message with a gap no value of the family went into does not go: what is missing is said again.
+    $lang = (string) ($household->lang ?: $centre->lang);
+    if (in_array($action, ['reply', 'replyphone'], true) && \local_oksigeniaeguahe\local\prepared::has_gap($body, $lang)) {
+        $notsent(get_string('prepared_gap_left', $c));
+    }
     // After answering: what comes next, promised with its day, and the answer kept as one of always if asked.
     $aftersend = function () use ($household, $body, $centre) {
         global $USER;
+        // Written with a prepared message: its line says which, and it is used once more.
+        $pid = optional_param('preparedid', 0, PARAM_INT);
+        if ($pid && \local_oksigeniaeguahe\local\prepared::get((int) $centre->id, $pid)) {
+            \local_oksigeniaeguahe\local\prepared::mark_last($household, $pid, (int) $USER->id);
+            \local_oksigeniaeguahe\local\prepared::used((int) $centre->id, $pid);
+        }
         // What was sent says how to ask for a place (the centre's address or its words): it is written down as sent.
         $how = trim(strtok((string) ($centre->applyhow ?? ''), "\n") ?: '');
         $url = trim((string) ($centre->applyurl ?? ''));
@@ -227,7 +259,12 @@ if ($action && data_submitted() && confirm_sesskey()) {
         ) : 0;
         attend::promise($household, (int) $USER->id, optional_param('next', '', PARAM_TEXT), $when);
         if ($body !== '' && optional_param('savereply', 0, PARAM_BOOL)) {
-            attend::keep_reply($household, (int) $USER->id, $body);
+            if (\local_oksigeniaeguahe\local\prepared::all((int) $centre->id)) {
+                // With prepared messages, one list: what was written is one more, without its greeting.
+                \local_oksigeniaeguahe\local\prepared::keep_written($centre, households::full($household), $body);
+            } else {
+                attend::keep_reply($household, (int) $USER->id, $body);
+            }
         }
         // A brother or sister whose turn it is, named in what was sent: it is written to.
         $said = \core_text::strtolower($body);
@@ -592,9 +629,23 @@ if ($action && data_submitted() && confirm_sesskey()) {
             redirect($url, get_string('answered_saved', $c), null, \core\output\notification::NOTIFY_SUCCESS);
             break;
         case 'received':
-            // Who of the team notes it, for the family: it wrote or called somewhere else.
+            // Who of the team notes it, for the family: it wrote or called somewhere else. What it seems to say of an
+            // invitation (a call, at the desk: «que no vamos») is proposed in the file, to confirm with a touch.
             households::received($household, $channel, $body, true, null, 0, '', '', true, false, (int) $USER->id);
+            \local_oksigeniaeguahe\local\replies::propose_noted($household, $body, time());
             redirect($url);
+            break;
+        case 'actsaid':
+            // What they said of an act, by whatever way: noted by a person, with who noted it.
+            $event = $DB->get_record(events::T, ['id' => required_param('evento', PARAM_INT), 'centreid' => $household->centreid]);
+            $said = optional_param('dijo', '', PARAM_ALPHA);
+            $done = $event && in_array($said, ['yes', 'no'], true) && invites::reply($event, $household, $said, 0, time(), (int) $USER->id);
+            redirect(
+                new moodle_url($url, [], 'actos-dicho'),
+                get_string($done ? 'panel_actssaid_done' : 'panel_actssaid_notdone', $c),
+                null,
+                $done ? \core\output\notification::NOTIFY_SUCCESS : \core\output\notification::NOTIFY_WARNING
+            );
             break;
         case 'note':
             if ($body !== '') {
@@ -704,7 +755,7 @@ if ($action && data_submitted() && confirm_sesskey()) {
     }
 }
 
-$context = panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted);
+$context = panel_household::context($household, $centre, $canact, $newlink, 0, $prefill, $drafted, $chosen);
 if ($written) {
     $context['composer']['failed'] = (string) ($written['why'] ?? '');
     $context['composer']['next'] = ['value' => (string) ($written['next'] ?? '')] + $context['composer']['next'];

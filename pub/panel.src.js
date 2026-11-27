@@ -4411,3 +4411,281 @@
         count();
     });
 })();
+
+// Eguahe, prepared messages (27 Nov 2026): to join panel.src.js. Without it everything works: the gaps are their
+// words in brackets in a textarea and a card of the composer sends the form. With it:
+// - in the settings, the text is an editable box where each gap is a piece, inserted from its button, moved or deleted
+//   whole; the textarea under it keeps the words in brackets, which is what is saved; and the letter of example is
+//   rewritten as one types;
+// - in a family file, a card writes its text in «Lo que se les dice» at once (data-pm-escribe: not data-texto, which
+//   the composer already reads for «Lo que ya dijisteis»), «Quitarlo» gives back what was written, and what is missing
+//   is said.
+// Chrome 93 and Firefox 98: no :has(), no replaceChildren on old engines needed.
+(function() {
+    'use strict';
+
+    var escapeRe = function(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    };
+
+    // ---- The settings ----
+    var desk = function(root) {
+        var area = root.querySelector('[data-pm-texto]');
+        var box = root.querySelector('[data-pm-editor]');
+        var view = root.querySelector('[data-pm-vista]');
+        if (!area || !box) {
+            return;
+        }
+        var buttons = Array.prototype.slice.call(root.querySelectorAll('button[data-hueco]'));
+        var gaps = {};
+        buttons.forEach(function(b) {
+            gaps[b.getAttribute('data-hueco')] = {button: b, example: b.getAttribute('data-ejemplo'),
+                icon: b.querySelector('svg') ? b.querySelector('svg').outerHTML : '', label: b.textContent.trim()};
+        });
+        var words = Object.keys(gaps);
+        var pattern = words.length ? new RegExp('\\[(' + words.map(escapeRe).join('|') + ')\\]', 'g') : null;
+
+        var piece = function(word) {
+            var span = document.createElement('span');
+            span.className = 'pm-hueco';
+            span.contentEditable = 'false';
+            span.setAttribute('data-pm-pieza', word);
+            span.innerHTML = gaps[word].icon;
+            span.appendChild(document.createTextNode(gaps[word].label));
+            return span;
+        };
+
+        // From the words in brackets to the box: text as text, each known gap as a piece.
+        var fill = function(text) {
+            box.textContent = '';
+            var last = 0;
+            var m;
+            if (pattern) {
+                pattern.lastIndex = 0;
+                while ((m = pattern.exec(text))) {
+                    box.appendChild(document.createTextNode(text.slice(last, m.index)));
+                    box.appendChild(piece(m[1]));
+                    last = m.index + m[0].length;
+                }
+            }
+            box.appendChild(document.createTextNode(text.slice(last)));
+        };
+
+        // From the box to the words in brackets: what is saved.
+        var read = function(node) {
+            var out = '';
+            Array.prototype.forEach.call(node.childNodes, function(n) {
+                if (n.nodeType === 3) {
+                    out += n.nodeValue;
+                } else if (n.nodeType === 1 && n.hasAttribute('data-pm-pieza')) {
+                    out += '[' + n.getAttribute('data-pm-pieza') + ']';
+                } else if (n.nodeName === 'BR') {
+                    out += '\n';
+                } else if (n.nodeType === 1) {
+                    // A line the browser wrapped in its own block.
+                    out += (out && !/\n$/.test(out) ? '\n' : '') + read(n);
+                }
+            });
+            return out;
+        };
+
+        // The letter of example, from the text: paragraphs by blank lines, each gap with the value of the family.
+        var paint = function() {
+            if (!view) {
+                return;
+            }
+            view.textContent = '';
+            area.value.split(/\n{2,}/).forEach(function(para) {
+                if (!para.trim()) {
+                    return;
+                }
+                var p = document.createElement('p');
+                var last = 0;
+                var m;
+                if (pattern) {
+                    pattern.lastIndex = 0;
+                    while ((m = pattern.exec(para))) {
+                        p.appendChild(document.createTextNode(para.slice(last, m.index)));
+                        var s = document.createElement('span');
+                        s.className = 'pm-relleno';
+                        s.textContent = gaps[m[1]].example;
+                        p.appendChild(s);
+                        last = m.index + m[0].length;
+                    }
+                }
+                p.appendChild(document.createTextNode(para.slice(last)));
+                view.appendChild(p);
+            });
+        };
+
+        var sync = function() {
+            area.value = read(box).replace(/ /g, ' ');
+            paint();
+        };
+
+        // Puts a piece where the caret is, or at the end, and the caret after it.
+        var insert = function(word) {
+            var sel = window.getSelection();
+            var range = sel.rangeCount && box.contains(sel.getRangeAt(0).startContainer) ? sel.getRangeAt(0) : null;
+            var node = piece(word);
+            if (!range) {
+                range = document.createRange();
+                range.selectNodeContents(box);
+                range.collapse(false);
+            }
+            range.deleteContents();
+            var after = document.createTextNode(' ');
+            range.insertNode(after);
+            range.insertNode(node);
+            range.setStartAfter(after);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            box.focus();
+            sync();
+        };
+
+        fill(area.value);
+        box.hidden = false;
+        area.hidden = true;
+        area.setAttribute('aria-hidden', 'true');
+        buttons.forEach(function(b) {
+            b.hidden = false;
+            b.addEventListener('mousedown', function(e) {
+                // Keeps the caret in the text while the button is pressed.
+                e.preventDefault();
+            });
+            b.addEventListener('click', function() {
+                insert(b.getAttribute('data-hueco'));
+            });
+        });
+        var nojs = root.querySelector('[data-pm-sinjs]');
+        var withjs = root.querySelector('[data-pm-conjs]');
+        if (nojs && withjs) {
+            nojs.hidden = true;
+            withjs.hidden = false;
+        }
+        box.addEventListener('input', sync);
+        // Pasted text comes in as plain text, and its words in brackets become pieces.
+        box.addEventListener('paste', function(e) {
+            var text = (e.clipboardData || window.clipboardData).getData('text');
+            if (!text) {
+                return;
+            }
+            e.preventDefault();
+            var sel = window.getSelection();
+            if (!sel.rangeCount) {
+                return;
+            }
+            var range = sel.getRangeAt(0);
+            range.deleteContents();
+            var frag = document.createDocumentFragment();
+            var last = 0;
+            var m;
+            if (pattern) {
+                pattern.lastIndex = 0;
+                while ((m = pattern.exec(text))) {
+                    frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+                    frag.appendChild(piece(m[1]));
+                    last = m.index + m[0].length;
+                }
+            }
+            var tail = document.createTextNode(text.slice(last));
+            frag.appendChild(tail);
+            range.insertNode(frag);
+            range.setStartAfter(tail);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            sync();
+        });
+        // Enter writes a line break, never a block of the browser.
+        box.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.execCommand('insertLineBreak');
+                sync();
+            }
+        });
+    };
+
+    // ---- The composer of a family file ----
+    var composer = function(form) {
+        var cards = Array.prototype.slice.call(form.querySelectorAll('[data-pm-usar]'));
+        var text = form.querySelector('#borrador');
+        if (!cards.length || !text) {
+            return;
+        }
+        var id = form.querySelector('[data-pm-id]');
+        var chosen = form.querySelector('[data-pm-elegido]');
+        var name = form.querySelector('[data-pm-nombre]');
+        var missing = form.querySelector('[data-pm-falta]');
+        var missingText = form.querySelector('[data-pm-falta-texto]');
+        var undo = form.querySelector('[data-pm-quitar]');
+        var before = null;
+        var show = function(card) {
+            cards.forEach(function(c) {
+                c.setAttribute('aria-pressed', c === card ? 'true' : 'false');
+            });
+            if (id) {
+                id.value = card ? card.value : '';
+            }
+            if (chosen) {
+                chosen.hidden = !card;
+            }
+            if (name && card) {
+                name.textContent = card.getAttribute('data-nombre');
+            }
+            var falta = card ? card.getAttribute('data-falta') : '';
+            if (missing) {
+                missing.hidden = !falta;
+                if (missingText) {
+                    missingText.textContent = falta;
+                }
+            }
+        };
+        cards.forEach(function(card) {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (before === null) {
+                    before = text.value;
+                }
+                text.value = card.getAttribute('data-pm-escribe');
+                text.dispatchEvent(new Event('input', {bubbles: true}));
+                show(card);
+                text.focus();
+                // The caret where the first gap left without value is, or at the end.
+                var at = text.value.indexOf('[');
+                text.setSelectionRange(at >= 0 ? at : text.value.length, at >= 0 ? text.value.indexOf(']', at) + 1 : text.value.length);
+            });
+        });
+        if (undo) {
+            undo.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (before !== null) {
+                    text.value = before;
+                    before = null;
+                    text.dispatchEvent(new Event('input', {bubbles: true}));
+                }
+                show(null);
+                text.focus();
+            });
+        }
+        // Once the last bracket is written over, the warning goes.
+        text.addEventListener('input', function() {
+            if (missing && !missing.hidden && text.value.indexOf('[') < 0) {
+                missing.hidden = true;
+            }
+        });
+    };
+
+    var start = function() {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-pm]'), desk);
+        Array.prototype.forEach.call(document.querySelectorAll('form[data-redactor]'), composer);
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();

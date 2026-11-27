@@ -413,6 +413,17 @@ class panel_inbox {
                 ))->out(false) : $url(['c' => $centreid, 'devueltos' => 1]),
                 'link' => get_string('bounce_inbox_see', $c), 'known' => false];
         }
+        // The thanks after a visit, when a person sends them: those that came and have not had them.
+        $thanks = centres::can_act((int) $USER->id) && !(prepared::after_visit($centreid)->auto ?? 0) ?
+            prepared::due_households($centre, $now) : [];
+        if ($thanks) {
+            $out[] = ['leaf' => false, 'blank' => false, 'envelope' => true, 'title' => get_string('prepared_today_title', $c),
+                'short' => self::short('prepared_today_title'),
+                'text' => count($thanks) === 1 ? get_string('prepared_today_text_one', $c) : get_string('prepared_today_text', $c, count($thanks)),
+                'url' => count($thanks) === 1 ? (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $thanks[0],
+                    'gracias' => 1], 'contestar'))->out(false) : familylists::url($centre, 'thanks'),
+                'link' => get_string('prepared_today_link', $c), 'known' => false];
+        }
         // The same family written down twice, from the families of the last half year: a person says if it is.
         $twice = lookalike::pairs($centreid, $now - lookalike::NEAR);
         if ($twice) {

@@ -1,0 +1,51 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_prepared_pick
+
+    «Usar un mensaje preparado», in the composer of a family file, above «Lo que se les dice»: one card per message of the
+    centre, with its first line already written for this family. A card is a submit button: without JavaScript the page
+    comes back with the text in the composer; with it, panel.js writes it at once (data-pm-escribe), keeps what was written
+    to give it back with «Quitarlo», and says what is missing. The name of the chosen message travels with the form
+    (preparedid), so the line of the conversation can carry it. A gap that this family has no value for stays in
+    brackets, and «missing» says what to do; the server does not send a text that still has it.
+
+    Context variables required for this template:
+    * list - id, name, first (its first line, filled for this family), auto, text (greeting and text, filled), missing,
+      current
+    * chosen - the message in the composer (id, name, missing), or false
+    * settingsurl - where the messages are written, for whoever can change the settings; or empty
+    * action - the address of the composer (of the page around)
+
+    Example context (json):
+    {
+        "list": [{"id": 1, "name": "Gracias por la visita", "first": "Gracias por venir el viernes 27 con Vera.", "auto": true,
+            "text": "Hola, Lucía:\n\nGracias por venir el viernes 27 con Vera.", "missing": "", "current": false}],
+        "chosen": false,
+        "settingsurl": "#", "action": "https://example.com/household.php?id=1"
+    }
+}}
+<div class="pm-usar" role="group" aria-labelledby="pm-usar-t">
+    <p class="rotulo-p" id="pm-usar-t">{{#str}}prepared_use, local_oksigeniaeguahe{{/str}}</p>
+    <div class="pm-usar-cartas">
+        {{#list}}<button class="pm-ficha" type="submit" name="prepared" value="{{id}}" formaction="{{action}}#contestar" data-pm-usar data-pm-escribe="{{text}}" data-nombre="{{name}}" data-falta="{{missing}}" aria-pressed="{{#current}}true{{/current}}{{^current}}false{{/current}}"><b>{{name}}</b><span>{{first}}</span></button>{{/list}}
+    </div>
+    {{#settingsurl}}<a class="enlace pm-usar-ajustes" href="{{settingsurl}}">{{#str}}prepared_settings, local_oksigeniaeguahe{{/str}}</a>{{/settingsurl}}
+</div>
+<input type="hidden" name="preparedid" value="{{#chosen}}{{id}}{{/chosen}}" data-pm-id>
+<p class="pm-elegido" data-pm-elegido{{^chosen}} hidden{{/chosen}}>{{{i.enviado}}}<span>{{#str}}prepared_chosen, local_oksigeniaeguahe{{/str}} <b data-pm-nombre>{{#chosen}}{{name}}{{/chosen}}</b></span> <button class="enlace" type="submit" name="prepared" value="0" formaction="{{action}}#contestar" data-pm-quitar>{{#str}}prepared_unchoose, local_oksigeniaeguahe{{/str}}</button></p>
+<p class="aviso-suave pm-aviso" role="status" data-pm-falta{{^chosen.missing}} hidden{{/chosen.missing}}>{{{i.info}}}<span data-pm-falta-texto>{{#chosen}}{{missing}}{{/chosen}}</span></p>
