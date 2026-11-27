@@ -51,7 +51,11 @@
       "gesture": "closed:other"
     },
     {
-      "re": "no (contesta|contestan|contesto|contestaron|coge|cogen|cogio|cogieron|responde|responden|respondio|respondieron)\\b|contestador|buzon( de voz)?|(me|nos|le) colg\\w*|colgaron|colgo\\b|cort\\w* (la )?llamada|rechaz\\w* (la )?llamada|apagado|fuera de cobertura|sin respuesta|no answer|voicemail|hung up|nao atende\\w*|caixa postal|desligou",
+      "re": "\\b(me |nos |le |les )?colg\\w*( (la|el) (llamada|telefono))?|\\bcort\\w* (la )?llamad\\w*|\\brechaz\\w* (la )?llamad\\w*|hung up|desligou",
+      "gesture": "hungup"
+    },
+    {
+      "re": "no (contesta|contestan|contesto|contestaron|coge|cogen|cogio|cogieron|responde|responden|respondio|respondieron)\\b|contestador|buzon( de voz)?|apagado|fuera de cobertura|sin respuesta|no answer|voicemail|nao atende\\w*|caixa postal",
       "gesture": "noanswer"
     },
     {
@@ -83,8 +87,16 @@
       "gesture": "openday"
     },
     {
+      "re": "\\bno (volver|vuelvan|volvamos) a llamar\\w*|\\bno (llamar|llamen|llamemos)(les|le)?( mas)?\\b|\\bno (le |les )?(llameis|llameis) mas|do not call|don'?t call|nao ligar( mais)?",
+      "gesture": "nocall"
+    },
+    {
       "re": "\\b(los|las|la|le|les|lo) (llamara|llamaran|contactara|contactaran|llama)\\b[^.;]*|volver a llamar[^.;]*|^(re)?llamar\\b[^.;]*|\\bllamar (por|el|la|de nuevo|mas tarde|manana|otra vez|en)\\b[^.;]*|call (back|again)[^.;]*|ligar (de novo|mais tarde|depois)[^.;]*",
       "gesture": "callback"
+    },
+    {
+      "re": "\\b(para |en )?(el |la )?(proximo|siguiente) (curso|ano)\\b|\\b(el |para el )?(curso|ano) que viene\\b|next (school )?year|proximo ano( letivo)?",
+      "gesture": "nextcourse"
     },
     {
       "re": "(nos |me )?(llamara|llamaran|devolvera la llamada|devolveran la llamada)\\b[^.;]*|will call (us )?back|vai ligar|vao ligar",
@@ -111,7 +123,11 @@
       "gesture": "closed:moved"
     },
     {
-      "re": "no (le |les )?interesa\\w*|ya no (quiere|quieren|les interesa)|descartad\\w*|desist\\w*|not interested|sem interesse|nao tem interesse",
+      "re": "\\bno (quiere|quieren|desea|desean) (la |una |ninguna )?(cita|visita)\\w*|\\b(does not|doesn'?t|do not|don'?t) want (an |the )?(appointment|visit)|nao (quer|querem) (a |uma )?visita",
+      "gesture": "nocita"
+    },
+    {
+      "re": "no (le |les )?interesa\\w*|no (esta|estan) interesad\\w*|no (quiere|quieren|desea|desean) (la )?plaza|ya no (quiere|quieren|les interesa)|descartad\\w*|desist\\w*|not interested|sem interesse|nao tem interesse",
       "gesture": "closed:other"
     },
     {

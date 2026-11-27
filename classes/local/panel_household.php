@@ -36,6 +36,27 @@ class panel_household {
     const ANSWERS = ['mobile', 'email', 'phone'];
 
     /**
+     * What the sheet of the team says of a family now, column by column, with since when each thing is there.
+     *
+     * @param \stdClass $household
+     * @param int $now
+     * @return array|false
+     */
+    protected static function sheet_now(\stdClass $household, int $now) {
+        $says = teamnotes::now_says($household);
+        if (!$says['rows']) {
+            return false;
+        }
+        $short = fn(int $t) => userdate($t, get_string('strftimedateshort', 'langconfig'));
+        $since = fn(int $t) => panel::days_between($t, $now) === 0 ? get_string('panel_sheetnow_today', self::C) :
+            get_string('panel_sheetnow_since', self::C, $short($t));
+        return ['rows' => array_map(fn($row) => ['label' => $row['question'], 'value' => $row['value'],
+            'since' => $since((int) $row['since'])], $says['rows']),
+            'seen' => get_string('panel_sheetnow_seen', self::C, (object) ['day' => $short($says['seen']),
+                'hour' => panel::hour($says['seen'])])];
+    }
+
+    /**
      * The context of the file.
      *
      * @param \stdClass $household
@@ -235,6 +256,8 @@ class panel_household {
             'lookalike' => lookalike::context($household, $canact),
             'twice' => lookalike::twice_context($household, $canact),
             'bounces' => bounces::context($household, $full, $canact),
+            // What the sheet of the team says of them now, as in the sheet, at the top: the history stays below.
+            'sheetnow' => self::sheet_now($household, $now),
             // An answer by mail to an invitation, with what it seems to say, to confirm.
             'mailreplies' => replies::context($household, $canact),
             // What the list of the centre says: the children it enrolled, a family of the centre, or which child it was.

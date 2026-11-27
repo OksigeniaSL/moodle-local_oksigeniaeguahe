@@ -16,8 +16,11 @@
 
 namespace local_oksigeniaeguahe;
 
+use local_oksigeniaeguahe\local\appointments;
+use local_oksigeniaeguahe\local\attend;
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\entries;
+use local_oksigeniaeguahe\local\events;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\phone;
 use local_oksigeniaeguahe\local\teamnotes;
@@ -40,7 +43,7 @@ final class teamnotes_test extends \advanced_testcase {
         $around = make_timestamp(2026, 11, 10, 12);
         $kinds = fn(?array $gestures) => $gestures === null ? null : array_column($gestures, 'kind');
         $this->assertSame(['noanswer'], $kinds(teamnotes::read('Priority', 'No contesta', $around)));
-        $this->assertSame(['noanswer'], $kinds(teamnotes::read('Priority', 'Me colgó', $around)));
+        $this->assertSame(['hungup'], $kinds(teamnotes::read('Priority', 'Me colgó', $around)));
         $this->assertSame(['nowhatsapp'], $kinds(teamnotes::read('Priority', 'No tiene wasap', $around)));
         $this->assertSame(['contacted'], $kinds(teamnotes::read('Priority', 'Wasap', $around)));
         $this->assertSame(['familycalls'], $kinds(teamnotes::read('Priority', 'Nos devolverá la llamada', $around)));
@@ -331,5 +334,162 @@ final class teamnotes_test extends \advanced_testcase {
         $this->assertSame('tried', $DB->get_field(households::CONTACTS, 'aim', ['id' => $tried]));
         $this->assertNull($DB->get_field(households::CONTACTS, 'aim', ['id' => $said]));
         $this->assertSame(0, teamnotes::mark_tried(), 'Once.');
+    }
+
+    /**
+     * What the team writes after a call, in any column or a note: each result told apart, and «no volver a llamar» never
+     * read as «volver a llamar».
+     */
+    public function test_results_of_calls(): void {
+        $around = time() - DAYSECS;
+        $kinds = fn(?array $gestures) => $gestures === null ? null : array_column($gestures, 'kind');
+        foreach (['Me colgó', 'Colgó la llamada', 'Cortó llamada', 'Rechazó la llamada'] as $said) {
+            $this->assertSame(['hungup'], $kinds(teamnotes::read('Priority', $said, $around)), $said);
+        }
+        $this->assertSame(['noanswer'], $kinds(teamnotes::read('Priority', 'No contesta', $around)));
+        $second = teamnotes::read('Anotaciones', '2ª llamada, no volver a llamar', $around, true);
+        $this->assertSame(['nocall', 'contacted'], $kinds($second));
+        $this->assertSame(['nocall'], $kinds(teamnotes::read('Priority', 'no volver a llamar', $around)));
+        $this->assertSame(['callback'], $kinds(teamnotes::read('Priority', 'volver a llamar el lunes', $around)));
+        $this->assertSame(['nextcourse', 'familycalls'], $kinds(teamnotes::read('Respuesta', 'llamará el próximo curso', $around)));
+        $this->assertSame(['nocita'], $kinds(teamnotes::read('Priority', 'No quiere la cita', $around)));
+        foreach (['No están interesados', 'no quiere la plaza', 'se equivocaron'] as $said) {
+            $this->assertSame(['closed'], $kinds(teamnotes::read('Estado solicitud', $said, $around)), $said);
+        }
+        $this->assertSame(['wrongnumber'], $kinds(teamnotes::read('Priority', 'Teléfono equivocado', $around)));
+        $this->assertSame(['nowhatsapp'], $kinds(teamnotes::read('Anotaciones', 'No tiene wasap', $around, true)));
+        // A day in a note is never a visit.
+        $this->assertNotContains('visitbooked', $kinds(teamnotes::read('Anotaciones', 'Tenía cita el 12/11', $around, true)));
+    }
+
+    /**
+     * A result of the calls keeps the family from the phone: a stronger one stays over a weaker one written later, a call
+     * hung up is lifted when they are reached after, and a person may lift any.
+     */
+    public function test_stops(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'phone']), $cid);
+        $stop = fn() => (string) $DB->get_field(households::T, 'sheetstop', ['id' => $household->id]);
+        teamnotes::stop($household, 'nocall', 1000);
+        teamnotes::stop($household, 'hungup', 2000);
+        $this->assertSame('nocall', $stop(), 'A weaker one does not undo it.');
+        teamnotes::stop($household, 'wrongnumber', 3000);
+        $this->assertSame('wrongnumber', $stop());
+        teamnotes::lift(households::get((int) $household->id, $cid), 2);
+        $this->assertSame('', $stop());
+        teamnotes::stop($household, 'nocall', 2500);
+        $this->assertSame('', $stop(), 'What was said before a person lifted it does not come back.');
+        teamnotes::stop($household, 'hungup', time() + 10);
+        $this->assertSame('hungup', $stop(), 'What is said after, does.');
+    }
+
+    /**
+     * A row of a sheet of the team: «Me colgó» keeps the phone away until they are reached; «no volver a llamar» in a note
+     * leaves no promise to call; ASISTENCIA on the day of an open day they signed up to is «came», never over a person.
+     */
+    public function test_row_results_and_attendance(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $entry = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        entries::update($entry, (object) ['name' => $entry->name, 'acknowledge' => 0, 'active' => 1, 'teamsheet' => 1]);
+        $entry = entries::get((int) $entry->id, $cid);
+        $day = (new \DateTimeImmutable('today', \core_date::get_server_timezone_object()))->modify('-6 days');
+        $eventid = events::save($cid, (object) ['kind' => 'openday', 'name' => 'Jornada de puertas abiertas',
+            'timestart' => $day->setTime(9, 0)->getTimestamp(), 'timeend' => $day->setTime(12, 0)->getTimestamp(),
+            'capacity' => 0, 'open' => 1]);
+        $row = fn(string $name, string $phone) => ['FECHA' => $day->format('d/m/Y'), 'Tutor 1' => $name, 'TELÉFONO' => $phone,
+            'CURSO' => '2027-28'];
+
+        [$ana] = entries::receive($entry, $row('Ana Ruiz', '600111001') + ['Priority' => 'Me colgó'], '', null, true);
+        $this->assertSame('hungup', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $ana->id]));
+        entries::receive($entry, $row('Ana Ruiz', '600111001') + ['Priority' => 'Me colgó',
+            'Respuesta 1' => 'viene ' . $day->modify('+20 days')->format('d/m/Y')], '', null, true);
+        $this->assertSame('', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $ana->id]), 'Reached after.');
+
+        // As a row of the ads: its state of always, and what the team wrote in its notes.
+        $said = $row('Bea Gil', '600111002') + ['lead_status' => 'CREATED', 'Anotaciones' => '2ª llamada, no volver a llamar'];
+        [$bea] = entries::receive($entry, $said, '', null, true);
+        $this->assertSame('nocall', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $bea->id]));
+        $this->assertSame([], attend::open_promises((int) $bea->id));
+
+        // Two families signed up to the open day; a person already said the second did not come.
+        $signup = fn(\stdClass $h) => $DB->insert_record(events::SIGNUPS, (object) ['centreid' => $cid, 'eventid' => $eventid,
+            'householdid' => $h->id, 'people' => 2, 'timecreated' => $day->getTimestamp() - DAYSECS]);
+        [$carla] = entries::receive($entry, $row('Carla Díaz', '600111003'), '', null, true);
+        [$dani] = entries::receive($entry, $row('Dani Paz', '600111004'), '', null, true);
+        $one = $signup($carla);
+        $two = $signup($dani);
+        $centre = centres::get($cid);
+        appointments::mark($centre, ['s' . $two], 'notcame', 2);
+        entries::receive($entry, $row('Carla Díaz', '600111003') + ['ASISTENCIA' => 'TRUE'], '', null, true);
+        entries::receive($entry, $row('Dani Paz', '600111004') + ['ASISTENCIA' => 'TRUE'], '', null, true);
+        $this->assertGreaterThan(0, (int) $DB->get_field(events::SIGNUPS, 'attended', ['id' => $one]));
+        $this->assertSame(0, (int) $DB->get_field(events::SIGNUPS, 'attended', ['id' => $two]), 'Never over a person.');
+    }
+
+    /**
+     * What was taken before is read again once: a hung-up call keeps the phone away, and a «no volver a llamar» once read as
+     * «volver a llamar» leaves its promise done.
+     */
+    public function test_read_again(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $entry = entries::get(entries::create($cid, 'google', 'Hoja de visitas'), $cid);
+        $DB->set_field(entries::T, 'questions', json_encode(['Priority', 'Anotaciones', 'WhatsApp']), ['id' => $entry->id]);
+        $line = function (string $body, ?\stdClass $household = null) use ($cid, $DB) {
+            $household = $household ?? households::get(households::create($cid, (object) ['lang' => 'es',
+                'firstchannel' => 'phone']), $cid);
+            $contactid = $DB->insert_record(households::CONTACTS, (object) ['centreid' => $cid, 'householdid' => $household->id,
+                'direction' => 'note', 'channel' => 'other', 'body' => $body, 'entryid' => 0, 'userid' => 0, 'dayonly' => 1,
+                'timecreated' => time() - DAYSECS]);
+            $DB->insert_record(teamnotes::T, (object) ['centreid' => $cid, 'householdid' => $household->id, 'mark' => sha1($body),
+                'contactid' => $contactid, 'timecreated' => time() - DAYSECS]);
+            return $household;
+        };
+        $hung = $line('Llamada sin respuesta · Priority: Me colgó');
+        $call = $line('Volver a llamar · Anotaciones: 2ª llamada, no volver a llamar');
+        attend::promise($call, 0, '2ª llamada, no volver a llamar');
+        $box = $line('No tiene WhatsApp · WhatsApp: FALSE');
+        $hand = $line('Hablé con ellos: no quieren la cita, me colgó');
+        $this->assertSame(2, teamnotes::read_again());
+        $this->assertSame('', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $hand->id]), 'Only what a sheet said.');
+        $this->assertSame('hungup', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $hung->id]));
+        $this->assertSame('nocall', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $call->id]));
+        $this->assertSame('', (string) $DB->get_field(households::T, 'sheetstop', ['id' => $box->id]), 'A box, never.');
+        $this->assertSame([], attend::open_promises((int) $call->id));
+    }
+
+    /**
+     * What the sheet says now, column by column: a change replaces what was there, a column no longer written is gone, and
+     * two rows sent every night with different values never take turns.
+     */
+    public function test_sheet_now(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $cid = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES']);
+        $household = households::get(households::create($cid, (object) ['lang' => 'es', 'firstchannel' => 'phone']), $cid);
+        $now = fn() => teamnotes::now_says(households::get((int) $household->id, $cid));
+        $day = 1800000000;
+        teamnotes::keep_now($household, [['Priority', 'No contesta', 'team'], ['Anotaciones', 'enviado wasap', 'notes'],
+            ['Canal', 'Teléfono', 'channel']], $day);
+        $says = $now();
+        $this->assertSame([['Priority', 'No contesta'], ['Anotaciones', 'enviado wasap']], array_map(fn($r) => [$r['question'],
+            $r['value']], $says['rows']));
+        teamnotes::keep_now($household, [['Priority', 'Viene 30/11/2026', 'team']], $day + 2 * DAYSECS);
+        $says = $now();
+        $this->assertSame([['Priority', 'Viene 30/11/2026', $day + 2 * DAYSECS]], array_map(fn($r) => [$r['question'], $r['value'],
+            $r['since']], $says['rows']), 'The new value, and the note no longer written is gone.');
+        $this->assertSame($day + 2 * DAYSECS, $says['seen']);
+        // Two rows of the family, each sent every night: the value that came last stays.
+        for ($i = 3; $i < 6; $i++) {
+            teamnotes::keep_now($household, [['Priority', 'Viene 30/11/2026', 'team']], $day + $i * DAYSECS);
+            teamnotes::keep_now($household, [['Priority', 'Tiene plaza', 'team']], $day + $i * DAYSECS + 60);
+        }
+        $this->assertSame('Tiene plaza', $now()['rows'][0]['value']);
+        $this->assertSame(1, $DB->count_records_select(households::T, 'id = ? AND sheetnow IS NOT NULL', [$household->id]));
     }
 }

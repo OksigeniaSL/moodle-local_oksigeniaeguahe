@@ -38,11 +38,19 @@ class teamnotes {
     const DATA = '/local/oksigeniaeguahe/data/team-notes.json';
 
     /** @var string[] Gestures of a person who tried to speak with the family and did not: it answers nothing. */
-    const TRIED = ['noanswer', 'wrongnumber'];
+    const TRIED = ['noanswer', 'wrongnumber', 'hungup'];
 
     /** @var string[] Gestures that say a person of the team was in touch: the family no longer waits. */
     const TOUCH = ['contacted', 'invited', 'infosent', 'familycalls', 'callback', 'visitbooked',
-        'attended', 'absent', 'cancelled', 'stage', 'closed'];
+        'attended', 'absent', 'cancelled', 'stage', 'closed', 'nocall', 'nextcourse', 'nocita'];
+
+    /** @var string[] What the sheet says of the calls that keeps a family from being invited by phone, the weaker first: one
+     *  written later does not undo a stronger one; «closed», from being invited at all. */
+    const STOPS = ['hungup', 'nocita', 'nowhatsapp', 'nextcourse', 'nocall', 'wrongnumber', 'closed'];
+
+    /** @var string[] Gestures that say the family was reached after all (a visit given, they came, they will call): a later one
+     *  lifts a hung-up call. Another call is not one: it may have been hung up too. */
+    const REACHED = ['familycalls', 'visitbooked', 'attended'];
 
     /** @var array|null */
     protected static $data = null;
@@ -226,7 +234,8 @@ class teamnotes {
                 return true;
             }
         }
-        return (bool) array_intersect($kinds, ['noanswer', 'wrongnumber']);
+        // A call nobody answered, they hung up or said no to coming: the day of the call, not of a visit.
+        return (bool) array_intersect($kinds, ['noanswer', 'wrongnumber', 'hungup', 'nocall', 'nocita', 'nextcourse']);
     }
 
     /**
@@ -551,6 +560,8 @@ class teamnotes {
         $centre = centres::get((int) $household->centreid);
         $lang = (string) ($centre->lang ?: 'en');
         $str = fn(string $id, $a = null) => get_string_manager()->get_string($id, self::C, $a, $lang);
+        // What the sheet says of them now, as it is in the sheet: each change replaces the one before.
+        self::keep_now($household, $row['team'] ?? []);
         // What the row says happened on the day of its visit, when it has one.
         $stable = (int) ($row['appointment'] ?? 0) ?: (int) ($row['time'] ?? 0);
         $time = $stable ?: time();
@@ -567,6 +578,7 @@ class teamnotes {
         $latest = 0;
         $userid = 0;
         $names = [];
+        $came = false;
         foreach ($row['staff'] ?? [] as $name) {
             $id = self::member((int) $household->centreid, $name);
             if ($id && !$userid) {
@@ -647,6 +659,10 @@ class teamnotes {
                 $counts['already'] = ($counts['already'] ?? 0) + 1;
                 if ($given) {
                     $visit = self::seen_again(reset($known), $household, $given, $entryid, $lang);
+                } else if ($question !== '') {
+                    // Known, it is still one of these words in this row: the same words in another column of it are another.
+                    $key = self::line_key($marked, $value);
+                    $inrow[$key] = ($inrow[$key] ?? 0) + 1;
                 }
                 continue;
             }
@@ -686,6 +702,7 @@ class teamnotes {
                         break;
                     case 'noanswer':
                     case 'wrongnumber':
+                    case 'hungup':
                     case 'familycalls':
                         $channel = $channel ?? 'phone';
                         $what[] = $str('teamnote_' . $kind);
@@ -724,10 +741,16 @@ class teamnotes {
                     case 'attended':
                         $what[] = $str('teamnote_attended');
                         households::advance((int) $household->id, 'visit');
+                        // Marked in its column (ASISTENCIA), on the day of the row: whatever they had that day (an act they
+                        // signed up to, their visit of the sheet), they came. A «vino» in a note says no day.
+                        $came = $came || (!empty($gesture['column']) && $stable);
                         break;
                     case 'absent':
                     case 'cancelled':
                     case 'nowhatsapp':
+                    case 'nocall':
+                    case 'nextcourse':
+                    case 'nocita':
                         $what[] = $str('teamnote_' . $kind);
                         break;
                     case 'openday':
@@ -811,9 +834,22 @@ class teamnotes {
             if ($given) {
                 $visit = $DB->get_record(self::T, ['id' => $note->id]);
             }
+            foreach ($gestures as $gesture) {
+                // A result of the calls (in any column, a note too) keeps the phone away: never a box left unticked.
+                if (in_array($gesture['kind'], self::STOPS, true) && !($gesture['kind'] === 'nowhatsapp' && !empty($gesture['column']))) {
+                    self::stop($household, $gesture['kind'], $at($gesture) ?: time());
+                }
+            }
+            $reached = array_filter($gestures, fn($g) => in_array($g['kind'], self::REACHED, true));
+            if ($reached && !array_intersect(array_column($gestures, 'kind'), self::TRIED)) {
+                self::reached($household, max(array_map($at, $reached)));
+            }
         }
         if ($visit) {
             self::supersede($visit, $household, !empty($row['past']), $lang);
+        }
+        if ($came) {
+            self::came_on($household, $stable);
         }
         $fresh = households::get((int) $household->id, (int) $household->centreid);
         if ($fresh) {
@@ -834,6 +870,201 @@ class teamnotes {
             }
         }
         return $counts;
+    }
+
+    /**
+     * Keeps what the columns of the team of a row of a sheet say now (a state, an answer, a note), and since when each value
+     * is there: a value no longer sent stops being what the sheet says. Read every time the row comes, every night.
+     *
+     * @param \stdClass $household
+     * @param array $team Of the row: [question, value, role].
+     * @param int $now
+     */
+    public static function keep_now(\stdClass $household, array $team, int $now = 0): void {
+        global $DB;
+        $now = $now ?: time();
+        $team = array_filter($team, fn($one) => in_array($one[2] ?? '', ['team', 'notes'], true) && trim((string) $one[1]) !== '');
+        if (!$team) {
+            return;
+        }
+        $kept = json_decode((string) $DB->get_field(households::T, 'sheetnow', ['id' => $household->id]), true) ?: [];
+        foreach ($team as [$question, $value]) {
+            $key = self::plain((string) $question);
+            $value = trim((string) $value);
+            $kept[$key] = $kept[$key] ?? ['q' => trim((string) $question), 'vals' => []];
+            $found = false;
+            foreach ($kept[$key]['vals'] as $i => $one) {
+                if ($one['v'] === $value) {
+                    $kept[$key]['vals'][$i]['last'] = $now;
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $kept[$key]['vals'][] = ['v' => $value, 'first' => $now, 'last' => $now];
+            }
+        }
+        foreach ($kept as $key => $column) {
+            // What the sheet has not said for a month is gone from it.
+            $kept[$key]['vals'] = array_values(array_filter($column['vals'], fn($one) => (int) $one['last'] > $now - 30 * DAYSECS));
+            if (!$kept[$key]['vals']) {
+                unset($kept[$key]);
+            }
+        }
+        $DB->set_field(households::T, 'sheetnow', $kept ? json_encode($kept, JSON_UNESCAPED_UNICODE) : null, ['id' => $household->id]);
+    }
+
+    /**
+     * What the sheet of the team says of a family now, column by column: of the values it still sends (within a day and a half
+     * of the newest), the one that came last; with since when, and when the sheet was last read.
+     *
+     * @param \stdClass $household
+     * @return array rows (question, value, since) and seen; empty rows, nothing.
+     */
+    public static function now_says(\stdClass $household): array {
+        $kept = json_decode((string) ($household->sheetnow ?? ''), true) ?: [];
+        $seen = 0;
+        foreach ($kept as $column) {
+            foreach ($column['vals'] as $one) {
+                $seen = max($seen, (int) $one['last']);
+            }
+        }
+        $rows = [];
+        foreach ($kept as $column) {
+            $still = array_filter($column['vals'], fn($one) => (int) $one['last'] >= $seen - 36 * HOURSECS);
+            if (!$still) {
+                continue;
+            }
+            usort($still, fn($a, $b) => (int) $b['first'] <=> (int) $a['first']);
+            $rows[] = ['question' => (string) $column['q'], 'value' => (string) $still[0]['v'], 'since' => (int) $still[0]['first']];
+        }
+        return ['rows' => $rows, 'seen' => $seen];
+    }
+
+    /**
+     * What the sheet says of the calls keeps a family from being invited by phone (or at all, closed): a stronger one is never
+     * undone by a weaker, nor what a person lifted by what was said before.
+     *
+     * @param \stdClass $household
+     * @param string $kind One of STOPS.
+     * @param int $time When the sheet said it.
+     */
+    public static function stop(\stdClass $household, string $kind, int $time): void {
+        global $DB;
+        $rank = array_search($kind, self::STOPS, true);
+        $now = $DB->get_record(households::T, ['id' => $household->id], 'id, sheetstop, sheetstoptime');
+        if ($rank === false || !$now) {
+            return;
+        }
+        $was = (string) $now->sheetstop;
+        if ($was === '' ? (int) $now->sheetstoptime >= $time : array_search($was, self::STOPS, true) > $rank) {
+            return;
+        }
+        if ($was !== $kind) {
+            $DB->update_record(households::T, (object) ['id' => $now->id, 'sheetstop' => $kind, 'sheetstoptime' => $time]);
+        }
+    }
+
+    /**
+     * The family was reached after a call it hung up: that call no longer keeps it from the phone.
+     *
+     * @param \stdClass $household
+     * @param int $time When the sheet says it was reached.
+     */
+    protected static function reached(\stdClass $household, int $time): void {
+        global $DB;
+        $DB->set_field_select(
+            households::T,
+            'sheetstop',
+            null,
+            "id = ? AND sheetstop = 'hungup' AND sheetstoptime < ?",
+            [$household->id, $time]
+        );
+    }
+
+    /**
+     * A person says the family may be invited by phone after all, whatever the sheet said: kept, with a line.
+     *
+     * @param \stdClass $household
+     * @param int $userid
+     */
+    public static function lift(\stdClass $household, int $userid): void {
+        global $DB;
+        if ((string) ($household->sheetstop ?? '') === '') {
+            return;
+        }
+        $DB->update_record(households::T, (object) ['id' => $household->id, 'sheetstop' => null, 'sheetstoptime' => time()]);
+        households::note($household, $userid, get_string('sheetstop_lifted', self::C));
+    }
+
+    /**
+     * Whatever a family had on a day (an act it signed up to, its visit of a sheet), it came: as a person says it with «Who
+     * came», never over what a person already said.
+     *
+     * @param \stdClass $household
+     * @param int $day Any moment of the day.
+     */
+    protected static function came_on(\stdClass $household, int $day): void {
+        $centre = centres::get((int) $household->centreid);
+        if (!$centre) {
+            return;
+        }
+        $from = (new \DateTimeImmutable('@' . $day))->setTimezone(\core_date::get_server_timezone_object())->setTime(0, 0);
+        $items = appointments::agenda($centre, $from->getTimestamp(), $from->modify('+1 day')->getTimestamp());
+        $ids = array_column(array_filter($items, fn($one) => (int) $one['householdid'] === (int) $household->id), 'id');
+        if ($ids) {
+            appointments::mark($centre, $ids, 'came', 0, time(), true);
+        }
+    }
+
+    /**
+     * What was taken from the sheets before, read again with the words of now: the results of the calls keep the phone away,
+     * and a «do not call again» once read as «call back» leaves no promise to call. Once, when Eguahe is brought up to date.
+     *
+     * @return int How many families the sheet keeps from the phone now.
+     */
+    public static function read_again(): int {
+        global $DB;
+        // A line of a sheet says «what it was · Column: what the sheet said», or only «Column: what the sheet said»: known
+        // by the titles its entries have had, so nothing the team wrote by hand is read as if a sheet said it.
+        $titles = [];
+        foreach ($DB->get_records(entries::T, null, '', 'id, questions') as $entry) {
+            foreach (entries::questions($entry) as $title) {
+                $titles[self::plain((string) $title)] = true;
+            }
+        }
+        $rows = $DB->get_recordset_sql(
+            "SELECT id, householdid, body, timecreated
+               FROM {" . households::CONTACTS . "}
+              WHERE entryid = 0 AND direction IN ('out', 'note')
+           ORDER BY id ASC"
+        );
+        $stopped = [];
+        foreach ($rows as $row) {
+            $parts = explode(' · ', (string) $row->body, 2);
+            $said = $parts[1] ?? $parts[0];
+            if (strpos($said, ': ') === false) {
+                continue;
+            }
+            [$question, $value] = explode(': ', $said, 2);
+            if (!isset($titles[self::plain($question)])) {
+                continue;
+            }
+            $household = $DB->get_record(households::T, ['id' => $row->householdid]);
+            if (!$household) {
+                continue;
+            }
+            foreach (self::read($question, $value, (int) $row->timecreated, true) ?? [] as $gesture) {
+                if (in_array($gesture['kind'], self::STOPS, true) && !($gesture['kind'] === 'nowhatsapp' && !empty($gesture['column']))) {
+                    self::stop($household, $gesture['kind'], (int) $row->timecreated);
+                    $stopped[(int) $household->id] = true;
+                }
+                if ($gesture['kind'] === 'nocall') {
+                    attend::withdraw($household, [$value]);
+                }
+            }
+        }
+        $rows->close();
+        return count($stopped);
     }
 
     /**

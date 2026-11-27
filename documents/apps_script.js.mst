@@ -16,6 +16,8 @@
 const EGUAHE_TABS = [];
 // The titles of the columns, to find their row if something is written above it.
 const EGUAHE_TITLES = {{{titles}}}.map(eguahePlain_);
+// What a column with no title is called: what the team writes there by hand comes as its notes.
+const EGUAHE_UNTITLED = {{{untitled}}};
 {{/sheet}}
 // The key below signs what is sent: whoever has it can send families to the centre. Do not share it.
 const EGUAHE_URL = {{{url}}};
@@ -160,8 +162,11 @@ function eguaheItems_(tab) {
   const top = eguaheTop_(values);
   // A name that comes twice keeps both: the second one is «… (2)».
   const seen = {};
+  // A column with no title sends what the team writes in it: never a value of a contact (that is a title lost), nor what a
+  // tool wrote above the titles.
+  const untitled = values[top].map(function (question) { return String(question).trim() === ''; });
   const head = values[top].map(function (question) {
-    const name = String(question).trim();
+    const name = String(question).trim() || EGUAHE_UNTITLED;
     seen[name] = (seen[name] || 0) + 1;
     return name !== '' && seen[name] > 1 ? name + ' (' + seen[name] + ')' : name;
   });
@@ -173,7 +178,7 @@ function eguaheItems_(tab) {
     }
     const answers = {};
     head.forEach(function (question, c) {
-      if (question !== '' && String(row[c]).trim() !== '') {
+      if (question !== '' && String(row[c]).trim() !== '' && !(untitled[c] && (r < top || eguaheValue_(row[c])))) {
         answers[question] = row[c];
       }
     });

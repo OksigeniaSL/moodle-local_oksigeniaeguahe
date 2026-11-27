@@ -180,13 +180,17 @@ class invites {
             } else if ($enrolled || !$ok) {
                 continue;
             }
-            $mute = (int) $household->noinvites || !writeby::may_send($household, 'openinvite');
+            // The sheet of the team says they are not interested, or chose another centre: no invitation by any way.
+            $mute = (int) $household->noinvites || !writeby::may_send($household, 'openinvite') ||
+                (string) ($household->sheetstop ?? '') === 'closed';
             if (isset($done[$id]) || isset($queued[$id]) || $mute) {
                 continue;
             }
             $household->reachemail = !empty($emails[$id]) && self::by_mail($household, $centre, !empty($allowed[$id]));
             $household->number = $numbers[$id] ?? '';
-            $household->reachphone = $phones && writeby::phone_ok($household, 'openinvite') &&
+            // What the sheet says of the calls (they hung up, do not call again, a wrong number…) keeps the phone away.
+            $household->reachphone = $phones && (string) ($household->sheetstop ?? '') === '' &&
+                writeby::phone_ok($household, 'openinvite') &&
                 ($household->number !== '' || messaging::joined($household, $centre));
             if ($household->reachemail && isset($twice[$id]) && !self::first_of($household, $twice[$id], $households, $event)) {
                 // Two files of the same people: one letter, and none if either said no more of them.
@@ -631,11 +635,12 @@ class invites {
      * @param int[]|null $only Only these families, a family of example among them too (to see it as a family would); null
      *     for all of the act.
      * @return array households (those it goes to, by id), numbers (by id, of those that did not join), joined, waiting (with
-     *     a number, while Marandu cannot write to one), nophone and notphone (how many).
+     *     a number, while Marandu cannot write to one), nophone and notphone (how many), and sheet (what the sheet of the team
+     *     says of the calls => the families it keeps from the phone).
      */
     public static function phone_too(\stdClass $event, \stdClass $centre, ?array $only = null): array {
         global $DB;
-        $out = ['households' => [], 'numbers' => [], 'joined' => 0, 'waiting' => 0, 'nophone' => 0, 'notphone' => 0];
+        $out = ['households' => [], 'numbers' => [], 'joined' => 0, 'waiting' => 0, 'nophone' => 0, 'notphone' => 0, 'sheet' => []];
         if (!self::fits($event, time()) || !self::by_phone($centre) || $only === []) {
             return $out;
         }
@@ -662,7 +667,10 @@ class invites {
             ) {
                 continue;
             }
-            if (!writeby::phone_ok($household, 'openinvite')) {
+            if ((string) ($household->sheetstop ?? '') !== '') {
+                // The sheet of the team says why not (they hung up, a wrong number…): apart, for the team to see.
+                $out['sheet'][(string) $household->sheetstop][] = $id;
+            } else if (!writeby::phone_ok($household, 'openinvite')) {
                 $out['notphone']++;
             } else if (messaging::joined($household, $centre)) {
                 $out['joined']++;
@@ -749,6 +757,23 @@ class invites {
         }
         self::note_way($event, $household, 'phone');
         return publiclang::str('invite_phone_no_answer', $lang, publicpage::text($event->name));
+    }
+
+    /**
+     * A family asked a phone to stop: if the letter of an act went to it by phone in the last two weeks, that letter keeps
+     * when, to stop the batches that send it (phonebatches::brake()).
+     *
+     * @param int $householdid
+     * @param int $time
+     */
+    public static function phone_out(int $householdid, int $time = 0): void {
+        global $DB;
+        $time = $time ?: time();
+        $DB->execute(
+            'UPDATE {' . self::T . '} SET phoneout = ? WHERE householdid = ? AND phonesent > 0 AND phonesent <= ? AND phonesent > ?
+                AND phoneout = 0',
+            [$time, $householdid, $time, $time - 2 * WEEKSECS]
+        );
     }
 
     /**

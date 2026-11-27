@@ -1257,6 +1257,10 @@ class writeby {
             'noinvites' => (bool) (int) $household->noinvites,
             'noinvitessince' => (int) $household->noinvites ?
                 get_string('panel_noinvites_since', $c, $day((int) $household->noinvites)) : '',
+            // The sheet of the team says something of the calls that keeps the phone away: said, for the team to decide.
+            'sheetstop' => (string) ($household->sheetstop ?? '') !== '' ? get_string('panel_sheetstop' .
+                ($household->sheetstop === 'closed' ? '_closed' : ''), $c, (object) [
+                'why' => get_string('sheetstop_' . $household->sheetstop, $c), 'day' => $day((int) $household->sheetstoptime)]) : '',
             // Who said it: the family on its page or by message, or the team, who noted what they heard.
             'since' => $silent ? get_string(($household->writebyfrom ?? '') === 'team' ? 'panel_writeby_silent_team' :
                 'panel_writeby_silent_since', $c, $day((int) $household->writebytime)) : '',

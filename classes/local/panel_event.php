@@ -522,6 +522,8 @@ class panel_event {
             'notice' => invites::said((int) $event->id),
             // The letter by mail, also by phone, to those that have it and have said nothing yet.
             'phonetoo' => $canact && !$left ? self::phone_card($event, $phonecheck) : false,
+            // The letter by phone in batches, and what happened to each send by phone.
+            'batches' => self::batches_card($event, $canact, $now),
             'posturl' => (new \moodle_url('/local/oksigeniaeguahe/event.php', ['id' => $event->id]))->out(false),
             'sesskey' => sesskey(),
         ];
@@ -689,7 +691,8 @@ class panel_event {
         $c = self::C;
         $centre = centres::get((int) $event->centreid);
         $too = $centre ? invites::phone_too($event, $centre) : null;
-        $total = $too ? count($too['households']) + $too['waiting'] + $too['nophone'] + $too['notphone'] : 0;
+        $sheet = $too ? array_sum(array_map('count', $too['sheet'])) : 0;
+        $total = $too ? count($too['households']) + $too['waiting'] + $too['nophone'] + $too['notphone'] + $sheet : 0;
         if (!$total) {
             return false;
         }
@@ -702,7 +705,7 @@ class panel_event {
         }
         $quote = invites::phone_quote($centre, $too);
         $will = $quote ? (int) ($quote['whatsapp'] ?? 0) + (int) ($quote['whatsappfree'] ?? 0) + (int) ($quote['telegram'] ?? 0) : 0;
-        $cannot = $total - $will - $too['nophone'];
+        $cannot = $total - $will - $too['nophone'] - $sheet;
         $why = [];
         if ($too['nophone']) {
             $why[] = ['text' => get_string('panel_phonetoo_why_nophone', $c)];
@@ -731,17 +734,139 @@ class panel_event {
             )) : get_string('panel_phonetoo_now', $c)];
         }
         $out['check'] = [
-            'boxes' => [
+            'boxes' => array_merge([
                 ['key' => 'go', 'n' => $will, 'label' => get_string('panel_phonetoo_box_will', $c)],
                 ['key' => 'nophone', 'n' => $too['nophone'], 'label' => get_string('panel_phonetoo_box_nophone', $c)],
                 ['key' => 'cannot', 'n' => $cannot, 'label' => get_string('panel_phonetoo_box_cannot', $c)],
-            ],
+            ], $sheet ? [['key' => 'sheet', 'n' => $sheet, 'label' => get_string('panel_phonetoo_box_sheet', $c)]] : []),
+            'four' => $sheet > 0,
             'why' => $why,
+            'sheet' => $sheet ? self::sheet_names($too['sheet']) : false,
             'lines' => $lines,
             'note' => get_string('panel_phonetoo_note', $c),
             'go' => $will ? get_string($will === 1 ? 'panel_phonetoo_go_one' : 'panel_phonetoo_go', $c, $will) : '',
         ];
         return $out;
+    }
+
+    /**
+     * The families the sheet of the team keeps from the phone, each with why, to open its file: the team may decide otherwise
+     * there.
+     *
+     * @param array $sheet Why => household ids, as phone_too() gives it.
+     * @return array summary and names.
+     */
+    protected static function sheet_names(array $sheet): array {
+        global $DB;
+        $names = [];
+        foreach ($sheet as $why => $ids) {
+            foreach ($ids as $id) {
+                $adults = $DB->get_records(households::ADULTS, ['householdid' => $id], 'id ASC');
+                $names[] = ['name' => panel::adults_line($adults) ?: get_string('invitecheck_noname', self::C),
+                    'url' => (new \moodle_url('/local/oksigeniaeguahe/household.php', ['id' => $id], 'hoja-telefono'))->out(false),
+                    'note' => get_string('sheetstop_' . $why, self::C)];
+            }
+        }
+        return ['summary' => get_string('panel_phonetoo_sheet', self::C, count($names)), 'names' => $names];
+    }
+
+    /**
+     * The letter by phone in batches: how they go (the next, with how many; or why they stopped, with going on), to start
+     * them, and each send by phone with what happened to it, in a sentence.
+     *
+     * @param \stdClass $event
+     * @param bool $canact
+     * @param int $now
+     * @return array|false
+     */
+    protected static function batches_card(\stdClass $event, bool $canact, int $now) {
+        $c = self::C;
+        $centre = centres::get((int) $event->centreid);
+        if (!$centre || !invites::by_phone($centre)) {
+            return false;
+        }
+        $plan = phonebatches::plan((int) $event->id);
+        $sends = phonebatches::batches($event);
+        $left = $plan || $canact ? phonebatches::left($event, $centre) : 0;
+        if (!$plan && !$sends && (!$canact || !$left || !invites::fits($event, $now))) {
+            return false;
+        }
+        $rows = [];
+        $count = count($sends);
+        foreach ($sends as $i => $one) {
+            $rows[] = ['title' => get_string('panel_batch_title', $c, (object) ['n' => $count - $i,
+                'when' => $one['time'] ? self::batch_when((int) $one['time'], $now) : get_string('panel_batch_waiting', $c)]),
+                'text' => self::batch_said($one), 'stopped' => phonebatches::brake($one) !== ''];
+        }
+        $out = ['rows' => $rows, 'hasrows' => (bool) $rows, 'plan' => false, 'start' => false];
+        if ($plan) {
+            $next = (int) $plan['size'] >= $left ? ($left === 1 ? 'panel_batch_next_last_one' : 'panel_batch_next_last') :
+                'panel_batch_next';
+            $text = $plan['paused'] !== '' ? get_string('panel_batch_paused_' . $plan['paused'], $c) : ($left ?
+                get_string($next, $c, (object) ['n' => min($left, (int) $plan['size']), 'left' => $left,
+                'when' => self::batch_when(max($now, phonebatches::next($event, $plan)), $now)]) :
+                get_string('panel_batch_none_left', $c));
+            $out['plan'] = ['text' => $text, 'every' => get_string('panel_batch_every', $c, (object) ['size' => (int) $plan['size'],
+                'every' => self::batch_every((int) $plan['every'])]), 'stopped' => $plan['paused'] !== '',
+                'pause' => $canact && $plan['paused'] === '', 'resume' => $canact && $plan['paused'] !== '', 'stop' => $canact];
+        } else if ($canact && $left && invites::fits($event, $now)) {
+            $pick = fn(array $values, int $chosen, callable $label) => array_map(fn($v) => ['value' => $v, 'label' => $label($v),
+                'checked' => $v === $chosen], $values);
+            $out['start'] = ['text' => get_string($left === 1 ? 'panel_batch_start_one' : 'panel_batch_start', $c, $left),
+                'sizes' => $pick(phonebatches::SIZES, phonebatches::SIZE, fn($v) => (string) $v),
+                'every' => $pick(phonebatches::EVERY, phonebatches::GAP, fn($v) => self::batch_every($v)),
+                'brake' => get_string('panel_batch_brake', $c, phonebatches::OUTS)];
+        }
+        return $out;
+    }
+
+    /**
+     * When a batch went or goes: the hour today, or the day and the hour.
+     *
+     * @param int $time
+     * @param int $now
+     * @return string
+     */
+    protected static function batch_when(int $time, int $now): string {
+        return panel::days_between($time, $now) === 0 ? get_string('panel_batch_at', self::C, panel::hour($time)) :
+            get_string('panel_batch_at_day', self::C, (object) ['day' => userdate($time, get_string('strftimedaydate', 'langconfig')),
+                'hour' => panel::hour($time)]);
+    }
+
+    /**
+     * Every how long, in words: 30 minutes, an hour, 2 hours.
+     *
+     * @param int $minutes
+     * @return string
+     */
+    protected static function batch_every(int $minutes): string {
+        if ($minutes < 60) {
+            return get_string('panel_batch_minutes', self::C, $minutes);
+        }
+        return $minutes === 60 ? get_string('panel_batch_hour', self::C) : get_string('panel_batch_hours', self::C, $minutes / 60);
+    }
+
+    /**
+     * What happened to one send by phone, in a sentence that only says what there is: to how many it went, how many it
+     * reached and read, opened the letter from it, said they come or not, wrote back, asked to stop, failed or wait.
+     *
+     * @param array $one Of phonebatches::batches().
+     * @return string
+     */
+    protected static function batch_said(array $one): string {
+        $c = self::C;
+        $parts = [get_string((int) $one['n'] === 1 ? 'panel_batch_families_one' : 'panel_batch_families', $c, (int) $one['n'])];
+        foreach (['reached', 'read', 'opened', 'yes', 'no', 'wrote', 'out', 'failed', 'waiting'] as $what) {
+            if ((int) $one[$what] > 0) {
+                $parts[] = get_string('panel_batch_' . ($what === 'waiting' ? 'waiting_items' : $what), $c, (int) $one[$what]);
+            }
+        }
+        if ($one['pending']) {
+            $parts[] = get_string('panel_batch_approval', $c);
+        } else if (!empty($one['quality'])) {
+            $parts[] = get_string('panel_batch_quality', $c);
+        }
+        return implode(' · ', $parts);
     }
 
     /**

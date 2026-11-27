@@ -125,6 +125,7 @@
         </div>
         {{/relay}}
         <div class="col col-propuesta">
+            {{#sheetnow}}{{> local_oksigeniaeguahe/panel_sheetnow }}{{/sheetnow}}
             {{#citas}}{{> local_oksigeniaeguahe/panel_appts }}{{/citas}}
             {{#avisos}}{{> local_oksigeniaeguahe/panel_notices }}{{/avisos}}
             {{#proposal}}
@@ -567,6 +568,7 @@
                     <p class="rotulo-p">{{#str}}panel_writeby, local_oksigeniaeguahe{{/str}}</p>
                     <p class="ce-ahora"><b>{{now}}</b>{{#pending}} <span class="secundario">{{pending}}</span>{{/pending}}{{#asked}} <span class="secundario">{{asked}}</span>{{/asked}}{{#since}} <span class="secundario">{{since}}</span>{{/since}}</p>
                     {{#noinvitessince}}<p class="ce-eventos">{{noinvitessince}}</p>{{/noinvitessince}}
+                    {{#sheetstop}}<div class="ce-eventos ce-hoja" id="hoja-telefono"><p>{{sheetstop}}</p>{{#canact}}<form method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="sheetlift"><button class="enlace" type="submit">{{#str}}panel_sheetstop_lift, local_oksigeniaeguahe{{/str}}</button></form>{{/canact}}</div>{{/sheetstop}}
                     {{#askagain}}<p class="aviso-suave">{{{i.info}}}<span>{{askagain}} <a href="{{askurl}}#contestar">{{#str}}panel_writeby_ask_go, local_oksigeniaeguahe{{/str}}</a></span></p>{{/askagain}}
                     {{#hastrail}}<ol class="ce-rastro">{{#trail}}<li>{{text}}</li>{{/trail}}</ol>{{/hastrail}}
                     {{#canact}}

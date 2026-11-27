@@ -2463,5 +2463,31 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026123203, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123300) {
+        // Who asked a phone to stop after the letter of an act went by it: what stops the batches by phone.
+        $table = new xmldb_table('local_oksigeniaeguahe_invite');
+        $field = new xmldb_field('phoneout', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'via');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // What the sheet of the team says of the calls that keeps a family from being invited by phone.
+        $table = new xmldb_table('local_oksigeniaeguahe_household');
+        foreach (
+            [
+                new xmldb_field('sheetstop', XMLDB_TYPE_CHAR, '16', null, null, null, null, 'outasked'),
+                new xmldb_field('sheetstoptime', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'sheetstop'),
+                new xmldb_field('sheetnow', XMLDB_TYPE_TEXT, null, null, null, null, null, 'sheetstoptime'),
+            ] as $field
+        ) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+        // What was taken from the sheets before is read again with the words of now: those results stop the phone, and a
+        // «no volver a llamar» read as «call back» leaves no promise to call.
+        \local_oksigeniaeguahe\local\teamnotes::read_again();
+        upgrade_plugin_savepoint(true, 2026123300, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

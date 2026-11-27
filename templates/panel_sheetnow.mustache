@@ -1,0 +1,34 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/panel_sheetnow
+
+    What the sheet of the team says of a family now, column by column, as it is in the sheet: each change replaces the one
+    before, and the history of the file stays as it is.
+
+    Example context (json):
+    {
+        "rows": [{"label": "Priority", "value": "Viene 30/11/2026", "since": "desde el 26/11/26"},
+            {"label": "Anotaciones", "value": "2.ª llamada", "since": "desde hoy"}],
+        "seen": "La hoja se leyó por última vez el 27/11/26 a las 8:20."
+    }
+}}
+<section class="apartado hoja-ahora" aria-labelledby="hoja-ahora-t">
+    <header><h2 id="hoja-ahora-t">{{#str}}panel_sheetnow_title, local_oksigeniaeguahe{{/str}}</h2></header>
+    <dl class="respuestas">{{#rows}}<div><dt>{{label}}</dt><dd><span dir="auto">{{value}}</span> <span class="secundario">{{since}}</span></dd></div>{{/rows}}</dl>
+    <p class="secundario hoja-ahora-leida">{{seen}}</p>
+</section>

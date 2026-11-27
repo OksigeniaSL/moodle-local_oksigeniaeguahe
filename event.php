@@ -154,6 +154,34 @@ if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_
     )) : get_string('panel_invite_nobody', $c), !$sent['phone']);
     redirect(new moodle_url($url, [], 'invitar-telefono'));
 }
+if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'phonebatches') {
+    // The letter by phone in batches: start, stop until a person goes on, go on, or no more.
+    centres::require_act((int) $centre->id);
+    $what = optional_param('what', '', PARAM_ALPHA);
+    $now = time();
+    $sent = ['phone' => 0, 'status' => '', 'said' => ''];
+    if ($what === 'start') {
+        $sent = \local_oksigeniaeguahe\local\phonebatches::start(
+            $event,
+            $centre,
+            optional_param('size', 0, PARAM_INT),
+            optional_param('every', 0, PARAM_INT),
+            (int) $USER->id,
+            $now
+        );
+    } else if ($what === 'pause') {
+        \local_oksigeniaeguahe\local\phonebatches::pause((int) $event->id, 'user', $now);
+    } else if ($what === 'resume') {
+        $sent = \local_oksigeniaeguahe\local\phonebatches::resume($event, $centre, $now);
+    } else if ($what === 'stop') {
+        \local_oksigeniaeguahe\local\phonebatches::stop((int) $event->id);
+    }
+    if ($sent['phone']) {
+        $said = $sent['said'] !== '' ? $sent['said'] : get_string('panel_invite_going_phone', $c, $sent['phone']);
+        invites::say((int) $event->id, $said);
+    }
+    redirect(new moodle_url($url, [], 'invitar-tandas'));
+}
 if (data_submitted() && confirm_sesskey() && optional_param('action', '', PARAM_ALPHA) === 'invitestop') {
     // The letters that have not gone out yet, stopped: those families can be invited again.
     centres::require_act((int) $centre->id);

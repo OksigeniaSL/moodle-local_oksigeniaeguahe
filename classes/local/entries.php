@@ -1574,12 +1574,26 @@ class entries {
             'url' => json_encode(self::hook_url($entry)->out(false), JSON_UNESCAPED_SLASHES),
             'secret' => json_encode((string) $entry->secret),
             'name' => preg_replace('/[\r\n]+/', ' ', (string) $entry->name),
+            // A column with no title, in the language of the centre: what the team writes there comes as its notes.
+            'untitled' => json_encode(self::untitled($entry), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG),
             // The titles this sheet has had, and those the ads write: its row of titles is found by them.
             'titles' => json_encode(array_values(array_unique(array_merge(
                 array_filter(self::questions($entry), fn($q) => !self::is_value((string) $q)),
                 self::AD_TITLES
             ))), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG),
         ]);
+    }
+
+    /**
+     * What a column with no title of a sheet is called, in the language of its centre: «Anotaciones», read as notes.
+     *
+     * @param \stdClass $entry
+     * @return string
+     */
+    public static function untitled(\stdClass $entry): string {
+        $centre = centres::get((int) $entry->centreid);
+        $lang = (string) ($centre->lang ?? '') ?: current_language();
+        return get_string_manager()->get_string('entry_untitled', 'local_oksigeniaeguahe', null, $lang);
     }
 
     /**

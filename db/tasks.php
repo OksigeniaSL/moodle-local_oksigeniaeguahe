@@ -153,6 +153,15 @@ $tasks = [
         'dayofweek' => '*',
     ],
     [
+        'classname' => '\\local_oksigeniaeguahe\\task\\send_phone_batches',
+        'blocking' => 0,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
+    [
         'classname' => '\\local_oksigeniaeguahe\\task\\read_bounces',
         'blocking' => 0,
         'minute' => '*/15',

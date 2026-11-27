@@ -172,6 +172,9 @@
         <FIELD NAME="outstops" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" COMMENT="What stopped with it: all, invites or none"/>
         <FIELD NAME="outwas" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What it was before, to take it back (JSON)"/>
         <FIELD NAME="outasked" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When a person said that what the notes suggest is not so"/>
+        <FIELD NAME="sheetstop" TYPE="char" LENGTH="16" NOTNULL="false" SEQUENCE="false" COMMENT="What the sheet of the team says of the calls that keeps it from being invited by phone: hungup, nocita, nocall, nextcourse, wrongnumber, nowhatsapp or closed; empty, nothing"/>
+        <FIELD NAME="sheetstoptime" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the sheet said it, or 0"/>
+        <FIELD NAME="sheetnow" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What the sheet of the team says of it now, column by column, with when each value appeared (JSON)"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
@@ -843,6 +846,7 @@
         <FIELD NAME="phonesent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When it went by phone, if it did"/>
         <FIELD NAME="phonelink" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The link of the family that the message by phone carries, to know it was opened from there"/>
         <FIELD NAME="via" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The way the family first opened it: email or phone; empty, not known"/>
+        <FIELD NAME="phoneout" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="When the family asked that phone to stop, after the letter went by it; 0, it did not"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

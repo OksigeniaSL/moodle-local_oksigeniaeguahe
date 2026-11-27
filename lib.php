@@ -300,6 +300,11 @@ function local_oksigeniaeguahe_marandu_optout(
     if ($scope !== 'all' && $scope !== 'local_oksigeniaeguahe') {
         return;
     }
+    if ($out && in_array($channel, ['whatsapp', 'telegram'], true) && strpos($source, 'eguahe:') !== 0 && $source !== 'asked') {
+        // After a letter by phone, a word to stop (not our own echo from another family, nor a no to joining): what stops
+        // its batches, whatever the family chose before.
+        \local_oksigeniaeguahe\local\invites::phone_out($itemid, $time);
+    }
     \local_oksigeniaeguahe\local\writeby::from_messaging($itemid, $channel, $out, $source);
 }
 

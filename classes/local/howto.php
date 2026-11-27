@@ -84,6 +84,7 @@ final class howto {
         'openinvite' => ['events', 'events.php', ''],
         'pauseinvite' => ['events', 'events.php', ''],
         'permitinvite' => ['events', 'events.php', ''],
+        'phonebatches' => ['events', 'events.php', ''],
         'results' => ['events', 'events.php', ''],
         'form' => ['entries', 'entries.php', ''],
         'embed' => ['entries', 'entries.php', ''],

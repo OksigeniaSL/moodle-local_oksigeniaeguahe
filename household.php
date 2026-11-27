@@ -246,6 +246,11 @@ if ($action && data_submitted() && confirm_sesskey()) {
         writeby::anyway((int) $household->id);
     }
     switch ($action) {
+        case 'sheetlift':
+            // What the sheet said of the calls kept them from the phone: a person says they may be invited by phone after all.
+            \local_oksigeniaeguahe\local\teamnotes::lift($household, (int) $USER->id);
+            redirect(new moodle_url($url, [], 'como-escribimos'));
+            break;
         case 'writeby':
             // What the family said by phone or in person: how to write to them, or not to. Saving with nothing marked
             // is not «no messages»: that has its own button.
