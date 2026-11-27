@@ -218,9 +218,12 @@ final class prepared_test extends \advanced_testcase {
         $this->assertTrue($DB->record_exists(households::CONTACTS, ['householdid' => $family->id, 'direction' => 'in',
             'channel' => 'whatsapp']));
         $this->assertSame(0, (int) households::get((int) $family->id, (int) $this->centre->id)->waitingsince);
+        chatin::take('34600111222', 'No podremos ir, de verdad', time(), 'https://example.com/chat.php?c=1', 573);
         $items = replies::context($family, true)['items'];
+        $this->assertCount(1, $items, 'Said twice, proposed once.');
         $this->assertSame(get_string('replies_seems_no_chat', 'local_oksigeniaeguahe', 'Respira'), $items[0]['text']);
         $this->assertTrue(replies::confirm($family, $items[0]['id'], true, (int) $USER->id));
+        $this->assertFalse(replies::context($family, true), 'Both said with it.');
         $this->assertSame('no', $DB->get_field(invites::T, 'reply', ['eventid' => $act->id, 'householdid' => $family->id]));
     }
 }

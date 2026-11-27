@@ -460,6 +460,7 @@ class replies {
             'id DESC'
         );
         $out = [];
+        $seen = [];
         foreach ($rows as $row) {
             if ($row->proposal === 'doc') {
                 // Only while a child is still asking or visiting: once on, there is nothing to confirm.
@@ -474,6 +475,12 @@ class replies {
             if (!$event || (int) $event->timestart <= time()) {
                 continue;
             }
+            // Said twice (three messages in the chat, one by mail), or already noted as it says: once, or nothing.
+            $key = $row->eventid . '|' . $row->proposal;
+            if (isset($seen[$key]) || invites::answer((int) $row->eventid, (int) $household->id) === (string) $row->proposal) {
+                continue;
+            }
+            $seen[$key] = true;
             $name = format_string($event->name);
             // By where it came: an answer by mail, in the chat, or what a person noted of a call or at the desk.
             $way = in_array((string) ($row->way ?? ''), ['chat', 'team'], true) ? '_' . $row->way : '';
@@ -545,6 +552,14 @@ class replies {
         }
         $DB->update_record(self::T, (object) ['id' => $row->id, 'state' => $right ? 'done' : 'dismissed', 'saidby' => $userid,
             'timesaid' => time()]);
+        // The same said again by them, by whatever way, is said with it.
+        $DB->set_field_select(
+            self::T,
+            'state',
+            $right ? 'done' : 'dismissed',
+            "householdid = ? AND eventid = ? AND proposal = ? AND state = ''",
+            [$household->id, $row->eventid, $row->proposal]
+        );
         return true;
     }
 

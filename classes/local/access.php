@@ -341,7 +341,8 @@ class access {
         if ($last < $now - self::LINKDAYS * DAYSECS) {
             return true;
         }
-        if ((int) ($link->timeused ?? 0) < $now - DAYSECS) {
+        // A robot that reads the links of a message (Meta's, WhatsApp's) is not the family using it.
+        if ((int) ($link->timeused ?? 0) < $now - DAYSECS && share::person((string) ($_SERVER['HTTP_USER_AGENT'] ?? 'cli'))) {
             $DB->set_field(households::LINKS, 'timeused', $now, ['id' => $link->id]);
         }
         return false;

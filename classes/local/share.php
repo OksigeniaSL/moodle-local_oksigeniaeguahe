@@ -46,7 +46,7 @@ class share {
     /** @var string[] The readers of links that are not people: their opening is not counted. */
     const ROBOTS = ['whatsapp', 'facebookexternalhit', 'facebot', 'telegrambot', 'twitterbot', 'slackbot', 'linkedinbot',
         'discordbot', 'skypeuripreview', 'googlebot', 'bingbot', 'applebot', 'pinterest', 'embedly', 'preview', 'bot/',
-        'crawler', 'spider'];
+        'crawler', 'spider', 'meta-externalagent', 'headlesschrome'];
 
     /** @var int The preview image: its width and height, as the networks ask. */
     const CARD = [1200, 630];

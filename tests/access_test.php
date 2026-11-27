@@ -94,7 +94,13 @@ final class access_test extends \advanced_testcase {
         $token = households::new_link($household);
         $link = access::link($token);
         $now = time();
+        // The robot of a network that reads the link of a message does not use it.
+        $_SERVER['HTTP_USER_AGENT'] = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
         $this->assertFalse(access::expired($link, $now));
+        $this->assertSame(0, (int) $DB->get_field(households::LINKS, 'timeused', ['id' => $link->id]));
+        unset($_SERVER['HTTP_USER_AGENT']);
+        $this->assertFalse(access::expired($link, $now));
+        $this->assertSame($now, (int) $DB->get_field(households::LINKS, 'timeused', ['id' => $link->id]));
         $DB->set_field(households::LINKS, 'timeused', $now - 200 * DAYSECS, ['id' => $link->id]);
         $DB->set_field(households::LINKS, 'timecreated', $now - 300 * DAYSECS, ['id' => $link->id]);
         $this->assertTrue(access::expired(access::link($token), $now));
