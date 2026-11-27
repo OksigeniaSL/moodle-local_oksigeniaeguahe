@@ -247,7 +247,13 @@ final class appointments_test extends \advanced_testcase {
         $member = array_key_first(panel_agenda::faces($this->centre));
         appointments::give($this->family, $this->centre, $monday, 45, $member, 'Secretaría', 2, false);
         $note = $this->note(time() - DAYSECS);
+        // Someone of the team who receives nobody, and is not seen by the families: not in the row of who receives.
+        $quiet = $this->getDataGenerator()->create_user(['firstname' => 'Nadia']);
+        centres::add_member((int) $this->centre->id, (int) $quiet->id);
+        $quietid = (int) $DB->get_field(centres::MEMBERS, 'id', ['centreid' => $this->centre->id, 'userid' => $quiet->id]);
         $week = panel_agenda::context($this->centre, true, date('Y-m-d', $monday));
+        $this->assertContains($member, array_column($week['guides'], 'id'), 'With an appointment these days.');
+        $this->assertNotContains($quietid, array_column($week['guides'], 'id'));
         $cards = array_merge(...array_column($week['days'], 'items'));
         $this->assertSame(['Ana', 'coming', panel::hour($monday)], [$cards[0]['adults'], $cards[0]['state'], $cards[0]['hour']]);
         $this->assertNotSame('', $cards[0]['moveurl']);

@@ -33,7 +33,7 @@ use local_oksigeniaeguahe\local\practice;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('help'));
 $piece = optional_param('piece', 'inbox', PARAM_ALPHA);
 if (!isset(helps::PIECES[$piece])) {
     $piece = 'inbox';

@@ -118,6 +118,9 @@ class panel_centre {
             'systems' => self::systems($centre),
             'address' => (string) $centre->address,
             'phone' => (string) $centre->phone,
+            // Its WhatsApp, grouped as families read it when it could be told.
+            'whatsapp' => preg_match('/^\+\d{7,15}$/', (string) ($centre->whatsapp ?? '')) ? phone::display((string) $centre->whatsapp) :
+                (string) ($centre->whatsapp ?? ''),
             'tel' => phone::for_page((string) ($centre->country ?? '')),
             'email' => (string) $centre->email,
             'emailsettled' => (string) ($centre->emailsettled ?? ''),
@@ -1004,6 +1007,7 @@ class panel_centre {
             'brandcolours' => optional_param('brandcolours', (string) ($centre->brandcolours ?? ''), PARAM_TEXT),
             'address' => optional_param('address', '', PARAM_TEXT),
             'phone' => optional_param('phone', '', PARAM_TEXT),
+            'whatsapp' => optional_param('whatsapp', (string) ($centre->whatsapp ?? ''), PARAM_TEXT),
             'email' => optional_param('email', '', PARAM_RAW_TRIMMED),
             'emailsettled' => optional_param('emailsettled', '', PARAM_RAW_TRIMMED),
             'welcome' => optional_param('welcome', '', PARAM_TEXT),

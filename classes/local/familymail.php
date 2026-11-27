@@ -182,6 +182,8 @@ class familymail {
         $mapurl = centres::map_url($centre);
         $phone = trim((string) ($centre->phone ?? ''));
         $tel = preg_replace('/[^\d+]/', '', $phone);
+        // Its WhatsApp, which opens the chat; the same number as the phone is written once.
+        $whatsapp = centres::whatsapp($centre, $lang);
 
         // The centre: its logo on its own plate, and its name.
         $plate = ['', 0, 0];
@@ -311,10 +313,13 @@ class familymail {
                 'iniciales' => publicpage::initials(publicpage::text($centre->name)),
                 'direccion' => $address,
                 'telefono' => $phone,
+                'whatsapp' => $whatsapp['text'] ?? '',
+                'whatsapp_url' => $whatsapp['url'] ?? '',
                 'telefono_url' => $tel !== '' ? 'tel:' . $tel : '',
                 'correo' => (string) ($centre->email ?? ''),
-                'separa' => $address !== '' || $phone !== '',
-                'contacto' => implode(' · ', array_filter([$phone, trim((string) ($centre->email ?? ''))])),
+                'separa' => $address !== '' || $phone !== '' || $whatsapp,
+                'contacto' => implode(' · ', array_filter([$phone, $whatsapp ? publiclang::str('pub_whatsapp', $lang) .
+                    ($whatsapp['same'] ? '' : ' ' . $whatsapp['text']) : '', trim((string) ($centre->email ?? ''))])),
             ],
             'nombres' => $names,
             'etiquetas_filas' => $rows,

@@ -40,7 +40,7 @@
             {{#button}}<a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{label}}</a>{{/button}}
             {{^button}}
             {{#email}}<a class="boton principal" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}{{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
             {{/button}}
         </div>
     </div>

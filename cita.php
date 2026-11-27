@@ -42,7 +42,7 @@ $from = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $from, $d) && checkdate((int) 
 $hid = optional_param('h', 0, PARAM_INT);
 if (!$hid) {
     // From the week: whose it is, first.
-    $centre = centres::require_act(required_param('c', PARAM_INT));
+    $centre = centres::require_act(centres::param('cita'));
     panel::setup(new moodle_url('/local/oksigeniaeguahe/cita.php', ['c' => $centre->id]), get_string('give_title', $c));
     panel::output($centre, 'events', get_string('give_title', $c), 'panel_give_who', panel_give::who(
         $centre,

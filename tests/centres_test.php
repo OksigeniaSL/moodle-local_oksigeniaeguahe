@@ -147,6 +147,46 @@ final class centres_test extends \advanced_testcase {
     }
 
     /**
+     * Its WhatsApp: kept in E.164 from however it is written, it opens the chat; the same number as the phone is written once,
+     * and one that cannot be told stays as written, without a link.
+     */
+    public function test_whatsapp(): void {
+        $this->resetAfterTest();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es', 'country' => 'ES',
+            'phone' => '922 000 111', 'whatsapp' => '637 12 34 78']);
+        $centre = centres::get($id);
+        $this->assertSame('+34637123478', $centre->whatsapp);
+        $reach = publicpage::reach($centre, 'es');
+        $this->assertSame('https://wa.me/34637123478', $reach['wa']);
+        $this->assertStringContainsString('637', $reach['watext']);
+        $this->assertTrue($reach['canwrite']);
+        centres::update($id, (object) ['whatsapp' => '+34 922 000 111']);
+        $same = publicpage::reach(centres::get($id), 'es');
+        $this->assertSame(
+            ['https://wa.me/34922000111', get_string('pub_whatsapp', 'local_oksigeniaeguahe')],
+            [$same['wa'], $same['watext']]
+        );
+        $this->assertSame('922 000 111', centres::get($id)->phone, 'The rest as it was.');
+        centres::update($id, (object) ['whatsapp' => 'el de secretaría']);
+        $this->assertSame('', publicpage::reach(centres::get($id), 'es')['wa']);
+        centres::update($id, (object) ['whatsapp' => '']);
+        $this->assertNull(centres::get($id)->whatsapp);
+    }
+
+    /**
+     * A page opened without its centre takes the person's own when there is one; the one it says, always.
+     */
+    public function test_param(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $id = centres::create((object) ['name' => 'Colegio de ejemplo', 'lang' => 'es']);
+        $this->assertSame($id, centres::param('agenda'), 'The only one there is.');
+        $_GET['c'] = 999;
+        $this->assertSame(999, centres::param('agenda'));
+        unset($_GET['c']);
+    }
+
+    /**
      * The area of a centre, with and without codes.
      */
     public function test_municipalities(): void {

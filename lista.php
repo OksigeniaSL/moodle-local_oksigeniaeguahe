@@ -32,7 +32,7 @@ use local_oksigeniaeguahe\local\panel;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('lista'));
 $url = new moodle_url('/local/oksigeniaeguahe/lista.php', ['c' => $centre->id]);
 $title = get_string('listnews_title', 'local_oksigeniaeguahe');
 panel::setup($url, $title);

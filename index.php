@@ -36,6 +36,9 @@ require_login(null, false);
 
 $centreid = optional_param('c', 0, PARAM_INT);
 $all = optional_param('all', 0, PARAM_BOOL);
+// A page opened without its centre, by someone with several: once chosen, back to it.
+$goto = optional_param('ir', '', PARAM_ALPHA);
+$goto = in_array($goto, centres::PAGES, true) ? $goto : 'index';
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::pick($centreid);
@@ -45,7 +48,7 @@ if (!$centre) {
     $list = [];
     foreach (centres::for_user((int) $USER->id) as $each) {
         $list[] = ['name' => format_string($each->name), 'url' => (new moodle_url(
-            '/local/oksigeniaeguahe/index.php',
+            '/local/oksigeniaeguahe/' . $goto . '.php',
             ['c' => $each->id]
         ))->out(false), 'waiting' => ($n = households::waiting_count((int) $each->id)), 'waitingtext' => get_string(
             $n === 1 ? 'inbox_waiting_one' : 'inbox_waiting',

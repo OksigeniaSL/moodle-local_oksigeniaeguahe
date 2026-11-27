@@ -33,7 +33,7 @@ use local_oksigeniaeguahe\local\recognise;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('import');
 $draft = optional_param('draft', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 

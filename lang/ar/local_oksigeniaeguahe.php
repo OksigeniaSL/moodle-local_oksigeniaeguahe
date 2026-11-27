@@ -1749,3 +1749,5 @@ $string['visit_name'] = 'زيارة مع {$a}';
 $string['visit_name_team'] = 'زيارة تعريفية';
 $string['visit_period_afternoon'] = 'بعد الظهر';
 $string['visit_period_morning'] = 'صباحًا';
+$string['pub_whatsapp'] = 'واتساب';
+$string['pub_join_questions'] = 'هل لديكم أي سؤال؟';

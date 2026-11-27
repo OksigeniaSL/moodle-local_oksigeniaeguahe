@@ -163,7 +163,14 @@ class panel_agenda {
         }
         $topass = count(self::topass($centre, $now));
         $guides = [];
+        // Whoever receives: those the families see, and anyone with an appointment of these days. The rest is still the
+        // team, only not in this row.
+        $receive = array_fill_keys(array_map(fn($h) => (int) $h->memberid, centres::hosts((int) $centre->id)), true) +
+            array_fill_keys(array_filter(array_map('intval', array_column(array_merge($all, $empty), 'guideid'))), true);
         foreach ($faces as $id => $face) {
+            if (!isset($receive[$id]) && $id !== $guide) {
+                continue;
+            }
             $guides[] = $face + ['id' => $id, 'current' => $id === $guide, 'url' => $url(array_filter(['semana' => $key($first),
                 'guia' => $id === $guide ? 0 : $id]))];
         }

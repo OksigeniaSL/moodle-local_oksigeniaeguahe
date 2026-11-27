@@ -32,7 +32,7 @@ use local_oksigeniaeguahe\local\reports;
 
 require_login(null, false);
 
-$centre = centres::require_metrics(required_param('c', PARAM_INT));
+$centre = centres::require_metrics(centres::param('report'));
 $c = 'local_oksigeniaeguahe';
 $id = optional_param('id', 0, PARAM_INT);
 $url = new moodle_url('/local/oksigeniaeguahe/report.php', ['c' => $centre->id] + ($id ? ['id' => $id] : []));

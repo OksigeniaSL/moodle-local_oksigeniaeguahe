@@ -38,7 +38,7 @@ use local_oksigeniaeguahe\local\publicpage;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('metrics');
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_metrics($centreid);

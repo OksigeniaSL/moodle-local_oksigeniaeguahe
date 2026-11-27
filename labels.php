@@ -34,7 +34,7 @@ use local_oksigeniaeguahe\local\panel_labels;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('labels');
 $eventid = optional_param('event', 0, PARAM_INT);
 $householdid = optional_param('household', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';

@@ -31,7 +31,7 @@ use local_oksigeniaeguahe\local\settle;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('contestadas'));
 $url = new moodle_url('/local/oksigeniaeguahe/contestadas.php', ['c' => $centre->id]);
 $title = get_string('settle_title', 'local_oksigeniaeguahe');
 panel::setup($url, $title);

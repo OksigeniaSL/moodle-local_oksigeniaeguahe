@@ -30,7 +30,7 @@ use local_oksigeniaeguahe\local\export;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('export');
 $what = optional_param('what', 'figures', PARAM_ALPHA) === 'families' ? 'families' : 'figures';
 $format = optional_param('format', 'excel', PARAM_ALPHA);
 $format = in_array($format, export::FORMATS, true) ? $format : 'excel';

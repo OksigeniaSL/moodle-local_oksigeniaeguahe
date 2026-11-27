@@ -819,6 +819,33 @@
     text-underline-offset: 3px;
 }
 
+/* A doubt, at the foot: the WhatsApp of the centre and its phone, each opening what it is. */
+.unir-contacto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 18px;
+    margin: 18px 0 0;
+    color: var(--eg-tinta-2);
+    font-size: 0.9375rem;
+}
+
+.unir-contacto a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    color: var(--c-acento-texto);
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
+.unir-contacto svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
 /* The band of the centre, as the poster that is filled to make the act. */
 .unir-tipo {
     color: var(--c-acento-texto);

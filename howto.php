@@ -32,7 +32,7 @@ use local_oksigeniaeguahe\local\panel;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('howto'));
 $query = core_text::substr(trim(optional_param('q', '', PARAM_TEXT)), 0, 200);
 $ajax = optional_param('ajax', 0, PARAM_BOOL);
 $sent = optional_param('sent', 0, PARAM_BOOL);

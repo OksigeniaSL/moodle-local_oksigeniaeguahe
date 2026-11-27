@@ -33,7 +33,7 @@ use local_oksigeniaeguahe\local\panel_forecast;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('forecast');
 $c = 'local_oksigeniaeguahe';
 
 $centre = centres::require_metrics($centreid);

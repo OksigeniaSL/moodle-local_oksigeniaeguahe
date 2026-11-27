@@ -41,7 +41,7 @@ use local_oksigeniaeguahe\local\writeby;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('edit');
 $id = optional_param('id', 0, PARAM_INT);
 $eventid = optional_param('eventid', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';

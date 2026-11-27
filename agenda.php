@@ -34,7 +34,7 @@ use local_oksigeniaeguahe\local\panel_agenda;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('agenda'));
 $canact = centres::can_act((int) $USER->id);
 $pass = optional_param('pasada', 0, PARAM_BOOL);
 // Of one act, when it comes from it.

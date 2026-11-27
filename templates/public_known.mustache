@@ -77,7 +77,7 @@
             {{^desk}}
             <div class="acciones">
                 {{#email}}<a class="boton secundario" href="mailto:{{email}}">{{{i.mail}}}{{writeus}}</a>{{/email}}
-                {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}
+                {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr">{{{i.phone}}}{{phone}}</a>{{/phone}}{{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
             </div>
             {{/desk}}
         </div>

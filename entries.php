@@ -32,7 +32,7 @@ use local_oksigeniaeguahe\local\panel_entries;
 use local_oksigeniaeguahe\local\surveys;
 
 require_login(null, false);
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('entries'));
 $url = new moodle_url('/local/oksigeniaeguahe/entries.php', ['c' => $centre->id]);
 $c = 'local_oksigeniaeguahe';
 panel::setup($url, get_string('tab_entries', $c));

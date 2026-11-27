@@ -17951,6 +17951,11 @@ html:not(.con-botes) .aj-marca-botes {
     gap: 10px 28px;
 }
 
+/* What the WhatsApp of the centre is for, under the row of how to reach it. */
+.aj-wa-ayuda {
+    margin: 4px 0 0;
+}
+
 .aj-visita-par {
     display: inline-flex;
     align-items: center;

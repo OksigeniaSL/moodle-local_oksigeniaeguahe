@@ -82,6 +82,8 @@ class publicpage {
         'down' => '<path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/>',
         'back' => '<path d="M15 6l-6 6 6 6"/>',
         'send' => '<path d="M20.4 3.8 3.7 10.4l6.7 2.9 2.9 6.7 7.1-16.2Z"/><path d="m10.4 13.3 4.4-4.4"/>',
+        'whatsapp' => '<path d="M4.5 19.5l1.2-3.6A8 8 0 1 1 8.4 18.6z"/><path d="M9.2 9.3c.3 1.9 1.6 3.6 3.6 4.5l1.2-1 1.7.8v1.4' .
+            'c-3.6.4-7.3-3.1-7-6.6h1.4z"/>',
     ];
 
     /**
@@ -893,13 +895,17 @@ display: grid; }
      */
     public static function reach(\stdClass $centre, string $lang): array {
         $phone = trim((string) ($centre->phone ?? ''));
+        // Its WhatsApp opens the chat; the same number as the phone is written once.
+        $whatsapp = centres::whatsapp($centre, $lang);
         return [
             'email' => (string) ($centre->email ?? ''),
             'phone' => $phone,
             'tel' => preg_replace('/[^\d+]/', '', $phone),
+            'wa' => $whatsapp['url'] ?? '',
+            'watext' => $whatsapp['text'] ?? '',
             'writeus' => publiclang::str('pub_write_us', $lang),
-            // Whether «write to us» leads somewhere: without an email or a phone of the centre, it is not said.
-            'canwrite' => trim((string) ($centre->email ?? '')) !== '' || $phone !== '',
+            // Whether «write to us» leads somewhere: without an email, a phone or a WhatsApp of the centre, it is not said.
+            'canwrite' => trim((string) ($centre->email ?? '')) !== '' || $phone !== '' || $whatsapp,
         ];
     }
 }

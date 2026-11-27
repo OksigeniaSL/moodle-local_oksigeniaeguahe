@@ -33,7 +33,7 @@ use local_oksigeniaeguahe\local\settled;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('start'));
 $c = 'local_oksigeniaeguahe';
 $url = new moodle_url('/local/oksigeniaeguahe/start.php', ['c' => $centre->id]);
 $PAGE->set_context(context_system::instance());

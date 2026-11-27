@@ -26,6 +26,7 @@
         <FIELD NAME="aiprovider" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The AI provider instance of the centre; 0 for none"/>
         <FIELD NAME="address" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Where the centre is, for the families"/>
         <FIELD NAME="phone" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="The phone families call"/>
+        <FIELD NAME="whatsapp" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" COMMENT="The WhatsApp the centre answers, in E.164 when it could be told: families open the chat with one touch"/>
         <FIELD NAME="email" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The address families write to"/>
         <FIELD NAME="emailsettled" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The address families already of the centre write to, when it is another one"/>
         <FIELD NAME="welcome" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="What a visit is like, in a line, for the page of signing up"/>

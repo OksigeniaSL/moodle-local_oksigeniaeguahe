@@ -134,10 +134,12 @@ class centres {
             $row->shareentry = max(0, (int) $data->shareentry);
         }
         // How families reach the centre, and a line about what a visit is like.
-        foreach (['address' => 255, 'phone' => 50, 'email' => 255, 'emailsettled' => 255] as $field => $length) {
+        foreach (['address' => 255, 'phone' => 50, 'whatsapp' => 50, 'email' => 255, 'emailsettled' => 255] as $field => $length) {
             $value = trim((string) ($data->$field ?? ''));
             $row->$field = $value === '' ? null : \core_text::substr($value, 0, $length);
         }
+        // The WhatsApp in E.164, as its link needs it; what cannot be told stays as written, without a link.
+        $row->whatsapp = $row->whatsapp !== null ? (phone::normalise($row->whatsapp, $row->country) ?? $row->whatsapp) : null;
         $row->email = $row->email !== null && validate_email($row->email) ? $row->email : null;
         $row->emailsettled = $row->emailsettled !== null && validate_email($row->emailsettled) ? $row->emailsettled : null;
         $row->welcome = trim((string) ($data->welcome ?? '')) ?: null;
@@ -426,6 +428,31 @@ class centres {
             require_capability('local/oksigeniaeguahe:work', \context_system::instance());
         }
         return null;
+    }
+
+    /** @var string[] The pages that, opened without their centre, take the person's own, or let them choose it. */
+    const PAGES = ['agenda', 'lista', 'entries', 'metrics', 'contestadas', 'howto', 'help', 'events', 'forecast', 'report',
+        'start', 'renewal', 'hoja', 'import', 'labels', 'edit', 'cita', 'compartir', 'export'];
+
+    /**
+     * The centre a page is for: the one it says, or, without one, the person's own; with several, the inbox lets them choose
+     * and brings them back to that page.
+     *
+     * @param string $page One of PAGES.
+     * @return int
+     */
+    public static function param(string $page): int {
+        global $USER;
+        $id = optional_param('c', 0, PARAM_INT);
+        if ($id) {
+            return $id;
+        }
+        require_login(null, false);
+        $mine = self::for_user((int) $USER->id);
+        if (count($mine) === 1) {
+            return (int) reset($mine)->id;
+        }
+        redirect(new \moodle_url('/local/oksigeniaeguahe/index.php', in_array($page, self::PAGES, true) ? ['ir' => $page] : []));
     }
 
     /**
@@ -1185,5 +1212,24 @@ class centres {
         $copy = clone $centre;
         $copy->email = $other;
         return $copy;
+    }
+
+    /**
+     * The WhatsApp of a centre as families see it: the link that opens the chat, and what the link says. When it is the
+     * same number as the phone, it says only «WhatsApp», so the number is not written twice.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array url and text, or empty when there is none that opens.
+     */
+    public static function whatsapp(\stdClass $centre, string $lang): array {
+        $number = trim((string) ($centre->whatsapp ?? ''));
+        if (!preg_match('/^\+\d{7,15}$/', $number)) {
+            return [];
+        }
+        $phone = phone::normalise((string) ($centre->phone ?? ''), (string) ($centre->country ?? '') ?: null);
+        return ['url' => 'https://wa.me/' . substr($number, 1),
+            'text' => $phone === $number ? publiclang::str('pub_whatsapp', $lang) : phone::display($number),
+            'same' => $phone === $number];
     }
 }

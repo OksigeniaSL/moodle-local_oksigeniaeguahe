@@ -30,7 +30,7 @@ use local_oksigeniaeguahe\local\panel_inbox;
 
 require_login(null, false);
 
-$centre = centres::require_work(required_param('c', PARAM_INT));
+$centre = centres::require_work(centres::param('hoja'));
 $c = 'local_oksigeniaeguahe';
 $url = new moodle_url('/local/oksigeniaeguahe/hoja.php', ['c' => $centre->id]);
 $PAGE->set_context(context_system::instance());

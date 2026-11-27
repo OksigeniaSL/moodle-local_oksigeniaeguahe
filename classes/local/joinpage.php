@@ -118,7 +118,25 @@ class joinpage {
                 'meurl' => (new \moodle_url($url, ['para' => 'yo', 'idioma' => $lang]))->out(false),
             ] : false,
             'form' => brief::context($event, $centre, $lang, $data, $errors, new \moodle_url($url, ['idioma' => $lang]), $mark, null, true),
+            // A doubt, by WhatsApp or by phone, at the foot; inside the web of the centre, the web says it.
+            'reach' => self::reach($centre, $lang),
         ];
+    }
+
+    /**
+     * How to ask the centre a doubt, at the foot of the page of an act: its WhatsApp and its phone.
+     *
+     * @param \stdClass $centre
+     * @param string $lang
+     * @return array|false
+     */
+    protected static function reach(\stdClass $centre, string $lang) {
+        $reach = publicpage::reach($centre, $lang);
+        if (publicpage::$embedded || ($reach['wa'] === '' && $reach['phone'] === '')) {
+            return false;
+        }
+        return ['label' => publiclang::str('pub_join_questions', $lang), 'wa' => $reach['wa'], 'watext' => $reach['watext'],
+            'phone' => $reach['phone'], 'tel' => $reach['tel']];
     }
 
     /**

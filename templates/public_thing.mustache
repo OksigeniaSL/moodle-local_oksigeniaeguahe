@@ -71,6 +71,7 @@
         <div class="acciones">
             <a class="boton inverso" href="{{ics}}">{{{i.cal}}}{{pub_add_calendar}}</a>
             {{#mapurl}}<a class="enlace" href="{{mapurl}}" rel="noopener noreferrer" data-toca="directions">{{{i.map}}}{{pub_how_get}}</a>{{/mapurl}}
+            {{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
             {{#share}}<span class="pasar"><button class="enlace" type="button" data-compartir="{{url}}" data-titulo="{{title}}" data-texto="{{text}}" data-copiado="{{copied}}" data-toca="share_act">{{{i.send}}}<span>{{label}}</span></button><span class="compartir-aviso" aria-live="polite"></span></span>{{/share}}
             {{#cantcome}}<form class="no-podemos" id="no-podemos-{{eventid}}" method="post" action="{{action}}"><input type="hidden" name="sesskey" value="{{sesskey}}"><input type="hidden" name="action" value="cantcome"><input type="hidden" name="acto" value="{{eventid}}"><button class="enlace" type="submit">{{label}}</button></form>{{/cantcome}}
         </div>
@@ -106,7 +107,7 @@
         <div class="acciones">
             {{#go}}<a class="boton inverso" href="{{url}}" rel="noopener noreferrer" data-toca="apply">{{label}}</a>{{/go}}
             {{#email}}<a class="{{#go}}enlace{{/go}}{{^go}}boton inverso{{/go}}" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}{{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
         </div>
     </div>
 </section>
@@ -119,7 +120,7 @@
         <p>{{novisit}}</p>
         <div class="acciones">
             {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}{{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
         </div>
     </div>
 </section>
@@ -132,7 +133,7 @@
         <p>{{novisit}}</p>
         <div class="acciones">
             {{#email}}<a class="boton inverso" href="mailto:{{email}}" data-toca="write">{{{i.mail}}}{{writeus}}</a>{{/email}}
-            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}
+            {{#phone}}<a class="enlace" href="tel:{{tel}}" dir="ltr" data-toca="call">{{{i.phone}}}{{phone}}</a>{{/phone}}{{#wa}}<a class="enlace" href="{{wa}}" dir="ltr" rel="noopener noreferrer" data-toca="whatsapp">{{{i.whatsapp}}}{{watext}}</a>{{/wa}}
         </div>
     </div>
 </section>

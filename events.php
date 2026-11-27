@@ -32,7 +32,7 @@ use local_oksigeniaeguahe\local\panel_events;
 
 require_login(null, false);
 
-$centreid = required_param('c', PARAM_INT);
+$centreid = centres::param('events');
 $id = optional_param('id', 0, PARAM_INT);
 $c = 'local_oksigeniaeguahe';
 

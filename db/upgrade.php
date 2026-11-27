@@ -2542,5 +2542,15 @@ function xmldb_local_oksigeniaeguahe_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026123600, 'local', 'oksigeniaeguahe');
     }
 
+    if ($oldversion < 2026123700) {
+        // The WhatsApp the centre answers, beside its phone and its emails.
+        $table = new xmldb_table('local_oksigeniaeguahe_centre');
+        $field = new xmldb_field('whatsapp', XMLDB_TYPE_CHAR, '50', null, null, null, null, 'phone');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2026123700, 'local', 'oksigeniaeguahe');
+    }
+
     return true;
 }

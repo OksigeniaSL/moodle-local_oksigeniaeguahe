@@ -30,7 +30,7 @@ use local_oksigeniaeguahe\local\publicpage;
 use local_oksigeniaeguahe\local\sharereport;
 
 require_login(null, false);
-$centre = centres::require_metrics(required_param('c', PARAM_INT));
+$centre = centres::require_metrics(centres::param('compartir'));
 // A centre with many families and years of acts behind: the families of each campaign are worked out whole.
 raise_memory_limit(MEMORY_HUGE);
 core_php_time_limit::raise(120);
