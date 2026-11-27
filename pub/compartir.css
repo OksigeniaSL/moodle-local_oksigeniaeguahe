@@ -1,0 +1,1315 @@
+/* Eguahe, the report to share (templates/report_share.mustache): an A4 document printed from the browser, for people
+   who do not know Eguahe. Always on white paper with the colours of the centre: the variables --m-* come from
+   publicpage::brand_vars() by day, written on the html with the band of its brand (--franja) and the texts of the
+   margins (--cab-centro, --cab-informe, --pie). Every family is a mark: full, it did it; a ring, it did not; a small
+   pencil dot, it is not known. The page boxes of @page carry the running head, «Made with Eguahe» and the page number
+   (Chrome 131 and later; an older Chrome prints the same pages without them). No grid is split across pages: what
+   can break between pages is in blocks, and every grid is in a box that is kept whole. */
+@font-face {
+    font-family: 'Eg Sans';
+    src: url(fonts/schibsted-grotesk.woff2) format('woff2');
+    font-weight: 400 800;
+    font-display: block;
+}
+
+@page {
+    size: A4;
+    margin: 21mm 17mm 20mm;
+
+    @top-left {
+        content: var(--cab-centro);
+        vertical-align: bottom;
+        padding-bottom: 5mm;
+        font-family: 'Eg Sans', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 700;
+        color: var(--m-titulo, #2b2226);
+    }
+
+    @top-right {
+        content: var(--cab-informe);
+        vertical-align: bottom;
+        padding-bottom: 5mm;
+        font-family: 'Eg Sans', sans-serif;
+        font-size: 8pt;
+        color: var(--m-tinta-2, #56565e);
+    }
+
+    @bottom-left {
+        content: var(--pie);
+        vertical-align: top;
+        padding-top: 6mm;
+        padding-left: 6.6mm;
+        /* The backpack of Eguahe, drawn for small sizes (mochila-16), in its colours of day. */
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%236F5E6E' d='M6.6 4.4 L6.6 2.9 C6.6 2.1 7.2 1.5 8 1.5 C8.8 1.5 9.4 2.1 9.4 2.9 L9.4 4.4 L8.8 4.4 L8.8 2.9 C8.8 2.5 8.4 2.1 8 2.1 C7.6 2.1 7.2 2.5 7.2 2.9 L7.2 4.4 Z'/%3E%3Cpath fill='%236F5E6E' d='M12.6 5.4 C14.4 6.4 14.8 10.6 14.3 15.6 L13.6 15.5 C14 11 13.6 7.6 12.1 6.5 Z'/%3E%3Cpath fill='%236F5E6E' d='M3.2 7.8 C3.2 5.6 4.9 3.9 7.1 3.9 L8.9 3.9 C11.1 3.9 12.8 5.6 12.8 7.8 L12.8 14.4 C12.8 15 12.3 15.4 11.7 15.4 L4.3 15.4 C3.7 15.4 3.2 15 3.2 14.4 Z'/%3E%3Cg transform='translate(8 11) rotate(-8) scale(0.66)'%3E%3Cpath fill='%23FBF5EC' stroke='%23FBF5EC' stroke-width='1.06' stroke-linejoin='round' d='M-6 -3.2 Q-6 -4.2 -5 -4.2 L5 -4.2 Q6 -4.2 6 -3.2 L6 2 L3.8 4.2 L-5 4.2 Q-6 4.2 -6 3.2 Z'/%3E%3Cpath fill='%23CF6450' d='M-6 -3.2 Q-6 -4.2 -5 -4.2 L5 -4.2 Q6 -4.2 6 -3.2 L6 2 L3.8 4.2 L-5 4.2 Q-6 4.2 -6 3.2 Z'/%3E%3Cpath fill='%23FFFFFF' d='M-5.1 -1.3 L5.1 -1.3 L5.1 1.63 L3.43 3.3 L-5.1 3.3 Z'/%3E%3Cpath fill='%236F5E6E' d='M-3.8 1.1 L2 1.1 L2 1.8 L-3.8 1.8 Z'/%3E%3Cpath fill='%23E3D2BF' d='M6 2 L3.8 4.2 L3.8 2 Z'/%3E%3C/g%3E%3C/svg%3E") no-repeat 0 5.1mm / 4.8mm 4.8mm;
+        font-family: 'Eg Sans', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 600;
+        color: #6f5e6e;
+    }
+
+    @bottom-right {
+        content: counter(page) " / " counter(pages);
+        vertical-align: top;
+        padding-top: 6mm;
+        font-family: 'Eg Sans', sans-serif;
+        font-size: 8.5pt;
+        font-variant-numeric: tabular-nums;
+        color: var(--m-tinta-2, #56565e);
+    }
+}
+
+/* The cover: the whole sheet, with the band of the brand at the top and at the foot. */
+@page portada {
+    margin: 0;
+
+    @top-left {
+        content: none;
+    }
+
+    @top-right {
+        content: none;
+    }
+
+    @bottom-left {
+        content: none;
+    }
+
+    @bottom-right {
+        content: none;
+    }
+}
+
+html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: #e8e4df;
+    color-scheme: light;
+}
+
+.cp {
+    --tinta: var(--m-tinta, #2b2226);
+    --tinta-2: var(--m-tinta-2, #56565e);
+    --titulo: var(--m-titulo, #2b2226);
+    --acento: var(--m-acento, var(--titulo));
+    --raya: var(--m-raya, var(--titulo));
+    --relleno: var(--m-relleno, #f4f1ee);
+    --pared: var(--m-pared, #f6f2ef);
+    --hundido: var(--m-hundido, #faf8f6);
+    --linea: var(--m-linea, #e4e0dc);
+    --lapiz: #a39d99;
+    --lapiz-fino: #d6d1cd;
+    margin: 0;
+    font-family: 'Eg Sans', sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.45;
+    color: var(--tinta);
+    background: #e8e4df;
+}
+
+/* The resets inside :where() weigh nothing, so each class below sets its own margins. */
+:where(.cp) :where(p, ul, ol, dl, dd, figure, h1, h2, h3, blockquote) {
+    margin: 0;
+}
+
+:where(.cp) :where(ul, ol) {
+    padding: 0;
+    list-style: none;
+}
+
+:where(.cp) :where(b, strong) {
+    font-weight: 700;
+}
+
+:where(.cp) a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cp-oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* On screen, before printing: the sheets on a table. */
+.cp-portada,
+.cp-hojas {
+    width: 210mm;
+    margin: 8mm auto;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(43, 34, 38, 0.18);
+}
+
+.cp-hojas {
+    padding: 21mm 17mm 20mm;
+    box-sizing: border-box;
+}
+
+@media print {
+    html,
+    .cp {
+        background: #fff;
+    }
+
+    .cp-portada,
+    .cp-hojas {
+        width: auto;
+        margin: 0;
+        box-shadow: none;
+    }
+
+    .cp-hojas {
+        padding: 0;
+    }
+}
+
+/* The marks: one per family. A full disc, it did it; a ring, it did not; a small pencil dot, it is not known. */
+.cp-marcas {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cp-marcas i,
+.cp-clave i,
+.cp-falta i,
+.cp-leer i {
+    position: relative;
+    display: inline-block;
+}
+
+.cp-marcas i::before,
+.cp-clave i::before,
+.cp-falta i::before,
+.cp-leer i::before {
+    content: "";
+    position: absolute;
+    inset: 14%;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.cp-m-yes::before {
+    background: var(--titulo);
+}
+
+.cp-m-no::before {
+    border: 0.28mm solid var(--titulo);
+    background: #fff;
+}
+
+.cp-m-unknown::before {
+    background: var(--lapiz);
+    transform: scale(0.42);
+}
+
+.cp-clave i,
+.cp-falta i,
+.cp-leer i {
+    width: 2.9mm;
+    height: 2.9mm;
+    margin-inline-end: 1.2mm;
+    vertical-align: -0.45mm;
+}
+
+.cp-clave {
+    display: inline-block;
+    margin-inline-end: 5mm;
+    white-space: nowrap;
+}
+
+.cp-clave b {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- The cover ---- */
+.cp-portada {
+    page: portada;
+    display: flex;
+    flex-direction: column;
+    height: 297mm;
+    box-sizing: border-box;
+    break-after: page;
+    overflow: hidden;
+}
+
+.cp-franja {
+    display: flex;
+    flex: 0 0 4.2mm;
+    height: 4.2mm;
+}
+
+.cp-franja i {
+    flex: 1 1 0;
+}
+
+.cp-portada-cuerpo {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    padding: 15mm 18mm 11mm;
+    min-height: 0;
+}
+
+.cp-portada-cabeza {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10mm;
+}
+
+.cp-logo {
+    display: block;
+    width: auto;
+    max-width: 105mm;
+}
+
+.cp-centro {
+    font-size: 17pt;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--titulo);
+}
+
+.cp-fecha-datos {
+    flex: 0 0 auto;
+    font-size: 8.5pt;
+    color: var(--tinta-2);
+    text-align: end;
+}
+
+/* The free space of the cover goes above the title and above the figures, half and half. */
+.cp-portada-titulo {
+    margin-top: auto;
+    padding-top: 14mm;
+}
+
+.cp-tipo {
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--acento);
+}
+
+.cp-asunto {
+    margin-top: 2.5mm;
+    font-size: 30pt;
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.012em;
+    color: var(--titulo);
+}
+
+.cp-cuando {
+    margin-top: 3mm;
+    font-size: 11pt;
+    color: var(--tinta-2);
+}
+
+.cp-respuesta-caja {
+    margin-top: 12mm;
+    margin-bottom: 14mm;
+    padding-top: 6mm;
+    border-top: 0.6mm solid var(--raya);
+}
+
+.cp-pregunta {
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: var(--tinta-2);
+}
+
+.cp-respuesta {
+    margin-top: 1.5mm;
+    font-size: 18pt;
+    font-weight: 650;
+    line-height: 1.24;
+    letter-spacing: -0.005em;
+    color: var(--tinta);
+}
+
+.cp-campo {
+    margin-top: 9mm;
+}
+
+.cp-marcas-campo {
+    width: calc(var(--por) * var(--paso, 4.6mm));
+}
+
+.cp-marcas-campo i {
+    flex: 0 0 var(--paso, 4.6mm);
+    height: var(--paso, 4.6mm);
+}
+
+.cp-campo figcaption {
+    margin-top: 3.5mm;
+    font-size: 9pt;
+}
+
+.cp-campo-pie {
+    display: block;
+    margin-bottom: 1.2mm;
+    color: var(--tinta-2);
+}
+
+.cp-cifras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30mm, 1fr));
+    gap: 6mm;
+    margin-top: auto;
+    padding-top: 5mm;
+    border-top: 0.3mm solid var(--linea);
+}
+
+.cp-cifra dt {
+    font-size: 9.5pt;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.cp-cifra dt b {
+    display: block;
+    margin-bottom: 1mm;
+    font-size: 25pt;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--titulo);
+}
+
+.cp-cifra dd {
+    margin-top: 1.5mm;
+    font-size: 8pt;
+    line-height: 1.38;
+    color: var(--tinta-2);
+}
+
+.cp-hecho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6mm;
+    margin-top: 9mm;
+    padding-top: 5mm;
+    border-top: 0.3mm solid var(--linea);
+}
+
+.cp-hecho-logo {
+    display: block;
+    height: 8.5mm;
+    width: auto;
+}
+
+.cp-hecho p {
+    font-size: 10.5pt;
+    color: #6f5e6e;
+}
+
+.cp-hecho b,
+.cp-colofon-linea b {
+    font-weight: 700;
+    color: #4a3c49;
+}
+
+/* ---- The sheets ---- */
+.cp-leer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 1.5mm 6mm;
+    margin-bottom: 6mm;
+    padding-bottom: 2.5mm;
+    border-bottom: 0.2mm solid var(--linea);
+    font-size: 8.3pt;
+    color: var(--tinta-2);
+    break-inside: avoid;
+}
+
+.cp-leer h2 {
+    font-size: 8.3pt;
+    font-weight: 700;
+    color: var(--tinta);
+}
+
+.cp-leer ul {
+    display: contents;
+}
+
+.cp-leer li {
+    white-space: nowrap;
+}
+
+.cp-seccion {
+    margin-top: 8mm;
+}
+
+.cp-seccion:first-of-type {
+    margin-top: 0;
+}
+
+.cp-entera {
+    break-inside: avoid;
+}
+
+.cp-seccion-cabeza {
+    display: flex;
+    gap: 9mm;
+    margin-bottom: 4.5mm;
+    padding-top: 3mm;
+    border-top: 0.5mm solid var(--raya);
+    break-inside: avoid;
+    break-after: avoid;
+}
+
+.cp-seccion-texto {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.cp-seccion h2,
+.cp-fuentes h2 {
+    font-size: 15pt;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.005em;
+    color: var(--titulo);
+}
+
+.cp-num {
+    display: inline-block;
+    margin-inline-end: 3mm;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--acento);
+}
+
+.cp-entrada {
+    margin-top: 2mm;
+    font-size: 10.5pt;
+    line-height: 1.42;
+}
+
+/* In the margin, how it is counted and, with its pencil dot, what is not known. */
+.cp-margen {
+    flex: 0 0 50mm;
+    align-self: flex-start;
+    padding-inline-start: 3.5mm;
+    border-inline-start: 0.3mm solid var(--lapiz-fino);
+    font-size: 8pt;
+    line-height: 1.4;
+    color: var(--tinta-2);
+}
+
+.cp-falta + .cp-falta {
+    margin-top: 2mm;
+}
+
+/* How it is counted, under the drawing, the definitions side by side. */
+.cp-como {
+    display: flex;
+    gap: 2mm 6mm;
+    margin-top: 3.5mm;
+    padding-top: 2mm;
+    border-top: 0.2mm dotted var(--lapiz);
+    font-size: 7.9pt;
+    line-height: 1.4;
+    color: var(--tinta-2);
+    break-inside: avoid;
+}
+
+.cp-como p {
+    flex: 1 1 0;
+}
+
+.cp-como .cp-como-dice {
+    flex: 0 0 auto;
+    font-weight: 700;
+    color: var(--tinta);
+}
+
+.cp-falta {
+    font-weight: 600;
+    color: var(--tinta);
+}
+
+.cp-margen .cp-falta i {
+    margin-inline-start: -0.6mm;
+}
+
+.cp-seccion h3,
+.cp-lado h3,
+.cp-preguntaron h3 {
+    margin-bottom: 2.5mm;
+    font-size: 9.5pt;
+    font-weight: 700;
+}
+
+/* The path: each step, its families in marks, all over the same width, so the eye sees what is left. */
+.cp-paso {
+    display: grid;
+    grid-template-columns: 36mm 17mm 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 4mm;
+    align-items: center;
+    padding: 2.2mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+    break-inside: avoid;
+}
+
+.cp-paso-nombre {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.cp-paso-n {
+    line-height: 1.15;
+    color: var(--tinta-2);
+    font-size: 8.5pt;
+}
+
+.cp-paso-n b {
+    display: block;
+    font-size: 15pt;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--titulo);
+}
+
+.cp-camino .cp-marcas i {
+    flex: 0 0 min(4.4mm, calc(100% / var(--por)));
+    aspect-ratio: 1;
+}
+
+.cp-paso-clave {
+    grid-column: 3;
+    margin-top: 1.6mm;
+    font-size: 8.5pt;
+}
+
+.cp-pista {
+    display: flex;
+    height: 3mm;
+    background: var(--linea);
+}
+
+.cp-pista i {
+    width: calc(var(--v) * 100%);
+}
+
+.cp-b-yes {
+    background: var(--titulo);
+}
+
+.cp-b-no {
+    background: #fff;
+    box-shadow: inset 0 0 0 0.28mm var(--titulo);
+}
+
+.cp-b-unknown {
+    background: repeating-linear-gradient(135deg, var(--lapiz) 0 0.3mm, transparent 0.3mm 1.1mm);
+}
+
+.cp-aparte {
+    margin-top: 3mm;
+    font-size: 8.5pt;
+    color: var(--tinta-2);
+}
+
+.cp-aparte > span:not(.cp-aparte-dice) + span::before {
+    content: " · ";
+}
+
+.cp-aparte b {
+    color: var(--tinta);
+}
+
+/* Bars, in groups side by side. */
+.cp-grupos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6mm 9mm;
+}
+
+.cp-grupo {
+    flex: 1 1 0;
+    min-width: 46mm;
+    break-inside: avoid;
+}
+
+.cp-barras li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 3mm;
+    padding: 0.9mm 0;
+    break-inside: avoid;
+}
+
+.cp-barras b {
+    font-variant-numeric: tabular-nums;
+}
+
+.cp-barra-pista {
+    grid-column: 1 / -1;
+    height: 1.7mm;
+    margin-top: 0.8mm;
+    background: var(--linea);
+}
+
+.cp-barra-pista i {
+    display: block;
+    width: calc(var(--v) * 100%);
+    min-width: 0.6mm;
+    height: 100%;
+    background: var(--titulo);
+}
+
+.cp-barras small {
+    grid-column: 1 / -1;
+    margin-top: 0.6mm;
+    font-size: 7.8pt;
+    color: var(--tinta-2);
+}
+
+.cp-sin-saber .cp-barra-nombre,
+.cp-sin-saber b {
+    color: var(--tinta-2);
+}
+
+.cp-sin-saber .cp-barra-pista i {
+    background: repeating-linear-gradient(135deg, var(--lapiz) 0 0.3mm, transparent 0.3mm 1.1mm);
+}
+
+/* What is the centre's own against what was paid for, with what it cost. */
+.cp-frente {
+    display: flex;
+    gap: 7mm;
+    break-inside: avoid;
+}
+
+.cp-lado {
+    flex: 1 1 0;
+    padding: 4mm 4.5mm 4.5mm;
+    border-top: 1mm solid var(--titulo);
+    background: var(--pared);
+}
+
+.cp-lado h3 {
+    margin-bottom: 0.5mm;
+    font-size: 11pt;
+}
+
+.cp-lado-sub {
+    font-size: 8pt;
+    color: var(--tinta-2);
+}
+
+.cp-lado-n {
+    margin-top: 3mm;
+    font-size: 9.5pt;
+}
+
+.cp-lado-n b {
+    font-size: 22pt;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--titulo);
+}
+
+.cp-lado-lineas {
+    margin-top: 1.5mm;
+}
+
+.cp-lado-lineas li,
+.cp-dinero li {
+    padding: 0.7mm 0;
+}
+
+.cp-lado-lineas b,
+.cp-dinero b {
+    display: inline-block;
+    min-width: 9mm;
+    font-variant-numeric: tabular-nums;
+}
+
+.cp-dinero {
+    margin-top: 3.5mm;
+    padding-top: 3mm;
+    border-top: 0.3mm solid var(--lapiz-fino);
+}
+
+.cp-dinero-total b {
+    font-size: 13pt;
+    font-weight: 800;
+}
+
+.cp-dinero li b {
+    min-width: 14mm;
+}
+
+/* Channel by channel: each column against the families of its own channel, never against the biggest. */
+/* Whole on one page when it fits: its heads never stay alone at the foot of a page. */
+.cp-canales {
+    margin-top: 6mm;
+    font-size: 8.8pt;
+    break-inside: avoid;
+}
+
+.cp-canales-fila {
+    display: grid;
+    grid-template-columns: 1fr repeat(4, 27mm);
+    column-gap: 3mm;
+    align-items: start;
+    padding: 1.8mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+    break-inside: avoid;
+}
+
+.cp-canales-cols {
+    padding-top: 0;
+    border-bottom: 0.4mm solid var(--tinta);
+    font-size: 8pt;
+    font-weight: 700;
+    color: var(--tinta-2);
+}
+
+.cp-canales-bloque {
+    break-inside: avoid;
+}
+
+.cp-canales-fila {
+    padding-inline: 2mm;
+}
+
+.cp-canales-cols {
+    padding-inline: 2mm;
+}
+
+.cp-canales-suma {
+    margin-top: 2.5mm;
+    background: var(--pared);
+    font-weight: 700;
+}
+
+.cp-canales-fila:not(.cp-canales-suma):not(.cp-canales-cols) > span:first-child {
+    padding-inline-start: 3mm;
+}
+
+.cp-canales small,
+.cp-tabla small {
+    font-weight: 400;
+    color: var(--tinta-2);
+}
+
+.cp-canales b,
+.cp-tabla b {
+    font-variant-numeric: tabular-nums;
+}
+
+.cp-celda-pista {
+    display: block;
+    height: 1.3mm;
+    margin-top: 1mm;
+    background: var(--linea);
+}
+
+.cp-celda-pista i {
+    display: block;
+    width: calc(var(--v) * 100%);
+    height: 100%;
+    background: var(--titulo);
+}
+
+.cp-canales-dinero {
+    padding: 1.6mm 2mm 0;
+    font-size: 8.3pt;
+    color: var(--tinta);
+}
+
+/* What has happened since, as a register. */
+.cp-registro li {
+    display: grid;
+    grid-template-columns: 15mm 1fr;
+    align-items: baseline;
+    padding: 1.9mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+    break-inside: avoid;
+}
+
+.cp-registro b {
+    font-size: 14pt;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--titulo);
+    text-align: end;
+    padding-inline-end: 4mm;
+}
+
+.cp-registro small {
+    display: block;
+    font-size: 8pt;
+    color: var(--tinta-2);
+}
+
+.cp-registro-fuerte span {
+    font-weight: 700;
+}
+
+/* What they said. */
+.cp-dijeron {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6mm 9mm;
+}
+
+.cp-escala,
+.cp-preguntaron {
+    flex: 1 1 0;
+    min-width: 60mm;
+    break-inside: avoid;
+}
+
+.cp-escala-dicho {
+    margin-bottom: 2mm;
+    font-weight: 600;
+}
+
+.cp-citas {
+    flex: 1 1 100%;
+    display: flex;
+    gap: 6mm;
+}
+
+.cp-citas blockquote {
+    flex: 1 1 0;
+    padding-inline-start: 3.5mm;
+    border-inline-start: 0.8mm solid var(--acento);
+    font-size: 10.5pt;
+    line-height: 1.4;
+    break-inside: avoid;
+}
+
+.cp-citas p::before {
+    content: "«";
+}
+
+.cp-citas p::after {
+    content: "»";
+}
+
+/* Week by week, this year in ink, the year before in pencil. */
+.cp-semanas {
+    break-inside: avoid;
+}
+
+.cp-columnas {
+    display: flex;
+    gap: 2mm;
+    align-items: flex-end;
+    height: 44mm;
+    border-bottom: 0.3mm solid var(--tinta);
+}
+
+.cp-columnas li {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.cp-columna {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: calc(100% - 9mm);
+}
+
+.cp-columna i {
+    position: absolute;
+    bottom: 0;
+    height: calc(var(--v) * 100%);
+}
+
+.cp-columna-ahora {
+    left: 22%;
+    right: 22%;
+    background: var(--titulo);
+}
+
+.cp-columna-antes {
+    left: 8%;
+    right: 8%;
+    border: 0.3mm dashed var(--lapiz);
+    border-bottom: 0;
+    box-sizing: border-box;
+}
+
+.cp-columnas b {
+    order: -1;
+    margin-bottom: 1mm;
+    font-size: 8.5pt;
+    font-variant-numeric: tabular-nums;
+}
+
+.cp-columna-rotulo {
+    position: absolute;
+    top: 100%;
+    margin-top: 1.5mm;
+    font-size: 7.6pt;
+    color: var(--tinta-2);
+    white-space: nowrap;
+}
+
+.cp-claves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2mm 6mm;
+    margin-top: 8mm;
+    font-size: 8.3pt;
+    color: var(--tinta-2);
+}
+
+.cp-claves i {
+    display: inline-block;
+    width: 4mm;
+    height: 2.6mm;
+    margin-inline-end: 1.5mm;
+    vertical-align: -0.3mm;
+    box-sizing: border-box;
+}
+
+.cp-clave-ahora,
+.cp-clave-hechas {
+    background: var(--titulo);
+}
+
+.cp-clave-antes {
+    border: 0.3mm dashed var(--lapiz);
+}
+
+.cp-clave-pedidas {
+    background: var(--relleno);
+    box-shadow: inset 0 0 0 0.28mm var(--titulo);
+}
+
+.cp-clave-plazas {
+    background: var(--linea);
+}
+
+.cp-clave-prevision {
+    border-top: 0.6mm solid var(--tinta);
+    border-left: 0.3mm solid var(--tinta);
+    border-right: 0.3mm solid var(--tinta);
+    height: 1.6mm !important;
+}
+
+.cp-claves-nota {
+    flex: 1 1 100%;
+}
+
+/* The places of each course: the track is the places; inside, the ones taken and the ones asked for; above, the
+   forecast for the end of the campaign as a bracket. */
+.cp-plaza {
+    display: grid;
+    grid-template-columns: 44mm 1fr;
+    column-gap: 5mm;
+    align-items: center;
+    padding: 2.6mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+    break-inside: avoid;
+}
+
+.cp-plaza-nombre small {
+    display: block;
+    font-size: 8pt;
+    color: var(--tinta-2);
+}
+
+.cp-plaza-pista {
+    position: relative;
+    height: 4.2mm;
+}
+
+.cp-plaza-pista i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--v) * 100%);
+}
+
+.cp-plaza-pista .cp-plaza-hueco {
+    background: var(--linea);
+}
+
+.cp-plaza-pedidas {
+    background: var(--relleno);
+    box-shadow: inset 0 0 0 0.28mm var(--titulo);
+}
+
+.cp-plaza-hechas {
+    background: var(--titulo);
+}
+
+.cp-plaza-pista .cp-plaza-prevision {
+    top: -1.6mm;
+    bottom: auto;
+    left: calc(var(--a) * 100%);
+    width: calc((var(--b) - var(--a)) * 100%);
+    height: 1.4mm;
+    border: 0.3mm solid var(--tinta);
+    border-bottom: 0;
+    box-sizing: border-box;
+}
+
+.cp-plaza-cifras {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 5mm;
+    margin-top: 1.4mm;
+    font-size: 8.3pt;
+    color: var(--tinta-2);
+}
+
+.cp-plaza-cifras b {
+    color: var(--tinta);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Big figures with what they mean, and a rule where there is a spread. */
+.cp-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6mm 8mm;
+}
+
+.cp-dato {
+    flex: 1 1 0;
+    min-width: 46mm;
+    padding-bottom: 4mm;
+    break-inside: avoid;
+}
+
+.cp-datos + .cp-grupos {
+    margin-top: 5mm;
+}
+
+.cp-dato dt b {
+    font-size: 22pt;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--titulo);
+}
+
+.cp-dato dt span {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--titulo);
+}
+
+.cp-dato dd {
+    margin-top: 1.5mm;
+    font-size: 8.6pt;
+    line-height: 1.38;
+}
+
+.cp-regla {
+    position: relative;
+    height: 3.2mm;
+    margin: 3mm 0 4mm;
+    border-bottom: 0.3mm solid var(--tinta-2);
+}
+
+.cp-regla-banda {
+    position: absolute;
+    bottom: 0;
+    left: calc(var(--a) * 100%);
+    width: calc((var(--b) - var(--a)) * 100%);
+    height: 2.4mm;
+    background: var(--relleno);
+    box-shadow: inset 0 0 0 0.25mm var(--lapiz);
+}
+
+.cp-regla-medio {
+    position: absolute;
+    bottom: 0;
+    left: calc(var(--v) * 100%);
+    width: 0.7mm;
+    height: 3.2mm;
+    background: var(--titulo);
+}
+
+.cp-regla-0,
+.cp-regla-fin {
+    position: absolute;
+    top: 100%;
+    margin-top: 0.8mm;
+    font-size: 7.2pt;
+    color: var(--tinta-2);
+}
+
+.cp-regla-0 {
+    left: 0;
+}
+
+.cp-regla-fin {
+    right: 0;
+}
+
+/* A table drawn as rows of one grid, each kept whole (a split table makes Chrome print over what follows). */
+.cp-tabla-fila {
+    display: grid;
+    grid-template-columns: 1fr repeat(var(--cols), 29mm);
+    column-gap: 3mm;
+    align-items: start;
+    padding: 2mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+    break-inside: avoid;
+}
+
+.cp-tabla-cols {
+    padding-top: 0;
+    border-bottom: 0.4mm solid var(--tinta);
+    font-size: 8pt;
+    font-weight: 700;
+    color: var(--tinta-2);
+}
+
+.cp-tabla-fila > span:first-child small {
+    display: block;
+}
+
+.cp-tabla-esta {
+    margin-inline: -2mm;
+    padding-inline: 2mm;
+    background: var(--relleno);
+}
+
+.cp-etiqueta {
+    font-style: normal;
+}
+
+.cp-sin {
+    font-style: normal;
+    font-size: 8.3pt;
+    color: var(--tinta-2);
+}
+
+.cp-sin::before {
+    content: "";
+    display: inline-block;
+    width: 1.3mm;
+    height: 1.3mm;
+    margin-inline-end: 1.2mm;
+    vertical-align: 0.3mm;
+    border-radius: 50%;
+    background: var(--lapiz);
+}
+
+.cp-tabla-fila span small {
+    display: block;
+    margin-top: 0.6mm;
+    font-size: 7.6pt;
+    line-height: 1.3;
+}
+
+.cp-pie-tabla {
+    margin-top: 3mm;
+    font-size: 8.3pt;
+    color: var(--tinta-2);
+}
+
+/* Where the data comes from, and the colophon: together, so the colophon never stays alone on the last page. */
+.cp-final {
+    break-inside: avoid;
+}
+
+.cp-fuentes {
+    margin-top: 12mm;
+    padding-top: 3.5mm;
+    border-top: 0.5mm solid var(--raya);
+    font-size: 8.6pt;
+}
+
+.cp-fuentes h2 {
+    margin-bottom: 3mm;
+    font-size: 12pt;
+}
+
+.cp-fuentes-lista li {
+    padding: 1.2mm 0;
+    border-bottom: 0.2mm solid var(--linea);
+}
+
+.cp-fuentes-lista span {
+    color: var(--tinta-2);
+}
+
+.cp-fuentes-lista span + span::before {
+    content: "· ";
+}
+
+.cp-metodo {
+    margin-top: 3mm;
+}
+
+.cp-metodo li {
+    position: relative;
+    padding: 0.6mm 0 0.6mm 4mm;
+}
+
+.cp-metodo li::before {
+    content: "";
+    position: absolute;
+    left: 0.6mm;
+    top: 2.2mm;
+    width: 1.2mm;
+    height: 1.2mm;
+    border-radius: 50%;
+    background: var(--titulo);
+}
+
+.cp-sin-nombres {
+    margin-top: 3mm;
+    font-weight: 700;
+}
+
+.cp-colofon {
+    margin-top: 12mm;
+    border: 0.3mm solid var(--linea);
+}
+
+.cp-colofon .cp-franja {
+    flex-basis: 2.4mm;
+    height: 2.4mm;
+}
+
+.cp-colofon-cuerpo {
+    display: flex;
+    align-items: center;
+    gap: 8mm;
+    padding: 6mm 7mm;
+}
+
+.cp-colofon .cp-hecho-logo {
+    flex: 0 0 auto;
+    height: 10mm;
+}
+
+.cp-colofon-sobre {
+    font-size: 9.5pt;
+    line-height: 1.45;
+}
+
+.cp-colofon-linea {
+    margin-top: 1.5mm;
+    font-size: 10.5pt;
+    color: #6f5e6e;
+}

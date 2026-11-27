@@ -160,6 +160,9 @@ class panel_answer {
             }
         }
         return ['head' => $head, 'print' => get_string('qs_print', $c), 'facts' => $facts, 'detail' => false,
+            // The same, as a document to send out: A4, with the colours of the centre and no names.
+            'share' => !empty($report['shareurl']) ? ['url' => $report['shareurl'], 'label' => get_string('share_open', $c),
+                'hint' => get_string('share_open_hint', $c)] : false,
             'todo' => $report['todo'] ? ['title' => get_string('actr_h_todo', $c), 'items' => array_map(fn($one) => self::counted($one), $report['todo'])] : false,
             'blocks' => $blocks, 'hassources' => (bool) $report['sources'], 'sources' => array_map(fn($source) => ['name' => $source['name'],
             'when' => $source['date'], 'what' => $source['what'] . ' (' . $source['families'] . ')'], $report['sources'] ?: [])];

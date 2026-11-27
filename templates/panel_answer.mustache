@@ -59,7 +59,7 @@
 }}
 <div class="pagina pagina-informe pagina-respuesta">
     {{#head}}{{> local_oksigeniaeguahe/panel_head }}{{/head}}
-    <p class="qs-imprimir"><button class="boton secundario" type="button" data-imprimir hidden>{{{i.imprimir}}}{{print}}</button></p>
+    <p class="qs-imprimir">{{#share}}<a class="boton principal" href="{{url}}" target="_blank" rel="noopener">{{{i.fuera}}}{{label}}</a> <span class="secundario qs-compartir-ayuda">{{hint}}</span> {{/share}}<button class="boton secundario" type="button" data-imprimir hidden>{{{i.imprimir}}}{{print}}</button></p>
     <article class="informe qs-informe" id="informe">
         {{#facts.0}}
         <ul class="qs-cifras">{{#facts}}<li>{{#url}}<a href="{{url}}">{{/url}}{{^url}}<span>{{/url}}<b>{{n}}</b> <span>{{what}}</span>{{#url}}</a>{{/url}}{{^url}}</span>{{/url}}{{#more}}<small>{{more}}</small>{{/more}}</li>{{/facts}}</ul>

@@ -34,6 +34,7 @@ use local_oksigeniaeguahe\local\panel;
 use local_oksigeniaeguahe\local\panel_answer;
 use local_oksigeniaeguahe\local\panel_answers;
 use local_oksigeniaeguahe\local\panel_metrics;
+use local_oksigeniaeguahe\local\sharereport;
 use local_oksigeniaeguahe\local\teamnotes;
 use local_oksigeniaeguahe\local\ties;
 
@@ -553,5 +554,54 @@ final class act_report_test extends \advanced_testcase {
         $after = new \ReflectionMethod(act_report::class, 'after');
         $out = $after->invoke(null, $this->centre, [(int) $same->id, (int) $later->id], $start, $this->now);
         $this->assertSame([(int) $later->id], array_keys($out['appointment']));
+    }
+
+    /**
+     * The report to share of an act: every family that signed up a mark on its cover (came, did not, not noted), the path
+     * always over the same families, the centre's own ways against the ads, what happened since, no names, and «Made with
+     * Eguahe»; the same numbers as Numbers.
+     */
+    public function test_share(): void {
+        global $OUTPUT, $PAGE;
+        $applied = $this->family(['heardfrom' => 'search']);
+        $this->sign($applied, -72, 'came', 3);
+        $this->stage($applied, 'application');
+        $missed = $this->family();
+        $this->sign($missed, -3, 'notcame');
+        $unknown = $this->family();
+        $this->sign($unknown, -3);
+        $earlier = $this->act(40);
+        $key = 'e' . $this->act->id;
+        $c = sharereport::act($this->centre, $key, $this->now);
+        $this->assertSame(['yes', 'no', 'unknown'], array_column($c['field']['dots'], 'k'));
+        $s = fn(string $id, $a = null) => get_string('share_' . $id, 'local_oksigeniaeguahe', $a);
+        $this->assertSame($s('answer_came', (object) ['came' => 1, 'signed' => 3]) . '. ' . $s('answer_applied_one'), $c['answer']);
+        $this->assertSame($s('answer_applied_none'), substr(sharereport::answer(true, 3, 1, 0, 1, 0, 0), -strlen($s('answer_applied_none'))));
+        $this->assertSame($s('answer_ahead', 3), sharereport::answer(false, 3, 0, 0, 0, 0, 0));
+        $this->assertSame(['3', '1', '3', '1'], array_column($c['figures'], 'n'), 'Signed up, came, people, applied.');
+        $this->assertSame(['camino', 'quienes', 'canales', 'desde', 'otras'], array_column($c['sections'], 'id'));
+        $path = $c['sections'][0]['path']['rows'];
+        $this->assertSame(['3', '1', '1', '1', '0'], array_column($path, 'n'));
+        $this->assertSame(['yes', 'no', 'unknown'], array_column($path[1]['dots'], 'k'));
+        $this->assertStringContainsString(
+            get_string('share_note_unknowncame_one', 'local_oksigeniaeguahe'),
+            $c['sections'][0]['notes'][0]['text']
+        );
+        $others = $c['sections'][4]['table']['rows'];
+        $this->assertCount(2, $others);
+        $this->assertTrue($others[0]['current']);
+        $this->assertNull(sharereport::early($this->centre, null, 5, $this->now));
+        $this->assertSame(0, sharereport::early(
+            $this->centre,
+            act_report::all($this->centre, $this->now)['e' . $earlier->id],
+            5,
+            $this->now
+        ));
+        $this->assertNull(sharereport::act($this->centre, 'e999999', $this->now));
+        $PAGE->set_context(\context_system::instance());
+        $html = $OUTPUT->render_from_template('local_oksigeniaeguahe/report_share', $c);
+        $this->assertStringContainsString(get_string('share_made_line', 'local_oksigeniaeguahe'), $html);
+        $this->assertStringNotContainsString('Ana', $html, 'No names of families.');
+        $this->assertStringContainsString('--franja: linear-gradient', $html);
     }
 }

@@ -1,0 +1,294 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_oksigeniaeguahe/report_share
+
+    The report to share: an A4 document, printed from the browser, for someone who does not know Eguahe (the head of
+    the centre, the agency that runs its social networks, the school board). One act, a period between two dates or
+    the whole campaign. It wears the logo and the colours of the centre, carries no name of a family, only figures,
+    and every figure says in plain words what it counts. What is not known is written where it is missing. Always on
+    white paper, with no script; the page numbers and the line «Made with Eguahe» go in the margins of each page
+    (pub/compartir.css).
+
+    Context variables required for this template:
+    * lang, dir, doctitle, css - the document: its language, its direction, the name of the PDF and the style sheet
+    * vars - the colours of the centre (publicpage::brand_vars by day), the band of its brand as a gradient (--franja)
+      and the two texts of the running head (--cab-centro, --cab-informe), each a CSS string, escaped for CSS
+    * centre - name; logo (url, alt, style: its height by its area) or false; brand: one item per colour (code)
+    * kind - the word over the title: «Informe de una jornada», «Informe de un periodo», «Informe de la campaña»
+    * subject, when, asof - what is told, when it was, and the day of the figures
+    * question, answer - the question it answers, and the answer in a sentence
+    * field - the families of the answer as marks (per: marks a line; paso: the size of a mark, from 3 to 8 mm;
+      dots: k = yes|no|unknown, the full ones first; legend: k, n, text; caption), or false
+    * figures - n, what, def: three to five figures of the cover
+    * reading - title and items (k, text): how the marks read, or false
+    * howcounted - the words before the definitions of each section («How it is counted»)
+    * sections - num, id, title, lead, keep (never split across pages), wide (the drawing takes the whole width),
+      defs (text: how it is counted, at the foot), notes (text: what is not known, in the margin), and its shapes:
+      path: rows (name, n, of, dots, per: marks a line, legend, said), bars (true when there are too many families for
+      marks: rows carry parts of k and v), apartword, apart (n, text);
+      groups: cols (2 or 3), groups of title and rows (name, n, v from 0 to 1, part, unknown);
+      versus: sides (name, sub, n, what, lines of n and text, money: amount, lines of n and text, or false);
+      ledger: rows (n, text, sub, strong);
+      survey: scale (said, rows of name, n, v), quotes (text), asked (title, rows of text, n, v);
+      table: label, first, count, cols (name), rows (name, when, tag, current, count, cells: n, v, sub, missing), foot;
+      weeks: count, rows (label, n, v, g: the year before, said), keys (now, before), partial (text);
+      places: rows (name, sub, places, taken, asked, vp, vt, va, hasrange, low, high, vl, vh, and the words takenword,
+      askedword, placesword, rangeword), keys (taken, asked, places, range);
+      channels: label, first, cols (name), blocks (name, cells of n and of, rows of name and cells: n, of, v, nobar;
+      money: text);
+      figures: rows (n, unit, what, sub, band: false or from, to, mid, all from 0 to 1, and scale)
+    * sources - title, rows (name, when, what), method (text), privacy
+    * made - about (what Eguahe is, in one sentence, with the name of the centre), line, site, url, logo
+
+    Example context (json):
+    {
+        "lang": "es", "dir": "ltr", "doctitle": "Jornada de puertas abiertas, 21-11-2026", "css": "pub/compartir.css",
+        "vars": "--m-titulo: #7A1F3D; --m-acento: #7A1F3D; --franja: linear-gradient(to right, #7a1f3d 0 50%, #c9a227 50% 100%); --cab-centro: 'Colegio Montesol'; --cab-informe: 'Jornada de puertas abiertas · 21-11-2026'",
+        "centre": {"name": "Colegio Montesol", "logo": {"url": "logo.svg", "alt": "Colegio Montesol", "style": "height: 17mm"},
+            "brand": [{"code": "#7a1f3d"}, {"code": "#c9a227"}]},
+        "kind": "Informe de una jornada", "subject": "Jornada de puertas abiertas",
+        "when": "Sábado 21 de noviembre de 2026 · de 10:00 a 13:00", "asof": "Datos a 27 de noviembre de 2026",
+        "question": "¿Cómo fue la jornada?", "answer": "Vinieron 41 de las 58 familias inscritas.",
+        "field": {"per": 12, "paso": "8mm", "dots": [{"k": "yes"}, {"k": "no"}, {"k": "unknown"}],
+            "legend": [{"k": "yes", "n": 1, "text": "vino"}], "caption": "Cada marca es una familia inscrita."},
+        "figures": [{"n": "58", "what": "familias inscritas", "def": "Se apuntaron por el formulario o por teléfono."}],
+        "reading": {"title": "Cómo se lee", "items": [{"k": "yes", "text": "Lo hizo"}]}, "howcounted": "Cómo se cuenta",
+        "sections": [{"num": "1", "id": "camino", "title": "Del cartel a la plaza", "lead": "Cada marca es una familia.", "keep": true, "wide": true,
+            "defs": [{"text": "Las que ya eran del centro van aparte."}], "notes": [{"text": "De 12 no consta si vinieron."}],
+            "path": {"bars": false, "apartword": "Van aparte:", "rows": [{"name": "Vinieron", "n": "41", "of": "de 58", "per": 58, "dots": [{"k": "yes"}],
+                "legend": [{"k": "yes", "n": 41, "text": "vinieron"}], "said": "41 de 58 vinieron"}], "apart": [{"n": "7", "text": "ya eran del centro"}]},
+            "groups": false, "versus": false, "ledger": false, "survey": false, "table": false, "weeks": false, "places": false,
+            "channels": false, "figures": false}],
+        "sources": {"title": "De dónde salen los datos", "rows": [{"name": "Eguahe", "when": "al día", "what": "51 familias"}],
+            "method": [{"text": "Cada familia cuenta una vez."}], "privacy": "Sin nombres: solo cifras."},
+        "made": {"about": "Este informe lo hace Eguahe.", "line": "Hecho con Eguahe", "site": "eguahe.com", "url": "https://eguahe.com",
+            "logo": "pub/img/eguahe-logotipo.svg"}
+    }
+}}
+<!DOCTYPE html>
+<html lang="{{lang}}" dir="{{dir}}" style="{{vars}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{doctitle}}</title>
+<link rel="stylesheet" href="{{css}}">
+</head>
+<body class="cp">
+<section class="cp-portada" aria-labelledby="cp-respuesta">
+    {{#centre.brand.0}}<div class="cp-franja" aria-hidden="true">{{#centre.brand}}<i style="background-color: {{code}}"></i>{{/centre.brand}}</div>{{/centre.brand.0}}
+    <div class="cp-portada-cuerpo">
+        <header class="cp-portada-cabeza">
+            {{#centre.logo}}<img class="cp-logo" src="{{url}}" alt="{{alt}}" style="{{style}}">{{/centre.logo}}
+            {{^centre.logo}}<p class="cp-centro">{{centre.name}}</p>{{/centre.logo}}
+            <p class="cp-fecha-datos">{{asof}}</p>
+        </header>
+        <div class="cp-portada-titulo">
+            <p class="cp-tipo">{{kind}}</p>
+            <h1 class="cp-asunto">{{subject}}</h1>
+            <p class="cp-cuando">{{when}}</p>
+        </div>
+        <div class="cp-respuesta-caja">
+            <p class="cp-pregunta">{{question}}</p>
+            <p class="cp-respuesta" id="cp-respuesta">{{answer}}</p>
+            {{#field}}
+            <figure class="cp-campo">
+                <div class="cp-marcas cp-marcas-campo" style="--por: {{per}}; --paso: {{paso}}" aria-hidden="true">{{#dots}}<i class="cp-m-{{k}}"></i>{{/dots}}</div>
+                <figcaption><span class="cp-campo-pie">{{caption}}</span>{{#legend}}<span class="cp-clave"><i class="cp-m-{{k}}" aria-hidden="true"></i><b>{{n}}</b> {{text}}</span>{{/legend}}</figcaption>
+            </figure>
+            {{/field}}
+        </div>
+        {{#figures.0}}
+        <dl class="cp-cifras">
+            {{#figures}}<div class="cp-cifra"><dt><b>{{n}}</b> {{what}}</dt><dd>{{def}}</dd></div>{{/figures}}
+        </dl>
+        {{/figures.0}}
+        <footer class="cp-hecho">
+            <img class="cp-hecho-logo" src="{{made.logo}}" alt="Eguahe">
+            <p><b>{{made.line}}</b> · <a href="{{made.url}}">{{made.site}}</a></p>
+        </footer>
+    </div>
+    {{#centre.brand.0}}<div class="cp-franja cp-franja-pie" aria-hidden="true">{{#centre.brand}}<i style="background-color: {{code}}"></i>{{/centre.brand}}</div>{{/centre.brand.0}}
+</section>
+
+<main class="cp-hojas">
+    {{#reading}}
+    <aside class="cp-leer">
+        <h2>{{title}}</h2>
+        <ul>{{#items}}<li><i class="cp-m-{{k}}" aria-hidden="true"></i>{{text}}</li>{{/items}}</ul>
+    </aside>
+    {{/reading}}
+    {{#sections}}
+    <section class="cp-seccion{{#keep}} cp-entera{{/keep}}{{#wide}} cp-ancha{{/wide}}" id="cp-{{id}}" aria-labelledby="cp-t-{{id}}">
+        <div class="cp-seccion-cabeza">
+            <div class="cp-seccion-texto">
+                <h2 id="cp-t-{{id}}"><span class="cp-num">{{num}}</span>{{title}}</h2>
+                {{#lead}}<p class="cp-entrada">{{lead}}</p>{{/lead}}
+            </div>
+            {{#notes.0}}<div class="cp-margen">{{#notes}}<p class="cp-falta"><i class="cp-m-unknown" aria-hidden="true"></i>{{text}}</p>{{/notes}}</div>{{/notes.0}}
+        </div>
+
+        {{#path}}
+        <div class="cp-camino{{#bars}} cp-camino-barras{{/bars}}">
+            {{#rows}}
+            <div class="cp-paso">
+                <p class="cp-paso-nombre">{{name}}</p>
+                <p class="cp-paso-n"><b>{{n}}</b> <span>{{of}}</span></p>
+                {{^bars}}<div class="cp-marcas" style="--por: {{per}}" aria-hidden="true">{{#dots}}<i class="cp-m-{{k}}"></i>{{/dots}}</div>{{/bars}}
+                {{#bars}}<div class="cp-pista" aria-hidden="true">{{#parts}}<i class="cp-b-{{k}}" style="--v: {{v}}"></i>{{/parts}}</div>{{/bars}}
+                {{#legend.0}}<p class="cp-paso-clave">{{#legend}}<span class="cp-clave"><i class="cp-m-{{k}}" aria-hidden="true"></i><b>{{n}}</b> {{text}}</span>{{/legend}}</p>{{/legend.0}}
+                <p class="cp-oculto">{{said}}</p>
+            </div>
+            {{/rows}}
+            {{#apart.0}}<p class="cp-aparte"><span class="cp-aparte-dice">{{apartword}}</span> {{#apart}}<span><b>{{n}}</b> {{text}}</span>{{/apart}}</p>{{/apart.0}}
+        </div>
+        {{/path}}
+
+        {{#figures}}
+        <dl class="cp-datos">
+            {{#rows}}
+            <div class="cp-dato">
+                <dt><b>{{n}}</b>{{#unit}} <span>{{unit}}</span>{{/unit}}</dt>
+                <dd><strong>{{what}}</strong>{{#sub}} {{sub}}{{/sub}}</dd>
+                {{#band}}<dd class="cp-regla" aria-hidden="true"><i class="cp-regla-banda" style="--a: {{from}}; --b: {{to}}"></i><i class="cp-regla-medio" style="--v: {{mid}}"></i><span class="cp-regla-0">0</span><span class="cp-regla-fin">{{scale}}</span></dd>{{/band}}
+            </div>
+            {{/rows}}
+        </dl>
+        {{/figures}}
+
+        {{#groups}}
+        <div class="cp-grupos cp-grupos-{{cols}}">
+            {{#groups}}
+            <div class="cp-grupo">
+                <h3>{{title}}</h3>
+                <ul class="cp-barras">{{#rows}}<li{{#unknown}} class="cp-sin-saber"{{/unknown}}><span class="cp-barra-nombre">{{name}}</span><b>{{n}}</b><span class="cp-barra-pista" aria-hidden="true">{{#v}}<i style="--v: {{v}}"></i>{{/v}}</span>{{#part}}<small>{{part}}</small>{{/part}}</li>{{/rows}}</ul>
+            </div>
+            {{/groups}}
+        </div>
+        {{/groups}}
+
+        {{#versus}}
+        <div class="cp-frente">
+            {{#sides}}
+            <div class="cp-lado">
+                <h3>{{name}}</h3>
+                {{#sub}}<p class="cp-lado-sub">{{sub}}</p>{{/sub}}
+                <p class="cp-lado-n"><b>{{n}}</b> {{what}}</p>
+                <ul class="cp-lado-lineas">{{#lines}}<li><b>{{n}}</b> {{text}}</li>{{/lines}}</ul>
+                {{#money}}
+                <div class="cp-dinero">
+                    <p class="cp-dinero-total"><b>{{amount}}</b></p>
+                    <ul>{{#lines}}<li><b>{{n}}</b> {{text}}</li>{{/lines}}</ul>
+                </div>
+                {{/money}}
+            </div>
+            {{/sides}}
+        </div>
+        {{/versus}}
+
+        {{#channels}}
+        <div class="cp-canales" role="table" aria-label="{{label}}">
+            <div class="cp-canales-fila cp-canales-cols" role="row"><span role="columnheader">{{first}}</span>{{#cols}}<span role="columnheader">{{name}}</span>{{/cols}}</div>
+            {{#blocks}}
+            <div class="cp-canales-bloque" role="rowgroup">
+                <div class="cp-canales-fila cp-canales-suma" role="row"><span role="rowheader">{{name}}</span>{{#cells}}<span role="cell"><b>{{n}}</b>{{#of}} <small>{{of}}</small>{{/of}}</span>{{/cells}}</div>
+                {{#rows}}
+                <div class="cp-canales-fila" role="row"><span role="rowheader">{{name}}</span>{{#cells}}<span role="cell"><b>{{n}}</b>{{#of}} <small>{{of}}</small>{{/of}}{{^nobar}}<i class="cp-celda-pista" aria-hidden="true">{{#v}}<i style="--v: {{v}}"></i>{{/v}}</i>{{/nobar}}</span>{{/cells}}</div>
+                {{/rows}}
+                {{#money}}<p class="cp-canales-dinero">{{money}}</p>{{/money}}
+            </div>
+            {{/blocks}}
+        </div>
+        {{/channels}}
+
+        {{#ledger}}
+        <ul class="cp-registro">{{#rows}}<li{{#strong}} class="cp-registro-fuerte"{{/strong}}><b>{{n}}</b><span>{{text}}{{#sub}}<small>{{sub}}</small>{{/sub}}</span></li>{{/rows}}</ul>
+        {{/ledger}}
+
+        {{#survey}}
+        <div class="cp-dijeron">
+            {{#scale}}
+            <div class="cp-escala">
+                <p class="cp-escala-dicho">{{said}}</p>
+                <ul class="cp-barras">{{#rows}}<li><span class="cp-barra-nombre">{{name}}</span><b>{{n}}</b><span class="cp-barra-pista" aria-hidden="true">{{#v}}<i style="--v: {{v}}"></i>{{/v}}</span></li>{{/rows}}</ul>
+            </div>
+            {{/scale}}
+            {{#asked}}
+            <div class="cp-preguntaron">
+                <h3>{{title}}</h3>
+                <ul class="cp-barras">{{#rows}}<li><span class="cp-barra-nombre">{{text}}</span><b>{{n}}</b><span class="cp-barra-pista" aria-hidden="true">{{#v}}<i style="--v: {{v}}"></i>{{/v}}</span></li>{{/rows}}</ul>
+            </div>
+            {{/asked}}
+            {{#quotes.0}}<div class="cp-citas">{{#quotes}}<blockquote><p>{{text}}</p></blockquote>{{/quotes}}</div>{{/quotes.0}}
+        </div>
+        {{/survey}}
+
+        {{#weeks}}
+        <figure class="cp-semanas">
+            <ol class="cp-columnas" style="--n: {{count}}">{{#rows}}<li><span class="cp-columna" aria-hidden="true">{{#g}}<i class="cp-columna-antes" style="--v: {{g}}"></i>{{/g}}<i class="cp-columna-ahora" style="--v: {{v}}"></i></span><b aria-hidden="true">{{n}}</b><span class="cp-columna-rotulo" aria-hidden="true">{{label}}</span><span class="cp-oculto">{{said}}</span></li>{{/rows}}</ol>
+            <figcaption class="cp-claves">{{#keys}}<span><i class="cp-clave-ahora" aria-hidden="true"></i>{{now}}</span><span><i class="cp-clave-antes" aria-hidden="true"></i>{{before}}</span>{{/keys}}{{#partial}}<span class="cp-claves-nota">{{partial}}</span>{{/partial}}</figcaption>
+        </figure>
+        {{/weeks}}
+
+        {{#places}}
+        <div class="cp-plazas">
+            {{#rows}}
+            <div class="cp-plaza">
+                <p class="cp-plaza-nombre"><b>{{name}}</b>{{#sub}} <small>{{sub}}</small>{{/sub}}</p>
+                <div class="cp-plaza-pista" aria-hidden="true"><i class="cp-plaza-hueco" style="--v: {{vp}}"></i><i class="cp-plaza-pedidas" style="--v: {{va}}"></i><i class="cp-plaza-hechas" style="--v: {{vt}}"></i>{{#hasrange}}<i class="cp-plaza-prevision" style="--a: {{vl}}; --b: {{vh}}"></i>{{/hasrange}}</div>
+                <p class="cp-plaza-cifras"><span><b>{{taken}}</b> {{takenword}}</span><span><b>{{asked}}</b> {{askedword}}</span><span><b>{{places}}</b> {{placesword}}</span>{{#hasrange}}<span>{{rangeword}} <b>{{low}}–{{high}}</b></span>{{/hasrange}}</p>
+            </div>
+            {{/rows}}
+            {{#keys}}<p class="cp-claves"><span><i class="cp-clave-hechas" aria-hidden="true"></i>{{taken}}</span><span><i class="cp-clave-pedidas" aria-hidden="true"></i>{{asked}}</span><span><i class="cp-clave-plazas" aria-hidden="true"></i>{{places}}</span><span><i class="cp-clave-prevision" aria-hidden="true"></i>{{range}}</span></p>{{/keys}}
+        </div>
+        {{/places}}
+
+        {{#table}}
+        <div class="cp-tabla" role="table" aria-label="{{label}}">
+            <div class="cp-tabla-fila cp-tabla-cols" role="row" style="--cols: {{count}}"><span role="columnheader">{{first}}</span>{{#cols}}<span role="columnheader">{{name}}</span>{{/cols}}</div>
+            {{#rows}}
+            <div class="cp-tabla-fila{{#current}} cp-tabla-esta{{/current}}" role="row" style="--cols: {{count}}"><span role="rowheader"><b>{{name}}</b>{{#when}}<small>{{when}}</small>{{/when}}{{#tag}}<small class="cp-etiqueta">{{tag}}</small>{{/tag}}</span>{{#cells}}<span role="cell">{{#missing}}<em class="cp-sin">{{missing}}</em>{{/missing}}{{^missing}}<b>{{n}}</b>{{#v}}<i class="cp-celda-pista" aria-hidden="true"><i style="--v: {{v}}"></i></i>{{/v}}{{/missing}}{{#sub}}<small>{{sub}}</small>{{/sub}}</span>{{/cells}}</div>
+            {{/rows}}
+        </div>
+        {{#foot}}<p class="cp-pie-tabla">{{foot}}</p>{{/foot}}
+        {{/table}}
+        {{#defs.0}}<div class="cp-como"><p class="cp-como-dice">{{howcounted}}</p>{{#defs}}<p>{{text}}</p>{{/defs}}</div>{{/defs.0}}
+    </section>
+    {{/sections}}
+
+    <div class="cp-final">
+    <section class="cp-fuentes cp-entera" aria-labelledby="cp-t-fuentes">
+        <h2 id="cp-t-fuentes">{{sources.title}}</h2>
+        <ul class="cp-fuentes-lista">{{#sources.rows}}<li><b>{{name}}</b> <span>{{when}}</span> <span>{{what}}</span></li>{{/sources.rows}}</ul>
+        <ul class="cp-metodo">{{#sources.method}}<li>{{text}}</li>{{/sources.method}}</ul>
+        <p class="cp-sin-nombres">{{sources.privacy}}</p>
+    </section>
+
+    <footer class="cp-colofon cp-entera">
+        {{#centre.brand.0}}<div class="cp-franja" aria-hidden="true">{{#centre.brand}}<i style="background-color: {{code}}"></i>{{/centre.brand}}</div>{{/centre.brand.0}}
+        <div class="cp-colofon-cuerpo">
+            <img class="cp-hecho-logo" src="{{made.logo}}" alt="Eguahe">
+            <div>
+                <p class="cp-colofon-sobre">{{made.about}}</p>
+                <p class="cp-colofon-linea"><b>{{made.line}}</b> · <a href="{{made.url}}">{{made.site}}</a></p>
+            </div>
+        </div>
+    </footer>
+    </div>
+</main>
+</body>
+</html>

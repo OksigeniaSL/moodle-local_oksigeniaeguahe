@@ -76,6 +76,13 @@ class act_report {
     protected static $facts = [];
 
     /**
+     * Forgets the facts kept while a report is made: the next one works them out from the families as they are now.
+     */
+    public static function forget(): void {
+        self::$facts = [];
+    }
+
+    /**
      * Who was at an act and what they did after, as lists of families.
      *
      * @param \stdClass $centre
@@ -341,7 +348,8 @@ class act_report {
             'place' => $event ? format_string((string) $event->place) : '', 'year' => $people['year'],
             'question' => self::question($act, $now),
             'answer' => self::answer($act, $rows, $lists, $now),
-            'url' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id, 'acto' => $key]))->out(false)];
+            'url' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id, 'acto' => $key]))->out(false),
+            'shareurl' => (new \moodle_url('/local/oksigeniaeguahe/compartir.php', ['c' => $centre->id, 'acto' => $key]))->out(false)];
         $out['figures'] = array_values(array_filter([$num('signed', 0, ['split' => self::split($rows['signed'], $lists)]),
             $past ? $num('came', $signed, ['split' => self::split($rows['came'], $lists)]) : null,
             $rows['walkin'] ? $num('walkin') : null, $rows['notcame'] ? $num('notcame', $signed) : null,
@@ -695,9 +703,11 @@ class act_report {
             $hours = max(0, ($act['end'] - $act['time']) / HOURSECS) * max(1, count(array_filter(explode(',', (string) ($act['event']->hosts ?? '')))));
             $hours += array_sum(panel_newstudents::written((int) $centre->id)['event'][(int) $act['event']->id] ?? []);
         }
-        return ['known' => $amount !== null, 'text' => $amount === null ? get_string('panel_new_money_none', $c) : centres::money($centre, $amount),
+        return ['known' => $amount !== null, 'amount' => (float) $amount,
+            'text' => $amount === null ? get_string('panel_new_money_none', $c) : centres::money($centre, $amount),
             'each' => $amount && $came ? get_string('actr_spend_each', $c, centres::money($centre, $amount / $came)) : '',
             'hours' => $hours > 0 ? get_string('actr_spend_hours', $c, panel_newstudents::hours($hours)) : '',
+            'teamhours' => $hours > 0 ? panel_newstudents::hours($hours) : '',
             'url' => (new \moodle_url('/local/oksigeniaeguahe/metrics.php', ['c' => $centre->id, 'hoja' => 'curso'], 'publicidad'))->out(false)];
     }
 
