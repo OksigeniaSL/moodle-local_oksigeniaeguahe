@@ -38,7 +38,7 @@ use local_oksigeniaeguahe\local\invites;
 
 [$options, $unrecognised] = cli_get_params(
     ['centre' => 0, 'email' => '', 'name' => '', 'phone' => '', 'child' => 'Leo', 'course' => '', 'lang' => '', 'event' => 0,
-        'mail' => 'received', 'unsubscribe' => false, 'plain' => false, 'enrol' => 0, 'remove' => 0, 'whatsapp' => 0, 'dry' => false,
+        'mail' => 'received', 'plain' => false, 'enrol' => 0, 'remove' => 0, 'whatsapp' => 0, 'dry' => false,
         'help' => false],
     ['h' => 'help']
 );
@@ -57,7 +57,6 @@ Make it and send it a real mail:
   --course=TEXT     The course it asks for: the first of the offer whose name has this text (the first one if not given).
   --lang=es         The language of the family (that of the centre if not given).
   --mail=received   The mail: received (we got your message), or openinvite with --event=ID (the letter of an act).
-  --unsubscribe     The letter with the header that unsubscribes in one touch.
   --plain           The letter as text only.
 
 Then:
@@ -170,8 +169,7 @@ if ($options['mail'] === 'openinvite') {
     if (!$event) {
         cli_error('An open act of the centre is needed: --event=ID.');
     }
-    // To compare how the letter arrives: with the header that unsubscribes in one touch, and as text only.
-    $CFG->forced_plugin_settings['local_oksigeniaeguahe']['letterunsubscribe'] = (int) !empty($options['unsubscribe']);
+    // To compare how the letter arrives: as text only.
     $CFG->forced_plugin_settings['local_oksigeniaeguahe']['letterplain'] = (int) !empty($options['plain']);
     $sent = familymail::send(
         'openinvite',
