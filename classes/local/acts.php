@@ -577,8 +577,7 @@ class acts {
      * @return string
      */
     public static function letter_place(\stdClass $act, \stdClass $centre, string $lang): string {
-        // The street is enough in a letter to somebody of the place; the page it opens has the whole address.
-        $address = trim(preg_replace('/[\s,·-]*\b\d{4,5}(-\d{3,4})?\b.*$/us', '', trim((string) ($centre->address ?? ''))));
+        $address = self::street($centre);
         $place = html_entity_decode(format_string(trim((string) ($act->place ?? ''))), ENT_QUOTES, 'UTF-8');
         if ($place === '' && $address === '') {
             return '';
@@ -593,6 +592,29 @@ class acts {
             }
         }
         return publiclang::str('mail_letter_place', $lang, implode(', ', array_filter([$place, $address])));
+    }
+
+    /**
+     * Where an act is, as a datum of a letter: its place and the street of the centre («Biblioteca, Calle Mayor 3»).
+     *
+     * @param \stdClass $act
+     * @param \stdClass $centre
+     * @return string Empty when neither is known.
+     */
+    public static function where(\stdClass $act, \stdClass $centre): string {
+        $place = html_entity_decode(format_string(trim((string) ($act->place ?? ''))), ENT_QUOTES, 'UTF-8');
+        return implode(', ', array_filter([$place, self::street($centre)], fn($p) => $p !== ''));
+    }
+
+    /**
+     * The street of a centre, without its postcode and town: enough in a letter to somebody of the place; the page it
+     * opens has the whole address.
+     *
+     * @param \stdClass $centre
+     * @return string
+     */
+    protected static function street(\stdClass $centre): string {
+        return trim(preg_replace('/[\s,·-]*\b\d{4,5}(-\d{3,4})?\b.*$/us', '', trim((string) ($centre->address ?? ''))));
     }
 
     /**

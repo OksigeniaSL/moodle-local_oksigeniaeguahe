@@ -426,16 +426,15 @@ class panel_eventform {
         }
         $act = actmail::act('change', $signup, $centre);
         if ($act) {
-            // Of a talk or a party: what it is and when and where it is now, to the adult, and nobody who receives them.
+            // Of a talk or a party, as its letter says it: what changed, and the data with how it was under what changed.
             $first = familymail::first_name($household);
             $lines = actmail::lines($act, $signup, $centre, $lang);
-            $before = $was ? "\n" . publiclang::str('mail_act_change_was', $lang, rtrim(
-                actmail::lines($act, $was, $centre, $lang)[0] ?? '',
-                '.'
-            )) : '';
+            $before = $old ? self::preview_signup($household, $centre, $old) : null;
+            $rows = array_map(fn($r) => $r['label'] . ': ' . $r['value'], actmail::rows($act, $signup, $centre, $lang, $before));
             return ['greeting' => $first !== '' ? publiclang::str('mail_letter_hello', $lang, $first) :
-                publiclang::str('mail_letter_hello_noname', $lang), 'text' => actmail::changed($act, $lang) . "\n\n" .
-                implode("\n", $lines) . $before, 'when' => rtrim($lines[0] ?? '', '.')];
+                publiclang::str('mail_letter_hello_noname', $lang), 'text' => actmail::change_heading($act, $signup, $before, $lang) .
+                "\n\n" . publiclang::str('mail_act_change_lead', $lang) . "\n" . implode("\n", $rows),
+                'when' => rtrim($lines[0] ?? '', '.')];
         }
         $names = array_values(array_filter(array_map(
             fn($a) => greeting::name((string) $a->firstname, trim((string) $a->lastname) !== ''),
@@ -486,6 +485,12 @@ class panel_eventform {
             $lang = $household->lang ?: $centre->lang;
             $message = self::message($household, $centre, $signup, $lang, $old);
             $text = trim($message['greeting'] . "\n\n" . $message['text']);
+            // What goes in the letter: of an act, the letter says it itself, from how it was (the words the team read).
+            $letter = $text;
+            if (actmail::act('change', $signup, $centre)) {
+                $signup->was = $old ? self::preview_signup($household, $centre, $old) : null;
+                $letter = '';
+            }
             $sent = false;
             ob_start();
             try {
@@ -497,7 +502,7 @@ class panel_eventform {
                     $lang,
                     households::new_link($household, 'change'),
                     null,
-                    $text
+                    $letter
                 );
             } catch (\Throwable $e) {
                 $sent = false;

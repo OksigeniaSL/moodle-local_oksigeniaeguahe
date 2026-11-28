@@ -1066,7 +1066,7 @@ class panel_event {
         $c = self::C;
         $lang = (string) ($centre->lang ?: 'es');
         publiclang::$self = false;
-        [$subject, $html, $text] = familymail::letter(
+        [$subject, , , , $letter] = familymail::letter(
             '[[n]]',
             $centre,
             invites::of_letter($event),
@@ -1075,20 +1075,22 @@ class panel_event {
             '[[w]]',
             $ofcentre
         );
-        [$before, $after] = explode('[[w]]', $text, 2);
+        [$before, $after] = explode('[[w]]', $letter['words'], 2);
         $gap = '<span class="su-nombre">' . s(get_string('panel_invite_name_here', $c)) . '</span>';
         $after = s(trim($after));
-        if (!get_config($c, 'letterplain') && preg_match('~<a href="([^"]+)">(.*?)</a>~', $html, $link)) {
-            // What the link says goes once: in the text alone it is said before the address.
-            $words = '<span class="va-enlace">' . $link[2] . '</span>';
-            $after = str_replace([$link[2] . ":\n" . $link[1], $link[1]], [$words, $words], $after);
+        if (!get_config($c, 'letterplain')) {
+            // What the button says goes once: in the text alone it is said before the address.
+            $go = s($letter['go']);
+            $url = s($letter['url']);
+            $words = '<span class="va-enlace">' . $go . '</span>';
+            $after = str_replace([$go . ":\n" . $url, $url], [$words, $words], $after);
         }
         $langs = [];
         foreach ($all as $household) {
             $its = in_array($household->lang, lists::LANGS, true) ? $household->lang : $lang;
             $langs[$its] = ($langs[$its] ?? 0) + 1;
         }
-        $notes = [get_string('panel_invite_note_plain', $c)];
+        $notes = [get_string(get_config($c, 'letterplain') ? 'panel_invite_note_plain' : 'panel_invite_note_mould', $c)];
         if (count($langs) > 1) {
             arsort($langs);
             $names = array_map(fn($code, $n) => get_string('panel_invite_in_lang', $c, (object) ['n' => $n,

@@ -17,8 +17,8 @@
 namespace local_oksigeniaeguahe\local;
 
 /**
- * What a family gets after saying it comes to an act that is not a visit (a talk, a workshop, a party): plain letters, as
- * the one that invited it, to the adult and about the act. Nothing of a visit to the centre is said there: not the child,
+ * What a family gets after saying it comes to an act that is not a visit (a talk, a workshop, a party): letters in the
+ * common mail, as the one that invited it, to the adult and about the act. Nothing of a visit to the centre is said there: not the child,
  * nor its backpack, nor who receives it. The confirmation, the reminder, a change, that it will not be held and, only when
  * the team asks how it went, the thanks.
  *
@@ -76,12 +76,23 @@ class actmail {
      */
     protected static function when(\stdClass $signup, string $lang): array {
         $parts = publicpage::date_parts((int) $signup->timestart, $lang);
-        $hours = (int) $signup->timeend > (int) $signup->timestart ?
-            familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang) :
-            publiclang::str('mail_at_hour', $lang, $parts['hour']);
-        $hours = \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1);
+        $hours = self::hours($signup, $lang);
         return [$parts['long'] . (lists::dir($lang) === 'rtl' ? '، ' : ', ') . $hours, $parts['daymonth'], $parts['hour'],
             $parts['long']];
+    }
+
+    /**
+     * The hours of an act alone: «de 15:00 a 16:30», or «a las 15:00».
+     *
+     * @param \stdClass $signup
+     * @param string $lang
+     * @return string
+     */
+    protected static function hours(\stdClass $signup, string $lang): string {
+        $hours = (int) $signup->timeend > (int) $signup->timestart ?
+            familypage::hours((int) $signup->timestart, (int) $signup->timeend, $lang) :
+            publiclang::str('mail_at_hour', $lang, publicpage::date_parts((int) $signup->timestart, $lang)['hour']);
+        return \core_text::strtolower(\core_text::substr($hours, 0, 1)) . \core_text::substr($hours, 1);
     }
 
     /**
@@ -117,18 +128,84 @@ class actmail {
     }
 
     /**
-     * That an act changes, in a sentence.
+     * What changed of an act: its day, its hour (the same day), its place.
+     *
+     * @param \stdClass $signup As it is now.
+     * @param \stdClass|null $was As it was (timestart, timeend, place); null when it is not known.
+     * @return string[] Some of day, hour and place.
+     */
+    public static function what_changed(\stdClass $signup, ?\stdClass $was): array {
+        if (!$was) {
+            return [];
+        }
+        $out = [];
+        $day = fn($t) => userdate((int) $t, '%Y-%m-%d', 99, false);
+        if ((int) $was->timestart !== (int) $signup->timestart || (int) $was->timeend !== (int) $signup->timeend) {
+            $out[] = $day($was->timestart) !== $day($signup->timestart) ? 'day' : 'hour';
+        }
+        if (trim((string) ($was->place ?? '')) !== trim((string) ($signup->place ?? ''))) {
+            $out[] = 'place';
+        }
+        return $out;
+    }
+
+    /**
+     * The title of a change, by what changed: «Cambia la hora: …», «Cambia el día: …», «Cambia el sitio: …», or «Hay
+     * cambios: …» when it is more than one or not known.
      *
      * @param \stdClass $event
+     * @param \stdClass $signup
+     * @param \stdClass|null $was
      * @param string $lang
      * @return string
      */
-    public static function changed(\stdClass $event, string $lang): string {
-        return publiclang::str('mail_act_change_' . self::key($event), $lang, trim(html_entity_decode(
-            format_string($event->name),
-            ENT_QUOTES,
-            'UTF-8'
-        )));
+    public static function change_heading(\stdClass $event, \stdClass $signup, ?\stdClass $was, string $lang): string {
+        $changed = self::what_changed($signup, $was);
+        return publiclang::str(
+            'mail_act_change_heading_' . (count($changed) === 1 ? $changed[0] : 'many'),
+            $lang,
+            trim(html_entity_decode(format_string($event->name), ENT_QUOTES, 'UTF-8'))
+        );
+    }
+
+    /**
+     * The data of an act at a glance: when, where and how many people come («places» would read as a place at the
+     * centre); under what changed, how it was.
+     *
+     * @param \stdClass $event
+     * @param \stdClass $signup
+     * @param \stdClass $centre
+     * @param string $lang
+     * @param \stdClass|null $was As it was, in a change.
+     * @return array[] label and value.
+     */
+    public static function rows(\stdClass $event, \stdClass $signup, \stdClass $centre, string $lang, ?\stdClass $was = null): array {
+        $str = fn(string $id) => publiclang::str($id, $lang);
+        $cap = fn(string $s) => \core_text::strtoupper(\core_text::substr($s, 0, 1)) . \core_text::substr($s, 1);
+        $changed = self::what_changed($signup, $was);
+        $rows = [['label' => $str('mail_act_row_when'), 'value' => $cap(self::when($signup, $lang)[0])]];
+        if (array_intersect($changed, ['day', 'hour'])) {
+            // Under it, only what changed: the hours of the same day, the day at the same hours, or both.
+            $hours = self::hours($was, $lang);
+            $day = publicpage::date_parts((int) $was->timestart, $lang)['long'];
+            $before = in_array('hour', $changed, true) ? $hours : (self::hours($signup, $lang) === $hours ? $day :
+                self::when($was, $lang)[0]);
+            $rows[] = ['label' => $str('mail_act_row_before'), 'value' => $cap($before)];
+        }
+        $where = acts::where($event, $centre);
+        if ($where !== '') {
+            $rows[] = ['label' => $str('mail_act_row_where'), 'value' => $where];
+        }
+        if (in_array('place', $changed, true)) {
+            $before = acts::where((object) ['place' => (string) ($was->place ?? '')], $centre);
+            if ($before !== '' && $before !== $where) {
+                $rows[] = ['label' => $str('mail_act_row_before'), 'value' => $before];
+            }
+        }
+        if (empty($signup->invited) && (int) ($signup->people ?? 0) > 0) {
+            $rows[] = ['label' => $str('mail_act_row_people'), 'value' => (string) (int) $signup->people];
+        }
+        return $rows;
     }
 
     /**
@@ -187,108 +264,103 @@ class actmail {
     ): array {
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $plain = fn(string $s) => trim(html_entity_decode($s, ENT_QUOTES, 'UTF-8'));
-        $key = self::key($event);
         $name = $plain(format_string($event->name));
-        [$when, $day, $hour, $date] = self::when($signup, $lang);
-        // Each is a paragraph: lines of words, and links [words, address].
+        [, $day, $hour, $date] = self::when($signup, $lang);
         $first = familymail::first_name($household, $to);
-        $hello = $first !== '' ? $str('mail_letter_hello', $first) : $str('mail_letter_hello_noname');
-        $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\R{2,}/', trim($text)))));
-        $links = [];
-        $calendar = $token !== '' ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token, 'e' => $event->id,
-            'de' => $kind]))->out(false) : '';
-        if ($calendar !== '' && empty($signup->invited)) {
-            $links[] = [$str('pub_add_calendar'), $calendar];
-        }
-        $address = trim((string) ($centre->address ?? ''));
-        if ($address !== '') {
-            $links[] = [$str('pub_how_get'), centres::map_url($centre)];
-        }
-        $answer = self::answer_url($event, $token, $lang, $kind, true);
-        // The letter spoke of what it is about; here, of its title: both, so it is known to be the same.
-        $topic = trim((string) strtok(acts::topic($event), ':'));
-        $about = $topic !== '' && \core_text::strpos(recognise::plain($name), recognise::plain($topic)) === false ?
-            publiclang::str('mail_letter_about', $lang, $topic) : '';
-        $withabout = fn(string $said) => $about === '' ? $said : rtrim($said, '.') . ',' . $about . '.';
-        // One that only has its letter says there whether it comes.
-        $cant = !empty($signup->invited) ? ($answer !== '' ? [[$str('mail_act_invited_answer'), [[$str('mail_act_invited_go'),
-            self::answer_url($event, $token, $lang, $kind)]]]] : []) :
-            ($answer !== '' ? [[$str('mail_act_cantcome'), [[$str('mail_cant_come_go'), $answer]]]] : []);
-        $body = [];
-        if ($kind === 'confirmation') {
-            $body[] = [$hello, []];
-            $body[] = [$withabout(self::saved($event, $lang)), []];
-            $body[] = [implode("\n", array_merge(self::lines($event, $signup, $centre, $lang), [publiclang::count(
-                'pub_people_one',
-                'pub_people_count',
-                max(1, (int) $signup->people),
-                $lang
-            ) . '.'])), []];
-            $body[] = ['', $links];
-            $body = array_merge($body, $cant);
-        } else if ($kind === 'reminder') {
-            $body[] = [$hello, []];
-            $body[] = [implode(' ', array_filter([$withabout($str('mail_act_tomorrow_' . $key, (object) ['when' => $when,
-                'event' => $name])), acts::letter_place($event, $centre, $lang)])), []];
-            $body[] = ['', array_slice($links, 1)];
-            $body = array_merge($body, $cant);
-        } else if ($kind === 'change') {
-            // As the team read it before sending it (panel_eventform::message()); whole here when there is none.
-            $lines = implode("\n", self::lines($event, $signup, $centre, $lang));
-            foreach ($paragraphs ?: [$hello, self::changed($event, $lang), $lines] as $paragraph) {
-                $body[] = [$paragraph, []];
-            }
-            $body[] = ['', $links];
-            $body = array_merge($body, $cant);
-        } else if ($kind === 'cancelled') {
-            $body[] = [$hello, []];
-            $body[] = [$str('mail_act_off_' . $key, (object) ['event' => $name, 'date' => $date]), []];
-            foreach ($paragraphs as $paragraph) {
-                $body[] = [$paragraph, []];
-            }
-        } else {
-            $body[] = [$hello, []];
-            $body[] = [$str('mail_act_thanks_' . $key, $name), []];
-            if ($token !== '') {
-                $body[] = [$str('mail_act_survey'), [[$str('mail_act_survey_go'), (new \moodle_url(
-                    '/local/oksigeniaeguahe/f.php',
-                    ['k' => $token, 'idioma' => $lang, 'de' => $kind]
-                ))->out(false) . '#como-fue']]];
-            }
-        }
-        $body[] = [implode("\n", array_filter([$str('mail_letter_bye'), $plain(format_string($centre->name)),
-            familymail::ltr(trim((string) ($centre->phone ?? '')), $lang)], fn($l) => trim($l) !== '')), []];
-        // Why it reaches them, how to change the ways and what is done with their data: small, at the end.
-        $foot = [];
-        if ($token !== '') {
-            $foot[] = [$str('mail_act_ways'), writeby::url($token, $lang, '', $kind)];
-        }
-        $foot[] = [$str('pub_privacy_link'), publicpage::privacy_url($centre, $lang)->out(false)];
-        // After it, because they came: what they had said before is of no use. And one that only has its letter, because of it.
-        $why = $kind === 'thanks' ? $str('mail_act_why_came', $name) : (empty($signup->invited) ? $str('mail_act_why_' . $key, $name) :
-            $str('mail_act_why_invited', $name));
-
-        $lines = [];
-        $html = '';
-        $p = fn(string $inside, string $style = '') => '<p style="margin:0 0 1em' . $style . '">' . $inside . '</p>';
-        $a = fn(array $link) => '<a href="' . s($link[1]) . '">' . s($link[0]) . '</a>';
-        foreach ($body as [$words, $under]) {
-            if ($words === '' && !$under) {
-                continue;
-            }
-            $lines[] = trim($words . ($under ? ($words !== '' ? "\n" : '') . implode("\n", array_map(
-                fn($l) => $l[0] . ': ' . $l[1],
-                $under
-            )) : ''));
-            $html .= $p(trim(nl2br(s($words), false) . ' ' . implode(' · ', array_map($a, $under))));
-        }
-        $lines[] = $why . "\n" . implode("\n", array_map(fn($l) => $l[0] . ': ' . $l[1], $foot));
-        $html .= $p(s($why) . '<br>' . implode(' · ', array_map($a, $foot)), ';font-size:13px');
+        $invited = !empty($signup->invited);
+        // What the team adds, for a change or when it is called off: its own paragraphs, after the data.
+        $words = array_map(fn($p) => ['paragraph' => $p], array_values(array_filter(array_map(
+            'trim',
+            preg_split('/\R{2,}/', trim($text))
+        ))));
+        $calendar = $token !== '' && !$invited ? (new \moodle_url('/local/oksigeniaeguahe/ics.php', ['k' => $token,
+            'e' => $event->id, 'de' => $kind]))->out(false) : '';
+        $map = trim((string) ($centre->address ?? '')) !== '' ? centres::map_url($centre) : '';
+        $survey = $token !== '' ? (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang,
+            'de' => $kind]))->out(false) . '#como-fue' : '';
         $subject = self::subject($kind, $event, $lang, ['day' => $day, 'hour' => $hour, 'event' => $name]);
-        return [$subject, '<!DOCTYPE html><html lang="' . ($lang === 'pt_br' ? 'pt-BR' : s($lang)) . '" dir="' . lists::dir($lang) .
-            '"><head><meta charset="utf-8"><title>' . s($subject) . '</title></head><body><div dir="' . lists::dir($lang) .
-            '" style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5">' . $html . '</div></body></html>',
-            implode("\n\n", $lines) . "\n", []];
+
+        // The title says the news and the act, without the date, which goes in the data; the first line does not repeat it.
+        $blocks = [];
+        $button = false;
+        $links = [];
+        if ($kind === 'confirmation') {
+            $heading = $str('mail_act_confirm_heading', $name);
+            $blocks[] = ['paragraph' => $str('mail_act_confirm_lead')];
+            $blocks[] = ['data' => self::rows($event, $signup, $centre, $lang)];
+            $button = $calendar !== '' ? [$str('pub_add_calendar'), $calendar] : false;
+            $links[] = $map !== '' ? [$str('pub_how_get'), $map] : null;
+        } else if ($kind === 'reminder') {
+            $heading = $str('mail_act_remind_heading', $name);
+            $blocks[] = ['paragraph' => $str('mail_act_remind_lead')];
+            $blocks[] = ['data' => self::rows($event, $signup, $centre, $lang)];
+            $button = $map !== '' ? [$str('pub_how_get'), $map] : false;
+        } else if ($kind === 'change') {
+            $was = isset($signup->was) && is_object($signup->was) ? $signup->was : null;
+            $heading = self::change_heading($event, $signup, $was, $lang);
+            $blocks[] = ['paragraph' => $str('mail_act_change_lead')];
+            $blocks[] = ['data' => self::rows($event, $signup, $centre, $lang, $was)];
+            $blocks = array_merge($blocks, $words);
+            // The calendar file keeps its UID and a higher SEQUENCE: it changes the date already saved, it does not add one.
+            $button = $calendar !== '' ? [$str('mail_act_change_button'), $calendar] : false;
+            $links[] = $map !== '' ? [$str('pub_how_get'), $map] : null;
+        } else if ($kind === 'cancelled') {
+            $heading = $str('mail_act_off_heading', $name);
+            $blocks[] = ['paragraph' => $str('mail_act_off_lead', $date)];
+            $blocks = array_merge($blocks, $words);
+        } else {
+            $heading = $subject;
+            $blocks[] = ['paragraph' => $str('mail_act_thanks_lead', $name)];
+            $button = $survey !== '' ? [$str('mail_act_survey_button'), $survey] : false;
+        }
+        if ($button) {
+            $blocks[] = ['action' => ['actionurl' => $button[1], 'actiontext' => $button[0]]];
+        }
+        foreach (array_filter($links) as $link) {
+            $blocks[] = ['link' => ['linkurl' => $link[1], 'linktext' => $link[0]]];
+        }
+        // Saying they do not come, in one line with its words; one that only has its letter says there whether it comes.
+        $answer = in_array($kind, ['confirmation', 'reminder', 'change'], true) ? self::answer_url(
+            $event,
+            $token,
+            $lang,
+            $kind,
+            !$invited
+        ) : '';
+        if ($answer !== '') {
+            $blocks[] = ['link' => ['linkbefore' => $str($invited ? 'mail_act_invited_answer' : 'mail_act_cantcome'),
+                'linkurl' => $answer, 'linktext' => $str($invited ? 'mail_act_invited_go' : 'mail_cant_come_go')]];
+        }
+        // How they are written to, as a sentence of the centre: the ways it has besides the email.
+        if ($token !== '') {
+            $phones = array_values(array_diff(writeby::channels($centre), ['email']));
+            $by = array_map(fn($c) => $str('pub_writeby_by_' . $c), $phones);
+            $better = count($by) > 1 ? $str('mail_act_or2', (object) ['a' => $by[0], 'b' => $by[1]]) : ($by[0] ?? '');
+            $blocks[] = ['link' => ['linkbefore' => $better !== '' ? $str('mail_act_ways_better', $better) : '',
+                'linkurl' => writeby::url($token, $lang, '', $kind), 'linktext' => $str('mail_act_ways')]];
+        }
+        // Why it reaches them: after it, because they came; one that only has its letter, because of it.
+        $key = self::key($event);
+        $why = $kind === 'thanks' ? $str('mail_act_why_came', $name) : ($invited ? $str('mail_act_why_invited', $name) :
+            $str('mail_act_why_' . $key, $name));
+        // Signed by who receives them: the one who will open the door. If nobody, the centre.
+        $ids = array_filter(array_map('intval', explode(',', (string) ($event->hosts ?? ''))));
+        $host = $ids ? (centres::hosts((int) $centre->id, $ids)[0] ?? null) : null;
+        $whatsapp = centres::whatsapp($centre, $lang);
+        $phone = familymail::ltr(phone::display(trim((string) ($centre->phone ?? ''))), $lang);
+        [$html, $text, $images] = commonmail::make($centre, $lang, [
+            'subject' => $subject,
+            'preheader' => (string) ($blocks[0]['paragraph'] ?? ''),
+            'heading' => $heading,
+            'hello' => $first !== '' ? $str('mail_letter_hello', $first) : $str('mail_letter_hello_noname'),
+            'blocks' => $blocks,
+            'signature' => ['signoff' => $str('mail_letter_bye'), 'signer' => $host ? $host->name : $plain(format_string($centre->name)),
+                'signrole' => $host ? (string) $host->role : ''],
+            'contact' => implode(' · ', array_filter([$phone, $whatsapp && !$whatsapp['same'] ? 'WhatsApp ' .
+                familymail::ltr($whatsapp['text'], $lang) : ''])),
+            'reason' => $why,
+        ]);
+        return [$subject, $html, $text, $images];
     }
 
     /**

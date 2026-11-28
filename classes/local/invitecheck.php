@@ -142,9 +142,16 @@ class invitecheck {
      */
     public static function mark(\stdClass $event, \stdClass $centre): string {
         publiclang::$self = false;
-        [$subject, , $text] = familymail::letter('', $centre, invites::of_letter($event), (string) ($centre->lang ?: 'es'), '', (string)
-            ($event->invitewords ?? ''));
-        return sha1($subject . "\n" . $text);
+        // By its words, which are what a person reads when trying it on.
+        [$subject, , , , $letter] = familymail::letter(
+            '',
+            $centre,
+            invites::of_letter($event),
+            (string) ($centre->lang ?: 'es'),
+            '',
+            (string) ($event->invitewords ?? '')
+        );
+        return sha1($subject . "\n" . $letter['words']);
     }
 
     /**

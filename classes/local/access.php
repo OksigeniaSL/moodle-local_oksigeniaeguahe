@@ -183,10 +183,10 @@ class access {
         $subject = $str('pub_code_mail_subject', (object) ['code' => $code, 'centre' => $name]);
         $lead = $str('pub_code_mail_lead_' . $what);
         $foot = $str('pub_code_mail_foot');
-        [$html, $text] = self::letter($centre, $lang, $lead, '<p style="margin:18px 0; font-size:34px; font-weight:800; ' .
-            'letter-spacing:6px; font-family:Menlo,Consolas,monospace;">' . s($code) . '</p>', $code, $foot);
+        // The title, short: the subject keeps the digits first, which a phone shows in its notice.
+        [$html, $text, $images] = self::letter($centre, $lang, $str('pub_code_mail_heading'), $lead, ['code' => $code], $foot);
         foreach ($emails as $email) {
-            mail::send_rich($centre, $email, $subject, $html, $text);
+            mail::send_rich($centre, $email, $subject, $html, $text, $images);
         }
         // The team sees it in the history: if the family calls about a code, the file says why it came.
         households::note($household, 0, get_string_manager()->get_string(
@@ -377,21 +377,17 @@ class access {
         $url = (new \moodle_url('/local/oksigeniaeguahe/f.php', ['k' => $token, 'idioma' => $lang]))->out(false);
         $str = fn(string $id, $a = null) => publiclang::str($id, $lang, $a);
         $name = format_string($centre->name);
-        // A button as Outlook draws one too: a cell with its colour and padding, the link inside.
-        $button = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0;"><tr>' .
-            '<td bgcolor="#3d2a35" style="background:#3d2a35; border-radius:10px; mso-padding-alt:12px 20px;">' .
-            '<a href="' . s($url) . '" style="display:inline-block; padding:12px 20px; color:#ffffff; font-weight:700; ' .
-            'text-decoration:none;">' . s($str('pub_newlink_mail_open')) . '</a></td></tr></table>';
-        [$html, $text] = self::letter(
+        $subject = $str('pub_newlink_mail_subject', $name);
+        [$html, $text, $images] = self::letter(
             $centre,
             $lang,
+            $str('pub_newlink_mail_heading'),
             $str('pub_newlink_mail_lead', $name),
-            $button,
-            $url,
+            ['action' => ['actionurl' => $url, 'actiontext' => $str('pub_newlink_mail_open')]],
             $str('pub_newlink_mail_foot')
         );
         foreach ($emails as $email) {
-            mail::send_rich($centre, $email, $str('pub_newlink_mail_subject', $name), $html, $text);
+            mail::send_rich($centre, $email, $subject, $html, $text, $images);
         }
         return $masked;
     }
@@ -430,16 +426,10 @@ class access {
         $contact = array_filter([(string) ($centre->email ?? ''), (string) ($centre->phone ?? '')]);
         $foot = $contact ? $str('pub_changed_mail_foot') . ' ' . implode(' · ', $contact) :
             rtrim($str('pub_changed_mail_foot'), ': ') . '.';
-        [$html, $text] = self::letter(
-            $centre,
-            $lang,
-            implode(' ', $lines),
-            '',
-            '',
-            $foot
-        );
+        $subject = $str('pub_changed_mail_subject', format_string($centre->name));
+        [$html, $text, $images] = self::letter($centre, $lang, $subject, implode(' ', $lines), [], $foot);
         foreach ($emails as $email) {
-            mail::send_rich($centre, $email, $str('pub_changed_mail_subject', format_string($centre->name)), $html, $text);
+            mail::send_rich($centre, $email, $subject, $html, $text, $images);
         }
     }
 
@@ -465,11 +455,12 @@ class access {
         $contact = array_filter([(string) ($centre->email ?? ''), (string) ($centre->phone ?? '')]);
         $foot = $contact ? $str('pub_changed_mail_foot') . ' ' . implode(' · ', $contact) :
             rtrim($str('pub_changed_mail_foot'), ': ') . '.';
-        [$html, $text] = self::letter($centre, $lang, $str('pub_added_mail_line', (object) [
+        $subject = $str('pub_changed_mail_subject', format_string($centre->name));
+        [$html, $text, $images] = self::letter($centre, $lang, $subject, $str('pub_added_mail_line', (object) [
             'name' => trim((string) $added->firstname . ' ' . (string) ($added->lastname ?? '')),
-            'value' => $value, 'centre' => format_string($centre->name)]), '', '', $foot);
+            'value' => $value, 'centre' => format_string($centre->name)]), [], $foot);
         foreach ($emails as $email) {
-            mail::send_rich($centre, $email, $str('pub_changed_mail_subject', format_string($centre->name)), $html, $text);
+            mail::send_rich($centre, $email, $subject, $html, $text, $images);
         }
     }
 
@@ -578,42 +569,31 @@ class access {
     }
 
     /**
-     * A short letter of the centre, plain and in its colour: what it says, what stands out (a code, a button) and a line
-     * at the foot.
+     * A short letter of the centre in the common mail: what it says, what stands out (a code, a button) and a line at the
+     * foot.
      *
      * @param \stdClass $centre
      * @param string $lang
+     * @param string $heading
      * @param string $lead
-     * @param string $middlehtml
-     * @param string $middletext
+     * @param array $middle One piece of the mould (the code, the button), or none.
      * @param string $foot
-     * @return string[] [html, text]
+     * @return array [html, text, images]
      */
     protected static function letter(
         \stdClass $centre,
         string $lang,
+        string $heading,
         string $lead,
-        string $middlehtml,
-        string $middletext,
+        array $middle,
         string $foot
     ): array {
-        $colour = centres::colour($centre);
-        $dir = lists::dir($lang);
-        $name = format_string($centre->name);
-        $html = '<!DOCTYPE html><html lang="' . s($lang) . '" dir="' . $dir . '"><head><meta charset="utf-8">' .
-            '<meta name="viewport" content="width=device-width, initial-scale=1"></head>' .
-            '<body style="margin:0; padding:24px 12px; background:#f6f1ea; color:#2b2226; ' .
-            'font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">' .
-            // A table of a fixed width, as Outlook (Word) reads mails: a div with max-width fills the whole window there.
-            '<table role="presentation" align="center" width="520" cellpadding="0" cellspacing="0" border="0" ' .
-            'style="width:100%; max-width:520px; margin:0 auto;"><tr><td bgcolor="#ffffff" style="background:#ffffff; ' .
-            'border-radius:14px; border-top:6px solid ' . s($colour) . '; padding:24px;">' .
-            '<p style="margin:0 0 12px; font-size:13px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; ' .
-            'color:#5f5459;">' . s($name) . '</p>' .
-            '<p style="margin:0; font-size:17px; line-height:1.5;">' . s($lead) . '</p>' . $middlehtml .
-            '<p style="margin:16px 0 0; font-size:14px; line-height:1.5; color:#5f5459;">' . s($foot) . '</p>' .
-            '</td></tr></table></body></html>';
-        $text = $name . "\n\n" . $lead . "\n\n" . ($middletext !== '' ? $middletext . "\n\n" : '') . $foot . "\n";
-        return [$html, $text];
+        $plain = fn(string $s) => commonmail::plain($s);
+        return commonmail::make($centre, $lang, [
+            'subject' => $plain($heading),
+            'preheader' => $plain($lead),
+            'heading' => $plain($heading),
+            'blocks' => array_values(array_filter([['paragraph' => $plain($lead)], $middle, ['small' => $plain($foot)]])),
+        ]);
     }
 }

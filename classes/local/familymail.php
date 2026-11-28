@@ -119,7 +119,7 @@ class familymail {
         // A student who comes on their own is written to as one person.
         publiclang::speak_to($household);
         if ($kind === 'openinvite') {
-            [$subject, $html, $plain] = self::letter(
+            [$subject, $html, $plain, $images] = self::letter(
                 self::first_name($household),
                 $centre,
                 $signup,
@@ -128,9 +128,9 @@ class familymail {
                 $text,
                 !empty($household->incentre)
             );
-            return [$subject, $html, $plain, []];
+            return [$subject, $html, $plain, $images];
         }
-        // Of an act that is not a visit: a plain letter of its own, about the act.
+        // Of an act that is not a visit: a letter of its own in the common mail, about the act.
         $act = actmail::act($kind, $signup, $centre);
         if ($act) {
             return actmail::build($kind, $household, $centre, $act, $signup, $lang, (string) ($token ?? $choose ?? ''), $text, $to);
@@ -637,9 +637,9 @@ class familymail {
     }
 
     /**
-     * The invitation to an act, as a person would write it: a few lines, one link and the name of who receives them, with
-     * no design, no pictures and no buttons. Sent to many families who have never had a mail of the centre, one with
-     * design ends in the spam of many of them. How they are written to is chosen on the page the link opens.
+     * The invitation to an act, as a person would write it: a few lines, one button and the name of who receives them, in
+     * the common mail of the Oksigenia plugins (the mould: the logo and the colours of the centre, the poster of the act
+     * when it has one, and the same words as plain text). How they are written to is chosen on the page the link opens.
      *
      * @param string $name The first name of who it goes to, or ''.
      * @param \stdClass $centre
@@ -648,7 +648,8 @@ class familymail {
      * @param string $token The private link of the family; '' for a copy to look at.
      * @param string $words What the team adds, in its own words.
      * @param bool $ofcentre Whether the family is already of the centre.
-     * @return string[] subject, html, text
+     * @return array subject, html, text, images and what the team sees of it: words (the letter as words alone), url
+     *     and go (the button).
      */
     public static function letter(
         string $name,
@@ -699,21 +700,58 @@ class familymail {
         $small = trim(($ofcentre ? '' : $str('mail_letter_why', $plain(acts::by_centre($centre, $lang))) . ' ') .
             (!empty($centre->email) && validate_email($centre->email) ? $str('mail_letter_stop') : ''));
 
-        $text = implode("\n\n", array_filter(array_merge($before, [($join !== '' ? $join : $go . ':') . "\n" . $url, $after, $small]))) . "\n";
-        $p = fn(string $html, string $style = '') => '<p style="margin:0 0 1em' . $style . '">' . $html . '</p>';
-        $line = fn(string $s) => $p(nl2br(s($s), false));
-        $html = '<!DOCTYPE html><html lang="' . ($lang === 'pt_br' ? 'pt-BR' : s($lang)) . '" dir="' . lists::dir($lang) .
-            '"><head><meta charset="utf-8"><title>' . s($event) . '</title></head><body>' .
-            '<div dir="' . lists::dir($lang) . '" style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5">' .
-            implode('', array_map($line, $before)) .
-            // The words of the link say what it does.
-            $p(($join !== '' ? s($join) . ' ' : '') . '<a href="' . s($url) . '">' . s($go) . '</a>') . $line($after) .
-            ($small !== '' ? $p(s($small), ';font-size:13px') : '') . '</div></body></html>';
-        return [acts::letter_subject($signup, $lang, $parts), $html, $text];
+        // The letter as words alone: what the team reads on the page of the act before inviting.
+        $words = implode("\n\n", array_filter(array_merge($before, [($join !== '' ? $join : $go . ':') . "\n" . $url, $after,
+            $small]))) . "\n";
+
+        // The same words in the common mail: the greeting, the lines, the poster, the button and who signs.
+        $blocks = [];
+        foreach (array_slice($before, 1) as $paragraph) {
+            foreach (preg_split('/\R/', $paragraph) as $line) {
+                if (trim($line) !== '') {
+                    $blocks[] = ['paragraph' => trim($line)];
+                }
+            }
+        }
+        if ($join !== '') {
+            $blocks[] = ['paragraph' => $join];
+        }
+        $blocks[] = ['action' => ['actionurl' => $url, 'actiontext' => $go]];
+        $hero = false;
+        $poster = !empty($signup->eventid) ? acts::poster_file((int) $signup->eventid) : null;
+        if ($poster && ($picture = commonmail::picture($poster->get_content()))) {
+            $alt = $plain(publicpage::text((string) ($signup->posteralt ?? ''))) ?: $event;
+            if ($picture['wide']) {
+                // A poster wider than tall across the top, over the band; a standing one after the button, smaller: on a
+                // phone it would leave the button out of the first screen.
+                $hero = ['bytes' => $picture['bytes'], 'alt' => $alt];
+            } else {
+                $blocks[] = ['picture' => ['picturebytes' => $picture['bytes'], 'picturealt' => $alt,
+                    'picturewidth' => commonmail::STANDING]];
+            }
+        }
+        $whatsapp = centres::whatsapp($centre, $lang);
+        $contact = implode(' · ', array_filter([self::ltr(phone::display(trim((string) ($centre->phone ?? ''))), $lang),
+            $whatsapp && !$whatsapp['same'] ? 'WhatsApp ' . self::ltr($whatsapp['text'], $lang) : ''], fn($l) => $l !== ''));
+        $subject = acts::letter_subject($signup, $lang, $parts);
+        [$html, $text, $images] = commonmail::make($centre, $lang, [
+            'subject' => $subject,
+            'preheader' => implode(' ', array_filter([$plain(acts::letter_whom($signup, $centre, $lang)),
+                $plain(acts::letter_place($signup, $centre, $lang))])),
+            'heading' => $event,
+            'hello' => $before[0],
+            'blocks' => $blocks,
+            'hero' => $hero,
+            'signature' => ['signoff' => $str('mail_letter_bye'), 'signer' => $host ? $host->name : $centrename,
+                'signrole' => $host ? (string) $host->role : ''],
+            'contact' => $contact,
+            'reason' => $small,
+        ]);
+        return [$subject, $html, $text, $images, ['words' => $words, 'url' => $url, 'go' => $go]];
     }
 
     /**
-     * A phone in a plain letter, read from left to right also inside Arabic.
+     * A phone in a letter, read from left to right also inside Arabic.
      *
      * @param string $phone
      * @param string $lang

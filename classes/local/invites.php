@@ -1481,7 +1481,8 @@ class invites {
             'timeend' => $event->timeend, 'place' => $event->place, 'hosts' => $event->hosts, 'people' => 0,
             'token' => $event->token, 'free' => (int) ($event->free ?? 0), 'kind' => $event->kind,
             'about' => $event->about ?? null, 'speakers' => $event->speakers ?? null, 'topic' => $event->topic ?? null,
-            'word' => $event->word ?? null, 'audience' => $event->audience ?? null];
+            'word' => $event->word ?? null, 'audience' => $event->audience ?? null,
+            'posteralt' => $event->posteralt ?? null];
     }
 
     /**
@@ -1494,7 +1495,7 @@ class invites {
      */
     public static function try_on(\stdClass $event, \stdClass $centre, \stdClass $user): bool {
         publiclang::$self = false;
-        [$subject, $html, $text] = familymail::letter(
+        [$subject, $html, $text, $images] = familymail::letter(
             trim((string) $user->firstname),
             $centre,
             self::of_letter($event),
@@ -1507,7 +1508,8 @@ class invites {
             (string) $user->email,
             $subject,
             get_config(self::C, 'letterplain') ? '' : $html,
-            $text
+            $text,
+            $images
         );
     }
 

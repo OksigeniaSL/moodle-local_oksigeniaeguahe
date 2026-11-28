@@ -28,7 +28,7 @@ use local_oksigeniaeguahe\local\notices;
 use local_oksigeniaeguahe\local\writeby;
 
 /**
- * What a family gets and sees after saying it comes to a talk: plain letters about it, and nothing of a visit. With example
+ * What a family gets and sees after saying it comes to a talk: letters about it, and nothing of a visit. With example
  * data.
  *
  * @package    local_oksigeniaeguahe
@@ -41,7 +41,7 @@ use local_oksigeniaeguahe\local\writeby;
 #[\PHPUnit\Framework\Attributes\CoversClass(greeting::class)]
 final class actmail_test extends \advanced_testcase {
     /** @var string[] What is of a visit and never in what is told of a talk. */
-    const VISIT = ['Leo', 'visita', 'Visita', 'mochila', 'recibe', 'esperamos', 'Su visita', 'cuesta', 'plaza'];
+    const VISIT = ['Leo', 'visita', 'Visita', 'mochila', 'recibe', 'Su visita', 'cuesta', 'plaza', 'Plaza'];
 
     /**
      * A centre, a talk of the next days and a family that asks for a place for Leo.
@@ -84,21 +84,53 @@ final class actmail_test extends \advanced_testcase {
             foreach (self::VISIT as $never) {
                 $this->assertStringNotContainsString($never, $words, $kind);
             }
-            $this->assertStringStartsWith('Hola, Ana:', $text);
+            $this->assertStringContainsString("\n\nHola, Ana:\n", $text);
             $this->assertStringContainsString('Respira', $text);
             $this->assertStringContainsString($kind === 'thanks' ? 'Les escribimos porque vinieron a «Respira».' :
-                'Les escribimos porque nos dijeron que vienen a la charla.', $text);
+                'Les escribimos porque se inscribieron en la charla.', $text);
             $this->assertStringNotContainsString('[[', $words . strip_tags($html));
         }
+        // The subject stands alone in the inbox; the title says the news and the act; the data, at a glance.
         $this->assertSame('Les guardamos sitio: charla del 4 de diciembre', $said['confirmation'][0]);
-        $this->assertStringContainsString('Les guardamos sitio en la charla «Respira», sobre respiración y atención.', $said['confirmation'][1]);
-        $this->assertStringContainsString('de 15:00 a 17:00', $said['confirmation'][1], 'Never «come when you like».');
-        $this->assertStringContainsString('Es en la Biblioteca del Colegio de ejemplo, Calle Mayor 3.', $said['confirmation'][1]);
-        $this->assertStringContainsString('Para 2 personas.', $said['confirmation'][1]);
-        $this->assertStringContainsString('www.google.com/maps/search/?api=1&query=', $said['confirmation'][1]);
+        $this->assertStringContainsString(
+            "Les guardamos sitio: Respira\n\nHola, Ana:\n\nLos esperamos. Estos son los datos:\n",
+            $said['confirmation'][1]
+        );
+        $this->assertMatchesRegularExpression(
+            '/\nCuándo: \p{Lu}\p{Ll}+ 4 de diciembre, de 15:00 a 17:00\n/u',
+            $said['confirmation'][1],
+            'Never «come when you like».'
+        );
+        $this->assertStringContainsString("\nDónde: Biblioteca del Colegio de ejemplo, Calle Mayor 3\nPersonas: 2\n", $said['confirmation'][1]);
+        $this->assertStringContainsString('Cómo llegar: https://www.google.com/maps/search/?api=1&query=', $said['confirmation'][1]);
+        $this->assertStringContainsString('Si al final no pueden venir, avísennos con un toque: No podemos ir: ', $said['confirmation'][1]);
         $this->assertStringContainsString('/j.php?t=' . $event->token . '&k=clave', $said['confirmation'][1]);
         $this->assertSame('Mañana, charla a las 15:00: respiración y atención', $said['reminder'][0]);
+        $this->assertStringContainsString("Mañana: Respira\n\nHola, Ana:\n\nLos esperamos mañana.\n", $said['reminder'][1]);
         $this->assertSame('Anulación: charla del 4 de diciembre', $said['cancelled'][0]);
+        $this->assertMatchesRegularExpression(
+            '/Se anula: Respira\n\nHola, Ana:\n\nTenemos que anular lo del \p{Ll}+ 4 de diciembre\./u',
+            $said['cancelled'][1]
+        );
+        $this->assertStringContainsString('Nos alegró mucho que vinieran a «Respira».', $said['thanks'][1]);
+        $this->assertStringContainsString('Contarnos cómo fue: ', $said['thanks'][1]);
+        // A change says what changed, with how it was under it, and the same as the team read before sending it.
+        $signup->was = (object) ['timestart' => $signup->timestart + HOURSECS, 'timeend' => $signup->timeend + HOURSECS,
+            'place' => $signup->place];
+        [, , $text] = familymail::build('change', $household, $centre, $signup, 'es', 'clave');
+        $this->assertMatchesRegularExpression(
+            '/Cambia la hora: Respira\n.*\nCuándo: .+de 15:00 a 17:00\nAntes: De 16:00 a 18:00\n/su',
+            $text
+        );
+        $this->assertStringContainsString('Cambiarlo en el calendario: ', $text);
+        $signup->was->timestart = $signup->timestart - DAYSECS;
+        $signup->was->timeend = $signup->timeend - DAYSECS;
+        $signup->was->place = 'Salón de actos';
+        [, , $text] = familymail::build('change', $household, $centre, $signup, 'es', 'clave');
+        $this->assertStringContainsString('Hay cambios: Respira', $text);
+        $this->assertMatchesRegularExpression('/\nAntes: \p{Lu}\p{Ll}+ 3 de diciembre\n/u', $text, 'Another day, the same hours.');
+        $this->assertStringContainsString("Dónde: Biblioteca del Colegio de ejemplo, Calle Mayor 3\nAntes: Salón de actos, Calle Mayor 3\n", $text);
+        unset($signup->was);
         // The calendar: the centre named once, and nothing of who receives them.
         $ics = preg_replace("/\r\n /", '', familymail::ics($household, $centre, $event, $signup, 'es', 'clave'));
         $this->assertStringContainsString('LOCATION:Biblioteca del Colegio de ejemplo', $ics);

@@ -89,14 +89,15 @@ final class invites_test extends \advanced_testcase {
         $mail = familymail::build('openinvite', $ana, $centre, (object) ['eventid' => $eventid, 'eventname' => $event->name,
             'timestart' => $event->timestart, 'timeend' => $event->timeend, 'place' => '', 'hosts' => '', 'people' => 0,
             'token' => $event->token], 'es', 'clave');
-        // A plain letter: one link, no pictures, and how to say no in words.
+        // In the common mail: one button, the same words as text, and how to say no in words; a centre without a logo or
+        // a poster, no pictures.
         $this->assertStringStartsWith('Festival de Infantil, el ', $mail[0]);
         $this->assertStringContainsString('j.php?t=' . $event->token, $mail[2]);
-        $this->assertMatchesRegularExpression('/^Hola, Ana:\n\nEl .+ tenemos «Festival de Infantil» en el colegio\./u', $mail[2]);
+        $this->assertMatchesRegularExpression('/\n\nHola, Ana:\n\nEl .+ tenemos «Festival de Infantil» en el colegio\./u', $mail[2]);
         $this->assertStringContainsString('Les escribimos porque nos dejaron su correo al preguntar por el colegio.', $mail[2]);
-        $this->assertSame(1, substr_count($mail[1], '<a '));
+        $this->assertSame(1, substr_count($mail[1], 'class="om-btn-a"'));
+        $this->assertSame(1, preg_match_all('~<a [^>]*href="~', $mail[1]));
         $this->assertStringNotContainsString('<img', $mail[1]);
-        $this->assertStringNotContainsString('<table', $mail[1]);
         $this->assertSame([], $mail[3]);
 
         $sink = $this->redirectEmails();
