@@ -93,7 +93,8 @@ final class mailer_test extends \advanced_testcase {
         $this->assertSame(['Email' => 'cartas@colegio-ejemplo.es', 'Name' => 'Admisiones'], $m['From']);
         $this->assertSame('admisiones@colegio-ejemplo.es', $m['ReplyTo']['Email']);
         $this->assertSame(['etiqueta'], array_column($m['InlinedAttachments'], 'ContentID'));
-        $this->assertSame('<https://x/baja>', $m['Headers']['List-Unsubscribe']);
+        // The one click and, beside it, a mail to the centre: as Mailjet keeps it.
+        $this->assertSame('<https://x/baja>, <mailto:admisiones@colegio-ejemplo.es?subject=Baja>', $m['Headers']['List-Unsubscribe']);
 
         \curl::mock_response(json_encode(['Messages' => [['Status' => 'success']]]));
         $sink = $this->redirectEmails();

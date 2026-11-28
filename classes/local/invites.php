@@ -300,7 +300,7 @@ class invites {
      *
      * @param \stdClass $household Changed in place.
      * @param bool $want
-     * @param string $source family or team.
+     * @param string $source family, team, or mail («Unsubscribe» pressed in the mail program).
      * @param int $userid The person of the team who noted it, if one did.
      * @param int $now
      * @return bool Whether it changed.
@@ -315,7 +315,8 @@ class invites {
             'timemodified' => $now ?: time()]);
         $centre = centres::get((int) $household->centreid);
         households::note($household, $userid, get_string_manager()->get_string(
-            'invites_noted_' . ($source === 'team' ? 'team' : 'family') . ($want ? '_on' : '_off'),
+            'invites_noted_' . ($source === 'team' ? 'team' : ($source === 'mail' && !$want ? 'mail' : 'family')) .
+                ($want ? '_on' : '_off'),
             self::C,
             null,
             (string) ($centre->lang ?? '') ?: current_language()
@@ -377,7 +378,15 @@ class invites {
         if (get_config(self::C, 'letterplain')) {
             $html = '';
         }
-        $sent = mail::send_rich($centre, households::recipient($household), $subject, $html, $text, $images);
+        $sent = mail::send_rich(
+            $centre,
+            households::recipient($household),
+            $subject,
+            $html,
+            $text,
+            $images,
+            writeby::unsubscribe_url($token, $lang)
+        );
         notices::log($household, $kind, $letter, 'email', $sent ? 'sent' : 'failed', $sent ? '' : 'mail');
         if ($sent) {
             households::told($household, $userid, 'email', get_string(

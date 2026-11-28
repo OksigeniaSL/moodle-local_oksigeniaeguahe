@@ -36,6 +36,7 @@
     Context variables required for this template:
     * lang, dir, start, end - the language; ltr or rtl; left and right (or the reverse)
     * subject, preheader - the subject (the title of the page) and the hidden line mail programs show before opening
+      (its invisible filler, three repeats only: more reads as hidden text, which Hotmail scores)
     * brand - name, unit (who writes inside the centre, or empty), site and siteurl (its address), or empty
     * logo - logocid, logowidth, logoheight, wordmark (the logo already says the name); or false
     * hero - herocid, herowidth, heroheight, heroalt: a picture across the top, over the band; herobrand, when the

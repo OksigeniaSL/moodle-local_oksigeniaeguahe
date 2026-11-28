@@ -879,11 +879,11 @@ class familymail {
             $to === null ? '' : $email
         );
         $link = (string) ($token ?? $choose ?? '');
-        // The letter of an invitation says how to stop in its own words; the header that says it too, which sends it to
-        // «Promotions», only where the site wants it (letterunsubscribe). And as plain text only, with letterplain.
+        // Every mail with a link of the family carries «Unsubscribe» for the mail program (Enrique, 28-11): pressed, it stops
+        // the invitations, and what is of their admission goes on (baja.php). Without ours, a sending service such as
+        // Mailjet puts its own, which stops everything. The letter of an act as plain text only, with letterplain.
         $letter = $kind === 'openinvite' || $act;
-        $unsubscribe = $link !== '' && (!$letter || get_config('local_oksigeniaeguahe', 'letterunsubscribe')) ?
-            writeby::unsubscribe_url($link, $lang) : '';
+        $unsubscribe = $link !== '' ? writeby::unsubscribe_url($link, $lang) : '';
         if ($letter && get_config('local_oksigeniaeguahe', 'letterplain')) {
             $html = '';
         }

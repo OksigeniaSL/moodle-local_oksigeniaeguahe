@@ -7386,6 +7386,7 @@ $string['work_week_new_one'] = 'una familia nueva';
 $string['writeby_elsewhere_note'] = 'Este teléfono también está unido a otra ficha, y allí dijeron que no quieren mensajes de admisiones por {$a}: desde ahora tampoco le llegan a esta familia por él. Lo que eligió esta familia no cambia.';
 $string['invites_noted_family_off'] = 'Han dicho que no quieren recibir invitaciones a eventos.';
 $string['invites_noted_family_on'] = 'Vuelven a querer recibir invitaciones a eventos.';
+$string['invites_noted_mail_off'] = 'Pulsaron «Cancelar suscripción» en su programa de correo: ya no se les invita a eventos. Lo de su admisión les sigue llegando.';
 $string['invites_noted_team_off'] = 'Anotado: no quieren recibir invitaciones a eventos.';
 $string['invites_noted_team_on'] = 'Anotado: vuelven a querer invitaciones a eventos.';
 $string['writeby_asked_no_note'] = 'A la pregunta por WhatsApp contestaron «No». Puede que ese teléfono no sea el suyo.';

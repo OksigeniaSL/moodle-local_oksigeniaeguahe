@@ -106,7 +106,7 @@ final class invites_test extends \advanced_testcase {
         $this->assertCount(1, $sink->get_messages());
         $sent = quoted_printable_decode($sink->get_messages()[0]->body);
         $this->assertStringContainsString('Habrá chocolate.', $sent);
-        $this->assertStringNotContainsString('List-Unsubscribe', $sink->get_messages()[0]->header);
+        $this->assertStringContainsString('List-Unsubscribe-Post: List-Unsubscribe=One-Click', $sink->get_messages()[0]->header);
         $sink->clear();
         // To see how it arrives: to whoever sends it, and it invites nobody.
         $this->assertTrue(invites::try_on($event, $centre, get_admin()));

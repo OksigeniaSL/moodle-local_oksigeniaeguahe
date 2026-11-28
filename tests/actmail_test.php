@@ -161,7 +161,7 @@ final class actmail_test extends \advanced_testcase {
         $sink = $this->redirectEmails();
         $this->assertTrue(familymail::send('confirmation', $household, $centre, $signup, 'es', 'clave'));
         $this->assertCount(1, $sink->get_messages());
-        $this->assertStringNotContainsString('List-Unsubscribe', $sink->get_messages()[0]->header);
+        $this->assertStringContainsString('List-Unsubscribe-Post: List-Unsubscribe=One-Click', $sink->get_messages()[0]->header);
         $sink->clear();
         $DB->set_field('local_oksigeniaeguahe_event', 'timestart', time() - 4 * HOURSECS, ['id' => $event->id]);
         $DB->set_field('local_oksigeniaeguahe_event', 'timeend', time() - 3 * HOURSECS, ['id' => $event->id]);

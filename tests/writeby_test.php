@@ -150,8 +150,9 @@ final class writeby_test extends \advanced_testcase {
     }
 
     /**
-     * Every mail to a family carries the one click to unsubscribe from the mail program; pressed, no more mail goes, and
-     * nothing ever leaves for the addresses of the sample data.
+     * Every mail to a family carries the one click to unsubscribe from the mail program; pressed, no more invitations go
+     * and what is of their admission goes on; asked not to be written to, no more mail goes; and nothing ever leaves for
+     * the addresses of the sample data.
      */
     public function test_unsubscribe_one_click(): void {
         $this->resetAfterTest();
@@ -166,6 +167,14 @@ final class writeby_test extends \advanced_testcase {
         $url = writeby::unsubscribe_url('clave', 'es');
         $this->assertStringContainsString('List-Unsubscribe: <' . $url . '>', $messages[0]->header);
         $this->assertStringContainsString('List-Unsubscribe-Post: List-Unsubscribe=One-Click', $messages[0]->header);
+        $sink->clear();
+
+        // Pressed (baja.php): no more invitations, a line of it in the file, and the rest goes on.
+        $this->assertTrue(invites::wanted($household, false, 'mail'));
+        $this->assertFalse(invites::wanted($household, false, 'mail'));
+        $this->assertGreaterThan(0, (int) $household->noinvites);
+        $this->assertTrue(familymail::send('received', $household, $centre, null, 'es', 'clave'));
+        $this->assertCount(1, $sink->get_messages());
         $sink->clear();
 
         $this->assertTrue(writeby::stop_email($household, $centre));

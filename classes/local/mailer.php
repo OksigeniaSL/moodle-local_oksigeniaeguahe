@@ -160,7 +160,8 @@ class mailer {
             $message['ReplyTo'] = ['Email' => $centre->email, 'Name' => $name];
         }
         if ($unsubscribe !== '') {
-            $message['Headers'] = ['List-Unsubscribe' => '<' . $unsubscribe . '>', 'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click'];
+            $message['Headers'] = ['List-Unsubscribe' => mail::list_unsubscribe($centre, $unsubscribe),
+                'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click'];
         } else if (($mailto = mail::mailto($centre)) !== '') {
             // Without it, Mailjet puts its own, and stops the address when it is pressed (mail::mailto()).
             $message['Headers'] = ['List-Unsubscribe' => '<' . $mailto . '>'];

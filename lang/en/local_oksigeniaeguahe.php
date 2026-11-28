@@ -7386,6 +7386,7 @@ $string['work_week_new_one'] = 'one new family';
 $string['writeby_elsewhere_note'] = 'This phone is also joined to another file, where they said they do not want admissions messages on {$a}: from now on this family does not get them on it either. What this family chose does not change.';
 $string['invites_noted_family_off'] = 'They said they do not want to receive invitations to events.';
 $string['invites_noted_family_on'] = 'They want to receive invitations to events again.';
+$string['invites_noted_mail_off'] = 'They pressed “Unsubscribe” in their mail program: they are no longer invited to events. What is of their admission still reaches them.';
 $string['invites_noted_team_off'] = 'Noted: they do not want to receive invitations to events.';
 $string['invites_noted_team_on'] = 'Noted: they want invitations to events again.';
 $string['writeby_asked_no_note'] = 'They answered “No” to the question on WhatsApp. That phone may not be theirs.';

@@ -16,8 +16,9 @@
 
 /**
  * «Unsubscribe» from the mail program itself (the header List-Unsubscribe, RFC 8058). The mail program posts
- * List-Unsubscribe=One-Click when the person presses it, and the mail of that family stops at once; the other ways they
- * are written to stay. Opened as a page, it only leads to the page to choose, where nothing changes until they say so.
+ * List-Unsubscribe=One-Click when the person presses it, and what can be stopped stops at once: the invitations to events
+ * (Enrique, 28-11-2026); what is of their admission (their visits, the answers, what they asked for) goes on, and a line
+ * of it stays in their file. Opened as a page, it only leads to the page to choose, where nothing changes until they say so.
  *
  * @package    local_oksigeniaeguahe
  * @copyright  2026 Oksigenia SL <dev@oksigenia.cc>
@@ -30,6 +31,7 @@ require(__DIR__ . '/../../config.php');
 
 use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
+use local_oksigeniaeguahe\local\invites;
 use local_oksigeniaeguahe\local\writeby;
 
 $token = optional_param('k', '', PARAM_ALPHANUMEXT);
@@ -39,7 +41,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && optional_param('List-Unsubs
     $household = households::by_link($token);
     $centre = $household ? centres::get((int) $household->centreid) : null;
     if ($household && $centre && empty($centre->practice)) {
-        writeby::stop_email($household, $centre);
+        invites::wanted($household, false, 'mail');
     }
     // The mail program only needs to know it was taken, whatever the link was.
     http_response_code(200);

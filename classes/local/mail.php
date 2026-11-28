@@ -140,7 +140,7 @@ class mail {
         // a bare PHPMailer would encode past 47 characters.
         if ($unsubscribe !== '') {
             // Unsubscribing from the mail program itself, with one click (RFC 8058), as Gmail, Yahoo and Outlook expect.
-            $mail->addCustomHeader('List-Unsubscribe', '<' . $unsubscribe . '>');
+            $mail->addCustomHeader('List-Unsubscribe', self::list_unsubscribe($centre, $unsubscribe));
             $mail->addCustomHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
         } else if ($way !== 'site' && ($mailto = self::mailto($centre)) !== '') {
             $mail->addCustomHeader('List-Unsubscribe', '<' . $mailto . '>');
@@ -177,6 +177,20 @@ class mail {
             $mail->smtpClose();
         }
         return $sent;
+    }
+
+    /**
+     * The header «List-Unsubscribe» of a mail with the one-click way out: that address and, beside it, a mail to the
+     * centre. Mailjet keeps a header like this one (an https address with One-Click), and puts its own in place of one
+     * with a mail only (seen on 28-11-2026, by its API and by SMTP).
+     *
+     * @param \stdClass $centre
+     * @param string $url The https address that takes the one click (baja.php).
+     * @return string
+     */
+    public static function list_unsubscribe(\stdClass $centre, string $url): string {
+        $mailto = self::mailto($centre);
+        return '<' . $url . '>' . ($mailto !== '' ? ', <' . $mailto . '>' : '');
     }
 
     /**
