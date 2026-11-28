@@ -545,6 +545,7 @@ $string['mail_tomorrow'] = 'ننتظركم غدًا،';
 $string['mail_tomorrow_nochild'] = 'ننتظركم غدًا';
 $string['mail_tomorrow_nochild_self'] = 'ننتظركم غدًا';
 $string['mail_tomorrow_self'] = 'ننتظركم غدًا،';
+$string['mail_unsub_subject'] = 'إلغاء الاشتراك';
 $string['mail_why'] = 'نراسلكم لأنكم سجّلتم لزيارة لدينا.';
 $string['mail_why_came'] = 'نراسلكم لأنكم زرتمونا.';
 $string['mail_why_came_self'] = 'نراسلكم لأنكم زرتمونا.';

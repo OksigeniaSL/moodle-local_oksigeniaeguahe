@@ -142,6 +142,8 @@ class mail {
             // Unsubscribing from the mail program itself, with one click (RFC 8058), as Gmail, Yahoo and Outlook expect.
             $mail->addCustomHeader('List-Unsubscribe', '<' . $unsubscribe . '>');
             $mail->addCustomHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+        } else if ($way !== 'site' && ($mailto = self::mailto($centre)) !== '') {
+            $mail->addCustomHeader('List-Unsubscribe', '<' . $mailto . '>');
         }
         $mail->MessageID = generate_email_messageid();
         $mail->isHTML($html !== '');
@@ -175,6 +177,23 @@ class mail {
             $mail->smtpClose();
         }
         return $sent;
+    }
+
+    /**
+     * The way out of a letter that has none of its own, by a sending service: a mail to the centre, which a person reads.
+     * A service such as Mailjet puts its own «Unsubscribe» on every mail without one, and stops the address when it is
+     * pressed, without the file of the family knowing; with ours in the header, it keeps ours.
+     *
+     * @param \stdClass $centre As the letter goes: its email is the one families answer to.
+     * @return string mailto:…?subject=…, or empty when the centre has no email.
+     */
+    public static function mailto(\stdClass $centre): string {
+        $email = trim((string) ($centre->email ?? ''));
+        if (!validate_email($email)) {
+            return '';
+        }
+        $lang = in_array((string) ($centre->lang ?? ''), lists::LANGS, true) ? (string) $centre->lang : 'en';
+        return 'mailto:' . $email . '?subject=' . rawurlencode(publiclang::str('mail_unsub_subject', $lang));
     }
 
     /**

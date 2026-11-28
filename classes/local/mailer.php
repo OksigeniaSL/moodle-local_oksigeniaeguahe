@@ -161,6 +161,9 @@ class mailer {
         }
         if ($unsubscribe !== '') {
             $message['Headers'] = ['List-Unsubscribe' => '<' . $unsubscribe . '>', 'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click'];
+        } else if (($mailto = mail::mailto($centre)) !== '') {
+            // Without it, Mailjet puts its own, and stops the address when it is pressed (mail::mailto()).
+            $message['Headers'] = ['List-Unsubscribe' => '<' . $mailto . '>'];
         }
         return $message;
     }
@@ -317,6 +320,10 @@ class mailer {
         global $DB;
         $new = 0;
         foreach ($events as $event) {
+            if (is_array($event) && ($event['event'] ?? '') === 'unsub') {
+                $new += self::unsubscribed($centreid, (string) ($event['email'] ?? ''));
+                continue;
+            }
             $dsn = is_array($event) ? self::as_returned($event) : null;
             if (
                 $dsn && $DB->record_exists_select(
@@ -329,6 +336,38 @@ class mailer {
             }
         }
         return $new;
+    }
+
+    /**
+     * «Unsubscribe» pressed in the mail program, on the header Mailjet puts on every letter it sends (and puts in place of
+     * one of ours): as the one-click way out of Eguahe (baja.php), that family is no longer written to by email, and the
+     * other ways stay. Without this, Mailjet would stop the address and the file of the family would not know.
+     *
+     * @param int $centreid
+     * @param string $email
+     * @return int How many families of the centre had that address and stopped their email now.
+     */
+    public static function unsubscribed(int $centreid, string $email): int {
+        global $DB;
+        $email = \core_text::strtolower(trim($email));
+        $centre = centres::get($centreid);
+        if (!validate_email($email) || !$centre || !empty($centre->practice)) {
+            return 0;
+        }
+        $ids = $DB->get_fieldset_select(
+            households::ADULTS,
+            'DISTINCT householdid',
+            'centreid = :centre AND ' . $DB->sql_equal('email', ':email', false),
+            ['centre' => $centreid, 'email' => $email]
+        );
+        $stopped = 0;
+        foreach ($ids as $id) {
+            $household = households::get((int) $id, $centreid);
+            if ($household && writeby::stop_email($household, $centre)) {
+                $stopped++;
+            }
+        }
+        return $stopped;
     }
 
     /**

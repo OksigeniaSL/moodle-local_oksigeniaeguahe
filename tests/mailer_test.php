@@ -21,6 +21,7 @@ use local_oksigeniaeguahe\local\centres;
 use local_oksigeniaeguahe\local\households;
 use local_oksigeniaeguahe\local\mail;
 use local_oksigeniaeguahe\local\mailer;
+use local_oksigeniaeguahe\local\writeby;
 
 /**
  * How the letters of a centre go out: by the mail of the site, or by a service of its own, tried first, never tracked, and
@@ -118,5 +119,39 @@ final class mailer_test extends \advanced_testcase {
         $this->assertSame(1, mailer::events($centreid, [['hard_bounce' => true, 'error' => 'user unknown'] + $soft], time()));
         $this->assertSame('gone', $DB->get_field(bounces::T, 'kind', ['adultid' => $adult]));
         $this->assertTrue(mailer::hook_ok($centreid, '') === false);
+    }
+
+    /**
+     * «Unsubscribe» pressed on the header Mailjet puts: the family of that address in the centre is no longer written to
+     * by email, once; the same address in another centre, nothing.
+     */
+    public function test_unsub(): void {
+        $centreid = (int) $this->centre->id;
+        $household = households::get(households::create($centreid, (object) ['lang' => 'es', 'firstchannel' => 'webform']), $centreid);
+        households::add_adult($household, (object) ['firstname' => 'Ana', 'lastname' => 'Ejemplo', 'email' => 'ana@colegio-familia.es']);
+        $household = households::get((int) $household->id, $centreid);
+        $this->assertTrue(writeby::email_ok($household, $this->centre, 'openinvite'));
+        $other = centres::create((object) ['name' => 'Otro centro', 'lang' => 'es', 'country' => 'ES']);
+        $unsub = ['event' => 'unsub', 'email' => 'ANA@colegio-familia.es', 'time' => time()];
+        $this->assertSame(0, mailer::events($other, [$unsub], time()));
+        $this->assertSame(1, mailer::events($centreid, [$unsub], time()));
+        $household = households::get((int) $household->id, $centreid);
+        $this->assertFalse(writeby::email_ok($household, $this->centre, 'openinvite'));
+        $this->assertSame(0, mailer::events($centreid, [$unsub], time()), 'Once.');
+    }
+
+    /**
+     * A letter without its own way out carries one to the centre, which a person reads, so that Mailjet does not put its
+     * own; one with the one-click way out keeps it; a centre without an email, none.
+     */
+    public function test_way_out(): void {
+        $centre = clone($this->centre);
+        $centre->email = 'admisiones@colegio-ejemplo.es';
+        $message = mailer::message($centre, 'ana@colegio-familia.es', 'Asunto', '<p>Hola</p>', 'Hola');
+        $this->assertSame(['List-Unsubscribe' => '<mailto:admisiones@colegio-ejemplo.es?subject=Baja>'], $message['Headers']);
+        $message = mailer::message($centre, 'ana@colegio-familia.es', 'Asunto', '<p>Hola</p>', 'Hola', [], 'https://example.com/baja.php');
+        $this->assertSame('List-Unsubscribe=One-Click', $message['Headers']['List-Unsubscribe-Post']);
+        $centre->email = '';
+        $this->assertArrayNotHasKey('Headers', mailer::message($centre, 'ana@colegio-familia.es', 'Asunto', '<p>Hola</p>', 'Hola'));
     }
 }
